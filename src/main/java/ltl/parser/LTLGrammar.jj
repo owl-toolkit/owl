@@ -1,0 +1,245 @@
+options
+{
+  JDK_VERSION = "1.8";
+  LOOKAHEAD= 2;
+  FORCE_LA_CHECK = true;
+  STATIC = false;
+}
+
+PARSER_BEGIN(LTLParser)
+package ltl.parser;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import ltl.*;
+
+@SuppressWarnings("ALL")
+public class LTLParser
+{
+    public BiMap<String, Integer> map = HashBiMap.create();
+
+    /**
+    * Parse with new bijection between identifiers and atoms.
+    */
+    public Formula parse() throws ParseException
+    {
+        return formula();
+    }
+}
+
+PARSER_END(LTLParser)
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < FOP : "F" >
+| < VOP : "V" >
+| < ROP : "R" >
+| < WOP : "W" >
+| < GOP : "G" >
+| < XOP : "X" >
+| < NEG : "!" >
+| < UOP : "U" >
+| < AND : "&" >
+| < OR : "|" >
+| < LPAR : "(" >
+| < RPAR : ")" >
+}
+
+TOKEN :
+{
+  < TRUE : ("true" | "1") >
+| < FALSE : ("false" | "0") >
+| < ID :
+    (
+      [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    )
+    (
+      [ "0"-"9" ]
+    | [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    )* >
+}
+
+Formula formula() :
+{
+  Formula f;
+}
+{
+  f = disjunction() < EOF >
+  {
+    return f;
+  }
+}
+
+Formula disjunction() :
+{
+  Formula r = null;
+  Formula result;
+}
+{
+  result = conjunction()
+  (
+    < OR > r = conjunction()
+    {
+      result = Disjunction.create(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula conjunction() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = until()
+  (
+    < AND > r = until()
+    {
+      result = Conjunction.create(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula until() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = release()
+  (
+    < UOP > r = release()
+    {
+ 	  result = new UOperator(result, r);
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula release() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = releasewithv()
+  (
+    < ROP > r = releasewithv()
+    {
+ 	  result = (new UOperator(result.not(), r.not())).not();
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula releasewithv() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = weak()
+  (
+    < VOP > r = weak()
+    {
+ 	  result = (new UOperator(result.not(), r.not())).not();
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula weak() :
+{
+  Formula result;
+  Formula r = null;
+}
+{
+  result = unaryOp()
+  (
+    < WOP > r = unaryOp()
+    {
+ 	  result = Disjunction.create(new UOperator(result,r), new GOperator(result));
+    }
+  )*
+  {
+    return result;
+  }
+}
+
+Formula unaryOp() :
+{
+  Formula f;
+}
+{
+  < FOP > f = unaryOp()
+  {
+    return new FOperator(f);
+  }
+| < GOP > f = unaryOp()
+  {
+    return new GOperator(f);
+  }
+| < XOP > f = unaryOp()
+  {
+    return new XOperator(f);
+  }
+| < NEG > f = unaryOp()
+  {
+    return f.not();
+  }  
+| f = atom()
+  {
+    return f;
+  }
+}
+
+Formula atom() :
+{
+  String atomString;
+  int id;
+  Formula f;
+}
+{
+  < TRUE >
+  {
+	return BooleanConstant.TRUE;
+  }
+| < FALSE >
+  {
+	return BooleanConstant.FALSE;
+  }
+| atomString = < ID >.image
+  {
+    if (!map.containsKey(atomString)) {
+        map.put(atomString, map.size());
+    }
+
+	return new Literal(map.get(atomString));
+  }
+| < LPAR > f = disjunction() < RPAR >
+  {
+    return f;
+  }
+}
