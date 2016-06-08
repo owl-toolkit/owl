@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package translations.parity2game;
+package translations.parity2arena;
 
 import ltl.Collections3;
 import omega_automaton.Automaton;
@@ -31,21 +31,21 @@ import java.util.*;
 
 public class Arena extends Automaton<Arena.State, ParityAcceptance> {
 
-    enum Player {System, Environment}
+    public enum Player {System, Environment}
 
     final ParityAutomaton automaton;
     final BitSet environmentAlphabet;
     final BitSet systemAlphabet;
     final Player firstPlayer;
 
-    protected Arena(ParityAutomaton parity, BitSet environmentAlphabet, Player firstPlayer) {
-        super(parity.valuationSetFactory);
-        automaton = parity;
+    Arena(ParityAutomaton parityAutomaton, BitSet environmentAlphabet, Player firstPlayer) {
+        super(parityAutomaton.valuationSetFactory);
+        this.automaton = parityAutomaton;
         this.firstPlayer = firstPlayer;
         this.environmentAlphabet = environmentAlphabet;
         this.systemAlphabet = (BitSet) environmentAlphabet.clone();
         this.systemAlphabet.flip(0, valuationSetFactory.getSize());
-        this.acceptance = parity.acceptance;
+        this.acceptance = parityAutomaton.acceptance;
     }
 
     @Override
@@ -92,7 +92,10 @@ public class Arena extends Automaton<Arena.State, ParityAcceptance> {
 
             // This state is controlled by the first player
             if (choice == null) {
-                return new State(state, getFirstPlayerChoice(valuation));
+                BitSet firstPlayerChoice = getFirstPlayerChoice(valuation);
+                // Drop bits that do not influence the behaviour of the state.
+                firstPlayerChoice.and(state.getSensitiveAlphabet());
+                return new State(state, firstPlayerChoice);
             }
 
             // This state is controlled by the second player
@@ -100,6 +103,7 @@ public class Arena extends Automaton<Arena.State, ParityAcceptance> {
             combinedChoice.or(choice);
             ParityAutomaton.State successor = automaton.getSuccessor(state, combinedChoice);
 
+            // If the firstPlayer is the environment, we can drop the transitions, since the system we would always lose.
             if (successor == null && firstPlayer == Player.Environment) {
                 return null;
             }
@@ -140,10 +144,18 @@ public class Arena extends Automaton<Arena.State, ParityAcceptance> {
 
         @Override
         public String toString() {
-            if (choice == null) {
-                return "[State{state=" + state + "}]";
+            if (firstPlayer == Player.Environment) {
+                if (choice == null) {
+                    return "[S=" + state + ']';
+                } else {
+                    return "(S=" + state + ", C=" + choice + ')';
+                }
             } else {
-                return "(State{state=" + state + ", env=" + choice + "})";
+                if (choice == null) {
+                    return "(S=" + state + ')';
+                } else {
+                    return "[S=" + state + ", C=" + choice + ']';
+                }
             }
         }
 
