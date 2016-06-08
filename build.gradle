@@ -1,0 +1,76 @@
+/*
+ * Copyright (C) 2016  (See AUTHORS)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+project.group = 'de.tum.in'
+project.version = '0.0.1-SNAPSHOT'
+
+repositories {
+    maven {url 'https://www7.in.tum.de/~sickert/maven/'}
+    mavenCentral()
+}
+
+dependencies {
+    compile     'com.google.guava:guava:19.0'
+    compile     'com.google.code.findbugs:jsr305:3.0.1'
+    compile files('../omega-automaton-lib/lib/jhoafparser-1.1.1.jar')
+    compile     'de.tum.in:ltl-lib:0.0.1-SNAPSHOT'
+    compile     'de.tum.in:omega-automaton-lib:0.0.1-SNAPSHOT'
+    runtime     'jdd:jdd:107-lite'
+    runtime     'net.sf.javabdd:javabdd:1.0.3'
+    testCompile 'junit:junit:4+'
+}
+
+task createAllStartScripts() << {
+     // just a placeholder
+}
+
+def scripts = [
+    'ltl2ldba':'translations.ltl2ldba.LTL2LDBA',
+    'nba2ldba':'translations.nba2ldba.NBA2LDBA',
+]
+
+scripts.each() {scriptName, className -> 
+    def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) 
+    {
+        mainClassName = className
+        applicationName = scriptName
+        outputDir = new File(project.buildDir, 'scripts')
+        classpath = jar.outputs.files + project.configurations.runtime
+    }
+    applicationDistribution.into("bin") {
+            from(t)
+            fileMode = 0755
+    }
+    createAllStartScripts.dependsOn(t)
+}
+
+mainClassName = 'foo'
+
+distributions {
+    main {
+        baseName = 'translations'
+        applicationName = 'translations'
+    }
+}
+
+// If a user file is present, include it.
+if (file('../user.gradle').exists()) {
+    apply from: '../user.gradle'
+}
