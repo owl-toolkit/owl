@@ -33,7 +33,7 @@ public class Collections3 {
      * @param set The set to be checked.
      * @return false if the the set is null or has not exactly one element.
      */
-    public static <E> boolean isSingleton(@Nullable Set<E> set) {
+    public static <E> boolean isSingleton(@Nullable Collection<E> set) {
         return set != null && set.size() == 1;
     }
 
