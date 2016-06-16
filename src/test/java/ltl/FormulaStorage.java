@@ -3,6 +3,7 @@ package ltl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import ltl.parser.Parser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 public class FormulaStorage {
     public static final Set<String> formulaeStrings = ImmutableSet.of("G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b");
 
-    public static final Set<Formula> formulae = ImmutableSet.copyOf(formulaeStrings.stream().map(Util::createFormula).collect(Collectors.toSet()));
+    public static final Set<Formula> formulae = ImmutableSet.copyOf(formulaeStrings.stream().map(Parser::formula).collect(Collectors.toSet()));
 
     public static final Map<File, List<Formula>> formulaSets = loadSets();
 
@@ -42,7 +43,7 @@ public class FormulaStorage {
                     line.trim();
 
                     if (!line.isEmpty()) {
-                        Formula formula = Util.createFormula(line);
+                        Formula formula = Parser.formula(line);
                         listBuilder.add(formula);
                     }
 

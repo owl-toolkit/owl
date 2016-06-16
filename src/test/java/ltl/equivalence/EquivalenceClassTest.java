@@ -1,9 +1,9 @@
 package ltl.equivalence;
 
+import ltl.parser.Parser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import ltl.Util;
 import ltl.*;
 import ltl.simplifier.Simplifier;
 
@@ -99,9 +99,9 @@ public abstract class EquivalenceClassTest {
 
     @Test
     public void testGetSupport() throws Exception {
-        Formula f = Util.createFormula("(F p1) & (!p2 | F p1)");
+        Formula f = Parser.formula("(F p1) & (!p2 | F p1)");
         EquivalenceClassFactory factory = setUpFactory(f);
         EquivalenceClass clazz = factory.createEquivalenceClass(f);
-        assertEquals(Collections.singleton(Util.createFormula("F p1")), clazz.getSupport());
+        assertEquals(Collections.singletonList(Parser.formula("F p1")), clazz.getSupport());
     }
 }

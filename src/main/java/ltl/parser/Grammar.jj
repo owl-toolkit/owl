@@ -1,0 +1,358 @@
+/*
+ * Copyright (C) 2016  (See AUTHORS)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+options {
+  JDK_VERSION = "1.8";
+  LOOKAHEAD = 2;
+  FORCE_LA_CHECK = true;
+  STATIC = false;
+}
+
+PARSER_BEGIN(Parser)
+
+package ltl.parser;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import ltl.*;
+import ltl.tlsf.*;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collection;
+
+@SuppressWarnings("ALL")
+public class Parser {
+    public BiMap<String, Integer> map = HashBiMap.create();
+
+    public static Formula formula(String s) {
+        return formula(s, null);
+    }
+
+    public static Formula formula(String s, BiMap<String, Integer> mapping) {
+        Parser parser = new Parser(new StringReader(s));
+
+        if (mapping != null) {
+            parser.map = mapping;
+        }
+
+        try {
+            return parser.formula();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+PARSER_END(Parser)
+
+SKIP : {" " | "\r" | "\t" | "\n" | <"//" (~["\n"])* "\n">}
+
+/* TLSF Keywords */
+TOKEN :
+{
+    < LCPAR       : "{" >
+|   < RCPAR       : "}" >
+|   < SEMIC       : ";" >
+
+|   < INFO        : "INFO" >
+|   < TITLE       : "TITLE:" >
+|   < DESCRIPTION : "DESCRIPTION:" >
+|   < SEMANTICS   : "SEMANTICS:" >
+|   < TARGET      : "TARGET:" >
+|   < TAGS        : "TAGS: " >
+
+|   < MEALY       : "Mealy" >
+|   < MOORE       : "Moore" >
+|   < MEALYSTRICT : "Mealy,Strict" >
+|   < MOORESTRICT : "Moore,Strict" >
+
+|   < MAIN        : "MAIN" >
+|   < INPUTS      : "INPUTS" >
+|   < OUTPUTS     : "OUTPUTS" >
+|   < INITIALLY   : "INITIALLY" >
+|   < PRESET      : "PRESET" >
+|   < REQUIRE     : "REQUIRE" >
+|   < ASSERT      : "ASSERT" | "INVARIANTS" > /* TLSF 1.0 backwards compatibility */
+|   < ASSUME      : "ASSUME" | "ASSUMPTIONS" > /* TLSF 1.0 backwards compatibility */
+|   < GUARANTEE   : "GUARANTEE" | "GUARANTEES" > /* TLSF 1.0 backwards compatibility */
+}
+
+/* LTL Operators */
+TOKEN :
+{
+  < FOP : "F" >
+| < GOP : "G" >
+| < XOP : "X" >
+| < UOP : "U" >
+| < VOP : "V" >
+| < ROP : "R" >
+| < WOP : "W" >
+| < NEG : "!" >
+| < AND : "&" | "&&" >
+| < OR : "|" | "||" >
+| < IMP : "->" >
+| < BIIMP : "<->" >
+| < LPAR : "(" >
+| < RPAR : ")" >
+}
+
+/* LTL Constants */
+TOKEN :
+{
+  < TRUE : ("true" | "1") >
+| < FALSE : ("false" | "0") >
+| < ID :
+    ( [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    | "_" | "@" )
+    ( [ "0"-"9" ]
+    | [ "A"-"Z" ]
+    | [ "a"-"z" ]
+    | "_" | "@" | "'")* >
+}
+
+/* Strings */
+TOKEN:
+{
+  <QUOTE:"\""> : STRING_STATE
+}
+
+<STRING_STATE> MORE :
+{
+  "\\" : ESC_STATE
+}
+
+<STRING_STATE> TOKEN :
+{
+  <ENDQUOTE:<QUOTE>> : DEFAULT
+| <CHAR:~["\"","\\"]>
+}
+
+<ESC_STATE> TOKEN :
+{
+  <CNTRL_ESC:["\"","\\","/","b","f","n","r","t"]> : STRING_STATE
+}
+
+/* TLSF */
+public TLSF tlsf() :
+{
+    ImmutableTLSF.Builder builder = ImmutableTLSF.builder();
+    String string;
+    BitSet inputs = new BitSet();
+    BitSet outputs = new BitSet();
+    Collection<Formula> elements = new ArrayList<Formula>();
+    Formula formula;
+    map = HashBiMap.create();
+}
+{
+    <INFO> <LCPAR>
+        <TITLE>       string = string() {builder.title(string);}
+        <DESCRIPTION> string = string() {builder.description(string);}
+        <SEMANTICS>
+            ( <MEALY> {builder.semantics(TLSF.Semantics.MEALY);}
+            | <MOORE> {builder.semantics(TLSF.Semantics.MOORE);}
+            | <MEALYSTRICT> {builder.semantics(TLSF.Semantics.MEALY_STRICT);}
+            | <MOORESTRICT> {builder.semantics(TLSF.Semantics.MOORE_STRICT);})
+        <TARGET>
+            ( <MEALY> {builder.target(TLSF.Semantics.MEALY);}
+            | <MOORE> {builder.target(TLSF.Semantics.MOORE);})
+    <RCPAR>
+    <MAIN> <LCPAR>
+        <INPUTS> <LCPAR>
+            (string = <ID>.image <SEMIC> {
+                int id = map.size();
+                map.put(string, id);
+                inputs.set(id);
+            })*
+        <RCPAR>
+        <OUTPUTS> <LCPAR>
+            (string = <ID>.image <SEMIC> {
+                int id = map.size();
+                map.put(string, id);
+                outputs.set(id);
+            })*
+        <RCPAR>
+        (<INITIALLY> <LCPAR>
+            (formula = formulaEmbedded() {elements.add(formula);})* {
+                builder.initially(Conjunction.create(elements.stream()));
+                elements.clear();
+            }
+        <RCPAR>)?
+        (<PRESET> <LCPAR>
+            (formula = formulaEmbedded() {elements.add(formula);})* {
+                builder.preset(Conjunction.create(elements.stream()));
+                elements.clear();
+            }
+        <RCPAR>)?
+        (<REQUIRE> <LCPAR>
+            (formula = formulaEmbedded() {elements.add(formula);})* {
+                builder.require(Conjunction.create(elements.stream()));
+                elements.clear();
+            }
+        <RCPAR>)?
+        (<ASSERT> <LCPAR>
+            (formula = formulaEmbedded() {elements.add(formula);})* {
+                builder.assert_(Conjunction.create(elements.stream()));
+                elements.clear();
+            }
+        <RCPAR>)?
+        (<ASSUME> <LCPAR>
+            (formula = formulaEmbedded() {elements.add(formula);})* {
+                builder.assume(Conjunction.create(elements.stream()));
+                elements.clear();
+            }
+        <RCPAR>)?
+        (<GUARANTEE> <LCPAR>
+            (formula = formulaEmbedded() {elements.add(formula);})* {
+                builder.guarantee(Conjunction.create(elements.stream()));
+                elements.clear();
+            }
+        <RCPAR>)?
+    <RCPAR>
+    {
+        builder.inputs(inputs);
+        builder.outputs(outputs);
+        builder.mapping(map);
+        return builder.build();
+    }
+}
+
+Formula formulaEmbedded() : { Formula f; }
+{
+    f = disjunction() <SEMIC> { return f; }
+}
+
+Formula formula() : { Formula f; }
+{
+    f = disjunction() <EOF> { return f; }
+}
+
+Formula disjunction() :
+{
+    Formula left, right;
+}
+{
+    left = conjunction() (<OR> right = conjunction() { left = Disjunction.create(left, right); })*
+    {
+        return left;
+    }
+}
+
+Formula conjunction() :
+{
+    Formula left, right;
+}
+{
+    left = binaryOp() (<AND> right = binaryOp() { left = Conjunction.create(left, right); })*
+    {
+        return left;
+    }
+}
+
+Formula binaryOp() :
+{
+    Formula left;
+    Formula right;
+}
+{
+    left = unaryOp()
+        ( <IMP>   right = unaryOp() { left = Disjunction.create(left.not(), right); }
+        | <BIIMP> right = unaryOp() { left = Conjunction.create(Disjunction.create(left.not(), right), Disjunction.create(left, right.not())); }
+        | <UOP>   right = unaryOp() { left = new UOperator(left, right); }
+        | <ROP>   right = unaryOp() { left = UOperator.create(left.not(), right.not()).not(); }
+        | <VOP>   right = unaryOp() { left = UOperator.create(left.not(), right.not()).not(); }
+        | <WOP>   right = unaryOp() { left = new Disjunction(new UOperator(left, right), new GOperator(left)); } )?
+    { return left; }
+}
+
+Formula unaryOp() :
+{
+  Formula f;
+}
+{
+      <FOP> f = unaryOp() { return new FOperator(f); }
+    | <GOP> f = unaryOp() { return new GOperator(f); }
+    | <XOP> f = unaryOp() { return new XOperator(f); }
+    | <NEG> f = unaryOp() { return f.not(); }
+    | f = atom()          { return f; }
+}
+
+Formula atom() :
+{
+    String atomString;
+    Formula f;
+}
+{
+    <TRUE>  { return BooleanConstant.TRUE; }
+|   <FALSE> { return BooleanConstant.FALSE; }
+|   atomString = <ID>.image {
+        if (!map.containsKey(atomString)) {
+            map.put(atomString, map.size());
+        }
+
+        return new Literal(map.get(atomString));
+    }
+|   <LPAR> f = disjunction() <RPAR> { return f; }
+}
+
+/**
+ * Match a quoted string.
+ */
+String string() :
+{
+  StringBuilder builder = new StringBuilder();
+}
+{
+  <QUOTE> (getChar(builder))* <ENDQUOTE>
+  {
+    return builder.toString();
+  }
+}
+
+/**
+ * Match char inside quoted string.
+ */
+void getChar(StringBuilder builder):
+{
+  Token t;
+}
+{
+  ( t = <CHAR> | t = <CNTRL_ESC> )
+  {
+    if (t.image.length() < 2)
+    {
+      // CHAR
+      builder.append(t.image.charAt(0));
+    }
+    else if (t.image.length() < 6)
+    {
+      // ESC
+      char c = t.image.charAt(1);
+      switch (c)
+      {
+        case 'b': builder.append((char) 8); break;
+        case 'f': builder.append((char) 12); break;
+        case 'n': builder.append((char) 10); break;
+        case 'r': builder.append((char) 13); break;
+        case 't': builder.append((char) 9); break;
+        default: builder.append(c);
+      }
+    }
+  }
+}

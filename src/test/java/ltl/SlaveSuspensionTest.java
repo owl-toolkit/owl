@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import ltl.parser.Parser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,21 +23,21 @@ public class SlaveSuspensionTest {
     public void setUp() throws Exception {
         visitor = RelevantGFormulaeWithSlaveSuspension.RELEVANT_G_FORMULAE_PRESENT;
         patientOnes = new HashSet<Formula>();
-        patientOnes.add(Util.createFormula("(X G a) | (X X F a)"));
-        patientOnes.add(Util.createFormula("(X G c)"));
+        patientOnes.add(Parser.formula("(X G a) | (X X F a)"));
+        patientOnes.add(Parser.formula("(X G c)"));
 
         suspendable = new HashSet<Formula>();
-        suspendable.add(Util.createFormula("G F a"));
-        suspendable.add(Util.createFormula("G F a & F G b"));
+        suspendable.add(Parser.formula("G F a"));
+        suspendable.add(Parser.formula("G F a & F G b"));
 
         universal = new HashSet<Formula>();
-        universal.add(Util.createFormula("G a"));
-        universal.add(Util.createFormula("G a & G b"));
+        universal.add(Parser.formula("G a"));
+        universal.add(Parser.formula("G a & G b"));
         universal.addAll(suspendable);
 
         eventual = new HashSet<Formula>();
-        eventual.add(Util.createFormula("F a"));
-        eventual.add(Util.createFormula("F a & F b"));
+        eventual.add(Parser.formula("F a"));
+        eventual.add(Parser.formula("F a & F b"));
         eventual.addAll(suspendable);
 
         universalWithoutSuspendable = new HashSet(universal);

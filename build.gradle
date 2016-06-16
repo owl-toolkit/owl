@@ -26,8 +26,9 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compileOnly 'org.immutables:value:2.2.5'
     compile     'com.google.guava:guava:19.0'
-    compile     'com.google.code.findbugs:jsr305:3.0.1'
     compile     'net.sf.javabdd:javabdd:1.0.3'
     runtime     'jdd:jdd:107-lite'
     testCompile 'junit:junit:4+'
