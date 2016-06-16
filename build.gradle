@@ -18,7 +18,7 @@
 apply plugin: 'java'
 
 project.group = 'de.tum.in'
-project.version = '0.0.1-SNAPSHOT'
+project.version = '0.0.2-SNAPSHOT'
 
 repositories {
     maven {url 'https://www7.in.tum.de/~sickert/maven/'}
@@ -29,8 +29,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compileOnly 'org.immutables:value:2.2.5'
     compile     'com.google.guava:guava:19.0'
-    compile     'net.sf.javabdd:javabdd:1.0.3'
-    runtime     'jdd:jdd:107-lite'
+    compile     'jdd:jdd:108'
     testCompile 'junit:junit:4+'
 }
 

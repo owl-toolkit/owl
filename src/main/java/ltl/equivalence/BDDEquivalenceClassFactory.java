@@ -17,17 +17,16 @@
 
 package ltl.equivalence;
 
-import net.sf.javabdd.BDD;
-import net.sf.javabdd.BDDFactory;
+import jdd.bdd.BDD;
 import ltl.*;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
-    final BDDFactory factory;
+    int[] vars;
+    final BDD factory;
     final Map<Formula, Integer> mapping;
     final List<Formula> reverseMapping;
     final BDDVisitor visitor;
@@ -38,30 +37,22 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     public BDDEquivalenceClassFactory(Formula formula) {
         mapping = PropositionVisitor.extractPropositions(formula);
-        reverseMapping = new ArrayList<>(mapping.size());
 
         int size = mapping.isEmpty() ? 1 : mapping.size();
 
-        factory = BDDFactory.init("jdd", 64 * size, 1000);
-        factory.setVarNum(size);
-
-        // Silence library
-        try {
-            Method m = BDDEquivalenceClassFactory.class.getDeclaredMethod("callback", int.class, Object.class);
-            factory.registerGCCallback(this, m);
-            factory.registerReorderCallback(this, m);
-            factory.registerResizeCallback(this, m);
-        } catch (SecurityException | NoSuchMethodException e) {
-            System.err.println("Failed to silence BDD library: " + e);
-        }
-
+        factory = new BDD(64 * size, 1000);
         visitor = new BDDVisitor();
-        int var = 0;
+        reverseMapping = new ArrayList<>(size);
+        vars = new int[size];
+
+        int k = 0;
 
         for (Map.Entry<Formula, Integer> entry : mapping.entrySet()) {
+            vars[k] = factory.createVar();
+            factory.ref(vars[k]);
+            entry.setValue(k);
             reverseMapping.add(entry.getKey());
-            entry.setValue(var);
-            var++;
+            k++;
         }
 
         unfoldCache = new HashMap<>();
@@ -71,18 +62,18 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     @Override
     public EquivalenceClass getTrue() {
-        return new BDDEquivalenceClass(BooleanConstant.TRUE, factory.one());
+        return new BDDEquivalenceClass(BooleanConstant.TRUE, BDD.ONE);
     }
 
     @Override
     public EquivalenceClass getFalse() {
-        return new BDDEquivalenceClass(BooleanConstant.FALSE, factory.zero());
+        return new BDDEquivalenceClass(BooleanConstant.FALSE, BDD.ZERO);
     }
 
     @Override
     public EquivalenceClass createEquivalenceClass(Formula formula, Function<Formula, Optional<Boolean>> environment) {
         visitor.environment = environment;
-        BDD bdd = formula.accept(visitor);
+        int bdd = formula.accept(visitor);
         visitor.environment = null;
         return new BDDEquivalenceClass(null, bdd);
     }
@@ -92,60 +83,67 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         return new BDDEquivalenceClass(formula, formula.accept(visitor));
     }
 
-    public void callback(int x, Object stats) {
-
-    }
-
-    private class BDDVisitor implements Visitor<BDD> {
+    private class BDDVisitor implements Visitor<Integer> {
         Function<Formula, Optional<Boolean>> environment;
 
         @Override
-        public BDD visit(BooleanConstant b) {
-            return b.value ? factory.one() : factory.zero();
+        public Integer visit(BooleanConstant b) {
+            return b.value ? BDD.ONE : BDD.ZERO;
         }
 
         @Override
-        public BDD visit(Conjunction c) {
-            BDD bdd = factory.one();
-            c.children.forEach(x -> bdd.andWith(x.accept(this)));
-            return bdd;
+        public Integer visit(Conjunction c) {
+            int x = BDD.ONE;
+
+            for (Formula child : c.children) {
+                x = factory.and(x, child.accept(this));
+            }
+
+            return x;
         }
 
         @Override
-        public BDD visit(Disjunction d) {
-            BDD bdd = factory.zero();
-            d.children.forEach(x -> bdd.orWith(x.accept(this)));
-            return bdd;
+        public Integer visit(Disjunction d) {
+            int x = BDD.ZERO;
+
+            for (Formula child : d.children) {
+                x = factory.or(x, child.accept(this));
+            }
+
+            return x;
         }
 
         @Override
-        public BDD defaultAction(Formula formula) {
+        public Integer defaultAction(Formula formula) {
             if (environment != null) {
                 Optional<Boolean> valuation = environment.apply(formula);
 
                 if (valuation.isPresent()) {
-                    return valuation.get() ? factory.one() : factory.zero();
+                    return valuation.get() ? BDD.ONE : BDD.ZERO;
                 }
             }
 
             Integer value = mapping.get(formula);
 
             if (value == null) {
-                value = factory.extVarNum(1);
-                reverseMapping.add(formula);
+                value = vars.length;
+                vars = Arrays.copyOf(vars, vars.length + 1);
+                vars[value] = factory.createVar();
                 mapping.put(formula, value);
+                reverseMapping.add(formula);
             }
 
-            return factory.ithVar(value);
+            return vars[value];
         }
     }
 
     public class BDDEquivalenceClass implements EquivalenceClass {
 
-        private final BDD bdd;
-        private final Formula representative;
+        private static final int INVALID_BDD = -1;
+        private int bdd;
+        private Formula representative;
 
-        BDDEquivalenceClass(Formula representative, BDD bdd) {
+        BDDEquivalenceClass(Formula representative, int bdd) {
             this.representative = representative;
             this.bdd = bdd;
         }
@@ -162,12 +160,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             }
 
             BDDEquivalenceClass that = (BDDEquivalenceClass) equivalenceClass;
-
-            if (!bdd.getFactory().equals(that.bdd.getFactory())) {
-                return false;
-            }
-
-            return bdd.imp(that.bdd).isOne();
+            return factory.or(bdd, that.bdd) == that.bdd;
         }
 
         @Override
@@ -211,7 +204,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass and(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                return new BDDEquivalenceClass(Conjunction.create(representative, eq.getRepresentative()), bdd.and(((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                return new BDDEquivalenceClass(Conjunction.create(representative, eq.getRepresentative()), factory.and(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
             }
 
             return createEquivalenceClass(new Conjunction(representative, eq.getRepresentative()));
@@ -220,7 +213,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass or(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                return new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), bdd.or(((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                return new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
             }
 
             return createEquivalenceClass(new Disjunction(representative, eq.getRepresentative()));
@@ -228,19 +221,37 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public boolean isTrue() {
-            return bdd.isOne();
+            return bdd == BDD.ONE;
         }
 
         @Override
         public boolean isFalse() {
-            return bdd.isZero();
+            return bdd == BDD.ZERO;
         }
 
         @Override
-        public Set<Formula> getSupport() {
-            Set<Formula> support = new HashSet<>();
-            getSupport(bdd, support);
+        public List<Formula> getSupport() {
+            List<Formula> support = new ArrayList<>();
+            int support_bdd = factory.support(bdd);
+
+            while (support_bdd >= 2) {
+                support.add(reverseMapping.get(factory.getVar(support_bdd)));
+                support_bdd = factory.getHigh(support_bdd);
+            }
+
             return support;
+        }
+
+        protected void finalize() throws Throwable {
+            if (INVALID_BDD != bdd) {
+                System.out.println("Memory Leak. Call free() on BDDEquivClass.");
+                free();
+            }
+        }
+
+        public void free() {
+            factory.deref(bdd);
+            bdd = INVALID_BDD;
         }
 
         @Override
@@ -248,23 +259,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             BDDEquivalenceClass that = (BDDEquivalenceClass) o;
-            return Objects.equals(bdd, that.bdd) && Objects.equals(bdd.getFactory(), that.bdd.getFactory());
+            return bdd == that.bdd;
         }
 
         @Override
         public int hashCode() {
-            return bdd.hashCode();
-        }
-
-        // We are not using bdd.support, since it causes a NPE. Patch available on github/javabdd.
-        private void getSupport(BDD bdd, Set<Formula> support) {
-            if (bdd.isZero() || bdd.isOne()) {
-                return;
-            }
-
-            support.add(reverseMapping.get(bdd.level()));
-            getSupport(bdd.high(), support);
-            getSupport(bdd.low(), support);
+            return Objects.hash(bdd);
         }
     }
 }

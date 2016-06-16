@@ -21,6 +21,7 @@ package ltl.equivalence;
 import ltl.Formula;
 
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -58,5 +59,7 @@ public interface EquivalenceClass {
 
     boolean isFalse();
 
-    Set<Formula> getSupport();
+    void free();
+
+    List<Formula> getSupport();
 }
