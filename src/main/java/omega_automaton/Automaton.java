@@ -100,12 +100,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
         for (Map.Entry<S, ValuationSet> entry : getSuccessors(state).entrySet()) {
             if (valuationSet.intersects(entry.getValue())) {
+                valuationSet.free();
                 return false;
             } else {
                 valuationSet.addAll(entry.getValue());
             }
         }
 
+        valuationSet.free();
         return true;
     }
 

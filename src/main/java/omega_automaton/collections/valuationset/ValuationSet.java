@@ -19,10 +19,11 @@ package omega_automaton.collections.valuationset;
 
 import ltl.Formula;
 
+import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.Set;
 
-public interface ValuationSet extends Set<BitSet>, Cloneable {
+public interface ValuationSet extends Cloneable, Iterable<BitSet> {
     ValuationSet complement();
 
     boolean isUniverse();
@@ -31,13 +32,29 @@ public interface ValuationSet extends Set<BitSet>, Cloneable {
 
     ValuationSet clone();
 
-    default boolean intersects(ValuationSet other) {
-        return !intersect(other).isEmpty();
-    }
+    boolean contains(BitSet valuation);
 
-    default ValuationSet intersect(ValuationSet other) {
-        ValuationSet thisClone = this.clone();
-        thisClone.retainAll(other);
-        return thisClone;
-    }
+    boolean containsAll(ValuationSet vs);
+
+    boolean isEmpty();
+
+    void add(@Nonnull BitSet valuation);
+
+    void addAll(@Nonnull ValuationSet newVs);
+
+    void addAllWith(@Nonnull ValuationSet other);
+
+    void removeAll(@Nonnull ValuationSet other);
+
+    void retainAll(@Nonnull ValuationSet other);
+
+    int size();
+
+    void free();
+
+    boolean intersects(ValuationSet value);
+
+    ValuationSet intersect(ValuationSet v2);
+
+
 }

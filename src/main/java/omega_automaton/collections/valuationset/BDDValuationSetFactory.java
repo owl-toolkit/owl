@@ -18,236 +18,238 @@
 package omega_automaton.collections.valuationset;
 
 import com.google.common.collect.Sets;
-import net.sf.javabdd.BDD;
-import net.sf.javabdd.BDDFactory;
+import jdd.bdd.BDD;
 import ltl.Collections3;
 import ltl.*;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.IntStream;
 
 public class BDDValuationSetFactory implements ValuationSetFactory {
 
-    final int alphabetSize;
-    final BDDFactory factory;
+    final int vars[];
+    final BDD factory;
 
     public BDDValuationSetFactory(Formula formula) {
         this(AlphabetVisitor.extractAlphabet(formula));
     }
 
     public BDDValuationSetFactory(int alphabet) {
-        alphabetSize = alphabet;
-        factory = BDDFactory.init("jdd", (32 * alphabetSize) + 32, 1000);
-        factory.setVarNum(Math.max(alphabetSize, 1));
+        vars = new int[alphabet];
+        factory = new BDD((1024 * alphabet * alphabet) + 256, 1000);
 
-        // Silence library, TODO: move to logging util class
-        try {
-            Method m = BDDValuationSetFactory.class.getDeclaredMethod("callback", int.class, Object.class);
-            factory.registerGCCallback(this, m);
-            factory.registerReorderCallback(this, m);
-            factory.registerResizeCallback(this, m);
-        } catch (SecurityException | NoSuchMethodException e) {
-            System.err.println("Failed to silence BDD library: " + e);
+        for (int i = 0; i < alphabet; i++) {
+            vars[i] = factory.createVar();
         }
     }
 
     @Override
     public BDDValuationSet createEmptyValuationSet() {
-        return new BDDValuationSet(factory.zero());
+        return new BDDValuationSet(BDD.ZERO);
     }
 
     @Override
     public BDDValuationSet createUniverseValuationSet() {
-        return new BDDValuationSet(factory.one());
+        return new BDDValuationSet(BDD.ONE);
     }
 
     @Override
     public BDDValuationSet createValuationSet(BitSet valuation) {
-        return new BDDValuationSet(createBDD(valuation, IntStream.range(0, alphabetSize)));
+        return new BDDValuationSet(createBDD(valuation));
     }
 
     @Override
     public BDDValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet) {
-        return new BDDValuationSet(createBDD(valuation, restrictedAlphabet.stream()));
+        return new BDDValuationSet(createBDD(valuation, restrictedAlphabet.stream().iterator()));
     }
 
     @Override
     public int getSize() {
-        return alphabetSize;
+        return vars.length;
     }
 
-    public void callback(int x, Object stats) {
-
-    }
-
-    static Formula createRepresentative(BDD bdd) {
-        if (bdd.isOne()) {
+    Formula createRepresentative(int bdd) {
+        if (bdd == BDD.ONE) {
             return BooleanConstant.TRUE;
         }
 
-        if (bdd.isZero()) {
+        if (bdd == BDD.ZERO) {
             return BooleanConstant.FALSE;
         }
 
-        int letter = bdd.level();
-        Formula pos = createRepresentative(bdd.high());
-        Formula neg = createRepresentative(bdd.low());
+        int letter = factory.getVar(bdd);
+        Formula pos = createRepresentative(factory.getHigh(bdd));
+        Formula neg = createRepresentative(factory.getLow(bdd));
         return Disjunction.create(Conjunction.create(new Literal(letter), pos), Conjunction.create(new Literal(letter, true), neg));
     }
 
-    BDD createBDD(int letter, boolean negate) {
-        if (letter < 0 || letter > alphabetSize) {
-            throw new IllegalArgumentException("The alphabet does not contain the following letter: " + letter);
-        }
+    int createBDD(BitSet set, PrimitiveIterator.OfInt base) {
+        int bdd = BDD.ONE;
 
-        if (negate) {
-            return factory.nithVar(letter);
-        }
+        while (base.hasNext()) {
+            int i = base.nextInt();
 
-        return factory.ithVar(letter);
-    }
-
-    BDD createBDD(BitSet set, IntStream base) {
-        final BDD bdd = factory.one();
-        base.forEach(letter -> bdd.andWith(createBDD(letter, !set.get(letter))));
-        return bdd;
-    }
-
-    static boolean isSatAssignment(BDD valuations, BitSet valuation) {
-        BDD current = valuations;
-
-        while (!current.isOne() && !current.isZero()) {
-            if (valuation.get(current.var())) {
-                current = current.high();
+            if (set.get(i)) {
+                bdd = factory.and(vars[i], bdd);
             } else {
-                current = current.low();
+                bdd = factory.and(factory.not(vars[i]), bdd);
             }
         }
 
-        return current.isOne();
+        return bdd;
     }
 
-    public class BDDValuationSet extends AbstractSet<BitSet> implements ValuationSet {
+    int createBDD(BitSet set) {
+        return createBDD(set, IntStream.range(0, vars.length).iterator());
+    }
 
-        private BDD valuations;
+    public class BDDValuationSet implements ValuationSet {
 
-        BDDValuationSet(BDD bdd) {
-            valuations = bdd;
+        private static final int INVALID_BDD = -1;
+        private int index;
+
+        BDDValuationSet(int index) {
+            this.index = index;
+            factory.ref(index);
         }
 
         @Override
         public Formula toFormula() {
-            return createRepresentative(valuations);
+            return createRepresentative(index);
         }
 
         @Override
         public boolean equals(Object o) {
-            if (o instanceof BDDValuationSet) {
-                BDD otherBDD = ((BDDValuationSet) o).valuations;
-                return otherBDD.equals(valuations);
-            }
-
-            return false;
-        }
-
-        @Override
-        public boolean isUniverse() {
-            return valuations.isOne();
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BDDValuationSet bitSets = (BDDValuationSet) o;
+            return index == bitSets.index;
         }
 
         @Override
         public int hashCode() {
-            return valuations.hashCode();
+            return Objects.hash(index);
         }
 
         @Override
-        public boolean contains(Object o) {
-            if (!(o instanceof BitSet)) {
-                return false;
-            }
-
-            return isSatAssignment(valuations, (BitSet) o);
+        public boolean isUniverse() {
+            return index == BDD.ONE;
         }
 
         @Nonnull
-        @Override
         public Iterator<BitSet> iterator() {
-            return Collections3.powerSet(alphabetSize).stream().filter(this::contains).iterator();
+            return Collections3.powerSet(vars.length).stream().filter(this::contains).iterator();
         }
 
-        @Override
         public int size() {
-            return (int) Math.round(valuations.satCount());
+            return (int) Math.round(factory.satCount(index));
         }
 
         @Override
         public boolean isEmpty() {
-            return valuations.isZero();
+            return index == BDD.ZERO;
         }
 
         @Override
-        public boolean add(BitSet v) {
-            BDDValuationSet vs = createValuationSet(v);
-            return update(vs.valuations.or(valuations));
+        public void add(@Nonnull BitSet set) {
+            int valuation = createBDD(set);
+            index = factory.orTo(index, valuation);
         }
 
         @Override
-        public boolean addAll(@Nonnull Collection<? extends BitSet> c) {
-            if (c instanceof BDDValuationSet) {
-                BDD otherValuations = ((BDDValuationSet) c).valuations;
-                BDD newValuations = valuations.or(otherValuations);
-                return update(newValuations);
+        public void addAll(@Nonnull ValuationSet other) {
+            if (other instanceof BDDValuationSet) {
+                BDDValuationSet otherSet = (BDDValuationSet) other;
+                index = factory.orTo(index, otherSet.index);
+            } else {
+                throw new UnsupportedOperationException();
             }
-
-            return super.addAll(c);
         }
 
         @Override
-        public boolean retainAll(@Nonnull Collection<?> c) {
-            if (c instanceof BDDValuationSet) {
-                BDD otherValuations = ((BDDValuationSet) c).valuations;
-                BDD newValuations = valuations.and(otherValuations);
-                return update(newValuations);
+        public void addAllWith(@Nonnull ValuationSet other) {
+            if (other instanceof BDDValuationSet) {
+                BDDValuationSet otherSet = (BDDValuationSet) other;
+                index = factory.orTo(index, otherSet.index);
+                otherSet.free();
+            } else {
+                throw new UnsupportedOperationException();
             }
-
-            return super.retainAll(c);
         }
 
         @Override
-        public boolean removeAll(@Nonnull Collection<?> c) {
-            if (c instanceof BDDValuationSet) {
-                BDD otherValuations = ((BDDValuationSet) c).valuations;
-                BDD newValuations = valuations.and(otherValuations.not());
-                return update(newValuations);
+        public void removeAll(@Nonnull ValuationSet other) {
+            if (other instanceof BDDValuationSet) {
+                BDDValuationSet otherSet = (BDDValuationSet) other;
+                index = factory.andTo(index, factory.not(otherSet.index));
+            } else {
+                throw new UnsupportedOperationException();
             }
+        }
 
-            return super.removeAll(c);
+        @Override
+        public void retainAll(@Nonnull ValuationSet other) {
+            if (other instanceof BDDValuationSet) {
+                BDDValuationSet otherSet = (BDDValuationSet) other;
+                index = factory.andTo(index, otherSet.index);
+            } else {
+                throw new UnsupportedOperationException();
+            }
         }
 
         @Override
         public ValuationSet complement() {
-            return new BDDValuationSet(valuations.not());
+            return new BDDValuationSet(factory.not(index));
         }
 
         @Override
         public BDDValuationSet clone() {
-            return new BDDValuationSet(valuations.id());
+            return new BDDValuationSet(index);
+        }
+
+        @Override
+        public void free() {
+            factory.deref(index);
+            index = INVALID_BDD;
+        }
+
+        @Override
+        public boolean contains(BitSet valuation) {
+            return factory.member(index, valuation);
+        }
+
+        @Override
+        public boolean containsAll(ValuationSet other) {
+            if (other instanceof BDDValuationSet) {
+                BDDValuationSet otherSet = (BDDValuationSet) other;
+                return factory.or(index, otherSet.index) == index;
+            }
+
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean intersects(ValuationSet other) {
+            return !intersect(other).isEmpty();
+        }
+
+        public ValuationSet intersect(ValuationSet other) {
+            ValuationSet thisClone = this.clone();
+            thisClone.retainAll(other);
+            return thisClone;
+        }
+
+        @Override
+        protected void finalize() {
+            if (INVALID_BDD != index) {
+                System.out.println("Clean up!");
+                free();
+            }
         }
 
         @Override
         public String toString() {
             return Sets.newHashSet(iterator()).toString();
-        }
-
-        private boolean update(BDD newValue) {
-            if (valuations.equals(newValue)) {
-                return false;
-            }
-
-            valuations = newValue;
-            return true;
         }
     }
 }

@@ -56,7 +56,7 @@ public interface AutomatonState<S> {
             if (oldVs == null) {
                 successors.put(successor, newVs);
             } else {
-                oldVs.addAll(newVs);
+                oldVs.addAllWith(newVs);
             }
         }
 

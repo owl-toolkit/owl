@@ -22,9 +22,6 @@ import com.google.common.collect.ImmutableBiMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import ltl.Util;
-import ltl.Formula;
-
 import java.util.*;
 
 import static org.junit.Assert.*;

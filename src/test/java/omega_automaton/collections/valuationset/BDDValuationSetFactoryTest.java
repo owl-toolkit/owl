@@ -45,6 +45,6 @@ public class BDDValuationSetFactoryTest {
 
     @Test
     public void testCreateEmptyValuationSet() throws Exception {
-        assertEquals(Collections.emptySet(), factory.createEmptyValuationSet());
+        assertEquals(0, factory.createEmptyValuationSet().size());
     }
 }
