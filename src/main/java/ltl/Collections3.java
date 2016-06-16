@@ -117,6 +117,7 @@ public class Collections3 {
             return new PowerBitSetIterator();
         }
 
+        // TODO: Performance: Zero Copy
         private class PowerBitSetIterator implements Iterator<BitSet> {
 
             BitSet next = new BitSet();
@@ -136,10 +137,6 @@ public class Collections3 {
                         break;
                     } else {
                         next.clear(i);
-                    }
-
-                    if (i == Integer.MAX_VALUE) {
-                        break; // or (i+1) would overflow
                     }
                 }
 
