@@ -243,8 +243,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         protected void finalize() throws Throwable {
-            if (INVALID_BDD != bdd) {
                 System.out.println("Memory Leak. Call free() on BDDEquivClass.");
+            if (BDD.ONE < bdd) {
                 free();
             }
         }
