@@ -21,18 +21,15 @@ import java.util.BitSet;
 import java.util.Set;
 
 public interface Formula {
+    /**
+     * Deprecated, because we can use the Visitor in rabinizer.freqencyLTL
+     */
+    @Deprecated
     Set<GOperator> gSubformulas();
 
-    Set<GOperator> topmostGs();
-
-    /**
-     * Unfold temporal operators. This is also called LTL ImmutableObject expansion.
-     *
-     * @param unfoldG If unfoldG is set to true the G-operator is also unfolded.
-     *                This is used in for the master transition system.
-     * @return The unfolded formula
-     */
     Formula unfold(boolean unfoldG);
+
+    Set<Formula> topmostOperators();
 
     /**
      * Do a single temporal step. This means that one layer of X-operators is

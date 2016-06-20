@@ -95,11 +95,6 @@ public final class Literal extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
-        return this;
-    }
-
-    @Override
     public Literal evaluate(Set<GOperator> Gs) {
         return this;
     }
@@ -110,7 +105,7 @@ public final class Literal extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Set<GOperator> topmostGs() {
+    public Set<Formula> topmostOperators() {
         return Sets.newHashSet();
     }
 
@@ -125,5 +120,10 @@ public final class Literal extends ImmutableObject implements Formula {
     @Override
     protected int hashCodeOnce() {
         return 17 * atom + 5;
+    }
+
+    @Override
+    public Formula unfold(boolean unfoldG) {
+        return this;
     }
 }

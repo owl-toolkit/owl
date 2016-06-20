@@ -17,7 +17,6 @@
 
 package ltl;
 
-
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.Set;
@@ -35,14 +34,14 @@ public abstract class ModalOperator extends ImmutableObject implements Formula {
         return getOperator() + operand.toString();
     }
 
-    @Override // to be overridden by GOperator
+    @Override
     public Set<GOperator> gSubformulas() {
         return operand.gSubformulas();
     }
 
-    @Override // to be overridden by GOperator
-    public Set<GOperator> topmostGs() {
-        return operand.topmostGs();
+    @Override //to be overridden by GOperator
+    public Set<Formula> topmostOperators() {
+        return operand.topmostOperators();
     }
 
     @Override

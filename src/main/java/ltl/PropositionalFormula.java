@@ -45,13 +45,13 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     }
 
     @Override
-    public Set<GOperator> topmostGs() {
-        return union(Formula::topmostGs);
+    public Set<Formula> topmostOperators() {
+        return union(f -> f.topmostOperators());
     }
 
     @Override
     public Set<GOperator> gSubformulas() {
-        return union(Formula::gSubformulas);
+        return union(f -> f.gSubformulas());
     }
 
     @Override

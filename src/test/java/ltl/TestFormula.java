@@ -321,7 +321,6 @@ public class TestFormula {
     @Test
     public void testEvaluateSetG() throws Exception {
         GOperator G1 = (GOperator) Parser.formula("G(p2)");
-        GOperator G2 = (GOperator) Parser.formula("G(F(G(p2)))");
         Formula formula = Parser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
         Set<GOperator> set1 = Collections.singleton(G1);
         assertEquals(Collections.emptySet(), formula.evaluate(set1).gSubformulas());
