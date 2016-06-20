@@ -21,15 +21,27 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.TranSet;
+import omega_automaton.collections.Tuple;
+import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
-public class GeneralisedRabinAcceptance implements OmegaAcceptance {
+public class GeneralisedRabinAcceptance<S> implements OmegaAcceptance {
 
-    int sets;
-    int[] pairs;
+    protected final IdentityHashMap<TranSet<S>, TranSet<S>> acceptanceToUniqueAcceptance;
+    protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
+    protected final List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
+
+    public GeneralisedRabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+        this.acceptanceCondition = acceptanceCondition;
+        this.acceptanceNumbers = new IdentityHashMap<>();
+        this.acceptanceToUniqueAcceptance = new IdentityHashMap<>();
+    }
 
     @Override
     public String getName() {
@@ -38,11 +50,11 @@ public class GeneralisedRabinAcceptance implements OmegaAcceptance {
 
     @Override
     public List<Object> getNameExtra() {
-        List<Object> extra = new ArrayList<>(pairs.length + 1);
-        extra.add(pairs.length);
+        List<Object> extra = new ArrayList<>(acceptanceCondition.size() + 1);
+        extra.add(acceptanceCondition.size());
 
-        for (int pair : pairs) {
-            extra.add(pair);
+        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+            extra.add(pair.right.size());
         }
 
         return extra;
@@ -50,21 +62,43 @@ public class GeneralisedRabinAcceptance implements OmegaAcceptance {
 
     @Override
     public int getAcceptanceSets() {
-        return sets;
+        int result = 0;
+        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+            result += 1;
+            result += pair.right.size();
+        }
+        return result;
+    }
+
+    protected int getTranSetId(TranSet<S> o) {
+        if (!acceptanceToUniqueAcceptance.containsKey(o)) {
+            for (TranSet<S> tranSet : acceptanceToUniqueAcceptance.keySet()) {
+                if (tranSet.equals(o)) {
+                    acceptanceToUniqueAcceptance.put(o, acceptanceToUniqueAcceptance.get(tranSet));
+                    break;
+                }
+            }
+        }
+
+        if (!acceptanceToUniqueAcceptance.containsKey(o)) {
+            acceptanceToUniqueAcceptance.put(o, o);
+        }
+        TranSet<S> key = acceptanceToUniqueAcceptance.get(o);
+        if (acceptanceNumbers.get(key) == null) {
+            acceptanceNumbers.put(key, acceptanceNumbers.keySet().size());
+        }
+        return acceptanceNumbers.get(key);
     }
 
     @Override
     public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-        int i = 0;
         BooleanExpression<AtomAcceptance> disjunction = null;
 
-        for (int pair : pairs) {
-            BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkFin(i);
-            i++;
+        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+            BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkFin(getTranSetId(pair.left));
 
-            for (int j = pair; j > 0; j--) {
-                conjunction.and(HOAConsumerExtended.mkInf(i));
-                i++;
+            for (int j = 0; j < pair.right.size(); j++) {
+                conjunction.and(HOAConsumerExtended.mkInf(getTranSetId(pair.right.get(j))));
             }
 
             if (disjunction == null) {
@@ -75,5 +109,41 @@ public class GeneralisedRabinAcceptance implements OmegaAcceptance {
         }
 
         return disjunction;
+    }
+
+    public Set<ValuationSet> getMaximallyMergedEdgesOfEdge(S currentState, ValuationSet initialValuation) {
+        Set<ValuationSet> result = new HashSet<>();
+        result.add(initialValuation);
+
+        for (TranSet<S> acceptanceCondition : acceptanceNumbers.keySet()) {
+            result = splitAccordingToAcceptanceSet(currentState, result, acceptanceCondition);
+        }
+
+        return result;
+    }
+
+    protected Set<ValuationSet> splitAccordingToAcceptanceSet(S currentState, Set<ValuationSet> result, TranSet<S> acceptanceCondition) {
+        Set<ValuationSet> toRemove = new HashSet<>();
+        Set<ValuationSet> toAdd = new HashSet<>();
+
+        for (ValuationSet edge : result) {
+            ValuationSet interestingValuationSet = acceptanceCondition.asMap().get(currentState);
+            if (interestingValuationSet != null && interestingValuationSet.intersects(edge) && !interestingValuationSet.containsAll(edge)) {
+                toRemove.add(edge);
+                toAdd.add(edge.intersect(interestingValuationSet));
+                toAdd.add(edge.intersect(interestingValuationSet.complement()));
+            }
+        }
+
+        result.removeAll(toRemove);
+        result.addAll(toAdd);
+        return result;
+    }
+
+    public List<Integer> getInvolvedAcceptanceNumbers(S currentState, ValuationSet edgeKey) {
+        List<Integer> result = new ArrayList<>();
+        acceptanceNumbers.keySet().stream().filter(set -> set.containsAll(currentState, edgeKey)).forEach(set -> result.add(acceptanceNumbers.get(set)));
+        return result;
+
     }
 }
