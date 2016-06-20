@@ -44,9 +44,9 @@ public final class UOperator extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Set<GOperator> topmostGs() {
-        Set<GOperator> result = left.topmostGs();
-        result.addAll(right.topmostGs());
+    public Set<Formula> topmostOperators() {
+        Set<Formula> result = left.topmostOperators();
+        result.addAll(right.topmostOperators());
         return result;
     }
 
@@ -69,8 +69,7 @@ public final class UOperator extends ImmutableObject implements Formula {
 
     @Override
     public Formula not() {
-        return Disjunction.create(GOperator.create(right.not()),
-                UOperator.create(right.not(), Conjunction.create(left.not(), right.not())));
+        return Disjunction.create(GOperator.create(right.not()), UOperator.create(right.not(), Conjunction.create(left.not(), right.not())));
     }
 
     @Override

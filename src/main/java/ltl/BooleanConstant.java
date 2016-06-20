@@ -111,7 +111,7 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Set<GOperator> topmostGs() {
+    public Set<Formula> topmostOperators() {
         return Sets.newHashSet();
     }
 

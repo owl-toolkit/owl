@@ -17,19 +17,14 @@
 
 package ltl;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public final class FOperator extends ModalOperator {
+public class FOperator extends ModalOperator {
 
     public FOperator(Formula f) {
         super(f);
-    }
-
-    @Override
-    public Formula unfold(boolean unfoldG) {
-        // U(F phi) = U(phi) \/ X F U(phi)
-        return new Disjunction(operand.unfold(unfoldG), this);
     }
 
     @Override
@@ -74,13 +69,11 @@ public final class FOperator extends ModalOperator {
 
     @Override
     public Formula evaluate(Set<GOperator> Gs) {
-        Formula operand = this.operand.evaluate(Gs);
-
-        if (operand == this.operand) {
-            return this;
+        Formula op = operand.evaluate(Gs);
+        if (!op.equals(operand)) {
+            return create(op);
         }
-
-        return create(operand.evaluate(Gs));
+        return this;
     }
 
     @Override
@@ -107,5 +100,15 @@ public final class FOperator extends ModalOperator {
     @Override
     protected int hashCodeOnce() {
         return Objects.hash(FOperator.class, operand);
+    }
+
+    @Override
+    public Set<Formula> topmostOperators() {
+        return operand.topmostOperators();
+    }
+
+    @Override
+    public Formula unfold(boolean unfoldG) {
+        return new Disjunction(operand.unfold(unfoldG), this);
     }
 }

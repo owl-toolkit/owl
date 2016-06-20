@@ -17,12 +17,11 @@
 
 package ltl;
 
-import com.google.common.collect.Sets;
-
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public final class GOperator extends ModalOperator {
+public class GOperator extends ModalOperator {
 
     public GOperator(Formula f) {
         super(f);
@@ -43,7 +42,7 @@ public final class GOperator extends ModalOperator {
     }
 
     @Override
-    public FOperator not() {
+    public ModalOperator not() {
         return new FOperator(operand.not());
     }
 
@@ -58,10 +57,12 @@ public final class GOperator extends ModalOperator {
     public BooleanConstant evaluate(Set<GOperator> Gs) {
         return BooleanConstant.get(Gs.contains(this));
     }
-
-    @Override
-    public Set<GOperator> topmostGs() {
-        return Sets.newHashSet(this);
+    
+    @Override 
+    public Set<Formula> topmostOperators() {
+        Set<Formula> result=new HashSet<>();
+        result.add(this);
+        return result;
     }
 
     @Override
