@@ -20,7 +20,24 @@ package omega_automaton.acceptance;
 import java.util.Collections;
 import java.util.List;
 
-public class RabinAcceptance extends GeneralisedRabinAcceptance {
+import omega_automaton.collections.TranSet;
+import omega_automaton.collections.Tuple;
+
+public class RabinAcceptance<S> extends GeneralisedRabinAcceptance<S> {
+
+    public RabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+        super(acceptanceCondition);
+        checkIfValidArgument(acceptanceCondition);
+    }
+
+    private void checkIfValidArgument(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+            if (pair.right.size() != 1) {
+                throw new IllegalArgumentException("Acceptance condition is not a Rabin condition.");
+            }
+        }
+
+    }
 
     @Override
     public String getName() {
@@ -29,6 +46,6 @@ public class RabinAcceptance extends GeneralisedRabinAcceptance {
 
     @Override
     public List<Object> getNameExtra() {
-        return Collections.singletonList(pairs.length);
+        return Collections.singletonList(this.acceptanceCondition.size());
     }
 }

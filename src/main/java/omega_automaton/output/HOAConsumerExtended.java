@@ -37,7 +37,7 @@ public class HOAConsumerExtended {
 
     private final HOAConsumer hoa;
     private final Map<AutomatonState<?>, Integer> stateNumbers;
-    private AutomatonState<?> currentState;
+    protected AutomatonState<?> currentState;
 
     public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, BiMap<String, Integer> aliases, OmegaAcceptance acceptance, AutomatonState<?> initialState, int size) {
         this.hoa = hoa;
@@ -138,7 +138,7 @@ public class HOAConsumerExtended {
         }
     }
 
-    private void addEdgeBackend(ValuationSet label, AutomatonState<?> end, List<Integer> accSets) {
+    protected void addEdgeBackend(ValuationSet label, AutomatonState<?> end, List<Integer> accSets) {
         if (label.isEmpty()) {
             return;
         }
