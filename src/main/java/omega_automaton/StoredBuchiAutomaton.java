@@ -37,9 +37,18 @@ import java.util.*;
 
 public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
 
-    protected StoredBuchiAutomaton(ValuationSetFactory factory, BuchiAcceptance acceptance) {
+    private static final BitSet ACC;
+    private static final BitSet REJ;
+
+    static {
+        ACC = new BitSet();
+        ACC.set(0);
+        REJ = new BitSet();
+    }
+
+    StoredBuchiAutomaton(ValuationSetFactory factory) {
         super(factory);
-        this.acceptance = acceptance;
+        this.acceptance = new BuchiAcceptance();
     }
 
     State addState() {
@@ -51,31 +60,20 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         return state;
     }
 
-    void updateState(State state, String label, boolean accepting) {
-        // Update label
-        state.label = label;
+    void addTransition(State source, boolean accepting, ValuationSet label, State successor) {
+        Map<Edge<State>, ValuationSet> transition = transitions.get(source);
 
-        // Update acceptance indices
-        BitSet indices = new BitSet();
-        indices.set(0, accepting);
-        acceptanceIndices.put(state, Collections.singletonMap(indices, valuationSetFactory.createUniverseValuationSet()));
-    }
-
-    void addTransition(State source, ValuationSet label, State successor) {
-        Map<State, ValuationSet> transition = transitions.get(source);
-
-        ValuationSet oldLabel = transition.get(successor);
+        ValuationSet oldLabel = transition.get(new Edge<>(successor, accepting ? ACC : REJ));
 
         if (oldLabel == null) {
-            transition.put(successor, label);
+            transition.put(new Edge<>(successor, new BitSet()), label);
         } else {
             oldLabel.addAll(label);
         }
     }
 
     public boolean isAccepting(State state) {
-        BitSet bs = Collections3.getElement(acceptanceIndices.get(state).keySet());
-        return bs.get(0);
+        return Collections3.getElement(transitions.get(state).keySet()).acceptance.get(0);
     }
 
     public static class State implements AutomatonState<State> {
@@ -84,13 +82,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
         @Nullable
         @Override
-        public State getSuccessor(BitSet valuation) {
-            throw new UnsupportedOperationException("Stored Automaton State cannot perform on-demand computations.");
-        }
-
-        @Nonnull
-        @Override
-        public Map<BitSet, ValuationSet> getAcceptanceIndices() {
+        public Edge<State> getSuccessor(BitSet valuation) {
             throw new UnsupportedOperationException("Stored Automaton State cannot perform on-demand computations.");
         }
 
@@ -115,11 +107,11 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
         private final Deque<StoredBuchiAutomaton> automata = new ArrayDeque<>();
         private StoredBuchiAutomaton automaton;
-        private BuchiAcceptance acceptance;
         private ValuationSetFactory valuationSetFactory;
         private Integer initialState;
         private State[] integerToState;
         private int implicitEdgeCounter;
+        private BitSet acceptingStates;
 
         @Override
         public boolean parserResolvesAliases() {
@@ -132,6 +124,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             integerToState = null;
             initialState = null;
             automaton = null;
+            acceptingStates = null;
         }
 
         @Override
@@ -157,18 +150,12 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         public void setAPs(List<String> list) throws HOAConsumerException {
             BiMap<String, Integer> aliases = HashBiMap.create(list.size());
             list.forEach(ap -> aliases.put(ap, aliases.size()));
-            // TODO: find place to store aliases
             valuationSetFactory = new BDDValuationSetFactory(list.size());
         }
 
         @Override
         public void setAcceptanceCondition(int i, BooleanExpression<AtomAcceptance> booleanExpression) throws HOAConsumerException {
-            //if (i == 0 && (acceptance instanceof AllAcceptance || acceptance instanceof NoneAcceptance)) {
-            //    return;
-            //}
-
-            // TODO: better checks
-            if (i == 1 && acceptance instanceof BuchiAcceptance && booleanExpression.isAtom()) {
+            if (i == 1 && booleanExpression.isAtom()) {
                 return;
             }
 
@@ -177,21 +164,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
         @Override
         public void provideAcceptanceName(String s, List<Object> list) throws HOAConsumerException {
-            switch (s) {
-                case "all":
-                    //acceptance = new AllAcceptance();
-                    break;
-
-                case "none":
-                    //acceptance = new NoneAcceptance();
-                    break;
-
-                case "Buchi":
-                    acceptance = new BuchiAcceptance();
-                    break;
-
-                default:
-                    throw new HOAConsumerException("Unsupported Acceptance: " + s);
+            if (!s.equals("Buchi")) {
+                throw new HOAConsumerException("Unsupported Acceptance: " + s);
             }
         }
 
@@ -221,9 +195,10 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
                 valuationSetFactory = new BDDValuationSetFactory(BooleanConstant.TRUE);
             }
 
-            automaton = new StoredBuchiAutomaton(valuationSetFactory, acceptance);
+            automaton = new StoredBuchiAutomaton(valuationSetFactory);
             ensureSpaceInMap(initialState);
             integerToState[initialState] = automaton.initialState = automaton.addState();
+            acceptingStates = new BitSet();
         }
 
         @Override
@@ -240,7 +215,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             }
 
             // Update label and acceptance marking for state.
-            automaton.updateState(state, label, isAcceptingState(list));
+            state.label = label;
+            acceptingStates.set(i, isAcceptingState(list));
         }
 
         private static boolean isAcceptingState(List<Integer> list) throws HOAConsumerException {
@@ -249,13 +225,13 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             }
 
             if (!Collections3.isSingleton(list)) {
-                throw new HOAConsumerException("Only state Büchi Acceptance is supported.");
+                throw new HOAConsumerException("Only state-based Büchi Acceptance is supported.");
             }
 
             Integer element = Collections3.getElement(list);
 
             if (element != 0) {
-                throw new HOAConsumerException("Only state Büchi Acceptance is supported. Malformed index: " + element);
+                throw new HOAConsumerException("Only state-based Büchi Acceptance is supported. Malformed index: " + element);
             }
 
             return true;
@@ -290,7 +266,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
                 integerToState[index] = successor = automaton.addState();
             }
 
-            automaton.addTransition(source, toValuationSet(booleanExpression), successor);
+            automaton.addTransition(source, acceptingStates.get(i), toValuationSet(booleanExpression), successor);
         }
 
         @Override
@@ -314,8 +290,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             // No operation
         }
 
-        public List<StoredBuchiAutomaton> getAutomata() {
-            return new ArrayList<>(automata);
+        public Iterable<StoredBuchiAutomaton> getAutomata() {
+            return automata;
         }
 
         private void ensureSpaceInMap(int id) {

@@ -27,24 +27,34 @@ import java.util.*;
 
 // TODO: migrate to abstract class?
 public interface AutomatonState<S> {
-
+    
     ValuationSetFactory getFactory();
 
+    @Nonnull
+    default BitSet getSensitiveAlphabet() {
+        BitSet a = new BitSet();
+        a.set(0, getFactory().getSize(), true);
+        return a;
+    }
+
     /**
-     * @param valuation
+     * Compute the successor of a state and return the corresponding edge. The acceptance indices are additionally
+     * stored in the {@link Edge}
+     *
+     * @param valuation set of letters read.
      * @return null is returned if the transition would move to a non-accepting BSCC.
      */
     @Nullable
-    S getSuccessor(BitSet valuation);
+    Edge<S> getSuccessor(BitSet valuation);
 
     @Nonnull
-    default Map<S, ValuationSet> getSuccessors() {
+    default Map<Edge<S>, ValuationSet> getSuccessors() {
         ValuationSetFactory factory = getFactory();
         BitSet sensitiveAlphabet = getSensitiveAlphabet();
-        Map<S, ValuationSet> successors = new LinkedHashMap<>();
+        Map<Edge<S>, ValuationSet> successors = new LinkedHashMap<>();
 
         for (BitSet valuation : Collections3.powerSet(sensitiveAlphabet)) {
-            S successor = getSuccessor(valuation);
+            Edge<S> successor = getSuccessor(valuation);
 
             if (successor == null) {
                 continue;
@@ -61,17 +71,5 @@ public interface AutomatonState<S> {
         }
 
         return successors;
-    }
-
-    @Nonnull
-    default BitSet getSensitiveAlphabet() {
-        BitSet a = new BitSet();
-        a.set(0, getFactory().getSize(), true);
-        return a;
-    }
-
-    @Nullable
-    default Map<BitSet,ValuationSet> getAcceptanceIndices() {
-        return null;
     }
 }

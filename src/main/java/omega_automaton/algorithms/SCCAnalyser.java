@@ -22,7 +22,6 @@ import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.collections.TranSet;
 import omega_automaton.collections.TarjanStack;
-import omega_automaton.collections.valuationset.ValuationSet;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +39,7 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
     private int n = 0;
 
     private SCCAnalyser(Automaton<S, ?> a) {
-        this(a, a.getStates(), new TranSet<>(a.valuationSetFactory));
+        this(a, a.getStates(), new TranSet<>(a.getFactory()));
     }
 
     private SCCAnalyser(Automaton<S, ?> a, Set<S> allowedStates, TranSet<S> forbiddenEdges) {
@@ -65,7 +64,6 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
      * vertices, ordered such that for each transition a->b in the
      * condensation graph, a is in the list before b
      */
-
     public static <S extends AutomatonState<S>> List<Set<S>> SCCsStates(Automaton<S, ?> a) {
         SCCAnalyser<S> s = new SCCAnalyser<>(a);
         s.stack.push(a.getInitialState());
@@ -107,10 +105,10 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         number.put(v, n);
         List<Set<S>> result = new ArrayList<>();
 
-        for (Map.Entry<S, ValuationSet> entry : automaton.getSuccessors(v).entrySet()) {
+        automaton.getSuccessors(v).forEach((edge, valuation) -> {
             // edge not forbidden
-            if (!forbiddenEdges.containsAll(v, entry.getValue())) {
-                S w = entry.getKey();
+            if (!forbiddenEdges.containsAll(v, valuation)) {
+                S w = edge.successor;
 
                 if (allowedStates.contains(w) && !number.containsKey(w)) {
                     stack.push(w);
@@ -120,7 +118,7 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
                     lowlink.put(v, Math.min(lowlink.get(v), number.get(w)));
                 }
             }
-        }
+        });
 
         if (lowlink.get(v).equals(number.get(v))) {
             Set<S> set = new HashSet<>();
@@ -136,17 +134,15 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         return result;
     }
 
-    public static <S extends AutomatonState<S>> TranSet<S> sccToTran(Automaton aut, Set<S> scc, TranSet<S> forbiddenEdges) {
-        TranSet<S> result = new TranSet<>(aut.valuationSetFactory);
+    public static <S extends AutomatonState<S>> TranSet<S> sccToTran(Automaton<S, ?> aut, Set<S> scc, TranSet<S> forbiddenEdges) {
+        TranSet<S> result = new TranSet<>(aut.getFactory());
 
-        for (S s : scc) {
-            Map<S, ValuationSet> map = aut.getSuccessors(s);
-            for (Map.Entry<S, ValuationSet> succ : map.entrySet()) {
-                if (scc.contains(succ.getKey())) {
-                    result.addAll(s, succ.getValue());
-                }
+        scc.forEach(s -> aut.getSuccessors(s).forEach((edge, valuation) -> {
+            if (scc.contains(edge.successor)) {
+                result.addAll(s, valuation);
             }
-        }
+        }));
+
         result.removeAll(forbiddenEdges);
         return result;
     }

@@ -241,8 +241,8 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         protected void finalize() {
-            if (INVALID_BDD != index) {
-                System.out.println("Clean up!");
+            if (BDD.ONE < index) {
+                // System.out.println("Memory Leak. Call free() on BDDValuationSet.");
                 free();
             }
         }

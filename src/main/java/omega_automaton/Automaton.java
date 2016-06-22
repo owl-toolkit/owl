@@ -19,6 +19,7 @@ package omega_automaton;
 
 import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
+import ltl.Collections3;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.collections.valuationset.ValuationSet;
@@ -28,27 +29,17 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-// TODO: clarify relation between, nondeterministic/deterministic transition relation acceptance.
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> {
 
     @Nullable
-    public S initialState;
-    protected final Map<S, Map<S, ValuationSet>> transitions;
-    protected final Map<S, Map<BitSet, ValuationSet>> acceptanceIndices;
-    public Acc acceptance;
+    protected S initialState;
+    protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
+    protected Acc acceptance;
 
-    public final ValuationSetFactory valuationSetFactory;
-
-    protected Automaton(Automaton<S, Acc> a) {
-        initialState = a.initialState;
-        transitions = a.transitions;
-        acceptanceIndices = a.acceptanceIndices;
-        valuationSetFactory = a.valuationSetFactory;
-    }
+    protected final ValuationSetFactory valuationSetFactory;
 
     protected Automaton(ValuationSetFactory factory) {
         transitions = new HashMap<>();
-        acceptanceIndices = new HashMap<>();
         valuationSetFactory = factory;
     }
 
@@ -62,16 +53,15 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             return;
         }
 
-        Queue<S> workList = new ArrayDeque<>();
+        Set<S> workList = new HashSet<>();
         workList.add(initialState);
 
         while (!workList.isEmpty()) {
-            S current = workList.remove();
-            Collection<S> next = getSuccessors(current).keySet();
+            S current = Collections3.removeElement(workList);
 
-            for (S successor : next) {
-                if (!transitions.containsKey(successor)) {
-                    workList.add(successor);
+            for (Edge<S> successor : getSuccessors(current).keySet()) {
+                if (!transitions.containsKey(successor.successor)) {
+                    workList.add(successor.successor);
                 }
             }
         }
@@ -82,13 +72,23 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     public boolean isSink(S state) {
-        ValuationSet valuationSet = getSuccessors(state).get(state);
-        return valuationSet != null && valuationSet.isUniverse();
+        for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
+            if (!entry.getKey().successor.equals(state) && !entry.getValue().isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public boolean isTransient(S state) {
-        ValuationSet valuationSet = getSuccessors(state).get(state);
-        return valuationSet == null || valuationSet.isEmpty();
+        for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
+            if (entry.getKey().successor.equals(state) && !entry.getValue().isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public boolean isDeterministic() {
@@ -98,7 +98,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     public boolean isDeterministic(S state) {
         ValuationSet valuationSet = valuationSetFactory.createEmptyValuationSet();
 
-        for (Map.Entry<S, ValuationSet> entry : getSuccessors(state).entrySet()) {
+        for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
             if (valuationSet.intersects(entry.getValue())) {
                 valuationSet.free();
                 return false;
@@ -112,8 +112,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     @Nullable
-    public S getSuccessor(S state, BitSet valuation) {
-        for (Map.Entry<S, ValuationSet> transition : getSuccessors(state).entrySet()) {
+    public Edge<S> getSuccessor(S state, BitSet valuation) {
+        for (Map.Entry<Edge<S>, ValuationSet> transition : getSuccessors(state).entrySet()) {
             if (transition.getValue().contains(valuation)) {
                 return transition.getKey();
             }
@@ -125,49 +125,21 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     public Set<S> getSuccessors(S state, BitSet valuation) {
         Set<S> successors = new HashSet<>();
 
-        for (Map.Entry<S, ValuationSet> transition : getSuccessors(state).entrySet()) {
+        for (Map.Entry<Edge<S>, ValuationSet> transition : getSuccessors(state).entrySet()) {
             if (transition.getValue().contains(valuation)) {
-                successors.add(transition.getKey());
+                successors.add(transition.getKey().successor);
             }
         }
 
         return successors;
     }
 
-    public Map<S, ValuationSet> getSuccessors(S state) {
-        Map<S, ValuationSet> row = transitions.get(state);
+    public Map<Edge<S>, ValuationSet> getSuccessors(S state) {
+        Map<Edge<S>, ValuationSet> row = transitions.get(state);
 
         if (row == null) {
             row = state.getSuccessors();
             transitions.put(state, row);
-        }
-
-        return row;
-    }
-
-    public boolean hasAcceptanceIndex(S state, int i, BitSet valuation) {
-        BitSet indices = getAcceptanceIndices(state, valuation);
-        return indices != null && indices.get(i);
-    }
-
-    public BitSet getAcceptanceIndices(S state, BitSet valuation) {
-        Map<BitSet, ValuationSet> row = getAcceptanceIndices(state);
-
-        for (Map.Entry<BitSet, ValuationSet> entry : row.entrySet()) {
-            if (entry.getValue().contains(valuation)) {
-                return entry.getKey();
-            }
-        }
-
-        return null;
-    }
-
-    public Map<BitSet, ValuationSet> getAcceptanceIndices(S state) {
-        Map<BitSet, ValuationSet> row = acceptanceIndices.get(state);
-
-        if (row == null) {
-            row = state.getAcceptanceIndices();
-            acceptanceIndices.put(state, row);
         }
 
         return row;
@@ -204,9 +176,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * This method removes unused states and their in- and outgoing transitions.
      * If the set dependsOn the initial state, it becomes an automaton with the
      * only state false. Use this method only if you are really sure you want to
-     * remove the states! The method is designed for the assumptions, that only
-     * nonaccepting SCCs are deleted, and the idea is also that everything,
-     * which is deleted will be replaced with a trap state (in makeComplete).
+     * remove the states!
      *
      * @param states: Set of states that is to be removed
      */
@@ -221,7 +191,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
     public void removeStatesIf(Predicate<S> predicate) {
         transitions.keySet().removeIf(predicate);
-        transitions.forEach((k, v) -> v.keySet().removeIf(predicate));
+        transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.successor)));
 
         if (predicate.test(initialState)) {
             initialState = null;
@@ -230,6 +200,10 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
     public ValuationSetFactory getFactory() {
         return valuationSetFactory;
+    }
+
+    public Acc getAcceptance() {
+        return acceptance;
     }
 
     protected S generateInitialState() {
@@ -247,43 +221,6 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return scc.stream().allMatch(s -> scc.containsAll(getSuccessors(s).keySet()));
     }
 
-    /**
-     * The method replaces antecessor by replacement. Both must be in the
-     * states-set (and both must not be null) when calling the method.
-     * Antecessor gets deleted during the method, and the transitions to
-     * antecessor will be recurved towards replacement.
-     * <p>
-     * The method throws an IllegalArgumentException, when one of the parameters
-     * is not in the states-set
-     */
-    protected void replaceBy(S antecessor, S replacement) {
-        if (!(transitions.containsKey(antecessor) && transitions.containsKey(replacement))) {
-            throw new IllegalArgumentException();
-        }
-
-        transitions.remove(antecessor).clear();
-
-        for (Map<S, ValuationSet> edges : transitions.values()) {
-            ValuationSet vs = edges.get(antecessor);
-
-            if (vs == null) {
-                continue;
-            }
-
-            ValuationSet vs2 = edges.get(replacement);
-
-            if (vs2 == null) {
-                edges.put(replacement, vs);
-            } else {
-                vs2.addAll(vs);
-            }
-        }
-
-        if (antecessor.equals(initialState)) {
-            initialState = replacement;
-        }
-    }
-
     private void getReachableStates(Set<S> states) {
         Deque<S> workList = new ArrayDeque<>(states);
 
@@ -291,8 +228,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             S state = workList.remove();
 
             getSuccessors(state).forEach((suc, v) -> {
-                if (states.add(suc)) {
-                    workList.add(suc);
+                if (states.add(suc.successor)) {
+                    workList.add(suc.successor);
                 }
             });
         }
@@ -307,22 +244,18 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     public final void toHOABody(HOAConsumerExtended hoa) {
         for (S s : getStates()) {
             hoa.addState(s);
-            getSuccessors(s).forEach((k, v) -> {
-                Map<BitSet, ValuationSet> acceptanceIndices = getAcceptanceIndices(s);
-
-                if (acceptanceIndices != null) {
-                    acceptanceIndices.forEach((b, v2) -> hoa.addEdge(v.intersect(v2), k, b));
-                } else {
-                    hoa.addEdge(v, k);
-                }
-            });
-
+            getSuccessors(s).forEach((k, v) -> hoa.addEdge(v, k.successor, k.acceptance));
             toHOABodyEdge(s, hoa);
-
             hoa.stateDone();
         }
     }
 
+    /**
+     * Override this method, if you want output additional edges for {@param state} not present in {@link Automaton#transitions}.
+     *
+     * @param state
+     * @param hoa
+     */
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
         // NOP.
     }
