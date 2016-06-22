@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("all")
 public class Parser {
     public BiMap<String, Integer> map = HashBiMap.create();
 
@@ -111,6 +111,40 @@ TOKEN :
 | < LPAR : "(" >
 | < RPAR : ")" >
 }
+
+
+/* Frequency Tokens 
+	Note that Frequency G has the syntax: G^{ <LIM> COMP NUMBER} fLTL-formula
+	for example a valid syntax is G^{ inf >= 0.6} F a or G^{ >= 0.6} [nothing means lim inf]
+*/
+TOKEN: 
+{
+	<FREQG : "G^">
+}
+TOKEN:
+{
+	<GEQ : ">=" >
+	| <LEQ : "<=" >
+	| <GT  : ">"  >
+	| <LT  : "<"  >
+}
+TOKEN:
+{
+	<SUP : "sup" >
+	| <INF : "inf" >
+}
+
+
+TOKEN:
+{
+	<NUMBER :
+		(["0"-"9"])+
+		|(["0"-"9"])+ "." (["0"-"9"])+
+		|(["0"-"9"])+ "."
+		| "." (["0"-"9"])+
+	>
+}
+
 
 /* LTL Constants */
 TOKEN :
@@ -287,10 +321,22 @@ Formula unaryOp() :
 }
 {
       <FOP> f = unaryOp() { return new FOperator(f); }
-    | <GOP> f = unaryOp() { return new GOperator(f); }
+    | <GOP> f = GOp() { return f; }
     | <XOP> f = unaryOp() { return new XOperator(f); }
     | <NEG> f = unaryOp() { return f.not(); }
     | f = atom()          { return f; }
+}
+
+GOperator GOp():
+{
+	Formula f;
+	double number;
+  	CompOperator op;
+  	Lim limes;
+}
+{
+	 <LCPAR> limes=lim() op =comp() number= getNumber() <RCPAR> f=unaryOp() { return new FrequencyG(f, number, op, limes); }
+	 |  f=unaryOp() {return new GOperator(f); }
 }
 
 Formula atom() :
@@ -309,6 +355,32 @@ Formula atom() :
         return new Literal(map.get(atomString));
     }
 |   <LPAR> f = disjunction() <RPAR> { return f; }
+}
+
+CompOperator comp() :
+{
+}
+{
+	<GEQ>{ return CompOperator.GEQ; }
+    | <GT>{ return CompOperator.GT; }
+    | <LEQ>{ return CompOperator.LEQ; }
+    | <LT> { return CompOperator.LT; }
+}
+
+Lim lim() :
+{
+}
+{
+    <SUP>{ return Lim.SUP; }
+    | [<INF>]{ return Lim.INF;}
+}
+
+double getNumber() :
+{
+	Token t;
+}
+{
+	t=<NUMBER> { return Double.parseDouble(t.image); }
 }
 
 /**

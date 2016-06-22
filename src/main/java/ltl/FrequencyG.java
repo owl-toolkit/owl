@@ -1,25 +1,26 @@
 package ltl;
 
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
-//TODO maybe refine according to dimension lim sup/lim inf
 public class FrequencyG extends GOperator {
+
+    private static final double EPSILON = 1e-12;
 
     private final double bound;
     private final CompOperator cmp;
+    private final Lim limes;
 
-    public FrequencyG(Formula f, double bound, CompOperator cmp) {
+    public FrequencyG(Formula f, double bound, CompOperator cmp, Lim limes) {
         super(f);
         this.bound = bound;
         this.cmp = cmp;
+        this.limes = limes;
     }
 
     @Override
     public FrequencyG not() {
-        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate());
+        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate(), limes.theOther());
     }
 
     @Override
@@ -42,7 +43,6 @@ public class FrequencyG extends GOperator {
         return v.visit(this, f, c);
     }
 
-    // TODO: maybe we can define it, shouldn't a FreqentG be always suspendable?
     @Override
     public boolean isPureEventual() {
         throw new UnsupportedOperationException("To my best knowledge not defined");
@@ -58,12 +58,12 @@ public class FrequencyG extends GOperator {
         throw new UnsupportedOperationException("To my best knowledge not defined");
     }
 
-    public static Formula create(Formula operand, double bound, CompOperator cmp) {
+    public static Formula create(Formula operand, double bound, CompOperator cmp, Lim limes) {
         if (operand instanceof BooleanConstant) {
             return operand;
         }
 
-        return new FrequencyG(operand, bound, cmp);
+        return new FrequencyG(operand, bound, cmp, limes);
     }
 
     @Override
@@ -73,16 +73,25 @@ public class FrequencyG extends GOperator {
 
     @Override
     protected int hashCodeOnce() {
-        return Objects.hash(FrequencyG.class, operand, bound, cmp);
+        return Objects.hash(FrequencyG.class, operand, bound, cmp, limes);
     }
 
     @Override
     public String toString() {
-        return "G^{" + cmp.toString() + bound + "} " + operand.toString();
+        return "G^{" + limes.toString() + cmp.toString() + bound + "} " + operand.toString();
     }
 
     @Override
     public char getOperator() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof FrequencyG)) {
+            return false;
+        }
+        FrequencyG fg = (FrequencyG) o;
+        return this.operand.equals(fg.operand) && Math.abs(this.bound - fg.bound) < EPSILON && this.cmp == fg.cmp && this.limes == fg.limes;
     }
 }
