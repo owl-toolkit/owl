@@ -46,7 +46,7 @@ public class ParityAcceptance implements OmegaAcceptance {
 
     @Override
     public int getAcceptanceSets() {
-        return colors;
+        return colors + 1;
     }
 
     @Override
