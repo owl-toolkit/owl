@@ -113,38 +113,17 @@ TOKEN :
 }
 
 
-/* Frequency Tokens 
-	Note that Frequency G has the syntax: G^{ <LIM> COMP NUMBER} fLTL-formula
-	for example a valid syntax is G^{ inf >= 0.6} F a or G^{ >= 0.6} [nothing means lim inf]
-*/
+/* Frequency LTL Operators */
 TOKEN: 
 {
-	<FREQG : "G^">
+	< FREQG : "G^">
+|   < GEQ : ">=" >
+|   < LEQ : "<=" >
+|   < GT  : ">"  >
+|   < LT  : "<"  >
+|   < SUP : "sup" >
+|   < INF : "inf" >
 }
-TOKEN:
-{
-	<GEQ : ">=" >
-	| <LEQ : "<=" >
-	| <GT  : ">"  >
-	| <LT  : "<"  >
-}
-TOKEN:
-{
-	<SUP : "sup" >
-	| <INF : "inf" >
-}
-
-
-TOKEN:
-{
-	<NUMBER :
-		(["0"-"9"])+
-		|(["0"-"9"])+ "." (["0"-"9"])+
-		|(["0"-"9"])+ "."
-		| "." (["0"-"9"])+
-	>
-}
-
 
 /* LTL Constants */
 TOKEN :
@@ -159,6 +138,13 @@ TOKEN :
     | [ "A"-"Z" ]
     | [ "a"-"z" ]
     | "_" | "@" | "'")* >
+}
+
+/* Decimal Numbers */
+
+TOKEN:
+{
+	< NUMBER : (["0"-"9"])+ (".")? (["0"-"9"])* | (["0"-"9"])* (".")? (["0"-"9"])+ >
 }
 
 /* Strings */
@@ -317,26 +303,19 @@ Formula binaryOp() :
 
 Formula unaryOp() :
 {
-  Formula f;
+    Formula f;
+    String number;
+    CompOperator op;
+    Lim limes;
 }
 {
       <FOP> f = unaryOp() { return new FOperator(f); }
-    | <GOP> f = GOp() { return f; }
+    | <FREQG> <LCPAR> (<SUP> { limes = Lim.SUP; } | [<INF>]{ limes = Lim.INF; }) op = comp() number = <NUMBER>.image <RCPAR> f = unaryOp()
+        { return new FrequencyG(f, Double.parseDouble(number), op, limes); }
+    | <GOP> f = unaryOp() { return f; }
     | <XOP> f = unaryOp() { return new XOperator(f); }
     | <NEG> f = unaryOp() { return f.not(); }
     | f = atom()          { return f; }
-}
-
-GOperator GOp():
-{
-	Formula f;
-	double number;
-  	CompOperator op;
-  	Lim limes;
-}
-{
-	 <LCPAR> limes=lim() op =comp() number= getNumber() <RCPAR> f=unaryOp() { return new FrequencyG(f, number, op, limes); }
-	 |  f=unaryOp() {return new GOperator(f); }
 }
 
 Formula atom() :
@@ -357,30 +336,12 @@ Formula atom() :
 |   <LPAR> f = disjunction() <RPAR> { return f; }
 }
 
-CompOperator comp() :
+CompOperator comp() : {}
 {
-}
-{
-	<GEQ>{ return CompOperator.GEQ; }
-    | <GT>{ return CompOperator.GT; }
-    | <LEQ>{ return CompOperator.LEQ; }
-    | <LT> { return CompOperator.LT; }
-}
-
-Lim lim() :
-{
-}
-{
-    <SUP>{ return Lim.SUP; }
-    | [<INF>]{ return Lim.INF;}
-}
-
-double getNumber() :
-{
-	Token t;
-}
-{
-	t=<NUMBER> { return Double.parseDouble(t.image); }
+    <GEQ> { return CompOperator.GEQ; }
+|   <GT>  { return CompOperator.GT; }
+|   <LEQ> { return CompOperator.LEQ; }
+|   <LT>  { return CompOperator.LT; }
 }
 
 /**

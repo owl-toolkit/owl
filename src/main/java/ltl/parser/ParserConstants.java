@@ -97,13 +97,13 @@ public interface ParserConstants {
   /** RegularExpression Id. */
   int INF = 48;
   /** RegularExpression Id. */
-  int NUMBER = 49;
+  int TRUE = 49;
   /** RegularExpression Id. */
-  int TRUE = 50;
+  int FALSE = 50;
   /** RegularExpression Id. */
-  int FALSE = 51;
+  int ID = 51;
   /** RegularExpression Id. */
-  int ID = 52;
+  int NUMBER = 52;
   /** RegularExpression Id. */
   int QUOTE = 53;
   /** RegularExpression Id. */
@@ -171,10 +171,10 @@ public interface ParserConstants {
     "\"<\"",
     "\"sup\"",
     "\"inf\"",
-    "<NUMBER>",
     "<TRUE>",
     "<FALSE>",
     "<ID>",
+    "<NUMBER>",
     "\"\\\"\"",
     "\"\\\\\"",
     "<ENDQUOTE>",
