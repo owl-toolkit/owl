@@ -48,10 +48,10 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
     StoredBuchiAutomaton(ValuationSetFactory factory) {
         super(factory);
-        this.acceptance = new BuchiAcceptance();
+        acceptance = new BuchiAcceptance();
     }
 
-    State addState() {
+    private State addState() {
         State state = new State();
 
         // Add to transition table
@@ -60,13 +60,15 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         return state;
     }
 
-    void addTransition(State source, boolean accepting, ValuationSet label, State successor) {
+    private void addTransition(State source, boolean accepting, ValuationSet label, State successor) {
         Map<Edge<State>, ValuationSet> transition = transitions.get(source);
 
-        ValuationSet oldLabel = transition.get(new Edge<>(successor, accepting ? ACC : REJ));
+        Edge<State> edge = new Edge<>(successor, accepting ? ACC : REJ);
+
+        ValuationSet oldLabel = transition.get(edge);
 
         if (oldLabel == null) {
-            transition.put(new Edge<>(successor, new BitSet()), label);
+            transition.put(edge, label);
         } else {
             oldLabel.addAll(label);
         }
