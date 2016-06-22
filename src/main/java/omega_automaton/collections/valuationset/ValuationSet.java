@@ -21,13 +21,19 @@ import ltl.Formula;
 
 import javax.annotation.Nonnull;
 import java.util.BitSet;
-import java.util.Set;
 
+/**
+ * This interface is very similar to {@link java.util.Set<BitSet>} but breaks on purpose several standard contracts, such
+ * as returning a boolean, if the operation changes the underlying data-structure. This information is never used and it is
+ * costly to support this.
+ */
 public interface ValuationSet extends Cloneable, Iterable<BitSet> {
     ValuationSet complement();
 
     boolean isUniverse();
 
+    // TODO: Decouple from ltl-lib
+    @Deprecated
     Formula toFormula();
 
     ValuationSet clone();
@@ -42,6 +48,10 @@ public interface ValuationSet extends Cloneable, Iterable<BitSet> {
 
     void addAll(@Nonnull ValuationSet newVs);
 
+    /**
+     * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.
+     * @param other the other valuation set.
+     */
     void addAllWith(@Nonnull ValuationSet other);
 
     void removeAll(@Nonnull ValuationSet other);
@@ -55,6 +65,4 @@ public interface ValuationSet extends Cloneable, Iterable<BitSet> {
     boolean intersects(ValuationSet value);
 
     ValuationSet intersect(ValuationSet v2);
-
-
 }
