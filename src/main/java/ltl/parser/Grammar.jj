@@ -188,42 +188,42 @@ public TLSF tlsf() :
                 outputs.set(id);
             })*
         <RCPAR>
-        (<INITIALLY> <LCPAR>
+        ((<INITIALLY> <LCPAR>
             (formula = formulaEmbedded() {elements.add(formula);})* {
                 builder.initially(Conjunction.create(elements.stream()));
                 elements.clear();
             }
-        <RCPAR>)?
+        <RCPAR>) |
         (<PRESET> <LCPAR>
             (formula = formulaEmbedded() {elements.add(formula);})* {
                 builder.preset(Conjunction.create(elements.stream()));
                 elements.clear();
             }
-        <RCPAR>)?
+        <RCPAR>) |
         (<REQUIRE> <LCPAR>
             (formula = formulaEmbedded() {elements.add(formula);})* {
                 builder.require(Conjunction.create(elements.stream()));
                 elements.clear();
             }
-        <RCPAR>)?
+        <RCPAR>) |
         (<ASSERT> <LCPAR>
             (formula = formulaEmbedded() {elements.add(formula);})* {
                 builder.assert_(Conjunction.create(elements.stream()));
                 elements.clear();
             }
-        <RCPAR>)?
+        <RCPAR>) |
         (<ASSUME> <LCPAR>
             (formula = formulaEmbedded() {elements.add(formula);})* {
                 builder.assume(Conjunction.create(elements.stream()));
                 elements.clear();
             }
-        <RCPAR>)?
+        <RCPAR>) |
         (<GUARANTEE> <LCPAR>
             (formula = formulaEmbedded() {elements.add(formula);})* {
                 builder.guarantee(Conjunction.create(elements.stream()));
                 elements.clear();
             }
-        <RCPAR>)?
+        <RCPAR>))+
     <RCPAR>
     {
         builder.inputs(inputs);
