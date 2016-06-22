@@ -30,10 +30,10 @@ dependencies {
     compile     'com.google.guava:guava:19.0'
     compile     'com.google.code.findbugs:jsr305:3.0.1'
     compile files('lib/jhoafparser-1.1.1.jar')
-    compile     'de.tum.in:ltl-lib:0.0.1-SNAPSHOT'
-    compile     'de.tum.in:omega-automaton-lib:0.0.1-SNAPSHOT'
-    runtime     'jdd:jdd:107-lite'
-    runtime     'net.sf.javabdd:javabdd:1.0.3'
+    compile     'de.tum.in:ltl-lib:0.0.2-SNAPSHOT'
+    compile     'de.tum.in:omega-automaton-lib:0.0.2-SNAPSHOT'
+    compile     'it.unimi.dsi:fastutil:7.0.12'
+    runtime     'jdd:jdd:108'
     testCompile 'junit:junit:4+'
 }
 
@@ -61,7 +61,7 @@ scripts.each() {scriptName, className ->
     createAllStartScripts.dependsOn(t)
 }
 
-mainClassName = 'foo'
+mainClassName = 'enteEnteEnteEnteEnteGANS'
 
 distributions {
     main {
