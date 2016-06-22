@@ -13,10 +13,9 @@ import omega_automaton.collections.valuationset.ValuationSetFactory;
 
 public class HOAConsumerGeneralisedRabin extends HOAConsumerExtended {
 
-
     private GeneralisedRabinAcceptance<AutomatonState<?>> acceptance;
 
-    public HOAConsumerGeneralisedRabin(HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String,Integer> aliases, AutomatonState<?> initialState, GeneralisedRabinAcceptance accCond, int size) {
+    public HOAConsumerGeneralisedRabin(HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String,Integer> aliases, AutomatonState<?> initialState, GeneralisedRabinAcceptance<AutomatonState<?>> accCond, int size) {
         super(hoa, valuationSetFactory, aliases, accCond, initialState, size);
         this.acceptance = accCond;
     }
@@ -31,6 +30,5 @@ public class HOAConsumerGeneralisedRabin extends HOAConsumerExtended {
             addEdgeBackend(edgeKey, end, accSets);
         }
     }
-
 }
 
