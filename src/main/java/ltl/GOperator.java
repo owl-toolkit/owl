@@ -17,7 +17,6 @@
 
 package ltl;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -56,13 +55,6 @@ public class GOperator extends ModalOperator {
     @Override
     public BooleanConstant evaluate(Set<GOperator> Gs) {
         return BooleanConstant.get(Gs.contains(this));
-    }
-    
-    @Override 
-    public Set<Formula> topmostOperators() {
-        Set<Formula> result=new HashSet<>();
-        result.add(this);
-        return result;
     }
 
     @Override

@@ -29,8 +29,6 @@ public interface Formula {
 
     Formula unfold(boolean unfoldG);
 
-    Set<Formula> topmostOperators();
-
     /**
      * Do a single temporal step. This means that one layer of X-operators is
      * removed and literals are replaced by their valuations.

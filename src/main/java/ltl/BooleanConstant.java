@@ -111,11 +111,6 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Set<Formula> topmostOperators() {
-        return Sets.newHashSet();
-    }
-
-    @Override
     protected int hashCodeOnce() {
         return Boolean.hashCode(value);
     }

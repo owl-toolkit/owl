@@ -104,11 +104,6 @@ public final class Literal extends ImmutableObject implements Formula {
         return Sets.newHashSet();
     }
 
-    @Override
-    public Set<Formula> topmostOperators() {
-        return Sets.newHashSet();
-    }
-
     public int getAtom() {
         return Math.abs(atom) - 1;
     }

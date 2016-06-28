@@ -44,13 +44,6 @@ public final class UOperator extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Set<Formula> topmostOperators() {
-        Set<Formula> result = left.topmostOperators();
-        result.addAll(right.topmostOperators());
-        return result;
-    }
-
-    @Override
     public boolean equals2(ImmutableObject o) {
         UOperator uOperator = (UOperator) o;
         return Objects.equals(left, uOperator.left) && Objects.equals(right, uOperator.right);

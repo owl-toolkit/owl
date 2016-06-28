@@ -17,7 +17,6 @@
 
 package ltl;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -100,11 +99,6 @@ public class FOperator extends ModalOperator {
     @Override
     protected int hashCodeOnce() {
         return Objects.hash(FOperator.class, operand);
-    }
-
-    @Override
-    public Set<Formula> topmostOperators() {
-        return operand.topmostOperators();
     }
 
     @Override

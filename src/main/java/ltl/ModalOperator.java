@@ -39,11 +39,6 @@ public abstract class ModalOperator extends ImmutableObject implements Formula {
         return operand.gSubformulas();
     }
 
-    @Override //to be overridden by GOperator
-    public Set<Formula> topmostOperators() {
-        return operand.topmostOperators();
-    }
-
     @Override
     public boolean equals2(ImmutableObject o) {
         ModalOperator that = (ModalOperator) o;
