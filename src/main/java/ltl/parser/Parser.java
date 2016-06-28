@@ -345,7 +345,7 @@ limes = Lim.INF;
     } else if (jj_2_35(2)) {
       jj_consume_token(GOP);
       f = unaryOp();
-{if ("" != null) return f;}
+{if ("" != null) return new GOperator(f);}
     } else if (jj_2_36(2)) {
       jj_consume_token(XOP);
       f = unaryOp();

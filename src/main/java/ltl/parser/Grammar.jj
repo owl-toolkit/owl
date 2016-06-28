@@ -312,7 +312,7 @@ Formula unaryOp() :
       <FOP> f = unaryOp() { return new FOperator(f); }
     | <FREQG> <LCPAR> (<SUP> { limes = Lim.SUP; } | [<INF>]{ limes = Lim.INF; }) op = comp() number = <NUMBER>.image <RCPAR> f = unaryOp()
         { return new FrequencyG(f, Double.parseDouble(number), op, limes); }
-    | <GOP> f = unaryOp() { return f; }
+    | <GOP> f = unaryOp() { return new GOperator(f); }
     | <XOP> f = unaryOp() { return new XOperator(f); }
     | <NEG> f = unaryOp() { return f.not(); }
     | f = atom()          { return f; }

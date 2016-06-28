@@ -1,31 +1,36 @@
-/*
- * Copyright (C) 2016  (See AUTHORS)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+package ltl.parser;
 
-package ltl.tlsf;
-
-import ltl.parser.ParseException;
-import ltl.parser.Parser;
+import ltl.*;
+import ltl.tlsf.TLSF;
 import org.junit.Test;
 
 import java.io.StringReader;
 
 import static org.junit.Assert.*;
 
-public class TLSFTest {
+public class ParserTest {
+
+    private static final String[] INPUT = {
+            "!a",
+            "G a",
+            "F a & X b",
+            "(a -> b) U c"
+    };
+
+    private static final Formula[] FORMULAS = {
+            new Literal(0, true),
+            new GOperator(new Literal(0)),
+            new Conjunction(new FOperator(new Literal(0)), new XOperator(new Literal(1))),
+            new UOperator(new Disjunction(new Literal(0, true), new Literal(1)), new Literal(2))
+    };
+
+    @Test
+    public void formula() throws Exception {
+        for (int i = 0; i < INPUT.length; i++) {
+            Parser parser = new Parser(new StringReader(INPUT[i]));
+            assertEquals(FORMULAS[i], parser.formula());
+        }
+    }
 
     private static final String TLSF1 = "INFO {\n" +
             "  TITLE:       \"LTL -> DBA  -  Example 12\"\n" +
