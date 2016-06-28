@@ -72,4 +72,8 @@ public interface AutomatonState<S> {
 
         return successors;
     }
+
+    default void free() {
+
+    }
 }

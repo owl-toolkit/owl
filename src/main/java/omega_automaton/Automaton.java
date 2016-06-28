@@ -259,4 +259,17 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
         // NOP.
     }
+
+    public void free() {
+        initialState = null;
+        acceptance = null;
+
+        transitions.forEach((k, v) -> {
+            k.free();
+            v.forEach((e, val) -> {
+                e.successor.free();
+                val.free();
+            });
+        });
+    }
 }
