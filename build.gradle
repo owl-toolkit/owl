@@ -18,7 +18,7 @@
 apply plugin: 'java'
 
 project.group = 'de.tum.in'
-project.version = '0.0.2-SNAPSHOT'
+project.version = '0.0.4'
 
 repositories {
     maven {url 'https://www7.in.tum.de/~sickert/maven/'}
@@ -29,7 +29,7 @@ dependencies {
     compile     'com.google.guava:guava:19.0'
     compile     'com.google.code.findbugs:jsr305:3.0.1'
     compile     'jdd:jdd:108'
-    compile     'de.tum.in:ltl-lib:0.0.2-SNAPSHOT'
+    compile     'de.tum.in:ltl-lib:0.0.4'
     compile files('lib/jhoafparser-1.1.1.jar')
     testCompile 'junit:junit:4+'
 }
