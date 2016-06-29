@@ -19,6 +19,11 @@ public class FrequencyG extends GOperator {
     }
 
     @Override
+    public FrequencyG unfold(boolean unfoldG) {
+        return this;
+    }
+
+    @Override
     public FrequencyG not() {
         return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate(), limes.theOther());
     }
