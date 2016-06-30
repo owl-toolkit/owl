@@ -7,9 +7,9 @@ public class FrequencyG extends GOperator {
 
     private static final double EPSILON = 1e-12;
 
-    private final double bound;
-    private final CompOperator cmp;
-    private final Lim limes;
+    public final double bound;
+    public final CompOperator cmp;
+    public final Lim limes;
 
     public FrequencyG(Formula f, double bound, CompOperator cmp, Lim limes) {
         super(f);
