@@ -20,6 +20,7 @@ package omega_automaton;
 import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
 import ltl.Collections3;
+import omega_automaton.acceptance.AllAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.collections.valuationset.ValuationSet;
@@ -235,13 +236,13 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         }
     }
 
-    public final void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
-        HOAConsumerExtended hoa = new HOAConsumerExtended(ho, valuationSetFactory, aliases, acceptance, initialState, size());
+    public void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
+        HOAConsumerExtended hoa = new HOAConsumerExtended(ho, valuationSetFactory, aliases, acceptance != null ? acceptance : new AllAcceptance(), initialState, size());
         toHOABody(hoa);
         hoa.done();
     }
 
-    public final void toHOABody(HOAConsumerExtended hoa) {
+    public void toHOABody(HOAConsumerExtended hoa) {
         for (S s : getStates()) {
             hoa.addState(s);
             getSuccessors(s).forEach((k, v) -> hoa.addEdge(v, k.successor, k.acceptance));

@@ -30,8 +30,11 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import javax.annotation.Nonnull;
 
 public class HOAConsumerExtended {
 
@@ -39,7 +42,8 @@ public class HOAConsumerExtended {
     private final Map<AutomatonState<?>, Integer> stateNumbers;
     protected AutomatonState<?> currentState;
 
-    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, BiMap<String, Integer> aliases, OmegaAcceptance acceptance, AutomatonState<?> initialState, int size) {
+    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
+            int size) {
         this.hoa = hoa;
         stateNumbers = new HashMap<>(size);
 
