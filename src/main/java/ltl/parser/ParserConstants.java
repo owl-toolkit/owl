@@ -83,35 +83,33 @@ public interface ParserConstants {
   /** RegularExpression Id. */
   int RPAR = 41;
   /** RegularExpression Id. */
-  int FREQG = 42;
+  int GEQ = 42;
   /** RegularExpression Id. */
-  int GEQ = 43;
+  int LEQ = 43;
   /** RegularExpression Id. */
-  int LEQ = 44;
+  int GT = 44;
   /** RegularExpression Id. */
-  int GT = 45;
+  int LT = 45;
   /** RegularExpression Id. */
-  int LT = 46;
+  int SUP = 46;
   /** RegularExpression Id. */
-  int SUP = 47;
+  int INF = 47;
   /** RegularExpression Id. */
-  int INF = 48;
+  int TRUE = 48;
   /** RegularExpression Id. */
-  int TRUE = 49;
+  int FALSE = 49;
   /** RegularExpression Id. */
-  int FALSE = 50;
+  int ID = 50;
   /** RegularExpression Id. */
-  int ID = 51;
+  int NUMBER = 51;
   /** RegularExpression Id. */
-  int NUMBER = 52;
+  int QUOTE = 52;
   /** RegularExpression Id. */
-  int QUOTE = 53;
+  int ENDQUOTE = 54;
   /** RegularExpression Id. */
-  int ENDQUOTE = 55;
+  int CHAR = 55;
   /** RegularExpression Id. */
-  int CHAR = 56;
-  /** RegularExpression Id. */
-  int CNTRL_ESC = 57;
+  int CNTRL_ESC = 56;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -164,7 +162,6 @@ public interface ParserConstants {
     "\"<->\"",
     "\"(\"",
     "\")\"",
-    "\"G^\"",
     "\">=\"",
     "\"<=\"",
     "\">\"",

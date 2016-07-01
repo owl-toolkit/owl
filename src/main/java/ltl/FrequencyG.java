@@ -11,7 +11,7 @@ public class FrequencyG extends GOperator {
     public final CompOperator cmp;
     public final Lim limes;
 
-    public FrequencyG(Formula f, double bound, CompOperator cmp, Lim limes) {
+    protected FrequencyG(Formula f, double bound, CompOperator cmp, Lim limes) {
         super(f);
         this.bound = bound;
         this.cmp = cmp;
@@ -25,7 +25,7 @@ public class FrequencyG extends GOperator {
 
     @Override
     public FrequencyG not() {
-        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate(), limes.theOther());
+        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate2(), limes.theOther());
     }
 
     @Override
@@ -63,9 +63,13 @@ public class FrequencyG extends GOperator {
         throw new UnsupportedOperationException("To my best knowledge not defined");
     }
 
-    public static Formula create(Formula operand, double bound, CompOperator cmp, Lim limes) {
+    public static Formula createForPRISM(Formula operand, double bound, CompOperator cmp, Lim limes) {
         if (operand instanceof BooleanConstant) {
             return operand;
+        } else if (cmp == CompOperator.LT || cmp == CompOperator.LEQ) {
+            // Turn everything around, because in PRISM, everything has to be
+            // bigger than the bound
+            return new FrequencyG(operand.not(),1-bound,cmp.negate(),limes.theOther());
         }
 
         return new FrequencyG(operand, bound, cmp, limes);
@@ -83,7 +87,7 @@ public class FrequencyG extends GOperator {
 
     @Override
     public String toString() {
-        return "G^{" + limes.toString() + cmp.toString() + bound + "} " + operand.toString();
+        return "G {" + limes.toString() + cmp.toString() + bound + "} " + operand.toString();
     }
 
     @Override

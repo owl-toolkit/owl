@@ -35,4 +35,20 @@ public enum CompOperator {
 
         }
     }
+
+    protected CompOperator negate2() {
+        switch (this) {
+            case GEQ:
+                return CompOperator.GT;
+            case GT:
+                return CompOperator.GEQ;
+            case LEQ:
+                return CompOperator.LT;
+            case LT:
+                return CompOperator.LEQ;
+            default:
+                throw new AssertionError();
+
+        }
+    }
 }
