@@ -22,7 +22,6 @@ import ltl.Formula;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * EquivalenceClass interface.
@@ -47,13 +46,27 @@ public interface EquivalenceClass {
      */
     boolean equivalent(EquivalenceClass equivalenceClass);
 
-    EquivalenceClass unfold(boolean unfoldG);
+    EquivalenceClass unfold();
 
     EquivalenceClass temporalStep(BitSet valuation);
 
     EquivalenceClass and(EquivalenceClass eq);
 
+    /**
+     * Performs the same operation as {@link EquivalenceClass#and}, but also calls free() on the instance {@link this}
+     * @param eq
+     * @return
+     */
+    EquivalenceClass andWith(EquivalenceClass eq);
+
     EquivalenceClass or(EquivalenceClass eq);
+
+    /**
+     * Performs the same operation as {@link EquivalenceClass#or}, but also calls free() on the instance {@link this}
+     * @param eq
+     * @return
+     */
+    EquivalenceClass orWith(EquivalenceClass eq);
 
     boolean isTrue();
 

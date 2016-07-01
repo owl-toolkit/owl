@@ -118,7 +118,7 @@ public final class Literal extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
+    public Formula unfold() {
         return this;
     }
 }

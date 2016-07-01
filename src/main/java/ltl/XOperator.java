@@ -28,7 +28,7 @@ public final class XOperator extends ModalOperator {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
+    public Formula unfold() {
         return this;
     }
 

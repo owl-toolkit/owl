@@ -92,8 +92,8 @@ public abstract class EquivalenceClassTest {
     public void testUnfoldUnfold() {
         for (Formula formula : FormulaStorage.formulae) {
             EquivalenceClassFactory factory = setUpFactory(formula);
-            EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold(true);
-            assertEquals(clazz, clazz.unfold(true));
+            EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold();
+            assertEquals(clazz, clazz.unfold());
         }
     }
 

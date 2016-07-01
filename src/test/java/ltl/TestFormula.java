@@ -186,7 +186,7 @@ public class TestFormula {
         Formula f0 = new Literal(1, false);
         Formula f1 = new Literal(0, false);
         Formula f2 = new UOperator(f0, f1);
-        Formula f3 = f2.unfold(true);
+        Formula f3 = f2.unfold();
         Formula f4 = Simplifier.simplify(new Disjunction(f1, Simplifier.simplify(new Conjunction(f0, f2), Strategy.MODAL)), Strategy.MODAL);
         assertEquals(f3, f4);
     }
@@ -203,7 +203,7 @@ public class TestFormula {
     public void testAssertValuation3() {
         Formula f1 = new Literal(2, false);
         Formula f4 = new GOperator(f1);
-        Formula f5 = f4.unfold(true);
+        Formula f5 = f4.unfold();
         Formula f6 = Simplifier.simplify(f5.temporalStep(new BitSet()), Strategy.MODAL);
         assertEquals(f6, BooleanConstant.get(false));
     }
@@ -245,7 +245,7 @@ public class TestFormula {
         Formula f5 = Simplifier.simplify(Conjunction.create(f3, f4), Strategy.MODAL);
         Formula f6 = Simplifier.simplify(Conjunction.create(f5, f1, f2), Strategy.MODAL);
 
-        assertEquals(f6, Simplifier.simplify(f5.unfold(true), Strategy.MODAL));
+        assertEquals(f6, Simplifier.simplify(f5.unfold(), Strategy.MODAL));
     }
 
     @Test

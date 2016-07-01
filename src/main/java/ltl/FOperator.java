@@ -102,7 +102,7 @@ public class FOperator extends ModalOperator {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
-        return new Disjunction(operand.unfold(unfoldG), this);
+    public Formula unfold() {
+        return new Disjunction(operand.unfold(), this);
     }
 }

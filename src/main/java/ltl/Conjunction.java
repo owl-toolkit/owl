@@ -64,8 +64,8 @@ public final class Conjunction extends PropositionalFormula {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
-        return create(children.stream().map(c -> c.unfold(unfoldG)));
+    public Formula unfold() {
+        return create(children.stream().map(Formula::unfold));
     }
 
     @Override

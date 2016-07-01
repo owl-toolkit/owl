@@ -32,7 +32,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     final BDDVisitor visitor;
 
     final Map<EquivalenceClass, EquivalenceClass> unfoldCache;
-    final Map<EquivalenceClass, EquivalenceClass> unfoldGCache;
     final Map<EquivalenceClass, Map<BitSet, EquivalenceClass>> temporalStepCache;
 
     public BDDEquivalenceClassFactory(Formula formula) {
@@ -56,7 +55,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         unfoldCache = new HashMap<>();
-        unfoldGCache = new HashMap<>();
         temporalStepCache = new HashMap<>();
     }
 
@@ -169,14 +167,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        public EquivalenceClass unfold(boolean unfoldG) {
-            Map<EquivalenceClass, EquivalenceClass> cache = unfoldG ? unfoldGCache : unfoldCache;
-
-            EquivalenceClass result = cache.get(this);
+        public EquivalenceClass unfold() {
+            EquivalenceClass result = unfoldCache.get(this);
 
             if (result == null) {
-                result = createEquivalenceClass(representative.unfold(unfoldG));
-                cache.put(this, result);
+                result = createEquivalenceClass(representative.unfold());
+                unfoldCache.put(this, result);
             }
 
             return result;
@@ -207,7 +203,18 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 return new BDDEquivalenceClass(Conjunction.create(representative, eq.getRepresentative()), factory.and(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
             }
 
-            return createEquivalenceClass(new Conjunction(representative, eq.getRepresentative()));
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public EquivalenceClass andWith(EquivalenceClass eq) {
+            if (eq instanceof BDDEquivalenceClass) {
+                EquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, eq.getRepresentative()), factory.and(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                this.free();
+                return and;
+            }
+
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -216,7 +223,18 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 return new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
             }
 
-            return createEquivalenceClass(new Disjunction(representative, eq.getRepresentative()));
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public EquivalenceClass orWith(EquivalenceClass eq) {
+            if (eq instanceof BDDEquivalenceClass) {
+                EquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                this.free();
+                return or;
+            }
+
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -250,8 +268,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         public void free() {
-            factory.deref(bdd);
-            bdd = INVALID_BDD;
+            if (BDD.ONE < bdd) {
+                factory.deref(bdd);
+                bdd = INVALID_BDD;
+            }
         }
 
         @Override

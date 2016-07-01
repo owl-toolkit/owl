@@ -19,7 +19,7 @@ public class FrequencyG extends GOperator {
     }
 
     @Override
-    public FrequencyG unfold(boolean unfoldG) {
+    public FrequencyG unfold() {
         return this;
     }
 

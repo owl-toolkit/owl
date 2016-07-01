@@ -37,6 +37,6 @@ public class TestFrequencyG {
     public void testUnfoldingWorks() {
         String test = "G^ { >= 0.4} a";
         Formula f = Parser.formula(test);
-        assertEquals(f, f.unfold(true));
+        assertEquals(f, f.unfold());
     }
 }

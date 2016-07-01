@@ -50,9 +50,9 @@ public final class UOperator extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
+    public Formula unfold() {
         // unfold(a U b) = unfold(b) v (unfold(a) ^ X (a U b))
-        return new Disjunction(right.unfold(unfoldG), new Conjunction(left.unfold(unfoldG), this));
+        return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
     }
 
     @Override

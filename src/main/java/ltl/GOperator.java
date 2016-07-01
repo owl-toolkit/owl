@@ -31,13 +31,9 @@ public class GOperator extends ModalOperator {
         return 'G';
     }
 
-    @Override // to be overridden by frequencyG
-    public Formula unfold(boolean unfoldG) {
-        if (unfoldG) {
-            return new Conjunction(operand.unfold(true), this);
-        }
-
-        return this;
+    @Override
+    public Formula unfold() {
+        return new Conjunction(operand.unfold(), this);
     }
 
     @Override

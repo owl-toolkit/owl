@@ -96,7 +96,7 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     }
 
     @Override
-    public Formula unfold(boolean unfoldG) {
+    public Formula unfold() {
         return this;
     }
 

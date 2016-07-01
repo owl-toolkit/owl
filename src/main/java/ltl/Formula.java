@@ -27,7 +27,7 @@ public interface Formula {
     @Deprecated
     Set<GOperator> gSubformulas();
 
-    Formula unfold(boolean unfoldG);
+    Formula unfold();
 
     /**
      * Do a single temporal step. This means that one layer of X-operators is
