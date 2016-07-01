@@ -17,159 +17,166 @@
 
 package translations.ldba2parity;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableList;
+import jhoafparser.consumer.HOAConsumer;
+import jhoafparser.consumer.HOAConsumerPrint;
+import ltl.BooleanConstant;
+import ltl.ImmutableObject;
+import ltl.equivalence.BDDEquivalenceClassFactory;
+import ltl.equivalence.EquivalenceClass;
+import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
+import omega_automaton.Edge;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import translations.ldba.AbstractInitialComponent;
+import omega_automaton.output.RemoveComments;
 import translations.ldba.LimitDeterministicAutomaton;
 import ltl.Collections3;
 import omega_automaton.acceptance.ParityAcceptance;
-import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import translations.ltl2ldba.AcceptingComponent;
+import translations.ltl2ldba.InitialComponent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcceptance> {
 
-    private final int colors;
-    private final Automaton acceptingComponent;
-    private final AbstractInitialComponent initialComponent;
+    @Nonnull
+    final AcceptingComponent acceptingComponent;
+    @Nonnull
+    final InitialComponent initialComponent;
 
-    protected ParityAutomaton(LimitDeterministicAutomaton<?, ?, ? extends GeneralisedBuchiAcceptance, ?, ?> ldba) {
-        super(ldba.getAcceptingComponent().valuationSetFactory);
+    int colors;
+
+    protected ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba) {
+        super(ldba.getAcceptingComponent().getFactory());
 
         acceptingComponent = ldba.getAcceptingComponent();
         initialComponent = ldba.getInitialComponent();
 
-        if (ldba.getAcceptingComponent().acceptance.getSize() > 1) {
+        if (ldba.getAcceptingComponent().getAcceptance().getSize() > 1) {
             throw  new UnsupportedOperationException("Only Generalised Buchi with 1 acceptance condition accepted");
         }
 
-        if (initialComponent != null) {
-            colors = ldba.getAcceptingComponent().size();
-            AutomatonState initial = initialComponent.getInitialState();
-            initialState = new State(initial, new ArrayList(initialComponent.epsilonJumps.get(initial)));
-        } else {
-            colors = 2;
-            initialState = new State(null, Collections.singletonList(acceptingComponent.getInitialState()));
-        }
-
+        colors = 0;
         acceptance = new ParityAcceptance(colors);
+        initialState = new State(initialComponent.getInitialState());
     }
 
-    public final class State implements AutomatonState<State> {
+    @Immutable
+    public final class State extends ImmutableObject implements AutomatonState<State>  {
 
-        private final AutomatonState<?> initialComponentState;
-        private final List<AutomatonState<?>> acceptingComponentRanking;
+        @Nonnull
+        private final InitialComponent.State initialComponentState;
 
-        public State(AutomatonState<?> state) {
-            this(state, new ArrayList(initialComponent.epsilonJumps.get(state)));
+        @Nonnull
+        private final ImmutableList<AcceptingComponent.State> acceptingComponentRanking;
+
+        public State(@Nonnull InitialComponent.State state) {
+            this(state, ImmutableList.copyOf(initialComponent.epsilonJumps.get(state)));
         }
 
-        public State(AutomatonState<?> state, List<AutomatonState<?>> ranking) {
+        public State(@Nonnull InitialComponent.State state, @Nonnull List<AcceptingComponent.State> ranking) {
             initialComponentState = state;
-            acceptingComponentRanking = ranking;
+            acceptingComponentRanking = ImmutableList.copyOf(ranking);
         }
 
-        public State getSuccessor(BitSet valuation) {
-            if (initialComponentState == null) {
-                AutomatonState state = Collections3.getElement(acceptingComponentRanking);
-                AutomatonState successor = acceptingComponent.getSuccessor(state, valuation);
-                if (successor == null) {
-                    return null;
-                }
+        @Override
+        @Nonnull
+        public BitSet getSensitiveAlphabet() {
+            BitSet sensitiveLetters = initialComponentState.getSensitiveAlphabet();
 
-                return new State(null, Collections.singletonList(successor));
+            for (AutomatonState<?> secondaryState : acceptingComponentRanking) {
+                sensitiveLetters.or(secondaryState.getSensitiveAlphabet());
             }
 
-            AutomatonState<?> successor = initialComponent.getSuccessor(initialComponentState, valuation);
+            return sensitiveLetters;
+        }
 
-            if (successor == null) {
+        @Override
+        protected int hashCodeOnce() {
+            return Objects.hash(initialComponentState, acceptingComponentRanking);
+        }
+
+        @Override
+        protected boolean equals2(ImmutableObject o) {
+            State that = (State) o;
+            return Objects.equals(initialComponentState, that.initialComponentState) &&
+                    Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
+        }
+
+        @Override
+        @Nullable
+        public Edge<State> getSuccessor(BitSet valuation) {
+            Edge<InitialComponent.State> successorEdge = initialComponent.getSuccessor(initialComponentState, valuation);
+
+            if (successorEdge == null) {
                 return null;
             }
 
-            Set seenStates = new HashSet<>();
-            List ranking = new ArrayList<>(acceptingComponentRanking.size());
-            ListIterator listIterator = acceptingComponentRanking.listIterator();
+            InitialComponent.State successor = successorEdge.successor;
+            successorEdge = null;
+
+            List<AcceptingComponent.State> ranking = new ArrayList<>(acceptingComponentRanking.size());
+
+            // Default rejecting color.
+            int edgeColor = 2 * acceptingComponentRanking.size();
+            ListIterator<AcceptingComponent.State> listIterator = acceptingComponentRanking.listIterator();
+
+            EquivalenceClass existingClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
 
             while (listIterator.hasNext()) {
-                AutomatonState state = (AutomatonState) listIterator.next();
-                state = acceptingComponent.getSuccessor(state, valuation);
+                int index = listIterator.nextIndex();
+                Edge<AcceptingComponent.State> successorEdge2 = acceptingComponent.getSuccessor(listIterator.next(), valuation);
 
-                if (state == null) {
+                if (successorEdge2 == null) {
+                    edgeColor = Math.min(edgeColor, 2 * index);
                     continue;
                 }
 
-                if (seenStates.add(state)) {
-                    ranking.add(state);
+                AcceptingComponent.State rankingSuccessor = successorEdge2.successor;
+                EquivalenceClass current = Collections3.getElement(rankingSuccessor.monitors.values()).current;
+
+                if (current.implies(existingClass)) {
+                    edgeColor = Math.min(edgeColor, 2 * index);
+                    System.out.println("Dropped covered state.");
+                } else {
+                    existingClass = existingClass.orWith(current);
+                    ranking.add(rankingSuccessor);
+
+                    if (successorEdge2.acceptance.get(0)) {
+                        edgeColor = Math.min(edgeColor, (2 * index) + 1);
+                    }
                 }
             }
 
-            for (Object target : initialComponent.epsilonJumps.get(successor)) {
-                if (seenStates.add(target)) {
+            for (AcceptingComponent.State target : initialComponent.epsilonJumps.get(successor)) {
+                EquivalenceClass current = Collections3.getElement(target.monitors.values()).current;
+
+                if (!current.implies(existingClass)) {
+                    existingClass = existingClass.or(current);
                     ranking.add(target);
                 }
             }
 
-            return new State(successor, ranking);
-        }
+            BitSet acc = new BitSet();
+            acc.set(edgeColor);
 
-        @Nonnull
-        @Override
-        public Map<BitSet, ValuationSet> getAcceptanceIndices() {
-            Map<BitSet, ValuationSet> mapping = new HashMap<>();
-
-            for (BitSet valuation : Collections3.powerSet(getSensitiveAlphabet())) {
-                BitSet acc = new BitSet();
-                acc.set(getColor(valuation));
-
-                ValuationSet entry = mapping.get(acc);
-
-                if (entry == null) {
-                    mapping.put(acc, valuationSetFactory.createValuationSet(valuation));
-                } else {
-                    entry.add(valuation);
-                }
+            if (edgeColor > colors) {
+                colors = edgeColor;
+                acceptance = new ParityAcceptance(edgeColor);
             }
 
-            return mapping;
-        }
+            existingClass.free();
 
-        public int getColor(BitSet valuation) {
-            if (initialComponentState != null && initialComponentState.getSuccessor(valuation) == null) {
-                return 2 * colors;
-            }
-
-            Set seenStates = new HashSet<>();
-            ListIterator listIterator = acceptingComponentRanking.listIterator();
-
-            while (listIterator.hasNext()) {
-                int index = listIterator.nextIndex();
-                AutomatonState state = acceptingComponent.getSuccessor((AutomatonState) listIterator.next(), valuation);
-
-                if (state == null) {
-                    return (2 * index);
-                }
-
-                if (acceptingComponent.hasAcceptanceIndex(state, 0, valuation)) {
-                    return (2 * index) + 1;
-                }
-
-                if (!seenStates.add(state)) {
-                    return (2 * index);
-                }
-            }
-
-            return (initialComponent != null) ? 2 * colors : 2;
-        }
-
-        @Nonnull
-        @Override
-        public BitSet getSensitiveAlphabet() {
-            BitSet a = new BitSet(valuationSetFactory.getSize());
-            a.flip(0, valuationSetFactory.getSize());
-            return a;
+            return new Edge<>(new State(successor, ranking), acc);
         }
 
         @Override
@@ -178,22 +185,27 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            State state = (State) o;
-            return Objects.equals(initialComponentState, state.initialComponentState) &&
-                    Objects.equals(acceptingComponentRanking, state.acceptingComponentRanking);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(initialComponentState, acceptingComponentRanking);
-        }
-
-        @Override
         public String toString() {
             return "{Init=" + initialComponentState + ", AccRanking=" + acceptingComponentRanking + '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return toString(false);
+    }
+
+    public String toString(boolean removeComments) {
+        return toString(removeComments, null);
+    }
+
+    public String toString(boolean removeComments, BiMap<String, Integer> aliases) {
+        try (OutputStream stream = new ByteArrayOutputStream()) {
+            HOAConsumer consumer = removeComments ? new RemoveComments(new HOAConsumerPrint(stream)) : new HOAConsumerPrint(stream);
+            toHOA(consumer, aliases);
+            return stream.toString();
+        } catch (IOException  ex) {
+            throw new IllegalStateException(ex.toString());
         }
     }
 }

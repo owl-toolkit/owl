@@ -30,8 +30,8 @@ dependencies {
     compile     'com.google.guava:guava:19.0'
     compile     'com.google.code.findbugs:jsr305:3.0.1'
     compile files('lib/jhoafparser-1.1.1.jar')
-    compile     'de.tum.in:ltl-lib:0.0.4'
-    compile     'de.tum.in:omega-automaton-lib:0.0.4'
+    compile     'de.tum.in:ltl-lib:0.0.5'
+    compile     'de.tum.in:omega-automaton-lib:0.0.5'
     compile     'it.unimi.dsi:fastutil:7.0.12'
     runtime     'jdd:jdd:108'
     testCompile 'junit:junit:4+'
@@ -44,6 +44,7 @@ task createAllStartScripts() << {
 def scripts = [
     'ltl2ldba':'translations.ltl2ldba.LTL2LDBA',
     'nba2ldba':'translations.nba2ldba.NBA2LDBA',
+    'ltl2parity':'translations.ldba2parity.LDBA2Parity',
 ]
 
 scripts.each() {scriptName, className -> 

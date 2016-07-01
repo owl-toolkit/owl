@@ -42,10 +42,10 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
         REJECT = new BitSet();
     }
 
-    protected final EquivalenceClass initialFormula;
-    protected final EquivalenceClass True;
-    protected final boolean eager;
-    protected final boolean removeCover;
+    final EquivalenceClass initialFormula;
+    final EquivalenceClass True;
+    final boolean eager;
+    final boolean removeCover;
 
     public GMonitor(EquivalenceClass formula, EquivalenceClassFactory equivalenceClassFactory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
         super(valuationSetFactory);
@@ -60,7 +60,7 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
         return generateInitialState(True);
     }
 
-    protected State generateInitialState(EquivalenceClass extra) {
+    State generateInitialState(EquivalenceClass extra) {
         if (extra.isTrue()) {
             return new State (initialFormula, True);
         }

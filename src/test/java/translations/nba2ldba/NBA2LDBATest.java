@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableBiMap;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
+import ltl.Collections3;
 import translations.Optimisation;
 import omega_automaton.StoredBuchiAutomaton;
 import translations.ldba.LimitDeterministicAutomaton;
@@ -39,8 +40,8 @@ public class NBA2LDBATest {
     private NBA2LDBA translation;
     private StoredBuchiAutomaton nba;
 
-    private final BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0);
-    private final String INPUT = "HOA: v1\n" +
+    private static final BiMap<String, Integer> MAPPING = ImmutableBiMap.of("a", 0);
+    private static final String INPUT = "HOA: v1\n" +
             "States: 2\n" +
             "Start: 0\n" +
             "acc-name: Buchi\n" +
@@ -62,14 +63,16 @@ public class NBA2LDBATest {
 
         StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
         HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);
-        nba = builder.getAutomata().get(0);
+        nba = Collections3.getElement(builder.getAutomata());
     }
 
     @Test
     public void testApply() throws Exception {
+        nba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
+
         LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = translation.apply(nba);
 
-        ldba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), mapping);
+        ldba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
         assertEquals(9, ldba.size());
     }
 }

@@ -56,6 +56,10 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         return acceptance.getSize();
     }
 
+    public EquivalenceClassFactory getEquivalenceClassFactory() {
+        return equivalenceClassFactory;
+    }
+
     public int getNumberOfComponents() {
         return automata.size();
     }

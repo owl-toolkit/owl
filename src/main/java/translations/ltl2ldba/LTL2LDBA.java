@@ -20,6 +20,7 @@ package translations.ltl2ldba;
 import com.google.common.collect.Sets;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
+import ltl.parser.ParseException;
 import ltl.parser.Parser;
 import translations.Optimisation;
 import ltl.Collections3;
@@ -52,7 +53,6 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> apply(Formula formula) {
-        System.out.println("LTL -> LDBA");
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(formula);
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
 
@@ -78,7 +78,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         return det;
     }
 
-    public static void main(String... args) throws ltl.parser.ParseException, HOAConsumerException {
+    public static void main(String... args) throws ParseException, HOAConsumerException {
         LTL2LDBA translation = new LTL2LDBA();
 
         Parser parser = new Parser(new StringReader(args[0]));

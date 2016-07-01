@@ -18,10 +18,13 @@
 package translations.ldba2parity;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableBiMap;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.parser.HOAFParser;
+import ltl.Collections3;
 import ltl.Formula;
+import ltl.parser.Parser;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.LTL2LDBA;
@@ -31,7 +34,6 @@ import translations.nba2ldba.YCAcc;
 import translations.nba2ldba.YCInit;
 import org.junit.Before;
 import org.junit.Test;
-import ltl.Util;
 import translations.Optimisation;
 
 import java.io.ByteArrayInputStream;
@@ -50,7 +52,7 @@ public class LDBA2ParityTest {
     private Formula ltl;
     private StoredBuchiAutomaton nba;
 
-    private final BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1, "c", 2);
+    private final BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
     private final String INPUT = "HOA: v1\n" +
             "States: 2\n" +
             "Start: 0\n" +
@@ -75,33 +77,48 @@ public class LDBA2ParityTest {
         ldba2parity = new LDBA2Parity<>();
         ldba2parity2 = new LDBA2Parity<>();
 
-        ltl = Util.createFormula("(F G a) | (F G b)");
+        ltl = Parser.formula("(F G a) | (F G b)");
 
         StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
         HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);
-        nba = builder.getAutomata().get(0);
+        nba = Collections3.getElement(builder.getAutomata());
     }
     @Test
     public void testLTL2LDBA() {
-        Formula ltl = Util.createFormula("(F G a) | (F G b)");
-        ParityAutomaton parity = ltl2ldba.andThen(ldba2parity).apply(ltl);
+        Formula ltl = Parser.formula("(F G a) | (F G b)");
+        ParityAutomaton parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAConsumerPrint(System.out), mapping);
         assertEquals(2, parity.size());
+        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
-        ltl = Util.createFormula("(F G a) & (F G b)");
-        parity = ltl2ldba.andThen(ldba2parity).apply(ltl);
+        ltl = Parser.formula("(F G a) & (F G b)");
+        parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAConsumerPrint(System.out), mapping);
         assertEquals(1, parity.size());
+        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
-        ltl = Util.createFormula("F G (a | X b)");
-        parity = ltl2ldba.andThen(ldba2parity).apply(ltl);
+        ltl = Parser.formula("F G (a | X b)");
+        parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
+        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        assertEquals(3, parity.size());
+        assertEquals(3, parity.getAcceptance().getAcceptanceSets());
+
+        ltl = Parser.formula("F G (a | X b | X X c)");
+        parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
+        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        assertEquals(8, parity.size());
+        assertEquals(7, parity.getAcceptance().getAcceptanceSets());
+
+        ltl = Parser.formula("(F G a) | ((F G b) & (G X (X c U F d)))");
+        parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAConsumerPrint(System.out), mapping);
         assertEquals(4, parity.size());
+        assertEquals(4, parity.getAcceptance().getAcceptanceSets());
     }
 
     @Test
     public void testNBA2LDBA() {
-        ParityAutomaton parity = nba2ldba.andThen(ldba2parity2).apply(nba);
+        ParityAutomaton parity = (ParityAutomaton) nba2ldba.andThen(ldba2parity2).apply(nba);
         parity.toHOA(new HOAConsumerPrint(System.out), mapping);
     }
 }
