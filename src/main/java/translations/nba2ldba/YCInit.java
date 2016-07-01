@@ -17,6 +17,7 @@
 
 package translations.nba2ldba;
 
+import omega_automaton.Edge;
 import omega_automaton.StoredBuchiAutomaton;
 import translations.ldba.AbstractInitialComponent;
 import omega_automaton.AutomatonState;
@@ -29,12 +30,13 @@ import java.util.*;
 public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> {
 
     private final StoredBuchiAutomaton nba;
-    private final YCAcc acc;
+    private final YCAcc acceptingComponent;
 
-    public YCInit(StoredBuchiAutomaton nba, YCAcc acceptingComponent) {
+    YCInit(StoredBuchiAutomaton nba, YCAcc acceptingComponent) {
         super(nba.getFactory());
         this.nba = nba;
-        acc = acceptingComponent;
+        this.acceptingComponent = acceptingComponent;
+
         initialState = new State(Collections.singleton(nba.getInitialState()));
     }
 
@@ -42,13 +44,12 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
     public void generateJumps(State state) {
         Set<YCAcc.State> succ = epsilonJumps.get(state);
 
-        for (StoredBuchiAutomaton.State s : state.states) {
+        state.states.forEach(s -> {
             if (nba.isAccepting(s)) {
-                YCAcc.State succ2 = acc.createState(s);
+                YCAcc.State succ2 = acceptingComponent.createState(s);
                 succ.add(succ2);
-                acc.generate(succ2);
             }
-        }
+        });
     }
 
     public class State implements AutomatonState<State> {
@@ -60,7 +61,7 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
 
         @Nullable
         @Override
-        public State getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(BitSet valuation) {
             Set<StoredBuchiAutomaton.State> successors = new HashSet<>();
             states.forEach(s -> successors.addAll(nba.getSuccessors(s, valuation)));
 
@@ -68,7 +69,7 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
                 return null;
             }
 
-            return new State(successors);
+            return new Edge<>(new State(successors), new BitSet());
         }
 
         @Nonnull

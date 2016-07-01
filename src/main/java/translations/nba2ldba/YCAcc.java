@@ -20,6 +20,7 @@ package translations.nba2ldba;
 import com.google.common.collect.ImmutableSet;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
+import omega_automaton.Edge;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSet;
@@ -29,21 +30,31 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-/**
- * Created by sickert on 01/06/16.
- */
+import static java.util.Collections.singleton;
+
 public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
 
-    private StoredBuchiAutomaton nba;
+    private final StoredBuchiAutomaton nba;
 
-    protected YCAcc(StoredBuchiAutomaton nba) {
+    YCAcc(StoredBuchiAutomaton nba) {
         super(nba.getFactory());
         this.nba = nba;
         acceptance = new BuchiAcceptance();
     }
 
-    public State createState(StoredBuchiAutomaton.State target) {
-        return new State(Collections.singleton(target), Collections.singleton(target));
+    State createState(StoredBuchiAutomaton.State target) {
+        Set<StoredBuchiAutomaton.State> singleton = singleton(target);
+        State state = new State(singleton, singleton);
+        constructionQueue.add(state);
+        return state;
+    }
+
+    private Deque<State> constructionQueue = new ArrayDeque<>();
+
+    @Override
+    public void generate() {
+        constructionQueue.forEach(this::generate);
+        constructionQueue = null;
     }
 
     public class State implements AutomatonState<State> {
@@ -57,7 +68,7 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
 
         @Nullable
         @Override
-        public State getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(BitSet valuation) {
             // Standard Subset Construction
             Set<StoredBuchiAutomaton.State> rightSuccessor = new HashSet<>();
 
@@ -79,16 +90,10 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
                 return null;
             }
 
-            return new State(ImmutableSet.copyOf(leftSuccessor), ImmutableSet.copyOf(rightSuccessor));
-        }
-
-        @Nullable
-        public Map<BitSet, ValuationSet> getAcceptanceIndices() {
             BitSet bs = new BitSet(1);
             bs.set(0, left.stream().anyMatch(nba::isAccepting) && left.equals(right));
-            return Collections.singletonMap(bs, valuationSetFactory.createUniverseValuationSet());
+            return new Edge<>(new State(ImmutableSet.copyOf(leftSuccessor), ImmutableSet.copyOf(rightSuccessor)), bs);
         }
-
 
         @Nonnull
         @Override
@@ -119,7 +124,7 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
 
         @Override
         public String toString() {
-            return "State{" + "left=" + left + ", right=" + right + '}';
+            return "State{" + "successor=" + left + ", acceptance=" + right + '}';
         }
     }
 }
