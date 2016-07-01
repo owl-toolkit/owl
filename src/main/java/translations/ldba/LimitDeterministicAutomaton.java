@@ -24,6 +24,7 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Collections3;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
+import omega_automaton.Edge;
 import translations.Optimisation;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
@@ -49,6 +50,10 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         this.initialComponent = initialComponent;
         this.acceptingComponent = acceptingComponent;
         this.optimisations = optimisations;
+    }
+
+    public boolean isDeterministic() {
+        return initialComponent == null;
     }
 
     public AutomatonState<?> getInitialState() {
@@ -89,16 +94,18 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
                 }
             }
 
+            acceptingComponent.generate();
+
             if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
                 Set<S_A> accReach = new HashSet<>();
 
                 for (S_I state : initialComponent.getStates()) {
-                    Map<S_I, ValuationSet> successors = initialComponent.getSuccessors(state);
+                    Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
                     Map<ValuationSet, List<S_A>> successorJumps = initialComponent.valuationSetJumps.row(state);
 
                     successors.forEach((successor, vs) -> {
                         // Copy successors to a new collection, since clear() will also empty these collections.
-                        List<S_A> targets = new ArrayList<>(initialComponent.epsilonJumps.get(successor));
+                        List<S_A> targets = new ArrayList<>(initialComponent.epsilonJumps.get(successor.successor));
                         accReach.addAll(targets);
                         successorJumps.put(vs, targets);
                     });
@@ -115,7 +122,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     }
 
     public void toHOA(HOAConsumer c, @Nonnull BiMap<String, Integer> aliases) throws HOAConsumerException {
-        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.acceptance, getInitialState(), size());
+        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.getAcceptance(), getInitialState(), size());
 
         if (initialComponent != null) {
             initialComponent.toHOABody(consumer);
@@ -144,14 +151,6 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         }
     }
 
-    public Set<S_A> getEpsilonJumps(S_I s) {
-        return initialComponent.epsilonJumps.get(s);
-    }
-
-    public Map<ValuationSet, List<S_A>> getValuationSetJumps(S_I s) {
-        return initialComponent.valuationSetJumps.row(s);
-    }
-
     @Nullable
     public I getInitialComponent() {
         return initialComponent;
@@ -159,5 +158,13 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     public A getAcceptingComponent() {
         return acceptingComponent;
+    }
+
+    public void free() {
+        if (initialComponent != null) {
+            initialComponent.free();
+        }
+
+        acceptingComponent.free();
     }
 }

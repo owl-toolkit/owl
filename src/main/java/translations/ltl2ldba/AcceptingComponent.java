@@ -20,21 +20,18 @@ package translations.ltl2ldba;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
+import ltl.*;
 import omega_automaton.*;
+import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import ltl.Collections3;
-import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
-import ltl.Conjunction;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Visitor;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.equivalence.EvaluateVisitor;
 import ltl.simplifier.Simplifier;
 import translations.Optimisation;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -42,52 +39,73 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
 
     private final EquivalenceClassFactory equivalenceClassFactory;
     private final Collection<Optimisation> optimisations;
-    private final Master primaryAutomaton;
-    private final Map<Set<GOperator>, Map<GOperator, DetLimitSlave>> secondaryAutomata;
+
+    private final Map<Set<GOperator>, Map<GOperator, GMonitor>> automata;
     private final Table<Set<GOperator>, GOperator, Integer> acceptanceIndexMapping;
 
-    AcceptingComponent(Master primaryAutomaton, EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
+    AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
         super(valuationSetFactory);
-        this.primaryAutomaton = primaryAutomaton;
-        secondaryAutomata = new HashMap<>();
-        secondaryAutomata.put(Collections.emptySet(), Collections.emptyMap());
+        automata = new HashMap<>();
         this.optimisations = optimisations;
         acceptanceIndexMapping = HashBasedTable.create();
         equivalenceClassFactory = factory;
-        acceptance = new GeneralisedBuchiAcceptance(1);
+        acceptance = new BuchiAcceptance();
     }
 
     public int getAcceptanceSize() {
         return acceptance.getSize();
     }
 
+    public int getNumberOfComponents() {
+        return automata.size();
+    }
+
     void jumpInitial(EquivalenceClass master, Set<GOperator> keys) {
         initialState = jump(master, keys);
 
         if (initialState == null) {
-            initialState = new State(primaryAutomaton.generateInitialState(equivalenceClassFactory.getFalse()), ImmutableMap.of());
+            initialState = new State(ImmutableMap.of());
+            constructionQueue.add(initialState);
         }
+    }
+
+    private Collection<State> constructionQueue = new ArrayDeque<>();
+
+    @Override
+    public void generate() {
+        constructionQueue.forEach(this::generate);
+        constructionQueue = null;
     }
 
     @Nullable
     State jump(EquivalenceClass master, Set<GOperator> keys) {
-        Master.State primaryState = getPrimaryState(master, keys);
+        EquivalenceClass remainingGoal = getRemainingGoal(master, keys);
 
-        if (primaryState == null) {
+        if (remainingGoal.isFalse()) {
             return null;
         }
 
-        Map<GOperator, DetLimitSlave> secondaryAutomatonMap = getSecondaryAutomatonMap(keys);
+        if (keys.isEmpty()) {
+            keys = Collections.singleton(new GOperator(BooleanConstant.TRUE));
+        }
 
-        if (secondaryAutomatonMap == null) {
+        Map<GOperator, GMonitor> automatonMap = getAutomatonMap(keys);
+
+        if (automatonMap == null) {
             return null;
         }
 
-        ImmutableMap<GOperator, DetLimitSlave.State> secondaryStateMap;
+        ImmutableMap<GOperator, GMonitor.State> secondaryStateMap;
 
         {
-            ImmutableMap.Builder<GOperator, DetLimitSlave.State> builder = ImmutableMap.builder();
-            secondaryAutomatonMap.forEach((key, slave) -> builder.put(key, slave.getInitialState()));
+            ImmutableMap.Builder<GOperator, GMonitor.State> builder = ImmutableMap.builder();
+
+            Iterator<Map.Entry<GOperator, GMonitor>> iterator = automatonMap.entrySet().iterator();
+
+            Map.Entry<GOperator, GMonitor> entry = iterator.next();
+            builder.put(entry.getKey(), entry.getValue().generateInitialState(remainingGoal));
+
+            iterator.forEachRemaining(entry1 -> builder.put(entry1.getKey(), entry1.getValue().getInitialState()));
             secondaryStateMap = builder.build();
         }
 
@@ -96,29 +114,28 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             acceptance = new GeneralisedBuchiAcceptance(secondaryStateMap.size());
         }
 
-        State state = new State(primaryState, secondaryStateMap);
-        generate(state);
+        State state = new State(secondaryStateMap);
+        constructionQueue.add(state);
         return state;
     }
 
     @Nullable
-    private Map<GOperator, DetLimitSlave> getSecondaryAutomatonMap(Set<GOperator> keys) {
-        Set<GOperator> fusedKeys;
+    private Map<GOperator, GMonitor> getAutomatonMap(Set<GOperator> keys) {
+        Set<GOperator> mapKey;
 
         if (optimisations.contains(Optimisation.BREAKPOINT_FUSION)) {
-            fusedKeys = Collections.singleton(new GOperator(Conjunction.create(keys.stream().map(gOperator -> gOperator.operand))));
+            mapKey = Collections.singleton(new GOperator(Conjunction.create(keys.stream().map(gOperator -> gOperator.operand))));
         } else {
-            fusedKeys = keys;
+            mapKey = keys;
         }
 
-        Map<GOperator, DetLimitSlave> secondaryAutomatonMap = secondaryAutomata.get(fusedKeys);
+        Map<GOperator, GMonitor> automatonMap = automata.get(mapKey);
 
-        if (secondaryAutomatonMap == null) {
-            secondaryAutomatonMap = new HashMap<>(fusedKeys.size());
+        if (automatonMap == null) {
+            automatonMap = new HashMap<>(mapKey.size());
             int i = 0;
-            EquivalenceClass fusedInitialClazz = equivalenceClassFactory.getTrue();
 
-            for (GOperator key : keys) {
+            for (GOperator key : mapKey) {
                 Formula initialFormula = Simplifier.simplify(key.operand.evaluate(keys), Simplifier.Strategy.MODAL);
                 EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
 
@@ -126,53 +143,75 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
                     return null;
                 }
 
-                if (!optimisations.contains(Optimisation.BREAKPOINT_FUSION)) {
-                    DetLimitSlave slave = new DetLimitSlave(initialClazz, equivalenceClassFactory, valuationSetFactory, optimisations);
-                    secondaryAutomatonMap.put(key, slave);
-                    acceptanceIndexMapping.put(fusedKeys, key, i);
-                    i++;
-                } else {
-                    fusedInitialClazz = fusedInitialClazz.and(initialClazz);
-                }
+                GMonitor slave = new GMonitor(initialClazz, equivalenceClassFactory, valuationSetFactory, optimisations);
+                automatonMap.put(key, slave);
+                acceptanceIndexMapping.put(mapKey, key, i);
+                i++;
             }
 
-            if (optimisations.contains(Optimisation.BREAKPOINT_FUSION)) {
-                GOperator key = Collections3.getElement(fusedKeys);
-                DetLimitSlave slave = new DetLimitSlave(fusedInitialClazz, equivalenceClassFactory, valuationSetFactory, optimisations);
-                secondaryAutomatonMap.put(key, slave);
-                acceptanceIndexMapping.put(fusedKeys, key, 0);
-            }
-
-            secondaryAutomata.put(fusedKeys, secondaryAutomatonMap);
+            automata.put(mapKey, automatonMap);
         }
 
-        return secondaryAutomatonMap;
+        return automatonMap;
     }
 
-    @Nullable
-    private Master.State getPrimaryState(EquivalenceClass master, Set<GOperator> keys) {
+    @Nonnull
+    private EquivalenceClass getRemainingGoal(EquivalenceClass master, Set<GOperator> keys) {
         Formula formula = master.getRepresentative().evaluate(keys);
         Conjunction facts = new Conjunction(keys.stream().map(key -> key.operand.evaluate(keys)));
         Visitor<Formula> evaluateVisitor = new EvaluateVisitor(equivalenceClassFactory, facts);
         formula = Simplifier.simplify(formula.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
-
-        EquivalenceClass preClazz = equivalenceClassFactory.createEquivalenceClass(formula);
-
-        if (preClazz.isFalse()) {
-            return null;
-        }
-
-        return primaryAutomaton.generateInitialState(preClazz);
+        return equivalenceClassFactory.createEquivalenceClass(formula);
     }
 
-    private final Map<BitSet, ValuationSet> EMPTY_MAP = Collections.singletonMap(null, valuationSetFactory.createUniverseValuationSet());
+    public class State extends ImmutableObject implements AutomatonState<State> {
 
-    public class State extends AbstractProductState<Master.State, GOperator, DetLimitSlave.State, State> implements AutomatonState<State> {
+        public final ImmutableMap<GOperator, GMonitor.State> monitors;
 
+        public State(ImmutableMap<GOperator, GMonitor.State> monitors) {
+            this.monitors = monitors;
+        }
 
+        @Override
+        public String toString() {
+            return "(" + monitors + ')';
+        }
 
-        public State(Master.State primaryState, ImmutableMap<GOperator, DetLimitSlave.State> secondaryStates) {
-            super(primaryState, secondaryStates);
+        @Nullable
+        public Edge<State> getSuccessor(BitSet valuation) {
+            ImmutableMap.Builder<GOperator, GMonitor.State> builder = ImmutableMap.builder();
+            Map<GOperator, Integer> accMap = acceptanceIndexMapping.row(monitors.keySet());
+
+            BitSet bs = new BitSet();
+            bs.set(monitors.size(), acceptance.getSize());
+
+            for (Map.Entry<GOperator, GMonitor.State> gOperatorStateEntry : monitors.entrySet()) {
+                GOperator key = gOperatorStateEntry.getKey();
+                GMonitor.State secondary = gOperatorStateEntry.getValue();
+
+                Automaton<GMonitor.State, ?> monitor = automata.get(monitors.keySet()).get(key);
+                Edge<GMonitor.State> monitorSuccessor = monitor.getSuccessor(secondary, valuation);
+
+                if (monitorSuccessor == null) {
+                    return null;
+                }
+
+                builder.put(key, monitorSuccessor.successor);
+
+                // Copy acceptance indices.
+                if (monitorSuccessor.acceptance.get(0)) {
+                    bs.set(accMap.get(key));
+                }
+            }
+
+            return new Edge<>(new State(builder.build()), bs);
+        }
+
+        @Nonnull
+        public BitSet getSensitiveAlphabet() {
+            BitSet sensitiveLetters = new BitSet();
+            monitors.forEach((key, state) -> sensitiveLetters.or(state.getSensitiveAlphabet()));
+            return sensitiveLetters;
         }
 
         @Override
@@ -180,79 +219,19 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             return valuationSetFactory;
         }
 
-        public BitSet getAcceptance(BitSet valuation) {
-            for (Map.Entry<BitSet, ValuationSet> acc : getAcceptanceIndices().entrySet()) {
-                if (acc.getValue().contains(valuation)) {
-                    return acc.getKey();
-                }
-            }
-
-            return new BitSet(acceptance.getSize());
-        }
-
-        public Map<BitSet, ValuationSet> getAcceptanceIndices() {
-            Map<BitSet, ValuationSet> acceptance = null;
-
-            ValuationSet universe = valuationSetFactory.createUniverseValuationSet();
-
-            // Don't generate acceptance condition, if we didn't reached true.
-            if (!primaryState.getClazz().isTrue()) {
-                return EMPTY_MAP;
-            }
-
-            acceptance = new LinkedHashMap<>();
-            BitSet bs = new BitSet();
-            bs.set(secondaryStates.size(), AcceptingComponent.this.acceptance.getSize());
-            acceptance.put(bs, universe);
-
-            Map<GOperator, Integer> accMap = acceptanceIndexMapping.row(secondaryStates.keySet());
-
-            for (Map.Entry<GOperator, DetLimitSlave.State> entry : secondaryStates.entrySet()) {
-                GOperator key = entry.getKey();
-                DetLimitSlave.State state = entry.getValue();
-                ValuationSet stateAcceptance = state.getAcceptance();
-
-                Map<BitSet, ValuationSet> acceptanceAdd = new LinkedHashMap<>(acceptance.size());
-                Iterator<Map.Entry<BitSet, ValuationSet>> iterator = acceptance.entrySet().iterator();
-
-                while (iterator.hasNext()) {
-                    Map.Entry<BitSet, ValuationSet> entry1 = iterator.next();
-
-                    ValuationSet AandB = entry1.getValue().clone();
-                    ValuationSet AandNotB = entry1.getValue();
-                    AandB.retainAll(stateAcceptance);
-                    AandNotB.removeAll(stateAcceptance);
-
-                    if (!AandB.isEmpty()) {
-                        BitSet accList = (BitSet) entry1.getKey().clone();
-                        accList.set(accMap.get(key));
-                        acceptanceAdd.put(accList, AandB);
-                    }
-
-                    if (AandNotB.isEmpty()) {
-                        iterator.remove();
-                    }
-                }
-
-                acceptance.putAll(acceptanceAdd);
-            }
-
-            return acceptance;
+        @Override
+        protected int hashCodeOnce() {
+            return Objects.hash(monitors);
         }
 
         @Override
-        protected Master getPrimaryAutomaton() {
-            return primaryAutomaton;
+        protected boolean equals2(ImmutableObject o) {
+            return Objects.equals(monitors, ((State) o).monitors);
         }
 
         @Override
-        protected Map<GOperator, DetLimitSlave> getSecondaryAutomata() {
-            return secondaryAutomata.get(secondaryStates.keySet());
-        }
-
-        @Override
-        protected State constructState(Master.State primaryState, ImmutableMap<GOperator, DetLimitSlave.State> secondaryStates) {
-            return new State(primaryState, secondaryStates);
+        public void free() {
+            monitors.forEach((x, y) -> y.free());
         }
     }
 }

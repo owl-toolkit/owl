@@ -39,16 +39,16 @@ public class DetLimitSlaveTest {
     private Formula formula;
     private ValuationSetFactory valuationSetFactory;
     private EquivalenceClassFactory equivalenceClassFactory;
-    private DetLimitSlave automaton;
-    private DetLimitSlave automatonImp;
+    private GMonitor automaton;
+    private GMonitor automatonImp;
 
     @Before
     public void setUp() {
         formula = new Disjunction(new FOperator(new Literal(0, false)), new XOperator(new Literal(1, false)));
         valuationSetFactory = new BDDValuationSetFactory(formula);
         equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
-        automaton = new DetLimitSlave(equivalenceClassFactory.createEquivalenceClass(formula), equivalenceClassFactory, valuationSetFactory, Collections.emptySet());
-        automatonImp = new DetLimitSlave(equivalenceClassFactory.createEquivalenceClass(formula), equivalenceClassFactory, valuationSetFactory,
+        automaton = new GMonitor(equivalenceClassFactory.createEquivalenceClass(formula), equivalenceClassFactory, valuationSetFactory, Collections.emptySet());
+        automatonImp = new GMonitor(equivalenceClassFactory.createEquivalenceClass(formula), equivalenceClassFactory, valuationSetFactory,
                 EnumSet.allOf(Optimisation.class));
     }
 

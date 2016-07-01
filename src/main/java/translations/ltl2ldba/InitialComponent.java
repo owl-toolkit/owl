@@ -24,7 +24,6 @@ import translations.ldba.AbstractInitialComponent;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import ltl.Formula;
 import ltl.GOperator;
-import ltl.SkeletonVisitor;
 import ltl.equivalence.EquivalenceClass;
 
 import javax.annotation.Nonnull;
@@ -33,13 +32,18 @@ import java.util.*;
 
 public class InitialComponent extends AbstractInitialComponent<InitialComponent.State, AcceptingComponent.State> {
 
+    private static final BitSet REJECT = new BitSet();
+
+    @Nonnull
     private final AcceptingComponent acceptingComponent;
+    @Nonnull
     private final EquivalenceClass initialClazz;
+
     private final boolean eager;
     private final boolean skeleton;
     private final boolean impatient;
 
-    InitialComponent(EquivalenceClass initialClazz, AcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
+    InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
         super(valuationSetFactory);
 
         this.acceptingComponent = acceptingComponent;
@@ -53,7 +57,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
     @Override
     public void generateJumps(State state) {
         Formula stateFormula = state.getClazz().getRepresentative();
-        Set<Set<GOperator>> keys = skeleton ? stateFormula.accept(SkeletonVisitor.getInstance(SkeletonVisitor.SkeletonApproximation.BOTH))
+        Set<Set<GOperator>> keys = skeleton ? stateFormula.accept(SkeletonVisitor.getInstance())
                 : Sets.powerSet(stateFormula.gSubformulas());
 
         for (Set<GOperator> key : keys) {
@@ -67,25 +71,17 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         }
     }
 
-    public State generateInitialState(EquivalenceClass clazz) {
-        if (eager) {
-            return new State(clazz.unfold(true));
-        } else {
-            return new State(clazz);
-        }
-    }
-
     protected boolean suppressEdge(EquivalenceClass current, EquivalenceClass successor) {
         return successor.isFalse() || (impatient && ImpatientStateAnalysis.isImpatientClazz(current));
     }
 
     @Override
     protected State generateInitialState() {
-        if (initialClazz == null) {
-            throw new IllegalStateException("There is no initial state!");
+        if (eager) {
+            return new State(initialClazz.unfold());
+        } else {
+            return new State(initialClazz);
         }
-
-        return generateInitialState(initialClazz);
     }
 
     public class State extends AbstractFormulaState implements AutomatonState<State> {
@@ -96,26 +92,26 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
 
         @Nullable
         @Override
-        public State getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(BitSet valuation) {
             EquivalenceClass result;
 
             if (eager) {
-                result = clazz.temporalStep(valuation).unfold(true);
+                result = clazz.temporalStep(valuation).unfold();
             } else {
-                result = clazz.unfold(true).temporalStep(valuation);
+                result = clazz.unfold().temporalStep(valuation);
             }
 
             if (suppressEdge(clazz, result)) {
                 return null;
             }
 
-            return new State(result);
+            return new Edge<>(new State(result), REJECT);
         }
 
         @Nonnull
         @Override
         public BitSet getSensitiveAlphabet() {
-            return getSensitive(true);
+            return getSensitive();
         }
 
         @Override

@@ -20,10 +20,10 @@ package translations.ltl2ldba;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import jhoafparser.consumer.*;
+import ltl.parser.Parser;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.ldba.LimitDeterministicAutomaton;
 import org.junit.Test;
-import ltl.Util;
 import translations.Optimisation;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class LTL2LDBATest {
         BiMap<String, Integer> mapping = HashBiMap.create();
         opts.remove(Optimisation.BREAKPOINT_FUSION);
         LTL2LDBA translation = new LTL2LDBA(opts);
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> automaton = translation.apply(Util.createFormula(ltl, mapping));
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
 
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());
@@ -45,6 +45,8 @@ public class LTL2LDBATest {
         if (expectedOutput != null) {
             assertEquals(expectedOutput, automaton.toString(true, mapping));
         }
+
+        automaton.free();
     }
 
     public static void testOutput(String ltl, int size, String expectedOutput) throws HOAConsumerException, IOException {
@@ -68,7 +70,7 @@ public class LTL2LDBATest {
     @Test
     public void testToHOA2() throws Exception {
         String ltl = "(G F a) | (G ((b | X ! a) & ((! b | X a))))";
-        testOutput(ltl, 10);
+        testOutput(ltl, 9);
     }
 
     @Test
@@ -128,7 +130,7 @@ public class LTL2LDBATest {
     @Test
     public void testToHOA73() throws Exception {
         String ltl = "G ((X X (a)) | (X b)) | G c";
-        testOutput(ltl, 8);
+        testOutput(ltl, 7);
     }
 
     @Test
@@ -201,7 +203,7 @@ public class LTL2LDBATest {
     public void testEx() throws Exception {
         String ltl2 = "X G (a | F b)";
         testOutput(ltl2, 3);
-        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 9);
+        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 6);
     }
 
     @Test
@@ -216,18 +218,18 @@ public class LTL2LDBATest {
                 "tool: \"Owl\" \"* *\"\n" +
                 "States: 4\n" +
                 "Start: 0\n" +
-                "acc-name: generalized-Buchi 1\n" +
+                "acc-name: Buchi\n" +
                 "Acceptance: 1 Inf(0)\n" +
                 "AP: 3 \"a\" \"b\" \"c\"\n" +
                 "--BODY--\n" +
                 "State: 1\n" +
-                "[0] 2\n" +
-                "State: 2\n" +
-                "[1] 3\n" +
+                "[1] 2\n" +
                 "State: 0\n" +
-                "[t] 1\n" +
+                "[t] 3 {}\n" +
                 "State: 3\n" +
-                "[2] 3 {0}\n" +
+                "[0] 1 {}\n" +
+                "State: 2\n" +
+                "[2] 2 {0}\n" +
                 "--END--\n";
 
         String ltl = "X (a & (X (b & X G c)))";

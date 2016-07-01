@@ -20,7 +20,7 @@ package translations.ltl2ldba;
 import com.google.common.collect.Sets;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.parser.LTLParser;
+import ltl.parser.Parser;
 import translations.Optimisation;
 import ltl.Collections3;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
@@ -28,7 +28,6 @@ import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import ltl.Formula;
 import ltl.GOperator;
-import ltl.SkeletonVisitor;
 import ltl.equivalence.BDDEquivalenceClassFactory;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -53,14 +52,15 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> apply(Formula formula) {
+        System.out.println("LTL -> LDBA");
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(formula);
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
 
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
 
-        Set<Set<GOperator>> keys = optimisations.contains(Optimisation.SKELETON) ? formula.accept(SkeletonVisitor.getInstance(SkeletonVisitor.SkeletonApproximation.BOTH)) : Sets.powerSet(formula.gSubformulas());
+        Set<Set<GOperator>> keys = optimisations.contains(Optimisation.SKELETON) ? formula.accept(SkeletonVisitor.getInstance()) : Sets.powerSet(formula.gSubformulas());
 
-        AcceptingComponent acceptingComponent = new AcceptingComponent(new Master(valuationSetFactory, optimisations), equivalenceClassFactory, valuationSetFactory, optimisations);
+        AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent initialComponent = null;
 
         if (optimisations.contains(Optimisation.IMPATIENT) && Collections3.isSingleton(keys) && ImpatientStateAnalysis.isImpatientFormula(formula)) {
@@ -68,15 +68,12 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
             EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(Simplifier.simplify(formula.evaluate(key), Simplifier.Strategy.MODAL_EXT));
             acceptingComponent.jumpInitial(initialClazz, key);
-            acceptingComponent.generate();
         } else {
             EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
             initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations);
-            initialComponent.generate();
         }
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> det =
-                new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> det = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
         det.generate();
         return det;
     }
@@ -84,8 +81,8 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
     public static void main(String... args) throws ltl.parser.ParseException, HOAConsumerException {
         LTL2LDBA translation = new LTL2LDBA();
 
-        LTLParser parser = new LTLParser(new StringReader(args[0]));
-        Formula formula = parser.parse();
+        Parser parser = new Parser(new StringReader(args[0]));
+        Formula formula = parser.formula();
 
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> result = translation.apply(formula);
         result.toHOA(new HOAConsumerPrint(System.out), parser.map);

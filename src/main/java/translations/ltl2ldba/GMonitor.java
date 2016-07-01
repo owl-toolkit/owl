@@ -19,12 +19,10 @@ package translations.ltl2ldba;
 
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
+import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import translations.Optimisation;
-import ltl.Collections3;
-import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
-import ltl.Formula;
 import ltl.Literal;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -33,36 +31,57 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class DetLimitSlave extends Automaton<DetLimitSlave.State, BuchiAcceptance> {
+public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
+
+    private static final BitSet ACCEPT;
+    private static final BitSet REJECT;
+
+    static {
+        ACCEPT = new BitSet();
+        ACCEPT.set(0);
+        REJECT = new BitSet();
+    }
 
     protected final EquivalenceClass initialFormula;
     protected final EquivalenceClass True;
     protected final boolean eager;
     protected final boolean removeCover;
 
-    public DetLimitSlave(EquivalenceClass formula, EquivalenceClassFactory equivalenceClassFactory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
+    public GMonitor(EquivalenceClass formula, EquivalenceClassFactory equivalenceClassFactory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
         super(valuationSetFactory);
         eager = optimisations.contains(Optimisation.EAGER);
         removeCover = optimisations.contains(Optimisation.REMOVE_COVER);
-        initialFormula = eager ? formula.unfold(true) : formula;
+        initialFormula = eager ? formula.unfold() : formula;
         True = equivalenceClassFactory.getTrue();
     }
 
     @Override
     protected State generateInitialState() {
-        return new State(initialFormula, True);
+        return generateInitialState(True);
+    }
+
+    protected State generateInitialState(EquivalenceClass extra) {
+        if (extra.isTrue()) {
+            return new State (initialFormula, True);
+        }
+
+        EquivalenceClass current = eager ? extra.unfold() : extra;
+        EquivalenceClass next = initialFormula;
+
+        if (removeCover && current.implies(next)) {
+            next = True;
+        }
+
+        return new State(current, next);
     }
 
     public final class State implements AutomatonState<State> {
-
-        final EquivalenceClass current;
+        public final EquivalenceClass current;
         final EquivalenceClass next;
-        ValuationSet acceptance;
 
         State(EquivalenceClass current, EquivalenceClass next) {
             this.current = current;
             this.next = next;
-            this.acceptance = null;
         }
 
         @Override
@@ -87,7 +106,7 @@ public class DetLimitSlave extends Automaton<DetLimitSlave.State, BuchiAcceptanc
 
         @Nullable
         @Override
-        public State getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(BitSet valuation) {
             EquivalenceClass successor = step(current, valuation);
             EquivalenceClass nextSuccessor = step(next, valuation);
 
@@ -98,9 +117,10 @@ public class DetLimitSlave extends Automaton<DetLimitSlave.State, BuchiAcceptanc
 
             // Successor is done and we can switch components.
             if (successor.isTrue()) {
-                return new State(nextSuccessor.and(initialFormula), True);
+                return new Edge<>(new State(nextSuccessor.and(initialFormula), True), ACCEPT);
             }
 
+            // Do Cover optimisation
             if (removeCover && successor.implies(nextSuccessor)) {
                 nextSuccessor = True;
             }
@@ -109,58 +129,31 @@ public class DetLimitSlave extends Automaton<DetLimitSlave.State, BuchiAcceptanc
                 nextSuccessor = nextSuccessor.and(initialFormula);
             }
 
-            return new State(successor, nextSuccessor);
+            return new Edge<>(new State(successor, nextSuccessor), REJECT);
         }
 
-        @Nonnull
-        @Override
-        public Map<BitSet, ValuationSet> getAcceptanceIndices() {
-            return null;
-        }
-
-        public ValuationSet getAcceptance() {
-            if (acceptance != null) {
-                return acceptance;
-            }
-
-            BitSet sensitiveLetters = new BitSet();
-
-            for (Formula literal : current.unfold(true).getSupport()) {
-                if (literal instanceof Literal) {
-                    sensitiveLetters.set(((Literal) literal).getAtom());
-                }
-            }
-
-            acceptance = valuationSetFactory.createEmptyValuationSet();
-
-            for (BitSet valuation : Collections3.powerSet(sensitiveLetters)) {
-                EquivalenceClass successor = step(current, valuation);
-                if (successor.isTrue()) {
-                    acceptance.addAll(valuationSetFactory.createValuationSet(valuation, sensitiveLetters));
-                }
-            }
-
-            return acceptance;
-        }
+        private transient BitSet sensitiveLetters;
 
         @Nonnull
         @Override
         public BitSet getSensitiveAlphabet() {
-            BitSet sensitiveLetters = new BitSet();
+            if (sensitiveLetters == null) {
+                sensitiveLetters = new BitSet();
 
-            current.unfold(true).getSupport().forEach(f -> {
-                if (f instanceof Literal) {
-                    sensitiveLetters.set(((Literal) f).getAtom());
-                }
-            });
+                current.unfold().getSupport().forEach(f -> {
+                    if (f instanceof Literal) {
+                        sensitiveLetters.set(((Literal) f).getAtom());
+                    }
+                });
 
-            next.unfold(true).getSupport().forEach(f -> {
-                if (f instanceof Literal) {
-                    sensitiveLetters.set(((Literal) f).getAtom());
-                }
-            });
+                next.unfold().getSupport().forEach(f -> {
+                    if (f instanceof Literal) {
+                        sensitiveLetters.set(((Literal) f).getAtom());
+                    }
+                });
+            }
 
-            return sensitiveLetters;
+            return (BitSet) sensitiveLetters.clone();
         }
 
         @Override
@@ -174,10 +167,15 @@ public class DetLimitSlave extends Automaton<DetLimitSlave.State, BuchiAcceptanc
 
         private EquivalenceClass step(EquivalenceClass clazz, BitSet valuation) {
             if (eager) {
-                return clazz.temporalStep(valuation).unfold(true);
+                return clazz.temporalStep(valuation).unfold();
             } else {
-                return clazz.unfold(true).temporalStep(valuation);
+                return clazz.unfold().temporalStep(valuation);
             }
+        }
+
+        public void free() {
+            current.free();
+            next.free();
         }
     }
 }

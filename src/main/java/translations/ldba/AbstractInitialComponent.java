@@ -46,7 +46,7 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
 
     public abstract void generateJumps(S state);
 
-    public void removeDeadEnds(Set<S> s_is) {
+    void removeDeadEnds(Set<S> s_is) {
         boolean stop = false;
 
         while (!stop) {
@@ -55,7 +55,7 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
             if (scan.isEmpty()) {
                 stop = true;
             } else {
-                removeStatesIf(s -> scan.contains(s));
+                removeStatesIf(scan::contains);
             }
         }
     }
