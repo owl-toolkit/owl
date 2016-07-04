@@ -8,10 +8,10 @@ public class FrequencyG extends GOperator {
     private static final double EPSILON = 1e-12;
 
     public final double bound;
-    public final CompOperator cmp;
+    public final CompOperatorFrequencyG cmp;
     public final Lim limes;
 
-    protected FrequencyG(Formula f, double bound, CompOperator cmp, Lim limes) {
+    protected FrequencyG(Formula f, double bound, CompOperatorFrequencyG cmp, Lim limes) {
         super(f);
         this.bound = bound;
         this.cmp = cmp;
@@ -25,7 +25,7 @@ public class FrequencyG extends GOperator {
 
     @Override
     public FrequencyG not() {
-        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate2(), limes.theOther());
+        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate(), limes.theOther());
     }
 
     @Override
@@ -69,10 +69,10 @@ public class FrequencyG extends GOperator {
         } else if (cmp == CompOperator.LT || cmp == CompOperator.LEQ) {
             // Turn everything around, because in PRISM, everything has to be
             // bigger than the bound
-            return new FrequencyG(operand.not(),1-bound,cmp.negate(),limes.theOther());
+            return new FrequencyG(operand.not(),1-bound,cmp.negate().toCompOperatorFrequencyG(),limes.theOther());
         }
 
-        return new FrequencyG(operand, bound, cmp, limes);
+        return new FrequencyG(operand, bound, cmp.toCompOperatorFrequencyG(), limes);
     }
 
     @Override
