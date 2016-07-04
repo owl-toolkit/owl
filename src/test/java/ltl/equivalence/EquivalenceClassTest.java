@@ -8,6 +8,7 @@ import ltl.*;
 import ltl.simplifier.Simplifier;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -103,5 +104,14 @@ public abstract class EquivalenceClassTest {
         EquivalenceClassFactory factory = setUpFactory(f);
         EquivalenceClass clazz = factory.createEquivalenceClass(f);
         assertEquals(Collections.singletonList(Parser.formula("F p1")), clazz.getSupport());
+    }
+
+    @Test
+    public void FrequencyGNotFalse() {
+        Formula f = Parser.formula("G { >= 0.4} a");
+        EquivalenceClassFactory factory = setUpFactory(f);
+        EquivalenceClass clazz = factory.createEquivalenceClass(f);
+        assertEquals(factory.getFalse(),clazz.unfold().temporalStep(new BitSet(0)));
+
     }
 }
