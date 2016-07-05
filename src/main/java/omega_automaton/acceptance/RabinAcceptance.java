@@ -20,10 +20,11 @@ package omega_automaton.acceptance;
 import java.util.Collections;
 import java.util.List;
 
+import omega_automaton.AutomatonState;
 import omega_automaton.collections.TranSet;
 import omega_automaton.collections.Tuple;
 
-public class RabinAcceptance<S> extends GeneralisedRabinAcceptance<S> {
+public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRabinAcceptance<S> {
 
     public RabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
         super(acceptanceCondition);
@@ -47,5 +48,9 @@ public class RabinAcceptance<S> extends GeneralisedRabinAcceptance<S> {
     @Override
     public List<Object> getNameExtra() {
         return Collections.singletonList(this.acceptanceCondition.size());
+    }
+
+    public void addRabinPair(TranSet<S> fin, TranSet<S> inf) {
+        this.acceptanceCondition.add(new Tuple(fin, Collections.singleton(inf)));
     }
 }

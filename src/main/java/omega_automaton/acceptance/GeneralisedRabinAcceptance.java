@@ -19,6 +19,7 @@ package omega_automaton.acceptance;
 
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.TranSet;
 import omega_automaton.collections.Tuple;
@@ -31,7 +32,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
-public class GeneralisedRabinAcceptance<S> implements OmegaAcceptance {
+public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
 
     protected final IdentityHashMap<TranSet<S>, TranSet<S>> acceptanceToUniqueAcceptance;
     protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
@@ -97,9 +98,7 @@ public class GeneralisedRabinAcceptance<S> implements OmegaAcceptance {
         for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
             BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkFin(getTranSetId(pair.left));
 
-            for (int j = 0; j < pair.right.size(); j++) {
-                conjunction.and(HOAConsumerExtended.mkInf(getTranSetId(pair.right.get(j))));
-            }
+            conjunction = addInfiniteSetsToConjunction(conjunction, pair);
 
             if (disjunction == null) {
                 disjunction = conjunction;
@@ -108,10 +107,18 @@ public class GeneralisedRabinAcceptance<S> implements OmegaAcceptance {
             }
         }
 
-        return disjunction;
+        return (disjunction != null ? disjunction : new BooleanExpression<>(false));
     }
 
-    public Set<ValuationSet> getMaximallyMergedEdgesOfEdge(S currentState, ValuationSet initialValuation) {
+    // to be overriden by GeneralisedRabinWithMeanPayoffAcceptance
+    protected BooleanExpression<AtomAcceptance> addInfiniteSetsToConjunction(BooleanExpression<AtomAcceptance> conjunction, Tuple<TranSet<S>, List<TranSet<S>>> pair) {
+        for (TranSet<S> inf : pair.right) {
+            conjunction = conjunction.and(HOAConsumerExtended.mkInf(getTranSetId(inf)));
+        }
+        return conjunction;
+    }
+
+    public Set<ValuationSet> getMaximallyMergedEdgesOfEdge(AutomatonState<?> currentState, ValuationSet initialValuation) {
         Set<ValuationSet> result = new HashSet<>();
         result.add(initialValuation);
 
@@ -122,7 +129,7 @@ public class GeneralisedRabinAcceptance<S> implements OmegaAcceptance {
         return result;
     }
 
-    protected Set<ValuationSet> splitAccordingToAcceptanceSet(S currentState, Set<ValuationSet> result, TranSet<S> acceptanceCondition) {
+    protected Set<ValuationSet> splitAccordingToAcceptanceSet(AutomatonState<?> currentState, Set<ValuationSet> result, TranSet<S> acceptanceCondition) {
         Set<ValuationSet> toRemove = new HashSet<>();
         Set<ValuationSet> toAdd = new HashSet<>();
 
@@ -140,10 +147,24 @@ public class GeneralisedRabinAcceptance<S> implements OmegaAcceptance {
         return result;
     }
 
-    public List<Integer> getInvolvedAcceptanceNumbers(S currentState, ValuationSet edgeKey) {
+    public List<Integer> getInvolvedAcceptanceNumbers(AutomatonState<?> currentState, ValuationSet edgeKey) {
         List<Integer> result = new ArrayList<>();
         acceptanceNumbers.keySet().stream().filter(set -> set.containsAll(currentState, edgeKey)).forEach(set -> result.add(acceptanceNumbers.get(set)));
         return result;
+    }
 
+    /**
+     * checks if premise implies conclusion (as acceptance pair)
+     */
+    public static <S> boolean implies(Tuple<TranSet<S>, List<TranSet<S>>> premisse, Tuple<TranSet<S>, List<TranSet<S>>> conclusion) {
+        return premisse.left.containsAll(conclusion.left) && conclusion.right.stream().allMatch(inf2 -> premisse.right.stream().anyMatch(inf2::containsAll));
+    }
+
+    /**
+     * This method is important if an Acceptance has something to say, which is
+     * not supported for HOA-format. To be overriden by subclasses
+     */
+    public Map<String, List<Object>> miscellaneousAnnotations() {
+        return Collections.emptyMap();
     }
 }
