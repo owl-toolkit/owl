@@ -18,7 +18,7 @@
 apply plugin: 'java'
 
 project.group = 'de.tum.in'
-project.version = '0.0.5'
+project.version = '0.0.6'
 
 repositories {
     maven {url 'https://www7.in.tum.de/~sickert/maven/'}
