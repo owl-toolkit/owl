@@ -48,6 +48,8 @@ public interface EquivalenceClass {
 
     EquivalenceClass unfold();
 
+    EquivalenceClass apply(Function<? super Formula, ? extends Formula> function);
+
     EquivalenceClass temporalStep(BitSet valuation);
 
     EquivalenceClass and(EquivalenceClass eq);

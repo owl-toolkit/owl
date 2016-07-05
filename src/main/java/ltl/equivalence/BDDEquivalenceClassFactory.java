@@ -179,6 +179,11 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
+        public EquivalenceClass apply(Function<? super Formula, ? extends Formula> function) {
+            return createEquivalenceClass(function.apply(representative));
+        }
+
+        @Override
         public EquivalenceClass temporalStep(BitSet valuation) {
             Map<BitSet, EquivalenceClass> cache = temporalStepCache.get(this);
 

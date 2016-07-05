@@ -116,8 +116,7 @@ TOKEN :
 /* Frequency LTL Operators */
 TOKEN: 
 {
-	< FREQG : "G^">
-|   < GEQ : ">=" >
+    < GEQ : ">=" >
 |   < LEQ : "<=" >
 |   < GT  : ">"  >
 |   < LT  : "<"  >
@@ -304,20 +303,27 @@ Formula binaryOp() :
 Formula unaryOp() :
 {
     Formula f;
-    String number;
-    CompOperator op;
-    Lim limes;
 }
 {
       <FOP> f = unaryOp() { return new FOperator(f); }
-    | <FREQG> <LCPAR> (<SUP> { limes = Lim.SUP; } | [<INF>]{ limes = Lim.INF; }) op = comp() number = <NUMBER>.image <RCPAR> f = unaryOp()
-        { return new FrequencyG(f, Double.parseDouble(number), op, limes); }
-    | <GOP> f = unaryOp() { return new GOperator(f); }
+    | <GOP>  { return GFormula(); }
     | <XOP> f = unaryOp() { return new XOperator(f); }
     | <NEG> f = unaryOp() { return f.not(); }
     | f = atom()          { return f; }
 }
 
+Formula GFormula() : 
+{
+    Formula f;
+    String number;
+    CompOperator op;
+    Lim limes;
+}
+{
+	<LCPAR> (<SUP> { limes = Lim.SUP; } | [<INF>]{ limes = Lim.INF; }) op = comp() number = <NUMBER>.image <RCPAR> f = unaryOp()
+        { return FrequencyG.createForPRISM(f, Double.parseDouble(number), op, limes); }
+   | f = unaryOp() { return new GOperator(f); }
+}
 Formula atom() :
 {
     String atomString;

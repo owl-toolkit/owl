@@ -3,23 +3,6 @@ package ltl;
 public enum CompOperator {
     LEQ, LT, GEQ, GT;
 
-    @Override
-    public String toString() {
-        switch (this) {
-            case GEQ:
-                return ">=";
-            case GT:
-                return ">";
-            case LEQ:
-                return "<=";
-            case LT:
-                return "<";
-            default:
-                throw new AssertionError();
-
-        }
-    }
-
     protected CompOperator negate() {
         switch (this) {
             case GEQ:
@@ -33,6 +16,17 @@ public enum CompOperator {
             default:
                 throw new AssertionError();
 
+        }
+    }
+
+    protected CompOperatorFrequencyG toCompOperatorFrequencyG() {
+        switch (this) {
+            case GEQ:
+                return CompOperatorFrequencyG.GEQ;
+            case GT:
+                return CompOperatorFrequencyG.GT;
+            default:
+                throw new AssertionError();
         }
     }
 }
