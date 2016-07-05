@@ -22,6 +22,7 @@ import ltl.Formula;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * EquivalenceClass interface.

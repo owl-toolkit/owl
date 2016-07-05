@@ -103,6 +103,7 @@ TOKEN :
 | < VOP : "V" >
 | < ROP : "R" >
 | < WOP : "W" >
+| < MOP : "M" >
 | < NEG : "!" >
 | < AND : "&" | "&&" >
 | < OR : "|" | "||" >
@@ -294,36 +295,63 @@ Formula binaryOp() :
         ( <IMP>   right = unaryOp() { left = Disjunction.create(left.not(), right); }
         | <BIIMP> right = unaryOp() { left = Conjunction.create(Disjunction.create(left.not(), right), Disjunction.create(left, right.not())); }
         | <UOP>   right = unaryOp() { left = new UOperator(left, right); }
+        | <MOP>   right = unaryOp() { left = UOperator.create(right, Conjunction.create(left, right)); }
         | <ROP>   right = unaryOp() { left = UOperator.create(left.not(), right.not()).not(); }
         | <VOP>   right = unaryOp() { left = UOperator.create(left.not(), right.not()).not(); }
-        | <WOP>   right = unaryOp() { left = new Disjunction(new UOperator(left, right), new GOperator(left)); } )?
+        | <WOP>   right = unaryOp() { left = Disjunction.create(UOperator.create(left, right), GOperator.create(left)); } )?
     { return left; }
 }
 
 Formula unaryOp() :
 {
     Formula f;
+    String number = null;
+    Comparison op = null;
+    FrequencyG.Limes limes = null;
 }
 {
       <FOP> f = unaryOp() { return new FOperator(f); }
-    | <GOP>  { return GFormula(); }
+    | <GOP> (<LCPAR> (<SUP> { limes = FrequencyG.Limes.SUP; } | [<INF>]{ limes = FrequencyG.Limes.INF; }) op = comp() number = <NUMBER>.image <RCPAR>)? f = unaryOp()
+        {
+            if (op != null) {
+                double bound = Double.parseDouble(number);
+                FrequencyG.Comparison comp = null;
+
+                switch (op) {
+                    case LEQ:
+                        bound = 1 - bound;
+                        comp = FrequencyG.Comparison.GT;
+                        f = f.not();
+                        break;
+
+                    case LT:
+                        bound = 1 - bound;
+                        comp = FrequencyG.Comparison.GEQ;
+                        f = f.not();
+                        break;
+
+                    case GEQ:
+                        comp = FrequencyG.Comparison.GEQ;
+                        break;
+
+                    case GT:
+                        comp = FrequencyG.Comparison.GT;
+                        break;
+
+                    default:
+                        throw new IllegalStateException();
+                }
+
+                return new FrequencyG(f, bound, comp, limes);
+            }
+
+            return new GOperator(f);
+        }
     | <XOP> f = unaryOp() { return new XOperator(f); }
     | <NEG> f = unaryOp() { return f.not(); }
     | f = atom()          { return f; }
 }
 
-Formula GFormula() : 
-{
-    Formula f;
-    String number;
-    CompOperator op;
-    Lim limes;
-}
-{
-	<LCPAR> (<SUP> { limes = Lim.SUP; } | [<INF>]{ limes = Lim.INF; }) op = comp() number = <NUMBER>.image <RCPAR> f = unaryOp()
-        { return FrequencyG.createForPRISM(f, Double.parseDouble(number), op, limes); }
-   | f = unaryOp() { return new GOperator(f); }
-}
 Formula atom() :
 {
     String atomString;
@@ -342,12 +370,12 @@ Formula atom() :
 |   <LPAR> f = disjunction() <RPAR> { return f; }
 }
 
-CompOperator comp() : {}
+Comparison comp() : {}
 {
-    <GEQ> { return CompOperator.GEQ; }
-|   <GT>  { return CompOperator.GT; }
-|   <LEQ> { return CompOperator.LEQ; }
-|   <LT>  { return CompOperator.LT; }
+    <GEQ> { return Comparison.GEQ; }
+|   <GT>  { return Comparison.GT; }
+|   <LEQ> { return Comparison.LEQ; }
+|   <LT>  { return Comparison.LT; }
 }
 
 /**

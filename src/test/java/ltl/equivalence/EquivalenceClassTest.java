@@ -111,7 +111,6 @@ public abstract class EquivalenceClassTest {
         Formula f = Parser.formula("G { >= 0.4} a");
         EquivalenceClassFactory factory = setUpFactory(f);
         EquivalenceClass clazz = factory.createEquivalenceClass(f);
-        assertEquals(factory.getFalse(),clazz.unfold().temporalStep(new BitSet(0)));
-
+        assertNotEquals(factory.getFalse(), clazz.unfold().temporalStep(new BitSet(0)));
     }
 }

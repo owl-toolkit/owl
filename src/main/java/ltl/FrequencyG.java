@@ -8,10 +8,10 @@ public class FrequencyG extends GOperator {
     private static final double EPSILON = 1e-12;
 
     public final double bound;
-    public final CompOperatorFrequencyG cmp;
-    public final Lim limes;
+    public final Comparison cmp;
+    public final Limes limes;
 
-    protected FrequencyG(Formula f, double bound, CompOperatorFrequencyG cmp, Lim limes) {
+    public FrequencyG(Formula f, double bound, Comparison cmp, Limes limes) {
         super(f);
         this.bound = bound;
         this.cmp = cmp;
@@ -25,7 +25,7 @@ public class FrequencyG extends GOperator {
 
     @Override
     public FrequencyG not() {
-        return new FrequencyG(operand.not(), 1.0 - bound, cmp.negate(), limes.theOther());
+        return new FrequencyG(operand.not(), 1.0 - bound, cmp.theOther(), limes.theOther());
     }
 
     @Override
@@ -63,18 +63,6 @@ public class FrequencyG extends GOperator {
         throw new UnsupportedOperationException("To my best knowledge not defined");
     }
 
-    public static Formula createForPRISM(Formula operand, double bound, CompOperator cmp, Lim limes) {
-        if (operand instanceof BooleanConstant) {
-            return operand;
-        } else if (cmp == CompOperator.LT || cmp == CompOperator.LEQ) {
-            // Turn everything around, because in PRISM, everything has to be
-            // bigger than the bound
-            return new FrequencyG(operand.not(),1-bound,cmp.negate().toCompOperatorFrequencyG(),limes.theOther());
-        }
-
-        return new FrequencyG(operand, bound, cmp.toCompOperatorFrequencyG(), limes);
-    }
-
     @Override
     public Formula temporalStep(BitSet valuation) {
         return this;
@@ -102,5 +90,52 @@ public class FrequencyG extends GOperator {
         }
         FrequencyG fg = (FrequencyG) o;
         return this.operand.equals(fg.operand) && Math.abs(this.bound - fg.bound) < EPSILON && this.cmp == fg.cmp && this.limes == fg.limes;
+    }
+
+    public enum Comparison {
+        GEQ, GT;
+
+        public Comparison theOther() {
+            switch (this) {
+                case GEQ:
+                    return Comparison.GT;
+                case GT:
+                    return Comparison.GEQ;
+                default:
+                    throw new AssertionError();
+            }
+        }
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case GEQ:
+                    return ">=";
+                case GT:
+                    return ">";
+                default:
+                    throw new AssertionError();
+            }
+        }
+    }
+
+    public static enum Limes {
+        SUP, INF;
+
+        public Limes theOther() {
+            if (this == SUP) {
+                return INF;
+            }
+
+            return SUP;
+        }
+
+        @Override
+        public String toString() {
+            if (this == SUP) {
+                return "sup";
+            }
+            return "inf";
+        }
     }
 }
