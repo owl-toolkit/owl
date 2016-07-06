@@ -51,6 +51,6 @@ public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRab
     }
 
     public void addRabinPair(TranSet<S> fin, TranSet<S> inf) {
-        this.acceptanceCondition.add(new Tuple(fin, Collections.singleton(inf)));
+        this.acceptanceCondition.add(new Tuple(fin.clone(), Collections.singleton(inf.clone())));
     }
 }

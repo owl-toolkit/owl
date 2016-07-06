@@ -27,17 +27,25 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 
 import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
 
-    protected final IdentityHashMap<TranSet<S>, TranSet<S>> acceptanceToUniqueAcceptance;
     protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
-    protected final List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
+    public final List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
 
     public GeneralisedRabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
         this.acceptanceCondition = acceptanceCondition;
+        for( int j=0;j<this.acceptanceCondition.size();j++){
+            Tuple<TranSet<S>, List<TranSet<S>>> pair = this.acceptanceCondition.get(j);
+            for(int i=0; i< pair.right.size();i++){
+                pair.right.set(i, pair.right.get(i).clone());
+            }
+            this.acceptanceCondition.set(j, new Tuple<>(pair.left.clone(),pair.right));
+        }
         this.acceptanceNumbers = new IdentityHashMap<>();
-        this.acceptanceToUniqueAcceptance = new IdentityHashMap<>();
     }
 
     @Override
@@ -67,20 +75,8 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         return result;
     }
 
-    protected int getTranSetId(TranSet<S> o) {
-        if (!acceptanceToUniqueAcceptance.containsKey(o)) {
-            for (TranSet<S> tranSet : acceptanceToUniqueAcceptance.keySet()) {
-                if (tranSet.equals(o)) {
-                    acceptanceToUniqueAcceptance.put(o, acceptanceToUniqueAcceptance.get(tranSet));
-                    break;
-                }
-            }
-        }
+    protected int getTranSetId(TranSet<S> key) {
 
-        if (!acceptanceToUniqueAcceptance.containsKey(o)) {
-            acceptanceToUniqueAcceptance.put(o, o);
-        }
-        TranSet<S> key = acceptanceToUniqueAcceptance.get(o);
         if (acceptanceNumbers.get(key) == null) {
             acceptanceNumbers.put(key, acceptanceNumbers.keySet().size());
         }
@@ -150,7 +146,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     }
 
     /**
-     * checks if premise implies conclusion (as acceptance pair)
+     * checks if premise implies conclusion (as acceptance pair) 
      */
     public boolean implies(Tuple<TranSet<S>, List<TranSet<S>>> premise, Tuple<TranSet<S>, List<TranSet<S>>> conclusion) {
         return premise.left.containsAll(conclusion.left) && conclusion.right.stream().allMatch(inf2 -> premise.right.stream().anyMatch(inf2::containsAll));
