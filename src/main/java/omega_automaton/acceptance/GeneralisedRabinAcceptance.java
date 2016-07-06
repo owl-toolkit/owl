@@ -156,8 +156,8 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     /**
      * checks if premise implies conclusion (as acceptance pair)
      */
-    public static <S> boolean implies(Tuple<TranSet<S>, List<TranSet<S>>> premisse, Tuple<TranSet<S>, List<TranSet<S>>> conclusion) {
-        return premisse.left.containsAll(conclusion.left) && conclusion.right.stream().allMatch(inf2 -> premisse.right.stream().anyMatch(inf2::containsAll));
+    public boolean implies(Tuple<TranSet<S>, List<TranSet<S>>> premise, Tuple<TranSet<S>, List<TranSet<S>>> conclusion) {
+        return premise.left.containsAll(conclusion.left) && conclusion.right.stream().allMatch(inf2 -> premise.right.stream().anyMatch(inf2::containsAll));
     }
 
     /**
@@ -166,5 +166,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
      */
     public Map<String, List<Object>> miscellaneousAnnotations() {
         return Collections.emptyMap();
+    }
+
+    public void remove(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> toRemove) {
+        this.acceptanceCondition.removeAll(toRemove);
     }
 }
