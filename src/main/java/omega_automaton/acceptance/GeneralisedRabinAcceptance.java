@@ -26,11 +26,7 @@ import omega_automaton.collections.Tuple;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
 
