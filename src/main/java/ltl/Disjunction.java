@@ -115,8 +115,8 @@ public final class Disjunction extends PropositionalFormula {
             return BooleanConstant.FALSE;
         }
 
-        if (Collections3.isSingleton(set)) {
-            return Collections3.getElement(set);
+        if (set.size() == 1) {
+            return set.iterator().next();
         }
 
         return new Disjunction(set);
