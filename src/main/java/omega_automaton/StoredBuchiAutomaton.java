@@ -24,9 +24,8 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
-import ltl.BooleanConstant;
-import ltl.Collections3;
 import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
@@ -194,7 +193,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         @Override
         public void notifyBodyStart() throws HOAConsumerException {
             if (valuationSetFactory == null) {
-                valuationSetFactory = new BDDValuationSetFactory(BooleanConstant.TRUE);
+                valuationSetFactory = new BDDValuationSetFactory(0);
             }
 
             automaton = new StoredBuchiAutomaton(valuationSetFactory);

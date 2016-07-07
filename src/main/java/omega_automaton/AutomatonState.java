@@ -17,13 +17,15 @@
 
 package omega_automaton;
 
-import ltl.Collections3;
+import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.BitSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 // TODO: migrate to abstract class?
 public interface AutomatonState<S> {

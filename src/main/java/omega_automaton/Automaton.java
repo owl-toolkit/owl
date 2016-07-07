@@ -19,12 +19,12 @@ package omega_automaton;
 
 import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
-import ltl.Collections3;
 import omega_automaton.acceptance.AllAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
-import omega_automaton.output.HOAConsumerExtended;
+import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import omega_automaton.output.HOAConsumerExtended;
 
 import javax.annotation.Nullable;
 import java.util.*;

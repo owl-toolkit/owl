@@ -22,7 +22,9 @@ import com.google.common.collect.ImmutableBiMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 

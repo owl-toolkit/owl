@@ -17,11 +17,11 @@
 
 package omega_automaton.algorithms;
 
-import ltl.Collections3;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.collections.TranSet;
+import omega_automaton.collections.Collections3;
 import omega_automaton.collections.TarjanStack;
+import omega_automaton.collections.TranSet;
 
 import java.util.*;
 import java.util.stream.Collectors;

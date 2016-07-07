@@ -17,12 +17,12 @@
 
 package omega_automaton.acceptance;
 
-import java.util.Collections;
-import java.util.List;
-
 import omega_automaton.AutomatonState;
 import omega_automaton.collections.TranSet;
 import omega_automaton.collections.Tuple;
+
+import java.util.Collections;
+import java.util.List;
 
 public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRabinAcceptance<S> {
 

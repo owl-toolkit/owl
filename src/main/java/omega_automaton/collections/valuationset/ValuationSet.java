@@ -17,7 +17,8 @@
 
 package omega_automaton.collections.valuationset;
 
-import ltl.Formula;
+import jhoafparser.ast.AtomLabel;
+import jhoafparser.ast.BooleanExpression;
 
 import javax.annotation.Nonnull;
 import java.util.BitSet;
@@ -32,9 +33,7 @@ public interface ValuationSet extends Cloneable, Iterable<BitSet> {
 
     boolean isUniverse();
 
-    // TODO: Decouple from ltl-lib
-    @Deprecated
-    Formula toFormula();
+    BooleanExpression<AtomLabel> toExpression();
 
     ValuationSet clone();
 

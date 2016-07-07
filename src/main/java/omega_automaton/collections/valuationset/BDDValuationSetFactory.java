@@ -19,21 +19,21 @@ package omega_automaton.collections.valuationset;
 
 import com.google.common.collect.Sets;
 import jdd.bdd.BDD;
-import ltl.Collections3;
-import ltl.*;
+import jhoafparser.ast.AtomLabel;
+import jhoafparser.ast.BooleanExpression;
+import omega_automaton.collections.Collections3;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
 
 public class BDDValuationSetFactory implements ValuationSetFactory {
 
     final int vars[];
     final BDD factory;
-
-    public BDDValuationSetFactory(Formula formula) {
-        this(AlphabetVisitor.extractAlphabet(formula));
-    }
 
     public BDDValuationSetFactory(int alphabet) {
         vars = new int[alphabet];
@@ -69,19 +69,42 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         return vars.length;
     }
 
-    Formula createRepresentative(int bdd) {
+    private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
+    private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
+
+    BooleanExpression<AtomLabel> createRepresentative(int bdd) {
         if (bdd == BDD.ONE) {
-            return BooleanConstant.TRUE;
+            return TRUE;
         }
 
         if (bdd == BDD.ZERO) {
-            return BooleanConstant.FALSE;
+            return FALSE;
         }
 
-        int letter = factory.getVar(bdd);
-        Formula pos = createRepresentative(factory.getHigh(bdd));
-        Formula neg = createRepresentative(factory.getLow(bdd));
-        return Disjunction.create(Conjunction.create(new Literal(letter), pos), Conjunction.create(new Literal(letter, true), neg));
+        BooleanExpression<AtomLabel> letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVar(bdd)));
+
+        BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
+        BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd));
+
+        if (pos.isTRUE()) {
+            pos = letter;
+        } else if (!pos.isFALSE()) {
+            pos = pos.and(letter);
+        }
+
+        if (neg.isTRUE()) {
+            neg = letter.not();
+        } else if (!neg.isFALSE()) {
+            neg = neg.and(letter.not());
+        }
+
+        if (pos.isFALSE()) {
+            return neg;
+        } else if (neg.isFALSE()) {
+            return pos;
+        }
+
+        return pos.or(neg);
     }
 
     int createBDD(BitSet set, PrimitiveIterator.OfInt base) {
@@ -115,7 +138,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         }
 
         @Override
-        public Formula toFormula() {
+        public BooleanExpression<AtomLabel> toExpression() {
             return createRepresentative(index);
         }
 

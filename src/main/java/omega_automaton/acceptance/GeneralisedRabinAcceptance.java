@@ -20,7 +20,6 @@ package omega_automaton.acceptance;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.TranSet;
 import omega_automaton.collections.Tuple;
 import omega_automaton.collections.valuationset.ValuationSet;

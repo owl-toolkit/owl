@@ -17,8 +17,6 @@
 
 package omega_automaton.collections.valuationset;
 
-import com.google.common.collect.BiMap;
-
 import java.util.BitSet;
 
 public interface ValuationSetFactory {

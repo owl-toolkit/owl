@@ -23,18 +23,16 @@ import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.AutomatonState;
-import ltl.Collections3;
 import omega_automaton.acceptance.NoneAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
+import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
+import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import javax.annotation.Nonnull;
 
 public class HOAConsumerExtended {
 
@@ -148,7 +146,7 @@ public class HOAConsumerExtended {
         }
 
         try {
-            hoa.addEdgeWithLabel(getStateId(currentState), label.toFormula().accept(new FormulaConverter()), Collections.singletonList(getStateId(end)), accSets);
+            hoa.addEdgeWithLabel(getStateId(currentState), label.toExpression(), Collections.singletonList(getStateId(end)), accSets);
         } catch (HOAConsumerException ex) {
             // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
             throw new RuntimeException(ex);

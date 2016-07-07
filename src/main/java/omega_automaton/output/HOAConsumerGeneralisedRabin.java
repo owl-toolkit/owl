@@ -1,11 +1,7 @@
 
 package omega_automaton.output;
 
-import java.util.*;
-import java.util.Map.Entry;
-
 import com.google.common.collect.BiMap;
-
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.AutomatonState;
@@ -13,6 +9,9 @@ import omega_automaton.acceptance.AllAcceptance;
 import omega_automaton.acceptance.GeneralisedRabinAcceptance;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class HOAConsumerGeneralisedRabin<St extends AutomatonState<?>> extends HOAConsumerExtended {
 

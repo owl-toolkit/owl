@@ -22,7 +22,7 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
-import ltl.Collections3;
+import omega_automaton.collections.Collections3;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
