@@ -284,12 +284,21 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             BDDEquivalenceClass that = (BDDEquivalenceClass) o;
+
+            if (bdd == INVALID_BDD || that.bdd == INVALID_BDD) {
+                throw new IllegalStateException("This EquivalenceClass is already freed.");
+            }
+
             return bdd == that.bdd;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(bdd);
+            if (bdd == INVALID_BDD) {
+                throw new IllegalStateException("This EquivalenceClass is already freed.");
+            }
+
+            return bdd;
         }
     }
 }
