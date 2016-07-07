@@ -22,13 +22,16 @@ import jhoafparser.consumer.HOAConsumer;
 import omega_automaton.acceptance.AllAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
+import omega_automaton.collections.TranSet;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> {
 
@@ -218,8 +221,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * @return true if the only transitions from scc go to scc again and false
      * otherwise
      */
-    public boolean isBSSC(Set<S> scc) {
-        return scc.stream().allMatch(s -> scc.containsAll(getSuccessors(s).keySet()));
+    public boolean isBSCC(Set<S> scc) {
+        for(S s : scc){
+           for( Edge<S> outgoingEdge : getSuccessors(s).keySet()){
+               if(! scc.contains(outgoingEdge.successor))
+                   return false;
+           }
+        }
+        return true;
     }
 
     private void getReachableStates(Set<S> states) {
@@ -234,6 +243,10 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
                 }
             });
         }
+    }
+
+    public boolean containsAllTransitions(TranSet<? super S> trans) {
+        return transitions.entrySet().stream().allMatch(entry -> entry.getValue().entrySet().stream().allMatch(succ -> trans.containsAll(entry.getKey(), succ.getValue())));
     }
 
     public void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
