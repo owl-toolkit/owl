@@ -1,8 +1,8 @@
 package ltl.equivalence;
 
+import ltl.Formula;
 import ltl.parser.Parser;
 import org.junit.Test;
-import ltl.*;
 
 import static org.junit.Assert.assertNotEquals;
 

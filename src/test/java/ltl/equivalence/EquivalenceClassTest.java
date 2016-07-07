@@ -1,11 +1,11 @@
 package ltl.equivalence;
 
+import ltl.*;
 import ltl.parser.Parser;
+import ltl.simplifier.Simplifier;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import ltl.*;
-import ltl.simplifier.Simplifier;
 
 import java.util.ArrayList;
 import java.util.BitSet;

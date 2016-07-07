@@ -1,13 +1,12 @@
 package ltl.parser;
 
 import ltl.*;
-import ltl.simplifier.Simplifier;
 import ltl.tlsf.TLSF;
 import org.junit.Test;
 
 import java.io.StringReader;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ParserTest {
 

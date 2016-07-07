@@ -5,7 +5,8 @@ package ltl.parser;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import ltl.*;
-import ltl.tlsf.*;
+import ltl.tlsf.ImmutableTLSF;
+import ltl.tlsf.TLSF;
 
 import java.io.StringReader;
 import java.util.ArrayList;

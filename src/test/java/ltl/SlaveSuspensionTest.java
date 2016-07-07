@@ -1,13 +1,14 @@
 package ltl;
 
-import static org.junit.Assert.*;
+import ltl.parser.Parser;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import ltl.parser.Parser;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class SlaveSuspensionTest {
 

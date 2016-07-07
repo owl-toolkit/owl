@@ -1,11 +1,9 @@
 package ltl;
 
-import static org.junit.Assert.*;
-
-import ltl.parser.Comparison;
+import ltl.parser.Parser;
 import org.junit.Test;
 
-import ltl.parser.Parser;
+import static org.junit.Assert.assertEquals;
 
 public class TestFrequencyG {
 

@@ -1,12 +1,11 @@
 package ltl.simplifier;
 
-import static org.junit.Assert.assertEquals;
-
+import ltl.Formula;
 import ltl.parser.Parser;
+import ltl.simplifier.Simplifier.Strategy;
 import org.junit.Test;
 
-import ltl.Formula;
-import ltl.simplifier.Simplifier.Strategy;
+import static org.junit.Assert.assertEquals;
 
 public class SimplifierTest {
 

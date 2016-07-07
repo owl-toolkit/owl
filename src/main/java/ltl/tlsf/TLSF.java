@@ -17,11 +17,9 @@
 
 package ltl.tlsf;
 
-import com.google.common.base.Converter;
 import com.google.common.collect.BiMap;
 import ltl.*;
 import org.immutables.value.Value;
-import sun.text.resources.cldr.mua.FormatData_mua;
 
 import java.util.BitSet;
 

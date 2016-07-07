@@ -1,11 +1,9 @@
 package ltl;
 
-import com.google.common.collect.ImmutableSet;
 import ltl.parser.Parser;
-import org.junit.Test;
-
 import ltl.simplifier.Simplifier;
 import ltl.simplifier.Simplifier.Strategy;
+import org.junit.Test;
 
 import java.util.BitSet;
 import java.util.Collections;
