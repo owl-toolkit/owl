@@ -34,5 +34,7 @@ public interface BinaryVisitor<A, B> {
 
     A visit(UOperator u, B fo);
 
+    A visit(ROperator r, B fo);
+
     A visit(XOperator x, B fo);
 }

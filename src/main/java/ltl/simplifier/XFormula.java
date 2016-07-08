@@ -15,44 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl.visitors;
+package ltl.simplifier;
 
-import ltl.*;
+import ltl.Formula;
+import ltl.XOperator;
 
-public interface VoidVisitor {
+class XFormula {
+    int depth;
+    Formula formula;
 
-    default void visit(BooleanConstant booleanConstant) {
+    XFormula(int depth, Formula formula) {
+        this.depth = depth;
+        this.formula = formula;
     }
 
-    default void visit(Conjunction conjunction) {
+    Formula toFormula(int newDepth) {
+        int i = depth - newDepth;
 
+        for (; i > 0; i--) {
+            formula = new XOperator(formula);
+        }
+
+        return formula;
     }
 
-    default void visit(Disjunction disjunction) {
-
-    }
-
-    default void visit(FOperator fOperator) {
-
-    }
-
-    default void visit(GOperator gOperator) {
-
-    }
-
-    default void visit(Literal literal) {
-
-    }
-
-    default void visit(ROperator rOperator) {
-
-    }
-
-    default void visit(UOperator uOperator) {
-
-    }
-
-    default void visit(XOperator xOperator) {
-
+    Formula toFormula() {
+        return toFormula(0);
     }
 }

@@ -24,7 +24,7 @@ import ltl.visitors.VoidVisitor;
 import java.util.Objects;
 import java.util.Set;
 
-public class GOperator extends ModalOperator {
+public class GOperator extends UnaryModalOperator {
 
     public GOperator(Formula f) {
         super(f);
@@ -41,7 +41,7 @@ public class GOperator extends ModalOperator {
     }
 
     @Override
-    public ModalOperator not() {
+    public UnaryModalOperator not() {
         return new FOperator(operand.not());
     }
 
@@ -94,6 +94,14 @@ public class GOperator extends ModalOperator {
 
         if (operand instanceof GOperator) {
             return operand;
+        }
+
+        if (operand instanceof ROperator) {
+            return create(((ROperator) operand).right);
+        }
+
+        if (operand instanceof Conjunction) {
+            return Conjunction.create(((Conjunction) operand).children.stream().map(GOperator::create));
         }
 
         return new GOperator(operand);

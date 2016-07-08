@@ -51,6 +51,11 @@ public abstract class DefaultConverter implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(ROperator rOperator) {
+        return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+    }
+
+    @Override
     public Formula visit(XOperator xOperator) {
         return XOperator.create(xOperator.operand.accept(this));
     }

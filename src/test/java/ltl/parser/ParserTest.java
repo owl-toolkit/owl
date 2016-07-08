@@ -19,6 +19,8 @@ public class ParserTest {
             "a M b",
             "G {sup < 0.5} F a",
             "G { >= 0.5} F a",
+            "a R b",
+            "!(a R b)"
     };
 
     private static final Formula[] FORMULAS = {
@@ -26,10 +28,12 @@ public class ParserTest {
             new GOperator(new Literal(0)),
             new Conjunction(new FOperator(new Literal(0)), new XOperator(new Literal(1))),
             new UOperator(new Disjunction(new Literal(0, true), new Literal(1)), new Literal(2)),
-            new UOperator(BooleanConstant.TRUE, new Literal(0)),
+            new FOperator(new Literal(0)),
             new UOperator(new Literal(1), new Conjunction(new Literal(0), new Literal(1))),
             new FrequencyG(new GOperator(new Literal(0, true)), 0.5, FrequencyG.Comparison.GEQ, FrequencyG.Limes.SUP),
-            new FrequencyG(new FOperator(new Literal(0)), 0.5, FrequencyG.Comparison.GEQ, FrequencyG.Limes.INF)
+            new FrequencyG(new FOperator(new Literal(0)), 0.5, FrequencyG.Comparison.GEQ, FrequencyG.Limes.INF),
+            new ROperator(new Literal(0), new Literal(1)),
+            new UOperator(new Literal(0, true), new Literal(1, true))
     };
 
     @Test

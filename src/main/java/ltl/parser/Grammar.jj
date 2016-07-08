@@ -294,10 +294,10 @@ Formula binaryOp() :
     left = unaryOp()
         ( <IMP>   right = unaryOp() { left = Disjunction.create(left.not(), right); }
         | <BIIMP> right = unaryOp() { left = Conjunction.create(Disjunction.create(left.not(), right), Disjunction.create(left, right.not())); }
-        | <UOP>   right = unaryOp() { left = new UOperator(left, right); }
+        | <UOP>   right = unaryOp() { left = UOperator.create(left, right); }
         | <MOP>   right = unaryOp() { left = UOperator.create(right, Conjunction.create(left, right)); }
-        | <ROP>   right = unaryOp() { left = UOperator.create(left.not(), right.not()).not(); }
-        | <VOP>   right = unaryOp() { left = UOperator.create(left.not(), right.not()).not(); }
+        | <ROP>   right = unaryOp() { left = ROperator.create(left, right); }
+        | <VOP>   right = unaryOp() { left = ROperator.create(left, right); }
         | <WOP>   right = unaryOp() { left = Disjunction.create(UOperator.create(left, right), GOperator.create(left)); } )?
     { return left; }
 }

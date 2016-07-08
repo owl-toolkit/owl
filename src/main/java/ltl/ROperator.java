@@ -24,15 +24,30 @@ import ltl.visitors.VoidVisitor;
 import java.util.Objects;
 import java.util.Set;
 
-public class FOperator extends UnaryModalOperator {
+public final class ROperator extends BinaryModalOperator {
 
-    public FOperator(Formula f) {
-        super(f);
+    public ROperator(Formula left, Formula right) {
+        super(left, right);
     }
 
     @Override
-    public GOperator not() {
-        return new GOperator(operand.not());
+    protected char getOperator() {
+        return 'R';
+    }
+
+    @Override
+    public Formula unfold() {
+        return new Conjunction(right.unfold(), new Disjunction(left.unfold(), this));
+    }
+
+    @Override
+    public UOperator not() {
+        return new UOperator(left.not(), right.not());
+    }
+
+    @Override
+    public Formula evaluate(Set<GOperator> Gs) {
+        return create(left.evaluate(Gs), right.evaluate(Gs));
     }
 
     @Override
@@ -52,60 +67,33 @@ public class FOperator extends UnaryModalOperator {
 
     @Override
     public boolean isPureEventual() {
-        return true;
+        return left.isPureEventual() && right.isPureEventual();
     }
 
     @Override
     public boolean isPureUniversal() {
-        return operand.isPureUniversal();
+        return right.isPureUniversal();
     }
 
     @Override
     public boolean isSuspendable() {
-        return operand.isPureUniversal() || operand.isSuspendable();
-    }
-
-    @Override
-    public Formula evaluate(Set<GOperator> Gs) {
-        Formula op = operand.evaluate(Gs);
-        if (!op.equals(operand)) {
-            return create(op);
-        }
-        return this;
-    }
-
-    @Override
-    protected char getOperator() {
-        return 'F';
-    }
-
-    public static Formula create(Formula operand) {
-        if (operand instanceof BooleanConstant) {
-            return operand;
-        }
-
-        if (operand instanceof FOperator) {
-            return operand;
-        }
-
-        if (operand instanceof UOperator) {
-            return create(((UOperator) operand).right);
-        }
-
-        if (operand instanceof Disjunction) {
-            return Disjunction.create(((Disjunction) operand).children.stream().map(FOperator::create));
-        }
-
-        return new FOperator(operand);
+        return right.isSuspendable();
     }
 
     @Override
     protected int hashCodeOnce() {
-        return Objects.hash(FOperator.class, operand);
+        return Objects.hash(ROperator.class, left, right);
     }
 
-    @Override
-    public Formula unfold() {
-        return new Disjunction(operand.unfold(), this);
+    public static Formula create(Formula left, Formula right) {
+        if (left == BooleanConstant.TRUE || right instanceof BooleanConstant) {
+            return right;
+        }
+
+        if (left == BooleanConstant.FALSE) {
+            return GOperator.create(right);
+        }
+
+        return new ROperator(left, right);
     }
 }

@@ -65,6 +65,12 @@ public class AlphabetVisitor implements VoidVisitor {
     }
 
     @Override
+    public void visit(ROperator rOperator) {
+        rOperator.left.accept(this);
+        rOperator.right.accept(this);
+    }
+
+    @Override
     public void visit(XOperator xOperator) {
         xOperator.operand.accept(this);
     }

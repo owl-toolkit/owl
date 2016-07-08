@@ -52,6 +52,10 @@ public interface Visitor<R> {
         return defaultAction(uOperator);
     }
 
+    default R visit(ROperator rOperator) {
+        return defaultAction(rOperator);
+    }
+
     default R visit(XOperator xOperator) {
         return defaultAction(xOperator);
     }

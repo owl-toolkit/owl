@@ -25,7 +25,7 @@ import ltl.visitors.BinaryVisitor;
  * then false. it is highly recommended to have the subformulae aggressively
  * simplified before the Visitor is applied.
  */
-public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
+class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
 
     private static final ImplicationVisitor instance = new ImplicationVisitor();
 
@@ -92,7 +92,7 @@ public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
             return true;
         }
         if (fo instanceof FOperator) {
-            return f.operand.accept(this, ((ModalOperator) fo).operand);
+            return f.operand.accept(this, ((UnaryModalOperator) fo).operand);
         } else if (fo instanceof UOperator) {
             if (f.accept(this, ((UOperator) fo).right)) {
                 return true;
@@ -117,13 +117,13 @@ public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
         } else if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> g.accept(this, ch));
         } else if (fo instanceof FOperator || fo instanceof GOperator) {
-            return g.operand.accept(this, ((ModalOperator) fo).operand) || g.accept(this, ((ModalOperator) fo).operand);
+            return g.operand.accept(this, ((UnaryModalOperator) fo).operand) || g.accept(this, ((UnaryModalOperator) fo).operand);
         } else if (fo instanceof Literal) {
             return g.operand.accept(this, fo);
         } else if (fo instanceof UOperator) {
             return g.accept(this, ((UOperator) fo).right) || g.accept(this, new Conjunction(new GOperator(((UOperator) fo).left), new FOperator(((UOperator) fo).right)));
         } else if (fo instanceof XOperator) {
-            return g.accept(this, ((ModalOperator) fo).operand) || g.operand.accept(this, fo);
+            return g.accept(this, ((UnaryModalOperator) fo).operand) || g.operand.accept(this, fo);
         }
         return false;
     }
@@ -138,7 +138,7 @@ public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
         } else if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> l.accept(this, ch));
         } else if (fo instanceof FOperator) {
-            return l.accept(this, ((ModalOperator) fo).operand);
+            return l.accept(this, ((UnaryModalOperator) fo).operand);
         }
         return false;
     }
@@ -152,7 +152,7 @@ public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
             return u.left.accept(this, ((UOperator) fo).left) && u.right.accept(this, ((UOperator) fo).right)
                     || u.accept(this, ((UOperator) fo).right);
         } else if (fo instanceof FOperator) {
-            return u.right.accept(this, ((ModalOperator) fo).operand);
+            return u.right.accept(this, ((UnaryModalOperator) fo).operand);
         } else if (fo instanceof Conjunction) {
             if (((Conjunction) fo).children.stream().allMatch(ch -> u.accept(this, ch)))
                 return true;
@@ -164,6 +164,11 @@ public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
     }
 
     @Override
+    public Boolean visit(ROperator r, Formula fo) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Boolean visit(XOperator x, Formula fo) {
         if (x.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
             return true;
@@ -172,12 +177,12 @@ public class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
         } else if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> x.accept(this, ch));
         } else if (fo instanceof FOperator) {
-            return x.operand.accept(this, fo) || x.accept(this, ((ModalOperator) fo).operand)
-                    || x.operand.accept(this, ((ModalOperator) fo).operand);
+            return x.operand.accept(this, fo) || x.accept(this, ((UnaryModalOperator) fo).operand)
+                    || x.operand.accept(this, ((UnaryModalOperator) fo).operand);
         } else if (fo instanceof GOperator || fo instanceof Literal || fo instanceof UOperator) {
             return false;
         } else if (fo instanceof XOperator) {
-            return x.operand.accept(this, ((ModalOperator) fo).operand);
+            return x.operand.accept(this, ((UnaryModalOperator) fo).operand);
         }
         return false;
 

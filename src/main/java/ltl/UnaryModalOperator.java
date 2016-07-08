@@ -21,11 +21,11 @@ import java.util.BitSet;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class ModalOperator extends ImmutableObject implements Formula {
+public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
 
     public final Formula operand;
 
-    protected ModalOperator(Formula operand) {
+    UnaryModalOperator(Formula operand) {
         this.operand = operand;
     }
 
@@ -41,7 +41,7 @@ public abstract class ModalOperator extends ImmutableObject implements Formula {
 
     @Override
     public boolean equals2(ImmutableObject o) {
-        ModalOperator that = (ModalOperator) o;
+        UnaryModalOperator that = (UnaryModalOperator) o;
         return Objects.equals(operand, that.operand);
     }
 

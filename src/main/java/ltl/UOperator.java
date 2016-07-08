@@ -21,52 +21,28 @@ import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
-import java.util.BitSet;
 import java.util.Objects;
 import java.util.Set;
 
-public final class UOperator extends ImmutableObject implements Formula {
-
-    public final Formula left;
-    public final Formula right;
+public final class UOperator extends BinaryModalOperator {
 
     public UOperator(Formula left, Formula right) {
-        this.left = left;
-        this.right = right;
+        super(left, right);
     }
 
     @Override
-    public String toString() {
-        return '(' + left.toString() + 'U' + right.toString() + ')';
-    }
-
-    @Override
-    public Set<GOperator> gSubformulas() {
-        Set<GOperator> r = left.gSubformulas();
-        r.addAll(right.gSubformulas());
-        return r;
-    }
-
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        UOperator uOperator = (UOperator) o;
-        return Objects.equals(left, uOperator.left) && Objects.equals(right, uOperator.right);
+    protected char getOperator() {
+        return 'U';
     }
 
     @Override
     public Formula unfold() {
-        // unfold(a U b) = unfold(b) v (unfold(a) ^ X (a U b))
         return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
     }
 
     @Override
-    public Formula temporalStep(BitSet valuation) {
-        return this;
-    }
-
-    @Override
-    public Formula not() {
-        return Disjunction.create(GOperator.create(right.not()), UOperator.create(right.not(), Conjunction.create(left.not(), right.not())));
+    public ROperator not() {
+        return new ROperator(left.not(), right.not());
     }
 
     @Override
@@ -110,12 +86,12 @@ public final class UOperator extends ImmutableObject implements Formula {
     }
 
     public static Formula create(Formula left, Formula right) {
-        if (left == BooleanConstant.TRUE) {
-            return FOperator.create(right);
-        }
-
         if (left == BooleanConstant.FALSE || right instanceof BooleanConstant) {
             return right;
+        }
+
+        if (left == BooleanConstant.TRUE) {
+            return FOperator.create(right);
         }
 
         return new UOperator(left, right);

@@ -41,7 +41,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     }
 
     protected PropositionalFormula(Stream<? extends Formula> formulaStream) {
-        this.children = ImmutableSet.copyOf(formulaStream.iterator());
+        children = ImmutableSet.copyOf(formulaStream.iterator());
     }
 
     @Override

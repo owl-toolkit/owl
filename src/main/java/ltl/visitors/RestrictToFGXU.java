@@ -19,40 +19,13 @@ package ltl.visitors;
 
 import ltl.*;
 
-public interface VoidVisitor {
+public class RestrictToFGXU extends DefaultConverter {
 
-    default void visit(BooleanConstant booleanConstant) {
-    }
+    @Override
+    public Formula visit(ROperator rOperator) {
+        Formula left = rOperator.left.accept(this);
+        Formula right = rOperator.right.accept(this);
 
-    default void visit(Conjunction conjunction) {
-
-    }
-
-    default void visit(Disjunction disjunction) {
-
-    }
-
-    default void visit(FOperator fOperator) {
-
-    }
-
-    default void visit(GOperator gOperator) {
-
-    }
-
-    default void visit(Literal literal) {
-
-    }
-
-    default void visit(ROperator rOperator) {
-
-    }
-
-    default void visit(UOperator uOperator) {
-
-    }
-
-    default void visit(XOperator xOperator) {
-
+        return Disjunction.create(GOperator.create(right), UOperator.create(right, Conjunction.create(left, right)));
     }
 }

@@ -25,7 +25,7 @@ import java.util.BitSet;
 import java.util.Objects;
 import java.util.Set;
 
-public final class XOperator extends ModalOperator {
+public final class XOperator extends UnaryModalOperator {
 
     public XOperator(Formula f) {
         super(f);

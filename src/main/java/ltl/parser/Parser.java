@@ -292,7 +292,7 @@ left = Conjunction.create(Disjunction.create(left.not(), right), Disjunction.cre
       } else if (jj_2_26(2)) {
         jj_consume_token(UOP);
         right = unaryOp();
-left = new UOperator(left, right);
+left = UOperator.create(left, right);
       } else if (jj_2_27(2)) {
         jj_consume_token(MOP);
         right = unaryOp();
@@ -300,11 +300,11 @@ left = UOperator.create(right, Conjunction.create(left, right));
       } else if (jj_2_28(2)) {
         jj_consume_token(ROP);
         right = unaryOp();
-left = UOperator.create(left.not(), right.not()).not();
+left = ROperator.create(left, right);
       } else if (jj_2_29(2)) {
         jj_consume_token(VOP);
         right = unaryOp();
-left = UOperator.create(left.not(), right.not()).not();
+left = ROperator.create(left, right);
       } else if (jj_2_30(2)) {
         jj_consume_token(WOP);
         right = unaryOp();

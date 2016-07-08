@@ -28,7 +28,7 @@ import java.util.Set;
  * boolean constant specified by c, s.t. the returned formula is made up by
  * assuming the subformula b has the value c.
  */
-public class PseudoSubstitutionVisitor implements Visitor<Formula> {
+class PseudoSubstitutionVisitor implements Visitor<Formula> {
 
     private final Formula toReplace;
     private final BooleanConstant replacement;

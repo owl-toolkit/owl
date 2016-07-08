@@ -1,17 +1,32 @@
-package ltl;
+/*
+ * Copyright (C) 2016  (See AUTHORS)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
+package ltl.simplifier;
+
+import ltl.*;
 import ltl.parser.Parser;
-import ltl.simplifier.ImplicationVisitor;
-import ltl.simplifier.PseudoSubstitutionVisitor;
-import ltl.simplifier.Simplifier;
 import ltl.simplifier.Simplifier.Strategy;
+import ltl.visitors.RestrictToFGXU;
 import ltl.visitors.Visitor;
 import org.junit.Test;
 
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.BinaryOperator;
 
 import static org.junit.Assert.*;
 
@@ -140,10 +155,12 @@ public class TestFormula {
 
     @Test
     public void simplify4() {
-        Formula f0 = new Literal(1, false);
-        Formula f1 = new Literal(0, false);
+        Formula f0 = new Literal(1);
+        Formula f1 = new Literal(0);
         Formula f2 = new UOperator(f0, f1);
         Formula f3 = f2.not();
+        System.out.print(f3);
+        f3 = f3.accept(new RestrictToFGXU());
 
         Formula f4 = new Literal(1, true);
         Formula f5 = new Literal(0, true);
@@ -159,12 +176,9 @@ public class TestFormula {
         Formula f1 = new Literal(0, false);
         Formula f2 = new GOperator(new UOperator(f0, f1));
         Formula f3 = f2.not();
+        f3 = f3.accept(new RestrictToFGXU());
 
-        Formula f4 = new Literal(1, true);
-        Formula f5 = new Literal(0, true);
-        Formula f6 = new UOperator(f5, Simplifier.simplify(new Conjunction(f4, f5), Strategy.MODAL));
-        Formula f7 = new FOperator(Simplifier.simplify(new Disjunction(new GOperator(f5), f6), Strategy.MODAL));
-        assertEquals(f3, f7);
+        assertEquals(f3, Parser.formula("((F G !a) | F (!a & !b))"));
     }
 
     @Test
