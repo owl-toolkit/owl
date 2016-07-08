@@ -1,5 +1,9 @@
 package ltl;
 
+import ltl.visitors.BinaryVisitor;
+import ltl.visitors.Visitor;
+import ltl.visitors.VoidVisitor;
+
 import java.util.BitSet;
 import java.util.Objects;
 
@@ -41,11 +45,6 @@ public class FrequencyG extends GOperator {
     @Override
     public <A, B> A accept(BinaryVisitor<A, B> v, B f) {
         return v.visit(this, f);
-    }
-
-    @Override
-    public <A, B, C> A accept(TripleVisitor<A, B, C> v, B f, C c) {
-        return v.visit(this, f, c);
     }
 
     @Override

@@ -15,38 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl;
+package ltl.visitors;
 
-public interface VoidVisitor {
+import ltl.*;
 
-    default void visit(BooleanConstant booleanConstant) {
-    }
+public interface BinaryVisitor<A, B> {
+    A visit(BooleanConstant b, B fo);
 
-    default void visit(Conjunction conjunction) {
+    A visit(Conjunction c, B fo);
 
-    }
+    A visit(Disjunction b, B fo);
 
-    default void visit(Disjunction disjunction) {
+    A visit(FOperator f, B fo);
 
-    }
+    A visit(GOperator g, B fo);
 
-    default void visit(FOperator fOperator) {
+    A visit(Literal l, B fo);
 
-    }
+    A visit(UOperator u, B fo);
 
-    default void visit(GOperator gOperator) {
-
-    }
-
-    default void visit(Literal literal) {
-
-    }
-
-    default void visit(UOperator uOperator) {
-
-    }
-
-    default void visit(XOperator xOperator) {
-
-    }
+    A visit(XOperator x, B fo);
 }

@@ -18,7 +18,11 @@
 package ltl.equivalence;
 
 import jdd.bdd.BDD;
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.Formula;
+import ltl.visitors.Visitor;
 
 import java.util.*;
 import java.util.function.Function;

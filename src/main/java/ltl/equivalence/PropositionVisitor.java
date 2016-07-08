@@ -19,6 +19,7 @@ package ltl.equivalence;
 
 
 import ltl.*;
+import ltl.visitors.VoidVisitor;
 
 import java.util.HashMap;
 import java.util.Map;

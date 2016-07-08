@@ -1,6 +1,8 @@
 package ltl;
 
 import ltl.parser.Parser;
+import ltl.simplifier.ImplicationVisitor;
+import ltl.simplifier.PseudoSubstitutionVisitor;
 import ltl.simplifier.Simplifier;
 import ltl.simplifier.Simplifier.Strategy;
 import org.junit.Test;

@@ -17,6 +17,10 @@
 
 package ltl;
 
+import ltl.visitors.BinaryVisitor;
+import ltl.visitors.Visitor;
+import ltl.visitors.VoidVisitor;
+
 import java.util.BitSet;
 import java.util.Set;
 
@@ -47,8 +51,6 @@ public interface Formula {
     <R> R accept(Visitor<R> v);
 
     <A, B> A accept(BinaryVisitor<A, B> v, B f);
-
-    <A, B, C> A accept(TripleVisitor<A, B, C> v, B f, C c);
 
     // Temporal Properties of an LTL Formula
     boolean isPureEventual();

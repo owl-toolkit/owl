@@ -15,9 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl;
+package ltl.simplifier;
 
-import ltl.simplifier.Simplifier;
+import ltl.*;
+import ltl.visitors.BinaryVisitor;
 
 /**
  * visit(a,b) returns true if a=>b, and if we don't know it or a doesn't imply b

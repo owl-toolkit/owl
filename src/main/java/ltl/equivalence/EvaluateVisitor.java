@@ -19,6 +19,7 @@ package ltl.equivalence;
 
 
 import ltl.*;
+import ltl.visitors.Visitor;
 
 public class EvaluateVisitor implements Visitor<Formula> {
 

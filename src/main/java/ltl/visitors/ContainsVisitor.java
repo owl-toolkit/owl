@@ -15,8 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl;
+package ltl.visitors;
 
+
+import ltl.*;
 
 public class ContainsVisitor implements Visitor<Boolean> {
     private final Class<? extends Formula> c;

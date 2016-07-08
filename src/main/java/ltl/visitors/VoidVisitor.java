@@ -15,28 +15,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl;
+package ltl.visitors;
 
+import ltl.*;
 
-public class PatientSlaveVisitor implements Visitor<Boolean> {
+public interface VoidVisitor {
 
-    @Override
-    public Boolean visit(XOperator x) {
-        return true;
+    default void visit(BooleanConstant booleanConstant) {
     }
 
-    @Override
-    public Boolean visit(Conjunction p) {
-        return p.children.stream().allMatch(child -> child.accept(this));
+    default void visit(Conjunction conjunction) {
+
     }
 
-    @Override
-    public Boolean visit(Disjunction p) {
-        return p.children.stream().allMatch(child -> child.accept(this));
+    default void visit(Disjunction disjunction) {
+
     }
 
-    @Override
-    public Boolean defaultAction(Formula formula) {
-        return false;
+    default void visit(FOperator fOperator) {
+
+    }
+
+    default void visit(GOperator gOperator) {
+
+    }
+
+    default void visit(Literal literal) {
+
+    }
+
+    default void visit(UOperator uOperator) {
+
+    }
+
+    default void visit(XOperator xOperator) {
+
     }
 }

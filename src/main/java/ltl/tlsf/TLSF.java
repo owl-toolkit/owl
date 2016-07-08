@@ -19,6 +19,7 @@ package ltl.tlsf;
 
 import com.google.common.collect.BiMap;
 import ltl.*;
+import ltl.visitors.DefaultConverter;
 import org.immutables.value.Value;
 
 import java.util.BitSet;

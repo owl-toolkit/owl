@@ -19,6 +19,7 @@ package ltl.simplifier;
 
 
 import ltl.*;
+import ltl.visitors.Visitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -452,7 +453,8 @@ public final class Simplifier {
                             return true;
                         }
 
-                        Formula f = form.accept(PseudoSubstitutionVisitor.getVisitor(), form2, true);
+                        PseudoSubstitutionVisitor visitor = new PseudoSubstitutionVisitor(form2, BooleanConstant.TRUE);
+                        Formula f = form.accept(visitor);
 
                         if (!f.equals(form)) {
                             boolean possibleResult = set.remove(form);
@@ -491,7 +493,8 @@ public final class Simplifier {
                             return true;
                         }
 
-                        Formula f = form.accept(PseudoSubstitutionVisitor.getVisitor(), form2, false);
+                        PseudoSubstitutionVisitor visitor = new PseudoSubstitutionVisitor(form2, BooleanConstant.FALSE);
+                        Formula f = form.accept(visitor);
 
                         if (!f.equals(form)) {
                             boolean possibleResult = set.remove(form);
