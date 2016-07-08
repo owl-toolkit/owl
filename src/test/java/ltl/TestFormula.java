@@ -5,11 +5,13 @@ import ltl.simplifier.ImplicationVisitor;
 import ltl.simplifier.PseudoSubstitutionVisitor;
 import ltl.simplifier.Simplifier;
 import ltl.simplifier.Simplifier.Strategy;
+import ltl.visitors.Visitor;
 import org.junit.Test;
 
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 
 import static org.junit.Assert.*;
 
@@ -168,7 +170,8 @@ public class TestFormula {
     @Test
     public void testSetToConst1() {
         Formula f0 = new Literal(1, false);
-        Formula f1 = f0.accept(PseudoSubstitutionVisitor.getVisitor(), f0, true);
+        Visitor<Formula> visitor = new PseudoSubstitutionVisitor(f0, BooleanConstant.TRUE);
+        Formula f1 = f0.accept(visitor);
         assertEquals(f1, BooleanConstant.get(true));
     }
 
@@ -177,7 +180,7 @@ public class TestFormula {
         Formula f1 = new Literal(0, false);
         Formula f2 = new Literal(2, false);
         Formula f3 = Simplifier.simplify(new Disjunction(f1, f2), Strategy.MODAL);
-        Formula f4 = f3.accept(PseudoSubstitutionVisitor.getVisitor(), f2, false);
+        Formula f4 = f3.accept(new PseudoSubstitutionVisitor(f2, BooleanConstant.FALSE));
         assertEquals(f4, f1);
     }
 
@@ -307,7 +310,7 @@ public class TestFormula {
         Formula f1 = new Literal(1, false);
         Formula f2 = new Literal(0, false);
         Formula f3 = new FOperator(Simplifier.simplify(new Conjunction(f1, f2), Strategy.MODAL));
-        assertEquals(f3.accept(PseudoSubstitutionVisitor.getVisitor(), f1, true), f3);
+        assertEquals(f3.accept(new PseudoSubstitutionVisitor(f1, BooleanConstant.TRUE)), f3);
     }
 
     @Test
