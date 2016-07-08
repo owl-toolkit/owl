@@ -222,12 +222,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * otherwise
      */
     public boolean isBSCC(Set<S> scc) {
-        for(S s : scc){
-           for( Edge<S> outgoingEdge : getSuccessors(s).keySet()){
-               if(! scc.contains(outgoingEdge.successor))
+        for (S s : scc){
+           for (Edge<S> outgoingEdge : getSuccessors(s).keySet()){
+               if(!scc.contains(outgoingEdge.successor)) {
                    return false;
+               }
            }
         }
+
         return true;
     }
 
