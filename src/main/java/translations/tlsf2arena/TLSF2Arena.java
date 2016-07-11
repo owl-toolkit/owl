@@ -15,72 +15,57 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package translations;
+package translations.tlsf2arena;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.HashBiMap;
 import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.*;
-import ltl.parser.LTLParser;
+import ltl.parser.Parser;
+import ltl.tlsf.TLSF;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import translations.Optimisation;
+import translations.ldba.LimitDeterministicAutomaton;
 import translations.ldba2parity.LDBA2Parity;
 import translations.ldba2parity.ParityAutomaton;
+import translations.ltl2ldba.AcceptingComponent;
+import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.LTL2LDBA;
-import translations.parity2arena.Arena;
-import translations.parity2arena.Parity2Arena;
+import translations.tlsf2arena.Any2BitArena;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.StringReader;
-import java.util.BitSet;
+import java.io.*;
 import java.util.EnumSet;
-import java.util.function.Function;
 
-public class LTL2Arena {
+public class TLSF2Arena {
 
-    public static void main(String... args) throws ltl.parser.ParseException, HOAConsumerException, FileNotFoundException {
-        Formula ltl;
-        BiMap<String, Integer> mapping;
-        Parity2Arena parity2Arena;
-
+    public static void main(String... args) throws ltl.parser.ParseException, HOAConsumerException, IOException {
         if (args.length == 0) {
-            ltl = getSharedResourceArbiterLTL(5);
-            mapping = getSharedResourceArbiterMapping(5);
-            parity2Arena = getSharedResourceArbiterTranslator(5);
-            System.out.print(ltl.toString());
-        } else {
-            LTLParser parser = new LTLParser(new StringReader(args[0]));
-            ltl = parser.parse();
-            mapping = parser.map;
-
-            BitSet bs = new BitSet();
-
-            // All variables starting with i or e are implicitly marked as controlled by the environment
-            for (BiMap.Entry<String, Integer> entry : mapping.entrySet()) {
-                if (entry.getKey().startsWith("i") || entry.getKey().startsWith("e")) {
-                    bs.set(entry.getValue());
-                }
-            }
-
-            parity2Arena = new Parity2Arena(bs);
+            args = new String[]{"/Users/sickert/Documents/workspace/syntcomp/Benchmarks2016/TLSF/acaciaplus/easy.tlsf"};
         }
+
+        Parser parser = new Parser(new FileReader(args[0]));
+        TLSF tlsf = parser.tlsf();
 
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        Function<Formula, ParityAutomaton> translation = (new LTL2LDBA(optimisations))
-                .andThen(new LDBA2Parity<>());
-                //.andThen(parity2Arena);
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
+                (new LTL2LDBA(optimisations)).apply(tlsf.toFormula());
 
-        translation.apply(ltl).toHOA(new HOAConsumerPrint(new FileOutputStream(new File("big2.hoa"))), mapping);
-    }
+        Any2BitArena bit = new Any2BitArena();
+        Any2BitArena.Player fstPlayer = tlsf.target().isMealy() ? Any2BitArena.Player.Environment : Any2BitArena.Player.System;
 
-    private static Parity2Arena getSharedResourceArbiterTranslator(int clients) {
-        BitSet environmentAlphabet = new BitSet();
-        environmentAlphabet.set(0, clients);
-        return new Parity2Arena(environmentAlphabet, Arena.Player.System);
+        File nodeFile = new File(args[0] + ".arena.nodes");
+        File edgeFile = new File(args[0] + ".arena.edges");
+
+        if (ldba.isDeterministic()) {
+            bit.writeBinary(ldba.getAcceptingComponent(), fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
+        } else {
+            ParityAutomaton parity = (ParityAutomaton) (new LDBA2Parity()).apply(ldba);
+            System.out.print(parity);
+            bit.writeBinary(parity, fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
+            bit.readBinary(nodeFile, edgeFile);
+        }
     }
 
     private static Formula getSharedResourceArbiterLTL(int clients) {
