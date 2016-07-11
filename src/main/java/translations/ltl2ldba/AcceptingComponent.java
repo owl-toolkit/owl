@@ -140,10 +140,10 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             automatonMap = new HashMap<>(mapKey.size());
             int i = 0;
 
+            // Skip the top-level object in the syntax tree.
             Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(equivalenceClassFactory, keys));
 
             for (GOperator key : mapKey) {
-                // TODO: Extend Simplifier using substition environment.
                 Formula initialFormula = Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
                 EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
 

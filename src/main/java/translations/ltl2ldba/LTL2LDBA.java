@@ -54,12 +54,10 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> apply(Formula formula) {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
+        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.SKELETON) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula);
+
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
-
-        formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
-
-        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.SKELETON) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent initialComponent = null;
