@@ -22,7 +22,6 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Formula;
 import ltl.parser.Parser;
 import omega_automaton.Automaton;
-import omega_automaton.acceptance.ParityAcceptance;
 import translations.Optimisation;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
@@ -56,6 +55,7 @@ public class LDBA2Parity<I extends AutomatonState<I>, A extends AutomatonState<A
 
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
+        optimisations.remove(Optimisation.STATE_LABEL_ANALYSIS);
 
         LTL2LDBA translation = new LTL2LDBA(optimisations);
         LDBA2Parity<InitialComponent.State, AcceptingComponent.State> translation2 = new LDBA2Parity();

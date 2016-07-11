@@ -21,21 +21,19 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableList;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.BooleanConstant;
 import ltl.ImmutableObject;
-import ltl.equivalence.BDDEquivalenceClassFactory;
 import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.output.RemoveComments;
 import translations.ldba.LimitDeterministicAutomaton;
-import ltl.Collections3;
+import omega_automaton.collections.Collections3;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.ltl2ldba.AcceptingComponent;
+import translations.ltl2ldba.GMonitor;
 import translations.ltl2ldba.InitialComponent;
 
 import javax.annotation.Nonnull;
@@ -65,7 +63,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             throw  new UnsupportedOperationException("Only Generalised Buchi with 1 acceptance condition accepted");
         }
 
-        colors = 0;
+        colors = 1;
         acceptance = new ParityAcceptance(colors);
         initialState = new State(initialComponent.getInitialState());
     }
@@ -80,7 +78,8 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         private final ImmutableList<AcceptingComponent.State> acceptingComponentRanking;
 
         public State(@Nonnull InitialComponent.State state) {
-            this(state, ImmutableList.copyOf(initialComponent.epsilonJumps.get(state)));
+            initialComponentState = state;
+            acceptingComponentRanking = ImmutableList.copyOf(appendJumps(state, Collections.emptyMap()));
         }
 
         public State(@Nonnull InitialComponent.State state, @Nonnull List<AcceptingComponent.State> ranking) {
@@ -112,6 +111,48 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                     Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
         }
 
+        /* IDEAS:
+            - suppress jump if the current goal only contains literals and X.
+            - filter in the intial state, when jumps are done.
+            - detect if initial component is true -> move to according state.
+            - move "volatile" formulas to the back. select "infinity" formulas to stay upfront.
+            - if a monitor couldn't be reached from a jump, delete it.
+        */
+
+        private List<AcceptingComponent.State> appendJumps(InitialComponent.State state, Map<EquivalenceClass, EquivalenceClass> existingClasses) {
+            List<AcceptingComponent.State> ranking = new ArrayList<>();
+            Collection<AcceptingComponent.State> volatileStates = new ArrayList<>();
+
+            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
+                GMonitor.State monitorState = Collections3.getElement(accState.monitors.values());
+
+                EquivalenceClass initialClass = monitorState.getInitialFormula();
+
+                if (initialClass.isTrue()) {
+                    continue;
+                }
+
+                EquivalenceClass existingClass = existingClasses.get(initialClass);
+
+                if (initialClass.getRepresentative().accept(FiniteReach.INSTANCE)) {
+                    if (existingClass == null) {
+                        volatileStates.add(accState);
+                    }
+
+                    continue;
+                }
+
+                EquivalenceClass stateClass = monitorState.current.and(monitorState.next).andWith(monitorState.getInitialFormula());
+
+                if (existingClass == null || !stateClass.implies(existingClass)) {
+                    ranking.add(accState);
+                }
+            }
+
+            ranking.addAll(volatileStates);
+            return ranking;
+        }
+
         @Override
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
@@ -121,8 +162,13 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 return null;
             }
 
+            if (successorEdge.successor.getClazz().isTrue()) {
+                BitSet set = new BitSet();
+                set.set(1);
+                return new Edge<>(new State(successorEdge.successor, ImmutableList.of()), set);
+            }
+
             InitialComponent.State successor = successorEdge.successor;
-            successorEdge = null;
 
             List<AcceptingComponent.State> ranking = new ArrayList<>(acceptingComponentRanking.size());
 
@@ -130,7 +176,14 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             int edgeColor = 2 * acceptingComponentRanking.size();
             ListIterator<AcceptingComponent.State> listIterator = acceptingComponentRanking.listIterator();
 
-            EquivalenceClass existingClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
+            Map<EquivalenceClass, EquivalenceClass> existingClasses = new HashMap<>();
+
+            Set<EquivalenceClass> activeMonitors = new HashSet<>();
+
+            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(successor)) {
+                GMonitor.State monitorState = Collections3.getElement(accState.monitors.values());
+                activeMonitors.add(monitorState.getInitialFormula());
+            }
 
             while (listIterator.hasNext()) {
                 int index = listIterator.nextIndex();
@@ -142,29 +195,31 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 }
 
                 AcceptingComponent.State rankingSuccessor = successorEdge2.successor;
-                EquivalenceClass current = Collections3.getElement(rankingSuccessor.monitors.values()).current;
+                GMonitor.State monitorState = Collections3.getElement(rankingSuccessor.monitors.values());
 
-                if (current.implies(existingClass)) {
+                EquivalenceClass existingClass = existingClasses.get(monitorState.getInitialFormula());
+
+                if (existingClass == null) {
+                    existingClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
+                }
+
+                EquivalenceClass stateLabel = monitorState.current.and(monitorState.next).andWith(monitorState.getInitialFormula());
+
+                if (stateLabel.implies(existingClass) || !activeMonitors.contains(monitorState.getInitialFormula())) {
                     edgeColor = Math.min(edgeColor, 2 * index);
-                    System.out.println("Dropped covered state.");
                 } else {
-                    existingClass = existingClass.orWith(current);
+                    existingClasses.put(monitorState.getInitialFormula(), existingClass.orWith(monitorState.current));
                     ranking.add(rankingSuccessor);
 
                     if (successorEdge2.acceptance.get(0)) {
                         edgeColor = Math.min(edgeColor, (2 * index) + 1);
                     }
                 }
+
+                stateLabel.free();
             }
 
-            for (AcceptingComponent.State target : initialComponent.epsilonJumps.get(successor)) {
-                EquivalenceClass current = Collections3.getElement(target.monitors.values()).current;
-
-                if (!current.implies(existingClass)) {
-                    existingClass = existingClass.or(current);
-                    ranking.add(target);
-                }
-            }
+            ranking.addAll(appendJumps(successor, existingClasses));
 
             BitSet acc = new BitSet();
             acc.set(edgeColor);
@@ -174,7 +229,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 acceptance = new ParityAcceptance(edgeColor);
             }
 
-            existingClass.free();
+            existingClasses.forEach((x, y) -> y.free());
 
             return new Edge<>(new State(successor, ranking), acc);
         }
