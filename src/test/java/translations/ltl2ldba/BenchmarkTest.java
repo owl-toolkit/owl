@@ -33,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 
 public class BenchmarkTest {
 
-    @Test
     public void tlsf() throws Exception {
         File benchmarkFolder = new File("/Users/sickert/Documents/workspace/syntcomp/Benchmarks2016/TLSF/acaciaplus");
         File log = new File("test.log");

@@ -172,7 +172,16 @@ public class LTL2LDBATest {
     @Test
     public void testJumps() throws Exception {
         String ltl = "(G a) | X X X X b";
-        testOutput(ltl, 11);
+        testOutput(ltl, 7);
+    }
+
+    @Test
+    public void testRelease() throws Exception {
+        String ltl = "!a R !b";
+        testOutput(ltl, 4);
+
+        ltl = "(G !b) | (!b U !a)";
+        testOutput(ltl, 4);
     }
 
     @Test
@@ -223,13 +232,13 @@ public class LTL2LDBATest {
                 "AP: 3 \"a\" \"b\" \"c\"\n" +
                 "--BODY--\n" +
                 "State: 1\n" +
-                "[1] 2\n" +
-                "State: 0\n" +
-                "[t] 3 {}\n" +
-                "State: 3\n" +
-                "[0] 1 {}\n" +
+                "[0] 2 {}\n" +
                 "State: 2\n" +
-                "[2] 2 {0}\n" +
+                "[1] 3\n" +
+                "State: 0\n" +
+                "[t] 1 {}\n" +
+                "State: 3\n" +
+                "[2] 3 {0}\n" +
                 "--END--\n";
 
         String ltl = "X (a & (X (b & X G c)))";

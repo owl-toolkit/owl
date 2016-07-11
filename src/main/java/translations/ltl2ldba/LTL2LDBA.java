@@ -17,13 +17,13 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.Sets;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
+import ltl.visitors.AlphabetVisitor;
 import ltl.parser.ParseException;
 import ltl.parser.Parser;
 import translations.Optimisation;
-import ltl.Collections3;
+import omega_automaton.collections.Collections3;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
@@ -53,27 +53,27 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> apply(Formula formula) {
-        ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(formula);
+        formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
+        ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
 
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
 
-        Set<Set<GOperator>> keys = optimisations.contains(Optimisation.SKELETON) ? formula.accept(SkeletonVisitor.getInstance()) : Sets.powerSet(formula.gSubformulas());
+        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.SKELETON) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent initialComponent = null;
 
-        if (optimisations.contains(Optimisation.IMPATIENT) && Collections3.isSingleton(keys) && ImpatientStateAnalysis.isImpatientFormula(formula)) {
-            Set<GOperator> key = Collections3.getElement(keys);
+        EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
-            EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(Simplifier.simplify(formula.evaluate(key), Simplifier.Strategy.MODAL_EXT));
-            acceptingComponent.jumpInitial(initialClazz, key);
+        if (optimisations.contains(Optimisation.STATE_LABEL_ANALYSIS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
+            acceptingComponent.jumpInitial(initialClazz, Collections3.getElement(keys));
         } else {
-            EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
             initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations);
         }
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> det = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> det
+                = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
         det.generate();
         return det;
     }

@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableBiMap;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
-import ltl.Collections3;
+import omega_automaton.collections.Collections3;
 import translations.Optimisation;
 import omega_automaton.StoredBuchiAutomaton;
 import translations.ldba.LimitDeterministicAutomaton;

@@ -17,7 +17,7 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.*;
+import ltl.Literal;
 import omega_automaton.*;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
@@ -51,14 +51,17 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
 
         eager = optimisations.contains(Optimisation.EAGER);
         skeleton = optimisations.contains(Optimisation.SKELETON);
-        impatient = optimisations.contains(Optimisation.IMPATIENT);
+        impatient = optimisations.contains(Optimisation.STATE_LABEL_ANALYSIS);
     }
 
     @Override
     public void generateJumps(State state) {
+        if (impatient && StateAnalysis.isJumpUnnecessary(state.getClazz())) {
+            return;
+        }
+
         Formula stateFormula = state.getClazz().getRepresentative();
-        Set<Set<GOperator>> keys = skeleton ? stateFormula.accept(SkeletonVisitor.getInstance())
-                : Sets.powerSet(stateFormula.gSubformulas());
+        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula);
 
         for (Set<GOperator> key : keys) {
             AcceptingComponent.State successor = acceptingComponent.jump(state.getClazz(), key);
@@ -72,7 +75,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
     }
 
     protected boolean suppressEdge(EquivalenceClass current, EquivalenceClass successor) {
-        return successor.isFalse() || (impatient && ImpatientStateAnalysis.isImpatientClazz(current));
+        return successor.isFalse() || (impatient && StateAnalysis.isJumpNecessary(current));
     }
 
     @Override
@@ -84,10 +87,12 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         }
     }
 
-    public class State extends AbstractFormulaState implements AutomatonState<State> {
+    public class State implements AutomatonState<State> {
+
+        final EquivalenceClass clazz;
 
         public State(EquivalenceClass clazz) {
-            super(clazz);
+            this.clazz = clazz;
         }
 
         @Nullable
@@ -111,12 +116,48 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         @Nonnull
         @Override
         public BitSet getSensitiveAlphabet() {
-            return getSensitive();
+            BitSet letters = new BitSet();
+
+            for (Formula literal : clazz.unfold().getSupport()) {
+                if (literal instanceof Literal) {
+                    letters.set(((Literal) literal).getAtom());
+                }
+            }
+
+            return letters;
         }
 
         @Override
         public ValuationSetFactory getFactory() {
             return valuationSetFactory;
+        }
+
+        @Override
+        public String toString() {
+            return clazz.getRepresentative().toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            State that = (State) o;
+            return Objects.equals(clazz, that.clazz);
+        }
+
+        @Override
+        public int hashCode() {
+            return clazz.hashCode();
+        }
+
+        public EquivalenceClass getClazz() {
+            return clazz;
+        }
+
+        public void free() {
+            clazz.free();
         }
     }
 }

@@ -3,9 +3,12 @@ package translations.ltl2ldba;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Sets;
+import ltl.FOperator;
 import ltl.Formula;
 import ltl.GOperator;
+import ltl.Literal;
 import ltl.parser.Parser;
+import ltl.visitors.Collector;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -13,9 +16,9 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
-public class SkeletonVisitorTest {
+public class GMonitorVisitorTest {
 
-    SkeletonVisitor visitor = SkeletonVisitor.getInstance();
+    GMonitorSelector.GMonitorVisitor visitor = new GMonitorSelector.GMonitorVisitor();
 
     @Test
     public void testSimple() {
@@ -31,5 +34,23 @@ public class SkeletonVisitorTest {
         Formula formula = Parser.formula("G a & F G b");
         Set<Set<GOperator>> skeleton = Collections.singleton(Sets.newHashSet((GOperator) Parser.formula("G a", mapping), (GOperator) Parser.formula("G b", mapping)));
         assertEquals(skeleton, formula.accept(visitor));
+    }
+
+    @Test
+    public void gSubformulas() {
+        Formula f1 = new Literal(0, false);
+        Formula f2 = new FOperator(new GOperator(f1));
+
+        Collector collector = new Collector(GOperator.class::isInstance);
+        f2.accept(collector);
+        assertEquals(Collections.singleton(new GOperator(f1)), collector.getCollection());
+    }
+
+    @Test
+    public void testEvaluateSetG() throws Exception {
+        GOperator G1 = (GOperator) Parser.formula("G(p2)");
+        Formula formula = Parser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
+        Set<GOperator> set1 = Collections.singleton(G1);
+        assertEquals(Collections.emptySet(), null);
     }
 }

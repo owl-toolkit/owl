@@ -21,7 +21,7 @@ import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.Collections3;
+import omega_automaton.collections.Collections3;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;

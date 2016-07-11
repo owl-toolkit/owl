@@ -21,13 +21,14 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import ltl.*;
+import ltl.visitors.SkipVisitor;
+import ltl.visitors.Visitor;
 import omega_automaton.*;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
-import ltl.equivalence.EvaluateVisitor;
 import ltl.simplifier.Simplifier;
 import translations.Optimisation;
 
@@ -139,8 +140,11 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             automatonMap = new HashMap<>(mapKey.size());
             int i = 0;
 
+            Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(equivalenceClassFactory, keys));
+
             for (GOperator key : mapKey) {
-                Formula initialFormula = Simplifier.simplify(key.operand.evaluate(keys), Simplifier.Strategy.MODAL);
+                // TODO: Extend Simplifier using substition environment.
+                Formula initialFormula = Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
                 EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
 
                 if (initialClazz.isFalse()) {
@@ -161,9 +165,8 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
 
     @Nonnull
     private EquivalenceClass getRemainingGoal(EquivalenceClass master, Set<GOperator> keys) {
-        Formula formula = master.getRepresentative().evaluate(keys);
-        Conjunction facts = new Conjunction(keys.stream().map(key -> key.operand.evaluate(keys)));
-        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(equivalenceClassFactory, facts);
+        Formula formula = master.getRepresentative();
+        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(equivalenceClassFactory, keys);
         formula = Simplifier.simplify(formula.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
         return equivalenceClassFactory.createEquivalenceClass(formula);
     }
@@ -178,7 +181,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
 
         @Override
         public String toString() {
-            return "(" + monitors + ')';
+            return monitors.toString();
         }
 
         @Nullable

@@ -17,6 +17,7 @@
 
 package translations.ltl2ldba;
 
+import ltl.visitors.AlphabetVisitor;
 import org.junit.Before;
 import org.junit.Test;
 import omega_automaton.AutomatonState;
@@ -45,7 +46,7 @@ public class DetLimitSlaveTest {
     @Before
     public void setUp() {
         formula = new Disjunction(new FOperator(new Literal(0, false)), new XOperator(new Literal(1, false)));
-        valuationSetFactory = new BDDValuationSetFactory(formula);
+        valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
         automaton = new GMonitor(equivalenceClassFactory.createEquivalenceClass(formula), equivalenceClassFactory, valuationSetFactory, Collections.emptySet());
         automatonImp = new GMonitor(equivalenceClassFactory.createEquivalenceClass(formula), equivalenceClassFactory, valuationSetFactory,
