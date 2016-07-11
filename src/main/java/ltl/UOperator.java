@@ -22,7 +22,6 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.Objects;
-import java.util.Set;
 
 public final class UOperator extends BinaryModalOperator {
 
@@ -43,11 +42,6 @@ public final class UOperator extends BinaryModalOperator {
     @Override
     public ROperator not() {
         return new ROperator(left.not(), right.not());
-    }
-
-    @Override
-    public Formula evaluate(Set<GOperator> Gs) {
-        return create(left.evaluate(Gs), right.evaluate(Gs));
     }
 
     @Override

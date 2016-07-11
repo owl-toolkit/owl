@@ -22,24 +22,8 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
-import java.util.Set;
 
 public interface Formula {
-
-    Formula unfold();
-
-    /**
-     * Do a single temporal step. This means that one layer of X-operators is
-     * removed and literals are replaced by their valuations.
-     *
-     * @param valuation
-     * @return
-     */
-    Formula temporalStep(BitSet valuation);
-
-    Formula not();
-
-    Formula evaluate(Set<GOperator> Gs);
 
     void accept(VoidVisitor v);
 
@@ -53,4 +37,22 @@ public interface Formula {
     boolean isPureUniversal();
 
     boolean isSuspendable();
+
+    /**
+     * Syntactically negate this formula.
+     *
+     * @return The negation of this formula in NNF.
+     */
+    Formula not();
+
+    /**
+     * Do a single temporal step. This means that one layer of X-operators is
+     * removed and literals are replaced by their valuations.
+     *
+     * @param valuation
+     * @return
+     */
+    Formula temporalStep(BitSet valuation);
+
+    Formula unfold();
 }

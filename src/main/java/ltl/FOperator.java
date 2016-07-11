@@ -22,7 +22,6 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.Objects;
-import java.util.Set;
 
 public class FOperator extends UnaryModalOperator {
 
@@ -63,15 +62,6 @@ public class FOperator extends UnaryModalOperator {
     @Override
     public boolean isSuspendable() {
         return operand.isPureUniversal() || operand.isSuspendable();
-    }
-
-    @Override
-    public Formula evaluate(Set<GOperator> Gs) {
-        Formula op = operand.evaluate(Gs);
-        if (!op.equals(operand)) {
-            return create(op);
-        }
-        return this;
     }
 
     @Override

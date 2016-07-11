@@ -22,7 +22,6 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.Objects;
-import java.util.Set;
 
 public class GOperator extends UnaryModalOperator {
 
@@ -43,11 +42,6 @@ public class GOperator extends UnaryModalOperator {
     @Override
     public UnaryModalOperator not() {
         return new FOperator(operand.not());
-    }
-
-    @Override
-    public BooleanConstant evaluate(Set<GOperator> Gs) {
-        return BooleanConstant.get(Gs.contains(this));
     }
 
     @Override

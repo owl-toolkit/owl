@@ -67,11 +67,6 @@ public final class Disjunction extends PropositionalFormula {
     }
 
     @Override
-    public Formula evaluate(Set<GOperator> Gs) {
-        return create(children.stream().map(c -> c.evaluate(Gs)));
-    }
-
-    @Override
     public Formula temporalStep(BitSet valuation) {
         return create(children.stream().map(c -> c.temporalStep(valuation)));
     }

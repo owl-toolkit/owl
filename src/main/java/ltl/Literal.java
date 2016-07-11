@@ -22,7 +22,6 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
-import java.util.Set;
 
 public final class Literal extends ImmutableObject implements Formula {
 
@@ -89,11 +88,6 @@ public final class Literal extends ImmutableObject implements Formula {
     public boolean equals2(ImmutableObject o) {
         Literal literal = (Literal) o;
         return atom == literal.atom;
-    }
-
-    @Override
-    public Literal evaluate(Set<GOperator> Gs) {
-        return this;
     }
 
     public int getAtom() {

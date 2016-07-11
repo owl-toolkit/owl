@@ -23,7 +23,6 @@ import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
 import java.util.Objects;
-import java.util.Set;
 
 public final class XOperator extends UnaryModalOperator {
 
@@ -74,17 +73,6 @@ public final class XOperator extends UnaryModalOperator {
     @Override
     public boolean isSuspendable() {
         return operand.isSuspendable();
-    }
-
-    @Override
-    public Formula evaluate(Set<GOperator> Gs) {
-        Formula operand = this.operand.evaluate(Gs);
-
-        if (operand == this.operand) {
-            return this;
-        }
-
-        return create(operand.evaluate(Gs));
     }
 
     @Override

@@ -23,7 +23,6 @@ import ltl.visitors.VoidVisitor;
 
 import javax.annotation.Nonnull;
 import java.util.BitSet;
-import java.util.Set;
 
 public final class BooleanConstant extends ImmutableObject implements Formula {
 
@@ -94,11 +93,6 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
 
     @Override
     public Formula unfold() {
-        return this;
-    }
-
-    @Override
-    public BooleanConstant evaluate(Set<GOperator> Gs) {
         return this;
     }
 
