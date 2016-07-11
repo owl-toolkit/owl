@@ -17,7 +17,6 @@
 
 package ltl;
 
-import com.google.common.collect.Sets;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
@@ -101,11 +100,6 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     @Override
     public BooleanConstant evaluate(Set<GOperator> Gs) {
         return this;
-    }
-
-    @Override
-    public Set<GOperator> gSubformulas() {
-        return Sets.newHashSet();
     }
 
     @Override

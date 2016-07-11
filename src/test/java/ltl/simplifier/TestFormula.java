@@ -225,13 +225,7 @@ public class TestFormula {
         assertEquals(f6, BooleanConstant.get(false));
     }
 
-    @Test
-    public void gSubformulas() {
-        Formula f1 = new Literal(0, false);
-        Formula f2 = new FOperator(new GOperator(f1));
 
-        assertEquals(Collections.singleton(new GOperator(f1)), f2.gSubformulas());
-    }
 
     @Test
     public void testSimplifyForEntails1() {
@@ -335,11 +329,5 @@ public class TestFormula {
         }
     }
 
-    @Test
-    public void testEvaluateSetG() throws Exception {
-        GOperator G1 = (GOperator) Parser.formula("G(p2)");
-        Formula formula = Parser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
-        Set<GOperator> set1 = Collections.singleton(G1);
-        assertEquals(Collections.emptySet(), formula.evaluate(set1).gSubformulas());
-    }
+
 }

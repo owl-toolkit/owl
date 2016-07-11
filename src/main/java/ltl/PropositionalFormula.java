@@ -45,11 +45,6 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     }
 
     @Override
-    public Set<GOperator> gSubformulas() {
-        return union(Formula::gSubformulas);
-    }
-
-    @Override
     public String toString() {
         StringBuilder s = new StringBuilder(3 * children.size());
 

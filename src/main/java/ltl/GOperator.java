@@ -46,13 +46,6 @@ public class GOperator extends UnaryModalOperator {
     }
 
     @Override
-    public Set<GOperator> gSubformulas() {
-        Set<GOperator> r = operand.gSubformulas();
-        r.add(this);
-        return r;
-    }
-
-    @Override
     public BooleanConstant evaluate(Set<GOperator> Gs) {
         return BooleanConstant.get(Gs.contains(this));
     }

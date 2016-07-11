@@ -25,11 +25,6 @@ import java.util.BitSet;
 import java.util.Set;
 
 public interface Formula {
-    /**
-     * Deprecated, because we can use the Visitor in rabinizer.freqencyLTL
-     */
-    @Deprecated
-    Set<GOperator> gSubformulas();
 
     Formula unfold();
 

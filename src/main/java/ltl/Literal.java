@@ -17,7 +17,6 @@
 
 package ltl;
 
-import com.google.common.collect.Sets;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
@@ -95,11 +94,6 @@ public final class Literal extends ImmutableObject implements Formula {
     @Override
     public Literal evaluate(Set<GOperator> Gs) {
         return this;
-    }
-
-    @Override
-    public Set<GOperator> gSubformulas() {
-        return Sets.newHashSet();
     }
 
     public int getAtom() {

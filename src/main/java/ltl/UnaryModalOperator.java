@@ -19,7 +19,6 @@ package ltl;
 
 import java.util.BitSet;
 import java.util.Objects;
-import java.util.Set;
 
 public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
 
@@ -32,11 +31,6 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
     @Override
     public String toString() {
         return getOperator() + operand.toString();
-    }
-
-    @Override
-    public Set<GOperator> gSubformulas() {
-        return operand.gSubformulas();
     }
 
     @Override

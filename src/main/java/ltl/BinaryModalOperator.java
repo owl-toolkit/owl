@@ -19,7 +19,6 @@ package ltl;
 
 import java.util.BitSet;
 import java.util.Objects;
-import java.util.Set;
 
 public abstract class BinaryModalOperator extends ImmutableObject implements Formula {
 
@@ -45,13 +44,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
     @Override
     public Formula temporalStep(BitSet valuation) {
         return this;
-    }
-
-    @Override
-    public Set<GOperator> gSubformulas() {
-        Set<GOperator> r = left.gSubformulas();
-        r.addAll(right.gSubformulas());
-        return r;
     }
 
     protected abstract char getOperator();
