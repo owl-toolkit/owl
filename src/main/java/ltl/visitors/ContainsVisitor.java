@@ -21,13 +21,10 @@ package ltl.visitors;
 import ltl.*;
 
 public class ContainsVisitor implements Visitor<Boolean> {
-    private final Class<? extends Formula> c;
+    private final Class<? extends Formula> clazz;
 
     public ContainsVisitor(Class<? extends Formula> cl) {
-        if (!Formula.class.isAssignableFrom(cl)) {
-            throw new IllegalArgumentException("");
-        }
-        this.c = cl;
+        clazz = cl;
     }
 
     @Override
@@ -37,61 +34,41 @@ public class ContainsVisitor implements Visitor<Boolean> {
 
     @Override
     public Boolean visit(BooleanConstant booleanConstant) {
-        return c.equals(BooleanConstant.class);
+        return clazz.equals(BooleanConstant.class);
     }
 
     @Override
     public Boolean visit(Conjunction conjunction) {
-        if (c.equals(Conjunction.class)) {
-            return true;
-        }
-        return conjunction.anyMatch(child -> child.accept(this));
+        return clazz.equals(Conjunction.class) || conjunction.anyMatch(child -> child.accept(this));
     }
 
     @Override
     public Boolean visit(Disjunction disjunction) {
-        if (c.equals(Disjunction.class)) {
-            return true;
-        }
-        return disjunction.anyMatch(child -> child.accept(this));
+        return clazz.equals(Disjunction.class) || disjunction.anyMatch(child -> child.accept(this));
     }
 
     @Override
     public Boolean visit(FOperator fOperator) {
-        if (c.equals(FOperator.class)) {
-            return true;
-        }
-        return fOperator.operand.accept(this);
+        return clazz.equals(FOperator.class) || fOperator.operand.accept(this);
     }
 
     @Override
     public Boolean visit(GOperator gOperator) {
-        if (c.equals(GOperator.class)) {
-            return true;
-        }
-        return gOperator.operand.accept(this);
+        return clazz.equals(GOperator.class) || gOperator.operand.accept(this);
     }
 
     @Override
     public Boolean visit(Literal literal) {
-        return c.equals(Literal.class);
+        return clazz.equals(Literal.class);
     }
 
     @Override
     public Boolean visit(UOperator uOperator) {
-
-        if (c.equals(UOperator.class)) {
-            return true;
-        }
-        return uOperator.left.accept(this) || uOperator.right.accept(this);
+        return clazz.equals(UOperator.class) || uOperator.left.accept(this) || uOperator.right.accept(this);
     }
 
     @Override
     public Boolean visit(XOperator xOperator) {
-        if (c.equals(XOperator.class)) {
-            return true;
-        }
-        return xOperator.operand.accept(this);
+        return clazz.equals(XOperator.class) || xOperator.operand.accept(this);
     }
-
 }
