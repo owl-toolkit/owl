@@ -18,12 +18,9 @@
 package translations;
 
 public enum Optimisation {
-    /* Common */
-    EAGER, SKELETON,
-
-    /* any2ldba */
+    /* LDBA Construction */
     SCC_ANALYSIS, REMOVE_EPSILON_TRANSITIONS,
 
     /* ltl2ldba */
-    REMOVE_COVER, STATE_LABEL_ANALYSIS, BREAKPOINT_FUSION,
+    EAGER_UNFOLD, REMOVE_REDUNDANT_OBLIGATIONS, MINIMAL_GSETS, FORCE_JUMPS, DELAY_JUMPS, BREAKPOINT_FUSION,
 }

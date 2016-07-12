@@ -55,7 +55,7 @@ public class LDBA2Parity<I extends AutomatonState<I>, A extends AutomatonState<A
 
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-        optimisations.remove(Optimisation.STATE_LABEL_ANALYSIS);
+        optimisations.remove(Optimisation.FORCE_JUMPS);
 
         LTL2LDBA translation = new LTL2LDBA(optimisations);
         LDBA2Parity<InitialComponent.State, AcceptingComponent.State> translation2 = new LDBA2Parity();

@@ -17,46 +17,27 @@
 
 package translations.ltl2ldba;
 
+import com.google.common.collect.Sets;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.visitors.Collector;
 import ltl.visitors.Visitor;
 
-import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 final class StateAnalysis {
 
-    private static final ImpatientVisitor INSTANCE = new ImpatientVisitor();
-    private static final PostponableVisitor POSTPONABLE_VISITOR = new PostponableVisitor();
+    private static final UnguardedGs UNGUARDED_GS = new UnguardedGs();
+    private static final UnguardedLiterals UNGUARDED_LITERALS = new UnguardedLiterals();
+    private static final GuardedLiterals GUARDED_LITERALS = new GuardedLiterals();
 
     static boolean isJumpUnnecessary(EquivalenceClass clazz) {
-        // TODO: Analyse subtrees.
         Formula formula = clazz.getRepresentative();
-        BitSet extern = formula.accept(POSTPONABLE_VISITOR);
-
-        Collector collector = new Collector(c -> {
-            return c instanceof GOperator || c instanceof ROperator;
-        });
-        formula.accept(collector);
-
-        Collector collector2 = new Collector(Literal.class::isInstance);
-        collector.getCollection().forEach(c -> {
-            if (c instanceof ROperator) {
-                ROperator r = (ROperator) c;
-                r.right.accept(collector2);
-            } else {
-                c.accept(collector2);
-            }
-        });
-
-        BitSet intern = new BitSet();
-
-        collector2.getCollection().forEach(l -> intern.set(((Literal) l).getAtom()));
-
-        extern.andNot(intern);
-        return !extern.isEmpty();
+        Set<Literal> unguardedLiterals = formula.accept(UNGUARDED_LITERALS);
+        Set<Literal> guardedLiterals = formula.accept(GUARDED_LITERALS);
+        return !Sets.difference(unguardedLiterals, guardedLiterals).isEmpty();
     }
 
     static boolean isJumpNecessary(EquivalenceClass clazz) {
@@ -67,68 +48,95 @@ final class StateAnalysis {
         Formula formula = clazz.getRepresentative();
         Collector collector = new Collector(c -> c instanceof GOperator || c instanceof ROperator);
         formula.accept(collector);
-        return formula.accept(INSTANCE).equals(collector.getCollection());
+        return formula.accept(UNGUARDED_GS).equals(collector.getCollection());
     }
 
-    private static class PostponableVisitor implements Visitor<BitSet> {
+    private static class UnguardedLiterals implements Visitor<Set<Literal>> {
 
         @Override
-        public BitSet defaultAction(Formula formula) {
-            return new BitSet();
+        public Set<Literal> defaultAction(Formula formula) {
+            return Collections.emptySet();
         }
 
         @Override
-        public BitSet visit(Conjunction conjunction) {
-            BitSet bs = new BitSet();
-            conjunction.children.forEach(c -> bs.or(c.accept(this)));
-            return bs;
+        public Set<Literal> visit(Conjunction conjunction) {
+            return conjunction.union(f -> f.accept(this));
         }
 
         @Override
-        public BitSet visit(Disjunction disjunction) {
-            BitSet bs = new BitSet();
-            disjunction.children.forEach(c -> bs.and(c.accept(this)));
-            return bs;
+        public Set<Literal> visit(Disjunction disjunction) {
+            return disjunction.intersection(f -> f.accept(this));
         }
 
         @Override
-        public BitSet visit(FOperator fOperator) {
+        public Set<Literal> visit(FOperator fOperator) {
             return fOperator.operand.accept(this);
         }
 
         @Override
-        public BitSet visit(GOperator gOperator) {
-            return new BitSet();
+        public Set<Literal> visit(Literal literal) {
+            return Collections.singleton(literal);
         }
 
         @Override
-        public BitSet visit(Literal literal) {
-            BitSet bs = new BitSet();
-            bs.set(literal.getAtom());
-            return bs;
+        public Set<Literal> visit(UOperator uOperator) {
+            return Sets.intersection(uOperator.left.accept(this), uOperator.right.accept(this));
         }
 
         @Override
-        public BitSet visit(UOperator uOperator) {
-            return new BitSet();
-        }
-
-        @Override
-        public BitSet visit(ROperator rOperator) {
-            return new BitSet();
-        }
-
-        @Override
-        public BitSet visit(XOperator xOperator) {
+        public Set<Literal> visit(XOperator xOperator) {
             return xOperator.operand.accept(this);
         }
     }
 
-    private static class ImpatientVisitor implements Visitor<Set<GOperator>> {
-        private ImpatientVisitor() {
+    private static class GuardedLiterals implements Visitor<Set<Literal>> {
 
+        @Override
+        public Set<Literal> defaultAction(Formula formula) {
+            return Collections.emptySet();
         }
 
+        @Override
+        public Set<Literal> visit(Conjunction conjunction) {
+            return conjunction.union(f -> f.accept(this));
+        }
+
+        @Override
+        public Set<Literal> visit(Disjunction disjunction) {
+            return disjunction.union(f -> f.accept(this));
+        }
+
+        @Override
+        public Set<Literal> visit(FOperator fOperator) {
+            return fOperator.operand.accept(this);
+        }
+
+        @Override
+        public Set<Literal> visit(GOperator gOperator) {
+            Collector collector = new Collector(Literal.class::isInstance);
+            gOperator.operand.accept(collector);
+            return (Set<Literal>) (Set<?>) collector.getCollection();
+        }
+
+        @Override
+        public Set<Literal> visit(UOperator uOperator) {
+            return Sets.union(uOperator.left.accept(this), uOperator.right.accept(this));
+        }
+
+        @Override
+        public Set<Literal> visit(ROperator rOperator) {
+            Collector collector = new Collector(Literal.class::isInstance);
+            rOperator.right.accept(collector);
+            return (Set<Literal>) (Set<?>) collector.getCollection();
+        }
+
+        @Override
+        public Set<Literal> visit(XOperator xOperator) {
+            return xOperator.operand.accept(this);
+        }
+    }
+
+    private static class UnguardedGs implements Visitor<Set<GOperator>> {
         @Override
         public Set<GOperator> defaultAction(Formula formula) {
             return new HashSet<>();

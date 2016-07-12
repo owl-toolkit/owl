@@ -97,7 +97,7 @@ public class LTL2LDBATest {
     @Test
     public void testToHOA342() throws Exception {
         String ltl = "(F p) U (G q)";
-        testOutput(ltl, 4);
+        testOutput(ltl, 3);
     }
 
     @Test
@@ -208,6 +208,15 @@ public class LTL2LDBATest {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
         testOutput(ltl, opts, 4);
+    }
+
+    @Test
+    public void testSPOT() throws IOException, HOAConsumerException {
+        String ltl = "p U (r | s)";
+        testOutput(ltl, 2);
+
+        ltl = "!(p U (r | s))";
+        testOutput(ltl, 3);
     }
 
     @Test

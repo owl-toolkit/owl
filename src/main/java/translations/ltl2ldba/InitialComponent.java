@@ -42,6 +42,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
     private final boolean eager;
     private final boolean skeleton;
     private final boolean impatient;
+    private final boolean delay;
 
     InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
         super(valuationSetFactory);
@@ -49,14 +50,15 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         this.acceptingComponent = acceptingComponent;
         this.initialClazz = initialClazz;
 
-        eager = optimisations.contains(Optimisation.EAGER);
-        skeleton = optimisations.contains(Optimisation.SKELETON);
-        impatient = optimisations.contains(Optimisation.STATE_LABEL_ANALYSIS);
+        eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
+        skeleton = optimisations.contains(Optimisation.MINIMAL_GSETS);
+        impatient = optimisations.contains(Optimisation.FORCE_JUMPS);
+        delay = optimisations.contains(Optimisation.DELAY_JUMPS);
     }
 
     @Override
     public void generateJumps(State state) {
-        if (StateAnalysis.isJumpUnnecessary(state.getClazz())) {
+        if (delay && StateAnalysis.isJumpUnnecessary(state.getClazz())) {
             return;
         }
 

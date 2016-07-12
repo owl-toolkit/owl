@@ -49,8 +49,8 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
 
     public GMonitor(EquivalenceClass formula, EquivalenceClassFactory equivalenceClassFactory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
         super(valuationSetFactory);
-        eager = optimisations.contains(Optimisation.EAGER);
-        removeCover = optimisations.contains(Optimisation.REMOVE_COVER);
+        eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
+        removeCover = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
         initialFormula = formula;
         True = equivalenceClassFactory.getTrue();
     }

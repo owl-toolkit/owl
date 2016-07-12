@@ -54,7 +54,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> apply(Formula formula) {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
-        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.SKELETON) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula);
+        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula);
 
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
@@ -64,7 +64,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
         EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
-        if (optimisations.contains(Optimisation.STATE_LABEL_ANALYSIS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
+        if (optimisations.contains(Optimisation.FORCE_JUMPS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
             acceptingComponent.jumpInitial(initialClazz, Collections3.getElement(keys));
         } else {
             initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations);

@@ -72,7 +72,7 @@ public class LDBA2ParityTest {
     public void setUp() throws Exception {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-        optimisations.remove(Optimisation.STATE_LABEL_ANALYSIS);
+        optimisations.remove(Optimisation.FORCE_JUMPS);
 
         nba2ldba = new NBA2LDBA(optimisations);
         ltl2ldba = new LTL2LDBA(optimisations);
@@ -157,7 +157,7 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("!(((G F a)) -> ((G F a) & (G F b)))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), mapping);
-        assertEquals(5, parity.size()); // Shoulf be 4
+        assertEquals(4, parity.size());
         assertEquals(5, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F((a) & ((a) W ((b) & ((c) W (a)))))");
@@ -181,7 +181,7 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("! F((a) & ((a) W ((b) & ((c) W (a)))))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
-        assertEquals(16, parity.size()); // Should be 10
+        assertEquals(10, parity.size());
         assertEquals(9, parity.getAcceptance().getAcceptanceSets());
     }
 
