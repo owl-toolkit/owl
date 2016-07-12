@@ -88,6 +88,10 @@ public final class UOperator extends BinaryModalOperator {
             return FOperator.create(right);
         }
 
+        if (right instanceof Disjunction) {
+            return Disjunction.create(((Disjunction) right).children.stream().map(rightChild -> create(left, rightChild)));
+        }
+
         return new UOperator(left, right);
     }
 }
