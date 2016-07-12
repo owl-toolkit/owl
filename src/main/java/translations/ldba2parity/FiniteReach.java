@@ -13,7 +13,7 @@ public class FiniteReach implements Visitor<Boolean> {
 
     @Override
     public Boolean defaultAction(Formula formula) {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override
@@ -32,11 +32,6 @@ public class FiniteReach implements Visitor<Boolean> {
     }
 
     @Override
-    public Boolean visit(FOperator fOperator) {
-        return false;
-    }
-
-    @Override
     public Boolean visit(GOperator gOperator) {
         throw new UnsupportedOperationException();
     }
@@ -44,11 +39,6 @@ public class FiniteReach implements Visitor<Boolean> {
     @Override
     public Boolean visit(Literal literal) {
         return true;
-    }
-
-    @Override
-    public Boolean visit(UOperator uOperator) {
-        return false;
     }
 
     @Override

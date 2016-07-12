@@ -53,6 +53,10 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         acceptance = new BuchiAcceptance();
     }
 
+    public Map<Set<GOperator>, Map<GOperator, GMonitor>> getAutomata() {
+        return automata;
+    }
+
     public int getAcceptanceSize() {
         return acceptance.getSize();
     }
@@ -129,7 +133,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         Set<GOperator> mapKey;
 
         if (optimisations.contains(Optimisation.BREAKPOINT_FUSION)) {
-            mapKey = Collections.singleton(new GOperator(Conjunction.create(keys.stream().map(gOperator -> gOperator.operand))));
+            mapKey = Collections.singleton(new GOperator(new Conjunction(keys.stream().map(gOperator -> gOperator.operand))));
         } else {
             mapKey = keys;
         }
@@ -142,6 +146,11 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
 
             // Skip the top-level object in the syntax tree.
             Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(equivalenceClassFactory, keys));
+
+            // For break-point fusion skip two levels.
+            if (optimisations.contains(Optimisation.BREAKPOINT_FUSION)) {
+                evaluateVisitor = new SkipVisitor(evaluateVisitor);
+            }
 
             for (GOperator key : mapKey) {
                 Formula initialFormula = Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL);

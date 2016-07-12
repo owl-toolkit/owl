@@ -56,7 +56,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
 
     @Override
     public void generateJumps(State state) {
-        if (impatient && StateAnalysis.isJumpUnnecessary(state.getClazz())) {
+        if (StateAnalysis.isJumpUnnecessary(state.getClazz())) {
             return;
         }
 

@@ -19,6 +19,7 @@ package translations.ldba2parity;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
@@ -89,102 +90,101 @@ public class LDBA2ParityTest {
     public void testLTL2LDBA() {
         Formula ltl = Parser.formula("(F G a) | (F G b)");
         ParityAutomaton parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        System.out.println(parity);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(2, parity.size());
         assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F (a | b)");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), mapping);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(2, parity.size());
         assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("(F G a) & (F G b)");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(1, parity.size());
         assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F G (a | X b)");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(3, parity.size());
         assertEquals(3, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F G (a | X b | X X c)");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(8, parity.size());
         assertEquals(3, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("(F G a) | ((F G b) & (G X (X c U F d)))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
-        assertEquals(4, parity.size()); // should be 4
-        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
+        assertEquals(4, parity.size());
+        assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("((G F a)) -> ((G a) & (G F b))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(3, parity.size());
         assertEquals(3, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("!(((G F a)) -> ((G a) & (G F b)))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
-        assertEquals(2, parity.size()); // was 3 before ROp
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
+        assertEquals(2, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("(G (F (a))) U b");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(4, parity.size());
         assertEquals(3, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("!((G (F (a))) U b)");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
-        assertEquals(3, parity.size()); // was 4 without R
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), mapping);
+        assertEquals(3, parity.size());
         assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("((G F a)) -> ((G F a) & (G F b))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(3, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("!(((G F a)) -> ((G F a) & (G F b)))");
-        System.out.println(ltl);
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
-        assertEquals(4, parity.size()); // should be 4
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), mapping);
+        assertEquals(5, parity.size()); // Shoulf be 4
         assertEquals(5, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F((a) & ((a) W ((b) & ((c) W (a)))))");
-        System.out.println(ltl);
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
         assertEquals(5, parity.size()); // should be 4
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("G (s | G (p | (s & F t)))");
-        System.out.println(ltl);
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
-        assertEquals(5, parity.size()); // should be 5
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
+        assertEquals(5, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
-        ltl = Parser.formula("! F((a) & ((a) W ((b) & ((c) W (a)))))");
-        System.out.println(ltl);
+        ltl = Parser.formula("F G a | F G b | F G c | F G d");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
-        parity.toHOA(new HOAConsumerPrint(System.out), mapping);
-        assertEquals(12, parity.size()); // should be 10
-        assertEquals(7, parity.getAcceptance().getAcceptanceSets());
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
+        assertEquals(4, parity.size()); // 4 is best
+        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
-       // "(G(b)) | (G(c)) | (((G(b)) | (G(F(a)))) \\& ((G(c)) | (G(F(!(a))))))"
-         //       "!((G(b)) | (G(c)) | (((G(b)) | (G(F(a)))) \\& ((G(c)) | (G(F(!(a)))))))"
-        //"(F((G(b)) | (G(F((a) \\& (X(X(b)))))))) \\& (F(G((c) | (X((a) \\& (X(b)))))))}"
+        ltl = Parser.formula("! F((a) & ((a) W ((b) & ((c) W (a)))))");
+        parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
+        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
+        assertEquals(16, parity.size()); // Should be 10
+        assertEquals(9, parity.getAcceptance().getAcceptanceSets());
     }
 
-    @Test
     public void testNBA2LDBA() {
         ParityAutomaton parity = (ParityAutomaton) nba2ldba.andThen(ldba2parity2).apply(nba);
         parity.toHOA(new HOAConsumerPrint(System.out), mapping);

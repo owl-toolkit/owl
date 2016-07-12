@@ -21,6 +21,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableList;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
+import ltl.GOperator;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.Automaton;
@@ -36,6 +37,7 @@ import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.GMonitor;
 import translations.ltl2ldba.InitialComponent;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -51,6 +53,9 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
     @Nonnull
     final InitialComponent initialComponent;
 
+    final int maxIndex;
+    final List<EquivalenceClass> volatileComponents;
+
     int colors;
 
     protected ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba) {
@@ -64,8 +69,40 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         }
 
         colors = 1;
+        ImmutableList.Builder<EquivalenceClass> builder = ImmutableList.builder();
+
+        for (Map<GOperator, GMonitor> value : acceptingComponent.getAutomata().values()) {
+            GMonitor monitor = Collections3.getElement(value.values());
+
+            if (monitor.initialFormula.isTrue() || monitor.initialFormula.isFalse()) {
+                continue;
+            }
+
+            if (monitor.initialFormula.getRepresentative().accept(FiniteReach.INSTANCE)) {
+                builder.add(monitor.initialFormula);
+            }
+        }
+
+        volatileComponents = builder.build();
+        maxIndex = volatileComponents.size() + 1;
+    }
+
+    @Override
+    protected State generateInitialState() {
         acceptance = new ParityAcceptance(colors);
-        initialState = new State(initialComponent.getInitialState());
+        return new State(initialComponent.getInitialState());
+    }
+
+    int distance(int base, int index) {
+        if (index == -1) {
+            return Integer.MAX_VALUE;
+        }
+
+        if (base >= index) {
+            index += maxIndex;
+        }
+
+        return index - base;
     }
 
     @Immutable
@@ -77,12 +114,17 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         @Nonnull
         private final ImmutableList<AcceptingComponent.State> acceptingComponentRanking;
 
+        final int volatileIndex;
+
         public State(@Nonnull InitialComponent.State state) {
             initialComponentState = state;
-            acceptingComponentRanking = ImmutableList.copyOf(appendJumps(state, Collections.emptyMap()));
+            List<AcceptingComponent.State> ranking = new ArrayList<>();
+            volatileIndex = appendJumps(state, ranking);
+            acceptingComponentRanking = ImmutableList.copyOf(ranking);
         }
 
-        public State(@Nonnull InitialComponent.State state, @Nonnull List<AcceptingComponent.State> ranking) {
+        public State(@Nonnull InitialComponent.State state, @Nonnull List<AcceptingComponent.State> ranking, int volatileIndex) {
+            this.volatileIndex = volatileIndex;
             initialComponentState = state;
             acceptingComponentRanking = ImmutableList.copyOf(ranking);
         }
@@ -101,56 +143,87 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
         @Override
         protected int hashCodeOnce() {
-            return Objects.hash(initialComponentState, acceptingComponentRanking);
+            return Objects.hash(initialComponentState, acceptingComponentRanking, volatileIndex);
         }
 
         @Override
         protected boolean equals2(ImmutableObject o) {
             State that = (State) o;
             return Objects.equals(initialComponentState, that.initialComponentState) &&
-                    Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
+                    Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking) && that.volatileIndex == this.volatileIndex;
         }
 
         /* IDEAS:
             - suppress jump if the current goal only contains literals and X.
-            - filter in the intial state, when jumps are done.
+            - filter in the initial state, when jumps are done.
             - detect if initial component is true -> move to according state.
             - move "volatile" formulas to the back. select "infinity" formulas to stay upfront.
             - if a monitor couldn't be reached from a jump, delete it.
         */
 
-        private List<AcceptingComponent.State> appendJumps(InitialComponent.State state, Map<EquivalenceClass, EquivalenceClass> existingClasses) {
-            List<AcceptingComponent.State> ranking = new ArrayList<>();
-            Collection<AcceptingComponent.State> volatileStates = new ArrayList<>();
+        private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking) {
+            return appendJumps(state, ranking, Collections.emptyMap(), true, -1);
+        }
+
+        @Nonnegative
+        private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<EquivalenceClass, EquivalenceClass> existingClasses, boolean findNewVolatile, int currentVolatileIndex) {
+            List<AcceptingComponent.State> pureEventual = new ArrayList<>();
+            List<AcceptingComponent.State> mixed = new ArrayList<>();
+            AcceptingComponent.State nextVolatileState = null;
+            int nextVolatileStateIndex = -1;
 
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
                 GMonitor.State monitorState = Collections3.getElement(accState.monitors.values());
-
                 EquivalenceClass initialClass = monitorState.getInitialFormula();
 
+                // We can accept via the initial component. Hence there is no jump.
                 if (initialClass.isTrue()) {
                     continue;
                 }
 
-                EquivalenceClass existingClass = existingClasses.get(initialClass);
+                int candidateIndex = volatileComponents.indexOf(initialClass);
 
-                if (initialClass.getRepresentative().accept(FiniteReach.INSTANCE)) {
-                    if (existingClass == null) {
-                        volatileStates.add(accState);
+                // It is a volatile state
+                if (candidateIndex > -1 && monitorState.current.getRepresentative().accept(FiniteReach.INSTANCE)) {
+                    // There is already a volatile state in use.
+                    if (!findNewVolatile) {
+                        continue;
                     }
 
-                    continue;
-                }
+                    // The distance is too large...
+                    if (nextVolatileState != null && distance(currentVolatileIndex, candidateIndex) > distance(currentVolatileIndex, nextVolatileStateIndex)) {
+                        continue;
+                    }
 
-                EquivalenceClass stateClass = monitorState.current.and(monitorState.next).andWith(monitorState.getInitialFormula());
+                    EquivalenceClass existingClass = existingClasses.get(initialClass);
+                    EquivalenceClass stateClass = monitorState.current.and(monitorState.next).andWith(monitorState.getInitialFormula());
 
-                if (existingClass == null || !stateClass.implies(existingClass)) {
-                    ranking.add(accState);
+                    if (existingClass == null || !stateClass.implies(existingClass)) {
+                        nextVolatileStateIndex = candidateIndex;
+                        nextVolatileState = accState;
+                    }
+                } else {
+                    EquivalenceClass existingClass = existingClasses.get(initialClass);
+                    EquivalenceClass stateClass = monitorState.current.and(monitorState.next).andWith(monitorState.getInitialFormula());
+
+                    if (existingClass == null || !stateClass.implies(existingClass)) {
+                        if (monitorState.getInitialFormula().getRepresentative().isPureEventual()) {
+                            pureEventual.add(accState);
+                        } else {
+                            mixed.add(accState);
+                        }
+                    }
                 }
             }
 
-            ranking.addAll(volatileStates);
-            return ranking;
+            ranking.addAll(pureEventual);
+            ranking.addAll(mixed);
+
+            if (nextVolatileState != null) {
+                ranking.add(nextVolatileState);
+            }
+
+            return (nextVolatileStateIndex > 0) ? nextVolatileStateIndex : 0;
         }
 
         @Override
@@ -165,7 +238,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             if (successorEdge.successor.getClazz().isTrue()) {
                 BitSet set = new BitSet();
                 set.set(1);
-                return new Edge<>(new State(successorEdge.successor, ImmutableList.of()), set);
+                return new Edge<>(new State(successorEdge.successor, ImmutableList.of(), 0), set);
             }
 
             InitialComponent.State successor = successorEdge.successor;
@@ -185,7 +258,10 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 activeMonitors.add(monitorState.getInitialFormula());
             }
 
+            int activeVolatileBreakpoint = -1;
+
             while (listIterator.hasNext()) {
+                // TODO: use own counter...
                 int index = listIterator.nextIndex();
                 Edge<AcceptingComponent.State> successorEdge2 = acceptingComponent.getSuccessor(listIterator.next(), valuation);
 
@@ -211,6 +287,10 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                     existingClasses.put(monitorState.getInitialFormula(), existingClass.orWith(monitorState.current));
                     ranking.add(rankingSuccessor);
 
+                    if (volatileComponents.contains(monitorState.getInitialFormula()) && monitorState.current.getRepresentative().accept(FiniteReach.INSTANCE)) {
+                        activeVolatileBreakpoint = volatileComponents.indexOf(monitorState.getInitialFormula());
+                    }
+
                     if (successorEdge2.acceptance.get(0)) {
                         edgeColor = Math.min(edgeColor, (2 * index) + 1);
                     }
@@ -219,7 +299,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 stateLabel.free();
             }
 
-            ranking.addAll(appendJumps(successor, existingClasses));
+            int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, activeVolatileBreakpoint == -1, volatileIndex);
 
             BitSet acc = new BitSet();
             acc.set(edgeColor);
@@ -231,7 +311,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
             existingClasses.forEach((x, y) -> y.free());
 
-            return new Edge<>(new State(successor, ranking), acc);
+            return new Edge<>(new State(successor, ranking, activeVolatileBreakpoint > -1 ? activeVolatileBreakpoint : nextVolatileIndex), acc);
         }
 
         @Override
@@ -241,7 +321,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
         @Override
         public String toString() {
-            return "{Init=" + initialComponentState + ", AccRanking=" + acceptingComponentRanking + '}';
+            return "{Init=" + initialComponentState + ", AccRanking=" + acceptingComponentRanking + ", volatileIndex=" + volatileIndex + '}';
         }
     }
 

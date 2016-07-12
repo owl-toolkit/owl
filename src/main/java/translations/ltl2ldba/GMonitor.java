@@ -51,7 +51,7 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
         super(valuationSetFactory);
         eager = optimisations.contains(Optimisation.EAGER);
         removeCover = optimisations.contains(Optimisation.REMOVE_COVER);
-        initialFormula = eager ? formula.unfold() : formula;
+        initialFormula = formula;
         True = equivalenceClassFactory.getTrue();
     }
 
@@ -62,11 +62,11 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
 
     State generateInitialState(EquivalenceClass extra) {
         if (extra.isTrue()) {
-            return new State (initialFormula, True);
+            return new State (eager ? initialFormula.unfold() : initialFormula, True);
         }
 
         EquivalenceClass current = eager ? extra.unfold() : extra;
-        EquivalenceClass next = initialFormula;
+        EquivalenceClass next = eager ? initialFormula.unfold() : initialFormula;
 
         if (removeCover && current.implies(next)) {
             next = True;
@@ -117,7 +117,7 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
 
             // Successor is done and we can switch components.
             if (successor.isTrue()) {
-                return new Edge<>(new State(nextSuccessor.and(initialFormula), True), ACCEPT);
+                return new Edge<>(new State(nextSuccessor.and(eager ? initialFormula.unfold() : initialFormula), True), ACCEPT);
             }
 
             // Do Cover optimisation
@@ -125,8 +125,8 @@ public class GMonitor extends Automaton<GMonitor.State, BuchiAcceptance> {
                 nextSuccessor = True;
             }
 
-            if (!removeCover || !successor.implies(initialFormula)) {
-                nextSuccessor = nextSuccessor.and(initialFormula);
+            if (!removeCover || !successor.implies(eager ? initialFormula.unfold() : initialFormula)) {
+                nextSuccessor = nextSuccessor.and(eager ? initialFormula.unfold() : initialFormula);
             }
 
             return new Edge<>(new State(successor, nextSuccessor), REJECT);
