@@ -13,7 +13,10 @@ junit:
 
 ltlcross:
   stage: test
+  artifacts:
+    paths:
+    - debug.ltl
   script:
     - ./gradlew assemble
     - tar xvf build/distributions/translations-0.0.4.tar
-    - ltlcross --timeout=600 --grind=debug.ltl -F "formulas/check.ltl" '{S} ltl2tgba -D --generic -H -f %f >%O' '{LTL2LDBA} build/distributions/translations-0.0.4/bin/ltl2ldba %f >%O' '{LTL2Parity} build/distributions/translations-0.0.4/bin/ltl2parity %f >%O'
+    - ltlcross --timeout=600 --grind=debug.ltl -F "formulas/check.ltl" '{S} ltl2tgba -D --generic -H -f %f >%O' '{LTL2LDBA} translations-0.0.4/bin/ltl2ldba %f >%O' '{LTL2Parity} translations-0.0.4/bin/ltl2parity %f >%O'
