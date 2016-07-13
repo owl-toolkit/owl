@@ -1,15 +1,10 @@
 before_script:
     - chmod +x gradlew
 
-assemble:
+build:
   stage: build
   script:
-    - ./gradlew assemble
-
-junit:
-  stage: test
-  script:
-    - ./gradlew check
+    - ./gradlew build
 
 ltlcross:
   stage: test
@@ -19,4 +14,4 @@ ltlcross:
   script:
     - ./gradlew assemble
     - tar xvf build/distributions/translations-0.0.4.tar
-    - ltlcross --timeout=600 --grind=debug.ltl -F "formulas/check.ltl" '{S} ltl2tgba -D --generic -H -f %f >%O' '{LTL2LDBA} translations-0.0.4/bin/ltl2ldba %f >%O' '{LTL2Parity} translations-0.0.4/bin/ltl2parity %f >%O'
+    - ltlcross --timeout=600 --grind=debug.ltl -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldba %f >%O' '{ltl2parity} translations-0.0.4/bin/ltl2parity %f >%O'
