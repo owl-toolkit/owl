@@ -80,7 +80,7 @@ final class StateAnalysis {
 
         @Override
         public Set<Literal> visit(UOperator uOperator) {
-            return Sets.intersection(uOperator.left.accept(this), uOperator.right.accept(this));
+            return uOperator.right.accept(this);
         }
 
         @Override

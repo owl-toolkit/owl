@@ -216,7 +216,7 @@ public class LTL2LDBATest {
         testOutput(ltl, 2);
 
         ltl = "!(p U (r | s))";
-        testOutput(ltl, 3);
+        testOutput(ltl, 8);
     }
 
     @Test

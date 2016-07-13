@@ -3,10 +3,7 @@ package translations.ltl2ldba;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Sets;
-import ltl.FOperator;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Literal;
+import ltl.*;
 import ltl.parser.Parser;
 import ltl.visitors.Collector;
 import org.junit.Test;
@@ -50,7 +47,7 @@ public class GMonitorVisitorTest {
     public void testEvaluateSetG() throws Exception {
         GOperator G1 = (GOperator) Parser.formula("G(p2)");
         Formula formula = Parser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
-        Set<GOperator> set1 = Collections.singleton(G1);
-        assertEquals(Collections.emptySet(), null);
+        EvaluateVisitor visitor = new EvaluateVisitor(Collections.singleton(G1));
+        assertEquals(BooleanConstant.FALSE, formula.accept(visitor));
     }
 }
