@@ -1,5 +1,7 @@
 assemble:
   stage: build
+  artifacts:
+    untracked: true
   script:
     - chmod +x gradlew
     - ./gradlew assemble
