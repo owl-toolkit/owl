@@ -8,10 +8,7 @@ build:
 
 ltlcross:
   stage: test
-  artifacts:
-    paths:
-    - debug.ltl
   script:
-    - ./gradlew assemble
+    - ./gradlew distTar
     - tar xvf build/distributions/translations-0.0.4.tar
-    - ltlcross --timeout=600 --grind=debug.ltl -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldba %f >%O' '{ltl2parity} translations-0.0.4/bin/ltl2parity %f >%O'
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldba %f >%O' '{ltl2parity} translations-0.0.4/bin/ltl2parity %f >%O'
