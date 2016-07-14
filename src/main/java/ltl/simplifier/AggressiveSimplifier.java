@@ -18,6 +18,7 @@
 package ltl.simplifier;
 
 import ltl.*;
+import ltl.visitors.RestrictToFGXU;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -152,12 +153,12 @@ class AggressiveSimplifier extends ModalSimplifier {
                 if (!form.equals(form2)) {
                     ImplicationVisitor imp = ImplicationVisitor.getVisitor();
 
-                    if (form.accept(imp, form2)) {
-                        if (set.remove(form2))
-                            return true;
+                    if (form.accept(imp, form2) && set.remove(form2)) {
+                        return true;
                     }
 
-                    if (form.accept(imp, form2.not())) {
+                    // TODO @ Christopher: Remove this work-around.
+                    if (form.accept(imp, form2.not().accept(new RestrictToFGXU()))) {
                         set.clear();
                         set.add(BooleanConstant.FALSE);
                         return true;
@@ -192,12 +193,12 @@ class AggressiveSimplifier extends ModalSimplifier {
                 if (!form.equals(form2)) {
                     ImplicationVisitor imp = ImplicationVisitor.getVisitor();
 
-                    if (form.accept(imp, form2)) {
-                        if (set.remove(form))
-                            return true;
+                    if (form.accept(imp, form2) && set.remove(form)) {
+                        return true;
                     }
 
-                    if (form.not().accept(imp, form2)) {
+                    // TODO @ Christopher: Remove this work-around.
+                    if (form.not().accept(new RestrictToFGXU()).accept(imp, form2)) {
                         set.clear();
                         set.add(BooleanConstant.TRUE);
                         return true;
