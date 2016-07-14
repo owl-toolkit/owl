@@ -64,6 +64,7 @@ public class LTL2LDBATest {
         testOutput(ltl, opts, size, null);
     }
 
+
     @Test
     public void testToHOA() throws Exception {
         String ltl = "((F G (a U c)) & G X b) | (F G X (f U d)) & X X e";
@@ -154,13 +155,36 @@ public class LTL2LDBATest {
         testOutput(ltl, 9);
     }
 
+    private static final String TRIVIAL_TRUE = "HOA: v1\n" +
+            "tool: \"Owl\" \"* *\"\n" +
+            "States: 1\n" +
+            "Start: 0\n" +
+            "acc-name: Buchi\n" +
+            "Acceptance: 1 Inf(0)\n" +
+            "AP: 0\n" +
+            "--BODY--\n" +
+            "State: 0\n" +
+            "[t] 0 {0}\n" +
+            "--END--\n";
+
+    private static final String TRIVIAL_FALSE = "HOA: v1\n" +
+            "tool: \"Owl\" \"* *\"\n" +
+            "States: 1\n" +
+            "Start: 0\n" +
+            "acc-name: Buchi\n" +
+            "Acceptance: 1 Inf(0)\n" +
+            "AP: 0\n" +
+            "--BODY--\n" +
+            "State: 0\n" +
+            "[t] 0 {}\n" +
+            "--END--\n";
+
     @Test
     public void testTrivial() throws Exception {
-        String ltl = "a | !a";
-        testOutput(ltl, 1);
-
-        String ltl2 = "a & !a";
-        testOutput(ltl2, 1);
+        testOutput("true", 1, TRIVIAL_TRUE);
+        testOutput("false", 1, TRIVIAL_FALSE);
+        testOutput("a | !a", 1);
+        testOutput("a & !a", 1);
     }
 
     @Test

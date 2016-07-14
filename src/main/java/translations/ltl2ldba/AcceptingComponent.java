@@ -180,6 +180,8 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         return equivalenceClassFactory.createEquivalenceClass(formula);
     }
 
+    private static final BitSet REJECT = new BitSet();
+
     public class State extends ImmutableObject implements AutomatonState<State> {
 
         public final ImmutableMap<GOperator, GMonitor.State> monitors;
@@ -193,8 +195,13 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             return monitors.toString();
         }
 
+
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
+            if (monitors.isEmpty()) {
+                return new Edge<>(this, REJECT);
+            }
+
             ImmutableMap.Builder<GOperator, GMonitor.State> builder = ImmutableMap.builder();
             Map<GOperator, Integer> accMap = acceptanceIndexMapping.row(monitors.keySet());
 
