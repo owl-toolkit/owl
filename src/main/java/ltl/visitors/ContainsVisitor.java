@@ -63,6 +63,11 @@ public class ContainsVisitor implements Visitor<Boolean> {
     }
 
     @Override
+    public Boolean visit(ROperator rOp) {
+        return clazz.equals(ROperator.class) || rOp.left.accept(this) || rOp.right.accept(this);
+    }
+
+    @Override
     public Boolean visit(UOperator uOperator) {
         return clazz.equals(UOperator.class) || uOperator.left.accept(this) || uOperator.right.accept(this);
     }
