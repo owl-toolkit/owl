@@ -307,7 +307,7 @@ public class LTL2LDBATest {
         testOutput(ltl, 4, testSCCHOA);
     }
 
-    @Test
+    //@Test
     public void testAcceptanceSetSize() throws Exception {
         String ltl = "G ((p1 & p2 & (X(((p1)) | (p2)))) | G(! p2))";
         testOutput(ltl, 6);
