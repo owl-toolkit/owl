@@ -21,12 +21,11 @@ import com.google.common.collect.Sets;
 import ltl.*;
 import ltl.visitors.Visitor;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 class GMonitorSelector {
 
+    // TODO: Only consider unfolded formulae?
     private static final GMonitorVisitor MIN_DNF = new GMonitorVisitor();
     private static final PowerSetVisitor ALL = new PowerSetVisitor();
 
@@ -37,87 +36,54 @@ class GMonitorSelector {
     static Set<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula) {
         switch (strategy) {
             case MIN_DNF:
-                return formula.accept(MIN_DNF);
+                return Sets.difference(formula.accept(MIN_DNF), Collections.singleton(Collections.emptySet()));
 
             case ALL:
             default:
-                return Sets.powerSet(formula.accept(ALL));
+                return Sets.difference(Sets.powerSet(formula.accept(ALL)), Collections.singleton(Collections.emptySet()));
         }
     }
 
     static class GMonitorVisitor implements Visitor<Set<Set<GOperator>>> {
         @Override
         public Set<Set<GOperator>> defaultAction(Formula formula) {
-            return Collections.singleton(new HashSet<>());
+            return Collections.singleton(Collections.emptySet());
         }
 
         @Override
         public Set<Set<GOperator>> visit(Conjunction conjunction) {
-            Set<Set<GOperator>> skeleton = Collections.singleton(new HashSet<>());
+            Set<Set<GOperator>> Gs = Collections.singleton(Collections.emptySet());
 
             for (Formula child : conjunction.children) {
-                Set<Set<GOperator>> skeletonNext = new HashSet<>();
+                Set<Set<GOperator>> nextGs = new HashSet<>(2 * Gs.size());
 
-                for (Set<GOperator> skeletonChild : child.accept(this)) {
-                    for (Set<GOperator> skeletonElement : skeleton) {
-                        Set<GOperator> union = new HashSet<>(skeletonChild);
-                        union.addAll(skeletonElement);
-                        skeletonNext.add(union);
+                for (Set<GOperator> gOperators1 : child.accept(this)) {
+                    for (Set<GOperator> gOperators2 : Gs) {
+                        nextGs.add(Sets.union(gOperators1, gOperators2).immutableCopy());
                     }
                 }
 
-                skeleton = skeletonNext;
+                Gs = nextGs;
             }
 
-            return skeleton;
+            return Gs;
         }
 
         @Override
         public Set<Set<GOperator>> visit(Disjunction disjunction) {
-            Set<Set<GOperator>> skeleton = new HashSet<>();
-            disjunction.children.forEach(e -> skeleton.addAll(e.accept(this)));
-            return skeleton;
-        }
-
-        @Override
-        public Set<Set<GOperator>> visit(FOperator fOperator) {
-            return fOperator.operand.accept(this);
+            Set<Set<GOperator>> Gs = new HashSet<>();
+            disjunction.children.forEach(e -> Gs.addAll(e.accept(this)));
+            return Gs;
         }
 
         @Override
         public Set<Set<GOperator>> visit(GOperator gOperator) {
-            Set<Set<GOperator>> skeleton = new HashSet<>();
-
-            for (Set<GOperator> element : gOperator.operand.accept(this)) {
-                element.add(gOperator);
-                skeleton.add(element);
-            }
-
-            return skeleton;
-        }
-
-        @Override
-        public Set<Set<GOperator>> visit(UOperator uOperator) {
-            return new Disjunction(uOperator.right, new Conjunction(uOperator.right, uOperator.left)).accept(this);
+            return Collections.singleton(Collections.singleton(gOperator));
         }
 
         @Override
         public Set<Set<GOperator>> visit(ROperator rOperator) {
-            Set<Set<GOperator>> skeleton = new Conjunction(rOperator.right, rOperator.left).accept(this);
-
-            GOperator thisG = new GOperator(rOperator.right);
-
-            for (Set<GOperator> element : rOperator.right.accept(this)) {
-                element.add(thisG);
-                skeleton.add(element);
-            }
-
-            return skeleton;
-        }
-
-        @Override
-        public Set<Set<GOperator>> visit(XOperator xOperator) {
-            return xOperator.operand.accept(this);
+            return Collections.singleton(Collections.singleton(new GOperator(rOperator.right)));
         }
     }
 

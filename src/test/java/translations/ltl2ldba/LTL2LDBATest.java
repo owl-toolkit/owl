@@ -105,7 +105,7 @@ public class LTL2LDBATest {
     public void testDelayedJump() throws Exception {
         String ltl = "X a";
         testOutput(ltl, 3);
-        testOutput(ltl, EnumSet.noneOf(Optimisation.class), 6);
+        testOutput(ltl, EnumSet.noneOf(Optimisation.class), 3);
 
         String ltl2 = "X X G b";
         testOutput(ltl2, 3);
@@ -198,17 +198,27 @@ public class LTL2LDBATest {
 
     @Test
     public void testJumps() throws Exception {
+        // TODO: if something has to hold right now, do jump and replace in the succesor the Gs with false?
         String ltl = "(G a) | X X X X b";
-        testOutput(ltl, 7);
+        testOutput(ltl, 11); // was 7
     }
 
     @Test
     public void testRelease() throws Exception {
         String ltl = "!a R !b";
-        testOutput(ltl, 4);
+        testOutput(ltl, 3);
 
         ltl = "(G !b) | (!b U !a)";
-        testOutput(ltl, 4);
+        testOutput(ltl, 3);
+    }
+
+    @Test
+    public void testRelease2() throws Exception {
+        String ltl = "((G a) U b)";
+        ltl = "((G a & F b) | b)";
+        EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
+        opts.remove(Optimisation.BREAKPOINT_FUSION);
+        testOutput(ltl, opts, 4);
     }
 
     @Test
@@ -240,7 +250,7 @@ public class LTL2LDBATest {
         testOutput(ltl, 2);
 
         ltl = "!(p U (r | s))";
-        testOutput(ltl, 8);
+        testOutput(ltl, 7);
     }
 
     @Test
@@ -298,10 +308,10 @@ public class LTL2LDBATest {
         testOutput(ltl, 6);
 
         String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
-        testOutput(ltl2, 4);
+        testOutput(ltl2, 3);
 
         String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & ((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-        testOutput(ltl3, 6);
+        testOutput(ltl3, 4);
     }
 
     @Test

@@ -41,14 +41,14 @@ final class StateAnalysis {
     }
 
     static boolean isJumpNecessary(EquivalenceClass clazz) {
-        if (clazz.isTrue() || clazz.isFalse()) {
-            return true;
+        if (isJumpUnnecessary(clazz)) {
+            return false;
         }
 
         Formula formula = clazz.getRepresentative();
         Collector collector = new Collector(c -> c instanceof GOperator || c instanceof ROperator);
         formula.accept(collector);
-        return formula.accept(UNGUARDED_GS).equals(collector.getCollection());
+        return !collector.getCollection().isEmpty() && formula.accept(UNGUARDED_GS).equals(collector.getCollection());
     }
 
     private static class UnguardedLiterals implements Visitor<Set<Literal>> {

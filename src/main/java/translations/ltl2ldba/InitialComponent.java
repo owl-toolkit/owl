@@ -32,7 +32,14 @@ import java.util.*;
 
 public class InitialComponent extends AbstractInitialComponent<InitialComponent.State, AcceptingComponent.State> {
 
-    private static final BitSet REJECT = new BitSet();
+    private static final BitSet ACCEPT;
+    private static final BitSet REJECT;
+
+    static {
+        ACCEPT = new BitSet();
+        ACCEPT.set(0);
+        REJECT = new BitSet();
+    }
 
     @Nonnull
     private final AcceptingComponent acceptingComponent;
@@ -76,10 +83,6 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         }
     }
 
-    protected boolean suppressEdge(EquivalenceClass current, EquivalenceClass successor) {
-        return successor.isFalse() || (impatient && StateAnalysis.isJumpNecessary(current));
-    }
-
     @Override
     protected State generateInitialState() {
         if (eager) {
@@ -100,19 +103,20 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         @Nullable
         @Override
         public Edge<State> getSuccessor(BitSet valuation) {
-            EquivalenceClass result;
+            EquivalenceClass successor;
 
             if (eager) {
-                result = clazz.temporalStep(valuation).unfold();
+                successor = clazz.temporalStep(valuation).unfold();
             } else {
-                result = clazz.unfold().temporalStep(valuation);
+                successor = clazz.unfold().temporalStep(valuation);
             }
 
-            if (suppressEdge(clazz, result)) {
+            // Suppress edge, if successor is a non-accepting state
+            if (successor.isFalse() || (impatient && StateAnalysis.isJumpNecessary(clazz))) {
                 return null;
             }
 
-            return new Edge<>(new State(result), REJECT);
+            return new Edge<>(new State(successor), successor.isTrue() ? ACCEPT : REJECT);
         }
 
         @Nonnull

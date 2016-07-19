@@ -64,8 +64,8 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
         EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
-        if (optimisations.contains(Optimisation.FORCE_JUMPS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
-            acceptingComponent.jumpInitial(initialClazz, Collections3.getElement(keys));
+        if (initialClazz.isFalse() || optimisations.contains(Optimisation.FORCE_JUMPS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
+            acceptingComponent.jumpInitial(initialClazz, Collections3.isSingleton(keys) ? Collections3.getElement(keys) : Collections.emptySet());
         } else {
             initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations);
         }
