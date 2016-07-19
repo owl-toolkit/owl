@@ -188,6 +188,11 @@ public class LTL2LDBATest {
     }
 
     @Test
+    public void testTrivial2() throws Exception {
+        testOutput("G((r) | ((p) & (r)))", 1);
+    }
+
+    @Test
     public void testRejectingCycle() throws Exception {
         String ltl = "!(G(a|b|c))";
         testOutput(ltl, 2);
@@ -224,7 +229,7 @@ public class LTL2LDBATest {
     @Test
     public void testSanityCheckFailed() throws Exception {
         String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U ((b) | (G(c))))))";
-        testOutput(ltl, 5);
+        testOutput(ltl, 6); // was 5
     }
 
     @Test
@@ -308,7 +313,7 @@ public class LTL2LDBATest {
         testOutput(ltl, 6);
 
         String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
-        testOutput(ltl2, 3);
+        testOutput(ltl2, 4); // was 3
 
         String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & ((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
         testOutput(ltl3, 4);

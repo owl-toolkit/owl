@@ -157,7 +157,7 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("!(((G F a)) -> ((G F a) & (G F b)))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), mapping);
-        assertEquals(5, parity.size()); // should be 4
+        assertEquals(4, parity.size()); // should be 4
         assertEquals(5, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F((a) & ((a) W ((b) & ((c) W (a)))))");
@@ -169,7 +169,7 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("G (s | G (p | (s & F t)))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
-        assertEquals(5, parity.size());
+        assertEquals(8, parity.size()); // was 5
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F G a | F G b | F G c | F G d");

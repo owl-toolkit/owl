@@ -145,7 +145,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             int i = 0;
 
             // Skip the top-level object in the syntax tree.
-            Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(equivalenceClassFactory, keys));
+            Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(keys));
 
             // For break-point fusion skip two levels.
             if (optimisations.contains(Optimisation.BREAKPOINT_FUSION)) {
@@ -175,8 +175,9 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
     @Nonnull
     private EquivalenceClass getRemainingGoal(EquivalenceClass master, Set<GOperator> keys) {
         Formula formula = master.getRepresentative();
-        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(equivalenceClassFactory, keys);
-        formula = Simplifier.simplify(formula.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
+        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(keys);
+        formula = formula.accept(evaluateVisitor);
+        formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL);
         return equivalenceClassFactory.createEquivalenceClass(formula);
     }
 
