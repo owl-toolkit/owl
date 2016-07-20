@@ -34,11 +34,11 @@ class EvaluateVisitor implements Visitor<Formula> {
     private final EquivalenceClassFactory factory;
     private final EquivalenceClass environment;
 
-    public EvaluateVisitor(Set<GOperator> environment) {
+    EvaluateVisitor(Set<GOperator> environment) {
         this(null, environment);
     }
 
-    public EvaluateVisitor(EquivalenceClassFactory factory, Set<GOperator> gMonitors) {
+    EvaluateVisitor(EquivalenceClassFactory factory, Set<GOperator> gMonitors) {
         this.gMonitors = gMonitors;
         universalTruths = new HashSet<>(gMonitors.size());
         gMonitors.forEach(gOperator -> universalTruths.add(gOperator.operand));

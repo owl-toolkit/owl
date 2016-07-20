@@ -169,7 +169,7 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("G (s | G (p | (s & F t)))");
         parity = (ParityAutomaton) ltl2ldba.andThen(ldba2parity).apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), mapping);
-        assertEquals(8, parity.size()); // was 5
+        assertEquals(5, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F G a | F G b | F G c | F G d");

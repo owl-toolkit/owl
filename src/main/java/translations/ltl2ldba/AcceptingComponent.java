@@ -175,7 +175,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
     @Nonnull
     private EquivalenceClass getRemainingGoal(EquivalenceClass master, Set<GOperator> keys) {
         Formula formula = master.getRepresentative();
-        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(keys);
+        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(equivalenceClassFactory, keys);
         formula = formula.accept(evaluateVisitor);
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL);
         return equivalenceClassFactory.createEquivalenceClass(formula);

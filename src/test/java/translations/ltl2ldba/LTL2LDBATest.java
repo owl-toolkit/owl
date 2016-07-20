@@ -229,7 +229,7 @@ public class LTL2LDBATest {
     @Test
     public void testSanityCheckFailed() throws Exception {
         String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U ((b) | (G(c))))))";
-        testOutput(ltl, 6); // was 5
+        testOutput(ltl, 5);
     }
 
     @Test
