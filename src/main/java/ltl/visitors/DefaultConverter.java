@@ -46,6 +46,11 @@ public abstract class DefaultConverter implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(FrequencyG freq) {
+        return new FrequencyG(freq.operand.accept(this), freq.bound, freq.cmp, freq.limes);
+    }
+
+    @Override
     public Formula visit(UOperator uOperator) {
         return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
     }
