@@ -57,13 +57,16 @@ public class HOAConsumerExtended {
 
             if (initialState != null) {
                 hoa.addStartStates(Collections.singletonList(getStateId(initialState)));
-                hoa.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
+
+                if (acceptance.getName() != null) {
+                    hoa.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
+                }
+
                 hoa.setAcceptanceCondition(acceptance.getAcceptanceSets(), acceptance.getBooleanExpression());
             } else {
                 OmegaAcceptance acceptance1 = new NoneAcceptance();
                 hoa.provideAcceptanceName(acceptance1.getName(), acceptance1.getNameExtra());
                 hoa.setAcceptanceCondition(acceptance1.getAcceptanceSets(), acceptance1.getBooleanExpression());
-
             }
 
             if (aliases == null) {
