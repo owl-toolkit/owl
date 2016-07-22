@@ -44,6 +44,10 @@ public interface Visitor<R> {
         return defaultAction(gOperator);
     }
 
+    default R visit(FrequencyG freq) {
+        return defaultAction(freq);
+    }
+
     default R visit(Literal literal) {
         return defaultAction(literal);
     }
