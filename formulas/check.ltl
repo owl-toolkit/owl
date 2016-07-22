@@ -9,6 +9,7 @@ a R b
 a M b
 a W b
 G(a | Fb)
+FG(a | Fb)
 F(Ga | Gb | GFc)
 F(a | b)
 GF(a | b)
