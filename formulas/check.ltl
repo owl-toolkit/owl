@@ -10,6 +10,7 @@ a M b
 a W b
 G(a | Fb)
 FG(a | Fb)
+G(p U X(G p))
 F(Ga | Gb | GFc)
 F(a | b)
 GF(a | b)
