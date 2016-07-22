@@ -22,6 +22,7 @@ import ltl.*;
 import ltl.visitors.Visitor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 class GMonitorSelector {
 
@@ -45,6 +46,21 @@ class GMonitorSelector {
     }
 
     static class GMonitorVisitor implements Visitor<Set<Set<GOperator>>> {
+        @Override
+        public Set<Set<GOperator>> visit(FOperator fOperator) {
+            return fOperator.operand.accept(this);
+        }
+
+        @Override
+        public Set<Set<GOperator>> visit(UOperator uOperator) {
+            return Disjunction.create(uOperator.left, Conjunction.create(uOperator.left, uOperator.right)).accept(this);
+        }
+
+        @Override
+        public Set<Set<GOperator>> visit(XOperator xOperator) {
+            return xOperator.operand.accept(this);
+        }
+
         @Override
         public Set<Set<GOperator>> defaultAction(Formula formula) {
             return Collections.singleton(Collections.emptySet());
@@ -78,12 +94,12 @@ class GMonitorSelector {
 
         @Override
         public Set<Set<GOperator>> visit(GOperator gOperator) {
-            return Collections.singleton(Collections.singleton(gOperator));
+            return gOperator.operand.accept(this).stream().map(set -> Sets.union(Collections.singleton(gOperator), set)).collect(Collectors.toSet());
         }
 
         @Override
         public Set<Set<GOperator>> visit(ROperator rOperator) {
-            return Collections.singleton(Collections.singleton(new GOperator(rOperator.right)));
+            return Disjunction.create(GOperator.create(rOperator.right), Conjunction.create(rOperator.left, rOperator.right)).accept(this);
         }
     }
 

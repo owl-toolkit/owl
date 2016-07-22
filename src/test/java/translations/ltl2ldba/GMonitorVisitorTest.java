@@ -21,7 +21,7 @@ public class GMonitorVisitorTest {
     public void testSimple() {
         BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1);
         Formula formula = Parser.formula("G a | X G b", mapping);
-        Set<Set<GOperator>> skeleton = Sets.newHashSet(Collections.singleton((GOperator) Parser.formula("G a", mapping)), Collections.emptySet());
+        Set<Set<GOperator>> skeleton = Sets.newHashSet(Collections.singleton((GOperator) Parser.formula("G a", mapping)), Collections.singleton((GOperator) Parser.formula("G b", mapping)));
         assertEquals(skeleton, formula.accept(visitor));
     }
 
@@ -29,7 +29,7 @@ public class GMonitorVisitorTest {
     public void testSimple2() {
         BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1);
         Formula formula = Parser.formula("G a & F G b");
-        Set<Set<GOperator>> skeleton = Collections.singleton(Collections.singleton((GOperator) Parser.formula("G a", mapping)));
+        Set<Set<GOperator>> skeleton = Collections.singleton(Sets.newHashSet((GOperator) Parser.formula("G a", mapping), (GOperator) Parser.formula("G b", mapping)));
         assertEquals(skeleton, formula.accept(visitor));
     }
 
