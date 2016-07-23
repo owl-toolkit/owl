@@ -18,7 +18,10 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Sets;
+import com.sun.jndi.cosnaming.CNCtx;
 import ltl.*;
+import ltl.equivalence.EquivalenceClass;
+import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Visitor;
 
 import java.util.*;
@@ -34,10 +37,35 @@ class GMonitorSelector {
         ALL, MIN_DNF
     }
 
-    static Set<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula) {
+    static Collection<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula, EquivalenceClassFactory factory) {
         switch (strategy) {
             case MIN_DNF:
-                return Sets.difference(formula.accept(MIN_DNF), Collections.singleton(Collections.emptySet()));
+                List<Set<GOperator>> sets = new ArrayList<>(Sets.difference(formula.accept(MIN_DNF), Collections.singleton(Collections.emptySet())));
+                sets.sort(Comparator.comparingInt(Set::size));
+
+                ListIterator<Set<GOperator>> listIterator = sets.listIterator();
+                while (listIterator.hasNext()) {
+                    Set<GOperator> largerSet = listIterator.next();
+
+                    for (Set<GOperator> smallerSet : sets.subList(0, listIterator.previousIndex())) {
+                        if (largerSet.containsAll(smallerSet)) {
+                            EquivalenceClass remSmall = AcceptingComponent.getRemainingGoal(formula, smallerSet, factory);
+                            EquivalenceClass remLarge = AcceptingComponent.getRemainingGoal(formula, largerSet, factory);
+
+                            if (remLarge.implies(remSmall)) {
+                                listIterator.remove();
+                                remSmall.free();
+                                remLarge.free();
+                                break;
+                            }
+
+                            remLarge.free();
+                            remSmall.free();
+                        }
+                    }
+                }
+
+                return sets;
 
             case ALL:
             default:

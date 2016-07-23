@@ -88,7 +88,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
 
     @Nullable
     State jump(EquivalenceClass master, Set<GOperator> keys) {
-        EquivalenceClass remainingGoal = getRemainingGoal(master, keys);
+        EquivalenceClass remainingGoal = getRemainingGoal(master.getRepresentative(), keys, equivalenceClassFactory);
 
         if (remainingGoal.isFalse()) {
             return null;
@@ -173,12 +173,11 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
     }
 
     @Nonnull
-    private EquivalenceClass getRemainingGoal(EquivalenceClass master, Set<GOperator> keys) {
-        Formula formula = master.getRepresentative();
-        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(equivalenceClassFactory, keys);
+    static EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys, EquivalenceClassFactory factory) {
+        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(factory, keys);
         formula = formula.accept(evaluateVisitor);
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL);
-        return equivalenceClassFactory.createEquivalenceClass(formula);
+        return factory.createEquivalenceClass(formula);
     }
 
     private static final BitSet REJECT = new BitSet();

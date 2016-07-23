@@ -229,13 +229,24 @@ public class LTL2LDBATest {
     @Test
     public void testSanityCheckFailed() throws Exception {
         String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U ((b) | (G(c))))))";
-        testOutput(ltl, 5);
+        testOutput(ltl, 3);
     }
 
     @Test
     public void testSanityCheckFailed2() throws Exception {
         String ltl = "!(((X a) | (F b)) U (a))";
         testOutput(ltl, 7);
+    }
+
+    @Test
+    public void testFOOO() throws Exception {
+        String ltl = "G((p) U (X(G(p))))";
+
+        EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
+        opts.remove(Optimisation.BREAKPOINT_FUSION);
+        opts.remove(Optimisation.MINIMAL_GSETS);
+
+        testOutput(ltl, 2);
     }
 
     @Test
@@ -331,6 +342,6 @@ public class LTL2LDBATest {
         testOutput(ltl, opts, 5);
 
         ltl = "(G p0 |(G p1)|(G p2))&((F G p3)|(G F p4)|(G F p5))&((F G !p4)|(G F !p3)|(G F p5))";
-        testOutput(ltl, opts, 34);
+        testOutput(ltl, opts, 22);
     }
 }

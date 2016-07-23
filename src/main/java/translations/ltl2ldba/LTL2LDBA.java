@@ -54,10 +54,11 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> apply(Formula formula) {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
-        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula);
 
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
+
+        Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula, equivalenceClassFactory);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent initialComponent = null;
@@ -67,7 +68,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         if (initialClazz.isFalse() || optimisations.contains(Optimisation.FORCE_JUMPS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
             acceptingComponent.jumpInitial(initialClazz, Collections3.isSingleton(keys) ? Collections3.getElement(keys) : Collections.emptySet());
         } else {
-            initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations);
+            initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }
 
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> det

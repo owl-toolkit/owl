@@ -18,6 +18,7 @@
 package translations.ltl2ldba;
 
 import ltl.Literal;
+import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.*;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
@@ -50,8 +51,9 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
     private final boolean skeleton;
     private final boolean impatient;
     private final boolean delay;
+    private final EquivalenceClassFactory factory;
 
-    InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
+    InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         super(valuationSetFactory);
 
         this.acceptingComponent = acceptingComponent;
@@ -61,6 +63,8 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         skeleton = optimisations.contains(Optimisation.MINIMAL_GSETS);
         impatient = optimisations.contains(Optimisation.FORCE_JUMPS);
         delay = optimisations.contains(Optimisation.DELAY_JUMPS);
+
+        this.factory = factory;
     }
 
     @Override
@@ -70,7 +74,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         }
 
         Formula stateFormula = state.getClazz().getRepresentative();
-        Set<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula);
+        Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula, factory);
 
         for (Set<GOperator> key : keys) {
             AcceptingComponent.State successor = acceptingComponent.jump(state.getClazz(), key);
