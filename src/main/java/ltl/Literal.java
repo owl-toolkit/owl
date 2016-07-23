@@ -41,7 +41,7 @@ public final class Literal extends ImmutableObject implements Formula {
 
     @Override
     public String toString() {
-        return (isNegated() ? "!" : "") + getAtom();
+        return (isNegated() ? "!p" : "p") + getAtom();
     }
 
     @Override
