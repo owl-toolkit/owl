@@ -58,8 +58,18 @@ public class ContainsVisitor implements Visitor<Boolean> {
     }
 
     @Override
+    public Boolean visit(FrequencyG freq) {
+        return clazz.equals(FrequencyG.class) || freq.operand.accept(this);
+    }
+
+    @Override
     public Boolean visit(Literal literal) {
         return clazz.equals(Literal.class);
+    }
+
+    @Override
+    public Boolean visit(ROperator rOp) {
+        return clazz.equals(ROperator.class) || rOp.left.accept(this) || rOp.right.accept(this);
     }
 
     @Override
