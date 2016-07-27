@@ -107,7 +107,7 @@ public abstract class EquivalenceClassTest {
     }
 
     @Test
-    public void FrequencyGNotFalse() {
+    public void testFrequencyGNotFalse() {
         Formula f = Parser.formula("G { >= 0.4} a");
         EquivalenceClassFactory factory = setUpFactory(f);
         EquivalenceClass clazz = factory.createEquivalenceClass(f);

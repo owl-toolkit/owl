@@ -28,6 +28,7 @@ package ltl.parser;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import ltl.*;
 import ltl.tlsf.*;
 
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 
+@SuppressFBWarnings
 @SuppressWarnings("all")
 public class Parser {
     public BiMap<String, Integer> map = HashBiMap.create();

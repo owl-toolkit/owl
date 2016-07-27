@@ -4,6 +4,7 @@ package ltl.parser;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import ltl.*;
 import ltl.tlsf.ImmutableTLSF;
 import ltl.tlsf.TLSF;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 
+@SuppressFBWarnings
 @SuppressWarnings("all")
 public class Parser implements ParserConstants {
     public BiMap<String, Integer> map = HashBiMap.create();

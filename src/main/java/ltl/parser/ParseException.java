@@ -2,6 +2,9 @@
 /* JavaCCOptions:KEEP_LINE_COL=null */
 package ltl.parser;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nonnull;
+
 /**
  * This exception is thrown when parse errors are encountered.
  * You can explicitly create objects of this exception type by
@@ -11,6 +14,7 @@ package ltl.parser;
  * You can modify this class to customize your error reporting
  * mechanisms so long as you retain the public fields.
  */
+@SuppressFBWarnings
 public class ParseException extends Exception {
 
   /**

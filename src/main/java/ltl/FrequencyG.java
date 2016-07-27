@@ -83,12 +83,9 @@ public class FrequencyG extends GOperator {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof FrequencyG)) {
-            return false;
-        }
-        FrequencyG fg = (FrequencyG) o;
-        return this.operand.equals(fg.operand) && Math.abs(this.bound - fg.bound) < EPSILON && this.cmp == fg.cmp && this.limes == fg.limes;
+    public boolean equals2(ImmutableObject o) {
+        FrequencyG that = (FrequencyG) o;
+        return Objects.equals(operand, that.operand) && Math.abs(this.bound - that.bound) < EPSILON && this.cmp == that.cmp && this.limes == that.limes;
     }
 
     public enum Comparison {

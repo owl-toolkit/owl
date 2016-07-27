@@ -6,7 +6,9 @@ package ltl.parser;
  * An implementation of interface CharStream, where the stream is assumed to
  * contain only ASCII characters (without unicode processing).
  */
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+@SuppressFBWarnings
 public class SimpleCharStream
 {
 /** Whether parser is static. */

@@ -3,6 +3,9 @@
 package ltl.parser;
 
 /** Token Manager Error. */
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@SuppressFBWarnings
 public class TokenMgrError extends Error
 {
 
