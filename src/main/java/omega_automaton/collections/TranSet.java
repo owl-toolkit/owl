@@ -49,7 +49,7 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
         ValuationSet valuationSet = backingMap.get(state);
 
         if (valuationSet == null) {
-            valuationSet = vs.clone();
+            valuationSet = vs.copy();
             backingMap.put(state, valuationSet);
         } else {
             valuationSet.addAll(vs);
@@ -93,7 +93,7 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
     }
 
     public TranSet<S> union(TranSet<S> other) {
-        TranSet<S> result = this.clone();
+        TranSet<S> result = this.copy();
         result.addAll(other);
         return result;
     }
@@ -116,8 +116,7 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
         other.backingMap.forEach(this::removeAll);
     }
 
-    @Override
-    public TranSet<S> clone() {
+    public TranSet<S> copy() {
         TranSet<S> result = new TranSet<>(factory);
         result.addAll(this);
         return result;

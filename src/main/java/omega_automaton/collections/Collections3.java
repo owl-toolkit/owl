@@ -160,7 +160,7 @@ public class Collections3 {
         }
 
         @Override
-        public boolean equals(@Nullable Object obj) {
+        public boolean equals(Object obj) {
             if (obj instanceof PowerBitSet) {
                 PowerBitSet that = (PowerBitSet) obj;
                 return baseSet.equals(that.baseSet);

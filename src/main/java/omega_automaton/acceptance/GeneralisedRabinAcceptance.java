@@ -40,9 +40,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         for( int j=0;j<this.acceptanceCondition.size();j++){
             Tuple<TranSet<S>, List<TranSet<S>>> pair = this.acceptanceCondition.get(j);
             for(int i=0; i< pair.right.size();i++){
-                pair.right.set(i, pair.right.get(i).clone());
+                pair.right.set(i, pair.right.get(i).copy());
             }
-            this.acceptanceCondition.set(j, new Tuple<>(pair.left.clone(),pair.right));
+            this.acceptanceCondition.set(j, new Tuple<>(pair.left.copy(), pair.right));
         }
         this.acceptanceNumbers = new IdentityHashMap<>();
     }
@@ -75,10 +75,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     }
 
     protected int getTranSetId(TranSet<S> key) {
-
-        if (acceptanceNumbers.get(key) == null) {
-            acceptanceNumbers.put(key, acceptanceNumbers.keySet().size());
-        }
+        acceptanceNumbers.putIfAbsent(key, acceptanceNumbers.keySet().size());
         return acceptanceNumbers.get(key);
     }
 

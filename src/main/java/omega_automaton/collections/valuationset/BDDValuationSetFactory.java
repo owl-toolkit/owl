@@ -227,7 +227,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         }
 
         @Override
-        public BDDValuationSet clone() {
+        public BDDValuationSet copy() {
             return new BDDValuationSet(index);
         }
 
@@ -257,7 +257,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         }
 
         public ValuationSet intersect(ValuationSet other) {
-            ValuationSet thisClone = this.clone();
+            ValuationSet thisClone = this.copy();
             thisClone.retainAll(other);
             return thisClone;
         }

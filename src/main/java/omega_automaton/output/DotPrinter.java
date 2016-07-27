@@ -17,6 +17,8 @@
 
 package omega_automaton.output;
 
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -35,8 +37,8 @@ public class DotPrinter implements HOAConsumer {
     private final List<Integer> initialStates;
     private String name;
 
-    public DotPrinter(OutputStream out) {
-        this.out = new PrintWriter(out);
+    public DotPrinter(PrintWriter out) {
+        this.out = out;
         initialStates = new ArrayList<>();
     }
 

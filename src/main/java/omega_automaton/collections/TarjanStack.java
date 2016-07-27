@@ -53,14 +53,6 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
     }
 
     @Override
-    public TarjanStack<E> clone() {
-        TarjanStack<E> stack = new TarjanStack<>();
-        stack.stack = new ArrayDeque<>(this.stack);
-        stack.elementsInTheStack = new HashSet<>(this.elementsInTheStack);
-        return stack;
-    }
-
-    @Override
     public E pop() {
         E e = stack.pop();
         elementsInTheStack.remove(e);

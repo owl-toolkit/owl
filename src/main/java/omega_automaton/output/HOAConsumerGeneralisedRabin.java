@@ -38,12 +38,9 @@ public class HOAConsumerGeneralisedRabin<St extends AutomatonState<?>> extends H
 
     @Override
     public void addEdge(ValuationSet key, AutomatonState<?> end) {
-        List<Integer> accSets = new ArrayList<>();
         Set<ValuationSet> realEdges = acceptance.getMaximallyMergedEdgesOfEdge(currentState, key);
         for (ValuationSet edgeKey : realEdges) {
-            accSets.clear();
-            accSets = acceptance.getInvolvedAcceptanceNumbers(currentState, edgeKey);
-            addEdgeBackend(edgeKey, end, accSets);
+            addEdgeBackend(edgeKey, end, acceptance.getInvolvedAcceptanceNumbers(currentState, edgeKey));
         }
     }
 }

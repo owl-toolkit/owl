@@ -28,14 +28,12 @@ import java.util.BitSet;
  * as returning a boolean, if the operation changes the underlying data-structure. This information is never used and it is
  * costly to support this.
  */
-public interface ValuationSet extends Cloneable, Iterable<BitSet> {
+public interface ValuationSet extends Iterable<BitSet> {
     ValuationSet complement();
 
     boolean isUniverse();
 
     BooleanExpression<AtomLabel> toExpression();
-
-    ValuationSet clone();
 
     boolean contains(BitSet valuation);
 
@@ -60,6 +58,8 @@ public interface ValuationSet extends Cloneable, Iterable<BitSet> {
     int size();
 
     void free();
+
+    ValuationSet copy();
 
     boolean intersects(ValuationSet value);
 
