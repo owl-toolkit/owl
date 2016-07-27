@@ -1,5 +1,7 @@
 # OWL Translations
 
+[![build status](https://gitlab.lrz.de/sickert/owl-translations/badges/master/build.svg)](https://gitlab.lrz.de/sickert/owl-translations/commits/master)
+
 A set of tools to translate LTL and NBA to LDBA, Parity Automata and Parity Game Arenas.
 
 # Naming
