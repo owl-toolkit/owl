@@ -18,6 +18,7 @@
 package omega_automaton.output;
 
 import com.google.common.collect.BiMap;
+import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
@@ -40,8 +41,8 @@ public class HOAConsumerExtended {
     private final Map<AutomatonState<?>, Integer> stateNumbers;
     protected AutomatonState<?> currentState;
 
-    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
-            int size) {
+    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, @Nullable BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
+                               int size) {
         this.hoa = hoa;
         stateNumbers = new HashMap<>(size);
 
