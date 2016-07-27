@@ -10,6 +10,14 @@ import static org.junit.Assert.assertEquals;
 public class SimplifierTest {
 
     private final Strategy strat = Simplifier.Strategy.AGGRESSIVELY;
+    
+    @Test
+    public void testAggressiveSimplification() {
+        Formula f1 = Parser.formula("G ((r) | ((p) & (r)))");
+        Formula f2 = Parser.formula("G r");
+        assertEquals(Simplifier.simplify(f1, Strategy.AGGRESSIVELY), f2);
+    }
+
 
     @Test
     public void testAggressiveSimplification1() {
