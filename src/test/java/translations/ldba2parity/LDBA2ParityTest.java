@@ -49,12 +49,10 @@ public class LDBA2ParityTest {
     private NBA2LDBA nba2ldba;
     private LDBA2Parity<InitialComponent.State, AcceptingComponent.State> ldba2parity;
     private LDBA2Parity<YCInit.State, YCAcc.State> ldba2parity2;
-
-    private Formula ltl;
     private StoredBuchiAutomaton nba;
 
-    private final BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
-    private final String INPUT = "HOA: v1\n" +
+    private static final BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
+    private static final String INPUT = "HOA: v1\n" +
             "States: 2\n" +
             "Start: 0\n" +
             "acc-name: Buchi\n" +
@@ -78,8 +76,6 @@ public class LDBA2ParityTest {
         ltl2ldba = new LTL2LDBA(optimisations);
         ldba2parity = new LDBA2Parity<>();
         ldba2parity2 = new LDBA2Parity<>();
-
-        ltl = Parser.formula("(F G a) | (F G b)");
 
         StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
         HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);

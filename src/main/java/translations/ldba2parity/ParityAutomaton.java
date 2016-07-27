@@ -165,7 +165,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             return appendJumps(state, ranking, Collections.emptyMap(), true, -1);
         }
 
-        @Nonnegative
+        // TODO: Enable annotation @Nonnegative
         private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<EquivalenceClass, EquivalenceClass> existingClasses, boolean findNewVolatile, int currentVolatileIndex) {
             List<AcceptingComponent.State> pureEventual = new ArrayList<>();
             List<AcceptingComponent.State> mixed = new ArrayList<>();
@@ -223,7 +223,11 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 ranking.add(nextVolatileState);
             }
 
-            return (nextVolatileStateIndex > 0) ? nextVolatileStateIndex : 0;
+            if (nextVolatileStateIndex > 0) {
+                return nextVolatileStateIndex;
+            }
+
+            return 0;
         }
 
         @Override

@@ -18,7 +18,6 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Sets;
-import com.sun.jndi.cosnaming.CNCtx;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;

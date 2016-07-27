@@ -121,7 +121,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         }
     }
 
-    public void toHOA(HOAConsumer c, @Nonnull BiMap<String, Integer> aliases) throws HOAConsumerException {
+    public void toHOA(HOAConsumer c, @Nullable BiMap<String, Integer> aliases) throws HOAConsumerException {
         HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.getAcceptance(), getInitialState(), size());
 
         if (initialComponent != null) {
@@ -141,7 +141,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         return toString(removeComments, null);
     }
 
-    public String toString(boolean removeComments, BiMap<String, Integer> aliases) {
+    public String toString(boolean removeComments, @Nullable BiMap<String, Integer> aliases) {
         try (OutputStream stream = new ByteArrayOutputStream()) {
             HOAConsumer consumer = removeComments ? new RemoveComments(new HOAConsumerPrint(stream)) : new HOAConsumerPrint(stream);
             toHOA(consumer, aliases);

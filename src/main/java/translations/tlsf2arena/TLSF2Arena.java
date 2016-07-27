@@ -43,7 +43,7 @@ public class TLSF2Arena {
             args = new String[]{"/Users/sickert/Documents/workspace/syntcomp/Benchmarks2016/TLSF/acaciaplus/easy.tlsf"};
         }
 
-        Parser parser = new Parser(new FileReader(args[0]));
+        Parser parser = new Parser(new FileInputStream(args[0]));
         TLSF tlsf = parser.tlsf();
 
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
