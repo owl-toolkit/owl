@@ -62,6 +62,8 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
 
     @Override
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
+        super.toHOABodyEdge(state, hoa);
+
         for (T accState : epsilonJumps.get(state)) {
             hoa.addEpsilonEdge(accState);
         }
