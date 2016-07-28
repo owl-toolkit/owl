@@ -41,7 +41,7 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
         if (b.value) {
             return b.equals(fo);
         } else {
-            return true;
+            return Boolean.TRUE;
         }
     }
 
@@ -58,11 +58,11 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
             return imp;
         } else if (fo instanceof UOperator) {
             if (c.accept(this, ((UOperator) fo).right)) {
-                return true;
+                return Boolean.TRUE;
             }
         } else if (fo instanceof Disjunction) {
             if (((Disjunction) fo).children.stream().anyMatch(ch -> c.accept(this, ch)))
-                return true;
+                return Boolean.TRUE;
         }
 
         return c.children.stream().anyMatch(ch -> ch.accept(this, fo));
@@ -71,17 +71,17 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
     @Override
     public Boolean visit(Disjunction d, Formula fo) {
         if (d.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
-            return true;
+            return Boolean.TRUE;
         } else if (fo instanceof UOperator) {
             if (d.accept(this, ((UOperator) fo).right)) {
-                return true;
+                return Boolean.TRUE;
             }
         } else if (fo instanceof Conjunction) {
             if (((Conjunction) fo).allMatch(ch -> d.accept(this, ch)))
-                return true;
+                return Boolean.TRUE;
         } else if (fo instanceof Disjunction) {
             if (((Disjunction) fo).anyMatch(ch -> d.accept(this, ch)))
-                return true;
+                return Boolean.TRUE;
         }
         return d.allMatch(c -> c.accept(this, fo));
     }
@@ -89,77 +89,105 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
     @Override
     public Boolean visit(FOperator f, Formula fo) {
         if (f.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
-            return true;
+            return Boolean.TRUE;
         }
         if (fo instanceof FOperator) {
             return f.operand.accept(this, ((UnaryModalOperator) fo).operand);
         } else if (fo instanceof UOperator) {
             if (f.accept(this, ((UOperator) fo).right)) {
-                return true;
+                return Boolean.TRUE;
             }
         } else if (fo instanceof Conjunction) {
             return ((Conjunction) fo).children.stream().allMatch(ch -> f.accept(this, ch));
         } else if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> f.accept(this, ch));
         }
-        return false;
+        return Boolean.FALSE;
     }
 
     @Override
     public Boolean visit(GOperator g, Formula fo) {
         if (g.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
-            return true;
+            return Boolean.TRUE;
         }
+
         if (g.operand.accept(this, fo)) {
-            return true;
-        } else if (fo instanceof Conjunction) {
+            return Boolean.TRUE;
+        }
+
+        if (fo instanceof Conjunction) {
             return ((Conjunction) fo).children.stream().allMatch(ch -> g.accept(this, ch));
-        } else if (fo instanceof Disjunction) {
+        }
+
+        if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> g.accept(this, ch));
-        } else if (fo instanceof FOperator || fo instanceof GOperator) {
+        }
+
+        if (fo instanceof FOperator || fo instanceof GOperator) {
             return g.operand.accept(this, ((UnaryModalOperator) fo).operand) || g.accept(this, ((UnaryModalOperator) fo).operand);
-        } else if (fo instanceof Literal) {
+        }
+
+        if (fo instanceof Literal) {
             return g.operand.accept(this, fo);
-        } else if (fo instanceof UOperator) {
+        }
+
+        if (fo instanceof UOperator) {
             return g.accept(this, ((UOperator) fo).right) || g.accept(this, new Conjunction(new GOperator(((UOperator) fo).left), new FOperator(((UOperator) fo).right)));
-        } else if (fo instanceof XOperator) {
+        }
+
+        if (fo instanceof XOperator) {
             return g.accept(this, ((UnaryModalOperator) fo).operand) || g.operand.accept(this, fo);
         }
-        return false;
+
+        return Boolean.FALSE;
     }
 
     @Override
     public Boolean visit(Literal l, Formula fo) {
         if (l.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
-            return true;
+            return Boolean.TRUE;
         }
+
         if (fo instanceof Conjunction) {
             return ((Conjunction) fo).children.stream().allMatch(ch -> l.accept(this, ch));
-        } else if (fo instanceof Disjunction) {
+        }
+
+        if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> l.accept(this, ch));
-        } else if (fo instanceof FOperator) {
+        }
+
+        if (fo instanceof FOperator) {
             return l.accept(this, ((UnaryModalOperator) fo).operand);
         }
-        return false;
+
+        return Boolean.FALSE;
     }
 
     @Override
     public Boolean visit(UOperator u, Formula fo) {
         if (u.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
-            return true;
+            return Boolean.TRUE;
         }
+
         if (fo instanceof UOperator) {
             return u.left.accept(this, ((UOperator) fo).left) && u.right.accept(this, ((UOperator) fo).right)
                     || u.accept(this, ((UOperator) fo).right);
-        } else if (fo instanceof FOperator) {
-            return u.right.accept(this, ((UnaryModalOperator) fo).operand);
-        } else if (fo instanceof Conjunction) {
-            if (((Conjunction) fo).children.stream().allMatch(ch -> u.accept(this, ch)))
-                return true;
-        } else if (fo instanceof Disjunction) {
-            if (((Disjunction) fo).children.stream().anyMatch(ch -> u.accept(this, ch)))
-                return true;
         }
+
+        if (fo instanceof FOperator) {
+            return u.right.accept(this, ((UnaryModalOperator) fo).operand);
+        }
+
+        if (fo instanceof Conjunction) {
+            if (((Conjunction) fo).children.stream().allMatch(ch -> u.accept(this, ch))) {
+                return Boolean.TRUE;
+            }
+        } else if (fo instanceof Disjunction) {
+            if (((Disjunction) fo).children.stream().anyMatch(ch -> u.accept(this, ch))) {
+                return Boolean.TRUE;
+            }
+        }
+
         return Simplifier.simplify(new Disjunction(u.left, u.right), Simplifier.Strategy.AGGRESSIVELY).accept(this, fo);
     }
 
@@ -171,21 +199,31 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
     @Override
     public Boolean visit(XOperator x, Formula fo) {
         if (x.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
-            return true;
-        } else if (fo instanceof Conjunction) {
+            return Boolean.TRUE;
+        }
+
+        if (fo instanceof Conjunction) {
             return ((Conjunction) fo).children.stream().allMatch(ch -> x.accept(this, ch));
-        } else if (fo instanceof Disjunction) {
+        }
+
+        if (fo instanceof Disjunction) {
             return ((Disjunction) fo).children.stream().anyMatch(ch -> x.accept(this, ch));
-        } else if (fo instanceof FOperator) {
+        }
+
+        if (fo instanceof FOperator) {
             return x.operand.accept(this, fo) || x.accept(this, ((UnaryModalOperator) fo).operand)
                     || x.operand.accept(this, ((UnaryModalOperator) fo).operand);
-        } else if (fo instanceof GOperator || fo instanceof Literal || fo instanceof UOperator) {
-            return false;
-        } else if (fo instanceof XOperator) {
+        }
+
+        if (fo instanceof GOperator || fo instanceof Literal || fo instanceof UOperator) {
+            return Boolean.FALSE;
+        }
+
+        if (fo instanceof XOperator) {
             return x.operand.accept(this, ((UnaryModalOperator) fo).operand);
         }
-        return false;
 
+        return Boolean.FALSE;
     }
 
 }
