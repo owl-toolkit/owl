@@ -81,10 +81,10 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
      */
     public static <S extends AutomatonState<S>> List<TranSet<S>> subSCCsTran(Automaton<S, ?> a, TranSet<S> SCC, TranSet<S> forbiddenEdges) {
         SCCAnalyser<S> s = new SCCAnalyser<>(a, SCC.asMap().keySet(), forbiddenEdges);
-        return s.subSCCsTran();
+        return s.subSCCsTranPrivate();
     }
 
-    private List<TranSet<S>> subSCCsTran() {
+    private List<TranSet<S>> subSCCsTranPrivate() {
         List<Set<S>> resultStates = new ArrayList<>();
         Set<S> notYetProcessed = new HashSet<>(allowedStates);
 
@@ -134,7 +134,7 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         return result;
     }
 
-    public static <S extends AutomatonState<S>> TranSet<S> sccToTran(Automaton<S, ?> aut, Set<S> scc, TranSet<S> forbiddenEdges) {
+    private static <S extends AutomatonState<S>> TranSet<S> sccToTran(Automaton<S, ?> aut, Set<S> scc, TranSet<S> forbiddenEdges) {
         TranSet<S> result = new TranSet<>(aut.getFactory());
 
         scc.forEach(s -> aut.getSuccessors(s).forEach((edge, valuation) -> {

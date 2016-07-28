@@ -17,8 +17,8 @@
 
 package omega_automaton.output;
 
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
+import java.util.HashSet;
+import java.util.Set;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -26,7 +26,6 @@ import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.collections.Collections3;
 
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +33,12 @@ import java.util.List;
 public class DotPrinter implements HOAConsumer {
 
     private final PrintWriter out;
-    private final List<Integer> initialStates;
+    private final Set<Integer> initialStates;
     private String name;
 
     public DotPrinter(PrintWriter out) {
         this.out = out;
-        initialStates = new ArrayList<>();
+        initialStates = new HashSet<>();
     }
 
     @Override
@@ -124,7 +123,7 @@ public class DotPrinter implements HOAConsumer {
 
     @Override
     public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException {
-        out.println("\t\"" + stateId + "\" -> \"" + Collections3.getElement(conjSuccessors) + "\" [label=\"" + labelExpr.toString() + "\"];");
+        out.println("\t\"" + stateId + "\" -> \"" + Collections3.getElement(conjSuccessors) + "\" [label=\"" + labelExpr + "\"];");
     }
 
     @Override

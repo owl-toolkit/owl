@@ -57,15 +57,15 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             return;
         }
 
-        Set<S> workList = new HashSet<>();
-        workList.add(initialState);
+        Set<S> workSet = new HashSet<>();
+        workSet.add(initialState);
 
-        while (!workList.isEmpty()) {
-            S current = Collections3.removeElement(workList);
+        while (!workSet.isEmpty()) {
+            S current = Collections3.removeElement(workSet);
 
             for (Edge<S> successor : getSuccessors(current).keySet()) {
                 if (!transitions.containsKey(successor.successor)) {
-                    workList.add(successor.successor);
+                    workSet.add(successor.successor);
                 }
             }
         }
@@ -234,21 +234,17 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     private void getReachableStates(Set<S> states) {
-        Deque<S> workList = new ArrayDeque<>(states);
+        Deque<S> workDeque = new ArrayDeque<>(states);
 
-        while (!workList.isEmpty()) {
-            S state = workList.remove();
+        while (!workDeque.isEmpty()) {
+            S state = workDeque.remove();
 
             getSuccessors(state).forEach((suc, v) -> {
                 if (states.add(suc.successor)) {
-                    workList.add(suc.successor);
+                    workDeque.add(suc.successor);
                 }
             });
         }
-    }
-
-    public boolean containsAllTransitions(TranSet<? super S> trans) {
-        return transitions.entrySet().stream().allMatch(entry -> entry.getValue().entrySet().stream().allMatch(succ -> trans.containsAll(entry.getKey(), succ.getValue())));
     }
 
     public void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
@@ -257,10 +253,9 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         hoa.done();
     }
 
-    public void toHOABody(HOAConsumerExtended hoa) {
+    protected void toHOABody(HOAConsumerExtended hoa) {
         for (S s : getStates()) {
             hoa.addState(s);
-            getSuccessors(s).forEach((k, v) -> hoa.addEdge(v, k.successor, k.acceptance));
             toHOABodyEdge(s, hoa);
             hoa.stateDone();
         }
@@ -273,7 +268,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * @param hoa
      */
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
-        // NOP.
+        getSuccessors(state).forEach((k, v) -> hoa.addEdge(v, k.successor, k.acceptance));
     }
 
     public void free() {

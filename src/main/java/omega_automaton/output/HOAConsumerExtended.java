@@ -18,6 +18,7 @@
 package omega_automaton.output;
 
 import com.google.common.collect.BiMap;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -36,6 +37,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class HOAConsumerExtended {
+
+    protected static final Logger logger = Logger.getLogger(HOAConsumerExtended.class.getName());
 
     private final HOAConsumer hoa;
     private final Map<AutomatonState<?>, Integer> stateNumbers;
@@ -70,19 +73,20 @@ public class HOAConsumerExtended {
                 hoa.setAcceptanceCondition(acceptance1.getAcceptanceSets(), acceptance1.getBooleanExpression());
             }
 
-            if (aliases == null) {
-                hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(Integer::toString).collect(Collectors.toList()));
-            } else {
-                hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(i -> aliases.inverse().get(i)).collect(Collectors.toList()));
-            }
+
+            hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(i -> {
+                if (aliases != null) {
+                    return aliases.inverse().get(i);
+                }
+
+                return Integer.toString(i);}).collect(Collectors.toList()));
 
             if (initialState == null) {
                 hoa.notifyBodyStart();
                 hoa.notifyEnd();
             }
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
     }
 
@@ -103,8 +107,7 @@ public class HOAConsumerExtended {
             currentState = state;
             hoa.addState(getStateId(state), state.toString(), null, null);
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
     }
 
@@ -112,8 +115,7 @@ public class HOAConsumerExtended {
         try {
             hoa.notifyEndOfState(getStateId(currentState));
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
     }
 
@@ -121,8 +123,7 @@ public class HOAConsumerExtended {
         try {
             hoa.notifyEnd();
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
     }
 
@@ -139,8 +140,7 @@ public class HOAConsumerExtended {
             System.err.print("Warning: HOA currently does not support epsilon-transitions. (" + currentState + " -> " + successor + ')');
             hoa.addEdgeWithLabel(getStateId(currentState), null, Collections.singletonList(getStateId(successor)), null);
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
     }
 
@@ -152,16 +152,12 @@ public class HOAConsumerExtended {
         try {
             hoa.addEdgeWithLabel(getStateId(currentState), label.toExpression(), Collections.singletonList(getStateId(end)), accSets);
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
     }
 
     private int getStateId(AutomatonState<?> state) {
-        if (!stateNumbers.containsKey(state)) {
-            stateNumbers.put(state, stateNumbers.size());
-        }
-
+        stateNumbers.putIfAbsent(state, stateNumbers.size());
         return stateNumbers.get(state);
     }
 }

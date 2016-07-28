@@ -165,7 +165,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
         @Override
         public void provideAcceptanceName(String s, List<Object> list) throws HOAConsumerException {
-            if (!s.equals("Buchi")) {
+            if (!"Buchi".equals(s)) {
                 throw new HOAConsumerException("Unsupported Acceptance: " + s);
             }
         }

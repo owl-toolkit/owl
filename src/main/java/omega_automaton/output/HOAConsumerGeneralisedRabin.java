@@ -20,7 +20,7 @@ public class HOAConsumerGeneralisedRabin<St extends AutomatonState<?>> extends H
     public HOAConsumerGeneralisedRabin(HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String, Integer> aliases, St initialState,
             GeneralisedRabinAcceptance<St> accCond, int size) {
         super(hoa, valuationSetFactory, aliases, (accCond==null ? new AllAcceptance(): accCond), initialState, size);
-        this.acceptance = (accCond==null ? new GeneralisedRabinAcceptance<St>(Collections.emptyList()): accCond);
+        this.acceptance = accCond == null ? new GeneralisedRabinAcceptance<St>(Collections.emptyList()): accCond;
 
         Map<String, List<Object>> map = acceptance.miscellaneousAnnotations();
 
@@ -29,9 +29,7 @@ public class HOAConsumerGeneralisedRabin<St extends AutomatonState<?>> extends H
                 hoa.addMiscHeader(entry.getKey(), entry.getValue());
             }
         } catch (HOAConsumerException ex) {
-            // We wrap HOAConsumerException into an unchecked exception in order
-            // to keep the interfaces clean and tidy.
-            throw new RuntimeException(ex);
+            logger.warning(ex.toString());
         }
 
     }

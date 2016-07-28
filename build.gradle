@@ -28,11 +28,13 @@ repositories {
 
 dependencies {
 	compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
-    compileOnly 'com.google.code.findbugs:annotations:3.0.1'
     compile 'com.google.guava:guava:19.0'
     compile 'jdd:jdd:108'
     compile files('lib/jhoafparser-1.1.1.jar')
     testCompile 'junit:junit:4+'
+
+    // Additional Checks
+    findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.1'
 }
 
 // If a user file is present, include it.
