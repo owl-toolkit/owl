@@ -13,12 +13,12 @@ public class FiniteReach implements Visitor<Boolean> {
 
     @Override
     public Boolean defaultAction(Formula formula) {
-        return false;
+        return Boolean.FALSE;
     }
 
     @Override
     public Boolean visit(BooleanConstant booleanConstant) {
-        return true;
+        return Boolean.TRUE;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class FiniteReach implements Visitor<Boolean> {
 
     @Override
     public Boolean visit(Literal literal) {
-        return true;
+        return Boolean.TRUE;
     }
 
     @Override

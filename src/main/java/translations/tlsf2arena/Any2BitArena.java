@@ -32,13 +32,13 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import java.io.*;
 import java.util.*;
 
-public class Any2BitArena {
+class Any2BitArena {
 
     private <S extends AutomatonState<S>> void writeState(final DataOutputStream nodeStream, final DataOutputStream edgeStream, final Writer labelStream, final Automaton<S, ?> automaton, final S state) throws IOException {
         BitSet fstAlpha = state.getSensitiveAlphabet();
-        fstAlpha.and(fstAlphabet);
+        BitSet sndAlpha = (BitSet) fstAlpha.clone();
 
-        BitSet sndAlpha = state.getSensitiveAlphabet();
+        fstAlpha.and(fstAlphabet);
         sndAlpha.and(sndAlphabet);
 
         // Compute intermediate states and transitions.
@@ -122,7 +122,7 @@ public class Any2BitArena {
         }
     }
 
-    public enum Player {System, Environment}
+    enum Player {System, Environment}
 
     private Player firstPlayer;
     private BitSet fstAlphabet;
@@ -135,9 +135,7 @@ public class Any2BitArena {
     Object2IntMap<AutomatonState<?>> ids;
     int colors;
 
-    public <S extends AutomatonState<S>> void writeBinary(Automaton<S, ?> automaton, Player firstPlayer, BitSet envAlphabet, File nodeFile, File edgeFile) throws IOException {
-        System.out.println("Parity/LDBA -> Arena");
-
+    private <S extends AutomatonState<S>> void setUp(Automaton<S, ?> automaton, Player firstPlayer, BitSet envAlphabet) {
         if (!(automaton.getAcceptance() instanceof ParityAcceptance) && !(automaton.getAcceptance() instanceof BuchiAcceptance)) {
             throw new RuntimeException("Unsupported acceptance: " + automaton.getAcceptance());
         }
@@ -165,6 +163,18 @@ public class Any2BitArena {
         } else {
             colors = automaton.getAcceptance().getAcceptanceSets();
         }
+    }
+
+    private void writeHeader(File nodeFile, File edgeFile) throws IOException {
+        try (RandomAccessFile nodeStream = new RandomAccessFile(nodeFile, "rwd");
+             RandomAccessFile edgeStream = new RandomAccessFile(edgeFile, "rwd")) {
+            nodeStream.writeInt(secondaryNodes + primaryNodes);
+            edgeStream.writeInt(edges);
+        }
+    }
+
+    <S extends AutomatonState<S>> void writeBinary(Automaton<S, ?> automaton, Player firstPlayer, BitSet envAlphabet, File nodeFile, File edgeFile) throws IOException {
+        setUp(automaton, firstPlayer, envAlphabet);
 
         try (DataOutputStream nodeStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(nodeFile)));
              DataOutputStream edgeStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(edgeFile)))) {
@@ -182,18 +192,10 @@ public class Any2BitArena {
             }
         }
 
-        System.out.println("Nodes (P): " + primaryNodes);
-        System.out.println("Nodes (S): " + secondaryNodes);
-        System.out.println("Edges: " + edges);
-
-        try (RandomAccessFile nodeStream = new RandomAccessFile(nodeFile, "rwd");
-             RandomAccessFile edgeStream = new RandomAccessFile(edgeFile, "rwd")) {
-            nodeStream.writeInt(secondaryNodes + primaryNodes);
-            edgeStream.writeInt(edges);
-        }
+        writeHeader(nodeFile, edgeFile);
     }
 
-    public void readBinary(File nodeFile, File edgeFile) throws IOException {
+    void readBinary(File nodeFile, File edgeFile) throws IOException {
         try (DataInputStream nodeStream = new DataInputStream(new BufferedInputStream(new FileInputStream(nodeFile)));
              DataInputStream edgeStream = new DataInputStream(new BufferedInputStream(new FileInputStream(edgeFile)))) {
             System.out.println("Number of Nodes: " + nodeStream.readInt());

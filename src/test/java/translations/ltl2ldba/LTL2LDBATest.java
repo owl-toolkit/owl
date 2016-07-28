@@ -33,7 +33,7 @@ import static org.junit.Assert.assertEquals;
 
 public class LTL2LDBATest {
 
-    public static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, String expectedOutput) throws HOAConsumerException, IOException {
+    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, String expectedOutput) {
         BiMap<String, Integer> mapping = HashBiMap.create();
         LTL2LDBA translation = new LTL2LDBA(opts);
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
@@ -42,23 +42,23 @@ public class LTL2LDBATest {
         assertEquals(hoaString, size, automaton.size());
 
         if (expectedOutput != null) {
-            assertEquals(expectedOutput, automaton.toString(true, mapping));
+            assertEquals(expectedOutput, automaton.toString());
         }
 
         automaton.free();
     }
 
-    public static void testOutput(String ltl, int size, String expectedOutput) throws HOAConsumerException, IOException {
+    static void testOutput(String ltl, int size, String expectedOutput) {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.BREAKPOINT_FUSION);
         testOutput(ltl, opts, size, expectedOutput);
     }
 
-    public static void testOutput(String ltl, EnumSet<Optimisation> opts, int size) throws HOAConsumerException, IOException {
+    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size) {
         testOutput(ltl, opts, size, null);
     }
 
-    public static void testOutput(String ltl, int size) throws HOAConsumerException, IOException {
+    static void testOutput(String ltl, int size) throws HOAConsumerException, IOException {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.BREAKPOINT_FUSION);
         testOutput(ltl, opts, size, null);
@@ -187,6 +187,7 @@ public class LTL2LDBATest {
         testOutput("a & !a", 1);
     }
 
+    // TODO: Make a monitor test from that.
     @Test
     public void testTrivial2() throws Exception {
         testOutput("G((r) | ((p) & (r)))", 1);
@@ -302,7 +303,7 @@ public class LTL2LDBATest {
                 "Start: 0\n" +
                 "acc-name: Buchi\n" +
                 "Acceptance: 1 Inf(0)\n" +
-                "AP: 3 \"a\" \"b\" \"c\"\n" +
+                "AP: 3 \"0\" \"1\" \"2\"\n" +
                 "--BODY--\n" +
                 "State: 1\n" +
                 "[0] 2 {}\n" +

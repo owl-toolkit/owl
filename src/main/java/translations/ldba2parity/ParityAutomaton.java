@@ -17,7 +17,6 @@
 
 package translations.ldba2parity;
 
-import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableList;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
@@ -37,7 +36,6 @@ import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.GMonitor;
 import translations.ltl2ldba.InitialComponent;
 
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -58,8 +56,8 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
     int colors;
 
-    protected ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba) {
-        super(ldba.getAcceptingComponent().getFactory());
+    protected ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba, ValuationSetFactory factory) {
+        super(factory);
 
         acceptingComponent = ldba.getAcceptingComponent();
         initialComponent = ldba.getInitialComponent();
@@ -149,8 +147,8 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         @Override
         protected boolean equals2(ImmutableObject o) {
             State that = (State) o;
-            return Objects.equals(initialComponentState, that.initialComponentState) &&
-                    Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking) && that.volatileIndex == this.volatileIndex;
+            return  that.volatileIndex == this.volatileIndex && Objects.equals(initialComponentState, that.initialComponentState) &&
+                    Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
         }
 
         /* IDEAS:
@@ -277,22 +275,23 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 AcceptingComponent.State rankingSuccessor = successorEdge2.successor;
                 GMonitor.State monitorState = Collections3.getElement(rankingSuccessor.monitors.values());
 
-                EquivalenceClass existingClass = existingClasses.get(monitorState.getInitialFormula());
+                EquivalenceClass initialFormula = monitorState.getInitialFormula();
+                EquivalenceClass existingClass = existingClasses.get(initialFormula);
 
                 if (existingClass == null) {
                     existingClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
                 }
 
-                EquivalenceClass stateLabel = monitorState.current.and(monitorState.next).andWith(monitorState.getInitialFormula());
+                EquivalenceClass stateLabel = monitorState.current.and(monitorState.next).andWith(initialFormula);
 
-                if (stateLabel.implies(existingClass) || !activeMonitors.contains(monitorState.getInitialFormula())) {
+                if (stateLabel.implies(existingClass) || !activeMonitors.contains(initialFormula)) {
                     edgeColor = Math.min(edgeColor, 2 * index);
                 } else {
                     existingClasses.put(monitorState.getInitialFormula(), existingClass.orWith(monitorState.current));
                     ranking.add(rankingSuccessor);
 
-                    if (volatileComponents.contains(monitorState.getInitialFormula()) && monitorState.current.getRepresentative().accept(FiniteReach.INSTANCE)) {
-                        activeVolatileBreakpoint = volatileComponents.indexOf(monitorState.getInitialFormula());
+                    if (volatileComponents.contains(initialFormula) && monitorState.current.getRepresentative().accept(FiniteReach.INSTANCE)) {
+                        activeVolatileBreakpoint = volatileComponents.indexOf(initialFormula);
                     }
 
                     if (successorEdge2.acceptance.get(0)) {
@@ -331,20 +330,12 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
     @Override
     public String toString() {
-        return toString(false);
-    }
-
-    public String toString(boolean removeComments) {
-        return toString(removeComments, null);
-    }
-
-    public String toString(boolean removeComments, BiMap<String, Integer> aliases) {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            HOAConsumer consumer = removeComments ? new RemoveComments(new HOAConsumerPrint(stream)) : new HOAConsumerPrint(stream);
-            toHOA(consumer, aliases);
+            HOAConsumer consumer = new RemoveComments(new HOAConsumerPrint(stream));
+            toHOA(consumer, null);
             return stream.toString();
         } catch (IOException  ex) {
-            throw new IllegalStateException(ex.toString());
+            throw new IllegalStateException(ex.toString(), ex);
         }
     }
 }

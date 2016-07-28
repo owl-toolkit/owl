@@ -32,7 +32,6 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.RemoveComments;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -134,20 +133,12 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     @Override
     public String toString() {
-        return toString(false);
-    }
-
-    public String toString(boolean removeComments) {
-        return toString(removeComments, null);
-    }
-
-    public String toString(boolean removeComments, @Nullable BiMap<String, Integer> aliases) {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            HOAConsumer consumer = removeComments ? new RemoveComments(new HOAConsumerPrint(stream)) : new HOAConsumerPrint(stream);
-            toHOA(consumer, aliases);
+            HOAConsumer consumer = new RemoveComments(new HOAConsumerPrint(stream));
+            toHOA(consumer, null);
             return stream.toString();
         } catch (IOException | HOAConsumerException ex) {
-            throw new IllegalStateException(ex.toString());
+            throw new IllegalStateException(ex.toString(), ex);
         }
     }
 

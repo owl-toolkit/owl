@@ -43,7 +43,7 @@ public class LDBA2Parity<I extends AutomatonState<I>, A extends AutomatonState<A
             return ldba.getAcceptingComponent();
         }
 
-        ParityAutomaton parity = new ParityAutomaton((LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent>) ldba);
+        ParityAutomaton parity = new ParityAutomaton((LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent>) ldba, ldba.getAcceptingComponent().getFactory());
         parity.generate();
         return parity;
     }

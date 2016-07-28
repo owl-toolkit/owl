@@ -17,7 +17,9 @@
 
 package translations.ltl2ldba;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
+import java.util.stream.Stream;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -39,8 +41,7 @@ class GMonitorSelector {
     static Collection<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula, EquivalenceClassFactory factory) {
         switch (strategy) {
             case MIN_DNF:
-                List<Set<GOperator>> sets = new ArrayList<>(Sets.difference(formula.accept(MIN_DNF), Collections.singleton(Collections.emptySet())));
-                sets.sort(Comparator.comparingInt(Set::size));
+                List<Set<GOperator>> sets = formula.accept(MIN_DNF).stream().filter(set -> !set.isEmpty()).sorted(Comparator.comparingInt(Set::size)).collect(Collectors.toList());
 
                 ListIterator<Set<GOperator>> listIterator = sets.listIterator();
                 while (listIterator.hasNext()) {
@@ -72,33 +73,33 @@ class GMonitorSelector {
         }
     }
 
-    static class GMonitorVisitor implements Visitor<Set<Set<GOperator>>> {
+    static class GMonitorVisitor implements Visitor<List<Set<GOperator>>> {
         @Override
-        public Set<Set<GOperator>> visit(FOperator fOperator) {
+        public List<Set<GOperator>> visit(FOperator fOperator) {
             return fOperator.operand.accept(this);
         }
 
         @Override
-        public Set<Set<GOperator>> visit(UOperator uOperator) {
+        public List<Set<GOperator>> visit(UOperator uOperator) {
             return Disjunction.create(uOperator.left, Conjunction.create(uOperator.left, uOperator.right)).accept(this);
         }
 
         @Override
-        public Set<Set<GOperator>> visit(XOperator xOperator) {
+        public List<Set<GOperator>> visit(XOperator xOperator) {
             return xOperator.operand.accept(this);
         }
 
         @Override
-        public Set<Set<GOperator>> defaultAction(Formula formula) {
-            return Collections.singleton(Collections.emptySet());
+        public List<Set<GOperator>> defaultAction(Formula formula) {
+            return Collections.singletonList(Collections.emptySet());
         }
 
         @Override
-        public Set<Set<GOperator>> visit(Conjunction conjunction) {
-            Set<Set<GOperator>> Gs = Collections.singleton(Collections.emptySet());
+        public List<Set<GOperator>> visit(Conjunction conjunction) {
+            List<Set<GOperator>> Gs = Collections.singletonList(Collections.emptySet());
 
             for (Formula child : conjunction.children) {
-                Set<Set<GOperator>> nextGs = new HashSet<>(2 * Gs.size());
+                List<Set<GOperator>> nextGs = new ArrayList<>(2 * Gs.size());
 
                 for (Set<GOperator> gOperators1 : child.accept(this)) {
                     for (Set<GOperator> gOperators2 : Gs) {
@@ -109,23 +110,23 @@ class GMonitorSelector {
                 Gs = nextGs;
             }
 
-            return Gs;
+            return Gs.stream().distinct().collect(Collectors.toList());
         }
 
         @Override
-        public Set<Set<GOperator>> visit(Disjunction disjunction) {
-            Set<Set<GOperator>> Gs = new HashSet<>();
+        public List<Set<GOperator>> visit(Disjunction disjunction) {
+            List<Set<GOperator>> Gs = new ArrayList<>(disjunction.children.size());
             disjunction.children.forEach(e -> Gs.addAll(e.accept(this)));
-            return Gs;
+            return Gs.stream().distinct().collect(Collectors.toList());
         }
 
         @Override
-        public Set<Set<GOperator>> visit(GOperator gOperator) {
-            return gOperator.operand.accept(this).stream().map(set -> Sets.union(Collections.singleton(gOperator), set)).collect(Collectors.toSet());
+        public List<Set<GOperator>> visit(GOperator gOperator) {
+            return gOperator.operand.accept(this).stream().map(set -> Sets.union(Collections.singleton(gOperator), set)).collect(Collectors.toList());
         }
 
         @Override
-        public Set<Set<GOperator>> visit(ROperator rOperator) {
+        public List<Set<GOperator>> visit(ROperator rOperator) {
             return Disjunction.create(GOperator.create(rOperator.right), Conjunction.create(rOperator.left, rOperator.right)).accept(this);
         }
     }
