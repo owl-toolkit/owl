@@ -253,7 +253,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         hoa.done();
     }
 
-    protected void toHOABody(HOAConsumerExtended hoa) {
+    public void toHOABody(HOAConsumerExtended hoa) {
         for (S s : getStates()) {
             hoa.addState(s);
             toHOABodyEdge(s, hoa);
