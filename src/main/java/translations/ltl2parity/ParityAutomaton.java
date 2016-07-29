@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package translations.ldba2parity;
+package translations.ltl2parity;
 
 import com.google.common.collect.ImmutableList;
 import jhoafparser.consumer.HOAConsumer;
@@ -171,7 +171,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             int nextVolatileStateIndex = -1;
 
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
-                GMonitor.State monitorState = Collections3.getElement(accState.monitors.values());
+                GMonitor.State monitorState = Collections3.getElement(accState.getMonitors());
                 EquivalenceClass initialClass = monitorState.getInitialFormula();
 
                 // We can accept via the initial component. Hence there is no jump.
@@ -256,7 +256,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             Set<EquivalenceClass> activeMonitors = new HashSet<>();
 
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(successor)) {
-                GMonitor.State monitorState = Collections3.getElement(accState.monitors.values());
+                GMonitor.State monitorState = Collections3.getElement(accState.getMonitors());
                 activeMonitors.add(monitorState.getInitialFormula());
             }
 
@@ -273,7 +273,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                 }
 
                 AcceptingComponent.State rankingSuccessor = successorEdge2.successor;
-                GMonitor.State monitorState = Collections3.getElement(rankingSuccessor.monitors.values());
+                GMonitor.State monitorState = Collections3.getElement(rankingSuccessor.getMonitors());
 
                 EquivalenceClass initialFormula = monitorState.getInitialFormula();
                 EquivalenceClass existingClass = existingClasses.get(initialFormula);

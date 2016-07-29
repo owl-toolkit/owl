@@ -26,6 +26,7 @@ import translations.ldba.LimitDeterministicAutomaton;
 import org.junit.Test;
 import translations.Optimisation;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.EnumSet;
 
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 
 public class LTL2LDBATest {
 
-    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, String expectedOutput) {
+    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, @Nullable String expectedOutput) {
         BiMap<String, Integer> mapping = HashBiMap.create();
         LTL2LDBA translation = new LTL2LDBA(opts);
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
@@ -204,7 +205,7 @@ public class LTL2LDBATest {
 
     @Test
     public void testJumps() throws Exception {
-        // TODO: if something has to hold right now, do jump and replace in the succesor the Gs with false?
+        // TODO: if something has to hold right now, do jump and replace in the successor the Gs with false?
         String ltl = "(G a) | X X X X b";
         testOutput(ltl, 11); // was 7
     }

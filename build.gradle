@@ -30,12 +30,13 @@ repositories {
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'com.google.guava:guava:19.0'
-    compile 'de.tum.in:ltl-lib:0.0.12'
+    compile 'de.tum.in:ltl-lib:0.0.13'
     compile 'de.tum.in:omega-automaton-lib:0.0.12'
     compile 'it.unimi.dsi:fastutil:7.0.12'
     compile files('lib/jhoafparser-1.1.1.jar')
     runtime 'jdd:jdd:108'
     testCompile 'junit:junit:4+'
+    testCompile 'com.google.code.findbugs:jsr305:3.0.1'
 
     // Additional Checks
     findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.1'
@@ -55,7 +56,7 @@ task createAllStartScripts() << {
 def scripts = [
     'ltl2ldba':'translations.ltl2ldba.LTL2LDBA',
     'nba2ldba':'translations.nba2ldba.NBA2LDBA',
-    'ltl2parity':'translations.ldba2parity.LDBA2Parity',
+    'ltl2parity':'translations.ltl2parity.LTL2Parity',
 ]
 
 scripts.each() {scriptName, className -> 

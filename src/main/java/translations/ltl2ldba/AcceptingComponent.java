@@ -20,6 +20,7 @@ package translations.ltl2ldba;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
+import com.google.common.util.concurrent.Monitor;
 import ltl.*;
 import ltl.visitors.SkipVisitor;
 import ltl.visitors.Visitor;
@@ -39,12 +40,12 @@ import java.util.*;
 public class AcceptingComponent extends Automaton<AcceptingComponent.State, GeneralisedBuchiAcceptance> {
 
     private final EquivalenceClassFactory equivalenceClassFactory;
-    private final Collection<Optimisation> optimisations;
+    private final EnumSet<Optimisation> optimisations;
 
     private final Map<Set<GOperator>, Map<GOperator, GMonitor>> automata;
     private final Table<Set<GOperator>, GOperator, Integer> acceptanceIndexMapping;
 
-    AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations) {
+    AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
         super(valuationSetFactory);
         automata = new HashMap<>();
         this.optimisations = optimisations;
@@ -95,7 +96,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         }
 
         if (keys.isEmpty()) {
-            keys = Collections.singleton(new GOperator(BooleanConstant.TRUE));
+            throw new IllegalArgumentException();
         }
 
         Map<GOperator, GMonitor> automatonMap = getAutomatonMap(keys);
@@ -172,21 +173,21 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         return automatonMap;
     }
 
-    @Nonnull
     static EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys, EquivalenceClassFactory factory) {
-        Visitor<Formula> evaluateVisitor = new EvaluateVisitor(factory, keys);
-        formula = formula.accept(evaluateVisitor);
-        formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL);
-        return factory.createEquivalenceClass(formula);
+        EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
+        Formula evaluated = Simplifier.simplify(formula.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
+        EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
+        evaluateVisitor.free();
+        return goal;
     }
 
     private static final BitSet REJECT = new BitSet();
 
     public class State extends ImmutableObject implements AutomatonState<State> {
 
-        public final ImmutableMap<GOperator, GMonitor.State> monitors;
+        private final ImmutableMap<GOperator, GMonitor.State> monitors;
 
-        public State(ImmutableMap<GOperator, GMonitor.State> monitors) {
+        State(ImmutableMap<GOperator, GMonitor.State> monitors) {
             this.monitors = monitors;
         }
 
@@ -194,7 +195,6 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
         public String toString() {
             return monitors.toString();
         }
-
 
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
@@ -208,11 +208,11 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             BitSet bs = new BitSet();
             bs.set(monitors.size(), acceptance.getSize());
 
-            for (Map.Entry<GOperator, GMonitor.State> gOperatorStateEntry : monitors.entrySet()) {
-                GOperator key = gOperatorStateEntry.getKey();
-                GMonitor.State secondary = gOperatorStateEntry.getValue();
+            for (Map.Entry<GOperator, GMonitor.State> entry : monitors.entrySet()) {
+                GOperator key = entry.getKey();
+                GMonitor.State secondary = entry.getValue();
 
-                Automaton<GMonitor.State, ?> monitor = automata.get(monitors.keySet()).get(key);
+                Automaton<GMonitor.State, BuchiAcceptance> monitor = automata.get(monitors.keySet()).get(key);
                 Edge<GMonitor.State> monitorSuccessor = monitor.getSuccessor(secondary, valuation);
 
                 if (monitorSuccessor == null) {
@@ -228,6 +228,10 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Gene
             }
 
             return new Edge<>(new State(builder.build()), bs);
+        }
+
+        public Collection<GMonitor.State> getMonitors() {
+            return monitors.values();
         }
 
         @Nonnull

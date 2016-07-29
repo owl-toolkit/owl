@@ -1,4 +1,4 @@
-package translations.ldba2parity;
+package translations.ltl2parity;
 
 import ltl.*;
 import ltl.visitors.Visitor;

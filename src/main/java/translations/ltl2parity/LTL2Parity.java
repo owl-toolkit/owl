@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package translations.ldba2parity;
+package translations.ltl2parity;
 
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
@@ -26,7 +26,6 @@ import translations.Optimisation;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.LTL2LDBA;
-import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.ldba.LimitDeterministicAutomaton;
 
@@ -34,36 +33,37 @@ import java.io.StringReader;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public class LDBA2Parity<I extends AutomatonState<I>, A extends AutomatonState<A>> implements Function<LimitDeterministicAutomaton<I, A, ? extends GeneralisedBuchiAcceptance, ?, ?>, Automaton<?, ?>> {
+public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
 
-    /* Consume Input -> RUST? */
     @Override
-    public Automaton<?, ?> apply(LimitDeterministicAutomaton<I, A, ? extends GeneralisedBuchiAcceptance, ?, ?> ldba) {
-        if (ldba.isDeterministic()) {
-            return ldba.getAcceptingComponent();
-        }
-
-        ParityAutomaton parity = new ParityAutomaton((LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent>) ldba, ldba.getAcceptingComponent().getFactory());
-        parity.generate();
-        return parity;
-    }
-
-    public static void main(String... args) throws ltl.parser.ParseException, HOAConsumerException {
-        if (args.length == 0) {
-            args = new String[]{"G F a"};
-        }
-
+    public Automaton<?, ?> apply(Formula formula) {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
         optimisations.remove(Optimisation.FORCE_JUMPS);
 
         LTL2LDBA translation = new LTL2LDBA(optimisations);
-        LDBA2Parity<InitialComponent.State, AcceptingComponent.State> translation2 = new LDBA2Parity();
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba = translation.apply(formula);
+
+        if (ldba.isDeterministic()) {
+            return ldba.getAcceptingComponent();
+        }
+
+        ParityAutomaton parity = new ParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory());
+        parity.generate();
+        return parity;
+    }
+
+    public static void main(String... args) throws ltl.parser.ParseException {
+        if (args.length == 0) {
+            args = new String[]{"G F a"};
+        }
+
+        LTL2Parity translation = new LTL2Parity();
 
         Parser parser = new Parser(new StringReader(args[0]));
         Formula formula = parser.formula();
 
-        Automaton<?, ?> result = translation.andThen(translation2).apply(formula);
+        Automaton<?, ?> result = translation.apply(formula);
         result.toHOA(new HOAConsumerPrint(System.out), parser.map);
     }
 }

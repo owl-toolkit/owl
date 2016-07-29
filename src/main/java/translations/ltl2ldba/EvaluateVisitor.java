@@ -23,86 +23,86 @@ import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Visitor;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
 class EvaluateVisitor implements Visitor<Formula> {
 
-    private final Set<GOperator> gMonitors;
+    @Nullable
+    private final EquivalenceClass environment;
+    @Nullable
+    private final EquivalenceClassFactory factory;
     private final Set<Formula> universalTruths;
 
-    private final EquivalenceClassFactory factory;
-    private final EquivalenceClass environment;
-
-    EvaluateVisitor(Set<GOperator> environment) {
-        this(null, environment);
+    EvaluateVisitor(Set<GOperator> gMonitors) {
+        this(gMonitors, null);
     }
 
-    EvaluateVisitor(EquivalenceClassFactory factory, Set<GOperator> gMonitors) {
-        this.gMonitors = gMonitors;
+    EvaluateVisitor(Set<GOperator> gMonitors, @Nullable EquivalenceClassFactory equivalenceClassFactory) {
         universalTruths = new HashSet<>(gMonitors.size());
         gMonitors.forEach(gOperator -> universalTruths.add(gOperator.operand));
 
-        if (factory != null) {
-            this.factory = factory;
-
-            EquivalenceClass environment = factory.getTrue();
-
-            for (Formula formula : Sets.union(gMonitors, universalTruths)) {
-                EquivalenceClass formulaClazz = factory.createEquivalenceClass(formula);
-                environment = environment.andWith(formulaClazz);
-                formulaClazz.free();
-            }
-
-            this.environment = environment;
+        if (equivalenceClassFactory != null) {
+            factory = equivalenceClassFactory;
+            environment = equivalenceClassFactory.createEquivalenceClass(Sets.union(gMonitors, universalTruths));
         } else {
-            this.factory = null;
-            this.environment = null;
+            factory = null;
+            environment = null;
+        }
+    }
+
+    void free() {
+        if (environment != null) {
+            environment.free();
         }
     }
 
     @Override
-    public Formula visit(BooleanConstant c) {
-        return c;
+    public Formula visit(BooleanConstant booleanConstant) {
+        return booleanConstant;
     }
 
     @Override
-    public Formula defaultAction(Formula f) {
-        if (universalTruths.contains(f)) {
+    public Formula defaultAction(Formula formula) {
+        if (universalTruths.contains(formula)) {
             return BooleanConstant.TRUE;
         }
 
-        if (factory != null) {
-            EquivalenceClass clazz = factory.createEquivalenceClass(f);
+        if (factory != null && environment != null) {
+            EquivalenceClass clazz = factory.createEquivalenceClass(formula);
 
             if (environment.implies(clazz)) {
+                clazz.free();
                 return BooleanConstant.TRUE;
             }
+
+            clazz.free();
         }
 
-        return f;
+        return formula;
     }
 
     @Override
-    public Formula visit(Conjunction c) {
-        Formula defaultAction = defaultAction(c);
+    public Formula visit(Conjunction conjunction) {
+        Formula defaultAction = defaultAction(conjunction);
 
         if (defaultAction instanceof BooleanConstant) {
             return defaultAction;
         }
 
-        return Conjunction.create(c.children.stream().map(e -> e.accept(this)));
+        return Conjunction.create(conjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
-    public Formula visit(Disjunction d) {
-        Formula defaultAction = defaultAction(d);
+    public Formula visit(Disjunction disjunction) {
+        Formula defaultAction = defaultAction(disjunction);
 
         if (defaultAction instanceof BooleanConstant) {
             return defaultAction;
         }
 
-        return Disjunction.create(d.children.stream().map(e -> e.accept(this)));
+        return Disjunction.create(disjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
@@ -118,7 +118,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
     @Override
     public Formula visit(GOperator gOperator) {
-        return BooleanConstant.get(gMonitors.contains(gOperator));
+        return BooleanConstant.get(universalTruths.contains(gOperator.operand));
     }
 
     @Override

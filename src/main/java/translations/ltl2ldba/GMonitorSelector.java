@@ -17,9 +17,7 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
-import java.util.stream.Stream;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
