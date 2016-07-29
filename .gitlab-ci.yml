@@ -3,4 +3,9 @@ before_script:
 
 build:
   script:
-    - ./gradlew build
+    - ./gradlew build  
+  artifacts:
+    paths:
+    - build/reports/
+    when: on_failure
+    expire_in: 1 week
