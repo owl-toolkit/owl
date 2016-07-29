@@ -41,6 +41,13 @@ dependencies {
     findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.1'
 }
 
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
+
 task createAllStartScripts() << {
      // just a placeholder
 }
