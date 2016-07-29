@@ -24,6 +24,7 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import ltl.Formula;
 import ltl.parser.Parser;
+import omega_automaton.Automaton;
 import org.junit.Before;
 import org.junit.Test;
 import translations.Optimisation;
@@ -46,54 +47,56 @@ public class LDBA2ParityTest {
         ltl2parity = new LTL2Parity();
     }
 
+    private void assertSizes(String ltl, int states, int acceptanceSets) {
+        Automaton<?, ?> automaton = ltl2parity.apply(Parser.formula(ltl));
+        automaton.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
+        assertEquals("States for " + ltl, states, automaton.size());
+        assertEquals("Acceptance Sets for " + ltl, acceptanceSets, automaton.getAcceptance().getAcceptanceSets());
+    }
+
+    @Test
+    public void testSizeReach() {
+        assertSizes("F (a | b)", 2, 2);
+    }
+
+    @Test
+    public void testSizeDisjunction() {
+        assertSizes("(F G a) | (F G b)", 2, 2);
+    }
+
+    @Test
+    public void testSizeConjunction() {
+        assertSizes("(F G a) & (F G b)", 1, 2);
+    }
+
+    @Test
+    public void testSizeNextVolatile() {
+        assertSizes("F G (a | X b)", 3, 3);
+        assertSizes("F G (a & X b)", 2, 2);
+        assertSizes("F G (a | X b | X X c)", 8, 3);
+        assertSizes("F G (a & X b & X X c)", 3, 2);
+    }
+
+    // @Test
+    public void testSizeFGFragment() {
+        assertSizes("(G F a) -> (G F b)", 1, 4);
+        assertSizes("(G F a) -> ((G F b) & (G F c))", 3, 4);
+        assertSizes("((G F a) & (G F b)) -> (G F c)", 2, 4);
+        assertSizes("((G F a) & (G F b)) -> ((G F c) & (G F d))", 6, 4);
+
+        assertSizes("(G F a) -> (G a) & (G F b)", 3, 3);
+        assertSizes("!((G F a) -> (G a) & (G F b))", 2, 4);
+    }
+
     // @Test
     public void testLTL2LDBA() {
-        Formula ltl = Parser.formula("(F G a) | (F G b)");
-        ParityAutomaton parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(2, parity.size());
-        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
-
-        ltl = Parser.formula("F (a | b)");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(2, parity.size());
-        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
-
-        ltl = Parser.formula("(F G a) & (F G b)");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(1, parity.size());
-        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
-
-        ltl = Parser.formula("F G (a | X b)");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(3, parity.size());
-        assertEquals(3, parity.getAcceptance().getAcceptanceSets());
-
-        ltl = Parser.formula("F G (a | X b | X X c)");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(8, parity.size());
-        assertEquals(3, parity.getAcceptance().getAcceptanceSets());
+        Formula ltl;
+        ParityAutomaton parity;
 
         ltl = Parser.formula("(F G a) | ((F G b) & (G X (X c U F d)))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
         assertEquals(4, parity.size());
-        assertEquals(4, parity.getAcceptance().getAcceptanceSets());
-
-        ltl = Parser.formula("((G F a)) -> ((G a) & (G F b))");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(3, parity.size());
-        assertEquals(3, parity.getAcceptance().getAcceptanceSets());
-
-        ltl = Parser.formula("!(((G F a)) -> ((G a) & (G F b)))");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(2, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("(G (F (a))) U b");
