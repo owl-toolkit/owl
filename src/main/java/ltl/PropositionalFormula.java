@@ -28,11 +28,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
     public final Set<Formula> children;
 
-    protected PropositionalFormula(ImmutableSet<Formula> children) {
-        this.children = children;
-    }
-
-    protected PropositionalFormula(Collection<? extends Formula> children) {
+    protected PropositionalFormula(Iterable<? extends Formula> children) {
         this.children = ImmutableSet.copyOf(children);
     }
 

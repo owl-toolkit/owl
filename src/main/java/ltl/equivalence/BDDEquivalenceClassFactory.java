@@ -238,7 +238,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass orWith(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                EquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                EquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClass) eq).bdd));
                 this.free();
                 return or;
             }
@@ -259,11 +259,11 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public List<Formula> getSupport() {
             List<Formula> support = new ArrayList<>();
-            int support_bdd = factory.support(bdd);
+            int supportBdd = factory.support(bdd);
 
-            while (support_bdd >= 2) {
-                support.add(reverseMapping.get(factory.getVar(support_bdd)));
-                support_bdd = factory.getHigh(support_bdd);
+            while (supportBdd >= 2) {
+                support.add(reverseMapping.get(factory.getVar(supportBdd)));
+                supportBdd = factory.getHigh(supportBdd);
             }
 
             return support;

@@ -27,9 +27,7 @@ import java.util.stream.Stream;
 
 public final class Disjunction extends PropositionalFormula {
 
-    public Disjunction(ImmutableSet<Formula> conjuncts) { super(conjuncts);}
-
-    public Disjunction(Collection<? extends Formula> disjuncts) {
+    public Disjunction(Iterable<? extends Formula> disjuncts) {
         super(disjuncts);
     }
 

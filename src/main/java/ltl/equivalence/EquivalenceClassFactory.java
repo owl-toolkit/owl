@@ -17,8 +17,8 @@
 
 package ltl.equivalence;
 
-
 import ltl.BooleanConstant;
+import ltl.Conjunction;
 import ltl.Formula;
 
 import java.util.Optional;
@@ -29,6 +29,10 @@ public interface EquivalenceClassFactory {
     EquivalenceClass createEquivalenceClass(Formula formula, Function<Formula, Optional<Boolean>> environment);
 
     EquivalenceClass createEquivalenceClass(Formula formula);
+
+    default EquivalenceClass createEquivalenceClass(Iterable<Formula> formulas) {
+        return createEquivalenceClass(new Conjunction(formulas));
+    }
 
     default EquivalenceClass getTrue() {
         return createEquivalenceClass(BooleanConstant.TRUE);
