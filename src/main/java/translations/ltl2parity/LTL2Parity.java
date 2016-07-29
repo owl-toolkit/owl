@@ -22,6 +22,7 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Formula;
 import ltl.parser.Parser;
 import omega_automaton.Automaton;
+import omega_automaton.output.RemoveComments;
 import translations.Optimisation;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
@@ -64,6 +65,6 @@ public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
         Formula formula = parser.formula();
 
         Automaton<?, ?> result = translation.apply(formula);
-        result.toHOA(new HOAConsumerPrint(System.out), parser.map);
+        result.toHOA(new RemoveComments(new HOAConsumerPrint(System.out)), parser.map);
     }
 }
