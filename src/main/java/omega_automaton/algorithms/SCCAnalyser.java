@@ -134,7 +134,7 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         return result;
     }
 
-    private static <S extends AutomatonState<S>> TranSet<S> sccToTran(Automaton<S, ?> aut, Set<S> scc, TranSet<S> forbiddenEdges) {
+    public static <S extends AutomatonState<S>> TranSet<S> sccToTran(Automaton<S, ?> aut, Set<S> scc, TranSet<S> forbiddenEdges) {
         TranSet<S> result = new TranSet<>(aut.getFactory());
 
         scc.forEach(s -> aut.getSuccessors(s).forEach((edge, valuation) -> {
