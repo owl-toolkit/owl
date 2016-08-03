@@ -73,7 +73,6 @@ public class HOAConsumerExtended {
                 hoa.setAcceptanceCondition(acceptance1.getAcceptanceSets(), acceptance1.getBooleanExpression());
             }
 
-
             hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(i -> {
                 if (aliases != null) {
                     return aliases.inverse().get(i);
@@ -121,7 +120,9 @@ public class HOAConsumerExtended {
 
     public void done() {
         try {
-            hoa.notifyEnd();
+            if (!stateNumbers.isEmpty()) {
+                hoa.notifyEnd();
+            }
         } catch (HOAConsumerException ex) {
             logger.warning(ex.toString());
         }
