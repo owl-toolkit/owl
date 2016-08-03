@@ -19,7 +19,7 @@ apply plugin: 'java'
 apply plugin: 'findbugs'
 
 project.group = 'de.tum.in'
-project.version = '0.0.13'
+project.version = '0.0.14'
 
 repositories {
     maven { url 'https://www7.in.tum.de/~sickert/maven/' }
