@@ -18,6 +18,13 @@ ltlcross-ltl2ldba:
     - tar xvf build/distributions/translations-0.0.4.tar
     - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldba %f >%O'
 
+ltlcross-ltl2ldgba:
+  stage: test
+  script:
+    - ./gradlew distTar
+    - tar xvf build/distributions/translations-0.0.4.tar
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldgba %f >%O'
+
 ltlcross-ltl2parity:
   stage: test
   script:
