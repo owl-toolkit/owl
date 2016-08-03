@@ -161,12 +161,17 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
             return new Edge<>(new State(obligations, nextXFragment, currentBuilder.build(), nextBuilder.build()), bs);
         }
 
+        private BitSet sensitiveAlphabet;
+
         @Nonnull
         public BitSet getSensitiveAlphabet() {
-            BitSet sensitiveLetters = GeneralisedAcceptingComponent.this.getSensitiveAlphabet(xFragment);
-            current.forEach(clazz -> sensitiveLetters.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz)));
-            next.forEach(clazz -> sensitiveLetters.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz)));
-            return sensitiveLetters;
+            if (sensitiveAlphabet == null) {
+                sensitiveAlphabet = GeneralisedAcceptingComponent.this.getSensitiveAlphabet(xFragment);
+                current.forEach(clazz -> sensitiveAlphabet.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz)));
+                next.forEach(clazz -> sensitiveAlphabet.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz)));
+            }
+
+            return (BitSet) sensitiveAlphabet.clone();
         }
 
         @Override

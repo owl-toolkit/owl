@@ -89,13 +89,18 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             this.next = next;
         }
 
+        private BitSet sensitiveAlphabet;
+
         @Nonnull
         @Override
         public BitSet getSensitiveAlphabet() {
-            BitSet sensitiveLetters = AcceptingComponent.this.getSensitiveAlphabet(current);
-            sensitiveLetters.or(AcceptingComponent.this.getSensitiveAlphabet(xFragment));
-            next.forEach(clazz -> sensitiveLetters.or(AcceptingComponent.this.getSensitiveAlphabet(clazz)));
-            return sensitiveLetters;
+            if (sensitiveAlphabet == null) {
+                sensitiveAlphabet = AcceptingComponent.this.getSensitiveAlphabet(current);
+                sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(xFragment));
+                next.forEach(clazz -> sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(clazz)));
+            }
+
+            return (BitSet) sensitiveAlphabet.clone();
         }
 
         @Override
