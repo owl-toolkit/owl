@@ -35,8 +35,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     final List<Formula> reverseMapping;
     final BDDVisitor visitor;
 
-    final Map<EquivalenceClass, EquivalenceClass> unfoldCache;
-    final Map<EquivalenceClass, Map<BitSet, EquivalenceClass>> temporalStepCache;
+    final Map<EquivalenceClass, BDDEquivalenceClass> unfoldCache;
+    final Map<EquivalenceClass, Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
 
     public BDDEquivalenceClassFactory(Formula formula) {
         mapping = PropositionVisitor.extractPropositions(formula);
@@ -139,13 +139,13 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
     }
 
-    public class BDDEquivalenceClass implements EquivalenceClass {
+    private class BDDEquivalenceClass implements EquivalenceClass {
 
         private static final int INVALID_BDD = -1;
         private int bdd;
         private Formula representative;
 
-        BDDEquivalenceClass(Formula representative, int bdd) {
+        private BDDEquivalenceClass(Formula representative, int bdd) {
             this.representative = representative;
             this.bdd = bdd;
         }
@@ -172,14 +172,15 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public EquivalenceClass unfold() {
-            EquivalenceClass result = unfoldCache.get(this);
+            BDDEquivalenceClass result = unfoldCache.get(this);
 
             if (result == null) {
                 result = createEquivalenceClass(representative.unfold());
                 unfoldCache.put(this, result);
             }
 
-            return result;
+            factory.ref(result.bdd);
+            return new BDDEquivalenceClass(result.representative, result.bdd);
         }
 
         @Override
@@ -189,14 +190,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public EquivalenceClass temporalStep(BitSet valuation) {
-            Map<BitSet, EquivalenceClass> cache = temporalStepCache.get(this);
+            Map<BitSet, BDDEquivalenceClass> cache = temporalStepCache.get(this);
 
             if (cache == null) {
                 cache = new HashMap<>();
                 temporalStepCache.put(this, cache);
             }
 
-            EquivalenceClass result = cache.get(valuation);
+            BDDEquivalenceClass result = cache.get(valuation);
 
             if (result == null) {
                 result = createEquivalenceClass(representative.temporalStep(valuation));
@@ -209,7 +210,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass and(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                return new BDDEquivalenceClass(Conjunction.create(representative, eq.getRepresentative()), factory.and(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
+                assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
+                return new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.and(bdd, that.bdd));
             }
 
             throw new UnsupportedOperationException();
@@ -218,8 +221,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass andWith(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                EquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, eq.getRepresentative()), factory.and(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
-                this.free();
+                BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
+                assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
+                BDDEquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.andTo(bdd, that.bdd));
+
+                if (bdd > BDD.ONE) {
+                    bdd = INVALID_BDD;
+                }
+
                 return and;
             }
 
@@ -229,7 +238,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass or(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                return new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClassFactory.BDDEquivalenceClass) eq).bdd));
+                BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
+                assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
+                return new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.or(bdd, that.bdd));
             }
 
             throw new UnsupportedOperationException();
@@ -238,8 +249,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public EquivalenceClass orWith(EquivalenceClass eq) {
             if (eq instanceof BDDEquivalenceClass) {
-                EquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, eq.getRepresentative()), factory.or(bdd, ((BDDEquivalenceClass) eq).bdd));
-                this.free();
+                BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
+                assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
+                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.orTo(bdd, that.bdd));
+
+                if (bdd > BDD.ONE) {
+                    bdd = INVALID_BDD;
+                }
+
                 return or;
             }
 
@@ -270,6 +287,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         protected void finalize() throws Throwable {
+            super.finalize();
+
             if (BDD.ONE < bdd) {
                 // System.out.println("Memory Leak. Call free() on BDDEquivClass.");
                 free();
@@ -303,6 +322,11 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             }
 
             return bdd;
+        }
+
+        @Override
+        public String toString() {
+            return "BDD[R: " + representative + ", ID: " + bdd + ']';
         }
     }
 }
