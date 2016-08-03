@@ -19,7 +19,7 @@ apply plugin: 'java'
 apply plugin: 'findbugs'
 
 project.group = 'de.tum.in'
-project.version = '0.0.13'
+project.version = '0.0.14'
 
 repositories {
     maven { url 'https://www7.in.tum.de/~sickert/maven/' }
@@ -29,7 +29,7 @@ repositories {
 dependencies {
 	compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'com.google.guava:guava:19.0'
-    compile 'jdd:jdd:108'
+    compile 'jdd:jdd:108.1'
     compile files('lib/jhoafparser-1.1.1.jar')
     testCompile 'junit:junit:4+'
 
