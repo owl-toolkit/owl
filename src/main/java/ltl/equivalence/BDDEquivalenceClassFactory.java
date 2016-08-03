@@ -277,12 +277,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         public List<Formula> getSupport() {
             List<Formula> support = new ArrayList<>();
             int supportBdd = factory.support(bdd);
+            int bdd = supportBdd;
 
-            while (supportBdd >= 2) {
-                support.add(reverseMapping.get(factory.getVar(supportBdd)));
-                supportBdd = factory.getHigh(supportBdd);
+            while (bdd >= 2) {
+                support.add(reverseMapping.get(factory.getVar(bdd)));
+                bdd = factory.getHigh(bdd);
             }
 
+            factory.deref(supportBdd);
             return support;
         }
 

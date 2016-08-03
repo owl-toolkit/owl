@@ -19,7 +19,7 @@ apply plugin: 'java'
 apply plugin: 'findbugs'
 
 project.group = 'de.tum.in'
-project.version = '0.0.14'
+project.version = '0.0.15'
 
 repositories {
     maven { url 'https://www7.in.tum.de/~sickert/maven/' }
@@ -31,7 +31,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:annotations:3.0.1'
     compileOnly 'org.immutables:value:2.2.5'
     compile 'com.google.guava:guava:19.0'
-    compile 'jdd:jdd:108'
+    compile 'jdd:jdd:108.1'
     testCompile 'junit:junit:4+'
 }
 
