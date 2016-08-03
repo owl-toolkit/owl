@@ -46,8 +46,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     }
 
     StoredBuchiAutomaton(ValuationSetFactory factory) {
-        super(factory);
-        acceptance = new BuchiAcceptance();
+        super(new BuchiAcceptance(), factory);
     }
 
     private State addState() {

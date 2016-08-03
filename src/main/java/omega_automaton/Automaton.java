@@ -42,16 +42,21 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
     protected final ValuationSetFactory valuationSetFactory;
 
-    protected Automaton(ValuationSetFactory factory) {
+    protected Automaton(Acc acceptance, ValuationSetFactory factory) {
         transitions = new HashMap<>();
         valuationSetFactory = factory;
+        this.acceptance = acceptance;
     }
 
     public void generate() {
         generate(getInitialState());
     }
 
-    public void generate(S initialState) {
+    public void generate(@Nullable S initialState) {
+        if (initialState == null) {
+            return;
+        }
+
         // Return if already generated
         if (transitions.containsKey(initialState)) {
             return;
@@ -210,8 +215,9 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return acceptance;
     }
 
+    @Nullable
     protected S generateInitialState() {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     /**
