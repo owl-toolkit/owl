@@ -24,11 +24,13 @@ ltlcross-ltl2ldgba:
   script:
     - ./gradlew distTar
     - tar xvf build/distributions/translations-0.0.4.tar
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldgba %f >%O'
+    - randltl -n 100 a b c d e --tree-size=10..40 | ltlfilt --nnf -o formulas/rand.ltl
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} translations-0.0.4/bin/ltl2ldgba %f >%O'
 
 ltlcross-ltl2parity:
   stage: test
   script:
     - ./gradlew distTar
     - tar xvf build/distributions/translations-0.0.4.tar
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} translations-0.0.4/bin/ltl2parity %f >%O'
+    - randltl -n 100 a b c d e --tree-size=10..40 | ltlfilt --nnf -o formulas/rand.ltl
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} translations-0.0.4/bin/ltl2parity %f >%O'
