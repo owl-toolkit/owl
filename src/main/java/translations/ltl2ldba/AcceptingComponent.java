@@ -117,9 +117,6 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 return null;
             }
 
-            Builder<EquivalenceClass> nextBuilder = ImmutableList.builder();
-            final int width = obligations.initialStates.size();
-
             EquivalenceClass successor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
 
             if (successor == null) {
@@ -129,19 +126,21 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             boolean obtainNewGoal = false;
             int j = index;
 
+            BitSet bs = REJECT;
+
+            final int width = obligations.initialStates.size();
+
             if (successor.isTrue()) {
                 j++;
                 obtainNewGoal = true;
 
-
+                if (j >= width) {
+                    bs = ACCEPT;
+                    j = 0;
+                }
             }
 
-            // Accept if all components were able to satisfy the goal.
-            BitSet bs = j < width ? REJECT : ACCEPT;
-
-            if (j >= width) {
-                j = 0;
-            }
+            Builder<EquivalenceClass> nextBuilder = ImmutableList.builder();
 
             for (int i = 0; i < width; i++) {
                 EquivalenceClass nextClass = next.get(i);
@@ -200,6 +199,18 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         public EquivalenceClass getLabel() {
             return Stream.concat(next.stream(), Stream.concat(obligations.initialStates.stream(), Stream.of(current, xFragment))).reduce(equivalenceClassFactory.getTrue(), EquivalenceClass::andWith);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("State{");
+            sb.append("obligations=").append(obligations);
+            sb.append(", xFragment=").append(xFragment);
+            sb.append(", index=").append(index);
+            sb.append(", current=").append(current);
+            sb.append(", next=").append(next);
+            sb.append('}');
+            return sb.toString();
         }
     }
 }
