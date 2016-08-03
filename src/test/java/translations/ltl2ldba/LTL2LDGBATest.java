@@ -32,12 +32,12 @@ import java.util.EnumSet;
 
 import static org.junit.Assert.assertEquals;
 
-public class LTL2LDBATest {
+public class LTL2LDGBATest {
 
     static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, @Nullable String expectedOutput) {
         BiMap<String, Integer> mapping = HashBiMap.create();
-        LTL2LDBA translation = new LTL2LDBA(opts);
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
+        LTL2LDGBA translation = new LTL2LDGBA(opts);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
 
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());
@@ -51,7 +51,6 @@ public class LTL2LDBATest {
 
     static void testOutput(String ltl, int size, String expectedOutput) {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-        opts.remove(Optimisation.BREAKPOINT_FUSION);
         testOutput(ltl, opts, size, expectedOutput);
     }
 
@@ -59,9 +58,8 @@ public class LTL2LDBATest {
         testOutput(ltl, opts, size, null);
     }
 
-    static void testOutput(String ltl, int size) throws HOAConsumerException, IOException {
+    static void testOutput(String ltl, int size) {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-        opts.remove(Optimisation.BREAKPOINT_FUSION);
         testOutput(ltl, opts, size, null);
     }
 
@@ -75,7 +73,7 @@ public class LTL2LDBATest {
     @Test
     public void testToHOA2() throws Exception {
         String ltl = "(G F a) | (G ((b | X ! a) & ((! b | X a))))";
-        testOutput(ltl, 9);
+        testOutput(ltl, 6); // was 9
     }
 
     @Test
@@ -135,7 +133,7 @@ public class LTL2LDBATest {
     @Test
     public void testToHOA73() throws Exception {
         String ltl = "G ((X X (a)) | (X b)) | G c";
-        testOutput(ltl, 7);
+        testOutput(ltl, 6);
     }
 
     @Test
@@ -170,22 +168,19 @@ public class LTL2LDBATest {
 
     private static final String TRIVIAL_FALSE = "HOA: v1\n" +
             "tool: \"Owl\" \"* *\"\n" +
-            "States: 1\n" +
-            "Start: 0\n" +
-            "acc-name: Buchi\n" +
-            "Acceptance: 1 Inf(0)\n" +
+            "States: 0\n" +
+            "acc-name: none\n" +
+            "Acceptance: 0 f\n" +
             "AP: 0\n" +
             "--BODY--\n" +
-            "State: 0\n" +
-            "[t] 0 {}\n" +
             "--END--\n";
 
     @Test
     public void testTrivial() throws Exception {
         testOutput("true", 1, TRIVIAL_TRUE);
-        testOutput("false", 1, TRIVIAL_FALSE);
+        testOutput("false", 0, TRIVIAL_FALSE);
         testOutput("a | !a", 1);
-        testOutput("a & !a", 1);
+        testOutput("a & !a", 0);
     }
 
     // TODO: Make a monitor test from that.
@@ -224,7 +219,6 @@ public class LTL2LDBATest {
         String ltl = "((G a) U b)";
         ltl = "((G a & F b) | b)";
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-        opts.remove(Optimisation.BREAKPOINT_FUSION);
         testOutput(ltl, opts, 4);
     }
 
@@ -245,7 +239,6 @@ public class LTL2LDBATest {
         String ltl = "G((p) U (X(G(p))))";
 
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-        opts.remove(Optimisation.BREAKPOINT_FUSION);
         opts.remove(Optimisation.MINIMAL_GSETS);
 
         testOutput(ltl, 2);
@@ -259,7 +252,7 @@ public class LTL2LDBATest {
         // Using the breakpoint fusion - it should be higher.
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-        testOutput(ltl, opts, 4);
+        testOutput(ltl, opts, 3);
     }
 
     @Test
@@ -287,7 +280,7 @@ public class LTL2LDBATest {
     public void testEx() throws Exception {
         String ltl2 = "X G (a | F b)";
         testOutput(ltl2, 3);
-        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 6);
+        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 7);
     }
 
     @Test
@@ -340,7 +333,6 @@ public class LTL2LDBATest {
         ltl = "((G F p0)|(F G p1)) & ((G F (! p1))|(F G p2))";
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-        opts.remove(Optimisation.BREAKPOINT_FUSION);
         testOutput(ltl, opts, 5);
 
         ltl = "(G p0 |(G p1)|(G p2))&((F G p3)|(G F p4)|(G F p5))&((F G !p4)|(G F !p3)|(G F p5))";

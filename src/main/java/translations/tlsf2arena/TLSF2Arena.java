@@ -28,9 +28,9 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2parity.LTL2Parity;
 import translations.ltl2parity.ParityAutomaton;
-import translations.ltl2ldba.AcceptingComponent;
+import translations.ltl2ldba.GeneralisedAcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDBA;
+import translations.ltl2ldba.LTL2LDGBA;
 
 import java.io.*;
 import java.util.EnumSet;
@@ -48,8 +48,8 @@ public class TLSF2Arena {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(tlsf.toFormula());
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(tlsf.toFormula());
 
         Any2BitArena bit = new Any2BitArena();
         Any2BitArena.Player fstPlayer = tlsf.target().isMealy() ? Any2BitArena.Player.Environment : Any2BitArena.Player.System;

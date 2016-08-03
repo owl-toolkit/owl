@@ -37,11 +37,10 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
     protected final Table<S, ValuationSet, List<T>> valuationSetJumps;
 
     protected AbstractInitialComponent(ValuationSetFactory factory) {
-        super(factory);
+        super(new NoneAcceptance(), factory);
 
         epsilonJumps = HashMultimap.create();
         valuationSetJumps = HashBasedTable.create();
-        acceptance = new NoneAcceptance();
     }
 
     public abstract void generateJumps(S state);

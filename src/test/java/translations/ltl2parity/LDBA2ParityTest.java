@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 public class LDBA2ParityTest {
 
     private LTL2Parity ltl2parity;
-    private static final BiMap<String, Integer> MAPPING = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
+    private static final BiMap<String, Integer> MAPPING = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3, "e", 4);
 
     @Before
     public void setUp() throws Exception {
@@ -49,7 +49,7 @@ public class LDBA2ParityTest {
 
     private void assertSizes(String ltl, int states, int acceptanceSets) {
         Automaton<?, ?> automaton = ltl2parity.apply(Parser.formula(ltl));
-        automaton.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
+        automaton.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
         assertEquals("States for " + ltl, states, automaton.size());
         assertEquals("Acceptance Sets for " + ltl, acceptanceSets, automaton.getAcceptance().getAcceptanceSets());
     }
@@ -57,6 +57,7 @@ public class LDBA2ParityTest {
     @Test
     public void testSizeReach() {
         assertSizes("F (a | b)", 2, 2);
+        assertSizes("! (F a)", 1, 2);
     }
 
     @Test
@@ -71,21 +72,29 @@ public class LDBA2ParityTest {
 
     @Test
     public void testSizeNextVolatile() {
-        assertSizes("F G (a | X b)", 3, 3);
+        assertSizes("F G (a | X b)", 2, 2);
         assertSizes("F G (a & X b)", 2, 2);
-        assertSizes("F G (a | X b | X X c)", 8, 3);
+        assertSizes("F G (a | X b | X X c)", 4, 2);
         assertSizes("F G (a & X b & X X c)", 3, 2);
     }
 
     // @Test
+    // TODO: FIXME: Size depends on set ordering!
     public void testSizeFGFragment() {
         assertSizes("(G F a) -> (G F b)", 1, 4);
-        assertSizes("(G F a) -> ((G F b) & (G F c))", 3, 4);
+        assertSizes("(G F a) -> ((G F b) & (G F c))", 2, 4);
         assertSizes("((G F a) & (G F b)) -> (G F c)", 2, 4);
-        assertSizes("((G F a) & (G F b)) -> ((G F c) & (G F d))", 6, 4);
+        assertSizes("((G F a) & (G F b)) -> ((G F c) & (G F d))", 4, 4);
 
-        assertSizes("(G F a) -> (G a) & (G F b)", 3, 3);
+        assertSizes("(G F a) -> (G a) & (G F b)", 2, 3);
         assertSizes("!((G F a) -> (G a) & (G F b))", 2, 4);
+    }
+
+    @Test
+    public void testSizeRoundRobin() {
+        assertSizes("F G a | F G b | F G c", 3, 2);
+        assertSizes("F G a | F G b | F G c | F G d", 4, 2);
+        assertSizes("F G a | F G b | F G c | F G d | F G e", 5, 2);
     }
 
     // @Test
@@ -96,7 +105,7 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("(F G a) | ((F G b) & (G X (X c U F d)))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(4, parity.size());
+        assertEquals(2, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("(G (F (a))) U b");
@@ -108,26 +117,26 @@ public class LDBA2ParityTest {
         ltl = Parser.formula("!((G (F (a))) U b)");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
-        // assertEquals(4, parity.size()); // should be 3
-        // assertEquals(2, parity.getAcceptance().getAcceptanceSets());
+        assertEquals(4, parity.size()); // should be 3
+        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("((G F a)) -> ((G F a) & (G F b))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(3, parity.size());
+        assertEquals(2, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("!(((G F a)) -> ((G F a) & (G F b)))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
-        // assertEquals(4, parity.size()); // should be 4
-        // assertEquals(5, parity.getAcceptance().getAcceptanceSets());
+        assertEquals(2, parity.size());
+        assertEquals(5, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("F((a) & ((a) W ((b) & ((c) W (a)))))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
         assertEquals(5, parity.size()); // should be 4
-        assertEquals(4, parity.getAcceptance().getAcceptanceSets());
+        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
 
         ltl = Parser.formula("G (s | G (p | (s & F t)))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
@@ -135,16 +144,10 @@ public class LDBA2ParityTest {
         assertEquals(5, parity.size());
         assertEquals(4, parity.getAcceptance().getAcceptanceSets());
 
-        ltl = Parser.formula("F G a | F G b | F G c | F G d");
-        parity = (ParityAutomaton) ltl2parity.apply(ltl);
-        parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(4, parity.size()); // 4 is best
-        assertEquals(2, parity.getAcceptance().getAcceptanceSets());
-
         ltl = Parser.formula("! F((a) & ((a) W ((b) & ((c) W (a)))))");
         parity = (ParityAutomaton) ltl2parity.apply(ltl);
         parity.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), MAPPING);
-        assertEquals(4, parity.size()); // was 10
-        // assertEquals(5, parity.getAcceptance().getAcceptanceSets());
+        assertEquals(5, parity.size()); // was 4
+        assertEquals(4, parity.getAcceptance().getAcceptanceSets());
     }
 }

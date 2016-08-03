@@ -20,6 +20,7 @@ package translations.ltl2ldba;
 import ltl.Literal;
 import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.*;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
@@ -31,19 +32,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class InitialComponent extends AbstractInitialComponent<InitialComponent.State, AcceptingComponent.State> {
+public class InitialComponent<S extends AutomatonState<S>> extends AbstractInitialComponent<InitialComponent.State, S> {
 
     private static final BitSet ACCEPT;
     private static final BitSet REJECT;
 
     static {
+        // FIXME: Increase the number of set bits!
         ACCEPT = new BitSet();
         ACCEPT.set(0);
         REJECT = new BitSet();
     }
 
     @Nonnull
-    private final AcceptingComponent acceptingComponent;
+    private final AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent;
     @Nonnull
     private final EquivalenceClass initialClazz;
 
@@ -53,7 +55,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
     private final boolean delay;
     private final EquivalenceClassFactory factory;
 
-    InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
+    InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         super(valuationSetFactory);
 
         this.acceptingComponent = acceptingComponent;
@@ -77,7 +79,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
         Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula, factory);
 
         for (Set<GOperator> key : keys) {
-            AcceptingComponent.State successor = acceptingComponent.jump(state.getClazz(), key);
+            S successor = acceptingComponent.jump(state.getClazz(), key);
 
             if (successor == null) {
                 continue;
@@ -90,18 +92,24 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
     @Override
     protected State generateInitialState() {
         if (eager) {
-            return new State(initialClazz.unfold());
+            return new State(initialClazz.unfold(), true, impatient, valuationSetFactory);
         } else {
-            return new State(initialClazz);
+            return new State(initialClazz, false, impatient, valuationSetFactory);
         }
     }
 
-    public class State implements AutomatonState<State> {
+    public static class State implements AutomatonState<State> {
 
         final EquivalenceClass clazz;
+        final boolean eager;
+        final boolean impatient;
+        final ValuationSetFactory valuationSetFactory;
 
-        public State(EquivalenceClass clazz) {
+        public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory) {
             this.clazz = clazz;
+            this.eager = eager;
+            this.impatient = impatient;
+            this.valuationSetFactory = valuationSetFactory;
         }
 
         @Nullable
@@ -120,7 +128,7 @@ public class InitialComponent extends AbstractInitialComponent<InitialComponent.
                 return null;
             }
 
-            return new Edge<>(new State(successor), successor.isTrue() ? ACCEPT : REJECT);
+            return new Edge<>(new State(successor, eager, impatient, valuationSetFactory), successor.isTrue() ? ACCEPT : REJECT);
         }
 
         @Nonnull

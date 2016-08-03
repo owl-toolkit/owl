@@ -37,9 +37,8 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
     private final StoredBuchiAutomaton nba;
 
     YCAcc(StoredBuchiAutomaton nba) {
-        super(nba.getFactory());
+        super(new BuchiAcceptance(), nba.getFactory());
         this.nba = nba;
-        acceptance = new BuchiAcceptance();
     }
 
     State createState(StoredBuchiAutomaton.State target) {

@@ -22,9 +22,9 @@ import ltl.parser.Parser;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
-import translations.ltl2ldba.AcceptingComponent;
+import translations.ltl2ldba.GeneralisedAcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDBA;
+import translations.ltl2ldba.LTL2LDGBA;
 
 import java.io.File;
 import java.util.BitSet;
@@ -43,8 +43,8 @@ public class Any2BitArenaTest {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(ltl);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(ltl);
 
         Any2BitArena writer = new Any2BitArena();
         System.out.println(ldba.toString());
@@ -59,8 +59,8 @@ public class Any2BitArenaTest {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(ltl);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(ltl);
 
         Any2BitArena writer = new Any2BitArena();
         System.out.println(ldba.toString());
@@ -75,8 +75,8 @@ public class Any2BitArenaTest {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(ltl);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(ltl);
 
         Any2BitArena writer = new Any2BitArena();
         System.out.println(ldba.toString());
@@ -91,8 +91,8 @@ public class Any2BitArenaTest {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(ltl);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(ltl);
 
         Any2BitArena writer = new Any2BitArena();
         System.out.println(ldba.toString());
@@ -107,8 +107,8 @@ public class Any2BitArenaTest {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(ltl);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(ltl);
 
         Any2BitArena writer = new Any2BitArena();
         System.out.println(ldba.toString());
@@ -123,8 +123,8 @@ public class Any2BitArenaTest {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba =
-                (new LTL2LDBA(optimisations)).apply(ltl);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
+                (new LTL2LDGBA(optimisations)).apply(ltl);
 
         Any2BitArena writer = new Any2BitArena();
         System.out.println(ldba.toString());

@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
+import ltl.simplifier.Simplifier;
 import ltl.visitors.Visitor;
 
 import java.util.*;
@@ -31,6 +32,14 @@ class GMonitorSelector {
     // TODO: Only consider unfolded formulae?
     private static final GMonitorVisitor MIN_DNF = new GMonitorVisitor();
     private static final PowerSetVisitor ALL = new PowerSetVisitor();
+
+    static EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys, EquivalenceClassFactory factory) {
+        EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
+        Formula evaluated = Simplifier.simplify(formula.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
+        EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
+        evaluateVisitor.free();
+        return goal;
+    }
 
     enum Strategy {
         ALL, MIN_DNF
@@ -47,8 +56,8 @@ class GMonitorSelector {
 
                     for (Set<GOperator> smallerSet : sets.subList(0, listIterator.previousIndex())) {
                         if (largerSet.containsAll(smallerSet)) {
-                            EquivalenceClass remSmall = AcceptingComponent.getRemainingGoal(formula, smallerSet, factory);
-                            EquivalenceClass remLarge = AcceptingComponent.getRemainingGoal(formula, largerSet, factory);
+                            EquivalenceClass remSmall = getRemainingGoal(formula, smallerSet, factory);
+                            EquivalenceClass remLarge = getRemainingGoal(formula, largerSet, factory);
 
                             if (remLarge.implies(remSmall)) {
                                 listIterator.remove();

@@ -17,16 +17,14 @@
 
 package translations.ltl2parity;
 
-import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Formula;
 import ltl.parser.Parser;
 import omega_automaton.Automaton;
+import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.output.RemoveComments;
 import translations.Optimisation;
-import translations.ltl2ldba.AcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDBA;
+import translations.ltl2ldba.*;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.ldba.LimitDeterministicAutomaton;
 
@@ -43,7 +41,7 @@ public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
         optimisations.remove(Optimisation.FORCE_JUMPS);
 
         LTL2LDBA translation = new LTL2LDBA(optimisations);
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent, AcceptingComponent> ldba = translation.apply(formula);
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translation.apply(formula);
 
         if (ldba.isDeterministic()) {
             return ldba.getAcceptingComponent();

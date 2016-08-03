@@ -19,44 +19,40 @@ package translations.ltl2ldba;
 
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
+import ltl.visitors.AlphabetVisitor;
+import ltl.parser.ParseException;
+import ltl.parser.Parser;
+import translations.Optimisation;
+import omega_automaton.collections.Collections3;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.collections.valuationset.BDDValuationSetFactory;
+import omega_automaton.collections.valuationset.ValuationSetFactory;
 import ltl.Formula;
 import ltl.GOperator;
 import ltl.equivalence.BDDEquivalenceClassFactory;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
-import ltl.parser.ParseException;
-import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
-import ltl.visitors.AlphabetVisitor;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.Collections3;
-import omega_automaton.collections.valuationset.BDDValuationSetFactory;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.StringReader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
-public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent>> {
+public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>> {
 
     private final EnumSet<Optimisation> optimisations;
 
-    public LTL2LDBA() {
+    public LTL2LDGBA() {
         this(EnumSet.allOf(Optimisation.class));
     }
 
-    public LTL2LDBA(EnumSet<Optimisation> optimisations) {
+    public LTL2LDGBA(EnumSet<Optimisation> optimisations) {
         this.optimisations = optimisations;
     }
 
     @Override
-    public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> apply(Formula formula) {
+    public LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> apply(Formula formula) {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
 
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
@@ -64,7 +60,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
 
         Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula, equivalenceClassFactory);
 
-        AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
+        GeneralisedAcceptingComponent acceptingComponent = new GeneralisedAcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent initialComponent = null;
 
         EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
@@ -75,19 +71,19 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
             initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> det
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> det
                 = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
         det.generate();
         return det;
     }
 
     public static void main(String... args) throws ParseException, HOAConsumerException {
-        LTL2LDBA translation = new LTL2LDBA();
+        LTL2LDGBA translation = new LTL2LDGBA();
 
         Parser parser = new Parser(new StringReader(args[0]));
         Formula formula = parser.formula();
 
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> result = translation.apply(formula);
+        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> result = translation.apply(formula);
         result.toHOA(new HOAConsumerPrint(System.out), parser.map);
     }
 }
