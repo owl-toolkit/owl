@@ -16,6 +16,7 @@ F(a | b)
 GF(a | b)
 G(a | b | c)
 G(a | F(b | c))
+G(a | X(1 U b))
 Gb | Fa
 G(a | F(b & c))
 F(Ga | GFb)

@@ -144,7 +144,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
             for (int i = 0; i < width; i++) {
                 EquivalenceClass nextClass = next.get(i);
-                EquivalenceClass assumptions = current.and(nextXFragment);
+                EquivalenceClass assumptions = successor.and(nextXFragment);
                 EquivalenceClass nextSuccessor = AcceptingComponent.this.getSuccessor(nextClass, valuation, assumptions);
 
                 if (nextSuccessor == null) {
