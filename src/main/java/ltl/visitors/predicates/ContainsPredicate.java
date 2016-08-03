@@ -15,21 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl.visitors;
+package ltl.visitors.predicates;
 
 
 import ltl.*;
+import ltl.visitors.Visitor;
 
-public class ContainsVisitor implements Visitor<Boolean> {
+public final class ContainsPredicate implements Visitor<Boolean> {
     private final Class<? extends Formula> clazz;
 
-    public ContainsVisitor(Class<? extends Formula> cl) {
+    public ContainsPredicate(Class<? extends Formula> cl) {
         clazz = cl;
     }
 
     @Override
     public Boolean defaultAction(Formula formula) {
-        throw new AssertionError();
+         throw new AssertionError();
     }
 
     @Override

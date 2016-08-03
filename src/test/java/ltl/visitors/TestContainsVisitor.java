@@ -2,6 +2,7 @@ package ltl.visitors;
 
 import static org.junit.Assert.assertFalse;
 
+import ltl.visitors.predicates.ContainsPredicate;
 import org.junit.Test;
 
 import ltl.Formula;
@@ -17,6 +18,6 @@ public class TestContainsVisitor {
     @Test
     public void testContainsVisitorROperator() {
         Formula f = new ROperator(new Literal(0), new Literal(1));
-        assertFalse(f.accept(new ContainsVisitor(UOperator.class)));
+        assertFalse(f.accept(new ContainsPredicate(UOperator.class)));
     }
 }
