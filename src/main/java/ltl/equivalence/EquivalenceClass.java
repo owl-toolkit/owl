@@ -78,4 +78,10 @@ public interface EquivalenceClass {
     void free();
 
     List<Formula> getSupport();
+
+    /**
+     * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
+     * @return
+     */
+    BitSet getAtoms();
 }

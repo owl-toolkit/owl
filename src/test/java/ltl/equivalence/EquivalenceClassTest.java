@@ -113,4 +113,16 @@ public abstract class EquivalenceClassTest {
         EquivalenceClass clazz = factory.createEquivalenceClass(f);
         assertNotEquals(factory.getFalse(), clazz.unfold().temporalStep(new BitSet(0)));
     }
+
+    @Test
+    public void testGetAtoms() {
+        Formula f = Parser.formula("a & (a | b) & (F c)");
+        EquivalenceClassFactory factory = setUpFactory(f);
+        EquivalenceClass clazz = factory.createEquivalenceClass(f);
+        BitSet atoms = new BitSet();
+        atoms.set(0);
+        assertEquals(atoms, clazz.getAtoms());
+        atoms.set(2);
+        assertEquals(atoms, clazz.unfold().getAtoms());
+    }
 }

@@ -18,10 +18,7 @@
 package ltl.equivalence;
 
 import jdd.bdd.BDD;
-import ltl.BooleanConstant;
-import ltl.Conjunction;
-import ltl.Disjunction;
-import ltl.Formula;
+import ltl.*;
 import ltl.visitors.Visitor;
 
 import java.util.*;
@@ -286,6 +283,34 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             factory.deref(supportBdd);
             return support;
+        }
+
+        @Override
+        public BitSet getAtoms() {
+            BitSet atoms = new BitSet();
+            BitSet workSet = new BitSet();
+
+            workSet.set(bdd);
+
+            while (!workSet.isEmpty()) {
+                int current = workSet.previousSetBit(workSet.length() - 1);
+                workSet.clear(current);
+
+                if (current < 2) {
+                    continue;
+                }
+
+                Formula formula = reverseMapping.get(factory.getVar(current));
+
+                if (formula instanceof Literal) {
+                    atoms.set(((Literal) formula).getAtom());
+                }
+
+                workSet.set(factory.getHigh(current));
+                workSet.set(factory.getLow(current));
+            }
+
+            return atoms;
         }
 
         protected void finalize() throws Throwable {
