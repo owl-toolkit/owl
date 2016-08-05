@@ -83,10 +83,11 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     public BooleanExpression<AtomAcceptance> getBooleanExpression() {
         BooleanExpression<AtomAcceptance> disjunction = null;
 
-        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+        for (int offset = 0; offset < acceptanceCondition.size(); offset++) {
+            Tuple<TranSet<S>, List<TranSet<S>>> pair = acceptanceCondition.get(offset);
             BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkFin(getTranSetId(pair.left));
 
-            conjunction = addInfiniteSetsToConjunction(conjunction, pair);
+            conjunction = addInfiniteSetsToConjunction(conjunction, offset);
 
             if (disjunction == null) {
                 disjunction = conjunction;
@@ -99,7 +100,8 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     }
 
     // to be overriden by GeneralisedRabinWithMeanPayoffAcceptance
-    protected BooleanExpression<AtomAcceptance> addInfiniteSetsToConjunction(BooleanExpression<AtomAcceptance> conjunction, Tuple<TranSet<S>, List<TranSet<S>>> pair) {
+    protected BooleanExpression<AtomAcceptance> addInfiniteSetsToConjunction(BooleanExpression<AtomAcceptance> conjunction, int offset) {
+        Tuple<TranSet<S>, List<TranSet<S>>> pair = acceptanceCondition.get(offset);
         for (TranSet<S> inf : pair.right) {
             conjunction = conjunction.and(HOAConsumerExtended.mkInf(getTranSetId(inf)));
         }
@@ -144,7 +146,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     /**
      * checks if premise implies conclusion (as acceptance pair) 
      */
-    public boolean implies(Tuple<TranSet<S>, List<TranSet<S>>> premise, Tuple<TranSet<S>, List<TranSet<S>>> conclusion) {
+    public boolean implies(int premiseIndex, int conclusionIndex) {
+        Tuple<TranSet<S>, List<TranSet<S>>> premise = acceptanceCondition.get(premiseIndex);
+        Tuple<TranSet<S>, List<TranSet<S>>> conclusion = acceptanceCondition.get(conclusionIndex);
         return premise.left.containsAll(conclusion.left) && conclusion.right.stream().allMatch(inf2 -> premise.right.stream().anyMatch(inf2::containsAll));
     }
 
@@ -158,5 +162,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
 
     public void remove(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> toRemove) {
         this.acceptanceCondition.removeAll(toRemove);
+    }
+
+    public void removeIndices(Set<Integer> toRemove) {
+        toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(acceptanceCondition::remove);
     }
 }
