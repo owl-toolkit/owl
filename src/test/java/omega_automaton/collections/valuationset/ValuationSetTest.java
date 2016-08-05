@@ -94,7 +94,7 @@ public abstract class ValuationSetTest {
         }
 
         for (BitSet valuation : empty) {
-            fail("empty should be empty...");
+            fail("empty should be empty, but it contains " + valuation);
         }
     }
 }
