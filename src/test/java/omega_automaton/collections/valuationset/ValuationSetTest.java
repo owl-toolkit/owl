@@ -75,10 +75,8 @@ public abstract class ValuationSetTest {
     @Test
     public void testIterator() {
         Set<BitSet> seen = new HashSet<>();
-        int c = 0;
         for (BitSet valuation : universe) {
             assertTrue(valuation.cardinality() <= 4);
-            c++;
             assertTrue(seen.add(valuation));
         }
 
