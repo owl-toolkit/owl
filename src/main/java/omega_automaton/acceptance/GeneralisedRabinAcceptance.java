@@ -33,7 +33,7 @@ import java.util.Map;
 public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
 
     protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
-    public final List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
+    protected final List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
 
     public GeneralisedRabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
         this.acceptanceCondition = acceptanceCondition;
@@ -45,6 +45,10 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
             this.acceptanceCondition.set(j, new Tuple<>(pair.left.copy(), pair.right));
         }
         this.acceptanceNumbers = new IdentityHashMap<>();
+    }
+
+    public List<Tuple<TranSet<S>, List<TranSet<S>>>> unmodifiableCopyOfAcceptanceCondition() {
+        return Collections.unmodifiableList(acceptanceCondition);
     }
 
     @Override
