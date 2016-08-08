@@ -287,30 +287,22 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public BitSet getAtoms() {
-            BitSet atoms = new BitSet();
-            BitSet workSet = new BitSet();
+            BitSet support = new BitSet();
+            int supportBdd = factory.support(bdd);
+            int bdd = supportBdd;
 
-            workSet.set(bdd);
-
-            while (!workSet.isEmpty()) {
-                int current = workSet.previousSetBit(workSet.length() - 1);
-                workSet.clear(current);
-
-                if (current < 2) {
-                    continue;
-                }
-
-                Formula formula = reverseMapping.get(factory.getVar(current));
+            while (bdd >= 2) {
+                Formula formula = reverseMapping.get(factory.getVar(bdd));
 
                 if (formula instanceof Literal) {
-                    atoms.set(((Literal) formula).getAtom());
+                    support.set(((Literal) formula).getAtom());
                 }
 
-                workSet.set(factory.getHigh(current));
-                workSet.set(factory.getLow(current));
+                bdd = factory.getHigh(bdd);
             }
 
-            return atoms;
+            factory.deref(supportBdd);
+            return support;
         }
 
         protected void finalize() throws Throwable {
