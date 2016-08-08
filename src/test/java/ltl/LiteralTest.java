@@ -27,7 +27,7 @@ public class LiteralTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor(){
-        Literal literal = new Literal(-1);
+        new Literal(-1);
     }
 
     @Test
