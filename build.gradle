@@ -22,6 +22,8 @@ apply plugin: 'application'
 project.group = 'de.tum.in'
 project.version = '0.0.4'
 
+mainClassName = 'enteEnteEnteEnteEnteGANS'
+
 repositories {
     maven { url 'https://www7.in.tum.de/~sickert/maven/' }
     mavenCentral()
@@ -30,11 +32,11 @@ repositories {
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'com.google.guava:guava:19.0'
-    compile 'de.tum.in:ltl-lib:0.0.16'
-    compile 'de.tum.in:omega-automaton-lib:0.0.14'
+    compile 'de.tum.in:ltl-lib:0.0.17'
+    compile 'de.tum.in:omega-automaton-lib:0.0.15'
     compile 'it.unimi.dsi:fastutil:7.0.12'
     compile files('lib/jhoafparser-1.1.1.jar')
-    runtime 'jdd:jdd:108.1'
+    runtime 'jdd:jdd:108.2'
     testCompile 'junit:junit:4+'
     testCompile 'com.google.code.findbugs:jsr305:3.0.1'
 
@@ -74,8 +76,6 @@ scripts.each() {scriptName, className ->
     }
     createAllStartScripts.dependsOn(t)
 }
-
-mainClassName = 'enteEnteEnteEnteEnteGANS'
 
 distributions {
     main {
