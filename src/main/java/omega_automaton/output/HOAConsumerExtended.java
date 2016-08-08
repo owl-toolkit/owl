@@ -59,7 +59,7 @@ public class HOAConsumerExtended {
                 hoa.setNumberOfStates(size);
             }
 
-            if (initialState != null) {
+            if (initialState != null && size > 0) {
                 hoa.addStartStates(Collections.singletonList(getStateId(initialState)));
 
                 if (acceptance.getName() != null) {
@@ -80,8 +80,9 @@ public class HOAConsumerExtended {
 
                 return Integer.toString(i);}).collect(Collectors.toList()));
 
-            if (initialState == null) {
-                hoa.notifyBodyStart();
+            hoa.notifyBodyStart();
+
+            if (initialState == null || size == 0) {
                 hoa.notifyEnd();
             }
         } catch (HOAConsumerException ex) {
@@ -99,10 +100,6 @@ public class HOAConsumerExtended {
 
     public void addState(AutomatonState<?> state) {
         try {
-            if (currentState == null) {
-                hoa.notifyBodyStart();
-            }
-
             currentState = state;
             hoa.addState(getStateId(state), state.toString(), null, null);
         } catch (HOAConsumerException ex) {
