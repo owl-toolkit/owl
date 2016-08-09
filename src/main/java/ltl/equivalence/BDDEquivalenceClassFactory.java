@@ -291,6 +291,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             BitSet support = factory.supportAsBitSet(bdd);
 
             for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
+                if (i == Integer.MAX_VALUE) {
+                    break;
+                }
+
                 Formula formula = reverseMapping.get(i);
 
                 if (formula instanceof Literal) {
