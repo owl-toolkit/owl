@@ -49,7 +49,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         for (Map.Entry<Formula, Integer> entry : mapping.entrySet()) {
             vars[k] = factory.createVar();
-            factory.ref(vars[k]);
             entry.setValue(k);
             reverseMapping.add(entry.getKey());
             k++;
@@ -271,6 +270,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
+        @Deprecated
         public List<Formula> getSupport() {
             List<Formula> support = new ArrayList<>();
             int supportBdd = factory.support(bdd);
@@ -288,20 +288,15 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public BitSet getAtoms() {
             BitSet support = new BitSet();
-            int supportBdd = factory.support(bdd);
-            int bdd = supportBdd;
 
-            while (bdd >= 2) {
-                Formula formula = reverseMapping.get(factory.getVar(bdd));
+            factory.supportAsBitSet(bdd).stream().forEach((int variable) -> {
+                Formula formula = reverseMapping.get(variable);
 
                 if (formula instanceof Literal) {
                     support.set(((Literal) formula).getAtom());
                 }
+            });
 
-                bdd = factory.getHigh(bdd);
-            }
-
-            factory.deref(supportBdd);
             return support;
         }
 
@@ -322,10 +317,16 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            BDDEquivalenceClass that = (BDDEquivalenceClass) o;
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+
+            BDDEquivalenceClass that = (BDDEquivalenceClass) obj;
 
             if (bdd == INVALID_BDD || that.bdd == INVALID_BDD) {
                 throw new IllegalStateException("This EquivalenceClass is already freed.");

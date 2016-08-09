@@ -142,4 +142,15 @@ public abstract class EquivalenceClassTest {
         atoms.set(2);
         assertEquals(atoms, clazz.unfold().getAtoms());
     }
+
+    @Test
+    public void testGetAtomsEmpty() {
+        Formula f = Parser.formula("G a");
+        EquivalenceClassFactory factory = setUpFactory(f);
+        EquivalenceClass clazz = factory.createEquivalenceClass(f);
+        BitSet atoms = new BitSet();
+        assertEquals(atoms, clazz.getAtoms());
+        atoms.set(0);
+        assertEquals(atoms, clazz.unfold().getAtoms());
+    }
 }
