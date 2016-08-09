@@ -32,5 +32,5 @@ ltlcross-ltl2parity:
   script:
     - ./gradlew distTar
     - tar xvf build/distributions/translations-0.0.4.tar
-    - randltl -n 10 a b c d e f --tree-size=10..40 | ltlfilt --nnf -o formulas/rand.ltl
+    - randltl -n 4 a b c d e f --tree-size=10..40 | ltlfilt --nnf -o formulas/rand.ltl
     - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} translations-0.0.4/bin/ltl2parity %f >%O'
