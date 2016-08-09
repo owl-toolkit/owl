@@ -32,7 +32,7 @@ repositories {
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'com.google.guava:guava:19.0'
-    compile 'de.tum.in:ltl-lib:0.0.19'
+    compile 'de.tum.in:ltl-lib:0.0.20'
     compile 'de.tum.in:omega-automaton-lib:0.0.19'
     compile 'it.unimi.dsi:fastutil:7.0.12'
     compile files('lib/jhoafparser-1.1.1.jar')
