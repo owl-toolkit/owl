@@ -47,8 +47,15 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         this.acceptanceNumbers = new IdentityHashMap<>();
     }
 
+    /**
+     * Used by Prism
+     */
     public List<Tuple<TranSet<S>, List<TranSet<S>>>> unmodifiableCopyOfAcceptanceCondition() {
         return Collections.unmodifiableList(acceptanceCondition);
+    }
+
+    public void addPair(Tuple<TranSet<S>, List<TranSet<S>>> tuple) {
+        acceptanceCondition.add(tuple);
     }
 
     @Override
@@ -170,5 +177,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
 
     public void removeIndices(Set<Integer> toRemove) {
         toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(index -> acceptanceCondition.remove(index.intValue()));
+    }
+
+    public void addEach(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> temp) {
+        acceptanceCondition.addAll(temp);
     }
 }
