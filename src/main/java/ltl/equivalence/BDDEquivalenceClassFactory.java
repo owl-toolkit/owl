@@ -270,19 +270,19 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        @Deprecated
         public List<Formula> getSupport() {
-            List<Formula> support = new ArrayList<>();
-            int supportBdd = factory.support(bdd);
-            int bdd = supportBdd;
+            List<Formula> variables = new ArrayList<>();
+            BitSet support = factory.supportAsBitSet(bdd);
 
-            while (bdd >= 2) {
-                support.add(reverseMapping.get(factory.getVar(bdd)));
-                bdd = factory.getHigh(bdd);
+            for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
+                if (i == Integer.MAX_VALUE) {
+                    break;
+                }
+
+                variables.add(reverseMapping.get(i));
             }
 
-            factory.deref(supportBdd);
-            return support;
+            return variables;
         }
 
         @Override
