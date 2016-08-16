@@ -169,6 +169,6 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     }
 
     public void removeIndices(Set<Integer> toRemove) {
-        toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(acceptanceCondition::remove);
+        toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(index -> acceptanceCondition.remove(index.intValue()));
     }
 }
