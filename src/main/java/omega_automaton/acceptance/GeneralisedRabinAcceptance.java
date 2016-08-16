@@ -165,7 +165,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
 
     /**
      * This method is important if an Acceptance has something to say, which is
-     * not supported for HOA-format. To be overriden by subclasses
+     * not supported for HOA-format. Subclasses are expected to override this.
+     *
+     * @return
      */
     public Map<String, List<Object>> miscellaneousAnnotations() {
         return Collections.emptyMap();
