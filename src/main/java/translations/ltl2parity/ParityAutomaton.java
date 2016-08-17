@@ -276,7 +276,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                     }
 
                     if (successorEdge2.acceptance.get(0)) {
-                        edgeColor = Math.min(edgeColor, (2 * index) + 1);
+                        edgeColor = Math.min(edgeColor, 2 * index + 1);
                     }
                 }
 

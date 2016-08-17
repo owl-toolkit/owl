@@ -34,14 +34,18 @@ import java.util.function.Function;
 
 public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
 
-    @Override
-    public Automaton<?, ?> apply(Formula formula) {
+    private final LTL2LDBA translator;
+
+    public LTL2Parity() {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
         optimisations.remove(Optimisation.FORCE_JUMPS);
+        translator = new LTL2LDBA(optimisations);
+    }
 
-        LTL2LDBA translation = new LTL2LDBA(optimisations);
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translation.apply(formula);
+    @Override
+    public Automaton<?, ?> apply(Formula formula) {
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translator.apply(formula);
 
         if (ldba.isDeterministic()) {
             return ldba.getAcceptingComponent();

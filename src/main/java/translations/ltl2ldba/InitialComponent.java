@@ -100,10 +100,10 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
     public static class State implements AutomatonState<State> {
 
-        final EquivalenceClass clazz;
-        final boolean eager;
-        final boolean impatient;
-        final ValuationSetFactory valuationSetFactory;
+        private final EquivalenceClass clazz;
+        private final boolean eager;
+        private final boolean impatient;
+        private final ValuationSetFactory valuationSetFactory;
 
         public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory) {
             this.clazz = clazz;
@@ -124,7 +124,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
             }
 
             // Suppress edge, if successor is a non-accepting state
-            if (successor.isFalse() || (impatient && StateAnalysis.isJumpNecessary(clazz))) {
+            if (successor.isFalse() || impatient && StateAnalysis.isJumpNecessary(clazz)) {
                 return null;
             }
 
