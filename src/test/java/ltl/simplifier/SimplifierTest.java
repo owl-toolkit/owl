@@ -17,6 +17,8 @@
 
 package ltl.simplifier;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import ltl.Formula;
 import ltl.parser.Parser;
 import ltl.simplifier.Simplifier.Strategy;
@@ -26,15 +28,35 @@ import static org.junit.Assert.assertEquals;
 
 public class SimplifierTest {
 
+    private static final String[] INPUT = new String[]{
+            "F (a U b)",
+            "F G X a",
+    };
+
+    private static final String[] EXPECTED = new String[]{
+            "F b",
+            "F G a",
+    };
+
     private final Strategy strat = Simplifier.Strategy.AGGRESSIVELY;
-    
+
+    @Test
+    public void testModal() {
+        BiMap<String, Integer> aliases = HashBiMap.create();
+
+        for (int i = 0; i < INPUT.length; i++) {
+            Formula input = Parser.formula(INPUT[i], aliases);
+            Formula output = Parser.formula(EXPECTED[i], aliases);
+            assertEquals(output, Simplifier.simplify(input, Strategy.MODAL_EXT));
+        }
+    }
+
     @Test
     public void testAggressiveSimplification() {
         Formula f1 = Parser.formula("G ((r) | ((p) & (r)))");
         Formula f2 = Parser.formula("G r");
         assertEquals(Simplifier.simplify(f1, Strategy.AGGRESSIVELY), f2);
     }
-
 
     @Test
     public void testAggressiveSimplification1() {
