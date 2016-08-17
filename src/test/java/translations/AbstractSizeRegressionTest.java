@@ -99,7 +99,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
 
     @Parameterized.Parameters(name = "Group: {0}")
     public static Iterable<? extends Object> data() {
-        return EnumSet.allOf(FormulaGroup.class);
+        return EnumSet.complementOf(EnumSet.of(FormulaGroup.MIXED, FormulaGroup.FG));
     }
 
     private final Function<Formula, T> translator;
