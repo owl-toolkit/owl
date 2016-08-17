@@ -26,6 +26,7 @@ import omega_automaton.collections.TranSet;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
+import omega_automaton.output.HOAPrintable;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -33,7 +34,7 @@ import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> {
+public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
 
     @Nullable
     protected S initialState;

@@ -17,6 +17,8 @@
 
 package omega_automaton.collections;
 
+import com.google.common.collect.Iterables;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
@@ -46,12 +48,8 @@ public class Collections3 {
      * @throws NoSuchElementException The methods throws an {@code NoSuchElementException} if iterable is either null
      *                                or cannot provide an element.
      */
-    public static <E> E getElement(@Nullable Iterable<E> iterable) {
-        if (iterable == null) {
-            throw new NoSuchElementException();
-        }
-
-        return iterable.iterator().next();
+    public static <E> E getElement(@Nonnull Iterable<E> iterable) {
+        return Iterables.get(iterable, 0);
     }
 
     /**
@@ -74,8 +72,9 @@ public class Collections3 {
         return element;
     }
 
+    @Nullable
     public static List<Integer> toList(BitSet bs) {
-        if (bs == null) {
+        if (bs == null || bs.isEmpty()) {
             return null;
         }
 
