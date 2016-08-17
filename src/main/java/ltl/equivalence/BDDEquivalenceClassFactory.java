@@ -144,6 +144,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         private BDDEquivalenceClass(Formula representative, int bdd) {
             this.representative = representative;
             this.bdd = bdd;
+            factory.ref(bdd);
         }
 
         @Override
@@ -175,7 +176,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 unfoldCache.put(this, result);
             }
 
-            factory.ref(result.bdd);
             return new BDDEquivalenceClass(result.representative, result.bdd);
         }
 
@@ -219,12 +219,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                BDDEquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.andTo(bdd, that.bdd));
-
-                if (bdd > BDD.ONE) {
-                    bdd = INVALID_BDD;
-                }
-
+                BDDEquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.and(bdd, that.bdd));
+                this.free();
                 return and;
             }
 
@@ -247,12 +243,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.orTo(bdd, that.bdd));
-
-                if (bdd > BDD.ONE) {
-                    bdd = INVALID_BDD;
-                }
-
+                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.or(bdd, that.bdd));
+                this.free();
                 return or;
             }
 
