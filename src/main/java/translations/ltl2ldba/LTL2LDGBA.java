@@ -78,7 +78,7 @@ public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<
         return det;
     }
 
-    public static void main(String... args) throws ParseException, HOAConsumerException {
+    public static void main(String... args) throws ParseException {
         LTL2LDGBA translation = new LTL2LDGBA();
 
         Parser parser = new Parser(new StringReader(args[0]));

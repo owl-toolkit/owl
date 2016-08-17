@@ -26,6 +26,7 @@ import omega_automaton.collections.Collections3;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
+import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
@@ -39,7 +40,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 
-public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends OmegaAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>> {
+public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends OmegaAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>> implements HOAPrintable {
 
     @Nullable
     private final I initialComponent;
@@ -121,7 +122,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         }
     }
 
-    public void toHOA(HOAConsumer c, @Nullable BiMap<String, Integer> aliases) throws HOAConsumerException {
+    public void toHOA(HOAConsumer c, @Nullable BiMap<String, Integer> aliases) {
         HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.getAcceptance(), getInitialState(), size());
 
         if (initialComponent != null) {
@@ -138,7 +139,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
             HOAConsumer consumer = new RemoveComments(new HOAConsumerPrint(stream));
             toHOA(consumer, null);
             return stream.toString();
-        } catch (IOException | HOAConsumerException ex) {
+        } catch (IOException ex) {
             throw new IllegalStateException(ex.toString(), ex);
         }
     }
