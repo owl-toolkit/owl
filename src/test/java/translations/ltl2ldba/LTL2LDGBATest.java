@@ -63,7 +63,6 @@ public class LTL2LDGBATest {
         testOutput(ltl, opts, size, null);
     }
 
-
     @Test
     public void testToHOA() throws Exception {
         String ltl = "((F G (a U c)) & G X b) | (F G X (f U d)) & X X e";
@@ -300,11 +299,11 @@ public class LTL2LDGBATest {
                 "AP: 3 \"0\" \"1\" \"2\"\n" +
                 "--BODY--\n" +
                 "State: 1\n" +
-                "[0] 2 {}\n" +
+                "[0] 2\n" +
                 "State: 2\n" +
                 "[1] 3\n" +
                 "State: 0\n" +
-                "[t] 1 {}\n" +
+                "[t] 1\n" +
                 "State: 3\n" +
                 "[2] 3 {0}\n" +
                 "--END--\n";
