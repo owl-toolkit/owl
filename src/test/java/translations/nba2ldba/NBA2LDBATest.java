@@ -19,6 +19,7 @@ package translations.nba2ldba;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
@@ -63,7 +64,7 @@ public class NBA2LDBATest {
 
         StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
         HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);
-        nba = Collections3.getElement(builder.getAutomata());
+        nba = Iterables.getOnlyElement(builder.getAutomata());
     }
 
     @Test

@@ -18,6 +18,7 @@
 package translations.ldba;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
@@ -81,7 +82,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
             for (Set<S_I> scc : sccs) {
                 // Skip non-looping states with successors of a singleton SCC.
                 if (scc.size() == 1) {
-                    S_I state = Collections3.getElement(scc);
+                    S_I state = Iterables.getOnlyElement(scc);
 
                     if (initialComponent.isTransient(state) && initialComponent.hasSuccessors(state)) {
                         continue;

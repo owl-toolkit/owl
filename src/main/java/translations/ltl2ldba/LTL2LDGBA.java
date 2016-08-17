@@ -17,6 +17,7 @@
 
 package translations.ltl2ldba;
 
+import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.visitors.AlphabetVisitor;
@@ -66,7 +67,7 @@ public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<
         EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
         if (initialClazz.isFalse() || optimisations.contains(Optimisation.FORCE_JUMPS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
-            acceptingComponent.jumpInitial(initialClazz, Collections3.isSingleton(keys) ? Collections3.getElement(keys) : Collections.emptySet());
+            acceptingComponent.jumpInitial(initialClazz, Collections3.isSingleton(keys) ? Iterables.getOnlyElement(keys) : Collections.emptySet());
         } else {
             initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }
