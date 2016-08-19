@@ -134,7 +134,10 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         BDDValuationSet(int index) {
             this.index = index;
-            factory.ref(index);
+
+            if (index > BDD.ONE) {
+                factory.ref(index);
+            }
         }
 
         @Override
@@ -233,8 +236,10 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public void free() {
-            factory.deref(index);
-            index = INVALID_BDD;
+            if (index > BDD.ONE) {
+                factory.deref(index);
+                index = INVALID_BDD;
+            }
         }
 
         @Override
@@ -260,14 +265,6 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
             ValuationSet thisClone = this.copy();
             thisClone.retainAll(other);
             return thisClone;
-        }
-
-        @Override
-        protected void finalize() {
-            if (BDD.ONE < index) {
-                // System.out.println("Memory Leak. Call free() on BDDValuationSet.");
-                free();
-            }
         }
 
         @Override
