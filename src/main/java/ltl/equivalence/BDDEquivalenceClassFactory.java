@@ -144,7 +144,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         private BDDEquivalenceClass(Formula representative, int bdd) {
             this.representative = representative;
             this.bdd = bdd;
-            factory.ref(bdd);
+
+            if (bdd > BDD.ONE) {
+                factory.ref(bdd);
+            }
         }
 
         @Override
@@ -284,7 +287,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
                 if (i == Integer.MAX_VALUE) {
-                    break;
+                    throw new RuntimeException("Integer tooooo large.");
                 }
 
                 Formula formula = reverseMapping.get(i);
@@ -296,18 +299,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             return atoms;
         }
-
-        protected void finalize() throws Throwable {
-            super.finalize();
-
-            if (BDD.ONE < bdd) {
-                // System.out.println("Memory Leak. Call free() on BDDEquivClass.");
-                free();
-            }
-        }
-
+        
         public void free() {
-            if (BDD.ONE < bdd) {
+            if (bdd > BDD.ONE) {
                 factory.deref(bdd);
                 bdd = INVALID_BDD;
             }
