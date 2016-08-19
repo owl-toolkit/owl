@@ -138,6 +138,7 @@ public abstract class EquivalenceClassTest {
         EquivalenceClass clazz = factory.createEquivalenceClass(f);
         BitSet atoms = new BitSet();
         atoms.set(0);
+        atoms.set(1);
         assertEquals(atoms, clazz.getAtoms());
         atoms.set(2);
         assertEquals(atoms, clazz.unfold().getAtoms());

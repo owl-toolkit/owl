@@ -22,6 +22,7 @@ import ltl.*;
 public interface VoidVisitor {
 
     default void visit(BooleanConstant booleanConstant) {
+
     }
 
     default void visit(Conjunction conjunction) {

@@ -19,7 +19,9 @@ package ltl.equivalence;
 
 import jdd.bdd.BDD;
 import ltl.*;
+import ltl.visitors.Collector;
 import ltl.visitors.Visitor;
+import ltl.visitors.VoidVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -282,22 +284,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public BitSet getAtoms() {
-            BitSet atoms = new BitSet();
-            BitSet support = factory.supportAsBitSet(bdd);
-
-            for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
-                if (i == Integer.MAX_VALUE) {
-                    throw new RuntimeException("Integer tooooo large.");
-                }
-
-                Formula formula = reverseMapping.get(i);
-
-                if (formula instanceof Literal) {
-                    atoms.set(((Literal) formula).getAtom());
-                }
-            }
-
-            return atoms;
+            AtomVisitor visitor = new AtomVisitor();
+            representative.accept(visitor);
+            return visitor.atoms;
         }
         
         public void free() {
@@ -338,6 +327,26 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public String toString() {
             return "BDD[R: " + representative + ", ID: " + bdd + ']';
+        }
+    }
+
+    static class AtomVisitor implements VoidVisitor {
+
+        final BitSet atoms = new BitSet();
+
+        @Override
+        public void visit(Conjunction conjunction) {
+            conjunction.children.forEach(x -> x.accept(this));
+        }
+
+        @Override
+        public void visit(Disjunction disjunction) {
+            disjunction.children.forEach(x -> x.accept(this));
+        }
+
+        @Override
+        public void visit(Literal literal) {
+            atoms.set(literal.getAtom());
         }
     }
 }
