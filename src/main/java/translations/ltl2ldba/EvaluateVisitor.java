@@ -45,7 +45,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
         if (equivalenceClassFactory != null) {
             factory = equivalenceClassFactory;
-            environment = equivalenceClassFactory.createEquivalenceClass(Sets.union(gMonitors, universalTruths)).unfold();
+            environment = equivalenceClassFactory.createEquivalenceClass(Sets.union(gMonitors, universalTruths));
         } else {
             factory = null;
             environment = null;
@@ -70,7 +70,7 @@ class EvaluateVisitor implements Visitor<Formula> {
         }
 
         if (factory != null && environment != null) {
-            EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold();
+            EquivalenceClass clazz = factory.createEquivalenceClass(formula);
 
             if (environment.implies(clazz)) {
                 clazz.free();
