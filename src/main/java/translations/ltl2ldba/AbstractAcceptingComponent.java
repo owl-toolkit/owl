@@ -20,8 +20,6 @@ package translations.ltl2ldba;
 import com.google.common.collect.ImmutableList;
 import ltl.Formula;
 import ltl.GOperator;
-import ltl.ImmutableObject;
-import ltl.Literal;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;
@@ -30,7 +28,6 @@ import ltl.visitors.Visitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
@@ -51,7 +48,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     final EquivalenceClassFactory equivalenceClassFactory;
     final boolean removeCover;
     final boolean eager;
-    final EquivalenceClass True;
 
     public Collection<RecurringObligations> getAllInit() {
         return cache.values();
@@ -63,7 +59,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         ids = new HashMap<>();
         cache = new HashMap<>();
         this.optimisations = optimisations;
-        True = factory.getTrue();
+
         removeCover = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
     }
@@ -151,7 +147,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
                 return null;
             }
 
-            obligations = new RecurringObligations(xFragment, builder.build());
+            obligations = new RecurringObligations(xFragment, builder.build().toArray(new EquivalenceClass[0]));
             cache.put(keys, obligations);
         }
 
@@ -180,7 +176,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
         // Do Cover optimisation
         if (others != null && removeCover && others.implies(successor)) {
-            return True;
+            return equivalenceClassFactory.getTrue();
         }
 
         return successor;
@@ -202,9 +198,9 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         return eager ? clazz.unfold() : clazz;
     }
 
-    EquivalenceClass removeCover(EquivalenceClass clazz, EquivalenceClass enviornment) {
-        if (removeCover && enviornment.implies(clazz)) {
-            return True;
+    EquivalenceClass removeCover(EquivalenceClass clazz, EquivalenceClass environment) {
+        if (removeCover && environment.implies(clazz)) {
+            return equivalenceClassFactory.getTrue();
         }
 
         return clazz;

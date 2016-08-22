@@ -17,21 +17,20 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableList;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class RecurringObligations extends ImmutableObject {
 
     public final EquivalenceClass xFragment;
-    public final ImmutableList<EquivalenceClass> initialStates;
+    public final EquivalenceClass[] initialStates;
 
-    RecurringObligations(EquivalenceClass xFragment, List<EquivalenceClass> initialStates) {
+    RecurringObligations(EquivalenceClass xFragment, EquivalenceClass[] initialStates) {
         this.xFragment = xFragment;
-        this.initialStates = ImmutableList.copyOf(initialStates);
+        this.initialStates = initialStates.clone();
     }
 
     @Override
@@ -42,7 +41,7 @@ public class RecurringObligations extends ImmutableObject {
     @Override
     protected boolean equals2(ImmutableObject o) {
         RecurringObligations that = (RecurringObligations) o;
-        return Objects.equals(xFragment, that.xFragment) && Objects.equals(initialStates, that.initialStates);
+        return Objects.equals(xFragment, that.xFragment) && Arrays.equals(initialStates, that.initialStates);
     }
 
     public void free() {
@@ -52,9 +51,9 @@ public class RecurringObligations extends ImmutableObject {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Obligations{");
+        final StringBuilder sb = new StringBuilder("RecurringObligations{");
         sb.append("xFragment=").append(xFragment);
-        sb.append(", initialStates=").append(initialStates);
+        sb.append(", initialStates=").append(Arrays.toString(initialStates));
         sb.append('}');
         return sb.toString();
     }

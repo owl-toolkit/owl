@@ -17,8 +17,6 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -32,7 +30,6 @@ import translations.Optimisation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Stream;
 
 public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance> {
 
@@ -51,37 +48,40 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         EquivalenceClass xFragment = obligations.xFragment;
         EquivalenceClass current = equivalenceClassFactory.getTrue();
 
-        Iterator<EquivalenceClass> iterator = obligations.initialStates.iterator();
-        Builder<EquivalenceClass> nextBuilder = ImmutableList.builder();
+        final int length = obligations.initialStates.length;
+        EquivalenceClass[] nextBuilder = new EquivalenceClass[length];
 
         if (remainder.getRepresentative().accept(XFragmentPredicate.INSTANCE)) {
             xFragment = remainder.andWith(xFragment);
 
-            if (iterator.hasNext()) {
-                current = doEagerOpt(iterator.next());
-                nextBuilder.add(True);
+            if (length > 0) {
+                nextBuilder[0] = current;
+                current = doEagerOpt(obligations.initialStates[0]);
             }
         } else {
             current = doEagerOpt(remainder);
 
-            if (iterator.hasNext()) {
-                nextBuilder.add(removeCover(doEagerOpt(iterator.next()), current));
+            if (length > 0) {
+                nextBuilder[0] = (removeCover(doEagerOpt(obligations.initialStates[0]), current));
             }
         }
 
-        iterator.forEachRemaining(eq -> nextBuilder.add(doEagerOpt(eq)));
-        return new State(0, xFragment, current, nextBuilder.build(), obligations);
+        for (int i = 1; i < length; i++) {
+            nextBuilder[i] = removeCover(doEagerOpt(obligations.initialStates[i]), current);
+        }
+
+        return new State(0, xFragment, current, nextBuilder, obligations);
     }
 
-    public class State extends ImmutableObject implements AutomatonState<State> {
+    public final class State extends ImmutableObject implements AutomatonState<State> {
 
         private final RecurringObligations obligations;
         private final EquivalenceClass xFragment;
         private final int index;
         private final EquivalenceClass current;
-        private final ImmutableList<EquivalenceClass> next;
+        private final EquivalenceClass[] next;
 
-        public State(int index, EquivalenceClass xFragment, EquivalenceClass current, ImmutableList<EquivalenceClass> next, RecurringObligations obligations) {
+        private State(int index, EquivalenceClass xFragment, EquivalenceClass current, EquivalenceClass[] next, RecurringObligations obligations) {
             this.index = index;
             this.current = current;
             this.obligations = obligations;
@@ -97,7 +97,10 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             if (sensitiveAlphabet == null) {
                 sensitiveAlphabet = AcceptingComponent.this.getSensitiveAlphabet(current);
                 sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(xFragment));
-                next.forEach(clazz -> sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(clazz)));
+
+                for (EquivalenceClass clazz : next) {
+                    sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(clazz));
+                }
             }
 
             return (BitSet) sensitiveAlphabet.clone();
@@ -122,9 +125,9 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 return null;
             }
 
-            EquivalenceClass successor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
+            EquivalenceClass currentSuccessor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
 
-            if (successor == null) {
+            if (currentSuccessor == null) {
                 return null;
             }
 
@@ -133,59 +136,52 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
             BitSet bs = REJECT;
 
-            final int width = obligations.initialStates.size();
+            final int length = obligations.initialStates.length;
 
-            if (successor.isTrue()) {
+            if (currentSuccessor.isTrue()) {
                 j++;
                 obtainNewGoal = true;
 
-                if (j >= width) {
+                if (j >= length) {
                     bs = ACCEPT;
                     j = 0;
                 }
             }
 
-            Builder<EquivalenceClass> nextBuilder = ImmutableList.builder();
+            EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
+            EquivalenceClass[] nextSuccessors = new EquivalenceClass[length];
 
-            for (int i = 0; i < width; i++) {
-                EquivalenceClass nextClass = next.get(i);
-                EquivalenceClass assumptions = successor.and(nextXFragment);
-                EquivalenceClass nextSuccessor = AcceptingComponent.this.getSuccessor(nextClass, valuation, assumptions);
+            for (int i = 0; i < length; i++) {
+                EquivalenceClass nextSuccessor = AcceptingComponent.this.getSuccessor(next[i], valuation, assumptions);
 
                 if (nextSuccessor == null) {
                     assumptions.free();
                     return null;
                 }
 
-                EquivalenceClass initialClass = obligations.initialStates.get(i);
-
-                // Do cover optimisation
-                if (!removeCover || !successor.implies(doEagerOpt(initialClass))) {
-                    nextSuccessor = nextSuccessor.and(doEagerOpt(initialClass));
-                }
+                nextSuccessor = nextSuccessor.andWith(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
 
                 if (obtainNewGoal && i == j) {
-                    successor = nextSuccessor;
-                    nextBuilder.add(True);
+                    currentSuccessor = nextSuccessor;
+                    nextSuccessors[i] = equivalenceClassFactory.getTrue();
                 } else {
-                    nextBuilder.add(nextSuccessor);
+                    nextSuccessors[i] = nextSuccessor;
                 }
-
-                assumptions.free();
             }
 
-            return new Edge<>(new State(j, nextXFragment, successor, nextBuilder.build(), obligations), bs);
+            assumptions.free();
+            return new Edge<>(new State(j, nextXFragment, currentSuccessor, nextSuccessors, obligations), bs);
         }
 
         @Override
         protected int hashCodeOnce() {
-            return Objects.hash(current, next, obligations, xFragment, index);
+            return Objects.hash(current, obligations, xFragment, index, Arrays.hashCode(next));
         }
 
         @Override
         protected boolean equals2(ImmutableObject o) {
             State that = (State) o;
-            return index == that.index && Objects.equals(xFragment, that.xFragment) && Objects.equals(current, that.current) && Objects.equals(next, that.next) && Objects.equals(obligations, that.obligations);
+            return index == that.index && Objects.equals(xFragment, that.xFragment) && Objects.equals(current, that.current) && Arrays.equals(next, that.next) && Objects.equals(obligations, that.obligations);
         }
 
         @Override
@@ -203,7 +199,17 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         }
 
         public EquivalenceClass getLabel() {
-            return Stream.concat(next.stream(), Stream.concat(obligations.initialStates.stream(), Stream.of(current, xFragment))).reduce(equivalenceClassFactory.getTrue(), EquivalenceClass::andWith);
+            EquivalenceClass label = current.and(xFragment);
+
+            for (EquivalenceClass clazz : next) {
+                label = label.andWith(clazz);
+            }
+
+            for (EquivalenceClass clazz : obligations.initialStates) {
+                label = label.andWith(clazz);
+            }
+
+            return label;
         }
 
         @Override
@@ -213,7 +219,8 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             sb.append(", xFragment=").append(xFragment);
             sb.append(", index=").append(index);
             sb.append(", current=").append(current);
-            sb.append(", next=").append(next);
+            sb.append(", next=").append(Arrays.toString(next));
+            sb.append(", sensitiveAlphabet=").append(sensitiveAlphabet);
             sb.append('}');
             return sb.toString();
         }

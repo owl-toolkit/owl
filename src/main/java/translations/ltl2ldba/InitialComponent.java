@@ -144,7 +144,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
         @Override
         public String toString() {
-            return clazz.getRepresentative().toString();
+            return clazz.toString();
         }
 
         @Override

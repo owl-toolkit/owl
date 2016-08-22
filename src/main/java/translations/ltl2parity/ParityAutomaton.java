@@ -65,7 +65,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         ImmutableList.Builder<RecurringObligations> builder = ImmutableList.builder();
 
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
-            if (value.initialStates.isEmpty()) {
+            if (value.initialStates.length == 0) {
                 builder.add(value);
             }
         }
@@ -188,7 +188,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
                     EquivalenceClass stateClass = accState.getLabel();
 
                     if (existingClass == null || !stateClass.implies(existingClass)) {
-                        if (accState.getObligations().initialStates.stream().allMatch(e -> e.getRepresentative().isPureEventual())) {
+                        if (Arrays.asList(accState.getObligations().initialStates).stream().allMatch(e -> e.getRepresentative().isPureEventual())) {
                             pureEventual.add(accState);
                         } else {
                             mixed.add(accState);
