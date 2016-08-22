@@ -190,10 +190,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
     }
 
-    BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
-        return clazz.unfold().getAtoms();
-    }
-
     EquivalenceClass doEagerOpt(EquivalenceClass clazz) {
         return eager ? clazz.unfold() : clazz;
     }
