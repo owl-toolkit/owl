@@ -133,15 +133,17 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     @Override
     public String toString() {
-        return toString(EnumSet.allOf(Option.class));
+        try {
+            return toString(EnumSet.allOf(Option.class));
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex.toString(), ex);
+        }
     }
 
-    public String toString(EnumSet<Option> options) {
+    public String toString(EnumSet<Option> options) throws IOException {
         try (OutputStream stream = new ByteArrayOutputStream()) {
             toHOA(new HOAConsumerPrint(stream), null, options);
             return stream.toString();
-        } catch (IOException ex) {
-            throw new IllegalStateException(ex.toString(), ex);
         }
     }
 

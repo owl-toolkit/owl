@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 
 public class LTL2LDGBATest {
 
-    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, @Nullable String expectedOutput) {
+    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, @Nullable String expectedOutput) throws IOException {
         BiMap<String, Integer> mapping = HashBiMap.create();
         LTL2LDGBA translation = new LTL2LDGBA(opts);
         LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
@@ -50,16 +50,16 @@ public class LTL2LDGBATest {
         automaton.free();
     }
 
-    static void testOutput(String ltl, int size, String expectedOutput) {
+    static void testOutput(String ltl, int size, String expectedOutput) throws IOException {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         testOutput(ltl, opts, size, expectedOutput);
     }
 
-    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size) {
+    static void testOutput(String ltl, EnumSet<Optimisation> opts, int size) throws IOException {
         testOutput(ltl, opts, size, null);
     }
 
-    static void testOutput(String ltl, int size) {
+    static void testOutput(String ltl, int size) throws IOException {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         testOutput(ltl, opts, size, null);
     }
@@ -73,7 +73,7 @@ public class LTL2LDGBATest {
     @Test
     public void testToHOA2() throws Exception {
         String ltl = "(G F a) | (G ((b | X ! a) & ((! b | X a))))";
-        testOutput(ltl, 6); // was 9
+        testOutput(ltl, 6);
     }
 
     @Test
