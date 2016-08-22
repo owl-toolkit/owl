@@ -26,12 +26,10 @@ import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.output.RemoveComments;
 import translations.ldba.LimitDeterministicAutomaton;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.ltl2ldba.AcceptingComponent;
-import ltl.visitors.predicates.XFragmentPredicate;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.RecurringObligations;
 
@@ -312,7 +310,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
     @Override
     public String toString() {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            HOAConsumer consumer = new RemoveComments(new HOAConsumerPrint(stream));
+            HOAConsumer consumer = (new HOAConsumerPrint(stream));
             toHOA(consumer, null);
             return stream.toString();
         } catch (IOException  ex) {

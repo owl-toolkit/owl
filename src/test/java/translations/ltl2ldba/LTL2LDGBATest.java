@@ -22,6 +22,7 @@ import com.google.common.collect.HashBiMap;
 import jhoafparser.consumer.*;
 import ltl.parser.Parser;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.output.HOAPrintable;
 import translations.ldba.LimitDeterministicAutomaton;
 import org.junit.Test;
 import translations.Optimisation;
@@ -43,7 +44,7 @@ public class LTL2LDGBATest {
         assertEquals(hoaString, size, automaton.size());
 
         if (expectedOutput != null) {
-            assertEquals(expectedOutput, automaton.toString());
+            assertEquals(expectedOutput, automaton.toString(EnumSet.noneOf(HOAPrintable.Option.class)));
         }
 
         automaton.free();

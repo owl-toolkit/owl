@@ -20,9 +20,7 @@ package translations.ldba;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
-import omega_automaton.collections.Collections3;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
@@ -32,7 +30,6 @@ import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
-import omega_automaton.output.RemoveComments;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -122,8 +119,9 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         }
     }
 
-    public void toHOA(HOAConsumer c, @Nullable BiMap<String, Integer> aliases) {
-        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.getAcceptance(), getInitialState(), size());
+    @Override
+    public void toHOA(HOAConsumer c, @Nullable BiMap<String, Integer> aliases, EnumSet<Option> options) {
+        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.getAcceptance(), getInitialState(), size(), options);
 
         if (initialComponent != null) {
             initialComponent.toHOABody(consumer);
@@ -135,9 +133,12 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     @Override
     public String toString() {
+        return toString(EnumSet.allOf(Option.class));
+    }
+
+    public String toString(EnumSet<Option> options) {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            HOAConsumer consumer = new RemoveComments(new HOAConsumerPrint(stream));
-            toHOA(consumer, null);
+            toHOA(new HOAConsumerPrint(stream), null, options);
             return stream.toString();
         } catch (IOException ex) {
             throw new IllegalStateException(ex.toString(), ex);
