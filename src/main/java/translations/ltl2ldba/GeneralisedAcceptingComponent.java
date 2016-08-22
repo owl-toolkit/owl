@@ -171,7 +171,6 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 sensitiveAlphabet = xFragment.unfold().getAtoms();
 
                 for (EquivalenceClass clazz : current) {
-                    assert clazz != null : Arrays.toString(current);
                     sensitiveAlphabet.or(clazz.unfold().getAtoms());
                 }
 
