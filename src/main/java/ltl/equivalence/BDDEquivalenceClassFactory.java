@@ -19,7 +19,6 @@ package ltl.equivalence;
 
 import jdd.bdd.BDD;
 import ltl.*;
-import ltl.visitors.Collector;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
@@ -28,14 +27,17 @@ import java.util.function.Function;
 
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
-    int[] vars;
-    final BDD factory;
-    final Map<Formula, Integer> mapping;
-    final List<Formula> reverseMapping;
-    final BDDVisitor visitor;
+    private int[] vars;
+    private final BDD factory;
+    private final Map<Formula, Integer> mapping;
+    private final List<Formula> reverseMapping;
+    private final BDDVisitor visitor;
 
-    final Map<EquivalenceClass, BDDEquivalenceClass> unfoldCache;
-    final Map<EquivalenceClass, Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
+    private final Map<EquivalenceClass, BDDEquivalenceClass> unfoldCache;
+    private final Map<EquivalenceClass, Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
+
+    private final EquivalenceClass trueClass;
+    private final EquivalenceClass falseClass;
 
     public BDDEquivalenceClassFactory(Formula formula) {
         mapping = PropositionVisitor.extractPropositions(formula);
@@ -58,16 +60,19 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         unfoldCache = new HashMap<>();
         temporalStepCache = new HashMap<>();
+
+        trueClass = new BDDEquivalenceClass(BooleanConstant.TRUE, BDD.ONE);
+        falseClass = new BDDEquivalenceClass(BooleanConstant.FALSE, BDD.ZERO);
     }
 
     @Override
     public EquivalenceClass getTrue() {
-        return new BDDEquivalenceClass(BooleanConstant.TRUE, BDD.ONE);
+        return trueClass;
     }
 
     @Override
     public EquivalenceClass getFalse() {
-        return new BDDEquivalenceClass(BooleanConstant.FALSE, BDD.ZERO);
+        return falseClass;
     }
 
     @Override
@@ -205,7 +210,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 cache.put(valuation, result);
             }
 
-            return result;
+            return new BDDEquivalenceClass(result.representative, result.bdd);
         }
 
         @Override
