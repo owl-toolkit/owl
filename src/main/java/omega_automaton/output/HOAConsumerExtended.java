@@ -38,22 +38,29 @@ import java.util.stream.IntStream;
 
 public class HOAConsumerExtended {
 
-    protected static final Logger logger = Logger.getLogger(HOAConsumerExtended.class.getName());
+    static final Logger LOGGER = Logger.getLogger(HOAConsumerExtended.class.getName());
 
     private final HOAConsumer hoa;
     private final Map<AutomatonState<?>, Integer> stateNumbers;
-    protected AutomatonState<?> currentState;
+    private final EnumSet<HOAPrintable.Option> options;
+    AutomatonState<?> currentState;
 
-    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, @Nullable BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
-                               int size) {
+
+
+    public HOAConsumerExtended(@Nonnull HOAConsumer hoa, @Nonnull ValuationSetFactory valSetFac, @Nullable BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
+                               int size, @Nonnull EnumSet<HOAPrintable.Option> options) {
         this.hoa = hoa;
+        this.options = options;
+
         stateNumbers = new HashMap<>(size);
 
         try {
             hoa.notifyHeaderStart("v1");
-
             hoa.setTool("Owl", "* *"); // Owl in a cave.
-            hoa.setName("Automaton for " + ((initialState != null) ? initialState.toString() : "false"));
+
+            if (options.contains(HOAPrintable.Option.COMMENTS)) {
+                hoa.setName("Automaton for " + ((initialState != null) ? initialState.toString() : "false"));
+            }
 
             if (size >= 0) {
                 hoa.setNumberOfStates(size);
@@ -86,7 +93,7 @@ public class HOAConsumerExtended {
                 hoa.notifyEnd();
             }
         } catch (HOAConsumerException ex) {
-            logger.warning(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 
@@ -101,9 +108,9 @@ public class HOAConsumerExtended {
     public void addState(AutomatonState<?> state) {
         try {
             currentState = state;
-            hoa.addState(getStateId(state), state.toString(), null, null);
+            hoa.addState(getStateId(state), options.contains(HOAPrintable.Option.COMMENTS) ? state.toString() : null, null, null);
         } catch (HOAConsumerException ex) {
-            logger.warning(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 
@@ -111,7 +118,7 @@ public class HOAConsumerExtended {
         try {
             hoa.notifyEndOfState(getStateId(currentState));
         } catch (HOAConsumerException ex) {
-            logger.warning(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 
@@ -121,7 +128,7 @@ public class HOAConsumerExtended {
                 hoa.notifyEnd();
             }
         } catch (HOAConsumerException ex) {
-            logger.warning(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 
@@ -135,14 +142,14 @@ public class HOAConsumerExtended {
 
     public void addEpsilonEdge(AutomatonState<?> successor) {
         try {
-            System.err.print("Warning: HOA currently does not support epsilon-transitions. (" + currentState + " -> " + successor + ')');
+            LOGGER.warning("Warning: HOA currently does not support epsilon-transitions. (" + currentState + " -> " + successor + ')');
             hoa.addEdgeWithLabel(getStateId(currentState), null, Collections.singletonList(getStateId(successor)), null);
         } catch (HOAConsumerException ex) {
-            logger.warning(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 
-    protected void addEdgeBackend(ValuationSet label, AutomatonState<?> end, List<Integer> accSets) {
+    void addEdgeBackend(ValuationSet label, AutomatonState<?> end, List<Integer> accSets) {
         if (label.isEmpty()) {
             return;
         }
@@ -150,12 +157,18 @@ public class HOAConsumerExtended {
         try {
             hoa.addEdgeWithLabel(getStateId(currentState), label.toExpression(), Collections.singletonList(getStateId(end)), accSets);
         } catch (HOAConsumerException ex) {
-            logger.warning(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 
     private int getStateId(AutomatonState<?> state) {
-        stateNumbers.putIfAbsent(state, stateNumbers.size());
-        return stateNumbers.get(state);
+        Integer id = stateNumbers.get(state);
+
+        if (id == null) {
+            id = stateNumbers.size();
+            stateNumbers.put(state, id);
+        }
+
+        return id;
     }
 }

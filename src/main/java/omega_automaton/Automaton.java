@@ -19,10 +19,8 @@ package omega_automaton;
 
 import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
-import omega_automaton.acceptance.AllAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
-import omega_automaton.collections.TranSet;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
@@ -30,9 +28,7 @@ import omega_automaton.output.HOAPrintable;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
 
@@ -254,8 +250,9 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         }
     }
 
-    public void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
-        HOAConsumerExtended hoa = new HOAConsumerExtended(ho, valuationSetFactory, aliases, acceptance != null ? acceptance : new AllAcceptance(), initialState, size());
+    @Override
+    public void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases, EnumSet<Option> options) {
+        HOAConsumerExtended hoa = new HOAConsumerExtended(ho, valuationSetFactory, aliases, acceptance, initialState, size(), options);
         toHOABody(hoa);
         hoa.done();
     }
