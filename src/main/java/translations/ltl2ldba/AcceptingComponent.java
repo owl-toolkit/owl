@@ -95,11 +95,11 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         @Override
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = current.unfold().getAtoms();
-                sensitiveAlphabet.or(xFragment.unfold().getAtoms());
+                sensitiveAlphabet = AcceptingComponent.this.getSensitiveAlphabet(current);
+                sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(xFragment));
 
                 for (EquivalenceClass clazz : next) {
-                    sensitiveAlphabet.or(clazz.unfold().getAtoms());
+                    sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(clazz));
                 }
             }
 

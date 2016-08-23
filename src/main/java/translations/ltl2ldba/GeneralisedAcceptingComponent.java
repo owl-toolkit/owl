@@ -168,14 +168,14 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         @Nonnull
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = xFragment.unfold().getAtoms();
+                sensitiveAlphabet = GeneralisedAcceptingComponent.this.getSensitiveAlphabet(xFragment);
 
                 for (EquivalenceClass clazz : current) {
-                    sensitiveAlphabet.or(clazz.unfold().getAtoms());
+                    sensitiveAlphabet.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz));
                 }
 
                 for (EquivalenceClass clazz : next) {
-                    sensitiveAlphabet.or(clazz.unfold().getAtoms());
+                    sensitiveAlphabet.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz));
                 }
             }
 
