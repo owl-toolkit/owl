@@ -173,10 +173,6 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         return Collections.emptyMap();
     }
 
-    public void remove(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> toRemove) {
-        this.acceptanceCondition.removeAll(toRemove);
-    }
-
     public void removeIndices(Set<Integer> toRemove) {
         toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(index -> acceptanceCondition.remove(index.intValue()));
     }
