@@ -184,4 +184,21 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     public void addEach(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> temp) {
         acceptanceCondition.addAll(temp);
     }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("GeneralisedRabinAcceptance\n");
+        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+            builder.append("\nPair: ");
+            builder.append('\n');
+            builder.append('\t');
+            builder.append("Fin: ");
+            builder.append(pair.left);
+            for (TranSet<S> inf : pair.right) {
+                builder.append("\n\tInf: ");
+                builder.append(inf);
+            }
+        }
+        return builder.toString();
+    }
 }
