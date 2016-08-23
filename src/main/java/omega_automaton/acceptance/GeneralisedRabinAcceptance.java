@@ -177,6 +177,10 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(index -> acceptanceCondition.remove(index.intValue()));
     }
 
+    public void clear() {
+        acceptanceCondition.clear();
+    }
+
     public void addEach(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> temp) {
         acceptanceCondition.addAll(temp);
     }
