@@ -78,7 +78,7 @@ public class ParityAcceptance implements OmegaAcceptance {
 
     @Override
     public List<Object> getNameExtra() {
-        return Arrays.asList("min", priority, colors);
+        return Arrays.asList("min", priority.toString(), colors);
     }
 
     @Override

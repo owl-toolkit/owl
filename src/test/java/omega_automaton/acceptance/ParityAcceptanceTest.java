@@ -24,6 +24,8 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 @RunWith(Theories.class)
@@ -43,12 +45,12 @@ public class ParityAcceptanceTest {
     }
 
     @Theory
-    public void getName(OmegaAcceptance acceptance) throws Exception {
+    public void getName(ParityAcceptance acceptance) throws Exception {
         assertEquals("parity", acceptance.getName());
     }
 
     @Theory
-    public void getAcceptanceSets(OmegaAcceptance acceptance) throws Exception {
+    public void getAcceptanceSets(ParityAcceptance acceptance) throws Exception {
         assertEquals(1, acceptance.getAcceptanceSets());
     }
 
@@ -58,4 +60,13 @@ public class ParityAcceptanceTest {
         assertEquals(HOAConsumerExtended.mkInf(0), ACCEPTANCE_COMPLEMENT.getBooleanExpression());
     }
 
+    @Theory
+    public void getNameExtra(ParityAcceptance acceptance) throws Exception {
+        List<Object> extra = acceptance.getNameExtra();
+
+        // Check types
+        assertTrue(extra.get(0) instanceof String);
+        assertTrue(extra.get(1) instanceof String);
+        assertTrue(extra.get(2) instanceof Integer);
+    }
 }
