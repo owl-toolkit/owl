@@ -22,12 +22,14 @@ import ltl.Formula;
 import ltl.parser.Parser;
 import omega_automaton.Automaton;
 import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.acceptance.ParityAcceptance;
 import translations.Optimisation;
 import translations.ltl2ldba.*;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.StringReader;
-import java.util.EnumSet;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
@@ -51,20 +53,46 @@ public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
 
         ParityAutomaton parity = new ParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory());
         parity.generate();
+
         return parity;
     }
 
-    public static void main(String... args) throws ltl.parser.ParseException {
-        if (args.length == 0) {
-            args = new String[]{"G F a"};
+    public static void main(String... args) throws Exception {
+        Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
+
+        boolean parallelMode = argsDeque.remove("--parallel");
+
+        Function<Formula, Automaton<?, ?>> translation = new LTL2Parity();
+
+        if (argsDeque.isEmpty()) {
+            argsDeque.add("G F a");
         }
 
-        LTL2Parity translation = new LTL2Parity();
-
-        Parser parser = new Parser(new StringReader(args[0]));
+        Parser parser = new Parser(new StringReader(argsDeque.getFirst()));
         Formula formula = parser.formula();
+        Automaton<?, ?> automaton;
 
-        Automaton<?, ?> result = translation.apply(formula);
-        result.toHOA(new HOAConsumerPrint(System.out), parser.map);
+        if (parallelMode) {
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+
+            Future<Automaton<?, ?>> automatonFuture = executor.submit(() -> translation.apply(formula));
+            Future<Automaton<?, ?>> complementFuture = executor.submit(() -> translation.apply(formula.not()));
+
+            automaton = automatonFuture.get();
+            Automaton<?, ?> complement = complementFuture.get();
+
+            executor.shutdownNow();
+
+            // The complement is smaller, lets take that one.
+            if (complement instanceof ParityAutomaton && complement.size() < automaton.size()) {
+                ParityAutomaton complementParity = ((ParityAutomaton) complement);
+                complementParity.complement();
+                automaton = complementParity;
+            }
+        } else {
+            automaton = translation.apply(formula);
+        }
+
+        automaton.toHOA(new HOAConsumerPrint(System.out), parser.map);
     }
 }
