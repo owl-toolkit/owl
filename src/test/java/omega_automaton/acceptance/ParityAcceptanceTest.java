@@ -45,12 +45,12 @@ public class ParityAcceptanceTest {
     }
 
     @Theory
-    public void getName(ParityAcceptance acceptance) throws Exception {
+    public void getName(OmegaAcceptance acceptance) throws Exception {
         assertEquals("parity", acceptance.getName());
     }
 
     @Theory
-    public void getAcceptanceSets(ParityAcceptance acceptance) throws Exception {
+    public void getAcceptanceSets(OmegaAcceptance acceptance) throws Exception {
         assertEquals(1, acceptance.getAcceptanceSets());
     }
 
@@ -61,7 +61,7 @@ public class ParityAcceptanceTest {
     }
 
     @Theory
-    public void getNameExtra(ParityAcceptance acceptance) throws Exception {
+    public void getNameExtra(OmegaAcceptance acceptance) throws Exception {
         List<Object> extra = acceptance.getNameExtra();
 
         // Check types
