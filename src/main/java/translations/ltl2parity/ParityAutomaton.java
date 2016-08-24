@@ -90,6 +90,10 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         return index - base;
     }
 
+    public void complement() {
+        acceptance = acceptance.complement();
+    }
+
     @Immutable
     public final class State extends ImmutableObject implements AutomatonState<State>  {
 
@@ -286,11 +290,9 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
             BitSet acc = new BitSet();
             acc.set(edgeColor);
 
-            edgeColor += 1;
-
-            if (edgeColor > colors) {
-                colors = edgeColor;
-                acceptance = new ParityAcceptance(edgeColor);
+            if (edgeColor >= colors) {
+                colors = edgeColor + 1;
+                acceptance = new ParityAcceptance(colors);
             }
 
             existingClasses.forEach((x, y) -> y.free());
