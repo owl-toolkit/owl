@@ -54,12 +54,12 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
     int colors;
 
     protected ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory) {
-        super(new ParityAcceptance(0), factory);
+        super(new ParityAcceptance(2), factory);
 
         acceptingComponent = ldba.getAcceptingComponent();
         initialComponent = ldba.getInitialComponent();
 
-        colors = 1;
+        colors = 2;
         ImmutableList.Builder<RecurringObligations> builder = ImmutableList.builder();
 
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
@@ -285,6 +285,8 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
             BitSet acc = new BitSet();
             acc.set(edgeColor);
+
+            edgeColor += 1;
 
             if (edgeColor > colors) {
                 colors = edgeColor;
