@@ -107,7 +107,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
     @Override
     public Formula visit(FOperator fOperator) {
-        Formula defaultAction = defaultAction(fOperator);
+        Formula defaultAction = defaultAction(fOperator.unfold());
 
         if (defaultAction instanceof BooleanConstant) {
             return defaultAction;
@@ -123,7 +123,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
     @Override
     public Formula visit(UOperator uOperator) {
-        Formula defaultAction = defaultAction(uOperator);
+        Formula defaultAction = defaultAction(uOperator.unfold());
 
         if (defaultAction instanceof BooleanConstant) {
             return defaultAction;
