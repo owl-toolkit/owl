@@ -26,6 +26,7 @@ import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.collections.valuationset.ValuationSet;
 import translations.ldba.LimitDeterministicAutomaton;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
@@ -53,7 +54,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
     int colors;
 
-    protected ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory) {
+    ParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory) {
         super(new ParityAcceptance(2), factory);
 
         acceptingComponent = ldba.getAcceptingComponent();
@@ -74,7 +75,6 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
     @Override
     protected State generateInitialState() {
-        acceptance = new ParityAcceptance(colors);
         return new State(initialComponent.getInitialState());
     }
 
@@ -90,32 +90,52 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
         return index - base;
     }
 
-    public void complement() {
+    void complement() {
         acceptance = acceptance.complement();
+
+        State trap = new ParityAutomaton.State(null, ImmutableList.of(), 0);
+        BitSet acc = new BitSet();
+        acc.set(0);
+        Edge<ParityAutomaton.State> edge = new Edge<>(trap, acc);
+        boolean usedTrap = false;
+
+        // Add missing edges to trap state.
+        for (Map<Edge<ParityAutomaton.State>, ValuationSet> successors : transitions.values()) {
+            ValuationSet set = valuationSetFactory.createEmptyValuationSet();
+            successors.values().forEach(set::addAll);
+            set = set.complement();
+
+            if (!set.isEmpty()) {
+                successors.put(edge, set);
+                usedTrap = true;
+            }
+        }
+
+        if (usedTrap) {
+            // Add loop.
+            transitions.put(trap, Collections.singletonMap(edge, valuationSetFactory.createUniverseValuationSet()));
+        }
     }
 
     @Immutable
     public final class State extends ImmutableObject implements AutomatonState<State>  {
 
-        @Nonnull
         private final InitialComponent.State initialComponentState;
-
-        @Nonnull
         private final ImmutableList<AcceptingComponent.State> acceptingComponentRanking;
 
         final int volatileIndex;
 
-        public State(@Nonnull InitialComponent.State state) {
+        private State(InitialComponent.State state) {
             initialComponentState = state;
             List<AcceptingComponent.State> ranking = new ArrayList<>();
             volatileIndex = appendJumps(state, ranking);
             acceptingComponentRanking = ImmutableList.copyOf(ranking);
         }
 
-        public State(@Nonnull InitialComponent.State state, @Nonnull List<AcceptingComponent.State> ranking, int volatileIndex) {
+        private State(@Nullable InitialComponent.State state, ImmutableList<AcceptingComponent.State> ranking, int volatileIndex) {
             this.volatileIndex = volatileIndex;
             initialComponentState = state;
-            acceptingComponentRanking = ImmutableList.copyOf(ranking);
+            acceptingComponentRanking = ranking;
         }
 
         @Override
@@ -297,7 +317,7 @@ public class ParityAutomaton extends Automaton<ParityAutomaton.State, ParityAcce
 
             existingClasses.forEach((x, y) -> y.free());
 
-            return new Edge<>(new State(successor, ranking, activeVolatileBreakpoint > -1 ? activeVolatileBreakpoint : nextVolatileIndex), acc);
+            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), activeVolatileBreakpoint > -1 ? activeVolatileBreakpoint : nextVolatileIndex), acc);
         }
 
         @Override

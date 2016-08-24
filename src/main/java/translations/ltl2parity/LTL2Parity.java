@@ -83,10 +83,16 @@ public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
 
             executor.shutdownNow();
 
+            int size = automaton.size();
+            int complementSize = complement.size();
+
             // The complement is smaller, lets take that one.
-            if (complement instanceof ParityAutomaton && complement.size() < automaton.size()) {
+            if (complement instanceof ParityAutomaton && complementSize < size) {
+                System.err.println("Switching to complement.");
                 ParityAutomaton complementParity = ((ParityAutomaton) complement);
                 complementParity.complement();
+                System.err.println("Automaton Size: " + size);
+                System.err.println("Complement Size: " + complementParity.size());
                 automaton = complementParity;
             }
         } else {
