@@ -87,8 +87,14 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
             State state = (State) o;
             return Objects.equals(states, state.states);
         }

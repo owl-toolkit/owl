@@ -17,10 +17,7 @@
 
 package translations.tlsf2arena;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import jhoafparser.consumer.HOAConsumerException;
-import ltl.*;
 import ltl.parser.Parser;
 import ltl.tlsf.TLSF;
 import translations.Optimisation;
@@ -51,45 +48,10 @@ public class TLSF2Arena {
         File nodeFile = new File(args[0] + ".arena.nodes");
         File edgeFile = new File(args[0] + ".arena.edges");
 
-        ParityAutomaton<?> parity = (new LTL2Parity()).apply(tlsf.toFormula());
+        LTL2Parity translation = new LTL2Parity();
+        ParityAutomaton<?> parity = translation.apply(tlsf.toFormula());
         System.out.print(parity);
         bit.writeBinary(parity, fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
         bit.readBinary(nodeFile, edgeFile);
-    }
-
-    private static Formula getSharedResourceArbiterLTL(int clients) {
-        Formula clientBehaviour = BooleanConstant.TRUE;
-        Formula exclusiveAccess = BooleanConstant.FALSE;
-
-        for (int i = 0; i < clients; i++) {
-            Formula client = GOperator.create(Disjunction.create(new Literal(i, true), XOperator.create(UOperator.create(new Literal(clients + i), new Literal(2 * clients + i)))));
-            clientBehaviour = Conjunction.create(client, clientBehaviour);
-
-            Formula exAc = BooleanConstant.TRUE;
-
-            for (int j = 0; j < clients; j++) {
-                if (i == j) {
-                    continue;
-                }
-
-                exAc = Conjunction.create(new Literal(2 * clients + j, true), exAc);
-            }
-
-            exclusiveAccess = Disjunction.create(exclusiveAccess, exAc);
-        }
-
-        return Conjunction.create(clientBehaviour, GOperator.create(exclusiveAccess));
-    }
-
-    private static BiMap<String, Integer> getSharedResourceArbiterMapping(int clients) {
-        BiMap<String, Integer> mapping = HashBiMap.create();
-
-        for (int i = 0; i < clients; i++) {
-            mapping.put("r" + i, i);
-            mapping.put("w" + i, clients + i);
-            mapping.put("g" + i, 2 * clients + i);
-        }
-
-        return mapping;
     }
 }

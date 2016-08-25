@@ -71,7 +71,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             current = doEagerOpt(remainder);
 
             if (length > 0) {
-                nextBuilder[0] = (removeCover(doEagerOpt(obligations.initialStates[0]), current));
+                nextBuilder[0] = removeCover(doEagerOpt(obligations.initialStates[0]), current);
             }
         }
 

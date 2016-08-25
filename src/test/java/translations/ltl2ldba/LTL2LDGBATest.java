@@ -75,7 +75,7 @@ public class LTL2LDGBATest {
         String ltl = "(G F a) | (G ((b | X ! a) & ((! b | X a))))";
         testOutput(ltl, 6);
     }
-    
+
     @Test
     public void testToHOA342() throws Exception {
         String ltl = "(F p) U (G q)";

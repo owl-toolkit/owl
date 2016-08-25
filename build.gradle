@@ -18,6 +18,7 @@
 apply plugin: 'java'
 apply plugin: 'findbugs'
 apply plugin: 'application'
+apply plugin: 'pmd'
 
 project.group = 'de.tum.in'
 project.version = '0.0.4'
@@ -83,6 +84,15 @@ distributions {
         baseName = 'translations'
         applicationName = 'translations'
     }
+}
+
+pmd {
+    ruleSets = [
+        "java-basic",
+        "java-braces",
+        "java-unnecessary",
+        "java-unusedcode"
+    ]
 }
 
 // If a user file is present, include it.

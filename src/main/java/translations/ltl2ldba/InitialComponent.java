@@ -152,10 +152,14 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
+            if (this == o) {
                 return true;
-            if (o == null || getClass() != o.getClass())
+            }
+
+            if (o == null || getClass() != o.getClass()) {
                 return false;
+            }
+
             State that = (State) o;
             return Objects.equals(clazz, that.clazz);
         }

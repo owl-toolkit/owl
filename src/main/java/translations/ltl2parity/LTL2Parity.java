@@ -19,6 +19,7 @@ package translations.ltl2parity;
 
 import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Formula;
+import ltl.parser.ParseException;
 import ltl.parser.Parser;
 import omega_automaton.Automaton;
 import omega_automaton.acceptance.BuchiAcceptance;
@@ -33,6 +34,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -71,7 +73,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
         return parity;
     }
 
-    public static void main(String... args) throws Exception {
+    public static void main(String... args) throws ParseException, ExecutionException {
         Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
 
         boolean parallelMode = argsDeque.remove("--parallel");
@@ -98,31 +100,31 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
             ParityAutomaton<?> complement = null;
 
             while (true) {
-                // Get new results.
-                if (automaton == null && automatonFuture.isDone()) {
-                    automaton = automatonFuture.get();
-                }
-
-                if (complement == null && complementFuture.isDone()) {
-                    complement = complementFuture.get();
-                }
-
-                int size = automatonCounter.get();
-                int complementSize = complementCounter.get();
-
-                if (automaton != null && size <= complementSize) {
-                    complementFuture.cancel(true);
-                    break;
-                }
-
-                if (complement != null && complementSize < size) {
-                    automatonFuture.cancel(true);
-                    complement.complement();
-                    automaton = complement;
-                    break;
-                }
-
                 try {
+                    // Get new results.
+                    if (automaton == null && automatonFuture.isDone()) {
+                        automaton = automatonFuture.get();
+                    }
+
+                    if (complement == null && complementFuture.isDone()) {
+                        complement = complementFuture.get();
+                    }
+
+                    int size = automatonCounter.get();
+                    int complementSize = complementCounter.get();
+
+                    if (automaton != null && size <= complementSize) {
+                        complementFuture.cancel(true);
+                        break;
+                    }
+
+                    if (complement != null && complementSize < size) {
+                        automatonFuture.cancel(true);
+                        complement.complement();
+                        automaton = complement;
+                        break;
+                    }
+
                     Thread.sleep(MILLIS);
                 } catch (InterruptedException ex) {
                     // Let's continue checking stuff...
