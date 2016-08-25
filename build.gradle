@@ -31,6 +31,7 @@ repositories {
 
 dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+    compileOnly 'com.google.code.findbugs:annotations:3.0.1'
     compile 'com.google.guava:guava:19.0'
     compile 'de.tum.in:ltl-lib:0.0.25'
     compile 'de.tum.in:omega-automaton-lib:0.0.28'
