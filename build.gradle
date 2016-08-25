@@ -33,7 +33,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'com.google.guava:guava:19.0'
     compile 'de.tum.in:ltl-lib:0.0.25'
-    compile 'de.tum.in:omega-automaton-lib:0.0.27'
+    compile 'de.tum.in:omega-automaton-lib:0.0.28'
     compile 'it.unimi.dsi:fastutil:7.0.12'
     compile files('lib/jhoafparser-1.1.1.jar')
     runtime 'jdd:jdd:0.0.112'
@@ -41,7 +41,7 @@ dependencies {
     testCompile 'com.google.code.findbugs:jsr305:3.0.1'
 
     // Additional Checks
-    findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.1'
+    // findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.2'
 }
 
 tasks.withType(FindBugs) {
