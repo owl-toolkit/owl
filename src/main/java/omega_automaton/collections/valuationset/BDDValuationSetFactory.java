@@ -17,6 +17,7 @@
 
 package omega_automaton.collections.valuationset;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import jdd.bdd.BDD;
 import jhoafparser.ast.AtomLabel;
@@ -73,6 +74,8 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
     private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
 
     BooleanExpression<AtomLabel> createRepresentative(int bdd) {
+        Preconditions.checkArgument(bdd != INVALID_BDD, "ValuationSet already freed.");
+
         if (bdd == BDD.ONE) {
             return TRUE;
         }
@@ -127,9 +130,9 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         return createBDD(set, IntStream.range(0, vars.length).iterator());
     }
 
-    public class BDDValuationSet implements ValuationSet {
+    private static final int INVALID_BDD = -1;
 
-        private static final int INVALID_BDD = -1;
+    public class BDDValuationSet implements ValuationSet {
         private int index;
 
         BDDValuationSet(int index) {

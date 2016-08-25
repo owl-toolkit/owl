@@ -171,7 +171,6 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             }
 
             set.free();
-            complementSet.free();
         }
 
         if (initialState == null || transitions.isEmpty()) {
