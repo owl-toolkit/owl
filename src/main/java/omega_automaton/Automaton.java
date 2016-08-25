@@ -366,4 +366,15 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
         transitions.clear();
     }
+
+    @Override
+    public String toString() {
+        try (OutputStream stream = new ByteArrayOutputStream()) {
+            HOAConsumer consumer = new HOAConsumerPrint(stream);
+            toHOA(consumer, null);
+            return stream.toString();
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex.toString(), ex);
+        }
+    }
 }
