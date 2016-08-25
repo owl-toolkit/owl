@@ -23,18 +23,17 @@ import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
-import omega_automaton.collections.Collections3;
-import translations.Optimisation;
 import omega_automaton.StoredBuchiAutomaton;
-import translations.ldba.LimitDeterministicAutomaton;
 import org.junit.Before;
 import org.junit.Test;
+import translations.Optimisation;
+import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NBA2LDBATest {
 

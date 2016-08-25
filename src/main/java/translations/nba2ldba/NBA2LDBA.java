@@ -20,9 +20,9 @@ package translations.nba2ldba;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
-import translations.Optimisation;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.acceptance.BuchiAcceptance;
+import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.util.EnumSet;

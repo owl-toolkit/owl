@@ -17,7 +17,7 @@
 
 package translations.ltl2ldba;
 
-import ltl.*;
+import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.predicates.XFragmentPredicate;
@@ -29,7 +29,10 @@ import translations.Optimisation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.Objects;
 
 public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance> {
 

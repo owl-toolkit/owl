@@ -24,12 +24,12 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
-import omega_automaton.output.HOAPrintable;
-import translations.Optimisation;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
+import omega_automaton.output.HOAPrintable;
+import translations.Optimisation;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;

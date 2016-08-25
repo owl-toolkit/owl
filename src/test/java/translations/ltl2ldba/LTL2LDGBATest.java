@@ -19,13 +19,13 @@ package translations.ltl2ldba;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import jhoafparser.consumer.*;
+import jhoafparser.consumer.HOAConsumerException;
 import ltl.parser.Parser;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.output.HOAPrintable;
-import translations.ldba.LimitDeterministicAutomaton;
 import org.junit.Test;
 import translations.Optimisation;
+import translations.ldba.LimitDeterministicAutomaton;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

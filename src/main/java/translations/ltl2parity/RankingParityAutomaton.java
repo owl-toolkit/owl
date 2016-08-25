@@ -18,18 +18,14 @@
 package translations.ltl2parity;
 
 import com.google.common.collect.ImmutableList;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
-import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSet;
-import translations.ldba.LimitDeterministicAutomaton;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.RecurringObligations;
@@ -37,9 +33,6 @@ import translations.ltl2ldba.RecurringObligations;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 

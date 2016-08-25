@@ -17,11 +17,11 @@
 
 package translations.nba2ldba;
 
+import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.StoredBuchiAutomaton;
-import translations.ldba.AbstractInitialComponent;
-import omega_automaton.AutomatonState;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import translations.ldba.AbstractInitialComponent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

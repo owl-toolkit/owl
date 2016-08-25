@@ -23,12 +23,19 @@ import ltl.parser.Parser;
 import omega_automaton.Automaton;
 import omega_automaton.acceptance.BuchiAcceptance;
 import translations.Optimisation;
-import translations.ltl2ldba.*;
 import translations.ldba.LimitDeterministicAutomaton;
+import translations.ltl2ldba.AcceptingComponent;
+import translations.ltl2ldba.InitialComponent;
+import translations.ltl2ldba.LTL2LDBA;
 
 import java.io.StringReader;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 

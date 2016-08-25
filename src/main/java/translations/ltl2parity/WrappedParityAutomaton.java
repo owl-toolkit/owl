@@ -21,7 +21,6 @@ import omega_automaton.acceptance.ParityAcceptance;
 import translations.ltl2ldba.AcceptingComponent;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.State> {
 

@@ -17,7 +17,6 @@
 
 package translations.ltl2parity;
 
-import omega_automaton.Automaton;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import translations.AbstractSizeRegressionTest;

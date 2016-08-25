@@ -17,20 +17,23 @@
 
 package translations.ltl2ldba;
 
-import ltl.Literal;
-import ltl.equivalence.EquivalenceClassFactory;
-import omega_automaton.*;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import translations.Optimisation;
-import translations.ldba.AbstractInitialComponent;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 import ltl.Formula;
 import ltl.GOperator;
 import ltl.equivalence.EquivalenceClass;
+import ltl.equivalence.EquivalenceClassFactory;
+import omega_automaton.AutomatonState;
+import omega_automaton.Edge;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.collections.valuationset.ValuationSetFactory;
+import translations.Optimisation;
+import translations.ldba.AbstractInitialComponent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 
 public class InitialComponent<S extends AutomatonState<S>> extends AbstractInitialComponent<InitialComponent.State, S> {
 

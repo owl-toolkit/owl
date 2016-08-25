@@ -18,26 +18,28 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Iterables;
-import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.visitors.AlphabetVisitor;
-import ltl.parser.ParseException;
-import ltl.parser.Parser;
-import translations.Optimisation;
-import omega_automaton.collections.Collections3;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.valuationset.BDDValuationSetFactory;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 import ltl.Formula;
 import ltl.GOperator;
 import ltl.equivalence.BDDEquivalenceClassFactory;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
+import ltl.parser.ParseException;
+import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
+import ltl.visitors.AlphabetVisitor;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.collections.Collections3;
+import omega_automaton.collections.valuationset.BDDValuationSetFactory;
+import omega_automaton.collections.valuationset.ValuationSetFactory;
+import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.StringReader;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Function;
 
 public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>> {

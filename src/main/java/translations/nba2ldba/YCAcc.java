@@ -23,7 +23,6 @@ import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
 import javax.annotation.Nonnull;

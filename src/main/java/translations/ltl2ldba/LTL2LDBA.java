@@ -18,7 +18,6 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Iterables;
-import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Formula;
 import ltl.GOperator;
@@ -30,7 +29,6 @@ import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.AlphabetVisitor;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
