@@ -15,56 +15,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package translations.ltl2ldba;
+package translations.ltl2parity;
 
-import omega_automaton.acceptance.BuchiAcceptance;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import translations.AbstractSizeRegressionTest;
-import translations.ldba.LimitDeterministicAutomaton;
 
 @RunWith(Parameterized.class)
-public class LTL2LDBATest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent>> {
+public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityAutomaton<?>> {
 
-    public LTL2LDBATest(FormulaGroup selectedClass) {
-        super(selectedClass, new LTL2LDBA());
+    public ParitySizeRegressionTest(FormulaGroup selectedClass) {
+        super(selectedClass, new LTL2Parity());
     }
 
     @Override
-    protected int getSize(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> automaton) {
+    protected int getSize(ParityAutomaton<?> automaton) {
         return automaton.size();
     }
 
     @Override
-    protected int getAccSize(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> automaton) {
-        return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
+    protected int getAccSize(ParityAutomaton<?> automaton) {
+        return automaton.getAcceptance().getAcceptanceSets();
     }
 
     @Override
     protected int[] getExpectedSize(FormulaGroup t) {
         switch (t) {
             case FG:
-                return new int[]{3, 4, 4, 5, 4, 5, 4, 3};
+                return new int[]{1, 2, 2, 4, 2, 2, 2, 2};
 
             case VOLATILE:
-                return new int[]{3, 3, 5, 4};
+                return new int[]{2, 2, 4, 3};
 
             case ROUND_ROBIN:
-                return new int[]{2, 3, 4, 5, 6};
+                return new int[]{1, 2, 3, 4, 5};
 
             case REACH:
-            case CONJUNCTION:
+            case DISJUNCTION:
                 return new int[]{2};
 
             case IMMEDIATE:
-
+            case CONJUNCTION:
                 return new int[]{1};
 
-            case DISJUNCTION:
-                return new int[]{3};
-
             case MIXED:
-                return new int[]{3, 4, 5, 7, 8, 4, 13 };
+                return new int[]{2, 4, 3, 4, 5, 5, 4};
 
             default:
                 return new int[0];
@@ -73,6 +68,27 @@ public class LTL2LDBATest extends AbstractSizeRegressionTest<LimitDeterministicA
 
     @Override
     protected int[] getExpectedAccSize(FormulaGroup t) {
-        return new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        switch (t) {
+            case VOLATILE:
+                return new int[]{2, 2, 2, 2};
+
+            case ROUND_ROBIN:
+                return new int[]{2, 2, 2, 2, 2};
+
+            case REACH:
+            case IMMEDIATE:
+            case CONJUNCTION:
+            case DISJUNCTION:
+                return new int[]{2};
+
+            case FG:
+                return new int[]{4, 4, 4, 4, 3, 4, 4, 5};
+
+            case MIXED:
+                return new int[]{4, 3, 2, 3, 4, 4, 5};
+
+            default:
+                return new int[0];
+        }
     }
 }
