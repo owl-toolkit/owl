@@ -54,10 +54,13 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
                 "(G F a) -> ((G F b) & (G F c))",
                 "((G F a) & (G F b)) -> (G F c)",
                 "((G F a) & (G F b)) -> ((G F c) & (G F d))",
-                "(G F a) -> (G a) & (G F b)",
-                "!((G F a) -> (G a) & (G F b))",
                 "((G F a)) -> ((G F a) & (G F b))",
                 "!(((G F a)) -> ((G F a) & (G F b)))"
+        });
+
+        FORMULA_GROUP_MAP.put(FormulaGroup.FG_UNSTABLE, new String[]{
+                "(G F a) -> (G a) & (G F b)",
+                "!((G F a) -> (G a) & (G F b))",
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.ROUND_ROBIN, new String[]{
@@ -69,19 +72,23 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.CONJUNCTION, new String[]{
+                "G a & G b",
                 "(F G a) & (F G b)"
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.DISJUNCTION, new String[]{
+                "G a | G b",
                 "(F G a) | (F G b)"
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.REACH, new String[]{
-                "F (a | b)"
+                "F (a | b)",
+                "X a"
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.IMMEDIATE, new String[]{
-                "G a"
+                "G a",
+                "X X G a"
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.MIXED, new String[]{
@@ -95,11 +102,11 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
         });
     }
 
-    protected enum FormulaGroup {VOLATILE, FG, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED};
+    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED};
 
     @Parameterized.Parameters(name = "Group: {0}")
     public static Iterable<? extends Object> data() {
-        return EnumSet.complementOf(EnumSet.of(FormulaGroup.FG));
+        return EnumSet.complementOf(EnumSet.of(FormulaGroup.FG_UNSTABLE));
     }
 
     private final Function<Formula, T> translator;

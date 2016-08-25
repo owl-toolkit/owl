@@ -75,47 +75,11 @@ public class LTL2LDGBATest {
         String ltl = "(G F a) | (G ((b | X ! a) & ((! b | X a))))";
         testOutput(ltl, 6);
     }
-
-    @Test
-    public void testToHOA3() throws Exception {
-        String ltl = "G F a";
-        testOutput(ltl, 1);
-    }
-
-    @Test
-    public void testToHOA4() throws Exception {
-        String ltl = "G a & F G F b";
-        testOutput(ltl, 1);
-    }
-
-    @Test
-    public void testToHOA5() throws Exception {
-        String ltl = "G a | F G F b";
-        testOutput(ltl, 3);
-    }
-
+    
     @Test
     public void testToHOA342() throws Exception {
         String ltl = "(F p) U (G q)";
         testOutput(ltl, 3);
-    }
-
-    @Test
-    public void testDelayedJump() throws Exception {
-        String ltl = "X a";
-        testOutput(ltl, 3);
-        testOutput(ltl, EnumSet.noneOf(Optimisation.class), 3);
-
-        String ltl2 = "X X G b";
-        testOutput(ltl2, 3);
-        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 4);
-    }
-
-    @Test
-    public void testOrBreakUp() throws Exception {
-        String ltl = "G a | G b";
-        testOutput(ltl, 3);
-        testOutput(ltl, EnumSet.noneOf(Optimisation.class), 6);
     }
 
     @Test
@@ -216,8 +180,7 @@ public class LTL2LDGBATest {
 
     @Test
     public void testRelease2() throws Exception {
-        String ltl = "((G a) U b)";
-        ltl = "((G a & F b) | b)";
+        String ltl = "((G a & F b) | b)";
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         testOutput(ltl, opts, 4);
     }
@@ -313,16 +276,16 @@ public class LTL2LDGBATest {
         testOutput(ltl, 4, testSCCHOA);
     }
 
-    //@Test
+    @Test
     public void testAcceptanceSetSize() throws Exception {
         String ltl = "G ((p1 & p2 & (X(((p1)) | (p2)))) | G(! p2))";
-        testOutput(ltl, 6);
+        testOutput(ltl, 5);
 
         String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
-        testOutput(ltl2, 4); // was 3
+        testOutput(ltl2, 3);
 
         String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & ((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-        testOutput(ltl3, 4);
+        testOutput(ltl3, 3);
     }
 
     @Test

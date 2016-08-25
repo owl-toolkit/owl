@@ -44,7 +44,7 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
     protected int[] getExpectedSize(FormulaGroup t) {
         switch (t) {
             case FG:
-                return new int[]{3, 4, 4, 5, 4, 5, 4, 3};
+                return new int[]{3, 3, 4, 4, 3, 3};
 
             case VOLATILE:
                 return new int[]{3, 3, 5, 4};
@@ -53,15 +53,16 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
                 return new int[]{2, 3, 4, 5, 6};
 
             case REACH:
+                return new int[]{2, 3};
+
             case CONJUNCTION:
-                return new int[]{2};
+                return new int[]{1, 2};
 
             case IMMEDIATE:
-
-                return new int[]{1};
+                return new int[]{1, 3};
 
             case DISJUNCTION:
-                return new int[]{3};
+                return new int[]{3, 3};
 
             case MIXED:
                 return new int[]{3, 4, 5, 7, 8, 4, 11 };
@@ -73,6 +74,12 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
 
     @Override
     protected int[] getExpectedAccSize(FormulaGroup t) {
-        return new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        switch (t) {
+            case FG:
+                return new int[]{1, 2, 1, 2, 2, 1};
+
+            default:
+                return new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        }
     }
 }
