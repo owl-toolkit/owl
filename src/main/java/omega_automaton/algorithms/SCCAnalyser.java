@@ -19,7 +19,6 @@ package omega_automaton.algorithms;
 
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.collections.Collections3;
 import omega_automaton.collections.TarjanStack;
 import omega_automaton.collections.TranSet;
 
@@ -89,7 +88,9 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         Set<S> notYetProcessed = new HashSet<>(allowedStates);
 
         while (!notYetProcessed.isEmpty()) {
-            S state = Collections3.removeElement(notYetProcessed);
+            Iterator<S> iter = notYetProcessed.iterator();
+            S state = iter.next();
+            iter.remove();
             stack.push(state);
             resultStates.addAll(SCCsStatesRecursively());
             resultStates.forEach(notYetProcessed::removeAll);

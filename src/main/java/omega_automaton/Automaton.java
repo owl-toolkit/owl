@@ -86,17 +86,20 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             return;
         }
 
-        Set<S> workSet = Sets.newHashSet(initialState);
-        atomicSize.getAndIncrement();
+        Collection<S> seenStates = new HashSet<>(transitions.keySet());
+        Queue<S> workDeque = new ArrayDeque<>();
+        workDeque.add(initialState);
 
-        while (!workSet.isEmpty()) {
-            S current = Collections3.removeElement(workSet);
+        seenStates.add(initialState);
+        atomicSize.set(seenStates.size());
+
+        while (!workDeque.isEmpty()) {
+            S current = workDeque.remove();
 
             for (Edge<S> successor : getSuccessors(current).keySet()) {
-                if (!transitions.containsKey(successor.successor)) {
-                    if (workSet.add(successor.successor)) {
-                        atomicSize.getAndIncrement();
-                    }
+                if (seenStates.add(successor.successor)) {
+                    workDeque.add(successor.successor);
+                    atomicSize.getAndIncrement();
                 }
             }
 

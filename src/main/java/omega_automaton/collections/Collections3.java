@@ -52,26 +52,6 @@ public class Collections3 {
         return Iterables.get(iterable, 0);
     }
 
-    /**
-     * Remove an arbitrary element from an {@code Iterable}.
-     *
-     * @param iterable
-     * @param <E>
-     * @return
-     * @throws NoSuchElementException The methods throws an {@code NoSuchElementException} if iterable is either null
-     *                                or cannot provide an element.
-     */
-    public static <E> E removeElement(@Nullable Iterable<E> iterable) {
-        if (iterable == null) {
-            throw new NoSuchElementException();
-        }
-
-        Iterator<E> iter = iterable.iterator();
-        E element = iter.next();
-        iter.remove();
-        return element;
-    }
-
     @Nullable
     public static List<Integer> toList(BitSet bs) {
         if (bs == null || bs.isEmpty()) {
