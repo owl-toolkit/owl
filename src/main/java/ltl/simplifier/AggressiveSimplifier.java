@@ -157,8 +157,7 @@ class AggressiveSimplifier extends ModalSimplifier {
                         return true;
                     }
 
-                    // TODO @ Christopher: Remove this work-around.
-                    if (form.accept(imp, form2.not().accept(new RestrictToFGXU()))) {
+                    if (form.accept(imp, form2.not())) {
                         set.clear();
                         set.add(BooleanConstant.FALSE);
                         return true;
@@ -197,8 +196,7 @@ class AggressiveSimplifier extends ModalSimplifier {
                         return true;
                     }
 
-                    // TODO @ Christopher: Remove this work-around.
-                    if (form.not().accept(new RestrictToFGXU()).accept(imp, form2)) {
+                    if (form.not().accept(imp, form2)) {
                         set.clear();
                         set.add(BooleanConstant.TRUE);
                         return true;
