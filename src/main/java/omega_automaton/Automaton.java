@@ -150,6 +150,32 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return true;
     }
 
+    public void complete() {
+        S trapState = generateRejectingTrap();
+        Edge<S> rejectingEdge = generateRejectingEdge(trapState);
+        boolean usedTrapState = false;
+
+        // Add missing edges to trap state.
+        for (Map<Edge<S>, ValuationSet> successors : transitions.values()) {
+            ValuationSet set = valuationSetFactory.createEmptyValuationSet();
+            successors.values().forEach(set::addAll);
+            ValuationSet complementSet = set.complement();
+
+            if (!complementSet.isEmpty()) {
+                successors.put(rejectingEdge, complementSet);
+                usedTrapState = true;
+            }
+
+            set.free();
+            complementSet.free();
+        }
+
+        // Add trap state to the transitions table, only if it was used.
+        if (usedTrapState) {
+            transitions.put(trapState, Collections.singletonMap(rejectingEdge, valuationSetFactory.createUniverseValuationSet()));
+        }
+    }
+    
     @Nullable
     public Edge<S> getSuccessor(S state, BitSet valuation) {
         for (Map.Entry<Edge<S>, ValuationSet> transition : getSuccessors(state).entrySet()) {
@@ -248,6 +274,16 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     @Nullable
     protected S generateInitialState() {
         return null;
+    }
+
+    @Nonnull
+    protected S generateRejectingTrap() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nonnull
+    protected Edge<S> generateRejectingEdge(S successor) {
+        throw new UnsupportedOperationException();
     }
 
     /**
