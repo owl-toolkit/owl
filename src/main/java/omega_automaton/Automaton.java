@@ -18,6 +18,8 @@
 package omega_automaton;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.Sets;
+import jhoafparser.ast.Atom;
 import jhoafparser.consumer.HOAConsumer;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
@@ -26,8 +28,11 @@ import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.HOAPrintable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
@@ -36,13 +41,31 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     protected S initialState;
     protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
     protected Acc acceptance;
-
     protected final ValuationSetFactory valuationSetFactory;
 
+    private final AtomicInteger atomicSize;
+
     protected Automaton(Acc acceptance, ValuationSetFactory factory) {
-        transitions = new HashMap<>();
-        valuationSetFactory = factory;
+        this(acceptance, factory, new AtomicInteger(0));
+    }
+
+    protected Automaton(Acc acceptance, ValuationSetFactory factory, AtomicInteger integer) {
+        this(new HashMap<>(), acceptance, factory, integer);
+    }
+
+    protected Automaton(Automaton<S, ?> automaton, Acc acceptance) {
+        this(automaton.valuationSetFactory, automaton.transitions, acceptance);
+    }
+
+    protected Automaton(ValuationSetFactory valuationSetFactory, Map<S, Map<Edge<S>, ValuationSet>> transitions, Acc acceptance) {
+        this(transitions, acceptance, valuationSetFactory, new AtomicInteger());
+    }
+
+    private Automaton(Map<S, Map<Edge<S>, ValuationSet>> transitions, Acc acceptance, ValuationSetFactory valuationSetFactory, AtomicInteger atomicSize) {
+        this.transitions = transitions;
         this.acceptance = acceptance;
+        this.valuationSetFactory = valuationSetFactory;
+        this.atomicSize = atomicSize;
     }
 
     public void generate() {
@@ -59,18 +82,28 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             return;
         }
 
-        Set<S> workSet = new HashSet<>();
-        workSet.add(initialState);
+        Set<S> workSet = Sets.newHashSet(initialState);
+        atomicSize.getAndIncrement();
 
         while (!workSet.isEmpty()) {
             S current = Collections3.removeElement(workSet);
 
             for (Edge<S> successor : getSuccessors(current).keySet()) {
                 if (!transitions.containsKey(successor.successor)) {
-                    workSet.add(successor.successor);
+                    if (workSet.add(successor.successor)) {
+                        atomicSize.getAndIncrement();
+                    }
                 }
             }
+
+            // Generating the automaton is a long-running task. If the thread gets interrupted, we just cancel everything.
+            // Warning: All data structures are now inconsistent!
+            if (Thread.interrupted()) {
+                throw new CancellationException();
+            }
         }
+
+        atomicSize.set(size());
     }
 
     public boolean hasSuccessors(S state) {
@@ -101,7 +134,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return getStates().stream().allMatch(this::isDeterministic);
     }
 
-    public boolean isDeterministic(S state) {
+    private boolean isDeterministic(S state) {
         ValuationSet valuationSet = valuationSetFactory.createEmptyValuationSet();
 
         for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
@@ -257,7 +290,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         hoa.done();
     }
 
-    public void toHOABody(HOAConsumerExtended hoa) {
+    public final void toHOABody(HOAConsumerExtended hoa) {
         for (S s : getStates()) {
             hoa.addState(s);
             toHOABodyEdge(s, hoa);
@@ -272,19 +305,20 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * @param hoa
      */
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
-        getSuccessors(state).forEach((k, v) -> hoa.addEdge(v, k.successor, k.acceptance));
+        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.successor, edge.acceptance));
     }
 
     public void free() {
         initialState = null;
-        acceptance = null;
 
-        transitions.forEach((k, v) -> {
-            k.free();
-            v.forEach((e, val) -> {
-                e.successor.free();
-                val.free();
+        transitions.forEach((key, value) -> {
+            key.free();
+            value.forEach((key2, value2) -> {
+                key2.successor.free();
+                value2.free();
             });
         });
+
+        transitions.clear();
     }
 }
