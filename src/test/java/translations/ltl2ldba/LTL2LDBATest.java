@@ -64,7 +64,7 @@ public class LTL2LDBATest extends AbstractSizeRegressionTest<LimitDeterministicA
                 return new int[]{3};
 
             case MIXED:
-                return new int[]{3, 4, 5, 7, 8, 4, 14 };
+                return new int[]{3, 4, 5, 7, 8, 4, 13 };
 
             default:
                 return new int[0];

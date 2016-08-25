@@ -42,7 +42,7 @@ public class LTL2ParityTest extends AbstractSizeRegressionTest<ParityAutomaton<?
     protected int[] getExpectedSize(FormulaGroup t) {
         switch (t) {
             case FG:
-                return new int[]{1, 2, 2, 4, 3, 2, 2, 2};
+                return new int[]{1, 2, 2, 4, 2, 2, 2, 2};
 
             case VOLATILE:
                 return new int[]{2, 2, 4, 3};
@@ -59,7 +59,7 @@ public class LTL2ParityTest extends AbstractSizeRegressionTest<ParityAutomaton<?
                 return new int[]{1};
 
             case MIXED:
-                return new int[]{2, 4, 4, 4, 5, 3, 4};
+                return new int[]{2, 4, 3, 4, 5, 5, 4};
 
             default:
                 return new int[0];
@@ -85,7 +85,7 @@ public class LTL2ParityTest extends AbstractSizeRegressionTest<ParityAutomaton<?
                 return new int[]{4, 4, 4, 4, 3, 4, 4, 5};
 
             case MIXED:
-                return new int[]{4, 3, 2, 3, 4, 3, 5};
+                return new int[]{4, 3, 2, 3, 4, 4, 5};
 
             default:
                 return new int[0];
