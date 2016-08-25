@@ -43,6 +43,12 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
     }
 
+    @Nonnull
+    @Override
+    public State generateRejectingTrap() {
+        return new State(0, null, null, null, null);
+    }
+
     @Override
     State createState(EquivalenceClass remainder, RecurringObligations obligations) {
         EquivalenceClass xFragment = obligations.xFragment;

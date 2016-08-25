@@ -22,7 +22,6 @@ import ltl.Formula;
 import ltl.parser.Parser;
 import omega_automaton.Automaton;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.acceptance.ParityAcceptance;
 import translations.Optimisation;
 import translations.ltl2ldba.*;
 import translations.ldba.LimitDeterministicAutomaton;
@@ -30,10 +29,13 @@ import translations.ldba.LimitDeterministicAutomaton;
 import java.io.StringReader;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
+public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
+    // Polling time in ms.
+    private static final int MILLIS = 33;
     private final LTL2LDBA translator;
 
     public LTL2Parity() {
@@ -44,14 +46,19 @@ public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
     }
 
     @Override
-    public Automaton<?, ?> apply(Formula formula) {
+    public ParityAutomaton<?> apply(Formula formula) {
+        return apply(formula, new AtomicInteger());
+    }
+
+
+    private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translator.apply(formula);
 
         if (ldba.isDeterministic()) {
-            return ldba.getAcceptingComponent();
+            return new WrappedParityAutomaton(ldba.getAcceptingComponent());
         }
 
-        ParityAutomaton parity = new ParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory());
+        RankingParityAutomaton parity = new RankingParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory(), size);
         parity.generate();
 
         return parity;
@@ -60,41 +67,62 @@ public class LTL2Parity implements Function<Formula, Automaton<?, ?>> {
     public static void main(String... args) throws Exception {
         Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
 
-        boolean parallelMode = argsDeque.remove("--parallel");
+        boolean parallelMode = !argsDeque.remove("--parallel");
 
-        Function<Formula, Automaton<?, ?>> translation = new LTL2Parity();
+        LTL2Parity translation = new LTL2Parity();
 
         if (argsDeque.isEmpty()) {
-            argsDeque.add("G F a");
+            argsDeque.add("(F((G(b)) | (G(F(a))))) & (F((G(F(c))) | (G(d)))) & (F((G(F(b))) | (G(c)))) & (F((G(F(d))) | (G(h))))");
         }
 
         Parser parser = new Parser(new StringReader(argsDeque.getFirst()));
         Formula formula = parser.formula();
-        Automaton<?, ?> automaton;
+        Automaton<?, ?> automaton = null;
 
         if (parallelMode) {
             ExecutorService executor = Executors.newFixedThreadPool(2);
 
-            Future<Automaton<?, ?>> automatonFuture = executor.submit(() -> translation.apply(formula));
-            Future<Automaton<?, ?>> complementFuture = executor.submit(() -> translation.apply(formula.not()));
+            AtomicInteger automatonCounter = new AtomicInteger();
+            AtomicInteger complementCounter = new AtomicInteger();
 
-            automaton = automatonFuture.get();
-            Automaton<?, ?> complement = complementFuture.get();
+            Future<ParityAutomaton<?>> automatonFuture = executor.submit(() -> translation.apply(formula, automatonCounter));
+            Future<ParityAutomaton<?>> complementFuture = executor.submit(() -> translation.apply(formula.not(), complementCounter));
 
-            executor.shutdownNow();
+            ParityAutomaton<?> complement = null;
 
-            int size = automaton.size();
-            int complementSize = complement.size();
+            while (true) {
+                // Get new results.
+                if (automaton == null && automatonFuture.isDone()) {
+                    automaton = automatonFuture.get();
+                }
 
-            // The complement is smaller, lets take that one.
-            if (complement instanceof ParityAutomaton && complementSize < size) {
-                System.err.println("Switching to complement.");
-                ParityAutomaton complementParity = ((ParityAutomaton) complement);
-                complementParity.complement();
-                System.err.println("Automaton Size: " + size);
-                System.err.println("Complement Size: " + complementParity.size());
-                automaton = complementParity;
+                if (complement == null && complementFuture.isDone()) {
+                    complement = complementFuture.get();
+                }
+
+                int size = automatonCounter.get();
+                int complementSize = complementCounter.get();
+
+                if (automaton != null && size <= complementSize) {
+                    complementFuture.cancel(true);
+                    break;
+                }
+
+                if (complement != null && complementSize < size) {
+                    automatonFuture.cancel(true);
+                    complement.complement();
+                    automaton = complement;
+                    break;
+                }
+
+                try {
+                    Thread.sleep(MILLIS);
+                } catch (InterruptedException ex) {
+                    // Let's continue checking stuff...
+                }
             }
+
+            executor.shutdown();
         } else {
             automaton = translation.apply(formula);
         }

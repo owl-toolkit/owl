@@ -27,7 +27,7 @@ import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2parity.LTL2Parity;
-import translations.ltl2parity.ParityAutomaton;
+import translations.ltl2parity.RankingParityAutomaton;
 import translations.ltl2ldba.GeneralisedAcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.LTL2LDGBA;
@@ -60,7 +60,7 @@ public class TLSF2Arena {
         if (ldba.isDeterministic()) {
             bit.writeBinary(ldba.getAcceptingComponent(), fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
         } else {
-            ParityAutomaton parity = (ParityAutomaton) (new LTL2Parity()).apply(tlsf.toFormula());
+            RankingParityAutomaton parity = (RankingParityAutomaton) (new LTL2Parity()).apply(tlsf.toFormula());
             System.out.print(parity);
             bit.writeBinary(parity, fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
             bit.readBinary(nodeFile, edgeFile);

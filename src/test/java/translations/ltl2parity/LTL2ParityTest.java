@@ -23,19 +23,19 @@ import org.junit.runners.Parameterized;
 import translations.AbstractSizeRegressionTest;
 
 @RunWith(Parameterized.class)
-public class LTL2ParityTest extends AbstractSizeRegressionTest<Automaton<?, ?>> {
+public class LTL2ParityTest extends AbstractSizeRegressionTest<ParityAutomaton<?>> {
 
     public LTL2ParityTest(FormulaGroup selectedClass) {
         super(selectedClass, new LTL2Parity());
     }
 
     @Override
-    protected int getSize(Automaton<?, ?> automaton) {
+    protected int getSize(ParityAutomaton<?> automaton) {
         return automaton.size();
     }
 
     @Override
-    protected int getAccSize(Automaton<?, ?> automaton) {
+    protected int getAccSize(ParityAutomaton<?> automaton) {
         return automaton.getAcceptance().getAcceptanceSets();
     }
 
