@@ -67,7 +67,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
     public static void main(String... args) throws Exception {
         Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
 
-        boolean parallelMode = !argsDeque.remove("--parallel");
+        boolean parallelMode = argsDeque.remove("--parallel");
 
         LTL2Parity translation = new LTL2Parity();
 
