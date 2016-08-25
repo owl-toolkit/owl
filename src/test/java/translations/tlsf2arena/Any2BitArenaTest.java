@@ -19,36 +19,22 @@ package translations.tlsf2arena;
 
 import ltl.Formula;
 import ltl.parser.Parser;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import translations.Optimisation;
-import translations.ldba.LimitDeterministicAutomaton;
-import translations.ltl2ldba.GeneralisedAcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDGBA;
+import translations.ltl2parity.LTL2Parity;
 
 import java.io.File;
 import java.util.BitSet;
-import java.util.EnumSet;
 
-/**
- * Created by sickert on 14/06/16.
- */
 public class Any2BitArenaTest {
+
+    private final static LTL2Parity translation = new LTL2Parity();
 
     public void testWriteBinarySimpSystem() throws Exception {
         Formula ltl = Parser.formula("G (!a | b)");
         BitSet bs = new BitSet();
         bs.set(0);
 
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(ltl);
-
         Any2BitArena writer = new Any2BitArena();
-        System.out.println(ldba.toString());
-        writer.writeBinary(ldba.getAcceptingComponent(), Any2BitArena.Player.System, bs, new File("G(a->b)_sys.nodes"), new File("G(a->b)_sys.edges"));
+        writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.System, bs, new File("G(a->b)_sys.nodes"), new File("G(a->b)_sys.edges"));
     }
 
     public void testWriteBinarySimpEnv() throws Exception {
@@ -56,15 +42,8 @@ public class Any2BitArenaTest {
         BitSet bs = new BitSet();
         bs.set(0);
 
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(ltl);
-
         Any2BitArena writer = new Any2BitArena();
-        System.out.println(ldba.toString());
-        writer.writeBinary(ldba.getAcceptingComponent(), Any2BitArena.Player.Environment, bs, new File("G(a->b)_env.nodes"), new File("G(a->b)_env.edges"));
+        writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.Environment, bs, new File("G(a->b)_env.nodes"), new File("G(a->b)_env.edges"));
     }
 
     public void testWriteBinarySystem() throws Exception {
@@ -72,15 +51,8 @@ public class Any2BitArenaTest {
         BitSet bs = new BitSet();
         bs.set(0);
 
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(ltl);
-
         Any2BitArena writer = new Any2BitArena();
-        System.out.println(ldba.toString());
-        writer.writeBinary(ldba.getAcceptingComponent(), Any2BitArena.Player.System, bs, new File("G(a<->b)_sys.nodes"), new File("G(a<->b)_sys.edges"));
+        writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.System, bs, new File("G(a<->b)_sys.nodes"), new File("G(a<->b)_sys.edges"));
     }
 
     public void testWriteBinaryEnv() throws Exception {
@@ -88,15 +60,8 @@ public class Any2BitArenaTest {
         BitSet bs = new BitSet();
         bs.set(0);
 
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(ltl);
-
         Any2BitArena writer = new Any2BitArena();
-        System.out.println(ldba.toString());
-        writer.writeBinary(ldba.getAcceptingComponent(), Any2BitArena.Player.Environment, bs, new File("G(a<->b)_env.nodes"), new File("G(a<->b)_env.edges"));
+        writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.Environment, bs, new File("G(a<->b)_env.nodes"), new File("G(a<->b)_env.edges"));
     }
 
     public void testWriteBinaryXSystem() throws Exception {
@@ -104,15 +69,8 @@ public class Any2BitArenaTest {
         BitSet bs = new BitSet();
         bs.set(0);
 
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(ltl);
-
         Any2BitArena writer = new Any2BitArena();
-        System.out.println(ldba.toString());
-        writer.writeBinary(ldba.getAcceptingComponent(), Any2BitArena.Player.System, bs, new File("G(a<->Xb)_sys.nodes"), new File("G(a<->Xb)_sys.edges"));
+        writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.System, bs, new File("G(a<->Xb)_sys.nodes"), new File("G(a<->Xb)_sys.edges"));
     }
 
     public void testWriteBinaryXEnv() throws Exception {
@@ -120,14 +78,7 @@ public class Any2BitArenaTest {
         BitSet bs = new BitSet();
         bs.set(0);
 
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(ltl);
-
         Any2BitArena writer = new Any2BitArena();
-        System.out.println(ldba.toString());
-        writer.writeBinary(ldba.getAcceptingComponent(), Any2BitArena.Player.Environment, bs, new File("G(a<->Xb)_env.nodes"), new File("G(a<->Xb)_env.edges"));
+        writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.Environment, bs, new File("G(a<->Xb)_env.nodes"), new File("G(a<->Xb)_env.edges"));
     }
 }

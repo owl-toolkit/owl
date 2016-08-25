@@ -21,20 +21,23 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import omega_automaton.collections.Collections3;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.ParityAcceptance;
+import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
+import translations.ltl2parity.ParityAutomaton;
 
 import java.io.*;
-import java.util.*;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 
 class Any2BitArena {
 
-    private <S extends AutomatonState<S>> void writeState(final DataOutputStream nodeStream, final DataOutputStream edgeStream, final Writer labelStream, final Automaton<S, ?> automaton, final S state) throws IOException {
+    private <S extends AutomatonState<S>> void writeState(final DataOutputStream nodeStream, final DataOutputStream edgeStream, final Writer labelStream, final ParityAutomaton<S> automaton, final S state) throws IOException {
         BitSet fstAlpha = state.getSensitiveAlphabet();
         BitSet sndAlpha = (BitSet) fstAlpha.clone();
 
@@ -65,11 +68,6 @@ class Any2BitArena {
                 // Assign default color, if no color is found.
                 if (color < 0) {
                     color = this.colors;
-                }
-
-                // If automaton has Büchi acceptance, we need to shift the colors (min, odd).
-                else if (automaton.getAcceptance() instanceof BuchiAcceptance) {
-                    color++;
                 }
 
                 Int2ObjectMap<ValuationSet> colorMap = intermediateStates.get(successor);
@@ -173,7 +171,7 @@ class Any2BitArena {
         }
     }
 
-    <S extends AutomatonState<S>> void writeBinary(Automaton<S, ?> automaton, Player firstPlayer, BitSet envAlphabet, File nodeFile, File edgeFile) throws IOException {
+    <S extends AutomatonState<S>> void writeBinary(ParityAutomaton<S> automaton, Player firstPlayer, BitSet envAlphabet, File nodeFile, File edgeFile) throws IOException {
         setUp(automaton, firstPlayer, envAlphabet);
 
         try (DataOutputStream nodeStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(nodeFile)));

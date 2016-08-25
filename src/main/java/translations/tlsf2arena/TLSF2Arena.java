@@ -23,16 +23,13 @@ import jhoafparser.consumer.HOAConsumerException;
 import ltl.*;
 import ltl.parser.Parser;
 import ltl.tlsf.TLSF;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.Optimisation;
-import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2parity.LTL2Parity;
-import translations.ltl2parity.RankingParityAutomaton;
-import translations.ltl2ldba.GeneralisedAcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDGBA;
+import translations.ltl2parity.ParityAutomaton;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.EnumSet;
 
 public class TLSF2Arena {
@@ -48,23 +45,16 @@ public class TLSF2Arena {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> ldba =
-                (new LTL2LDGBA(optimisations)).apply(tlsf.toFormula());
-
         Any2BitArena bit = new Any2BitArena();
         Any2BitArena.Player fstPlayer = tlsf.target().isMealy() ? Any2BitArena.Player.Environment : Any2BitArena.Player.System;
 
         File nodeFile = new File(args[0] + ".arena.nodes");
         File edgeFile = new File(args[0] + ".arena.edges");
 
-        if (ldba.isDeterministic()) {
-            bit.writeBinary(ldba.getAcceptingComponent(), fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
-        } else {
-            RankingParityAutomaton parity = (RankingParityAutomaton) (new LTL2Parity()).apply(tlsf.toFormula());
-            System.out.print(parity);
-            bit.writeBinary(parity, fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
-            bit.readBinary(nodeFile, edgeFile);
-        }
+        ParityAutomaton<?> parity = (new LTL2Parity()).apply(tlsf.toFormula());
+        System.out.print(parity);
+        bit.writeBinary(parity, fstPlayer, tlsf.inputs(), nodeFile, edgeFile);
+        bit.readBinary(nodeFile, edgeFile);
     }
 
     private static Formula getSharedResourceArbiterLTL(int clients) {
