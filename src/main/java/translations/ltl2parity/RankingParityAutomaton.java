@@ -309,16 +309,5 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
             return "{Init=" + initialComponentState + ", AccRanking=" + acceptingComponentRanking + ", volatileIndex=" + volatileIndex + '}';
         }
     }
-
-    @Override
-    public String toString() {
-        try (OutputStream stream = new ByteArrayOutputStream()) {
-            HOAConsumer consumer = (new HOAConsumerPrint(stream));
-            toHOA(consumer, null);
-            return stream.toString();
-        } catch (IOException  ex) {
-            throw new IllegalStateException(ex.toString(), ex);
-        }
-    }
 }
 
