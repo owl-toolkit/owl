@@ -31,11 +31,13 @@ public class SimplifierTest {
     private static final String[] INPUT = new String[]{
             "F (a U b)",
             "F G X a",
+            "F G F b"
     };
 
     private static final String[] EXPECTED = new String[]{
             "F b",
             "F G a",
+            "G F b"
     };
 
     private final Strategy strat = Simplifier.Strategy.AGGRESSIVELY;
