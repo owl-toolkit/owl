@@ -21,6 +21,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.Sets;
 import jhoafparser.ast.Atom;
 import jhoafparser.consumer.HOAConsumer;
+import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
@@ -30,6 +31,9 @@ import omega_automaton.output.HOAPrintable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -170,12 +174,17 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             complementSet.free();
         }
 
+        if (initialState == null || transitions.isEmpty()) {
+            usedTrapState = true;
+            initialState = trapState;
+        }
+
         // Add trap state to the transitions table, only if it was used.
         if (usedTrapState) {
             transitions.put(trapState, Collections.singletonMap(rejectingEdge, valuationSetFactory.createUniverseValuationSet()));
         }
     }
-    
+
     @Nullable
     public Edge<S> getSuccessor(S state, BitSet valuation) {
         for (Map.Entry<Edge<S>, ValuationSet> transition : getSuccessors(state).entrySet()) {
