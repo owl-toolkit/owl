@@ -128,6 +128,14 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
                     Thread.sleep(MILLIS);
                 } catch (InterruptedException ex) {
                     // Let's continue checking stuff...
+                } catch (ExecutionException ex) {
+                    // The translation broke down, it is unsafe to continue...
+                    // In order to immediately shutdown the JVM without using System.exit(), we cancel all running Futures.
+
+                    automatonFuture.cancel(true);
+                    complementFuture.cancel(true);
+
+                    throw ex;
                 }
             }
 
