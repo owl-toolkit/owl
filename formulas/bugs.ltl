@@ -1,3 +1,6 @@
 // This formula only produces an error on the build server and the problem cannot be reproduced locally (!?)
 G((F((f) & (F(a)))) W (d))
 ((G(!(a))) | ((f) & (G((d) M (X(!(e)))))) | ((!(f)) & (F((!(d)) W (X(e)))))) W (F((d) & (F(a)) & ((a) W ((f) | (X(a))))))
+
+// ltlcross cannot handle this...
+G(!a | ((!b | X(G!c | (!d U ((!c & d) | (d & Fe))))) U (d | G(!b | X(G!c | (!d U ((!c & d) | (c & Fe))))))))
