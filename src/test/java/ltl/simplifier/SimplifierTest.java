@@ -31,13 +31,15 @@ public class SimplifierTest {
     private static final String[] INPUT = new String[]{
             "F (a U b)",
             "F G X a",
-            "F G F b"
+            "F G F b",
+            "(a & b) U (c | d)"
     };
 
     private static final String[] EXPECTED = new String[]{
             "F b",
             "F G a",
-            "G F b"
+            "G F b",
+            "((a U c) & (b U c)) | ((a U d) & (b U d))"
     };
 
     private final Strategy strat = Simplifier.Strategy.AGGRESSIVELY;

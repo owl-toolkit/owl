@@ -35,6 +35,12 @@ class ModalSimplifier implements Visitor<Formula> {
             return operand;
         }
 
+        if (operand instanceof ROperator) {
+            ROperator rOperator = (ROperator) operand;
+
+            return new Disjunction(new FOperator(new Conjunction(rOperator.left, rOperator.right)), new FOperator(new GOperator(rOperator.right)));
+        }
+
         return FOperator.create(operand);
     }
 
@@ -44,6 +50,12 @@ class ModalSimplifier implements Visitor<Formula> {
 
         if (operand.isPureUniversal() || operand.isSuspendable()) {
             return operand;
+        }
+
+        if (operand instanceof UOperator) {
+            UOperator uOperator = (UOperator) operand;
+
+            return new Conjunction(new GOperator(new Disjunction(uOperator.left, uOperator.right)), new GOperator(new FOperator(uOperator.right)));
         }
 
         return GOperator.create(operand);
