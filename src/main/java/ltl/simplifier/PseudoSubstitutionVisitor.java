@@ -132,6 +132,15 @@ class PseudoSubstitutionVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(ROperator r) {
+        if (r.equals(toReplace) || (r.left.equals(toReplace) && replacement.value)) {
+            return r.right;
+        }
+
+        return r;
+    }
+
+    @Override
     public Formula visit(XOperator x) {
         if (x.equals(toReplace)) {
             return replacement;
