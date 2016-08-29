@@ -67,3 +67,34 @@ G(Ga | (!a & GXa))
 G((a & (b M !c)) | (!a & (!b W c)))
 G(!a | ((!b | ((c & !d & X((!d & !e) U f)) M !e)) U (e | G(!b | (c & !d & X(!d U f))))))
 G(!a | G(!b | XG!c) | ((!b | Fd | XG(!c | d)) U (d | e)))
+F G (a | X b)
+F G (a & X b)
+F G (a | X b | X X c)
+F G (a & X b & X X c)
+(G F a) -> (G F b)
+(G F a) -> ((G F b) & (G F c))
+((G F a) & (G F b)) -> (G F c)
+((G F a) & (G F b)) -> ((G F c) & (G F d))
+((G F a)) -> ((G F a) & (G F b))
+!(((G F a)) -> ((G F a) & (G F b)))
+(G F a) -> (G a) & (G F b)
+!((G F a) -> (G a) & (G F b))
+F G a
+F G a | F G b
+F G a | F G b | F G c
+F G a | F G b | F G c | F G d
+F G a | F G b | F G c | F G d | F G e
+G a & G b
+(F G a) & (F G b)
+G a | G b
+(F G a) | (F G b)
+X X G a
+(F G a) | ((F G b) & (G X (X c U F d)))
+(G (F (a))) U b
+!((G (F (a))) U b)
+F((a) & ((a) W ((b) & ((b) W (a)))))
+F((a) & ((a) W ((b) & ((c) W (a)))))
+G (s | G (p | (s & F t)))
+! F((a) & ((a) W ((b) & ((c) W (a)))))
+F (a R X b)
+G (a U X b)
