@@ -135,6 +135,10 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
             return g.accept(this, ((UOperator) fo).right) || g.accept(this, new Conjunction(new GOperator(((UOperator) fo).left), new FOperator(((UOperator) fo).right)));
         }
 
+        if (fo instanceof ROperator) {
+            return g.operand.accept(this, ((ROperator) fo).right);
+        }
+
         if (fo instanceof XOperator) {
             return g.accept(this, ((UnaryModalOperator) fo).operand) || g.operand.accept(this, fo);
         }
@@ -193,7 +197,27 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
 
     @Override
     public Boolean visit(ROperator r, Formula fo) {
-        throw new UnsupportedOperationException();
+        if (r.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
+            return Boolean.TRUE;
+        }
+
+        if (fo instanceof ROperator) {
+            return r.left.accept(this, ((ROperator) fo).left) && r.right.accept(this, ((ROperator) fo).right);
+        }
+
+        if (fo instanceof Conjunction) {
+            if (((Conjunction) fo).children.stream().allMatch(ch -> r.accept(this, ch))) {
+                return Boolean.TRUE;
+            }
+        }
+
+        if (fo instanceof Disjunction) {
+            if (((Disjunction) fo).children.stream().anyMatch(ch -> r.accept(this, ch))) {
+                return Boolean.TRUE;
+            }
+        }
+
+        return false;
     }
 
     @Override

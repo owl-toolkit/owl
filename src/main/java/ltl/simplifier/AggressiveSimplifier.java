@@ -114,6 +114,24 @@ class AggressiveSimplifier extends ModalSimplifier {
     }
 
     @Override
+    public Formula visit(ROperator r) {
+        Formula newFormula = super.visit(r);
+        if (newFormula instanceof ROperator) {
+            ROperator newR = (ROperator) newFormula;
+
+            if (newR.right.accept(ImplicationVisitor.getVisitor(), newR.left)) {
+                return newR.right;
+            }
+
+            if (newR.left.isPureEventual()) {
+                return Disjunction.create(Conjunction.create(newR.left, newR.right), GOperator.create(newR.right));
+            }
+            return ROperator.create(newR.left.accept(new PseudoSubstitutionVisitor(newR.right, BooleanConstant.TRUE)), newR.right);
+        }
+        return newFormula;
+    }
+
+    @Override
     public Formula visit(UOperator u) {
         Formula newU = super.visit(u);
 
