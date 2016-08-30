@@ -18,6 +18,8 @@
 package ltl.equivalence;
 
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import ltl.*;
 import ltl.visitors.VoidVisitor;
 
@@ -32,13 +34,14 @@ import java.util.Map;
  */
 class PropositionVisitor implements VoidVisitor {
 
-    private final Map<Formula, Integer> mapping;
+    private final Object2IntMap<Formula> mapping;
 
     private PropositionVisitor() {
-        mapping = new HashMap<>();
+        mapping = new Object2IntOpenHashMap<>();
+        mapping.defaultReturnValue(0);
     }
 
-    static Map<Formula, Integer> extractPropositions(Formula formula) {
+    static Object2IntMap<Formula> extractPropositions(Formula formula) {
         PropositionVisitor visitor = new PropositionVisitor();
         formula.accept(visitor);
         return visitor.mapping;

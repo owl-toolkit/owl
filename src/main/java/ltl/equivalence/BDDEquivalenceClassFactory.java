@@ -19,6 +19,7 @@ package ltl.equivalence;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import jdd.bdd.BDD;
 import ltl.*;
 import ltl.visitors.Visitor;
@@ -31,9 +32,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     private int[] vars;
     private final BDD factory;
-    private final Map<Formula, Integer> mapping;
     private final BDDVisitor visitor;
 
+    private final Object2IntMap<Formula> mapping;
     private final Int2ObjectMap<BDDEquivalenceClass> unfoldCache;
     private final Int2ObjectMap<Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
 
@@ -43,9 +44,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     public BDDEquivalenceClassFactory(Formula formula) {
         mapping = PropositionVisitor.extractPropositions(formula);
 
-        int size = mapping.isEmpty() ? 1 : mapping.size();
+        int size = mapping.size();
 
-        factory = new BDD(64 * size, 1000);
+        factory = new BDD(64 * (size + 1), 1000);
         visitor = new BDDVisitor();
         vars = new int[size];
 
@@ -54,6 +55,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         BitSet alphabet = new BitSet();
 
         for (Map.Entry<Formula, Integer> entry : mapping.entrySet()) {
+
             if (entry.getKey() instanceof Literal) {
                 Literal literal = (Literal) entry.getKey();
                 alphabet.set(literal.getAtom());
@@ -61,17 +63,18 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             }
 
             vars[k] = factory.createVar();
-            entry.setValue(k);
             k++;
+            entry.setValue(k);
         }
 
         for (int atom = alphabet.nextSetBit(0); atom >= 0; atom = alphabet.nextSetBit(atom+1)) {
             vars[k] = factory.createVar();
-            Formula literal = new Literal(atom);
-
-            mapping.put(literal, k);
-            mapping.put(literal.not(), -(k + 1));
             k++;
+
+            Formula literal = new Literal(atom);
+            mapping.put(literal, k);
+            mapping.put(literal.not(), -k);
+
 
             if (atom == Integer.MAX_VALUE) {
                 throw new RuntimeException("Alphabet too large.");
@@ -148,17 +151,19 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 }
             }
 
-            Integer value = mapping.get(formula);
+            int value = mapping.getInt(formula);
 
-            if (value == null) {
+            if (value == 0) {
                 // All literals are already discovered...
                 value = vars.length;
                 vars = Arrays.copyOf(vars, vars.length + 1);
                 vars[value] = factory.createVar();
+                value++;
                 mapping.put(formula, value);
             }
 
-            return value >= 0 ? vars[value] : factory.not(vars[(-value) - 1]);
+            assert value != 0;
+            return value > 0 ? vars[value - 1] : factory.not(vars[(-value) - 1]);
         }
     }
 
