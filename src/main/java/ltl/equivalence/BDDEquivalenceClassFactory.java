@@ -17,6 +17,8 @@
 
 package ltl.equivalence;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jdd.bdd.BDD;
 import ltl.*;
 import ltl.visitors.Visitor;
@@ -30,11 +32,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     private int[] vars;
     private final BDD factory;
     private final Map<Formula, Integer> mapping;
-    private final List<Formula> reverseMapping;
     private final BDDVisitor visitor;
 
-    private final Map<EquivalenceClass, BDDEquivalenceClass> unfoldCache;
-    private final Map<EquivalenceClass, Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
+    private final Int2ObjectMap<BDDEquivalenceClass> unfoldCache;
+    private final Int2ObjectMap<Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
 
     private final EquivalenceClass trueClass;
     private final EquivalenceClass falseClass;
@@ -46,20 +47,39 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         factory = new BDD(64 * size, 1000);
         visitor = new BDDVisitor();
-        reverseMapping = new ArrayList<>(size);
         vars = new int[size];
 
         int k = 0;
 
+        BitSet alphabet = new BitSet();
+
         for (Map.Entry<Formula, Integer> entry : mapping.entrySet()) {
+            if (entry.getKey() instanceof Literal) {
+                Literal literal = (Literal) entry.getKey();
+                alphabet.set(literal.getAtom());
+                continue;
+            }
+
             vars[k] = factory.createVar();
             entry.setValue(k);
-            reverseMapping.add(entry.getKey());
             k++;
         }
 
-        unfoldCache = new HashMap<>();
-        temporalStepCache = new HashMap<>();
+        for (int atom = alphabet.nextSetBit(0); atom >= 0; atom = alphabet.nextSetBit(atom+1)) {
+            vars[k] = factory.createVar();
+            Formula literal = new Literal(atom);
+
+            mapping.put(literal, k);
+            mapping.put(literal.not(), -(k + 1));
+            k++;
+
+            if (atom == Integer.MAX_VALUE) {
+                throw new RuntimeException("Alphabet too large.");
+            }
+        }
+
+        unfoldCache = new Int2ObjectOpenHashMap<>();
+        temporalStepCache = new Int2ObjectOpenHashMap<>();
 
         trueClass = new BDDEquivalenceClass(BooleanConstant.TRUE, BDD.ONE);
         falseClass = new BDDEquivalenceClass(BooleanConstant.FALSE, BDD.ZERO);
@@ -131,14 +151,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             Integer value = mapping.get(formula);
 
             if (value == null) {
+                // All literals are already discovered...
                 value = vars.length;
                 vars = Arrays.copyOf(vars, vars.length + 1);
                 vars[value] = factory.createVar();
                 mapping.put(formula, value);
-                reverseMapping.add(formula);
             }
 
-            return vars[value];
+            return value >= 0 ? vars[value] : factory.not(vars[(-value) - 1]);
         }
     }
 
@@ -179,11 +199,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public EquivalenceClass unfold() {
-            BDDEquivalenceClass result = unfoldCache.get(this);
+            BDDEquivalenceClass result = unfoldCache.get(bdd);
 
             if (result == null) {
                 result = createEquivalenceClass(representative.unfold());
-                unfoldCache.put(this, result);
+                factory.ref(bdd);
+                unfoldCache.put(bdd, result);
             }
 
             return new BDDEquivalenceClass(result.representative, result.bdd);
@@ -196,11 +217,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public EquivalenceClass temporalStep(BitSet valuation) {
-            Map<BitSet, BDDEquivalenceClass> cache = temporalStepCache.get(this);
+            Map<BitSet, BDDEquivalenceClass> cache = temporalStepCache.get(bdd);
 
             if (cache == null) {
                 cache = new HashMap<>();
-                temporalStepCache.put(this, cache);
+                factory.ref(bdd);
+                temporalStepCache.put(bdd, cache);
             }
 
             BDDEquivalenceClass result = cache.get(valuation);
@@ -272,19 +294,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
+        @Deprecated
         public List<Formula> getSupport() {
-            List<Formula> variables = new ArrayList<>();
-            BitSet support = factory.supportAsBitSet(bdd);
-
-            for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
-                if (i == Integer.MAX_VALUE) {
-                    break;
-                }
-
-                variables.add(reverseMapping.get(i));
-            }
-
-            return variables;
+            throw new UnsupportedOperationException();
         }
 
         @Override

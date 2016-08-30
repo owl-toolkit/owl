@@ -116,14 +116,6 @@ public abstract class EquivalenceClassTest {
     }
 
     @Test
-    public void testGetSupport() throws Exception {
-        Formula f = Parser.formula("(F p1) & (!p2 | F p1)");
-        EquivalenceClassFactory factory = setUpFactory(f);
-        EquivalenceClass clazz = factory.createEquivalenceClass(f);
-        assertEquals(Collections.singletonList(Parser.formula("F p1")), clazz.getSupport());
-    }
-
-    @Test
     public void testFrequencyGNotFalse() {
         Formula f = Parser.formula("G { >= 0.4} a");
         EquivalenceClassFactory factory = setUpFactory(f);
