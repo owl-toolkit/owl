@@ -207,15 +207,19 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             return current;
         }
 
+        private EquivalenceClass label = null;
+
         public EquivalenceClass getLabel() {
-            EquivalenceClass label = current.and(xFragment);
+            if (label == null) {
+                label = current.and(xFragment);
 
-            for (EquivalenceClass clazz : next) {
-                label = label.andWith(clazz);
-            }
+                for (EquivalenceClass clazz : next) {
+                    label = label.andWith(clazz);
+                }
 
-            for (EquivalenceClass clazz : obligations.initialStates) {
-                label = label.andWith(clazz);
+                for (EquivalenceClass clazz : obligations.initialStates) {
+                    label = label.andWith(clazz);
+                }
             }
 
             return label;

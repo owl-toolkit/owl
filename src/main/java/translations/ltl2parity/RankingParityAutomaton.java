@@ -273,8 +273,6 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
                         edgeColor = Math.min(edgeColor, 2 * index + 1);
                     }
                 }
-
-                stateLabel.free();
             }
 
             int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, activeVolatileBreakpoint == -1, volatileIndex);
