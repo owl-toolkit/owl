@@ -41,6 +41,8 @@ import java.util.function.Predicate;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
 
+    private static final int CHECK_THROTTLE = 256;
+
     @Nullable
     protected S initialState;
     protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
@@ -93,6 +95,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         seenStates.add(initialState);
         atomicSize.set(seenStates.size());
 
+        int loopCounter = 0;
+
         while (!workDeque.isEmpty()) {
             S current = workDeque.remove();
 
@@ -103,9 +107,11 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
                 }
             }
 
+            loopCounter++;
+
             // Generating the automaton is a long-running task. If the thread gets interrupted, we just cancel everything.
             // Warning: All data structures are now inconsistent!
-            if (Thread.interrupted()) {
+            if (loopCounter % CHECK_THROTTLE == 0 && Thread.interrupted()) {
                 throw new CancellationException();
             }
         }
