@@ -89,7 +89,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         }
 
         Collection<S> seenStates = new HashSet<>(transitions.keySet());
-        Queue<S> workDeque = new ArrayDeque<>();
+        Deque<S> workDeque = new ArrayDeque<>();
         workDeque.add(initialState);
 
         seenStates.add(initialState);
@@ -98,7 +98,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         int loopCounter = 0;
 
         while (!workDeque.isEmpty()) {
-            S current = workDeque.remove();
+            S current = workDeque.removeLast();
 
             for (Edge<S> successor : getSuccessors(current).keySet()) {
                 if (seenStates.add(successor.successor)) {
