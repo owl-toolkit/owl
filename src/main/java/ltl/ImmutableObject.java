@@ -17,6 +17,7 @@
 
 package ltl;
 
+/* Move to separate Package */
 public abstract class ImmutableObject {
 
     private int cachedHashCode;

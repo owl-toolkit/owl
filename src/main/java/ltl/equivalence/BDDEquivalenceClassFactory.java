@@ -54,8 +54,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         BitSet alphabet = new BitSet();
 
-        for (Map.Entry<Formula, Integer> entry : mapping.entrySet()) {
-
+        for (Object2IntMap.Entry<Formula> entry : mapping.object2IntEntrySet()) {
             if (entry.getKey() instanceof Literal) {
                 Literal literal = (Literal) entry.getKey();
                 alphabet.set(literal.getAtom());
@@ -75,11 +74,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             mapping.put(literal, k);
             mapping.put(literal.not(), -k);
 
-
             if (atom == Integer.MAX_VALUE) {
                 throw new RuntimeException("Alphabet too large.");
             }
         }
+
+        // Resize to smaller array.
+        // TODO: Use int[] with stack pointer to reduce number of copies.
+        vars = Arrays.copyOf(vars, k);
 
         unfoldCache = new Int2ObjectOpenHashMap<>();
         temporalStepCache = new Int2ObjectOpenHashMap<>();
@@ -111,6 +113,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         return new BDDEquivalenceClass(formula, formula.accept(visitor));
     }
 
+    // TODO: Port to IntVisitor
     private class BDDVisitor implements Visitor<Integer> {
         Function<Formula, Optional<Boolean>> environment;
 
@@ -162,8 +165,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 mapping.put(formula, value);
             }
 
-            assert value != 0;
-            return value > 0 ? vars[value - 1] : factory.not(vars[(-value) - 1]);
+            // We don't need to increment the ref-counter, since all variables are saturated.
+            return value > 0 ? vars[value - 1] : factory.not(vars[-(value + 1)]);
         }
     }
 
@@ -176,10 +179,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         private BDDEquivalenceClass(Formula representative, int bdd) {
             this.representative = representative;
             this.bdd = bdd;
-
-            if (bdd > BDD.ONE) {
-                factory.ref(bdd);
-            }
         }
 
         @Override
@@ -194,7 +193,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             }
 
             BDDEquivalenceClass that = (BDDEquivalenceClass) equivalenceClass;
-            return factory.or(bdd, that.bdd) == that.bdd;
+            int or = factory.orTo(factory.ref(bdd), that.bdd);
+            factory.deref(or);
+            return or == that.bdd;
         }
 
         @Override
@@ -212,7 +213,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 unfoldCache.put(bdd, result);
             }
 
-            return new BDDEquivalenceClass(result.representative, result.bdd);
+            return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));
         }
 
         @Override
@@ -237,7 +238,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 cache.put(valuation, result);
             }
 
-            return new BDDEquivalenceClass(result.representative, result.bdd);
+            return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));
         }
 
         @Override
@@ -245,7 +246,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                return new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.and(bdd, that.bdd));
+                return new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.andTo(factory.ref(bdd), that.bdd));
             }
 
             throw new UnsupportedOperationException();
@@ -256,8 +257,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                BDDEquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.and(bdd, that.bdd));
-                this.free();
+                BDDEquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.andTo(bdd, that.bdd));
+
+                if (bdd > BDD.ONE) {
+                    bdd = INVALID_BDD;
+                }
+
                 return and;
             }
 
@@ -269,7 +274,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                return new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.or(bdd, that.bdd));
+                return new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.orTo(factory.ref(bdd), that.bdd));
             }
 
             throw new UnsupportedOperationException();
@@ -280,8 +285,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.or(bdd, that.bdd));
-                this.free();
+                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.orTo(bdd, that.bdd));
+
+                if (bdd > BDD.ONE) {
+                    bdd = INVALID_BDD;
+                }
+
                 return or;
             }
 
