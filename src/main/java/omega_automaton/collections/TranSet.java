@@ -25,6 +25,7 @@ import omega_automaton.collections.valuationset.ValuationSetFactory;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Deprecated
 public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
 
     private final Map<S, ValuationSet> backingMap;
