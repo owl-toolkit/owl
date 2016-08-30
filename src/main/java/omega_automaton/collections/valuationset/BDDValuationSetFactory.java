@@ -116,10 +116,11 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         while (base.hasNext()) {
             int i = base.nextInt();
 
+            // Variables are saturated.
             if (set.get(i)) {
-                bdd = factory.and(vars[i], bdd);
+                bdd = factory.and(bdd, vars[i]);
             } else {
-                bdd = factory.and(factory.not(vars[i]), bdd);
+                bdd = factory.and(bdd, factory.not(vars[i]));
             }
         }
 
@@ -137,10 +138,6 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         BDDValuationSet(int index) {
             this.index = index;
-
-            if (index > BDD.ONE) {
-                factory.ref(index);
-            }
         }
 
         @Override
@@ -182,8 +179,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public void add(@Nonnull BitSet set) {
-            int valuation = createBDD(set);
-            index = factory.orTo(index, valuation);
+            index = factory.or(index, createBDD(set));
         }
 
         @Override
@@ -200,8 +196,8 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         public void addAllWith(@Nonnull ValuationSet other) {
             if (other instanceof BDDValuationSet) {
                 BDDValuationSet otherSet = (BDDValuationSet) other;
-                index = factory.orTo(index, otherSet.index);
-                otherSet.free();
+                index = factory.or(index, otherSet.index);
+                otherSet.index = INVALID_BDD;
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -211,7 +207,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         public void removeAll(@Nonnull ValuationSet other) {
             if (other instanceof BDDValuationSet) {
                 BDDValuationSet otherSet = (BDDValuationSet) other;
-                index = factory.andTo(index, factory.not(otherSet.index));
+                index = factory.and(index, factory.not(otherSet.index));
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -229,12 +225,12 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public ValuationSet complement() {
-            return new BDDValuationSet(factory.not(index));
+            return new BDDValuationSet(factory.ref(factory.not(index)));
         }
 
         @Override
         public BDDValuationSet copy() {
-            return new BDDValuationSet(index);
+            return new BDDValuationSet(factory.ref(index));
         }
 
         @Override
@@ -254,7 +250,9 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         public boolean containsAll(ValuationSet other) {
             if (other instanceof BDDValuationSet) {
                 BDDValuationSet otherSet = (BDDValuationSet) other;
-                return factory.or(index, otherSet.index) == index;
+                int or = factory.orTo(factory.ref(index), otherSet.index);
+                factory.deref(or);
+                return or == index;
             }
 
             throw new UnsupportedOperationException();
