@@ -17,11 +17,16 @@
 
 package translations.ltl2parity;
 
+import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumerPrint;
+import ltl.Conjunction;
+import ltl.Disjunction;
 import ltl.Formula;
+import ltl.PropositionalFormula;
 import ltl.parser.ParseException;
 import ltl.parser.Parser;
-import omega_automaton.Automaton;
+import ltl.simplifier.Simplifier;
+import ltl.visitors.Visitor;
 import omega_automaton.acceptance.BuchiAcceptance;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
@@ -29,7 +34,7 @@ import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.LTL2LDBA;
 
-import java.io.StringReader;
+import java.io.*;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -44,61 +49,39 @@ import java.util.function.Function;
 public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
     // Polling time in ms.
-    private static final int MILLIS = 33;
+    private static final int SLEEP_MS = 33;
     private final LTL2LDBA translator;
+    private final EnumSet<Optimisation> optimisations;
 
     public LTL2Parity() {
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-        optimisations.remove(Optimisation.FORCE_JUMPS);
-        translator = new LTL2LDBA(optimisations);
+        this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
+    }
+
+    public LTL2Parity(EnumSet<Optimisation> optimisations) {
+        this.optimisations = EnumSet.copyOf(optimisations);
+        this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
+        this.optimisations.remove(Optimisation.FORCE_JUMPS);
+        translator = new LTL2LDBA(this.optimisations);
     }
 
     @Override
     public ParityAutomaton<?> apply(Formula formula) {
-        return apply(formula, new AtomicInteger());
-    }
-
-
-    private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translator.apply(formula);
-
-        if (ldba.isDeterministic()) {
-            return new WrappedParityAutomaton(ldba.getAcceptingComponent());
+        if (!optimisations.contains(Optimisation.PARALLEL)) {
+            return apply(formula, new AtomicInteger());
         }
 
-        RankingParityAutomaton parity = new RankingParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory(), size);
-        parity.generate();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
 
-        return parity;
-    }
+        AtomicInteger automatonCounter = new AtomicInteger();
+        AtomicInteger complementCounter = new AtomicInteger();
 
-    public static void main(String... args) throws ParseException, ExecutionException {
-        Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
+        Future<ParityAutomaton<?>> automatonFuture = executor.submit(() -> apply(formula, automatonCounter));
+        Future<ParityAutomaton<?>> complementFuture = executor.submit(() -> apply(formula.not(), complementCounter));
 
-        boolean parallelMode = argsDeque.remove("--parallel");
+        ParityAutomaton<?> automaton = null;
+        ParityAutomaton<?> complement = null;
 
-        LTL2Parity translation = new LTL2Parity();
-
-        if (argsDeque.isEmpty()) {
-            argsDeque.add("(F((G(b)) | (G(F(a))))) & (F((G(F(c))) | (G(d)))) & (F((G(F(b))) | (G(c)))) & (F((G(F(d))) | (G(h))))");
-        }
-
-        Parser parser = new Parser(new StringReader(argsDeque.getFirst()));
-        Formula formula = parser.formula();
-        Automaton<?, ?> automaton = null;
-
-        if (parallelMode) {
-            ExecutorService executor = Executors.newFixedThreadPool(2);
-
-            AtomicInteger automatonCounter = new AtomicInteger();
-            AtomicInteger complementCounter = new AtomicInteger();
-
-            Future<ParityAutomaton<?>> automatonFuture = executor.submit(() -> translation.apply(formula, automatonCounter));
-            Future<ParityAutomaton<?>> complementFuture = executor.submit(() -> translation.apply(formula.not(), complementCounter));
-
-            ParityAutomaton<?> complement = null;
-
+        try {
             while (true) {
                 try {
                     // Get new results.
@@ -115,35 +98,126 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
                     if (automaton != null && size <= complementSize) {
                         complementFuture.cancel(true);
-                        break;
+                        return automaton;
                     }
 
                     if (complement != null && complementSize < size) {
                         automatonFuture.cancel(true);
                         complement.complement();
-                        automaton = complement;
-                        break;
+                        return complement;
                     }
 
-                    Thread.sleep(MILLIS);
+                    Thread.sleep(SLEEP_MS);
                 } catch (InterruptedException ex) {
                     // Let's continue checking stuff...
-                } catch (ExecutionException ex) {
-                    // The translation broke down, it is unsafe to continue...
-                    // In order to immediately shutdown the JVM without using System.exit(), we cancel all running Futures.
-
-                    automatonFuture.cancel(true);
-                    complementFuture.cancel(true);
-
-                    throw ex;
                 }
             }
+        } catch (ExecutionException ex) {
+            // The translation broke down, it is unsafe to continue...
+            // In order to immediately shutdown the JVM without using System.exit(), we cancel all running Futures.
 
+            automatonFuture.cancel(true);
+            complementFuture.cancel(true);
             executor.shutdown();
-        } else {
-            automaton = translation.apply(formula);
+            throw new RuntimeException(ex);
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+
+    private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
+        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translator.apply(formula);
+
+        if (ldba.isDeterministic()) {
+            return new WrappedParityAutomaton(ldba.getAcceptingComponent());
         }
 
-        automaton.toHOA(new HOAConsumerPrint(System.out), parser.map);
+        RankingParityAutomaton parity = new RankingParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory(), size);
+        parity.generate();
+
+        return parity;
+    }
+
+    public static void main(String... args) throws ParseException, ExecutionException, FileNotFoundException {
+        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+        Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
+        
+        if (!argsDeque.remove("--parallel")) {
+            optimisations.remove(Optimisation.PARALLEL);
+        }
+
+        boolean tlsfInput = argsDeque.remove("--tlsf");
+        boolean decompose = argsDeque.remove("--decompose");
+        boolean readStdin = argsDeque.isEmpty();
+
+        LTL2Parity translation = new LTL2Parity(optimisations);
+
+        Formula formula;
+        BiMap<String, Integer> mapping;
+
+        if (tlsfInput) {
+            Parser parser = new Parser(System.in);
+            formula = parser.tlsf().toFormula();
+            mapping = parser.map;
+        } else {
+            Parser parser = readStdin ? new Parser(System.in) : new Parser(new StringReader(argsDeque.getFirst()));
+            formula = parser.formula();
+            mapping = parser.map;
+        }
+
+        formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
+
+        if (decompose) {
+            Visitor<Void> visitor = new DecomposeVisitor(translation, mapping);
+            formula.accept(visitor);
+        } else {
+            translation.apply(formula).toHOA(new HOAConsumerPrint(System.out), mapping);
+        }
+    }
+
+    private final static class DecomposeVisitor implements Visitor<Void> {
+
+        private final BiMap<String, Integer> mapping;
+        private final LTL2Parity translation;
+        private int id = 0;
+
+        private DecomposeVisitor(LTL2Parity translation, BiMap<String, Integer> mapping) {
+            this.translation = translation;
+            this.mapping = mapping;
+        }
+
+        @Override
+        public Void defaultAction(Formula formula) {
+            id++;
+
+            System.out.print(" " + id);
+
+            try {
+                translation.apply(formula).toHOA(new HOAConsumerPrint(new FileOutputStream(new File(id + ".hoa"))), mapping);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return null;
+        }
+
+        @Override
+        public Void visit(Conjunction conjunction) {
+            System.out.print("&[ " );
+            conjunction.children.forEach(f -> f.accept(this));
+            System.out.print("]" );
+
+            return null;
+        }
+
+        @Override
+        public Void visit(Disjunction disjunction) {
+            System.out.print("|[ " );
+            disjunction.children.forEach(f -> f.accept(this));
+            System.out.print("]" );
+
+            return null;
+        }
     }
 }
