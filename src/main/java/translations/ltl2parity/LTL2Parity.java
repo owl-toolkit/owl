@@ -142,7 +142,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
     public static void main(String... args) throws ParseException, ExecutionException, FileNotFoundException {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
-        
+
         if (!argsDeque.remove("--parallel")) {
             optimisations.remove(Optimisation.PARALLEL);
         }
