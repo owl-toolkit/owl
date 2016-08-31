@@ -59,31 +59,38 @@ class PropositionVisitor implements VoidVisitor {
 
     @Override
     public void visit(FOperator fOperator) {
-        mapping.put(fOperator, -1);
+        mapping.put(fOperator, 0);
         fOperator.operand.accept(this);
     }
 
     @Override
     public void visit(GOperator gOperator) {
-        mapping.put(gOperator, -1);
+        mapping.put(gOperator, 0);
         gOperator.operand.accept(this);
     }
 
     @Override
     public void visit(Literal literal) {
-        mapping.put(literal, -1);
+        mapping.put(literal, 0);
+    }
+
+    @Override
+    public void visit(ROperator rOperator) {
+        mapping.put(rOperator, 0);
+        rOperator.left.accept(this);
+        rOperator.right.accept(this);
     }
 
     @Override
     public void visit(UOperator uOperator) {
-        mapping.put(uOperator, -1);
+        mapping.put(uOperator, 0);
         uOperator.left.accept(this);
         uOperator.right.accept(this);
     }
 
     @Override
     public void visit(XOperator xOperator) {
-        mapping.put(xOperator, -1);
+        mapping.put(xOperator, 0);
         xOperator.operand.accept(this);
     }
 }
