@@ -64,19 +64,20 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula, equivalenceClassFactory);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
-        InitialComponent initialComponent = null;
+        InitialComponent<AcceptingComponent.State> initialComponent = null;
 
         EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
         if (initialClazz.isFalse() || optimisations.contains(Optimisation.FORCE_JUMPS) && Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
             acceptingComponent.jumpInitial(initialClazz, Collections3.isSingleton(keys) ? Iterables.getOnlyElement(keys) : Collections.emptySet());
         } else {
-            initialComponent = new InitialComponent(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
+            initialComponent = new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }
 
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> det
                 = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
         det.generate();
+        equivalenceClassFactory.flushCaches();
         return det;
     }
 

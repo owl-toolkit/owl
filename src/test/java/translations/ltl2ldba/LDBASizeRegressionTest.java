@@ -65,7 +65,7 @@ public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDete
                 return new int[]{3, 3};
 
             case MIXED:
-                return new int[]{3, 4, 5, 7, 8, 4, 13, 4, 2 };
+                return new int[]{3, 4, 7, 8, 4, 13, 4, 2 };
 
             default:
                 return new int[0];

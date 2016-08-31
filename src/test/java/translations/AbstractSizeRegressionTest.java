@@ -61,6 +61,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
         FORMULA_GROUP_MAP.put(FormulaGroup.FG_UNSTABLE, new String[]{
                 "(G F a) -> (G a) & (G F b)",
                 "!((G F a) -> (G a) & (G F b))",
+                "!((G (F (a))) U b)",
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.ROUND_ROBIN, new String[]{
@@ -94,7 +95,6 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
         FORMULA_GROUP_MAP.put(FormulaGroup.MIXED, new String[]{
                 "(F G a) | ((F G b) & (G X (X c U F d)))",
                 "(G (F (a))) U b",
-                "!((G (F (a))) U b)",
                 "F((a) & ((a) W ((b) & ((b) W (a)))))",
                 "F((a) & ((a) W ((b) & ((c) W (a)))))",
                 "G (s | G (p | (s & F t)))",
