@@ -26,6 +26,7 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
@@ -38,8 +39,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     private final Int2ObjectMap<BDDEquivalenceClass> unfoldCache;
     private final Int2ObjectMap<Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
 
-    private final EquivalenceClass trueClass;
-    private final EquivalenceClass falseClass;
+    private final BDDEquivalenceClass trueClass;
+    private final BDDEquivalenceClass falseClass;
 
     public BDDEquivalenceClassFactory(Formula formula) {
         mapping = PropositionVisitor.extractPropositions(formula);
@@ -48,6 +49,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         factory = new BDD(64 * (size + 1), 1000);
         visitor = new BDDVisitor();
+        unfoldVisitor = new UnfoldVisitor();
         vars = new int[size];
 
         int k = 0;
@@ -154,20 +156,90 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 }
             }
 
-            int value = mapping.getInt(formula);
+            return getVariable(formula);
+        }
+    }
 
-            if (value == 0) {
-                // All literals are already discovered...
-                value = vars.length;
-                vars = Arrays.copyOf(vars, vars.length + 1);
-                vars[value] = factory.createVar();
-                value++;
-                mapping.put(formula, value);
+    private int getVariable(Formula formula) {
+        assert formula instanceof Literal || formula instanceof UnaryModalOperator || formula instanceof BinaryModalOperator;
+
+        int value = mapping.getInt(formula);
+
+        if (value == 0) {
+            // All literals should have been already discovered.
+            assert !(formula instanceof Literal);
+
+            value = vars.length;
+            vars = Arrays.copyOf(vars, vars.length + 1);
+            vars[value] = factory.createVar();
+            value++;
+            mapping.put(formula, value);
+        }
+
+        // We don't need to increment the ref-counter, since all variables are saturated.
+        return value > 0 ? vars[value - 1] : factory.not(vars[-(value + 1)]);
+    }
+
+    private final UnfoldVisitor unfoldVisitor;
+
+    private class UnfoldVisitor implements Visitor<BDDEquivalenceClass> {
+
+        @Override
+        public BDDEquivalenceClass visit(BooleanConstant booleanConstant) {
+            return booleanConstant.value ? trueClass : falseClass;
+        }
+
+        @Override
+        public BDDEquivalenceClass defaultAction(Formula formula) {
+            int var = getVariable(formula);
+
+            BDDEquivalenceClass result = unfoldCache.get(var);
+
+            if (result == null) {
+                result = createEquivalenceClass(formula.unfold());
+                factory.ref(var);
+                unfoldCache.put(var, result);
             }
 
-            // We don't need to increment the ref-counter, since all variables are saturated.
-            return value > 0 ? vars[value - 1] : factory.not(vars[-(value + 1)]);
+            return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));
         }
+
+        @Override
+        public BDDEquivalenceClass visit(Conjunction conjunction) {
+            List<Formula> conjuncts = new ArrayList<>(conjunction.children.size());
+            int x = BDD.ONE;
+
+            for (Formula child : conjunction.children) {
+                BDDEquivalenceClass bdd = child.accept(this);
+                conjuncts.add(bdd.representative);
+                x = factory.and(x, bdd.bdd);
+            }
+
+            return new BDDEquivalenceClass(new Conjunction(conjuncts), x);
+        }
+
+        @Override
+        public BDDEquivalenceClass visit(Disjunction disjunction) {
+            List<Formula> disjuncts = new ArrayList<>(disjunction.children.size());
+            int x = BDD.ZERO;
+
+            for (Formula child : disjunction.children) {
+                BDDEquivalenceClass bdd = child.accept(this);
+                disjuncts.add(bdd.representative);
+                x = factory.or(x, bdd.bdd);
+            }
+
+            return new BDDEquivalenceClass(new Disjunction(disjuncts), x);
+        }
+    }
+
+    @Override
+    public void flushCaches() {
+        unfoldCache.forEach((x, y) -> { factory.deref(x); factory.deref(y.bdd);});
+        unfoldCache.clear();
+
+        temporalStepCache.forEach((x, y) -> { factory.deref(x); y.forEach((u, v) -> v.free());});
+        temporalStepCache.clear();
     }
 
     private class BDDEquivalenceClass implements EquivalenceClass {
@@ -208,9 +280,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             BDDEquivalenceClass result = unfoldCache.get(bdd);
 
             if (result == null) {
-                result = createEquivalenceClass(representative.unfold());
-                factory.ref(bdd);
-                unfoldCache.put(bdd, result);
+                result = representative.accept(unfoldVisitor);
+
+                if (!unfoldCache.containsKey(bdd)) {
+                    factory.ref(bdd);
+                    unfoldCache.put(bdd, result);
+                }
             }
 
             return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));

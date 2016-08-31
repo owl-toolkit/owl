@@ -41,4 +41,8 @@ public interface EquivalenceClassFactory {
     default EquivalenceClass getFalse() {
         return createEquivalenceClass(BooleanConstant.FALSE);
     }
+
+    default void flushCaches() {
+
+    }
 }
