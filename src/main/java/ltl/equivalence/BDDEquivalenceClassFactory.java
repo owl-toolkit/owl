@@ -20,10 +20,12 @@ package ltl.equivalence;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import jdd.bdd.BDD;
 import ltl.*;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
+import ltl.visitors.predicates.XFragmentPredicate;
 
 import java.util.*;
 import java.util.function.BinaryOperator;
@@ -43,9 +45,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     private final BDDEquivalenceClass falseClass;
 
     public BDDEquivalenceClassFactory(Formula formula) {
-        mapping = PropositionVisitor.extractPropositions(formula);
+        Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
+        mapping = new Object2IntOpenHashMap<>();
 
-        int size = mapping.size();
+        int size = queuedFormulas.size();
 
         factory = new BDD(64 * (size + 1), 1000);
         visitor = new BDDVisitor();
@@ -54,30 +57,18 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         int k = 0;
 
-        BitSet alphabet = new BitSet();
-
-        for (Object2IntMap.Entry<Formula> entry : mapping.object2IntEntrySet()) {
-            if (entry.getKey() instanceof Literal) {
-                Literal literal = (Literal) entry.getKey();
-                alphabet.set(literal.getAtom());
+        for (Formula propositions : queuedFormulas) {
+            if (mapping.containsKey(propositions)) {
                 continue;
             }
 
             vars[k] = factory.createVar();
             k++;
-            entry.setValue(k);
-        }
 
-        for (int atom = alphabet.nextSetBit(0); atom >= 0; atom = alphabet.nextSetBit(atom+1)) {
-            vars[k] = factory.createVar();
-            k++;
+            mapping.put(propositions, k);
 
-            Formula literal = new Literal(atom);
-            mapping.put(literal, k);
-            mapping.put(literal.not(), -k);
-
-            if (atom == Integer.MAX_VALUE) {
-                throw new RuntimeException("Alphabet too large.");
+            if (propositions.accept(XFragmentPredicate.INSTANCE)) {
+                mapping.put(propositions.not(), -k);
             }
         }
 

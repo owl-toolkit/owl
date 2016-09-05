@@ -17,14 +17,10 @@
 
 package ltl.equivalence;
 
-
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import ltl.*;
 import ltl.visitors.VoidVisitor;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * For the propositional view on LTL modal operators (F, G, U, X) and
@@ -34,14 +30,13 @@ import java.util.Map;
  */
 class PropositionVisitor implements VoidVisitor {
 
-    private final Object2IntMap<Formula> mapping;
+    private final Deque<Formula> mapping;
 
     private PropositionVisitor() {
-        mapping = new Object2IntOpenHashMap<>();
-        mapping.defaultReturnValue(0);
+        mapping = new ArrayDeque<>();
     }
 
-    static Object2IntMap<Formula> extractPropositions(Formula formula) {
+    static Deque<Formula> extractPropositions(Formula formula) {
         PropositionVisitor visitor = new PropositionVisitor();
         formula.accept(visitor);
         return visitor.mapping;
@@ -59,38 +54,38 @@ class PropositionVisitor implements VoidVisitor {
 
     @Override
     public void visit(FOperator fOperator) {
-        mapping.put(fOperator, 0);
         fOperator.operand.accept(this);
+        mapping.add(fOperator);
     }
 
     @Override
     public void visit(GOperator gOperator) {
-        mapping.put(gOperator, 0);
         gOperator.operand.accept(this);
+        mapping.add(gOperator);
     }
 
     @Override
     public void visit(Literal literal) {
-        mapping.put(literal, 0);
+        mapping.add(literal);
     }
 
     @Override
     public void visit(ROperator rOperator) {
-        mapping.put(rOperator, 0);
         rOperator.left.accept(this);
         rOperator.right.accept(this);
+        mapping.add(rOperator);
     }
 
     @Override
     public void visit(UOperator uOperator) {
-        mapping.put(uOperator, 0);
         uOperator.left.accept(this);
         uOperator.right.accept(this);
+        mapping.add(uOperator);
     }
 
     @Override
     public void visit(XOperator xOperator) {
-        mapping.put(xOperator, 0);
         xOperator.operand.accept(this);
+        mapping.add(xOperator);
     }
 }
