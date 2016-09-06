@@ -54,14 +54,14 @@ class PropositionVisitor implements VoidVisitor {
 
     @Override
     public void visit(FOperator fOperator) {
-        fOperator.operand.accept(this);
         mapping.add(fOperator);
+        fOperator.operand.accept(this);
     }
 
     @Override
     public void visit(GOperator gOperator) {
-        gOperator.operand.accept(this);
         mapping.add(gOperator);
+        gOperator.operand.accept(this);
     }
 
     @Override
@@ -71,21 +71,21 @@ class PropositionVisitor implements VoidVisitor {
 
     @Override
     public void visit(ROperator rOperator) {
+        mapping.add(rOperator);
         rOperator.left.accept(this);
         rOperator.right.accept(this);
-        mapping.add(rOperator);
     }
 
     @Override
     public void visit(UOperator uOperator) {
+        mapping.add(uOperator);
         uOperator.left.accept(this);
         uOperator.right.accept(this);
-        mapping.add(uOperator);
     }
 
     @Override
     public void visit(XOperator xOperator) {
-        xOperator.operand.accept(this);
         mapping.add(xOperator);
+        xOperator.operand.accept(this);
     }
 }
