@@ -102,6 +102,24 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
         return set;
     }
 
+    public BitSet unionBitset(Function<Formula, BitSet> f) {
+        BitSet set = new BitSet();
+        children.forEach(c -> set.or(f.apply(c)));
+        return set;
+    }
+
+    public BitSet intersectionBitSet(Function<Formula, BitSet> f) {
+        if (children.isEmpty()) {
+            return new BitSet();
+        }
+
+        Iterator<Formula> iterator = children.iterator();
+
+        BitSet set = (f.apply(iterator.next()));
+        iterator.forEachRemaining(c -> set.and(f.apply(c)));
+        return set;
+    }
+
     public boolean allMatch(Predicate<Formula> p) {
         return children.stream().allMatch(p);
     }
