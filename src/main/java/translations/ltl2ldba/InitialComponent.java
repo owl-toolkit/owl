@@ -121,9 +121,9 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
             EquivalenceClass successor;
 
             if (eager) {
-                successor = clazz.temporalStep(valuation).unfold();
+                successor = clazz.temporalStepUnfold(valuation);
             } else {
-                successor = clazz.unfold().temporalStep(valuation);
+                successor = clazz.unfoldTemporalStep(valuation);
             }
 
             // Suppress edge, if successor is a non-accepting state

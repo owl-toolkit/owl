@@ -184,9 +184,9 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     private EquivalenceClass step(EquivalenceClass clazz, BitSet valuation) {
         if (eager) {
-            return clazz.temporalStep(valuation).unfold();
+            return clazz.temporalStepUnfold(valuation);
         } else {
-            return clazz.unfold().temporalStep(valuation);
+            return clazz.unfoldTemporalStep(valuation);
         }
     }
 
