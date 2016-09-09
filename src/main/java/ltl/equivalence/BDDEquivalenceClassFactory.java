@@ -283,6 +283,16 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
+        public EquivalenceClass temporalStepUnfold(BitSet valuation) {
+            return createEquivalenceClass(representative.temporalStepUnfold(valuation));
+        }
+
+        @Override
+        public EquivalenceClass unfoldTemporalStep(BitSet valuation) {
+            return createEquivalenceClass(representative.unfoldTemporalStep(valuation));
+        }
+
+        @Override
         public EquivalenceClass apply(Function<? super Formula, ? extends Formula> function) {
             return createEquivalenceClass(function.apply(representative));
         }

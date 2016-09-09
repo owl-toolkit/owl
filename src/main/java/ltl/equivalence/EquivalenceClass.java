@@ -53,6 +53,10 @@ public interface EquivalenceClass {
 
     EquivalenceClass temporalStep(BitSet valuation);
 
+    EquivalenceClass temporalStepUnfold(BitSet valuation);
+
+    EquivalenceClass unfoldTemporalStep(BitSet valuation);
+
     EquivalenceClass and(EquivalenceClass eq);
 
     /**

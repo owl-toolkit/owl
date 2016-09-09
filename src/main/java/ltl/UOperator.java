@@ -21,6 +21,7 @@ import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
+import java.util.BitSet;
 import java.util.Objects;
 
 public final class UOperator extends BinaryModalOperator {
@@ -37,6 +38,11 @@ public final class UOperator extends BinaryModalOperator {
     @Override
     public Formula unfold() {
         return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
+    }
+
+    @Override
+    public Formula unfoldTemporalStep(BitSet valuation) {
+        return Disjunction.create(right.unfoldTemporalStep(valuation), Conjunction.create(left.unfoldTemporalStep(valuation), this));
     }
 
     @Override

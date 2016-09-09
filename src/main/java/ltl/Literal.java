@@ -24,6 +24,10 @@ import ltl.visitors.VoidVisitor;
 import java.util.BitSet;
 
 public final class Literal extends ImmutableObject implements Formula {
+    @Override
+    public int height() {
+        return 0;
+    }
 
     private final int atom;
 
@@ -52,6 +56,16 @@ public final class Literal extends ImmutableObject implements Formula {
     @Override
     public Formula temporalStep(BitSet valuation) {
         return BooleanConstant.get(valuation.get(getAtom()) ^ isNegated());
+    }
+
+    @Override
+    public Formula temporalStepUnfold(BitSet valuation) {
+        return temporalStep(valuation);
+    }
+
+    @Override
+    public Formula unfoldTemporalStep(BitSet valuation) {
+        return temporalStep(valuation);
     }
 
     @Override

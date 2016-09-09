@@ -44,5 +44,15 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
         return this;
     }
 
+    @Override
+    public Formula temporalStepUnfold(BitSet valuation) {
+        return unfold();
+    }
+
     protected abstract char getOperator();
+
+    @Override
+    public int height() {
+        return operand.height() + 1;
+    }
 }

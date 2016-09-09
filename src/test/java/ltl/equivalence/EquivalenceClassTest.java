@@ -17,6 +17,7 @@
 
 package ltl.equivalence;
 
+import com.google.common.collect.ImmutableSet;
 import ltl.*;
 import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
@@ -24,10 +25,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -106,9 +105,12 @@ public abstract class EquivalenceClassTest {
         assertNotEquals(factory, null);
     }
 
+    private static final Set<String> formulaeStrings = ImmutableSet.of("G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b");
+    private static final Set<Formula> formulae = ImmutableSet.copyOf(formulaeStrings.stream().map(Parser::formula).collect(Collectors.toSet()));
+
     @Test
     public void testUnfoldUnfold() {
-        for (Formula formula : FormulaStorage.formulae) {
+        for (Formula formula : formulae) {
             EquivalenceClassFactory factory = setUpFactory(formula);
             EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold();
             assertEquals(clazz, clazz.unfold());

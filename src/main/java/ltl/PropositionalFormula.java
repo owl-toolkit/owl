@@ -111,4 +111,9 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     }
 
     protected abstract char getOperator();
+
+    @Override
+    public int height() {
+        return children.stream().mapToInt(Formula::height).max().orElse(0) + 1;
+    }
 }

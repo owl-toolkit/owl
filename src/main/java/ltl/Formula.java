@@ -55,4 +55,25 @@ public interface Formula {
     Formula temporalStep(BitSet valuation);
 
     Formula unfold();
+
+    /**
+     * Short-cut operation to avoid intermediate construction of formula ASTs.
+     * @param valuation
+     * @return
+     */
+    Formula unfoldTemporalStep(BitSet valuation);
+
+    /**
+     * Short-cut operation to avoid intermediate construction of formula ASTs.
+     * @param valuation
+     * @return
+     */
+    Formula temporalStepUnfold(BitSet valuation);
+
+    /**
+     * Compute the heigt of the syntax tree of this formula
+     *
+     * @return
+     */
+    int height();
 }

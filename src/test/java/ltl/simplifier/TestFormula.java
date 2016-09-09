@@ -320,14 +320,4 @@ public class TestFormula {
         Formula f3 = new FOperator(Simplifier.simplify(new Conjunction(f1, f2), Strategy.MODAL));
         assertEquals(f3.accept(new PseudoSubstitutionVisitor(f1, BooleanConstant.TRUE)), f3);
     }
-
-    @Test
-    public void testIsSuspendable() {
-        for (Formula formula : FormulaStorage.formulae) {
-            assertTrue(!formula.isSuspendable() || formula.isPureUniversal());
-            assertTrue(!formula.isSuspendable() || formula.isPureEventual());
-        }
-    }
-
-
 }

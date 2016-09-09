@@ -21,6 +21,7 @@ import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
+import java.util.BitSet;
 import java.util.Objects;
 
 public class FOperator extends UnaryModalOperator {
@@ -97,5 +98,10 @@ public class FOperator extends UnaryModalOperator {
     @Override
     public Formula unfold() {
         return new Disjunction(operand.unfold(), this);
+    }
+
+    @Override
+    public Formula unfoldTemporalStep(BitSet valuation) {
+        return Disjunction.create(operand.unfoldTemporalStep(valuation), this);
     }
 }

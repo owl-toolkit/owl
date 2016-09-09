@@ -70,6 +70,16 @@ public final class Disjunction extends PropositionalFormula {
     }
 
     @Override
+    public Formula temporalStepUnfold(BitSet valuation) {
+        return create(children.stream().map(c -> c.temporalStepUnfold(valuation)));
+    }
+
+    @Override
+    public Formula unfoldTemporalStep(BitSet valuation) {
+        return create(children.stream().map(c -> c.unfoldTemporalStep(valuation)));
+    }
+
+    @Override
     protected char getOperator() {
         return '|';
     }

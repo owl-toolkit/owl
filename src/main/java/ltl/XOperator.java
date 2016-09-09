@@ -46,6 +46,16 @@ public final class XOperator extends UnaryModalOperator {
     }
 
     @Override
+    public Formula temporalStepUnfold(BitSet valuation) {
+        return operand.unfold();
+    }
+
+    @Override
+    public Formula unfoldTemporalStep(BitSet valuation) {
+        return temporalStep(valuation);
+    }
+
+    @Override
     public void accept(VoidVisitor v) {
         v.visit(this);
     }

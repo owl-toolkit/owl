@@ -46,5 +46,15 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
         return this;
     }
 
+    @Override
+    public Formula temporalStepUnfold(BitSet valuation) {
+        return unfold();
+    }
+
     protected abstract char getOperator();
+
+    @Override
+    public int height() {
+        return Math.max(left.height(), right.height()) + 1;
+    }
 }

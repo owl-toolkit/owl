@@ -56,6 +56,16 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     }
 
     @Override
+    public Formula temporalStepUnfold(BitSet valuation) {
+        return this;
+    }
+
+    @Override
+    public Formula unfoldTemporalStep(BitSet valuation) {
+        return this;
+    }
+
+    @Override
     public void accept(VoidVisitor v) {
         v.visit(this);
     }
@@ -94,6 +104,11 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     @Override
     public Formula unfold() {
         return this;
+    }
+
+    @Override
+    public int height() {
+        return 0;
     }
 
     @Override
