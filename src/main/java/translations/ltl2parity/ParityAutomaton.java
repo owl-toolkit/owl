@@ -45,7 +45,7 @@ public abstract class ParityAutomaton<S extends AutomatonState<S>> extends Autom
     @Override
     protected Edge<S> generateRejectingEdge(S successor) {
         BitSet bs = new BitSet();
-        bs.set(0);
+        bs.set(acceptance.getPriority() == ParityAcceptance.Priority.ODD ? 0 : 1);
         return new Edge<>(successor, bs);
     }
 
