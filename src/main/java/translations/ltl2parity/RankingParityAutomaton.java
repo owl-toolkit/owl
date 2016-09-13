@@ -85,6 +85,14 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
 
     @Nonnull
     @Override
+    protected Edge<RankingParityAutomaton.State> generateRejectingEdge(RankingParityAutomaton.State successor) {
+        BitSet bs = new BitSet();
+        bs.set(acceptance.getPriority() == ParityAcceptance.Priority.ODD ? 0 : 1);
+        return new Edge<>(successor, bs);
+    }
+
+    @Nonnull
+    @Override
     protected State generateRejectingTrap() {
         return new State(null, ImmutableList.of(), 0);
     }
