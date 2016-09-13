@@ -27,7 +27,7 @@ class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.State> {
     private AcceptingComponent ba;
 
     WrappedParityAutomaton(AcceptingComponent ba) {
-        super(ba, new ParityAcceptance(1));
+        super(ba, new ParityAcceptance(1, ParityAcceptance.Priority.EVEN));
         this.ba = ba;
     }
 

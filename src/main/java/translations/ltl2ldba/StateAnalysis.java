@@ -17,14 +17,12 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.Sets;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.visitors.Collector;
 import ltl.visitors.Visitor;
 
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 

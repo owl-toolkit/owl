@@ -80,16 +80,18 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{2, 2, 2, 2, 2};
 
             case REACH:
-            case IMMEDIATE:
-            case CONJUNCTION:
             case DISJUNCTION:
                 return new int[]{2, 2};
+
+            case IMMEDIATE:
+            case CONJUNCTION:
+                return new int[]{1, 2};
 
             case FG:
                 return new int[]{4, 4, 4, 4, 4, 5};
 
             case MIXED:
-                return new int[]{4, 3, 3, 4, 4, 5, 2, 3};
+                return new int[]{4, 3, 3, 4, 4, 5, 2, 1};
 
             default:
                 return new int[0];
