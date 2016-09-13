@@ -28,7 +28,7 @@ import java.util.Objects;
 
 public class ParityAcceptance implements OmegaAcceptance {
 
-    private enum Priority {
+    public enum Priority {
         EVEN {
             public Priority not() {
                 return ODD;
@@ -62,7 +62,7 @@ public class ParityAcceptance implements OmegaAcceptance {
         this(colors, Priority.ODD);
     }
 
-    private ParityAcceptance(@Nonnegative int colors, Priority priority) {
+    public ParityAcceptance(@Nonnegative int colors, Priority priority) {
         this.colors = colors;
         this.priority = priority;
     }
