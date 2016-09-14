@@ -162,7 +162,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
             mapping = parser.map;
         } else {
             Parser parser = readStdin ? new Parser(System.in) : new Parser(new StringReader(argsDeque.getFirst()));
-            formula = parser.formula();
+            formula = readStdin ? parser.formulaEmbedded() : parser.formula();
             mapping = parser.map;
         }
 
