@@ -79,7 +79,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         }
 
         Formula stateFormula = state.getClazz().getRepresentative();
-        Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula, factory);
+        Iterable<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula, factory);
 
         for (Set<GOperator> key : keys) {
             S successor = acceptingComponent.jump(state.getClazz(), key);

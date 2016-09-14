@@ -45,7 +45,7 @@ class GMonitorSelector {
         ALL, MIN_DNF
     }
 
-    static Collection<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula, EquivalenceClassFactory factory) {
+    static Iterable<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula, EquivalenceClassFactory factory) {
         switch (strategy) {
             case MIN_DNF:
                 List<Set<GOperator>> sets = formula.accept(MIN_DNF).stream().filter(set -> !set.isEmpty()).sorted(Comparator.comparingInt(Set::size)).collect(Collectors.toList());

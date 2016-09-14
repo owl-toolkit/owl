@@ -61,15 +61,15 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
 
-        Collection<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula, equivalenceClassFactory);
+        Iterable<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula, equivalenceClassFactory);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent<AcceptingComponent.State> initialComponent = null;
 
         EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
-        if (initialClazz.isFalse() || Collections3.isSingleton(keys) && StateAnalysis.isJumpNecessary(initialClazz)) {
-            acceptingComponent.jumpInitial(initialClazz, Collections3.isSingleton(keys) ? Iterables.getOnlyElement(keys) : Collections.emptySet());
+        if (initialClazz.isFalse() || Iterables.size(keys) == 1 && StateAnalysis.isJumpNecessary(initialClazz)) {
+            acceptingComponent.jumpInitial(initialClazz, Iterables.isEmpty(keys) ? Collections.emptySet() : Iterables.getOnlyElement(keys));
         } else {
             initialComponent = new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }
