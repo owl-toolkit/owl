@@ -55,4 +55,9 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
     public int height() {
         return operand.height() + 1;
     }
+
+    @Override
+    public boolean isSubformula(Formula formula) {
+        return operand.equals(formula) || operand.isSubformula(formula);
+    }
 }

@@ -18,6 +18,7 @@
 package ltl;
 
 import ltl.parser.Parser;
+import ltl.visitors.Collector;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.DataPoints;
@@ -85,4 +86,11 @@ public class FormulaTest {
         assertTrue(!formula.isSuspendable() || formula.isPureEventual());
     }
 
+    @Theory
+    public void isSubformula(Formula formula) {
+        assertFalse(formula.isSubformula(formula));
+
+        Collector collector = new Collector(x -> x != formula);
+        collector.getCollection().forEach(x -> assertTrue(formula.isSubformula(x)));
+    }
 }

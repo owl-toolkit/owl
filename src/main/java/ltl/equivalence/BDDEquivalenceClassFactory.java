@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import jdd.bdd.BDD;
 import ltl.*;
+import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
@@ -107,16 +108,16 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     }
 
     // TODO: Port to IntVisitor
-    private class BDDVisitor implements Visitor<Integer> {
+    private class BDDVisitor implements IntVisitor {
         Function<Formula, Optional<Boolean>> environment;
 
         @Override
-        public Integer visit(BooleanConstant b) {
+        public int visit(BooleanConstant b) {
             return b.value ? BDD.ONE : BDD.ZERO;
         }
 
         @Override
-        public Integer visit(Conjunction c) {
+        public int visit(Conjunction c) {
             int x = BDD.ONE;
 
             for (Formula child : c.children) {
@@ -127,7 +128,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        public Integer visit(Disjunction d) {
+        public int visit(Disjunction d) {
             int x = BDD.ZERO;
 
             for (Formula child : d.children) {
@@ -138,7 +139,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        public Integer defaultAction(Formula formula) {
+        public int defaultAction(Formula formula) {
             if (environment != null) {
                 Optional<Boolean> valuation = environment.apply(formula);
 

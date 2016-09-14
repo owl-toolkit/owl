@@ -57,4 +57,9 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
     public int height() {
         return Math.max(left.height(), right.height()) + 1;
     }
+
+    @Override
+    public boolean isSubformula(Formula formula) {
+        return left.equals(formula) || right.equals(formula) || left.isSubformula(formula) || right.isSubformula(formula);
+    }
 }

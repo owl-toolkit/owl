@@ -18,6 +18,7 @@
 package ltl;
 
 import ltl.visitors.BinaryVisitor;
+import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
@@ -25,11 +26,13 @@ import java.util.BitSet;
 
 public interface Formula {
 
-    void accept(VoidVisitor v);
+    void accept(VoidVisitor visitor);
 
-    <R> R accept(Visitor<R> v);
+    int accept(IntVisitor visitor);
 
-    <A, B> A accept(BinaryVisitor<A, B> v, B f);
+    <R> R accept(Visitor<R> visitor);
+
+    <A, B> A accept(BinaryVisitor<A, B> visitor, B f);
 
     // Temporal Properties of an LTL Formula
     boolean isPureEventual();
@@ -76,4 +79,16 @@ public interface Formula {
      * @return
      */
     int height();
+
+    boolean isSubformula(Formula formula);
+
+    default boolean containsSubformula(Iterable<? extends Formula> formulas) {
+        for (Formula formula : formulas) {
+            if (isSubformula(formula)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

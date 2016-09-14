@@ -18,6 +18,7 @@
 package ltl;
 
 import ltl.visitors.BinaryVisitor;
+import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
@@ -74,6 +75,11 @@ public final class Literal extends ImmutableObject implements Formula {
     }
 
     @Override
+    public int accept(IntVisitor v) {
+        return v.visit(this);
+    }
+
+    @Override
     public <R> R accept(Visitor<R> v) {
         return v.visit(this);
     }
@@ -120,5 +126,10 @@ public final class Literal extends ImmutableObject implements Formula {
     @Override
     public Formula unfold() {
         return this;
+    }
+
+    @Override
+    public boolean isSubformula(Formula formula) {
+        return false;
     }
 }

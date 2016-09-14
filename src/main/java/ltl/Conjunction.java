@@ -19,6 +19,7 @@ package ltl;
 
 import com.google.common.collect.ImmutableSet;
 import ltl.visitors.BinaryVisitor;
+import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
@@ -47,6 +48,11 @@ public final class Conjunction extends PropositionalFormula {
     @Override
     public void accept(VoidVisitor v) {
         v.visit(this);
+    }
+
+    @Override
+    public int accept(IntVisitor v) {
+        return v.visit(this);
     }
 
     @Override

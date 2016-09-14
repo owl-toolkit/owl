@@ -18,6 +18,7 @@
 package ltl;
 
 import ltl.visitors.BinaryVisitor;
+import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
@@ -53,6 +54,11 @@ public final class ROperator extends BinaryModalOperator {
     @Override
     public void accept(VoidVisitor v) {
         v.visit(this);
+    }
+
+    @Override
+    public int accept(IntVisitor v) {
+        return v.visit(this);
     }
 
     @Override

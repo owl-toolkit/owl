@@ -134,4 +134,9 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     public int height() {
         return children.stream().mapToInt(Formula::height).max().orElse(0) + 1;
     }
+
+    @Override
+    public boolean isSubformula(Formula formula) {
+        return children.contains(formula) || anyMatch(x -> x.isSubformula(formula));
+    }
 }
