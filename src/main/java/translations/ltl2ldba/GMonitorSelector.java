@@ -55,7 +55,8 @@ class GMonitorSelector {
                     Set<GOperator> largerSet = listIterator.next();
 
                     for (Set<GOperator> smallerSet : sets.subList(0, listIterator.previousIndex())) {
-                        if (largerSet.containsAll(smallerSet)) {
+                        if (largerSet.containsAll(smallerSet) && !smallerSet.stream().anyMatch(x -> x.containsSubformula(largerSet))) {
+
                             EquivalenceClass remSmall = getRemainingGoal(formula, smallerSet, factory);
                             EquivalenceClass remLarge = getRemainingGoal(formula, largerSet, factory);
 

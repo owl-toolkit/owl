@@ -121,7 +121,7 @@ public class LTL2LDGBATest {
     @Test
     public void regressionTestStack() throws Exception {
         String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | (G((!(b)) | ((c) & (X(F(e))))))))))";
-        testOutput(ltl, 86);
+        testOutput(ltl, 92);
     }
 
     private static final String TRIVIAL_TRUE = "HOA: v1\n" +
@@ -194,7 +194,7 @@ public class LTL2LDGBATest {
     @Test
     public void testSanityCheckFailed() throws Exception {
         String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U ((b) | (G(c))))))";
-        testOutput(ltl, 3);
+        testOutput(ltl, 5);
     }
 
     @Test
@@ -288,10 +288,10 @@ public class LTL2LDGBATest {
         testOutput(ltl, 5);
 
         String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
-        testOutput(ltl2, 3);
+        testOutput(ltl2, 4);
 
         String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & ((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-        testOutput(ltl3, 3);
+        testOutput(ltl3, 6);
     }
 
     @Test
