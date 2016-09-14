@@ -93,8 +93,8 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
                         complement = complementFuture.get();
                     }
 
-                    int size = automatonCounter.get();
-                    int complementSize = complementCounter.get();
+                    int size = automaton == null ? automatonCounter.get() : automaton.size();
+                    int complementSize = complement == null ? complementCounter.get() : complement.size();
 
                     if (automaton != null && size <= complementSize) {
                         complementFuture.cancel(true);
