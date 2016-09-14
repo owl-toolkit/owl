@@ -401,6 +401,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (bdd > BDD.ONE) {
                 factory.deref(bdd);
                 bdd = INVALID_BDD;
+                representative = null;
             }
         }
 
@@ -416,18 +417,15 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             BDDEquivalenceClass that = (BDDEquivalenceClass) obj;
 
-            if (bdd == INVALID_BDD || that.bdd == INVALID_BDD) {
-                throw new IllegalStateException("This EquivalenceClass is already freed.");
-            }
+            assert bdd != INVALID_BDD : "This EquivalenceClass is already freed.";
+            assert that.bdd != INVALID_BDD : "That EquivalenceClass is already freed.";
 
             return bdd == that.bdd;
         }
 
         @Override
         public int hashCode() {
-            if (bdd == INVALID_BDD) {
-                throw new IllegalStateException("This EquivalenceClass is already freed.");
-            }
+            assert bdd != INVALID_BDD : "This EquivalenceClass is already freed.";
 
             return bdd;
         }
