@@ -50,7 +50,7 @@ import java.util.function.Function;
 public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
     // Polling time in ms.
-    private static final int SLEEP_MS = 33;
+    private static final int SLEEP_MS = 50;
     private final LTL2LDBA translator;
     private final EnumSet<Optimisation> optimisations;
 
@@ -73,8 +73,8 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
-        AtomicInteger automatonCounter = new AtomicInteger();
-        AtomicInteger complementCounter = new AtomicInteger();
+        AtomicInteger automatonCounter = new AtomicInteger(-1);
+        AtomicInteger complementCounter = new AtomicInteger(-1);
 
         Future<ParityAutomaton<?>> automatonFuture = executor.submit(() -> apply(formula, automatonCounter));
         Future<ParityAutomaton<?>> complementFuture = executor.submit(() -> apply(formula.not(), complementCounter));
