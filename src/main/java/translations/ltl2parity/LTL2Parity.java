@@ -28,6 +28,7 @@ import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.Visitor;
 import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.AcceptingComponent;
@@ -149,6 +150,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
         boolean tlsfInput = argsDeque.remove("--tlsf");
         boolean decompose = argsDeque.remove("--decompose");
+        EnumSet<HOAPrintable.Option>  options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.COMMENTS) : EnumSet.noneOf(HOAPrintable.Option.class);
         boolean readStdin = argsDeque.isEmpty();
 
         LTL2Parity translation = new LTL2Parity(optimisations);
@@ -172,7 +174,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
             Visitor<Void> visitor = new DecomposeVisitor(translation, mapping);
             formula.accept(visitor);
         } else {
-            translation.apply(formula).toHOA(new HOAConsumerPrint(System.out), mapping);
+            translation.apply(formula).toHOA(new HOAConsumerPrint(System.out), mapping, options);
         }
     }
 
