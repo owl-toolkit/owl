@@ -17,7 +17,6 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableList;
 import ltl.Formula;
 import ltl.GOperator;
 import ltl.equivalence.EquivalenceClass;
@@ -34,7 +33,6 @@ import translations.Optimisation;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends OmegaAcceptance> extends Automaton<S, T> {
 
@@ -42,7 +40,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     private final EnumSet<Optimisation> optimisations;
     private Collection<S> constructionQueue = new ArrayDeque<>();
-    private final Map<GOperator, Integer> ids;
     private final Map<Set<GOperator>, RecurringObligations> cache;
 
     final EquivalenceClassFactory equivalenceClassFactory;
@@ -56,7 +53,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
-        ids = new HashMap<>();
         cache = new HashMap<>();
         this.optimisations = optimisations;
 
@@ -113,23 +109,21 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         RecurringObligations obligations = cache.get(keys);
 
         if (obligations == null) {
-            // Give ids to new GOperators and sort accordingly
-            keys.forEach(key -> ids.putIfAbsent(key, ids.size()));
-            List<GOperator> sortedKeys = keys.stream().sorted((k, l) -> Integer.compare(ids.get(k), ids.get(l))).collect(Collectors.toList());
-
             // Fields for RecurringObligations
             EquivalenceClass xFragment = equivalenceClassFactory.getTrue();
-            ImmutableList.Builder<EquivalenceClass> builder = ImmutableList.builder();
+            List<EquivalenceClass> initialStates = new ArrayList<>(keys.size());
 
             // Skip the top-level object in the syntax tree.
             Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(keys));
 
-            for (GOperator key : sortedKeys) {
+            for (GOperator key : keys) {
                 Formula initialFormula = Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT);
                 EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
 
-                // TODO: free() more objects
                 if (initialClazz.isFalse()) {
+                    initialStates.forEach(EquivalenceClass::free);
+                    initialClazz.free();
+                    xFragment.free();
                     return null;
                 }
 
@@ -139,15 +133,16 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
                     continue;
                 }
 
-                builder.add(initialClazz);
+                initialStates.add(initialClazz);
             }
 
-            // TODO: free() more objects
             if (xFragment.isFalse()) {
+                initialStates.forEach(EquivalenceClass::free);
+                xFragment.free();
                 return null;
             }
 
-            obligations = new RecurringObligations(xFragment, builder.build().toArray(new EquivalenceClass[0]));
+            obligations = new RecurringObligations(xFragment, initialStates.toArray(new EquivalenceClass[0]));
             cache.put(keys, obligations);
         }
 
