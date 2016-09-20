@@ -1,4 +1,5 @@
-// This formula only produces an error on the build server and the problem cannot be reproduced locally (!?)
+// These formulas produces an error with ltlcross. However passing the automaton through autfilt -B magically solves the problem. Manually inspection suggests that something is wrong with Spot complementation procedure.
+
 G((F((f) & (F(a)))) W (d))
 ((G(!(a))) | ((f) & (G((d) M (X(!(e)))))) | ((!(f)) & (F((!(d)) W (X(e)))))) W (F((d) & (F(a)) & ((a) W ((f) | (X(a))))))
 
