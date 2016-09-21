@@ -67,6 +67,10 @@ public class ParityAcceptance implements OmegaAcceptance {
         this.priority = priority;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
     public ParityAcceptance complement() {
         return new ParityAcceptance(colors, priority.not());
     }
