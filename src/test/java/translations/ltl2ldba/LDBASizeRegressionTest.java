@@ -67,6 +67,9 @@ public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDete
             case MIXED:
                 return new int[]{3, 4, 7, 8, 4, 13, 4, 2 };
 
+            case FG_UNSTABLE:
+                return new int[]{4, 5, 5, 5, 4, 3};
+
             default:
                 return new int[0];
         }

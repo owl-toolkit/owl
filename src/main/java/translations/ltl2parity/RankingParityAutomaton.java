@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
     @Nonnull
@@ -138,7 +139,7 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
         @Override
         protected boolean equals2(ImmutableObject o) {
             State that = (State) o;
-            return  that.volatileIndex == this.volatileIndex && Objects.equals(initialComponentState, that.initialComponentState) &&
+            return that.volatileIndex == this.volatileIndex && Objects.equals(initialComponentState, that.initialComponentState) &&
                     Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
         }
 
@@ -156,8 +157,8 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
 
         // TODO: Enable annotation @Nonnegative
         private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<RecurringObligations, EquivalenceClass> existingClasses, boolean findNewVolatile, int currentVolatileIndex) {
-            Collection<AcceptingComponent.State> pureEventual = new ArrayList<>();
-            Collection<AcceptingComponent.State> mixed = new ArrayList<>();
+            List<AcceptingComponent.State> pureEventual = new ArrayList<>();
+            List<AcceptingComponent.State> mixed = new ArrayList<>();
             AcceptingComponent.State nextVolatileState = null;
             int nextVolatileStateIndex = -1;
 
@@ -190,7 +191,9 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
                     EquivalenceClass stateClass = accState.getLabel();
 
                     if (existingClass == null || !stateClass.implies(existingClass)) {
-                        if (Arrays.asList(accState.getObligations().initialStates).stream().allMatch(e -> e.getRepresentative().isPureEventual())) {
+                        RecurringObligations obligations = accState.getObligations();
+
+                        if (obligations.xFragment.isTrue() && accState.getCurrent().getRepresentative().isPureEventual() && Stream.of(obligations.initialStates).allMatch(e -> e.getRepresentative().isPureEventual())) {
                             pureEventual.add(accState);
                         } else {
                             mixed.add(accState);
@@ -198,6 +201,10 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
                     }
                 }
             }
+
+            // Impose stable but arbitrary order.
+            pureEventual.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
+            mixed.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
 
             ranking.addAll(pureEventual);
             ranking.addAll(mixed);
