@@ -122,13 +122,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
-            EquivalenceClass nextXFragment = AcceptingComponent.this.getSuccessor(xFragment, valuation);
-
-            if (nextXFragment == null) {
-                return null;
-            }
-
-            nextXFragment = nextXFragment.andWith(obligations.xFragment);
+            EquivalenceClass nextXFragment = AcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.xFragment);
 
             if (nextXFragment.isFalse()) {
                 return null;
@@ -136,45 +130,74 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
             EquivalenceClass currentSuccessor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
 
-            if (currentSuccessor == null) {
+            if (currentSuccessor.isFalse()) {
                 return null;
             }
+
+            EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
+
+            if (assumptions.isFalse()) {
+                return null;
+            }
+
+            EquivalenceClass[] nextSuccessors = AcceptingComponent.this.getSuccessors(next, valuation, assumptions);
+
+            if (nextSuccessors == null) {
+                assumptions.free();
+                return null;
+            }
+
+            final int length = obligations.initialStates.length;
+
+            BitSet bs = REJECT;
 
             boolean obtainNewGoal = false;
             int j = index;
 
-            BitSet bs = REJECT;
-
-            final int length = obligations.initialStates.length;
-
+            // Scan for new index if currentSuccessor currentSuccessor is true.
             if (currentSuccessor.isTrue()) {
-                j++;
                 obtainNewGoal = true;
+                int i = index + 1;
 
-                if (j >= length) {
+                while (i < length && nextSuccessors[i].isTrue()) {
+                    i++;
+                }
+
+                if (i >= length) {
                     bs = ACCEPT;
+                }
+
+                // Continue scanning
+                for (i = 0; i < length && nextSuccessors[i].isTrue();) {
+                    i++;
+                }
+
+                if (i == length) {
                     j = 0;
+                } else {
+                    j = i;
                 }
             }
 
-            EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
-            EquivalenceClass[] nextSuccessors = new EquivalenceClass[length];
-
-            for (int i = 0; i < length; i++) {
-                EquivalenceClass nextSuccessor = AcceptingComponent.this.getSuccessor(next[i], valuation, assumptions);
-
-                if (nextSuccessor == null) {
-                    assumptions.free();
-                    return null;
-                }
-
-                nextSuccessor = nextSuccessor.andWith(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
+            for (int i = 0; i < nextSuccessors.length; i++) {
+                EquivalenceClass nextSuccessor = nextSuccessors[i];
 
                 if (obtainNewGoal && i == j) {
-                    currentSuccessor = nextSuccessor;
+                    currentSuccessor = nextSuccessor.and(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
+                    assumptions = assumptions.and(currentSuccessor);
                     nextSuccessors[i] = equivalenceClassFactory.getTrue();
                 } else {
-                    nextSuccessors[i] = nextSuccessor;
+                    nextSuccessors[i] = nextSuccessor.and(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
+                }
+            }
+
+            if (currentSuccessor.isFalse()) {
+                return null;
+            }
+
+            for (EquivalenceClass clazz : nextSuccessors) {
+                if (clazz.isFalse()) {
+                    return null;
                 }
             }
 

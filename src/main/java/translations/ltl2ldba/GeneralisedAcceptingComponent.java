@@ -97,13 +97,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
             // Check the X-Fragment first.
-            EquivalenceClass nextXFragment = GeneralisedAcceptingComponent.this.getSuccessor(xFragment, valuation);
-
-            if (nextXFragment == null) {
-                return null;
-            }
-
-            nextXFragment = nextXFragment.andWith(obligations.xFragment);
+            EquivalenceClass nextXFragment = GeneralisedAcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.xFragment);
 
             if (nextXFragment.isFalse()) {
                 return null;
@@ -122,7 +116,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 if (0 != current.length) {
                     EquivalenceClass successor = GeneralisedAcceptingComponent.this.getSuccessor(current[0], valuation, nextXFragment);
 
-                    if (successor == null) {
+                    if (successor.isFalse()) {
                         return null;
                     }
 
@@ -137,14 +131,16 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
             for (int i = 0; i < length; i++) {
                 EquivalenceClass currentSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(current[i], valuation, nextXFragment);
 
-                if (currentSuccessor == null) {
+                if (currentSuccessor.isFalse()) {
                     return null;
                 }
 
                 EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
                 EquivalenceClass nextSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(next[i], valuation, assumptions);
 
-                if (nextSuccessor == null) {
+                if (nextSuccessor.isFalse()) {
+                    freeClasses(currentSuccessors);
+                    freeClasses(nextSuccessors);
                     assumptions.free();
                     return null;
                 }

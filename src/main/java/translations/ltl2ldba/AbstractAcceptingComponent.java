@@ -155,18 +155,16 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         cache.clear();
     }
 
-    @Nullable
     EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {
         return getSuccessor(clazz, valuation, null);
     }
 
-    @Nullable
     EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass others) {
         EquivalenceClass successor = step(clazz, valuation);
 
         // We cannot recover from false. (non-accepting trap)
         if (successor.isFalse()) {
-            return null;
+            return equivalenceClassFactory.getFalse();
         }
 
         // Do Cover optimisation
@@ -175,6 +173,30 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
 
         return successor;
+    }
+
+    protected static void freeClasses(EquivalenceClass... classes) {
+        for (EquivalenceClass clazz : classes) {
+            if (clazz != null) {
+                clazz.free();
+            }
+        }
+    }
+
+    @Nullable
+    EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation, @Nullable EquivalenceClass others) {
+        EquivalenceClass[] successors = new EquivalenceClass[clazz.length];
+
+        for (int i = clazz.length - 1; i >= 0; i--) {
+            successors[i] = getSuccessor(clazz[i], valuation, others);
+
+            if (successors[i].isFalse()) {
+                freeClasses(successors);
+                return null;
+            }
+        }
+
+        return successors;
     }
 
     private EquivalenceClass step(EquivalenceClass clazz, BitSet valuation) {
