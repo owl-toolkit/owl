@@ -165,11 +165,11 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
                 if (i >= length) {
                     bs = ACCEPT;
-                }
 
-                // Continue scanning
-                for (i = 0; i < length && nextSuccessors[i].isTrue();) {
-                    i++;
+                    // Continue scanning
+                    for (i = 0; i < length && nextSuccessors[i].isTrue();) {
+                        i++;
+                    }
                 }
 
                 if (i == length) {
