@@ -115,11 +115,6 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             return (BitSet) sensitiveAlphabet.clone();
         }
 
-        @Override
-        public ValuationSetFactory getFactory() {
-            return valuationSetFactory;
-        }
-
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
             EquivalenceClass nextXFragment = AcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.xFragment);

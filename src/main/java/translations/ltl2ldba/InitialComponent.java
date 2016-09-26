@@ -141,11 +141,6 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         }
 
         @Override
-        public ValuationSetFactory getFactory() {
-            return valuationSetFactory;
-        }
-
-        @Override
         public String toString() {
             return clazz.toString();
         }

@@ -102,11 +102,6 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
         }
 
         @Override
-        public ValuationSetFactory getFactory() {
-            return valuationSetFactory;
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;

@@ -183,11 +183,6 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         }
 
         @Override
-        public ValuationSetFactory getFactory() {
-            return valuationSetFactory;
-        }
-
-        @Override
         protected int hashCodeOnce() {
             return Objects.hash(xFragment, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
         }

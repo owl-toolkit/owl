@@ -306,11 +306,6 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
         }
 
         @Override
-        public ValuationSetFactory getFactory() {
-            return valuationSetFactory;
-        }
-
-        @Override
         public String toString() {
             return "{Init=" + initialComponentState + ", AccRanking=" + acceptingComponentRanking + ", volatileIndex=" + volatileIndex + '}';
         }

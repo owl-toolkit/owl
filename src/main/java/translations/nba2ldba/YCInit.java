@@ -81,11 +81,6 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
         }
 
         @Override
-        public ValuationSetFactory getFactory() {
-            return valuationSetFactory;
-        }
-
-        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
