@@ -175,7 +175,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 }
 
                 if (i == length) {
-                    j = index;
+                    j = 0;
                 } else {
                     j = i;
                 }
