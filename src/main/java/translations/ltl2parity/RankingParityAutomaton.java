@@ -277,10 +277,8 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                 existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
                 ranking.add(rankingSuccessor);
 
-                if (volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
-                    if (volatileIndex == -1) {
-                        volatileIndex = volatileComponents.getInt(obligations);
-                    }
+                if (volatileIndex == -1 && volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
+                    volatileIndex = volatileComponents.getInt(obligations);
                 }
 
                 if (edge.inAcceptanceSet(0)) {
