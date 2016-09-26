@@ -46,3 +46,12 @@ ltlcross-ltl2parity-parallel:
     - randltl -n 6 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
     - JAVA_OPTS="-enableassertions"
     - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} build/bin/ltl2parity --parallel %f >%O'
+
+ltlcross-ltl2det-parallel:
+  stage: test
+  script:
+    - ./gradlew distTar
+    - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
+    - randltl -n 6 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
+    - JAVA_OPTS="-enableassertions"
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} build/bin/ltl2det --parallel %f >%O'

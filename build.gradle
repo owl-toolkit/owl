@@ -58,6 +58,7 @@ task createAllStartScripts() << {
 }
 
 def scripts = [
+	'ltl2det':'translations.ltl2det.LTL2Det',
     'ltl2ldba':'translations.ltl2ldba.LTL2LDBA',
     'ltl2ldgba':'translations.ltl2ldba.LTL2LDGBA',
     'nba2ldba':'translations.nba2ldba.NBA2LDBA',
