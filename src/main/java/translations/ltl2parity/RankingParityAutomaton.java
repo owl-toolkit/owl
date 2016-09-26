@@ -164,9 +164,9 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
             int nextVolatileStateIndex = -1;
 
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
-                RecurringObligations initialClass = accState.getObligations();
+                RecurringObligations obligations = accState.getObligations();
 
-                int candidateIndex = volatileComponents.getInt(initialClass);
+                int candidateIndex = volatileComponents.getInt(obligations);
 
                 // It is a volatile state
                 if (candidateIndex > -1 && accState.getCurrent().isTrue()) {
@@ -180,25 +180,22 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                         continue;
                     }
 
-                    EquivalenceClass existingClass = existingClasses.get(initialClass);
-                    EquivalenceClass stateClass = accState.getLabel();
-
-                    if (existingClass == null || !stateClass.implies(existingClass)) {
+                    if (!accState.getLabel().implies(existingClasses.get(obligations))) {
                         nextVolatileStateIndex = candidateIndex;
                         nextVolatileState = accState;
                     }
                 } else {
-                    EquivalenceClass existingClass = existingClasses.get(initialClass);
+                    EquivalenceClass existingClass = existingClasses.get(obligations);
                     EquivalenceClass stateClass = accState.getLabel();
 
-                    if (existingClass == null || !stateClass.implies(existingClass)) {
-                        RecurringObligations obligations = accState.getObligations();
+                    if (stateClass.implies(existingClass)) {
+                        continue;
+                    }
 
-                        if (obligations.xFragment.isTrue() && accState.getCurrent().getRepresentative().isPureEventual() && Stream.of(obligations.initialStates).allMatch(e -> e.getRepresentative().isPureEventual())) {
-                            pureEventual.add(accState);
-                        } else {
-                            mixed.add(accState);
-                        }
+                    if (stateClass.getRepresentative().isPureEventual()) {
+                        pureEventual.add(accState);
+                    } else {
+                        mixed.add(accState);
                     }
                 }
             }
@@ -212,9 +209,6 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
 
             if (nextVolatileState != null) {
                 ranking.add(nextVolatileState);
-            }
-
-            if (nextVolatileStateIndex > 0) {
                 return nextVolatileStateIndex;
             }
 
@@ -279,7 +273,7 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                     continue;
                 }
 
-                existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getOrLabel()));
+                existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
                 ranking.add(rankingSuccessor);
 
                 if (volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
