@@ -211,14 +211,33 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     public Map<Edge<S>, ValuationSet> getSuccessors(S state) {
-        Map<Edge<S>, ValuationSet> row = transitions.get(state);
+        Map<Edge<S>, ValuationSet> successors = transitions.get(state);
 
-        if (row == null) {
-            row = state.getSuccessors();
-            transitions.put(state, row);
+        if (successors == null) {
+            BitSet sensitiveAlphabet = state.getSensitiveAlphabet();
+            successors = new LinkedHashMap<>();
+
+            for (BitSet valuation : Collections3.powerSet(sensitiveAlphabet)) {
+                Edge<S> successor = state.getSuccessor(valuation);
+
+                if (successor == null) {
+                    continue;
+                }
+
+                ValuationSet oldVs = successors.get(successor);
+                ValuationSet newVs = valuationSetFactory.createValuationSet(valuation, sensitiveAlphabet);
+
+                if (oldVs == null) {
+                    successors.put(successor, newVs);
+                } else {
+                    oldVs.addAllWith(newVs);
+                }
+            }
+
+            transitions.put(state, successors);
         }
 
-        return row;
+        return successors;
     }
 
     public int size() {

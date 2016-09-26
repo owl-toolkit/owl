@@ -17,27 +17,14 @@
 
 package omega_automaton;
 
-import omega_automaton.collections.Collections3;
-import omega_automaton.collections.valuationset.ValuationSet;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.BitSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-// TODO: migrate to abstract class?
 public interface AutomatonState<S> {
-    
-    ValuationSetFactory getFactory();
 
     @Nonnull
-    default BitSet getSensitiveAlphabet() {
-        BitSet a = new BitSet();
-        a.set(0, getFactory().getSize(), true);
-        return a;
-    }
+    BitSet getSensitiveAlphabet();
 
     /**
      * Compute the successor of a state and return the corresponding edge. The acceptance indices are additionally
@@ -48,32 +35,6 @@ public interface AutomatonState<S> {
      */
     @Nullable
     Edge<S> getSuccessor(BitSet valuation);
-
-    @Nonnull
-    default Map<Edge<S>, ValuationSet> getSuccessors() {
-        ValuationSetFactory factory = getFactory();
-        BitSet sensitiveAlphabet = getSensitiveAlphabet();
-        Map<Edge<S>, ValuationSet> successors = new LinkedHashMap<>();
-
-        for (BitSet valuation : Collections3.powerSet(sensitiveAlphabet)) {
-            Edge<S> successor = getSuccessor(valuation);
-
-            if (successor == null) {
-                continue;
-            }
-
-            ValuationSet oldVs = successors.get(successor);
-            ValuationSet newVs = factory.createValuationSet(valuation, sensitiveAlphabet);
-
-            if (oldVs == null) {
-                successors.put(successor, newVs);
-            } else {
-                oldVs.addAllWith(newVs);
-            }
-        }
-
-        return successors;
-    }
 
     default void free() {
 

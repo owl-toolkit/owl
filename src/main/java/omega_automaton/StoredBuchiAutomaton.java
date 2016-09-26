@@ -92,10 +92,6 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             throw new UnsupportedOperationException("Stored Automaton State cannot perform on-demand computations.");
         }
 
-        @Override
-        public ValuationSetFactory getFactory() {
-            throw new UnsupportedOperationException("Stored Automaton State cannot perform on-demand computations.");
-        }
 
         @Override
         public String toString() {
