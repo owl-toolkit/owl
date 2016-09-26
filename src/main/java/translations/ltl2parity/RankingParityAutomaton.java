@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
@@ -223,74 +224,80 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
         @Override
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
-            Edge<InitialComponent.State> successorEdge = initialComponent.getSuccessor(initialComponentState, valuation);
+            // We compute the successor of the state in the initial component.
+            InitialComponent.State successor;
 
-            if (successorEdge == null) {
-                return null;
+            {
+                Edge<InitialComponent.State> edge = initialComponent.getSuccessor(initialComponentState, valuation);
+
+                if (edge == null) {
+                    return null;
+                }
+
+                successor = edge.successor;
+
+                // If we reached the state "true", we're done and can loop forever.
+                if (successor.getClazz().isTrue()) {
+                    BitSet set = new BitSet();
+                    set.set(1);
+                    return new Edge<>(new State(successor, ImmutableList.of(), 0), set);
+                }
             }
 
-            if (successorEdge.successor.getClazz().isTrue()) {
-                BitSet set = new BitSet();
-                set.set(1);
-                return new Edge<>(new State(successorEdge.successor, ImmutableList.of(), 0), set);
+            // We compute the relevant accepting components, which we can jump to.
+            Map<RecurringObligations, EquivalenceClass> existingClasses = new HashMap<>();
+
+            {
+                EquivalenceClass falseClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
+
+                for (AcceptingComponent.State jumpTarget : initialComponent.epsilonJumps.get(successor)) {
+                    existingClasses.put(jumpTarget.getObligations(), falseClass);
+                }
             }
-
-            InitialComponent.State successor = successorEdge.successor;
-
-            List<AcceptingComponent.State> ranking = new ArrayList<>(acceptingComponentRanking.size());
 
             // Default rejecting color.
             int edgeColor = 2 * acceptingComponentRanking.size();
-            ListIterator<AcceptingComponent.State> listIterator = acceptingComponentRanking.listIterator();
+            List<AcceptingComponent.State> ranking = new ArrayList<>(acceptingComponentRanking.size());
+            int volatileIndex = -1;
+            int index = -1;
 
-            Map<RecurringObligations, EquivalenceClass> existingClasses = new HashMap<>();
+            for (AcceptingComponent.State current : acceptingComponentRanking) {
+                index++;
+                Edge<AcceptingComponent.State> edge = acceptingComponent.getSuccessor(current, valuation);
 
-            Set<RecurringObligations> activeMonitors = new HashSet<>();
-
-            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(successor)) {
-                activeMonitors.add(accState.getObligations());
-            }
-
-            int activeVolatileBreakpoint = -1;
-
-            while (listIterator.hasNext()) {
-                // TODO: use own counter...
-                int index = listIterator.nextIndex();
-                Edge<AcceptingComponent.State> successorEdge2 = acceptingComponent.getSuccessor(listIterator.next(), valuation);
-
-                if (successorEdge2 == null) {
+                if (edge == null) {
                     edgeColor = Math.min(edgeColor, 2 * index);
                     continue;
                 }
 
-                AcceptingComponent.State rankingSuccessor = successorEdge2.successor;
+                AcceptingComponent.State rankingSuccessor = edge.successor;
+                RecurringObligations obligations = rankingSuccessor.getObligations();
+                EquivalenceClass existingClass = existingClasses.get(obligations);
 
-                RecurringObligations initialFormula = rankingSuccessor.getObligations();
-                EquivalenceClass existingClass = existingClasses.get(initialFormula);
-
-                if (existingClass == null) {
-                    existingClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
+                if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass)) {
+                    edgeColor = Math.min(edgeColor, 2 * index);
+                    continue;
                 }
 
-                EquivalenceClass stateLabel = rankingSuccessor.getLabel();
+                existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getOrLabel()));
+                ranking.add(rankingSuccessor);
 
-                if (stateLabel.implies(existingClass) || !activeMonitors.contains(initialFormula)) {
-                    edgeColor = Math.min(edgeColor, 2 * index);
-                } else {
-                    existingClasses.put(rankingSuccessor.getObligations(), existingClass.orWith(rankingSuccessor.getCurrent()));
-                    ranking.add(rankingSuccessor);
-
-                    if (volatileComponents.containsKey(initialFormula) && rankingSuccessor.getCurrent().isTrue()) {
-                        activeVolatileBreakpoint = volatileComponents.getInt(initialFormula);
+                if (volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
+                    // There exists another volatile component with a "true" goal. Thus we just drop this one.
+                    if (volatileIndex >= 0) {
+                        edgeColor = Math.min(edgeColor, 2 * index);
+                        continue;
                     }
 
-                    if (successorEdge2.acceptance.get(0)) {
-                        edgeColor = Math.min(edgeColor, 2 * index + 1);
-                    }
+                    volatileIndex = volatileComponents.getInt(obligations);
+                }
+
+                if (edge.inAcceptanceSet(0)) {
+                    edgeColor = Math.min(edgeColor, 2 * index + 1);
                 }
             }
 
-            int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, activeVolatileBreakpoint == -1, volatileIndex);
+            int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, volatileIndex == -1, this.volatileIndex);
 
             BitSet acc = new BitSet();
             acc.set(edgeColor);
@@ -302,12 +309,12 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
 
             existingClasses.forEach((x, y) -> y.free());
 
-            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), activeVolatileBreakpoint > -1 ? activeVolatileBreakpoint : nextVolatileIndex), acc);
+            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), volatileIndex > -1 ? volatileIndex : nextVolatileIndex), acc);
         }
 
         @Override
         public String toString() {
-            return "{Init=" + initialComponentState + ", AccRanking=" + acceptingComponentRanking + ", volatileIndex=" + volatileIndex + '}';
+            return "{I: " + initialComponentState + ", Ranking: " + acceptingComponentRanking + ", VolatileIndex: " + volatileIndex + '}';
         }
     }
 }

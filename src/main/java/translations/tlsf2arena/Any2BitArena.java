@@ -63,7 +63,7 @@ class Any2BitArena {
                     }
                 }
 
-                int color = successor.acceptance.nextSetBit(0);
+                int color = successor.nextAcceptanceSet(0);
 
                 // Assign default color, if no color is found.
                 if (color < 0) {
