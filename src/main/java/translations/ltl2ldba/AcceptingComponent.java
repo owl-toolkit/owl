@@ -240,10 +240,6 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 for (EquivalenceClass clazz : next) {
                     orLabel = orLabel.orWith(clazz);
                 }
-
-                for (EquivalenceClass clazz : obligations.initialStates) {
-                    orLabel = orLabel.orWith(clazz);
-                }
             }
 
             return orLabel;
