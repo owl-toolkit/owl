@@ -236,10 +236,6 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         public EquivalenceClass getOrLabel() {
             if (orLabel == null) {
                 orLabel = current.or(xFragment);
-
-                for (EquivalenceClass clazz : next) {
-                    orLabel = orLabel.orWith(clazz);
-                }
             }
 
             return orLabel;
