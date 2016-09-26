@@ -142,7 +142,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
                 return null;
             }
 
-            obligations = new RecurringObligations(xFragment, initialStates.toArray(new EquivalenceClass[0]));
+            obligations = new RecurringObligations(xFragment, initialStates);
             cache.put(keys, obligations);
         }
 
@@ -151,7 +151,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     public void free() {
         super.free();
-        cache.forEach((k, v) -> v.free());
         cache.clear();
     }
 

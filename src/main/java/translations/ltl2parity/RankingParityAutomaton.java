@@ -18,6 +18,8 @@
 package translations.ltl2parity;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.AutomatonState;
@@ -37,16 +39,13 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
-    @Nonnull
-    final AcceptingComponent acceptingComponent;
-    @Nonnull
-    final InitialComponent<AcceptingComponent.State> initialComponent;
+class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
 
-    final int maxIndex;
-    final List<RecurringObligations> volatileComponents;
-
-    int colors;
+    private final AcceptingComponent acceptingComponent;
+    private final InitialComponent<AcceptingComponent.State> initialComponent;
+    private final int volatileMaxIndex;
+    private final Object2IntMap<RecurringObligations> volatileComponents;
+    private int colors;
 
     RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer) {
         super(new ParityAcceptance(2), factory, integer);
@@ -55,16 +54,17 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
         initialComponent = ldba.getInitialComponent();
 
         colors = 2;
-        ImmutableList.Builder<RecurringObligations> builder = ImmutableList.builder();
+
+        volatileComponents = new Object2IntOpenHashMap<>();
+        volatileComponents.defaultReturnValue(-1);
 
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
             if (value.initialStates.length == 0) {
-                builder.add(value);
+                volatileComponents.put(value, volatileComponents.size());
             }
         }
 
-        volatileComponents = builder.build();
-        maxIndex = volatileComponents.size() + 1;
+        volatileMaxIndex = volatileComponents.size() + 1;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
         }
 
         if (base >= index) {
-            index += maxIndex;
+            index += volatileMaxIndex;
         }
 
         return index - base;
@@ -165,7 +165,7 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
                 RecurringObligations initialClass = accState.getObligations();
 
-                int candidateIndex = volatileComponents.indexOf(initialClass);
+                int candidateIndex = volatileComponents.getInt(initialClass);
 
                 // It is a volatile state
                 if (candidateIndex > -1 && accState.getCurrent().isTrue()) {
@@ -280,8 +280,8 @@ public class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomat
                     existingClasses.put(rankingSuccessor.getObligations(), existingClass.orWith(rankingSuccessor.getCurrent()));
                     ranking.add(rankingSuccessor);
 
-                    if (volatileComponents.contains(initialFormula) && rankingSuccessor.getCurrent().isTrue()) {
-                        activeVolatileBreakpoint = volatileComponents.indexOf(initialFormula);
+                    if (volatileComponents.containsKey(initialFormula) && rankingSuccessor.getCurrent().isTrue()) {
+                        activeVolatileBreakpoint = volatileComponents.getInt(initialFormula);
                     }
 
                     if (successorEdge2.acceptance.get(0)) {

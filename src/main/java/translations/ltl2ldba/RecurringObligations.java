@@ -21,6 +21,7 @@ import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class RecurringObligations extends ImmutableObject {
@@ -28,9 +29,9 @@ public class RecurringObligations extends ImmutableObject {
     public final EquivalenceClass xFragment;
     public final EquivalenceClass[] initialStates;
 
-    RecurringObligations(EquivalenceClass xFragment, EquivalenceClass[] initialStates) {
+    RecurringObligations(EquivalenceClass xFragment, List<EquivalenceClass> initialStates) {
         this.xFragment = xFragment;
-        this.initialStates = initialStates.clone();
+        this.initialStates = initialStates.toArray(new EquivalenceClass[0]);
     }
 
     @Override
@@ -42,11 +43,6 @@ public class RecurringObligations extends ImmutableObject {
     protected boolean equals2(ImmutableObject o) {
         RecurringObligations that = (RecurringObligations) o;
         return Objects.equals(xFragment, that.xFragment) && Arrays.equals(initialStates, that.initialStates);
-    }
-
-    public void free() {
-        // xFragment.free();
-        // initialStates.forEach(EquivalenceClass::free);
     }
 
     @Override
