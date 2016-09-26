@@ -19,6 +19,7 @@ package omega_automaton.collections;
 
 import java.util.Objects;
 
+@Deprecated
 public class Tuple<L, R> {
 
     public final L left;
