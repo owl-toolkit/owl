@@ -19,6 +19,7 @@ package omega_automaton;
 
 import java.util.BitSet;
 import java.util.Objects;
+import java.util.PrimitiveIterator;
 
 public class Edge<S> {
 
@@ -37,6 +38,18 @@ public class Edge<S> {
         Edge<?> tuple = (Edge<?>) o;
         return Objects.equals(successor, tuple.successor) &&
                 Objects.equals(acceptance, tuple.acceptance);
+    }
+
+    PrimitiveIterator.OfInt iterator() {
+        return acceptance.stream().iterator();
+    }
+
+    public boolean inAcceptanceSet(int i) {
+        return acceptance.get(i);
+    }
+
+    public int nextAcceptanceSet(int i) {
+        return acceptance.nextSetBit(i);
     }
 
     @Override

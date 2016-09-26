@@ -73,7 +73,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     }
 
     public boolean isAccepting(State state) {
-        return Collections3.getElement(transitions.get(state).keySet()).acceptance.get(0);
+        return Collections3.getElement(transitions.get(state).keySet()).inAcceptanceSet(0);
     }
 
     public static class State implements AutomatonState<State> {
