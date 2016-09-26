@@ -175,7 +175,16 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         return successor;
     }
 
-    protected static void freeClasses(EquivalenceClass... classes) {
+    // TODO: Move to ltl-lib
+    protected static void freeClasses(@Nullable EquivalenceClass clazz, EquivalenceClass... classes) {
+        if (clazz != null) {
+            clazz.free();
+        }
+
+        freeClasses(classes);
+    }
+
+    protected static void freeClasses(EquivalenceClass[] classes) {
         for (EquivalenceClass clazz : classes) {
             if (clazz != null) {
                 clazz.free();

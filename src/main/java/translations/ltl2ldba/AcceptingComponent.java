@@ -131,19 +131,21 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             EquivalenceClass currentSuccessor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
 
             if (currentSuccessor.isFalse()) {
+                freeClasses(nextXFragment);
                 return null;
             }
 
             EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
 
             if (assumptions.isFalse()) {
+                freeClasses(nextXFragment, currentSuccessor);
                 return null;
             }
 
             EquivalenceClass[] nextSuccessors = AcceptingComponent.this.getSuccessors(next, valuation, assumptions);
 
             if (nextSuccessors == null) {
-                assumptions.free();
+                freeClasses(nextXFragment, currentSuccessor, assumptions);
                 return null;
             }
 
@@ -154,7 +156,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             boolean obtainNewGoal = false;
             int j = index;
 
-            // Scan for new index if currentSuccessor currentSuccessor is true.
+            // Scan for new index if currentSuccessor currentSuccessor is true. In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
             if (currentSuccessor.isTrue()) {
                 obtainNewGoal = true;
                 int i = index + 1;
@@ -173,7 +175,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 }
 
                 if (i == length) {
-                    j = 0;
+                    j = index;
                 } else {
                     j = i;
                 }
@@ -192,11 +194,15 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             }
 
             if (currentSuccessor.isFalse()) {
+                freeClasses(nextXFragment, currentSuccessor, assumptions);
+                freeClasses(nextSuccessors);
                 return null;
             }
 
             for (EquivalenceClass clazz : nextSuccessors) {
                 if (clazz.isFalse()) {
+                    freeClasses(nextXFragment, currentSuccessor, assumptions);
+                    freeClasses(nextSuccessors);
                     return null;
                 }
             }
