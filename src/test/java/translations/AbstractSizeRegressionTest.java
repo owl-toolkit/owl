@@ -101,7 +101,8 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
                 "! F((a) & ((a) W ((b) & ((c) W (a)))))",
                 "F (a R X b)",
                 "G (a U X b)",
-                "G((F((a) & (X(X(b))))) & (F((b) & (X(c)))))"
+                "G((F((a) & (X(X(b))))) & (F((b) & (X(c)))))",
+                "(F (((F X x) | (F a)) & (G (a | b)))) | (F (((F X y) | (F c)) & (G (c | d))))"
         });
     }
 

@@ -183,20 +183,21 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                     if (!accState.getLabel().implies(existingClasses.get(obligations))) {
                         nextVolatileStateIndex = candidateIndex;
                         nextVolatileState = accState;
-                    }
-                } else {
-                    EquivalenceClass existingClass = existingClasses.get(obligations);
-                    EquivalenceClass stateClass = accState.getLabel();
-
-                    if (stateClass.implies(existingClass)) {
                         continue;
                     }
+                }
 
-                    if (stateClass.getRepresentative().isPureEventual()) {
-                        pureEventual.add(accState);
-                    } else {
-                        mixed.add(accState);
-                    }
+                EquivalenceClass existingClass = existingClasses.get(obligations);
+                EquivalenceClass stateClass = accState.getLabel();
+
+                if (stateClass.implies(existingClass)) {
+                    continue;
+                }
+
+                if (stateClass.getRepresentative().isPureEventual()) {
+                    pureEventual.add(accState);
+                } else {
+                    mixed.add(accState);
                 }
             }
 
@@ -277,13 +278,9 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                 ranking.add(rankingSuccessor);
 
                 if (volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
-                    // There exists another volatile component with a "true" goal. Thus we just drop this one.
-                    if (volatileIndex >= 0) {
-                        edgeColor = Math.min(edgeColor, 2 * index);
-                        continue;
+                    if (volatileIndex == -1) {
+                        volatileIndex = volatileComponents.getInt(obligations);
                     }
-
-                    volatileIndex = volatileComponents.getInt(obligations);
                 }
 
                 if (edge.inAcceptanceSet(0)) {

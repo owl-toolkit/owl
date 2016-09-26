@@ -63,7 +63,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{1, 1};
 
             case MIXED:
-                return new int[]{2, 4, 4, 5, 5, 4, 3, 2, 6};
+                return new int[]{2, 4, 4, 5, 5, 4, 3, 2, 6, 13};
 
             case FG_UNSTABLE:
                 return new int[]{2, 2, 4, 4, 2, 2, 2, 2};
@@ -94,7 +94,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{4, 4, 4, 4, 4, 5};
 
             case MIXED:
-                return new int[]{4, 3, 3, 4, 4, 5, 2, 1, 1};
+                return new int[]{4, 3, 3, 4, 4, 5, 2, 1, 1, 5};
 
             case FG_UNSTABLE:
                 return new int[]{3, 4, 2, 4, 4, 5};
