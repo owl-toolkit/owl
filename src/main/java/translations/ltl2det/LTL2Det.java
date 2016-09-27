@@ -60,17 +60,15 @@ public class LTL2Det {
         mapping = parser.map;
 
         LTL2LDGBA translationLDGBA = new LTL2LDGBA(optimisations);
+        LTL2Parity translationParity = new LTL2Parity(optimisations);
 
         LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>
                 ldba = translationLDGBA.apply(formula);
 
-        Automaton<?, ?> automaton;
+        Automaton<?, ?> automaton = translationParity.apply(formula);
 
-        if (ldba.isDeterministic()) {
+        if (ldba.isDeterministic() && ldba.getAcceptingComponent().size() <= automaton.size()) {
             automaton = ldba.getAcceptingComponent();
-        } else {
-            LTL2Parity translationParity = new LTL2Parity(optimisations);
-            automaton = translationParity.apply(formula);
         }
 
         automaton.toHOA(new HOAConsumerPrint(System.out), mapping, options);
