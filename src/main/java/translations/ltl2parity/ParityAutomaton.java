@@ -20,12 +20,9 @@ package translations.ltl2parity;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
-import javax.annotation.Nonnull;
-import java.util.BitSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class ParityAutomaton<S extends AutomatonState<S>> extends Automaton<S, ParityAcceptance> {
