@@ -65,10 +65,13 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
                 return new int[]{3, 3};
 
             case MIXED:
-                return new int[]{3, 4, 7, 8, 4, 11, 4, 2, 8, 17 };
+                return new int[]{3, 4, 6, 6, 4, 9, 4, 2, 8, 11 };
 
             case FG_UNSTABLE:
                 return new int[]{4, 6, 5, 5, 4, 3};
+
+            case ORDERINGS:
+                return new int[]{10, 28, 3, 4};
 
             default:
                 return new int[0];
@@ -80,6 +83,9 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
         switch (t) {
             case FG:
                 return new int[]{1, 2, 1, 2, 2, 1};
+
+            case ORDERINGS:
+                return new int[]{1, 3};
 
             default:
                 return new int[]{1, 1, 1, 1, 1, 1, 1, 1, 2, 1};

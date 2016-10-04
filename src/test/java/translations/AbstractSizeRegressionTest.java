@@ -20,6 +20,7 @@ package translations;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import jhoafparser.consumer.HOAConsumerNull;
+import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import ltl.Formula;
 import ltl.parser.Parser;
@@ -104,9 +105,14 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
                 "G((F((a) & (X(X(b))))) & (F((b) & (X(c)))))",
                 "(F (((F X x) | (F a)) & (G (a | b)))) | (F (((F X y) | (F c)) & (G (c | d))))"
         });
+
+        FORMULA_GROUP_MAP.put(FormulaGroup.ORDERINGS, new String[]{
+                "F (G (a1 | (b1 & X F b1))) | F (G (a2 | (b2 & X F b2))) | F (G (a3 | (b3 & X F b3)))",
+                "F (G (a1 | (b1 & X F b1))) & F (G (a2 | (b2 & X F b2))) & F (G (a3 | (b3 & X F b3)))"
+        });
     }
 
-    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED};
+    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED, ORDERINGS};
 
     @Parameterized.Parameters(name = "Group: {0}")
     public static Iterable<? extends Object> data() {

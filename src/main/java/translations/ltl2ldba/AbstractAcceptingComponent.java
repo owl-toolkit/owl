@@ -88,7 +88,10 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
         RecurringObligations obligations = getObligations(keys);
 
-        if (obligations == null) {
+        if (obligations == null || (optimisations.contains(Optimisation.SEPARATE_X_FRAGMENT)
+                && optimisations.contains(Optimisation.DELAY_JUMPS)
+                && obligations.initialStates.length == 0
+                && !remainingGoal.getRepresentative().accept(XFragmentPredicate.INSTANCE))) {
             return null;
         }
 
