@@ -227,10 +227,12 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
             Optional<List<AcceptingComponent.State>> append = trie != null ? trie.computeIfAbsent(state, x -> new Trie<>()).suffix(ranking, suffixes) : Optional.empty();
 
-            if (!append.isPresent()) {
+            if (append.isPresent()) {
+                ranking.addAll(append.get());
+            } else {
                 // Impose stable but arbitrary order.
-                pureEventual.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
-                mixed.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
+                pureEventual.sort((o1, o2) -> Integer.compare(o1.getObligations().hashCode(), o2.getObligations().hashCode()));
+                mixed.sort((o1, o2) -> Integer.compare(o1.getObligations().hashCode(), o2.getObligations().hashCode()));
 
                 ranking.addAll(pureEventual);
                 ranking.addAll(mixed);
@@ -238,9 +240,6 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 if (nextVolatileState != null) {
                     ranking.add(nextVolatileState);
                 }
-            } else {
-                // System.out.println("Found something in trie! " + append);
-                ranking.addAll(append.get());
             }
 
             if (nextVolatileStateIndex >= 0) {

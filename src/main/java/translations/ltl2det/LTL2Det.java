@@ -54,7 +54,6 @@ public class LTL2Det {
         Formula formula;
         BiMap<String, Integer> mapping;
 
-
         Parser parser = readStdin ? new Parser(System.in) : new Parser(new StringReader(argsDeque.getFirst()));
         formula = Simplifier.simplify(parser.formula(), Simplifier.Strategy.MODAL_EXT);
         mapping = parser.map;
