@@ -318,7 +318,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
                 if (edge.inAcceptanceSet(0)) {
                     edgeColor = Math.min(2 * index + 1, edgeColor);
-                    break;
+                    existingClasses.replace(obligations, acceptingComponent.getEquivalenceClassFactory().getTrue());
                 }
             }
 
