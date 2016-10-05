@@ -190,12 +190,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 // It is a volatile state
                 if (candidateIndex > -1) {
                     assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
-
-                    // There is already a volatile state in use.
-                    if (!findNewVolatile) {
-                        continue;
-                    }
-
+                    
                     // The distance is too large...
                     if (nextVolatileState != null && distance(currentVolatileIndex, candidateIndex) > distance(currentVolatileIndex, nextVolatileStateIndex)) {
                         continue;
