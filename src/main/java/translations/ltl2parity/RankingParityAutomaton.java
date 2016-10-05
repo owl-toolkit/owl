@@ -295,8 +295,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 Edge<AcceptingComponent.State> edge = acceptingComponent.getSuccessor(current, valuation);
 
                 if (edge == null) {
-                    edgeColor = 2 * index;
-                    break;
+                    edgeColor = Math.min(2 * index, edgeColor);
+                    continue;
                 }
 
                 AcceptingComponent.State rankingSuccessor = edge.successor;
@@ -304,8 +304,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 EquivalenceClass existingClass = existingClasses.get(obligations);
 
                 if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass)) {
-                    edgeColor = 2 * index;
-                    break;
+                    edgeColor = Math.min(2 * index, edgeColor);
+                    continue;
                 }
 
                 existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
@@ -317,7 +317,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 }
 
                 if (edge.inAcceptanceSet(0)) {
-                    edgeColor = 2 * index + 1;
+                    edgeColor = Math.min(2 * index + 1, edgeColor);
                     break;
                 }
             }
