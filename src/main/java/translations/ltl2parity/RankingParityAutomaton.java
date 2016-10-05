@@ -173,6 +173,11 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         // TODO: Enable annotation @Nonnegative
         private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<RecurringObligations, EquivalenceClass> existingClasses, boolean findNewVolatile, int currentVolatileIndex) {
+            // There is still a volatile component active. Let's wait and see.
+            if (!findNewVolatile) {
+                return 0;
+            }
+
             List<AcceptingComponent.State> pureEventual = new ArrayList<>();
             List<AcceptingComponent.State> mixed = new ArrayList<>();
             AcceptingComponent.State nextVolatileState = null;
