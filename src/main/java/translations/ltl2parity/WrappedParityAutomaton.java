@@ -24,7 +24,7 @@ import translations.ltl2ldba.AcceptingComponent;
 import javax.annotation.Nonnull;
 import java.util.BitSet;
 
-class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.State> {
+final class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.State> {
 
     private AcceptingComponent ba;
 

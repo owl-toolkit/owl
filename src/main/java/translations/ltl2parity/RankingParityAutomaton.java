@@ -26,7 +26,9 @@ import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.ParityAcceptance;
+import omega_automaton.collections.Trie;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
@@ -37,18 +39,17 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
+final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
 
+    private final Map<InitialComponent.State, Trie<AcceptingComponent.State>> trie;
     private final AcceptingComponent acceptingComponent;
     private final InitialComponent<AcceptingComponent.State> initialComponent;
     private final int volatileMaxIndex;
     private final Object2IntMap<RecurringObligations> volatileComponents;
     private int colors;
 
-    RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer) {
+    RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
         super(new ParityAcceptance(2), factory, integer);
 
         acceptingComponent = ldba.getAcceptingComponent();
@@ -66,6 +67,12 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
         }
 
         volatileMaxIndex = volatileComponents.size() + 1;
+
+        if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
+            trie = new HashMap<>();
+        } else {
+            trie = null;
+        }
     }
 
     @Override
@@ -99,25 +106,33 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
         return new State(null, ImmutableList.of(), 0);
     }
 
+
     @Immutable
     public final class State extends ImmutableObject implements AutomatonState<State>  {
 
         private final InitialComponent.State initialComponentState;
         private final ImmutableList<AcceptingComponent.State> acceptingComponentRanking;
-
-        final int volatileIndex;
+        private final int volatileIndex;
 
         private State(InitialComponent.State state) {
             initialComponentState = state;
             List<AcceptingComponent.State> ranking = new ArrayList<>();
             volatileIndex = appendJumps(state, ranking);
             acceptingComponentRanking = ImmutableList.copyOf(ranking);
+
+            if (trie != null) {
+                trie.computeIfAbsent(state, x -> new Trie<>()).add(acceptingComponentRanking);
+            }
         }
 
-        private State(@Nullable InitialComponent.State state, ImmutableList<AcceptingComponent.State> ranking, int volatileIndex) {
+        private State(InitialComponent.State state, ImmutableList<AcceptingComponent.State> ranking, int volatileIndex) {
             this.volatileIndex = volatileIndex;
             initialComponentState = state;
             acceptingComponentRanking = ranking;
+
+            if (trie != null) {
+                trie.computeIfAbsent(state, x -> new Trie<>()).add(acceptingComponentRanking);
+            }
         }
 
         @Override
@@ -165,11 +180,12 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
 
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
                 RecurringObligations obligations = accState.getObligations();
-
                 int candidateIndex = volatileComponents.getInt(obligations);
 
                 // It is a volatile state
-                if (candidateIndex > -1 && accState.getCurrent().isTrue()) {
+                if (candidateIndex > -1) {
+                    assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
+
                     // There is already a volatile state in use.
                     if (!findNewVolatile) {
                         continue;
@@ -185,6 +201,8 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                         nextVolatileState = accState;
                         continue;
                     }
+
+                    continue;
                 }
 
                 EquivalenceClass existingClass = existingClasses.get(obligations);
@@ -201,15 +219,31 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                 }
             }
 
-            // Impose stable but arbitrary order.
-            pureEventual.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
-            mixed.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
-
-            ranking.addAll(pureEventual);
-            ranking.addAll(mixed);
-
+            Set<AcceptingComponent.State> suffixes = new HashSet<>(mixed);
+            suffixes.addAll(pureEventual);
             if (nextVolatileState != null) {
-                ranking.add(nextVolatileState);
+                suffixes.add(nextVolatileState);
+            }
+
+            Optional<List<AcceptingComponent.State>> append = trie != null ? trie.computeIfAbsent(state, x -> new Trie<>()).suffix(ranking, suffixes) : Optional.empty();
+
+            if (!append.isPresent()) {
+                // Impose stable but arbitrary order.
+                pureEventual.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
+                mixed.sort((o1, o2) -> Integer.compare(o1.hashCode(), o2.hashCode()));
+
+                ranking.addAll(pureEventual);
+                ranking.addAll(mixed);
+
+                if (nextVolatileState != null) {
+                    ranking.add(nextVolatileState);
+                }
+            } else {
+                // System.out.println("Found something in trie! " + append);
+                ranking.addAll(append.get());
+            }
+
+            if (nextVolatileStateIndex >= 0) {
                 return nextVolatileStateIndex;
             }
 
@@ -277,7 +311,8 @@ class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.Stat
                 existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
                 ranking.add(rankingSuccessor);
 
-                if (volatileIndex == -1 && volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
+                if (volatileIndex == -1 && volatileComponents.containsKey(obligations)) {
+                    assert rankingSuccessor.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
                     volatileIndex = volatileComponents.getInt(obligations);
                 }
 

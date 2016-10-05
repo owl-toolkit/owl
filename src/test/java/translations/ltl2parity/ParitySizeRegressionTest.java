@@ -69,7 +69,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{2, 2, 4, 4, 2, 2, 2, 2};
 
             case ORDERINGS:
-                return new int[]{558, 103};
+                return new int[]{518, 103};
 
             default:
                 return new int[0];
