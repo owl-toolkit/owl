@@ -19,7 +19,7 @@ apply plugin: 'java'
 apply plugin: 'findbugs'
 
 project.group = 'de.tum.in'
-project.version = '0.0.35'
+project.version = '0.1.0'
 
 repositories {
     maven { url 'https://www7.in.tum.de/~sickert/maven/' }
@@ -33,7 +33,11 @@ dependencies {
     compile 'com.google.guava:guava:19.0'
     compile 'it.unimi.dsi:fastutil:7.0.12'
     compile 'jdd:jdd:0.0.116'
+    compile files('lib/jhoafparser-1.1.1.jar')
     testCompile 'junit:junit:4+'
+
+    // Additional Checks
+    // findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.3'
 }
 
 tasks.withType(FindBugs) {

@@ -3,7 +3,7 @@ before_script:
 
 build:
   script:
-    - ./gradlew build
+    - ./gradlew build  
   artifacts:
     paths:
     - build/reports/
