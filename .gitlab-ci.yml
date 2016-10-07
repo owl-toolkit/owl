@@ -1,0 +1,11 @@
+before_script:
+    - chmod +x gradlew
+
+build:
+  script:
+    - ./gradlew build
+  artifacts:
+    paths:
+    - build/reports/
+    when: on_failure
+    expire_in: 1 week
