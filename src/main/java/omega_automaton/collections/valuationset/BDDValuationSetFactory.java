@@ -19,7 +19,7 @@ package omega_automaton.collections.valuationset;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import jdd.bdd.BDD;
+import owl.bdd.BDD;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.collections.Collections3;
@@ -38,7 +38,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
     public BDDValuationSetFactory(int alphabet) {
         vars = new int[alphabet];
-        factory = new BDD((1024 * alphabet * alphabet) + 256, 1000);
+        factory = new BDD((1024 * alphabet * alphabet) + 256);
 
         for (int i = 0; i < alphabet; i++) {
             vars[i] = factory.createVar();
@@ -84,7 +84,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
             return FALSE;
         }
 
-        BooleanExpression<AtomLabel> letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVar(bdd)));
+        BooleanExpression<AtomLabel> letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVariable(bdd)));
 
         BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
         BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd));
@@ -169,7 +169,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         }
 
         public int size() {
-            return (int) Math.round(factory.satCount(index));
+            return (int) Math.round(factory.countSatisfyingAssignments(index));
         }
 
         @Override
@@ -186,7 +186,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         public void addAll(@Nonnull ValuationSet other) {
             if (other instanceof BDDValuationSet) {
                 BDDValuationSet otherSet = (BDDValuationSet) other;
-                index = factory.orTo(index, otherSet.index);
+                index = factory.consume(factory.or(index, otherSet.index), index, otherSet.index);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -217,7 +217,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         public void retainAll(@Nonnull ValuationSet other) {
             if (other instanceof BDDValuationSet) {
                 BDDValuationSet otherSet = (BDDValuationSet) other;
-                index = factory.andTo(index, otherSet.index);
+                index = factory.updateWith(factory.and(index, otherSet.index), index);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -243,16 +243,14 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public boolean contains(BitSet valuation) {
-            return factory.member(index, valuation);
+            return factory.evaluate(index, valuation);
         }
 
         @Override
         public boolean containsAll(ValuationSet other) {
             if (other instanceof BDDValuationSet) {
                 BDDValuationSet otherSet = (BDDValuationSet) other;
-                int or = factory.orTo(factory.ref(index), otherSet.index);
-                factory.deref(or);
-                return or == index;
+                return factory.implies(index, otherSet.index);
             }
 
             throw new UnsupportedOperationException();
