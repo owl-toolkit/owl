@@ -42,6 +42,7 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import owl.bdd.BDD;
+import owl.bdd.BDDFactory;
 
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
@@ -62,7 +63,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         int size = queuedFormulas.size();
 
-        factory = new BDD(64 * (size + 1));
+        factory = BDDFactory.buildBDD(64 * (size + 1));
         visitor = new BDDVisitor();
         unfoldVisitor = new UnfoldVisitor();
         vars = new int[size];
@@ -74,7 +75,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 continue;
             }
 
-            vars[k] = factory.createVar();
+            vars[k] = factory.createVariable();
             k++;
 
             mapping.put(propositions, k);
@@ -91,8 +92,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         unfoldCache = new Int2ObjectOpenHashMap<>();
         temporalStepCache = new Int2ObjectOpenHashMap<>();
 
-        trueClass = new BDDEquivalenceClass(BooleanConstant.TRUE, BDD.ONE);
-        falseClass = new BDDEquivalenceClass(BooleanConstant.FALSE, BDD.ZERO);
+        trueClass = new BDDEquivalenceClass(BooleanConstant.TRUE, factory.getTrueNode());
+        falseClass = new BDDEquivalenceClass(BooleanConstant.FALSE, factory.getFalseNode());
     }
 
     @Override
@@ -124,12 +125,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public int visit(BooleanConstant b) {
-            return b.value ? BDD.ONE : BDD.ZERO;
+            return b.value ? factory.getTrueNode() : factory.getFalseNode();
         }
 
         @Override
         public int visit(Conjunction c) {
-            int x = BDD.ONE;
+            int x = factory.getTrueNode();
 
             for (Formula child : c.children) {
                 x = factory.and(x, child.accept(this));
@@ -140,7 +141,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public int visit(Disjunction d) {
-            int x = BDD.ZERO;
+            int x = factory.getFalseNode();
 
             for (Formula child : d.children) {
                 x = factory.or(x, child.accept(this));
@@ -155,7 +156,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 Optional<Boolean> valuation = environment.apply(formula);
 
                 if (valuation.isPresent()) {
-                    return valuation.get() ? BDD.ONE : BDD.ZERO;
+                    return valuation.get() ? factory.getTrueNode() : factory.getFalseNode();
                 }
             }
 
@@ -174,12 +175,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             value = vars.length;
             vars = Arrays.copyOf(vars, vars.length + 1);
-            vars[value] = factory.createVar();
+            vars[value] = factory.createVariable();
             value++;
             mapping.put(formula, value);
         }
 
-        // We don't need to increment the ref-counter, since all variables are saturated.
+        // We don't need to increment the reference-counter, since all variables are saturated.
         return value > 0 ? vars[value - 1] : factory.not(vars[-(value + 1)]);
     }
 
@@ -200,17 +201,17 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             if (result == null) {
                 result = createEquivalenceClass(formula.unfold());
-                factory.ref(var);
+                factory.reference(var);
                 unfoldCache.put(var, result);
             }
 
-            return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));
+            return new BDDEquivalenceClass(result.representative, factory.reference(result.bdd));
         }
 
         @Override
         public BDDEquivalenceClass visit(Conjunction conjunction) {
             List<Formula> conjuncts = new ArrayList<>(conjunction.children.size());
-            int x = BDD.ONE;
+            int x = factory.getTrueNode();
 
             for (Formula child : conjunction.children) {
                 BDDEquivalenceClass bdd = child.accept(this);
@@ -224,7 +225,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public BDDEquivalenceClass visit(Disjunction disjunction) {
             List<Formula> disjuncts = new ArrayList<>(disjunction.children.size());
-            int x = BDD.ZERO;
+            int x = factory.getFalseNode();
 
             for (Formula child : disjunction.children) {
                 BDDEquivalenceClass bdd = child.accept(this);
@@ -238,10 +239,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     @Override
     public void flushCaches() {
-        unfoldCache.forEach((x, y) -> { factory.deref(x); factory.deref(y.bdd);});
+        unfoldCache.forEach((x, y) -> { factory.dereference(x); factory.dereference(y.bdd);});
         unfoldCache.clear();
 
-        temporalStepCache.forEach((x, y) -> { factory.deref(x); y.forEach((u, v) -> v.free());});
+        temporalStepCache.forEach((x, y) -> { factory.dereference(x); y.forEach((u, v) -> v.free());});
         temporalStepCache.clear();
     }
 
@@ -283,12 +284,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 result = representative.accept(unfoldVisitor);
 
                 if (!unfoldCache.containsKey(bdd)) {
-                    factory.ref(bdd);
+                    factory.reference(bdd);
                     unfoldCache.put(bdd, result);
                 }
             }
 
-            return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));
+            return new BDDEquivalenceClass(result.representative, factory.reference(result.bdd));
         }
 
         @Override
@@ -312,7 +313,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
             if (cache == null) {
                 cache = new HashMap<>();
-                factory.ref(bdd);
+                factory.reference(bdd);
                 temporalStepCache.put(bdd, cache);
             }
 
@@ -323,7 +324,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 cache.put(valuation, result);
             }
 
-            return new BDDEquivalenceClass(result.representative, factory.ref(result.bdd));
+            return new BDDEquivalenceClass(result.representative, factory.reference(result.bdd));
         }
 
         @Override
@@ -332,7 +333,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
                 return new BDDEquivalenceClass(Conjunction.create(representative, that.representative),
-                    factory.ref(factory.and(bdd, that.bdd)));
+                    factory.reference(factory.and(bdd, that.bdd)));
             }
 
             throw new UnsupportedOperationException();
@@ -346,7 +347,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 BDDEquivalenceClass and = new BDDEquivalenceClass(
                     Conjunction.create(representative, that.representative),
                     factory.updateWith(factory.and(bdd, that.bdd), bdd));
-                if (bdd > BDD.ONE) {
+                if (bdd > factory.getTrueNode()) {
                     bdd = INVALID_BDD;
                 }
 
@@ -376,7 +377,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative),
                     factory.updateWith(factory.or(bdd, that.bdd), bdd));
 
-                if (bdd > BDD.ONE) {
+                if (bdd > factory.getTrueNode()) {
                     bdd = INVALID_BDD;
                 }
 
@@ -388,12 +389,12 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public boolean isTrue() {
-            return bdd == BDD.ONE;
+            return bdd == factory.getTrueNode();
         }
 
         @Override
         public boolean isFalse() {
-            return bdd == BDD.ZERO;
+            return bdd == factory.getFalseNode();
         }
 
         @Override
@@ -410,8 +411,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         public void free() {
-            if (bdd > BDD.ONE) {
-                factory.deref(bdd);
+            if (bdd > factory.getTrueNode()) {
+                factory.dereference(bdd);
                 bdd = INVALID_BDD;
                 representative = null;
             }

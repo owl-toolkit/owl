@@ -19,17 +19,17 @@ package omega_automaton.collections.valuationset;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import owl.bdd.BDD;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import omega_automaton.collections.Collections3;
-
-import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
+import jhoafparser.ast.AtomLabel;
+import jhoafparser.ast.BooleanExpression;
+import omega_automaton.collections.Collections3;
+import owl.bdd.BDD;
+import owl.bdd.BDDFactory;
 
 public class BDDValuationSetFactory implements ValuationSetFactory {
 
@@ -38,21 +38,21 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
     public BDDValuationSetFactory(int alphabet) {
         vars = new int[alphabet];
-        factory = new BDD((1024 * alphabet * alphabet) + 256);
+        factory = BDDFactory.buildBDD((1024 * alphabet * alphabet) + 256);
 
         for (int i = 0; i < alphabet; i++) {
-            vars[i] = factory.createVar();
+            vars[i] = factory.createVariable();
         }
     }
 
     @Override
     public BDDValuationSet createEmptyValuationSet() {
-        return new BDDValuationSet(BDD.ZERO);
+        return new BDDValuationSet(factory.getFalseNode());
     }
 
     @Override
     public BDDValuationSet createUniverseValuationSet() {
-        return new BDDValuationSet(BDD.ONE);
+        return new BDDValuationSet(factory.getTrueNode());
     }
 
     @Override
@@ -76,16 +76,15 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
     BooleanExpression<AtomLabel> createRepresentative(int bdd) {
         Preconditions.checkArgument(bdd != INVALID_BDD, "ValuationSet already freed.");
 
-        if (bdd == BDD.ONE) {
+        if (bdd == factory.getFalseNode()) {
             return TRUE;
         }
 
-        if (bdd == BDD.ZERO) {
+        if (bdd == factory.getTrueNode()) {
             return FALSE;
         }
 
         BooleanExpression<AtomLabel> letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVariable(bdd)));
-
         BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
         BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd));
 
@@ -111,7 +110,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
     }
 
     int createBDD(BitSet set, PrimitiveIterator.OfInt base) {
-        int bdd = BDD.ONE;
+        int bdd = factory.getTrueNode();
 
         while (base.hasNext()) {
             int i = base.nextInt();
@@ -160,7 +159,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public boolean isUniverse() {
-            return index == BDD.ONE;
+            return index == factory.getTrueNode();
         }
 
         @Nonnull
@@ -174,7 +173,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public boolean isEmpty() {
-            return index == BDD.ZERO;
+            return index == factory.getFalseNode();
         }
 
         @Override
@@ -225,18 +224,18 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
 
         @Override
         public ValuationSet complement() {
-            return new BDDValuationSet(factory.ref(factory.not(index)));
+            return new BDDValuationSet(factory.reference(factory.not(index)));
         }
 
         @Override
         public BDDValuationSet copy() {
-            return new BDDValuationSet(factory.ref(index));
+            return new BDDValuationSet(factory.reference(index));
         }
 
         @Override
         public void free() {
-            if (index > BDD.ONE) {
-                factory.deref(index);
+            if (index != factory.getFalseNode() && index != factory.getTrueNode()) {
+                factory.dereference(index);
                 index = INVALID_BDD;
             }
         }

@@ -102,7 +102,6 @@ class BDDConfiguration {
     return DEFAULT_CACHE_SATISFACTION_BINS_PER_HASH;
   }
 
-
   @Value.Default
   public float minimumFreeNodePercentageAfterGC() {
     return DEFAULT_NODE_TABLE_FREE_NODE_PERCENTAGE;

@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Theories.class)
 public class BDDTheories {
-  private static final BDD bdd = new BDD(10);
+  private static final BDDImpl bdd = new BDDImpl(10);
   /* The @DataPoints annotated method is called multiple times - which would create new variables
    * each time, exploding the runtime of the tests. */
   private static final List<Integer> bddDataPoints;
@@ -41,19 +41,19 @@ public class BDDTheories {
     Random filter = new Random(0L);
     IntList variables = new IntArrayList(variableCount);
     for (int i = 0; i < variableCount; i++) {
-      variables.add(bdd.createVar());
+      variables.add(bdd.createVariable());
     }
 
-    Set<Integer> set = new TreeSet<>(Arrays.asList(BDD.ZERO, BDD.ONE));
+    Set<Integer> set = new TreeSet<>(Arrays.asList(bdd.getFalseNode(), bdd.getTrueNode()));
     for (int i = 0; i < variables.size(); i++) {
       set.add(variables.get(i));
-      set.add(bdd.ref(bdd.not(variables.get(i))));
+      set.add(bdd.reference(bdd.not(variables.get(i))));
       for (int j = i; j < variables.size(); j++) {
         // It is important that the stream is ordered for the tests to be reproducible
         doBinaryOperations(variables.get(i), variables.get(j)).stream()
             .filter(node -> filter.nextFloat() < bddLoadFactor)
-            .map(bdd::ref)
-            .forEach(node -> set.add(bdd.ref(node)));
+            .map(bdd::reference)
+            .forEach(node -> set.add(bdd.reference(node)));
       }
     }
     initialNodeCount = bdd.nodeCount();
@@ -68,6 +68,7 @@ public class BDDTheories {
           bitSet.set(j);
         }
       }
+      //noinspection ResultOfMethodCallIgnored
       valuationBuilder.add(bitSet);
     }
 
@@ -126,7 +127,7 @@ public class BDDTheories {
 
     bdd.pushToWorkStack(nAnd);
     int notNode2 = bdd.pushToWorkStack(bdd.not(node2));
-    int nAndIteConstruction = bdd.ite(node1, notNode2, BDD.ONE);
+    int nAndIteConstruction = bdd.ite(node1, notNode2, bdd.getTrueNode());
     bdd.popWorkStack(2);
     assertThat(nAnd, is(nAndIteConstruction));
   }
@@ -161,10 +162,10 @@ public class BDDTheories {
       }
 
       assertThat(node1 + " implies " + node2 + ", but implication construction not constant one.",
-          implication, is(BDD.ONE));
+          implication, is(bdd.getTrueNode()));
     } else {
       assertThat(node1 + " does not imply " + node2 + ", but implication construction is " +
-          "constant one.", implication, is(not(BDD.ONE)));
+          "constant one.", implication, is(not(bdd.getTrueNode())));
     }
   }
 
@@ -183,7 +184,7 @@ public class BDDTheories {
     bdd.popWorkStack();
 
     bdd.pushToWorkStack(not);
-    int notIteConstruction = bdd.ite(node, BDD.ZERO, BDD.ONE);
+    int notIteConstruction = bdd.ite(node, bdd.getFalseNode(), bdd.getTrueNode());
     bdd.popWorkStack();
     assertThat(not, is(notIteConstruction));
   }
@@ -237,7 +238,7 @@ public class BDDTheories {
     assertThat(and, is(andDeMorganConstruction));
 
     bdd.pushToWorkStack(and);
-    int andIteConstruction = bdd.ite(node1, node2, BDD.ZERO);
+    int andIteConstruction = bdd.ite(node1, node2, bdd.getFalseNode());
     bdd.popWorkStack();
     assertThat(and, is(andIteConstruction));
   }
@@ -265,7 +266,7 @@ public class BDDTheories {
     assertThat(or, is(orDeMorganConstruction));
 
     bdd.pushToWorkStack(or);
-    int orIteConstruction = bdd.ite(node1, BDD.ONE, node2);
+    int orIteConstruction = bdd.ite(node1, bdd.getTrueNode(), node2);
     bdd.popWorkStack();
     assertThat(or, is(orIteConstruction));
   }
@@ -355,11 +356,11 @@ public class BDDTheories {
 
     final int referenceCount = bdd.getReferenceCount(node);
     for (int i = referenceCount; i > 0; i--) {
-      bdd.deref(node);
+      bdd.dereference(node);
       assertThat(bdd.getReferenceCount(node), is(i - 1));
     }
     for (int i = 0; i < referenceCount; i++) {
-      bdd.ref(node);
+      bdd.reference(node);
       assertThat(bdd.getReferenceCount(node), is(i + 1));
     }
     assertThat(bdd.getReferenceCount(node), is(referenceCount));
@@ -374,8 +375,8 @@ public class BDDTheories {
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
     assumeThat(bdd.isNodeSaturated(node1) || bdd.isNodeSaturated(node2), is(false));
 
-    bdd.ref(node1);
-    bdd.ref(node2);
+    bdd.reference(node1);
+    bdd.reference(node2);
     int node1referenceCount = bdd.getReferenceCount(node1);
     int node2referenceCount = bdd.getReferenceCount(node2);
 
@@ -398,15 +399,15 @@ public class BDDTheories {
         assertThat(bdd.getReferenceCount(operationNode), is(operationRefCount + 1));
       }
 
-      bdd.ref(node1);
-      bdd.ref(node2);
-      bdd.deref(operationNode);
+      bdd.reference(node1);
+      bdd.reference(node2);
+      bdd.dereference(operationNode);
     }
 
     assertThat(bdd.getReferenceCount(node1), is(node1referenceCount));
     assertThat(bdd.getReferenceCount(node2), is(node2referenceCount));
-    bdd.deref(node1);
-    bdd.deref(node2);
+    bdd.dereference(node1);
+    bdd.dereference(node2);
   }
 
   @Theory
@@ -418,8 +419,8 @@ public class BDDTheories {
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
     assumeThat(bdd.isNodeSaturated(node1) || bdd.isNodeSaturated(node2), is(false));
 
-    bdd.ref(node1);
-    bdd.ref(node2);
+    bdd.reference(node1);
+    bdd.reference(node2);
     int node1referenceCount = bdd.getReferenceCount(node1);
     int node2referenceCount = bdd.getReferenceCount(node2);
     bdd.updateWith(node1, node1);
@@ -444,13 +445,13 @@ public class BDDTheories {
         assertThat(bdd.getReferenceCount(operationNode), is(operationRefCount + 1));
       }
 
-      bdd.ref(node1);
-      bdd.deref(operationNode);
+      bdd.reference(node1);
+      bdd.dereference(operationNode);
     }
 
     assertThat(bdd.getReferenceCount(node1), is(node1referenceCount));
     assertThat(bdd.getReferenceCount(node2), is(node2referenceCount));
-    bdd.deref(node1);
-    bdd.deref(node2);
+    bdd.dereference(node1);
+    bdd.dereference(node2);
   }
 }

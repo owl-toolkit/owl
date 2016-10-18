@@ -52,7 +52,7 @@ class Util {
     return prime;
   }
 
-  @SuppressWarnings({"MagicNumber", "AssignmentToMethodParameter"})
+  @SuppressWarnings("MagicNumber")
   private static int fnv1aRound(final int hash, final int number) {
     return (hash ^ ((number >>> 24) & BYTE_MASK)
         ^ ((number >>> 16) & BYTE_MASK)
