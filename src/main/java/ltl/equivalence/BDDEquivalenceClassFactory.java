@@ -21,16 +21,27 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import jdd.bdd.BDD;
-import ltl.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import ltl.BinaryModalOperator;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.Formula;
+import ltl.Literal;
+import ltl.UnaryModalOperator;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
-
-import java.util.*;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
+import owl.bdd.BDD;
 
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
@@ -51,7 +62,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         int size = queuedFormulas.size();
 
-        factory = new BDD(64 * (size + 1), 1000);
+        factory = new BDD(64 * (size + 1));
         visitor = new BDDVisitor();
         unfoldVisitor = new UnfoldVisitor();
         vars = new int[size];
@@ -255,11 +266,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (!(equivalenceClass instanceof BDDEquivalenceClass)) {
                 return false;
             }
-
             BDDEquivalenceClass that = (BDDEquivalenceClass) equivalenceClass;
-            int or = factory.orTo(factory.ref(bdd), that.bdd);
-            factory.deref(or);
-            return or == that.bdd;
+            return factory.implies(bdd, that.bdd);
         }
 
         @Override
@@ -323,7 +331,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                return new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.andTo(factory.ref(bdd), that.bdd));
+                return new BDDEquivalenceClass(Conjunction.create(representative, that.representative),
+                    factory.ref(factory.and(bdd, that.bdd)));
             }
 
             throw new UnsupportedOperationException();
@@ -334,8 +343,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                BDDEquivalenceClass and = new BDDEquivalenceClass(Conjunction.create(representative, that.representative), factory.andTo(bdd, that.bdd));
-
+                BDDEquivalenceClass and = new BDDEquivalenceClass(
+                    Conjunction.create(representative, that.representative),
+                    factory.updateWith(factory.and(bdd, that.bdd), bdd));
                 if (bdd > BDD.ONE) {
                     bdd = INVALID_BDD;
                 }
@@ -351,7 +361,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                return new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.orTo(factory.ref(bdd), that.bdd));
+                return new BDDEquivalenceClass(Disjunction.create(representative, that.representative),
+                    factory.or(bdd, that.bdd));
             }
 
             throw new UnsupportedOperationException();
@@ -362,7 +373,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             if (eq instanceof BDDEquivalenceClass) {
                 BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
                 assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.orTo(bdd, that.bdd));
+                BDDEquivalenceClass or = new BDDEquivalenceClass(Disjunction.create(representative, that.representative),
+                    factory.updateWith(factory.or(bdd, that.bdd), bdd));
 
                 if (bdd > BDD.ONE) {
                     bdd = INVALID_BDD;
@@ -396,7 +408,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
             representative.accept(visitor);
             return visitor.atoms;
         }
-        
+
         public void free() {
             if (bdd > BDD.ONE) {
                 factory.deref(bdd);

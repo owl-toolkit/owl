@@ -17,9 +17,9 @@
 
 package omega_automaton;
 
+import java.util.BitSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.BitSet;
 
 public interface AutomatonState<S> {
 
