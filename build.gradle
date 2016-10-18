@@ -17,9 +17,14 @@
 
 apply plugin: 'java'
 apply plugin: 'findbugs'
+apply plugin: 'pmd'
+apply plugin: 'checkstyle'
 
 project.group = 'de.tum.in'
 project.version = '0.1.0'
+
+def defaultEncoding = 'UTF-8'
+[compileJava, compileTestJava]*.options*.encoding = defaultEncoding
 
 repositories {
     maven { url 'https://www7.in.tum.de/~sickert/maven/' }
@@ -39,10 +44,58 @@ dependencies {
     // findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.3'
 }
 
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
+findbugs {
+    toolVersion = "3.0.1"
+    reportsDir = file("$project.buildDir/reports/findbugs")
+    effort = "max"
+    reportLevel = "low"
+    ignoreFailures = true // For now - adapt when merged
+}
+
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
+pmd {
+    toolVersion = "5.5.1"
+    reportsDir = file("$project.buildDir/reports/pmd")
+    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
+    ruleSets = [] // We specify all rules in rules.xml
+    ignoreFailures = true // For now - adapt when merged
+    consoleOutput = false // Don't litter console
+}
+
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
+checkstyle {
+    toolVersion = "7.1.2"
+    configFile = file("$project.rootDir/config/checkstyle.xml")
+    ignoreFailures = true // For now - adapt when merged
+    showViolations = false // Don't litter console
+}
+
+tasks.withType(Checkstyle) {
+    include '**/owl/**'
+    reports {
+        html {
+            destination file("$project.buildDir/reports/checkstyle.html")
+        }
+    }
+}
+
 tasks.withType(FindBugs) {
+    // Findbugs doesn't respect include for some reason ...
+    classes = classes.filter {
+        it.path.contains('/owl/')
+    }
     reports {
         xml.enabled false
         html.enabled true
+    }
+}
+
+tasks.withType(Pmd) {
+    include '**/owl/**'
+    reports {
+        xml.enabled = false
+        html.enabled = true
     }
 }
 
