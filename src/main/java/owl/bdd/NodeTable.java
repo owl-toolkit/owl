@@ -263,12 +263,7 @@ class NodeTable {
     return nodeStorage.length;
   }
 
-  /**
-   * increase the reference-count of this BDD once
-   *
-   * @return node
-   */
-  public final int ref(final int node) {
+  public final int reference(final int node) {
     assert isNodeValidOrRoot(node);
     final long referenceStore = referenceStorage[node];
     if (isStoreSaturated(referenceStore)) {
@@ -284,10 +279,7 @@ class NodeTable {
     return node;
   }
 
-  /**
-   * Decrease the reference count of the passed BDD by one.
-   */
-  public final int deref(final int node) {
+  public final int dereference(final int node) {
     assert isNodeValidOrRoot(node);
     final long referenceStore = referenceStorage[node];
     if (isStoreSaturated(referenceStore)) {

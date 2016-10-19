@@ -21,7 +21,7 @@ final class BDDCache {
   private static final int BINARY_CACHE_OPERATION_ID_OFFSET = 61;
   private static final int TERNARY_CACHE_OPERATION_ID_OFFSET = 63;
 
-  private final BDD associatedBdd;
+  private final BDDImpl associatedBdd;
   private final CacheAccessStatistics unaryAccessStatistics = new CacheAccessStatistics();
   private final CacheAccessStatistics binaryAccessStatistics = new CacheAccessStatistics();
   private final CacheAccessStatistics ternaryAccessStatistics = new CacheAccessStatistics();
@@ -39,7 +39,7 @@ final class BDDCache {
   private int[] satisfactionKeyStorage;
   private double[] satisfactionResultStorage;
 
-  public BDDCache(final BDD associatedBdd) {
+  public BDDCache(final BDDImpl associatedBdd) {
     this.associatedBdd = associatedBdd;
     final BDDConfiguration configuration = associatedBdd.getConfiguration();
     unaryBinsPerHash = configuration.cacheUnaryBinsPerHash();
