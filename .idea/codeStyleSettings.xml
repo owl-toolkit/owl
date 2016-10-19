@@ -104,6 +104,7 @@
           <option name="INDENT_SIZE" value="2" />
         </ADDITIONAL_INDENT_OPTIONS>
         <codeStyleSettings language="JAVA">
+          <option name="WHILE_ON_NEW_LINE" value="true" />
           <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
           <option name="ALIGN_MULTILINE_TERNARY_OPERATION" value="true" />
           <option name="SPACE_BEFORE_ARRAY_INITIALIZER_LBRACE" value="true" />
@@ -116,6 +117,7 @@
           <option name="THROWS_KEYWORD_WRAP" value="1" />
           <option name="METHOD_CALL_CHAIN_WRAP" value="1" />
           <option name="BINARY_OPERATION_WRAP" value="1" />
+          <option name="BINARY_OPERATION_SIGN_ON_NEXT_LINE" value="true" />
           <option name="TERNARY_OPERATION_WRAP" value="5" />
           <option name="ARRAY_INITIALIZER_WRAP" value="1" />
           <option name="ASSERT_STATEMENT_WRAP" value="5" />
@@ -174,7 +176,6 @@
                       <visibility />
                     </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
@@ -183,6 +184,7 @@
                     <AND>
                       <INITIALIZER_BLOCK>true</INITIALIZER_BLOCK>
                       <STATIC>true</STATIC>
+                      <visibility />
                     </AND>
                   </match>
                 </rule>
@@ -196,7 +198,6 @@
                       <visibility />
                     </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
@@ -207,15 +208,6 @@
                       <visibility />
                     </AND>
                   </match>
-                  <order>BY_NAME</order>
-                </rule>
-              </section>
-              <section>
-                <rule>
-                  <match>
-                    <FIELD>true</FIELD>
-                  </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
@@ -247,7 +239,6 @@
                       <visibility />
                     </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
@@ -258,23 +249,26 @@
                       <visibility />
                     </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
                 <rule>
                   <match>
-                    <ENUM>true</ENUM>
+                    <AND>
+                      <ENUM>true</ENUM>
+                      <visibility />
+                    </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
                 <rule>
                   <match>
-                    <INTERFACE>true</INTERFACE>
+                    <AND>
+                      <INTERFACE>true</INTERFACE>
+                      <visibility />
+                    </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
@@ -283,21 +277,31 @@
                     <AND>
                       <CLASS>true</CLASS>
                       <STATIC>true</STATIC>
+                      <visibility />
                     </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
               <section>
                 <rule>
                   <match>
-                    <CLASS>true</CLASS>
+                    <AND>
+                      <CLASS>true</CLASS>
+                      <visibility />
+                    </AND>
                   </match>
-                  <order>BY_NAME</order>
                 </rule>
               </section>
             </rules>
           </arrangement>
+        </codeStyleSettings>
+        <codeStyleSettings language="XML">
+          <option name="RIGHT_MARGIN" value="200" />
+          <indentOptions>
+            <option name="INDENT_SIZE" value="2" />
+            <option name="CONTINUATION_INDENT_SIZE" value="4" />
+            <option name="TAB_SIZE" value="2" />
+          </indentOptions>
         </codeStyleSettings>
       </value>
     </option>

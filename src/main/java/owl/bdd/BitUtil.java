@@ -4,77 +4,77 @@ final class BitUtil {
   private BitUtil() {
   }
 
-  public static long get(long store, int length) {
+  public static long get(final long store, final int length) {
     return store & maskLength(length);
   }
 
-  public static long get(long store, int length, int at) {
+  public static long get(final long store, final int length, final int at) {
     return (store >>> at) & maskLength(length);
   }
 
-  public static long getHead(long store, int at) {
+  public static long getHead(final long store, final int at) {
     return store >>> at;
   }
 
-  public static long set(long store, long value, int length, int at) {
+  public static long set(final long store, final long value, final int length, final int at) {
     assert value <= maskLength(length) : "Bit size exceeded";
     return clear(store, length, at) | (value << at);
   }
 
-  public static long clear(long store, int length, int at) {
-    return store & ~(maskLength(length, at));
-  }
-
-  public static long clear(long store, int length) {
-    return store & ~(maskLength(length));
-  }
-
-  public static long set(long store, long value, int length) {
+  public static long set(final long store, final long value, final int length) {
     assert value <= maskLength(length) : "Bit size exceeded";
     return clear(store, length) | value;
   }
 
-  public static long getBit(long store, int at) {
+  public static long clear(final long store, final int length, final int at) {
+    return store & ~(maskLength(length, at));
+  }
+
+  public static long clear(final long store, final int length) {
+    return store & ~(maskLength(length));
+  }
+
+  public static long getBit(final long store, final int at) {
     return (store >> at) & 1L;
   }
 
-  public static long getFirstBit(long store) {
+  public static long getFirstBit(final long store) {
     return store & 1L;
   }
 
-  public static long setBit(long store, int at) {
+  public static long setBit(final long store, final int at) {
     return store | (1L << at);
   }
 
-  public static long setFirstBit(long store) {
+  public static long setFirstBit(final long store) {
     return store | 1L;
   }
 
-  public static long unsetBit(long store, int at) {
+  public static long unsetBit(final long store, final int at) {
     return store & ~(1L << at);
   }
 
-  public static long unsetFirstBit(long store) {
+  public static long unsetFirstBit(final long store) {
     return store & ~1L;
   }
 
-  public static boolean fits(int value, int bitSize) {
+  public static boolean fits(final int value, final int bitSize) {
     return fits((long) value, bitSize);
   }
 
-  public static boolean fits(long value, int bitSize) {
+  public static boolean fits(final long value, final int bitSize) {
     return value <= maskLength(bitSize);
   }
 
-  public static long maskLength(int length) {
+  public static long maskLength(final int length) {
     return (1L << length) - 1L;
   }
 
-  public static int intMaskLength(int length) {
-    return (1 << length) - 1;
+  public static long maskLength(final int length, final int startingAt) {
+    return maskLength(length) << startingAt;
   }
 
-  public static long maskLength(int length, int startingAt) {
-    return maskLength(length) << startingAt;
+  public static int intMaskLength(final int length) {
+    return (1 << length) - 1;
   }
 }

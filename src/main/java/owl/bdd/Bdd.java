@@ -2,12 +2,13 @@ package owl.bdd;
 
 import java.util.BitSet;
 
-public interface BDD {
+public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} AND {@code node2}</tt>.
    */
   int and(int node1, int node2);
 
+  @SuppressWarnings({"PMD.UseVarargs"})
   int compose(int node, int[] variableNodes);
 
   /**
@@ -78,7 +79,7 @@ public interface BDD {
   boolean evaluate(int node, BitSet assignment);
 
   /**
-   * Returns the BDD node representing <tt>false</tt>.
+   * Returns the node representing <tt>false</tt>.
    */
   int getFalseNode();
 
@@ -87,7 +88,7 @@ public interface BDD {
   int getLow(final int node);
 
   /**
-   * Returns the BDD node representing <tt>true</tt>.
+   * Returns the node representing <tt>true</tt>.
    */
   int getTrueNode();
 
@@ -102,8 +103,8 @@ public interface BDD {
    * Checks whether the given {@code node1} implies {@code node2}, i.e. if every valuation under
    * which the function represented by {@code node1} evaluates to true also evaluates to true on
    * {@code node2}. This is equivalent to checking if {@link #implication(int, int)} with
-   * {@code node1} and {@code node2} as parameters is equal to {@link #ONE} and equal to checking
-   * whether {@code node1} equals <tt>{@code node1} OR {@code node2}</tt>, but faster.
+   * {@code node1} and {@code node2} as parameters is equal to {@link #getTrueNode()} and equal to
+   * checking whether {@code node1} equals <tt>{@code node1} OR {@code node2}</tt>, but faster.
    * <p><b>Note:</b> As many operations are cached, it may be even faster to use an alternative
    * logical representation of implication depending on how the BDD is used before this invocation.
    * E.g. if <tt>{@code node1} OR {@code 2}</tt> has been computed already, checking if
@@ -140,15 +141,15 @@ public interface BDD {
   boolean isVariableOrNegated(int node);
 
   /**
-   * Constructs the node representing <tt>IF {@code fNode} THEN {@code gNode} ELSE {@code hNode}
-   * </tt>.
+   * Constructs the node representing <tt>IF {@code ifNode} THEN {@code thenNode} ELSE
+   * {@code elseNode}</tt>.
    */
-  int ite(int fNode, int gNode, int hNode);
+  int ifThenElse(int ifNode, int thenNode, int elseNode);
 
   /**
    * Constructs the node representing <tt>{@code node1} NAND {@code node2}</tt>.
    */
-  int nAnd(int node1, int node2);
+  int notAnd(int node1, int node2);
 
   /**
    * Constructs the node representing <tt>NOT {@code node}</tt>.
@@ -190,7 +191,7 @@ public interface BDD {
    *     The node whose support should be computed.
    *
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
-   * the support of {@code node}.
+   *     the support of {@code node}.
    */
   BitSet support(int node);
 
@@ -241,10 +242,10 @@ public interface BDD {
    * is noticeable.
    */
   final class ReferenceGuard implements AutoCloseable {
-    private final BDD bdd;
+    private final Bdd bdd;
     private final int node;
 
-    public ReferenceGuard(int node, BDD bdd) {
+    public ReferenceGuard(int node, Bdd bdd) {
       this.node = bdd.reference(node);
       this.bdd = bdd;
     }
@@ -254,7 +255,7 @@ public interface BDD {
       bdd.dereference(node);
     }
 
-    public BDD getBdd() {
+    public Bdd getBdd() {
       return bdd;
     }
 

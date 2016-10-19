@@ -27,19 +27,19 @@ import java.util.Iterator;
 import java.util.List;
 import org.junit.Test;
 
-public class BDDTest {
-  private static BitSet buildBitSet(String values) {
-    BitSet bitSet = new BitSet(values.length());
-    char[] characters = values.toCharArray();
+public class BddTest {
+  private static BitSet buildBitSet(final String values) {
+    final BitSet bitSet = new BitSet(values.length());
+    final char[] characters = values.toCharArray();
     for (int i = 0; i < characters.length; i++) {
-      assert characters[i] == '0' || characters[i] == '1';
-      bitSet.set(i, characters[i] == '1');
+      assert characters[i] == (int) '0' || characters[i] == (int) '1';
+      bitSet.set(i, characters[i] == (int) '1');
     }
     return bitSet;
   }
 
-  private static BitSet buildBitSet(int bits, int size) {
-    BitSet bitSet = new BitSet(size);
+  private static BitSet buildBitSet(final int bits, final int size) {
+    final BitSet bitSet = new BitSet(size);
     for (int i = 0; i < size; i++) {
       if ((bits & (1 << i)) != 0) {
         bitSet.set(i);
@@ -50,28 +50,28 @@ public class BDDTest {
 
   @Test
   public void testSupport() {
-    BDD bdd = new BDDImpl(10);
-    int v1 = bdd.createVariable();
-    int v2 = bdd.createVariable();
-    int v3 = bdd.createVariable();
-    int v4 = bdd.createVariable();
-    int v5 = bdd.createVariable();
+    final Bdd bdd = new BddImpl(10);
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
+    final int v3 = bdd.createVariable();
+    final int v4 = bdd.createVariable();
+    final int v5 = bdd.createVariable();
 
     assertThat(bdd.support(v1), is(buildBitSet("100")));
     assertThat(bdd.support(v2), is(buildBitSet("010")));
     assertThat(bdd.support(v3), is(buildBitSet("001")));
 
-    List<Integer> variables = Arrays.asList(v1, v2, v3, v4, v5);
+    final List<Integer> variables = Arrays.asList(v1, v2, v3, v4, v5);
 
     // The snippet below builds various BDDs by evaluating every possible subset of variables,
     // combining the variables in this subset with different operations and then checking that the
     // support of each combination equals the variables of the subset.
-    List<Integer> subset = new ArrayList<>(variables.size());
+    final List<Integer> subset = new ArrayList<>(variables.size());
     for (int i = 1; i < 1 << variables.size(); i++) {
-      BitSet subsetBitSet = buildBitSet(i, variables.size());
+      final BitSet subsetBitSet = buildBitSet(i, variables.size());
       subsetBitSet.stream().forEach(setBit -> subset.add(variables.get(setBit)));
 
-      Iterator<Integer> variableIterator = subset.iterator();
+      final Iterator<Integer> variableIterator = subset.iterator();
       int variable = variableIterator.next();
       int and = variable;
       int or = variable;
@@ -96,34 +96,34 @@ public class BDDTest {
   }
 
   @Test
-  public void testITE() {
-    BDD bdd = new BDDImpl(10);
-    int v1 = bdd.createVariable();
-    int v2 = bdd.createVariable();
-    int v1andv2 = bdd.and(v1, v2);
-    assertThat(bdd.ite(v1, v1, v1), is(v1));
-    assertThat(bdd.ite(v1, v1andv2, v1andv2), is(v1andv2));
-    assertThat(bdd.ite(v1, v1andv2, v2), is(v2));
-    assertThat(bdd.ite(v1, v2, 0), is(bdd.and(v1, v2)));
-    assertThat(bdd.ite(v1, 1, v2), is(bdd.or(v1, v2)));
-    assertThat(bdd.ite(v1, bdd.not(v2), v2), is(bdd.xor(v1, v2)));
-    assertThat(bdd.ite(v1, 0, 1), is(bdd.not(v1)));
-    assertThat(bdd.ite(v1, v2, bdd.not(v2)), is(bdd.equivalence(v1, v2)));
+  public void testIfThenElse() {
+    final Bdd bdd = new BddImpl(10);
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
+    final int v1andv2 = bdd.and(v1, v2);
+    assertThat(bdd.ifThenElse(v1, v1, v1), is(v1));
+    assertThat(bdd.ifThenElse(v1, v1andv2, v1andv2), is(v1andv2));
+    assertThat(bdd.ifThenElse(v1, v1andv2, v2), is(v2));
+    assertThat(bdd.ifThenElse(v1, v2, 0), is(bdd.and(v1, v2)));
+    assertThat(bdd.ifThenElse(v1, 1, v2), is(bdd.or(v1, v2)));
+    assertThat(bdd.ifThenElse(v1, bdd.not(v2), v2), is(bdd.xor(v1, v2)));
+    assertThat(bdd.ifThenElse(v1, 0, 1), is(bdd.not(v1)));
+    assertThat(bdd.ifThenElse(v1, v2, bdd.not(v2)), is(bdd.equivalence(v1, v2)));
   }
 
   @SuppressWarnings("ReuseOfLocalVariable")
   @Test
   public void testCompose() {
-    BDDImpl bdd = new BDDImpl(10);
-    int v1 = bdd.createVariable();
-    int nv1 = bdd.not(v1);
-    int v2 = bdd.createVariable();
-    int v3 = bdd.createVariable();
+    final BddImpl bdd = new BddImpl(10);
+    final int v1 = bdd.createVariable();
+    final int nv1 = bdd.not(v1);
+    final int v2 = bdd.createVariable();
+    final int v3 = bdd.createVariable();
 
-    int v2orv3 = bdd.or(v2, v3);
-    int v1andv2 = bdd.and(v1, v2);
-    int v1andv2orv3 = bdd.and(v1, bdd.reference(v2orv3));
-    int nv1andv2orv3 = bdd.and(nv1, bdd.reference(v2orv3));
+    final int v2orv3 = bdd.or(v2, v3);
+    final int v1andv2 = bdd.and(v1, v2);
+    final int v1andv2orv3 = bdd.and(v1, bdd.reference(v2orv3));
+    final int nv1andv2orv3 = bdd.and(nv1, bdd.reference(v2orv3));
 
     int composition = bdd.compose(v1andv2, new int[] {v1, v2, v3});
     assertThat(v1andv2, is(composition));
@@ -139,14 +139,14 @@ public class BDDTest {
 
   @Test
   public void internalTest() {
-    BDDImpl bdd = new BDDImpl(2); // <-- want mucho garbage collections
-    int v1 = bdd.createVariable();
-    int v2 = bdd.createVariable();
-    int v3 = bdd.createVariable();
-    int v4 = bdd.createVariable();
+    final BddImpl bdd = new BddImpl(2); // <-- want mucho garbage collections
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
+    final int v3 = bdd.createVariable();
+    final int v4 = bdd.createVariable();
 
     // check deadnodes counter
-    int dum = bdd.reference(bdd.and(v3, v2));
+    final int dum = bdd.reference(bdd.and(v3, v2));
     assertThat(bdd.getApproximateDeadNodeCount(), is(0));
     bdd.dereference(dum);
     assertThat(1, is(bdd.getApproximateDeadNodeCount()));
@@ -157,8 +157,8 @@ public class BDDTest {
 
     // test garbage collection:
     bdd.grow(); // make sure there is room for it
-    int g1 = bdd.and(v3, v2);
-    int g2 = bdd.reference(bdd.or(g1, v1));
+    final int g1 = bdd.and(v3, v2);
+    final int g2 = bdd.reference(bdd.or(g1, v1));
     assertThat(bdd.gc(), is(0));
     bdd.dereference(g2);
 
@@ -166,29 +166,29 @@ public class BDDTest {
     assertThat(bdd.gc(), is(2));
     bdd.gc(); // Should free g1 and g2
 
-    int nv1 = bdd.reference(bdd.not(v1));
-    int nv2 = bdd.reference(bdd.not(v2));
+    final int nv1 = bdd.reference(bdd.not(v1));
+    final int nv2 = bdd.reference(bdd.not(v2));
 
     // and, or, not [MUST REF INTERMEDIATE STUFF OR THEY WILL DISSAPPEAR DURING GC]
-    int n1 = bdd.reference(bdd.and(v1, v2));
-    int orn12 = bdd.reference(bdd.or(nv1, nv2));
-    int n2 = bdd.reference(bdd.not(orn12));
+    final int n1 = bdd.reference(bdd.and(v1, v2));
+    final int orn12 = bdd.reference(bdd.or(nv1, nv2));
+    final int n2 = bdd.reference(bdd.not(orn12));
     assertThat(n1, is(n2));
 
     // XOR:
-    int h1 = bdd.reference(bdd.and(v1, nv2));
-    int h2 = bdd.reference(bdd.and(v2, nv1));
-    int x1 = bdd.reference(bdd.or(h1, h2));
+    final int h1 = bdd.reference(bdd.and(v1, nv2));
+    final int h2 = bdd.reference(bdd.and(v2, nv1));
+    final int x1 = bdd.reference(bdd.or(h1, h2));
     bdd.dereference(h1);
     bdd.dereference(h2);
-    int x2 = bdd.reference(bdd.xor(v1, v2));
+    final int x2 = bdd.reference(bdd.xor(v1, v2));
     assertThat(x1, is(x2));
     bdd.dereference(x1);
     bdd.dereference(x2);
 
     // equivalence
-    int b1 = bdd.or(n1, bdd.and(bdd.not(v1), bdd.not(v2)));
-    int b2 = bdd.equivalence(v1, v2);
+    final int b1 = bdd.or(n1, bdd.and(bdd.not(v1), bdd.not(v2)));
+    final int b2 = bdd.equivalence(v1, v2);
     assertThat(b1, is(b2));
     assertThat(bdd.isWorkStackEmpty(), is(true));
 
@@ -208,9 +208,9 @@ public class BDDTest {
     assertThat(bdd.approximateNodeCount(bdd.and(v1, v2)), is(2));
     assertThat(bdd.approximateNodeCount(bdd.xor(v1, v2)), is(3));
 
-    int qs1 = bdd.reference(bdd.xor(v1, v2));
-    int qs2 = bdd.reference(bdd.xor(v3, v4));
-    int qs3 = bdd.reference(bdd.xor(qs1, qs2));
+    final int qs1 = bdd.reference(bdd.xor(v1, v2));
+    final int qs2 = bdd.reference(bdd.xor(v3, v4));
+    final int qs3 = bdd.reference(bdd.xor(qs1, qs2));
     assertThat(bdd.approximateNodeCount(qs1), is(3));
     assertThat(bdd.approximateNodeCount(qs2), is(3));
     assertThat(bdd.approximateNodeCount(qs3), is(15));
@@ -230,16 +230,16 @@ public class BDDTest {
   @Test
   public void testMember() {
     // TEST MEMBER: taken from the brace/rudell/bryant paper
-    BDDImpl bdd = new BDDImpl(20);
-    int v1 = bdd.createVariable();
-    int v2 = bdd.createVariable();
+    final BddImpl bdd = new BddImpl(20);
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
 
-    int p1 = bdd.reference(bdd.and(v1, v2));
-    int p2 = bdd.reference(bdd.or(v1, v2));
-    int p3 = bdd.reference(bdd.and(bdd.not(v1), v2));
-    int p4 = bdd.reference(bdd.and(bdd.not(v2), v1));
+    final int p1 = bdd.reference(bdd.and(v1, v2));
+    final int p2 = bdd.reference(bdd.or(v1, v2));
+    final int p3 = bdd.reference(bdd.and(bdd.not(v1), v2));
+    final int p4 = bdd.reference(bdd.and(bdd.not(v2), v1));
 
-    BitSet valuation = new BitSet(2);
+    final BitSet valuation = new BitSet(2);
     valuation.set(1);
     assertThat(bdd.evaluate(p1, valuation), is(false));
     assertThat(bdd.evaluate(p2, valuation), is(true));
@@ -249,10 +249,10 @@ public class BDDTest {
 
   @Test
   public void testWorkStack() {
-    BDDImpl bdd = new BDDImpl(20);
-    int v1 = bdd.createVariable();
-    int v2 = bdd.createVariable();
-    int temporaryNode = bdd.pushToWorkStack(bdd.and(v1, v2));
+    final BddImpl bdd = new BddImpl(20);
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
+    final int temporaryNode = bdd.pushToWorkStack(bdd.and(v1, v2));
     bdd.gc();
     assertThat(bdd.isNodeValidOrRoot(temporaryNode), is(true));
     bdd.popWorkStack();
