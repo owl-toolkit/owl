@@ -50,34 +50,6 @@ findbugs {
     reportsDir = file("$project.buildDir/reports/findbugs")
     effort = "max"
     reportLevel = "low"
-    ignoreFailures = true // For now - adapt when merged
-}
-
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
-pmd {
-    toolVersion = "5.5.1"
-    reportsDir = file("$project.buildDir/reports/pmd")
-    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
-    ruleSets = [] // We specify all rules in rules.xml
-    ignoreFailures = true // For now - adapt when merged
-    consoleOutput = false // Don't litter console
-}
-
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
-checkstyle {
-    toolVersion = "7.1.2"
-    configFile = file("$project.rootDir/config/checkstyle.xml")
-    ignoreFailures = true // For now - adapt when merged
-    showViolations = false // Don't litter console
-}
-
-tasks.withType(Checkstyle) {
-    include '**/owl/**'
-    reports {
-        html {
-            destination file("$project.buildDir/reports/checkstyle.html")
-        }
-    }
 }
 
 tasks.withType(FindBugs) {
@@ -91,12 +63,40 @@ tasks.withType(FindBugs) {
     }
 }
 
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
+pmd {
+    toolVersion = "5.5.1"
+    reportsDir = file("$project.buildDir/reports/pmd")
+    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
+    ruleSets = [] // We specify all rules in rules.xml
+    consoleOutput = false // Don't litter console
+}
+
 tasks.withType(Pmd) {
     include '**/owl/**'
     reports {
         xml.enabled = false
         html.enabled = true
     }
+}
+
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
+checkstyle {
+    toolVersion = "7.1.2"
+    configFile = file("$project.rootDir/config/checkstyle.xml")
+    showViolations = false // Don't litter console
+    checkstyleMain {
+        configProperties = ['suppression-file':
+                                    "$project.rootDir/config/checkstyle-main-suppression.xml"]
+    }
+    checkstyleTest {
+        configProperties = ['suppression-file':
+                                    "$project.rootDir/config/checkstyle-test-suppression.xml"]
+    }
+}
+
+tasks.withType(Checkstyle) {
+    include '**/owl/**'
 }
 
 // If a user file is present, include it.

@@ -2,8 +2,9 @@ package owl.bdd;
 
 import org.immutables.value.Value;
 
+@SuppressWarnings("PMD.AtLeastOneConstructor")
 @Value.Immutable
-class BDDConfiguration {
+class BddConfiguration {
   private static final int DEFAULT_NODE_TABLE_GC_DEAD_NODE_COUNT = 2000;
   private static final int DEFAULT_MINIMUM_NODE_TABLE_SIZE = 100;
   private static final int DEFAULT_MINIMUM_CACHE_SIZE = 32;
@@ -33,12 +34,12 @@ class BDDConfiguration {
   }
 
   @Value.Default
-  public int minimumDeadNodesCountForGCInGrow() {
+  public int minimumDeadNodesCountForGcInGrow() {
     return DEFAULT_NODE_TABLE_GC_DEAD_NODE_COUNT;
   }
 
   @Value.Default
-  public int minimumFreeNodeCountAfterGC() {
+  public int minimumFreeNodeCountAfterGc() {
     return DEFAULT_NODE_TABLE_MINIMUM_FREE_NODE_COUNT;
   }
 
@@ -103,7 +104,7 @@ class BDDConfiguration {
   }
 
   @Value.Default
-  public float minimumFreeNodePercentageAfterGC() {
+  public float minimumFreeNodePercentageAfterGc() {
     return DEFAULT_NODE_TABLE_FREE_NODE_PERCENTAGE;
   }
 

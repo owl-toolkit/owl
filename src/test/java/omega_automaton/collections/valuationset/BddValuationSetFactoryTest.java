@@ -25,7 +25,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
-public class BDDValuationSetFactoryTest {
+public class BddValuationSetFactoryTest {
     private BDDValuationSetFactory factory;
     private Set<String> alphabet;
 

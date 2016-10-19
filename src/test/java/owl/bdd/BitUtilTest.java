@@ -5,86 +5,86 @@ import static org.hamcrest.core.Is.is;
 
 import org.junit.Test;
 
-@SuppressWarnings("NumericOverflow")
+@SuppressWarnings({"NumericOverflow", "PMD.AvoidDuplicateLiterals"})
 public class BitUtilTest {
-  private static long l(String string) {
-    return Long.parseUnsignedLong(string, 2);
+  private static long strToL(final String str) {
+    return Long.parseUnsignedLong(str, 2);
   }
 
   @Test
   public void testGetFromStart() {
-    long store = l("1111");
-    assertThat(BitUtil.get(store, 0), is(l("0000")));
-    assertThat(BitUtil.get(store, 2), is(l("0011")));
-    assertThat(BitUtil.get(store, 4), is(l("1111")));
-    assertThat(BitUtil.get(store, 8), is(l("1111")));
+    final long store = strToL("1111");
+    assertThat(BitUtil.get(store, 0), is(strToL("0000")));
+    assertThat(BitUtil.get(store, 2), is(strToL("0011")));
+    assertThat(BitUtil.get(store, 4), is(strToL("1111")));
+    assertThat(BitUtil.get(store, 8), is(strToL("1111")));
   }
 
   @Test
   public void testGetAt() {
-    long store = l("1001");
-    assertThat(BitUtil.get(store, 2, 0), is(l("01")));
-    assertThat(BitUtil.get(store, 4, 0), is(l("1001")));
-    assertThat(BitUtil.get(store, 8, 0), is(l("1001")));
-    assertThat(BitUtil.get(store, 2, 2), is(l("10")));
-    assertThat(BitUtil.get(store, 2, 1), is(l("00")));
-    assertThat(BitUtil.get(store, 4, 2), is(l("10")));
+    final long store = strToL("1001");
+    assertThat(BitUtil.get(store, 2, 0), is(strToL("01")));
+    assertThat(BitUtil.get(store, 4, 0), is(strToL("1001")));
+    assertThat(BitUtil.get(store, 8, 0), is(strToL("1001")));
+    assertThat(BitUtil.get(store, 2, 2), is(strToL("10")));
+    assertThat(BitUtil.get(store, 2, 1), is(strToL("00")));
+    assertThat(BitUtil.get(store, 4, 2), is(strToL("10")));
   }
 
   @Test
   public void testGetHead() {
-    long store = l("1010") << 60;
-    assertThat(BitUtil.getHead(store, 62), is(l("10")));
-    assertThat(BitUtil.getHead(store, 60), is(l("1010")));
-    assertThat(BitUtil.getHead(store, 58), is(l("101000")));
+    final long store = strToL("1010") << 60;
+    assertThat(BitUtil.getHead(store, 62), is(strToL("10")));
+    assertThat(BitUtil.getHead(store, 60), is(strToL("1010")));
+    assertThat(BitUtil.getHead(store, 58), is(strToL("101000")));
   }
 
   @Test
   public void testSetFromStart() {
-    long store = l("1001");
-    assertThat(BitUtil.set(store, l("01"), 2), is(l("1001")));
-    assertThat(BitUtil.set(store, l("1001"), 4), is(l("1001")));
-    assertThat(BitUtil.set(store, l("1001"), 8), is(l("1001")));
-    assertThat(BitUtil.set(store, l("00"), 2), is(l("1000")));
-    assertThat(BitUtil.set(store, l("0000"), 4), is(l("0000")));
-    assertThat(BitUtil.set(store, l("0000"), 8), is(l("0000")));
+    final long store = strToL("1001");
+    assertThat(BitUtil.set(store, strToL("01"), 2), is(strToL("1001")));
+    assertThat(BitUtil.set(store, strToL("1001"), 4), is(strToL("1001")));
+    assertThat(BitUtil.set(store, strToL("1001"), 8), is(strToL("1001")));
+    assertThat(BitUtil.set(store, strToL("00"), 2), is(strToL("1000")));
+    assertThat(BitUtil.set(store, strToL("0000"), 4), is(strToL("0000")));
+    assertThat(BitUtil.set(store, strToL("0000"), 8), is(strToL("0000")));
   }
 
   @Test
   public void testSet() {
-    long store = BitUtil.set(0, l("11"), 4, 0);
-    assertThat(store, is(l("11")));
-    store = BitUtil.set(store, l("11"), 2, 4);
-    assertThat(store, is(l("110011")));
-    store = BitUtil.set(store, l("00"), 4, 0);
-    assertThat(store, is(l("110000")));
-    store = BitUtil.set(store, l("1111"), 4, 2);
-    assertThat(store, is(l("111100")));
+    long store = BitUtil.set(0L, strToL("11"), 4, 0);
+    assertThat(store, is(strToL("11")));
+    store = BitUtil.set(store, strToL("11"), 2, 4);
+    assertThat(store, is(strToL("110011")));
+    store = BitUtil.set(store, strToL("00"), 4, 0);
+    assertThat(store, is(strToL("110000")));
+    store = BitUtil.set(store, strToL("1111"), 4, 2);
+    assertThat(store, is(strToL("111100")));
   }
 
   @Test
   public void testClearFromStart() {
-    long store = l("1111");
-    assertThat(BitUtil.clear(store, 0), is(l("1111")));
-    assertThat(BitUtil.clear(store, 2), is(l("1100")));
-    assertThat(BitUtil.clear(store, 4), is(l("0000")));
-    assertThat(BitUtil.clear(store, 8), is(l("0000")));
+    final long store = strToL("1111");
+    assertThat(BitUtil.clear(store, 0), is(strToL("1111")));
+    assertThat(BitUtil.clear(store, 2), is(strToL("1100")));
+    assertThat(BitUtil.clear(store, 4), is(strToL("0000")));
+    assertThat(BitUtil.clear(store, 8), is(strToL("0000")));
   }
 
   @Test
   public void testClear() {
-    long store = l("11011011");
-    assertThat(BitUtil.clear(store, 0, 4), is(l("11011011")));
-    assertThat(BitUtil.clear(store, 4, 4), is(l("1011")));
-    assertThat(BitUtil.clear(store, 4, 2), is(l("11000011")));
-    assertThat(BitUtil.clear(store, 4, 1), is(l("11000001")));
-    assertThat(BitUtil.clear(store, 4, 3), is(l("10000011")));
-    assertThat(BitUtil.clear(store, 8, 2), is(l("00000011")));
+    final long store = strToL("11011011");
+    assertThat(BitUtil.clear(store, 0, 4), is(strToL("11011011")));
+    assertThat(BitUtil.clear(store, 4, 4), is(strToL("1011")));
+    assertThat(BitUtil.clear(store, 4, 2), is(strToL("11000011")));
+    assertThat(BitUtil.clear(store, 4, 1), is(strToL("11000001")));
+    assertThat(BitUtil.clear(store, 4, 3), is(strToL("10000011")));
+    assertThat(BitUtil.clear(store, 8, 2), is(strToL("00000011")));
   }
 
   @Test
   public void testGetBit() {
-    long store = l("101");
+    final long store = strToL("101");
     assertThat(BitUtil.getBit(store, 0), is(1L));
     assertThat(BitUtil.getBit(store, 1), is(0L));
     assertThat(BitUtil.getBit(store, 2), is(1L));
@@ -93,59 +93,59 @@ public class BitUtilTest {
 
   @Test
   public void testSetBit() {
-    assertThat(BitUtil.setBit(l("00"), 1), is(l("10")));
-    assertThat(BitUtil.setBit(l("10"), 1), is(l("10")));
-    assertThat(BitUtil.setBit(l("10"), 0), is(l("11")));
-    assertThat(BitUtil.setBit(l("11"), 0), is(l("11")));
-    assertThat(BitUtil.setBit(l("11"), 1), is(l("11")));
+    assertThat(BitUtil.setBit(strToL("00"), 1), is(strToL("10")));
+    assertThat(BitUtil.setBit(strToL("10"), 1), is(strToL("10")));
+    assertThat(BitUtil.setBit(strToL("10"), 0), is(strToL("11")));
+    assertThat(BitUtil.setBit(strToL("11"), 0), is(strToL("11")));
+    assertThat(BitUtil.setBit(strToL("11"), 1), is(strToL("11")));
   }
 
   @Test
   public void testUnsetBit() {
-    assertThat(BitUtil.unsetBit(l("00"), 1), is(l("00")));
-    assertThat(BitUtil.unsetBit(l("10"), 1), is(l("00")));
-    assertThat(BitUtil.unsetBit(l("10"), 0), is(l("10")));
-    assertThat(BitUtil.unsetBit(l("11"), 0), is(l("10")));
-    assertThat(BitUtil.unsetBit(l("11"), 1), is(l("01")));
+    assertThat(BitUtil.unsetBit(strToL("00"), 1), is(strToL("00")));
+    assertThat(BitUtil.unsetBit(strToL("10"), 1), is(strToL("00")));
+    assertThat(BitUtil.unsetBit(strToL("10"), 0), is(strToL("10")));
+    assertThat(BitUtil.unsetBit(strToL("11"), 0), is(strToL("10")));
+    assertThat(BitUtil.unsetBit(strToL("11"), 1), is(strToL("01")));
   }
 
   @Test
   public void testGetFirstBit() {
-    assertThat(BitUtil.getFirstBit(l("00")), is(0L));
-    assertThat(BitUtil.getFirstBit(l("01")), is(1L));
-    assertThat(BitUtil.getFirstBit(l("10")), is(0L));
+    assertThat(BitUtil.getFirstBit(strToL("00")), is(0L));
+    assertThat(BitUtil.getFirstBit(strToL("01")), is(1L));
+    assertThat(BitUtil.getFirstBit(strToL("10")), is(0L));
   }
 
   @Test
   public void testSetFirstBit() {
-    assertThat(BitUtil.setFirstBit(l("00")), is(l("01")));
-    assertThat(BitUtil.setFirstBit(l("01")), is(l("01")));
-    assertThat(BitUtil.setFirstBit(l("10")), is(l("11")));
-    assertThat(BitUtil.setFirstBit(l("11")), is(l("11")));
+    assertThat(BitUtil.setFirstBit(strToL("00")), is(strToL("01")));
+    assertThat(BitUtil.setFirstBit(strToL("01")), is(strToL("01")));
+    assertThat(BitUtil.setFirstBit(strToL("10")), is(strToL("11")));
+    assertThat(BitUtil.setFirstBit(strToL("11")), is(strToL("11")));
   }
 
   @Test
   public void testUnsetFirstBit() {
-    assertThat(BitUtil.unsetFirstBit(l("00")), is(l("00")));
-    assertThat(BitUtil.unsetFirstBit(l("01")), is(l("00")));
-    assertThat(BitUtil.unsetFirstBit(l("10")), is(l("10")));
-    assertThat(BitUtil.unsetFirstBit(l("11")), is(l("10")));
+    assertThat(BitUtil.unsetFirstBit(strToL("00")), is(strToL("00")));
+    assertThat(BitUtil.unsetFirstBit(strToL("01")), is(strToL("00")));
+    assertThat(BitUtil.unsetFirstBit(strToL("10")), is(strToL("10")));
+    assertThat(BitUtil.unsetFirstBit(strToL("11")), is(strToL("10")));
   }
 
   @Test
   public void testMaskLength() {
-    assertThat(BitUtil.maskLength(0), is(l("0")));
-    assertThat(BitUtil.maskLength(2), is(l("11")));
-    assertThat(BitUtil.maskLength(4), is(l("1111")));
+    assertThat(BitUtil.maskLength(0), is(strToL("0")));
+    assertThat(BitUtil.maskLength(2), is(strToL("11")));
+    assertThat(BitUtil.maskLength(4), is(strToL("1111")));
   }
 
   @Test
   public void testMaskLengthAt() {
-    assertThat(BitUtil.maskLength(0, 0), is(l("0")));
-    assertThat(BitUtil.maskLength(0, 2), is(l("0")));
-    assertThat(BitUtil.maskLength(2, 0), is(l("11")));
-    assertThat(BitUtil.maskLength(2, 2), is(l("1100")));
-    assertThat(BitUtil.maskLength(4, 0), is(l("1111")));
-    assertThat(BitUtil.maskLength(4, 2), is(l("111100")));
+    assertThat(BitUtil.maskLength(0, 0), is(strToL("0")));
+    assertThat(BitUtil.maskLength(0, 2), is(strToL("0")));
+    assertThat(BitUtil.maskLength(2, 0), is(strToL("11")));
+    assertThat(BitUtil.maskLength(2, 2), is(strToL("1100")));
+    assertThat(BitUtil.maskLength(4, 0), is(strToL("1111")));
+    assertThat(BitUtil.maskLength(4, 2), is(strToL("111100")));
   }
 }

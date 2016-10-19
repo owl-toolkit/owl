@@ -15,26 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl.equivalence;
+package omega_automaton.collections.valuationset;
 
-import ltl.Formula;
-import ltl.parser.Parser;
-import org.junit.Test;
+import com.google.common.collect.BiMap;
 
-import static org.junit.Assert.assertNotEquals;
-
-public class BDDEquivalenceClassTest extends EquivalenceClassTest {
+public class BddValuationSetTest extends ValuationSetTest {
 
     @Override
-    public EquivalenceClassFactory setUpFactory(Formula domain) {
-        return new BDDEquivalenceClassFactory(domain);
-    }
-
-    @Test
-    public void issue6() throws Exception {
-        Formula f = Parser.formula("(p1) U (p2 & G(p2 & !p1))");
-        EquivalenceClassFactory factory = new BDDEquivalenceClassFactory(f);
-        EquivalenceClass clazz = factory.createEquivalenceClass(f);
-        assertNotEquals(null, clazz);
+    public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
+        return new BDDValuationSetFactory(aliases.size());
     }
 }

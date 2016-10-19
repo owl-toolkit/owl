@@ -28,17 +28,17 @@ import javax.annotation.Nonnull;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.collections.Collections3;
-import owl.bdd.BDD;
-import owl.bdd.BDDFactory;
+import owl.bdd.Bdd;
+import owl.bdd.BddFactory;
 
 public class BDDValuationSetFactory implements ValuationSetFactory {
 
     final int vars[];
-    final BDD factory;
+    final Bdd factory;
 
     public BDDValuationSetFactory(int alphabet) {
         vars = new int[alphabet];
-        factory = BDDFactory.buildBDD((1024 * alphabet * alphabet) + 256);
+        factory = BddFactory.buildBdd((1024 * alphabet * alphabet) + 256);
 
         for (int i = 0; i < alphabet; i++) {
             vars[i] = factory.createVariable();

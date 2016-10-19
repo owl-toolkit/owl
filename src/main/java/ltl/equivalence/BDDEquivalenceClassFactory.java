@@ -41,13 +41,13 @@ import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
-import owl.bdd.BDD;
-import owl.bdd.BDDFactory;
+import owl.bdd.Bdd;
+import owl.bdd.BddFactory;
 
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     private int[] vars;
-    private final BDD factory;
+    private final Bdd factory;
     private final BDDVisitor visitor;
 
     private final Object2IntMap<Formula> mapping;
@@ -63,7 +63,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         int size = queuedFormulas.size();
 
-        factory = BDDFactory.buildBDD(64 * (size + 1));
+        factory = BddFactory.buildBdd(64 * (size + 1));
         visitor = new BDDVisitor();
         unfoldVisitor = new UnfoldVisitor();
         vars = new int[size];

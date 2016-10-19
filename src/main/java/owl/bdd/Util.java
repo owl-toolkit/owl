@@ -2,10 +2,13 @@ package owl.bdd;
 
 import com.google.common.math.IntMath;
 
-class Util {
+final class Util {
   private static final int FNV_OFFSET = 0x811c9dc5;
   private static final int FNV_PRIME = 0x1000193;
   private static final int BYTE_MASK = BitUtil.intMaskLength(Byte.SIZE);
+
+  private Util() {
+  }
 
   public static int hash(final long key) {
     return fnv1aRound(FNV_OFFSET, key);
@@ -23,12 +26,12 @@ class Util {
     return fnv1aRound(FNV_OFFSET, key);
   }
 
-  public static int nextPrime(final int n) {
-    if (n == 2) {
-      return n;
+  public static int nextPrime(final int number) {
+    if (number == 2) {
+      return number;
     }
-    int prime = n;
-    if ((n % 2) == 0) {
+    int prime = number;
+    if ((number % 2) == 0) {
       prime++;
     }
     while (!IntMath.isPrime(prime)) {
@@ -37,13 +40,13 @@ class Util {
     return prime;
   }
 
-  public static int prevPrime(int n) {
-    assert n >= 2;
-    if (n == 2) {
-      return n;
+  public static int prevPrime(final int number) {
+    assert number >= 2;
+    if (number == 2) {
+      return number;
     }
-    int prime = n;
-    if ((n % 2) == 0) {
+    int prime = number;
+    if ((number % 2) == 0) {
       prime--;
     }
     while (!IntMath.isPrime(prime)) {
