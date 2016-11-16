@@ -17,18 +17,26 @@
 
 package ltl.equivalence;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.ImmutableSet;
-import ltl.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.Formula;
+import ltl.Literal;
 import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
 
 public abstract class EquivalenceClassTest {
     private EquivalenceClassFactory factory;
@@ -132,7 +140,6 @@ public abstract class EquivalenceClassTest {
         EquivalenceClass clazz = factory.createEquivalenceClass(f);
         BitSet atoms = new BitSet();
         atoms.set(0);
-        atoms.set(1);
         assertEquals(atoms, clazz.getAtoms());
         atoms.set(2);
         assertEquals(atoms, clazz.unfold().getAtoms());

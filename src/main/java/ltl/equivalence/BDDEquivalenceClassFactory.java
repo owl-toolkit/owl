@@ -37,6 +37,7 @@ import ltl.Disjunction;
 import ltl.Formula;
 import ltl.Literal;
 import ltl.UnaryModalOperator;
+import ltl.visitors.AlphabetVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
@@ -49,6 +50,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     private int[] vars;
     private final Bdd factory;
     private final BDDVisitor visitor;
+    private final int alphabetSize;
 
     private final Object2IntMap<Formula> mapping;
     private final Int2ObjectMap<BDDEquivalenceClass> unfoldCache;
@@ -59,16 +61,24 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     public BDDEquivalenceClassFactory(Formula formula) {
         Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
+
         mapping = new Object2IntOpenHashMap<>();
-
         int size = queuedFormulas.size();
-
         factory = BddFactory.buildBdd(64 * (size + 1));
         visitor = new BDDVisitor();
         unfoldVisitor = new UnfoldVisitor();
         vars = new int[size];
 
         int k = 0;
+
+        alphabetSize = AlphabetVisitor.extractAlphabet(formula);
+        for (int i = 0; i < alphabetSize; i++) {
+          vars[k] = factory.createVariable();
+          k++;
+          Literal literal = new Literal(i);
+          mapping.put(literal, k);
+          mapping.put(literal.not(), -k);
+        }
 
         for (Formula propositions : queuedFormulas) {
             if (mapping.containsKey(propositions)) {
@@ -400,14 +410,14 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         @Deprecated
         public List<Formula> getSupport() {
-            throw new UnsupportedOperationException();
+          throw new UnsupportedOperationException();
         }
 
         @Override
         public BitSet getAtoms() {
-            AtomVisitor visitor = new AtomVisitor();
-            representative.accept(visitor);
-            return visitor.atoms;
+            BitSet support = factory.support(bdd);
+            support.clear(alphabetSize, support.size());
+            return support;
         }
 
         public void free() {
