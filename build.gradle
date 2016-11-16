@@ -21,7 +21,7 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 
 project.group = 'de.tum.in'
-project.version = '0.1.0'
+project.version = '0.1.1'
 
 def defaultEncoding = 'UTF-8'
 [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
