@@ -268,8 +268,13 @@ class NodeTable {
     if (isStoreSaturated(referenceStore)) {
       return node;
     }
-    assert 0L <= getReferenceCountFromStore(referenceStore)
-        && getReferenceCountFromStore(referenceStore) < MAXIMAL_REFERENCE_COUNT;
+    assert 0L <= getReferenceCountFromStore(referenceStore);
+
+    // This node is referenced to often, we have to saturate it. :(
+    if (getReferenceCountFromStore(referenceStore) == MAXIMAL_REFERENCE_COUNT) {
+      saturateStore(referenceStore);
+    }
+    
     referenceStorage[node] = increaseReferenceCountInStore(referenceStore);
     // Can't decrease approximateDeadNodeCount here - we may reference a node for the first time.
     if (node > biggestReferencedNode) {

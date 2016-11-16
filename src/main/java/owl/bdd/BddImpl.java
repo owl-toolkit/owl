@@ -299,6 +299,7 @@ class BddImpl extends NodeTable implements Bdd {
     return result;
   }
 
+  // TODO: BitSet can be used instead of node marking...
   private void supportRecursive(final int node, final BitSet bitSet) {
     if (isNodeRoot(node)) {
       return;

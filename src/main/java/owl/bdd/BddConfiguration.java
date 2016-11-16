@@ -107,6 +107,4 @@ class BddConfiguration {
   public float minimumFreeNodePercentageAfterGc() {
     return DEFAULT_NODE_TABLE_FREE_NODE_PERCENTAGE;
   }
-
-
 }
