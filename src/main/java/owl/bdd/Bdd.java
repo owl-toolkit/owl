@@ -234,6 +234,8 @@ public interface Bdd {
    */
   int xor(int node1, int node2);
 
+  boolean isNodeRoot(int node);
+
   /**
    * A wrapper class to guard some node in an area where exceptions can occur. It increases the
    * reference count of the given node and decreases it when it's closed.

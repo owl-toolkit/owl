@@ -274,7 +274,7 @@ class NodeTable {
     if (getReferenceCountFromStore(referenceStore) == MAXIMAL_REFERENCE_COUNT) {
       saturateStore(referenceStore);
     }
-    
+
     referenceStorage[node] = increaseReferenceCountInStore(referenceStore);
     // Can't decrease approximateDeadNodeCount here - we may reference a node for the first time.
     if (node > biggestReferencedNode) {
@@ -353,7 +353,7 @@ class NodeTable {
    */
   public final boolean isNodeRoot(final int node) {
     assert 0 <= node && node < getTableSize();
-    return node == 0 || node == 1;
+    return node <= 1;
   }
 
   public final int getLow(final int node) {

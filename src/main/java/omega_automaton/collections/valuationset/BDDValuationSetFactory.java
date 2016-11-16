@@ -130,15 +130,15 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
     private class BDDValuationSet implements ValuationSet {
 
         private static final int INVALID_BDD = -1;
-        private int index;
+        private int bdd;
 
-        BDDValuationSet(int index) {
-            this.index = index;
+        BDDValuationSet(int bdd) {
+            this.bdd = bdd;
         }
 
         @Override
         public BooleanExpression<AtomLabel> toExpression() {
-            return createRepresentative(index);
+            return createRepresentative(bdd);
         }
 
         @Override
@@ -146,19 +146,17 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             BDDValuationSet bitSets = (BDDValuationSet) o;
-            return index == bitSets.index;
+            return bdd == bitSets.bdd;
         }
 
         @Override
         public int hashCode() {
-            assert index != INVALID_BDD : "This EquivalenceClass is already freed.";
-
-            return index;
+            return bdd;
         }
 
         @Override
         public boolean isUniverse() {
-            return index == factory.getTrueNode();
+            return bdd == factory.getTrueNode();
         }
 
         @Nonnull
@@ -167,24 +165,24 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         }
 
         public int size() {
-            return (int) Math.round(factory.countSatisfyingAssignments(index));
+            return (int) Math.round(factory.countSatisfyingAssignments(bdd));
         }
 
         @Override
         public boolean isEmpty() {
-            return index == factory.getFalseNode();
+            return bdd == factory.getFalseNode();
         }
 
         @Override
         public void add(@Nonnull BitSet set) {
             int bddSet = createBDD(set);
-            index = factory.consume(factory.or(index, bddSet), index, bddSet);
+            bdd = factory.consume(factory.or(bdd, bddSet), bdd, bddSet);
         }
 
         @Override
         public void addAll(@Nonnull ValuationSet other) {
             BDDValuationSet otherSet = (BDDValuationSet) other;
-            index = factory.updateWith(factory.or(index, otherSet.index), index);
+            bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
         }
 
         @Override
@@ -196,44 +194,44 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         @Override
         public void removeAll(@Nonnull ValuationSet other) {
             BDDValuationSet otherSet = (BDDValuationSet) other;
-            int notOtherIndex = factory.reference(factory.not(otherSet.index));
-            index = factory.updateWith(factory.and(index, notOtherIndex), index);
+            int notOtherIndex = factory.reference(factory.not(otherSet.bdd));
+            bdd = factory.updateWith(factory.and(bdd, notOtherIndex), bdd);
             factory.dereference(notOtherIndex);
         }
 
         @Override
         public void retainAll(@Nonnull ValuationSet other) {
             BDDValuationSet otherSet = (BDDValuationSet) other;
-            index = factory.updateWith(factory.and(index, otherSet.index), index);
+            bdd = factory.updateWith(factory.and(bdd, otherSet.bdd), bdd);
         }
 
         @Override
         public ValuationSet complement() {
-            return new BDDValuationSet(factory.reference(factory.not(index)));
+            return new BDDValuationSet(factory.reference(factory.not(bdd)));
         }
 
         @Override
         public BDDValuationSet copy() {
-            return new BDDValuationSet(factory.reference(index));
+            return new BDDValuationSet(factory.reference(bdd));
         }
 
         @Override
         public void free() {
-            if (index > factory.getTrueNode()) {
-                factory.dereference(index);
-                index = INVALID_BDD;
+            if (factory.isNodeRoot(bdd)) {
+                factory.dereference(bdd);
+                bdd = INVALID_BDD;
             }
         }
 
         @Override
         public boolean contains(BitSet valuation) {
-            return factory.evaluate(index, valuation);
+            return factory.evaluate(bdd, valuation);
         }
 
         @Override
         public boolean containsAll(ValuationSet other) {
             BDDValuationSet otherSet = (BDDValuationSet) other;
-            return factory.implies(otherSet.index, index);
+            return factory.implies(otherSet.bdd, bdd);
         }
 
         public boolean intersects(ValuationSet other) {

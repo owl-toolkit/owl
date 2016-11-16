@@ -388,7 +388,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         public void free() {
-            if (bdd > factory.getTrueNode()) {
+            if (factory.isNodeRoot(bdd)) {
                 factory.dereference(bdd);
                 bdd = INVALID_BDD;
                 representative = null;
@@ -415,8 +415,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public int hashCode() {
-            assert bdd != INVALID_BDD : "This EquivalenceClass is already freed.";
-
             return bdd;
         }
 
