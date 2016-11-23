@@ -39,6 +39,7 @@ dependencies {
     compile 'it.unimi.dsi:fastutil:7.0.13'
     compile files('lib/jhoafparser-1.1.1.jar')
     testCompile 'junit:junit:4+'
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
 
     // Additional Checks
     // findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.6.3'
