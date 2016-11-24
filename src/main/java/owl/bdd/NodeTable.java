@@ -8,9 +8,10 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/* Implementation note: Many asserts in the long store accessor functions are commented out, as
- * the JVM might not inline the methods when they are too big. */
-@SuppressWarnings({"PMD.AvoidDeeplyNestedIfStmts", "PMD.GodClass"})
+/* Implementation notes:
+ * - Many asserts in the long store accessor functions are commented out, as the JVM might not
+ *   inline the methods when they are too big. */
+@SuppressWarnings( {"PMD.AvoidDeeplyNestedIfStmts", "PMD.GodClass", "WeakerAccess", "unused"})
 class NodeTable {
   /**
    * The maximal supported bit size of the node identifier. Internally, we store the tree structure
@@ -405,7 +406,7 @@ class NodeTable {
     assert isNoneMarked();
     final int result = nodeCountRecursive(node);
     if (result > 0) {
-      unmarkTree(node);
+      unMarkTree(node);
     }
     assert isNoneMarked();
     return result;
@@ -421,7 +422,7 @@ class NodeTable {
    */
   public final int nodeCount() {
     // Strategy: We gather all root nodes (i.e. nodes which are referenced) on the mark stack, mark
-    // all of their children, count all marked nodes and unmark them.
+    // all of their children, count all marked nodes and un-mark them.
     assert isNoneMarked();
     int topOfStack = 0;
     for (int i = 2; i < getTableSize(); i++) {
@@ -498,7 +499,7 @@ class NodeTable {
     final StringBuilder builder = new StringBuilder(50).append("Node ").append(node).append('\n')
         .append("  NODE|VAR| LOW | HIGH|REF\n");
     treeToStringRecursive(node, builder);
-    unmarkTree(node);
+    unMarkTree(node);
     return builder.toString();
   }
 
@@ -714,8 +715,6 @@ class NodeTable {
    * @see #popWorkStack(int)
    */
   final int pushToWorkStack(final int node) {
-    // TODO maybe put an "ensureWorkStackSize" method here? Should not be to costly, but on the
-    // other hand, we know how much space we need for each operation (given the tree size)
     assert isNodeValidOrRoot(node);
     ensureWorkStackSize(workStackTos);
     workStack[workStackTos] = node;
@@ -866,9 +865,9 @@ class NodeTable {
    * @param node
    *     The node whose descendants should be unmarked.
    */
-  void unmarkTree(final int node) {
+  void unMarkTree(final int node) {
     assert isNodeValidOrRoot(node);
-    unmarkTreeRecursive(node);
+    unMarkTreeRecursive(node);
     assert isNoneMarked();
   }
 
@@ -907,7 +906,7 @@ class NodeTable {
     workStack = Arrays.copyOf(workStack, newSize);
   }
 
-  private void unmarkTreeRecursive(final int node) {
+  private void unMarkTreeRecursive(final int node) {
     if (isNodeRoot(node)) {
       return;
     }
@@ -918,8 +917,8 @@ class NodeTable {
     }
 
     nodeStorage[node] = unsetMarkInStore(nodeStore);
-    unmarkTreeRecursive((int) getLowFromStore(nodeStore));
-    unmarkTreeRecursive((int) getHighFromStore(nodeStore));
+    unMarkTreeRecursive((int) getLowFromStore(nodeStore));
+    unMarkTreeRecursive((int) getHighFromStore(nodeStore));
   }
 
   private boolean isNoneMarked() {
@@ -1008,7 +1007,6 @@ class NodeTable {
     for (int i = 0; i < workStackTos; i++) {
       final int node = workStack[i];
       if (!isNodeRoot(node) && isNodeValid(node)) {
-        assert isNodeValid(node);
         ensureMarkStackSize(topOfStack);
         markStack[topOfStack] = node;
         topOfStack += 1;
@@ -1017,7 +1015,7 @@ class NodeTable {
 
     // Clear chain starts (we need to rebuild them) and push referenced nodes on the mark stack.
     // Loops are merged so that referenceStore[i] does not have to be loaded twice (this the JVM
-    // probably can't optimise as there are no guarantees about multithreadedness etc.). All those
+    // probably can't optimise as there are no guarantees about multi-threading etc.). All those
     // nodes bigger than biggestValidNode will be cleared below.
     referenceStorage[0] = clearChainStartInStore(referenceStorage[0]);
     referenceStorage[1] = clearChainStartInStore(referenceStorage[1]);
@@ -1042,13 +1040,12 @@ class NodeTable {
       firstFreeNode = i;
     }
     // Rebuild hash chain for valid nodes, connect invalid nodes into the free chain
+    // We need to rebuild the chain for unused nodes first as a smaller, unused node might be part
+    // of a chain containing bigger nodes which are in use.
     for (int i = biggestValidNode; i >= 2; i--) {
       final long nodeStore = nodeStorage[i];
-
-      if (isNodeStoreMarked(nodeStore)) {
-        nodeStorage[i] = unsetMarkInStore(nodeStore);
-        connectHashList(i, hashNodeStore(nodeStore));
-      } else {
+      if (!isNodeStoreMarked(nodeStore)) {
+        // This node is unused
         nodeStorage[i] = invalidStore();
         referenceStorage[i] = setNextChainEntryInStore(referenceStorage[i], (long) firstFreeNode);
         firstFreeNode = i;
@@ -1056,6 +1053,14 @@ class NodeTable {
           biggestValidNode--;
         }
         freeNodeCount++;
+      }
+    }
+    for (int i = biggestValidNode; i >= 2; i--) {
+      final long nodeStore = nodeStorage[i];
+      if (isNodeStoreMarked(nodeStore)) {
+        // This node is used
+        nodeStorage[i] = unsetMarkInStore(nodeStore);
+        connectHashList(i, hashNodeStore(nodeStore));
       }
     }
 
@@ -1100,7 +1105,7 @@ class NodeTable {
   }
 
   private void connectHashList(final int node, final int hash) {
-    assert 0 <= hash && isNodeValid(node) && hash == hashNodeStore(nodeStorage[node]);
+    assert isNodeValid(node) && 0 <= hash && hash == hashNodeStore(nodeStorage[node]);
     final long hashReferenceStore = referenceStorage[hash];
     final int hashChainStart = (int) getChainStartFromStore(hashReferenceStore);
 

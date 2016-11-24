@@ -6,10 +6,10 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} AND {@code node2}</tt>.
    */
-  int and(int node1, int node2);
+  int and(final int node1, int node2);
 
   @SuppressWarnings({"PMD.UseVarargs"})
-  int compose(int node, int[] variableNodes);
+  int compose(final int node, final int[] variableNodes);
 
   /**
    * Auxiliary function useful for updating node variables. It dereferences the inputs and
@@ -41,7 +41,7 @@ public interface Bdd {
    * </p>
    * <b>Warning:</b> Floating-point overflow easily possible for complex functions!
    */
-  double countSatisfyingAssignments(int node);
+  double countSatisfyingAssignments(final int node);
 
   /**
    * Creates a new variable and returns the node representing it.
@@ -63,7 +63,7 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} EQUIVALENT {@code node2}</tt>.
    */
-  int equivalence(int node1, int node2);
+  int equivalence(final int node1, int node2);
 
   /**
    * Checks whether the given {@code node} evaluates to <tt>true</tt> under the given variable
@@ -76,7 +76,7 @@ public interface Bdd {
    *
    * @return The truth value of the node under the given assignment.
    */
-  boolean evaluate(int node, BitSet assignment);
+  boolean evaluate(final int node, BitSet assignment);
 
   /**
    * Returns the node representing <tt>false</tt>.
@@ -97,7 +97,7 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} IMPLIES {@code node2}</tt>.
    */
-  int implication(int node1, int node2);
+  int implication(final int node1, final int node2);
 
   /**
    * Checks whether the given {@code node1} implies {@code node2}, i.e. if every valuation under
@@ -118,7 +118,7 @@ public interface Bdd {
    *
    * @return Whether <tt>{@code node1} IMPLIES {@code node2}</tt> is a tautology.
    */
-  boolean implies(int node1, int node2);
+  boolean implies(final int node1, int node2);
 
   /**
    * Determines whether the given {@code node} represents a variable.
@@ -128,7 +128,7 @@ public interface Bdd {
    *
    * @return If the {@code node} represents a variable.
    */
-  boolean isVariable(int node);
+  boolean isVariable(final int node);
 
   /**
    * Determines whether the given {@code node} represents a variable or it's negation.
@@ -138,18 +138,18 @@ public interface Bdd {
    *
    * @return If the {@code node} represents a variable.
    */
-  boolean isVariableOrNegated(int node);
+  boolean isVariableOrNegated(final int node);
 
   /**
    * Constructs the node representing <tt>IF {@code ifNode} THEN {@code thenNode} ELSE
    * {@code elseNode}</tt>.
    */
-  int ifThenElse(int ifNode, int thenNode, int elseNode);
+  int ifThenElse(final int ifNode, int thenNode, int elseNode);
 
   /**
    * Constructs the node representing <tt>{@code node1} NAND {@code node2}</tt>.
    */
-  int notAnd(int node1, int node2);
+  int notAnd(final int node1, int node2);
 
   /**
    * Constructs the node representing <tt>NOT {@code node}</tt>.
@@ -159,7 +159,7 @@ public interface Bdd {
    *
    * @return The negation of the given BDD.
    */
-  int not(int node);
+  int not(final int node);
 
   /**
    * Returns the number of variables in this BDD.
@@ -171,7 +171,7 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} OR {@code node2}</tt>.
    */
-  int or(int node1, int node2);
+  int or(final int node1, int node2);
 
   /**
    * Increases the reference count of the specified {@code node}.
@@ -193,7 +193,7 @@ public interface Bdd {
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
    *     the support of {@code node}.
    */
-  BitSet support(int node);
+  BitSet support(final int node);
 
   /**
    * Computes the <b>support</b> of the given {@code node} and writes it in the {@code bitSet}.
@@ -205,7 +205,7 @@ public interface Bdd {
    *
    * @see #support(int)
    */
-  void support(int node, BitSet bitSet);
+  void support(final int node, final BitSet bitSet);
 
   /**
    * Auxiliary function useful for updating node variables. It dereferences {@code inputNode} and
@@ -232,9 +232,9 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} XOR {@code node2}</tt>.
    */
-  int xor(int node1, int node2);
+  int xor(final int node1, final int node2);
 
-  boolean isNodeRoot(int node);
+  boolean isNodeRoot(final int node);
 
   /**
    * A wrapper class to guard some node in an area where exceptions can occur. It increases the
@@ -247,7 +247,7 @@ public interface Bdd {
     private final Bdd bdd;
     private final int node;
 
-    public ReferenceGuard(int node, Bdd bdd) {
+    public ReferenceGuard(final int node, final Bdd bdd) {
       this.node = bdd.reference(node);
       this.bdd = bdd;
     }
