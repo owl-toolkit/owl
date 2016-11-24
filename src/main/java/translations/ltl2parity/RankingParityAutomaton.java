@@ -20,6 +20,7 @@ package translations.ltl2parity;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import ltl.Formula;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.AutomatonState;
@@ -188,8 +189,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 int candidateIndex = volatileComponents.getInt(obligations);
 
                 // It is a volatile state
-                if (candidateIndex > -1) {
-                    assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
+                if (candidateIndex > -1 && accState.getCurrent().isTrue()) {
+                    // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
 
                     // The distance is too large...
                     if (nextVolatileState != null && distance(currentVolatileIndex, candidateIndex) > distance(currentVolatileIndex, nextVolatileStateIndex)) {
@@ -214,7 +215,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                     continue;
                 }
 
-                if (stateClass.getRepresentative().isPureEventual()) {
+                if (stateClass.testSupport(Formula::isPureEventual)) {
                     pureEventual.add(accState);
                 } else {
                     mixed.add(accState);
@@ -233,8 +234,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 ranking.addAll(append.get());
             } else {
                 // Impose stable but arbitrary order.
-                pureEventual.sort((o1, o2) -> Integer.compare(o1.getObligations().hashCode(), o2.getObligations().hashCode()));
-                mixed.sort((o1, o2) -> Integer.compare(o1.getObligations().hashCode(), o2.getObligations().hashCode()));
+                pureEventual.sort(Comparator.comparingInt(o -> o.getObligations().hashCode()));
+                mixed.sort(Comparator.comparingInt(o -> o.getObligations().hashCode()));
 
                 ranking.addAll(pureEventual);
                 ranking.addAll(mixed);
@@ -312,8 +313,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
                 ranking.add(rankingSuccessor);
 
-                if (volatileIndex == -1 && volatileComponents.containsKey(obligations)) {
-                    assert rankingSuccessor.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
+                if (volatileIndex == -1 && volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
+                    //assert rankingSuccessor.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
                     volatileIndex = volatileComponents.getInt(obligations);
                 }
 

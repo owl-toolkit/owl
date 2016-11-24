@@ -137,7 +137,14 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         @Nonnull
         @Override
         public BitSet getSensitiveAlphabet() {
-            return clazz.unfold().getAtoms();
+            if (eager) {
+                return clazz.getAtoms();
+            } else {
+                EquivalenceClass unfold = clazz.unfold();
+                BitSet atoms = clazz.getAtoms();
+                unfold.free();
+                return atoms;
+            }
         }
 
         @Override

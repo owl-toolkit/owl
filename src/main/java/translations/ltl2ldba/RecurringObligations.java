@@ -26,10 +26,13 @@ import java.util.Objects;
 
 public class RecurringObligations extends ImmutableObject {
 
-    public final EquivalenceClass xFragment;
+    final EquivalenceClass xFragment;
     public final EquivalenceClass[] initialStates;
 
     RecurringObligations(EquivalenceClass xFragment, List<EquivalenceClass> initialStates) {
+        xFragment.freeRepresentative();
+        initialStates.forEach(EquivalenceClass::freeRepresentative);
+
         this.xFragment = xFragment;
         this.initialStates = initialStates.toArray(new EquivalenceClass[0]);
     }

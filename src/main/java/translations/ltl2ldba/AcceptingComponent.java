@@ -60,7 +60,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         final int length = obligations.initialStates.length;
         EquivalenceClass[] nextBuilder = new EquivalenceClass[length];
 
-        if (remainder.getRepresentative().accept(XFragmentPredicate.INSTANCE)) {
+         if (XFragmentPredicate.testStatic(remainder.getRepresentative())) {
             xFragment = remainder.andWith(xFragment);
 
             if (length > 0) {
@@ -77,7 +77,12 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         for (int i = 1; i < length; i++) {
             nextBuilder[i] = removeCover(doEagerOpt(obligations.initialStates[i]), current);
+            nextBuilder[i].freeRepresentative();
         }
+
+        // Drop unused representative.
+        xFragment.freeRepresentative();
+        current.freeRepresentative();
 
         return new State(0, xFragment, current, nextBuilder, obligations);
     }
@@ -126,21 +131,21 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             EquivalenceClass currentSuccessor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
 
             if (currentSuccessor.isFalse()) {
-                freeClasses(nextXFragment);
+                EquivalenceClass.free(nextXFragment);
                 return null;
             }
 
             EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
 
             if (assumptions.isFalse()) {
-                freeClasses(nextXFragment, currentSuccessor);
+                EquivalenceClass.free(nextXFragment, currentSuccessor);
                 return null;
             }
 
             EquivalenceClass[] nextSuccessors = AcceptingComponent.this.getSuccessors(next, valuation, assumptions);
 
             if (nextSuccessors == null) {
-                freeClasses(nextXFragment, currentSuccessor, assumptions);
+                EquivalenceClass.free(nextXFragment, currentSuccessor, assumptions);
                 return null;
             }
 
@@ -189,15 +194,15 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             }
 
             if (currentSuccessor.isFalse()) {
-                freeClasses(nextXFragment, currentSuccessor, assumptions);
-                freeClasses(nextSuccessors);
+                EquivalenceClass.free(nextXFragment, currentSuccessor, assumptions);
+                EquivalenceClass.free(nextSuccessors);
                 return null;
             }
 
             for (EquivalenceClass clazz : nextSuccessors) {
                 if (clazz.isFalse()) {
-                    freeClasses(nextXFragment, currentSuccessor, assumptions);
-                    freeClasses(nextSuccessors);
+                    EquivalenceClass.free(nextXFragment, currentSuccessor, assumptions);
+                    EquivalenceClass.free(nextSuccessors);
                     return null;
                 }
             }

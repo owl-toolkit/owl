@@ -11,47 +11,38 @@ build:
     when: on_failure
     expire_in: 1 week
 
-ltlcross-ltl2ldba:
-  stage: test
-  script:
+.ltlcross: 
+  script: &ltlcross_script
+    - JAVA_OPTS="-enableassertions"
+    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew distTar
     - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - randltl -n 10 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
-    - JAVA_OPTS="-enableassertions"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} build/bin/ltl2ldba %f >%O'
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - randltl -n 10 a b c d e f --tree-size=3..30 | ltlfilt --nnf | ltlcross --stop-on-error --timeout=300 "$SPOT_TOOL" "$LTL_TOOL"
 
-ltlcross-ltl2ldgba:
-  stage: test
-  script:
-    - ./gradlew distTar
-    - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - randltl -n 10 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
-    - JAVA_OPTS="-enableassertions"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2ldba} build/bin/ltl2ldgba %f >%O'
+test:ltl2ldba:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba %f >%O"
+  script: *ltlcross_script
 
-ltlcross-ltl2parity:
-  stage: test
-  script:
-    - ./gradlew distTar
-    - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - randltl -n 6 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
-    - JAVA_OPTS="-enableassertions"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} build/bin/ltl2parity %f >%O'
+test:ltl2ldgba:
+  variables:
+    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba %f >%O"
+  script: *ltlcross_script
 
-ltlcross-ltl2parity-parallel:
-  stage: test
-  script:
-    - ./gradlew distTar
-    - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - randltl -n 6 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
-    - JAVA_OPTS="-enableassertions"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} build/bin/ltl2parity --parallel %f >%O'
+test:ltl2parity:
+  variables:
+    LTL_TOOL: "{ltl2parity} build/bin/ltl2parity %f >%O"
+  script: *ltlcross_script
 
-ltlcross-ltl2det-parallel:
-  stage: test
-  script:
-    - ./gradlew distTar
-    - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - randltl -n 6 a b c d e f --tree-size=10..50 | ltlfilt --nnf -o formulas/rand.ltl
-    - JAVA_OPTS="-enableassertions"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" -F "formulas/rand.ltl" '{spot} ltl2tgba -H -f %f >%O' '{ltl2parity} build/bin/ltl2det --parallel %f >%O'
+test:ltl2parity-parallel:
+  variables:
+    LTL_TOOL: "{ltl2parity} build/bin/ltl2parity --parallel %f >%O"
+  script: *ltlcross_script
+
+test:ltl2det-parallel:
+  variables:
+    LTL_TOOL: "{ltl2det} build/bin/ltl2det --parallel %f >%O"
+  script: *ltlcross_script

@@ -121,7 +121,7 @@ public class LTL2LDGBATest {
     @Test
     public void regressionTestStack() throws Exception {
         String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | (G((!(b)) | ((c) & (X(F(e))))))))))";
-        testOutput(ltl, 80);
+        testOutput(ltl, 92);
     }
 
     private static final String TRIVIAL_TRUE = "HOA: v1\n" +
@@ -151,12 +151,6 @@ public class LTL2LDGBATest {
         testOutput("false", 0, TRIVIAL_FALSE);
         testOutput("a | !a", 1);
         testOutput("a & !a", 0);
-    }
-
-    // TODO: Make a monitor test from that.
-    @Test
-    public void testTrivial2() throws Exception {
-        testOutput("G((r) | ((p) & (r)))", 1);
     }
 
     @Test
@@ -200,7 +194,7 @@ public class LTL2LDGBATest {
     @Test
     public void testSanityCheckFailed2() throws Exception {
         String ltl = "!(((X a) | (F b)) U (a))";
-        testOutput(ltl, 5);
+        testOutput(ltl, 7);
     }
 
     @Test
@@ -230,7 +224,7 @@ public class LTL2LDGBATest {
         testOutput(ltl, 2);
 
         ltl = "!(p U (r | s))";
-        testOutput(ltl, 3);
+        testOutput(ltl, 7);
     }
 
     @Test
@@ -268,12 +262,12 @@ public class LTL2LDGBATest {
                 "Acceptance: 1 Inf(0)\n" +
                 "AP: 3 \"0\" \"1\" \"2\"\n" +
                 "--BODY--\n" +
+                "State: 0\n" +
+                "[t] 1\n" +
                 "State: 1\n" +
                 "[0] 2\n" +
                 "State: 2\n" +
                 "[1] 3\n" +
-                "State: 0\n" +
-                "[t] 1\n" +
                 "State: 3\n" +
                 "[2] 3 {0}\n" +
                 "--END--\n";

@@ -53,7 +53,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         EquivalenceClass xFragment = obligations.xFragment;
         EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
 
-        if (remainder.getRepresentative().accept(XFragmentPredicate.INSTANCE)) {
+        if (XFragmentPredicate.testStatic(remainder.getRepresentative())) {
             xFragment = remainder.andWith(xFragment);
 
             if (length > 0) {
@@ -69,13 +69,14 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
             }
         }
 
-
         for (int i = 1; i < length; i++) {
             currentBuilder[i] = doEagerOpt(obligations.initialStates[i]);
+            currentBuilder[i].freeRepresentative();
         }
 
         EquivalenceClass[] next = new EquivalenceClass[length];
         Arrays.fill(next, equivalenceClassFactory.getTrue());
+        xFragment.freeRepresentative();
 
         return new State(obligations, xFragment, currentBuilder, next);
     }
@@ -139,8 +140,8 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 EquivalenceClass nextSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(next[i], valuation, assumptions);
 
                 if (nextSuccessor.isFalse()) {
-                    freeClasses(currentSuccessors);
-                    freeClasses(nextSuccessors);
+                    EquivalenceClass.free(currentSuccessors);
+                    EquivalenceClass.free(nextSuccessors);
                     assumptions.free();
                     return null;
                 }

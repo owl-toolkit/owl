@@ -88,10 +88,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
         RecurringObligations obligations = getObligations(keys);
 
-        if (obligations == null || optimisations.contains(Optimisation.SEPARATE_X_FRAGMENT)
-                && optimisations.contains(Optimisation.DELAY_JUMPS)
-                && obligations.initialStates.length == 0
-                && !remainingGoal.getRepresentative().accept(XFragmentPredicate.INSTANCE)) {
+        if (obligations == null) {
             return null;
         }
 
@@ -124,13 +121,13 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
                 EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
 
                 if (initialClazz.isFalse()) {
-                    initialStates.forEach(EquivalenceClass::free);
+                    EquivalenceClass.free(initialStates);
                     initialClazz.free();
                     xFragment.free();
                     return null;
                 }
 
-                if (optimisations.contains(Optimisation.SEPARATE_X_FRAGMENT) && initialFormula.accept(XFragmentPredicate.INSTANCE)) {
+                if (optimisations.contains(Optimisation.SEPARATE_X_FRAGMENT) && XFragmentPredicate.testStatic(initialFormula)) {
                     xFragment = xFragment.andWith(initialClazz);
                     initialClazz.free();
                     continue;
@@ -140,7 +137,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
             }
 
             if (xFragment.isFalse()) {
-                initialStates.forEach(EquivalenceClass::free);
+                EquivalenceClass.free(initialStates);
                 xFragment.free();
                 return null;
             }
@@ -177,23 +174,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         return successor;
     }
 
-    // TODO: Move to ltl-lib
-    protected static void freeClasses(@Nullable EquivalenceClass clazz, EquivalenceClass... classes) {
-        if (clazz != null) {
-            clazz.free();
-        }
-
-        freeClasses(classes);
-    }
-
-    protected static void freeClasses(EquivalenceClass[] classes) {
-        for (EquivalenceClass clazz : classes) {
-            if (clazz != null) {
-                clazz.free();
-            }
-        }
-    }
-
     @Nullable
     EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation, @Nullable EquivalenceClass others) {
         EquivalenceClass[] successors = new EquivalenceClass[clazz.length];
@@ -202,7 +182,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
             successors[i] = getSuccessor(clazz[i], valuation, others);
 
             if (successors[i].isFalse()) {
-                freeClasses(successors);
+                EquivalenceClass.free(successors);
                 return null;
             }
         }
@@ -219,7 +199,14 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     }
 
     BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
-        return clazz.unfold().getAtoms();
+        if (eager) {
+            return clazz.getAtoms();
+        } else {
+            EquivalenceClass unfold = clazz.unfold();
+            BitSet atoms = clazz.getAtoms();
+            unfold.free();
+            return atoms;
+        }
     }
 
     EquivalenceClass doEagerOpt(EquivalenceClass clazz) {
