@@ -17,6 +17,7 @@
 
 package translations;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import jhoafparser.consumer.HOAConsumerNull;
@@ -25,6 +26,8 @@ import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import ltl.Formula;
 import ltl.parser.Parser;
 import omega_automaton.output.HOAPrintable;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 
@@ -33,6 +36,7 @@ import java.util.EnumSet;
 import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
 
@@ -134,7 +138,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
 
         for (int i = 0; i < formulas.length; i++) {
             T automaton = translator.apply(Parser.formula(formulas[i]));
-            assertEquals("States for " + formulas[i] + " (index " + i + ')', size[i], getSize(automaton));
+            assertThat("States for " + formulas[i] + " (index " + i + ')', getSize(automaton), Matchers.lessThanOrEqualTo(size[i]));
         }
     }
 
@@ -145,7 +149,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
 
         for (int i = 0; i < formulas.length; i++) {
             T automaton = translator.apply(Parser.formula(formulas[i]));
-            assertEquals("Acceptance Sets for " + formulas[i] + " (index " + i + ')', accSize[i], getAccSize(automaton));
+            assertThat("Acceptance Sets for " + formulas[i] + " (index " + i + ')', getAccSize(automaton), Matchers.lessThanOrEqualTo(accSize[i]));
         }
     }
 

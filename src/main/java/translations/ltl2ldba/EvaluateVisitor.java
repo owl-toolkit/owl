@@ -24,6 +24,7 @@ import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Visitor;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
