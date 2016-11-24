@@ -18,7 +18,6 @@
 package ltl.simplifier;
 
 import ltl.*;
-import ltl.visitors.RestrictToFGXU;
 
 import java.util.HashSet;
 import java.util.Set;

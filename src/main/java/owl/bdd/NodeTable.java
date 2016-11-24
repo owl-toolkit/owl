@@ -1,6 +1,8 @@
 package owl.bdd;
 
 
+import javax.annotation.Nonnull;
+
 import static com.google.common.base.Preconditions.checkState;
 import static owl.bdd.BitUtil.fits;
 
@@ -1074,7 +1076,7 @@ class NodeTable {
     return freeNodeCount - previousFreeNodes;
   }
 
-  private String nodeToString(final int node) {
+  private @Nonnull String nodeToString(final int node) {
     final long nodeStore = nodeStorage[node];
     if (!isValidNodeStore(nodeStore)) {
       return String.format("%5d| == INVALID ==", node);

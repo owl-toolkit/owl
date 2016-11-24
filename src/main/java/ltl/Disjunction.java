@@ -67,7 +67,7 @@ public final class Disjunction extends PropositionalFormula {
 
     @Override
     public Formula unfold() {
-        return create(children.stream().map(c -> c.unfold()));
+        return create(children.stream().map(Formula::unfold));
     }
 
     @Override
@@ -100,6 +100,10 @@ public final class Disjunction extends PropositionalFormula {
 
         while (iterator.hasNext()) {
             Formula child = iterator.next();
+
+            if (child == null) {
+                return null;
+            }
 
             if (child == BooleanConstant.TRUE) {
                 return BooleanConstant.TRUE;

@@ -20,15 +20,16 @@ package ltl.equivalence;
 
 import ltl.Formula;
 
+import javax.annotation.Nullable;
 import java.util.BitSet;
-import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * EquivalenceClass interface.
  * <p>
  * The general contract of this interface is: If two implementing objects were
- * created from different factories, implies and equivalent have to return
+ * created from different factories, implies and equals have to return
  * {@code false}.
  */
 public interface EquivalenceClass {
@@ -36,16 +37,6 @@ public interface EquivalenceClass {
     Formula getRepresentative();
 
     boolean implies(EquivalenceClass equivalenceClass);
-
-    /**
-     * Check if two classes are equivalent. Implementing classes are expected to
-     * implement equivalent and equals, such that they agree on their return
-     * values.
-     *
-     * @param equivalenceClass
-     * @return
-     */
-    boolean equivalent(EquivalenceClass equivalenceClass);
 
     EquivalenceClass unfold();
 
@@ -81,11 +72,44 @@ public interface EquivalenceClass {
 
     void free();
 
-    List<Formula> getSupport();
+    boolean testSupport(Predicate<Formula> predicate);
 
     /**
      * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
      * @return
      */
     BitSet getAtoms();
+
+    void freeRepresentative();
+
+    static void free(@Nullable EquivalenceClass clazz) {
+        if (clazz != null) {
+            clazz.free();
+        }
+    }
+
+    static void free(@Nullable EquivalenceClass[] classes) {
+        if (classes == null) {
+            return;
+        }
+
+        for (EquivalenceClass clazz : classes) {
+            free(clazz);
+        }
+    }
+
+    static void free(@Nullable EquivalenceClass clazz, @Nullable EquivalenceClass... classes) {
+        free(clazz);
+        free(classes);
+    }
+
+    static void free(@Nullable Iterable<EquivalenceClass> classes) {
+        if (classes == null) {
+            return;
+        }
+
+        for (EquivalenceClass clazz : classes) {
+            free(clazz);
+        }
+    }
 }

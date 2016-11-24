@@ -28,9 +28,7 @@ public abstract class ImmutableObject {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        if (hashCode() != o.hashCode())
-            return false;
-        return equals2((ImmutableObject) o);
+        return hashCode() == o.hashCode() && equals2((ImmutableObject) o);
     }
 
     @Override

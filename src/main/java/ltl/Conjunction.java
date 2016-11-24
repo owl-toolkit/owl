@@ -101,6 +101,10 @@ public final class Conjunction extends PropositionalFormula {
         while (iterator.hasNext()) {
             Formula child = iterator.next();
 
+            if (child == null) {
+                return null;
+            }
+
             if (child == BooleanConstant.FALSE) {
                 return BooleanConstant.FALSE;
             }

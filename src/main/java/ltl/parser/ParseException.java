@@ -3,7 +3,6 @@
 package ltl.parser;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import javax.annotation.Nonnull;
 
 /**
  * This exception is thrown when parse errors are encountered.
