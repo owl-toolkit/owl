@@ -26,7 +26,7 @@ package owl.bdd;
 import java.util.BitSet;
 
 @SuppressWarnings({"PMD.GodClass"})
-class BddImpl extends NodeTable implements Bdd {
+public final class BddImpl extends NodeTable implements Bdd {
   /* Implementation notes: Many of the methods are practically copy-paste of each other except for
    * a few variables, as the structure of BDD algorithms is the same for most of the operations. */
   private static final int TRUE_NODE = 1;
@@ -67,13 +67,19 @@ class BddImpl extends NodeTable implements Bdd {
     assert variableNodes.length <= numberOfVariables;
 
     pushToWorkStack(node);
+    int elements = 1;
+
     for (final int variableNode : variableNodes) {
       assert isNodeValidOrRoot(variableNode);
-      assert getVariable(variableNode) < variableNodes.length;
-      pushToWorkStack(variableNode);
+      assert isNodeRoot(variableNode) || getVariable(variableNode) < variableNodes.length;
+      if (!isNodeSaturated(variableNode)) {
+        pushToWorkStack(variableNode);
+        elements++;
+      }
     }
+
     final int result = composeRecursive(node, variableNodes);
-    popWorkStack(variableNodes.length + 1);
+    popWorkStack(elements);
     return result;
   }
 
@@ -299,7 +305,6 @@ class BddImpl extends NodeTable implements Bdd {
     return result;
   }
 
-  // TODO: BitSet can be used instead of node marking...
   private void supportRecursive(final int node, final BitSet bitSet) {
     if (isNodeRoot(node)) {
       return;
@@ -316,24 +321,27 @@ class BddImpl extends NodeTable implements Bdd {
 
   @SuppressWarnings("PMD.UseVarargs")
   private int composeRecursive(final int node, final int[] variableNodes) {
-    if (node == TRUE_NODE) {
-      return node;
-    }
-    if (node == FALSE_NODE) {
+    if (node == TRUE_NODE || node == FALSE_NODE) {
       return node;
     }
 
     final long nodeStore = getNodeStore(node);
     final int nodeVariable = (int) getVariableFromStore(nodeStore);
+    // Works, because tree is sorted (minVar on top)
     if (nodeVariable >= variableNodes.length) {
       return node;
     }
     // TODO Caches
-    final int lowCompose = composeRecursive((int) getLowFromStore(nodeStore), variableNodes);
-    final int highCompose = composeRecursive((int) getHighFromStore(nodeStore), variableNodes);
-    return ifThenElse(variableNodes[nodeVariable], highCompose, lowCompose);
+    final int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
+            variableNodes));
+    final int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
+            variableNodes));
+    final int resultNode = ifThenElse(variableNodes[nodeVariable], highCompose, lowCompose);
+    popWorkStack(2);
+    return resultNode;
   }
 
+  // TODO: Inline.
   private int makeNode(final int variable, final int low, final int high) {
     if (low == high) {
       return low;
@@ -403,6 +411,7 @@ class BddImpl extends NodeTable implements Bdd {
       ifLowNode = ifNode;
       ifHighNode = ifNode;
     }
+
     if (thenVar == minVar) {
       thenLowNode = (int) getLowFromStore(thenStore);
       thenHighNode = (int) getHighFromStore(thenStore);
@@ -410,6 +419,7 @@ class BddImpl extends NodeTable implements Bdd {
       thenLowNode = thenNode;
       thenHighNode = thenNode;
     }
+
     if (elseVar == minVar) {
       elseLowNode = (int) getLowFromStore(elseStore);
       elseHighNode = (int) getHighFromStore(elseStore);

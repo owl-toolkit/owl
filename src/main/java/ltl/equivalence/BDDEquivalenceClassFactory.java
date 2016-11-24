@@ -17,47 +17,37 @@
 
 package ltl.equivalence;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import ltl.BinaryModalOperator;
-import ltl.BooleanConstant;
-import ltl.Conjunction;
-import ltl.Disjunction;
-import ltl.Formula;
-import ltl.Literal;
-import ltl.UnaryModalOperator;
+import ltl.*;
 import ltl.visitors.AlphabetVisitor;
 import ltl.visitors.IntVisitor;
-import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import owl.bdd.Bdd;
 import owl.bdd.BddFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
-    private int[] vars;
     private final Bdd factory;
-    private final BDDVisitor visitor;
+    private final BddVisitor visitor;
     private final int alphabetSize;
 
     private final Object2IntMap<Formula> mapping;
-    private final Int2ObjectMap<BDDEquivalenceClass> unfoldCache;
-    private final Int2ObjectMap<Map<BitSet, BDDEquivalenceClass>> temporalStepCache;
+    private final BddEquivalenceClass trueClass;
+    private final BddEquivalenceClass falseClass;
 
-    private final BDDEquivalenceClass trueClass;
-    private final BDDEquivalenceClass falseClass;
+    private int[] vars;
+    private int[] unfoldSubstitution;
+    private int[] temporalStepSubstitution;
 
     public BDDEquivalenceClassFactory(Formula formula) {
         Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
@@ -66,44 +56,69 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         mapping = new Object2IntOpenHashMap<>();
         int size = alphabetSize + queuedFormulas.size();
         factory = BddFactory.buildBdd(64 * (size + 1));
-        visitor = new BDDVisitor();
-        unfoldVisitor = new UnfoldVisitor();
+        visitor = new BddVisitor();
+
         vars = new int[size];
+        unfoldSubstitution = new int[size];
+        temporalStepSubstitution = new int[size];
 
         int k = 0;
 
         for (int i = 0; i < alphabetSize; i++) {
           vars[k] = factory.createVariable();
+          unfoldSubstitution[k] = vars[k];
+          // In order to "distinguish" -0 and +0 we shift the variables by 1 -> -1, 1.
           k++;
           Literal literal = new Literal(i);
           mapping.put(literal, k);
           mapping.put(literal.not(), -k);
         }
 
-        for (Formula propositions : queuedFormulas) {
-            if (mapping.containsKey(propositions)) {
+        k = register(queuedFormulas, k);
+        resize(k);
+
+        trueClass = new BddEquivalenceClass(BooleanConstant.TRUE, factory.getTrueNode());
+        falseClass = new BddEquivalenceClass(BooleanConstant.FALSE, factory.getFalseNode());
+    }
+
+    // TODO: Use int[] with stack pointer to reduce number of copies.
+    private void resize(int size) {
+        vars = Arrays.copyOf(vars, size);
+        unfoldSubstitution = Arrays.copyOf(unfoldSubstitution, size);
+        temporalStepSubstitution = Arrays.copyOf(temporalStepSubstitution, size);
+    }
+
+    private void register(Formula proposition, int i) {
+        assert !(proposition instanceof Literal);
+
+        vars[i] = factory.createVariable();
+
+        mapping.put(proposition, i + 1);
+
+        if (proposition.accept(XFragmentPredicate.INSTANCE)) {
+            mapping.put(proposition.not(), -(i + 1));
+        }
+
+        if (proposition instanceof XOperator) {
+            unfoldSubstitution[i] = vars[i];
+            temporalStepSubstitution[i] = factory.reference(((XOperator) proposition).operand.accept(visitor));
+        } else {
+            unfoldSubstitution[i] = factory.reference(proposition.unfold().accept(visitor));
+            temporalStepSubstitution[i] = vars[i];
+        }
+    }
+
+    private int register(Deque<Formula> propositions, int i) {
+        for (Formula proposition : propositions) {
+            if (mapping.containsKey(proposition)) {
                 continue;
             }
 
-            vars[k] = factory.createVariable();
-            k++;
-
-            mapping.put(propositions, k);
-
-            if (propositions.accept(XFragmentPredicate.INSTANCE)) {
-                mapping.put(propositions.not(), -k);
-            }
+            register(proposition, i);
+            i++;
         }
 
-        // Resize to smaller array.
-        // TODO: Use int[] with stack pointer to reduce number of copies.
-        vars = Arrays.copyOf(vars, k);
-
-        unfoldCache = new Int2ObjectOpenHashMap<>();
-        temporalStepCache = new Int2ObjectOpenHashMap<>();
-
-        trueClass = new BDDEquivalenceClass(BooleanConstant.TRUE, factory.getTrueNode());
-        falseClass = new BDDEquivalenceClass(BooleanConstant.FALSE, factory.getFalseNode());
+        return i;
     }
 
     @Override
@@ -121,15 +136,15 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         visitor.environment = environment;
         int bdd = formula.accept(visitor);
         visitor.environment = null;
-        return new BDDEquivalenceClass(null, bdd);
+        return new BddEquivalenceClass(null, bdd);
     }
 
     @Override
-    public BDDEquivalenceClass createEquivalenceClass(Formula formula) {
-        return new BDDEquivalenceClass(formula, formula.accept(visitor));
+    public BddEquivalenceClass createEquivalenceClass(Formula formula) {
+        return new BddEquivalenceClass(formula, formula.accept(visitor));
     }
 
-    private class BDDVisitor implements IntVisitor {
+    private class BddVisitor implements IntVisitor {
         Function<Formula, Optional<Boolean>> environment;
 
         @Override
@@ -173,7 +188,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
     }
 
-    private int getVariable(Formula formula) {
+    private int getVariable(@Nonnull Formula formula) {
         assert formula instanceof Literal || formula instanceof UnaryModalOperator || formula instanceof BinaryModalOperator;
 
         int value = mapping.getInt(formula);
@@ -181,89 +196,40 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         if (value == 0) {
             // All literals should have been already discovered.
             assert !(formula instanceof Literal);
+            Deque<Formula> propositions = PropositionVisitor.extractPropositions(formula);
 
             value = vars.length;
-            vars = Arrays.copyOf(vars, vars.length + 1);
-            vars[value] = factory.createVariable();
-            value++;
-            mapping.put(formula, value);
+            resize(vars.length + propositions.size());
+            value = register(propositions, value);
+            resize(value);
         }
 
         // We don't need to increment the reference-counter, since all variables are saturated.
         return value > 0 ? vars[value - 1] : factory.not(vars[-(value + 1)]);
     }
 
-    private final UnfoldVisitor unfoldVisitor;
-
-    private class UnfoldVisitor implements Visitor<BDDEquivalenceClass> {
-
-        @Override
-        public BDDEquivalenceClass visit(BooleanConstant booleanConstant) {
-            return booleanConstant.value ? trueClass : falseClass;
-        }
-
-        @Override
-        public BDDEquivalenceClass defaultAction(Formula formula) {
-            int var = getVariable(formula);
-
-            BDDEquivalenceClass result = unfoldCache.get(var);
-
-            if (result == null) {
-                result = createEquivalenceClass(formula.unfold());
-                factory.reference(var);
-                unfoldCache.put(var, result);
-            }
-
-            return new BDDEquivalenceClass(result.representative, factory.reference(result.bdd));
-        }
-
-        @Override
-        public BDDEquivalenceClass visit(Conjunction conjunction) {
-            List<Formula> conjuncts = new ArrayList<>(conjunction.children.size());
-            int x = factory.getTrueNode();
-
-            for (Formula child : conjunction.children) {
-                BDDEquivalenceClass bdd = child.accept(this);
-                conjuncts.add(bdd.representative);
-                x = factory.updateWith(factory.and(x, bdd.bdd), x);
-                bdd.free();
-            }
-
-            return new BDDEquivalenceClass(new Conjunction(conjuncts), factory.reference(x));
-        }
-
-        @Override
-        public BDDEquivalenceClass visit(Disjunction disjunction) {
-            List<Formula> disjuncts = new ArrayList<>(disjunction.children.size());
-            int x = factory.getFalseNode();
-
-            for (Formula child : disjunction.children) {
-                BDDEquivalenceClass bdd = child.accept(this);
-                disjuncts.add(bdd.representative);
-                x = factory.updateWith(factory.or(x, bdd.bdd), x);
-                bdd.free();
-            }
-
-            return new BDDEquivalenceClass(new Disjunction(disjuncts), factory.reference(x));
-        }
+    private int unfoldBdd(int bdd) {
+        return factory.compose(bdd, unfoldSubstitution);
     }
 
-    @Override
-    public void flushCaches() {
-        unfoldCache.forEach((x, y) -> { factory.dereference(x); factory.dereference(y.bdd);});
-        unfoldCache.clear();
+    private int temporalStepBdd(int bdd, BitSet valuation) {
+        // Adjust valuation literals in substitution. This is not thread-safe!
+        for (int i = 0; i < alphabetSize; i++) {
+            temporalStepSubstitution[i] = valuation.get(i) ? factory.getTrueNode() : factory.getFalseNode();
+        }
 
-        temporalStepCache.forEach((x, y) -> { factory.dereference(x); y.forEach((u, v) -> v.free());});
-        temporalStepCache.clear();
+        return factory.compose(bdd, temporalStepSubstitution);
     }
 
-    private class BDDEquivalenceClass implements EquivalenceClass {
+    private class BddEquivalenceClass implements EquivalenceClass {
 
         private static final int INVALID_BDD = -1;
-        private int bdd;
-        private Formula representative;
 
-        private BDDEquivalenceClass(Formula representative, int bdd) {
+        @Nullable
+        private Formula representative;
+        private int bdd;
+
+        private BddEquivalenceClass(Formula representative, int bdd) {
             this.representative = representative;
             this.bdd = bdd;
         }
@@ -275,39 +241,32 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public boolean implies(EquivalenceClass equivalenceClass) {
-            BDDEquivalenceClass that = (BDDEquivalenceClass) equivalenceClass;
+            BddEquivalenceClass that = (BddEquivalenceClass) equivalenceClass;
             return factory.implies(bdd, that.bdd);
         }
 
         @Override
-        public boolean equivalent(EquivalenceClass equivalenceClass) {
-            return equals(equivalenceClass);
-        }
-
-        @Override
-        public EquivalenceClass unfold() {
-            BDDEquivalenceClass result = unfoldCache.get(bdd);
-
-            if (result == null) {
-                result = representative.accept(unfoldVisitor);
-
-                if (!unfoldCache.containsKey(bdd)) {
-                    factory.reference(bdd);
-                    unfoldCache.put(bdd, result);
-                }
-            }
-
-            return new BDDEquivalenceClass(result.representative, factory.reference(result.bdd));
+        public EquivalenceClass temporalStep(BitSet valuation) {
+            return new BddEquivalenceClass(representative != null ? representative.temporalStep(valuation) : null,
+                    factory.reference(temporalStepBdd(bdd, valuation)));
         }
 
         @Override
         public EquivalenceClass temporalStepUnfold(BitSet valuation) {
-            return createEquivalenceClass(representative.temporalStepUnfold(valuation));
+            return new BddEquivalenceClass(representative != null ? representative.temporalStepUnfold(valuation) : null,
+                    factory.reference(unfoldBdd(temporalStepBdd(bdd, valuation))));
+        }
+
+        @Override
+        public EquivalenceClass unfold() {
+            return new BddEquivalenceClass(representative != null ? representative.unfold() : null,
+                    factory.reference(unfoldBdd(bdd)));
         }
 
         @Override
         public EquivalenceClass unfoldTemporalStep(BitSet valuation) {
-            return createEquivalenceClass(representative.unfoldTemporalStep(valuation));
+            return new BddEquivalenceClass(representative != null ? representative.unfoldTemporalStep(valuation) : null,
+                    factory.reference(temporalStepBdd(unfoldBdd(bdd), valuation)));
         }
 
         @Override
@@ -316,31 +275,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        public EquivalenceClass temporalStep(BitSet valuation) {
-            Map<BitSet, BDDEquivalenceClass> cache = temporalStepCache.get(bdd);
-
-            if (cache == null) {
-                cache = new HashMap<>();
-                factory.reference(bdd);
-                temporalStepCache.put(bdd, cache);
-            }
-
-            BDDEquivalenceClass result = cache.get(valuation);
-
-            if (result == null) {
-                result = createEquivalenceClass(representative.temporalStep(valuation));
-                cache.put(valuation, result);
-            }
-
-            return new BDDEquivalenceClass(result.representative, factory.reference(result.bdd));
-        }
-
-        @Override
         public EquivalenceClass and(EquivalenceClass eq) {
-            BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
-            assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-            return new BDDEquivalenceClass(Conjunction.create(representative, that.representative),
-                factory.reference(factory.and(bdd, that.bdd)));
+            BddEquivalenceClass that = (BddEquivalenceClass) eq;
+            return new BddEquivalenceClass(Conjunction.create(representative, that.representative),
+                    factory.reference(factory.and(bdd, that.bdd)));
         }
 
         @Override
@@ -352,9 +290,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public EquivalenceClass or(EquivalenceClass eq) {
-            BDDEquivalenceClass that = (BDDEquivalenceClass) eq;
-            assert bdd > INVALID_BDD && that.bdd > INVALID_BDD;
-            return new BDDEquivalenceClass(Disjunction.create(representative, that.representative), factory.reference(factory.or(bdd, that.bdd)));
+            BddEquivalenceClass that = (BddEquivalenceClass) eq;
+            return new BddEquivalenceClass(Disjunction.create(representative, that.representative),
+                    factory.reference(factory.or(bdd, that.bdd)));
         }
 
         @Override
@@ -375,22 +313,40 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        @Deprecated
-        public List<Formula> getSupport() {
-          throw new UnsupportedOperationException();
+        public boolean testSupport(Predicate<Formula> predicate) {
+            BitSet support = factory.support(bdd);
+
+            return mapping.entrySet().stream().allMatch((entry) -> {
+                int i = entry.getValue();
+                return !(i > 0 && support.get(i - 1)) || predicate.test(entry.getKey());
+            });
         }
 
         @Override
         public BitSet getAtoms() {
+            // TODO: Instead of constructing the whole support just search near the root of the BDD.
             BitSet support = factory.support(bdd);
             support.clear(alphabetSize, support.size());
             return support;
         }
 
+        @Override
         public void free() {
-            if (factory.isNodeRoot(bdd)) {
+            // TODO: Throw exception on double free()!
+            if (bdd == INVALID_BDD) {
+                return;
+            }
+
+            if (!factory.isNodeRoot(bdd)) {
                 factory.dereference(bdd);
                 bdd = INVALID_BDD;
+                representative = null;
+            }
+        }
+
+        @Override
+        public void freeRepresentative() {
+            if (!factory.isNodeRoot(bdd)) {
                 representative = null;
             }
         }
@@ -405,11 +361,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
                 return false;
             }
 
-            BDDEquivalenceClass that = (BDDEquivalenceClass) obj;
-
-            assert bdd != INVALID_BDD : "This EquivalenceClass is already freed.";
-            assert that.bdd != INVALID_BDD : "That EquivalenceClass is already freed.";
-
+            BddEquivalenceClass that = (BddEquivalenceClass) obj;
             return bdd == that.bdd;
         }
 
@@ -420,7 +372,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public String toString() {
-            return "BDD[R: " + representative + ", ID: " + bdd + ']';
+            return "BDD[R: " + representative + ", N: " + bdd + ']';
         }
     }
 }
