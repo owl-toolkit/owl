@@ -25,10 +25,13 @@ package owl.bdd;
 
 import java.util.BitSet;
 
+/* Implementation notes:
+ * - Many of the methods are practically copy-paste of each other except for a few variables and
+ *   corner cases, as the structure of BDD algorithms is the same for most of the operations.
+ * - Due to the implementation of all operations, variable numbers increase while descending the
+ *   tree of a particular node. */
 @SuppressWarnings({"PMD.GodClass"})
-public final class BddImpl extends NodeTable implements Bdd {
-  /* Implementation notes: Many of the methods are practically copy-paste of each other except for
-   * a few variables, as the structure of BDD algorithms is the same for most of the operations. */
+class BddImpl extends NodeTable implements Bdd {
   private static final int TRUE_NODE = 1;
   private static final int FALSE_NODE = 0;
   private final BddCache cache;
@@ -210,9 +213,7 @@ public final class BddImpl extends NodeTable implements Bdd {
 
   @Override
   public final boolean isVariableOrNegated(final int node) {
-    if (!isNodeValidOrRoot(node)) {
-      return false;
-    }
+    assert isNodeValidOrRoot(node);
     if (isNodeRoot(node)) {
       return false;
     }
@@ -235,7 +236,7 @@ public final class BddImpl extends NodeTable implements Bdd {
   public final void support(final int node, final BitSet bitSet) {
     bitSet.clear();
     supportRecursive(node, bitSet);
-    unmarkTree(node);
+    unMarkTree(node);
   }
 
   @Override
@@ -333,9 +334,9 @@ public final class BddImpl extends NodeTable implements Bdd {
     }
     // TODO Caches
     final int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
-            variableNodes));
+        variableNodes));
     final int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
-            variableNodes));
+        variableNodes));
     final int resultNode = ifThenElse(variableNodes[nodeVariable], highCompose, lowCompose);
     popWorkStack(2);
     return resultNode;

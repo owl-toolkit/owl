@@ -6,16 +6,29 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import java.util.Arrays;
+import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.hamcrest.number.IsCloseTo;
 import org.junit.After;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
@@ -28,15 +41,23 @@ import org.junit.runner.RunWith;
 @RunWith(Theories.class)
 @SuppressWarnings({"PMD.GodClass", "checkstyle:javadoc"})
 public class BddTheories {
+  private static final Logger logger = Logger.getLogger(BddTheories.class.getName());
   private static final BddImpl bdd = new BddImpl(10);
   /* The @DataPoints annotated method is called multiple times - which would create new variables
    * each time, exploding the runtime of the tests. */
-  private static final List<Integer> bddDataPoints;
+  private static final Collection<UnaryDataPoint> unaryDataPoints;
+  private static final Collection<BinaryDataPoint> binaryDataPoints;
+  private static final Collection<TernaryDataPoint> ternaryDataPoints;
+  private static final Int2ObjectMap<SyntaxTree> syntaxTreeMap;
   private static final List<BitSet> valuations;
   private static final int initialNodeCount;
   private static final int initialReferencedNodeCount;
   private static final int variableCount = 10;
-  private static final float bddLoadFactor = 0.1f;
+  private static final int treeDepth = 10;
+  private static final int treeWidth = 1000;
+  private static final int unaryCount = 5000;
+  private static final int binaryCount = 5000;
+  private static final int ternaryCount = 5000;
 
   static {
     final Random filter = new Random(0L);
@@ -45,20 +66,137 @@ public class BddTheories {
       variables.add(bdd.createVariable());
     }
 
-    final Set<Integer> set = new TreeSet<>(Arrays.asList(bdd.getFalseNode(), bdd.getTrueNode()));
+    // It is important other the generation of data is ordered for the tests to be reproducible
+    syntaxTreeMap = new Int2ObjectLinkedOpenHashMap<>();
+
+    syntaxTreeMap.put(bdd.getFalseNode(), SyntaxTree.constant(false));
+    syntaxTreeMap.put(bdd.getTrueNode(), SyntaxTree.constant(true));
     for (int i = 0; i < variables.size(); i++) {
-      set.add(variables.get(i));
-      set.add(bdd.reference(bdd.not(variables.get(i))));
-      for (int j = i; j < variables.size(); j++) {
-        // It is important that the stream is ordered for the tests to be reproducible
-        doBinaryOperations(variables.get(i), variables.get(j)).stream()
-            .filter(node -> filter.nextFloat() < bddLoadFactor)
-            .map(bdd::reference)
-            .forEach(node -> set.add(bdd.reference(node)));
+      final SyntaxTree literal = SyntaxTree.literal(i);
+      syntaxTreeMap.put(variables.get(i), literal);
+      syntaxTreeMap.put(bdd.reference(bdd.not(variables.get(i))), SyntaxTree.not(literal));
+    }
+
+    final Object2IntMap<SyntaxTree> treeToNodeMap = new Object2IntLinkedOpenHashMap<>();
+    for (final Map.Entry<Integer, SyntaxTree> treeEntry : syntaxTreeMap.entrySet()) {
+      treeToNodeMap.put(treeEntry.getValue(), treeEntry.getKey());
+    }
+    final Set<SyntaxTree> previousDepthSet = new HashSet<>(treeToNodeMap.keySet());
+    final List<SyntaxTree> candidates = new ArrayList<>();
+    logger.log(Level.FINER, "Generating syntax trees from {0} base expressions",
+        previousDepthSet.size());
+    for (int depth = 1; depth < treeDepth; depth++) {
+      logger.log(Level.FINEST, "Building tree depth {0}", depth);
+
+      candidates.addAll(previousDepthSet);
+      previousDepthSet.clear();
+      @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+      final Int2ObjectMap<SyntaxTree> createdFromCandidates = new Int2ObjectLinkedOpenHashMap<>();
+      Collections.shuffle(candidates, filter);
+      final List<SyntaxTree> leftCandidates = ImmutableList.copyOf(candidates);
+      Collections.shuffle(candidates, filter);
+      final List<SyntaxTree> rightCandidates = ImmutableList.copyOf(candidates);
+      candidates.clear();
+
+      for (final SyntaxTree left : leftCandidates) {
+        for (final SyntaxTree right : rightCandidates) {
+          int pushedNodes = 0;
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(bdd.and(treeToNodeMap.getInt(left),
+                treeToNodeMap.getInt(right))), SyntaxTree.and(left, right));
+            pushedNodes += 1;
+          }
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(bdd.or(treeToNodeMap.getInt(left),
+                treeToNodeMap.getInt(right))), SyntaxTree.or(left, right));
+            pushedNodes += 1;
+          }
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(bdd.xor(treeToNodeMap.getInt(left),
+                treeToNodeMap.getInt(right))), SyntaxTree.xor(left, right));
+            pushedNodes += 1;
+          }
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(
+                bdd.implication(treeToNodeMap.getInt(left), treeToNodeMap.getInt(right))),
+                SyntaxTree.implication(left, right));
+            pushedNodes += 1;
+          }
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(
+                bdd.equivalence(treeToNodeMap.getInt(left), treeToNodeMap.getInt(right))),
+                SyntaxTree.equivalence(left, right));
+            pushedNodes += 1;
+          }
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(bdd.not(treeToNodeMap.getInt(left))),
+                SyntaxTree.not(left));
+            pushedNodes += 1;
+          }
+          if (filter.nextBoolean()) {
+            createdFromCandidates.put(bdd.pushToWorkStack(bdd.not(treeToNodeMap.getInt(right))),
+                SyntaxTree.not(right));
+            pushedNodes += 1;
+          }
+          bdd.popWorkStack(pushedNodes);
+          assertThat(bdd.isWorkStackEmpty(), is(true));
+          createdFromCandidates.forEach((node, tree) -> {
+            if (syntaxTreeMap.containsKey(node)) {
+              return;
+            }
+            bdd.reference(node);
+            treeToNodeMap.put(tree, node);
+            syntaxTreeMap.put(node, tree);
+            previousDepthSet.add(tree);
+          });
+          createdFromCandidates.clear();
+          if (treeToNodeMap.size() >= treeWidth * depth) {
+            break;
+          }
+        }
+        if (treeToNodeMap.size() >= treeWidth * depth) {
+          break;
+        }
       }
     }
+    assertThat(bdd.numberOfVariables(), is(variableCount));
     initialNodeCount = bdd.nodeCount();
     initialReferencedNodeCount = bdd.referencedNodeCount();
+
+    final Collection<UnaryDataPoint> unaryDataPointSet = new HashSet<>();
+    final Collection<BinaryDataPoint> binaryDataPointSet = new HashSet<>();
+    final Collection<TernaryDataPoint> ternaryDataPointSet = new HashSet<>();
+    final IntList availableNodes = new IntArrayList(syntaxTreeMap.keySet());
+    while (unaryDataPointSet.size() < unaryCount) {
+      final int node = availableNodes.getInt(filter.nextInt(availableNodes.size()));
+      @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+      final UnaryDataPoint dataPoint = new UnaryDataPoint(node, syntaxTreeMap.get(node));
+      unaryDataPointSet.add(dataPoint);
+    }
+    while (binaryDataPointSet.size() < binaryCount) {
+      final int left = availableNodes.getInt(filter.nextInt(availableNodes.size()));
+      final int right = availableNodes.getInt(filter.nextInt(availableNodes.size()));
+      @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+      final BinaryDataPoint dataPoint = new BinaryDataPoint(left, right, syntaxTreeMap.get(left),
+          syntaxTreeMap.get(right));
+      binaryDataPointSet.add(dataPoint);
+    }
+    while (ternaryDataPointSet.size() < ternaryCount) {
+      final int first = availableNodes.getInt(filter.nextInt(availableNodes.size()));
+      final int second = availableNodes.getInt(filter.nextInt(availableNodes.size()));
+      final int third = availableNodes.getInt(filter.nextInt(availableNodes.size()));
+      @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+      final TernaryDataPoint dataPoint = new TernaryDataPoint(first, second, third,
+          syntaxTreeMap.get(first), syntaxTreeMap.get(second), syntaxTreeMap.get(third));
+      ternaryDataPointSet.add(dataPoint);
+    }
+    unaryDataPoints = ImmutableSet.copyOf(unaryDataPointSet);
+    binaryDataPoints = ImmutableSet.copyOf(binaryDataPointSet);
+    ternaryDataPoints = ImmutableSet.copyOf(ternaryDataPointSet);
+
+    logger.log(Level.INFO, "Built {0} nodes ({1} referenced), {2} unary, {3} binary and {4} ternary"
+        + " data points", new Object[] {initialNodeCount, initialReferencedNodeCount,
+        unaryDataPointSet.size(), binaryDataPointSet.size(), ternaryDataPointSet.size()});
 
     final ImmutableList.Builder<BitSet> valuationBuilder = ImmutableList.builder();
     for (int i = 0; i < 1 << variables.size(); i++) {
@@ -73,13 +211,24 @@ public class BddTheories {
       valuationBuilder.add(bitSet);
     }
 
-    bddDataPoints = ImmutableList.copyOf(set);
     valuations = valuationBuilder.build();
   }
 
+  private final Random skipCheckRandom = new Random(0L);
+
   @DataPoints
-  public static List<Integer> bddDataPoints() {
-    return ImmutableList.copyOf(bddDataPoints);
+  public static List<UnaryDataPoint> unaryDataPoints() {
+    return ImmutableList.copyOf(unaryDataPoints);
+  }
+
+  @DataPoints
+  public static List<BinaryDataPoint> binaryDataPoints() {
+    return ImmutableList.copyOf(binaryDataPoints);
+  }
+
+  @DataPoints
+  public static List<TernaryDataPoint> ternaryDataPoints() {
+    return ImmutableList.copyOf(ternaryDataPoints);
   }
 
   private static BitSet copyBitSet(final BitSet bitSet) {
@@ -87,28 +236,34 @@ public class BddTheories {
   }
 
   @SuppressWarnings("TypeMayBeWeakened")
-  private static IntSet doBinaryOperations(final int node1, final int node2) {
+  private static IntSet doBddOperations(final int node1, final int node2) {
     final IntSet resultSet = new IntOpenHashSet();
     resultSet.add(bdd.pushToWorkStack(bdd.and(node1, node2)));
     resultSet.add(bdd.pushToWorkStack(bdd.or(node1, node2)));
     resultSet.add(bdd.pushToWorkStack(bdd.xor(node1, node2)));
-    resultSet.add(bdd.pushToWorkStack(bdd.equivalence(node1, node2)));
     resultSet.add(bdd.pushToWorkStack(bdd.implication(node1, node2)));
-    bdd.popWorkStack(5);
+    resultSet.add(bdd.pushToWorkStack(bdd.equivalence(node1, node2)));
+    resultSet.add(bdd.pushToWorkStack(bdd.not(node1)));
+    resultSet.add(bdd.pushToWorkStack(bdd.not(node2)));
+    bdd.popWorkStack(7);
     assertThat(bdd.isWorkStackEmpty(), is(true));
     return resultSet;
   }
 
   @After
   public void checkInvariants() {
-    bdd.check();
     assertThat(bdd.isWorkStackEmpty(), is(true));
-    assertThat(bdd.referencedNodeCount(), is(initialReferencedNodeCount));
-    assertThat(bdd.nodeCount(), is(initialNodeCount));
+    if (skipCheckRandom.nextInt(100) == 0) {
+      bdd.check();
+      assertThat(bdd.referencedNodeCount(), is(initialReferencedNodeCount));
+      assertThat(bdd.nodeCount(), is(initialNodeCount));
+    }
   }
 
-  @Theory
-  public void testNotAnd(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testNotAnd(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
     final int notAnd = bdd.notAnd(node1, node2);
 
@@ -133,8 +288,10 @@ public class BddTheories {
     assertThat(notAnd, is(notAndIteConstruction));
   }
 
-  @Theory
-  public void testImplication(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testImplication(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
 
     final int implication = bdd.implication(node1, node2);
@@ -150,8 +307,10 @@ public class BddTheories {
     assertThat(implication, is(implicationConstruction));
   }
 
-  @Theory
-  public void testImplies(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testImplies(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
     final int implication = bdd.implication(node1, node2);
 
@@ -170,8 +329,9 @@ public class BddTheories {
     }
   }
 
-  @Theory
-  public void testNot(final int node) {
+  @Theory(nullsAccepted = false)
+  public void testNot(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
     assumeThat(bdd.isNodeValidOrRoot(node), is(true));
 
     final int not = bdd.not(node);
@@ -190,8 +350,11 @@ public class BddTheories {
     assertThat(not, is(notIteConstruction));
   }
 
-  @Theory
-  public void testIfThenElse(final int ifNode, final int thenNode, final int elseNode) {
+  @Theory(nullsAccepted = false)
+  public void testIfThenElse(final TernaryDataPoint dataPoint) {
+    final int ifNode = dataPoint.getFirst();
+    final int thenNode = dataPoint.getSecond();
+    final int elseNode = dataPoint.getThird();
     assumeThat(bdd.isNodeValidOrRoot(ifNode)
         && bdd.isNodeValidOrRoot(thenNode)
         && bdd.isNodeValidOrRoot(elseNode), is(true));
@@ -216,8 +379,10 @@ public class BddTheories {
         ifThenElse, is(ifThenElseImplicationConstruction));
   }
 
-  @Theory
-  public void testAnd(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testAnd(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
 
     final int and = bdd.and(node1, node2);
@@ -244,8 +409,10 @@ public class BddTheories {
     assertThat(and, is(andIteConstruction));
   }
 
-  @Theory
-  public void testOr(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testOr(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
 
     final int or = bdd.or(node1, node2);
@@ -272,8 +439,10 @@ public class BddTheories {
     assertThat(or, is(orIteConstruction));
   }
 
-  @Theory
-  public void testEquivalence(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testEquivalence(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
 
     final int equivalence = bdd.equivalence(node1, node2);
@@ -308,8 +477,10 @@ public class BddTheories {
     assertThat(equivalence, is(equivalenceBiImplicationConstruction));
   }
 
-  @Theory
-  public void testXor(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testXor(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
 
     final int xor = bdd.xor(node1, node2);
@@ -332,12 +503,134 @@ public class BddTheories {
     assertThat(xor, is(xorConstruction));
   }
 
-  @Theory
-  public void testSupport(final int node1, final int node2) {
-    // TODO This test is very basic. But I think without further knowledge about node1 and node2
-    // there is not much of a possibility to deduce the support set (except by replicating the
-    // current code - which is kind of pointless in testing). If we implement a possibility to
-    // generate all satisfying assignments (which is not hard), we can thoroughly test support.
+  @Theory(nullsAccepted = false)
+  public void testEvaluateTree(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValidOrRoot(node), is(true));
+    assumeThat(dataPoint.getTree().depth() <= 7, is(true));
+
+    for (final BitSet valuation : valuations) {
+      assertThat(bdd.evaluate(node, valuation), is(dataPoint.getTree().evaluate(valuation)));
+    }
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testComposeTree(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValidOrRoot(node), is(true));
+
+    final SyntaxTree syntaxTree = dataPoint.getTree();
+    final IntSet containedVariables = syntaxTree.containedVariables();
+    assumeThat(containedVariables.size() <= 5, is(true));
+
+    final int[] composeArray = new int[variableCount];
+
+    final Random selectionRandom = new Random((long) node);
+    final IntList availableNodes = new IntArrayList(syntaxTreeMap.keySet());
+    for (int i = 0; i < variableCount; i++) {
+      if (containedVariables.contains(i)) {
+        final int replacementBddIndex = selectionRandom.nextInt(availableNodes.size());
+        composeArray[i] = availableNodes.get(replacementBddIndex);
+      } else {
+        composeArray[i] = i;
+      }
+    }
+    final Int2ObjectMap<SyntaxTree> replacementMap = new Int2ObjectOpenHashMap<>();
+    for (int i = 0; i < composeArray.length; i++) {
+      replacementMap.put(i, syntaxTreeMap.get(composeArray[i]));
+    }
+    final int composedNode = bdd.compose(node, composeArray);
+    final SyntaxTree composeTree = SyntaxTree.buildReplacementTree(syntaxTree, replacementMap);
+    for (final BitSet valuation : valuations) {
+      assertThat(bdd.evaluate(composedNode, valuation), is(composeTree.evaluate(valuation)));
+    }
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testCountSatisfyingAssignments(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValidOrRoot(node), is(true));
+
+    long satisfyingAssignments = 0L;
+    for (final BitSet valuation : valuations) {
+      if (bdd.evaluate(node, valuation)) {
+        satisfyingAssignments += 1L;
+      }
+    }
+    assertThat(bdd.countSatisfyingAssignments(node), new IsCloseTo((double) satisfyingAssignments,
+        0.1));
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testIsVariable(final UnaryDataPoint dataPoint) {
+    final SyntaxTree.SyntaxTreeNode rootNode = dataPoint.getTree().getRootNode();
+    if (rootNode instanceof SyntaxTree.SyntaxTreeLiteral) {
+      assertThat(bdd.isVariable(dataPoint.getNode()), is(true));
+      assertThat(bdd.isVariableOrNegated(dataPoint.getNode()), is(true));
+      return;
+    }
+    if (rootNode instanceof SyntaxTree.SyntaxTreeNot) {
+      final SyntaxTree.SyntaxTreeNode child = ((SyntaxTree.SyntaxTreeNot) rootNode).getChild();
+      if (child instanceof SyntaxTree.SyntaxTreeLiteral) {
+        assertThat(bdd.isVariable(dataPoint.getNode()), is(false));
+        assertThat(bdd.isVariableOrNegated(dataPoint.getNode()), is(true));
+        return;
+      }
+    }
+    final BitSet support = bdd.support(dataPoint.getNode());
+    assertThat(bdd.isVariableOrNegated(dataPoint.getNode()), is(support.cardinality() == 1));
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testSupportTree(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValidOrRoot(node), is(true));
+    final IntSet containedVariables = dataPoint.getTree().containedVariables();
+    assumeThat(containedVariables.size() <= 5, is(true));
+
+    // For each variable, we iterate through all possible valuations and check if there ever is any
+    // difference.
+    if (containedVariables.isEmpty()) {
+      assertThat(bdd.support(node).isEmpty(), is(true));
+    } else {
+      // Have some arbitrary ordering
+      final IntList containedVariableList = new IntArrayList(containedVariables);
+      final BitSet valuation = new BitSet(variableCount);
+      final BitSet support = new BitSet(variableCount);
+
+      for (final int checkedVariable : containedVariableList) {
+        final int checkedContainedIndex = containedVariableList.indexOf(checkedVariable);
+        // Only iterate over all possible valuations of involved variables, otherwise this test
+        // might explode
+        for (int i = 0; i < 1 << containedVariables.size(); i++) {
+          if (((i >>> checkedContainedIndex) & 1) == 1) {
+            continue;
+          }
+          valuation.clear();
+          for (int j = 0; j < containedVariables.size(); j++) {
+            if (((i >>> j) & 1) == 1) {
+              valuation.set(containedVariableList.getInt(j));
+            }
+          }
+
+          // Check if
+          final boolean negative = bdd.evaluate(node, valuation);
+          valuation.set(checkedVariable);
+          final boolean positive = bdd.evaluate(node, valuation);
+          if (negative != positive) {
+            support.set(checkedVariable);
+            break;
+          }
+        }
+      }
+      assertThat(bdd.support(node), is(support));
+    }
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testSupportUnion(final BinaryDataPoint dataPoint) {
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
 
     final BitSet node1Support = bdd.support(node1);
@@ -345,14 +638,58 @@ public class BddTheories {
     final BitSet supportUnion = copyBitSet(node1Support);
     supportUnion.or(node2Support);
 
-    for (final int operationNode : doBinaryOperations(node1, node2)) {
+    for (final int operationNode : doBddOperations(node1, node2)) {
       final BitSet operationSupport = bdd.support(operationNode);
       operationSupport.stream().forEach(setBit -> assertThat(supportUnion.get(setBit), is(true)));
     }
   }
 
+  @Theory(nullsAccepted = false)
+  public void testGetLowAndHigh(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValid(node), is(true));
+    final int low = bdd.getLow(node);
+    final int high = bdd.getHigh(node);
+    if (bdd.isVariableOrNegated(node)) {
+      if (bdd.isVariable(node)) {
+        assertThat(low, is(bdd.getFalseNode()));
+        assertThat(high, is(bdd.getTrueNode()));
+      } else {
+        assertThat(low, is(bdd.getTrueNode()));
+        assertThat(high, is(bdd.getFalseNode()));
+      }
+    } else {
+      final ImmutableSet<Integer> rootNodes =
+          ImmutableSet.of(bdd.getFalseNode(), bdd.getTrueNode());
+      assumeThat(rootNodes.contains(low) && rootNodes.contains(high), is(false));
+    }
+  }
+
   @Theory
-  public void testReferenceAndDereference(final int node) {
+  @SuppressWarnings("PMD.ExceptionAsFlowControl")
+  public void testReferenceGuard(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValidOrRoot(node), is(true));
+    assumeThat(bdd.isNodeSaturated(node), is(false));
+
+    final int referenceCount = bdd.getReferenceCount(node);
+    try {
+      try (Bdd.ReferenceGuard guard = new Bdd.ReferenceGuard(node, bdd)) {
+        assertThat(bdd.getReferenceCount(node), is(referenceCount + 1));
+        assertThat(guard.getBdd(), is(bdd));
+        assertThat(guard.getNode(), is(node));
+        // We deliberately want to test the exception handling here
+        throw new IllegalArgumentException("Bogus");
+      }
+    } catch (final IllegalArgumentException e) {
+      assertThat(bdd.getReferenceCount(node), is(referenceCount));
+    }
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testReferenceAndDereference(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeThat(bdd.isNodeValidOrRoot(node), is(true));
     assumeThat(bdd.isNodeSaturated(node), is(false));
 
     final int referenceCount = bdd.getReferenceCount(node);
@@ -367,11 +704,13 @@ public class BddTheories {
     assertThat(bdd.getReferenceCount(node), is(referenceCount));
   }
 
-  @Theory
-  public void testConsume(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testConsume(final BinaryDataPoint dataPoint) {
     // This test simply tests if the semantics of consume are as specified, i.e.
     // consume(result, input1, input2) reduces the reference count of the inputs and increases that
     // of result
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(node1, is(not(node2)));
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
     assumeThat(bdd.isNodeSaturated(node1) || bdd.isNodeSaturated(node2), is(false));
@@ -381,12 +720,13 @@ public class BddTheories {
     final int node1referenceCount = bdd.getReferenceCount(node1);
     final int node2referenceCount = bdd.getReferenceCount(node2);
 
-    for (final int operationNode : doBinaryOperations(node1, node2)) {
+    for (final int operationNode : doBddOperations(node1, node2)) {
       if (bdd.isNodeSaturated(operationNode)) {
         continue;
       }
       final int operationRefCount = bdd.getReferenceCount(operationNode);
-      assertThat(bdd.consume(operationNode, node1, node2), is(operationNode));
+      assertThat(bdd.consume(operationNode, node1, node2),
+          is(operationNode));
 
       if (operationNode == node1) {
         assertThat(bdd.getReferenceCount(node1), is(node1referenceCount));
@@ -411,11 +751,13 @@ public class BddTheories {
     bdd.dereference(node2);
   }
 
-  @Theory
-  public void testUpdateWith(final int node1, final int node2) {
+  @Theory(nullsAccepted = false)
+  public void testUpdateWith(final BinaryDataPoint dataPoint) {
     // This test simply tests if the semantics of updateWith are as specified, i.e.
     // updateWith(result, input) reduces the reference count of the input and increases that of
     // result
+    final int node1 = dataPoint.getLeft();
+    final int node2 = dataPoint.getRight();
     assumeThat(node1, is(not(node2)));
     assumeThat(bdd.isNodeValidOrRoot(node1) && bdd.isNodeValidOrRoot(node2), is(true));
     assumeThat(bdd.isNodeSaturated(node1) || bdd.isNodeSaturated(node2), is(false));
@@ -427,7 +769,7 @@ public class BddTheories {
     bdd.updateWith(node1, node1);
     assertThat(bdd.getReferenceCount(node1), is(node1referenceCount));
 
-    for (final int operationNode : doBinaryOperations(node1, node2)) {
+    for (final int operationNode : doBddOperations(node1, node2)) {
       if (bdd.isNodeSaturated(operationNode)) {
         continue;
       }
@@ -454,5 +796,153 @@ public class BddTheories {
     assertThat(bdd.getReferenceCount(node2), is(node2referenceCount));
     bdd.dereference(node1);
     bdd.dereference(node2);
+  }
+
+  private static final class UnaryDataPoint {
+    private final int node;
+    private final SyntaxTree tree;
+
+    public UnaryDataPoint(final int node, final SyntaxTree tree) {
+      this.node = node;
+      this.tree = tree;
+    }
+
+    public int getNode() {
+      return node;
+    }
+
+    public SyntaxTree getTree() {
+      return tree;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof UnaryDataPoint)) {
+        return false;
+      }
+      final UnaryDataPoint other = (UnaryDataPoint) o;
+      return node == other.node;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(node);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private static final class BinaryDataPoint {
+    private final int left;
+    private final int right;
+    private final SyntaxTree leftTree;
+    private final SyntaxTree rightTree;
+
+    public BinaryDataPoint(final int left, final int right, final SyntaxTree leftTree,
+        final SyntaxTree rightTree) {
+      this.left = left;
+      this.right = right;
+      this.leftTree = leftTree;
+      this.rightTree = rightTree;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof BinaryDataPoint)) {
+        return false;
+      }
+      final BinaryDataPoint other = (BinaryDataPoint) o;
+      return left == other.left &&
+          right == other.right;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(left, right);
+    }
+
+    public int getLeft() {
+      return left;
+    }
+
+    public int getRight() {
+      return right;
+    }
+
+    public SyntaxTree getLeftTree() {
+      return leftTree;
+    }
+
+    public SyntaxTree getRightTree() {
+      return rightTree;
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private static final class TernaryDataPoint {
+    private final int first;
+    private final int second;
+    private final int third;
+    private final SyntaxTree firstTree;
+    private final SyntaxTree secondTree;
+    private final SyntaxTree thirdTree;
+
+    public TernaryDataPoint(final int first, final int second, final int third,
+        final SyntaxTree firstTree, final SyntaxTree secondTree, final SyntaxTree thirdTree) {
+      this.first = first;
+      this.second = second;
+      this.third = third;
+      this.firstTree = firstTree;
+      this.secondTree = secondTree;
+      this.thirdTree = thirdTree;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof TernaryDataPoint)) {
+        return false;
+      }
+      final TernaryDataPoint other = (TernaryDataPoint) o;
+      return first == other.first &&
+          second == other.second &&
+          third == other.third;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(first, second, third);
+    }
+
+    public int getFirst() {
+      return first;
+    }
+
+    public int getSecond() {
+      return second;
+    }
+
+    public int getThird() {
+      return third;
+    }
+
+    public SyntaxTree getFirstTree() {
+      return firstTree;
+    }
+
+    public SyntaxTree getSecondTree() {
+      return secondTree;
+    }
+
+    public SyntaxTree getThirdTree() {
+      return thirdTree;
+    }
   }
 }
