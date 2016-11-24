@@ -38,7 +38,7 @@ class BddImpl extends NodeTable implements Bdd {
   private int numberOfVariables;
 
   BddImpl(final int nodeSize) {
-    super(Util.prevPrime(nodeSize), ImmutableBddConfiguration.builder().build());
+    super(Util.nextPrime(nodeSize), ImmutableBddConfiguration.builder().build());
     cache = new BddCache(this);
     numberOfVariables = 0;
   }

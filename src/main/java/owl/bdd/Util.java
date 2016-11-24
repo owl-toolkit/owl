@@ -26,33 +26,14 @@ final class Util {
     return fnv1aRound(FNV_OFFSET, key);
   }
 
-  public static int nextPrime(final int number) {
-    if (number == 2) {
-      return number;
-    }
-    int prime = number;
-    if ((number % 2) == 0) {
-      prime++;
-    }
-    while (!IntMath.isPrime(prime)) {
-      prime += 2;
-    }
-    return prime;
-  }
+  public static int nextPrime(final int prime) {
+    int nextPrime = Math.max(3, prime | 1) ;
 
-  public static int prevPrime(final int number) {
-    assert number >= 2;
-    if (number == 2) {
-      return number;
+    while (!IntMath.isPrime(nextPrime)) {
+      nextPrime += 2;
     }
-    int prime = number;
-    if ((number % 2) == 0) {
-      prime--;
-    }
-    while (!IntMath.isPrime(prime)) {
-      prime += 2;
-    }
-    return prime;
+
+    return nextPrime;
   }
 
   @SuppressWarnings("MagicNumber")
