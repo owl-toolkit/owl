@@ -60,7 +60,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         final int length = obligations.initialStates.length;
         EquivalenceClass[] nextBuilder = new EquivalenceClass[length];
 
-         if (XFragmentPredicate.testStatic(remainder.getRepresentative())) {
+         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
             xFragment = remainder.andWith(xFragment);
 
             if (length > 0) {

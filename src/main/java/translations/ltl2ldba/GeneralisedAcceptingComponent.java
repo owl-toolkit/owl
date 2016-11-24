@@ -53,7 +53,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         EquivalenceClass xFragment = obligations.xFragment;
         EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
 
-        if (XFragmentPredicate.testStatic(remainder.getRepresentative())) {
+        if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
             xFragment = remainder.andWith(xFragment);
 
             if (length > 0) {
