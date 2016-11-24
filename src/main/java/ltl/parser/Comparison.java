@@ -24,5 +24,5 @@ public enum Comparison {
         public String toString() {
             return ">";
         }
-    };
+    }
 }

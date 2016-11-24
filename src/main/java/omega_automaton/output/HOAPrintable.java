@@ -24,7 +24,7 @@ import java.util.EnumSet;
 
 public interface HOAPrintable {
 
-    enum Option { COMMENTS };
+    enum Option { COMMENTS }
 
     default void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
         toHOA(ho, aliases, EnumSet.noneOf(Option.class));

@@ -27,7 +27,6 @@ import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.collections.Collections3;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DotPrinter implements HOAConsumer {

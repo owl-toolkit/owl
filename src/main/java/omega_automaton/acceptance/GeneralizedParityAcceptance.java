@@ -20,7 +20,6 @@ package omega_automaton.acceptance;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
-import java.util.Collections;
 import java.util.List;
 
 public class GeneralizedParityAcceptance implements OmegaAcceptance {

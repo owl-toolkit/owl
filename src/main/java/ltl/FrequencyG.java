@@ -132,7 +132,7 @@ public class FrequencyG extends GOperator {
         }
     }
 
-    public static enum Limes {
+    public enum Limes {
         SUP, INF;
 
         public Limes theOther() {

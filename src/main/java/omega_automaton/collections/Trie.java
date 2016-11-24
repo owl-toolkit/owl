@@ -77,14 +77,7 @@ public class Trie<T> {
         private boolean terminal;
 
         private Node<T> getSuccessor(T node) {
-            Node<T> successor = successors.get(node);
-
-            if (successor == null) {
-                successor = new Node<>();
-                successors.put(node, successor);
-            }
-
-            return successor;
+            return successors.computeIfAbsent(node, k -> new Node<>());
         }
 
         @Nullable
