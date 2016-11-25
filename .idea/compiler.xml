@@ -15,14 +15,11 @@
     </wildcardResourcePatterns>
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true">
-        <sourceTestOutputDir name="generated" />
+        <sourceOutputDir name="src/main/generated" />
+        <sourceTestOutputDir name="src/test/generated" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="owl-base_main" target="1.8" />
-      <module name="owl-base_test" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>

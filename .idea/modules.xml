@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/owl-base.iml" filepath="$PROJECT_DIR$/.idea/modules/owl-base.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/owl-base_main.iml" filepath="$PROJECT_DIR$/.idea/modules/owl-base_main.iml" group="owl-base" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/owl-base_test.iml" filepath="$PROJECT_DIR$/.idea/modules/owl-base_test.iml" group="owl-base" />
     </modules>
   </component>
 </project>

@@ -221,7 +221,7 @@
     <inspection_tool class="UnnecessaryDefault" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UseOfAnotherObjectsPrivateField" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreSameClass" value="false" />
-      <option name="ignoreEquals" value="false" />
+      <option name="ignoreEquals" value="true" />
     </inspection_tool>
     <inspection_tool class="UseOfClone" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UseOfObsoleteDateTimeApi" enabled="true" level="WARNING" enabled_by_default="true" />
