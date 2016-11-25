@@ -194,7 +194,7 @@ public class LTL2LDGBATest {
     @Test
     public void testSanityCheckFailed2() throws Exception {
         String ltl = "!(((X a) | (F b)) U (a))";
-        testOutput(ltl, 7);
+        testOutput(ltl, 8);
     }
 
     @Test
