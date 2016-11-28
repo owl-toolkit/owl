@@ -1,6 +1,7 @@
 package owl.bdd;
 
 import java.util.Arrays;
+import javax.annotation.Nullable;
 
 /*
  * Possible improvements:
@@ -20,6 +21,7 @@ final class BddCache {
   private static final int BINARY_OPERATION_IMPLIES = 3;
   private static final int BINARY_OPERATION_EQUIVALENCE = 4;
   private static final int BINARY_OPERATION_XOR = 5;
+  private static final int BINARY_OPERATION_EXISTS = 6;
   private static final int TERNARY_OPERATION_ITE = 0;
   private static final int BINARY_CACHE_OPERATION_ID_OFFSET = 61;
   private static final int TERNARY_CACHE_OPERATION_ID_OFFSET = 63;
@@ -45,6 +47,7 @@ final class BddCache {
   private long[] unaryStorage;
   private int[] satisfactionKeyStorage;
   private double[] satisfactionResultStorage;
+  @Nullable
   private int[] composeStorage;
   private int[] composeVolatileKeyStorage;
   private int[] composeVolatileResultStorage;
@@ -63,6 +66,7 @@ final class BddCache {
     reallocateTernary();
     reallocateSatisfaction();
     reallocateCompose();
+    reallocateComposeVolatile();
   }
 
   private static void insertInLru(final long[] array, final int first, final int offset,
@@ -137,7 +141,8 @@ final class BddCache {
   private static boolean isBinaryOperation(final int operationId) {
     return operationId == BINARY_OPERATION_AND || operationId == BINARY_OPERATION_EQUIVALENCE
         || operationId == BINARY_OPERATION_IMPLIES || operationId == BINARY_OPERATION_N_AND
-        || operationId == BINARY_OPERATION_OR || operationId == BINARY_OPERATION_XOR;
+        || operationId == BINARY_OPERATION_OR || operationId == BINARY_OPERATION_XOR
+        || operationId == BINARY_OPERATION_EXISTS;
   }
 
   private static boolean isTernaryOperation(final int operationId) {
@@ -166,6 +171,11 @@ final class BddCache {
     return ternarySecondStore >>> CACHE_VALUE_BIT_SIZE;
   }
 
+  void clearComposeVolatileCache() {
+    composeVolatileAccessStatistics.invalidation();
+    Arrays.fill(composeVolatileKeyStorage, 0);
+  }
+
   boolean lookupNot(final int node) {
     return unaryLookup(UNARY_OPERATION_NOT, node);
   }
@@ -180,6 +190,10 @@ final class BddCache {
 
   boolean lookupXor(final int inputNode1, final int inputNode2) {
     return binaryLookup(BINARY_OPERATION_XOR, inputNode1, inputNode2);
+  }
+
+  boolean lookupExists(final int inputNode, final int variableCube) {
+    return binaryLookup(BINARY_OPERATION_EXISTS, inputNode, variableCube);
   }
 
   boolean lookupEquivalence(final int inputNode1, final int inputNode2) {
@@ -200,6 +214,7 @@ final class BddCache {
 
   @SuppressWarnings("PMD.UseVarargs")
   boolean lookupCompose(final int inputNode, final int[] replacementArray) {
+    assert composeStorage != null;
     assert associatedBdd.isNodeValid(inputNode);
     final int hash = composeHash(inputNode, replacementArray);
     final int cachePosition = getComposeCachePosition(hash);
@@ -207,23 +222,19 @@ final class BddCache {
     lookupHash = hash;
 
     if (composeStorage[cachePosition] != inputNode) {
-      composeAccessStatistics.cacheMiss();
       return false;
     }
     for (int i = 0; i < replacementArray.length; i++) {
       if (composeStorage[cachePosition + 2 + i] != replacementArray[i]) {
-        composeAccessStatistics.cacheMiss();
         return false;
       }
     }
     if (replacementArray.length < associatedBdd.numberOfVariables()
         && composeStorage[cachePosition + 2 + replacementArray.length] != -1) {
-      composeAccessStatistics.cacheMiss();
       return false;
     }
-    final int resultNode = composeStorage[cachePosition + 1];
-    assert associatedBdd.isNodeValidOrRoot(resultNode);
-    lookupResult = resultNode;
+    lookupResult = composeStorage[cachePosition + 1];
+    assert associatedBdd.isNodeValidOrRoot(lookupResult);
     composeAccessStatistics.cacheHit();
     return true;
   }
@@ -237,7 +248,6 @@ final class BddCache {
 
     if (binaryBinsPerHash == 1) {
       if (composeVolatileKeyStorage[cachePosition] != inputNode) {
-        composeVolatileAccessStatistics.cacheMiss();
         return false;
       }
       lookupResult = composeVolatileResultStorage[cachePosition];
@@ -245,8 +255,7 @@ final class BddCache {
       int offset = -1;
       for (int i = 0; i < composeBinsPerHash; i++) {
         final int keyValue = composeVolatileKeyStorage[cachePosition + i];
-        if (keyValue == -1) {
-          composeVolatileAccessStatistics.cacheMiss();
+        if (keyValue == 0) {
           return false;
         }
         if (keyValue == inputNode) {
@@ -255,7 +264,6 @@ final class BddCache {
         }
       }
       if (offset == -1) {
-        composeVolatileAccessStatistics.cacheMiss();
         return false;
       }
       lookupResult = composeVolatileResultStorage[cachePosition + offset];
@@ -279,7 +287,6 @@ final class BddCache {
       satisfactionAccessStatistics.cacheHit();
       return satisfactionResultStorage[cachePosition];
     }
-    satisfactionAccessStatistics.cacheMiss();
     return -1d;
   }
 
@@ -317,6 +324,7 @@ final class BddCache {
     invalidateTernary();
     invalidateSatisfaction();
     invalidateCompose();
+    clearComposeVolatileCache();
   }
 
   void putNot(final int inputNode, final int resultNode) {
@@ -355,6 +363,11 @@ final class BddCache {
     binaryPut(BINARY_OPERATION_EQUIVALENCE, hash, inputNode1, inputNode2, resultNode);
   }
 
+  void putExists(final int hash, final int inputNode, final int variableCube,
+      final int resultNode) {
+    binaryPut(BINARY_OPERATION_EXISTS, hash, inputNode, variableCube, resultNode);
+  }
+
   void putIfThenElse(final int hash, final int inputNode1, final int inputNode2,
       final int inputNode3, final int resultNode) {
     ternaryPut(TERNARY_OPERATION_ITE, hash, inputNode1, inputNode2, inputNode3, resultNode);
@@ -362,6 +375,7 @@ final class BddCache {
 
   void putCompose(final int hash, final int inputNode, final int[] replacement,
       final int resultNode) {
+    assert composeStorage != null;
     assert associatedBdd.isNodeValidOrRoot(inputNode)
         && associatedBdd.isNodeValidOrRoot(resultNode);
     assert replacement.length <= associatedBdd.numberOfVariables();
@@ -378,7 +392,7 @@ final class BddCache {
   }
 
   void putComposeVolatile(final int hash, final int inputNode, final int resultNode) {
-    assert associatedBdd.isNodeValidOrRoot(inputNode)
+    assert associatedBdd.isNodeValid(inputNode)
         && associatedBdd.isNodeValidOrRoot(resultNode);
 
     final int cachePosition = getComposeVolatileCachePosition(hash);
@@ -391,6 +405,8 @@ final class BddCache {
       insertInLru(composeVolatileKeyStorage, cachePosition, composeBinsPerHash, inputNode);
       insertInLru(composeVolatileResultStorage, cachePosition, composeBinsPerHash, resultNode);
     }
+    lookupComposeVolatile(inputNode);
+    assert lookupResult == resultNode;
   }
 
   void putSatisfaction(final int hash, final int node, final double satisfactionCount) {
@@ -410,45 +426,45 @@ final class BddCache {
   }
 
   String getStatistics() {
-    return "Unary:\n" + //
-        " size: " + getUnaryCacheBinCount() //
-        + ", load: " + computeUnaryLoadFactor() + "\n" //
-        + " " + unaryAccessStatistics + "\n" //
-        + "Binary:\n" + " size: " + getBinaryCacheBinCount() //
-        + ", load: " + computeBinaryLoadFactor() + "\n" //
-        + " " + binaryAccessStatistics + "\n" //
-        + "Ternary:\n" + " size: " + getTernaryBinCount() //
-        + ", load: " + computeTernaryLoadFactor() + "\n" //
-        + " " + ternaryAccessStatistics + "\n" //
-        + "Satisfaction:\n" + " size: " + getSatisfactionBinCount() //
-        + ", load: " + computeSatisfactionLoadFactor() + "\n" //
-        + " " + satisfactionAccessStatistics + "\n" //
-        + "Compose:\n" + " size: " + getComposeBinCount() + "\n" //
-        + " " + composeAccessStatistics + "\n" //
-        + "Compose volatile:\n" + " size: " + getComposeVolatileBinCount() //
-        + ", load: " + computeComposeVolatileLoadFactor() + "\n" //
-        + " " + composeVolatileAccessStatistics;
+    final StringBuilder builder = new StringBuilder(512);
+    builder.append("Unary: size: ").append(getUnaryCacheKeyCount()) //
+        .append(", load: ").append(computeUnaryLoadFactor()) //
+        .append("\n ").append(unaryAccessStatistics) //
+        .append("\nBinary: size: ").append(getBinaryCacheKeyCount()) //
+        .append(", load: ").append(computeBinaryLoadFactor()) //
+        .append("\n ").append(binaryAccessStatistics) //
+        .append("\nTernary: size: ").append(getTernaryKeyCount()) //
+        .append(", load: ").append(computeTernaryLoadFactor()) //
+        .append("\n ").append(ternaryAccessStatistics) //
+        .append("\nSatisfaction: size: ").append(getSatisfactionKeyCount()) //
+        .append(", load: ").append(computeSatisfactionLoadFactor()) //
+        .append("\n ").append(satisfactionAccessStatistics) //
+        .append("\nCompose:");
+    if (composeStorage == null) {
+      builder.append(" Disabled");
+    } else {
+      builder.append(" size: ").append(getComposeKeyCount())
+          .append("\n ").append(composeAccessStatistics);
+    }
+    builder.append("\nCompose volatile: current size: ").append(getComposeVolatileKeyCount()) //
+        .append(", load: ").append(computeComposeVolatileLoadFactor()) //
+        .append("\n ").append(composeVolatileAccessStatistics);
+    return builder.toString();
   }
 
-  void allocateComposeVolatileCache(final int replacementArraySize) {
-    final int minimumSize = replacementArraySize * composeVolatileBinsPerHash
-        / associatedBdd.getConfiguration().cacheComposeVolatileDivider();
+  void reallocateComposeVolatile() {
+    final int keyCount = associatedBdd.numberOfVariables()
+        * associatedBdd.getConfiguration().cacheComposeVolatileMultiplier();
 
-    if (composeVolatileKeyStorage == null || composeVolatileKeyStorage.length < minimumSize) {
-      final int actualSize = ensureMinimumBinCount(replacementArraySize
-          / associatedBdd.getConfiguration().cacheComposeVolatileDivider())
-          * composeVolatileBinsPerHash;
-      composeVolatileAccessStatistics.invalidation();
-      composeVolatileKeyStorage = new int[actualSize];
-      composeVolatileResultStorage = new int[actualSize];
-    } else {
-      Arrays.fill(composeVolatileKeyStorage, -1);
-    }
+    composeVolatileAccessStatistics.invalidation();
+    final int actualSize = Util.nextPrime(keyCount) * composeVolatileBinsPerHash;
+    composeVolatileKeyStorage = new int[actualSize];
+    composeVolatileResultStorage = new int[actualSize];
   }
 
   @SuppressWarnings("PMD.UseVarargs")
   private int composeHash(final int inputNode, final int[] replacementArray) {
-    final int composeHashSize = getComposeBinCount();
+    final int composeHashSize = getComposeKeyCount();
     final int hash = Util.hash(inputNode, replacementArray) % composeHashSize;
     if (hash < 0) {
       return hash + composeHashSize;
@@ -456,7 +472,8 @@ final class BddCache {
     return hash;
   }
 
-  private int getComposeBinCount() {
+  private int getComposeKeyCount() {
+    assert composeStorage != null;
     return composeStorage.length / (2 + composeBinsPerHash + associatedBdd.numberOfVariables());
   }
 
@@ -465,7 +482,7 @@ final class BddCache {
   }
 
   private int composeVolatileHash(final int inputNode) {
-    final int composeVolatileHashSize = getComposeVolatileBinCount();
+    final int composeVolatileHashSize = getComposeVolatileKeyCount();
     final int hash = Util.hash(inputNode) % composeVolatileHashSize;
     if (hash < 0) {
       return hash + composeVolatileHashSize;
@@ -473,7 +490,7 @@ final class BddCache {
     return hash;
   }
 
-  private int getComposeVolatileBinCount() {
+  private int getComposeVolatileKeyCount() {
     return composeVolatileKeyStorage.length / composeVolatileBinsPerHash;
   }
 
@@ -481,7 +498,7 @@ final class BddCache {
     return hash * composeVolatileBinsPerHash;
   }
 
-  private int ensureMinimumBinCount(final int cacheSize) {
+  private int ensureMinimumCacheKeyCount(final int cacheSize) {
     if (cacheSize < associatedBdd.getConfiguration().minimumNodeTableSize()) {
       return Util.nextPrime(associatedBdd.getConfiguration().minimumNodeTableSize());
     }
@@ -489,7 +506,7 @@ final class BddCache {
   }
 
   private int hashSatisfaction(final int node) {
-    final int satisfactionHashSize = getSatisfactionBinCount();
+    final int satisfactionHashSize = getSatisfactionKeyCount();
     final int hash = Util.hash(node) % satisfactionHashSize;
     if (hash < 0) {
       return hash + satisfactionHashSize;
@@ -497,7 +514,7 @@ final class BddCache {
     return hash;
   }
 
-  private int getSatisfactionBinCount() {
+  private int getSatisfactionKeyCount() {
     return satisfactionKeyStorage.length / satisfactionBinsPerHash;
   }
 
@@ -518,44 +535,49 @@ final class BddCache {
   }
 
   private void reallocateBinary() {
-    final int binCount = associatedBdd.getTableSize()
+    final int keyCount = associatedBdd.getTableSize()
         / associatedBdd.getConfiguration().cacheBinaryDivider();
-    final int actualSize = ensureMinimumBinCount(binCount) * binaryBinsPerHash;
+    final int actualSize = ensureMinimumCacheKeyCount(keyCount) * binaryBinsPerHash;
     binaryKeyStorage = new long[actualSize];
-    binaryResultStorage = new int[binaryKeyStorage.length];
+    binaryResultStorage = new int[actualSize];
   }
 
+  @SuppressWarnings("PMD.NullAssignment")
   private void reallocateCompose() {
-    final int binCount = associatedBdd.getTableSize()
+    if (!associatedBdd.getConfiguration().useGlobalComposeCache()) {
+      composeStorage = null;
+      return;
+    }
+    final int keyCount = associatedBdd.getTableSize()
         / associatedBdd.getConfiguration().cacheComposeDivider();
-    final int actualSize = ensureMinimumBinCount(binCount)
+    final int actualSize = ensureMinimumCacheKeyCount(keyCount)
         * (2 + associatedBdd.numberOfVariables());
     composeStorage = new int[actualSize];
   }
 
   private void reallocateUnary() {
-    final int binCount = associatedBdd.getTableSize()
+    final int keyCount = associatedBdd.getTableSize()
         / associatedBdd.getConfiguration().cacheUnaryDivider();
-    final int actualSize = ensureMinimumBinCount(binCount) * unaryBinsPerHash;
+    final int actualSize = ensureMinimumCacheKeyCount(keyCount) * unaryBinsPerHash;
     unaryStorage = new long[actualSize];
   }
 
   private void reallocateTernary() {
-    final int binCount = associatedBdd.getTableSize()
+    final int keyCount = associatedBdd.getTableSize()
         / associatedBdd.getConfiguration().cacheTernaryDivider();
-    final int actualSize = ensureMinimumBinCount(binCount) * ternaryBinsPerHash * 2;
+    final int actualSize = ensureMinimumCacheKeyCount(keyCount) * ternaryBinsPerHash * 2;
     ternaryStorage = new long[actualSize];
   }
 
   private void reallocateSatisfaction() {
-    final int binCount = associatedBdd.getTableSize()
+    final int keyCount = associatedBdd.getTableSize()
         / associatedBdd.getConfiguration().cacheSatisfactionDivider();
-    final int actualSize = ensureMinimumBinCount(binCount) * satisfactionBinsPerHash;
+    final int actualSize = ensureMinimumCacheKeyCount(keyCount) * satisfactionBinsPerHash;
     satisfactionKeyStorage = new int[actualSize];
-    satisfactionResultStorage = new double[satisfactionKeyStorage.length];
+    satisfactionResultStorage = new double[actualSize];
   }
 
-  private int getTernaryBinCount() {
+  private int getTernaryKeyCount() {
     return ternaryStorage.length / ternaryBinsPerHash / 2;
   }
 
@@ -572,12 +594,10 @@ final class BddCache {
 
     if (ternaryBinsPerHash == 1) {
       if (constructedTernaryFirstStore != ternaryStorage[cachePosition]) {
-        ternaryAccessStatistics.cacheMiss();
         return false;
       }
       final long ternarySecondStore = ternaryStorage[cachePosition + 1];
       if (inputNode3 != (int) getInputNodeFromTernarySecondStore(ternarySecondStore)) {
-        ternaryAccessStatistics.cacheMiss();
         return false;
       }
       lookupResult = (int) getResultNodeFromTernarySecondStore(ternarySecondStore);
@@ -594,7 +614,6 @@ final class BddCache {
         }
       }
       if (offset == -1) {
-        ternaryAccessStatistics.cacheMiss();
         return false;
       }
       if (offset != 0) {
@@ -608,7 +627,7 @@ final class BddCache {
   }
 
   private int ternaryHash(final long ternaryFirstStore, final int inputNode3) {
-    final int ternaryHashSize = getTernaryBinCount();
+    final int ternaryHashSize = getTernaryKeyCount();
     final int hash = Util.hash(ternaryFirstStore, inputNode3) % ternaryHashSize;
     if (hash < 0) {
       return hash + ternaryHashSize;
@@ -636,7 +655,7 @@ final class BddCache {
     }
   }
 
-  private int getBinaryCacheBinCount() {
+  private int getBinaryCacheKeyCount() {
     return binaryKeyStorage.length / binaryBinsPerHash;
   }
 
@@ -658,7 +677,7 @@ final class BddCache {
     }
   }
 
-  private int getUnaryCacheBinCount() {
+  private int getUnaryCacheKeyCount() {
     return unaryStorage.length / unaryBinsPerHash;
   }
 
@@ -672,7 +691,6 @@ final class BddCache {
 
     if (binaryBinsPerHash == 1) {
       if (binaryKey != binaryKeyStorage[cachePosition]) {
-        binaryAccessStatistics.cacheMiss();
         return false;
       }
       lookupResult = binaryResultStorage[cachePosition];
@@ -686,7 +704,6 @@ final class BddCache {
         }
       }
       if (offset == -1) {
-        binaryAccessStatistics.cacheMiss();
         return false;
       }
       lookupResult = binaryResultStorage[cachePosition + offset];
@@ -701,7 +718,7 @@ final class BddCache {
   }
 
   private int unaryHash(final long unaryKey) {
-    final int unaryHashSize = getUnaryCacheBinCount();
+    final int unaryHashSize = getUnaryCacheKeyCount();
     final int hash = Util.hash(unaryKey) % unaryHashSize;
     if (hash < 0) {
       return hash + unaryHashSize;
@@ -710,7 +727,7 @@ final class BddCache {
   }
 
   private int binaryHash(final long binaryKey) {
-    final int binaryHashSize = getBinaryCacheBinCount();
+    final int binaryHashSize = getBinaryCacheKeyCount();
     final int hash = Util.hash(binaryKey) % binaryHashSize;
     if (hash < 0) {
       return hash + binaryHashSize;
@@ -729,7 +746,6 @@ final class BddCache {
       final long unaryStore = unaryStorage[cachePosition];
       final long unaryStoreFullKey = getUnaryFullKeyFromUnaryStore(unaryStore);
       if (unaryFullKey != unaryStoreFullKey) {
-        unaryAccessStatistics.cacheMiss();
         return false;
       }
       lookupResult = (int) getResultNodeFromUnaryStore(unaryStore);
@@ -745,7 +761,6 @@ final class BddCache {
         }
       }
       if (offset == -1) {
-        unaryAccessStatistics.cacheMiss();
         return false;
       }
       if (offset != 0) {
@@ -775,69 +790,68 @@ final class BddCache {
 
   private float computeUnaryLoadFactor() {
     int loadedUnaryBins = 0;
-    for (int i = 0; i < getUnaryCacheBinCount(); i++) {
+    for (int i = 0; i < getUnaryCacheKeyCount(); i++) {
       if (unaryStorage[i] != 0L) {
         loadedUnaryBins++;
       }
     }
-    return (float) loadedUnaryBins / (float) getUnaryCacheBinCount();
+    return (float) loadedUnaryBins / (float) getUnaryCacheKeyCount();
   }
 
   private float computeBinaryLoadFactor() {
     int loadedBinaryBins = 0;
-    for (int i = 0; i < getBinaryCacheBinCount(); i++) {
+    for (int i = 0; i < getBinaryCacheKeyCount(); i++) {
       if (binaryKeyStorage[i] != 0L) {
         loadedBinaryBins++;
       }
     }
-    return (float) loadedBinaryBins / (float) getBinaryCacheBinCount();
+    return (float) loadedBinaryBins / (float) getBinaryCacheKeyCount();
   }
 
   private float computeTernaryLoadFactor() {
     int loadedTernaryBins = 0;
-    for (int i = 0; i < getTernaryBinCount(); i++) {
+    for (int i = 0; i < getTernaryKeyCount(); i++) {
       if (ternaryStorage[i * 2] != 0L) {
         loadedTernaryBins++;
       }
     }
-    return (float) loadedTernaryBins / (float) getTernaryBinCount();
+    return (float) loadedTernaryBins / (float) getTernaryKeyCount();
   }
 
   private float computeSatisfactionLoadFactor() {
     int loadedSatisfactionBins = 0;
-    for (int i = 0; i < getSatisfactionBinCount(); i++) {
+    for (int i = 0; i < getSatisfactionKeyCount(); i++) {
       if (satisfactionKeyStorage[i] != 0L) {
         loadedSatisfactionBins++;
       }
     }
-    return (float) loadedSatisfactionBins / (float) getSatisfactionBinCount();
+    return (float) loadedSatisfactionBins / (float) getSatisfactionKeyCount();
   }
 
   private float computeComposeVolatileLoadFactor() {
     int loadedVolatileBins = 0;
-    for (int i = 0; i < getComposeVolatileBinCount(); i++) {
-      if (composeVolatileKeyStorage[i] != -1) {
+    for (int i = 0; i < getComposeVolatileKeyCount(); i++) {
+      if (composeVolatileKeyStorage[i] != 0) {
         loadedVolatileBins++;
       }
     }
-    return (float) loadedVolatileBins / (float) getComposeVolatileBinCount();
+    return (float) loadedVolatileBins / (float) getComposeVolatileKeyCount();
   }
 
   private static final class CacheAccessStatistics {
     private int hitCount = 0;
     private int hitCountSinceInvalidation = 0;
-    private int missCount = 0;
-    private int missCountSinceInvalidation = 0;
     private int invalidationCount = 0;
     private int putCount = 0;
     private int putCountSinceInvalidation = 0;
 
     @Override
     public String toString() {
-      return "CacheAccessStatistics{" + "\n  put=" + putCount + ",hit=" + hitCount + ",miss="
-          + missCount + "\n  invalidation=" + invalidationCount + "\n  put="
-          + putCountSinceInvalidation + ",hit=" + hitCountSinceInvalidation + ",miss="
-          + missCountSinceInvalidation + '}';
+      final float putToHitRatio = (float) putCount / (float) Math.max(hitCount, 1);
+      return String.format("Cache access: put=%d, hit=%d, put-to-hit=%3.3f%n"
+              + "       invalidation: %d times, since last: put=%d, hit=%d",
+          putCount, hitCount, putToHitRatio, invalidationCount,
+          putCountSinceInvalidation, hitCountSinceInvalidation);
     }
 
     void cacheHit() {
@@ -845,15 +859,9 @@ final class BddCache {
       hitCountSinceInvalidation++;
     }
 
-    void cacheMiss() {
-      missCount++;
-      missCountSinceInvalidation++;
-    }
-
     void invalidation() {
       invalidationCount++;
       hitCountSinceInvalidation = 0;
-      missCountSinceInvalidation = 0;
       putCountSinceInvalidation = 0;
     }
 

@@ -14,16 +14,16 @@ class BddConfiguration {
   private static final int DEFAULT_NODE_TABLE_MAXIMUM_GROWTH = 50000;
   private static final int DEFAULT_NODE_TABLE_IS_SMALL_THRESHOLD = 2000;
   private static final int DEFAULT_NODE_TABLE_IS_BIG_THRESHOLD = 40000;
-  private static final int DEFAULT_CACHE_UNARY_DIVIDER = 16;
-  private static final int DEFAULT_CACHE_BINARY_DIVIDER = 2;
-  private static final int DEFAULT_CACHE_TERNARY_DIVIDER = 8;
-  private static final int DEFAULT_CACHE_SATISFACTION_DIVIDER = 16;
-  private static final int DEFAULT_CACHE_UNARY_BINS_PER_HASH = 4;
-  private static final int DEFAULT_CACHE_BINARY_BINS_PER_HASH = 4;
-  private static final int DEFAULT_CACHE_TERNARY_BINS_PER_HASH = 4;
+  private static final int DEFAULT_CACHE_UNARY_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_BINARY_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_TERNARY_DIVIDER = 64;
+  private static final int DEFAULT_CACHE_SATISFACTION_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_UNARY_BINS_PER_HASH = 3;
+  private static final int DEFAULT_CACHE_BINARY_BINS_PER_HASH = 3;
+  private static final int DEFAULT_CACHE_TERNARY_BINS_PER_HASH = 3;
   private static final int DEFAULT_CACHE_SATISFACTION_BINS_PER_HASH = 1;
-  private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_DIVIDER = 1;
-  private static final int DEFAULT_CACHE_COMPOSE_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_MULTIPLIER = 4;
+  private static final int DEFAULT_CACHE_COMPOSE_DIVIDER = 128;
   private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_BINS_PER_HASH = 2;
 
   @Value.Default
@@ -112,8 +112,8 @@ class BddConfiguration {
   }
 
   @Value.Default
-  public int cacheComposeVolatileDivider() {
-    return DEFAULT_CACHE_COMPOSE_VOLATILE_DIVIDER;
+  public int cacheComposeVolatileMultiplier() {
+    return DEFAULT_CACHE_COMPOSE_VOLATILE_MULTIPLIER;
   }
 
   @Value.Default
@@ -134,5 +134,10 @@ class BddConfiguration {
   @Value.Default
   public boolean useGlobalComposeCache() {
     return false;
+  }
+
+  @Value.Default
+  public boolean useShannonExists() {
+    return true;
   }
 }

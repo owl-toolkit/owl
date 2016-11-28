@@ -1,6 +1,7 @@
 package owl.bdd;
 
 import java.util.BitSet;
+import java.util.Iterator;
 
 public interface Bdd {
   /**
@@ -8,6 +9,26 @@ public interface Bdd {
    */
   int and(final int node1, int node2);
 
+  /**
+   * Constructs the node representing the <i>composition</i> of the function represented by
+   * {@code node} with the functions represented by the entries of {@code variableNodes}. More
+   * formally, if <tt>f(x_1, x_2, ..., x_n)</tt> is the function represented by {@code node},
+   * this method returns <tt>f(f_1(x_1, ..., x_n), ..., f_n(x_1, ..., x_n))</tt>, where
+   * <tt>f_i = {@code variableNodes[i]}</tt>
+   * <p>
+   * The {@code variableNodes} array can contain less than <tt>n</tt> entries, then only the first
+   * variables are replaced. Furthermore, -1 can be used as an entry to denote "don't replace this
+   * variable" (which semantically is the same as saying "replace this variable by itself"). Note
+   * that after the call the -1 entries will be replaced by the actual corresponding variable nodes.
+   * </p>
+   *
+   * @param node
+   *     The node to be composed.
+   * @param variableNodes
+   *     The nodes of the functions with which each variable should be replaced.
+   *
+   * @return The node representing the composed function.
+   */
   @SuppressWarnings({"PMD.UseVarargs"})
   int compose(final int node, final int[] variableNodes);
 
@@ -49,6 +70,22 @@ public interface Bdd {
    * @return The node representing the new variable.
    */
   int createVariable();
+
+  /**
+   * Constructs the node representing the function obtained by existential quantification of
+   * {@code node} with all variables specified by {@code quantifiedVariables}. Formally, let
+   * <tt>f(x_1, ..., x_m)</tt> be the function specified by {@code node} and <tt>x_1, ..., x_m</tt>
+   * all variables for which {@code quantifiedVariables} is set. This method then constructs
+   * <tt>E x_1 E x_2 ... E x_n f(x_1, ..., x_m)</tt>.
+   *
+   * @param node
+   *     The node representing the basis of the quantification.
+   * @param quantifiedVariables
+   *     The variables which should be quantified over.
+   *
+   * @return The node representing the quantification.
+   */
+  int exists(final int node, BitSet quantifiedVariables);
 
   /**
    * Decreases the reference count of the specified {@code node}.
@@ -206,6 +243,22 @@ public interface Bdd {
    * @see #support(int)
    */
   void support(final int node, final BitSet bitSet);
+
+  /**
+   * Iteratively computes all (minimal) solutions of the function represented by {@code node}. The
+   * returned solutions are all bit sets representing a path from node to <tt>true</tt> in the graph
+   * induced by the BDD structure. Furthermore, the solutions are generated in lexicographic
+   * ascending order.
+   * <p> <b>Note:</b> The returned iterator modifies the bit set in place. If all solutions should
+   * be gathered into a set or similar, they have to be copied after each call to
+   * {@link Iterator#next()}.</p>
+   *
+   * @param node
+   *     The node whose solutions should be computed.
+   *
+   * @return An iterator returning all minimal solutions in ascending order.
+   */
+  Iterator<BitSet> getMinimalSolutions(final int node);
 
   /**
    * Auxiliary function useful for updating node variables. It dereferences {@code inputNode} and

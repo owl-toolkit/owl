@@ -19,7 +19,6 @@ import owl.bdd.SyntaxTree.SyntaxTreeBinaryOperation.BinaryType;
 // TODO Add a "toBddNode(BDD bdd)" method
 final class SyntaxTree {
   private final SyntaxTreeNode rootNode;
-  @SuppressWarnings("PMD.UseConcurrentHashMap")
   private final Map<BitSet, Boolean> valuationCache = new HashMap<>();
 
   SyntaxTree(final SyntaxTreeNode rootNode) {
