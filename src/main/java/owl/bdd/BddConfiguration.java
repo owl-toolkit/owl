@@ -22,6 +22,9 @@ class BddConfiguration {
   private static final int DEFAULT_CACHE_BINARY_BINS_PER_HASH = 4;
   private static final int DEFAULT_CACHE_TERNARY_BINS_PER_HASH = 4;
   private static final int DEFAULT_CACHE_SATISFACTION_BINS_PER_HASH = 1;
+  private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_DIVIDER = 1;
+  private static final int DEFAULT_CACHE_COMPOSE_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_BINS_PER_HASH = 2;
 
   @Value.Default
   public int minimumNodeTableSize() {
@@ -106,5 +109,30 @@ class BddConfiguration {
   @Value.Default
   public float minimumFreeNodePercentageAfterGc() {
     return DEFAULT_NODE_TABLE_FREE_NODE_PERCENTAGE;
+  }
+
+  @Value.Default
+  public int cacheComposeVolatileDivider() {
+    return DEFAULT_CACHE_COMPOSE_VOLATILE_DIVIDER;
+  }
+
+  @Value.Default
+  public int cacheComposeDivider() {
+    return DEFAULT_CACHE_COMPOSE_DIVIDER;
+  }
+
+  public int cacheComposeBinsPerHash() {
+    // Currently only 1 supported
+    return 1;
+  }
+
+  @Value.Default
+  public int cacheComposeVolatileBinsPerHash() {
+    return DEFAULT_CACHE_COMPOSE_VOLATILE_BINS_PER_HASH;
+  }
+
+  @Value.Default
+  public boolean useGlobalComposeCache() {
+    return false;
   }
 }

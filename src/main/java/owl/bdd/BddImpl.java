@@ -43,7 +43,6 @@ class BddImpl extends NodeTable implements Bdd {
     numberOfVariables = 0;
   }
 
-
   @Override
   public final int numberOfVariables() {
     return numberOfVariables;
@@ -61,6 +60,7 @@ class BddImpl extends NodeTable implements Bdd {
     cache.putNot(notVariableNode, variableNode);
     growTree(numberOfVariables);
     cache.invalidateSatisfaction();
+    cache.invalidateCompose();
 
     return variableNode;
   }
@@ -68,6 +68,20 @@ class BddImpl extends NodeTable implements Bdd {
   @Override
   public final int compose(final int node, final int[] variableNodes) {
     assert variableNodes.length <= numberOfVariables;
+
+    if (node == TRUE_NODE || node == FALSE_NODE) {
+      return node;
+    }
+
+    final int hash;
+    if (getConfiguration().useGlobalComposeCache()) {
+      if (cache.lookupCompose(node, variableNodes)) {
+        return cache.getLookupResult();
+      }
+      hash = cache.getLookupHash();
+    } else {
+      hash = -1;
+    }
 
     pushToWorkStack(node);
     int elements = 1;
@@ -81,8 +95,12 @@ class BddImpl extends NodeTable implements Bdd {
       }
     }
 
+    cache.allocateComposeVolatileCache(variableNodes.length);
     final int result = composeRecursive(node, variableNodes);
     popWorkStack(elements);
+    if (getConfiguration().useGlobalComposeCache()) {
+      cache.putCompose(hash, node, variableNodes, result);
+    }
     return result;
   }
 
@@ -120,9 +138,11 @@ class BddImpl extends NodeTable implements Bdd {
   @Override
   public boolean evaluate(final int node, final BitSet assignment) {
     int currentBdd = node;
+    long currentBddStore;
+    int currentBddVariable;
     while (currentBdd >= 2) {
-      final long currentBddStore = getNodeStore(currentBdd);
-      final int currentBddVariable = (int) getVariableFromStore(currentBddStore);
+      currentBddStore = getNodeStore(currentBdd);
+      currentBddVariable = (int) getVariableFromStore(currentBddStore);
       if (assignment.get(currentBddVariable)) {
         currentBdd = (int) getHighFromStore(currentBddStore);
       } else {
@@ -332,13 +352,26 @@ class BddImpl extends NodeTable implements Bdd {
     if (nodeVariable >= variableNodes.length) {
       return node;
     }
-    // TODO Caches
+    final int variableReplacementNode = variableNodes[nodeVariable];
+    if (variableReplacementNode == TRUE_NODE) {
+      return composeRecursive((int) getHighFromStore(nodeStore), variableNodes);
+    }
+    if (variableReplacementNode == FALSE_NODE) {
+      return composeRecursive((int) getLowFromStore(nodeStore), variableNodes);
+    }
+
+    if (cache.lookupComposeVolatile(node)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
     final int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
         variableNodes));
     final int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
         variableNodes));
-    final int resultNode = ifThenElse(variableNodes[nodeVariable], highCompose, lowCompose);
+    final int resultNode = ifThenElseRecursive(variableReplacementNode, highCompose,
+        lowCompose);
     popWorkStack(2);
+    cache.putComposeVolatile(hash, node, resultNode);
     return resultNode;
   }
 
