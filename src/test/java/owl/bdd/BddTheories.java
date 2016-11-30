@@ -1,7 +1,9 @@
 package owl.bdd;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
@@ -10,6 +12,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -20,12 +23,16 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -53,47 +60,53 @@ public class BddTheories {
   private static final Collection<BinaryDataPoint> binaryDataPoints;
   private static final Collection<TernaryDataPoint> ternaryDataPoints;
   private static final Int2ObjectMap<SyntaxTree> syntaxTreeMap;
+  private static final IntList variableList;
   private static final List<BitSet> valuations;
   private static final int initialNodeCount;
   private static final int initialReferencedNodeCount;
   private static final int variableCount = 10;
-  private static final int treeDepth = 10;
-  private static final int treeWidth = 1000;
-  private static final int unaryCount = 5000;
-  private static final int binaryCount = 5000;
-  private static final int ternaryCount = 5000;
+  private static final int treeDepth = 15;
+  private static final int treeWidth = 2000;
+  private static final int unaryCount = 20000;
+  private static final int binaryCount = 20000;
+  private static final int ternaryCount = 10000;
 
   static {
+    // It is important other the generation of data is ordered for the tests to be reproducible.
+
     final Random filter = new Random(0L);
-    final IntList variables = new IntArrayList(variableCount);
+    variableList = new IntArrayList(variableCount);
     for (int i = 0; i < variableCount; i++) {
-      variables.add(bdd.createVariable());
+      variableList.add(bdd.createVariable());
     }
 
-    // It is important other the generation of data is ordered for the tests to be reproducible
     syntaxTreeMap = new Int2ObjectLinkedOpenHashMap<>();
-
     syntaxTreeMap.put(bdd.getFalseNode(), SyntaxTree.constant(false));
     syntaxTreeMap.put(bdd.getTrueNode(), SyntaxTree.constant(true));
-    for (int i = 0; i < variables.size(); i++) {
+    for (int i = 0; i < variableList.size(); i++) {
       final SyntaxTree literal = SyntaxTree.literal(i);
-      syntaxTreeMap.put(variables.get(i), literal);
-      syntaxTreeMap.put(bdd.reference(bdd.not(variables.get(i))), SyntaxTree.not(literal));
+      syntaxTreeMap.put(variableList.get(i), literal);
+      syntaxTreeMap.put(bdd.reference(bdd.not(variableList.get(i))), SyntaxTree.not(literal));
     }
 
+    // Although a set would be more suitable, a list is needed so that the data is always generated
+    // in the same order.
     final Object2IntMap<SyntaxTree> treeToNodeMap = new Object2IntLinkedOpenHashMap<>();
+    final List<SyntaxTree> previousDepthNodes = new LinkedList<>();
+
+    // Syntax tree map is a linked map, hence entry set is sorted.
     for (final Map.Entry<Integer, SyntaxTree> treeEntry : syntaxTreeMap.entrySet()) {
       treeToNodeMap.put(treeEntry.getValue(), treeEntry.getKey());
+      previousDepthNodes.add(treeEntry.getValue());
     }
-    final Set<SyntaxTree> previousDepthSet = new HashSet<>(treeToNodeMap.keySet());
     final List<SyntaxTree> candidates = new ArrayList<>();
     logger.log(Level.FINER, "Generating syntax trees from {0} base expressions",
-        previousDepthSet.size());
+        previousDepthNodes.size());
     for (int depth = 1; depth < treeDepth; depth++) {
       logger.log(Level.FINEST, "Building tree depth {0}", depth);
 
-      candidates.addAll(previousDepthSet);
-      previousDepthSet.clear();
+      candidates.addAll(previousDepthNodes);
+      previousDepthNodes.clear();
       @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
       final Int2ObjectMap<SyntaxTree> createdFromCandidates = new Int2ObjectLinkedOpenHashMap<>();
       Collections.shuffle(candidates, filter);
@@ -151,7 +164,7 @@ public class BddTheories {
             bdd.reference(node);
             treeToNodeMap.put(tree, node);
             syntaxTreeMap.put(node, tree);
-            previousDepthSet.add(tree);
+            previousDepthNodes.add(tree);
           });
           createdFromCandidates.clear();
           if (treeToNodeMap.size() >= treeWidth * depth) {
@@ -203,10 +216,10 @@ public class BddTheories {
         unaryDataPointSet.size(), binaryDataPointSet.size(), ternaryDataPointSet.size()});
 
     final ImmutableList.Builder<BitSet> valuationBuilder = ImmutableList.builder();
-    for (int i = 0; i < 1 << variables.size(); i++) {
+    for (int i = 0; i < 1 << variableList.size(); i++) {
       @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-      final BitSet bitSet = new BitSet(variables.size());
-      for (int j = 0; j < variables.size(); j++) {
+      final BitSet bitSet = new BitSet(variableList.size());
+      for (int j = 0; j < variableList.size(); j++) {
         if (((i >>> j) & 1) == 1) {
           bitSet.set(j);
         }
@@ -236,8 +249,8 @@ public class BddTheories {
   }
 
   @AfterClass
-  public static void cacheStatistics() {
-    logger.log(Level.INFO, "Cache:\n{0}", bdd.getCacheStatistics());
+  public static void statistics() {
+    logger.log(Level.INFO, "Cache:\n{0}", new Object[] {bdd.getCacheStatistics()});
   }
 
   @AfterClass
@@ -271,9 +284,16 @@ public class BddTheories {
     assertThat(bdd.nodeCount(), is(initialNodeCount));
   }
 
+  private static Iterator<BitSet> getBitSetIterator(final BitSet enabledVariables) {
+    if (enabledVariables.cardinality() == 0) {
+      return Iterators.singletonIterator(new BitSet());
+    }
+    return new BitSetIterator(enabledVariables);
+  }
+
   @After
   public void checkInvariants() {
-    if (skipCheckRandom.nextInt(100) == 0) {
+    if (skipCheckRandom.nextInt(500) == 0) {
       doCheckInvariants();
     }
   }
@@ -334,16 +354,11 @@ public class BddTheories {
 
     if (bdd.implies(node1, node2)) {
       for (final BitSet valuation : valuations) {
-        final boolean implies = !bdd.evaluate(node1, valuation) || bdd.evaluate(node2, valuation);
-        assertThat(node1 + " implies " + node2 + ", but " + valuation + " failed.",
-            implies, is(true));
+        assertTrue(!bdd.evaluate(node1, valuation) || bdd.evaluate(node2, valuation));
       }
-
-      assertThat(node1 + " implies " + node2 + ", but implication construction not constant one.",
-          implication, is(bdd.getTrueNode()));
+      assertThat(implication, is(bdd.getTrueNode()));
     } else {
-      assertThat(node1 + " does not imply " + node2 + ", but implication construction is "
-          + "constant one.", implication, is(not(bdd.getTrueNode())));
+      assertThat(implication, is(not(bdd.getTrueNode())));
     }
   }
 
@@ -542,6 +557,7 @@ public class BddTheories {
     assumeTrue(containedVariables.size() <= 5);
 
     final int[] composeArray = new int[variableCount];
+    final int[] composeNegativeArray = new int[variableCount];
 
     final Random selectionRandom = new Random((long) node);
     final IntList availableNodes = new IntArrayList(syntaxTreeMap.keySet());
@@ -550,18 +566,159 @@ public class BddTheories {
         final int replacementBddIndex = selectionRandom.nextInt(availableNodes.size());
         composeArray[i] = availableNodes.get(replacementBddIndex);
       } else {
-        composeArray[i] = i;
+        composeArray[i] = variableList.get(i);
       }
     }
+    for (int i = 0; i < variableCount; i++) {
+      if (bdd.isVariable(composeArray[i]) && bdd.getVariable(composeArray[i]) == i) {
+        composeNegativeArray[i] = -1;
+      } else {
+        composeNegativeArray[i] = composeArray[i];
+      }
+    }
+
+    int[] composeCutoffArray = new int[0];
+    for (int i = composeArray.length - 1; i >= 0; i--) {
+      if (composeNegativeArray[i] != -1) {
+        composeCutoffArray = Arrays.copyOf(composeArray, i + 1);
+        break;
+      }
+    }
+
     final Int2ObjectMap<SyntaxTree> replacementMap = new Int2ObjectOpenHashMap<>();
     for (int i = 0; i < composeArray.length; i++) {
-      replacementMap.put(i, syntaxTreeMap.get(composeArray[i]));
+      final int variableReplacement = composeArray[i];
+      if (variableReplacement != -1) {
+        replacementMap.put(i, syntaxTreeMap.get(variableReplacement));
+      }
     }
-    final int composedNode = bdd.compose(node, composeArray);
+    final int composeNode = bdd.compose(node, composeArray);
     final SyntaxTree composeTree = SyntaxTree.buildReplacementTree(syntaxTree, replacementMap);
-    for (final BitSet valuation : valuations) {
-      assertThat(bdd.evaluate(composedNode, valuation), is(composeTree.evaluate(valuation)));
+
+    assertTrue(Iterators.all(getBitSetIterator(bdd.support(node)), bitSet -> {
+      assert bitSet != null;
+      return bdd.evaluate(composeNode, bitSet) == composeTree.evaluate(bitSet);
+    }));
+
+    final int composeNegativeNode = bdd.compose(node, composeNegativeArray);
+
+    assertThat(composeNegativeNode, is(composeNode));
+    final int composeCutoffNode = bdd.compose(node, composeCutoffArray);
+    assertThat(composeCutoffNode, is(composeNode));
+  }
+
+  @Theory
+  public void testGetMinimalSolutions(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeTrue(bdd.isNodeValidOrRoot(node));
+
+    final BitSet support = bdd.support(node);
+    assumeThat(support.cardinality(), lessThanOrEqualTo(7));
+
+    final Set<BitSet> solutionBitSets = new HashSet<>();
+    final BitSet supportFromSolutions = new BitSet(bdd.numberOfVariables());
+    final Iterator<BitSet> solutionIterator = bdd.getMinimalSolutions(node);
+    BitSet previous = null;
+    while (solutionIterator.hasNext()) {
+      final BitSet bitSet = solutionIterator.next();
+      if (previous != null) {
+        // Check that the solution is lexicographic bigger or equal to the previous one - the
+        // equal case gets checked later
+        for (int i = 0; i < bitSet.length(); i++) {
+          if (bitSet.get(i)) {
+            if (!previous.get(i)) {
+              break;
+            }
+          } else {
+            assertFalse(previous.get(i));
+          }
+        }
+      }
+      previous = copyBitSet(bitSet);
+      // No solution is generated twice
+      assertTrue(solutionBitSets.add(previous));
+      supportFromSolutions.or(previous);
     }
+
+    // supportFromSolutions has to be a subset of support (see ~a for example)
+    supportFromSolutions.or(support);
+    assertThat(supportFromSolutions, is(support));
+
+    // Build up all minimal solutions using a naive algorithm
+    final Set<BitSet> assignments = new BddPathExplorer(bdd, node).getAssignments();
+    assertThat(solutionBitSets, is(assignments));
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testExistsShannon(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeTrue(bdd.isNodeValidOrRoot(node));
+
+    final BitSet quantificationBitSet = new BitSet(bdd.numberOfVariables());
+    final Random quantificationRandom = new Random((long) node);
+    for (int i = 0; i < bdd.numberOfVariables(); i++) {
+      if (quantificationRandom.nextInt(bdd.numberOfVariables()) < 5) {
+        quantificationBitSet.set(i);
+      }
+    }
+    assumeThat(quantificationBitSet.cardinality(), lessThanOrEqualTo(5));
+
+    final int existsNode = bdd.existsShannon(node, quantificationBitSet);
+    final BitSet supportIntersection = bdd.support(existsNode);
+    supportIntersection.and(quantificationBitSet);
+    assertTrue(supportIntersection.isEmpty());
+
+    final BitSet unquantifiedVariables = copyBitSet(quantificationBitSet);
+    unquantifiedVariables.flip(0, bdd.numberOfVariables());
+
+    assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables), unquantifiedAssignment -> {
+      assert unquantifiedAssignment != null;
+      return bdd.evaluate(existsNode, unquantifiedAssignment) ==
+          Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
+            if (bitSet == null) {
+              return false;
+            }
+            final BitSet actualBitSet = copyBitSet(bitSet);
+            actualBitSet.or(unquantifiedAssignment);
+            return bdd.evaluate(node, actualBitSet);
+          });
+    }));
+  }
+
+  @Theory(nullsAccepted = false)
+  public void testExistsSelfSubstitution(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeTrue(bdd.isNodeValidOrRoot(node));
+
+    final BitSet quantificationBitSet = new BitSet(bdd.numberOfVariables());
+    final Random quantificationRandom = new Random((long) node);
+    for (int i = 0; i < bdd.numberOfVariables(); i++) {
+      if (quantificationRandom.nextInt(bdd.numberOfVariables()) < 5) {
+        quantificationBitSet.set(i);
+      }
+    }
+    assumeThat(quantificationBitSet.cardinality(), lessThanOrEqualTo(5));
+
+    final int existsNode = bdd.existsSelfSubstitution(node, quantificationBitSet);
+    final BitSet supportIntersection = bdd.support(existsNode);
+    supportIntersection.and(quantificationBitSet);
+    assertTrue(supportIntersection.isEmpty());
+
+    final BitSet unquantifiedVariables = copyBitSet(quantificationBitSet);
+    unquantifiedVariables.flip(0, bdd.numberOfVariables());
+
+    assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables), unquantifiedAssignment -> {
+      assert unquantifiedAssignment != null;
+      return bdd.evaluate(existsNode, unquantifiedAssignment) ==
+          Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
+            if (bitSet == null) {
+              return false;
+            }
+            final BitSet actualBitSet = copyBitSet(bitSet);
+            actualBitSet.or(unquantifiedAssignment);
+            return bdd.evaluate(node, actualBitSet);
+          });
+    }));
   }
 
   @Theory(nullsAccepted = false)
@@ -585,14 +742,11 @@ public class BddTheories {
     if (rootNode instanceof SyntaxTree.SyntaxTreeLiteral) {
       assertTrue(bdd.isVariable(dataPoint.getNode()));
       assertTrue(bdd.isVariableOrNegated(dataPoint.getNode()));
-      return;
-    }
-    if (rootNode instanceof SyntaxTree.SyntaxTreeNot) {
+    } else if (rootNode instanceof SyntaxTree.SyntaxTreeNot) {
       final SyntaxTree.SyntaxTreeNode child = ((SyntaxTree.SyntaxTreeNot) rootNode).getChild();
       if (child instanceof SyntaxTree.SyntaxTreeLiteral) {
         assertThat(bdd.isVariable(dataPoint.getNode()), is(false));
         assertTrue(bdd.isVariableOrNegated(dataPoint.getNode()));
-        return;
       }
     }
     final BitSet support = bdd.support(dataPoint.getNode());
@@ -814,6 +968,100 @@ public class BddTheories {
     assertThat(bdd.getReferenceCount(node2), is(node2referenceCount));
     bdd.dereference(node1);
     bdd.dereference(node2);
+  }
+
+  private static final class BddPathExplorer {
+    private final Bdd bdd;
+    private final Set<BitSet> assignments;
+
+    public BddPathExplorer(final Bdd bdd, final int startingNode) {
+      this.bdd = bdd;
+      this.assignments = new HashSet<>();
+      if (startingNode == bdd.getTrueNode()) {
+        assignments.add(new BitSet(bdd.numberOfVariables()));
+      } else if (startingNode != bdd.getFalseNode()) {
+        final IntList path = new IntArrayList();
+        path.add(startingNode);
+        recurse(path, new BitSet(bdd.numberOfVariables()));
+      }
+    }
+
+    public Set<BitSet> getAssignments() {
+      return assignments;
+    }
+
+    private void recurse(final IntList currentPath, final BitSet currentAssignment) {
+      final int pathLeaf = currentPath.getInt(currentPath.size() - 1);
+      final int low = bdd.getLow(pathLeaf);
+      final int high = bdd.getHigh(pathLeaf);
+
+      if (low == bdd.getTrueNode()) {
+        assignments.add(copyBitSet(currentAssignment));
+      } else if (low != bdd.getFalseNode()) {
+        final IntList recursePath = new IntArrayList(currentPath);
+        recursePath.add(low);
+        recurse(recursePath, currentAssignment);
+      }
+
+      if (high != bdd.getFalseNode()) {
+        final BitSet assignment = copyBitSet(currentAssignment);
+        assignment.set(bdd.getVariable(pathLeaf));
+        if (high == bdd.getTrueNode()) {
+          assignments.add(assignment);
+        } else {
+          final IntList recursePath = new IntArrayList(currentPath);
+          recursePath.add(high);
+          recurse(recursePath, assignment);
+        }
+      }
+    }
+  }
+
+  private static final class BitSetIterator implements Iterator<BitSet> {
+    private final BitSet bitSet;
+    private final BitSet variableRestriction;
+    private final int[] restrictionPositions;
+    private int assignment;
+
+    BitSetIterator(final BitSet restriction) {
+      this(restriction.length(), restriction);
+    }
+
+    BitSetIterator(final int size, final BitSet restriction) {
+      assert restriction.cardinality() > 0;
+      this.bitSet = new BitSet(size);
+      this.variableRestriction = restriction;
+      this.assignment = 0;
+      this.restrictionPositions = new int[restriction.cardinality()];
+
+      restrictionPositions[0] = restriction.nextSetBit(0);
+      for (int i = 1; i < restrictionPositions.length; i++) {
+        restrictionPositions[i] = restriction.nextSetBit(restrictionPositions[i - 1] + 1);
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      return !Objects.equals(bitSet, variableRestriction);
+    }
+
+    @Override
+    public BitSet next() throws NoSuchElementException {
+      if (assignment == 1 << restrictionPositions.length) {
+        throw new NoSuchElementException("No next element");
+      }
+
+      bitSet.clear();
+
+      for (int restrictionPosition = 0; restrictionPosition < restrictionPositions.length;
+           restrictionPosition++) {
+        if (((assignment >>> restrictionPosition) & 1) == 1) {
+          bitSet.set(restrictionPositions[restrictionPosition]);
+        }
+      }
+      assignment += 1;
+      return bitSet;
+    }
   }
 
   private static final class UnaryDataPoint {
