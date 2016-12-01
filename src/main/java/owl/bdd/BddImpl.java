@@ -3,10 +3,6 @@ package owl.bdd;
 import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import java.util.*;
 
