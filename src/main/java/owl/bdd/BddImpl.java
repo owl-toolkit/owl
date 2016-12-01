@@ -1,12 +1,14 @@
 package owl.bdd;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import java.util.*;
 
 /* Implementation notes:
  * - Many of the methods are practically copy-paste of each other except for a few variables and
@@ -277,9 +279,15 @@ class BddImpl extends NodeTable implements Bdd {
   @Override
   public Iterator<BitSet> getMinimalSolutions(final int node) {
     assert isNodeValidOrRoot(node);
+
     if (node == FALSE_NODE) {
-      return ImmutableList.<BitSet>of().iterator();
+      return Collections.emptyIterator();
     }
+
+    if (node == TRUE_NODE) {
+      return Iterators.singletonIterator(new BitSet());
+    }
+
     return new MinimalSolutionIterator(this, node);
   }
 
@@ -1011,7 +1019,7 @@ class BddImpl extends NodeTable implements Bdd {
     return resultNode;
   }
 
-  private static final class MinimalSolutionIterator implements Iterator<BitSet> {
+  static final class MinimalSolutionIterator implements Iterator<BitSet> {
     private final BddImpl bdd;
     private final int[] path;
     private final BitSet bitSet;
@@ -1020,7 +1028,7 @@ class BddImpl extends NodeTable implements Bdd {
     private boolean next;
     private boolean firstRun = true;
 
-    public MinimalSolutionIterator(final BddImpl bdd, final int node) {
+    MinimalSolutionIterator(final BddImpl bdd, final int node) {
       // Require at least one possible solution to exist.
       assert bdd.isNodeValidOrRoot(node) || node == TRUE_NODE;
 

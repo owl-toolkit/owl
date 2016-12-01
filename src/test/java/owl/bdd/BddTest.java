@@ -18,13 +18,12 @@
 package owl.bdd;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 public class BddTest {
@@ -258,5 +257,17 @@ public class BddTest {
     bdd.popWorkStack();
     bdd.gc();
     assertThat(bdd.isNodeValidOrRoot(temporaryNode), is(false));
+  }
+
+  @Test
+  public void testMinimalSolutionsForConstants() {
+    final BddImpl bdd = new BddImpl(20);
+    List<BitSet> solutions;
+
+    solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getFalseNode()));
+    assertEquals(Collections.emptyList(), solutions);
+
+    solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getTrueNode()));
+    assertEquals(Collections.singletonList(new BitSet()), solutions);
   }
 }
