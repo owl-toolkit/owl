@@ -592,7 +592,7 @@ public class BddTheories {
         replacementMap.put(i, syntaxTreeMap.get(variableReplacement));
       }
     }
-    final int composeNode = bdd.compose(node, composeArray);
+    final int composeNode = bdd.pushToWorkStack(bdd.compose(node, composeArray));
     final SyntaxTree composeTree = SyntaxTree.buildReplacementTree(syntaxTree, replacementMap);
 
     assertTrue(Iterators.all(getBitSetIterator(bdd.support(node)), bitSet -> {
@@ -601,10 +601,50 @@ public class BddTheories {
     }));
 
     final int composeNegativeNode = bdd.compose(node, composeNegativeArray);
-
     assertThat(composeNegativeNode, is(composeNode));
     final int composeCutoffNode = bdd.compose(node, composeCutoffArray);
     assertThat(composeCutoffNode, is(composeNode));
+    bdd.popWorkStack();
+  }
+
+  @Theory
+  public void testRestrict(final UnaryDataPoint dataPoint) {
+    final int node = dataPoint.getNode();
+    assumeTrue(bdd.isNodeValidOrRoot(node));
+
+    final Random restrictRandom = new Random((long) node);
+    final BitSet restrictedVariables = new BitSet(bdd.numberOfVariables());
+    final BitSet restrictedVariableValues = new BitSet(bdd.numberOfVariables());
+    final int[] composeArray = new int[bdd.numberOfVariables()];
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < bdd.numberOfVariables(); j++) {
+        if (restrictRandom.nextBoolean()) {
+          restrictedVariables.set(j);
+          if (restrictRandom.nextBoolean()) {
+            restrictedVariableValues.set(j);
+            composeArray[j] = bdd.getTrueNode();
+          } else {
+            composeArray[j] = bdd.getFalseNode();
+          }
+        } else {
+          composeArray[j] = -1;
+        }
+      }
+      final int restrictNode = bdd.pushToWorkStack(
+          bdd.restrict(node, restrictedVariables, restrictedVariableValues));
+      final int composeNode = bdd.compose(node, composeArray);
+      bdd.popWorkStack();
+
+      assertThat(restrictNode, is(composeNode));
+
+      final BitSet restrictSupport = bdd.support(restrictNode);
+      restrictSupport.and(restrictedVariables);
+      assertTrue(restrictSupport.isEmpty());
+
+      restrictedVariables.clear();
+      restrictedVariableValues.clear();
+    }
+
   }
 
   @Theory

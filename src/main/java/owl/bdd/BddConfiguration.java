@@ -5,26 +5,26 @@ import org.immutables.value.Value;
 @SuppressWarnings("PMD.AtLeastOneConstructor")
 @Value.Immutable
 class BddConfiguration {
-  private static final int DEFAULT_NODE_TABLE_GC_DEAD_NODE_COUNT = 2000;
-  private static final int DEFAULT_MINIMUM_NODE_TABLE_SIZE = 100;
-  private static final int DEFAULT_MINIMUM_CACHE_SIZE = 32;
-  private static final int DEFAULT_NODE_TABLE_MINIMUM_FREE_NODE_COUNT = 1000;
-  private static final float DEFAULT_NODE_TABLE_FREE_NODE_PERCENTAGE = 0.05f;
-  private static final int DEFAULT_NODE_TABLE_MINIMUM_GROWTH = 5000;
-  private static final int DEFAULT_NODE_TABLE_MAXIMUM_GROWTH = 50000;
-  private static final int DEFAULT_NODE_TABLE_IS_SMALL_THRESHOLD = 2000;
-  private static final int DEFAULT_NODE_TABLE_IS_BIG_THRESHOLD = 40000;
-  private static final int DEFAULT_CACHE_UNARY_DIVIDER = 32;
-  private static final int DEFAULT_CACHE_BINARY_DIVIDER = 32;
-  private static final int DEFAULT_CACHE_TERNARY_DIVIDER = 64;
-  private static final int DEFAULT_CACHE_SATISFACTION_DIVIDER = 32;
-  private static final int DEFAULT_CACHE_UNARY_BINS_PER_HASH = 3;
   private static final int DEFAULT_CACHE_BINARY_BINS_PER_HASH = 3;
-  private static final int DEFAULT_CACHE_TERNARY_BINS_PER_HASH = 3;
-  private static final int DEFAULT_CACHE_SATISFACTION_BINS_PER_HASH = 1;
-  private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_MULTIPLIER = 4;
+  private static final int DEFAULT_CACHE_BINARY_DIVIDER = 32;
   private static final int DEFAULT_CACHE_COMPOSE_DIVIDER = 128;
-  private static final int DEFAULT_CACHE_COMPOSE_VOLATILE_BINS_PER_HASH = 2;
+  private static final int DEFAULT_CACHE_SATISFACTION_BINS_PER_HASH = 1;
+  private static final int DEFAULT_CACHE_SATISFACTION_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_TERNARY_BINS_PER_HASH = 3;
+  private static final int DEFAULT_CACHE_TERNARY_DIVIDER = 64;
+  private static final int DEFAULT_CACHE_UNARY_BINS_PER_HASH = 3;
+  private static final int DEFAULT_CACHE_UNARY_DIVIDER = 32;
+  private static final int DEFAULT_CACHE_VOLATILE_BINS_PER_HASH = 2;
+  private static final int DEFAULT_CACHE_VOLATILE_MULTIPLIER = 2;
+  private static final int DEFAULT_MINIMUM_CACHE_SIZE = 32;
+  private static final int DEFAULT_MINIMUM_NODE_TABLE_SIZE = 100;
+  private static final float DEFAULT_NODE_TABLE_FREE_NODE_PERCENTAGE = 0.05f;
+  private static final int DEFAULT_NODE_TABLE_GC_DEAD_NODE_COUNT = 2000;
+  private static final int DEFAULT_NODE_TABLE_IS_BIG_THRESHOLD = 40000;
+  private static final int DEFAULT_NODE_TABLE_IS_SMALL_THRESHOLD = 2000;
+  private static final int DEFAULT_NODE_TABLE_MAXIMUM_GROWTH = 50000;
+  private static final int DEFAULT_NODE_TABLE_MINIMUM_FREE_NODE_COUNT = 1000;
+  private static final int DEFAULT_NODE_TABLE_MINIMUM_GROWTH = 5000;
 
   @Value.Default
   public int minimumNodeTableSize() {
@@ -112,8 +112,8 @@ class BddConfiguration {
   }
 
   @Value.Default
-  public int cacheComposeVolatileMultiplier() {
-    return DEFAULT_CACHE_COMPOSE_VOLATILE_MULTIPLIER;
+  public int cacheVolatileMultiplier() {
+    return DEFAULT_CACHE_VOLATILE_MULTIPLIER;
   }
 
   @Value.Default
@@ -127,8 +127,8 @@ class BddConfiguration {
   }
 
   @Value.Default
-  public int cacheComposeVolatileBinsPerHash() {
-    return DEFAULT_CACHE_COMPOSE_VOLATILE_BINS_PER_HASH;
+  public int cacheVolatileBinsPerHash() {
+    return DEFAULT_CACHE_VOLATILE_BINS_PER_HASH;
   }
 
   @Value.Default
