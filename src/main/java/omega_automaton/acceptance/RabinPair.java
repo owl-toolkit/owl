@@ -15,17 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package omega_automaton.collections;
+package omega_automaton.acceptance;
 
 import java.util.Objects;
 
 @Deprecated
-public class Tuple<L, R> {
+public class RabinPair<L, R> {
 
     public final L left;
     public final R right;
 
-    public Tuple(L l, R r) {
+    public RabinPair(L l, R r) {
         left = l;
         right = r;
     }
@@ -34,9 +34,9 @@ public class Tuple<L, R> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Tuple<?, ?> tuple = (Tuple<?, ?>) o;
-        return Objects.equals(left, tuple.left) &&
-                Objects.equals(right, tuple.right);
+        RabinPair<?, ?> rabinPair = (RabinPair<?, ?>) o;
+        return Objects.equals(left, rabinPair.left) &&
+                Objects.equals(right, rabinPair.right);
     }
 
     @Override

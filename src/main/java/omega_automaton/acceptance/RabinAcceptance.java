@@ -19,20 +19,19 @@ package omega_automaton.acceptance;
 
 import omega_automaton.AutomatonState;
 import omega_automaton.collections.TranSet;
-import omega_automaton.collections.Tuple;
 
 import java.util.Collections;
 import java.util.List;
 
 public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRabinAcceptance<S> {
 
-    public RabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+    public RabinAcceptance(List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
         super(acceptanceCondition);
         checkIfValidArgument(acceptanceCondition);
     }
 
-    private void checkIfValidArgument(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
-        for (Tuple<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+    private void checkIfValidArgument(List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+        for (RabinPair<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
             if (pair.right.size() != 1) {
                 throw new IllegalArgumentException("Acceptance condition is not a Rabin condition.");
             }
@@ -51,6 +50,6 @@ public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRab
     }
 
     public void addRabinPair(TranSet<S> fin, TranSet<S> inf) {
-        this.acceptanceCondition.add(new Tuple<>(fin.copy(), Collections.singletonList(inf.copy())));
+        this.acceptanceCondition.add(new RabinPair<>(fin.copy(), Collections.singletonList(inf.copy())));
     }
 }
