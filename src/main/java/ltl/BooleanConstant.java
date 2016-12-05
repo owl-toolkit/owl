@@ -113,17 +113,8 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     }
 
     @Override
-    public int height() {
-        return 0;
-    }
-
-    @Override
     protected int hashCodeOnce() {
         return Boolean.hashCode(value);
     }
 
-    @Override
-    public boolean isSubformula(Formula formula) {
-        return false;
-    }
 }

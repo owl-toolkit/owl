@@ -130,13 +130,4 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
     protected abstract char getOperator();
 
-    @Override
-    public int height() {
-        return children.stream().mapToInt(Formula::height).max().orElse(0) + 1;
-    }
-
-    @Override
-    public boolean isSubformula(Formula formula) {
-        return children.contains(formula) || anyMatch(x -> x.isSubformula(formula));
-    }
 }

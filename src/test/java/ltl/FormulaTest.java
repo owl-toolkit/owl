@@ -19,14 +19,12 @@ package ltl;
 
 import ltl.parser.Parser;
 import ltl.visitors.Collector;
-import org.junit.Test;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
-import java.text.Normalizer;
 import java.util.BitSet;
 
 import static org.junit.Assert.*;
@@ -84,13 +82,5 @@ public class FormulaTest {
     public void isSuspendable(Formula formula) {
         assertTrue(!formula.isSuspendable() || formula.isPureUniversal());
         assertTrue(!formula.isSuspendable() || formula.isPureEventual());
-    }
-
-    @Theory
-    public void isSubformula(Formula formula) {
-        assertFalse(formula.isSubformula(formula));
-
-        Collector collector = new Collector(x -> x != formula);
-        collector.getCollection().forEach(x -> assertTrue(formula.isSubformula(x)));
     }
 }

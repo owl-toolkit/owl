@@ -23,6 +23,7 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
+import java.util.Set;
 
 public interface Formula {
 
@@ -72,23 +73,4 @@ public interface Formula {
      * @return
      */
     Formula temporalStepUnfold(BitSet valuation);
-
-    /**
-     * Compute the heigt of the syntax tree of this formula
-     *
-     * @return
-     */
-    int height();
-
-    boolean isSubformula(Formula formula);
-
-    default boolean containsSubformula(Iterable<? extends Formula> formulas) {
-        for (Formula formula : formulas) {
-            if (isSubformula(formula)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

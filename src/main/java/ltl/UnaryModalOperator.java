@@ -51,13 +51,4 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
 
     protected abstract char getOperator();
 
-    @Override
-    public int height() {
-        return operand.height() + 1;
-    }
-
-    @Override
-    public boolean isSubformula(Formula formula) {
-        return operand.equals(formula) || operand.isSubformula(formula);
-    }
 }
