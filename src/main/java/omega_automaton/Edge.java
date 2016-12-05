@@ -35,9 +35,9 @@ public class Edge<S> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Edge<?> tuple = (Edge<?>) o;
-        return Objects.equals(successor, tuple.successor) &&
-                Objects.equals(acceptance, tuple.acceptance);
+        Edge<?> edge = (Edge<?>) o;
+        return Objects.equals(successor, edge.successor) &&
+                Objects.equals(acceptance, edge.acceptance);
     }
 
     PrimitiveIterator.OfInt iterator() {

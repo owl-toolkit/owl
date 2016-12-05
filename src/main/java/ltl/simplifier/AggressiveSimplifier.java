@@ -38,8 +38,7 @@ class AggressiveSimplifier extends ModalSimplifier {
 
         // remove ltl that are implied by other Formulas
         // or do a PseudoSubstitution by a fix-point-iteration
-        for (; innerConjunctionLoop(set); )
-            ;
+        while (innerConjunctionLoop(set));
 
         if (set.size() == 1) {
             return set.iterator().next();
@@ -62,8 +61,7 @@ class AggressiveSimplifier extends ModalSimplifier {
 
         // remove ltl that imply other Formulas
         // or do a PseudoSubstitution by a fix-point-iteration
-        for (; innerDisjunctionLoop(set); )
-            ;
+        while (innerDisjunctionLoop(set));
 
         if (set.size() == 1) {
             return set.iterator().next();
