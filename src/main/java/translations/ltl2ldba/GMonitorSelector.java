@@ -22,169 +22,240 @@ import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;
+import ltl.visitors.Collector;
 import ltl.visitors.Visitor;
+import omega_automaton.collections.Collections3;
+import translations.Optimisation;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 class GMonitorSelector {
 
-    // TODO: Only consider unfolded formulae?
-    private static final GMonitorVisitor MIN_DNF = new GMonitorVisitor();
-    private static final PowerSetVisitor ALL = new PowerSetVisitor();
+    private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator || x instanceof ROperator;
 
-    static EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys, EquivalenceClassFactory factory) {
+    final EnumSet<Optimisation> optimisations;
+    final EquivalenceClassFactory factory;
+
+    GMonitorSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
+        this.optimisations = EnumSet.copyOf(optimisations);
+        this.factory = factory;
+    }
+
+    EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys) {
         EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
-        Formula evaluated = Simplifier.simplify(formula.accept(evaluateVisitor), Simplifier.Strategy.MODAL);
+        Formula subst = formula.accept(evaluateVisitor);
+        Formula evaluated = Simplifier.simplify(subst, Simplifier.Strategy.MODAL);
         EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
         evaluateVisitor.free();
         return goal;
     }
 
-    enum Strategy {
-        ALL, MIN_DNF
-    }
+    private static Set<GOperator> normaliseInfinityOperators(Iterable<Formula> formulas) {
+        Set<GOperator> gSet = new HashSet<>();
 
-    static Iterable<Set<GOperator>> selectMonitors(Strategy strategy, Formula formula, EquivalenceClassFactory factory) {
-        switch (strategy) {
-            case MIN_DNF:
-                List<Set<GOperator>> sets = formula.accept(MIN_DNF).stream().filter(set -> !set.isEmpty()).sorted(Comparator.comparingInt(Set::size)).collect(Collectors.toList());
+        formulas.forEach(x -> {
+            assert x instanceof GOperator || x instanceof ROperator;
 
-                ListIterator<Set<GOperator>> listIterator = sets.listIterator();
-                while (listIterator.hasNext()) {
-                    Set<GOperator> largerSet = listIterator.next();
-
-                    for (Set<GOperator> smallerSet : sets.subList(0, listIterator.previousIndex())) {
-                        if (largerSet.containsAll(smallerSet) && !smallerSet.stream().anyMatch(x -> x.containsSubformula(largerSet))) {
-
-                            EquivalenceClass remSmall = getRemainingGoal(formula, smallerSet, factory);
-                            EquivalenceClass remLarge = getRemainingGoal(formula, largerSet, factory);
-
-                            if (remLarge.implies(remSmall)) {
-                                listIterator.remove();
-                                remSmall.free();
-                                remLarge.free();
-                                break;
-                            }
-
-                            remLarge.free();
-                            remSmall.free();
-                        }
-                    }
-                }
-
-                return sets;
-
-            case ALL:
-            default:
-                return Sets.difference(Sets.powerSet(formula.accept(ALL)), Collections.singleton(Collections.emptySet()));
-        }
-    }
-
-    static class GMonitorVisitor implements Visitor<List<Set<GOperator>>> {
-        @Override
-        public List<Set<GOperator>> visit(FOperator fOperator) {
-            return fOperator.operand.accept(this);
-        }
-
-        @Override
-        public List<Set<GOperator>> visit(UOperator uOperator) {
-            return Disjunction.create(uOperator.left, Conjunction.create(uOperator.left, uOperator.right)).accept(this);
-        }
-
-        @Override
-        public List<Set<GOperator>> visit(XOperator xOperator) {
-            return xOperator.operand.accept(this);
-        }
-
-        @Override
-        public List<Set<GOperator>> defaultAction(Formula formula) {
-            return Collections.singletonList(Collections.emptySet());
-        }
-
-        @Override
-        public List<Set<GOperator>> visit(Conjunction conjunction) {
-            List<Set<GOperator>> Gs = Collections.singletonList(Collections.emptySet());
-
-            for (Formula child : conjunction.children) {
-                List<Set<GOperator>> nextGs = new ArrayList<>(2 * Gs.size());
-
-                for (Set<GOperator> gOperators1 : child.accept(this)) {
-                    for (Set<GOperator> gOperators2 : Gs) {
-                        nextGs.add(Sets.union(gOperators1, gOperators2).immutableCopy());
-                    }
-                }
-
-                Gs = nextGs;
+            if (x instanceof GOperator) {
+                gSet.add((GOperator) x);
             }
 
-            return Gs.stream().distinct().collect(Collectors.toList());
+            if (x instanceof ROperator) {
+                gSet.add(new GOperator(((ROperator) x).right));
+            }
+        });
+
+        return gSet;
+    }
+
+    private boolean subsumes(Set<GOperator> set, Set<GOperator> subset, Formula formula) {
+        EquivalenceClass setClass = getRemainingGoal(formula, set);
+        EquivalenceClass subsetClass = getRemainingGoal(formula, subset);
+
+        boolean implies = setClass.implies(subsetClass);
+
+        setClass.free();
+        subsetClass.free();
+
+        return implies;
+    }
+
+    private boolean subsumes(Set<GOperator> set, Set<GOperator> subset, EquivalenceClass master) {
+        if (!subsumes(set, subset, master.getRepresentative())) {
+            return false;
+        }
+
+        for (GOperator gOperator : subset) {
+            if (!subsumes(Sets.difference(set, Collections.singleton(gOperator)),
+                    Sets.difference(subset, Collections.singleton(gOperator)),
+                    gOperator.operand)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private List<Set<GOperator>> selectReducedMonitors(EquivalenceClass state) {
+        final Set<Formula> support = state.getSupport(INFINITY_OPERATORS);
+        final EquivalenceClass skeleton = state.exists(INFINITY_OPERATORS.negate());
+
+        // BitSet unguardedLiterals = getUnguardedLiterals(support);
+
+        List<Set<GOperator>> sets = StreamSupport
+                .stream(skeleton.restrictedSatisfyingAssignments(support, null).spliterator(), false)
+                .map(GMonitorSelector::normaliseInfinityOperators)
+                //.filter(x -> Collections3.subset(getGuardedLiterals(x), unguardedLiterals))
+                .collect(Collectors.toList());
+
+        skeleton.free();
+
+        Iterator<Set<GOperator>> iterator = sets.iterator();
+
+        while (iterator.hasNext()) {
+            Set<GOperator> set = iterator.next();
+
+            for (Set<GOperator> subset : sets) {
+                if (subset.size() >= set.size() || !set.containsAll(subset)) {
+                    continue;
+                }
+
+                if (subsumes(set, subset, state)) {
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+
+        return sets;
+    }
+
+    private Set<Set<GOperator>> selectAllMonitors(EquivalenceClass state) {
+        final Set<Formula> support = state.getSupport(INFINITY_OPERATORS);
+        return Sets.powerSet(normaliseInfinityOperators(support));
+    }
+
+    Collection<Set<GOperator>> selectMonitors(EquivalenceClass state, boolean initialState) {
+        final Collection<Set<GOperator>> sets;
+
+        if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+            sets = selectReducedMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
+        } else {
+            sets = selectAllMonitors(state);
+        }
+
+        if (!sets.contains(Collections.<GOperator>emptySet())) {
+            if (sets.size() > 1) {
+                sets.add(Collections.emptySet());
+            } else {
+                final Set<GOperator> Gs = new HashSet<>();
+
+                state.getSupport().forEach(x -> {
+                    Collector collector = new Collector(INFINITY_OPERATORS);
+                    x.accept(collector);
+                    collector.getCollection().forEach(y -> {
+                        if (y instanceof ROperator) {
+                            Gs.add(new GOperator(((ROperator) y).right));
+                        } else {
+                            Gs.add((GOperator) y);
+                        }
+                    });
+                });
+
+                if (!sets.contains(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
+                    sets.add(Collections.emptySet());
+                }
+            }
+        }
+
+        return sets;
+    }
+
+    Collection<Set<GOperator>> selectMonitors(InitialComponent.State state) {
+        return selectMonitors(state.getClazz(), false);
+    }
+
+    private static final UnguardedLiterals UNGUARDED_LITERALS = new UnguardedLiterals();
+    private static final GuardedLiterals GUARDED_LITERALS = new GuardedLiterals();
+
+    // An guarded literal is within the scope of an G or R - operator.
+    private static BitSet getGuardedLiterals(Iterable<? extends Formula> formulas) {
+        BitSet literals = new BitSet();
+        formulas.forEach(x -> literals.or(x.accept(GUARDED_LITERALS)));
+        return literals;
+    }
+
+    private static BitSet getUnguardedLiterals(Iterable<? extends Formula> formulas) {
+        BitSet literals = new BitSet();
+        formulas.forEach(x -> literals.or(x.accept(UNGUARDED_LITERALS)));
+        return literals;
+    }
+
+    private static final BitSet EMPTY = new BitSet();
+
+    private static class UnguardedLiterals implements Visitor<BitSet> {
+
+        @Override
+        public BitSet defaultAction(Formula formula) {
+            Collector collector = new Collector(Literal.class::isInstance);
+            formula.accept(collector);
+            BitSet set = new BitSet();
+            collector.getCollection().forEach(f -> set.set(((Literal) f).getAtom()));
+            return set;
         }
 
         @Override
-        public List<Set<GOperator>> visit(Disjunction disjunction) {
-            List<Set<GOperator>> Gs = new ArrayList<>(disjunction.children.size());
-            disjunction.children.forEach(e -> Gs.addAll(e.accept(this)));
-            return Gs.stream().distinct().collect(Collectors.toList());
+        public BitSet visit(GOperator fOperator) {
+            return EMPTY;
         }
 
         @Override
-        public List<Set<GOperator>> visit(GOperator gOperator) {
-            return gOperator.operand.accept(this).stream().map(set -> Sets.union(Collections.singleton(gOperator), set)).collect(Collectors.toList());
-        }
-
-        @Override
-        public List<Set<GOperator>> visit(ROperator rOperator) {
-            return Disjunction.create(GOperator.create(rOperator.right), Conjunction.create(rOperator.left, rOperator.right)).accept(this);
+        public BitSet visit(ROperator rOperator) {
+            return defaultAction(rOperator.left);
         }
     }
 
-    static class PowerSetVisitor implements Visitor<Set<GOperator>> {
+    private static class GuardedLiterals implements Visitor<BitSet> {
+
         @Override
-        public Set<GOperator> defaultAction(Formula formula) {
-            return new HashSet<>();
+        public BitSet defaultAction(Formula formula) {
+            throw new AssertionError("Unreachable Code.");
         }
 
         @Override
-        public Set<GOperator> visit(Conjunction conjunction) {
-            return conjunction.union(c -> c.accept(this));
+        public BitSet visit(FOperator fOperator) {
+            return EMPTY;
         }
 
         @Override
-        public Set<GOperator> visit(Disjunction disjunction) {
-            return disjunction.union(c -> c.accept(this));
-        }
-
-        @Override
-        public Set<GOperator> visit(FOperator fOperator) {
-            return fOperator.operand.accept(this);
-        }
-
-        @Override
-        public Set<GOperator> visit(GOperator gOperator) {
-            Set<GOperator> set = gOperator.operand.accept(this);
-            set.add(gOperator);
+        public BitSet visit(GOperator gOperator) {
+            Collector collector = new Collector(Literal.class::isInstance);
+            gOperator.operand.accept(collector);
+            BitSet set = new BitSet();
+            collector.getCollection().forEach(f -> set.set(((Literal) f).getAtom()));
             return set;
         }
 
         @Override
-        public Set<GOperator> visit(UOperator uOperator) {
-            Set<GOperator> set = uOperator.left.accept(this);
-            set.addAll(uOperator.right.accept(this));
+        public BitSet visit(UOperator uOperator) {
+            return EMPTY;
+        }
+
+        @Override
+        public BitSet visit(ROperator rOperator) {
+            Collector collector = new Collector(Literal.class::isInstance);
+            rOperator.right.accept(collector);
+            BitSet set = new BitSet();
+            collector.getCollection().forEach(f -> set.set(((Literal) f).getAtom()));
             return set;
         }
 
         @Override
-        public Set<GOperator> visit(ROperator rOperator) {
-            Set<GOperator> set = rOperator.left.accept(this);
-            set.addAll(rOperator.right.accept(this));
-            set.add(new GOperator(rOperator.right));
-            return set;
-        }
-
-        @Override
-        public Set<GOperator> visit(XOperator xOperator) {
-            return xOperator.operand.accept(this);
+        public BitSet visit(XOperator xOperator) {
+            return EMPTY;
         }
     }
 }

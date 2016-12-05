@@ -75,15 +75,9 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     }
 
     @Nullable
-    S jump(EquivalenceClass master, Set<GOperator> keys) {
-        EquivalenceClass remainingGoal = GMonitorSelector.getRemainingGoal(master.getRepresentative(), keys, equivalenceClassFactory);
-
+    S jump(EquivalenceClass remainingGoal, Set<GOperator> keys) {
         if (remainingGoal.isFalse()) {
             return null;
-        }
-
-        if (keys.isEmpty()) {
-            throw new IllegalArgumentException();
         }
 
         RecurringObligations obligations = getObligations(keys);
@@ -117,7 +111,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
             Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(keys));
 
             for (GOperator key : keys) {
-                Formula initialFormula = Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT);
+                Formula initialFormula = Simplifier.simplify(Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
                 EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
 
                 if (initialClazz.isFalse()) {
@@ -215,6 +209,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     EquivalenceClass removeCover(EquivalenceClass clazz, EquivalenceClass environment) {
         if (removeCover && environment.implies(clazz)) {
+            clazz.free();
             return equivalenceClassFactory.getTrue();
         }
 

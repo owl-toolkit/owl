@@ -1,3 +1,5 @@
 G (a | (F (b & X c)))
 G (a | ((! a) U (X a)))
+G (F (a & (a U b)))
+G (F (a & X (F b)))
 ((X a) | (F b)) U (a)

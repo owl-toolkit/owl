@@ -17,7 +17,6 @@
 
 package translations.ltl2ldba;
 
-import ltl.Formula;
 import ltl.GOperator;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -30,10 +29,7 @@ import translations.ldba.AbstractInitialComponent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class InitialComponent<S extends AutomatonState<S>> extends AbstractInitialComponent<InitialComponent.State, S> {
 
@@ -53,10 +49,8 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
     private final EquivalenceClass initialClazz;
 
     private final boolean eager;
-    private final boolean skeleton;
     private final boolean impatient;
-    private final boolean delay;
-    private final EquivalenceClassFactory factory;
+    private final GMonitorSelector selector;
 
     InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         super(valuationSetFactory);
@@ -65,24 +59,21 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         this.initialClazz = initialClazz;
 
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
-        skeleton = optimisations.contains(Optimisation.MINIMAL_GSETS);
         impatient = optimisations.contains(Optimisation.FORCE_JUMPS);
-        delay = optimisations.contains(Optimisation.DELAY_JUMPS);
-
-        this.factory = factory;
+        selector = new GMonitorSelector(optimisations, factory);
     }
 
     @Override
     public void generateJumps(State state) {
-        if (delay && StateAnalysis.isJumpUnnecessary(state.getClazz())) {
-            return;
-        }
-
-        Formula stateFormula = state.getClazz().getRepresentative();
-        Iterable<Set<GOperator>> keys = GMonitorSelector.selectMonitors(skeleton ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, stateFormula, factory);
+        Iterable<Set<GOperator>> keys = selector.selectMonitors(state);
 
         for (Set<GOperator> key : keys) {
-            S successor = acceptingComponent.jump(state.getClazz(), key);
+            if (key.isEmpty()) {
+                continue;
+            }
+
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz().getRepresentative(), key);
+            S successor = acceptingComponent.jump(remainingGoal, key);
 
             if (successor == null) {
                 continue;
@@ -95,9 +86,9 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
     @Override
     protected State generateInitialState() {
         if (eager) {
-            return new State(initialClazz.unfold(), true, impatient, valuationSetFactory);
+            return new State(initialClazz.unfold(), true, impatient, valuationSetFactory, selector);
         } else {
-            return new State(initialClazz, false, impatient, valuationSetFactory);
+            return new State(initialClazz, false, impatient, valuationSetFactory, selector);
         }
     }
 
@@ -107,12 +98,15 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         private final boolean eager;
         private final boolean impatient;
         private final ValuationSetFactory valuationSetFactory;
+        private Collection<Set<GOperator>> jumps;
+        private final GMonitorSelector selector;
 
-        public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory) {
+        public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory, GMonitorSelector selector) {
             this.clazz = clazz;
             this.eager = eager;
             this.impatient = impatient;
             this.valuationSetFactory = valuationSetFactory;
+            this.selector = selector;
         }
 
         @Nullable
@@ -126,12 +120,16 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
                 successor = clazz.unfoldTemporalStep(valuation);
             }
 
+            if (jumps == null) {
+                jumps = selector.selectMonitors(this);
+            }
+
             // Suppress edge, if successor is a non-accepting state
-            if (successor.isFalse() || impatient && StateAnalysis.isJumpNecessary(clazz)) {
+            if (successor.isFalse() || !jumps.contains(Collections.<GOperator>emptySet())) {
                 return null;
             }
 
-            return new Edge<>(new State(successor, eager, impatient, valuationSetFactory), successor.isTrue() ? ACCEPT : REJECT);
+            return new Edge<>(new State(successor, eager, impatient, valuationSetFactory, selector), successor.isTrue() ? ACCEPT : REJECT);
         }
 
         @Nonnull

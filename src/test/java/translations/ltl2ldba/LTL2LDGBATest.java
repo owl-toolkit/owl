@@ -67,7 +67,7 @@ public class LTL2LDGBATest {
     @Test
     public void testToHOA() throws Exception {
         String ltl = "((F G (a U c)) & G X b) | (F G X (f U d)) & X X e";
-        testOutput(ltl, 9);
+        testOutput(ltl, 11);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class LTL2LDGBATest {
     @Test
     public void testToHOA342() throws Exception {
         String ltl = "(F p) U (G q)";
-        testOutput(ltl, 3);
+        testOutput(ltl, 4);
     }
 
     @Test
@@ -121,7 +121,7 @@ public class LTL2LDGBATest {
     @Test
     public void regressionTestStack() throws Exception {
         String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | (G((!(b)) | ((c) & (X(F(e))))))))))";
-        testOutput(ltl, 92);
+        testOutput(ltl, 49);
     }
 
     private static final String TRIVIAL_TRUE = "HOA: v1\n" +
@@ -171,10 +171,10 @@ public class LTL2LDGBATest {
 
     @Test
     public void testRelease() throws Exception {
-        String ltl = "!a R !b";
+        String ltl = "a R b";
         testOutput(ltl, 3);
 
-        ltl = "(G !b) | (!b U !a)";
+        ltl = "(b U a) | (G b)";
         testOutput(ltl, 3);
     }
 
@@ -200,11 +200,7 @@ public class LTL2LDGBATest {
     @Test
     public void testFOOO() throws Exception {
         String ltl = "G((p) U (X(G(p))))";
-
-        EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-        opts.remove(Optimisation.MINIMAL_GSETS);
-
-        testOutput(ltl, 2);
+        testOutput(ltl, 3);
     }
 
     @Test
@@ -224,7 +220,7 @@ public class LTL2LDGBATest {
         testOutput(ltl, 2);
 
         ltl = "!(p U (r | s))";
-        testOutput(ltl, 7);
+        testOutput(ltl, 3);
     }
 
     @Test
@@ -242,8 +238,8 @@ public class LTL2LDGBATest {
     @Test
     public void testEx() throws Exception {
         String ltl2 = "X G (a | F b)";
-        testOutput(ltl2, 3);
-        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 7);
+        testOutput(ltl2, 4);
+        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 10);
     }
 
     @Test
@@ -262,14 +258,14 @@ public class LTL2LDGBATest {
                 "Acceptance: 1 Inf(0)\n" +
                 "AP: 3 \"0\" \"1\" \"2\"\n" +
                 "--BODY--\n" +
-                "State: 0\n" +
-                "[t] 1\n" +
                 "State: 1\n" +
-                "[0] 2\n" +
+                "[2] 1 {0}\n" +
+                "State: 0\n" +
+                "[t] 2 {0}\n" +
                 "State: 2\n" +
-                "[1] 3\n" +
+                "[0] 3 {0}\n" +
                 "State: 3\n" +
-                "[2] 3 {0}\n" +
+                "[1] 1 {0}\n" +
                 "--END--\n";
 
         String ltl = "X (a & (X (b & X G c)))";
@@ -282,10 +278,10 @@ public class LTL2LDGBATest {
         testOutput(ltl, 5);
 
         String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
-        testOutput(ltl2, 4);
+        testOutput(ltl2, 3);
 
         String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & ((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-        testOutput(ltl3, 6);
+        testOutput(ltl3, 4);
     }
 
     @Test

@@ -16,24 +16,6 @@ import static org.junit.Assert.assertEquals;
 
 public class GMonitorVisitorTest {
 
-    GMonitorSelector.GMonitorVisitor visitor = new GMonitorSelector.GMonitorVisitor();
-
-    @Test
-    public void testSimple() {
-        BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1);
-        Formula formula = Parser.formula("G a | X G b", mapping);
-        Set<Set<GOperator>> skeleton = Sets.newHashSet(Collections.singleton((GOperator) Parser.formula("G a", mapping)), Collections.singleton((GOperator) Parser.formula("G b", mapping)));
-        assertEquals(skeleton, new HashSet<>(formula.accept(visitor)));
-    }
-
-    @Test
-    public void testSimple2() {
-        BiMap<String, Integer> mapping = ImmutableBiMap.of("a", 0, "b", 1);
-        Formula formula = Parser.formula("G a & F G b");
-        Set<Set<GOperator>> skeleton = Collections.singleton(Sets.newHashSet((GOperator) Parser.formula("G a", mapping), (GOperator) Parser.formula("G b", mapping)));
-        assertEquals(skeleton, new HashSet<>(formula.accept(visitor)));
-    }
-
     @Test
     public void gSubformulas() {
         Formula f1 = new Literal(0, false);

@@ -29,7 +29,6 @@ import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.AlphabetVisitor;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
@@ -57,19 +56,27 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
     @Override
     public LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> apply(Formula formula) {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
+        formula = Simplifier.simplify(formula, Simplifier.Strategy.PUSHDOWN_X);
 
         ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
         EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
 
-        Iterable<Set<GOperator>> keys = GMonitorSelector.selectMonitors(optimisations.contains(Optimisation.MINIMAL_GSETS) ? GMonitorSelector.Strategy.MIN_DNF : GMonitorSelector.Strategy.ALL, formula, equivalenceClassFactory);
+        EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
+
+        if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
+            initialClazz = initialClazz.unfold();
+        }
+
+        GMonitorSelector selector = new GMonitorSelector(optimisations, equivalenceClassFactory);
+        Collection<Set<GOperator>> keys = selector.selectMonitors(initialClazz, true);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent<AcceptingComponent.State> initialComponent = null;
 
-        EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
-
-        if (initialClazz.isFalse() || Iterables.size(keys) == 1 && StateAnalysis.isJumpNecessary(initialClazz)) {
-            acceptingComponent.jumpInitial(initialClazz, Iterables.isEmpty(keys) ? Collections.emptySet() : Iterables.getOnlyElement(keys));
+        if (initialClazz.isFalse() || keys.size() == 1 && !keys.contains(Collections.<GOperator>emptySet())) {
+            Set<GOperator> key = Iterables.isEmpty(keys) ? Collections.emptySet() : Iterables.getOnlyElement(keys);
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz.getRepresentative(), key);
+            acceptingComponent.jumpInitial(remainingGoal, key);
         } else {
             initialComponent = new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }

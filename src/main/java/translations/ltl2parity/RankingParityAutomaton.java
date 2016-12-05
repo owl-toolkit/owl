@@ -81,7 +81,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
         return new State(initialComponent.getInitialState());
     }
 
-    int distance(int base, int index) {
+    private int distance(int base, int index) {
         if (index == -1) {
             return Integer.MAX_VALUE;
         }

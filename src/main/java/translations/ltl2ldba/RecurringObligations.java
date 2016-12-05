@@ -39,7 +39,7 @@ public class RecurringObligations extends ImmutableObject {
 
     @Override
     protected int hashCodeOnce() {
-        return Objects.hash(xFragment, initialStates);
+        return 31 * xFragment.hashCode() + Arrays.hashCode(initialStates);
     }
 
     @Override
