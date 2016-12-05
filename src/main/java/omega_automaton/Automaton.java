@@ -387,7 +387,6 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         transitions.forEach((key, value) -> {
             key.free();
             value.forEach((key2, value2) -> {
-                key2.successor.free();
                 value2.free();
             });
         });

@@ -72,22 +72,6 @@ public interface Bdd {
   int createVariable();
 
   /**
-   * Constructs the node representing the function obtained by existential quantification of
-   * {@code node} with all variables specified by {@code quantifiedVariables}. Formally, let
-   * <tt>f(x_1, ..., x_m)</tt> be the function specified by {@code node} and <tt>x_1, ..., x_m</tt>
-   * all variables for which {@code quantifiedVariables} is set. This method then constructs
-   * <tt>E x_1 E x_2 ... E x_n f(x_1, ..., x_m)</tt>.
-   *
-   * @param node
-   *     The node representing the basis of the quantification.
-   * @param quantifiedVariables
-   *     The variables which should be quantified over.
-   *
-   * @return The node representing the quantification.
-   */
-  int exists(int node, BitSet quantifiedVariables);
-
-  /**
    * Decreases the reference count of the specified {@code node}.
    *
    * @param node
@@ -114,6 +98,22 @@ public interface Bdd {
    * @return The truth value of the node under the given assignment.
    */
   boolean evaluate(int node, BitSet assignment);
+
+  /**
+   * Constructs the node representing the function obtained by existential quantification of
+   * {@code node} with all variables specified by {@code quantifiedVariables}. Formally, let
+   * <tt>f(x_1, ..., x_m)</tt> be the function specified by {@code node} and <tt>x_1, ..., x_m</tt>
+   * all variables for which {@code quantifiedVariables} is set. This method then constructs
+   * <tt>E x_1 E x_2 ... E x_n f(x_1, ..., x_m)</tt>.
+   *
+   * @param node
+   *     The node representing the basis of the quantification.
+   * @param quantifiedVariables
+   *     The variables which should be quantified over.
+   *
+   * @return The node representing the quantification.
+   */
+  int exists(final int node, BitSet quantifiedVariables);
 
   /**
    * Returns the node representing <tt>false</tt>.
@@ -228,9 +228,27 @@ public interface Bdd {
    *     The node whose support should be computed.
    *
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
+   *     the support of {@code node}.
+   */
+  default BitSet support(final int node) {
+    return support(node, numberOfVariables());
+  }
+
+  /**
+   * Computes the <b>support</b> of the function represented by the given {@code node}. The support
+   * of a function are all variables which have an influence on its value.
+   *
+   * @param node
+   *     The node whose support should be computed.
+   *
+   * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
    * the support of {@code node}.
    */
-  BitSet support(int node);
+  default BitSet support(final int node, final int highestVariable) {
+    BitSet bitSet = new BitSet(highestVariable);
+    support(node, bitSet, highestVariable);
+    return bitSet;
+  }
 
   /**
    * Computes the <b>support</b> of the given {@code node} and writes it in the {@code bitSet}.
@@ -242,7 +260,21 @@ public interface Bdd {
    *
    * @see #support(int)
    */
-  void support(int node, BitSet bitSet);
+  default void support(final int node, final BitSet bitSet) {
+    support(node, bitSet, numberOfVariables());
+  }
+
+  /**
+   * Computes the <b>support</b> of the given {@code node} and writes it in the {@code bitSet}.
+   *
+   * @param node
+   *     The node whose support should be computed.
+   * @param bitSet
+   *     The BitSet used to store the result.
+   *
+   * @see #support(int)
+   */
+  void support(int node, BitSet bitSet, int highestVariable);
 
   /**
    * Iteratively computes all (minimal) solutions of the function represented by {@code node}. The
@@ -282,7 +314,15 @@ public interface Bdd {
    *
    * @see #compose(int, int[])
    */
-  int restrict(int node, BitSet restrictedVariables, BitSet restrictedVariableValues);
+  default int restrict(int node, BitSet restrictedVariables, BitSet restrictedVariableValues) {
+    int[] compose = new int[numberOfVariables()];
+
+    for (int i = 0; i < compose.length; i++) {
+      compose[i] = restrictedVariables.get(i) ? (restrictedVariableValues.get(i) ? getTrueNode() : getFalseNode()) : -1;
+    }
+
+    return compose(node, compose);
+  }
 
   /**
    * Auxiliary function useful for updating node variables. It dereferences {@code inputNode} and

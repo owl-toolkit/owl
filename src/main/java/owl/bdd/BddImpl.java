@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
  * - Due to the implementation of all operations, variable numbers increase while descending the
  *   tree of a particular node. */
 @SuppressWarnings({"PMD.GodClass"})
-class BddImpl extends NodeTable implements Bdd {
+final class BddImpl extends NodeTable implements Bdd {
   private static final int FALSE_NODE = 0;
   private static final int TRUE_NODE = 1;
   private final BddCache cache;
@@ -260,18 +260,11 @@ class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final BitSet support(final int node) {
+  public final void support(final int node, final BitSet bitSet, final int highestVariable) {
     assert isNodeValidOrRoot(node);
-    final BitSet bitSet = new BitSet(numberOfVariables);
-    support(node, bitSet);
-    return bitSet;
-  }
-
-  @Override
-  public final void support(final int node, final BitSet bitSet) {
-    assert isNodeValidOrRoot(node);
+    assert 0 <= highestVariable && highestVariable <= numberOfVariables;
     bitSet.clear();
-    supportRecursive(node, bitSet);
+    supportRecursive(node, bitSet, highestVariable);
     unMarkTree(node);
   }
 
@@ -476,18 +469,25 @@ class BddImpl extends NodeTable implements Bdd {
     return result;
   }
 
-  private void supportRecursive(final int node, final BitSet bitSet) {
+  private void supportRecursive(final int node, final BitSet bitSet, final int highestVariable) {
     if (isNodeRoot(node)) {
       return;
     }
+
     final long nodeStore = getNodeStore(node);
+
     if (isNodeStoreMarked(nodeStore)) {
       return;
     }
-    bitSet.set((int) getVariableFromStore(nodeStore));
-    markNode(node);
-    supportRecursive((int) getLowFromStore(nodeStore), bitSet);
-    supportRecursive((int) getHighFromStore(nodeStore), bitSet);
+
+    final int variable = (int) getVariableFromStore(nodeStore);
+
+    if (variable < highestVariable) {
+      bitSet.set(variable);
+      markNode(node);
+      supportRecursive((int) getLowFromStore(nodeStore), bitSet, highestVariable);
+      supportRecursive((int) getHighFromStore(nodeStore), bitSet, highestVariable);
+    }
   }
 
   private int existsShannonRecursive(final int node, final int quantifiedVariableCube) {

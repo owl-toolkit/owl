@@ -21,15 +21,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import ltl.BooleanConstant;
-import ltl.Conjunction;
-import ltl.Disjunction;
-import ltl.Formula;
-import ltl.Literal;
+
+import com.google.common.collect.Sets;
+import ltl.*;
 import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
 import org.junit.Assert;
@@ -50,7 +51,7 @@ public abstract class EquivalenceClassTest {
         tautology = BooleanConstant.TRUE;
         literal = new Literal(0);
 
-        factory = setUpFactory(new Conjunction(contradiction, tautology, literal));
+        factory = setUpFactory(Parser.formula("a & b & c & d"));
     }
 
     @Test
@@ -188,5 +189,52 @@ public abstract class EquivalenceClassTest {
         factory = setUpFactory(formula);
         assertEquals(factory.createEquivalenceClass(Parser.formula("! a")), factory.createEquivalenceClass(Parser.formula("X ! a")).temporalStep(new BitSet()));
         assertEquals(factory.createEquivalenceClass(Parser.formula("a")), factory.createEquivalenceClass(Parser.formula("X a")).temporalStep(new BitSet()));
+    }
+
+    @Test
+    public void testGetSupport() {
+        Formula[] formulas = {
+                Parser.formula("a"),
+                Parser.formula("F a"),
+                Parser.formula("G a")
+        };
+
+        EquivalenceClass clazz = factory.createEquivalenceClass(Conjunction.create(formulas));
+
+        assertEquals(Sets.newHashSet(formulas), clazz.getSupport());
+        assertEquals(Collections.singleton(formulas[1]), clazz.getSupport(FOperator.class));
+    }
+
+    @Test
+    public void testExistsAndSat() {
+        BiMap<String, Integer> mapping = HashBiMap.create();
+        Predicate<Formula> predicate = ((Predicate<Formula>) GOperator.class::isInstance).negate();
+
+        Formula[] formulas = {
+                Parser.formula("a", mapping),
+                Parser.formula("G a", mapping),
+                Parser.formula("G a | G b | a", mapping),
+                Parser.formula("G a & G b & a", mapping),
+        };
+
+        EquivalenceClass A = factory.createEquivalenceClass(formulas[0]);
+        EquivalenceClass EA = A.exists(predicate);
+        assertEquals(factory.getTrue(), EA);
+
+        EquivalenceClass B = factory.createEquivalenceClass(formulas[1]);
+        EquivalenceClass EB = B.exists(predicate);
+        assertEquals(B, EB);
+        assertEquals(Collections.singleton(Collections.singleton(formulas[1])), Sets.newHashSet(EB.restrictedSatisfyingAssignments(Arrays.asList(formulas[1]), null)));
+
+        EquivalenceClass C = factory.createEquivalenceClass(formulas[2]);
+        EquivalenceClass EC = C.exists(predicate);
+        Set<Formula> GS = Sets.newHashSet(Parser.formula("G a", mapping), Parser.formula("G b", mapping));
+        assertEquals(factory.getTrue(), EC);
+        assertEquals(Sets.powerSet(GS), Sets.newHashSet(EC.restrictedSatisfyingAssignments(GS, null)));
+
+        EquivalenceClass D = factory.createEquivalenceClass(formulas[3]);
+        EquivalenceClass ED = D.exists(predicate);
+        assertEquals(factory.createEquivalenceClass(Parser.formula("G a & G b", mapping)), ED);
+        assertEquals(Collections.singleton(GS), Sets.newHashSet(ED.restrictedSatisfyingAssignments(GS, null)));
     }
 }

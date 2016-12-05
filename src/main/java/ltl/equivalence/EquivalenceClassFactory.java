@@ -26,8 +26,6 @@ import java.util.function.Function;
 
 public interface EquivalenceClassFactory {
 
-    EquivalenceClass createEquivalenceClass(Formula formula, Function<Formula, Optional<Boolean>> environment);
-
     EquivalenceClass createEquivalenceClass(Formula formula);
 
     default EquivalenceClass createEquivalenceClass(Iterable<Formula> formulas) {

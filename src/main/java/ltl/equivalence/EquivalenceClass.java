@@ -22,8 +22,12 @@ import ltl.Formula;
 
 import javax.annotation.Nullable;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * EquivalenceClass interface.
@@ -34,6 +38,7 @@ import java.util.function.Predicate;
  */
 public interface EquivalenceClass {
 
+    @Nullable
     Formula getRepresentative();
 
     boolean implies(EquivalenceClass equivalenceClass);
@@ -70,9 +75,39 @@ public interface EquivalenceClass {
 
     boolean isFalse();
 
+    EquivalenceClass exists(Predicate<Formula> predicate);
+
     void free();
 
     boolean testSupport(Predicate<Formula> predicate);
+
+    /**
+     * Compute the support of the EquivalenceClass.
+     *
+     * @return All literals and modal operators this equivalence class depends on.
+     */
+    default Set<Formula> getSupport() {
+        return getSupport(Formula.class);
+    }
+
+    /**
+     * Compute the support of the EquivalenceClass and restrict the set to a particular type.
+     *
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    <T extends Formula> Set<T> getSupport(Class<T> clazz);
+
+    default Set<Formula> getSupport(Predicate<Formula> predicate) {
+        return getSupport().stream().filter(predicate).collect(Collectors.toSet());
+    }
+
+    default Collection<Set<Formula>> satisfyingAssignments() {
+        return restrictedSatisfyingAssignments(getSupport(), null);
+    }
+
+    Collection<Set<Formula>> restrictedSatisfyingAssignments(Collection<Formula> support, EquivalenceClass restr);
 
     /**
      * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
