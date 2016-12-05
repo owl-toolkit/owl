@@ -107,14 +107,7 @@ public final class ROperator extends BinaryModalOperator {
             return GOperator.create(right);
         }
 
-        if (left instanceof Disjunction) {
-            return Disjunction.create(((Disjunction) left).children.stream().map(leftChild -> create(leftChild, right)));
-        }
-
-        if (right instanceof Conjunction) {
-            return Conjunction.create(((Conjunction) right).children.stream().map(rightChild -> create(left, rightChild)));
-        }
-
         return new ROperator(left, right);
     }
+
 }

@@ -74,10 +74,6 @@ class ModalSimplifier implements Visitor<Formula> {
             return Disjunction.create(Conjunction.create(left, FOperator.create(right)), right);
         }
 
-        if (left.isPureEventual()) {
-            return Disjunction.create(new FOperator(Conjunction.create(left, new XOperator(right))), right);
-        }
-
         return UOperator.create(left, right);
     }
 

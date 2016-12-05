@@ -18,15 +18,18 @@
 package ltl.simplifier;
 
 import ltl.Formula;
+import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 
 public final class Simplifier {
 
-    public static final int ITERATIONS = 3;
+    // TODO: Redesign Simplifier
+    private static final int ITERATIONS = 3;
 
     private static final Visitor<Formula> MODAL_SIMPLIFIER = new ModalSimplifier();
     private static final Visitor<XFormula> PULLUP_X = new PullupXVisitor();
     private static final Visitor<Formula> AGGRESSIVE_SIMPLIFIER = new AggressiveSimplifier();
+    private static final BinaryVisitor<Formula, Integer> PUSHDOWN_X = new PushDownXVisitor();
 
     private Simplifier() {
     }
@@ -58,6 +61,9 @@ public final class Simplifier {
             case AGGRESSIVELY:
                 return formula.accept(Simplifier.AGGRESSIVE_SIMPLIFIER);
 
+            case PUSHDOWN_X:
+                return formula.accept(PUSHDOWN_X, 0);
+
             case NONE:
                 return formula;
 
@@ -67,6 +73,6 @@ public final class Simplifier {
     }
 
     public enum Strategy {
-        NONE, MODAL, PULLUP_X, MODAL_EXT, AGGRESSIVELY
+        NONE, MODAL, PULLUP_X, MODAL_EXT, AGGRESSIVELY, PUSHDOWN_X
     }
 }
