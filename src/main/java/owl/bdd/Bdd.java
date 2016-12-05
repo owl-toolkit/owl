@@ -7,7 +7,7 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} AND {@code node2}</tt>.
    */
-  int and(final int node1, int node2);
+  int and(int node1, int node2);
 
   /**
    * Constructs the node representing the <i>composition</i> of the function represented by
@@ -30,7 +30,7 @@ public interface Bdd {
    * @return The node representing the composed function.
    */
   @SuppressWarnings({"PMD.UseVarargs"})
-  int compose(final int node, final int[] variableNodes);
+  int compose(int node, int[] variableNodes);
 
   /**
    * Auxiliary function useful for updating node variables. It dereferences the inputs and
@@ -50,7 +50,7 @@ public interface Bdd {
    *
    * @return The given {@code result}.
    */
-  default int consume(final int result, final int inputNode1, final int inputNode2) {
+  default int consume(int result, int inputNode1, int inputNode2) {
     reference(result);
     dereference(inputNode1);
     dereference(inputNode2);
@@ -62,7 +62,7 @@ public interface Bdd {
    * </p>
    * <b>Warning:</b> Floating-point overflow easily possible for complex functions!
    */
-  double countSatisfyingAssignments(final int node);
+  double countSatisfyingAssignments(int node);
 
   /**
    * Creates a new variable and returns the node representing it.
@@ -85,7 +85,7 @@ public interface Bdd {
    *
    * @return The node representing the quantification.
    */
-  int exists(final int node, BitSet quantifiedVariables);
+  int exists(int node, BitSet quantifiedVariables);
 
   /**
    * Decreases the reference count of the specified {@code node}.
@@ -95,12 +95,12 @@ public interface Bdd {
    *
    * @return The given node, to be used for chaining.
    */
-  int dereference(final int node);
+  int dereference(int node);
 
   /**
    * Constructs the node representing <tt>{@code node1} EQUIVALENT {@code node2}</tt>.
    */
-  int equivalence(final int node1, int node2);
+  int equivalence(int node1, int node2);
 
   /**
    * Checks whether the given {@code node} evaluates to <tt>true</tt> under the given variable
@@ -113,28 +113,28 @@ public interface Bdd {
    *
    * @return The truth value of the node under the given assignment.
    */
-  boolean evaluate(final int node, BitSet assignment);
+  boolean evaluate(int node, BitSet assignment);
 
   /**
    * Returns the node representing <tt>false</tt>.
    */
   int getFalseNode();
 
-  int getHigh(final int node);
+  int getHigh(int node);
 
-  int getLow(final int node);
+  int getLow(int node);
 
   /**
    * Returns the node representing <tt>true</tt>.
    */
   int getTrueNode();
 
-  int getVariable(final int node);
+  int getVariable(int node);
 
   /**
    * Constructs the node representing <tt>{@code node1} IMPLIES {@code node2}</tt>.
    */
-  int implication(final int node1, final int node2);
+  int implication(int node1, int node2);
 
   /**
    * Checks whether the given {@code node1} implies {@code node2}, i.e. if every valuation under
@@ -155,7 +155,7 @@ public interface Bdd {
    *
    * @return Whether <tt>{@code node1} IMPLIES {@code node2}</tt> is a tautology.
    */
-  boolean implies(final int node1, int node2);
+  boolean implies(int node1, int node2);
 
   /**
    * Determines whether the given {@code node} represents a variable.
@@ -165,7 +165,7 @@ public interface Bdd {
    *
    * @return If the {@code node} represents a variable.
    */
-  boolean isVariable(final int node);
+  boolean isVariable(int node);
 
   /**
    * Determines whether the given {@code node} represents a variable or it's negation.
@@ -175,18 +175,18 @@ public interface Bdd {
    *
    * @return If the {@code node} represents a variable.
    */
-  boolean isVariableOrNegated(final int node);
+  boolean isVariableOrNegated(int node);
 
   /**
    * Constructs the node representing <tt>IF {@code ifNode} THEN {@code thenNode} ELSE
    * {@code elseNode}</tt>.
    */
-  int ifThenElse(final int ifNode, int thenNode, int elseNode);
+  int ifThenElse(int ifNode, int thenNode, int elseNode);
 
   /**
    * Constructs the node representing <tt>{@code node1} NAND {@code node2}</tt>.
    */
-  int notAnd(final int node1, int node2);
+  int notAnd(int node1, int node2);
 
   /**
    * Constructs the node representing <tt>NOT {@code node}</tt>.
@@ -196,7 +196,7 @@ public interface Bdd {
    *
    * @return The negation of the given BDD.
    */
-  int not(final int node);
+  int not(int node);
 
   /**
    * Returns the number of variables in this BDD.
@@ -208,7 +208,7 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} OR {@code node2}</tt>.
    */
-  int or(final int node1, int node2);
+  int or(int node1, int node2);
 
   /**
    * Increases the reference count of the specified {@code node}.
@@ -218,7 +218,7 @@ public interface Bdd {
    *
    * @return The given node, to be used for chaining.
    */
-  int reference(final int node);
+  int reference(int node);
 
   /**
    * Computes the <b>support</b> of the function represented by the given {@code node}. The support
@@ -228,9 +228,9 @@ public interface Bdd {
    *     The node whose support should be computed.
    *
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
-   *     the support of {@code node}.
+   * the support of {@code node}.
    */
-  BitSet support(final int node);
+  BitSet support(int node);
 
   /**
    * Computes the <b>support</b> of the given {@code node} and writes it in the {@code bitSet}.
@@ -242,7 +242,7 @@ public interface Bdd {
    *
    * @see #support(int)
    */
-  void support(final int node, final BitSet bitSet);
+  void support(int node, BitSet bitSet);
 
   /**
    * Iteratively computes all (minimal) solutions of the function represented by {@code node}. The
@@ -258,7 +258,31 @@ public interface Bdd {
    *
    * @return An iterator returning all minimal solutions in ascending order.
    */
-  Iterator<BitSet> getMinimalSolutions(final int node);
+  Iterator<BitSet> getMinimalSolutions(int node);
+
+  /**
+   * Computes the restriction of the given {@code node}, where all variables specified by
+   * {@code restrictedVariables} are replaced by the value given in
+   * {@code restrictedVariableValues}. Formally, if {@code node} represents
+   * <tt>f(x_1, ..., x_n)</tt>, this method computes the node representing
+   * <tt>f(x_1, ..., x_{i_1-1}, c_1, x_{i_1+1}, ..., x_{i_2-1}, c_2, x_{i_2+1}, ..., x_n</tt>, where
+   * <tt>i_k</tt> are the elements of the {@code restrictedVariables} set and
+   * <tt>c_k := restrictedVariableValues.get(i_k)</tt>. This is semantically equivalent to calling
+   * compose where all specified variables are replaced by <tt>true</tt> or <tt>false</tt>, but
+   * slightly faster.
+   *
+   * @param node
+   *     The node to be restricted.
+   * @param restrictedVariables
+   *     The variables used in the restriction.
+   * @param restrictedVariableValues
+   *     The values of the restricted variables.
+   *
+   * @return The restricted node.
+   *
+   * @see #compose(int, int[])
+   */
+  int restrict(int node, BitSet restrictedVariables, BitSet restrictedVariableValues);
 
   /**
    * Auxiliary function useful for updating node variables. It dereferences {@code inputNode} and
@@ -276,7 +300,7 @@ public interface Bdd {
    *
    * @return The given {@code result}.
    */
-  default int updateWith(final int result, final int inputNode) {
+  default int updateWith(int result, int inputNode) {
     reference(result);
     dereference(inputNode);
     return result;
@@ -285,9 +309,9 @@ public interface Bdd {
   /**
    * Constructs the node representing <tt>{@code node1} XOR {@code node2}</tt>.
    */
-  int xor(final int node1, final int node2);
+  int xor(int node1, int node2);
 
-  boolean isNodeRoot(final int node);
+  boolean isNodeRoot(int node);
 
   /**
    * A wrapper class to guard some node in an area where exceptions can occur. It increases the
