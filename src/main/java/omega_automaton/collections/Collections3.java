@@ -158,4 +158,16 @@ public class Collections3 {
             return "powerSet(" + baseSet + ")";
         }
     }
+
+    /**
+     * Checks if A is a subset of B.
+     * @param A
+     * @param B
+     * @return
+     */
+    public static boolean subset(BitSet A, BitSet B) {
+        BitSet C = (BitSet) A.clone();
+        C.andNot(B);
+        return C.isEmpty();
+    }
 }
