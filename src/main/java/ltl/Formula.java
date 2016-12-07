@@ -23,7 +23,6 @@ import ltl.visitors.Visitor;
 import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
-import java.util.Set;
 
 public interface Formula {
 
@@ -33,7 +32,7 @@ public interface Formula {
 
     <R> R accept(Visitor<R> visitor);
 
-    <A, B> A accept(BinaryVisitor<A, B> visitor, B f);
+    <A, B> A accept(BinaryVisitor<A, B> visitor, B extra);
 
     // Temporal Properties of an LTL Formula
     boolean isPureEventual();

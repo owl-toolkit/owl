@@ -67,8 +67,8 @@ public class GOperator extends UnaryModalOperator {
     }
 
     @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B f) {
-        return v.visit(this, f);
+    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+        return v.visit(this, extra);
     }
 
     @Override
