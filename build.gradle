@@ -34,7 +34,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
     compileOnly 'com.google.code.findbugs:annotations:3.0.1'
     compile 'com.google.guava:guava:20.0'
-    compile 'de.tum.in:owl-base:0.1.4'
+    compile 'de.tum.in:owl-base:0.1.5'
     compile 'it.unimi.dsi:fastutil:7.0.13'
     compile files('lib/jhoafparser-1.1.1.jar')
     testCompile 'junit:junit:4+'

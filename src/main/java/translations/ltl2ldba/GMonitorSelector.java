@@ -24,7 +24,6 @@ import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.Collector;
 import ltl.visitors.Visitor;
-import omega_automaton.collections.Collections3;
 import translations.Optimisation;
 
 import java.util.*;
@@ -34,10 +33,10 @@ import java.util.stream.StreamSupport;
 
 class GMonitorSelector {
 
-    private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator || x instanceof ROperator;
+    private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
 
-    final EnumSet<Optimisation> optimisations;
-    final EquivalenceClassFactory factory;
+    private final EnumSet<Optimisation> optimisations;
+    private final EquivalenceClassFactory factory;
 
     GMonitorSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         this.optimisations = EnumSet.copyOf(optimisations);
@@ -57,7 +56,7 @@ class GMonitorSelector {
         Set<GOperator> gSet = new HashSet<>();
 
         formulas.forEach(x -> {
-            assert x instanceof GOperator || x instanceof ROperator;
+            assert x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
 
             if (x instanceof GOperator) {
                 gSet.add((GOperator) x);
@@ -65,6 +64,10 @@ class GMonitorSelector {
 
             if (x instanceof ROperator) {
                 gSet.add(new GOperator(((ROperator) x).right));
+            }
+
+            if (x instanceof WOperator) {
+                gSet.add(new GOperator(((WOperator) x).left));
             }
         });
 

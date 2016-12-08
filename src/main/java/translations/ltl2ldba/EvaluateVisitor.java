@@ -123,6 +123,17 @@ class EvaluateVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(MOperator mOperator) {
+        Formula defaultAction = defaultAction(mOperator);
+
+        if (defaultAction instanceof BooleanConstant) {
+            return defaultAction;
+        }
+
+        return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+    }
+
+    @Override
     public Formula visit(UOperator uOperator) {
         Formula defaultAction = defaultAction(uOperator);
 
@@ -134,14 +145,21 @@ class EvaluateVisitor implements Visitor<Formula> {
     }
 
     @Override
-    public Formula visit(ROperator rOperator) {
-        Formula defaultAction = defaultAction(rOperator);
-
-        if (defaultAction instanceof BooleanConstant) {
-            return defaultAction;
+    public Formula visit(WOperator wOperator) {
+        if (universalTruths.contains(wOperator.left)) {
+            return BooleanConstant.TRUE;
         }
 
-        return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+        return UOperator.create(wOperator.left, wOperator.right).accept(this);
+    }
+
+    @Override
+    public Formula visit(ROperator rOperator) {
+        if (universalTruths.contains(rOperator.right)) {
+            return BooleanConstant.TRUE;
+        }
+
+        return MOperator.create(rOperator.left, rOperator.right).accept(this);
     }
 
     @Override
