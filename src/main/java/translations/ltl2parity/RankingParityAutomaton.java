@@ -66,7 +66,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             }
         }
 
-        volatileMaxIndex = volatileComponents.size() + 1;
+        volatileMaxIndex = volatileComponents.size() + 100;
 
         if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
             trie = new HashMap<>();
@@ -192,7 +192,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                     // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
 
                     // The distance is too large...
-                    if (nextVolatileState != null && distance(currentVolatileIndex, candidateIndex) > distance(currentVolatileIndex, nextVolatileStateIndex)) {
+                    if (nextVolatileState != null && distance(currentVolatileIndex, candidateIndex) >= distance(currentVolatileIndex, nextVolatileStateIndex)) {
                         continue;
                     }
 
