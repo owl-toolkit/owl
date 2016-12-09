@@ -22,45 +22,28 @@ import ltl.*;
 
 public interface Visitor<R> {
 
-    R defaultAction(Formula formula);
+    R visit(BooleanConstant booleanConstant);
 
-    default R visit(BooleanConstant booleanConstant) {
-        return defaultAction(booleanConstant);
-    }
+    R visit(Conjunction conjunction);
 
-    default R visit(Conjunction conjunction) {
-        return defaultAction(conjunction);
-    }
+    R visit(Disjunction disjunction);
 
-    default R visit(Disjunction disjunction) {
-        return defaultAction(disjunction);
-    }
+    R visit(FOperator fOperator);
 
-    default R visit(FOperator fOperator) {
-        return defaultAction(fOperator);
-    }
+    R visit(FrequencyG freq);
 
-    default R visit(GOperator gOperator) {
-        return defaultAction(gOperator);
-    }
+    R visit(GOperator gOperator);
 
-    default R visit(FrequencyG freq) {
-        return defaultAction(freq);
-    }
+    R visit(Literal literal);
 
-    default R visit(Literal literal) {
-        return defaultAction(literal);
-    }
+    R visit(MOperator mOperator);
 
-    default R visit(UOperator uOperator) {
-        return defaultAction(uOperator);
-    }
+    R visit(ROperator rOperator);
 
-    default R visit(ROperator rOperator) {
-        return defaultAction(rOperator);
-    }
+    R visit(UOperator uOperator);
 
-    default R visit(XOperator xOperator) {
-        return defaultAction(xOperator);
-    }
+    R visit(WOperator wOperator);
+
+    R visit(XOperator xOperator);
+
 }

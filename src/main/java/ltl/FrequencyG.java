@@ -19,7 +19,6 @@ package ltl;
 
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
 import java.util.Objects;
@@ -47,11 +46,6 @@ public class FrequencyG extends GOperator {
     @Override
     public FrequencyG not() {
         return new FrequencyG(operand.not(), 1.0 - bound, cmp.theOther(), limes.theOther());
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override

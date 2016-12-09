@@ -21,12 +21,15 @@ import ltl.*;
 import ltl.visitors.Visitor;
 
 import java.util.Collection;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class PullupXVisitor implements Visitor<XFormula> {
+
     @Override
-    public XFormula defaultAction(Formula formula) {
-        return new XFormula(0, formula);
+    public XFormula visit(BooleanConstant booleanConstant) {
+        return new XFormula(0, booleanConstant);
     }
 
     @Override
@@ -45,25 +48,42 @@ class PullupXVisitor implements Visitor<XFormula> {
 
     @Override
     public XFormula visit(FOperator fOperator) {
-        XFormula r = fOperator.operand.accept(this);
-        r.formula = new FOperator(r.formula);
-        return r;
+        return visit(fOperator, FOperator::create);
+    }
+
+    @Override
+    public XFormula visit(FrequencyG freq) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public XFormula visit(GOperator gOperator) {
-        XFormula r = gOperator.operand.accept(this);
-        r.formula = new GOperator(r.formula);
-        return r;
+        return visit(gOperator, GOperator::create);
+    }
+
+    @Override
+    public XFormula visit(Literal literal) {
+        return new XFormula(0, literal);
+    }
+
+    @Override
+    public XFormula visit(MOperator mOperator) {
+        return visit(mOperator, MOperator::create);
+    }
+
+    @Override
+    public XFormula visit(ROperator rOperator) {
+        return visit(rOperator, ROperator::create);
     }
 
     @Override
     public XFormula visit(UOperator uOperator) {
-        XFormula r = uOperator.right.accept(this);
-        XFormula l = uOperator.left.accept(this);
-        l.formula = new UOperator(l.toFormula(r.depth), r.toFormula(l.depth));
-        l.depth = Math.min(l.depth, r.depth);
-        return l;
+        return visit(uOperator, UOperator::create);
+    }
+
+    @Override
+    public XFormula visit(WOperator wOperator) {
+        return visit(wOperator, WOperator::create);
     }
 
     @Override
@@ -71,5 +91,19 @@ class PullupXVisitor implements Visitor<XFormula> {
         XFormula r = xOperator.operand.accept(this);
         r.depth++;
         return r;
+    }
+
+    private XFormula visit(BinaryModalOperator operator, BiFunction<Formula, Formula, Formula> constructor) {
+        XFormula right = operator.right.accept(this);
+        XFormula left = operator.left.accept(this);
+        left.formula = constructor.apply(left.toFormula(right.depth), right.toFormula(left.depth));
+        left.depth = Math.min(left.depth, right.depth);
+        return left;
+    }
+
+    private XFormula visit(UnaryModalOperator operator, Function<Formula, Formula> constructor) {
+        XFormula formula = operator.operand.accept(this);
+        formula.formula = constructor.apply(formula.formula);
+        return formula;
     }
 }

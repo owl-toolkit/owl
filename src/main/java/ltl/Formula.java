@@ -20,14 +20,10 @@ package ltl;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
-import java.util.Set;
 
 public interface Formula {
-
-    void accept(VoidVisitor visitor);
 
     int accept(IntVisitor visitor);
 
@@ -58,6 +54,13 @@ public interface Formula {
      */
     Formula temporalStep(BitSet valuation);
 
+    /**
+     * Short-cut operation to avoid intermediate construction of formula ASTs.
+     * @param valuation
+     * @return
+     */
+    Formula temporalStepUnfold(BitSet valuation);
+
     Formula unfold();
 
     /**
@@ -67,10 +70,4 @@ public interface Formula {
      */
     Formula unfoldTemporalStep(BitSet valuation);
 
-    /**
-     * Short-cut operation to avoid intermediate construction of formula ASTs.
-     * @param valuation
-     * @return
-     */
-    Formula temporalStepUnfold(BitSet valuation);
 }

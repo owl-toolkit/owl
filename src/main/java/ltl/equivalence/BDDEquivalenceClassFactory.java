@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import ltl.*;
 import ltl.visitors.AlphabetVisitor;
+import ltl.visitors.DefaultIntVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.collections.Collections3;
@@ -153,7 +154,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         return new BddEquivalenceClass(representative, bdd);
     }
 
-    private class BddVisitor implements IntVisitor {
+    private class BddVisitor extends DefaultIntVisitor {
         @Override
         public int visit(BooleanConstant b) {
             return b.value ? factory.getTrueNode() : factory.getFalseNode();
@@ -184,7 +185,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
-        public int defaultAction(Formula formula) {
+        protected int defaultAction(Formula formula) {
             return getVariable(formula);
         }
     }

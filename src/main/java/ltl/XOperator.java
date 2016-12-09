@@ -20,11 +20,13 @@ package ltl;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
 import java.util.Objects;
 
+/**
+ * Next.
+ */
 public final class XOperator extends UnaryModalOperator {
 
     public XOperator(Formula f) {
@@ -54,11 +56,6 @@ public final class XOperator extends UnaryModalOperator {
     @Override
     public Formula unfoldTemporalStep(BitSet valuation) {
         return temporalStep(valuation);
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override

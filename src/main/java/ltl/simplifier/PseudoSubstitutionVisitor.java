@@ -33,14 +33,14 @@ class PseudoSubstitutionVisitor implements Visitor<Formula> {
     private final Formula toReplace;
     private final BooleanConstant replacement;
 
-    public PseudoSubstitutionVisitor(Formula toReplace, BooleanConstant replacement) {
+    PseudoSubstitutionVisitor(Formula toReplace, BooleanConstant replacement) {
         this.toReplace = toReplace;
         this.replacement = replacement;
     }
 
     @Override
-    public Formula defaultAction(Formula formula) {
-        return formula;
+    public Formula visit(BooleanConstant booleanConstant) {
+        return booleanConstant;
     }
 
     @Override
@@ -105,6 +105,11 @@ class PseudoSubstitutionVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(FrequencyG freq) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Formula visit(GOperator g) {
         if (toReplace.equals(g) || (!replacement.value && g.operand.equals(toReplace))) {
             return replacement;
@@ -123,12 +128,22 @@ class PseudoSubstitutionVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(MOperator mOperator) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Formula visit(UOperator u) {
         if (u.equals(toReplace) || (u.right.equals(toReplace) && replacement.value)) {
             return replacement;
         }
 
         return u;
+    }
+
+    @Override
+    public Formula visit(WOperator wOperator) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -31,8 +31,38 @@ public final class XFragmentPredicate implements Predicate<Formula>, Visitor<Boo
     }
 
     @Override
-    public Boolean defaultAction(Formula formula) {
-        return Boolean.FALSE;
+    public Boolean visit(FOperator fOperator) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(FrequencyG freq) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(GOperator gOperator) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(MOperator mOperator) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(ROperator rOperator) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(UOperator uOperator) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(WOperator wOperator) {
+        return false;
     }
 
     @Override

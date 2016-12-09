@@ -20,9 +20,10 @@ package ltl.visitors;
 import ltl.*;
 
 public abstract class DefaultConverter implements Visitor<Formula> {
+
     @Override
-    public Formula defaultAction(Formula formula) {
-        return formula;
+    public Formula visit(BooleanConstant booleanConstant) {
+        return booleanConstant;
     }
 
     @Override
@@ -46,6 +47,16 @@ public abstract class DefaultConverter implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(Literal literal) {
+        return literal;
+    }
+
+    @Override
+    public Formula visit(MOperator mOperator) {
+        return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+    }
+
+    @Override
     public Formula visit(FrequencyG freq) {
         return new FrequencyG(freq.operand.accept(this), freq.bound, freq.cmp, freq.limes);
     }
@@ -53,6 +64,11 @@ public abstract class DefaultConverter implements Visitor<Formula> {
     @Override
     public Formula visit(UOperator uOperator) {
         return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+    }
+
+    @Override
+    public Formula visit(WOperator wOperator) {
+        return WOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
     }
 
     @Override

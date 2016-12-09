@@ -20,7 +20,6 @@ package ltl;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
 
@@ -63,11 +62,6 @@ public final class Literal extends ImmutableObject implements Formula {
     @Override
     public Formula unfoldTemporalStep(BitSet valuation) {
         return temporalStep(valuation);
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override

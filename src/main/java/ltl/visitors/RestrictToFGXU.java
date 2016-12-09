@@ -28,4 +28,12 @@ public class RestrictToFGXU extends DefaultConverter {
 
         return Disjunction.create(GOperator.create(right), UOperator.create(right, Conjunction.create(left, right)));
     }
+
+    @Override
+    public Formula visit(WOperator wOperator) {
+        Formula left = wOperator.left.accept(this);
+        Formula right = wOperator.right.accept(this);
+
+        return Disjunction.create(GOperator.create(left), UOperator.create(left, right));
+    }
 }

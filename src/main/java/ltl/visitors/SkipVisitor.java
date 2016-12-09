@@ -28,11 +28,6 @@ public class SkipVisitor implements Visitor<Formula> {
     }
 
     @Override
-    public Formula defaultAction(Formula formula) {
-        throw new IllegalStateException("Unreachable Code.");
-    }
-
-    @Override
     public Formula visit(BooleanConstant booleanConstant) {
         return booleanConstant;
     }
@@ -53,6 +48,11 @@ public class SkipVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(FrequencyG freq) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Formula visit(GOperator gOperator) {
         return GOperator.create(gOperator.operand.accept(visitor));
     }
@@ -63,8 +63,18 @@ public class SkipVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(MOperator mOperator) {
+        return MOperator.create(mOperator.left.accept(visitor), mOperator.right.accept(visitor));
+    }
+
+    @Override
     public Formula visit(UOperator uOperator) {
         return UOperator.create(uOperator.left.accept(visitor), uOperator.right.accept(visitor));
+    }
+
+    @Override
+    public Formula visit(WOperator wOperator) {
+        return WOperator.create(wOperator.left.accept(visitor), wOperator.right.accept(visitor));
     }
 
     @Override

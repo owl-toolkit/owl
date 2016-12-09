@@ -20,7 +20,6 @@ package ltl;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import javax.annotation.Nonnull;
 import java.util.BitSet;
@@ -64,11 +63,6 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     @Override
     public Formula unfoldTemporalStep(BitSet valuation) {
         return this;
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override

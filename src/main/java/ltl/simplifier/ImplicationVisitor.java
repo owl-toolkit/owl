@@ -168,6 +168,11 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
     }
 
     @Override
+    public Boolean visit(MOperator m, Formula extra) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Boolean visit(UOperator u, Formula fo) {
         if (u.equals(fo) || fo.equals(BooleanConstant.TRUE)) {
             return Boolean.TRUE;
@@ -218,6 +223,11 @@ class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
         }
 
         return false;
+    }
+
+    @Override
+    public Boolean visit(WOperator w, Formula extra) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

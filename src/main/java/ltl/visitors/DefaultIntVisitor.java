@@ -18,88 +18,70 @@
 package ltl.visitors;
 
 import ltl.*;
+import ltl.Formula;
 
-public class AlphabetVisitor implements IntVisitor {
+public abstract class DefaultIntVisitor implements IntVisitor {
 
-    private static final AlphabetVisitor INSTANCE = new AlphabetVisitor();
-
-    private AlphabetVisitor() {
-
-    }
-
-    public static int extractAlphabet(Formula formula) {
-        return formula.accept(INSTANCE);
-    }
+    protected abstract int defaultAction(Formula formula);
 
     @Override
-    public int visit(BooleanConstant formula) {
-        return 0;
+    public int visit(BooleanConstant booleanConstant) {
+        return defaultAction(booleanConstant);
     }
 
     @Override
     public int visit(Conjunction conjunction) {
-        return visit((PropositionalFormula) conjunction);
+        return defaultAction(conjunction);
     }
 
     @Override
     public int visit(Disjunction disjunction) {
-        return visit((PropositionalFormula) disjunction);
+        return defaultAction(disjunction);
     }
 
     @Override
     public int visit(FOperator fOperator) {
-        return visit((UnaryModalOperator) fOperator);
+        return defaultAction(fOperator);
     }
 
     @Override
     public int visit(FrequencyG freq) {
-        return visit((UnaryModalOperator) freq);
+        return defaultAction(freq);
     }
 
     @Override
     public int visit(GOperator gOperator) {
-        return visit((UnaryModalOperator) gOperator);
+        return defaultAction(gOperator);
     }
 
     @Override
     public int visit(Literal literal) {
-        return literal.getAtom() + 1;
+        return defaultAction(literal);
     }
 
     @Override
     public int visit(MOperator mOperator) {
-        return visit((BinaryModalOperator) mOperator);
+        return defaultAction(mOperator);
     }
 
     @Override
     public int visit(ROperator rOperator) {
-        return visit((BinaryModalOperator) rOperator);
+        return defaultAction(rOperator);
     }
 
     @Override
     public int visit(UOperator uOperator) {
-        return visit((BinaryModalOperator) uOperator);
+        return defaultAction(uOperator);
     }
 
     @Override
     public int visit(WOperator wOperator) {
-        return visit((BinaryModalOperator) wOperator);
+        return defaultAction(wOperator);
     }
 
     @Override
     public int visit(XOperator xOperator) {
-        return visit((UnaryModalOperator) xOperator);
+        return defaultAction(xOperator);
     }
 
-    private int visit(BinaryModalOperator operator) {
-        return Math.max(operator.left.accept(this), operator.right.accept(this));
-    }
-
-    private int visit(PropositionalFormula formula) {
-        return formula.children.stream().mapToInt(c -> c.accept(this)).max().orElse(0);
-    }
-
-    private int visit(UnaryModalOperator operator) {
-        return operator.operand.accept(this);
-    }
 }
