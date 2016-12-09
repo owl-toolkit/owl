@@ -60,13 +60,18 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         volatileComponents = new HashMap<>();
 
+        int components = 0;
+
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
-            if (value.initialStates.length == 0) {
-                volatileComponents.put(value, volatileComponents.size());
+            // TODO: make sure that there is at most one component for each recurring obligation.
+            if (value.initialStates.length == 0 && !volatileComponents.containsKey(value)) {
+                volatileComponents.put(value, components);
+                components = components + 1;
             }
         }
 
-        volatileMaxIndex = volatileComponents.size() + 100;
+        volatileMaxIndex = components;
+        assert volatileMaxIndex == volatileComponents.size();
 
         if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
             trie = new HashMap<>();
@@ -81,12 +86,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
     }
 
     private int distance(int base, int index) {
-        if (index == -1) {
-            return Integer.MAX_VALUE;
-        }
-
         if (base >= index) {
-            index += volatileMaxIndex;
+            index += volatileMaxIndex + 1;
         }
 
         return index - base;
@@ -123,9 +124,13 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             if (trie != null) {
                 trie.computeIfAbsent(state, x -> new Trie<>()).add(acceptingComponentRanking);
             }
+
+            assert (volatileMaxIndex == 0 && volatileIndex == 0)  || (0 <= volatileIndex && volatileIndex < volatileMaxIndex);
         }
 
         private State(InitialComponent.State state, ImmutableList<AcceptingComponent.State> ranking, int volatileIndex) {
+            assert (volatileMaxIndex == 0 && volatileIndex == 0)  || (0 <= volatileIndex && volatileIndex < volatileMaxIndex);
+
             this.volatileIndex = volatileIndex;
             initialComponentState = state;
             acceptingComponentRanking = ranking;
@@ -168,16 +173,10 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
         */
 
         private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking) {
-            return appendJumps(state, ranking, Collections.emptyMap(), true, -1);
+            return appendJumps(state, ranking, Collections.emptyMap(), -1);
         }
 
-        // TODO: Enable annotation @Nonnegative
-        private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<RecurringObligations, EquivalenceClass> existingClasses, boolean findNewVolatile, int currentVolatileIndex) {
-            // There is still a volatile component active. Let's wait and see.
-            if (!findNewVolatile) {
-                return 0;
-            }
-
+        private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<RecurringObligations, EquivalenceClass> existingClasses, int currentVolatileIndex) {
             List<AcceptingComponent.State> pureEventual = new ArrayList<>();
             List<AcceptingComponent.State> mixed = new ArrayList<>();
             AcceptingComponent.State nextVolatileState = null;
@@ -288,7 +287,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             // Default rejecting color.
             int edgeColor = 2 * acceptingComponentRanking.size();
             List<AcceptingComponent.State> ranking = new ArrayList<>(acceptingComponentRanking.size());
-            Integer volatileIndex = null;
+            boolean activeVolatileComponent = false;
+            int nextVolatileIndex = 0;
             int index = -1;
 
             for (AcceptingComponent.State current : acceptingComponentRanking) {
@@ -304,7 +304,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 RecurringObligations obligations = rankingSuccessor.getObligations();
                 EquivalenceClass existingClass = existingClasses.get(obligations);
 
-                if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass)) {
+                if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass) || (activeVolatileComponent && isVolatileComponent(rankingSuccessor))) {
                     edgeColor = Math.min(2 * index, edgeColor);
                     continue;
                 }
@@ -312,9 +312,9 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
                 ranking.add(rankingSuccessor);
 
-                if (volatileIndex == null && volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
-                    //assert rankingSuccessor.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
-                    volatileIndex = volatileComponents.get(obligations);
+                if (isVolatileComponent(rankingSuccessor)) {
+                    activeVolatileComponent = true;
+                    nextVolatileIndex = volatileComponents.get(obligations);
                 }
 
                 if (edge.inAcceptanceSet(0)) {
@@ -323,7 +323,9 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 }
             }
 
-            int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, volatileIndex == null, this.volatileIndex);
+            if (!activeVolatileComponent) {
+                nextVolatileIndex = appendJumps(successor, ranking, existingClasses, volatileIndex);
+            }
 
             BitSet acc = new BitSet();
             acc.set(edgeColor);
@@ -335,7 +337,11 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
             existingClasses.forEach((x, y) -> y.free());
 
-            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), volatileIndex != null ? volatileIndex : nextVolatileIndex), acc);
+            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), nextVolatileIndex), acc);
+        }
+
+        private boolean isVolatileComponent(AcceptingComponent.State state) {
+            return volatileComponents.containsKey(state.getObligations()) && state.getCurrent().isTrue();
         }
 
         @Override

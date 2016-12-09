@@ -90,7 +90,6 @@ pmd {
     ruleSets = [
         "java-basic",
         "java-braces",
-        "java-unnecessary"
     ]
 }
 
