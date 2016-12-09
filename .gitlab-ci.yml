@@ -4,45 +4,50 @@ before_script:
 build:
   stage: build
   script:
-    - ./gradlew --refresh-dependencies build
+    - ./gradlew --refresh-dependencies --no-daemon build
   artifacts:
     paths:
     - build/reports/
     when: on_failure
     expire_in: 1 week
 
-.ltlcross: 
-  script: &ltlcross_script
+.ltlcross: &ltlcross_template
+  script: 
     - JAVA_OPTS="-enableassertions"
     - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
-    - ./gradlew distTar
+    - ./gradlew --no-daemon distTar
     - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --stop-on-error --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=build/reports/debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=build/reports/debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=build/reports/debug.ltl --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
     - randltl --seed=12345 -n 10 a b c d e f --tree-size=5..25 | ltlfilt --nnf | ltlcross --stop-on-error --timeout=300 "$SPOT_TOOL" "$LTL_TOOL"
+  artifacts:
+    paths:
+    - build/reports/
+    when: on_failure
+    expire_in: 1 week
 
 test:ltl2ldba:
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba %f >%O"
-  script: *ltlcross_script
+  <<: *ltlcross_template
 
 test:ltl2ldgba:
   variables:
     LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba %f >%O"
-  script: *ltlcross_script
+  <<: *ltlcross_template
 
 test:ltl2parity:
   variables:
     LTL_TOOL: "{ltl2parity} build/bin/ltl2parity %f >%O"
-  script: *ltlcross_script
+  <<: *ltlcross_template
 
 test:ltl2parity-parallel:
   variables:
     LTL_TOOL: "{ltl2parity} build/bin/ltl2parity --parallel %f >%O"
-  script: *ltlcross_script
+  <<: *ltlcross_template
 
 test:ltl2det-parallel:
   variables:
     LTL_TOOL: "{ltl2det} build/bin/ltl2det --parallel %f >%O"
-  script: *ltlcross_script
+  <<: *ltlcross_template
