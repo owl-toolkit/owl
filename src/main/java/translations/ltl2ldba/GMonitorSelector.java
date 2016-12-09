@@ -159,13 +159,7 @@ class GMonitorSelector {
                 state.getSupport().forEach(x -> {
                     Collector collector = new Collector(INFINITY_OPERATORS);
                     x.accept(collector);
-                    collector.getCollection().forEach(y -> {
-                        if (y instanceof ROperator) {
-                            Gs.add(new GOperator(((ROperator) y).right));
-                        } else {
-                            Gs.add((GOperator) y);
-                        }
-                    });
+                    Gs.addAll(normaliseInfinityOperators(collector.getCollection()));
                 });
 
                 if (!sets.contains(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
@@ -181,84 +175,4 @@ class GMonitorSelector {
         return selectMonitors(state.getClazz(), false);
     }
 
-    private static final UnguardedLiterals UNGUARDED_LITERALS = new UnguardedLiterals();
-    private static final GuardedLiterals GUARDED_LITERALS = new GuardedLiterals();
-
-    // An guarded literal is within the scope of an G or R - operator.
-    private static BitSet getGuardedLiterals(Iterable<? extends Formula> formulas) {
-        BitSet literals = new BitSet();
-        formulas.forEach(x -> literals.or(x.accept(GUARDED_LITERALS)));
-        return literals;
-    }
-
-    private static BitSet getUnguardedLiterals(Iterable<? extends Formula> formulas) {
-        BitSet literals = new BitSet();
-        formulas.forEach(x -> literals.or(x.accept(UNGUARDED_LITERALS)));
-        return literals;
-    }
-
-    private static final BitSet EMPTY = new BitSet();
-
-    private static class UnguardedLiterals implements Visitor<BitSet> {
-
-        @Override
-        public BitSet defaultAction(Formula formula) {
-            Collector collector = new Collector(Literal.class::isInstance);
-            formula.accept(collector);
-            BitSet set = new BitSet();
-            collector.getCollection().forEach(f -> set.set(((Literal) f).getAtom()));
-            return set;
-        }
-
-        @Override
-        public BitSet visit(GOperator fOperator) {
-            return EMPTY;
-        }
-
-        @Override
-        public BitSet visit(ROperator rOperator) {
-            return defaultAction(rOperator.left);
-        }
-    }
-
-    private static class GuardedLiterals implements Visitor<BitSet> {
-
-        @Override
-        public BitSet defaultAction(Formula formula) {
-            throw new AssertionError("Unreachable Code.");
-        }
-
-        @Override
-        public BitSet visit(FOperator fOperator) {
-            return EMPTY;
-        }
-
-        @Override
-        public BitSet visit(GOperator gOperator) {
-            Collector collector = new Collector(Literal.class::isInstance);
-            gOperator.operand.accept(collector);
-            BitSet set = new BitSet();
-            collector.getCollection().forEach(f -> set.set(((Literal) f).getAtom()));
-            return set;
-        }
-
-        @Override
-        public BitSet visit(UOperator uOperator) {
-            return EMPTY;
-        }
-
-        @Override
-        public BitSet visit(ROperator rOperator) {
-            Collector collector = new Collector(Literal.class::isInstance);
-            rOperator.right.accept(collector);
-            BitSet set = new BitSet();
-            collector.getCollection().forEach(f -> set.set(((Literal) f).getAtom()));
-            return set;
-        }
-
-        @Override
-        public BitSet visit(XOperator xOperator) {
-            return EMPTY;
-        }
-    }
 }

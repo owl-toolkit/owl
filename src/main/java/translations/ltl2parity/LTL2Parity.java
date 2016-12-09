@@ -171,14 +171,13 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
 
         if (decompose) {
-            Visitor<Void> visitor = new DecomposeVisitor(translation, mapping);
-            formula.accept(visitor);
+            throw new UnsupportedOperationException();
         } else {
             translation.apply(formula).toHOA(new HOAConsumerPrint(System.out), mapping, options);
         }
     }
 
-    private final static class DecomposeVisitor implements Visitor<Void> {
+    private abstract static class DecomposeVisitor implements Visitor<Void> {
 
         private final BiMap<String, Integer> mapping;
         private final LTL2Parity translation;
@@ -189,7 +188,6 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
             this.mapping = mapping;
         }
 
-        @Override
         public Void defaultAction(Formula formula) {
             id++;
 

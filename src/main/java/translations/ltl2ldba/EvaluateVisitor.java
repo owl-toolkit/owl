@@ -64,8 +64,7 @@ class EvaluateVisitor implements Visitor<Formula> {
         return booleanConstant;
     }
 
-    @Override
-    public Formula defaultAction(Formula formula) {
+    private Formula defaultAction(Formula formula) {
         if (universalTruths.contains(formula)) {
             return BooleanConstant.TRUE;
         }
@@ -118,8 +117,18 @@ class EvaluateVisitor implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(FrequencyG freq) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Formula visit(GOperator gOperator) {
         return BooleanConstant.get(universalTruths.contains(gOperator.operand));
+    }
+
+    @Override
+    public Formula visit(Literal literal) {
+        return defaultAction(literal);
     }
 
     @Override
