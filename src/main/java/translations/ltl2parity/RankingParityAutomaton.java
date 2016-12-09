@@ -67,7 +67,6 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
         }
 
         volatileMaxIndex = volatileComponents.size() + 1;
-        System.out.println(volatileComponents.toString());
 
         if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
             trie = new HashMap<>();
