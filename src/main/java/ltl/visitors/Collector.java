@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class Collector implements VoidVisitor {
+public class Collector implements IntVisitor {
 
     private final Predicate<Formula> collect;
     private final Set<Formula> collection;
@@ -39,67 +39,90 @@ public class Collector implements VoidVisitor {
     }
 
     @Override
-    public void visit(Conjunction conjunction) {
-        conjunction.children.forEach(c -> c.accept(this));
+    public int visit(BooleanConstant booleanConstant) {
+        return 0;
     }
 
     @Override
-    public void visit(Disjunction disjunction) {
-        disjunction.children.forEach(c -> c.accept(this));
+    public int visit(Conjunction conjunction) {
+        return visit((PropositionalFormula) conjunction);
     }
 
     @Override
-    public void visit(FOperator fOperator) {
-        if (collect.test(fOperator)) {
-            collection.add(fOperator);
-        }
-
-        fOperator.operand.accept(this);
+    public int visit(Disjunction disjunction) {
+        return visit((PropositionalFormula) disjunction);
     }
 
     @Override
-    public void visit(GOperator gOperator) {
-        if (collect.test(gOperator)) {
-            collection.add(gOperator);
-        }
-
-        gOperator.operand.accept(this);
+    public int visit(FOperator fOperator) {
+        return visit((UnaryModalOperator) fOperator);
     }
 
     @Override
-    public void visit(Literal literal) {
+    public int visit(FrequencyG freq) {
+        return visit((UnaryModalOperator) freq);
+    }
+
+    @Override
+    public int visit(GOperator gOperator) {
+        return visit((UnaryModalOperator) gOperator);
+    }
+
+    @Override
+    public int visit(Literal literal) {
         if (collect.test(literal)) {
             collection.add(literal);
         }
+
+        return 0;
     }
 
     @Override
-    public void visit(ROperator rOperator) {
-        if (collect.test(rOperator)) {
-            collection.add(rOperator);
-        }
-
-        rOperator.left.accept(this);
-        rOperator.right.accept(this);
+    public int visit(MOperator mOperator) {
+        return visit((BinaryModalOperator) mOperator);
     }
 
     @Override
-    public void visit(UOperator uOperator) {
-        if (collect.test(uOperator)) {
-            collection.add(uOperator);
-        }
-
-        uOperator.left.accept(this);
-        uOperator.right.accept(this);
+    public int visit(ROperator rOperator) {
+        return visit((BinaryModalOperator) rOperator);
     }
 
     @Override
-    public void visit(XOperator xOperator) {
-        if (collect.test(xOperator)) {
-            collection.add(xOperator);
-        }
-
-        xOperator.operand.accept(this);
+    public int visit(UOperator uOperator) {
+        return visit((BinaryModalOperator) uOperator);
     }
 
+    @Override
+    public int visit(WOperator wOperator) {
+        return visit((BinaryModalOperator) wOperator);
+    }
+
+    @Override
+    public int visit(XOperator xOperator) {
+        return visit((UnaryModalOperator) xOperator);
+    }
+
+    private int visit(BinaryModalOperator operator) {
+        if (collect.test(operator)) {
+            collection.add(operator);
+        }
+
+        operator.left.accept(this);
+        operator.right.accept(this);
+        return 0;
+    }
+
+    private int visit(PropositionalFormula formula) {
+        formula.children.forEach(c -> c.accept(this));
+        return 0;
+    }
+
+    private int visit(UnaryModalOperator operator) {
+        if (collect.test(operator)) {
+            collection.add(operator);
+        }
+
+        operator.operand.accept(this);
+        return 0;
+    }
 }

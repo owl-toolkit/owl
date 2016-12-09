@@ -20,21 +20,27 @@ package ltl.visitors;
 import ltl.*;
 
 public interface BinaryVisitor<A, B> {
-    A visit(BooleanConstant b, B fo);
 
-    A visit(Conjunction c, B fo);
+    A visit(BooleanConstant b, B extra);
 
-    A visit(Disjunction b, B fo);
+    A visit(Conjunction c, B extra);
 
-    A visit(FOperator f, B fo);
+    A visit(Disjunction b, B extra);
 
-    A visit(GOperator g, B fo);
+    A visit(FOperator f, B extra);
 
-    A visit(Literal l, B fo);
+    A visit(GOperator g, B extra);
 
-    A visit(UOperator u, B fo);
+    A visit(Literal l, B extra);
 
-    A visit(ROperator r, B fo);
+    A visit(MOperator m, B extra);
 
-    A visit(XOperator x, B fo);
+    A visit(UOperator u, B extra);
+
+    A visit(ROperator r, B extra);
+
+    A visit(WOperator w, B extra);
+
+    A visit(XOperator x, B extra);
+
 }

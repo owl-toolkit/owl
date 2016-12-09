@@ -45,6 +45,11 @@ class ModalSimplifier implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(FrequencyG freq) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Formula visit(GOperator gOperator) {
         Formula operand = gOperator.operand.accept(this);
 
@@ -62,6 +67,19 @@ class ModalSimplifier implements Visitor<Formula> {
     }
 
     @Override
+    public Formula visit(Literal literal) {
+        return literal;
+    }
+
+    @Override
+    public Formula visit(MOperator mOperator) {
+        Formula left = mOperator.left.accept(this);
+        Formula right = mOperator.right.accept(this);
+
+        return MOperator.create(left, right);
+    }
+
+    @Override
     public Formula visit(UOperator uOperator) {
         Formula left = uOperator.left.accept(this);
         Formula right = uOperator.right.accept(this);
@@ -75,6 +93,14 @@ class ModalSimplifier implements Visitor<Formula> {
         }
 
         return UOperator.create(left, right);
+    }
+
+    @Override
+    public Formula visit(WOperator wOperator) {
+        Formula left = wOperator.left.accept(this);
+        Formula right = wOperator.right.accept(this);
+
+        return WOperator.create(left, right);
     }
 
     @Override
@@ -103,6 +129,11 @@ class ModalSimplifier implements Visitor<Formula> {
         }
 
         return new XOperator(operand);
+    }
+
+    @Override
+    public Formula visit(BooleanConstant booleanConstant) {
+        return booleanConstant;
     }
 
     @Override
@@ -163,10 +194,5 @@ class ModalSimplifier implements Visitor<Formula> {
         }
 
         return d;
-    }
-
-    @Override
-    public Formula defaultAction(Formula formula) {
-        return formula;
     }
 }

@@ -21,21 +21,22 @@ import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
+import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.Objects;
 
 /**
- * Weak Release.
+ * Strong Release.
  */
-public final class ROperator extends BinaryModalOperator {
+public final class MOperator extends BinaryModalOperator {
 
-    public ROperator(Formula left, Formula right) {
+    public MOperator(Formula left, Formula right) {
         super(left, right);
     }
 
     @Override
     protected char getOperator() {
-        return 'R';
+        return 'M';
     }
 
     @Override
@@ -49,8 +50,8 @@ public final class ROperator extends BinaryModalOperator {
     }
 
     @Override
-    public UOperator not() {
-        return new UOperator(left.not(), right.not());
+    public WOperator not() {
+        return new WOperator(left.not(), right.not());
     }
 
     @Override
@@ -64,32 +65,36 @@ public final class ROperator extends BinaryModalOperator {
     }
 
     @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
+    public <A, B> A accept(BinaryVisitor<A, B> v, B f) {
+        return v.visit(this, f);
     }
 
     @Override
     public boolean isPureEventual() {
-        return left.isPureEventual() && right.isPureEventual();
+        return false;
     }
 
     @Override
     public boolean isPureUniversal() {
-        return right.isPureUniversal();
+        return false;
     }
 
     @Override
     public boolean isSuspendable() {
-        return right.isSuspendable();
+        return false;
     }
 
     @Override
     protected int hashCodeOnce() {
-        return Objects.hash(ROperator.class, left, right);
+        return Objects.hash(MOperator.class, left, right);
     }
 
-    public static Formula create(Formula left, Formula right) {
-        if (left == BooleanConstant.TRUE || right instanceof BooleanConstant) {
+    public static Formula create(@Nonnull Formula left, @Nonnull Formula right) {
+        if (left == BooleanConstant.FALSE || right == BooleanConstant.FALSE) {
+            return BooleanConstant.FALSE;
+        }
+
+        if (left == BooleanConstant.TRUE) {
             return right;
         }
 
@@ -97,11 +102,11 @@ public final class ROperator extends BinaryModalOperator {
             return left;
         }
 
-        if (left == BooleanConstant.FALSE) {
-            return GOperator.create(right);
+        if (right == BooleanConstant.TRUE) {
+            return FOperator.create(left);
         }
 
-        return new ROperator(left, right);
+        return new MOperator(left, right);
     }
 
 }

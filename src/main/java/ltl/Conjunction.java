@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -43,11 +42,6 @@ public final class Conjunction extends PropositionalFormula {
     @Override
     public Formula not() {
         return new Disjunction(children.stream().map(Formula::not));
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override

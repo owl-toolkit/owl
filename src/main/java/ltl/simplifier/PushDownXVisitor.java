@@ -63,6 +63,11 @@ class PushDownXVisitor implements BinaryVisitor<Formula, Integer> {
     }
 
     @Override
+    public Formula visit(MOperator m, Integer extra) {
+        return MOperator.create(m.left.accept(this, extra), m.right.accept(this, extra));
+    }
+
+    @Override
     public Formula visit(UOperator u, Integer fo) {
         return UOperator.create(u.left.accept(this, fo), u.right.accept(this, fo));
     }
@@ -70,6 +75,11 @@ class PushDownXVisitor implements BinaryVisitor<Formula, Integer> {
     @Override
     public Formula visit(ROperator r, Integer fo) {
         return ROperator.create(r.left.accept(this, fo), r.right.accept(this, fo));
+    }
+
+    @Override
+    public Formula visit(WOperator w, Integer extra) {
+        return WOperator.create(w.left.accept(this, extra), w.right.accept(this, extra));
     }
 
     @Override

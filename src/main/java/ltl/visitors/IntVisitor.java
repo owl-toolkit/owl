@@ -22,45 +22,28 @@ import ltl.*;
 
 public interface IntVisitor {
 
-    int defaultAction(Formula formula);
+    int visit(BooleanConstant booleanConstant);
 
-    default int visit(BooleanConstant booleanConstant) {
-        return defaultAction(booleanConstant);
-    }
+    int visit(Conjunction conjunction);
 
-    default int visit(Conjunction conjunction) {
-        return defaultAction(conjunction);
-    }
+    int visit(Disjunction disjunction);
 
-    default int visit(Disjunction disjunction) {
-        return defaultAction(disjunction);
-    }
+    int visit(FOperator fOperator);
 
-    default int visit(FOperator fOperator) {
-        return defaultAction(fOperator);
-    }
+    int visit(FrequencyG freq);
 
-    default int visit(GOperator gOperator) {
-        return defaultAction(gOperator);
-    }
+    int visit(GOperator gOperator);
 
-    default int visit(FrequencyG freq) {
-        return defaultAction(freq);
-    }
+    int visit(Literal literal);
 
-    default int visit(Literal literal) {
-        return defaultAction(literal);
-    }
+    int visit(MOperator mOperator);
 
-    default int visit(UOperator uOperator) {
-        return defaultAction(uOperator);
-    }
+    int visit(ROperator rOperator);
 
-    default int visit(ROperator rOperator) {
-        return defaultAction(rOperator);
-    }
+    int visit(UOperator uOperator);
 
-    default int visit(XOperator xOperator) {
-        return defaultAction(xOperator);
-    }
+    int visit(WOperator wOperator);
+
+    int visit(XOperator xOperator);
+
 }

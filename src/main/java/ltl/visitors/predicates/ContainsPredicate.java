@@ -29,11 +29,6 @@ public final class ContainsPredicate implements Visitor<Boolean> {
     }
 
     @Override
-    public Boolean defaultAction(Formula formula) {
-         throw new AssertionError();
-    }
-
-    @Override
     public Boolean visit(BooleanConstant booleanConstant) {
         return clazz.equals(BooleanConstant.class);
     }
@@ -69,6 +64,11 @@ public final class ContainsPredicate implements Visitor<Boolean> {
     }
 
     @Override
+    public Boolean visit(MOperator mOperator) {
+        return clazz.equals(MOperator.class) || mOperator.left.accept(this) || mOperator.right.accept(this);
+    }
+
+    @Override
     public Boolean visit(ROperator rOp) {
         return clazz.equals(ROperator.class) || rOp.left.accept(this) || rOp.right.accept(this);
     }
@@ -76,6 +76,11 @@ public final class ContainsPredicate implements Visitor<Boolean> {
     @Override
     public Boolean visit(UOperator uOperator) {
         return clazz.equals(UOperator.class) || uOperator.left.accept(this) || uOperator.right.accept(this);
+    }
+
+    @Override
+    public Boolean visit(WOperator wOperator) {
+        return clazz.equals(WOperator.class) || wOperator.left.accept(this) || wOperator.right.accept(this);
     }
 
     @Override

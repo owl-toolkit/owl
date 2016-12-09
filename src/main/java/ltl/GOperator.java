@@ -20,11 +20,13 @@ package ltl;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
 import java.util.Objects;
 
+/**
+ * Globally.
+ */
 public class GOperator extends UnaryModalOperator {
 
     public GOperator(Formula f) {
@@ -49,11 +51,6 @@ public class GOperator extends UnaryModalOperator {
     @Override
     public UnaryModalOperator not() {
         return new FOperator(operand.not());
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override

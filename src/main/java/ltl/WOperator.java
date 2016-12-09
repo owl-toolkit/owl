@@ -25,32 +25,32 @@ import java.util.BitSet;
 import java.util.Objects;
 
 /**
- * Weak Release.
+ * Weak Until.
  */
-public final class ROperator extends BinaryModalOperator {
+public final class WOperator extends BinaryModalOperator {
 
-    public ROperator(Formula left, Formula right) {
+    public WOperator(Formula left, Formula right) {
         super(left, right);
     }
 
     @Override
     protected char getOperator() {
-        return 'R';
+        return 'W';
     }
 
     @Override
     public Formula unfold() {
-        return new Conjunction(right.unfold(), new Disjunction(left.unfold(), this));
+        return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
     }
 
     @Override
     public Formula unfoldTemporalStep(BitSet valuation) {
-        return Conjunction.create(right.unfoldTemporalStep(valuation), Disjunction.create(left.unfoldTemporalStep(valuation), this));
+        return Disjunction.create(right.unfoldTemporalStep(valuation), Conjunction.create(left.unfoldTemporalStep(valuation), this));
     }
 
     @Override
-    public UOperator not() {
-        return new UOperator(left.not(), right.not());
+    public MOperator not() {
+        return new MOperator(left.not(), right.not());
     }
 
     @Override
@@ -64,32 +64,36 @@ public final class ROperator extends BinaryModalOperator {
     }
 
     @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
+    public <A, B> A accept(BinaryVisitor<A, B> v, B f) {
+        return v.visit(this, f);
     }
 
     @Override
     public boolean isPureEventual() {
-        return left.isPureEventual() && right.isPureEventual();
+        return false;
     }
 
     @Override
     public boolean isPureUniversal() {
-        return right.isPureUniversal();
+        return false;
     }
 
     @Override
     public boolean isSuspendable() {
-        return right.isSuspendable();
+        return false;
     }
 
     @Override
     protected int hashCodeOnce() {
-        return Objects.hash(ROperator.class, left, right);
+        return Objects.hash(WOperator.class, left, right);
     }
 
     public static Formula create(Formula left, Formula right) {
-        if (left == BooleanConstant.TRUE || right instanceof BooleanConstant) {
+        if (left == BooleanConstant.TRUE || right == BooleanConstant.TRUE) {
+            return BooleanConstant.TRUE;
+        }
+
+        if (left == BooleanConstant.FALSE) {
             return right;
         }
 
@@ -97,11 +101,11 @@ public final class ROperator extends BinaryModalOperator {
             return left;
         }
 
-        if (left == BooleanConstant.FALSE) {
-            return GOperator.create(right);
+        if (right == BooleanConstant.FALSE) {
+            return GOperator.create(left);
         }
 
-        return new ROperator(left, right);
+        return new WOperator(left, right);
     }
 
 }

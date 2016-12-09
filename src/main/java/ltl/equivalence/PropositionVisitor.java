@@ -18,7 +18,7 @@
 package ltl.equivalence;
 
 import ltl.*;
-import ltl.visitors.VoidVisitor;
+import ltl.visitors.IntVisitor;
 
 import java.util.*;
 
@@ -26,9 +26,11 @@ import java.util.*;
  * For the propositional view on LTL modal operators (F, G, U, X) and
  * literals (a, !a) are treated as propositions.
  *
+ * TODO: Extract alphabet.
+ *
  * @return
  */
-class PropositionVisitor implements VoidVisitor {
+class PropositionVisitor implements IntVisitor {
 
     private final Deque<Formula> mapping;
 
@@ -43,49 +45,81 @@ class PropositionVisitor implements VoidVisitor {
     }
 
     @Override
-    public void visit(Conjunction conjunction) {
-        conjunction.children.forEach(c -> c.accept(this));
+    public int visit(BooleanConstant formula) {
+        return 0;
     }
 
     @Override
-    public void visit(Disjunction disjunction) {
-        disjunction.children.forEach(c -> c.accept(this));
+    public int visit(Conjunction conjunction) {
+        return visit((PropositionalFormula) conjunction);
     }
 
     @Override
-    public void visit(FOperator fOperator) {
-        fOperator.operand.accept(this);
-        mapping.add(fOperator);
+    public int visit(Disjunction disjunction) {
+        return visit((PropositionalFormula) disjunction);
     }
 
     @Override
-    public void visit(GOperator gOperator) {
-        gOperator.operand.accept(this);
-        mapping.add(gOperator);
+    public int visit(FOperator fOperator) {
+        return visit((UnaryModalOperator) fOperator);
     }
 
     @Override
-    public void visit(Literal literal) {
+    public int visit(FrequencyG freq) {
+        return visit((UnaryModalOperator) freq);
+    }
+
+    @Override
+    public int visit(GOperator gOperator) {
+        return visit((UnaryModalOperator) gOperator);
+    }
+
+    @Override
+    public int visit(Literal literal) {
         mapping.add(literal);
+        return 0;
     }
 
     @Override
-    public void visit(ROperator rOperator) {
-        rOperator.left.accept(this);
-        rOperator.right.accept(this);
-        mapping.add(rOperator);
+    public int visit(MOperator mOperator) {
+        return visit((BinaryModalOperator) mOperator);
     }
 
     @Override
-    public void visit(UOperator uOperator) {
-        uOperator.left.accept(this);
-        uOperator.right.accept(this);
-        mapping.add(uOperator);
+    public int visit(ROperator rOperator) {
+        return visit((BinaryModalOperator) rOperator);
     }
 
     @Override
-    public void visit(XOperator xOperator) {
-        xOperator.operand.accept(this);
-        mapping.add(xOperator);
+    public int visit(UOperator uOperator) {
+        return visit((BinaryModalOperator) uOperator);
+    }
+
+    @Override
+    public int visit(WOperator wOperator) {
+        return visit((BinaryModalOperator) wOperator);
+    }
+
+    @Override
+    public int visit(XOperator xOperator) {
+        return visit((UnaryModalOperator) xOperator);
+    }
+
+    private int visit(BinaryModalOperator operator) {
+        operator.left.accept(this);
+        operator.right.accept(this);
+        mapping.add(operator);
+        return 0;
+    }
+
+    private int visit(PropositionalFormula formula) {
+        formula.children.forEach(c -> c.accept(this));
+        return 0;
+    }
+
+    private int visit(UnaryModalOperator operator) {
+        operator.operand.accept(this);
+        mapping.add(operator);
+        return 0;
     }
 }

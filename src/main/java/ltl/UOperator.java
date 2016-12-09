@@ -20,11 +20,13 @@ package ltl;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-import ltl.visitors.VoidVisitor;
 
 import java.util.BitSet;
 import java.util.Objects;
 
+/**
+ * Strong Until.
+ */
 public final class UOperator extends BinaryModalOperator {
 
     public UOperator(Formula left, Formula right) {
@@ -49,11 +51,6 @@ public final class UOperator extends BinaryModalOperator {
     @Override
     public ROperator not() {
         return new ROperator(left.not(), right.not());
-    }
-
-    @Override
-    public void accept(VoidVisitor v) {
-        v.visit(this);
     }
 
     @Override
@@ -96,10 +93,15 @@ public final class UOperator extends BinaryModalOperator {
             return right;
         }
 
+        if (left.equals(right)) {
+            return left;
+        }
+
         if (left == BooleanConstant.TRUE) {
             return FOperator.create(right);
         }
 
         return new UOperator(left, right);
     }
+
 }

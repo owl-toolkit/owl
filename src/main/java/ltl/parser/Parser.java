@@ -6,8 +6,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import ltl.*;
-import ltl.tlsf.ImmutableTLSF;
-import ltl.tlsf.TLSF;
+import ltl.tlsf.*;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -292,13 +291,13 @@ left = Disjunction.create(left.not(), right);
         right = unaryOp();
 left = Conjunction.create(Disjunction.create(left.not(), right), Disjunction.create(left, right.not()));
       } else if (jj_2_26(2)) {
+        jj_consume_token(MOP);
+        right = unaryOp();
+left = MOperator.create(left, right);
+      } else if (jj_2_27(2)) {
         jj_consume_token(UOP);
         right = unaryOp();
 left = UOperator.create(left, right);
-      } else if (jj_2_27(2)) {
-        jj_consume_token(MOP);
-        right = unaryOp();
-left = UOperator.create(right, Conjunction.create(left, right));
       } else if (jj_2_28(2)) {
         jj_consume_token(ROP);
         right = unaryOp();
@@ -310,7 +309,7 @@ left = ROperator.create(left, right);
       } else if (jj_2_30(2)) {
         jj_consume_token(WOP);
         right = unaryOp();
-left = Disjunction.create(UOperator.create(left, right), GOperator.create(left));
+left = WOperator.create(left, right);
       } else {
         jj_consume_token(-1);
         throw new ParseException();
@@ -902,14 +901,6 @@ if (t.image.length() < 2)
     finally { jj_save(49, xla); }
   }
 
-  private boolean jj_3R_17()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_32()) jj_scanpos = xsp;
-    return false;
-  }
-
   private boolean jj_3_43()
  {
     if (jj_scan_token(LPAR)) return true;
@@ -1199,14 +1190,14 @@ if (t.image.length() < 2)
 
   private boolean jj_3_27()
  {
-    if (jj_scan_token(MOP)) return true;
+    if (jj_scan_token(UOP)) return true;
     if (jj_3R_16()) return true;
     return false;
   }
 
   private boolean jj_3_26()
  {
-    if (jj_scan_token(UOP)) return true;
+    if (jj_scan_token(MOP)) return true;
     if (jj_3R_16()) return true;
     return false;
   }
@@ -1361,6 +1352,14 @@ if (t.image.length() < 2)
   private boolean jj_3_32()
  {
     if (jj_scan_token(INF)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_17()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_32()) jj_scanpos = xsp;
     return false;
   }
 
