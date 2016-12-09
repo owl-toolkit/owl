@@ -304,7 +304,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 RecurringObligations obligations = rankingSuccessor.getObligations();
                 EquivalenceClass existingClass = existingClasses.get(obligations);
 
-                if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass) || (activeVolatileComponent && isVolatileComponent(rankingSuccessor))) {
+                if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass)) {
                     edgeColor = Math.min(2 * index, edgeColor);
                     continue;
                 }
