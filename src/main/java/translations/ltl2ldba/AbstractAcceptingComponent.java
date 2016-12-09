@@ -40,20 +40,20 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     private final EnumSet<Optimisation> optimisations;
     private Collection<S> constructionQueue = new ArrayDeque<>();
-    private final Map<Set<GOperator>, RecurringObligations> cache;
+    private final Map<Set<GOperator>, RecurringObligations> components;
 
     final EquivalenceClassFactory equivalenceClassFactory;
     final boolean removeCover;
     final boolean eager;
 
     public Collection<RecurringObligations> getAllInit() {
-        return cache.values();
+        return components.values();
     }
 
     AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
-        cache = new HashMap<>();
+        components = new HashMap<>();
         this.optimisations = optimisations;
 
         removeCover = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
@@ -100,7 +100,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
      */
     @Nullable
     private RecurringObligations getObligations(Set<GOperator> keys) {
-        RecurringObligations obligations = cache.get(keys);
+        RecurringObligations obligations = components.get(keys);
 
         if (obligations == null) {
             // Fields for RecurringObligations
@@ -137,7 +137,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
             }
 
             obligations = new RecurringObligations(xFragment, initialStates);
-            cache.put(keys, obligations);
+            components.put(keys, obligations);
         }
 
         return obligations;
@@ -145,7 +145,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     public void free() {
         super.free();
-        cache.clear();
+        components.clear();
     }
 
     EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {

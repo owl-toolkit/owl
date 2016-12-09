@@ -47,7 +47,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
     private final AcceptingComponent acceptingComponent;
     private final InitialComponent<AcceptingComponent.State> initialComponent;
     private final int volatileMaxIndex;
-    private final Object2IntMap<RecurringObligations> volatileComponents;
+    private final Map<RecurringObligations, Integer> volatileComponents;
     private int colors;
 
     RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
@@ -58,8 +58,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         colors = 2;
 
-        volatileComponents = new Object2IntOpenHashMap<>();
-        volatileComponents.defaultReturnValue(-1);
+        volatileComponents = new HashMap<>();
 
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
             if (value.initialStates.length == 0) {
@@ -68,6 +67,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
         }
 
         volatileMaxIndex = volatileComponents.size() + 1;
+        System.out.println(volatileComponents.toString());
 
         if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
             trie = new HashMap<>();
@@ -186,10 +186,10 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
             for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
                 RecurringObligations obligations = accState.getObligations();
-                int candidateIndex = volatileComponents.getInt(obligations);
+                Integer candidateIndex = volatileComponents.get(obligations);
 
                 // It is a volatile state
-                if (candidateIndex > -1 && accState.getCurrent().isTrue()) {
+                if (candidateIndex != null && accState.getCurrent().isTrue()) {
                     // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
 
                     // The distance is too large...
@@ -289,7 +289,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             // Default rejecting color.
             int edgeColor = 2 * acceptingComponentRanking.size();
             List<AcceptingComponent.State> ranking = new ArrayList<>(acceptingComponentRanking.size());
-            int volatileIndex = -1;
+            Integer volatileIndex = null;
             int index = -1;
 
             for (AcceptingComponent.State current : acceptingComponentRanking) {
@@ -313,9 +313,9 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
                 ranking.add(rankingSuccessor);
 
-                if (volatileIndex == -1 && volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
+                if (volatileIndex == null && volatileComponents.containsKey(obligations) && rankingSuccessor.getCurrent().isTrue()) {
                     //assert rankingSuccessor.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
-                    volatileIndex = volatileComponents.getInt(obligations);
+                    volatileIndex = volatileComponents.get(obligations);
                 }
 
                 if (edge.inAcceptanceSet(0)) {
@@ -324,7 +324,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 }
             }
 
-            int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, volatileIndex == -1, this.volatileIndex);
+            int nextVolatileIndex = appendJumps(successor, ranking, existingClasses, volatileIndex == null, this.volatileIndex);
 
             BitSet acc = new BitSet();
             acc.set(edgeColor);
@@ -336,7 +336,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
             existingClasses.forEach((x, y) -> y.free());
 
-            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), volatileIndex > -1 ? volatileIndex : nextVolatileIndex), acc);
+            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), volatileIndex != null ? volatileIndex : nextVolatileIndex), acc);
         }
 
         @Override

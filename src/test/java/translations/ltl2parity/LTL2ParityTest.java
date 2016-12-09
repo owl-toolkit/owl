@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 
 public class LTL2ParityTest {
 
-    static void testOutput(String ltl, int size) throws IOException {
+    static void testOutput(String ltl, int size, int accSize) throws IOException {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.PARALLEL);
         BiMap<String, Integer> mapping = HashBiMap.create();
@@ -46,6 +46,7 @@ public class LTL2ParityTest {
             HOAConsumer consumer = new HOAConsumerPrint(stream);
             automaton.toHOA(consumer, mapping, EnumSet.allOf(HOAPrintable.Option.class));
             assertEquals(stream.toString(), size, automaton.size());
+            assertEquals(stream.toString(), accSize, automaton.getAcceptance().getAcceptanceSets());
         } catch (IOException ex) {
             throw new IllegalStateException(ex.toString(), ex);
         }
@@ -54,16 +55,22 @@ public class LTL2ParityTest {
     }
 
     @Test
-    public void testGMonitorRegression() throws Exception {
+    public void testRegression1() throws Exception {
         String ltl = "G (F (a & (a U b)))";
-        testOutput(ltl, 2);
-        testOutput("! " + ltl, 2);
+        testOutput(ltl, 2, 1);
+        testOutput("! " + ltl, 2, 4);
     }
 
     @Test
-    public void testGMonitorRegression2() throws Exception {
+    public void testRegression2() throws Exception {
         String ltl = "G (F (a & X (F b)))";
-        testOutput(ltl, 2);
-        testOutput("! " + ltl, 3);
+        testOutput(ltl, 2, 1);
+        testOutput("! " + ltl, 3,2);
+    }
+
+    @Test
+    public void testRegression3() throws Exception {
+        String ltl = "((F (G a) & (F b)) | G b | G F a)";
+        testOutput(ltl, 4, 4);
     }
 }
