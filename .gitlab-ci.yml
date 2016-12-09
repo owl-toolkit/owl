@@ -17,13 +17,13 @@ build:
     - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew --no-daemon distTar
     - tar xvf build/distributions/translations-*.tar -C build --strip-components=1
-    - ltlcross --stop-on-error --grind=build/reports/debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --stop-on-error --grind=build/reports/debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --stop-on-error --grind=build/reports/debug.ltl --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
     - randltl --seed=12345 -n 10 a b c d e f --tree-size=5..25 | ltlfilt --nnf | ltlcross --stop-on-error --timeout=300 "$SPOT_TOOL" "$LTL_TOOL"
   artifacts:
     paths:
-    - build/reports/
+    - debug.ltl
     when: on_failure
     expire_in: 1 week
 
