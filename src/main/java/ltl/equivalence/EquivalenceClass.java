@@ -117,6 +117,8 @@ public interface EquivalenceClass {
 
     void freeRepresentative();
 
+    EquivalenceClass substitute(Function<Formula, Formula> substitution);
+
     static void free(@Nullable EquivalenceClass clazz) {
         if (clazz != null) {
             clazz.free();

@@ -430,8 +430,19 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public void freeRepresentative() {
             if (!factory.isNodeRoot(bdd)) {
-                // representative = null;
+                representative = null;
             }
+        }
+
+        @Override
+        public EquivalenceClass substitute(Function<Formula, Formula> substitution) {
+            int[] substitutionMap = new int[reverseMapping.length];
+
+            for (int i = 0; i < substitutionMap.length; i++) {
+                substitutionMap[i] = substitution.apply(reverseMapping[i]).accept(visitor);
+            }
+
+            return new BddEquivalenceClass(null, factory.reference(factory.compose(bdd, substitutionMap)));
         }
 
         @Override
