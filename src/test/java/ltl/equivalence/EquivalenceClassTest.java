@@ -237,4 +237,18 @@ public abstract class EquivalenceClassTest {
         assertEquals(factory.createEquivalenceClass(Parser.formula("G a & G b", mapping)), ED);
         assertEquals(Collections.singleton(GS), Sets.newHashSet(ED.restrictedSatisfyingAssignments(GS, null)));
     }
+
+    @Test
+    public void testSubstitute() {
+        BiMap<String, Integer> mapping = HashBiMap.create();
+
+        EquivalenceClass[] formulas = {
+                factory.createEquivalenceClass(Parser.formula("a", mapping)),
+                factory.createEquivalenceClass(Parser.formula("G a", mapping)),
+                factory.createEquivalenceClass(Parser.formula("G a & a", mapping))
+        };
+
+        assertEquals(formulas[1].substitute(Formula::unfold), formulas[2]);
+        assertEquals(formulas[2].substitute(x -> x instanceof GOperator ? BooleanConstant.TRUE : x), formulas[0]);
+    }
 }
