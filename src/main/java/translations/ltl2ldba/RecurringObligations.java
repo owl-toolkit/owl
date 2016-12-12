@@ -26,34 +26,35 @@ import java.util.Objects;
 
 public class RecurringObligations extends ImmutableObject {
 
-    final EquivalenceClass xFragment;
-    public final EquivalenceClass[] initialStates;
+    final EquivalenceClass safety;
+    final EquivalenceClass[] liveness;
+    final EquivalenceClass[] initialStates;
 
-    RecurringObligations(EquivalenceClass xFragment, List<EquivalenceClass> initialStates) {
-        xFragment.freeRepresentative();
+    RecurringObligations(EquivalenceClass safety, List<EquivalenceClass> initialStates) {
+        safety.freeRepresentative();
         initialStates.forEach(EquivalenceClass::freeRepresentative);
 
-        this.xFragment = xFragment;
+        this.safety = safety;
         this.initialStates = initialStates.toArray(new EquivalenceClass[0]);
+        this.liveness = new EquivalenceClass[0];
     }
 
     @Override
     protected int hashCodeOnce() {
-        return 31 * xFragment.hashCode() + Arrays.hashCode(initialStates);
+        return 31 * (31 * safety.hashCode() + Arrays.hashCode(liveness)) + Arrays.hashCode(initialStates);
     }
 
     @Override
     protected boolean equals2(ImmutableObject o) {
         RecurringObligations that = (RecurringObligations) o;
-        return Objects.equals(xFragment, that.xFragment) && Arrays.equals(initialStates, that.initialStates);
+        return Objects.equals(safety, that.safety) && Arrays.equals(liveness, that.liveness) && Arrays.equals(initialStates, that.initialStates);
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("RecurringObligations{");
-        sb.append("xFragment=").append(xFragment);
-        sb.append(", initialStates=").append(Arrays.toString(initialStates));
-        sb.append('}');
-        return sb.toString();
+    public boolean isPurelySafety() {
+        return initialStates.length == 0 && liveness.length == 0;
+    }
+
+    public boolean isPurelyLiveness() {
+        return initialStates.length == 0 && safety.isTrue();
     }
 }

@@ -50,7 +50,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
         final int length = obligations.initialStates.length;
 
-        EquivalenceClass xFragment = obligations.xFragment;
+        EquivalenceClass xFragment = obligations.safety;
         EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
 
         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
@@ -98,7 +98,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
             // Check the X-Fragment first.
-            EquivalenceClass nextXFragment = GeneralisedAcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.xFragment);
+            EquivalenceClass nextXFragment = GeneralisedAcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.safety);
 
             if (nextXFragment.isFalse()) {
                 return null;
@@ -204,7 +204,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         public String toString() {
             final StringBuilder sb = new StringBuilder("State{");
             sb.append("obligations=").append(obligations);
-            sb.append(", xFragment=").append(xFragment);
+            sb.append(", safety=").append(xFragment);
             sb.append(", current=").append(Arrays.toString(current));
             sb.append(", next=").append(Arrays.toString(next));
             sb.append(", sensitiveAlphabet=").append(sensitiveAlphabet);

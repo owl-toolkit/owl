@@ -64,7 +64,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
             // TODO: make sure that there is at most one component for each recurring obligation.
-            if (value.initialStates.length == 0 && !volatileComponents.containsKey(value)) {
+            if (value.isPurelySafety() && !volatileComponents.containsKey(value)) {
                 volatileComponents.put(value, components);
                 components = components + 1;
             }

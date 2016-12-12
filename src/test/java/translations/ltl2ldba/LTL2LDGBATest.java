@@ -259,13 +259,13 @@ public class LTL2LDGBATest {
                 "AP: 3 \"0\" \"1\" \"2\"\n" +
                 "--BODY--\n" +
                 "State: 1\n" +
-                "[2] 1 {0}\n" +
-                "State: 0\n" +
-                "[t] 2 {0}\n" +
-                "State: 2\n" +
-                "[0] 3 {0}\n" +
+                "[1] 2 {0}\n" +
                 "State: 3\n" +
-                "[1] 1 {0}\n" +
+                "[0] 1 {0}\n" +
+                "State: 2\n" +
+                "[2] 2 {0}\n" +
+                "State: 0\n" +
+                "[t] 3 {0}\n" +
                 "--END--\n";
 
         String ltl = "X (a & (X (b & X G c)))";

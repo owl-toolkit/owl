@@ -54,7 +54,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
     @Override
     State createState(EquivalenceClass remainder, RecurringObligations obligations) {
-        EquivalenceClass xFragment = obligations.xFragment;
+        EquivalenceClass xFragment = obligations.safety;
         EquivalenceClass current = equivalenceClassFactory.getTrue();
 
         final int length = obligations.initialStates.length;
@@ -122,7 +122,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
-            EquivalenceClass nextXFragment = AcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.xFragment);
+            EquivalenceClass nextXFragment = AcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.safety);
 
             if (nextXFragment.isFalse()) {
                 return null;
@@ -258,7 +258,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         public String toString() {
             final StringBuilder sb = new StringBuilder("State{");
             sb.append("obligations=").append(obligations);
-            sb.append(", xFragment=").append(xFragment);
+            sb.append(", safety=").append(xFragment);
             sb.append(", index=").append(index);
             sb.append(", current=").append(current);
             sb.append(", next=").append(Arrays.toString(next));

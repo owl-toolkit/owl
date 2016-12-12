@@ -121,7 +121,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
                     return null;
                 }
 
-                if (optimisations.contains(Optimisation.SEPARATE_X_FRAGMENT) && XFragmentPredicate.testStatic(initialFormula)) {
+                if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS) && XFragmentPredicate.testStatic(initialFormula)) {
                     xFragment = xFragment.andWith(initialClazz);
                     initialClazz.free();
                     continue;
