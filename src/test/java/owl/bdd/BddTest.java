@@ -26,6 +26,9 @@ import java.util.*;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
+/**
+ * A collection of simple tests for the BDD class.
+ */
 public class BddTest {
   private static BitSet buildBitSet(final String values) {
     final BitSet bitSet = new BitSet(values.length());
@@ -136,6 +139,9 @@ public class BddTest {
     assertThat(composition, is(v2));
   }
 
+  /**
+   * This is a remainder of JDD
+   */
   @Test
   public void internalTest() {
     final BddImpl bdd = new BddImpl(2); // <-- want mucho garbage collections
@@ -149,10 +155,6 @@ public class BddTest {
     assertThat(bdd.getApproximateDeadNodeCount(), is(0));
     bdd.dereference(dum);
     assertThat(1, is(bdd.getApproximateDeadNodeCount()));
-
-    // TODO: add test that throws exception on double free.
-    // bdd.dereference(dum);
-    // assertThat(bdd.dead_nodes, is(" still one dead node", 1));
 
     // test garbage collection:
     bdd.grow(); // make sure there is room for it
@@ -261,7 +263,7 @@ public class BddTest {
 
   @Test
   public void testMinimalSolutionsForConstants() {
-    final BddImpl bdd = new BddImpl(20);
+    final Bdd bdd = new BddImpl(20);
     List<BitSet> solutions;
 
     solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getFalseNode()));

@@ -271,10 +271,10 @@ class NodeTable {
 
     // This node is referenced to often, we have to saturate it. :(
     if (getReferenceCountFromStore(referenceStore) == MAXIMAL_REFERENCE_COUNT) {
-      saturateStore(referenceStore);
+      referenceStorage[node] = saturateStore(referenceStore);
+    } else {
+      referenceStorage[node] = increaseReferenceCountInStore(referenceStore);
     }
-
-    referenceStorage[node] = increaseReferenceCountInStore(referenceStore);
     // Can't decrease approximateDeadNodeCount here - we may reference a node for the first time.
     if (node > biggestReferencedNode) {
       biggestReferencedNode = node;
@@ -451,7 +451,8 @@ class NodeTable {
   }
 
   /**
-   * Checks if the given {@code node} is saturated.
+   * Checks if the given {@code node} is saturated. This can happen if the node is explicitly marked
+   * as saturated or gets referenced too often.
    *
    * @param node
    *     The node to be checked
@@ -466,7 +467,7 @@ class NodeTable {
   }
 
   /**
-   * Returns the reference count of the given node. Undefined behaviour when the node is saturated.
+   * Returns the reference count of the given node or -1 if the node is saturated.
    *
    * @param node
    *     The node to be queried.
@@ -474,8 +475,11 @@ class NodeTable {
    * @return The reference count of {@code node}.
    */
   public final int getReferenceCount(final int node) {
-    assert isNodeValidOrRoot(node) && !isNodeSaturated(node);
+    assert isNodeValidOrRoot(node);
     final long referenceStore = referenceStorage[node];
+    if (isStoreSaturated(referenceStore)) {
+      return -1;
+    }
     return (int) getReferenceCountFromStore(referenceStore);
   }
 
