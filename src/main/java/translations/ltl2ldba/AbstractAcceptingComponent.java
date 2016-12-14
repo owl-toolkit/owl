@@ -36,7 +36,8 @@ import java.util.*;
 
 abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends OmegaAcceptance> extends Automaton<S, T> {
 
-    static final BitSet REJECT = new BitSet();
+    protected final BitSet REJECT = new BitSet();
+    protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
     private final EnumSet<Optimisation> optimisations;
     private Collection<S> constructionQueue = new ArrayDeque<>();
@@ -100,47 +101,59 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
      */
     @Nullable
     private RecurringObligations getObligations(Set<GOperator> keys) {
-        RecurringObligations obligations = components.get(keys);
+        RecurringObligations recurringObligations = components.get(keys);
 
-        if (obligations == null) {
+        if (recurringObligations == null) {
             // Fields for RecurringObligations
-            EquivalenceClass xFragment = equivalenceClassFactory.getTrue();
-            List<EquivalenceClass> initialStates = new ArrayList<>(keys.size());
+            EquivalenceClass safety = equivalenceClassFactory.getTrue();
+            List<EquivalenceClass> liveness = new ArrayList<>(keys.size());
+            List<EquivalenceClass> obligations = new ArrayList<>(keys.size());
 
             // Skip the top-level object in the syntax tree.
             Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(keys));
 
             for (GOperator key : keys) {
-                Formula initialFormula = Simplifier.simplify(Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
-                EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(initialFormula);
+                Formula formula = Simplifier.simplify(Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
+                EquivalenceClass clazz = equivalenceClassFactory.createEquivalenceClass(formula);
 
-                if (initialClazz.isFalse()) {
-                    EquivalenceClass.free(initialStates);
-                    initialClazz.free();
-                    xFragment.free();
+                if (clazz.isFalse()) {
+                    free(clazz, safety, liveness, obligations);
                     return null;
                 }
 
-                if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS) && XFragmentPredicate.testStatic(initialFormula)) {
-                    xFragment = xFragment.andWith(initialClazz);
-                    initialClazz.free();
-                    continue;
+                if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS)) {
+                    if (clazz.testSupport(XFragmentPredicate::testStatic)) {
+                        safety = safety.andWith(clazz);
+                        clazz.free();
+                        continue;
+                    }
+
+                    if (clazz.testSupport(Formula::isPureEventual)) {
+                        liveness.add(clazz);
+                        continue;
+                    }
                 }
 
-                initialStates.add(initialClazz);
+                obligations.add(clazz);
             }
 
-            if (xFragment.isFalse()) {
-                EquivalenceClass.free(initialStates);
-                xFragment.free();
+            if (safety.isFalse()) {
+                free(null, safety, liveness, obligations);
                 return null;
             }
 
-            obligations = new RecurringObligations(xFragment, initialStates);
-            components.put(keys, obligations);
+            recurringObligations = new RecurringObligations(safety, liveness, obligations);
+            components.put(keys, recurringObligations);
         }
 
-        return obligations;
+        return recurringObligations;
+    }
+
+    private static void free(@Nullable EquivalenceClass clazz1, EquivalenceClass clazz2, Iterable<EquivalenceClass> iterable1, Iterable<EquivalenceClass> iterable2) {
+        EquivalenceClass.free(clazz1);
+        EquivalenceClass.free(clazz2);
+        EquivalenceClass.free(iterable1);
+        EquivalenceClass.free(iterable2);
     }
 
     public void free() {
@@ -148,11 +161,19 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         components.clear();
     }
 
+    EquivalenceClass getInitialClass(EquivalenceClass clazz) {
+        return getInitialClass(clazz, null);
+    }
+
+    EquivalenceClass getInitialClass(EquivalenceClass clazz, @Nullable EquivalenceClass environment) {
+        return environment != null ? removeCover(doEagerOpt(clazz.and(equivalenceClassFactory.getTrue())), environment) : doEagerOpt(clazz.and(equivalenceClassFactory.getTrue()));
+    }
+
     EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {
         return getSuccessor(clazz, valuation, null);
     }
 
-    EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass others) {
+    EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
         EquivalenceClass successor = step(clazz, valuation);
 
         // We cannot recover from false. (non-accepting trap)
@@ -161,7 +182,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
 
         // Do Cover optimisation
-        if (others != null && removeCover && others.implies(successor)) {
+        if (environment != null && removeCover && environment.implies(successor)) {
             return equivalenceClassFactory.getTrue();
         }
 

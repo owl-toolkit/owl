@@ -82,7 +82,7 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
     protected int[] getExpectedAccSize(FormulaGroup t) {
         switch (t) {
             case MIXED:
-                return new int[]{1, 1, 1, 1, 1, 2, 1, 1, 2, 1};
+                return new int[]{1, 1, 1, 1, 1, 1, 1, 1, 2, 1};
 
             case FG:
                 return new int[]{1, 2, 1, 2, 2, 1};

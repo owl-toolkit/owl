@@ -37,106 +37,119 @@ import java.util.Objects;
 
 public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance> {
 
+    private final BitSet ACCEPT = new BitSet();
+
     GeneralisedAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
+        ACCEPT.set(0, 1);
     }
 
     @Override
     State createState(EquivalenceClass remainder, RecurringObligations obligations) {
+        final int length = obligations.obligations.length + obligations.liveness.length;
+
         // If it is necessary, increase the number of acceptance conditions.
-        if (obligations.initialStates.length > acceptance.getSize()) {
-            acceptance = new GeneralisedBuchiAcceptance(obligations.initialStates.length);
+        if (length > acceptance.getSize()) {
+            acceptance = new GeneralisedBuchiAcceptance(length);
+            ACCEPT.set(0, length);
         }
 
-        final int length = obligations.initialStates.length;
-
-        EquivalenceClass xFragment = obligations.safety;
+        EquivalenceClass safety = obligations.safety;
         EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
 
         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
-            xFragment = remainder.andWith(xFragment);
+            safety = remainder.andWith(safety);
+            remainder = equivalenceClassFactory.getTrue();
+        }
 
-            if (length > 0) {
-                currentBuilder[0] = doEagerOpt(obligations.initialStates[0]);
-            }
-        } else {
-            EquivalenceClass current = remainder;
-
-            if (length > 0) {
-                currentBuilder[0] = doEagerOpt(current.andWith(obligations.initialStates[0]));
+        if (length == 0) {
+            if (remainder.isTrue()) {
+                return new State(obligations, safety, EMPTY, EMPTY);
             } else {
-                currentBuilder = new EquivalenceClass[]{doEagerOpt(current)};
+                return new State(obligations, safety, new EquivalenceClass[]{remainder}, EMPTY);
             }
         }
 
-        for (int i = 1; i < length; i++) {
-            currentBuilder[i] = doEagerOpt(obligations.initialStates[i]);
-            currentBuilder[i].freeRepresentative();
+        if (obligations.obligations.length > 0) {
+            currentBuilder[0] = doEagerOpt(remainder.andWith(obligations.obligations[0]));
+        } else {
+            currentBuilder[0] = doEagerOpt(remainder.andWith(obligations.liveness[0]));
         }
 
-        EquivalenceClass[] next = new EquivalenceClass[length];
-        Arrays.fill(next, equivalenceClassFactory.getTrue());
-        xFragment.freeRepresentative();
+        for (int i = 1; i < obligations.obligations.length; i++) {
+            currentBuilder[i] = doEagerOpt(obligations.obligations[i]);
+        }
 
-        return new State(obligations, xFragment, currentBuilder, next);
+        for (int i = Math.max(1, obligations.obligations.length); i < length; i++) {
+            currentBuilder[i] = doEagerOpt(obligations.liveness[i - obligations.obligations.length]);
+        }
+
+        EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.length];
+        Arrays.fill(next, equivalenceClassFactory.getTrue());
+
+        return new State(obligations, safety, currentBuilder, next);
     }
 
     public final class State extends ImmutableObject implements AutomatonState<GeneralisedAcceptingComponent.State> {
 
         private final RecurringObligations obligations;
-        private final EquivalenceClass xFragment;
+        private final EquivalenceClass safety;
         private final EquivalenceClass[] current;
         private final EquivalenceClass[] next;
 
-        private State(RecurringObligations obligations, EquivalenceClass xFragment, EquivalenceClass[] current, EquivalenceClass[] next) {
+        private State(RecurringObligations obligations, EquivalenceClass safety, EquivalenceClass[] current, EquivalenceClass[] next) {
             this.obligations = obligations;
-            this.xFragment = xFragment;
+            this.safety = safety;
             this.current = current;
             this.next = next;
         }
 
+        private Edge<State> getSuccessorPureSafety(EquivalenceClass nextSafety, BitSet valuation) {
+            // Take care of the remainder.
+            if (current.length > 0) {
+                EquivalenceClass remainder = GeneralisedAcceptingComponent.this.getSuccessor(current[0], valuation, nextSafety);
+
+                if (remainder.isFalse()) {
+                    return null;
+                }
+
+                if (!remainder.isTrue()) {
+                    return new Edge<>(new State(obligations, nextSafety, new EquivalenceClass[]{remainder}, EMPTY), REJECT);
+                }
+            }
+
+            return new Edge<>(new State(obligations, nextSafety, EMPTY, EMPTY), ACCEPT);
+        }
+
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
-            // Check the X-Fragment first.
-            EquivalenceClass nextXFragment = GeneralisedAcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.safety);
+            // Check the safety field first.
+            EquivalenceClass nextSafety = GeneralisedAcceptingComponent.this.getSuccessor(safety, valuation).andWith(obligations.safety);
 
-            if (nextXFragment.isFalse()) {
+            if (nextSafety.isFalse()) {
                 return null;
             }
 
-            final int length = obligations.initialStates.length;
+            if (obligations.isPureSafety()) {
+                return getSuccessorPureSafety(nextSafety, valuation);
+            }
+
+            final int length = current.length;
             EquivalenceClass[] currentSuccessors = new EquivalenceClass[length];
-            EquivalenceClass[] nextSuccessors = new EquivalenceClass[length];
+            EquivalenceClass[] nextSuccessors = new EquivalenceClass[next.length];
 
             // Create acceptance set and set all unused indices to 1.
             BitSet bs = new BitSet();
             bs.set(length, acceptance.getSize());
 
-            // There is only the remainder to be checked.
-            if (next.length == 0) {
-                if (0 != current.length) {
-                    EquivalenceClass successor = GeneralisedAcceptingComponent.this.getSuccessor(current[0], valuation, nextXFragment);
-
-                    if (successor.isFalse()) {
-                        return null;
-                    }
-
-                    if (!successor.isTrue()) {
-                        return new Edge<>(new State(obligations, nextXFragment, new EquivalenceClass[]{successor}, nextSuccessors), REJECT);
-                    }
-                }
-
-                return new Edge<>(new State(obligations, nextXFragment, currentSuccessors, nextSuccessors), bs);
-            }
-
-            for (int i = 0; i < length; i++) {
-                EquivalenceClass currentSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(current[i], valuation, nextXFragment);
+            for (int i = 0; i < next.length; i++) {
+                EquivalenceClass currentSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(current[i], valuation, nextSafety);
 
                 if (currentSuccessor.isFalse()) {
                     return null;
                 }
 
-                EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
+                EquivalenceClass assumptions = currentSuccessor.and(nextSafety);
                 EquivalenceClass nextSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(next[i], valuation, assumptions);
 
                 if (nextSuccessor.isFalse()) {
@@ -146,7 +159,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                     return null;
                 }
 
-                nextSuccessor = nextSuccessor.andWith(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
+                nextSuccessor = nextSuccessor.andWith(removeCover(doEagerOpt(obligations.obligations[i]), assumptions));
 
                 // Successor is done and we can switch components.
                 if (currentSuccessor.isTrue()) {
@@ -161,7 +174,22 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 assumptions.free();
             }
 
-            return new Edge<>(new State(obligations, nextXFragment, currentSuccessors, nextSuccessors), bs);
+            for (int i = next.length; i < length; i++) {
+                EquivalenceClass currentSuccessor = GeneralisedAcceptingComponent.this.getSuccessor(current[i], valuation, nextSafety);
+
+                if (currentSuccessor.isFalse()) {
+                    return null;
+                }
+
+                if (currentSuccessor.isTrue()) {
+                    bs.set(i);
+                    currentSuccessors[i] = doEagerOpt(obligations.liveness[i - next.length]);
+                } else {
+                    currentSuccessors[i] = currentSuccessor;
+                }
+            }
+
+            return new Edge<>(new State(obligations, nextSafety, currentSuccessors, nextSuccessors), bs);
         }
 
         private BitSet sensitiveAlphabet;
@@ -169,7 +197,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         @Nonnull
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = GeneralisedAcceptingComponent.this.getSensitiveAlphabet(xFragment);
+                sensitiveAlphabet = GeneralisedAcceptingComponent.this.getSensitiveAlphabet(safety);
 
                 for (EquivalenceClass clazz : current) {
                     sensitiveAlphabet.or(GeneralisedAcceptingComponent.this.getSensitiveAlphabet(clazz));
@@ -185,13 +213,13 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
         @Override
         protected int hashCodeOnce() {
-            return Objects.hash(xFragment, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
+            return Objects.hash(safety, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
         }
 
         @Override
         protected boolean equals2(ImmutableObject o) {
             State that = (State) o;
-            return Objects.equals(xFragment, that.xFragment) && Objects.equals(obligations, that.obligations) && Arrays.equals(current, that.current) && Arrays.equals(next, that.next);
+            return Objects.equals(safety, that.safety) && Objects.equals(obligations, that.obligations) && Arrays.equals(current, that.current) && Arrays.equals(next, that.next);
         }
 
         @Override
@@ -202,14 +230,13 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("State{");
-            sb.append("obligations=").append(obligations);
-            sb.append(", safety=").append(xFragment);
-            sb.append(", current=").append(Arrays.toString(current));
-            sb.append(", next=").append(Arrays.toString(next));
-            sb.append(", sensitiveAlphabet=").append(sensitiveAlphabet);
-            sb.append('}');
-            return sb.toString();
+            return "State{" +
+                    "obligations=" + obligations +
+                    ", safety=" + safety +
+                    ", current=" + Arrays.toString(current) +
+                    ", next=" + Arrays.toString(next) +
+                    ", sensitiveAlphabet=" + sensitiveAlphabet +
+                    '}';
         }
     }
 }

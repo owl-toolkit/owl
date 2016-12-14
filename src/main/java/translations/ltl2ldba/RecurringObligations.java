@@ -26,35 +26,47 @@ import java.util.Objects;
 
 public class RecurringObligations extends ImmutableObject {
 
+    private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
+
     final EquivalenceClass safety;
     final EquivalenceClass[] liveness;
-    final EquivalenceClass[] initialStates;
+    final EquivalenceClass[] obligations;
 
-    RecurringObligations(EquivalenceClass safety, List<EquivalenceClass> initialStates) {
+    RecurringObligations(EquivalenceClass safety, List<EquivalenceClass> liveness, List<EquivalenceClass> obligations) {
         safety.freeRepresentative();
-        initialStates.forEach(EquivalenceClass::freeRepresentative);
+        liveness.forEach(EquivalenceClass::freeRepresentative);
+        obligations.forEach(EquivalenceClass::freeRepresentative);
 
         this.safety = safety;
-        this.initialStates = initialStates.toArray(new EquivalenceClass[0]);
-        this.liveness = new EquivalenceClass[0];
+        this.obligations = obligations.toArray(EMPTY);
+        this.liveness = liveness.toArray(EMPTY);
     }
 
     @Override
     protected int hashCodeOnce() {
-        return 31 * (31 * safety.hashCode() + Arrays.hashCode(liveness)) + Arrays.hashCode(initialStates);
+        return 31 * (31 * safety.hashCode() + Arrays.hashCode(liveness)) + Arrays.hashCode(obligations);
     }
 
     @Override
     protected boolean equals2(ImmutableObject o) {
         RecurringObligations that = (RecurringObligations) o;
-        return Objects.equals(safety, that.safety) && Arrays.equals(liveness, that.liveness) && Arrays.equals(initialStates, that.initialStates);
+        return Objects.equals(safety, that.safety) && Arrays.equals(liveness, that.liveness) && Arrays.equals(obligations, that.obligations);
     }
 
-    public boolean isPurelySafety() {
-        return initialStates.length == 0 && liveness.length == 0;
+    public boolean isPureSafety() {
+        return obligations.length == 0 && liveness.length == 0;
     }
 
-    public boolean isPurelyLiveness() {
-        return initialStates.length == 0 && safety.isTrue();
+    public boolean isPureLiveness() {
+        return obligations.length == 0 && safety.isTrue();
+    }
+
+    @Override
+    public String toString() {
+        return "RecurringObligations{" +
+                "safety=" + safety +
+                ", liveness=" + Arrays.toString(liveness) +
+                ", obligations=" + Arrays.toString(obligations) +
+                '}';
     }
 }

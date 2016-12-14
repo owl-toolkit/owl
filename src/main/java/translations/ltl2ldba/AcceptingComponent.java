@@ -17,6 +17,7 @@
 
 package translations.ltl2ldba;
 
+import com.google.common.base.Preconditions;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -29,10 +30,7 @@ import translations.Optimisation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
 
 public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance> {
 
@@ -49,57 +47,78 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
     @Nonnull
     @Override
     public State generateRejectingTrap() {
-        return new State(0, null, null, null, null);
+        return new State(0, null, null, null, new RecurringObligations(equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
+    }
+
+    private EquivalenceClass and(EquivalenceClass[] classes) {
+        EquivalenceClass conjunction = equivalenceClassFactory.getTrue();
+
+        for (EquivalenceClass clazz : classes) {
+            conjunction = conjunction.andWith(clazz);
+        }
+
+        return conjunction;
     }
 
     @Override
     State createState(EquivalenceClass remainder, RecurringObligations obligations) {
-        EquivalenceClass xFragment = obligations.safety;
-        EquivalenceClass current = equivalenceClassFactory.getTrue();
+        final int length = obligations.obligations.length + obligations.liveness.length;
 
-        final int length = obligations.initialStates.length;
-        EquivalenceClass[] nextBuilder = new EquivalenceClass[length];
+        // TODO: field for extra data.
 
-         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
-            xFragment = remainder.andWith(xFragment);
+        EquivalenceClass safety = obligations.safety;
+        EquivalenceClass current = remainder;
 
-            if (length > 0) {
+        if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
+            safety = current.andWith(safety);
+            current = equivalenceClassFactory.getTrue();
+        }
+
+        EquivalenceClass environment = safety.and(and(obligations.liveness));
+
+        if (length == 0) {
+            return new State(0, safety, doEagerOpt(removeCover(current, environment)), EMPTY, obligations);
+        }
+
+        EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];
+
+        if (current.isTrue()) {
+            if (obligations.obligations.length > 0) {
                 nextBuilder[0] = current;
-                current = doEagerOpt(obligations.initialStates[0]);
-            }
-        } else {
-            current = doEagerOpt(remainder);
-
-            if (length > 0) {
-                nextBuilder[0] = removeCover(doEagerOpt(obligations.initialStates[0]), current);
+                current = removeCover(doEagerOpt(obligations.obligations[0]), environment);
+            } else {
+                current = doEagerOpt(obligations.liveness[0]);
             }
         }
 
-        for (int i = 1; i < length; i++) {
-            nextBuilder[i] = removeCover(doEagerOpt(obligations.initialStates[i]), current);
-            nextBuilder[i].freeRepresentative();
+        for (int i = current.isTrue() ? 1 : 0; i < nextBuilder.length; i++) {
+            nextBuilder[i] = removeCover(doEagerOpt(obligations.obligations[i]), current);
         }
 
         // Drop unused representative.
-        xFragment.freeRepresentative();
+        safety.freeRepresentative();
         current.freeRepresentative();
 
-        return new State(0, xFragment, current, nextBuilder, obligations);
+        return new State(obligations.obligations.length > 0 ? 0 : -obligations.liveness.length, safety, current, nextBuilder, obligations);
     }
 
     public final class State extends ImmutableObject implements AutomatonState<State> {
 
         private final RecurringObligations obligations;
-        private final EquivalenceClass xFragment;
+
+        // Index of the current checked obligation. A negative index means a liveness obligation is checked.
         private final int index;
         private final EquivalenceClass current;
         private final EquivalenceClass[] next;
+        private final EquivalenceClass safety;
 
-        private State(int index, EquivalenceClass xFragment, EquivalenceClass current, EquivalenceClass[] next, RecurringObligations obligations) {
+        private State(int index, EquivalenceClass safety, EquivalenceClass current, EquivalenceClass[] next, RecurringObligations obligations) {
+            assert (obligations.isPureSafety() && index == 0) || (-obligations.liveness.length <= index && index < obligations.obligations.length);
+
             this.index = index;
             this.current = current;
             this.obligations = obligations;
-            this.xFragment = xFragment;
+            this.safety = safety;
             this.next = next;
         }
 
@@ -110,10 +129,14 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
                 sensitiveAlphabet = AcceptingComponent.this.getSensitiveAlphabet(current);
-                sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(xFragment));
+                sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(safety));
 
                 for (EquivalenceClass clazz : next) {
                     sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(clazz));
+                }
+
+                for (EquivalenceClass clazz : obligations.liveness) {
+                    sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(doEagerOpt(clazz)));
                 }
             }
 
@@ -122,60 +145,84 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
-            EquivalenceClass nextXFragment = AcceptingComponent.this.getSuccessor(xFragment, valuation).andWith(obligations.safety);
+            EquivalenceClass safetySuccessor = AcceptingComponent.this.getSuccessor(safety, valuation).andWith(obligations.safety);
 
-            if (nextXFragment.isFalse()) {
+            if (safetySuccessor.isFalse()) {
                 return null;
             }
 
-            EquivalenceClass currentSuccessor = AcceptingComponent.this.getSuccessor(current, valuation, nextXFragment);
+            EquivalenceClass currentSuccessor = AcceptingComponent.this.getSuccessor(current, valuation, safetySuccessor);
 
             if (currentSuccessor.isFalse()) {
-                EquivalenceClass.free(nextXFragment);
+                EquivalenceClass.free(safetySuccessor);
                 return null;
             }
 
-            EquivalenceClass assumptions = currentSuccessor.and(nextXFragment);
+            EquivalenceClass assumptions = currentSuccessor.and(safetySuccessor);
 
             if (assumptions.isFalse()) {
-                EquivalenceClass.free(nextXFragment, currentSuccessor);
+                EquivalenceClass.free(safetySuccessor, currentSuccessor);
                 return null;
             }
 
             EquivalenceClass[] nextSuccessors = AcceptingComponent.this.getSuccessors(next, valuation, assumptions);
 
             if (nextSuccessors == null) {
-                EquivalenceClass.free(nextXFragment, currentSuccessor, assumptions);
+                EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
                 return null;
             }
 
-            final int length = obligations.initialStates.length;
+            final int obligationsLength = obligations.obligations.length;
+            final int livenessLength = obligations.liveness.length;
 
             BitSet bs = REJECT;
 
             boolean obtainNewGoal = false;
             int j = index;
 
-            // Scan for new index if currentSuccessor currentSuccessor is true. In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
+            // Scan for new index if currentSuccessor currentSuccessor is true.
+            // In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
             if (currentSuccessor.isTrue()) {
                 obtainNewGoal = true;
                 int i = index + 1;
 
-                while (i < length && nextSuccessors[i].isTrue()) {
+                while (0 <= i && i < obligationsLength && nextSuccessors[i].isTrue()) {
                     i++;
                 }
 
-                if (i >= length) {
+                // Wrap around to the liveness obligations.
+                if (i >= obligationsLength) {
+                    i = -livenessLength;
+                }
+
+                while (i < 0) {
+                    currentSuccessor = AcceptingComponent.this.getSuccessor(
+                            AcceptingComponent.this.getInitialClass(obligations.liveness[livenessLength + i]),
+                            valuation,
+                            assumptions);
+
+                    if (currentSuccessor.isTrue()) {
+                        i++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (i == 0) {
                     bs = ACCEPT;
 
                     // Continue scanning
-                    for (i = 0; i < length && nextSuccessors[i].isTrue();) {
+                    for (i = 0; i < obligationsLength && nextSuccessors[i].isTrue();) {
                         i++;
                     }
                 }
 
-                if (i == length) {
-                    j = 0;
+                if (i == obligationsLength) {
+                    if (obligationsLength == 0) {
+                        j = -livenessLength;
+                    } else {
+                        j = 0;
+                    }
                 } else {
                     j = i;
                 }
@@ -185,41 +232,46 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 EquivalenceClass nextSuccessor = nextSuccessors[i];
 
                 if (obtainNewGoal && i == j) {
-                    currentSuccessor = nextSuccessor.and(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
+                    currentSuccessor = nextSuccessor.and(removeCover(doEagerOpt(obligations.obligations[i]), assumptions));
                     assumptions = assumptions.and(currentSuccessor);
                     nextSuccessors[i] = equivalenceClassFactory.getTrue();
                 } else {
-                    nextSuccessors[i] = nextSuccessor.and(removeCover(doEagerOpt(obligations.initialStates[i]), assumptions));
+                    nextSuccessors[i] = nextSuccessor.and(removeCover(doEagerOpt(obligations.obligations[i]), assumptions));
                 }
             }
 
+            if (obtainNewGoal && j < 0) {
+                currentSuccessor = (doEagerOpt(obligations.liveness[livenessLength + j]));
+            }
+
             if (currentSuccessor.isFalse()) {
-                EquivalenceClass.free(nextXFragment, currentSuccessor, assumptions);
+                EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
                 EquivalenceClass.free(nextSuccessors);
                 return null;
             }
 
             for (EquivalenceClass clazz : nextSuccessors) {
                 if (clazz.isFalse()) {
-                    EquivalenceClass.free(nextXFragment, currentSuccessor, assumptions);
+                    EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
                     EquivalenceClass.free(nextSuccessors);
                     return null;
                 }
             }
 
             assumptions.free();
-            return new Edge<>(new State(j, nextXFragment, currentSuccessor, nextSuccessors, obligations), bs);
+
+            return new Edge<>(new State(j, safetySuccessor, currentSuccessor, nextSuccessors, obligations), bs);
         }
 
         @Override
         protected int hashCodeOnce() {
-            return Objects.hash(current, obligations, xFragment, index, Arrays.hashCode(next));
+            return Objects.hash(current, obligations, safety, index, Arrays.hashCode(next));
         }
 
         @Override
         protected boolean equals2(ImmutableObject o) {
             State that = (State) o;
-            return index == that.index && Objects.equals(xFragment, that.xFragment) && Objects.equals(current, that.current) && Arrays.equals(next, that.next) && Objects.equals(obligations, that.obligations);
+            return index == that.index && Objects.equals(safety, that.safety) && Objects.equals(current, that.current) && Arrays.equals(next, that.next) && Objects.equals(obligations, that.obligations);
         }
 
         @Override
@@ -240,13 +292,17 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         public EquivalenceClass getLabel() {
             if (label == null) {
-                label = current.and(xFragment);
+                label = current.and(safety);
 
                 for (EquivalenceClass clazz : next) {
                     label = label.andWith(clazz);
                 }
 
-                for (EquivalenceClass clazz : obligations.initialStates) {
+                for (EquivalenceClass clazz : obligations.obligations) {
+                    label = label.andWith(clazz);
+                }
+
+                for (EquivalenceClass clazz : obligations.liveness) {
                     label = label.andWith(clazz);
                 }
             }
@@ -258,7 +314,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         public String toString() {
             final StringBuilder sb = new StringBuilder("State{");
             sb.append("obligations=").append(obligations);
-            sb.append(", safety=").append(xFragment);
+            sb.append(", safety=").append(safety);
             sb.append(", index=").append(index);
             sb.append(", current=").append(current);
             sb.append(", next=").append(Arrays.toString(next));

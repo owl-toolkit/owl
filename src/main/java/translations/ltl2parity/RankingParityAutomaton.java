@@ -18,8 +18,6 @@
 package translations.ltl2parity;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import ltl.Formula;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
@@ -64,7 +62,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         for (RecurringObligations value : acceptingComponent.getAllInit()) {
             // TODO: make sure that there is at most one component for each recurring obligation.
-            if (value.isPurelySafety() && !volatileComponents.containsKey(value)) {
+            if (value.isPureSafety() && !volatileComponents.containsKey(value)) {
                 volatileComponents.put(value, components);
                 components = components + 1;
             }
@@ -213,7 +211,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                     continue;
                 }
 
-                if (stateClass.testSupport(Formula::isPureEventual)) {
+                if (obligations.isPureLiveness() && accState.getCurrent().testSupport(Formula::isPureEventual)) {
                     pureEventual.add(accState);
                 } else {
                     mixed.add(accState);

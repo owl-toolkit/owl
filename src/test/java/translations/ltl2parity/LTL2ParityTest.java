@@ -80,4 +80,9 @@ public class LTL2ParityTest {
         testOutput(ltl, 5, 2);
     }
 
+    @Test
+    public void testRegression5() throws Exception {
+        String ltl = "! (((X(a)) | (F(b))) U (a))";
+        testOutput(ltl, 7, 4);
+    }
 }
