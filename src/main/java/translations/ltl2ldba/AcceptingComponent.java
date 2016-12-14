@@ -192,6 +192,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
                 // Wrap around to the liveness obligations.
                 if (i >= obligationsLength) {
+                    bs = ACCEPT;
                     i = -livenessLength;
                 }
 
@@ -209,10 +210,8 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 }
 
                 if (i == 0) {
-                    bs = ACCEPT;
-
                     // Continue scanning
-                    for (i = 0; i < obligationsLength && nextSuccessors[i].isTrue();) {
+                    for (; i < obligationsLength && nextSuccessors[i].isTrue();) {
                         i++;
                     }
                 }
