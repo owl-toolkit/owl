@@ -137,7 +137,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 }
 
                 for (EquivalenceClass clazz : obligations.liveness) {
-                    sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(doEagerOpt(clazz)));
+                    sensitiveAlphabet.or(AcceptingComponent.this.getSensitiveAlphabet(getInitialClass(clazz)));
                 }
             }
 
@@ -247,16 +247,16 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 EquivalenceClass nextSuccessor = nextSuccessors[i];
 
                 if (obtainNewGoal && i == j) {
-                    currentSuccessor = nextSuccessor.and(removeCover(doEagerOpt(obligations.obligations[i]), assumptions));
+                    currentSuccessor = nextSuccessor.and(getInitialClass(obligations.obligations[i], assumptions));
                     assumptions = assumptions.and(currentSuccessor);
                     nextSuccessors[i] = equivalenceClassFactory.getTrue();
                 } else {
-                    nextSuccessors[i] = nextSuccessor.and(removeCover(doEagerOpt(obligations.obligations[i]), assumptions));
+                    nextSuccessors[i] = nextSuccessor.and(getInitialClass(obligations.obligations[i], assumptions));
                 }
             }
 
             if (obtainNewGoal && j < 0) {
-                currentSuccessor = (doEagerOpt(obligations.liveness[livenessLength + j]));
+                currentSuccessor = getInitialClass(obligations.liveness[livenessLength + j]);
             }
 
             if (currentSuccessor.isFalse()) {

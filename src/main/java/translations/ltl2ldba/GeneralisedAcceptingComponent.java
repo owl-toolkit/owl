@@ -71,17 +71,17 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         }
 
         if (obligations.obligations.length > 0) {
-            currentBuilder[0] = doEagerOpt(remainder.andWith(obligations.obligations[0]));
+            currentBuilder[0] = getInitialClass(remainder.andWith(obligations.obligations[0]));
         } else {
-            currentBuilder[0] = doEagerOpt(remainder.andWith(obligations.liveness[0]));
+            currentBuilder[0] = getInitialClass(remainder.andWith(obligations.liveness[0]));
         }
 
         for (int i = 1; i < obligations.obligations.length; i++) {
-            currentBuilder[i] = doEagerOpt(obligations.obligations[i]);
+            currentBuilder[i] = getInitialClass(obligations.obligations[i]);
         }
 
         for (int i = Math.max(1, obligations.obligations.length); i < length; i++) {
-            currentBuilder[i] = doEagerOpt(obligations.liveness[i - obligations.obligations.length]);
+            currentBuilder[i] = getInitialClass(obligations.liveness[i - obligations.obligations.length]);
         }
 
         EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.length];
@@ -159,7 +159,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                     return null;
                 }
 
-                nextSuccessor = nextSuccessor.andWith(removeCover(doEagerOpt(obligations.obligations[i]), assumptions));
+                nextSuccessor = nextSuccessor.andWith(getInitialClass(obligations.obligations[i], assumptions));
 
                 // Successor is done and we can switch components.
                 if (currentSuccessor.isTrue()) {
@@ -183,7 +183,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
                 if (currentSuccessor.isTrue()) {
                     bs.set(i);
-                    currentSuccessors[i] = doEagerOpt(obligations.liveness[i - next.length]);
+                    currentSuccessors[i] = getInitialClass(obligations.liveness[i - next.length]);
                 } else {
                     currentSuccessors[i] = currentSuccessor;
                 }

@@ -166,7 +166,18 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     }
 
     EquivalenceClass getInitialClass(EquivalenceClass clazz, @Nullable EquivalenceClass environment) {
-        return environment != null ? removeCover(doEagerOpt(clazz.and(equivalenceClassFactory.getTrue())), environment) : doEagerOpt(clazz.and(equivalenceClassFactory.getTrue()));
+        EquivalenceClass result = clazz.and(equivalenceClassFactory.getTrue());
+
+        if (eager) {
+            result = result.unfold();
+        }
+
+        if (environment != null && removeCover && environment.implies(result)) {
+            result.free();
+            result = equivalenceClassFactory.getTrue();
+        }
+
+        return result;
     }
 
     EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {
@@ -224,16 +235,4 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
     }
 
-    EquivalenceClass doEagerOpt(EquivalenceClass clazz) {
-        return eager ? clazz.unfold() : clazz;
-    }
-
-    EquivalenceClass removeCover(EquivalenceClass clazz, EquivalenceClass environment) {
-        if (removeCover && environment.implies(clazz)) {
-            clazz.free();
-            return equivalenceClassFactory.getTrue();
-        }
-
-        return clazz;
-    }
 }
