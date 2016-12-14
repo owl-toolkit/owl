@@ -78,7 +78,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         EquivalenceClass environment = safety.and(and(obligations.liveness));
 
         if (length == 0) {
-            return new State(0, safety, doEagerOpt(removeCover(current, environment)), EMPTY, obligations);
+            return new State(0, safety, getInitialClass(current, environment), EMPTY, obligations);
         }
 
         EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];
@@ -86,14 +86,14 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         if (current.isTrue()) {
             if (obligations.obligations.length > 0) {
                 nextBuilder[0] = current;
-                current = removeCover(doEagerOpt(obligations.obligations[0]), environment);
+                current = getInitialClass(obligations.obligations[0], environment);
             } else {
-                current = doEagerOpt(obligations.liveness[0]);
+                current = getInitialClass(obligations.liveness[0]);
             }
         }
 
         for (int i = current.isTrue() ? 1 : 0; i < nextBuilder.length; i++) {
-            nextBuilder[i] = removeCover(doEagerOpt(obligations.obligations[i]), current);
+            nextBuilder[i] = getInitialClass(obligations.obligations[i], current);
         }
 
         // Drop unused representative.
@@ -300,20 +300,19 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         }
 
         public EquivalenceClass getCurrent() {
-            return current;
+            return index < 0 ? equivalenceClassFactory.getTrue() : current;
         }
 
         private EquivalenceClass label = null;
 
         public EquivalenceClass getLabel() {
             if (label == null) {
-                label = current.and(safety);
+                label = safety.and(current);
 
                 for (EquivalenceClass clazz : next) {
                     label = label.andWith(clazz);
                 }
 
-                // TODO: delete?
                 for (EquivalenceClass clazz : obligations.obligations) {
                     label = label.andWith(clazz);
                 }
