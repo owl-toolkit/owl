@@ -28,6 +28,7 @@ import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
@@ -143,6 +144,50 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             return (BitSet) sensitiveAlphabet.clone();
         }
 
+        @Nonnegative
+        private int scanObligations(@Nonnegative int i, EquivalenceClass[] obligations) {
+            final int obligationsLength = obligations.length;
+
+            while (i < obligationsLength && obligations[i].isTrue()) {
+                i++;
+            }
+
+            return i;
+        }
+
+        private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment) {
+            final int livenessLength = obligations.liveness.length;
+
+            EquivalenceClass successor = equivalenceClassFactory.getTrue();
+
+            while (i < 0) {
+                successor = AcceptingComponent.this.getSuccessor(
+                        AcceptingComponent.this.getInitialClass(obligations.liveness[livenessLength + i]),
+                        valuation,
+                        environment);
+
+                if (successor.isTrue()) {
+                    i++;
+                } else {
+                    break;
+                }
+            }
+
+            return i;
+        }
+
+        private int scan(int i, EquivalenceClass[] obligations, BitSet valuation, EquivalenceClass environment) {
+            if (i < 0) {
+                i = scanLiveness(i, valuation, environment);
+            }
+
+            if (0 <= i) {
+                i = scanObligations(i, obligations);
+            }
+
+            return i;
+        }
+
         @Nullable
         public Edge<State> getSuccessor(BitSet valuation) {
             EquivalenceClass safetySuccessor = AcceptingComponent.this.getSuccessor(safety, valuation).andWith(obligations.safety);
@@ -178,53 +223,24 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             BitSet bs = REJECT;
 
             boolean obtainNewGoal = false;
-            int j = index;
+            int j;
 
             // Scan for new index if currentSuccessor currentSuccessor is true.
             // In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
             if (currentSuccessor.isTrue()) {
                 obtainNewGoal = true;
-                int i = index + 1;
+                j = scan(index + 1, nextSuccessors, valuation, assumptions);
 
-                while (0 <= i && i < obligationsLength && nextSuccessors[i].isTrue()) {
-                    i++;
-                }
-
-                // Wrap around to the liveness obligations.
-                if (i >= obligationsLength) {
+                if (j >= obligationsLength) {
                     bs = ACCEPT;
-                    i = -livenessLength;
-                }
+                    j = scan(-livenessLength, nextSuccessors, valuation, assumptions);
 
-                while (i < 0) {
-                    currentSuccessor = AcceptingComponent.this.getSuccessor(
-                            AcceptingComponent.this.getInitialClass(obligations.liveness[livenessLength + i]),
-                            valuation,
-                            assumptions);
-
-                    if (currentSuccessor.isTrue()) {
-                        i++;
-                    } else {
-                        break;
-                    }
-                }
-
-                // Continue scanning
-                if (i == 0) {
-                    while (i < obligationsLength && nextSuccessors[i].isTrue()) {
-                        i++;
-                    }
-                }
-
-                if (i == obligationsLength) {
-                    if (obligationsLength == 0) {
+                    if (j >= obligationsLength) {
                         j = -livenessLength;
-                    } else {
-                        j = 0;
                     }
-                } else {
-                    j = i;
                 }
+            } else {
+                j = index;
             }
 
             for (int i = 0; i < nextSuccessors.length; i++) {

@@ -55,4 +55,11 @@ public class LTL2LDBARegressionTest {
         String ltl = "G (F (a & (F b)))";
         testOutput(ltl, 2);
     }
+
+    @Test
+    public void testLivenessRegression2() throws Exception {
+        String ltl = "G (F a & F b)";
+        testOutput(ltl, 2);
+    }
+
 }
