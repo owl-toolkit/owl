@@ -209,9 +209,9 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                     }
                 }
 
+                // Continue scanning
                 if (i == 0) {
-                    // Continue scanning
-                    for (; i < obligationsLength && nextSuccessors[i].isTrue();) {
+                    while (i < obligationsLength && nextSuccessors[i].isTrue()) {
                         i++;
                     }
                 }
@@ -297,6 +297,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                     label = label.andWith(clazz);
                 }
 
+                // TODO: delete?
                 for (EquivalenceClass clazz : obligations.obligations) {
                     label = label.andWith(clazz);
                 }
