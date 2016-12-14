@@ -4,7 +4,7 @@ import org.immutables.value.Value;
 
 @SuppressWarnings("PMD.AtLeastOneConstructor")
 @Value.Immutable
-class BddConfiguration {
+public class BddConfiguration {
   private static final int DEFAULT_CACHE_BINARY_BINS_PER_HASH = 3;
   private static final int DEFAULT_CACHE_BINARY_DIVIDER = 32;
   private static final int DEFAULT_CACHE_COMPOSE_DIVIDER = 128;

@@ -1,5 +1,6 @@
 package owl.bdd;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -23,7 +24,11 @@ final class BddImpl extends NodeTable implements Bdd {
   private int numberOfVariables;
 
   BddImpl(final int nodeSize) {
-    super(Util.nextPrime(nodeSize), ImmutableBddConfiguration.builder().build());
+    this(nodeSize, ImmutableBddConfiguration.builder().build());
+  }
+
+  BddImpl(final int nodeSize, final BddConfiguration configuration) {
+    super(Util.nextPrime(nodeSize), configuration);
     cache = new BddCache(this);
     numberOfVariables = 0;
   }
@@ -36,12 +41,12 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int numberOfVariables() {
+  public int numberOfVariables() {
     return numberOfVariables;
   }
 
   @Override
-  public final int createVariable() {
+  public int createVariable() {
     final int variableNode = makeNode(numberOfVariables, 0, 1);
     saturateNode(variableNode);
     final int notVariableNode = makeNode(numberOfVariables, 1, 0);
@@ -68,7 +73,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int compose(final int node, final int[] variableReplacementNodes) {
+  public int compose(final int node, final int[] variableReplacementNodes) {
     assert variableReplacementNodes.length <= numberOfVariables;
 
     if (node == TRUE_NODE || node == FALSE_NODE) {
@@ -123,7 +128,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int ifThenElse(final int ifNode, final int thenNode, final int elseNode) {
+  public int ifThenElse(final int ifNode, final int thenNode, final int elseNode) {
     assert isNodeValidOrRoot(ifNode) && isNodeValidOrRoot(thenNode) && isNodeValidOrRoot(elseNode);
     pushToWorkStack(ifNode);
     pushToWorkStack(thenNode);
@@ -134,7 +139,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int and(final int node1, final int node2) {
+  public int and(final int node1, final int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
@@ -144,7 +149,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int or(final int node1, final int node2) {
+  public int or(final int node1, final int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
@@ -171,7 +176,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int notAnd(final int node1, final int node2) {
+  public int notAnd(final int node1, final int node2) {
     pushToWorkStack(node1);
     pushToWorkStack(node2);
     final int ret = notAndRecursive(node1, node2);
@@ -180,7 +185,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int xor(final int node1, final int node2) {
+  public int xor(final int node1, final int node2) {
     pushToWorkStack(node1);
     pushToWorkStack(node2);
     final int ret = xorRecursive(node1, node2);
@@ -189,7 +194,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int equivalence(final int node1, final int node2) {
+  public int equivalence(final int node1, final int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
@@ -199,7 +204,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final int implication(final int node1, final int node2) {
+  public int implication(final int node1, final int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
@@ -209,13 +214,13 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final boolean implies(final int node1, final int node2) {
+  public boolean implies(final int node1, final int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     return impliesRecursive(node1, node2);
   }
 
   @Override
-  public final int not(final int node) {
+  public int not(final int node) {
     assert isNodeValidOrRoot(node);
     pushToWorkStack(node);
     final int ret = notRecursive(node);
@@ -224,7 +229,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final double countSatisfyingAssignments(final int node) {
+  public double countSatisfyingAssignments(final int node) {
     // TODO Add overflow checks, an int version and a BigInteger version
     if (node == FALSE_NODE) {
       return 0d;
@@ -240,7 +245,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final boolean isVariable(final int node) {
+  public boolean isVariable(final int node) {
     if (isNodeRoot(node)) {
       return false;
     }
@@ -250,7 +255,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final boolean isVariableOrNegated(final int node) {
+  public boolean isVariableOrNegated(final int node) {
     assert isNodeValidOrRoot(node);
     if (isNodeRoot(node)) {
       return false;
@@ -260,7 +265,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public final void support(final int node, final BitSet bitSet, final int highestVariable) {
+  public void support(final int node, final BitSet bitSet, final int highestVariable) {
     assert isNodeValidOrRoot(node);
     assert 0 <= highestVariable && highestVariable <= numberOfVariables;
     bitSet.clear();
@@ -303,6 +308,7 @@ final class BddImpl extends NodeTable implements Bdd {
     return TRUE_NODE;
   }
 
+  @VisibleForTesting
   int existsShannon(final int node, final BitSet quantifiedVariables) {
     assert quantifiedVariables.previousSetBit(quantifiedVariables.length()) <= numberOfVariables;
     if (quantifiedVariables.cardinality() == numberOfVariables) {
@@ -317,15 +323,16 @@ final class BddImpl extends NodeTable implements Bdd {
     return result;
   }
 
-  final String getCacheStatistics() {
+  String getCacheStatistics() {
     return cache.getStatistics();
   }
 
   @Override
-  final void postRemovalCallback() {
+  void postRemovalCallback() {
     cache.invalidate();
   }
 
+  @VisibleForTesting
   int existsSelfSubstitution(final int node, final BitSet quantifiedVariables) {
     assert quantifiedVariables.previousSetBit(quantifiedVariables.length()) <= numberOfVariables;
     if (quantifiedVariables.cardinality() == numberOfVariables) {
