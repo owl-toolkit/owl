@@ -410,6 +410,11 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         }
 
         @Override
+        public EquivalenceClass duplicate() {
+            return new BddEquivalenceClass(representative, factory.reference(bdd));
+        }
+
+        @Override
         public BitSet getAtoms() {
             return factory.support(bdd, alphabetSize);
         }

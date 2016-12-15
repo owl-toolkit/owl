@@ -109,6 +109,8 @@ public interface EquivalenceClass {
 
     Collection<Set<Formula>> restrictedSatisfyingAssignments(Collection<Formula> support, EquivalenceClass restr);
 
+    EquivalenceClass duplicate();
+
     /**
      * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
      * @return
