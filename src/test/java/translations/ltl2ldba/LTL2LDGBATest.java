@@ -250,26 +250,8 @@ public class LTL2LDGBATest {
 
     @Test
     public void testSCCPatient() throws Exception {
-        final String testSCCHOA = "HOA: v1\n" +
-                "tool: \"Owl\" \"* *\"\n" +
-                "States: 4\n" +
-                "Start: 0\n" +
-                "acc-name: Buchi\n" +
-                "Acceptance: 1 Inf(0)\n" +
-                "AP: 3 \"0\" \"1\" \"2\"\n" +
-                "--BODY--\n" +
-                "State: 1\n" +
-                "[1] 2 {0}\n" +
-                "State: 2\n" +
-                "[2] 2 {0}\n" +
-                "State: 3\n" +
-                "[0] 1 {0}\n" +
-                "State: 0\n" +
-                "[t] 3 {0}\n" +
-                "--END--\n";
-
         String ltl = "X (a & (X (b & X G c)))";
-        testOutput(ltl, 4, testSCCHOA);
+        testOutput(ltl, 4);
     }
 
     @Test
