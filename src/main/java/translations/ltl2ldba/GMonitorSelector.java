@@ -23,9 +23,12 @@ import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.Collector;
+import ltl.visitors.SkipVisitor;
 import ltl.visitors.Visitor;
+import ltl.visitors.predicates.XFragmentPredicate;
 import translations.Optimisation;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -37,10 +40,12 @@ class GMonitorSelector {
 
     private final EnumSet<Optimisation> optimisations;
     private final EquivalenceClassFactory factory;
+    private final Map<Set<GOperator>, RecurringObligations> cache;
 
     GMonitorSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.factory = factory;
+        this.cache = new HashMap<>();
     }
 
     EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys) {
@@ -141,18 +146,50 @@ class GMonitorSelector {
         return Sets.powerSet(normaliseInfinityOperators(support));
     }
 
-    Collection<Set<GOperator>> selectMonitors(EquivalenceClass state, boolean initialState) {
-        final Collection<Set<GOperator>> sets;
+    Map<Set<GOperator>, RecurringObligations> selectMonitors(EquivalenceClass state, boolean initialState) {
+        final Collection<Set<GOperator>> keys;
+        final Map<Set<GOperator>, RecurringObligations> jumps = new HashMap<>();
 
+        // Find interesting Gs
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            sets = selectReducedMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
+            keys = selectReducedMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
         } else {
-            sets = selectAllMonitors(state);
+            keys = selectAllMonitors(state);
         }
 
-        if (!sets.contains(Collections.<GOperator>emptySet())) {
-            if (sets.size() > 1) {
-                sets.add(Collections.emptySet());
+        // Compute resulting RecurringObligations.
+        for (Set<GOperator> Gs : keys) {
+            RecurringObligations obligations = cache.computeIfAbsent(Gs, this::getObligations);
+
+            if (obligations != null) {
+                jumps.put(Gs, obligations);
+            }
+        }
+
+        if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+            jumps.entrySet().removeIf(largerEntry -> {
+                RecurringObligations largerObligation = largerEntry.getValue();
+
+                return jumps.entrySet().stream().anyMatch(smallerEntry -> {
+                    RecurringObligations smallerObligation = smallerEntry.getValue();
+
+                    if (smallerObligation.equals(largerObligation) || !largerObligation.implies(smallerObligation)) {
+                        return false;
+                    }
+
+                    if (getRemainingGoal(state.getRepresentative(), largerEntry.getKey()).implies(getRemainingGoal(state.getRepresentative(), smallerEntry.getKey()))) {
+                        return true;
+                    }
+
+                    return false;
+                });
+            });
+        }
+
+        //
+        if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
+            if (jumps.size() > 1) {
+                jumps.put(Collections.emptySet(), null);
             } else {
                 final Set<GOperator> Gs = new HashSet<>();
 
@@ -162,17 +199,71 @@ class GMonitorSelector {
                     Gs.addAll(normaliseInfinityOperators(collector.getCollection()));
                 });
 
-                if (!sets.contains(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
-                    sets.add(Collections.emptySet());
+                if (!jumps.containsKey(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
+                    jumps.put(Collections.emptySet(), null);
                 }
             }
         }
 
-        return sets;
+        return jumps;
     }
 
-    Collection<Set<GOperator>> selectMonitors(InitialComponent.State state) {
+    Map<Set<GOperator>, RecurringObligations> selectMonitors(InitialComponent.State state) {
         return selectMonitors(state.getClazz(), false);
     }
 
+    /**
+     * The method ensures either Move to RecurringObligations Selector
+     * @param gOperators
+     * @return
+     */
+    @Nullable
+    private RecurringObligations getObligations(Set<GOperator> gOperators) {
+        // Fields for RecurringObligations
+        EquivalenceClass safety = factory.getTrue();
+        List<EquivalenceClass> liveness = new ArrayList<>(gOperators.size());
+        List<EquivalenceClass> obligations = new ArrayList<>(gOperators.size());
+
+        // Skip the top-level object in the syntax tree.
+        Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(gOperators));
+
+        for (GOperator gOperator : gOperators) {
+            Formula formula = Simplifier.simplify(Simplifier.simplify(gOperator.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
+            EquivalenceClass clazz = factory.createEquivalenceClass(formula);
+
+            if (clazz.isFalse()) {
+                free(clazz, safety, liveness, obligations);
+                return null;
+            }
+
+            if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS)) {
+                if (clazz.testSupport(XFragmentPredicate::testStatic)) {
+                    safety = safety.andWith(clazz);
+                    clazz.free();
+                    continue;
+                }
+
+                if (clazz.testSupport(Formula::isPureEventual)) {
+                    liveness.add(clazz);
+                    continue;
+                }
+            }
+
+            obligations.add(clazz);
+        }
+
+        if (safety.isFalse()) {
+            free(null, safety, liveness, obligations);
+            return null;
+        }
+
+        return new RecurringObligations(safety, liveness, obligations);
+    }
+
+    private static void free(@Nullable EquivalenceClass clazz1, EquivalenceClass clazz2, Iterable<EquivalenceClass> iterable1, Iterable<EquivalenceClass> iterable2) {
+        EquivalenceClass.free(clazz1);
+        EquivalenceClass.free(clazz2);
+        EquivalenceClass.free(iterable1);
+        EquivalenceClass.free(iterable2);
+    }
 }

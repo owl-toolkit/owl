@@ -260,10 +260,10 @@ public class LTL2LDGBATest {
                 "--BODY--\n" +
                 "State: 1\n" +
                 "[1] 2 {0}\n" +
-                "State: 3\n" +
-                "[0] 1 {0}\n" +
                 "State: 2\n" +
                 "[2] 2 {0}\n" +
+                "State: 3\n" +
+                "[0] 1 {0}\n" +
                 "State: 0\n" +
                 "[t] 3 {0}\n" +
                 "--END--\n";

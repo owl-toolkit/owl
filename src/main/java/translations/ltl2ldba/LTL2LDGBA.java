@@ -35,10 +35,7 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.StringReader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>> {
@@ -68,15 +65,15 @@ public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<
         }
 
         GMonitorSelector selector = new GMonitorSelector(optimisations, equivalenceClassFactory);
-        Collection<Set<GOperator>> keys = selector.selectMonitors(initialClazz, true);
+        Map<Set<GOperator>, RecurringObligations> keys = selector.selectMonitors(initialClazz, true);
 
         GeneralisedAcceptingComponent acceptingComponent = new GeneralisedAcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent<GeneralisedAcceptingComponent.State> initialComponent = null;
 
-        if (initialClazz.isFalse() || keys.size() == 1 && !keys.contains(Collections.<GOperator>emptySet())) {
-            Set<GOperator> key = Iterables.isEmpty(keys) ? Collections.emptySet() : Iterables.getOnlyElement(keys);
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz.getRepresentative(), key);
-            acceptingComponent.jumpInitial(remainingGoal, key);
+        if (keys.size() == 1 && !keys.containsKey(Collections.<GOperator>emptySet())) {
+            Map.Entry<Set<GOperator>, RecurringObligations> entry = Iterables.getOnlyElement(keys.entrySet());
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz.getRepresentative(), entry.getKey());
+            acceptingComponent.jumpInitial(remainingGoal, entry.getValue());
         } else {
             initialComponent = new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }

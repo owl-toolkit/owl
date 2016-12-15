@@ -41,20 +41,20 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     private final EnumSet<Optimisation> optimisations;
     private Collection<S> constructionQueue = new ArrayDeque<>();
-    private final Map<Set<GOperator>, RecurringObligations> components;
+    private Set<RecurringObligations> components;
 
     final EquivalenceClassFactory equivalenceClassFactory;
     final boolean removeCover;
     final boolean eager;
 
-    public Collection<RecurringObligations> getAllInit() {
-        return components.values();
+    public Set<RecurringObligations> getAllInit() {
+        return components;
     }
 
     AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
-        components = new HashMap<>();
+        components = new HashSet<>();
         this.optimisations = optimisations;
 
         removeCover = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
@@ -71,90 +71,23 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         return equivalenceClassFactory;
     }
 
-    void jumpInitial(EquivalenceClass master, Set<GOperator> keys) {
+    void jumpInitial(EquivalenceClass master, RecurringObligations keys) {
         initialState = jump(master, keys);
     }
 
     @Nullable
-    S jump(EquivalenceClass remainingGoal, Set<GOperator> keys) {
-        if (remainingGoal.isFalse()) {
+    S jump(EquivalenceClass remainingGoal, RecurringObligations obligations) {
+        if (remainingGoal.isFalse() || obligations == null) {
             return null;
         }
 
-        RecurringObligations obligations = getObligations(keys);
-
-        if (obligations == null) {
-            return null;
-        }
-
+        components.add(obligations);
         S state = createState(remainingGoal, obligations);
         constructionQueue.add(state);
         return state;
     }
 
     abstract S createState(EquivalenceClass remainder, RecurringObligations obligations);
-
-    /**
-     * The method ensures either
-     * @param keys
-     * @return
-     */
-    @Nullable
-    private RecurringObligations getObligations(Set<GOperator> keys) {
-        RecurringObligations recurringObligations = components.get(keys);
-
-        if (recurringObligations == null) {
-            // Fields for RecurringObligations
-            EquivalenceClass safety = equivalenceClassFactory.getTrue();
-            List<EquivalenceClass> liveness = new ArrayList<>(keys.size());
-            List<EquivalenceClass> obligations = new ArrayList<>(keys.size());
-
-            // Skip the top-level object in the syntax tree.
-            Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(keys));
-
-            for (GOperator key : keys) {
-                Formula formula = Simplifier.simplify(Simplifier.simplify(key.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
-                EquivalenceClass clazz = equivalenceClassFactory.createEquivalenceClass(formula);
-
-                if (clazz.isFalse()) {
-                    free(clazz, safety, liveness, obligations);
-                    return null;
-                }
-
-                if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS)) {
-                    if (clazz.testSupport(XFragmentPredicate::testStatic)) {
-                        safety = safety.andWith(clazz);
-                        clazz.free();
-                        continue;
-                    }
-
-                    if (clazz.testSupport(Formula::isPureEventual)) {
-                        liveness.add(clazz);
-                        continue;
-                    }
-                }
-
-                obligations.add(clazz);
-            }
-
-            if (safety.isFalse()) {
-                free(null, safety, liveness, obligations);
-                return null;
-            }
-
-            recurringObligations = new RecurringObligations(safety, liveness, obligations);
-            components.put(keys, recurringObligations);
-        }
-
-        return recurringObligations;
-    }
-
-    private static void free(@Nullable EquivalenceClass clazz1, EquivalenceClass clazz2, Iterable<EquivalenceClass> iterable1, Iterable<EquivalenceClass> iterable2) {
-        EquivalenceClass.free(clazz1);
-        EquivalenceClass.free(clazz2);
-        EquivalenceClass.free(iterable1);
-        EquivalenceClass.free(iterable2);
-    }
 
     public void free() {
         super.free();

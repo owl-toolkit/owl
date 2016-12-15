@@ -23,6 +23,7 @@ import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.acceptance.RabinPair;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
@@ -65,22 +66,22 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
     @Override
     public void generateJumps(State state) {
-        Iterable<Set<GOperator>> keys = selector.selectMonitors(state);
+        Map<Set<GOperator>, RecurringObligations> keys = selector.selectMonitors(state);
 
-        for (Set<GOperator> key : keys) {
-            if (key.isEmpty()) {
-                continue;
+        keys.forEach((Gs, obligation) -> {
+            if (Gs.isEmpty()) {
+                return;
             }
 
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz().getRepresentative(), key);
-            S successor = acceptingComponent.jump(remainingGoal, key);
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz().getRepresentative(), Gs);
+            S successor = acceptingComponent.jump(remainingGoal, obligation);
 
             if (successor == null) {
-                continue;
+                return;
             }
 
             epsilonJumps.put(state, successor);
-        }
+        });
     }
 
     @Override
@@ -98,7 +99,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         private final boolean eager;
         private final boolean impatient;
         private final ValuationSetFactory valuationSetFactory;
-        private Collection<Set<GOperator>> jumps;
+        private Map<Set<GOperator>, RecurringObligations> jumps;
         private final GMonitorSelector selector;
 
         public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory, GMonitorSelector selector) {
@@ -125,7 +126,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
             }
 
             // Suppress edge, if successor is a non-accepting state
-            if (successor.isFalse() || !jumps.contains(Collections.<GOperator>emptySet())) {
+            if (successor.isFalse() || !jumps.containsKey(Collections.<GOperator>emptySet())) {
                 return null;
             }
 

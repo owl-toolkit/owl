@@ -35,10 +35,7 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.StringReader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent>> {
@@ -68,15 +65,15 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         }
 
         GMonitorSelector selector = new GMonitorSelector(optimisations, equivalenceClassFactory);
-        Collection<Set<GOperator>> keys = selector.selectMonitors(initialClazz, true);
+        Map<Set<GOperator>, RecurringObligations> keys = selector.selectMonitors(initialClazz, true);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);
         InitialComponent<AcceptingComponent.State> initialComponent = null;
 
-        if (initialClazz.isFalse() || keys.size() == 1 && !keys.contains(Collections.<GOperator>emptySet())) {
-            Set<GOperator> key = Iterables.isEmpty(keys) ? Collections.emptySet() : Iterables.getOnlyElement(keys);
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz.getRepresentative(), key);
-            acceptingComponent.jumpInitial(remainingGoal, key);
+        if (keys.size() == 1 && !keys.containsKey(Collections.<GOperator>emptySet())) {
+            Map.Entry<Set<GOperator>, RecurringObligations> entry = Iterables.getOnlyElement(keys.entrySet());
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz.getRepresentative(), entry.getKey());
+            acceptingComponent.jumpInitial(remainingGoal, entry.getValue());
         } else {
             initialComponent = new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
         }

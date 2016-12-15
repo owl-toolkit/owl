@@ -17,19 +17,27 @@
 
 package translations.ltl2ldba;
 
+import com.google.common.collect.ImmutableSet;
+import ltl.GOperator;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class RecurringObligations extends ImmutableObject {
 
     private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
+    // G(safety) is a safety language.
     final EquivalenceClass safety;
+
+    // G(liveness[]) is a liveness language.
     final EquivalenceClass[] liveness;
+
+    // obligations[] are co-safety languages.
     final EquivalenceClass[] obligations;
 
     RecurringObligations(EquivalenceClass safety, List<EquivalenceClass> liveness, List<EquivalenceClass> obligations) {
@@ -50,7 +58,7 @@ public class RecurringObligations extends ImmutableObject {
     @Override
     protected boolean equals2(ImmutableObject o) {
         RecurringObligations that = (RecurringObligations) o;
-        return Objects.equals(safety, that.safety) && Arrays.equals(liveness, that.liveness) && Arrays.equals(obligations, that.obligations);
+        return safety.equals(that.safety) && Arrays.equals(liveness, that.liveness) && Arrays.equals(obligations, that.obligations);
     }
 
     public boolean isPureSafety() {
@@ -68,5 +76,23 @@ public class RecurringObligations extends ImmutableObject {
                 ", liveness=" + Arrays.toString(liveness) +
                 ", obligations=" + Arrays.toString(obligations) +
                 '}';
+    }
+
+    private EquivalenceClass overallObligation() {
+        EquivalenceClass obligation = safety.and(safety);
+
+        for (EquivalenceClass clazz : liveness) {
+            obligation = obligation.andWith(clazz);
+        }
+
+        for (EquivalenceClass clazz : obligations) {
+            obligation = obligation.andWith(clazz);
+        }
+
+        return obligation;
+    }
+
+    public boolean implies(RecurringObligations other) {
+        return overallObligation().implies(other.overallObligation());
     }
 }
