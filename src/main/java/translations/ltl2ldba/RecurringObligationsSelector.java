@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-class GMonitorSelector {
+class RecurringObligationsSelector {
 
     private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
 
@@ -42,7 +42,7 @@ class GMonitorSelector {
     private final EquivalenceClassFactory factory;
     private final Map<Set<GOperator>, RecurringObligations> cache;
 
-    GMonitorSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
+    RecurringObligationsSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.factory = factory;
         this.cache = new HashMap<>();
@@ -115,7 +115,7 @@ class GMonitorSelector {
 
         List<Set<GOperator>> sets = StreamSupport
                 .stream(skeleton.restrictedSatisfyingAssignments(support, null).spliterator(), false)
-                .map(GMonitorSelector::normaliseInfinityOperators)
+                .map(RecurringObligationsSelector::normaliseInfinityOperators)
                 //.filter(x -> Collections3.subset(getGuardedLiterals(x), unguardedLiterals))
                 .collect(Collectors.toList());
 
@@ -159,7 +159,7 @@ class GMonitorSelector {
 
         // Compute resulting RecurringObligations.
         for (Set<GOperator> Gs : keys) {
-            RecurringObligations obligations = cache.computeIfAbsent(Gs, this::getObligations);
+            RecurringObligations obligations = cache.computeIfAbsent(Gs, this::constructRecurringObligations);
 
             if (obligations != null) {
                 jumps.put(Gs, obligations);
@@ -212,12 +212,12 @@ class GMonitorSelector {
     }
 
     /**
-     * The method ensures either Move to RecurringObligations Selector
-     * @param gOperators
-     * @return
+     * Construct the recurring obligations for a Gset.
+     * @param gOperators The GOperators that have to be checked often.
+     * @return This methods returns null, if the Gset is inconsistent.
      */
     @Nullable
-    private RecurringObligations getObligations(Set<GOperator> gOperators) {
+    private RecurringObligations constructRecurringObligations(Set<GOperator> gOperators) {
         // Fields for RecurringObligations
         EquivalenceClass safety = factory.getTrue();
         List<EquivalenceClass> liveness = new ArrayList<>(gOperators.size());

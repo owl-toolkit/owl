@@ -64,7 +64,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
             initialClazz = initialClazz.unfold();
         }
 
-        GMonitorSelector selector = new GMonitorSelector(optimisations, equivalenceClassFactory);
+        RecurringObligationsSelector selector = new RecurringObligationsSelector(optimisations, equivalenceClassFactory);
         Map<Set<GOperator>, RecurringObligations> keys = selector.selectMonitors(initialClazz, true);
 
         AcceptingComponent acceptingComponent = new AcceptingComponent(equivalenceClassFactory, valuationSetFactory, optimisations);

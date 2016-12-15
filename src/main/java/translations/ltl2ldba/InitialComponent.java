@@ -23,7 +23,6 @@ import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.AutomatonState;
 import omega_automaton.Edge;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.acceptance.RabinPair;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
@@ -51,7 +50,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
     private final boolean eager;
     private final boolean impatient;
-    private final GMonitorSelector selector;
+    private final RecurringObligationsSelector selector;
 
     InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         super(valuationSetFactory);
@@ -61,7 +60,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
         impatient = optimisations.contains(Optimisation.FORCE_JUMPS);
-        selector = new GMonitorSelector(optimisations, factory);
+        selector = new RecurringObligationsSelector(optimisations, factory);
     }
 
     @Override
@@ -100,9 +99,9 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         private final boolean impatient;
         private final ValuationSetFactory valuationSetFactory;
         private Map<Set<GOperator>, RecurringObligations> jumps;
-        private final GMonitorSelector selector;
+        private final RecurringObligationsSelector selector;
 
-        public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory, GMonitorSelector selector) {
+        public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory, RecurringObligationsSelector selector) {
             this.clazz = clazz;
             this.eager = eager;
             this.impatient = impatient;
