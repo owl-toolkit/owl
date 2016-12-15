@@ -111,12 +111,9 @@ class RecurringObligationsSelector {
         final Set<Formula> support = state.getSupport(INFINITY_OPERATORS);
         final EquivalenceClass skeleton = state.exists(INFINITY_OPERATORS.negate());
 
-        // BitSet unguardedLiterals = getUnguardedLiterals(support);
-
         List<Set<GOperator>> sets = StreamSupport
                 .stream(skeleton.restrictedSatisfyingAssignments(support, null).spliterator(), false)
                 .map(RecurringObligationsSelector::normaliseInfinityOperators)
-                //.filter(x -> Collections3.subset(getGuardedLiterals(x), unguardedLiterals))
                 .collect(Collectors.toList());
 
         skeleton.free();

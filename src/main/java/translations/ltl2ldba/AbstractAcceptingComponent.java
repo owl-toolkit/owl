@@ -17,14 +17,8 @@
 
 package translations.ltl2ldba;
 
-import ltl.Formula;
-import ltl.GOperator;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
-import ltl.simplifier.Simplifier;
-import ltl.visitors.SkipVisitor;
-import ltl.visitors.Visitor;
-import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.OmegaAcceptance;
@@ -36,12 +30,12 @@ import java.util.*;
 
 abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends OmegaAcceptance> extends Automaton<S, T> {
 
-    protected final BitSet REJECT = new BitSet();
-    protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
+    static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
-    private final EnumSet<Optimisation> optimisations;
+    final BitSet REJECT = new BitSet();
+
     private Collection<S> constructionQueue = new ArrayDeque<>();
-    private Set<RecurringObligations> components;
+    private Set<RecurringObligations> components = new HashSet<>();
 
     final EquivalenceClassFactory equivalenceClassFactory;
     final boolean removeCover;
@@ -54,9 +48,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
-        components = new HashSet<>();
-        this.optimisations = optimisations;
-
         removeCover = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
     }
@@ -71,13 +62,13 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         return equivalenceClassFactory;
     }
 
-    void jumpInitial(EquivalenceClass master, RecurringObligations keys) {
-        initialState = jump(master, keys);
+    void jumpInitial(EquivalenceClass master, RecurringObligations obligations) {
+        initialState = jump(master, obligations);
     }
 
     @Nullable
     S jump(EquivalenceClass remainingGoal, RecurringObligations obligations) {
-        if (remainingGoal.isFalse() || obligations == null) {
+        if (remainingGoal.isFalse()) {
             return null;
         }
 
@@ -89,6 +80,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     abstract S createState(EquivalenceClass remainder, RecurringObligations obligations);
 
+    @Override
     public void free() {
         super.free();
         components.clear();
@@ -105,7 +97,7 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
             result = result.unfold();
         }
 
-        if (environment != null && removeCover && environment.implies(result)) {
+        if (removeCover && environment != null && environment.implies(result)) {
             result.free();
             result = equivalenceClassFactory.getTrue();
         }
@@ -118,7 +110,13 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     }
 
     EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
-        EquivalenceClass successor = step(clazz, valuation);
+        EquivalenceClass successor;
+
+        if (eager) {
+            successor = clazz.temporalStepUnfold(valuation);
+        } else {
+            successor = clazz.unfoldTemporalStep(valuation);
+        }
 
         // We cannot recover from false. (non-accepting trap)
         if (successor.isFalse()) {
@@ -126,7 +124,8 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
 
         // Do Cover optimisation
-        if (environment != null && removeCover && environment.implies(successor)) {
+        if (removeCover && environment != null && environment.implies(successor)) {
+            successor.free();
             return equivalenceClassFactory.getTrue();
         }
 
@@ -134,11 +133,11 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     }
 
     @Nullable
-    EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation, @Nullable EquivalenceClass others) {
+    EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
         EquivalenceClass[] successors = new EquivalenceClass[clazz.length];
 
         for (int i = clazz.length - 1; i >= 0; i--) {
-            successors[i] = getSuccessor(clazz[i], valuation, others);
+            successors[i] = getSuccessor(clazz[i], valuation, environment);
 
             if (successors[i].isFalse()) {
                 EquivalenceClass.free(successors);
@@ -147,14 +146,6 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
 
         return successors;
-    }
-
-    private EquivalenceClass step(EquivalenceClass clazz, BitSet valuation) {
-        if (eager) {
-            return clazz.temporalStepUnfold(valuation);
-        } else {
-            return clazz.unfoldTemporalStep(valuation);
-        }
     }
 
     BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
