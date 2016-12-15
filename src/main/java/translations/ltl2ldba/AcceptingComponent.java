@@ -158,10 +158,8 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment) {
             final int livenessLength = obligations.liveness.length;
 
-            EquivalenceClass successor = equivalenceClassFactory.getTrue();
-
             while (i < 0) {
-                successor = AcceptingComponent.this.getSuccessor(
+                EquivalenceClass successor = AcceptingComponent.this.getSuccessor(
                         AcceptingComponent.this.getInitialClass(obligations.liveness[livenessLength + i]),
                         valuation,
                         environment);
