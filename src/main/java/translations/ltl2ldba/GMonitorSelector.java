@@ -166,7 +166,7 @@ class GMonitorSelector {
             }
         }
 
-        if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+        /* if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
             jumps.entrySet().removeIf(largerEntry -> {
                 RecurringObligations largerObligation = largerEntry.getValue();
 
@@ -184,9 +184,8 @@ class GMonitorSelector {
                     return false;
                 });
             });
-        }
+        } */
 
-        //
         if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
             if (jumps.size() > 1) {
                 jumps.put(Collections.emptySet(), null);
