@@ -187,7 +187,7 @@ class GMonitorSelector {
         } */
 
         if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
-            if (jumps.size() > 1) {
+            if (keys.size() > 1) {
                 jumps.put(Collections.emptySet(), null);
             } else {
                 final Set<GOperator> Gs = new HashSet<>();
