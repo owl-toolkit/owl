@@ -159,7 +159,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return getStates().stream().allMatch(this::isDeterministic);
     }
 
-    private boolean isDeterministic(S state) {
+  private boolean isDeterministic(S state) {
         ValuationSet valuationSet = valuationSetFactory.createEmptyValuationSet();
 
         for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
