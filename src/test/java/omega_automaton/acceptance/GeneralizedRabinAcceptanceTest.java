@@ -9,18 +9,18 @@ import org.junit.Test;
 public class GeneralizedRabinAcceptanceTest {
   @Test
   public void testGetFiniteSet() {
-    final GeneralisedRabinAcceptanceLazy acceptance = new GeneralisedRabinAcceptanceLazy();
-    final GeneralisedRabinAcceptanceLazy.GeneralizedRabinPair pair = acceptance.createPair();
-    final int finiteIndex = pair.getFiniteIndex();
+    final GeneralizedRabinAcceptanceLazy acceptance = new GeneralizedRabinAcceptanceLazy();
+    final GeneralizedRabinAcceptanceLazy.GeneralizedRabinPair pair = acceptance.createPair();
+    final int finiteIndex = pair.getOrCreateFiniteIndex();
     assertThat(pair.getFiniteIndex(), is(finiteIndex));
   }
 
   @Test
   public void testGetInfiniteSet() {
-    final GeneralisedRabinAcceptanceLazy acceptance = new GeneralisedRabinAcceptanceLazy();
-    final GeneralisedRabinAcceptanceLazy.GeneralizedRabinPair pair = acceptance.createPair();
+    final GeneralizedRabinAcceptanceLazy acceptance = new GeneralizedRabinAcceptanceLazy();
+    final GeneralizedRabinAcceptanceLazy.GeneralizedRabinPair pair = acceptance.createPair();
     final int infiniteIndex = pair.createInfiniteSet();
-    assertTrue(pair.getInfiniteSets().contains(infiniteIndex));
+    assertTrue(pair.getInfiniteIndices().contains(infiniteIndex));
     assertThat(pair.getInfiniteSetCount(), is(1));
   }
 }
