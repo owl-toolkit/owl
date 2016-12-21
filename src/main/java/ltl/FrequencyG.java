@@ -89,8 +89,8 @@ public class FrequencyG extends GOperator {
     }
 
     @Override
-    public char getOperator() {
-        throw new UnsupportedOperationException();
+    public String getOperator() {
+        return "G{" + limes + " " + cmp + " " + bound + "}";
     }
 
     @Override

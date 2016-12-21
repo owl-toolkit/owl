@@ -55,6 +55,6 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
         return unfold();
     }
 
-    protected abstract char getOperator();
+    protected abstract String getOperator();
 
 }

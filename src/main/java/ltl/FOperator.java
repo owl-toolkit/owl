@@ -69,8 +69,8 @@ public class FOperator extends UnaryModalOperator {
     }
 
     @Override
-    protected char getOperator() {
-        return 'F';
+    protected String getOperator() {
+        return "F";
     }
 
     public static Formula create(Formula operand) {

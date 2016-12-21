@@ -34,8 +34,8 @@ public class GOperator extends UnaryModalOperator {
     }
 
     @Override
-    public char getOperator() {
-        return 'G';
+    public String getOperator() {
+        return "G";
     }
 
     @Override
