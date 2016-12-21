@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.Map.Entry;
 
+@Deprecated
 public class HOAConsumerGeneralisedRabin<S extends AutomatonState<?>> extends HOAConsumerExtended {
 
     private GeneralisedRabinAcceptance<S> acceptance;

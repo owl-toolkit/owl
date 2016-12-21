@@ -25,6 +25,7 @@ import ltl.visitors.BinaryVisitor;
  * then false. it is highly recommended to have the subformulae aggressively
  * simplified before the Visitor is applied.
  */
+@Deprecated
 class ImplicationVisitor implements BinaryVisitor<Boolean, Formula> {
 
     private static final ImplicationVisitor instance = new ImplicationVisitor();

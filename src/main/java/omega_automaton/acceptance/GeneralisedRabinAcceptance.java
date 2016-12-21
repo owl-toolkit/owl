@@ -32,6 +32,7 @@ import omega_automaton.collections.TranSet;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 
+@Deprecated
 public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
   protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
   protected final List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;

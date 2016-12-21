@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Deprecated
 class AggressiveSimplifier extends ModalSimplifier {
 
     @Override

@@ -23,6 +23,7 @@ import omega_automaton.collections.TranSet;
 import java.util.Collections;
 import java.util.List;
 
+@Deprecated
 public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRabinAcceptance<S> {
 
     public RabinAcceptance(List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
