@@ -107,8 +107,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             S current = workDeque.removeLast();
 
             for (Edge<S> successor : getSuccessors(current).keySet()) {
-                if (!transitions.containsKey(successor.successor) && seenStates.add(successor.successor)) {
-                    workDeque.add(successor.successor);
+                if (!transitions.containsKey(successor.getSuccessor()) && seenStates.add(successor.getSuccessor())) {
+                    workDeque.add(successor.getSuccessor());
                     atomicSize.getAndIncrement();
                 }
             }
@@ -136,23 +136,11 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     public boolean isSink(S state) {
-        for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
-            if (!entry.getKey().successor.equals(state) && !entry.getValue().isEmpty()) {
-                return false;
-            }
-        }
-
-        return true;
+        return getSuccessors(state).keySet().stream().allMatch(edge -> state.equals(edge.getSuccessor()));
     }
 
     public boolean isTransient(S state) {
-        for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
-            if (entry.getKey().successor.equals(state) && !entry.getValue().isEmpty()) {
-                return false;
-            }
-        }
-
-        return true;
+        return getSuccessors(state).keySet().stream().noneMatch(edge -> state.equals(edge.getSuccessor()));
     }
 
     public boolean isDeterministic() {
@@ -221,7 +209,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
         for (Map.Entry<Edge<S>, ValuationSet> transition : getSuccessors(state).entrySet()) {
             if (transition.getValue().contains(valuation)) {
-                successors.add(transition.getKey().successor);
+                successors.add(transition.getKey().getSuccessor());
             }
         }
 
@@ -304,7 +292,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
     public void removeStatesIf(Predicate<S> predicate) {
         transitions.keySet().removeIf(predicate);
-        transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.successor)));
+        transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.getSuccessor())));
 
         if (predicate.test(initialState)) {
             initialState = null;
@@ -343,8 +331,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      */
     public boolean isBSCC(Set<S> scc) {
         for (S s : scc){
-           for (Edge<S> outgoingEdge : getSuccessors(s).keySet()){
-               if(!scc.contains(outgoingEdge.successor)) {
+           for (Edge<S> edge : getSuccessors(s).keySet()){
+               if(!scc.contains(edge.getSuccessor())) {
                    return false;
                }
            }
@@ -359,9 +347,9 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         while (!workDeque.isEmpty()) {
             S state = workDeque.remove();
 
-            getSuccessors(state).forEach((suc, v) -> {
-                if (states.add(suc.successor)) {
-                    workDeque.add(suc.successor);
+            getSuccessors(state).forEach((edge, v) -> {
+                if (states.add(edge.getSuccessor())) {
+                    workDeque.add(edge.getSuccessor());
                 }
             });
         }
@@ -389,7 +377,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * @param hoa
      */
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
-        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.successor, edge.acceptance));
+        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.getSuccessor(), edge.iterator()));
     }
 
     @Override

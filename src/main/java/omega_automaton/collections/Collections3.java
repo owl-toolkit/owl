@@ -18,6 +18,7 @@
 package omega_automaton.collections;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,14 +54,12 @@ public class Collections3 {
     }
 
     @Nullable
-    public static List<Integer> toList(BitSet bs) {
-        if (bs == null || bs.isEmpty()) {
+    public static List<Integer> toList(PrimitiveIterator.OfInt bs) {
+        if (bs == null || !bs.hasNext()) {
             return null;
         }
 
-        List<Integer> list = new ArrayList<>(bs.length());
-        bs.stream().forEach(list::add);
-        return list;
+        return Lists.newArrayList(bs);
     }
 
     public static Set<BitSet> powerSet(int i) {
