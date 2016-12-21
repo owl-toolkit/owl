@@ -82,7 +82,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
         @Nullable
         @Override
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             throw new UnsupportedOperationException("Stored Automaton State cannot perform on-demand computations.");
         }
 

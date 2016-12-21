@@ -22,6 +22,7 @@ import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
 import java.util.BitSet;
+import java.util.Map;
 
 public final class Literal extends ImmutableObject implements Formula {
 
@@ -42,6 +43,11 @@ public final class Literal extends ImmutableObject implements Formula {
     @Override
     public String toString() {
         return (isNegated() ? "!p" : "p") + getAtom();
+    }
+
+    @Override
+    public String toString(Map<Integer, String> atomMapping) {
+        return (isNegated() ? "!" : "") + atomMapping.computeIfAbsent(getAtom(), atom -> "p" + atom);
     }
 
     @Override

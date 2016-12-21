@@ -17,7 +17,6 @@
 
 package omega_automaton.output;
 
-import com.google.common.collect.BiMap;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
@@ -29,7 +28,6 @@ import omega_automaton.acceptance.NoneAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -45,9 +43,7 @@ public class HOAConsumerExtended {
     private final EnumSet<HOAPrintable.Option> options;
     AutomatonState<?> currentState;
 
-
-
-    public HOAConsumerExtended(@Nonnull HOAConsumer hoa, @Nonnull ValuationSetFactory valSetFac, @Nullable BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
+    public HOAConsumerExtended(@Nonnull HOAConsumer hoa, int alphabetSize, @Nonnull Map<Integer, String> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
                                int size, @Nonnull EnumSet<HOAPrintable.Option> options) {
         this.hoa = hoa;
         this.options = options;
@@ -58,7 +54,7 @@ public class HOAConsumerExtended {
             hoa.notifyHeaderStart("v1");
             hoa.setTool("Owl", "* *"); // Owl in a cave.
 
-            if (options.contains(HOAPrintable.Option.COMMENTS)) {
+            if (options.contains(HOAPrintable.Option.ANNOTATIONS)) {
                 hoa.setName("Automaton for " + ((initialState != null) ? initialState.toString() : "false"));
             }
 
@@ -80,13 +76,7 @@ public class HOAConsumerExtended {
                 hoa.setAcceptanceCondition(acceptance1.getAcceptanceSets(), acceptance1.getBooleanExpression());
             }
 
-            hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(i -> {
-                if (aliases != null) {
-                    return aliases.inverse().get(i);
-                }
-
-                return Integer.toString(i);}).collect(Collectors.toList()));
-
+            hoa.setAPs(IntStream.range(0, alphabetSize).mapToObj(aliases::get).collect(Collectors.toList()));
             hoa.notifyBodyStart();
 
             if (initialState == null || size == 0) {
@@ -108,7 +98,7 @@ public class HOAConsumerExtended {
     public void addState(AutomatonState<?> state) {
         try {
             currentState = state;
-            hoa.addState(getStateId(state), options.contains(HOAPrintable.Option.COMMENTS) ? state.toString() : null, null, null);
+            hoa.addState(getStateId(state), options.contains(HOAPrintable.Option.ANNOTATIONS) ? state.toString() : null, null, null);
         } catch (HOAConsumerException ex) {
             LOGGER.warning(ex.toString());
         }
@@ -162,13 +152,6 @@ public class HOAConsumerExtended {
     }
 
     private int getStateId(AutomatonState<?> state) {
-        Integer id = stateNumbers.get(state);
-
-        if (id == null) {
-            id = stateNumbers.size();
-            stateNumbers.put(state, id);
-        }
-
-        return id;
+        return stateNumbers.computeIfAbsent(state, k -> stateNumbers.size());
     }
 }

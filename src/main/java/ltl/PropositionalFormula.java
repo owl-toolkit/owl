@@ -28,15 +28,15 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
     public final Set<Formula> children;
 
-    protected PropositionalFormula(Iterable<? extends Formula> children) {
+    PropositionalFormula(Iterable<? extends Formula> children) {
         this.children = ImmutableSet.copyOf(children);
     }
 
-    protected PropositionalFormula(Formula... children) {
+    PropositionalFormula(Formula... children) {
         this.children = ImmutableSet.copyOf(children);
     }
 
-    protected PropositionalFormula(Stream<? extends Formula> formulaStream) {
+    PropositionalFormula(Stream<? extends Formula> formulaStream) {
         children = ImmutableSet.copyOf(formulaStream.iterator());
     }
 
@@ -50,6 +50,27 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
         while (iter.hasNext()) {
             s.append(iter.next());
+
+            if (iter.hasNext()) {
+                s.append(getOperator());
+            }
+        }
+
+        s.append(')');
+
+        return s.toString();
+    }
+
+    @Override
+    public String toString(Map<Integer, String> atomMapping) {
+        StringBuilder s = new StringBuilder(3 * children.size());
+
+        s.append('(');
+
+        Iterator<Formula> iter = children.iterator();
+
+        while (iter.hasNext()) {
+            s.append(iter.next().toString(atomMapping));
 
             if (iter.hasNext()) {
                 s.append(getOperator());
@@ -80,44 +101,6 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     @Override
     public boolean isSuspendable() {
         return allMatch(Formula::isSuspendable);
-    }
-
-    public <E> Set<E> union(Function<Formula, Collection<E>> f) {
-        Set<E> set = new HashSet<>(children.size());
-        children.forEach(c -> set.addAll(f.apply(c)));
-        return set;
-    }
-
-    public <E> Set<E> intersection(Function<Formula, Collection<E>> f) {
-        Set<E> set = new HashSet<>(children.size());
-
-        if (children.isEmpty()) {
-            return set;
-        }
-
-        Iterator<Formula> iterator = children.iterator();
-
-        set.addAll(f.apply(iterator.next()));
-        iterator.forEachRemaining(c -> set.retainAll(f.apply(c)));
-        return set;
-    }
-
-    public BitSet unionBitset(Function<Formula, BitSet> f) {
-        BitSet set = new BitSet();
-        children.forEach(c -> set.or(f.apply(c)));
-        return set;
-    }
-
-    public BitSet intersectionBitSet(Function<Formula, BitSet> f) {
-        if (children.isEmpty()) {
-            return new BitSet();
-        }
-
-        Iterator<Formula> iterator = children.iterator();
-
-        BitSet set = (f.apply(iterator.next()));
-        iterator.forEachRemaining(c -> set.and(f.apply(c)));
-        return set;
     }
 
     public boolean allMatch(Predicate<Formula> p) {

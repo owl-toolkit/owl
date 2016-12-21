@@ -21,6 +21,7 @@ import ltl.BooleanConstant;
 import ltl.Conjunction;
 import ltl.Formula;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -40,7 +41,5 @@ public interface EquivalenceClassFactory {
         return createEquivalenceClass(BooleanConstant.FALSE);
     }
 
-    default void flushCaches() {
-
-    }
+    void setAtomMapping(Map<Integer, String> mapping);
 }

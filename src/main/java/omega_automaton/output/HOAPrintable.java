@@ -17,18 +17,19 @@
 
 package omega_automaton.output;
 
-import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
 
 import java.util.EnumSet;
 
 public interface HOAPrintable {
 
-    enum Option { COMMENTS }
-
-    default void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases) {
-        toHOA(ho, aliases, EnumSet.noneOf(Option.class));
+    enum Option {
+        ANNOTATIONS
     }
 
-    void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases, EnumSet<Option> options);
+    default void toHOA(HOAConsumer consumer) {
+        toHOA(consumer, EnumSet.noneOf(Option.class));
+    }
+
+    void toHOA(HOAConsumer consumer, EnumSet<Option> options);
 }

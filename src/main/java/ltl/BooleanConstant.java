@@ -23,6 +23,7 @@ import ltl.visitors.Visitor;
 
 import javax.annotation.Nonnull;
 import java.util.BitSet;
+import java.util.Map;
 
 public final class BooleanConstant extends ImmutableObject implements Formula {
 
@@ -42,6 +43,11 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     @Override
     public String toString() {
         return value ? "true" : "false";
+    }
+
+    @Override
+    public String toString(Map<Integer, String> atomMapping) {
+        return toString();
     }
 
     @Nonnull

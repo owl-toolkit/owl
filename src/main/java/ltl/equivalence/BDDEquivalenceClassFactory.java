@@ -50,7 +50,13 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     private int[] temporalStepSubstitution;
     private Formula[] reverseMapping;
 
+    private Map<Integer, String> atomMapping;
+
     public BDDEquivalenceClassFactory(Formula formula) {
+        this(formula, null);
+    }
+
+    public BDDEquivalenceClassFactory(Formula formula, Map<Integer, String> atomMapping) {
         Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
         alphabetSize = AlphabetVisitor.extractAlphabet(formula);
 
@@ -84,6 +90,8 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         trueClass = new BddEquivalenceClass(BooleanConstant.TRUE, factory.getTrueNode());
         falseClass = new BddEquivalenceClass(BooleanConstant.FALSE, factory.getFalseNode());
+
+        this.atomMapping = (atomMapping != null) ? atomMapping : new HashMap<>();
     }
 
     // TODO: Use size counter to reduce number of copies.
@@ -140,6 +148,10 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     @Override
     public BddEquivalenceClass createEquivalenceClass(Formula representative) {
         return createEquivalenceClass(representative, representative.accept(visitor));
+    }
+
+    public void setAtomMapping(Map<Integer, String> mapping) {
+        atomMapping = new HashMap<>(mapping);
     }
 
     private BddEquivalenceClass createEquivalenceClass(Formula representative, int bdd) {
@@ -471,13 +483,18 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public String toString() {
+            String representativeString;
             int pos = Arrays.binarySearch(vars, bdd);
 
-            if (pos < 0) {
-                return "BDD[R: " + representative + ", N: " + bdd + ']';
+            if (pos >= 0) {
+                representativeString = reverseMapping[pos].toString(atomMapping);
+            } else if (representative == null) {
+                representativeString = "?";
             } else {
-                return "BDD[R: " + reverseMapping[pos] + ", N: " + bdd + ']';
+                representativeString = representative.toString(atomMapping);
             }
+
+            return representativeString + " (" + bdd + ")";
         }
     }
 }

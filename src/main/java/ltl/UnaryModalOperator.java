@@ -18,6 +18,7 @@
 package ltl;
 
 import java.util.BitSet;
+import java.util.Map;
 import java.util.Objects;
 
 public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
@@ -31,6 +32,11 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
     @Override
     public String toString() {
         return getOperator() + operand.toString();
+    }
+
+    @Override
+    public String toString(Map<Integer, String> atomMapping) {
+        return getOperator() + operand.toString(atomMapping);
     }
 
     @Override

@@ -22,6 +22,8 @@ import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.Map;
 
 public interface Formula {
 
@@ -70,4 +72,5 @@ public interface Formula {
      */
     Formula unfoldTemporalStep(BitSet valuation);
 
+    String toString(Map<Integer, String> atomMapping);
 }

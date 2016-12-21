@@ -17,7 +17,6 @@
 
 package omega_automaton;
 
-import com.google.common.collect.BiMap;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
@@ -53,6 +53,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
     protected Acc acceptance;
     protected final ValuationSetFactory valuationSetFactory;
+    protected Map<Integer, String> atomMapping;
 
     private final AtomicInteger atomicSize;
 
@@ -77,6 +78,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         this.acceptance = acceptance;
         this.valuationSetFactory = valuationSetFactory;
         this.atomicSize = atomicSize;
+        this.atomMapping = new HashMap<>();
+        IntStream.range(0, valuationSetFactory.getSize()).forEach(i -> atomMapping.put(i, "p" + i));
     }
 
     public void generate() {
@@ -118,6 +121,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         }
 
         atomicSize.set(size());
+    }
+
+    public Map<Integer,String> getAtomMapping() {
+        return atomMapping;
+    }
+
+    public void setAtomMapping(Map<Integer, String> mapping) {
+        atomMapping = new HashMap<>(mapping);
     }
 
     public boolean hasSuccessors(S state) {
@@ -357,18 +368,18 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     @Override
-    public void toHOA(HOAConsumer ho, BiMap<String, Integer> aliases, EnumSet<Option> options) {
-        HOAConsumerExtended hoa = new HOAConsumerExtended(ho, valuationSetFactory, aliases, acceptance, initialState, size(), options);
+    public void toHOA(HOAConsumer consumer, EnumSet<Option> options) {
+        HOAConsumerExtended hoa = new HOAConsumerExtended(consumer, valuationSetFactory.getSize(), atomMapping, acceptance, initialState, size(), options);
         toHOABody(hoa);
         hoa.done();
     }
 
     public final void toHOABody(HOAConsumerExtended hoa) {
-        for (S s : getStates()) {
+        getStates().forEach(s -> {
             hoa.addState(s);
             toHOABodyEdge(s, hoa);
             hoa.stateDone();
-        }
+        });
     }
 
     /**
@@ -381,27 +392,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.successor, edge.acceptance));
     }
 
-    public void free() {
-        initialState = null;
-
-        transitions.forEach((key, value) -> {
-            key.free();
-            value.forEach((key2, value2) -> {
-                value2.free();
-            });
-        });
-
-        transitions.clear();
-    }
-
     @Override
     public String toString() {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            HOAConsumer consumer = new HOAConsumerPrint(stream);
-            toHOA(consumer, null);
+            toHOA(new HOAConsumerPrint(stream));
             return stream.toString();
         } catch (IOException ex) {
             throw new IllegalStateException(ex.toString(), ex);
         }
     }
+
 }

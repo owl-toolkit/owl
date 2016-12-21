@@ -18,6 +18,7 @@
 package ltl;
 
 import java.util.BitSet;
+import java.util.Map;
 import java.util.Objects;
 
 public abstract class BinaryModalOperator extends ImmutableObject implements Formula {
@@ -37,11 +38,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
     }
 
     @Override
-    public String toString() {
-        return '(' + left.toString() + getOperator() + right.toString() + ')';
-    }
-
-    @Override
     public Formula temporalStep(BitSet valuation) {
         return this;
     }
@@ -49,6 +45,16 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
     @Override
     public Formula temporalStepUnfold(BitSet valuation) {
         return unfold();
+    }
+
+    @Override
+    public String toString() {
+        return '(' + left.toString() + getOperator() + right.toString() + ')';
+    }
+
+    @Override
+    public String toString(Map<Integer, String> atomMapping) {
+        return '(' + left.toString(atomMapping) + getOperator() + right.toString(atomMapping) + ')';
     }
 
     protected abstract char getOperator();
