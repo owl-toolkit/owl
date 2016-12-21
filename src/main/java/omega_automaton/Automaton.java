@@ -45,6 +45,7 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.HOAPrintable;
+import owl.automaton.edge.Edge;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
 
@@ -147,7 +148,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return getStates().stream().allMatch(this::isDeterministic);
     }
 
-  private boolean isDeterministic(S state) {
+    private boolean isDeterministic(S state) {
         ValuationSet valuationSet = valuationSetFactory.createEmptyValuationSet();
 
         for (Map.Entry<Edge<S>, ValuationSet> entry : getSuccessors(state).entrySet()) {
@@ -377,7 +378,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * @param hoa
      */
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
-        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.getSuccessor(), edge.stream()));
+        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.getSuccessor(), edge.acceptanceSetStream()));
     }
 
     @Override

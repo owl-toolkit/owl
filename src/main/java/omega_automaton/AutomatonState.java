@@ -20,6 +20,7 @@ package omega_automaton;
 import java.util.BitSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import owl.automaton.edge.Edge;
 
 public interface AutomatonState<S> {
 

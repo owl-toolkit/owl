@@ -19,6 +19,15 @@ package omega_automaton;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -29,10 +38,8 @@ import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 
 public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
 
@@ -52,9 +59,14 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     private void addTransition(State source, boolean accepting, ValuationSet label, State successor) {
         Map<Edge<State>, ValuationSet> transition = transitions.get(source);
 
-        Edge<State> edge = accepting ? new EdgeSingleton<>(successor, 0) : new EdgeSingleton<>(successor);
+        Edge<State> edge;
+      if (accepting) {
+        edge = Edges.create(successor, 0);
+      } else {
+        edge = Edges.create(successor);
+      }
 
-        ValuationSet oldLabel = transition.get(edge);
+      ValuationSet oldLabel = transition.get(edge);
 
         if (oldLabel == null) {
             transition.put(edge, label);
@@ -243,7 +255,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             }
 
             if (successors.size() > 1) {
-                throw new HOAConsumerException("Universal or empty transitions are not supported.");
+                throw new HOAConsumerException("Universal or create transitions are not supported.");
             }
 
             int index = Collections3.getElement(successors);
