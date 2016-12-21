@@ -89,7 +89,7 @@ public final class XOperator extends UnaryModalOperator {
     }
 
     @Override
-    protected String getOperator() {
+    public String getOperator() {
         return "X";
     }
 

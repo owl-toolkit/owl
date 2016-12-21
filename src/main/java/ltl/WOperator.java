@@ -34,7 +34,7 @@ public final class WOperator extends BinaryModalOperator {
     }
 
     @Override
-    protected char getOperator() {
+    public char getOperator() {
         return 'W';
     }
 

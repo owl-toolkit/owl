@@ -69,7 +69,7 @@ public class FOperator extends UnaryModalOperator {
     }
 
     @Override
-    protected String getOperator() {
+    public String getOperator() {
         return "F";
     }
 

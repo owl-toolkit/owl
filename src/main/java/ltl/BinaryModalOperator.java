@@ -57,6 +57,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
         return '(' + left.toString(atomMapping) + getOperator() + right.toString(atomMapping) + ')';
     }
 
-    protected abstract char getOperator();
+    public abstract char getOperator();
 
 }

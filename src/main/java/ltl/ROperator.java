@@ -34,7 +34,7 @@ public final class ROperator extends BinaryModalOperator {
     }
 
     @Override
-    protected char getOperator() {
+    public char getOperator() {
         return 'R';
     }
 
