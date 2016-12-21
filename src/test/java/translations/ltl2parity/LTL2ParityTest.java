@@ -44,14 +44,13 @@ public class LTL2ParityTest {
 
         try (OutputStream stream = new ByteArrayOutputStream()) {
             HOAConsumer consumer = new HOAConsumerPrint(stream);
-            automaton.toHOA(consumer, mapping, EnumSet.allOf(HOAPrintable.Option.class));
+            automaton.setAtomMapping(mapping.inverse());
+            automaton.toHOA(consumer, EnumSet.allOf(HOAPrintable.Option.class));
             assertEquals(stream.toString(), size, automaton.size());
             assertEquals(stream.toString(), accSize, automaton.getAcceptance().getAcceptanceSets());
         } catch (IOException ex) {
             throw new IllegalStateException(ex.toString(), ex);
         }
-
-        automaton.free();
     }
 
     @Test

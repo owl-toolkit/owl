@@ -122,7 +122,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         }
 
         @Nullable
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             // Check the safety field first.
             EquivalenceClass nextSafety = GeneralisedAcceptingComponent.this.getSuccessor(safety, valuation).andWith(obligations.safety);
 
@@ -230,13 +230,11 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
         @Override
         public String toString() {
-            return "State{" +
-                    "obligations=" + obligations +
+            return "[obligations=" + obligations +
                     ", safety=" + safety +
                     ", current=" + Arrays.toString(current) +
                     ", next=" + Arrays.toString(next) +
-                    ", sensitiveAlphabet=" + sensitiveAlphabet +
-                    '}';
+                    ']';
         }
     }
 }

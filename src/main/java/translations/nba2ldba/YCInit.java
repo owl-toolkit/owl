@@ -61,7 +61,7 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
 
         @Nullable
         @Override
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             Set<StoredBuchiAutomaton.State> successors = new HashSet<>();
             states.forEach(s -> successors.addAll(nba.getSuccessors(s, valuation)));
 

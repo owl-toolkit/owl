@@ -111,7 +111,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
         @Nullable
         @Override
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             EquivalenceClass successor;
 
             if (eager) {

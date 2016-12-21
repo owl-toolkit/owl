@@ -68,11 +68,12 @@ public class NBA2LDBATest {
 
     @Test
     public void testApply() throws Exception {
-        nba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
+        nba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)));
 
         LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = translation.apply(nba);
 
-        ldba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)), MAPPING);
+        ldba.getAcceptingComponent().setAtomMapping(MAPPING.inverse());
+        ldba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)));
         assertEquals(9, ldba.size());
     }
 }

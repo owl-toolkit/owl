@@ -39,15 +39,13 @@ public class LTL2LDGBATest {
         BiMap<String, Integer> mapping = HashBiMap.create();
         LTL2LDGBA translation = new LTL2LDGBA(opts);
         LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
-
+        automaton.getAcceptingComponent().setAtomMapping(mapping.inverse());
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());
 
         if (expectedOutput != null) {
             assertEquals(expectedOutput, automaton.toString(EnumSet.noneOf(HOAPrintable.Option.class)));
         }
-
-        automaton.free();
     }
 
     static void testOutput(String ltl, int size, String expectedOutput) throws IOException {

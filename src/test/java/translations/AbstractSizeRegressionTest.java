@@ -17,16 +17,14 @@
 
 package translations;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import jhoafparser.consumer.HOAConsumerNull;
-import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import ltl.Formula;
 import ltl.parser.Parser;
+import omega_automaton.Automaton;
 import omega_automaton.output.HOAPrintable;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
@@ -35,7 +33,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
@@ -158,7 +155,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
         String[] formulas = FORMULA_GROUP_MAP.get(selectedClass);
 
         for (String formula : formulas) {
-            translator.apply(Parser.formula(formula)).toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()), ALIASES);
+            translator.apply(Parser.formula(formula)).toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
         }
     }
 

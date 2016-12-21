@@ -66,7 +66,7 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
 
         @Nullable
         @Override
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             // Standard Subset Construction
             Set<StoredBuchiAutomaton.State> rightSuccessor = new HashSet<>();
 

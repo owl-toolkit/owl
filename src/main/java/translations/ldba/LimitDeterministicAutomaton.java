@@ -17,7 +17,6 @@
 
 package translations.ldba;
 
-import com.google.common.collect.BiMap;
 import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
@@ -120,8 +119,8 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     }
 
     @Override
-    public void toHOA(HOAConsumer c, @Nullable BiMap<String, Integer> aliases, EnumSet<Option> options) {
-        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory(), aliases, acceptingComponent.getAcceptance(), getInitialState(), size(), options);
+    public void toHOA(HOAConsumer c, EnumSet<Option> options) {
+        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), getInitialState(), size(), options);
 
         if (initialComponent != null) {
             initialComponent.toHOABody(consumer);
@@ -142,7 +141,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     public String toString(EnumSet<Option> options) throws IOException {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            toHOA(new HOAConsumerPrint(stream), null, options);
+            toHOA(new HOAConsumerPrint(stream), options);
             return stream.toString();
         }
     }
@@ -156,11 +155,4 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         return acceptingComponent;
     }
 
-    public void free() {
-        if (initialComponent != null) {
-            initialComponent.free();
-        }
-
-        acceptingComponent.free();
-    }
 }

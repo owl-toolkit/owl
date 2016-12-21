@@ -187,7 +187,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         }
 
         @Nullable
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             EquivalenceClass safetySuccessor = AcceptingComponent.this.getSuccessor(safety, valuation).andWith(obligations.safety);
 
             if (safetySuccessor.isFalse()) {
@@ -325,15 +325,12 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("State{");
-            sb.append("obligations=").append(obligations);
-            sb.append(", safety=").append(safety);
-            sb.append(", index=").append(index);
-            sb.append(", current=").append(current);
-            sb.append(", next=").append(Arrays.toString(next));
-            sb.append(", sensitiveAlphabet=").append(sensitiveAlphabet);
-            sb.append('}');
-            return sb.toString();
+            return "[obligations=" + obligations +
+                    ", safety=" + safety +
+                    ", index=" + index +
+                    ", current=" + current +
+                    ", next=" + Arrays.toString(next) +
+                    ']';
         }
     }
 }

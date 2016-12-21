@@ -80,18 +80,12 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     abstract S createState(EquivalenceClass remainder, RecurringObligations obligations);
 
-    @Override
-    public void free() {
-        super.free();
-        components.clear();
-    }
-
     EquivalenceClass getInitialClass(EquivalenceClass clazz) {
         return getInitialClass(clazz, null);
     }
 
     EquivalenceClass getInitialClass(EquivalenceClass clazz, @Nullable EquivalenceClass environment) {
-        EquivalenceClass result = clazz.and(equivalenceClassFactory.getTrue());
+        EquivalenceClass result = clazz.duplicate();
 
         if (eager) {
             result = result.unfold();
@@ -159,4 +153,9 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
         }
     }
 
+    @Override
+    public void setAtomMapping(Map<Integer, String> mapping) {
+        super.setAtomMapping(mapping);
+        equivalenceClassFactory.setAtomMapping(mapping);
+    }
 }

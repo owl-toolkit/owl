@@ -22,7 +22,6 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Conjunction;
 import ltl.Disjunction;
 import ltl.Formula;
-import ltl.PropositionalFormula;
 import ltl.parser.ParseException;
 import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
@@ -150,7 +149,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
         boolean tlsfInput = argsDeque.remove("--tlsf");
         boolean decompose = argsDeque.remove("--decompose");
-        EnumSet<HOAPrintable.Option>  options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.COMMENTS) : EnumSet.noneOf(HOAPrintable.Option.class);
+        EnumSet<HOAPrintable.Option>  options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.ANNOTATIONS) : EnumSet.noneOf(HOAPrintable.Option.class);
         boolean readStdin = argsDeque.isEmpty();
 
         LTL2Parity translation = new LTL2Parity(optimisations);
@@ -173,51 +172,9 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
         if (decompose) {
             throw new UnsupportedOperationException();
         } else {
-            translation.apply(formula).toHOA(new HOAConsumerPrint(System.out), mapping, options);
-        }
-    }
-
-    private abstract static class DecomposeVisitor implements Visitor<Void> {
-
-        private final BiMap<String, Integer> mapping;
-        private final LTL2Parity translation;
-        private int id = 0;
-
-        private DecomposeVisitor(LTL2Parity translation, BiMap<String, Integer> mapping) {
-            this.translation = translation;
-            this.mapping = mapping;
-        }
-
-        public Void defaultAction(Formula formula) {
-            id++;
-
-            System.out.print(" " + id);
-
-            try {
-                translation.apply(formula).toHOA(new HOAConsumerPrint(new FileOutputStream(new File(id + ".hoa"))), mapping);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            return null;
-        }
-
-        @Override
-        public Void visit(Conjunction conjunction) {
-            System.out.print("&[ " );
-            conjunction.children.forEach(f -> f.accept(this));
-            System.out.print("]" );
-
-            return null;
-        }
-
-        @Override
-        public Void visit(Disjunction disjunction) {
-            System.out.print("|[ " );
-            disjunction.children.forEach(f -> f.accept(this));
-            System.out.print("]" );
-
-            return null;
+            ParityAutomaton<?> parityAutomaton = translation.apply(formula);
+            parityAutomaton.setAtomMapping(mapping.inverse());
+            parityAutomaton.toHOA(new HOAConsumerPrint(System.out), options);
         }
     }
 }

@@ -48,7 +48,7 @@ public class LTL2Det {
             optimisations.remove(Optimisation.PARALLEL);
         }
 
-        EnumSet<HOAPrintable.Option>  options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.COMMENTS) : EnumSet.noneOf(HOAPrintable.Option.class);
+        EnumSet<HOAPrintable.Option>  options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.ANNOTATIONS) : EnumSet.noneOf(HOAPrintable.Option.class);
         boolean readStdin = argsDeque.isEmpty();
 
         Formula formula;
@@ -70,6 +70,7 @@ public class LTL2Det {
             automaton = ldba.getAcceptingComponent();
         }
 
-        automaton.toHOA(new HOAConsumerPrint(System.out), mapping, options);
+        automaton.setAtomMapping(mapping.inverse());
+        automaton.toHOA(new HOAConsumerPrint(System.out), options);
     }
 }

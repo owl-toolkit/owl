@@ -81,7 +81,6 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> det
                 = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
         det.generate();
-        equivalenceClassFactory.flushCaches();
         return det;
     }
 
@@ -92,6 +91,7 @@ public class LTL2LDBA implements Function<Formula, LimitDeterministicAutomaton<I
         Formula formula = parser.formula();
 
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> result = translation.apply(formula);
-        result.toHOA(new HOAConsumerPrint(System.out), parser.map);
+        result.getAcceptingComponent().setAtomMapping(parser.map.inverse());
+        result.toHOA(new HOAConsumerPrint(System.out));
     }
 }

@@ -41,7 +41,6 @@ public class LTL2LDBARegressionTest {
 
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());
-        automaton.free();
     }
 
     @Test

@@ -64,7 +64,7 @@ public class NBA2LDBA implements Function<StoredBuchiAutomaton, LimitDeterminist
 
         for (StoredBuchiAutomaton nba : builder.getAutomata()) {
             LimitDeterministicAutomaton<YCInit.State, YCAcc.State, BuchiAcceptance, YCInit, YCAcc> result = translation.apply(nba);
-            result.toHOA(new HOAConsumerPrint(System.out), null);
+            result.toHOA(new HOAConsumerPrint(System.out));
         }
     }
 }

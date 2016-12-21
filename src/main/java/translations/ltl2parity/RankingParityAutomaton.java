@@ -250,7 +250,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         @Override
         @Nullable
-        public Edge<State> getSuccessor(BitSet valuation) {
+        public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             // We compute the successor of the state in the initial component.
             InitialComponent.State successor;
 

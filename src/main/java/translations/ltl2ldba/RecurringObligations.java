@@ -79,7 +79,7 @@ public class RecurringObligations extends ImmutableObject {
     }
 
     private EquivalenceClass overallObligation() {
-        EquivalenceClass obligation = safety.and(safety);
+        EquivalenceClass obligation = safety.duplicate();
 
         for (EquivalenceClass clazz : liveness) {
             obligation = obligation.andWith(clazz);
