@@ -13,4 +13,4 @@ The following two commands build and install the library into the local maven ca
 
 ## History
 
-owl-base is a merge of the previous seperate projects ltl-lib and omega-automaton-lib.
+owl-base is a merger of the previous seperate projects ltl-lib and omega-automaton-lib.
