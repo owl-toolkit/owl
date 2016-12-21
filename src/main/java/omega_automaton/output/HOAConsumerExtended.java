@@ -18,12 +18,13 @@
 package omega_automaton.output;
 
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.AutomatonState;
+import omega_automaton.Edge;
 import omega_automaton.acceptance.NoneAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
@@ -126,7 +127,7 @@ public class HOAConsumerExtended {
         addEdgeBackend(key, end, null);
     }
 
-    public void addEdge(ValuationSet label, AutomatonState<?> end, BitSet accSets) {
+    public void addEdge(ValuationSet label, AutomatonState<?> end, PrimitiveIterator.OfInt accSets) {
         addEdgeBackend(label, end, Collections3.toList(accSets));
     }
 

@@ -109,7 +109,7 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         automaton.getSuccessors(v).forEach((edge, valuation) -> {
             // edge not forbidden
             if (!forbiddenEdges.containsAll(v, valuation)) {
-                S w = edge.successor;
+                S w = edge.getSuccessor();
 
                 if (allowedStates.contains(w) && !number.containsKey(w)) {
                     stack.push(w);
@@ -139,7 +139,7 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
         TranSet<S> result = new TranSet<>(aut.getFactory());
 
         scc.forEach(s -> aut.getSuccessors(s).forEach((edge, valuation) -> {
-            if (scc.contains(edge.successor)) {
+            if (scc.contains(edge.getSuccessor())) {
                 result.addAll(s, valuation);
             }
         }));

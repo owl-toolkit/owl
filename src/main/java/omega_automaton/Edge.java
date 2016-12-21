@@ -17,48 +17,29 @@
 
 package omega_automaton;
 
-import java.util.BitSet;
-import java.util.Objects;
+import javax.annotation.Nonnegative;
 import java.util.PrimitiveIterator;
 
-public class Edge<S> {
+public interface Edge<S> {
+    /**
+     * Get the target state of the edge.
+     *
+     * @return The state the edge points to.
+     */
+    S getSuccessor();
 
-    public final S successor;
-    public final BitSet acceptance;
+    /**
+     * Test membership of this edge for a specific acceptance set.
+     *
+     * @param i - the number of the acceptance set.
+     * @return true if this edge is a member, false otherwise.
+     */
+    boolean inSet(@Nonnegative int i);
 
-    public Edge(S successor, BitSet acceptance) {
-        this.successor = successor;
-        this.acceptance = acceptance;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Edge<?> edge = (Edge<?>) o;
-        return Objects.equals(successor, edge.successor) &&
-                Objects.equals(acceptance, edge.acceptance);
-    }
-
-    PrimitiveIterator.OfInt iterator() {
-        return acceptance.stream().iterator();
-    }
-
-    public boolean inAcceptanceSet(int i) {
-        return acceptance.get(i);
-    }
-
-    public int nextAcceptanceSet(int i) {
-        return acceptance.nextSetBit(i);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(successor, acceptance);
-    }
-
-    @Override
-    public String toString() {
-        return "-> " + successor + " {" + acceptance + '}';
-    }
+    /**
+     * An iterator that returns all acceptance sets this edge is a member of.
+     *
+     * @return a primitive iterator.
+     */
+    PrimitiveIterator.OfInt iterator();
 }

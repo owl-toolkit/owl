@@ -36,15 +36,6 @@ import java.util.*;
 
 public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
 
-    private static final BitSet ACC;
-    private static final BitSet REJ;
-
-    static {
-        ACC = new BitSet();
-        ACC.set(0);
-        REJ = new BitSet();
-    }
-
     StoredBuchiAutomaton(ValuationSetFactory factory) {
         super(new BuchiAcceptance(), factory);
     }
@@ -61,7 +52,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     private void addTransition(State source, boolean accepting, ValuationSet label, State successor) {
         Map<Edge<State>, ValuationSet> transition = transitions.get(source);
 
-        Edge<State> edge = new Edge<>(successor, accepting ? ACC : REJ);
+        Edge<State> edge = accepting ? new EdgeSingleton<>(successor, 0) : new EdgeSingleton<>(successor);
 
         ValuationSet oldLabel = transition.get(edge);
 
@@ -73,7 +64,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     }
 
     public boolean isAccepting(State state) {
-        return Collections3.getElement(transitions.get(state).keySet()).inAcceptanceSet(0);
+        return Collections3.getElement(transitions.get(state).keySet()).inSet(0);
     }
 
     public static class State implements AutomatonState<State> {
