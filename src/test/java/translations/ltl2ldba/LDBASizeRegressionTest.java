@@ -50,7 +50,7 @@ public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDete
                 return new int[]{3, 3, 5, 4};
 
             case ROUND_ROBIN:
-                return new int[]{2, 3, 4, 5, 6};
+                return new int[]{2, 3, 4, 5, 6, 9};
 
             case REACH:
                 return new int[]{2, 3};
@@ -72,6 +72,9 @@ public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDete
 
             case ORDERINGS:
                 return new int[]{10, 26, 3, 4};
+
+            case G_DISJUNCTION:
+                return new int[]{212, 24, 133};
 
             default:
                 return new int[0];

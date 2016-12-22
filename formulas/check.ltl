@@ -91,3 +91,8 @@ F (a R X b)
 G (a U X b)
 !(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | (G((!(b)) | ((c) & (X(F(e))))))))))
 (F (((F X x) | (F a)) & (G (a | b)))) | (F (((F X y) | (F c)) & (G (c | d))))
+
+G ((a1 & F b1) | (a2 & F b2) | (a3 & F b3))
+G ((a1 & G b1) | (a2 & G b2) | (a3 & G b3))
+F (G ((a1 U X X b1) | (a2 U X X b2)))
+G (F (a & X F (b & X F c))) & G (F (a2 & X F (b2 & X F c2))) & G (F (a3 & X F (b3 & X F c3)))

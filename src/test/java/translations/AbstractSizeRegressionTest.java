@@ -70,7 +70,9 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
                 "F G a | F G b",
                 "F G a | F G b | F G c",
                 "F G a | F G b | F G c | F G d",
-                "F G a | F G b | F G c | F G d | F G e"
+                "F G a | F G b | F G c | F G d | F G e",
+                // Liveness Round Robin.
+                "G (F (a & X F (b & X F c))) & G (F (a2 & X F (b2 & X F c2))) & G (F (a3 & X F (b3 & X F c3)))"
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.CONJUNCTION, new String[]{
@@ -110,9 +112,16 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
                 "F (G (a1 | (b1 & X F b1))) | F (G (a2 | (b2 & X F b2))) | F (G (a3 | (b3 & X F b3)))",
                 "F (G (a1 | (b1 & X F b1))) & F (G (a2 | (b2 & X F b2))) & F (G (a3 | (b3 & X F b3)))"
         });
+
+        // This class of formulas is challenging, since the automaton has to track the state of the different disjuncts within the scope of the G.
+        FORMULA_GROUP_MAP.put(FormulaGroup.G_DISJUNCTION, new String[]{
+                "G ((a1 & F b1) | (a2 & F b2) | (a3 & F b3))",
+                "G ((a1 & G b1) | (a2 & G b2) | (a3 & G b3))",
+                "F (G ((a1 U X X b1) | (a2 U X X b2)))",
+        });
     }
 
-    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED, ORDERINGS}
+    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED, ORDERINGS, G_DISJUNCTION}
 
     @Parameterized.Parameters(name = "Group: {0}")
     public static Iterable<?> data() {

@@ -48,7 +48,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{2, 2, 4, 3};
 
             case ROUND_ROBIN:
-                return new int[]{1, 2, 3, 4, 5};
+                return new int[]{1, 2, 3, 4, 5, 9};
 
             case REACH:
                 return new int[]{2, 3};
@@ -71,6 +71,9 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
             case ORDERINGS:
                 return new int[]{462, 109};
 
+            case G_DISJUNCTION:
+                return new int[]{212, 34, 346};
+
             default:
                 return new int[0];
         }
@@ -83,7 +86,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{2, 2, 2, 2};
 
             case ROUND_ROBIN:
-                return new int[]{2, 2, 2, 2, 2};
+                return new int[]{2, 2, 2, 2, 2, 1};
 
             case REACH:
             case DISJUNCTION:
@@ -106,6 +109,9 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
 
             case ORDERINGS:
                 return new int[]{8, 8};
+
+            case G_DISJUNCTION:
+                return new int[]{1, 2, 7};
 
             default:
                 return new int[0];

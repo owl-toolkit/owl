@@ -21,7 +21,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import ltl.parser.Parser;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.output.HOAPrintable;
 import org.junit.Test;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
@@ -41,12 +40,6 @@ public class LTL2LDBARegressionTest {
 
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());
-    }
-
-    @Test
-    public void testToHOA() throws Exception {
-        String ltl = "G (s | G (p | (s & F t)))";
-        testOutput(ltl, 4);
     }
 
     @Test
