@@ -17,16 +17,19 @@
 
 package omega_automaton.collections.valuationset;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 public abstract class ValuationSetTest {
 

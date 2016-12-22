@@ -15,31 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package omega_automaton;
+@ParametersAreNonnullByDefault
+package owl.automaton.edge;
 
-import javax.annotation.Nonnegative;
-import java.util.stream.IntStream;
-
-public interface Edge<S> {
-    /**
-     * Get the target state of the edge.
-     *
-     * @return The state the edge points to.
-     */
-    S getSuccessor();
-
-    /**
-     * Test membership of this edge for a specific acceptance set.
-     *
-     * @param i - the number of the acceptance set.
-     * @return true if this edge is a member, false otherwise.
-     */
-    boolean inSet(@Nonnegative int i);
-
-    /**
-     * An IntStream of all acceptance sets this edge is a member of.
-     *
-     * @return an IntStream.
-     */
-    IntStream stream();
-}
+import javax.annotation.ParametersAreNonnullByDefault;
