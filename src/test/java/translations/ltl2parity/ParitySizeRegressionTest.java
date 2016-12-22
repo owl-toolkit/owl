@@ -72,7 +72,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
                 return new int[]{462, 109};
 
             case G_DISJUNCTION:
-                return new int[]{212, 43, 346};
+                return new int[]{212, 44, 346};
 
             default:
                 return new int[0];

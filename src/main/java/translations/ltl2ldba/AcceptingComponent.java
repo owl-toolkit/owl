@@ -91,7 +91,6 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         }
 
         // Drop unused representative.
-        safety.freeRepresentative();
         current.freeRepresentative();
 
         return new State(obligations.obligations.length > 0 ? 0 : -obligations.liveness.length, safety, current, nextBuilder, obligations);

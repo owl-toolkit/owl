@@ -18,15 +18,11 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Sets;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.ROperator;
-import ltl.WOperator;
+import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.Collector;
-import ltl.visitors.SkipVisitor;
 import ltl.visitors.Visitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import translations.Optimisation;
@@ -44,11 +40,13 @@ class RecurringObligationsSelector {
     private final EnumSet<Optimisation> optimisations;
     private final EquivalenceClassFactory factory;
     private final Map<Set<GOperator>, RecurringObligations> cache;
+    private final Comparator<GOperator> rankingComparator;
 
     RecurringObligationsSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.factory = factory;
         this.cache = new HashMap<>();
+        this.rankingComparator = new RankingComparator();
     }
 
     EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys) {
@@ -60,54 +58,26 @@ class RecurringObligationsSelector {
         return goal;
     }
 
-    private static Set<GOperator> normaliseInfinityOperators(Iterable<Formula> formulas) {
-        Set<GOperator> gSet = new HashSet<>();
+    /**
+     * Is the first language a subset of the second language?
+     *
+     * @param entry - first language
+     * @param otherEntry - second language
+     * @param master - remainder
+     * @return true if is a sub-language
+     */
+    private boolean isSublanguage(Map.Entry<Set<GOperator>, RecurringObligations> entry, Map.Entry<Set<GOperator>, RecurringObligations> otherEntry, EquivalenceClass master) {
+        Formula formula = master.getRepresentative();
 
-        formulas.forEach(x -> {
-            assert x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
-
-            if (x instanceof GOperator) {
-                gSet.add((GOperator) x);
-            }
-
-            if (x instanceof ROperator) {
-                gSet.add(new GOperator(((ROperator) x).right));
-            }
-
-            if (x instanceof WOperator) {
-                gSet.add(new GOperator(((WOperator) x).left));
-            }
-        });
-
-        return gSet;
-    }
-
-    private boolean subsumes(Set<GOperator> set, Set<GOperator> subset, Formula formula) {
-        EquivalenceClass setClass = getRemainingGoal(formula, set);
-        EquivalenceClass subsetClass = getRemainingGoal(formula, subset);
+        EquivalenceClass setClass = getRemainingGoal(formula, entry.getKey());
+        EquivalenceClass subsetClass = getRemainingGoal(formula, otherEntry.getKey());
 
         boolean implies = setClass.implies(subsetClass);
 
         setClass.free();
         subsetClass.free();
 
-        return implies;
-    }
-
-    private boolean subsumes(Set<GOperator> set, Set<GOperator> subset, EquivalenceClass master) {
-        if (!subsumes(set, subset, master.getRepresentative())) {
-            return false;
-        }
-
-        for (GOperator gOperator : subset) {
-            if (!subsumes(Sets.difference(set, Collections.singleton(gOperator)),
-                    Sets.difference(subset, Collections.singleton(gOperator)),
-                    gOperator.operand)) {
-                return false;
-            }
-        }
-
-        return true;
+        return implies && entry.getValue().implies(otherEntry.getValue());
     }
 
     private List<Set<GOperator>> selectReducedMonitors(EquivalenceClass state) {
@@ -120,24 +90,6 @@ class RecurringObligationsSelector {
                 .collect(Collectors.toList());
 
         skeleton.free();
-
-        Iterator<Set<GOperator>> iterator = sets.iterator();
-
-        while (iterator.hasNext()) {
-            Set<GOperator> set = iterator.next();
-
-            for (Set<GOperator> subset : sets) {
-                if (subset.size() >= set.size() || !set.containsAll(subset)) {
-                    continue;
-                }
-
-                if (subsumes(set, subset, state)) {
-                    iterator.remove();
-                    break;
-                }
-            }
-        }
-
         return sets;
     }
 
@@ -166,25 +118,10 @@ class RecurringObligationsSelector {
             }
         }
 
-        /* if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            jumps.entrySet().removeIf(largerEntry -> {
-                RecurringObligations largerObligation = largerEntry.getValue();
-
-                return jumps.entrySet().stream().anyMatch(smallerEntry -> {
-                    RecurringObligations smallerObligation = smallerEntry.getValue();
-
-                    if (smallerObligation.equals(largerObligation) || !largerObligation.implies(smallerObligation)) {
-                        return false;
-                    }
-
-                    if (getRemainingGoal(state.getRepresentative(), largerEntry.getKey()).implies(getRemainingGoal(state.getRepresentative(), smallerEntry.getKey()))) {
-                        return true;
-                    }
-
-                    return false;
-                });
-            });
-        } */
+        if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+            jumps.entrySet().removeIf(entry -> jumps.entrySet().stream()
+                    .anyMatch(otherEntry -> otherEntry != entry && isSublanguage(entry, otherEntry, state)));
+        }
 
         if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
             if (keys.size() > 1) {
@@ -213,20 +150,24 @@ class RecurringObligationsSelector {
 
     /**
      * Construct the recurring obligations for a Gset.
-     * @param gOperators The GOperators that have to be checked often.
+     * @param gOperatorsSet The GOperators that have to be checked often.
      * @return This methods returns null, if the Gset is inconsistent.
      */
     @Nullable
-    private RecurringObligations constructRecurringObligations(Set<GOperator> gOperators) {
+    private RecurringObligations constructRecurringObligations(Set<GOperator> gOperatorsSet) {
         // Fields for RecurringObligations
         EquivalenceClass safety = factory.getTrue();
-        List<EquivalenceClass> liveness = new ArrayList<>(gOperators.size());
-        List<EquivalenceClass> obligations = new ArrayList<>(gOperators.size());
+        List<EquivalenceClass> liveness = new ArrayList<>(gOperatorsSet.size());
+        List<EquivalenceClass> obligations = new ArrayList<>(gOperatorsSet.size());
 
-        // Skip the top-level object in the syntax tree.
-        Visitor<Formula> evaluateVisitor = new SkipVisitor(new EvaluateVisitor(gOperators));
+        List<GOperator> gOperators = gOperatorsSet.stream().sorted(rankingComparator).collect(Collectors.toList());
 
-        for (GOperator gOperator : gOperators) {
+        for (int i = 0; i < gOperators.size(); i++) {
+            GOperator gOperator = gOperators.get(i);
+
+            // We only propagate information from already constructed G-monitors.
+            Visitor<Formula> evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i), factory);
+
             Formula formula = Simplifier.simplify(Simplifier.simplify(gOperator.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
             EquivalenceClass clazz = factory.createEquivalenceClass(formula);
 
@@ -264,5 +205,27 @@ class RecurringObligationsSelector {
         EquivalenceClass.free(clazz2);
         EquivalenceClass.free(iterable1);
         EquivalenceClass.free(iterable2);
+    }
+
+    private static Set<GOperator> normaliseInfinityOperators(Iterable<Formula> formulas) {
+        Set<GOperator> gSet = new HashSet<>();
+
+        formulas.forEach(x -> {
+            assert x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
+
+            if (x instanceof GOperator) {
+                gSet.add((GOperator) x);
+            }
+
+            if (x instanceof ROperator) {
+                gSet.add(new GOperator(((ROperator) x).right));
+            }
+
+            if (x instanceof WOperator) {
+                gSet.add(new GOperator(((WOperator) x).left));
+            }
+        });
+
+        return gSet;
     }
 }

@@ -24,6 +24,7 @@ import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Visitor;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,17 +36,17 @@ class EvaluateVisitor implements Visitor<Formula> {
     private final EquivalenceClassFactory factory;
     private final Set<Formula> universalTruths;
 
-    EvaluateVisitor(Set<GOperator> gMonitors) {
+    EvaluateVisitor(Collection<GOperator> gMonitors) {
         this(gMonitors, null);
     }
 
-    EvaluateVisitor(Set<GOperator> gMonitors, @Nullable EquivalenceClassFactory equivalenceClassFactory) {
-        universalTruths = new HashSet<>(gMonitors.size());
+    EvaluateVisitor(Collection<GOperator> gMonitors, @Nullable EquivalenceClassFactory equivalenceClassFactory) {
+        universalTruths = new HashSet<>(gMonitors);
         gMonitors.forEach(gOperator -> universalTruths.add(gOperator.operand));
 
         if (equivalenceClassFactory != null) {
             factory = equivalenceClassFactory;
-            environment = equivalenceClassFactory.createEquivalenceClass(Sets.union(gMonitors, universalTruths));
+            environment = equivalenceClassFactory.createEquivalenceClass(universalTruths);
         } else {
             factory = null;
             environment = null;

@@ -119,7 +119,7 @@ public class LTL2LDGBATest {
     @Test
     public void regressionTestStack() throws Exception {
         String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | (G((!(b)) | ((c) & (X(F(e))))))))))";
-        testOutput(ltl, 57);
+        testOutput(ltl, 56);
     }
 
     private static final String TRIVIAL_TRUE = "HOA: v1\n" +
