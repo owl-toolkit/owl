@@ -127,7 +127,7 @@ public class HOAConsumerExtended {
         addEdgeBackend(key, end, null);
     }
 
-    public void addEdge(ValuationSet label, AutomatonState<?> end, PrimitiveIterator.OfInt accSets) {
+    public void addEdge(ValuationSet label, AutomatonState<?> end, IntStream accSets) {
         addEdgeBackend(label, end, Collections3.toList(accSets));
     }
 

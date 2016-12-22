@@ -19,16 +19,10 @@ package omega_automaton;
 
 import com.google.common.collect.Iterators;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.theories.DataPoint;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
 
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
@@ -72,13 +66,13 @@ public class EdgeTest {
 
     @Test
     public void iterator() throws Exception {
-        assertTrue(Iterators.elementsEqual(Collections.emptyIterator(), emptyGenericEdge.iterator()));
-        assertTrue(Iterators.elementsEqual(Collections.emptyIterator(), emptySingletonEdge.iterator()));
+        assertTrue(Iterators.elementsEqual(Collections.emptyIterator(), emptyGenericEdge.stream().iterator()));
+        assertTrue(Iterators.elementsEqual(Collections.emptyIterator(), emptySingletonEdge.stream().iterator()));
 
-        assertTrue(Iterators.elementsEqual(IntStream.of(2).iterator(), twoGenericEdge.iterator()));
-        assertTrue(Iterators.elementsEqual(IntStream.of(2).iterator(), twoSingletonEdge.iterator()));
+        assertTrue(Iterators.elementsEqual(IntStream.of(2).iterator(), twoGenericEdge.stream().iterator()));
+        assertTrue(Iterators.elementsEqual(IntStream.of(2).iterator(), twoSingletonEdge.stream().iterator()));
 
-        assertTrue(Iterators.elementsEqual(IntStream.of(1, 2).iterator(), oneTwoGenericEdge.iterator()));
+        assertTrue(Iterators.elementsEqual(IntStream.of(1, 2).iterator(), oneTwoGenericEdge.stream().iterator()));
     }
 
     @Test
@@ -93,5 +87,4 @@ public class EdgeTest {
         assertEquals(emptyGenericEdge.hashCode(), emptySingletonEdge.hashCode());
         assertEquals(twoGenericEdge.hashCode(), twoSingletonEdge.hashCode());
     }
-
 }

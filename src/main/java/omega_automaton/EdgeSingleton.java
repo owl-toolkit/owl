@@ -21,7 +21,6 @@ import com.google.common.collect.Iterators;
 
 import javax.annotation.Nonnegative;
 import java.util.Objects;
-import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
 
 public class EdgeSingleton<S> implements Edge<S> {
@@ -55,7 +54,7 @@ public class EdgeSingleton<S> implements Edge<S> {
 
         if (o instanceof Edge) {
             Edge<?> that = (Edge<?>) o;
-            return Objects.equals(successor, that.getSuccessor()) && that.inSet(acceptance) && Iterators.elementsEqual(iterator(), that.iterator());
+            return Objects.equals(successor, that.getSuccessor()) && that.inSet(acceptance) && Iterators.elementsEqual(stream().iterator(), that.stream().iterator());
         }
 
         return false;
@@ -77,8 +76,8 @@ public class EdgeSingleton<S> implements Edge<S> {
     }
 
     @Override
-    public PrimitiveIterator.OfInt iterator() {
-        return (acceptance >= 0) ? IntStream.of(acceptance).iterator() : IntStream.empty().iterator();
+    public IntStream stream() {
+        return (acceptance >= 0) ? IntStream.of(acceptance) : IntStream.empty();
     }
 
     @Override

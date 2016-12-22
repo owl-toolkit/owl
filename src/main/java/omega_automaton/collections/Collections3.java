@@ -19,10 +19,14 @@ package omega_automaton.collections;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Collections3 {
 
@@ -54,12 +58,19 @@ public class Collections3 {
     }
 
     @Nullable
-    public static List<Integer> toList(PrimitiveIterator.OfInt bs) {
-        if (bs == null || !bs.hasNext()) {
+    public static List<Integer> toList(IntStream bs) {
+        if (bs == null) {
             return null;
         }
 
-        return Lists.newArrayList(bs);
+        IntList list = new IntArrayList();
+        bs.forEach(list::add);
+
+        if (list.isEmpty()) {
+            return null;
+        }
+
+        return list;
     }
 
     public static Set<BitSet> powerSet(int i) {

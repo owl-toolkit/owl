@@ -377,7 +377,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * @param hoa
      */
     protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
-        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.getSuccessor(), edge.iterator()));
+        getSuccessors(state).forEach((edge, valuationSet) -> hoa.addEdge(valuationSet, edge.getSuccessor(), edge.stream()));
     }
 
     @Override

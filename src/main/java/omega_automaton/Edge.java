@@ -18,7 +18,7 @@
 package omega_automaton;
 
 import javax.annotation.Nonnegative;
-import java.util.PrimitiveIterator;
+import java.util.stream.IntStream;
 
 public interface Edge<S> {
     /**
@@ -37,9 +37,9 @@ public interface Edge<S> {
     boolean inSet(@Nonnegative int i);
 
     /**
-     * An iterator that returns all acceptance sets this edge is a member of.
+     * An IntStream of all acceptance sets this edge is a member of.
      *
-     * @return a primitive iterator.
+     * @return an IntStream.
      */
-    PrimitiveIterator.OfInt iterator();
+    IntStream stream();
 }
