@@ -22,7 +22,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'idea'
 
 project.group = 'de.tum.in'
-project.version = '0.1.7'
+project.version = '0.2.0'
 
 def defaultEncoding = 'UTF-8'
 [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
