@@ -21,9 +21,10 @@ import ltl.GOperator;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
 
@@ -34,13 +35,11 @@ import java.util.*;
 public class InitialComponent<S extends AutomatonState<S>> extends AbstractInitialComponent<InitialComponent.State, S> {
 
     private static final BitSet ACCEPT;
-    private static final BitSet REJECT;
 
     static {
         // FIXME: Increase the number of set bits!
         ACCEPT = new BitSet();
         ACCEPT.set(0);
-        REJECT = new BitSet();
     }
 
     @Nonnull
@@ -64,7 +63,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
     }
 
     @Override
-    public void generateJumps(State state) {
+    public void generateJumps(@Nonnull State state) {
         Map<Set<GOperator>, RecurringObligations> keys = selector.selectMonitors(state);
 
         keys.forEach((Gs, obligation) -> {
@@ -112,12 +111,12 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         @Nullable
         @Override
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
-            EquivalenceClass successor;
+            EquivalenceClass successorClass;
 
             if (eager) {
-                successor = clazz.temporalStepUnfold(valuation);
+                successorClass = clazz.temporalStepUnfold(valuation);
             } else {
-                successor = clazz.unfoldTemporalStep(valuation);
+                successorClass = clazz.unfoldTemporalStep(valuation);
             }
 
             if (jumps == null) {
@@ -125,11 +124,12 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
             }
 
             // Suppress edge, if successor is a non-accepting state
-            if (successor.isFalse() || !jumps.containsKey(Collections.<GOperator>emptySet())) {
+            if (successorClass.isFalse() || !jumps.containsKey(Collections.<GOperator>emptySet())) {
                 return null;
             }
 
-            return new Edge<>(new State(successor, eager, impatient, valuationSetFactory, selector), successor.isTrue() ? ACCEPT : REJECT);
+            State successor = new State(successorClass, eager, impatient, valuationSetFactory, selector);
+            return successorClass.isTrue() ? Edges.create(successor, ACCEPT) : Edges.create(successor);
         }
 
         @Nonnull

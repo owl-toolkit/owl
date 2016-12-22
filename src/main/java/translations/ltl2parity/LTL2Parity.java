@@ -19,13 +19,10 @@ package translations.ltl2parity;
 
 import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.Conjunction;
-import ltl.Disjunction;
 import ltl.Formula;
 import ltl.parser.ParseException;
 import ltl.parser.Parser;
 import ltl.simplifier.Simplifier;
-import ltl.visitors.Visitor;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
@@ -34,7 +31,8 @@ import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.LTL2LDBA;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;

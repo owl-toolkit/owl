@@ -32,14 +32,12 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
 
     static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
-    final BitSet REJECT = new BitSet();
-
     private Collection<S> constructionQueue = new ArrayDeque<>();
     private Set<RecurringObligations> components = new HashSet<>();
 
     final EquivalenceClassFactory equivalenceClassFactory;
-    final boolean removeCover;
-    final boolean eager;
+    private final boolean removeCover;
+    private final boolean eager;
 
     public Set<RecurringObligations> getAllInit() {
         return components;

@@ -17,15 +17,15 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.base.Preconditions;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import translations.Optimisation;
 
 import javax.annotation.Nonnegative;
@@ -35,12 +35,6 @@ import java.util.*;
 
 public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance> {
 
-    private static final BitSet ACCEPT = new BitSet();
-
-    static {
-        ACCEPT.set(0);
-    }
-
     AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
     }
@@ -48,7 +42,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
     @Nonnull
     @Override
     public State generateRejectingTrap() {
-        return new State(0, null, null, null, new RecurringObligations(equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
+        return new State(0, equivalenceClassFactory.getFalse(), equivalenceClassFactory.getFalse(), EMPTY, new RecurringObligations(equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
     }
 
     private EquivalenceClass and(EquivalenceClass[] classes) {
@@ -218,7 +212,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             final int obligationsLength = obligations.obligations.length;
             final int livenessLength = obligations.liveness.length;
 
-            BitSet bs = REJECT;
+            boolean acceptingEdge = false;
 
             boolean obtainNewGoal = false;
             int j;
@@ -230,7 +224,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 j = scan(index + 1, nextSuccessors, valuation, assumptions);
 
                 if (j >= obligationsLength) {
-                    bs = ACCEPT;
+                    acceptingEdge = true;
                     j = scan(-livenessLength, nextSuccessors, valuation, assumptions);
 
                     if (j >= obligationsLength) {
@@ -273,7 +267,8 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
             assumptions.free();
 
-            return new Edge<>(new State(j, safetySuccessor, currentSuccessor, nextSuccessors, obligations), bs);
+            State successor = new State(j, safetySuccessor, currentSuccessor, nextSuccessors, obligations);
+            return acceptingEdge ? Edges.create(successor, 0) : Edges.create(successor);
         }
 
         @Override

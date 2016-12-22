@@ -17,12 +17,12 @@
 
 package translations.ltl2parity;
 
-import omega_automaton.Edge;
 import omega_automaton.acceptance.ParityAcceptance;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import translations.ltl2ldba.AcceptingComponent;
 
 import javax.annotation.Nonnull;
-import java.util.BitSet;
 
 final class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.State> {
 
@@ -37,7 +37,7 @@ final class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.St
     @Nonnull
     @Override
     protected Edge<AcceptingComponent.State> generateRejectingEdge(AcceptingComponent.State successor) {
-        return new Edge<>(successor, new BitSet());
+        return Edges.create(successor);
     }
 
     @Nonnull

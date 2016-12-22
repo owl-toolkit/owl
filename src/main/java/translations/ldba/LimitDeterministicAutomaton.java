@@ -22,12 +22,12 @@ import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.HOAPrintable;
+import owl.automaton.edge.Edge;
 import translations.Optimisation;
 
 import javax.annotation.Nullable;
@@ -53,7 +53,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         return initialComponent == null;
     }
 
-    public AutomatonState<?> getInitialState() {
+    private AutomatonState<?> getInitialState() {
         if (initialComponent != null) {
             return initialComponent.getInitialState();
         }
@@ -102,7 +102,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
                     successors.forEach((successor, vs) -> {
                         // Copy successors to a new collection, since clear() will also empty these collections.
-                        List<S_A> targets = new ArrayList<>(initialComponent.epsilonJumps.get(successor.successor));
+                        List<S_A> targets = new ArrayList<>(initialComponent.epsilonJumps.get(successor.getSuccessor()));
                         accReach.addAll(targets);
                         successorJumps.put(vs, targets);
                     });

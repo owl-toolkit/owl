@@ -17,15 +17,11 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableSet;
-import ltl.GOperator;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 public class RecurringObligations extends ImmutableObject {
 

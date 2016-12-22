@@ -23,7 +23,6 @@ import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import ltl.Formula;
 import ltl.parser.Parser;
-import omega_automaton.Automaton;
 import omega_automaton.output.HOAPrintable;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -113,10 +112,10 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
         });
     }
 
-    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED, ORDERINGS};
+    protected enum FormulaGroup {VOLATILE, FG, FG_UNSTABLE, ROUND_ROBIN, DISJUNCTION, CONJUNCTION, REACH, IMMEDIATE, MIXED, ORDERINGS}
 
     @Parameterized.Parameters(name = "Group: {0}")
-    public static Iterable<? extends Object> data() {
+    public static Iterable<?> data() {
         return EnumSet.allOf(FormulaGroup.class);
     }
 

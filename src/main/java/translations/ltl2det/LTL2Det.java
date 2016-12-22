@@ -28,10 +28,13 @@ import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
-import translations.ltl2ldba.*;
+import translations.ltl2ldba.GeneralisedAcceptingComponent;
+import translations.ltl2ldba.InitialComponent;
+import translations.ltl2ldba.LTL2LDGBA;
 import translations.ltl2parity.LTL2Parity;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;

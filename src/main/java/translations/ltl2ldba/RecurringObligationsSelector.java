@@ -18,7 +18,10 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Sets;
-import ltl.*;
+import ltl.Formula;
+import ltl.GOperator;
+import ltl.ROperator;
+import ltl.WOperator;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;

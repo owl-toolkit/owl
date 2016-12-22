@@ -23,11 +23,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
+import owl.automaton.edge.Edge;
 import translations.ltl2parity.ParityAutomaton;
 
 import java.io.*;
@@ -53,9 +53,9 @@ class Any2BitArena {
 
             for (BitSet sndChoice : Collections3.powerSet(sndAlpha)) {
                 sndChoice.or(fstChoice);
-                Edge<S> successor = automaton.getSuccessor(state, sndChoice);
+                Edge<S> edge = automaton.getSuccessor(state, sndChoice);
 
-                if (successor == null) {
+                if (edge == null) {
                     if (firstPlayer == Player.System) {
                         continue fstChoice;
                     } else {
@@ -63,18 +63,12 @@ class Any2BitArena {
                     }
                 }
 
-                int color = successor.nextAcceptanceSet(0);
-
-                // Assign default color, if no color is found.
-                if (color < 0) {
-                    color = this.colors;
-                }
-
-                Int2ObjectMap<ValuationSet> colorMap = intermediateStates.get(successor);
+                final int color = edge.acceptanceSetStream().findFirst().orElse(this.colors);
+                Int2ObjectMap<ValuationSet> colorMap = intermediateStates.get(edge);
 
                 if (colorMap == null) {
                     colorMap = new Int2ObjectArrayMap<>();
-                    intermediateStates.put(successor.successor, colorMap);
+                    intermediateStates.put(edge.getSuccessor(), colorMap);
                 }
 
                 ValuationSet vs = colorMap.get(color);
@@ -101,8 +95,6 @@ class Any2BitArena {
                     if (labelStream != null) {
                         labelStream.write(entry2.getValue().toExpression().toString());
                         labelStream.write('\n');
-                    } else {
-                        // System.out.println(entry2.getValue().toExpression().toString());
                     }
 
                     entry2.getValue().free();

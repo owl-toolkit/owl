@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T extends AutomatonState<T>>  extends Automaton<S, NoneAcceptance> {
 
     public final SetMultimap<S, T> epsilonJumps;
-    protected final Table<S, ValuationSet, List<T>> valuationSetJumps;
+    final Table<S, ValuationSet, List<T>> valuationSetJumps;
 
     protected AbstractInitialComponent(ValuationSetFactory factory) {
         super(new NoneAcceptance(), factory);

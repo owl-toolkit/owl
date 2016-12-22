@@ -20,10 +20,10 @@ package translations.nba2ldba;
 import com.google.common.collect.ImmutableSet;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,7 +90,7 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
 
             BitSet bs = new BitSet(1);
             bs.set(0, left.stream().anyMatch(nba::isAccepting) && left.equals(right));
-            return new Edge<>(new State(ImmutableSet.copyOf(leftSuccessor), ImmutableSet.copyOf(rightSuccessor)), bs);
+            return Edges.create(new State(ImmutableSet.copyOf(leftSuccessor), ImmutableSet.copyOf(rightSuccessor)), bs);
         }
 
         @Nonnull

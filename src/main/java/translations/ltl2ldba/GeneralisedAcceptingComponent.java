@@ -22,10 +22,11 @@ import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import translations.Optimisation;
 
 import javax.annotation.Nonnull;
@@ -114,11 +115,11 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 }
 
                 if (!remainder.isTrue()) {
-                    return new Edge<>(new State(obligations, nextSafety, new EquivalenceClass[]{remainder}, EMPTY), REJECT);
+                    return Edges.create(new State(obligations, nextSafety, new EquivalenceClass[]{remainder}, EMPTY));
                 }
             }
 
-            return new Edge<>(new State(obligations, nextSafety, EMPTY, EMPTY), ACCEPT);
+            return Edges.create(new State(obligations, nextSafety, EMPTY, EMPTY), ACCEPT);
         }
 
         @Nullable
@@ -189,7 +190,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 }
             }
 
-            return new Edge<>(new State(obligations, nextSafety, currentSuccessors, nextSuccessors), bs);
+            return Edges.create(new State(obligations, nextSafety, currentSuccessors, nextSuccessors), bs);
         }
 
         private BitSet sensitiveAlphabet;

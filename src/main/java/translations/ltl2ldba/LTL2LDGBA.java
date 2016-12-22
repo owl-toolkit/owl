@@ -35,7 +35,10 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.StringReader;
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>> {

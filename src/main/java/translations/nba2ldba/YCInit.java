@@ -18,9 +18,9 @@
 package translations.nba2ldba;
 
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.StoredBuchiAutomaton;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import translations.ldba.AbstractInitialComponent;
 
 import javax.annotation.Nonnull;
@@ -41,7 +41,7 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
     }
 
     @Override
-    public void generateJumps(State state) {
+    public void generateJumps(@Nonnull State state) {
         Set<YCAcc.State> succ = epsilonJumps.get(state);
 
         state.states.forEach(s -> {
@@ -69,7 +69,7 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
                 return null;
             }
 
-            return new Edge<>(new State(successors), new BitSet());
+            return Edges.create(new State(successors));
         }
 
         @Nonnull

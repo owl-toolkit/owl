@@ -1,16 +1,11 @@
 package translations.ltl2ldba;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.Sets;
 import ltl.*;
 import ltl.parser.Parser;
 import ltl.visitors.Collector;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 

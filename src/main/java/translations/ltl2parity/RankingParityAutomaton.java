@@ -22,11 +22,12 @@ import ltl.Formula;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.AutomatonState;
-import omega_automaton.Edge;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.Trie;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.AcceptingComponent;
@@ -93,10 +94,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
     @Nonnull
     @Override
-    protected Edge<RankingParityAutomaton.State> generateRejectingEdge(RankingParityAutomaton.State successor) {
-        BitSet bs = new BitSet();
-        bs.set(acceptance.getPriority() == ParityAcceptance.Priority.ODD ? 0 : 1);
-        return new Edge<>(successor, bs);
+    protected Edge<State> generateRejectingEdge(RankingParityAutomaton.State successor) {
+        return Edges.create(successor, acceptance.getPriority() == ParityAcceptance.Priority.ODD ? 0 : 1);
     }
 
     @Nonnull
@@ -261,13 +260,11 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                     return null;
                 }
 
-                successor = edge.successor;
+                successor = edge.getSuccessor();
 
                 // If we reached the state "true", we're done and can loop forever.
                 if (successor.getClazz().isTrue()) {
-                    BitSet set = new BitSet();
-                    set.set(1);
-                    return new Edge<>(new State(successor, ImmutableList.of(), 0), set);
+                    return Edges.create(new State(successor, ImmutableList.of(), 0), 1);
                 }
             }
 
@@ -298,7 +295,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                     continue;
                 }
 
-                AcceptingComponent.State rankingSuccessor = edge.successor;
+                AcceptingComponent.State rankingSuccessor = edge.getSuccessor();
                 RecurringObligations obligations = rankingSuccessor.getObligations();
                 EquivalenceClass existingClass = existingClasses.get(obligations);
 
@@ -315,7 +312,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                     nextVolatileIndex = volatileComponents.get(obligations);
                 }
 
-                if (edge.inAcceptanceSet(0)) {
+                if (edge.inSet(0)) {
                     edgeColor = Math.min(2 * index + 1, edgeColor);
                     existingClasses.replace(obligations, acceptingComponent.getEquivalenceClassFactory().getTrue());
                 }
@@ -325,9 +322,6 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
                 nextVolatileIndex = appendJumps(successor, ranking, existingClasses, volatileIndex);
             }
 
-            BitSet acc = new BitSet();
-            acc.set(edgeColor);
-
             if (edgeColor >= colors) {
                 colors = edgeColor + 1;
                 acceptance = new ParityAcceptance(colors);
@@ -335,7 +329,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
             existingClasses.forEach((x, y) -> y.free());
 
-            return new Edge<>(new State(successor, ImmutableList.copyOf(ranking), nextVolatileIndex), acc);
+            return Edges.create(new State(successor, ImmutableList.copyOf(ranking), nextVolatileIndex), edgeColor);
         }
 
         private boolean isVolatileComponent(AcceptingComponent.State state) {
