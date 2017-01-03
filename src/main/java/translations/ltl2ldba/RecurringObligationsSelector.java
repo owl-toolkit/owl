@@ -48,7 +48,8 @@ class RecurringObligationsSelector {
         this.rankingComparator = new RankingComparator();
     }
 
-    EquivalenceClass getRemainingGoal(Formula formula, Set<GOperator> keys) {
+    EquivalenceClass getRemainingGoal(EquivalenceClass clazz, Set<GOperator> keys) {
+        Formula formula = clazz.getRepresentative();
         EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
         Formula subst = formula.accept(evaluateVisitor);
         Formula evaluated = Simplifier.simplify(subst, Simplifier.Strategy.MODAL);
@@ -66,10 +67,8 @@ class RecurringObligationsSelector {
      * @return true if is a sub-language
      */
     private boolean isSublanguage(Map.Entry<Set<GOperator>, RecurringObligations> entry, Map.Entry<Set<GOperator>, RecurringObligations> otherEntry, EquivalenceClass master) {
-        Formula formula = master.getRepresentative();
-
-        EquivalenceClass setClass = getRemainingGoal(formula, entry.getKey());
-        EquivalenceClass subsetClass = getRemainingGoal(formula, otherEntry.getKey());
+        EquivalenceClass setClass = getRemainingGoal(master, entry.getKey());
+        EquivalenceClass subsetClass = getRemainingGoal(master, otherEntry.getKey());
 
         boolean implies = setClass.implies(subsetClass);
 
@@ -120,7 +119,7 @@ class RecurringObligationsSelector {
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
             jumps.entrySet().removeIf(entry -> {
                 if (!initialState) {
-                    EquivalenceClass remainder = getRemainingGoal(state.getRepresentative(), entry.getKey());
+                    EquivalenceClass remainder = getRemainingGoal(state, entry.getKey());
 
                     Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
                     remainder.getSupport().forEach(x -> x.accept(externalLiteralCollector));

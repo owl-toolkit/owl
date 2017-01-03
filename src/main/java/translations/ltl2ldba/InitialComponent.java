@@ -69,7 +69,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
                 return;
             }
 
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz().getRepresentative(), Gs);
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz(), Gs);
             S successor = acceptingComponent.jump(remainingGoal, obligation);
 
             if (successor == null) {

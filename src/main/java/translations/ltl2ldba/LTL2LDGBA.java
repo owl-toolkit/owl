@@ -75,7 +75,7 @@ public class LTL2LDGBA implements Function<Formula, LimitDeterministicAutomaton<
 
         if (keys.size() == 1 && !keys.containsKey(Collections.<GOperator>emptySet())) {
             Map.Entry<Set<GOperator>, RecurringObligations> entry = Iterables.getOnlyElement(keys.entrySet());
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz.getRepresentative(), entry.getKey());
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz, entry.getKey());
             acceptingComponent.jumpInitial(remainingGoal, entry.getValue());
         } else {
             initialComponent = new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, equivalenceClassFactory);
