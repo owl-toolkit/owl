@@ -484,10 +484,16 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         @Override
         public String toString() {
             String representativeString;
-            int pos = Arrays.binarySearch(vars, bdd);
 
-            if (pos >= 0) {
-                representativeString = reverseMapping[pos].toString(atomMapping);
+            if (factory.isVariableOrNegated(bdd)) {
+                int pos = Arrays.binarySearch(vars, bdd);
+
+                if (pos >= 0) {
+                    representativeString = reverseMapping[pos].toString(atomMapping);
+                } else {
+                    pos = Arrays.binarySearch(vars, factory.not(bdd));
+                    representativeString = reverseMapping[pos].not().toString(atomMapping);
+                }
             } else if (representative == null) {
                 representativeString = "?";
             } else {
