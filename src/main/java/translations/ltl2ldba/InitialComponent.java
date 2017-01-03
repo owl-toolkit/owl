@@ -48,7 +48,6 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
     private final EquivalenceClass initialClazz;
 
     private final boolean eager;
-    private final boolean impatient;
     private final RecurringObligationsSelector selector;
 
     InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
@@ -58,7 +57,6 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         this.initialClazz = initialClazz;
 
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
-        impatient = optimisations.contains(Optimisation.FORCE_JUMPS);
         selector = new RecurringObligationsSelector(optimisations, factory);
     }
 
@@ -84,28 +82,18 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
     @Override
     protected State generateInitialState() {
-        if (eager) {
-            return new State(initialClazz.unfold(), true, impatient, valuationSetFactory, selector);
-        } else {
-            return new State(initialClazz, false, impatient, valuationSetFactory, selector);
-        }
+        return new State(this, eager ? initialClazz.unfold() : initialClazz);
     }
 
     public static class State implements AutomatonState<State> {
 
+        private final InitialComponent<?> parent;
         private final EquivalenceClass clazz;
-        private final boolean eager;
-        private final boolean impatient;
-        private final ValuationSetFactory valuationSetFactory;
         private Map<Set<GOperator>, RecurringObligations> jumps;
-        private final RecurringObligationsSelector selector;
 
-        public State(EquivalenceClass clazz, boolean eager, boolean impatient, ValuationSetFactory valuationSetFactory, RecurringObligationsSelector selector) {
+        public State(InitialComponent<?> parent, EquivalenceClass clazz) {
+            this.parent = parent;
             this.clazz = clazz;
-            this.eager = eager;
-            this.impatient = impatient;
-            this.valuationSetFactory = valuationSetFactory;
-            this.selector = selector;
         }
 
         @Nullable
@@ -113,14 +101,14 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             EquivalenceClass successorClass;
 
-            if (eager) {
+            if (parent.eager) {
                 successorClass = clazz.temporalStepUnfold(valuation);
             } else {
                 successorClass = clazz.unfoldTemporalStep(valuation);
             }
 
             if (jumps == null) {
-                jumps = selector.selectMonitors(this);
+                jumps = parent.selector.selectMonitors(this);
             }
 
             // Suppress edge, if successor is a non-accepting state
@@ -128,14 +116,14 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
                 return null;
             }
 
-            State successor = new State(successorClass, eager, impatient, valuationSetFactory, selector);
+            State successor = new State(parent, successorClass);
             return successorClass.isTrue() ? Edges.create(successor, ACCEPT) : Edges.create(successor);
         }
 
         @Nonnull
         @Override
         public BitSet getSensitiveAlphabet() {
-            if (eager) {
+            if (parent.eager) {
                 return clazz.getAtoms();
             } else {
                 EquivalenceClass unfold = clazz.unfold();
