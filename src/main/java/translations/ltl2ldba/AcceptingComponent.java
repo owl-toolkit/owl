@@ -320,10 +320,10 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         @Override
         public String toString() {
             return "[obligations=" + obligations +
-                    ", safety=" + safety +
-                    ", index=" + index +
-                    ", current=" + current +
-                    ", next=" + Arrays.toString(next) +
+                    (!safety.isTrue() ? ", safety=" + safety : "") +
+                    (index != 0 ? ", index=" + index : "") +
+                    (!current.isTrue() ? ", current=" + current : "") +
+                    (next.length > 0 ? ", next=" + Arrays.toString(next) : "") +
                     ']';
         }
     }

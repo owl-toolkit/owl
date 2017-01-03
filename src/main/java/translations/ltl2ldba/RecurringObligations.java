@@ -22,6 +22,7 @@ import ltl.equivalence.EquivalenceClass;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class RecurringObligations extends ImmutableObject {
 
@@ -67,11 +68,29 @@ public class RecurringObligations extends ImmutableObject {
 
     @Override
     public String toString() {
-        return "RecurringObligations{" +
-                "safety=" + safety +
-                ", liveness=" + Arrays.toString(liveness) +
-                ", obligations=" + Arrays.toString(obligations) +
-                '}';
+        String toString = "";
+
+        if (!safety.isTrue()) {
+            toString += "safety=" + safety;
+        }
+
+        if (liveness.length > 0) {
+            if (!safety.isTrue()) {
+                toString += ", ";
+            }
+
+            toString += "liveness=" + Arrays.toString(liveness);
+        }
+
+        if (obligations.length > 0) {
+            if (!safety.isTrue() || liveness.length > 0) {
+                toString += ", ";
+            }
+
+            toString += "obligations=" + Arrays.toString(obligations);
+        }
+
+        return '<' + toString + '>';
     }
 
     private EquivalenceClass overallObligation() {
@@ -88,7 +107,19 @@ public class RecurringObligations extends ImmutableObject {
         return obligation;
     }
 
-    public boolean implies(RecurringObligations other) {
+    boolean implies(RecurringObligations other) {
         return overallObligation().implies(other.overallObligation());
+    }
+
+    void forEach(Consumer<EquivalenceClass> consumer) {
+        consumer.accept(safety);
+
+        for (EquivalenceClass liveness : liveness) {
+            consumer.accept(liveness);
+        }
+
+        for (EquivalenceClass obligation : obligations) {
+            consumer.accept(obligation);
+        }
     }
 }

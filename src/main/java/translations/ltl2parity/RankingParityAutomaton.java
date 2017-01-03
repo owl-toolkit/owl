@@ -338,7 +338,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         @Override
         public String toString() {
-            return "{I: " + initialComponentState + ", Ranking: " + acceptingComponentRanking + ", VolatileIndex: " + volatileIndex + '}';
+            return "|" + initialComponentState + " :: " + acceptingComponentRanking + " :: " + volatileIndex + '|';
         }
     }
 }
