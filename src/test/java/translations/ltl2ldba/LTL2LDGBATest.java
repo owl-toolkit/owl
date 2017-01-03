@@ -77,7 +77,7 @@ public class LTL2LDGBATest {
     @Test
     public void testToHOA342() throws Exception {
         String ltl = "(F p) U (G q)";
-        testOutput(ltl, 4);
+        testOutput(ltl, 3);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class LTL2LDGBATest {
     @Test
     public void regressionTestStack() throws Exception {
         String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | (G((!(b)) | ((c) & (X(F(e))))))))))";
-        testOutput(ltl, 56);
+        testOutput(ltl, 15);
     }
 
     private static final String TRIVIAL_TRUE = "HOA: v1\n" +
@@ -192,7 +192,7 @@ public class LTL2LDGBATest {
     @Test
     public void testSanityCheckFailed2() throws Exception {
         String ltl = "!(((X a) | (F b)) U (a))";
-        testOutput(ltl, 8);
+        testOutput(ltl, 5);
     }
 
     @Test

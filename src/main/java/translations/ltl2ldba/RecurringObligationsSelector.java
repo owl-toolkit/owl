@@ -23,7 +23,6 @@ import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.simplifier.Simplifier;
 import ltl.visitors.Collector;
-import ltl.visitors.Visitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import translations.Optimisation;
 
@@ -119,8 +118,28 @@ class RecurringObligationsSelector {
         }
 
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            jumps.entrySet().removeIf(entry -> jumps.entrySet().stream()
-                    .anyMatch(otherEntry -> otherEntry != entry && isSublanguage(entry, otherEntry, state)));
+            jumps.entrySet().removeIf(entry -> {
+                if (!initialState) {
+                    EquivalenceClass remainder = getRemainingGoal(state.getRepresentative(), entry.getKey());
+
+                    Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
+                    remainder.getSupport().forEach(x -> x.accept(externalLiteralCollector));
+                    BitSet externalAtoms = extractAtoms(externalLiteralCollector);
+
+                    Collector internalLiteralCollector = new Collector(x -> x instanceof Literal);
+                    entry.getKey().forEach(x -> x.accept(internalLiteralCollector));
+                    BitSet internalAtoms = extractAtoms(internalLiteralCollector);
+
+                    // Subset check.
+                    externalAtoms.andNot(internalAtoms);
+
+                    if (!externalAtoms.isEmpty()) {
+                        return true;
+                    }
+                }
+
+                return jumps.entrySet().stream().anyMatch(otherEntry -> otherEntry != entry && isSublanguage(entry, otherEntry, state));
+            });
         }
 
         if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
@@ -146,6 +165,12 @@ class RecurringObligationsSelector {
 
     Map<Set<GOperator>, RecurringObligations> selectMonitors(InitialComponent.State state) {
         return selectMonitors(state.getClazz(), false);
+    }
+
+    private static BitSet extractAtoms(Collector collector) {
+        BitSet atoms = new BitSet();
+        collector.getCollection().forEach(x -> atoms.set(((Literal) x).getAtom()));
+        return atoms;
     }
 
     /**

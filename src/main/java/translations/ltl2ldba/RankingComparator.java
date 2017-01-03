@@ -18,6 +18,7 @@
 package translations.ltl2ldba;
 
 import ltl.*;
+import ltl.visitors.DefaultIntVisitor;
 import ltl.visitors.IntVisitor;
 
 import java.util.Comparator;
@@ -46,7 +47,12 @@ class RankingComparator implements Comparator<GOperator> {
         ranking.computeIfAbsent(operator, key -> rank < 0 ? operator.operand.accept(depthVisitor) : rank);
     }
 
-    private class RankVisitor implements IntVisitor {
+    private class RankVisitor extends DefaultIntVisitor {
+
+        @Override
+        protected int defaultAction(Formula formula) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         public int visit(BooleanConstant booleanConstant) {
@@ -114,7 +120,13 @@ class RankingComparator implements Comparator<GOperator> {
         return a > b ? (a > c ? a : c) : (b > c ? b : c);
     }
 
-    private static class XDepthVisitor implements IntVisitor {
+    private static class XDepthVisitor extends DefaultIntVisitor {
+
+        @Override
+        protected int defaultAction(Formula formula) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
         public int visit(BooleanConstant booleanConstant) {
             return -1;
