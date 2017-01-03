@@ -130,11 +130,13 @@ class RecurringObligationsSelector {
                     entry.getKey().forEach(x -> x.accept(internalLiteralCollector));
                     BitSet internalAtoms = extractAtoms(internalLiteralCollector);
 
-                    // Subset check.
-                    externalAtoms.andNot(internalAtoms);
-
+                    // Check if external atoms are non-empty and disjoint.
                     if (!externalAtoms.isEmpty()) {
-                        return true;
+                        externalAtoms.and(internalAtoms);
+
+                        if (externalAtoms.isEmpty()) {
+                            return true;
+                        }
                     }
                 }
 
