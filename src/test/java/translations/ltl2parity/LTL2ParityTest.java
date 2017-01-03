@@ -66,4 +66,10 @@ public class LTL2ParityTest {
         testOutput(ltl, 2, 1);
         testOutput("! " + ltl, 3,2);
     }
+
+    @Test
+    public void testRegression3() throws Exception {
+        String ltl = "F ((a | (G b)) & (c | (G d)) & (e | (G f)))";
+        testOutput(ltl, 32, 2);
+    }
 }

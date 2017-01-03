@@ -39,6 +39,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
     private final static BiMap<String, Integer> ALIASES;
     private final static EnumMap<FormulaGroup, String[]> FORMULA_GROUP_MAP;
 
+    // TODO: Move this to a JSON file.
     static {
         ALIASES = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3, "e", 4);
         FORMULA_GROUP_MAP = new EnumMap<>(FormulaGroup.class);
