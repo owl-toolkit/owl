@@ -17,46 +17,31 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterables;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Visitor;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 class EvaluateVisitor implements Visitor<Formula> {
 
-    @Nullable
     private final EquivalenceClass environment;
-    @Nullable
     private final EquivalenceClassFactory factory;
     private final Set<Formula> universalTruths;
 
-    EvaluateVisitor(Collection<GOperator> gMonitors) {
-        this(gMonitors, null);
-    }
-
-    EvaluateVisitor(Collection<GOperator> gMonitors, @Nullable EquivalenceClassFactory equivalenceClassFactory) {
-        universalTruths = new HashSet<>(gMonitors);
+    EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClassFactory equivalenceClassFactory) {
+        factory = equivalenceClassFactory;
+        universalTruths = new HashSet<>(gMonitors.size());
         gMonitors.forEach(gOperator -> universalTruths.add(gOperator.operand));
-
-        if (equivalenceClassFactory != null) {
-            factory = equivalenceClassFactory;
-            environment = equivalenceClassFactory.createEquivalenceClass(universalTruths);
-        } else {
-            factory = null;
-            environment = null;
-        }
+        environment = equivalenceClassFactory.createEquivalenceClass(Iterables.concat(gMonitors, universalTruths));
     }
 
     void free() {
-        if (environment != null) {
-            environment.free();
-        }
+        environment.free();
     }
 
     @Override

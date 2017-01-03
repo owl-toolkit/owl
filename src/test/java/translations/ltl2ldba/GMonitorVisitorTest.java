@@ -1,6 +1,7 @@
 package translations.ltl2ldba;
 
 import ltl.*;
+import ltl.equivalence.BDDEquivalenceClassFactory;
 import ltl.parser.Parser;
 import ltl.visitors.Collector;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class GMonitorVisitorTest {
     public void testEvaluateSetG() throws Exception {
         GOperator G1 = (GOperator) Parser.formula("G(p2)");
         Formula formula = Parser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
-        EvaluateVisitor visitor = new EvaluateVisitor(Collections.singleton(G1));
+        EvaluateVisitor visitor = new EvaluateVisitor(Collections.singleton(G1), new BDDEquivalenceClassFactory(formula));
         assertEquals(BooleanConstant.FALSE, formula.accept(visitor));
     }
 }

@@ -166,10 +166,12 @@ class RecurringObligationsSelector {
             GOperator gOperator = gOperators.get(i);
 
             // We only propagate information from already constructed G-monitors.
-            Visitor<Formula> evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i), factory);
+            EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i), factory);
 
             Formula formula = Simplifier.simplify(Simplifier.simplify(gOperator.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
             EquivalenceClass clazz = factory.createEquivalenceClass(formula);
+
+            evaluateVisitor.free();
 
             if (clazz.isFalse()) {
                 free(clazz, safety, liveness, obligations);
