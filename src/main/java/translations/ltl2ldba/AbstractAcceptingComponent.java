@@ -39,8 +39,8 @@ abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends
     private final boolean removeCover;
     private final boolean eager;
 
-    public Set<RecurringObligations> getAllInit() {
-        return components;
+    public Set<RecurringObligations> getComponents() {
+        return Collections.unmodifiableSet(components);
     }
 
     AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {

@@ -59,18 +59,15 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
         volatileComponents = new HashMap<>();
 
-        int components = 0;
+        for (RecurringObligations value : acceptingComponent.getComponents()) {
+            assert !volatileComponents.containsKey(value);
 
-        for (RecurringObligations value : acceptingComponent.getAllInit()) {
-            // TODO: make sure that there is at most one component for each recurring obligation.
-            if (value.isPureSafety() && !volatileComponents.containsKey(value)) {
-                volatileComponents.put(value, components);
-                components = components + 1;
+            if (value.isPureSafety()) {
+                volatileComponents.put(value, volatileComponents.size());
             }
         }
 
-        volatileMaxIndex = components;
-        assert volatileMaxIndex == volatileComponents.size();
+        volatileMaxIndex = volatileComponents.size();
 
         if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
             trie = new HashMap<>();
