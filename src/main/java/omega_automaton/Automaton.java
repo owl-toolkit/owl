@@ -384,7 +384,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     @Override
     public String toString() {
         try (OutputStream stream = new ByteArrayOutputStream()) {
-            toHOA(new HOAConsumerPrint(stream));
+            toHOA(new HOAConsumerPrint(stream), EnumSet.of(Option.ANNOTATIONS));
             return stream.toString();
         } catch (IOException ex) {
             throw new IllegalStateException(ex.toString(), ex);

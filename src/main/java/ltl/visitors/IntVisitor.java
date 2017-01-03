@@ -17,7 +17,6 @@
 
 package ltl.visitors;
 
-
 import ltl.*;
 
 public interface IntVisitor {

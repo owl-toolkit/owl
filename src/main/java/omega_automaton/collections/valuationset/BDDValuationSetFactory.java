@@ -87,13 +87,13 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         if (pos.isTRUE()) {
             pos = letter;
         } else if (!pos.isFALSE()) {
-            pos = pos.and(letter);
+            pos = letter.and(pos);
         }
 
         if (neg.isTRUE()) {
             neg = letter.not();
         } else if (!neg.isFALSE()) {
-            neg = neg.and(letter.not());
+            neg = letter.not().and(neg);
         }
 
         if (pos.isFALSE()) {
