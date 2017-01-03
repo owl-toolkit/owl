@@ -54,4 +54,15 @@ public class LTL2LDBARegressionTest {
         testOutput(ltl, 2);
     }
 
+    @Test
+    public void testObligationSizeRegression() throws Exception {
+        String ltl = "G F (b & G b)";
+        testOutput(ltl, 2);
+    }
+
+    @Test
+    public void testRegression7() throws Exception {
+        String ltl = "(X(p1)) R (((G(p2)) R (p3)) W (p4))";
+        testOutput(ltl, 22);
+    }
 }
