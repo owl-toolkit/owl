@@ -71,8 +71,3 @@ test:ltl2ldgba:no-opt:
   variables:
     LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
-
-test:ltl2parity:no-opt:
-  variables:
-    LTL_TOOL: "{ltl2parity} build/bin/ltl2parity --optimisations=none %f >%O"
-  <<: *ltlcross_template
