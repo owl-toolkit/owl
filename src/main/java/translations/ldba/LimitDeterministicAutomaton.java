@@ -104,7 +104,12 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
                         // Copy successors to a new collection, since clear() will also empty these collections.
                         List<S_A> targets = new ArrayList<>(initialComponent.epsilonJumps.get(successor.getSuccessor()));
                         accReach.addAll(targets);
-                        successorJumps.put(vs, targets);
+
+                        // Non-determinism!
+                        List<S_A> oldTargets = successorJumps.put(vs, targets);
+                        if (oldTargets != null) {
+                            targets.addAll(oldTargets);
+                        }
                     });
                 }
 
