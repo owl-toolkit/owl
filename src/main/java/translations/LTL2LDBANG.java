@@ -29,7 +29,6 @@ import java.util.function.Function;
 public class LTL2LDBANG extends AbstractCommandLineTool {
     @Override
     protected Function<Formula, ? extends HOAPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
-        // optimisations.remove(Optimisation.EAGER_UNFOLD);
         return new Ltl2LdbaNg(optimisations);
     }
 
