@@ -51,7 +51,7 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
         this.selector = selector;
         this.evaluator = evaluator;
-        this.initialState = new InitialComponentState(this, eager ? initialClazz.unfold() : initialClazz);
+        this.initialStates.add(new InitialComponentState(this, eager ? initialClazz.unfold() : initialClazz));
 
         // FIXME: Increase the number of set bits!
         ACCEPT = new BitSet();

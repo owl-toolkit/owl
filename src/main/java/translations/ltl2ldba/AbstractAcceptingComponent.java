@@ -32,10 +32,8 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
 
     protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
-    private Collection<S> constructionQueue = new ArrayDeque<>();
-    private Set<U> components = new HashSet<>();
-
     protected final EquivalenceClassFactory equivalenceClassFactory;
+    private Set<U> components = new HashSet<>();
     private final boolean removeCover;
     private final boolean eager;
 
@@ -50,18 +48,8 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
     }
 
-    @Override
-    public void generate() {
-        constructionQueue.forEach(this::generate);
-        constructionQueue = null;
-    }
-
     public EquivalenceClassFactory getEquivalenceClassFactory() {
         return equivalenceClassFactory;
-    }
-
-    void jumpInitial(EquivalenceClass master, U obligations) {
-        initialState = jump(master, obligations);
     }
 
     @Nullable
@@ -70,14 +58,13 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
             return null;
         }
 
-        components.add(obligations);
         S state = createState(remainingGoal, obligations);
 
-        if (state == null) {
-            return null;
+        if (state != null) {
+            components.add(obligations);
+            initialStates.add(state);
         }
 
-        constructionQueue.add(state);
         return state;
     }
 

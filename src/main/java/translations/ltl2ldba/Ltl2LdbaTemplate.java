@@ -66,7 +66,7 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
 
         if (Collections3.isSingleton(obligations) && Iterables.getOnlyElement(obligations) != null) {
             EquivalenceClass remainingGoal = evaluator.evaluate(initialClazz, Iterables.getOnlyElement(obligations));
-            acceptingComponent.jumpInitial(remainingGoal, Iterables.getOnlyElement(obligations));
+            acceptingComponent.jump(remainingGoal, Iterables.getOnlyElement(obligations));
         } else {
             initialComponent = createInitialComponent(factories, initialClazz, acceptingComponent);
         }

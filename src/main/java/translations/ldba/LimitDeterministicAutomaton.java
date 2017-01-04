@@ -53,12 +53,12 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         return initialComponent == null;
     }
 
-    private AutomatonState<?> getInitialState() {
+    private Set<? extends AutomatonState<?>> getInitialStates() {
         if (initialComponent != null) {
-            return initialComponent.getInitialState();
+            return initialComponent.getInitialStates();
         }
 
-        return acceptingComponent.getInitialState();
+        return acceptingComponent.getInitialStates();
     }
 
     public int size() {
@@ -120,7 +120,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     @Override
     public void toHOA(HOAConsumer c, EnumSet<Option> options) {
-        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), getInitialState(), size(), options);
+        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), getInitialStates(), size(), options);
 
         if (initialComponent != null) {
             initialComponent.toHOABody(consumer);

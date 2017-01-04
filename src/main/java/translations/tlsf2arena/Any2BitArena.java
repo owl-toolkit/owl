@@ -170,7 +170,7 @@ class Any2BitArena {
              DataOutputStream edgeStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(edgeFile)))) {
 
             nodeStream.writeInt(0);
-            nodeStream.writeInt(ids.get(automaton.getInitialState()));
+            nodeStream.writeInt(ids.get(automaton.getInitialStates()));
             nodeStream.writeInt(firstPlayer.ordinal());
 
             // Write empty header.

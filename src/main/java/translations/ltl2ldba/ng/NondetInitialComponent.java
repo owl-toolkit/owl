@@ -48,6 +48,15 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
                            EquivalenceClassFactory factory) {
         super(initialClazz, acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
         this.factory = factory;
+
+        initialStates.clear();
+        // Split successor into DNF.
+        List<Set<Formula>> dnf = DnfNormalForm.normalise(initialClazz.getRepresentative());
+
+        for (Set<Formula> conjunction : dnf) {
+            EquivalenceClass conjunctionClass = factory.createEquivalenceClass(conjunction);
+            initialStates.add(new InitialComponentState(this, conjunctionClass));
+        }
     }
 
     @Override

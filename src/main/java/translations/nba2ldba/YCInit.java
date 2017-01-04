@@ -37,7 +37,7 @@ public class YCInit extends AbstractInitialComponent<YCInit.State, YCAcc.State> 
         this.nba = nba;
         this.acceptingComponent = acceptingComponent;
 
-        initialState = new State(Collections.singleton(nba.getInitialState()));
+        initialStates.add(new State(nba.getInitialStates()));
     }
 
     @Override

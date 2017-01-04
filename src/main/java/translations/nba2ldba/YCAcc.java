@@ -43,16 +43,8 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
     State createState(StoredBuchiAutomaton.State target) {
         Set<StoredBuchiAutomaton.State> singleton = singleton(target);
         State state = new State(singleton, singleton);
-        constructionQueue.add(state);
+        initialStates.add(state);
         return state;
-    }
-
-    private Deque<State> constructionQueue = new ArrayDeque<>();
-
-    @Override
-    public void generate() {
-        constructionQueue.forEach(this::generate);
-        constructionQueue = null;
     }
 
     public class State implements AutomatonState<State> {
