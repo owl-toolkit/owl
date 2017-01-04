@@ -57,7 +57,7 @@ test:ltl2det-parallel:
     LTL_TOOL: "{ltl2det} build/bin/ltl2det --parallel %f >%O"
   <<: *ltlcross_template
 
-  test:ltl2ldba:no-opt:
+test:ltl2ldba:no-opt:
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --optimisations=[REMOVE_EPSILON_TRANSITIONS] %f >%O"
   <<: *ltlcross_template
