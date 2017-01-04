@@ -239,7 +239,9 @@ public class RecurringObligationsSelector {
             return null;
         }
 
-        return new RecurringObligations(safety, liveness, obligations);
+        RecurringObligations recurringObligations = new RecurringObligations(safety, liveness, obligations);
+
+        return cache.values().stream().filter(recurringObligations::equals).findAny().orElse(recurringObligations);
     }
 
     private static void free(@Nullable EquivalenceClass clazz1, EquivalenceClass clazz2, Iterable<EquivalenceClass> iterable1, Iterable<EquivalenceClass> iterable2) {
