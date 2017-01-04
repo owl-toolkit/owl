@@ -121,7 +121,7 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
 
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
-            EquivalenceClass safetySuccessor = QuantAcceptingComponent.this.getSuccessor(safety, valuation).andWith(obligations.safety);
+            EquivalenceClass safetySuccessor = QuantAcceptingComponent.this.getSuccessor(safety, valuation).andWith(getInitialClass(obligations.safety));
 
             if (safetySuccessor.isFalse()) {
                 return null;
