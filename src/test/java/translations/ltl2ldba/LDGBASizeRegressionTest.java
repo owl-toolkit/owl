@@ -27,19 +27,19 @@ import translations.ldba.LimitDeterministicAutomaton;
 import java.util.EnumSet;
 
 @RunWith(Parameterized.class)
-public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>> {
+public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent>> {
 
     public LDGBASizeRegressionTest(FormulaGroup selectedClass) {
         super(selectedClass, new Ltl2Ldgba(EnumSet.allOf(Optimisation.class)));
     }
 
     @Override
-    protected int getAccSize(LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> automaton) {
+    protected int getAccSize(LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent> automaton) {
         return automaton.getAcceptingComponent().getAcceptance().getSize();
     }
 
     @Override
-    protected int getSize(LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> automaton) {
+    protected int getSize(LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent> automaton) {
         return automaton.size();
     }
 

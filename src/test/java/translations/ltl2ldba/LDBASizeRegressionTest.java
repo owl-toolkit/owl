@@ -27,19 +27,19 @@ import translations.ldba.LimitDeterministicAutomaton;
 import java.util.EnumSet;
 
 @RunWith(Parameterized.class)
-public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent>> {
+public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent>> {
 
     public LDBASizeRegressionTest(FormulaGroup selectedClass) {
         super(selectedClass, new Ltl2Ldba(EnumSet.allOf(Optimisation.class)));
     }
 
     @Override
-    protected int getSize(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> automaton) {
+    protected int getSize(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> automaton) {
         return automaton.size();
     }
 
     @Override
-    protected int getAccSize(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> automaton) {
+    protected int getAccSize(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> automaton) {
         return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
     }
 

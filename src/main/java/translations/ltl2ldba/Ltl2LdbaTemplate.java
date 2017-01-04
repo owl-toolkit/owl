@@ -30,59 +30,74 @@ import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
-import translations.ldba.AbstractInitialComponent;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 
-public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends GeneralisedBuchiAcceptance, A extends AbstractAcceptingComponent<S, B>> implements Function<Formula, LimitDeterministicAutomaton<InitialComponent.State, S, B, InitialComponent<S>, A>> {
+public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends GeneralisedBuchiAcceptance, C, A extends AbstractAcceptingComponent<S, B, C>> implements Function<Formula, LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A>> {
 
     protected final EnumSet<Optimisation> optimisations;
 
     Ltl2LdbaTemplate(EnumSet<Optimisation> optimisations) {
-        this.optimisations = optimisations;
+        this.optimisations = optimisations.clone();
     }
 
     @Override
-    public LimitDeterministicAutomaton<InitialComponent.State, S, B, InitialComponent<S>, A> apply(Formula formula) {
+    public LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A> apply(Formula formula) {
         formula = preprocess(formula);
 
-        ValuationSetFactory valuationSetFactory = new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula));
-        EquivalenceClassFactory equivalenceClassFactory = new BDDEquivalenceClassFactory(formula);
-        RecurringObligationsSelector selector = new RecurringObligationsSelector(optimisations, equivalenceClassFactory);
+        Factories factories = new Factories(new BDDEquivalenceClassFactory(formula), new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula)));
 
-        EquivalenceClass initialClazz = equivalenceClassFactory.createEquivalenceClass(formula);
+        A acceptingComponent = createAcceptingComponent(factories);
+        Evaluator<C> evaluator = createEvaluator(factories);
+        Selector<C> selector = createSelector(factories);
+
+        EquivalenceClass initialClazz = factories.equivalenceClassFactory.createEquivalenceClass(formula);
 
         if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
             initialClazz = initialClazz.unfold();
         }
 
-        Set<RecurringObligations> obligations = selector.selectMonitors(initialClazz, true);
+        Set<C> obligations = selector.select(initialClazz, true);
 
-        A acceptingComponent = constructAcceptingComponent(equivalenceClassFactory, valuationSetFactory);
-        InitialComponent<S> initialComponent = null;
+        InitialComponent<S, C> initialComponent = null;
 
-        if (Collections3.isSingleton(obligations) && !Iterables.getOnlyElement(obligations).isEmpty()) {
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(initialClazz, Iterables.getOnlyElement(obligations));
+        if (Collections3.isSingleton(obligations) && Iterables.getOnlyElement(obligations) != null) {
+            EquivalenceClass remainingGoal = evaluator.evaluate(initialClazz, Iterables.getOnlyElement(obligations));
             acceptingComponent.jumpInitial(remainingGoal, Iterables.getOnlyElement(obligations));
         } else {
-            initialComponent = constructInitialComponent(initialClazz, acceptingComponent, valuationSetFactory, selector);
+            initialComponent = createInitialComponent(factories, initialClazz, acceptingComponent);
         }
 
-        LimitDeterministicAutomaton<InitialComponent.State, S, B, InitialComponent<S>, A> det
+        LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A> det
                 = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
         det.generate();
         return det;
     }
 
-    private Formula preprocess(Formula formula) {
+    protected Formula preprocess(Formula formula) {
         formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
         return Simplifier.simplify(formula, Simplifier.Strategy.PUSHDOWN_X);
     }
 
-    protected abstract A constructAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory factory2);
+    protected abstract A createAcceptingComponent(Factories factories);
 
-    protected abstract InitialComponent<S> constructInitialComponent(EquivalenceClass initialClazz, A acceptingComponent, ValuationSetFactory valuationSetFactory, RecurringObligationsSelector selector);
+    protected abstract Evaluator<C> createEvaluator(Factories factories);
+
+    protected abstract InitialComponent<S, C> createInitialComponent(Factories factories, EquivalenceClass initialClazz, A acceptingComponent);
+
+    protected abstract Selector<C> createSelector(Factories factories);
+
+    public static class Factories {
+
+        public final EquivalenceClassFactory equivalenceClassFactory;
+        public final ValuationSetFactory valuationSetFactory;
+
+        private Factories(EquivalenceClassFactory equivalenceClassFactory, ValuationSetFactory valuationSetFactory) {
+            this.equivalenceClassFactory = equivalenceClassFactory;
+            this.valuationSetFactory = valuationSetFactory;
+        }
+    }
 }

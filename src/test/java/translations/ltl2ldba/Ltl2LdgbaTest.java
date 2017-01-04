@@ -38,7 +38,7 @@ public class Ltl2LdgbaTest {
     static void testOutput(String ltl, EnumSet<Optimisation> opts, int size, @Nullable String expectedOutput) throws IOException {
         BiMap<String, Integer> mapping = HashBiMap.create();
         Ltl2Ldgba translation = new Ltl2Ldgba(opts);
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
+        LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
         automaton.getAcceptingComponent().setAtomMapping(mapping.inverse());
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());
@@ -89,6 +89,12 @@ public class Ltl2LdgbaTest {
     @Test
     public void testToHOA7() throws Exception {
         String ltl = "X F (a U G b)";
+        testOutput(ltl, 2);
+    }
+
+    @Test
+    public void testFGa() throws Exception {
+        String ltl = "F G a";
         testOutput(ltl, 2);
     }
 

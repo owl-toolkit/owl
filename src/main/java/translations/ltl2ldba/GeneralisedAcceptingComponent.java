@@ -36,7 +36,7 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Objects;
 
-public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance> {
+public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations> {
 
     private final BitSet ACCEPT = new BitSet();
 
@@ -46,7 +46,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
     }
 
     @Override
-    State createState(EquivalenceClass remainder, RecurringObligations obligations) {
+    public State createState(EquivalenceClass remainder, RecurringObligations obligations) {
         final int length = obligations.obligations.length + obligations.liveness.length;
 
         // If it is necessary, increase the number of acceptance conditions.

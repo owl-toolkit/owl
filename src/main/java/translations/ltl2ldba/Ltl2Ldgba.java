@@ -18,26 +18,36 @@
 package translations.ltl2ldba;
 
 import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 import translations.Optimisation;
 
 import java.util.EnumSet;
 
-public class Ltl2Ldgba extends Ltl2LdbaTemplate<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, GeneralisedAcceptingComponent> {
+public class Ltl2Ldgba extends Ltl2LdbaTemplate<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations, GeneralisedAcceptingComponent> {
 
     public Ltl2Ldgba(EnumSet<Optimisation> optimisations) {
         super(optimisations);
     }
 
     @Override
-    protected GeneralisedAcceptingComponent constructAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory factory2) {
-        return new GeneralisedAcceptingComponent(factory, factory2, optimisations);
+    protected GeneralisedAcceptingComponent createAcceptingComponent(Factories factories) {
+        return new GeneralisedAcceptingComponent(factories.equivalenceClassFactory, factories.valuationSetFactory, optimisations);
     }
 
     @Override
-    protected InitialComponent<GeneralisedAcceptingComponent.State> constructInitialComponent(EquivalenceClass initialClazz, GeneralisedAcceptingComponent acceptingComponent, ValuationSetFactory valuationSetFactory, RecurringObligationsSelector selector) {
-        return new InitialComponent<>(initialClazz, acceptingComponent, valuationSetFactory, optimisations, selector);
+    protected Evaluator<RecurringObligations> createEvaluator(Factories factories) {
+        return new RecurringObligationsEvaluator(factories.equivalenceClassFactory);
+    }
+
+    @Override
+    protected InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations> createInitialComponent(Factories factories, EquivalenceClass initialClazz, GeneralisedAcceptingComponent acceptingComponent) {
+        RecurringObligationsSelector recurringObligationsSelector = new RecurringObligationsSelector(optimisations, factories.equivalenceClassFactory);
+        RecurringObligationsEvaluator recurringObligationsEvaluator = new RecurringObligationsEvaluator(factories.equivalenceClassFactory);
+        return new InitialComponent<>(initialClazz, acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+    }
+
+    @Override
+    protected Selector<RecurringObligations> createSelector(Factories factories) {
+        return new RecurringObligationsSelector(optimisations, factories.equivalenceClassFactory);
     }
 }

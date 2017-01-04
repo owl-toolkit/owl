@@ -28,9 +28,7 @@ import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
-import translations.ltl2ldba.GeneralisedAcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.Ltl2Ldgba;
+import translations.ltl2ldba.*;
 import translations.ltl2parity.LTL2Parity;
 
 import java.io.FileNotFoundException;
@@ -64,7 +62,7 @@ public class LTL2Det {
         Ltl2Ldgba translationLDGBA = new Ltl2Ldgba(optimisations);
         LTL2Parity translationParity = new LTL2Parity(optimisations);
 
-        LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>
+        LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent>
                 ldba = translationLDGBA.apply(formula);
 
         Automaton<?, ?> automaton = translationParity.apply(formula);

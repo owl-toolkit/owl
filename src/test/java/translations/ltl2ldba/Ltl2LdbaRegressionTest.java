@@ -36,7 +36,7 @@ public class Ltl2LdbaRegressionTest {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         BiMap<String, Integer> mapping = HashBiMap.create();
         Ltl2Ldba translation = new Ltl2Ldba(opts);
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
+        LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
 
         String hoaString = automaton.toString();
         assertEquals(hoaString, size, automaton.size());

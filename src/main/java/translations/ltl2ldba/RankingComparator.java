@@ -19,13 +19,12 @@ package translations.ltl2ldba;
 
 import ltl.*;
 import ltl.visitors.DefaultIntVisitor;
-import ltl.visitors.IntVisitor;
 
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
-class RankingComparator implements Comparator<GOperator> {
+public class RankingComparator implements Comparator<GOperator> {
 
     private final Map<GOperator, Integer> ranking = new HashMap<>();
     private final RankVisitor rankingVisitor = new RankVisitor();

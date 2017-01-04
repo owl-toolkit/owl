@@ -27,9 +27,7 @@ import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
-import translations.ltl2ldba.AcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.Ltl2Ldba;
+import translations.ltl2ldba.*;
 
 import java.io.FileNotFoundException;
 import java.io.StringReader;
@@ -116,7 +114,6 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
             automatonFuture.cancel(true);
             complementFuture.cancel(true);
-            executor.shutdown();
             throw new RuntimeException(ex);
         } finally {
             executor.shutdown();
@@ -125,7 +122,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
 
     private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
-        LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba = translator.apply(formula);
+        LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba = translator.apply(formula);
 
         if (ldba.isDeterministic()) {
             return new WrappedParityAutomaton(ldba.getAcceptingComponent());
@@ -147,7 +144,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
         boolean tlsfInput = argsDeque.remove("--tlsf");
         boolean decompose = argsDeque.remove("--decompose");
-        EnumSet<HOAPrintable.Option>  options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.ANNOTATIONS) : EnumSet.noneOf(HOAPrintable.Option.class);
+        EnumSet<HOAPrintable.Option> options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.ANNOTATIONS) : EnumSet.noneOf(HOAPrintable.Option.class);
         boolean readStdin = argsDeque.isEmpty();
 
         LTL2Parity translation = new LTL2Parity(optimisations);

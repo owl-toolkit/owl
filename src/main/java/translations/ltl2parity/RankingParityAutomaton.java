@@ -32,6 +32,7 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
+import translations.ltl2ldba.InitialComponentState;
 import translations.ltl2ldba.RecurringObligations;
 
 import javax.annotation.Nonnull;
@@ -42,14 +43,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
 
-    private final Map<InitialComponent.State, Trie<AcceptingComponent.State>> trie;
+    private final Map<InitialComponentState, Trie<AcceptingComponent.State>> trie;
     private final AcceptingComponent acceptingComponent;
-    private final InitialComponent<AcceptingComponent.State> initialComponent;
+    private final InitialComponent<AcceptingComponent.State, RecurringObligations> initialComponent;
     private final int volatileMaxIndex;
     private final Map<RecurringObligations, Integer> volatileComponents;
     private int colors;
 
-    RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
+    RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
         super(new ParityAcceptance(2), factory, integer);
 
         acceptingComponent = ldba.getAcceptingComponent();
@@ -105,11 +106,11 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
     @Immutable
     public final class State extends ImmutableObject implements AutomatonState<State>  {
 
-        private final InitialComponent.State initialComponentState;
+        private final InitialComponentState initialComponentState;
         private final ImmutableList<AcceptingComponent.State> acceptingComponentRanking;
         private final int volatileIndex;
 
-        private State(InitialComponent.State state) {
+        private State(InitialComponentState state) {
             initialComponentState = state;
             List<AcceptingComponent.State> ranking = new ArrayList<>();
             volatileIndex = appendJumps(state, ranking);
@@ -122,7 +123,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             assert (volatileMaxIndex == 0 && volatileIndex == 0)  || (0 <= volatileIndex && volatileIndex < volatileMaxIndex);
         }
 
-        private State(InitialComponent.State state, ImmutableList<AcceptingComponent.State> ranking, int volatileIndex) {
+        private State(InitialComponentState state, ImmutableList<AcceptingComponent.State> ranking, int volatileIndex) {
             assert (volatileMaxIndex == 0 && volatileIndex == 0)  || (0 <= volatileIndex && volatileIndex < volatileMaxIndex);
 
             this.volatileIndex = volatileIndex;
@@ -166,11 +167,11 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             - if a monitor couldn't be reached from a jump, delete it.
         */
 
-        private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking) {
+        private int appendJumps(InitialComponentState state, List<AcceptingComponent.State> ranking) {
             return appendJumps(state, ranking, Collections.emptyMap(), -1);
         }
 
-        private int appendJumps(InitialComponent.State state, List<AcceptingComponent.State> ranking, Map<RecurringObligations, EquivalenceClass> existingClasses, int currentVolatileIndex) {
+        private int appendJumps(InitialComponentState state, List<AcceptingComponent.State> ranking, Map<RecurringObligations, EquivalenceClass> existingClasses, int currentVolatileIndex) {
             List<AcceptingComponent.State> pureEventual = new ArrayList<>();
             List<AcceptingComponent.State> mixed = new ArrayList<>();
             AcceptingComponent.State nextVolatileState = null;
@@ -248,10 +249,10 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             // We compute the successor of the state in the initial component.
-            InitialComponent.State successor;
+            InitialComponentState successor;
 
             {
-                Edge<InitialComponent.State> edge = initialComponent.getSuccessor(initialComponentState, valuation);
+                Edge<InitialComponentState> edge = initialComponent.getSuccessor(initialComponentState, valuation);
 
                 if (edge == null) {
                     return null;

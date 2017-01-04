@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class RecurringObligationsSelector {
+public class RecurringObligationsSelector implements Selector<RecurringObligations> {
 
     private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
 
@@ -39,36 +39,14 @@ public class RecurringObligationsSelector {
     private final EquivalenceClassFactory factory;
     private final Map<Set<GOperator>, RecurringObligations> cache;
     private final Comparator<GOperator> rankingComparator;
+    private final Evaluator<RecurringObligations> evaluator;
 
     public RecurringObligationsSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.factory = factory;
         this.cache = new HashMap<>();
         this.rankingComparator = new RankingComparator();
-    }
-
-    /* TODO: Port to EquivalenceClass, Dynamically extend environement?, Move to evaluate Vistior
-    *
-    *  CODE: EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
-        EquivalenceClass goal = clazz.substitute(proposition ->
-                Simplifier.simplify(proposition.accept(evaluateVisitor), Simplifier.Strategy.MODAL));
-
-        if (evaluateVisitor.environment.implies(goal)) {
-            evaluateVisitor.free();
-            return factory.getTrue();
-        }
-
-        evaluateVisitor.free();
-        return goal;
-    **/
-    EquivalenceClass getRemainingGoal(EquivalenceClass clazz, RecurringObligations keys) {
-        Formula formula = clazz.getRepresentative();
-        EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.associatedGs, factory);
-        Formula subst = formula.accept(evaluateVisitor);
-        Formula evaluated = Simplifier.simplify(subst, Simplifier.Strategy.MODAL);
-        EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
-        evaluateVisitor.free();
-        return goal;
+        evaluator = new RecurringObligationsEvaluator(factory);
     }
 
     /**
@@ -80,8 +58,8 @@ public class RecurringObligationsSelector {
      * @return true if is a sub-language
      */
     private boolean isSublanguage(Map.Entry<Set<GOperator>, RecurringObligations> entry, Map.Entry<Set<GOperator>, RecurringObligations> otherEntry, EquivalenceClass master) {
-        EquivalenceClass setClass = getRemainingGoal(master, entry.getValue());
-        EquivalenceClass subsetClass = getRemainingGoal(master, otherEntry.getValue());
+        EquivalenceClass setClass = evaluator.evaluate(master, entry.getValue());
+        EquivalenceClass subsetClass = evaluator.evaluate(master, otherEntry.getValue());
 
         boolean implies = setClass.implies(subsetClass);
 
@@ -109,7 +87,8 @@ public class RecurringObligationsSelector {
         return Sets.powerSet(normaliseInfinityOperators(support));
     }
 
-    Set<RecurringObligations> selectMonitors(EquivalenceClass state, boolean initialState) {
+    @Override
+    public Set<RecurringObligations> select(EquivalenceClass state, boolean initialState) {
         final Collection<Set<GOperator>> keys;
         final Map<Set<GOperator>, RecurringObligations> jumps = new HashMap<>();
 
@@ -133,7 +112,7 @@ public class RecurringObligationsSelector {
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
             jumps.entrySet().removeIf(entry -> {
                 if (!initialState) {
-                    EquivalenceClass remainder = getRemainingGoal(state, entry.getValue());
+                    EquivalenceClass remainder = evaluator.evaluate(state, entry.getValue());
 
                     Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
                     remainder.getSupport().forEach(x -> x.accept(externalLiteralCollector));
@@ -159,7 +138,7 @@ public class RecurringObligationsSelector {
 
         if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
             if (keys.size() > 1) {
-                jumps.put(Collections.emptySet(), new RecurringObligations(factory.getTrue()));
+                jumps.put(Collections.emptySet(), null);
             } else {
                 final Set<GOperator> Gs = new HashSet<>();
 
@@ -170,16 +149,12 @@ public class RecurringObligationsSelector {
                 });
 
                 if (!jumps.containsKey(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
-                    jumps.put(Collections.emptySet(), new RecurringObligations(factory.getTrue()));
+                    jumps.put(Collections.emptySet(), null);
                 }
             }
         }
 
         return new HashSet<>(jumps.values());
-    }
-
-    Set<RecurringObligations> selectMonitors(InitialComponent.State state) {
-        return selectMonitors(state.getClazz(), false);
     }
 
     private static BitSet extractAtoms(Collector collector) {
@@ -206,7 +181,7 @@ public class RecurringObligationsSelector {
             GOperator gOperator = gOperators.get(i);
 
             // We only propagate information from already constructed G-monitors.
-            EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i), factory);
+            RecurringObligationsEvaluator.EvaluateVisitor evaluateVisitor = new RecurringObligationsEvaluator.EvaluateVisitor(gOperators.subList(0, i), factory);
 
             Formula formula = Simplifier.simplify(Simplifier.simplify(gOperator.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT), Simplifier.Strategy.PUSHDOWN_X);
             EquivalenceClass clazz = factory.createEquivalenceClass(formula);
@@ -234,13 +209,16 @@ public class RecurringObligationsSelector {
             obligations.add(clazz);
         }
 
+        if (safety.isTrue() && liveness.isEmpty() && obligations.isEmpty()) {
+            return null;
+        }
+
         if (safety.isFalse()) {
             free(null, safety, liveness, obligations);
             return null;
         }
 
         RecurringObligations recurringObligations = new RecurringObligations(safety, liveness, obligations);
-
         return cache.values().stream().filter(recurringObligations::equals).findAny().orElse(recurringObligations);
     }
 

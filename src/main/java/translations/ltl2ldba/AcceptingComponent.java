@@ -33,7 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance> {
+public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance, RecurringObligations> {
 
     AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
@@ -56,7 +56,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
     }
 
     @Override
-    State createState(EquivalenceClass remainder, RecurringObligations obligations) {
+    public State createState(EquivalenceClass remainder, RecurringObligations obligations) {
         final int length = obligations.obligations.length + obligations.liveness.length;
 
         // TODO: field for extra data.
