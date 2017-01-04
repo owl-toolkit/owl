@@ -151,7 +151,7 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
             return clazz.getAtoms();
         } else {
             EquivalenceClass unfold = clazz.unfold();
-            BitSet atoms = clazz.getAtoms();
+            BitSet atoms = unfold.getAtoms();
             unfold.free();
             return atoms;
         }
