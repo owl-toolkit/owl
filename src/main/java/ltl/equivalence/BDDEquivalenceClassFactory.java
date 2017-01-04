@@ -453,6 +453,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
         @Override
         public EquivalenceClass substitute(Function<Formula, Formula> substitution) {
+            // TODO: Only construct map for elements in support.
             int[] substitutionMap = new int[reverseMapping.length];
 
             for (int i = 0; i < substitutionMap.length; i++) {
