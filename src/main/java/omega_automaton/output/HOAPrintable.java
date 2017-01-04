@@ -20,6 +20,7 @@ package omega_automaton.output;
 import jhoafparser.consumer.HOAConsumer;
 
 import java.util.EnumSet;
+import java.util.Map;
 
 public interface HOAPrintable {
 
@@ -32,4 +33,6 @@ public interface HOAPrintable {
     }
 
     void toHOA(HOAConsumer consumer, EnumSet<Option> options);
+
+    void setAtomMapping(Map<Integer, String> mapping);
 }
