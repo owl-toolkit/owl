@@ -72,7 +72,7 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
             return clazz.getAtoms();
         } else {
             EquivalenceClass unfold = clazz.unfold();
-            BitSet atoms = clazz.getAtoms();
+            BitSet atoms = unfold.getAtoms();
             unfold.free();
             return atoms;
         }
