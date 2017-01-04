@@ -17,9 +17,7 @@
 
 package translations.ltl2ldba;
 
-import ltl.GOperator;
 import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
@@ -44,32 +42,27 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
 
     @Nonnull
     private final AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent;
-    @Nonnull
-    private final EquivalenceClass initialClazz;
-
     private final boolean eager;
     private final RecurringObligationsSelector selector;
 
-    InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
+    protected InitialComponent(@Nonnull EquivalenceClass initialClazz, @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance> acceptingComponent, ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations, RecurringObligationsSelector selector) {
         super(valuationSetFactory);
 
         this.acceptingComponent = acceptingComponent;
-        this.initialClazz = initialClazz;
 
         eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
-        selector = new RecurringObligationsSelector(optimisations, factory);
+        this.selector = selector;
+        this.initialState = new State(this, eager ? initialClazz.unfold() : initialClazz);
     }
 
     @Override
     public void generateJumps(@Nonnull State state) {
-        Map<Set<GOperator>, RecurringObligations> keys = selector.selectMonitors(state);
-
-        keys.forEach((Gs, obligation) -> {
-            if (Gs.isEmpty()) {
+        selector.selectMonitors(state).forEach((obligation) -> {
+            if (obligation.isEmpty()) {
                 return;
             }
 
-            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz(), Gs);
+            EquivalenceClass remainingGoal = selector.getRemainingGoal(state.getClazz(), obligation);
             S successor = acceptingComponent.jump(remainingGoal, obligation);
 
             if (successor == null) {
@@ -80,16 +73,11 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
         });
     }
 
-    @Override
-    protected State generateInitialState() {
-        return new State(this, eager ? initialClazz.unfold() : initialClazz);
-    }
-
     public static class State implements AutomatonState<State> {
 
         private final InitialComponent<?> parent;
         private final EquivalenceClass clazz;
-        private Map<Set<GOperator>, RecurringObligations> jumps;
+        private Set<RecurringObligations> jumps;
 
         public State(InitialComponent<?> parent, EquivalenceClass clazz) {
             this.parent = parent;
@@ -112,7 +100,7 @@ public class InitialComponent<S extends AutomatonState<S>> extends AbstractIniti
             }
 
             // Suppress edge, if successor is a non-accepting state
-            if (successorClass.isFalse() || !jumps.containsKey(Collections.<GOperator>emptySet())) {
+            if (successorClass.isFalse() || jumps.stream().noneMatch(RecurringObligations::isEmpty)) {
                 return null;
             }
 

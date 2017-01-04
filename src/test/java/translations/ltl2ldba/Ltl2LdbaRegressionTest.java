@@ -30,12 +30,12 @@ import java.util.EnumSet;
 
 import static org.junit.Assert.assertEquals;
 
-public class LTL2LDBARegressionTest {
+public class Ltl2LdbaRegressionTest {
 
     static void testOutput(String ltl, int size) throws IOException {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         BiMap<String, Integer> mapping = HashBiMap.create();
-        LTL2LDBA translation = new LTL2LDBA(opts);
+        Ltl2Ldba translation = new Ltl2Ldba(opts);
         LimitDeterministicAutomaton<InitialComponent.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State>, AcceptingComponent> automaton = translation.apply(Parser.formula(ltl, mapping));
 
         String hoaString = automaton.toString();

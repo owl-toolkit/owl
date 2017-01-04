@@ -30,7 +30,7 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.GeneralisedAcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDGBA;
+import translations.ltl2ldba.Ltl2Ldgba;
 import translations.ltl2parity.LTL2Parity;
 
 import java.io.FileNotFoundException;
@@ -61,7 +61,7 @@ public class LTL2Det {
         formula = Simplifier.simplify(parser.formula(), Simplifier.Strategy.MODAL_EXT);
         mapping = parser.map;
 
-        LTL2LDGBA translationLDGBA = new LTL2LDGBA(optimisations);
+        Ltl2Ldgba translationLDGBA = new Ltl2Ldgba(optimisations);
         LTL2Parity translationParity = new LTL2Parity(optimisations);
 
         LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>

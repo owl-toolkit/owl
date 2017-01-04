@@ -21,13 +21,16 @@ import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import translations.AbstractSizeRegressionTest;
+import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
+
+import java.util.EnumSet;
 
 @RunWith(Parameterized.class)
 public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponent.State, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State>, GeneralisedAcceptingComponent>> {
 
     public LDGBASizeRegressionTest(FormulaGroup selectedClass) {
-        super(selectedClass, new LTL2LDGBA());
+        super(selectedClass, new Ltl2Ldgba(EnumSet.allOf(Optimisation.class)));
     }
 
     @Override

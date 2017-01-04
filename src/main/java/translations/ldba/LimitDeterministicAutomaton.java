@@ -22,6 +22,7 @@ import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
 import omega_automaton.collections.valuationset.ValuationSet;
@@ -36,7 +37,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 
-public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends OmegaAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>> implements HOAPrintable {
+public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends GeneralisedBuchiAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>> implements HOAPrintable {
 
     @Nullable
     private final I initialComponent;
@@ -128,6 +129,11 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
         acceptingComponent.toHOABody(consumer);
         consumer.done();
+    }
+
+    @Override
+    public void setAtomMapping(Map<Integer, String> mapping) {
+        acceptingComponent.setAtomMapping(mapping);
     }
 
     @Override

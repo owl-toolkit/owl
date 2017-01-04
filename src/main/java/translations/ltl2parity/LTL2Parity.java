@@ -29,7 +29,7 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.LTL2LDBA;
+import translations.ltl2ldba.Ltl2Ldba;
 
 import java.io.FileNotFoundException;
 import java.io.StringReader;
@@ -48,7 +48,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
 
     // Polling time in ms.
     private static final int SLEEP_MS = 50;
-    private final LTL2LDBA translator;
+    private final Ltl2Ldba translator;
     private final EnumSet<Optimisation> optimisations;
 
     public LTL2Parity() {
@@ -59,7 +59,7 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
         this.optimisations.remove(Optimisation.FORCE_JUMPS);
-        translator = new LTL2LDBA(this.optimisations);
+        translator = new Ltl2Ldba(this.optimisations);
     }
 
     @Override

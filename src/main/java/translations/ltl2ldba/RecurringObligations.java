@@ -17,11 +17,14 @@
 
 package translations.ltl2ldba;
 
+import ltl.GOperator;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class RecurringObligations extends ImmutableObject {
@@ -37,6 +40,12 @@ public class RecurringObligations extends ImmutableObject {
     // obligations[] are co-safety languages.
     final EquivalenceClass[] obligations;
 
+    final Set<GOperator> associatedGs;
+
+    RecurringObligations(EquivalenceClass safety) {
+        this(safety, Arrays.asList(EMPTY), Arrays.asList(EMPTY));
+    }
+
     RecurringObligations(EquivalenceClass safety, List<EquivalenceClass> liveness, List<EquivalenceClass> obligations) {
         safety.freeRepresentative();
         liveness.forEach(EquivalenceClass::freeRepresentative);
@@ -45,6 +54,7 @@ public class RecurringObligations extends ImmutableObject {
         this.safety = safety;
         this.obligations = obligations.toArray(EMPTY);
         this.liveness = liveness.toArray(EMPTY);
+        this.associatedGs = new HashSet<>();
     }
 
     @Override
@@ -56,6 +66,10 @@ public class RecurringObligations extends ImmutableObject {
     protected boolean equals2(ImmutableObject o) {
         RecurringObligations that = (RecurringObligations) o;
         return safety.equals(that.safety) && Arrays.equals(liveness, that.liveness) && Arrays.equals(obligations, that.obligations);
+    }
+
+    public boolean isEmpty() {
+        return safety.isTrue() && obligations.length == 0 && liveness.length == 0;
     }
 
     public boolean isPureSafety() {
@@ -93,7 +107,7 @@ public class RecurringObligations extends ImmutableObject {
         return '<' + toString + '>';
     }
 
-    private EquivalenceClass overallObligation() {
+    EquivalenceClass getObligation() {
         EquivalenceClass obligation = safety.duplicate();
 
         for (EquivalenceClass clazz : liveness) {
@@ -108,18 +122,7 @@ public class RecurringObligations extends ImmutableObject {
     }
 
     boolean implies(RecurringObligations other) {
-        return overallObligation().implies(other.overallObligation());
-    }
-
-    void forEach(Consumer<EquivalenceClass> consumer) {
-        consumer.accept(safety);
-
-        for (EquivalenceClass liveness : liveness) {
-            consumer.accept(liveness);
-        }
-
-        for (EquivalenceClass obligation : obligations) {
-            consumer.accept(obligation);
-        }
+        // TODO: fix memory leak.
+        return getObligation().implies(other.getObligation());
     }
 }

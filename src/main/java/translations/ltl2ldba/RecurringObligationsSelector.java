@@ -30,9 +30,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
-class RecurringObligationsSelector {
+public class RecurringObligationsSelector {
 
     private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator || x instanceof ROperator || x instanceof WOperator;
 
@@ -41,16 +40,30 @@ class RecurringObligationsSelector {
     private final Map<Set<GOperator>, RecurringObligations> cache;
     private final Comparator<GOperator> rankingComparator;
 
-    RecurringObligationsSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
+    public RecurringObligationsSelector(Collection<Optimisation> optimisations, EquivalenceClassFactory factory) {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.factory = factory;
         this.cache = new HashMap<>();
         this.rankingComparator = new RankingComparator();
     }
 
-    EquivalenceClass getRemainingGoal(EquivalenceClass clazz, Set<GOperator> keys) {
+    /* TODO: Port to EquivalenceClass, Dynamically extend environement?, Move to evaluate Vistior
+    *
+    *  CODE: EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
+        EquivalenceClass goal = clazz.substitute(proposition ->
+                Simplifier.simplify(proposition.accept(evaluateVisitor), Simplifier.Strategy.MODAL));
+
+        if (evaluateVisitor.environment.implies(goal)) {
+            evaluateVisitor.free();
+            return factory.getTrue();
+        }
+
+        evaluateVisitor.free();
+        return goal;
+    **/
+    EquivalenceClass getRemainingGoal(EquivalenceClass clazz, RecurringObligations keys) {
         Formula formula = clazz.getRepresentative();
-        EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
+        EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.associatedGs, factory);
         Formula subst = formula.accept(evaluateVisitor);
         Formula evaluated = Simplifier.simplify(subst, Simplifier.Strategy.MODAL);
         EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
@@ -67,8 +80,8 @@ class RecurringObligationsSelector {
      * @return true if is a sub-language
      */
     private boolean isSublanguage(Map.Entry<Set<GOperator>, RecurringObligations> entry, Map.Entry<Set<GOperator>, RecurringObligations> otherEntry, EquivalenceClass master) {
-        EquivalenceClass setClass = getRemainingGoal(master, entry.getKey());
-        EquivalenceClass subsetClass = getRemainingGoal(master, otherEntry.getKey());
+        EquivalenceClass setClass = getRemainingGoal(master, entry.getValue());
+        EquivalenceClass subsetClass = getRemainingGoal(master, otherEntry.getValue());
 
         boolean implies = setClass.implies(subsetClass);
 
@@ -78,12 +91,12 @@ class RecurringObligationsSelector {
         return implies && entry.getValue().implies(otherEntry.getValue());
     }
 
-    private List<Set<GOperator>> selectReducedMonitors(EquivalenceClass state) {
+    private List<Set<GOperator>> selectSkeletonMonitors(EquivalenceClass state) {
         final Set<Formula> support = state.getSupport(INFINITY_OPERATORS);
         final EquivalenceClass skeleton = state.exists(INFINITY_OPERATORS.negate());
 
-        List<Set<GOperator>> sets = StreamSupport
-                .stream(skeleton.restrictedSatisfyingAssignments(support, null).spliterator(), false)
+        List<Set<GOperator>> sets = skeleton.restrictedSatisfyingAssignments(support, null)
+                .stream()
                 .map(RecurringObligationsSelector::normaliseInfinityOperators)
                 .collect(Collectors.toList());
 
@@ -96,13 +109,13 @@ class RecurringObligationsSelector {
         return Sets.powerSet(normaliseInfinityOperators(support));
     }
 
-    Map<Set<GOperator>, RecurringObligations> selectMonitors(EquivalenceClass state, boolean initialState) {
+    Set<RecurringObligations> selectMonitors(EquivalenceClass state, boolean initialState) {
         final Collection<Set<GOperator>> keys;
         final Map<Set<GOperator>, RecurringObligations> jumps = new HashMap<>();
 
         // Find interesting Gs
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            keys = selectReducedMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
+            keys = selectSkeletonMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
         } else {
             keys = selectAllMonitors(state);
         }
@@ -113,13 +126,14 @@ class RecurringObligationsSelector {
 
             if (obligations != null) {
                 jumps.put(Gs, obligations);
+                obligations.associatedGs.addAll(Gs);
             }
         }
 
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
             jumps.entrySet().removeIf(entry -> {
                 if (!initialState) {
-                    EquivalenceClass remainder = getRemainingGoal(state, entry.getKey());
+                    EquivalenceClass remainder = getRemainingGoal(state, entry.getValue());
 
                     Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
                     remainder.getSupport().forEach(x -> x.accept(externalLiteralCollector));
@@ -145,7 +159,7 @@ class RecurringObligationsSelector {
 
         if (!jumps.containsKey(Collections.<GOperator>emptySet())) {
             if (keys.size() > 1) {
-                jumps.put(Collections.emptySet(), null);
+                jumps.put(Collections.emptySet(), new RecurringObligations(factory.getTrue()));
             } else {
                 final Set<GOperator> Gs = new HashSet<>();
 
@@ -156,15 +170,15 @@ class RecurringObligationsSelector {
                 });
 
                 if (!jumps.containsKey(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
-                    jumps.put(Collections.emptySet(), null);
+                    jumps.put(Collections.emptySet(), new RecurringObligations(factory.getTrue()));
                 }
             }
         }
 
-        return jumps;
+        return new HashSet<>(jumps.values());
     }
 
-    Map<Set<GOperator>, RecurringObligations> selectMonitors(InitialComponent.State state) {
+    Set<RecurringObligations> selectMonitors(InitialComponent.State state) {
         return selectMonitors(state.getClazz(), false);
     }
 

@@ -23,21 +23,14 @@ import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Visitor;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 class EvaluateVisitor implements Visitor<Formula> {
 
     private final EquivalenceClass environment;
     private final EquivalenceClassFactory factory;
-    private final Set<Formula> universalTruths;
 
-    EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClassFactory equivalenceClassFactory) {
+    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory equivalenceClassFactory) {
         factory = equivalenceClassFactory;
-        universalTruths = new HashSet<>(gMonitors.size());
-        gMonitors.forEach(gOperator -> universalTruths.add(gOperator.operand));
-        environment = equivalenceClassFactory.createEquivalenceClass(Iterables.concat(gMonitors, universalTruths));
+        environment = factory.createEquivalenceClass(Iterables.concat(gMonitors, Iterables.transform(gMonitors, x -> x.operand)));
     }
 
     void free() {
@@ -50,22 +43,10 @@ class EvaluateVisitor implements Visitor<Formula> {
     }
 
     private Formula defaultAction(Formula formula) {
-        if (universalTruths.contains(formula)) {
-            return BooleanConstant.TRUE;
-        }
-
-        if (factory != null && environment != null) {
-            EquivalenceClass clazz = factory.createEquivalenceClass(formula);
-
-            if (environment.implies(clazz)) {
-                clazz.free();
-                return BooleanConstant.TRUE;
-            }
-
-            clazz.free();
-        }
-
-        return formula;
+        EquivalenceClass clazz = factory.createEquivalenceClass(formula);
+        boolean isTrue = environment.implies(clazz);
+        clazz.free();
+        return isTrue ? BooleanConstant.TRUE : formula;
     }
 
     @Override
@@ -108,7 +89,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
     @Override
     public Formula visit(GOperator gOperator) {
-        return BooleanConstant.get(universalTruths.contains(gOperator.operand));
+        return BooleanConstant.get(defaultAction(gOperator.operand) == BooleanConstant.TRUE);
     }
 
     @Override
@@ -140,7 +121,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
     @Override
     public Formula visit(WOperator wOperator) {
-        if (universalTruths.contains(wOperator.left)) {
+        if (defaultAction(wOperator.left) == BooleanConstant.TRUE) {
             return BooleanConstant.TRUE;
         }
 
@@ -149,7 +130,7 @@ class EvaluateVisitor implements Visitor<Formula> {
 
     @Override
     public Formula visit(ROperator rOperator) {
-        if (universalTruths.contains(rOperator.right)) {
+        if (defaultAction(rOperator.right) == BooleanConstant.TRUE) {
             return BooleanConstant.TRUE;
         }
 
