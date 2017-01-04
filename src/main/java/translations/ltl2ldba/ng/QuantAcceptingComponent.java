@@ -55,8 +55,6 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
             safety = liveness.andWith(safety);
             liveness = equivalenceClassFactory.getTrue();
-        } else {
-            return null;
         }
 
         if (liveness.isTrue() && obligations.liveness.length > 0) {
