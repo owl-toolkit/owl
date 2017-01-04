@@ -40,7 +40,7 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
 
     protected final EnumSet<Optimisation> optimisations;
 
-    Ltl2LdbaTemplate(EnumSet<Optimisation> optimisations) {
+    protected Ltl2LdbaTemplate(EnumSet<Optimisation> optimisations) {
         this.optimisations = optimisations.clone();
     }
 
