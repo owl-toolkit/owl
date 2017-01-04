@@ -19,6 +19,7 @@ package translations.ltl2parity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import ltl.Formula;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
@@ -80,7 +81,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
     @Override
     protected Set<State> generateInitialStates() {
-        return Collections.singleton(new State(Iterables.getOnlyElement(initialComponent.getInitialStates())));
+        return Sets.newHashSet(new State(Iterables.getOnlyElement(initialComponent.getInitialStates())));
     }
 
     private int distance(int base, int index) {
@@ -102,7 +103,6 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
     protected State generateRejectingTrap() {
         return new State(null, ImmutableList.of(), 0);
     }
-
 
     @Immutable
     public final class State extends ImmutableObject implements AutomatonState<State>  {

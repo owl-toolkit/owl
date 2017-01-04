@@ -144,21 +144,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         }
 
         if (!jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
-            if (keys.size() > 1) {
-                jumps.put(Collections.emptySet(), null);
-            } else {
-                final Set<UnaryModalOperator> unaryModalOperators = new HashSet<>();
-
-                state.getSupport().forEach(x -> {
-                    Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
-                    x.accept(collector);
-                    unaryModalOperators.addAll(normalise(collector.getCollection()));
-                });
-
-                if (!jumps.containsKey(unaryModalOperators) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
-                    jumps.put(Collections.emptySet(), null);
-                }
-            }
+            jumps.put(Collections.emptySet(), null);
         }
 
         return new HashSet<>(jumps.values());
