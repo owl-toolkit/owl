@@ -77,11 +77,10 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
                 }
 
                 // Split successor into DNF.
-                Collection<Set<Formula>> sat = successor.getSuccessor().getClazz().satisfyingAssignments();
-                sat.removeIf(set -> sat.stream().anyMatch(subset -> set != subset && set.containsAll(subset)));
+                List<Set<Formula>> dnf = DnfNormalForm.normalise(successor.getSuccessor().getClazz().getRepresentative());
 
                 // TODO: Check EquivalenceClass implementation and the handling of the X-Fragment.
-                for (Set<Formula> conjunction : sat) {
+                for (Set<Formula> conjunction : dnf) {
                     EquivalenceClass conjunctionClass = factory.createEquivalenceClass(conjunction);
                     Edge<InitialComponentState> splitSuccessor = Edges.create(new InitialComponentState(this, conjunctionClass), collect(successor.acceptanceSetStream()));
 
