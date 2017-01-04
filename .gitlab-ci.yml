@@ -59,17 +59,17 @@ test:ltl2det-parallel:
 
 test:ltl2ldba:no-opt:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --optimisations=[REMOVE_EPSILON_TRANSITIONS] %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba-ng:no-opt:
   variables:
-    LTL_TOOL: "{ltl2ldba-ng} build/bin/ltl2ldba-ng --optimisations=[REMOVE_EPSILON_TRANSITIONS] %f >%O"
+    LTL_TOOL: "{ltl2ldba-ng} build/bin/ltl2ldba-ng --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldgba:no-opt:
   variables:
-    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba --optimisations=[REMOVE_EPSILON_TRANSITIONS] %f >%O"
+    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2parity:no-opt:

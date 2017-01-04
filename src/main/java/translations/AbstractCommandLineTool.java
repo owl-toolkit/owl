@@ -26,7 +26,6 @@ import java.io.StringReader;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.util.function.Function;
 
 public abstract class AbstractCommandLineTool {
@@ -43,34 +42,37 @@ public abstract class AbstractCommandLineTool {
     }
 
     private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {
-        for (Iterator<String> iterator = args.iterator(); iterator.hasNext(); ) {
+        EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);
+        Iterator<String> iterator = args.iterator();
+
+        while (iterator.hasNext()) {
             String argument = iterator.next();
 
-            if (argument.startsWith(OPTIMISATIONS)) {
-                iterator.remove();
-                argument = argument.substring(OPTIMISATIONS.length());
+            if (!argument.startsWith(OPTIMISATIONS)) {
+                continue;
+            }
 
-                switch (argument) {
-                    case "all":
-                        return EnumSet.allOf(Optimisation.class);
+            // Remove element from collection and remove prefix from string.
+            argument = argument.substring(OPTIMISATIONS.length());
+            iterator.remove();
 
-                    case "none":
-                        return EnumSet.noneOf(Optimisation.class);
+            switch (argument) {
+                case "all":
+                    return EnumSet.complementOf(set);
 
-                    default:
-                        StringTokenizer tokenizer = new StringTokenizer(argument, "([{,;])");
-                        EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);
+                case "none":
+                    return set;
 
-                        while (tokenizer.hasMoreTokens()) {
-                            set.add(Optimisation.valueOf(tokenizer.nextToken()));
-                        }
+                default:
+                    for (String optimisation : argument.split(",")) {
+                        set.add(Optimisation.valueOf(optimisation));
+                    }
 
-                        return set;
-                }
+                    return set;
             }
         }
 
-        return EnumSet.allOf(Optimisation.class);
+        return EnumSet.complementOf(set);
     }
 
     void execute(Deque<String> args) throws Exception {
@@ -79,7 +81,9 @@ public abstract class AbstractCommandLineTool {
 
         Function<Formula, ? extends HOAPrintable> translation = getTranslation(optimisations);
 
-        Parser parser = new Parser(new StringReader(args.removeLast()));
+        boolean readStdin = args.isEmpty();
+
+        Parser parser = readStdin ? new Parser(System.in) : new Parser(new StringReader(args.getFirst()));
         Formula formula = parser.formula();
 
         HOAPrintable result = translation.apply(formula);
