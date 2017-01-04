@@ -27,7 +27,6 @@ import omega_automaton.acceptance.NoneAcceptance;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
-import owl.automaton.edge.Edge;
 
 import java.util.*;
 import java.util.stream.Collectors;

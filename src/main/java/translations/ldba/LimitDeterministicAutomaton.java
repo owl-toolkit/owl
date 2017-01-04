@@ -23,7 +23,6 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.algorithms.SCCAnalyser;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
