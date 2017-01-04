@@ -72,6 +72,11 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
 
         components.add(obligations);
         S state = createState(remainingGoal, obligations);
+
+        if (state == null) {
+            return null;
+        }
+
         constructionQueue.add(state);
         return state;
     }

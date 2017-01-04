@@ -192,7 +192,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
         for (FOperator fOperator : fOperators) {
             Formula formula = fOperator.operand.accept(substitutionVisitor).accept(substitutionVisitor);
-            EquivalenceClass liveness = factory.createEquivalenceClass(formula);
+            EquivalenceClass liveness = factory.createEquivalenceClass(new FOperator(formula));
 
             if (liveness.isFalse()) {
                 EquivalenceClass.free(safety);

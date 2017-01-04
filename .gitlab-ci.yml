@@ -32,7 +32,7 @@ test:ltl2ldba:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba %f >%O"
   <<: *ltlcross_template
 
-test:ltl2ldba:
+test:ltl2ldba-ng:
   variables:
     LTL_TOOL: "{ltl2ldba-ng} build/bin/ltl2ldba-ng %f >%O"
   <<: *ltlcross_template
