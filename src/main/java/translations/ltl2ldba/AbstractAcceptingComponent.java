@@ -34,8 +34,7 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
 
     protected final EquivalenceClassFactory equivalenceClassFactory;
     private Set<U> components = new HashSet<>();
-    private final boolean removeCover;
-    private final boolean eager;
+    protected EquivalenceClassStateFactory stateFactory;
 
     public Set<U> getComponents() {
         return Collections.unmodifiableSet(components);
@@ -44,8 +43,7 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
     protected AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
-        removeCover = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
-        eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
+        stateFactory = new EquivalenceClassStateFactory(factory, optimisations);
     }
 
     public EquivalenceClassFactory getEquivalenceClassFactory() {
@@ -69,80 +67,6 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
     }
 
     protected abstract S createState(EquivalenceClass remainder, U obligations);
-
-    // TODO: move to EquivalenceClassStateFactory?
-    protected EquivalenceClass getInitialClass(EquivalenceClass clazz) {
-        return getInitialClass(clazz, null);
-    }
-
-    protected EquivalenceClass getInitialClass(EquivalenceClass clazz, @Nullable EquivalenceClass environment) {
-        EquivalenceClass result = clazz.duplicate();
-
-        if (eager) {
-            result = result.unfold();
-        }
-
-        if (removeCover && environment != null && environment.implies(result)) {
-            result.free();
-            result = equivalenceClassFactory.getTrue();
-        }
-
-        return result;
-    }
-
-    protected EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {
-        return getSuccessor(clazz, valuation, null);
-    }
-
-    protected EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
-        EquivalenceClass successor;
-
-        if (eager) {
-            successor = clazz.temporalStepUnfold(valuation);
-        } else {
-            successor = clazz.unfoldTemporalStep(valuation);
-        }
-
-        // We cannot recover from false. (non-accepting trap)
-        if (successor.isFalse()) {
-            return equivalenceClassFactory.getFalse();
-        }
-
-        // Do Cover optimisation
-        if (removeCover && environment != null && environment.implies(successor)) {
-            successor.free();
-            return equivalenceClassFactory.getTrue();
-        }
-
-        return successor;
-    }
-
-    @Nullable
-    protected EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
-        EquivalenceClass[] successors = new EquivalenceClass[clazz.length];
-
-        for (int i = clazz.length - 1; i >= 0; i--) {
-            successors[i] = getSuccessor(clazz[i], valuation, environment);
-
-            if (successors[i].isFalse()) {
-                EquivalenceClass.free(successors);
-                return null;
-            }
-        }
-
-        return successors;
-    }
-
-    protected BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
-        if (eager) {
-            return clazz.getAtoms();
-        } else {
-            EquivalenceClass unfold = clazz.unfold();
-            BitSet atoms = unfold.getAtoms();
-            unfold.free();
-            return atoms;
-        }
-    }
 
     @Override
     public void setAtomMapping(Map<Integer, String> mapping) {

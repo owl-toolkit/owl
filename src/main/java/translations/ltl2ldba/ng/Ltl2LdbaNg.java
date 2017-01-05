@@ -46,7 +46,7 @@ public class Ltl2LdbaNg extends Ltl2LdbaTemplate<QuantAcceptingComponent.State, 
     protected InitialComponent<QuantAcceptingComponent.State, RecurringObligations2> createInitialComponent(Factories factories, EquivalenceClass initialClazz, QuantAcceptingComponent acceptingComponent) {
         RecurringObligations2Selector recurringObligationsSelector = new RecurringObligations2Selector(optimisations, factories.equivalenceClassFactory);
         RecurringObligations2Evaluator recurringObligationsEvaluator = new RecurringObligations2Evaluator(factories.equivalenceClassFactory);
-        return new NondetInitialComponent<>(initialClazz, acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator, factories.equivalenceClassFactory);
+        return new NondetInitialComponent<>(initialClazz, acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
     }
 
     @Override

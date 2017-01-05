@@ -94,7 +94,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
 
         // Find interesting Gs
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            keys = selectSkeletonMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
+            keys = selectSkeletonMonitors(state);
         } else {
             keys = selectAllMonitors(state);
         }

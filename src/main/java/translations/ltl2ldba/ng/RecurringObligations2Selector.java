@@ -98,7 +98,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
         // Find interesting Fs and Gs
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            keys = selectReducedMonitors(optimisations.contains(Optimisation.EAGER_UNFOLD) ? state : state.unfold());
+            keys = selectReducedMonitors(state);
         } else {
             keys = selectAllMonitors(state);
         }

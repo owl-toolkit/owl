@@ -26,7 +26,7 @@ import translations.ldba.AbstractInitialComponent;
 
 import javax.annotation.Nonnull;
 import java.util.BitSet;
-import java.util.Collection;
+import java.util.EnumSet;
 
 public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractInitialComponent<InitialComponentState, S> {
 
@@ -34,28 +34,30 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
 
     @Nonnull
     private final AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent;
-    public final boolean eager;
     final Selector<T> selector;
     private final Evaluator<T> evaluator;
+    protected final EquivalenceClassStateFactory factory;
 
     protected InitialComponent(@Nonnull EquivalenceClass initialClazz,
                                @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
                                ValuationSetFactory valuationSetFactory,
-                               Collection<Optimisation> optimisations,
+                               EnumSet<Optimisation> optimisations,
                                Selector<T> selector,
                                Evaluator<T> evaluator) {
         super(valuationSetFactory);
 
         this.acceptingComponent = acceptingComponent;
 
-        eager = optimisations.contains(Optimisation.EAGER_UNFOLD);
         this.selector = selector;
         this.evaluator = evaluator;
-        this.initialStates.add(new InitialComponentState(this, eager ? initialClazz.unfold() : initialClazz));
+
 
         // FIXME: Increase the number of set bits!
         ACCEPT = new BitSet();
         ACCEPT.set(0);
+
+        factory = new EquivalenceClassStateFactory(acceptingComponent.getEquivalenceClassFactory(), optimisations);
+        initialStates.add(new InitialComponentState(this, factory.getInitial(initialClazz)));
     }
 
     @Override

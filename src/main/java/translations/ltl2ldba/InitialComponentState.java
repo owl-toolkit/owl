@@ -32,6 +32,7 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
 
     private final InitialComponent<?, ?> parent;
     private final EquivalenceClass clazz;
+
     // TODO: Move this map to parent.
     private Set<?> jumps;
 
@@ -43,13 +44,7 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
     @Nullable
     @Override
     public Edge<InitialComponentState> getSuccessor(@Nonnull BitSet valuation) {
-        EquivalenceClass successorClass;
-
-        if (parent.eager) {
-            successorClass = clazz.temporalStepUnfold(valuation);
-        } else {
-            successorClass = clazz.unfoldTemporalStep(valuation);
-        }
+        EquivalenceClass successorClass = parent.factory.getSuccessor(clazz, valuation);
 
         // TODO: Move this map to parent.
         if (jumps == null) {
@@ -68,14 +63,7 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
     @Nonnull
     @Override
     public BitSet getSensitiveAlphabet() {
-        if (parent.eager) {
-            return clazz.getAtoms();
-        } else {
-            EquivalenceClass unfold = clazz.unfold();
-            BitSet atoms = unfold.getAtoms();
-            unfold.free();
-            return atoms;
-        }
+        return parent.factory.getSensitiveAlphabet(clazz);
     }
 
     @Override

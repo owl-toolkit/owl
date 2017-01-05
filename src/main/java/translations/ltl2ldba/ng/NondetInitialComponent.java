@@ -17,9 +17,9 @@
 
 package translations.ltl2ldba.ng;
 
+import ltl.Conjunction;
 import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import omega_automaton.collections.Collections3;
@@ -38,24 +38,19 @@ import java.util.stream.IntStream;
 
 public class NondetInitialComponent<S extends AutomatonState<S>> extends InitialComponent<S, RecurringObligations2> {
 
-    private final EquivalenceClassFactory factory;
-
     NondetInitialComponent(@Nonnull EquivalenceClass initialClazz,
                            @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, RecurringObligations2> acceptingComponent,
-                           ValuationSetFactory valuationSetFactory, Collection<Optimisation> optimisations,
+                           ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations,
                            RecurringObligations2Selector recurringObligationsSelector,
-                           RecurringObligations2Evaluator recurringObligationsEvaluator,
-                           EquivalenceClassFactory factory) {
+                           RecurringObligations2Evaluator recurringObligationsEvaluator) {
         super(initialClazz, acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
-        this.factory = factory;
 
         initialStates.clear();
         // Split successor into DNF.
         List<Set<Formula>> dnf = DnfNormalForm.normalise(initialClazz.getRepresentative());
 
         for (Set<Formula> conjunction : dnf) {
-            EquivalenceClass conjunctionClass = factory.createEquivalenceClass(conjunction);
-            initialStates.add(new InitialComponentState(this, eager ? conjunctionClass.unfold() : conjunctionClass));
+            initialStates.add(new InitialComponentState(this, factory.getInitial(new Conjunction(conjunction))));
         }
     }
 
@@ -88,10 +83,8 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
                 // Split successor into DNF.
                 List<Set<Formula>> dnf = DnfNormalForm.normalise(successor.getSuccessor().getClazz().getRepresentative());
 
-                // TODO: Check EquivalenceClass implementation and the handling of the X-Fragment.
                 for (Set<Formula> conjunction : dnf) {
-                    EquivalenceClass conjunctionClass = eager ? factory.createEquivalenceClass(conjunction).unfold() : factory.createEquivalenceClass(conjunction);
-                    Edge<InitialComponentState> splitSuccessor = Edges.create(new InitialComponentState(this, conjunctionClass), collect(successor.acceptanceSetStream()));
+                    Edge<InitialComponentState> splitSuccessor = Edges.create(new InitialComponentState(this, factory.getInitial(new Conjunction(conjunction))), collect(successor.acceptanceSetStream()));
 
                     ValuationSet oldVs = successors.get(splitSuccessor);
                     ValuationSet newVs = valuationSetFactory.createValuationSet(valuation, sensitiveAlphabet);

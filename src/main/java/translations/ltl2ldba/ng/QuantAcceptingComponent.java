@@ -58,7 +58,7 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         }
 
         if (liveness.isTrue() && obligations.liveness.length > 0) {
-            liveness = getInitialClass(obligations.liveness[0], safety);
+            liveness = stateFactory.getInitial(obligations.liveness[0], safety);
         }
 
         return new State(0, safety, liveness, obligations);
@@ -88,11 +88,11 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         @Override
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = QuantAcceptingComponent.this.getSensitiveAlphabet(liveness);
-                sensitiveAlphabet.or(QuantAcceptingComponent.this.getSensitiveAlphabet(safety));
+                sensitiveAlphabet = stateFactory.getSensitiveAlphabet(liveness);
+                sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(safety));
 
                 for (EquivalenceClass clazz : obligations.liveness) {
-                    sensitiveAlphabet.or(QuantAcceptingComponent.this.getSensitiveAlphabet(getInitialClass(clazz)));
+                    sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(stateFactory.getInitial(clazz)));
                 }
             }
 
@@ -104,8 +104,8 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
             final int livenessLength = obligations.liveness.length;
 
             while (i < livenessLength) {
-                EquivalenceClass successor = QuantAcceptingComponent.this.getSuccessor(
-                        QuantAcceptingComponent.this.getInitialClass(obligations.liveness[i]),
+                EquivalenceClass successor = stateFactory.getSuccessor(
+                        stateFactory.getInitial(obligations.liveness[i]),
                         valuation,
                         environment);
 
@@ -121,13 +121,13 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
 
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
-            EquivalenceClass safetySuccessor = QuantAcceptingComponent.this.getSuccessor(safety, valuation).andWith(getInitialClass(obligations.safety));
+            EquivalenceClass safetySuccessor = stateFactory.getSuccessor(safety, valuation).andWith(stateFactory.getInitial(obligations.safety));
 
             if (safetySuccessor.isFalse()) {
                 return null;
             }
 
-            EquivalenceClass livenessSuccessor = QuantAcceptingComponent.this.getSuccessor(liveness, valuation, safetySuccessor);
+            EquivalenceClass livenessSuccessor = stateFactory.getSuccessor(liveness, valuation, safetySuccessor);
 
             if (livenessSuccessor.isFalse()) {
                 EquivalenceClass.free(safetySuccessor);
@@ -166,7 +166,7 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
             }
 
             if (obtainNewGoal && j < obligations.liveness.length) {
-                livenessSuccessor = getInitialClass(obligations.liveness[j]);
+                livenessSuccessor = stateFactory.getInitial(obligations.liveness[j]);
             }
 
             if (livenessSuccessor.isFalse()) {
