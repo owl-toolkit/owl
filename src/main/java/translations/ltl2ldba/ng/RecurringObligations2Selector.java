@@ -166,7 +166,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         RecurringObligations2Evaluator.SubstitutionVisitor substitutionVisitor = new RecurringObligations2Evaluator.SubstitutionVisitor(fOperators, gOperators);
 
         for (GOperator gOperator : gOperators) {
-            Formula formula = gOperator.operand.accept(substitutionVisitor).accept(substitutionVisitor);
+            Formula formula = gOperator.operand.accept(substitutionVisitor);
             EquivalenceClass safety2 = factory.createEquivalenceClass(formula);
             safety = safety.andWith(safety2);
             safety2.free();
