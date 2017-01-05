@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T extends AutomatonState<T>>  extends Automaton<S, NoneAcceptance> {
 
     public final SetMultimap<S, T> epsilonJumps;
-    final Table<S, ValuationSet, List<T>> valuationSetJumps;
+    final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
     protected AbstractInitialComponent(ValuationSetFactory factory) {
         super(new NoneAcceptance(), factory);
@@ -67,7 +67,7 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
             hoa.addEpsilonEdge(accState);
         }
 
-        for (Map.Entry<ValuationSet, List<T>> entry : valuationSetJumps.row(state).entrySet()) {
+        for (Map.Entry<ValuationSet, Set<T>> entry : valuationSetJumps.row(state).entrySet()) {
             for (T accState : entry.getValue()) {
                 hoa.addEdge(entry.getKey(), accState);
             }

@@ -48,20 +48,20 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
 
     @Override
     protected State createState(EquivalenceClass remainder, RecurringObligations2 obligations) {
-        EquivalenceClass safety = obligations.safety;
+        EquivalenceClass safety = equivalenceClassFactory.getTrue();
         EquivalenceClass liveness = remainder;
 
         // TODO: Scoped vs. un-scoped check?
         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
-            safety = liveness.andWith(safety);
+            safety = remainder.andWith(safety);
             liveness = equivalenceClassFactory.getTrue();
         }
 
         if (liveness.isTrue() && obligations.liveness.length > 0) {
-            liveness = stateFactory.getInitial(obligations.liveness[0], safety);
+            liveness = factory.getInitial(obligations.liveness[0]);
         }
 
-        return new State(0, safety, liveness, obligations);
+        return new State(0, factory.getInitial(safety, liveness), liveness, obligations);
     }
 
     public final class State extends ImmutableObject implements AutomatonState<State> {
@@ -88,11 +88,13 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         @Override
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = stateFactory.getSensitiveAlphabet(liveness);
-                sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(safety));
+                sensitiveAlphabet = factory.getSensitiveAlphabet(liveness);
+                sensitiveAlphabet.or(factory.getSensitiveAlphabet(safety));
+
+                sensitiveAlphabet.or(factory.getSensitiveAlphabet(obligations.safety));
 
                 for (EquivalenceClass clazz : obligations.liveness) {
-                    sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(stateFactory.getInitial(clazz)));
+                    sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
                 }
             }
 
@@ -100,14 +102,11 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         }
 
         @Nonnegative
-        private int scan(@Nonnegative int i, BitSet valuation, EquivalenceClass environment) {
+        private int scan(@Nonnegative int i, BitSet valuation) {
             final int livenessLength = obligations.liveness.length;
 
             while (i < livenessLength) {
-                EquivalenceClass successor = stateFactory.getSuccessor(
-                        stateFactory.getInitial(obligations.liveness[i]),
-                        valuation,
-                        environment);
+                EquivalenceClass successor = factory.getSuccessor(factory.getInitial(obligations.liveness[i]), valuation);
 
                 if (successor.isTrue()) {
                     i++;
@@ -121,23 +120,11 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
 
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
-            EquivalenceClass safetySuccessor = stateFactory.getSuccessor(safety, valuation).andWith(stateFactory.getInitial(obligations.safety));
+            EquivalenceClass livenessSuccessor = factory.getSuccessor(liveness, valuation);
+            EquivalenceClass safetySuccessor = factory.getSuccessor(safety.and(factory.getInitial(obligations.safety)),
+                    valuation, livenessSuccessor);
 
             if (safetySuccessor.isFalse()) {
-                return null;
-            }
-
-            EquivalenceClass livenessSuccessor = stateFactory.getSuccessor(liveness, valuation, safetySuccessor);
-
-            if (livenessSuccessor.isFalse()) {
-                EquivalenceClass.free(safetySuccessor);
-                return null;
-            }
-
-            EquivalenceClass assumptions = livenessSuccessor.and(safetySuccessor);
-
-            if (assumptions.isFalse()) {
-                EquivalenceClass.free(safetySuccessor, livenessSuccessor);
                 return null;
             }
 
@@ -151,11 +138,11 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
             // In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
             if (livenessSuccessor.isTrue()) {
                 obtainNewGoal = true;
-                j = scan(index + 1, valuation, assumptions);
+                j = scan(index + 1, valuation);
 
                 if (j >= livenessLength) {
                     acceptingEdge = true;
-                    j = scan(0, valuation, assumptions);
+                    j = scan(0, valuation);
 
                     if (j >= livenessLength) {
                         j = 0;
@@ -166,15 +153,13 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
             }
 
             if (obtainNewGoal && j < obligations.liveness.length) {
-                livenessSuccessor = stateFactory.getInitial(obligations.liveness[j]);
+                livenessSuccessor = factory.getInitial(obligations.liveness[j]);
             }
 
             if (livenessSuccessor.isFalse()) {
-                EquivalenceClass.free(safetySuccessor, livenessSuccessor, assumptions);
+                EquivalenceClass.free(safetySuccessor, livenessSuccessor);
                 return null;
             }
-
-            assumptions.free();
 
             State successor = new State(j, safetySuccessor, livenessSuccessor, obligations);
             return acceptingEdge ? Edges.create(successor, 0) : Edges.create(successor);

@@ -72,17 +72,17 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         }
 
         if (obligations.obligations.length > 0) {
-            currentBuilder[0] = stateFactory.getInitial(remainder.andWith(obligations.obligations[0]));
+            currentBuilder[0] = factory.getInitial(remainder.andWith(obligations.obligations[0]));
         } else {
-            currentBuilder[0] = stateFactory.getInitial(remainder.andWith(obligations.liveness[0]));
+            currentBuilder[0] = factory.getInitial(remainder.andWith(obligations.liveness[0]));
         }
 
         for (int i = 1; i < obligations.obligations.length; i++) {
-            currentBuilder[i] = stateFactory.getInitial(obligations.obligations[i]);
+            currentBuilder[i] = factory.getInitial(obligations.obligations[i]);
         }
 
         for (int i = Math.max(1, obligations.obligations.length); i < length; i++) {
-            currentBuilder[i] = stateFactory.getInitial(obligations.liveness[i - obligations.obligations.length]);
+            currentBuilder[i] = factory.getInitial(obligations.liveness[i - obligations.obligations.length]);
         }
 
         EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.length];
@@ -108,7 +108,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         private Edge<State> getSuccessorPureSafety(EquivalenceClass nextSafety, BitSet valuation) {
             // Take care of the remainder.
             if (current.length > 0) {
-                EquivalenceClass remainder = stateFactory.getSuccessor(current[0], valuation, nextSafety);
+                EquivalenceClass remainder = factory.getSuccessor(current[0], valuation, nextSafety);
 
                 if (remainder.isFalse()) {
                     return null;
@@ -125,7 +125,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             // Check the safety field first.
-            EquivalenceClass nextSafety = stateFactory.getSuccessor(safety, valuation).andWith(obligations.safety);
+            EquivalenceClass nextSafety = factory.getSuccessor(safety, valuation).andWith(obligations.safety);
 
             if (nextSafety.isFalse()) {
                 return null;
@@ -144,14 +144,14 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
             bs.set(length, acceptance.getSize());
 
             for (int i = 0; i < next.length; i++) {
-                EquivalenceClass currentSuccessor = stateFactory.getSuccessor(current[i], valuation, nextSafety);
+                EquivalenceClass currentSuccessor = factory.getSuccessor(current[i], valuation, nextSafety);
 
                 if (currentSuccessor.isFalse()) {
                     return null;
                 }
 
                 EquivalenceClass assumptions = currentSuccessor.and(nextSafety);
-                EquivalenceClass nextSuccessor = stateFactory.getSuccessor(next[i], valuation, assumptions);
+                EquivalenceClass nextSuccessor = factory.getSuccessor(next[i], valuation, assumptions);
 
                 if (nextSuccessor.isFalse()) {
                     EquivalenceClass.free(currentSuccessors);
@@ -160,7 +160,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                     return null;
                 }
 
-                nextSuccessor = nextSuccessor.andWith(stateFactory.getInitial(obligations.obligations[i], assumptions));
+                nextSuccessor = nextSuccessor.andWith(factory.getInitial(obligations.obligations[i], assumptions));
 
                 // Successor is done and we can switch components.
                 if (currentSuccessor.isTrue()) {
@@ -176,7 +176,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
             }
 
             for (int i = next.length; i < length; i++) {
-                EquivalenceClass currentSuccessor = stateFactory.getSuccessor(current[i], valuation, nextSafety);
+                EquivalenceClass currentSuccessor = factory.getSuccessor(current[i], valuation, nextSafety);
 
                 if (currentSuccessor.isFalse()) {
                     return null;
@@ -184,7 +184,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
                 if (currentSuccessor.isTrue()) {
                     bs.set(i);
-                    currentSuccessors[i] = stateFactory.getInitial(obligations.liveness[i - next.length]);
+                    currentSuccessors[i] = factory.getInitial(obligations.liveness[i - next.length]);
                 } else {
                     currentSuccessors[i] = currentSuccessor;
                 }
@@ -198,14 +198,14 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         @Nonnull
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = stateFactory.getSensitiveAlphabet(safety);
+                sensitiveAlphabet = factory.getSensitiveAlphabet(safety);
 
                 for (EquivalenceClass clazz : current) {
-                    sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(clazz));
+                    sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
                 }
 
                 for (EquivalenceClass clazz : next) {
-                    sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(clazz));
+                    sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
                 }
             }
 

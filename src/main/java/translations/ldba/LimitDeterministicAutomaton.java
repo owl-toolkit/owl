@@ -98,15 +98,15 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
                 for (S_I state : initialComponent.getStates()) {
                     Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
-                    Map<ValuationSet, List<S_A>> successorJumps = initialComponent.valuationSetJumps.row(state);
+                    Map<ValuationSet, Set<S_A>> successorJumps = initialComponent.valuationSetJumps.row(state);
 
                     successors.forEach((successor, vs) -> {
                         // Copy successors to a new collection, since clear() will also empty these collections.
-                        List<S_A> targets = new ArrayList<>(initialComponent.epsilonJumps.get(successor.getSuccessor()));
+                        Set<S_A> targets = new HashSet<>(initialComponent.epsilonJumps.get(successor.getSuccessor()));
                         accReach.addAll(targets);
 
                         // Non-determinism!
-                        List<S_A> oldTargets = successorJumps.put(vs, targets);
+                        Set<S_A> oldTargets = successorJumps.put(vs, targets);
                         if (oldTargets != null) {
                             targets.addAll(oldTargets);
                         }

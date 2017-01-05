@@ -33,7 +33,7 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
     protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
     protected final EquivalenceClassFactory equivalenceClassFactory;
     private Set<U> components = new HashSet<>();
-    protected EquivalenceClassStateFactory stateFactory;
+    protected EquivalenceClassStateFactory factory;
 
     public Set<U> getComponents() {
         return Collections.unmodifiableSet(components);
@@ -42,7 +42,7 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
     protected AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
-        stateFactory = new EquivalenceClassStateFactory(factory, optimisations);
+        this.factory = new EquivalenceClassStateFactory(factory, optimisations);
     }
 
     public EquivalenceClassFactory getEquivalenceClassFactory() {

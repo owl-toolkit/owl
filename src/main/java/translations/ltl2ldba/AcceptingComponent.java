@@ -72,7 +72,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         EquivalenceClass environment = safety.and(and(obligations.liveness));
 
         if (length == 0) {
-            return new State(0, safety, stateFactory.getInitial(current, environment), EMPTY, obligations);
+            return new State(0, safety, factory.getInitial(current, environment), EMPTY, obligations);
         }
 
         EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];
@@ -80,14 +80,14 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         if (current.isTrue()) {
             if (obligations.obligations.length > 0) {
                 nextBuilder[0] = current;
-                current = stateFactory.getInitial(obligations.obligations[0], environment);
+                current = factory.getInitial(obligations.obligations[0], environment);
             } else {
-                current = stateFactory.getInitial(obligations.liveness[0]);
+                current = factory.getInitial(obligations.liveness[0]);
             }
         }
 
         for (int i = current.isTrue() ? 1 : 0; i < nextBuilder.length; i++) {
-            nextBuilder[i] = stateFactory.getInitial(obligations.obligations[i], current);
+            nextBuilder[i] = factory.getInitial(obligations.obligations[i], current);
         }
 
         // Drop unused representative.
@@ -122,15 +122,15 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         @Override
         public BitSet getSensitiveAlphabet() {
             if (sensitiveAlphabet == null) {
-                sensitiveAlphabet = stateFactory.getSensitiveAlphabet(current);
-                sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(safety));
+                sensitiveAlphabet = factory.getSensitiveAlphabet(current);
+                sensitiveAlphabet.or(factory.getSensitiveAlphabet(safety));
 
                 for (EquivalenceClass clazz : next) {
-                    sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(clazz));
+                    sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
                 }
 
                 for (EquivalenceClass clazz : obligations.liveness) {
-                    sensitiveAlphabet.or(stateFactory.getSensitiveAlphabet(stateFactory.getInitial(clazz)));
+                    sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
                 }
             }
 
@@ -152,8 +152,8 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             final int livenessLength = obligations.liveness.length;
 
             while (i < 0) {
-                EquivalenceClass successor = stateFactory.getSuccessor(
-                        stateFactory.getInitial(obligations.liveness[livenessLength + i]),
+                EquivalenceClass successor = factory.getSuccessor(
+                        factory.getInitial(obligations.liveness[livenessLength + i]),
                         valuation,
                         environment);
 
@@ -181,13 +181,13 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
-            EquivalenceClass safetySuccessor = stateFactory.getSuccessor(safety, valuation).andWith(obligations.safety);
+            EquivalenceClass safetySuccessor = factory.getSuccessor(safety, valuation).andWith(obligations.safety);
 
             if (safetySuccessor.isFalse()) {
                 return null;
             }
 
-            EquivalenceClass currentSuccessor = stateFactory.getSuccessor(current, valuation, safetySuccessor);
+            EquivalenceClass currentSuccessor = factory.getSuccessor(current, valuation, safetySuccessor);
 
             if (currentSuccessor.isFalse()) {
                 EquivalenceClass.free(safetySuccessor);
@@ -201,7 +201,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 return null;
             }
 
-            EquivalenceClass[] nextSuccessors = stateFactory.getSuccessors(next, valuation, assumptions);
+            EquivalenceClass[] nextSuccessors = factory.getSuccessors(next, valuation, assumptions);
 
             if (nextSuccessors == null) {
                 EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
@@ -238,16 +238,16 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 EquivalenceClass nextSuccessor = nextSuccessors[i];
 
                 if (obtainNewGoal && i == j) {
-                    currentSuccessor = nextSuccessor.and(stateFactory.getInitial(obligations.obligations[i], assumptions));
+                    currentSuccessor = nextSuccessor.and(factory.getInitial(obligations.obligations[i], assumptions));
                     assumptions = assumptions.and(currentSuccessor);
                     nextSuccessors[i] = equivalenceClassFactory.getTrue();
                 } else {
-                    nextSuccessors[i] = nextSuccessor.and(stateFactory.getInitial(obligations.obligations[i], assumptions));
+                    nextSuccessors[i] = nextSuccessor.and(factory.getInitial(obligations.obligations[i], assumptions));
                 }
             }
 
             if (obtainNewGoal && j < 0) {
-                currentSuccessor = stateFactory.getInitial(obligations.liveness[livenessLength + j]);
+                currentSuccessor = factory.getInitial(obligations.liveness[livenessLength + j]);
             }
 
             if (currentSuccessor.isFalse()) {

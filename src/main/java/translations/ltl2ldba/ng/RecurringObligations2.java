@@ -49,7 +49,7 @@ public class RecurringObligations2 extends ImmutableObject {
         // liveness.forEach(EquivalenceClass::freeRepresentative);
 
         this.safety = safety;
-        this.liveness = liveness.toArray(EMPTY);
+        this.liveness = new HashSet<>(liveness).toArray(EMPTY);
         this.associatedGs = new HashSet<>();
         this.associatedFs = new HashSet<>();
     }
