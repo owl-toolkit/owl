@@ -17,8 +17,6 @@
 
 package omega_automaton.output;
 
-import java.util.logging.Logger;
-
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
@@ -31,6 +29,7 @@ import omega_automaton.collections.valuationset.ValuationSet;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -43,7 +42,7 @@ public class HOAConsumerExtended {
     private final EnumSet<HOAPrintable.Option> options;
     AutomatonState<?> currentState;
 
-    public HOAConsumerExtended(@Nonnull HOAConsumer hoa, int alphabetSize, @Nonnull Map<Integer, String> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
+    public HOAConsumerExtended(@Nonnull HOAConsumer hoa, int alphabetSize, @Nonnull Map<Integer, String> aliases, @Nonnull OmegaAcceptance acceptance, Set<? extends AutomatonState<?>> initialStates,
                                int size, @Nonnull EnumSet<HOAPrintable.Option> options) {
         this.hoa = hoa;
         this.options = options;
@@ -55,15 +54,17 @@ public class HOAConsumerExtended {
             hoa.setTool("Owl", "* *"); // Owl in a cave.
 
             if (options.contains(HOAPrintable.Option.ANNOTATIONS)) {
-                hoa.setName("Automaton for " + ((initialState != null) ? initialState.toString() : "false"));
+                hoa.setName("Automaton for " + initialStates.toString());
             }
 
             if (size >= 0) {
                 hoa.setNumberOfStates(size);
             }
 
-            if (initialState != null && size > 0) {
-                hoa.addStartStates(Collections.singletonList(getStateId(initialState)));
+            if (!initialStates.isEmpty() && size > 0) {
+                for (AutomatonState<?> initialState : initialStates) {
+                    hoa.addStartStates(Collections.singletonList(getStateId(initialState)));
+                }
 
                 if (acceptance.getName() != null) {
                     hoa.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
@@ -79,7 +80,7 @@ public class HOAConsumerExtended {
             hoa.setAPs(IntStream.range(0, alphabetSize).mapToObj(aliases::get).collect(Collectors.toList()));
             hoa.notifyBodyStart();
 
-            if (initialState == null || size == 0) {
+            if (initialStates.isEmpty() || size == 0) {
                 hoa.notifyEnd();
             }
         } catch (HOAConsumerException ex) {

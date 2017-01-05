@@ -19,15 +19,6 @@ package omega_automaton;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -40,6 +31,10 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
 
@@ -196,7 +191,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
             automaton = new StoredBuchiAutomaton(valuationSetFactory);
             ensureSpaceInMap(initialState);
-            integerToState[initialState] = automaton.initialState = automaton.addState();
+            integerToState[initialState] = automaton.addState();
+            automaton.initialStates.add(integerToState[initialState]);
             acceptingStates = new BitSet();
         }
 

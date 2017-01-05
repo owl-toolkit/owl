@@ -17,26 +17,6 @@
 
 package omega_automaton;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayDeque;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.acceptance.OmegaAcceptance;
@@ -47,10 +27,20 @@ import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.HOAPrintable;
 import owl.automaton.edge.Edge;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
 
-    @Nullable
-    protected S initialState;
+    protected Set<S> initialStates;
     protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
     protected Acc acceptance;
     protected final ValuationSetFactory valuationSetFactory;
@@ -80,29 +70,21 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         this.valuationSetFactory = valuationSetFactory;
         this.atomicSize = atomicSize;
         this.atomMapping = new HashMap<>();
+        this.initialStates = new HashSet<>();
         IntStream.range(0, valuationSetFactory.getSize()).forEach(i -> atomMapping.put(i, "p" + i));
     }
 
     public void generate() {
-        generate(getInitialState());
-    }
+        Collection<S> seenStates = new HashSet<>(getInitialStates());
+        Deque<S> workDeque = new ArrayDeque<>(getInitialStates());
 
-    public void generate(@Nullable S initialState) {
-        if (initialState == null) {
-            return;
-        }
+        workDeque.removeIf(transitions::containsKey);
+        atomicSize.set(size() + workDeque.size());
 
         // Return if already generated
-        if (transitions.containsKey(initialState)) {
+        if (workDeque.isEmpty()) {
             return;
         }
-
-        Collection<S> seenStates = new HashSet<>();
-        Deque<S> workDeque = new ArrayDeque<>();
-        workDeque.add(initialState);
-
-        seenStates.add(initialState);
-        atomicSize.set(size() + 1);
 
         while (!workDeque.isEmpty()) {
             S current = workDeque.removeLast();
@@ -183,9 +165,9 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             set.free();
         }
 
-        if (initialState == null || transitions.isEmpty()) {
+        if (initialStates.isEmpty() || transitions.isEmpty()) {
             usedTrapState = true;
-            initialState = trapState;
+            initialStates = Collections.singleton(trapState);
         }
 
         // Add trap state to the transitions table, only if it was used.
@@ -251,12 +233,12 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return transitions.size();
     }
 
-    public S getInitialState() {
-        if (initialState == null) {
-            initialState = generateInitialState();
+    public Set<S> getInitialStates() {
+        if (initialStates.isEmpty()) {
+            initialStates.addAll(generateInitialStates());
         }
 
-        return initialState;
+        return initialStates;
     }
 
     public Set<S> getStates() {
@@ -264,9 +246,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     public void removeUnreachableStates() {
-        Set<S> states = new HashSet<>();
-        states.add(getInitialState());
-        removeUnreachableStates(states);
+        removeUnreachableStates(new HashSet<>(getInitialStates()));
     }
 
     public void removeUnreachableStates(Set<S> reach) {
@@ -274,29 +254,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         removeStatesIf(s -> !reach.contains(s));
     }
 
-    /**
-     * This method removes unused states and their in- and outgoing transitions.
-     * If the set dependsOn the initial state, it becomes an automaton with the
-     * only state false. Use this method only if you are really sure you want to
-     * remove the states!
-     *
-     * @param states: Set of states that is to be removed
-     */
-    public void removeStates(Collection<S> states) {
-        if (states.contains(initialState)) {
-            initialState = null;
+    private void removeStatesIf(Predicate<S> predicate) {
+        initialStates.removeIf(predicate);
+
+        if (initialStates.isEmpty()) {
             transitions.clear();
         } else {
-            removeStatesIf(states::contains);
-        }
-    }
-
-    public void removeStatesIf(Predicate<S> predicate) {
-        transitions.keySet().removeIf(predicate);
-        transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.getSuccessor())));
-
-        if (predicate.test(initialState)) {
-            initialState = null;
+            transitions.keySet().removeIf(predicate);
+            transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.getSuccessor())));
         }
     }
 
@@ -308,9 +273,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return acceptance;
     }
 
-    @Nullable
-    protected S generateInitialState() {
-        return null;
+    protected Set<S> generateInitialStates() {
+        return Collections.emptySet();
     }
 
     @Nonnull
@@ -333,7 +297,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     public boolean isBSCC(Set<S> scc) {
         for (S s : scc){
            for (Edge<S> edge : getSuccessors(s).keySet()){
-               if(!scc.contains(edge.getSuccessor())) {
+               if (!scc.contains(edge.getSuccessor())) {
                    return false;
                }
            }
@@ -358,7 +322,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
     @Override
     public void toHOA(HOAConsumer consumer, EnumSet<Option> options) {
-        HOAConsumerExtended hoa = new HOAConsumerExtended(consumer, valuationSetFactory.getSize(), atomMapping, acceptance, initialState, size(), options);
+        HOAConsumerExtended hoa = new HOAConsumerExtended(consumer, valuationSetFactory.getSize(), atomMapping, acceptance, initialStates, size(), options);
         toHOABody(hoa);
         hoa.done();
     }
@@ -390,5 +354,4 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             throw new IllegalStateException(ex.toString(), ex);
         }
     }
-
 }

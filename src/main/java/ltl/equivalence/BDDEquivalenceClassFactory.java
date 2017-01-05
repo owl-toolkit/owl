@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import ltl.*;
 import ltl.visitors.AlphabetVisitor;
 import ltl.visitors.DefaultIntVisitor;
-import ltl.visitors.IntVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.collections.Collections3;
 import owl.bdd.Bdd;

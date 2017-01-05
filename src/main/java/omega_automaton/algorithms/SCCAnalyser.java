@@ -65,8 +65,14 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
      */
     public static <S extends AutomatonState<S>> List<Set<S>> SCCsStates(Automaton<S, ?> a) {
         SCCAnalyser<S> s = new SCCAnalyser<>(a);
-        s.stack.push(a.getInitialState());
-        return s.SCCsStatesRecursively();
+        List<Set<S>> sccs = new ArrayList<>();
+
+        for (S state : a.getInitialStates()) {
+            s.stack.push(state);
+            sccs.addAll(s.SCCsStatesRecursively());
+        }
+
+        return sccs;
     }
 
     /**

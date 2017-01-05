@@ -34,9 +34,9 @@ public class HOAConsumerGeneralisedRabin<S extends AutomatonState<?>> extends HO
 
     private GeneralisedRabinAcceptance<S> acceptance;
 
-    public HOAConsumerGeneralisedRabin(@Nonnull HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String, Integer> aliases, S initialState,
+    public HOAConsumerGeneralisedRabin(@Nonnull HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String, Integer> aliases, Set<S> initialStates,
                                        @Nonnull GeneralisedRabinAcceptance<S> accCond, int size) {
-        super(hoa, valuationSetFactory.getSize(), aliases.inverse(), accCond, initialState, size, EnumSet.allOf(HOAPrintable.Option.class));
+        super(hoa, valuationSetFactory.getSize(), aliases.inverse(), accCond, initialStates, size, EnumSet.allOf(HOAPrintable.Option.class));
         this.acceptance = accCond;
 
         Map<String, List<Object>> map = acceptance.miscellaneousAnnotations();
