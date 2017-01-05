@@ -34,7 +34,7 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
 
     @Nonnull
     private final AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent;
-    final boolean eager;
+    public final boolean eager;
     final Selector<T> selector;
     private final Evaluator<T> evaluator;
 
