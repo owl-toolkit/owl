@@ -54,9 +54,8 @@ public class DnfNormalForm {
 
         @Override
         public List<Set<Formula>> visit(Conjunction conjunction) {
-            List<Set<Formula>> dnf = new ArrayList<>();
+            List<Set<Formula>> dnf = new LinkedList<>();
             List<List<Set<Formula>>> allDnf = conjunction.children.stream().map(x -> x.accept(this)).collect(Collectors.toList());
-
 
             for (List<Set<Formula>> union : Lists.cartesianProduct(allDnf)) {
                 dnf.add(union.stream().flatMap(Collection::stream).collect(Collectors.toSet()));
@@ -68,7 +67,7 @@ public class DnfNormalForm {
 
         @Override
         public List<Set<Formula>> visit(Disjunction disjunction) {
-            List<Set<Formula>> dnf = new ArrayList<>();
+            List<Set<Formula>> dnf = new LinkedList<>();
             disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
             minimise(dnf);
             return dnf;

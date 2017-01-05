@@ -45,11 +45,8 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
                            RecurringObligations2Selector recurringObligationsSelector,
                            RecurringObligations2Evaluator recurringObligationsEvaluator) {
         super(initialClazz, acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
-
         initialStates.clear();
-
         removeRedundantObligations = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
-
         Iterable<EquivalenceClass> successorsList = splitSuccessor(initialClazz);
         successorsList.forEach(x -> initialStates.add(new InitialComponentState(this, x)));
     }
@@ -105,7 +102,7 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
 
     private Iterable<EquivalenceClass> splitSuccessor(EquivalenceClass clazz) {
         List<EquivalenceClass> successors = DnfNormalForm.normalise(clazz.getRepresentative()).stream()
-                .map(factory::getInitial).collect(Collectors.toList());
+                .map(factory::getInitial).collect(Collectors.toCollection(LinkedList::new));
 
         if (removeRedundantObligations) {
             successors.removeIf(x -> successors.stream().anyMatch(y -> x != y && x.implies(y)));
