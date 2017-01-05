@@ -31,24 +31,19 @@ import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.InitialComponentState;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 public class NondetInitialComponent<S extends AutomatonState<S>> extends InitialComponent<S, RecurringObligations2> {
 
-    private final boolean removeRedundantObligations;
-
-    NondetInitialComponent(@Nonnull EquivalenceClass initialClazz,
-                           @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, RecurringObligations2> acceptingComponent,
+    NondetInitialComponent(@Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, RecurringObligations2> acceptingComponent,
                            ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations,
                            RecurringObligations2Selector recurringObligationsSelector,
                            RecurringObligations2Evaluator recurringObligationsEvaluator) {
-        super(initialClazz, acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
-        initialStates.clear();
-        removeRedundantObligations = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
-        Iterable<EquivalenceClass> successorsList = splitSuccessor(initialClazz);
-        successorsList.forEach(x -> initialStates.add(new InitialComponentState(this, x)));
+        super(acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
     }
 
     @Override
@@ -78,7 +73,7 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
                 }
 
                 // Split successor
-                Iterable<EquivalenceClass> successorsList = splitSuccessor(successor.getSuccessor().getClazz());
+                Iterable<EquivalenceClass> successorsList = factory.splitEquivalenceClass(successor.getSuccessor().getClazz());
 
                 for (EquivalenceClass successorState : successorsList) {
                     Edge<InitialComponentState> splitSuccessor = Edges.create(new InitialComponentState(this, successorState), collect(successor.acceptanceSetStream()));
@@ -95,17 +90,6 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
             }
 
             transitions.put(state, successors);
-        }
-
-        return successors;
-    }
-
-    private Iterable<EquivalenceClass> splitSuccessor(EquivalenceClass clazz) {
-        List<EquivalenceClass> successors = DnfNormalForm.normalise(clazz.getRepresentative()).stream()
-                .map(factory::getInitial).collect(Collectors.toCollection(LinkedList::new));
-
-        if (removeRedundantObligations) {
-            successors.removeIf(x -> successors.stream().anyMatch(y -> x != y && x.implies(y)));
         }
 
         return successors;

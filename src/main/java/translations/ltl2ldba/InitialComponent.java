@@ -25,6 +25,7 @@ import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.BitSet;
 import java.util.EnumSet;
 
@@ -38,8 +39,7 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
     private final Evaluator<T> evaluator;
     protected final EquivalenceClassStateFactory factory;
 
-    protected InitialComponent(@Nonnull EquivalenceClass initialClazz,
-                               @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
+    protected InitialComponent(@Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
                                ValuationSetFactory valuationSetFactory,
                                EnumSet<Optimisation> optimisations,
                                Selector<T> selector,
@@ -57,7 +57,17 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
         ACCEPT.set(0);
 
         factory = new EquivalenceClassStateFactory(acceptingComponent.getEquivalenceClassFactory(), optimisations);
-        initialStates.add(new InitialComponentState(this, factory.getInitial(initialClazz)));
+    }
+
+    @Nullable
+    InitialComponentState addInitialState(EquivalenceClass initialClass) {
+        if (initialClass.isFalse()) {
+            return null;
+        }
+
+        InitialComponentState initialState = new InitialComponentState(this, factory.getInitial(initialClass));
+        initialStates.add(initialState);
+        return initialState;
     }
 
     @Override

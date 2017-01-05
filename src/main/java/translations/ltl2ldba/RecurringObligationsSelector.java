@@ -88,7 +88,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
     }
 
     @Override
-    public Set<RecurringObligations> select(EquivalenceClass state, boolean initialState) {
+    public Set<RecurringObligations> select(EquivalenceClass state, boolean isInitialState) {
         final Collection<Set<GOperator>> keys;
         final Map<Set<GOperator>, RecurringObligations> jumps = new HashMap<>();
 
@@ -111,7 +111,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
 
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
             jumps.entrySet().removeIf(entry -> {
-                if (!initialState) {
+                if (!isInitialState) {
                     EquivalenceClass remainder = evaluator.evaluate(state, entry.getValue());
 
                     Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
@@ -148,7 +148,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
                     Gs.addAll(normaliseInfinityOperators(collector.getCollection()));
                 });
 
-                if (!jumps.containsKey(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !initialState) {
+                if (!jumps.containsKey(Gs) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
                     jumps.put(Collections.emptySet(), null);
                 }
             }

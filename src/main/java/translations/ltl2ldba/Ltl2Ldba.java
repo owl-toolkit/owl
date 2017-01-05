@@ -17,10 +17,12 @@
 
 package translations.ltl2ldba;
 
+import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.acceptance.BuchiAcceptance;
 import translations.Optimisation;
 
+import java.util.Collections;
 import java.util.EnumSet;
 
 public class Ltl2Ldba extends Ltl2LdbaTemplate<AcceptingComponent.State, BuchiAcceptance, RecurringObligations, AcceptingComponent> {
@@ -40,10 +42,16 @@ public class Ltl2Ldba extends Ltl2LdbaTemplate<AcceptingComponent.State, BuchiAc
     }
 
     @Override
-    protected InitialComponent<AcceptingComponent.State, RecurringObligations> createInitialComponent(Factories factories, EquivalenceClass initialClazz, AcceptingComponent acceptingComponent) {
+    protected InitialComponent<AcceptingComponent.State, RecurringObligations> createInitialComponent(Factories factories, AcceptingComponent acceptingComponent) {
         RecurringObligationsSelector recurringObligationsSelector = new RecurringObligationsSelector(optimisations, factories.equivalenceClassFactory);
         RecurringObligationsEvaluator recurringObligationsEvaluator = new RecurringObligationsEvaluator(factories.equivalenceClassFactory);
-        return new InitialComponent<>(initialClazz, acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        return new InitialComponent<>(acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+    }
+
+    @Override
+    protected Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
+        EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory, optimisations);
+        return Collections.singleton(factory.getInitial(formula));
     }
 
     @Override

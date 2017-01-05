@@ -43,10 +43,16 @@ public class Ltl2LdbaNg extends Ltl2LdbaTemplate<QuantAcceptingComponent.State, 
     }
 
     @Override
-    protected InitialComponent<QuantAcceptingComponent.State, RecurringObligations2> createInitialComponent(Factories factories, EquivalenceClass initialClazz, QuantAcceptingComponent acceptingComponent) {
+    protected InitialComponent<QuantAcceptingComponent.State, RecurringObligations2> createInitialComponent(Factories factories, QuantAcceptingComponent acceptingComponent) {
         RecurringObligations2Selector recurringObligationsSelector = new RecurringObligations2Selector(optimisations, factories.equivalenceClassFactory);
         RecurringObligations2Evaluator recurringObligationsEvaluator = new RecurringObligations2Evaluator(factories.equivalenceClassFactory);
-        return new NondetInitialComponent<>(initialClazz, acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        return new NondetInitialComponent<>(acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+    }
+
+    @Override
+    protected Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
+        EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory, optimisations);
+        return factory.splitEquivalenceClass(factory.getInitial(formula));
     }
 
     @Override
@@ -56,6 +62,6 @@ public class Ltl2LdbaNg extends Ltl2LdbaTemplate<QuantAcceptingComponent.State, 
 
     @Override
     protected Formula preprocess(Formula formula) {
-        return super.preprocess(formula).accept(new RestrictToFGXU());
+        return super.preprocess(super.preprocess(formula).accept(new RestrictToFGXU()));
     }
 }

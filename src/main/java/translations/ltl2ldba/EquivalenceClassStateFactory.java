@@ -21,11 +21,11 @@ import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import translations.Optimisation;
+import ltl.visitors.DisjunctiveNormalFormVisitor;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.EnumSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EquivalenceClassStateFactory {
 
@@ -33,18 +33,18 @@ public class EquivalenceClassStateFactory {
     private final boolean eagerUnfold;
     private final boolean removeRedundantObligations;
 
-    EquivalenceClassStateFactory(EquivalenceClassFactory factory, EnumSet<Optimisation> optimisations) {
+    public EquivalenceClassStateFactory(EquivalenceClassFactory factory, EnumSet<Optimisation> optimisations) {
         this.factory = factory;
         this.eagerUnfold = optimisations.contains(Optimisation.EAGER_UNFOLD);
         this.removeRedundantObligations = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
     }
 
-    public EquivalenceClass getInitial(Formula... formula) {
-        return getInitial(Arrays.asList(formula));
+    public EquivalenceClass getInitial(Formula... formulas) {
+        return getInitial(Arrays.asList(formulas));
     }
 
-    public EquivalenceClass getInitial(Iterable<Formula> formula) {
-        EquivalenceClass clazz = factory.createEquivalenceClass(formula);
+    private EquivalenceClass getInitial(Iterable<Formula> formulas) {
+        EquivalenceClass clazz = factory.createEquivalenceClass(formulas);
         EquivalenceClass initial = getInitial(clazz);
         clazz.free();
         return initial;
@@ -69,6 +69,17 @@ public class EquivalenceClassStateFactory {
         }
 
         return initial;
+    }
+
+    public BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
+        if (eagerUnfold) {
+            return clazz.getAtoms();
+        } else {
+            EquivalenceClass unfold = clazz.unfold();
+            BitSet atoms = unfold.getAtoms();
+            unfold.free();
+            return atoms;
+        }
     }
 
     public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {
@@ -108,14 +119,14 @@ public class EquivalenceClassStateFactory {
         return successors;
     }
 
-    public BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
-        if (eagerUnfold) {
-            return clazz.getAtoms();
-        } else {
-            EquivalenceClass unfold = clazz.unfold();
-            BitSet atoms = unfold.getAtoms();
-            unfold.free();
-            return atoms;
+    public List<EquivalenceClass> splitEquivalenceClass(EquivalenceClass clazz) {
+        List<EquivalenceClass> successors = DisjunctiveNormalFormVisitor.normaliseStatic(clazz.getRepresentative()).stream()
+                .map(this::getInitial).collect(Collectors.toCollection(LinkedList::new));
+
+        if (removeRedundantObligations) {
+            successors.removeIf(x -> successors.stream().anyMatch(y -> x != y && x.implies(y)));
         }
+
+        return successors;
     }
 }

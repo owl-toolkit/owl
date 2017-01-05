@@ -33,6 +33,7 @@ import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -50,31 +51,33 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
 
         Factories factories = new Factories(new BDDEquivalenceClassFactory(formula), new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula)));
 
-        A acceptingComponent = createAcceptingComponent(factories);
         Evaluator<C> evaluator = createEvaluator(factories);
         Selector<C> selector = createSelector(factories);
+        A acceptingComponent = createAcceptingComponent(factories);
+        InitialComponent<S, C> initialComponent = createInitialComponent(factories, acceptingComponent);
+        Iterable<EquivalenceClass> initialClasses = createInitialClasses(factories, formula);
+        Set<AutomatonState<?>> initialStates = new HashSet<>();
 
-        EquivalenceClass initialClazz = factories.equivalenceClassFactory.createEquivalenceClass(formula);
+        for (EquivalenceClass initialClass : initialClasses) {
+            AutomatonState<?> initialState;
+            Set<C> obligations = selector.select(initialClass, true);
 
-        if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
-            initialClazz = initialClazz.unfold();
+            if (Collections3.isSingleton(obligations) && Iterables.getOnlyElement(obligations) != null) {
+                EquivalenceClass remainingGoal = evaluator.evaluate(initialClass, Iterables.getOnlyElement(obligations));
+                initialState = acceptingComponent.jump(remainingGoal, Iterables.getOnlyElement(obligations));
+            } else {
+                initialState = initialComponent.addInitialState(initialClass);
+            }
+
+            if (initialState != null) {
+                initialStates.add(initialState);
+            }
         }
 
-        Set<C> obligations = selector.select(initialClazz, true);
-
-        InitialComponent<S, C> initialComponent = null;
-
-        if (Collections3.isSingleton(obligations) && Iterables.getOnlyElement(obligations) != null) {
-            EquivalenceClass remainingGoal = evaluator.evaluate(initialClazz, Iterables.getOnlyElement(obligations));
-            acceptingComponent.jump(remainingGoal, Iterables.getOnlyElement(obligations));
-        } else {
-            initialComponent = createInitialComponent(factories, initialClazz, acceptingComponent);
-        }
-
-        LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A> det
-                = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, optimisations);
-        det.generate();
-        return det;
+        LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A> ldba
+                = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, initialStates, optimisations);
+        ldba.generate();
+        return ldba;
     }
 
     protected Formula preprocess(Formula formula) {
@@ -86,7 +89,9 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
 
     protected abstract Evaluator<C> createEvaluator(Factories factories);
 
-    protected abstract InitialComponent<S, C> createInitialComponent(Factories factories, EquivalenceClass initialClazz, A acceptingComponent);
+    protected abstract InitialComponent<S, C> createInitialComponent(Factories factories, A acceptingComponent);
+
+    protected abstract Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula);
 
     protected abstract Selector<C> createSelector(Factories factories);
 

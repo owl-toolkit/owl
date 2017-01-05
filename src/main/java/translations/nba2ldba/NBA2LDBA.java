@@ -46,10 +46,10 @@ public class NBA2LDBA implements Function<StoredBuchiAutomaton, LimitDeterminist
 
         // Short-cut for translation
         if (nba.isDeterministic()) {
-            ldba = new LimitDeterministicAutomaton<>(null, new YCAcc(nba), optimisations);
+            ldba = new LimitDeterministicAutomaton<>(null, new YCAcc(nba), nba.getInitialStates(), optimisations);
         } else {
             YCAcc acceptingComponent = new YCAcc(nba);
-            ldba = new LimitDeterministicAutomaton<>(new YCInit(nba, acceptingComponent), acceptingComponent, optimisations);
+            ldba = new LimitDeterministicAutomaton<>(new YCInit(nba, acceptingComponent), acceptingComponent, nba.getInitialStates(), optimisations);
         }
 
         ldba.generate();

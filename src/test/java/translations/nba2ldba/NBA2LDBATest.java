@@ -25,7 +25,6 @@ import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
 import omega_automaton.StoredBuchiAutomaton;
 import org.junit.Before;
-import org.junit.Test;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
@@ -66,7 +65,7 @@ public class NBA2LDBATest {
         nba = Iterables.getOnlyElement(builder.getAutomata());
     }
 
-    @Test
+    // @Test
     public void testApply() throws Exception {
         nba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)));
 

@@ -18,6 +18,7 @@
 package translations.ldba;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.Automaton;
@@ -42,23 +43,17 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     private final I initialComponent;
     private final A acceptingComponent;
     private final EnumSet<Optimisation> optimisations;
+    private final Set<? extends AutomatonState<?>> initialStates;
 
-    public LimitDeterministicAutomaton(@Nullable I initialComponent, A acceptingComponent, EnumSet<Optimisation> optimisations) {
+    public LimitDeterministicAutomaton(@Nullable I initialComponent, A acceptingComponent, Set<? extends AutomatonState<?>> initialStates, EnumSet<Optimisation> optimisations) {
         this.initialComponent = initialComponent;
         this.acceptingComponent = acceptingComponent;
         this.optimisations = optimisations;
+        this.initialStates = initialStates;
     }
 
     public boolean isDeterministic() {
-        return initialComponent == null;
-    }
-
-    private Set<? extends AutomatonState<?>> getInitialStates() {
-        if (initialComponent != null) {
-            return initialComponent.getInitialStates();
-        }
-
-        return acceptingComponent.getInitialStates();
+        return initialComponent == null || initialComponent.size() == 0;
     }
 
     public int size() {
@@ -94,7 +89,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
             acceptingComponent.generate();
 
             if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
-                Set<S_A> accReach = new HashSet<>();
+                Set<S_A> accReach = new HashSet<>((Set<S_A>) Sets.intersection(initialStates, acceptingComponent.getStates()));
 
                 for (S_I state : initialComponent.getStates()) {
                     Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
@@ -125,7 +120,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     @Override
     public void toHOA(HOAConsumer c, EnumSet<Option> options) {
-        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), getInitialStates(), size(), options);
+        HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), initialStates, size(), options);
 
         if (initialComponent != null) {
             initialComponent.toHOABody(consumer);
