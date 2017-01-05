@@ -87,8 +87,9 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     }
 
     private Set<Set<UnaryModalOperator>> selectAllMonitors(EquivalenceClass state) {
-        final Set<Formula> support = state.getSupport(G_OPERATORS.or(F_OPERATORS));
-        return Sets.powerSet(normalise(support));
+        Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
+        state.getSupport().forEach(x -> x.accept(collector));
+        return Sets.powerSet(normalise(collector.getCollection()));
     }
 
     @Override
@@ -178,14 +179,14 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
         for (FOperator fOperator : fOperators) {
             Formula formula = fOperator.operand.accept(substitutionVisitor).accept(substitutionVisitor);
-            EquivalenceClass liveness = factory.createEquivalenceClass(new FOperator(formula));
 
-            if (liveness.isFalse()) {
+            if (formula == BooleanConstant.FALSE) {
                 EquivalenceClass.free(safety);
                 EquivalenceClass.free(livenessList);
                 return null;
             }
 
+            EquivalenceClass liveness = factory.createEquivalenceClass(new FOperator(formula));
             livenessList.add(liveness);
         }
 

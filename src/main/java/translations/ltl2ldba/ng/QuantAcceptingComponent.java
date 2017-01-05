@@ -20,7 +20,6 @@ package translations.ltl2ldba.ng;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
-import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
@@ -32,7 +31,9 @@ import translations.ltl2ldba.AbstractAcceptingComponent;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.Objects;
 
 public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcceptingComponent.State, BuchiAcceptance, RecurringObligations2> {
 
@@ -48,17 +49,13 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
 
     @Override
     protected State createState(EquivalenceClass remainder, RecurringObligations2 obligations) {
-        EquivalenceClass safety = equivalenceClassFactory.getTrue();
-        EquivalenceClass liveness = remainder;
+        EquivalenceClass safety = remainder.andWith(obligations.safety);
+        EquivalenceClass liveness;
 
-        // TODO: Scoped vs. un-scoped check?
-        if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
-            safety = remainder.andWith(safety);
-            liveness = equivalenceClassFactory.getTrue();
-        }
-
-        if (liveness.isTrue() && obligations.liveness.length > 0) {
+        if (obligations.liveness.length > 0) {
             liveness = factory.getInitial(obligations.liveness[0]);
+        } else {
+            liveness = equivalenceClassFactory.getTrue();
         }
 
         return new State(0, factory.getInitial(safety, liveness), liveness, obligations);
@@ -121,8 +118,8 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         @Nullable
         public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
             EquivalenceClass livenessSuccessor = factory.getSuccessor(liveness, valuation);
-            EquivalenceClass safetySuccessor = factory.getSuccessor(safety.and(factory.getInitial(obligations.safety)),
-                    valuation, livenessSuccessor);
+            EquivalenceClass safetySuccessor = factory.getSuccessor(safety, valuation, livenessSuccessor)
+                    .andWith(factory.getInitial(obligations.safety));
 
             if (safetySuccessor.isFalse()) {
                 return null;
