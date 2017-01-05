@@ -189,6 +189,10 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         for (FOperator fOperator : fOperators) {
             Formula formula = fOperator.operand.accept(substitutionVisitor).accept(substitutionVisitor);
 
+            while (formula instanceof XOperator) {
+                formula = ((XOperator) formula).operand;
+            }
+
             if (formula == BooleanConstant.FALSE) {
                 EquivalenceClass.free(safety);
                 EquivalenceClass.free(livenessList);
