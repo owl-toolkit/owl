@@ -31,7 +31,6 @@ import omega_automaton.output.HOAPrintable;
 import owl.automaton.edge.Edge;
 import translations.Optimisation;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -39,13 +38,12 @@ import java.util.*;
 
 public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends GeneralisedBuchiAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>> implements HOAPrintable {
 
-    @Nullable
     private final I initialComponent;
     private final A acceptingComponent;
     private final EnumSet<Optimisation> optimisations;
     private final Set<? extends AutomatonState<?>> initialStates;
 
-    public LimitDeterministicAutomaton(@Nullable I initialComponent, A acceptingComponent, Set<? extends AutomatonState<?>> initialStates, EnumSet<Optimisation> optimisations) {
+    public LimitDeterministicAutomaton(I initialComponent, A acceptingComponent, Set<? extends AutomatonState<?>> initialStates, EnumSet<Optimisation> optimisations) {
         this.initialComponent = initialComponent;
         this.acceptingComponent = acceptingComponent;
         this.optimisations = optimisations;
@@ -53,79 +51,69 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     }
 
     public boolean isDeterministic() {
-        return initialComponent == null || initialComponent.size() == 0;
+        return initialComponent.size() == 0;
     }
 
     public int size() {
-        if (initialComponent == null) {
-            return acceptingComponent.size();
-        }
-
         return acceptingComponent.size() + initialComponent.size();
     }
 
     public void generate() {
-        if (initialComponent != null) {
-            initialComponent.generate();
+        initialComponent.generate();
 
-            // Generate Jump Table
-            List<Set<S_I>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS) ? SCCAnalyser.SCCsStates(initialComponent) : Collections.singletonList(initialComponent.getStates());
+        // Generate Jump Table
+        List<Set<S_I>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS) ? SCCAnalyser.SCCsStates(initialComponent) : Collections.singletonList(initialComponent.getStates());
 
-            for (Set<S_I> scc : sccs) {
-                // Skip non-looping states with successors of a singleton SCC.
-                if (scc.size() == 1) {
-                    S_I state = Iterables.getOnlyElement(scc);
+        for (Set<S_I> scc : sccs) {
+            // Skip non-looping states with successors of a singleton SCC.
+            if (scc.size() == 1) {
+                S_I state = Iterables.getOnlyElement(scc);
 
-                    if (initialComponent.isTransient(state) && initialComponent.hasSuccessors(state)) {
-                        continue;
+                if (initialComponent.isTransient(state) && initialComponent.hasSuccessors(state)) {
+                    continue;
+                }
+            }
+
+            for (S_I state : scc) {
+                initialComponent.generateJumps(state);
+            }
+        }
+
+        acceptingComponent.generate();
+
+        if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
+            Set<S_A> accReach = new HashSet<>((Set<S_A>) Sets.intersection(initialStates, acceptingComponent.getStates()));
+
+            for (S_I state : initialComponent.getStates()) {
+                Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
+                Map<ValuationSet, Set<S_A>> successorJumps = initialComponent.valuationSetJumps.row(state);
+
+                successors.forEach((successor, vs) -> {
+                    // Copy successors to a new collection, since clear() will also empty these collections.
+                    Set<S_A> targets = new HashSet<>(initialComponent.epsilonJumps.get(successor.getSuccessor()));
+                    accReach.addAll(targets);
+
+                    // Non-determinism!
+                    Set<S_A> oldTargets = successorJumps.put(vs, targets);
+                    if (oldTargets != null) {
+                        targets.addAll(oldTargets);
                     }
-                }
-
-                for (S_I state : scc) {
-                    initialComponent.generateJumps(state);
-                }
+                });
             }
 
-            acceptingComponent.generate();
-
-            if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
-                Set<S_A> accReach = new HashSet<>((Set<S_A>) Sets.intersection(initialStates, acceptingComponent.getStates()));
-
-                for (S_I state : initialComponent.getStates()) {
-                    Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
-                    Map<ValuationSet, Set<S_A>> successorJumps = initialComponent.valuationSetJumps.row(state);
-
-                    successors.forEach((successor, vs) -> {
-                        // Copy successors to a new collection, since clear() will also empty these collections.
-                        Set<S_A> targets = new HashSet<>(initialComponent.epsilonJumps.get(successor.getSuccessor()));
-                        accReach.addAll(targets);
-
-                        // Non-determinism!
-                        Set<S_A> oldTargets = successorJumps.put(vs, targets);
-                        if (oldTargets != null) {
-                            targets.addAll(oldTargets);
-                        }
-                    });
-                }
-
-                initialComponent.epsilonJumps.clear();
-                initialComponent.removeUnreachableStates();
-                acceptingComponent.removeUnreachableStates(accReach);
-                initialComponent.removeDeadEnds(initialComponent.valuationSetJumps.rowKeySet());
-            }
-        } else {
-            acceptingComponent.generate();
+            initialComponent.epsilonJumps.clear();
+            initialComponent.removeUnreachableStates(new HashSet<>((Set<S_I>) Sets.intersection(initialStates, initialComponent.getStates())));
+            acceptingComponent.removeUnreachableStates(accReach);
+            initialComponent.removeDeadEnds(initialComponent.valuationSetJumps.rowKeySet());
+            initialStates.removeIf(x -> !Sets.union(initialComponent.getStates(), acceptingComponent.getStates()).contains(x));
         }
     }
 
     @Override
     public void toHOA(HOAConsumer c, EnumSet<Option> options) {
+        System.out.println(initialStates);
         HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), initialStates, size(), options);
-
-        if (initialComponent != null) {
-            initialComponent.toHOABody(consumer);
-        }
-
+        initialComponent.toHOABody(consumer);
         acceptingComponent.toHOABody(consumer);
         consumer.done();
     }
@@ -151,7 +139,6 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         }
     }
 
-    @Nullable
     public I getInitialComponent() {
         return initialComponent;
     }
@@ -159,5 +146,4 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     public A getAcceptingComponent() {
         return acceptingComponent;
     }
-
 }
