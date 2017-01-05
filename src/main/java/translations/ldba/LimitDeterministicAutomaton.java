@@ -33,7 +33,6 @@ import translations.Optimisation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.*;
 
 public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends GeneralisedBuchiAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>> implements HOAPrintable {
@@ -133,9 +132,9 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     }
 
     public String toString(EnumSet<Option> options) throws IOException {
-        try (OutputStream stream = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             toHOA(new HOAConsumerPrint(stream), options);
-            return stream.toString();
+            return stream.toString("UTF8");
         }
     }
 
