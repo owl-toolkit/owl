@@ -110,7 +110,6 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     @Override
     public void toHOA(HOAConsumer c, EnumSet<Option> options) {
-        System.out.println(initialStates);
         HOAConsumerExtended consumer = new HOAConsumerExtended(c, acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(), acceptingComponent.getAcceptance(), initialStates, size(), options);
         initialComponent.toHOABody(consumer);
         acceptingComponent.toHOABody(consumer);
