@@ -254,7 +254,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         removeStatesIf(s -> !reach.contains(s));
     }
 
-    private void removeStatesIf(Predicate<S> predicate) {
+    protected void removeStatesIf(Predicate<S> predicate) {
         initialStates.removeIf(predicate);
 
         if (initialStates.isEmpty()) {
