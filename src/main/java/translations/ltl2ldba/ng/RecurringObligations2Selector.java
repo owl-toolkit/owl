@@ -211,6 +211,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         formulas.forEach(x -> {
             if (x instanceof GOperator) {
                 gSet.add((GOperator) x);
+                return;
             }
 
             assert false;
@@ -233,10 +234,12 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         formulas.forEach(x -> {
             if (x instanceof FOperator) {
                 fSet.add((FOperator) x);
+                return;
             }
 
             if (x instanceof UOperator) {
                 fSet.add(new FOperator(((UOperator) x).right));
+                return;
             }
 
             assert false;

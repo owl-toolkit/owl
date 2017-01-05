@@ -36,7 +36,7 @@ public class DnfNormalForm {
         return formula.accept(DNF_VISITOR);
     }
 
-    private static void minimize(List<Set<Formula>> dnf) {
+    private static void minimise(List<Set<Formula>> dnf) {
         dnf.removeIf(set -> dnf.stream().anyMatch(subset -> set != subset && set.containsAll(subset)));
     }
 
@@ -62,7 +62,7 @@ public class DnfNormalForm {
                 dnf.add(union.stream().flatMap(Collection::stream).collect(Collectors.toSet()));
             }
 
-            minimize(dnf);
+            minimise(dnf);
             return dnf;
         }
 
@@ -70,7 +70,7 @@ public class DnfNormalForm {
         public List<Set<Formula>> visit(Disjunction disjunction) {
             List<Set<Formula>> dnf = new ArrayList<>();
             disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
-            minimize(dnf);
+            minimise(dnf);
             return dnf;
         }
     }

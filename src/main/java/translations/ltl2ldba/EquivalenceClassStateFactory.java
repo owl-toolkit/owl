@@ -23,6 +23,7 @@ import ltl.equivalence.EquivalenceClassFactory;
 import translations.Optimisation;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 
@@ -38,7 +39,11 @@ public class EquivalenceClassStateFactory {
         this.removeRedundantObligations = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
     }
 
-    public EquivalenceClass getInitial(Formula formula) {
+    public EquivalenceClass getInitial(Formula... formula) {
+        return getInitial(Arrays.asList(formula));
+    }
+
+    public EquivalenceClass getInitial(Iterable<Formula> formula) {
         EquivalenceClass clazz = factory.createEquivalenceClass(formula);
         EquivalenceClass initial = getInitial(clazz);
         clazz.free();

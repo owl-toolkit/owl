@@ -71,7 +71,7 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         private final EquivalenceClass safety;
 
         private State(@Nonnegative int index, EquivalenceClass safety, EquivalenceClass liveness, RecurringObligations2 obligations) {
-            assert 0 <= index && index < obligations.liveness.length;
+            assert 0 == index || (0 < index && index < obligations.liveness.length);
 
             this.index = index;
             this.liveness = liveness;

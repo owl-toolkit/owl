@@ -17,8 +17,6 @@
 
 package translations.ltl2ldba.ng;
 
-import ltl.Conjunction;
-import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
@@ -34,9 +32,12 @@ import translations.ltl2ldba.InitialComponentState;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class NondetInitialComponent<S extends AutomatonState<S>> extends InitialComponent<S, RecurringObligations2> {
+
+    private final boolean removeRedundantObligations;
 
     NondetInitialComponent(@Nonnull EquivalenceClass initialClazz,
                            @Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, RecurringObligations2> acceptingComponent,
@@ -46,12 +47,11 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
         super(initialClazz, acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
 
         initialStates.clear();
-        // Split successor into DNF.
-        List<Set<Formula>> dnf = DnfNormalForm.normalise(initialClazz.getRepresentative());
 
-        for (Set<Formula> conjunction : dnf) {
-            initialStates.add(new InitialComponentState(this, factory.getInitial(new Conjunction(conjunction))));
-        }
+        removeRedundantObligations = optimisations.contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
+
+        Iterable<EquivalenceClass> successorsList = splitSuccessor(initialClazz);
+        successorsList.forEach(x -> initialStates.add(new InitialComponentState(this, x)));
     }
 
     @Override
@@ -80,11 +80,11 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
                     continue;
                 }
 
-                // Split successor into DNF.
-                List<Set<Formula>> dnf = DnfNormalForm.normalise(successor.getSuccessor().getClazz().getRepresentative());
+                // Split successor
+                Iterable<EquivalenceClass> successorsList = splitSuccessor(successor.getSuccessor().getClazz());
 
-                for (Set<Formula> conjunction : dnf) {
-                    Edge<InitialComponentState> splitSuccessor = Edges.create(new InitialComponentState(this, factory.getInitial(new Conjunction(conjunction))), collect(successor.acceptanceSetStream()));
+                for (EquivalenceClass successorState : successorsList) {
+                    Edge<InitialComponentState> splitSuccessor = Edges.create(new InitialComponentState(this, successorState), collect(successor.acceptanceSetStream()));
 
                     ValuationSet oldVs = successors.get(splitSuccessor);
                     ValuationSet newVs = valuationSetFactory.createValuationSet(valuation, sensitiveAlphabet);
@@ -98,6 +98,17 @@ public class NondetInitialComponent<S extends AutomatonState<S>> extends Initial
             }
 
             transitions.put(state, successors);
+        }
+
+        return successors;
+    }
+
+    private Iterable<EquivalenceClass> splitSuccessor(EquivalenceClass clazz) {
+        List<EquivalenceClass> successors = DnfNormalForm.normalise(clazz.getRepresentative()).stream()
+                .map(factory::getInitial).collect(Collectors.toList());
+
+        if (removeRedundantObligations) {
+            successors.removeIf(x -> successors.stream().anyMatch(y -> x != y && x.implies(y)));
         }
 
         return successors;
