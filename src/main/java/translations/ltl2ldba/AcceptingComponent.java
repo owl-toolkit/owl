@@ -42,7 +42,8 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
     @Nonnull
     @Override
     public State generateRejectingTrap() {
-        return new State(0, equivalenceClassFactory.getFalse(), equivalenceClassFactory.getFalse(), EMPTY, new RecurringObligations(equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
+        EquivalenceClass falseClass = equivalenceClassFactory.getFalse();
+        return new State(0, falseClass, falseClass, EMPTY, new RecurringObligations(equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
     }
 
     private EquivalenceClass and(EquivalenceClass[] classes) {

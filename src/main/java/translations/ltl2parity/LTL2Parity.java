@@ -120,7 +120,6 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
         }
     }
 
-
     private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
         LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba = translator.apply(formula);
 

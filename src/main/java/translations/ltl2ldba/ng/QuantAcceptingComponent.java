@@ -41,12 +41,6 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
     }
 
-    @Nonnull
-    @Override
-    public State generateRejectingTrap() {
-        return new State(0, equivalenceClassFactory.getFalse(), equivalenceClassFactory.getFalse(), new RecurringObligations2(equivalenceClassFactory.getTrue()));
-    }
-
     @Override
     protected State createState(EquivalenceClass remainder, RecurringObligations2 obligations) {
         EquivalenceClass safety = remainder.andWith(obligations.safety);
