@@ -26,6 +26,10 @@ public final class XFragmentPredicate implements Predicate<Formula>, Visitor<Boo
 
     public static final XFragmentPredicate INSTANCE = new XFragmentPredicate();
 
+    public static boolean testStatic(Formula formula) {
+        return INSTANCE.test(formula);
+    }
+
     private XFragmentPredicate() {
 
     }
@@ -93,9 +97,5 @@ public final class XFragmentPredicate implements Predicate<Formula>, Visitor<Boo
     @Override
     public boolean test(Formula formula) {
         return formula.accept(this);
-    }
-
-    public static boolean testStatic(Formula formula) {
-        return INSTANCE.test(formula);
     }
 }
