@@ -170,7 +170,13 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
             EquivalenceClass gConjunction = factory.createEquivalenceClass(collector.getCollection());
 
-            if (gConjunction.equals(skeleton) && normaliseToGOperators(collector.getCollection()).equals(Iterables.getOnlyElement(jumps.values()).associatedGs)) {
+            Collector externCollector = new Collector(x -> !(x instanceof PropositionalFormula));
+            Collector internCollector = new Collector(x -> !(x instanceof PropositionalFormula));
+
+            state.getSupport().forEach(x -> x.accept(externCollector));
+            skeleton.getSupport().forEach(x -> x.accept(internCollector));
+
+            if (gConjunction.equals(skeleton) && normaliseToGOperators(collector.getCollection()).equals(Iterables.getOnlyElement(jumps.values()).associatedGs) && externCollector.getCollection().equals(internCollector.getCollection())) {
                 isUrgent = true;
             }
         }
