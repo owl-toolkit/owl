@@ -17,11 +17,13 @@
 
 package translations.ltl2ldba.ng;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
 import ltl.visitors.Collector;
+import omega_automaton.collections.Collections3;
 import translations.Optimisation;
 import translations.ltl2ldba.Evaluator;
 import translations.ltl2ldba.Selector;
@@ -146,8 +148,18 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
             });
         }
 
-        if (!jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
-            if (jumps.size() > 1 || removedCoveredLanguage) {
+        boolean isSingletonPureLiveness = false;
+
+        if (Collections3.isSingleton(jumps.entrySet())) {
+            RecurringObligations2 obligations2 = Iterables.getOnlyElement(jumps.values());
+
+            if (obligations2.isPureLiveness()) {
+                isSingletonPureLiveness = true;
+            }
+        }
+
+        if (!isSingletonPureLiveness && !jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
+            if (keys.size() > 1 || removedCoveredLanguage) {
                 jumps.put(Collections.emptySet(), null);
             } else {
                 Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
