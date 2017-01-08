@@ -82,15 +82,22 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     }
 
     private List<Set<UnaryModalOperator>> selectReducedMonitors(EquivalenceClass state) {
-        final Set<Formula> support = extractRelevantOperators(state);
-
+        final Set<Formula> support = state.getSupport(G_OPERATORS);
         final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
-        List<Set<UnaryModalOperator>> sets = skeleton.restrictedSatisfyingAssignments(support, null)
-                .stream().map(RecurringObligations2Selector::normalise).collect(Collectors.toList());
+        List<Set<GOperator>> sets = skeleton.restrictedSatisfyingAssignments(support, null)
+                .stream().map(RecurringObligations2Selector::normaliseToGOperators).collect(Collectors.toList());
 
         skeleton.free();
-        return sets;
+
+        // Enhance with FOperors:
+
+        List<Set<UnaryModalOperator>> sets2 = sets.stream().map(x -> {
+            Collector scopedFOperators = new Collector(F_OPERATORS);
+            x.forEach(y -> y.accept(scopedFOperators));
+            return Sets.powerSet(scopedFOperators.getCollection()).stream().map(z -> Sets.<UnaryModalOperator>union(x, normaliseToFOperators(z)));
+        }).flatMap(x -> x).collect(Collectors.toList());
+        return sets2;
     }
 
     private Set<Set<UnaryModalOperator>> selectAllMonitors(EquivalenceClass state) {
@@ -237,6 +244,10 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         return set;
     }
 
+    private static Set<GOperator> normaliseToGOperators(Collection<Formula> formulas) {
+        return normaliseToGOperators(formulas.stream());
+    }
+
     private static Set<GOperator> normaliseToGOperators(Stream<Formula> formulas) {
         Set<GOperator> gSet = new HashSet<>();
 
@@ -258,6 +269,10 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         });
 
         return gSet;
+    }
+
+    private static Set<FOperator> normaliseToFOperators(Collection<Formula> formulas) {
+        return normaliseToFOperators(formulas.stream());
     }
 
     private static Set<FOperator> normaliseToFOperators(Stream<Formula> formulas) {
