@@ -86,6 +86,18 @@ public class EquivalenceClassStateFactory {
         return getSuccessor(clazz, valuation, null);
     }
 
+    public EquivalenceClass getNondetSuccessor(EquivalenceClass clazz, BitSet valuation) {
+        EquivalenceClass successor;
+
+        if (eagerUnfold) {
+            successor = clazz.temporalStep(valuation);
+        } else {
+            successor = clazz.unfoldTemporalStep(valuation);
+        }
+
+        return successor;
+    }
+
     public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
         EquivalenceClass successor;
 

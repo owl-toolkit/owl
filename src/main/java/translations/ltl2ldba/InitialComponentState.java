@@ -21,6 +21,7 @@ import ltl.equivalence.EquivalenceClass;
 import omega_automaton.AutomatonState;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import translations.ltl2ldba.ng.NondetInitialComponent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,7 +45,13 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
     @Nullable
     @Override
     public Edge<InitialComponentState> getSuccessor(@Nonnull BitSet valuation) {
-        EquivalenceClass successorClass = parent.factory.getSuccessor(clazz, valuation);
+        EquivalenceClass successorClass;
+
+        if (parent instanceof NondetInitialComponent) {
+            successorClass = parent.factory.getNondetSuccessor(clazz, valuation);
+        } else {
+            successorClass = parent.factory.getSuccessor(clazz, valuation);
+        }
 
         // TODO: Move this map to parent.
         if (jumps == null) {
