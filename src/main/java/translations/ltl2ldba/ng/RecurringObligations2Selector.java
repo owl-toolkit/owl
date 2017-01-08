@@ -72,12 +72,17 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         return implies && entry.getValue().implies(otherEntry.getValue());
     }
 
-    private List<Set<UnaryModalOperator>> selectReducedMonitors(EquivalenceClass state) {
-        // Compute support from Gs and scoped Fs.
+    // Compute support from Gs and scoped Fs.
+    private Set<Formula> extractRelevantOperators(EquivalenceClass state) {
         Collector scopedFOperators = new Collector(F_OPERATORS);
         final Set<Formula> support = state.getSupport(G_OPERATORS);
         support.forEach(x -> x.accept(scopedFOperators));
         support.addAll(scopedFOperators.getCollection());
+        return support;
+    }
+
+    private List<Set<UnaryModalOperator>> selectReducedMonitors(EquivalenceClass state) {
+        final Set<Formula> support = extractRelevantOperators(state);
 
         final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
@@ -89,9 +94,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     }
 
     private Set<Set<UnaryModalOperator>> selectAllMonitors(EquivalenceClass state) {
-        Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
-        state.getSupport().forEach(x -> x.accept(collector));
-        return Sets.powerSet(normalise(collector.getCollection()));
+        return Sets.powerSet(normalise(extractRelevantOperators(state)));
     }
 
     @Override
@@ -150,22 +153,21 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
         boolean isSingletonPureLiveness = false;
 
-        if (Collections3.isSingleton(jumps.entrySet())) {
+        if (optimisations.contains(Optimisation.MINIMIZE_JUMPS) && Collections3.isSingleton(jumps.entrySet())) {
             RecurringObligations2 obligations2 = Iterables.getOnlyElement(jumps.values());
 
-            if (obligations2.isPureLiveness()) {
+            if (obligations2.isPureLiveness() && evaluator.evaluate(state, obligations2).isTrue()) {
                 isSingletonPureLiveness = true;
             }
         }
+
+        // Force jump, if subst with not G is false...
 
         if (!isSingletonPureLiveness && !jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
             if (keys.size() > 1 || removedCoveredLanguage) {
                 jumps.put(Collections.emptySet(), null);
             } else {
-                Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
-                state.getSupport().forEach(x -> x.accept(collector));
-
-                if (!jumps.containsKey(normalise(collector.getCollection())) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
+                if (!jumps.containsKey(normalise(extractRelevantOperators(state))) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
                     jumps.put(Collections.emptySet(), null);
                 }
             }
