@@ -167,7 +167,10 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
             if (keys.size() > 1 || removedCoveredLanguage) {
                 jumps.put(Collections.emptySet(), null);
             } else {
-                if (!jumps.containsKey(normalise(extractRelevantOperators(state))) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
+                Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
+                state.getSupport().forEach(x -> x.accept(collector));
+
+                if (!jumps.containsKey(normalise(collector.getCollection())) || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
                     jumps.put(Collections.emptySet(), null);
                 }
             }
