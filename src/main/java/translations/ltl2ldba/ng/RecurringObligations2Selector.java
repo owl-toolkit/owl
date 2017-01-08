@@ -117,8 +117,10 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
             }
         }
 
+        boolean removedCoveredLanguage = false;
+
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            jumps.entrySet().removeIf(entry -> {
+            removedCoveredLanguage = jumps.entrySet().removeIf(entry -> {
                 if (!isInitialState) {
                     EquivalenceClass remainder = evaluator.evaluate(state, entry.getValue());
 
@@ -145,7 +147,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         }
 
         if (!jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
-            if (keys.size() > 1) {
+            if (jumps.size() > 1 || removedCoveredLanguage) {
                 jumps.put(Collections.emptySet(), null);
             } else {
                 Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
