@@ -165,8 +165,12 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
             final Set<Formula> support = state.getSupport(G_OPERATORS);
             final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
+            Collector collector = new Collector(G_OPERATORS);
+            state.getSupport().forEach(x -> x.accept(collector));
 
-            if (normaliseToGOperators(skeleton.getSupport()).equals(Iterables.getOnlyElement(jumps.values()).associatedGs)) {
+            EquivalenceClass gConjunction = factory.createEquivalenceClass(collector.getCollection());
+
+            if (gConjunction.equals(skeleton) && normaliseToGOperators(collector.getCollection()).equals(Iterables.getOnlyElement(jumps.values()).associatedGs)) {
                 isUrgent = true;
             }
         }
