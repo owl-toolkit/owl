@@ -95,7 +95,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         List<Set<UnaryModalOperator>> sets2 = sets.stream().map(x -> {
             Collector scopedFOperators = new Collector(F_OPERATORS);
             x.forEach(y -> y.accept(scopedFOperators));
-            return Sets.powerSet(scopedFOperators.getCollection()).stream().map(z -> Sets.<UnaryModalOperator>union(x, normaliseToFOperators(z)));
+            return Sets.powerSet(scopedFOperators.getCollection()).stream().map(z -> Sets.union(x, normaliseToFOperators(z)));
         }).flatMap(x -> x).collect(Collectors.toList());
         return sets2;
     }
@@ -158,19 +158,22 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
             });
         }
 
-        boolean isSingletonPureLiveness = false;
+        // Compute if jump is urgent.
+        boolean isUrgent = false;
 
-        if (optimisations.contains(Optimisation.MINIMIZE_JUMPS) && Collections3.isSingleton(jumps.entrySet())) {
-            RecurringObligations2 obligations2 = Iterables.getOnlyElement(jumps.values());
+        if ((isInitialState || optimisations.contains(Optimisation.FORCE_JUMPS)) && Collections3.isSingleton(jumps.entrySet())) {
+            final Set<Formula> support = state.getSupport(G_OPERATORS);
+            final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
-            if (obligations2.isPureLiveness() && evaluator.evaluate(state, obligations2).isTrue()) {
-                isSingletonPureLiveness = true;
+
+            if (normaliseToGOperators(skeleton.getSupport()).equals(Iterables.getOnlyElement(jumps.values()).associatedGs)) {
+                isUrgent = true;
             }
         }
 
         // Force jump, if subst with not G is false...
 
-        if (!isSingletonPureLiveness && !jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
+        if (!isUrgent && !jumps.containsKey(Collections.<UnaryModalOperator>emptySet())) {
             if (keys.size() > 1 || removedCoveredLanguage) {
                 jumps.put(Collections.emptySet(), null);
             } else {

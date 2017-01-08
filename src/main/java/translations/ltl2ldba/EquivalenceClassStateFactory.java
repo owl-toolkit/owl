@@ -20,8 +20,8 @@ package translations.ltl2ldba;
 import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
-import translations.Optimisation;
 import ltl.visitors.DisjunctiveNormalFormVisitor;
+import translations.Optimisation;
 
 import javax.annotation.Nullable;
 import java.util.*;
