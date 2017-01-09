@@ -42,6 +42,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         super(new BuchiAcceptance(), factory);
     }
 
+    private Set<State> acceptingStates = new HashSet<>();
+
     private State addState() {
         State state = new State();
 
@@ -51,15 +53,11 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         return state;
     }
 
-    private void addTransition(State source, boolean accepting, ValuationSet label, State successor) {
+    private void addTransition(State source, ValuationSet label, State successor) {
         Map<Edge<State>, ValuationSet> transition = transitions.get(source);
 
-        Edge<State> edge;
-      if (accepting) {
-        edge = Edges.create(successor, 0);
-      } else {
-        edge = Edges.create(successor);
-      }
+        Edge<State> edge = Edges.create(successor);
+
 
       ValuationSet oldLabel = transition.get(edge);
 
@@ -70,13 +68,17 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         }
     }
 
-    public boolean isAccepting(State state) {
-        return Collections3.getElement(transitions.get(state).keySet()).inSet(0);
+  public Map<StoredBuchiAutomaton.State, Map<Edge<StoredBuchiAutomaton.State>, ValuationSet>> getTransitions() {
+    return transitions;
+  }
+
+  public boolean isAccepting(State state) {
+        return acceptingStates.contains(state);
     }
 
     public static class State implements AutomatonState<State> {
 
-        public String label;
+        String label;
 
         @Nullable
         @Override
@@ -89,7 +91,6 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         public BitSet getSensitiveAlphabet() {
             throw new UnsupportedOperationException("Stored Automaton State cannot perform on-demand computations.");
         }
-
 
         @Override
         public String toString() {
@@ -105,7 +106,6 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         private Integer initialState;
         private State[] integerToState;
         private int implicitEdgeCounter;
-        private BitSet acceptingStates;
 
         @Override
         public boolean parserResolvesAliases() {
@@ -118,7 +118,6 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             integerToState = null;
             initialState = null;
             automaton = null;
-            acceptingStates = null;
         }
 
         @Override
@@ -193,11 +192,10 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             ensureSpaceInMap(initialState);
             integerToState[initialState] = automaton.addState();
             automaton.initialStates.add(integerToState[initialState]);
-            acceptingStates = new BitSet();
         }
 
         @Override
-        public void addState(int i, String s, BooleanExpression<AtomLabel> booleanExpression, List<Integer> list) throws HOAConsumerException {
+        public void addState(int i, String s, BooleanExpression<AtomLabel> booleanExpression, @Nullable List<Integer> list) throws HOAConsumerException {
             ensureSpaceInMap(i);
 
             String label = (s == null) ? Integer.toString(i) : s;
@@ -211,11 +209,14 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
             // Update label and acceptance marking for state.
             state.label = label;
-            acceptingStates.set(i, isAcceptingState(list));
+
+            if (isAcceptingState(list)) {
+                automaton.acceptingStates.add(state);
+            }
         }
 
-        private static boolean isAcceptingState(List<Integer> list) throws HOAConsumerException {
-            if (list == null) {
+        private static boolean isAcceptingState(@Nullable List<Integer> list) throws HOAConsumerException {
+            if (list == null || list.isEmpty()) {
                 return false;
             }
 
@@ -261,7 +262,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
                 integerToState[index] = successor = automaton.addState();
             }
 
-            automaton.addTransition(source, acceptingStates.get(i), toValuationSet(booleanExpression), successor);
+            automaton.addTransition(source, toValuationSet(booleanExpression), successor);
         }
 
         @Override

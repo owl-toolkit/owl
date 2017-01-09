@@ -17,10 +17,10 @@
 
 package owl.automaton.edge;
 
-import java.util.Objects;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 @Immutable
 final class EdgeSingleton<S> implements Edge<S> {
@@ -81,6 +81,6 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public String toString() {
-    return "-> " + successor + " {" + acceptance + '}';
+    return "-> " + successor + ((acceptance == -1) ? "" : " {" + acceptance + '}');
   }
 }
