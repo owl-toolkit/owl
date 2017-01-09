@@ -31,11 +31,11 @@ import java.util.*;
 
 import static java.util.Collections.singleton;
 
-public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
+public class AcceptingComponent extends Automaton<AcceptingComponent.State, BuchiAcceptance> {
 
     private final StoredBuchiAutomaton nba;
 
-    YCAcc(StoredBuchiAutomaton nba) {
+    AcceptingComponent(StoredBuchiAutomaton nba) {
         super(new BuchiAcceptance(), nba.getFactory());
         this.nba = nba;
     }
@@ -68,14 +68,14 @@ public class YCAcc extends Automaton<YCAcc.State, BuchiAcceptance> {
 
             Set<StoredBuchiAutomaton.State> leftSuccessor = new HashSet<>();
 
-            // Add all states reached from an accepting state
+            // Add all states reached from an accepting trackedState
             right.stream().filter(nba::isAccepting).forEach(s -> leftSuccessor.addAll(nba.getSuccessors(s, valuation)));
 
             if (!left.equals(right)) {
                 left.forEach(s -> leftSuccessor.addAll(nba.getSuccessors(s, valuation)));
             }
 
-            // Don't construct the trap state.
+            // Don't construct the trap trackedState.
             if (leftSuccessor.isEmpty() && rightSuccessor.isEmpty()) {
                 return null;
             }

@@ -17,9 +17,8 @@
 
 package translations.nba2ldba;
 
-import jhoafparser.consumer.HOAConsumerPrint;
-import jhoafparser.parser.HOAFParser;
-import jhoafparser.parser.generated.ParseException;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.acceptance.BuchiAcceptance;
 import translations.Optimisation;
@@ -28,43 +27,31 @@ import translations.ldba.LimitDeterministicAutomaton;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public class NBA2LDBA implements Function<StoredBuchiAutomaton, LimitDeterministicAutomaton<YCInit.State, YCAcc.State, BuchiAcceptance, YCInit, YCAcc>> {
+public class NBA2LDBA implements Function<StoredBuchiAutomaton, LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent>> {
 
     private final EnumSet<Optimisation> optimisations;
-
-    public NBA2LDBA() {
-        this(EnumSet.allOf(Optimisation.class));
-    }
 
     public NBA2LDBA(EnumSet<Optimisation> optimisations) {
         this.optimisations = optimisations;
     }
 
     @Override
-    public LimitDeterministicAutomaton<YCInit.State, YCAcc.State, BuchiAcceptance, YCInit, YCAcc> apply(StoredBuchiAutomaton nba) {
-        LimitDeterministicAutomaton<YCInit.State, YCAcc.State, BuchiAcceptance, YCInit, YCAcc> ldba;
+    public LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent> apply(StoredBuchiAutomaton nba) {
+        AcceptingComponent acceptingComponent = new AcceptingComponent(nba);
+        InitialComponent initialComponent = new InitialComponent(nba, acceptingComponent);
+        LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent> ldba;
+
+        StoredBuchiAutomaton.State initialState = Iterables.getOnlyElement(nba.getInitialStates());
 
         // Short-cut for translation
         if (nba.isDeterministic()) {
-            ldba = new LimitDeterministicAutomaton<>(new YCInit(nba, new YCAcc(nba)), new YCAcc(nba), nba.getInitialStates(), optimisations);
+            ldba = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, Sets.newHashSet(acceptingComponent.createState(initialState)), optimisations);
         } else {
-            YCAcc acceptingComponent = new YCAcc(nba);
-            ldba = new LimitDeterministicAutomaton<>(new YCInit(nba, acceptingComponent), acceptingComponent, nba.getInitialStates(), optimisations);
+            ldba = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, Sets.newHashSet(initialComponent.createState(initialState)), optimisations);
         }
 
         ldba.generate();
+        ldba.setAtomMapping(nba.getAtomMapping());
         return ldba;
-    }
-
-    public static void main(String... args) throws ParseException {
-        NBA2LDBA translation = new NBA2LDBA();
-
-        StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
-        HOAFParser.parseHOA(System.in, builder);
-
-        for (StoredBuchiAutomaton nba : builder.getAutomata()) {
-            LimitDeterministicAutomaton<YCInit.State, YCAcc.State, BuchiAcceptance, YCInit, YCAcc> result = translation.apply(nba);
-            result.toHOA(new HOAConsumerPrint(System.out));
-        }
     }
 }

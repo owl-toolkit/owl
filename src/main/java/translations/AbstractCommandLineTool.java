@@ -17,23 +17,30 @@
 
 package translations;
 
+import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.Formula;
-import ltl.parser.Parser;
+import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
+import jhoafparser.transformations.ToStateAcceptance;
 import omega_automaton.output.HOAPrintable;
 
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.function.Function;
 
-public abstract class AbstractCommandLineTool {
+public abstract class AbstractCommandLineTool<T> {
 
     private static final String ANNOTATIONS = "--annotations";
     private static final String OPTIMISATIONS = "--optimisations=";
 
-    protected abstract Function<Formula, ? extends HOAPrintable> getTranslation(EnumSet<Optimisation> optimisations);
+    protected abstract Function<T, ? extends HOAPrintable> getTranslation(EnumSet<Optimisation> optimisations);
+
+    protected abstract T parseInput(InputStream stream) throws Exception;
+
+    protected abstract Map<Integer, String> getAtomMapping();
 
     private EnumSet<HOAPrintable.Option> parseHOAOutputOptions(Deque<String> args) {
         return args.remove(ANNOTATIONS)
@@ -76,18 +83,23 @@ public abstract class AbstractCommandLineTool {
     }
 
     void execute(Deque<String> args) throws Exception {
+        // Read input.
         EnumSet<HOAPrintable.Option> options = parseHOAOutputOptions(args);
         EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
-
-        Function<Formula, ? extends HOAPrintable> translation = getTranslation(optimisations);
-
+        Function<T, ? extends HOAPrintable> translation = getTranslation(optimisations);
+        boolean stateAcceptance = args.remove("--state-acceptance");
         boolean readStdin = args.isEmpty();
+        T input = parseInput(readStdin ? System.in : new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
 
-        Parser parser = readStdin ? new Parser(System.in) : new Parser(new StringReader(args.getFirst()));
-        Formula formula = parser.formula();
+        // Apply translation.
+        HOAPrintable result = translation.apply(input);
 
-        HOAPrintable result = translation.apply(formula);
-        result.setAtomMapping(parser.map.inverse());
-        result.toHOA(new HOAConsumerPrint(System.out), options);
+        // Write output.
+        result.setAtomMapping(getAtomMapping());
+        HOAConsumer consumer = new HOAConsumerPrint(System.out);
+        if (stateAcceptance) {
+            consumer = new HOAIntermediateStoreAndManipulate(consumer, new ToStateAcceptance());
+        }
+        result.toHOA(consumer, options);
     }
 }

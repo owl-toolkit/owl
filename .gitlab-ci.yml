@@ -69,6 +69,13 @@ test:ltl2ldba generalised-Büchi Guess-F Vanilla:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
+# NBA to LDBA translations
+
+test:nba2ldba Vanilla:
+  variables:
+    LTL_TOOL: "{nba2ldba} ltl2tgba -ba -H -f %f | build/bin/nba2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
 # LTL to DPA translations
 
 test:ltl2parity:

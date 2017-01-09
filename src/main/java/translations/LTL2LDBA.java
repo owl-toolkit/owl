@@ -30,7 +30,7 @@ import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public class LTL2LDBA extends AbstractCommandLineTool {
+public class LTL2LDBA extends AbstractLTLCommandLineTool {
     enum Configuration {
         GENERALISED, GUESS_F, // NONDET_INITIAL_COMPONENT
     }
