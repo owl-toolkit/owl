@@ -20,19 +20,18 @@ package translations.nba2ldba;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Iterables;
-import jhoafparser.consumer.HOAConsumerPrint;
+import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
 import omega_automaton.StoredBuchiAutomaton;
+import omega_automaton.output.HOAPrintable;
 import org.junit.Before;
+import org.junit.Test;
 import translations.Optimisation;
-import translations.ldba.LimitDeterministicAutomaton;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
-
-import static org.junit.Assert.assertEquals;
 
 public class NBA2LDBATest {
 
@@ -65,14 +64,11 @@ public class NBA2LDBATest {
         nba = Iterables.getOnlyElement(builder.getAutomata());
     }
 
-    // @Test
+    @Test
     public void testApply() throws Exception {
-        nba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)));
-
-        LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = translation.apply(nba);
-
-        ldba.getAcceptingComponent().setAtomMapping(MAPPING.inverse());
-        ldba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerPrint(System.out)));
-        assertEquals(9, ldba.size());
+        nba.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+        HOAPrintable result = translation.apply(nba);
+        result.setAtomMapping(MAPPING.inverse());
+        result.toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     }
 }

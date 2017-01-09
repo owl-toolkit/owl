@@ -21,13 +21,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public class NBA2LDBA implements Function<StoredBuchiAutomaton, LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent>> {
+public class NBA2LDBA implements Function<StoredBuchiAutomaton, HOAPrintable> {
 
     private final EnumSet<Optimisation> optimisations;
 
@@ -36,20 +37,16 @@ public class NBA2LDBA implements Function<StoredBuchiAutomaton, LimitDeterminist
     }
 
     @Override
-    public LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent> apply(StoredBuchiAutomaton nba) {
+    public HOAPrintable apply(StoredBuchiAutomaton nba) {
+        if (nba.isDeterministic()) {
+            return nba;
+        }
+
         AcceptingComponent acceptingComponent = new AcceptingComponent(nba);
         InitialComponent initialComponent = new InitialComponent(nba, acceptingComponent);
         LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent> ldba;
-
         StoredBuchiAutomaton.State initialState = Iterables.getOnlyElement(nba.getInitialStates());
-
-        // Short-cut for translation
-        if (nba.isDeterministic()) {
-            ldba = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, Sets.newHashSet(acceptingComponent.createState(initialState)), optimisations);
-        } else {
-            ldba = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, Sets.newHashSet(initialComponent.createState(initialState)), optimisations);
-        }
-
+        ldba = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, Sets.newHashSet(initialComponent.createState(initialState)), optimisations);
         ldba.generate();
         ldba.setAtomMapping(nba.getAtomMapping());
         return ldba;
