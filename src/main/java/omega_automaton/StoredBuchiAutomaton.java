@@ -106,6 +106,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         private Integer initialState;
         private State[] integerToState;
         private int implicitEdgeCounter;
+        private Map<Integer, String> mapping;
 
         @Override
         public boolean parserResolvesAliases() {
@@ -143,6 +144,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         public void setAPs(List<String> list) throws HOAConsumerException {
             BiMap<String, Integer> aliases = HashBiMap.create(list.size());
             list.forEach(ap -> aliases.put(ap, aliases.size()));
+            mapping = aliases.inverse();
             valuationSetFactory = new BDDValuationSetFactory(list.size());
         }
 
@@ -192,6 +194,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             ensureSpaceInMap(initialState);
             integerToState[initialState] = automaton.addState();
             automaton.initialStates.add(integerToState[initialState]);
+            automaton.setAtomMapping(mapping);
         }
 
         @Override
