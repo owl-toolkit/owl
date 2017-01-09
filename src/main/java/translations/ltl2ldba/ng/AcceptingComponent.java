@@ -147,7 +147,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 livenessSuccessor = factory.getInitial(obligations.liveness[j]);
             }
 
-            assert !livenessSuccessor.isFalse() : "Liveness properties cannot be false.";
+            assert !livenessSuccessor.isFalse() : "Liveness property cannot be false.";
 
             State successor = new State(j, safetySuccessor, livenessSuccessor, obligations);
             return acceptingEdge ? Edges.create(successor, 0) : Edges.create(successor);

@@ -71,7 +71,7 @@ public class LdbaNGSizeRegressionTest extends AbstractSizeRegressionTest<LimitDe
                 return new int[]{2, 4};
 
             case MIXED:
-                return new int[]{4, 4, 6, 7, 9, 21, 5, 4, 6, 20};
+                return new int[]{4, 4, 6, 7, 9, 21, 5, 4, 6, 8};
 
             case FG_UNSTABLE:
                 return new int[]{3, 5, 5, 5, 4, 3};
