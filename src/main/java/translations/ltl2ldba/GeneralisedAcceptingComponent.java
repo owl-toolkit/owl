@@ -38,11 +38,8 @@ import java.util.Objects;
 
 public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations> {
 
-    private final BitSet ACCEPT = new BitSet();
-
     GeneralisedAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
-        ACCEPT.set(0, 1);
     }
 
     @Override

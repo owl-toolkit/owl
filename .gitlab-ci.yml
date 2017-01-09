@@ -42,6 +42,11 @@ test:ltl2ldgba:
     LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba %f >%O"
   <<: *ltlcross_template
 
+test:ltl2ldgba-ng:
+  variables:
+    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba-ng %f >%O"
+  <<: *ltlcross_template
+
 test:ltl2parity:
   variables:
     LTL_TOOL: "{ltl2parity} build/bin/ltl2parity %f >%O"
@@ -70,4 +75,9 @@ test:ltl2ldba-ng:no-opt:
 test:ltl2ldgba:no-opt:
   variables:
     LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldgba-ng:no-opt:
+  variables:
+    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba-ng --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template

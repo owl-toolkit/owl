@@ -31,15 +31,12 @@ import java.util.EnumSet;
 
 public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractInitialComponent<InitialComponentState, S> {
 
-    final BitSet ACCEPT;
-
-    @Nonnull
     private final AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent;
     final Selector<T> selector;
     private final Evaluator<T> evaluator;
     protected final EquivalenceClassStateFactory factory;
 
-    protected InitialComponent(@Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
+    protected InitialComponent(AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
                                ValuationSetFactory valuationSetFactory,
                                EnumSet<Optimisation> optimisations,
                                Selector<T> selector,
@@ -47,14 +44,8 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
         super(valuationSetFactory);
 
         this.acceptingComponent = acceptingComponent;
-
         this.selector = selector;
         this.evaluator = evaluator;
-
-
-        // FIXME: Increase the number of set bits!
-        ACCEPT = new BitSet();
-        ACCEPT.set(0);
 
         factory = new EquivalenceClassStateFactory(acceptingComponent.getEquivalenceClassFactory(), optimisations);
     }
@@ -68,6 +59,10 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
         InitialComponentState initialState = new InitialComponentState(this, factory.getInitial(initialClass));
         initialStates.add(initialState);
         return initialState;
+    }
+
+    public BitSet getAcceptBitSet() {
+        return acceptingComponent.getAcceptBitSet();
     }
 
     @Override

@@ -20,21 +20,21 @@ package translations.ltl2ldba.ng;
 import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import ltl.visitors.RestrictToFGXU;
-import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
 import translations.Optimisation;
 import translations.ltl2ldba.*;
 
 import java.util.EnumSet;
 
-public class Ltl2LdbaNg extends Ltl2LdbaTemplate<AcceptingComponent.State, BuchiAcceptance, RecurringObligations2, AcceptingComponent> {
+public class Ltl2LdgbaNg extends Ltl2LdbaTemplate<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations2, GeneralisedAcceptingComponent> {
 
-    public Ltl2LdbaNg(EnumSet<Optimisation> optimisations) {
+    public Ltl2LdgbaNg(EnumSet<Optimisation> optimisations) {
         super(optimisations);
     }
 
     @Override
-    protected AcceptingComponent createAcceptingComponent(Factories factories) {
-        return new AcceptingComponent(factories.equivalenceClassFactory, factories.valuationSetFactory, optimisations);
+    protected GeneralisedAcceptingComponent createAcceptingComponent(Factories factories) {
+        return new GeneralisedAcceptingComponent(factories.equivalenceClassFactory, factories.valuationSetFactory, optimisations);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class Ltl2LdbaNg extends Ltl2LdbaTemplate<AcceptingComponent.State, Buchi
     }
 
     @Override
-    protected InitialComponent<AcceptingComponent.State, RecurringObligations2> createInitialComponent(Factories factories, AcceptingComponent acceptingComponent) {
+    protected InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations2> createInitialComponent(Factories factories, GeneralisedAcceptingComponent acceptingComponent) {
         RecurringObligations2Selector recurringObligationsSelector = new RecurringObligations2Selector(optimisations, factories.equivalenceClassFactory);
         RecurringObligations2Evaluator recurringObligationsEvaluator = new RecurringObligations2Evaluator(factories.equivalenceClassFactory);
         return new NondetInitialComponent<>(acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);

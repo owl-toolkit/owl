@@ -64,7 +64,7 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
         }
 
         InitialComponentState successor = new InitialComponentState(parent, successorClass);
-        return successorClass.isTrue() ? Edges.create(successor, parent.ACCEPT) : Edges.create(successor);
+        return successorClass.isTrue() ? Edges.create(successor, parent.getAcceptBitSet()) : Edges.create(successor);
     }
 
     @Nonnull

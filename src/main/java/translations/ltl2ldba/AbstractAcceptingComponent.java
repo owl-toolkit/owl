@@ -30,10 +30,15 @@ import java.util.*;
 
 public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends OmegaAcceptance, U> extends Automaton<S, T> {
 
+    protected final BitSet ACCEPT;
     protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
     protected final EquivalenceClassFactory equivalenceClassFactory;
     private Set<U> components = new HashSet<>();
     protected EquivalenceClassStateFactory factory;
+
+    public BitSet getAcceptBitSet() {
+        return ACCEPT;
+    }
 
     public Set<U> getComponents() {
         return Collections.unmodifiableSet(components);
@@ -43,6 +48,8 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
         super(acc, valuationSetFactory);
         equivalenceClassFactory = factory;
         this.factory = new EquivalenceClassStateFactory(factory, optimisations);
+        ACCEPT = new BitSet();
+        ACCEPT.set(0, 1);
     }
 
     public EquivalenceClassFactory getEquivalenceClassFactory() {

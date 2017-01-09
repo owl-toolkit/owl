@@ -50,11 +50,7 @@ public class EquivalenceClassStateFactory {
         return initial;
     }
 
-    public EquivalenceClass getInitial(EquivalenceClass clazz) {
-        return getInitial(clazz, null);
-    }
-
-    public EquivalenceClass getInitial(EquivalenceClass clazz, @Nullable EquivalenceClass environment) {
+    public EquivalenceClass getInitial(EquivalenceClass clazz, EquivalenceClass... environmentArray) {
         EquivalenceClass initial;
 
         if (eagerUnfold) {
@@ -63,9 +59,15 @@ public class EquivalenceClassStateFactory {
             initial = clazz.duplicate();
         }
 
-        if (removeRedundantObligations && environment != null && environment.implies(initial)) {
-            initial.free();
-            initial = factory.getTrue();
+        if (removeRedundantObligations && environmentArray.length > 0) {
+            EquivalenceClass environment = and(Arrays.asList(environmentArray));
+
+            if (environment.implies(initial)) {
+                initial.free();
+                initial = factory.getTrue();
+            }
+
+            environment.free();
         }
 
         return initial;
@@ -82,10 +84,6 @@ public class EquivalenceClassStateFactory {
         }
     }
 
-    public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation) {
-        return getSuccessor(clazz, valuation, null);
-    }
-
     public EquivalenceClass getNondetSuccessor(EquivalenceClass clazz, BitSet valuation) {
         EquivalenceClass successor;
 
@@ -98,7 +96,7 @@ public class EquivalenceClassStateFactory {
         return successor;
     }
 
-    public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, @Nullable EquivalenceClass environment) {
+    public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation, EquivalenceClass... environmentArray) {
         EquivalenceClass successor;
 
         if (eagerUnfold) {
@@ -107,9 +105,15 @@ public class EquivalenceClassStateFactory {
             successor = clazz.unfoldTemporalStep(valuation);
         }
 
-        if (removeRedundantObligations && environment != null && environment.implies(successor)) {
-            successor.free();
-            successor = factory.getTrue();
+        if (removeRedundantObligations && environmentArray.length > 0) {
+            EquivalenceClass environment = and(Arrays.asList(environmentArray));
+
+            if (environment.implies(successor)) {
+                successor.free();
+                successor = factory.getTrue();
+            }
+
+            environment.free();
         }
 
         return successor;
@@ -140,5 +144,25 @@ public class EquivalenceClassStateFactory {
         }
 
         return successors;
+    }
+
+    private EquivalenceClass and(Iterable<EquivalenceClass> equivalenceClasses) {
+        EquivalenceClass conjunction = factory.getTrue().duplicate();
+
+        for (EquivalenceClass equivalenceClass : equivalenceClasses) {
+            conjunction = conjunction.andWith(equivalenceClass);
+        }
+
+        return conjunction;
+    }
+
+    private EquivalenceClass or(Iterable<EquivalenceClass> equivalenceClasses) {
+        EquivalenceClass conjunction = factory.getTrue().duplicate();
+
+        for (EquivalenceClass equivalenceClass : equivalenceClasses) {
+            conjunction = conjunction.andWith(equivalenceClass);
+        }
+
+        return conjunction;
     }
 }

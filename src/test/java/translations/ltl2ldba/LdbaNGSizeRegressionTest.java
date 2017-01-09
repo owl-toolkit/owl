@@ -23,23 +23,26 @@ import org.junit.runners.Parameterized;
 import translations.AbstractSizeRegressionTest;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
+import translations.ltl2ldba.ng.Ltl2LdbaNg;
+import translations.ltl2ldba.ng.AcceptingComponent;
+import translations.ltl2ldba.ng.RecurringObligations2;
 
 import java.util.EnumSet;
 
 @RunWith(Parameterized.class)
-public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent>> {
+public class LdbaNGSizeRegressionTest extends AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations2>, AcceptingComponent>> {
 
-    public LDBASizeRegressionTest(FormulaGroup selectedClass) {
-        super(selectedClass, new Ltl2Ldba(EnumSet.allOf(Optimisation.class)));
+    public LdbaNGSizeRegressionTest(FormulaGroup selectedClass) {
+        super(selectedClass, new Ltl2LdbaNg(EnumSet.allOf(Optimisation.class)));
     }
 
     @Override
-    protected int getSize(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> automaton) {
+    protected int getSize(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations2>, AcceptingComponent> automaton) {
         return automaton.size();
     }
 
     @Override
-    protected int getAccSize(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> automaton) {
+    protected int getAccSize(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations2>, AcceptingComponent> automaton) {
         return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
     }
 
@@ -47,16 +50,16 @@ public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDete
     protected int[] getExpectedSize(FormulaGroup t) {
         switch (t) {
             case FG:
-                return new int[]{3, 4, 4, 5, 4, 3};
+                return new int[]{3, 4, 5, 6, 4, 4};
 
             case VOLATILE:
                 return new int[]{3, 3, 5, 4};
 
             case ROUND_ROBIN:
-                return new int[]{2, 3, 4, 5, 6, 9};
+                return new int[]{2, 4, 6, 8, 10, 9};
 
             case REACH:
-                return new int[]{2, 3, 314};
+                return new int[]{3, 3, 112};
 
             case CONJUNCTION:
                 return new int[]{1, 2};
@@ -65,19 +68,19 @@ public class LDBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDete
                 return new int[]{1, 3};
 
             case DISJUNCTION:
-                return new int[]{3, 3};
+                return new int[]{2, 4};
 
             case MIXED:
-                return new int[]{3, 4, 6, 6, 4, 4, 4, 2, 6, 20};
+                return new int[]{4, 4, 6, 7, 9, 21, 5, 4, 6, 20};
 
             case FG_UNSTABLE:
-                return new int[]{4, 5, 5, 5, 4, 3};
+                return new int[]{3, 5, 5, 5, 4, 3};
 
             case ORDERINGS:
-                return new int[]{10, 26, 3, 4};
+                return new int[]{9, 14, 3, 4};
 
             case G_DISJUNCTION:
-                return new int[]{212, 24, 133};
+                return new int[]{35, 16, 73};
 
             default:
                 return new int[0];

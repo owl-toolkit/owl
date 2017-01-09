@@ -88,7 +88,8 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
 
         FORMULA_GROUP_MAP.put(FormulaGroup.REACH, new String[]{
                 "F (a | b)",
-                "X a"
+                "X a",
+                "(X X p) U (q | ((a1 U (X X b1)) & (a2 U (X X b2)) & (a3 U (X X b3))))"
         });
 
         FORMULA_GROUP_MAP.put(FormulaGroup.IMMEDIATE, new String[]{

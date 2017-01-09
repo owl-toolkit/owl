@@ -35,9 +35,9 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Objects;
 
-public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcceptingComponent.State, BuchiAcceptance, RecurringObligations2> {
+public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance, RecurringObligations2> {
 
-    QuantAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
+    AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
         super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
     }
 
@@ -147,10 +147,7 @@ public class QuantAcceptingComponent extends AbstractAcceptingComponent<QuantAcc
                 livenessSuccessor = factory.getInitial(obligations.liveness[j]);
             }
 
-            if (livenessSuccessor.isFalse()) {
-                EquivalenceClass.free(safetySuccessor, livenessSuccessor);
-                return null;
-            }
+            assert !livenessSuccessor.isFalse() : "Liveness properties cannot be false.";
 
             State successor = new State(j, safetySuccessor, livenessSuccessor, obligations);
             return acceptingEdge ? Edges.create(successor, 0) : Edges.create(successor);

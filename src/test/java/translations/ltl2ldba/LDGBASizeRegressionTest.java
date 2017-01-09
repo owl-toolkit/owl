@@ -56,7 +56,7 @@ public class LDGBASizeRegressionTest extends AbstractSizeRegressionTest<LimitDet
                 return new int[]{2, 3, 4, 5, 6, 27};
 
             case REACH:
-                return new int[]{2, 3};
+                return new int[]{2, 3, 314};
 
             case CONJUNCTION:
                 return new int[]{1, 2};
