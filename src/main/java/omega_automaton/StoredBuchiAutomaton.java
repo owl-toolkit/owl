@@ -54,18 +54,15 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     }
 
     private void addTransition(State source, ValuationSet label, State successor) {
-        Map<Edge<State>, ValuationSet> transition = transitions.get(source);
-
-        Edge<State> edge = Edges.create(successor);
-
-
+      Map<Edge<State>, ValuationSet> transition = transitions.get(source);
+      Edge<State> edge = acceptingStates.contains(source) ? Edges.create(successor, 0) : Edges.create(successor);
       ValuationSet oldLabel = transition.get(edge);
 
-        if (oldLabel == null) {
-            transition.put(edge, label);
-        } else {
-            oldLabel.addAll(label);
-        }
+      if (oldLabel == null) {
+        transition.put(edge, label);
+      } else {
+        oldLabel.addAll(label);
+      }
     }
 
   public Map<StoredBuchiAutomaton.State, Map<Edge<StoredBuchiAutomaton.State>, ValuationSet>> getTransitions() {
