@@ -61,9 +61,6 @@ task createAllStartScripts() {
 def scripts = [
 	'ltl2det':'translations.ltl2det.LTL2Det',
     'ltl2ldba':'translations.LTL2LDBA',
-    'ltl2ldba-ng':'translations.LTL2LDBANG',
-    'ltl2ldgba':'translations.LTL2LDGBA',
-    'ltl2ldgba-ng':'translations.LTL2LDGBANG',
     'nba2ldba':'translations.nba2ldba.NBA2LDBA',
     'ltl2parity':'translations.ltl2parity.LTL2Parity',
 ]

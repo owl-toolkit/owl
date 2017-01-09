@@ -27,25 +27,49 @@ build:
     when: on_failure
     expire_in: 1 week
 
-test:ltl2ldba:
+# LTL to LDBA translations
+
+test:ltl2ldba Büchi:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi %f >%O"
   <<: *ltlcross_template
 
-test:ltl2ldba-ng:
+test:ltl2ldba Büchi Vanilla:
   variables:
-    LTL_TOOL: "{ltl2ldba-ng} build/bin/ltl2ldba-ng %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
-test:ltl2ldgba:
+test:ltl2ldba Büchi Guess-F:
   variables:
-    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --guess-F %f >%O"
   <<: *ltlcross_template
 
-test:ltl2ldgba-ng:
+test:ltl2ldba Büchi Guess-F Vanilla:
   variables:
-    LTL_TOOL: "{ltl2ldgba-ng} build/bin/ltl2ldgba-ng %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Guess-F:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Guess-F Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+# LTL to DPA translations
 
 test:ltl2parity:
   variables:
@@ -60,24 +84,4 @@ test:ltl2parity-parallel:
 test:ltl2det-parallel:
   variables:
     LTL_TOOL: "{ltl2det} build/bin/ltl2det --parallel %f >%O"
-  <<: *ltlcross_template
-
-test:ltl2ldba:no-opt:
-  variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
-  <<: *ltlcross_template
-
-test:ltl2ldba-ng:no-opt:
-  variables:
-    LTL_TOOL: "{ltl2ldba-ng} build/bin/ltl2ldba-ng --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
-  <<: *ltlcross_template
-
-test:ltl2ldgba:no-opt:
-  variables:
-    LTL_TOOL: "{ltl2ldgba} build/bin/ltl2ldgba --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
-  <<: *ltlcross_template
-
-test:ltl2ldgba-ng:no-opt:
-  variables:
-    LTL_TOOL: "{ltl2ldgba-ng} build/bin/ltl2ldgba-ng --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
