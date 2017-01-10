@@ -21,7 +21,7 @@ import jhoafparser.consumer.HOAConsumerException;
 import ltl.parser.Parser;
 import ltl.tlsf.TLSF;
 import translations.Optimisation;
-import translations.ltl2parity.LTL2Parity;
+import translations.ltl2parity.Ltl2Dpa;
 import translations.ltl2parity.ParityAutomaton;
 
 import java.io.File;
@@ -48,7 +48,7 @@ public class TLSF2Arena {
         File nodeFile = new File(args[0] + ".arena.nodes");
         File edgeFile = new File(args[0] + ".arena.edges");
 
-        LTL2Parity translation = new LTL2Parity();
+        Ltl2Dpa translation = new Ltl2Dpa();
         ParityAutomaton<?> parity = translation.apply(tlsf.toFormula());
         System.out.print(parity);
         bit.writeBinary(parity, fstPlayer, tlsf.inputs(), nodeFile, edgeFile);

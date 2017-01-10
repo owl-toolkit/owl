@@ -19,14 +19,14 @@ package translations.tlsf2arena;
 
 import ltl.Formula;
 import ltl.parser.Parser;
-import translations.ltl2parity.LTL2Parity;
+import translations.ltl2parity.Ltl2Dpa;
 
 import java.io.File;
 import java.util.BitSet;
 
 public class Any2BitArenaTest {
 
-    private final static LTL2Parity translation = new LTL2Parity();
+    private final static Ltl2Dpa translation = new Ltl2Dpa();
 
     public void testWriteBinarySimpSystem() throws Exception {
         Formula ltl = Parser.formula("G (!a | b)");

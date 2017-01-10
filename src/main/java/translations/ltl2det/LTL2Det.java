@@ -29,7 +29,7 @@ import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.*;
-import translations.ltl2parity.LTL2Parity;
+import translations.ltl2parity.Ltl2Dpa;
 
 import java.io.FileNotFoundException;
 import java.io.StringReader;
@@ -60,7 +60,7 @@ public class LTL2Det {
         mapping = parser.map;
 
         Ltl2Ldgba translationLDGBA = new Ltl2Ldgba(optimisations);
-        LTL2Parity translationParity = new LTL2Parity(optimisations);
+        Ltl2Dpa translationParity = new Ltl2Dpa(optimisations);
 
         LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent>
                 ldba = translationLDGBA.apply(formula);

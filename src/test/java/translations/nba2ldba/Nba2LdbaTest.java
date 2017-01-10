@@ -33,9 +33,9 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 
-public class NBA2LDBATest {
+public class Nba2LdbaTest {
 
-    private NBA2LDBA translation;
+    private Nba2Ldba translation;
     private StoredBuchiAutomaton nba;
 
     private static final BiMap<String, Integer> MAPPING = ImmutableBiMap.of("a", 0);
@@ -57,7 +57,7 @@ public class NBA2LDBATest {
     public void setUp() throws Exception {
         EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
         optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-        translation = new NBA2LDBA(optimisations);
+        translation = new Nba2Ldba(optimisations);
 
         StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
         HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);

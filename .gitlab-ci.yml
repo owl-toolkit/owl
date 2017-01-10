@@ -78,15 +78,22 @@ test:ltl2ldba generalised-Büchi Guess-F Vanilla:
 
 # LTL to DPA translations
 
-test:ltl2parity:
+test:ltl2dpa:
   variables:
-    LTL_TOOL: "{ltl2parity} build/bin/ltl2parity %f >%O"
+    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa %f >%O"
   <<: *ltlcross_template
 
-test:ltl2parity-parallel:
+test:ltl2dpa Vanilla:
   variables:
-    LTL_TOOL: "{ltl2parity} build/bin/ltl2parity --parallel %f >%O"
+    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --optimisations=none %f >%O"
   <<: *ltlcross_template
+
+test:ltl2dpa Parallel:
+  variables:
+    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --parallel %f >%O"
+  <<: *ltlcross_template
+
+# LTL to D*A translations
 
 test:ltl2det-parallel:
   variables:

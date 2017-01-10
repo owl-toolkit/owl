@@ -33,13 +33,13 @@ import java.util.EnumSet;
 
 import static org.junit.Assert.assertEquals;
 
-public class LTL2ParityTest {
+public class Ltl2DpaTest {
 
     static void testOutput(String ltl, int size, int accSize) throws IOException {
         EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
         opts.remove(Optimisation.PARALLEL);
         BiMap<String, Integer> mapping = HashBiMap.create();
-        LTL2Parity translation = new LTL2Parity(opts);
+        Ltl2Dpa translation = new Ltl2Dpa(opts);
         ParityAutomaton<?> automaton = translation.apply(Parser.formula(ltl, mapping));
 
         try (OutputStream stream = new ByteArrayOutputStream()) {

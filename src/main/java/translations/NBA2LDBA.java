@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import jhoafparser.parser.HOAFParser;
 import omega_automaton.StoredBuchiAutomaton;
 import omega_automaton.output.HOAPrintable;
+import translations.nba2ldba.Nba2Ldba;
 
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -34,7 +35,7 @@ public class NBA2LDBA extends AbstractCommandLineTool<StoredBuchiAutomaton> {
 
     @Override
     protected Function<StoredBuchiAutomaton, ? extends HOAPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
-        return new translations.nba2ldba.NBA2LDBA(optimisations);
+        return new Nba2Ldba(optimisations);
     }
 
     @Override

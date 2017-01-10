@@ -25,7 +25,7 @@ import translations.AbstractSizeRegressionTest;
 public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityAutomaton<?>> {
 
     public ParitySizeRegressionTest(FormulaGroup selectedClass) {
-        super(selectedClass, new LTL2Parity());
+        super(selectedClass, new Ltl2Dpa());
     }
 
     @Override

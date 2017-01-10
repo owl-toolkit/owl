@@ -17,23 +17,12 @@
 
 package translations.ltl2parity;
 
-import com.google.common.collect.BiMap;
-import jhoafparser.consumer.HOAConsumerPrint;
 import ltl.Formula;
-import ltl.parser.ParseException;
-import ltl.parser.Parser;
-import ltl.simplifier.Simplifier;
 import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.output.HOAPrintable;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
 import translations.ltl2ldba.*;
 
-import java.io.FileNotFoundException;
-import java.io.StringReader;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -42,18 +31,18 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
+public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
 
     // Polling time in ms.
     private static final int SLEEP_MS = 50;
     private final Ltl2Ldba translator;
     private final EnumSet<Optimisation> optimisations;
 
-    public LTL2Parity() {
+    public Ltl2Dpa() {
         this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
     }
 
-    public LTL2Parity(EnumSet<Optimisation> optimisations) {
+    public Ltl2Dpa(EnumSet<Optimisation> optimisations) {
         this.optimisations = EnumSet.copyOf(optimisations);
         this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
         this.optimisations.remove(Optimisation.FORCE_JUMPS);
@@ -131,44 +120,5 @@ public class LTL2Parity implements Function<Formula, ParityAutomaton<?>> {
         parity.generate();
 
         return parity;
-    }
-
-    public static void main(String... args) throws ParseException, ExecutionException, FileNotFoundException {
-        EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-        Deque<String> argsDeque = new ArrayDeque<>(Arrays.asList(args));
-
-        if (!argsDeque.remove("--parallel")) {
-            optimisations.remove(Optimisation.PARALLEL);
-        }
-
-        boolean tlsfInput = argsDeque.remove("--tlsf");
-        boolean decompose = argsDeque.remove("--decompose");
-        EnumSet<HOAPrintable.Option> options = argsDeque.remove("--debug") ? EnumSet.of(HOAPrintable.Option.ANNOTATIONS) : EnumSet.noneOf(HOAPrintable.Option.class);
-        boolean readStdin = argsDeque.isEmpty();
-
-        LTL2Parity translation = new LTL2Parity(optimisations);
-
-        Formula formula;
-        BiMap<String, Integer> mapping;
-
-        if (tlsfInput) {
-            Parser parser = new Parser(System.in);
-            formula = parser.tlsf().toFormula();
-            mapping = parser.map;
-        } else {
-            Parser parser = readStdin ? new Parser(System.in) : new Parser(new StringReader(argsDeque.getFirst()));
-            formula = parser.formula();
-            mapping = parser.map;
-        }
-
-        formula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
-
-        if (decompose) {
-            throw new UnsupportedOperationException();
-        } else {
-            ParityAutomaton<?> parityAutomaton = translation.apply(formula);
-            parityAutomaton.setAtomMapping(mapping.inverse());
-            parityAutomaton.toHOA(new HOAConsumerPrint(System.out), options);
-        }
     }
 }

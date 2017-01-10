@@ -28,11 +28,11 @@ import translations.ldba.LimitDeterministicAutomaton;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public class NBA2LDBA implements Function<StoredBuchiAutomaton, HOAPrintable> {
+public class Nba2Ldba implements Function<StoredBuchiAutomaton, HOAPrintable> {
 
     private final EnumSet<Optimisation> optimisations;
 
-    public NBA2LDBA(EnumSet<Optimisation> optimisations) {
+    public Nba2Ldba(EnumSet<Optimisation> optimisations) {
         this.optimisations = optimisations;
     }
 

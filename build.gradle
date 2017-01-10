@@ -62,7 +62,7 @@ def scripts = [
 	'ltl2det':'translations.ltl2det.LTL2Det',
     'ltl2ldba':'translations.LTL2LDBA',
     'nba2ldba':'translations.NBA2LDBA',
-    'ltl2parity':'translations.ltl2parity.LTL2Parity',
+    'ltl2dpa':'translations.LTL2DPA',
 ]
 
 scripts.each() {scriptName, className -> 
