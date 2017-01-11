@@ -181,7 +181,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             AcceptingComponent.State nextVolatileState = null;
             int nextVolatileStateIndex = -1;
 
-            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
+            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(eagerUnfold ? state : initialComponentState)) {
                 RecurringObligations obligations = accState.getObligations();
                 Integer candidateIndex = volatileComponents.get(obligations);
 
