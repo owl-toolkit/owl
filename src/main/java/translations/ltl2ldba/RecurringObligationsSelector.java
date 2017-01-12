@@ -83,14 +83,17 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
     }
 
     private Set<Set<GOperator>> selectAllMonitors(EquivalenceClass state) {
-        final Set<Formula> support = state.getSupport(INFINITY_OPERATORS);
-        return Sets.powerSet(normaliseInfinityOperators(support));
+        Collector collector = new Collector(INFINITY_OPERATORS);
+        state.getSupport().forEach(x -> x.accept(collector));
+        return Sets.powerSet(normaliseInfinityOperators(collector.getCollection()));
     }
 
     @Override
-    public Set<RecurringObligations> select(EquivalenceClass state, boolean isInitialState) {
+    public Set<RecurringObligations> select(EquivalenceClass input, boolean isInitialState) {
         final Collection<Set<GOperator>> keys;
         final Map<Set<GOperator>, RecurringObligations> jumps = new HashMap<>();
+
+        EquivalenceClass state = optimisations.contains(Optimisation.EAGER_UNFOLD) ? input.duplicate() : input.unfold();
 
         // Find interesting Gs
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
@@ -154,6 +157,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
             }
         }
 
+        state.free();
         return new HashSet<>(jumps.values());
     }
 

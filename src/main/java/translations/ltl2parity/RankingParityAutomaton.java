@@ -51,7 +51,6 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
     private final int volatileMaxIndex;
     private final Map<RecurringObligations, Integer> volatileComponents;
     private int colors;
-    private final boolean eagerUnfold;
 
     RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
         super(new ParityAcceptance(2), factory, integer);
@@ -78,8 +77,6 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
         } else {
             trie = null;
         }
-
-        eagerUnfold = optimisations.contains(Optimisation.EAGER_UNFOLD);
     }
 
     @Override
@@ -181,7 +178,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             AcceptingComponent.State nextVolatileState = null;
             int nextVolatileStateIndex = -1;
 
-            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(eagerUnfold ? state : initialComponentState)) {
+            for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
                 RecurringObligations obligations = accState.getObligations();
                 Integer candidateIndex = volatileComponents.get(obligations);
 
@@ -276,7 +273,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             {
                 EquivalenceClass falseClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
 
-                for (AcceptingComponent.State jumpTarget : initialComponent.epsilonJumps.get(eagerUnfold ? successor : initialComponentState)) {
+                for (AcceptingComponent.State jumpTarget : initialComponent.epsilonJumps.get(successor)) {
                     existingClasses.put(jumpTarget.getObligations(), falseClass);
                 }
             }
