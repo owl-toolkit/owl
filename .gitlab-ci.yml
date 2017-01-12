@@ -1,5 +1,7 @@
+image: gitlab-runner/owl
+
 before_script:
-    - chmod +x gradlew
+  - chmod +x gradlew
 
 build:
   script:
