@@ -17,6 +17,30 @@
 
 package omega_automaton;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
+import com.google.common.collect.ImmutableSet;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayDeque;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.acceptance.OmegaAcceptance;
@@ -27,24 +51,13 @@ import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.HOAPrintable;
 import owl.automaton.edge.Edge;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.*;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import java.util.stream.IntStream;
-
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> implements HOAPrintable {
 
-    protected Set<S> initialStates;
     protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
     protected Acc acceptance;
     protected final ValuationSetFactory valuationSetFactory;
     protected Map<Integer, String> atomMapping;
+    private Set<S> initialStates;
 
     private final AtomicInteger atomicSize;
 
@@ -96,8 +109,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
                 }
             }
 
-            // Generating the automaton is a long-running task. If the thread gets interrupted, we just cancel everything.
-            // Warning: All data structures are now inconsistent!
+            // Generating the automaton is a long-running task. If the thread gets interrupted, we
+            // just cancel everything. Warning: All data structures are now inconsistent!
             if (Thread.interrupted()) {
                 throw new CancellationException();
             }
@@ -233,28 +246,87 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         return transitions.size();
     }
 
-    public Set<S> getInitialStates() {
-        if (initialStates.isEmpty()) {
-            initialStates.addAll(generateInitialStates());
-        }
-
-        return initialStates;
+    /**
+     * Returns an immutable copy of the current initial state set.
+     *
+     * @return The current initial states.
+     */
+    @Nonnull
+    public ImmutableSet<S> getInitialStates() {
+        return ImmutableSet.copyOf(initialStates);
     }
 
+    public void setInitialStates(Set<? extends S> states) {
+        this.initialStates = ImmutableSet.copyOf(states);
+    }
+
+    /**
+     * Sets the unique initial state set. This is equivalent to calling
+     * {@link #setInitialStates(Set)} with {@code ImmutableSet.of(state)}.
+     *
+     * @param state The new initial state.
+     */
+    public void setInitialState(S state) {
+        this.initialStates = ImmutableSet.of(checkNotNull(state));
+    }
+
+    /**
+     * Adds given state to the initial state set if not already present.
+     *
+     * @param state The state to be added to the initial state set
+     */
+    public final void addInitialState(S state) {
+        checkNotNull(state);
+        if (this.initialStates instanceof ImmutableSet) {
+            this.initialStates = new HashSet<>(this.initialStates);
+        }
+        this.initialStates.add(state);
+    }
+
+    /**
+     * Removes given state from the initial state set, if present.
+     *
+     * @param state The state to be removed from the initial state set.
+     */
+    public void removeInitialState(S state) {
+        checkNotNull(state);
+        if (this.initialStates instanceof ImmutableSet) {
+          this.initialStates = new HashSet<>(this.initialStates);
+        }
+        this.initialStates.remove(state);
+    }
+
+    /**
+     * Returns the initial state if there is a unique one. Otherwise an
+     * {@code IllegalStateException} is thrown.
+     *
+     * @return The unique initial state if it exists.
+     *
+     * @throws IllegalStateException If there are zero or multiple initial states.
+     */
+    @Nonnull
+    public S getInitialState() {
+        Set<S> initialStates = getInitialStates();
+        checkState(initialStates.size() == 1);
+        return initialStates.iterator().next();
+    }
+
+    @Nonnull
     public Set<S> getStates() {
         return transitions.keySet();
     }
 
     public void removeUnreachableStates() {
-        removeUnreachableStates(new HashSet<>(getInitialStates()));
+        removeUnreachableStates(getInitialStates());
     }
 
     public void removeUnreachableStates(Set<S> reach) {
-        getReachableStates(reach);
+        getReachableStates(new HashSet<>(reach));
         removeStatesIf(s -> !reach.contains(s));
     }
 
-    protected void removeStatesIf(Predicate<S> predicate) {
+    public void removeStatesIf(Predicate<S> predicate) {
+        Set<S> initialStates = new HashSet<>(getInitialStates());
         initialStates.removeIf(predicate);
 
         if (initialStates.isEmpty()) {
@@ -263,6 +335,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
             transitions.keySet().removeIf(predicate);
             transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.getSuccessor())));
         }
+        setInitialStates(initialStates);
     }
 
     public ValuationSetFactory getFactory() {
@@ -271,10 +344,6 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
     public Acc getAcceptance() {
         return acceptance;
-    }
-
-    protected Set<S> generateInitialStates() {
-        return Collections.emptySet();
     }
 
     @Nonnull

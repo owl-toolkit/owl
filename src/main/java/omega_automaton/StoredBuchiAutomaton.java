@@ -65,11 +65,11 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
       }
     }
 
-  public Map<StoredBuchiAutomaton.State, Map<Edge<StoredBuchiAutomaton.State>, ValuationSet>> getTransitions() {
-    return transitions;
-  }
+    public Map<StoredBuchiAutomaton.State, Map<Edge<StoredBuchiAutomaton.State>, ValuationSet>> getTransitions() {
+      return transitions;
+    }
 
-  public boolean isAccepting(State state) {
+    public boolean isAccepting(State state) {
         return acceptingStates.contains(state);
     }
 
@@ -190,7 +190,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
             automaton = new StoredBuchiAutomaton(valuationSetFactory);
             ensureSpaceInMap(initialState);
             integerToState[initialState] = automaton.addState();
-            automaton.initialStates.add(integerToState[initialState]);
+            automaton.setInitialState(integerToState[initialState]);
             automaton.setAtomMapping(mapping);
         }
 

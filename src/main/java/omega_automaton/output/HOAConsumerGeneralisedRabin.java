@@ -21,7 +21,7 @@ import com.google.common.collect.BiMap;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedRabinAcceptance;
+import omega_automaton.acceptance.GeneralisedRabinAcceptance2;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
@@ -32,10 +32,10 @@ import java.util.Map.Entry;
 @Deprecated
 public class HOAConsumerGeneralisedRabin<S extends AutomatonState<?>> extends HOAConsumerExtended {
 
-    private GeneralisedRabinAcceptance<S> acceptance;
+    private GeneralisedRabinAcceptance2<S> acceptance;
 
     public HOAConsumerGeneralisedRabin(@Nonnull HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String, Integer> aliases, Set<S> initialStates,
-                                       @Nonnull GeneralisedRabinAcceptance<S> accCond, int size) {
+                                       @Nonnull GeneralisedRabinAcceptance2<S> accCond, int size) {
         super(hoa, valuationSetFactory.getSize(), aliases.inverse(), accCond, initialStates, size, EnumSet.allOf(HOAPrintable.Option.class));
         this.acceptance = accCond;
 

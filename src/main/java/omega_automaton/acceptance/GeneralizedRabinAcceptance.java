@@ -28,11 +28,11 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.output.HOAConsumerExtended;
 
-public final class GeneralizedRabinAcceptanceLazy implements OmegaAcceptance {
+public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   private final List<GeneralizedRabinPair> pairList;
   private int setCount;
 
-  public GeneralizedRabinAcceptanceLazy() {
+  public GeneralizedRabinAcceptance() {
     pairList = new LinkedList<>();
   }
 
@@ -46,7 +46,7 @@ public final class GeneralizedRabinAcceptanceLazy implements OmegaAcceptance {
     return pairList.size();
   }
 
-  public GeneralizedRabinAcceptanceLazy.GeneralizedRabinPair getPairByNumber(int pairNumber) {
+  public GeneralizedRabinAcceptance.GeneralizedRabinPair getPairByNumber(int pairNumber) {
     return pairList.get(pairNumber);
   }
 
@@ -59,11 +59,17 @@ public final class GeneralizedRabinAcceptanceLazy implements OmegaAcceptance {
   public List<Object> getNameExtra() {
     // <pair_count> <inf_pairs_of_1> <inf_pairs_of_2> <...>
     final List<Object> extra = new ArrayList<>(getPairCount() + 1);
-    extra.add(getPairCount());
+    extra.add(0); // Will be replaced by count of non-empty pairs.
 
+    int nonEmptyPairs = 0;
     for (final GeneralizedRabinPair pair : pairList) {
+      if (pair.isEmpty()) {
+        continue;
+      }
+      nonEmptyPairs += 1;
       extra.add(pair.getInfiniteSetCount());
     }
+    extra.set(0, nonEmptyPairs);
 
     return extra;
   }
@@ -76,6 +82,11 @@ public final class GeneralizedRabinAcceptanceLazy implements OmegaAcceptance {
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
     // GRA is EXISTS pair. (finitely often Fin set AND FORALL infSet. infinitely often inf set)
+    if (pairList.isEmpty()) {
+      // Empty EXISTS is false
+      return new BooleanExpression<>(false);
+    }
+
     BooleanExpression<AtomAcceptance> expression = null;
 
     for (final GeneralizedRabinPair pair : pairList) {
@@ -89,10 +100,7 @@ public final class GeneralizedRabinAcceptanceLazy implements OmegaAcceptance {
         expression = expression.or(pairExpression);
       }
     }
-    if (expression == null) {
-      // Empty EXISTS is false
-      return new BooleanExpression<>(false);
-    }
+    assert expression != null;
     return expression;
   }
 
@@ -121,12 +129,12 @@ public final class GeneralizedRabinAcceptanceLazy implements OmegaAcceptance {
   }
 
   public static final class GeneralizedRabinPair {
-    private final GeneralizedRabinAcceptanceLazy acceptance;
+    private final GeneralizedRabinAcceptance acceptance;
     private final int pairNumber;
     private final IntList infiniteIndices;
     private int finiteIndex;
 
-    public GeneralizedRabinPair(final GeneralizedRabinAcceptanceLazy acceptance,
+    private GeneralizedRabinPair(final GeneralizedRabinAcceptance acceptance,
         final int pairNumber) {
       this.acceptance = acceptance;
       this.pairNumber = pairNumber;

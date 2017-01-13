@@ -17,40 +17,241 @@
 
 package omega_automaton.acceptance;
 
-import omega_automaton.AutomatonState;
-import omega_automaton.collections.TranSet;
-
+import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import jhoafparser.ast.AtomAcceptance;
+import jhoafparser.ast.BooleanExpression;
+import omega_automaton.output.HOAConsumerExtended;
 
-@Deprecated
-public class RabinAcceptance<S extends AutomatonState<?>> extends GeneralisedRabinAcceptance<S> {
+/**
+ * This class represents a Rabin acceptance. It consists of multiple
+ * {@link RabinAcceptance.RabinPair}s, which in turn basically comprise a (potentially lazily
+ * allocated) <b>Fin</b> and <b>Inf</b> set. A Rabin pair is accepting, if it's <b>Inf</b> set is
+ * seen infinitely often <b>and</b> it's <b>Fin</b> set is seen finitely often. The corresponding
+ * Rabin acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
+ * acceptance without any pairs rejects every word.
+ */
+public class RabinAcceptance implements OmegaAcceptance {
+  private final List<RabinPair> pairList;
+  private int setCount;
 
-    public RabinAcceptance(List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
-        super(acceptanceCondition);
-        checkIfValidArgument(acceptanceCondition);
+  public RabinAcceptance() {
+    pairList = new ArrayList<>();
+  }
+
+  /**
+   * Creates a new Rabin pair.
+   *
+   * @return The created pair.
+   */
+  public RabinPair createPair() {
+    final RabinPair pair = new RabinPair(this, pairList.size());
+    pairList.add(pair);
+    return pair;
+  }
+
+  /**
+   * Returns the amount of pairs this acceptance contains.
+   *
+   * @return The amount of Rabin pairs.
+   */
+  public int getPairCount() {
+    return pairList.size();
+  }
+
+  /**
+   * Returns an unmodifiable collection of all pairs in this acceptance.
+   *
+   * @return The rabin pairs of this acceptance condition.
+   */
+  public Collection<RabinPair> getPairs() {
+    return Collections.unmodifiableCollection(pairList);
+  }
+
+  /**
+   * Returns the pair with the specified number, if present.
+   *
+   * @param pairNumber
+   *     The number of the requested pair
+   *
+   * @return The corresponding pair.
+   *
+   * @throws java.util.NoSuchElementException
+   *     If no pair with this particular number is present.
+   * @see RabinPair#getPairNumber()
+   */
+  public RabinPair getPairByNumber(int pairNumber) {
+    return pairList.get(pairNumber);
+  }
+
+  @Override
+  public int getAcceptanceSets() {
+    return setCount;
+  }
+
+  @Override
+  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+    // RA is EXISTS pair. (finitely often Fin set AND infinitely often Inf set)
+    if (pairList.isEmpty()) {
+      // Empty EXISTS is false
+      return new BooleanExpression<>(false);
+    }
+    BooleanExpression<AtomAcceptance> expression = null;
+
+    for (final RabinPair pair : pairList) {
+      if (pair.isEmpty()) {
+        continue;
+      }
+      final BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
+      if (expression == null) {
+        expression = pairExpression;
+      } else {
+        expression = expression.or(pairExpression);
+      }
+    }
+    assert expression != null;
+    return expression;
+  }
+
+  public String toString() {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("RabinAcceptance: ");
+    for (final RabinPair pair : pairList) {
+      builder.append(pair.toString());
+    }
+    return builder.toString();
+  }
+
+  @Override
+  public String getName() {
+    return "Rabin";
+  }
+
+  @Override
+  public List<Object> getNameExtra() {
+    // <number_of_sets>
+    return ImmutableList.of(setCount);
+  }
+
+  private int createSet(final RabinPair pair) {
+    final int index = setCount;
+    setCount += 1;
+    return index;
+  }
+
+  public static final class RabinPair {
+    private final RabinAcceptance acceptance;
+    private final int pairNumber;
+    private int finiteIndex;
+    private int infiniteIndex;
+
+    private RabinPair(final RabinAcceptance acceptance, final int pairNumber) {
+      this.acceptance = acceptance;
+      this.pairNumber = pairNumber;
+      finiteIndex = -1;
+      infiniteIndex = -1;
     }
 
-    private void checkIfValidArgument(List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
-        for (RabinPair<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
-            if (pair.right.size() != 1) {
-                throw new IllegalArgumentException("Acceptance condition is not a Rabin condition.");
-            }
-        }
+    /**
+     * Checks if the <b>Fin</b> set of this pair is already used.
+     */
+    public boolean hasFinite() {
+      return finiteIndex != -1;
+    }
 
+    /**
+     * Checks if the <b>Inf</b> set of this pair is already used.
+     */
+    public boolean hasInfinite() {
+      return infiniteIndex != -1;
+    }
+
+    /**
+     * Returns if the specified {@code index} is the index representing this <b>Fin</b> set of this
+     * pair.
+     */
+    public boolean isFinite(int index) {
+      return finiteIndex != -1 && index == finiteIndex;
+    }
+
+    /**
+     * Returns if the specified {@code index} is the index representing this <b>Inf</b> set of this
+     * pair.
+     */
+    public boolean isInfinite(int index) {
+      return infiniteIndex != -1 && index == infiniteIndex;
+    }
+
+    /**
+     * Returns the index representing the <b>Fin</b> set of this pair, allocating it if required.
+     */
+    public int getOrCreateFiniteIndex() {
+      if (finiteIndex == -1) {
+        // Not allocated yet
+        finiteIndex = acceptance.createSet(this);
+      }
+      return finiteIndex;
+    }
+
+    /**
+     * Returns the index representing the <b>Inf</b> set of this pair, allocating it if required.
+     */
+    public int getOrCreateInfiniteIndex() {
+      if (infiniteIndex == -1) {
+        infiniteIndex = acceptance.createSet(this);
+      }
+      return infiniteIndex;
+    }
+
+    /**
+     * Checks if the <b>Fin</b> or <b>Inf</b> set of this pair are allocated.
+     */
+    public boolean isEmpty() {
+      return finiteIndex == -1 && infiniteIndex == -1;
+    }
+
+    /**
+     * Returns the number of this pair.
+     */
+    public int getPairNumber() {
+      return pairNumber;
     }
 
     @Override
-    public String getName() {
-        return "Rabin";
+    public String toString() {
+      if (isEmpty()) {
+        return "";
+      }
+
+      final StringBuilder builder = new StringBuilder(10);
+      builder.append('(').append(pairNumber).append(':');
+      if (finiteIndex == -1) {
+        builder.append('#');
+      } else {
+        builder.append(finiteIndex);
+      }
+      builder.append('|');
+      if (infiniteIndex == -1) {
+        builder.append('#');
+      } else {
+        builder.append(infiniteIndex);
+      }
+      builder.append(')');
+      return builder.toString();
     }
 
-    @Override
-    public List<Object> getNameExtra() {
-        return Collections.singletonList(this.acceptanceCondition.size());
+    private BooleanExpression<AtomAcceptance> getBooleanExpression() {
+      assert !isEmpty();
+      if (finiteIndex == -1) {
+        return HOAConsumerExtended.mkInf(infiniteIndex);
+      }
+      if (infiniteIndex == -1) {
+        return HOAConsumerExtended.mkFin(finiteIndex);
+      }
+      return HOAConsumerExtended.mkFin(finiteIndex).and(HOAConsumerExtended.mkInf(infiniteIndex));
     }
-
-    public void addRabinPair(TranSet<S> fin, TranSet<S> inf) {
-        this.acceptanceCondition.add(new RabinPair<>(fin.copy(), Collections.singletonList(inf.copy())));
-    }
+  }
 }

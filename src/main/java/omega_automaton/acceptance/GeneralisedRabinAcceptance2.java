@@ -33,19 +33,19 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 
 @Deprecated
-public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
+public class GeneralisedRabinAcceptance2<S extends AutomatonState<?>> implements OmegaAcceptance {
   protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
-  protected final List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
+  protected final List<RabinPair2<TranSet<S>, List<TranSet<S>>>> acceptanceCondition;
 
-  public GeneralisedRabinAcceptance(
-      List<RabinPair<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+  public GeneralisedRabinAcceptance2(
+      List<RabinPair2<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
     this.acceptanceCondition = acceptanceCondition;
     for (int j = 0; j < this.acceptanceCondition.size(); j++) {
-      RabinPair<TranSet<S>, List<TranSet<S>>> pair = this.acceptanceCondition.get(j);
+      RabinPair2<TranSet<S>, List<TranSet<S>>> pair = this.acceptanceCondition.get(j);
       for (int i = 0; i < pair.right.size(); i++) {
         pair.right.set(i, pair.right.get(i).copy());
       }
-      this.acceptanceCondition.set(j, new RabinPair<>(pair.left.copy(), pair.right));
+      this.acceptanceCondition.set(j, new RabinPair2<>(pair.left.copy(), pair.right));
     }
     this.acceptanceNumbers = new IdentityHashMap<>();
   }
@@ -54,18 +54,18 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     return acceptanceNumbers;
   }
 
-  public List<RabinPair<TranSet<S>, List<TranSet<S>>>> getAcceptanceCondition() {
+  public List<RabinPair2<TranSet<S>, List<TranSet<S>>>> getAcceptanceCondition() {
     return acceptanceCondition;
   }
 
   /**
    * Used by Prism
    */
-  public List<RabinPair<TranSet<S>, List<TranSet<S>>>> unmodifiableCopyOfAcceptanceCondition() {
+  public List<RabinPair2<TranSet<S>, List<TranSet<S>>>> unmodifiableCopyOfAcceptanceCondition() {
     return Collections.unmodifiableList(acceptanceCondition);
   }
 
-  public void addPair(RabinPair<TranSet<S>, List<TranSet<S>>> rabinPair) {
+  public void addPair(RabinPair2<TranSet<S>, List<TranSet<S>>> rabinPair) {
     acceptanceCondition.add(rabinPair);
   }
 
@@ -79,7 +79,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     List<Object> extra = new ArrayList<>(acceptanceCondition.size() + 1);
     extra.add(acceptanceCondition.size());
 
-    for (RabinPair<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+    for (RabinPair2<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
       extra.add(pair.right.size());
     }
 
@@ -89,7 +89,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
   @Override
   public int getAcceptanceSets() {
     int result = 0;
-    for (RabinPair<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+    for (RabinPair2<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
       result += 1;
       result += pair.right.size();
     }
@@ -101,7 +101,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     BooleanExpression<AtomAcceptance> disjunction = null;
 
     for (int offset = 0; offset < acceptanceCondition.size(); offset++) {
-      RabinPair<TranSet<S>, List<TranSet<S>>> pair = acceptanceCondition.get(offset);
+      RabinPair2<TranSet<S>, List<TranSet<S>>> pair = acceptanceCondition.get(offset);
       BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended
           .mkFin(getTranSetId(pair.left));
 
@@ -141,8 +141,8 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
    * checks if premise implies conclusion (as acceptance pair)
    */
   public boolean implies(int premiseIndex, int conclusionIndex) {
-    RabinPair<TranSet<S>, List<TranSet<S>>> premise = acceptanceCondition.get(premiseIndex);
-    RabinPair<TranSet<S>, List<TranSet<S>>> conclusion = acceptanceCondition.get(conclusionIndex);
+    RabinPair2<TranSet<S>, List<TranSet<S>>> premise = acceptanceCondition.get(premiseIndex);
+    RabinPair2<TranSet<S>, List<TranSet<S>>> conclusion = acceptanceCondition.get(conclusionIndex);
     return premise.left.containsAll(conclusion.left) && conclusion.right.stream()
         .allMatch(inf2 -> premise.right.stream().anyMatch(inf2::containsAll));
   }
@@ -164,14 +164,14 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     acceptanceCondition.clear();
   }
 
-  public void addEach(Collection<RabinPair<TranSet<S>, List<TranSet<S>>>> temp) {
+  public void addEach(Collection<RabinPair2<TranSet<S>, List<TranSet<S>>>> temp) {
     acceptanceCondition.addAll(temp);
   }
 
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("GeneralisedRabinAcceptance\n");
-    for (RabinPair<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+    for (RabinPair2<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
       builder.append("\nPair: ");
       builder.append('\n');
       builder.append('\t');
@@ -193,7 +193,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
   // to be overriden by GeneralisedRabinWithMeanPayoffAcceptance
   protected BooleanExpression<AtomAcceptance> addInfiniteSetsToConjunction(
       BooleanExpression<AtomAcceptance> conjunction, int offset) {
-    RabinPair<TranSet<S>, List<TranSet<S>>> pair = acceptanceCondition.get(offset);
+    RabinPair2<TranSet<S>, List<TranSet<S>>> pair = acceptanceCondition.get(offset);
     for (TranSet<S> inf : pair.right) {
       conjunction = conjunction.and(HOAConsumerExtended.mkInf(getTranSetId(inf)));
     }
