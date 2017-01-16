@@ -37,7 +37,7 @@ dependencies {
     compileOnly 'com.google.code.findbugs:annotations:3.0.1'
     compileOnly 'org.immutables:value:2.3.9'
 
-    compile 'com.google.guava:guava:21.0-rc2'
+    compile 'com.google.guava:guava:21.0'
     compile 'it.unimi.dsi:fastutil:7.0.13'
     compile files('lib/jhoafparser-1.1.1.jar')
 
