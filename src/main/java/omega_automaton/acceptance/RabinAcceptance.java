@@ -18,13 +18,14 @@
 package omega_automaton.acceptance;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.output.HOAConsumerExtended;
+import owl.automaton.edge.Edge;
 
 /**
  * This class represents a Rabin acceptance. It consists of multiple
@@ -53,38 +54,10 @@ public class RabinAcceptance implements OmegaAcceptance {
     return pair;
   }
 
-  /**
-   * Returns the amount of pairs this acceptance contains.
-   *
-   * @return The amount of Rabin pairs.
-   */
-  public int getPairCount() {
-    return pairList.size();
-  }
-
-  /**
-   * Returns an unmodifiable collection of all pairs in this acceptance.
-   *
-   * @return The rabin pairs of this acceptance condition.
-   */
-  public Collection<RabinPair> getPairs() {
-    return Collections.unmodifiableCollection(pairList);
-  }
-
-  /**
-   * Returns the pair with the specified number, if present.
-   *
-   * @param pairNumber
-   *     The number of the requested pair
-   *
-   * @return The corresponding pair.
-   *
-   * @throws java.util.NoSuchElementException
-   *     If no pair with this particular number is present.
-   * @see RabinPair#getPairNumber()
-   */
-  public RabinPair getPairByNumber(int pairNumber) {
-    return pairList.get(pairNumber);
+  private int createSet(final RabinPair pair) {
+    final int index = setCount;
+    setCount += 1;
+    return index;
   }
 
   @Override
@@ -116,15 +89,6 @@ public class RabinAcceptance implements OmegaAcceptance {
     return expression;
   }
 
-  public String toString() {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("RabinAcceptance: ");
-    for (final RabinPair pair : pairList) {
-      builder.append(pair.toString());
-    }
-    return builder.toString();
-  }
-
   @Override
   public String getName() {
     return "Rabin";
@@ -136,10 +100,47 @@ public class RabinAcceptance implements OmegaAcceptance {
     return ImmutableList.of(setCount);
   }
 
-  private int createSet(final RabinPair pair) {
-    final int index = setCount;
-    setCount += 1;
-    return index;
+  /**
+   * Returns the pair with the specified number, if present.
+   *
+   * @param pairNumber
+   *     The number of the requested pair
+   *
+   * @return The corresponding pair.
+   *
+   * @throws java.util.NoSuchElementException
+   *     If no pair with this particular number is present.
+   * @see RabinPair#getPairNumber()
+   */
+  public RabinPair getPairByNumber(int pairNumber) {
+    return pairList.get(pairNumber);
+  }
+
+  /**
+   * Returns the amount of pairs this acceptance contains.
+   *
+   * @return The amount of Rabin pairs.
+   */
+  public int getPairCount() {
+    return pairList.size();
+  }
+
+  /**
+   * Returns an unmodifiable collection of all pairs in this acceptance.
+   *
+   * @return The rabin pairs of this acceptance condition.
+   */
+  public Set<RabinPair> getPairs() {
+    return ImmutableSet.copyOf(pairList);
+  }
+
+  public String toString() {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("RabinAcceptance: ");
+    for (final RabinPair pair : pairList) {
+      builder.append(pair.toString());
+    }
+    return builder.toString();
   }
 
   public static final class RabinPair {
@@ -156,33 +157,42 @@ public class RabinAcceptance implements OmegaAcceptance {
     }
 
     /**
-     * Checks if the <b>Fin</b> set of this pair is already used.
+     * Checks whether the given edge is contained in the <b>Fin</b> set of this pair.
+     *
+     * @param edge
+     *     The edge to be tested.
+     *
+     * @return If {@code edge} is contained in the <b>Fin</b> set.
+     *
+     * @see Edge#inSet(int)
      */
-    public boolean hasFinite() {
-      return finiteIndex != -1;
+    public boolean containsFinite(final Edge<?> edge) {
+      return hasFinite() && edge.inSet(finiteIndex);
     }
 
     /**
-     * Checks if the <b>Inf</b> set of this pair is already used.
+     * Checks whether the given edge is contained in the <b>Inf</b> set of this pair.
+     *
+     * @param edge
+     *     The edge to be tested.
+     *
+     * @return If {@code edge} is contained in the <b>Inf</b> set.
+     *
+     * @see Edge#inSet(int)
      */
-    public boolean hasInfinite() {
-      return infiniteIndex != -1;
+    public boolean containsInfinite(final Edge<?> edge) {
+      return hasInfinite() && edge.inSet(infiniteIndex);
     }
 
-    /**
-     * Returns if the specified {@code index} is the index representing this <b>Fin</b> set of this
-     * pair.
-     */
-    public boolean isFinite(int index) {
-      return finiteIndex != -1 && index == finiteIndex;
-    }
-
-    /**
-     * Returns if the specified {@code index} is the index representing this <b>Inf</b> set of this
-     * pair.
-     */
-    public boolean isInfinite(int index) {
-      return infiniteIndex != -1 && index == infiniteIndex;
+    private BooleanExpression<AtomAcceptance> getBooleanExpression() {
+      assert !isEmpty();
+      if (finiteIndex == -1) {
+        return HOAConsumerExtended.mkInf(infiniteIndex);
+      }
+      if (infiniteIndex == -1) {
+        return HOAConsumerExtended.mkFin(finiteIndex);
+      }
+      return HOAConsumerExtended.mkFin(finiteIndex).and(HOAConsumerExtended.mkInf(infiniteIndex));
     }
 
     /**
@@ -207,6 +217,27 @@ public class RabinAcceptance implements OmegaAcceptance {
     }
 
     /**
+     * Returns the number of this pair.
+     */
+    public int getPairNumber() {
+      return pairNumber;
+    }
+
+    /**
+     * Checks if the <b>Fin</b> set of this pair is already used.
+     */
+    public boolean hasFinite() {
+      return finiteIndex != -1;
+    }
+
+    /**
+     * Checks if the <b>Inf</b> set of this pair is already used.
+     */
+    public boolean hasInfinite() {
+      return infiniteIndex != -1;
+    }
+
+    /**
      * Checks if the <b>Fin</b> or <b>Inf</b> set of this pair are allocated.
      */
     public boolean isEmpty() {
@@ -214,10 +245,19 @@ public class RabinAcceptance implements OmegaAcceptance {
     }
 
     /**
-     * Returns the number of this pair.
+     * Returns if the specified {@code index} is the index representing this <b>Fin</b> set of this
+     * pair.
      */
-    public int getPairNumber() {
-      return pairNumber;
+    public boolean isFinite(int index) {
+      return finiteIndex != -1 && index == finiteIndex;
+    }
+
+    /**
+     * Returns if the specified {@code index} is the index representing this <b>Inf</b> set of this
+     * pair.
+     */
+    public boolean isInfinite(int index) {
+      return infiniteIndex != -1 && index == infiniteIndex;
     }
 
     @Override
@@ -241,17 +281,6 @@ public class RabinAcceptance implements OmegaAcceptance {
       }
       builder.append(')');
       return builder.toString();
-    }
-
-    private BooleanExpression<AtomAcceptance> getBooleanExpression() {
-      assert !isEmpty();
-      if (finiteIndex == -1) {
-        return HOAConsumerExtended.mkInf(infiniteIndex);
-      }
-      if (infiniteIndex == -1) {
-        return HOAConsumerExtended.mkFin(finiteIndex);
-      }
-      return HOAConsumerExtended.mkFin(finiteIndex).and(HOAConsumerExtended.mkInf(infiniteIndex));
     }
   }
 }
