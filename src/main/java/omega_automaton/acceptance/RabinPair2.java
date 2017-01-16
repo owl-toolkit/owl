@@ -20,12 +20,12 @@ package omega_automaton.acceptance;
 import java.util.Objects;
 
 @Deprecated
-public class RabinPair<L, R> {
+public class RabinPair2<L, R> {
 
     public final L left;
     public final R right;
 
-    public RabinPair(L l, R r) {
+    public RabinPair2(L l, R r) {
         left = l;
         right = r;
     }
@@ -34,7 +34,7 @@ public class RabinPair<L, R> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RabinPair<?, ?> rabinPair = (RabinPair<?, ?>) o;
+        RabinPair2<?, ?> rabinPair = (RabinPair2<?, ?>) o;
         return Objects.equals(left, rabinPair.left) &&
                 Objects.equals(right, rabinPair.right);
     }
