@@ -17,32 +17,43 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public interface IntVisitor {
 
-    int visit(BooleanConstant booleanConstant);
+  int visit(BooleanConstant booleanConstant);
 
-    int visit(Conjunction conjunction);
+  int visit(Conjunction conjunction);
 
-    int visit(Disjunction disjunction);
+  int visit(Disjunction disjunction);
 
-    int visit(FOperator fOperator);
+  int visit(FOperator fOperator);
 
-    int visit(FrequencyG freq);
+  int visit(FrequencyG freq);
 
-    int visit(GOperator gOperator);
+  int visit(GOperator gOperator);
 
-    int visit(Literal literal);
+  int visit(Literal literal);
 
-    int visit(MOperator mOperator);
+  int visit(MOperator mOperator);
 
-    int visit(ROperator rOperator);
+  int visit(ROperator rOperator);
 
-    int visit(UOperator uOperator);
+  int visit(UOperator uOperator);
 
-    int visit(WOperator wOperator);
+  int visit(WOperator wOperator);
 
-    int visit(XOperator xOperator);
+  int visit(XOperator xOperator);
 
 }

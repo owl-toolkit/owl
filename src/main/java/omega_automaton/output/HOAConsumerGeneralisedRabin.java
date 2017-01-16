@@ -18,6 +18,12 @@
 package omega_automaton.output;
 
 import com.google.common.collect.BiMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.AutomatonState;
@@ -25,38 +31,36 @@ import omega_automaton.acceptance.GeneralisedRabinAcceptance2;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.Map.Entry;
-
 @Deprecated
 public class HOAConsumerGeneralisedRabin<S extends AutomatonState<?>> extends HOAConsumerExtended {
 
-    private GeneralisedRabinAcceptance2<S> acceptance;
+  private GeneralisedRabinAcceptance2<S> acceptance;
 
-    public HOAConsumerGeneralisedRabin(@Nonnull HOAConsumer hoa, ValuationSetFactory valuationSetFactory, BiMap<String, Integer> aliases, Set<S> initialStates,
-                                       @Nonnull GeneralisedRabinAcceptance2<S> accCond, int size) {
-        super(hoa, valuationSetFactory.getSize(), aliases.inverse(), accCond, initialStates, size, EnumSet.allOf(HOAPrintable.Option.class));
-        this.acceptance = accCond;
+  public HOAConsumerGeneralisedRabin(@Nonnull HOAConsumer hoa,
+    ValuationSetFactory valuationSetFactory, BiMap<String, Integer> aliases, Set<S> initialStates,
+    @Nonnull GeneralisedRabinAcceptance2<S> accCond, int size) {
+    super(hoa, valuationSetFactory.getSize(), aliases.inverse(), accCond, initialStates, size,
+      EnumSet.allOf(HOAPrintable.Option.class));
+    this.acceptance = accCond;
 
-        Map<String, List<Object>> map = acceptance.miscellaneousAnnotations();
+    Map<String, List<Object>> map = acceptance.miscellaneousAnnotations();
 
-        try {
-            for (Entry<String, List<Object>> entry : map.entrySet()) {
-                hoa.addMiscHeader(entry.getKey(), entry.getValue());
-            }
-        } catch (HOAConsumerException ex) {
-            LOGGER.warning(ex.toString());
-        }
+    try {
+      for (Entry<String, List<Object>> entry : map.entrySet()) {
+        hoa.addMiscHeader(entry.getKey(), entry.getValue());
+      }
+    } catch (HOAConsumerException ex) {
+      LOGGER.warning(ex.toString());
     }
+  }
 
-    @Override
-    public void addEdge(ValuationSet key, AutomatonState<?> end) {
-        Set<ValuationSet> realEdges = acceptance.getMaximallyMergedEdgesOfEdge(currentState, key);
+  @Override
+  public void addEdge(ValuationSet key, AutomatonState<?> end) {
+    Set<ValuationSet> realEdges = acceptance.getMaximallyMergedEdgesOfEdge(currentState, key);
 
-        for (ValuationSet edgeKey : realEdges) {
-            addEdgeBackend(edgeKey, end, acceptance.getInvolvedAcceptanceNumbers(currentState, edgeKey));
-        }
+    for (ValuationSet edgeKey : realEdges) {
+      addEdgeBackend(edgeKey, end, acceptance.getInvolvedAcceptanceNumbers(currentState, edgeKey));
     }
+  }
 }
 

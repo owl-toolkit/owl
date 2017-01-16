@@ -17,85 +17,96 @@
 
 package ltl.visitors.predicates;
 
-import ltl.*;
-import ltl.visitors.Visitor;
-
 import java.util.function.Predicate;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
+import ltl.visitors.Visitor;
 
 public final class XFragmentPredicate implements Predicate<Formula>, Visitor<Boolean> {
 
-    public static final XFragmentPredicate INSTANCE = new XFragmentPredicate();
+  public static final XFragmentPredicate INSTANCE = new XFragmentPredicate();
 
-    public static boolean testStatic(Formula formula) {
-        return INSTANCE.test(formula);
-    }
+  private XFragmentPredicate() {
 
-    private XFragmentPredicate() {
+  }
 
-    }
+  public static boolean testStatic(Formula formula) {
+    return INSTANCE.test(formula);
+  }
 
-    @Override
-    public Boolean visit(FOperator fOperator) {
-        return false;
-    }
+  @Override
+  public boolean test(Formula formula) {
+    return formula.accept(this);
+  }
 
-    @Override
-    public Boolean visit(FrequencyG freq) {
-        return false;
-    }
+  @Override
+  public Boolean visit(FOperator fOperator) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(GOperator gOperator) {
-        return false;
-    }
+  @Override
+  public Boolean visit(FrequencyG freq) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(MOperator mOperator) {
-        return false;
-    }
+  @Override
+  public Boolean visit(GOperator gOperator) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(ROperator rOperator) {
-        return false;
-    }
+  @Override
+  public Boolean visit(MOperator mOperator) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(UOperator uOperator) {
-        return false;
-    }
+  @Override
+  public Boolean visit(ROperator rOperator) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(WOperator wOperator) {
-        return false;
-    }
+  @Override
+  public Boolean visit(UOperator uOperator) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(BooleanConstant booleanConstant) {
-        return Boolean.TRUE;
-    }
+  @Override
+  public Boolean visit(WOperator wOperator) {
+    return false;
+  }
 
-    @Override
-    public Boolean visit(Conjunction conjunction) {
-        return conjunction.allMatch(c -> c.accept(this));
-    }
+  @Override
+  public Boolean visit(BooleanConstant booleanConstant) {
+    return Boolean.TRUE;
+  }
 
-    @Override
-    public Boolean visit(Disjunction disjunction) {
-        return disjunction.allMatch(c -> c.accept(this));
-    }
+  @Override
+  public Boolean visit(Conjunction conjunction) {
+    return conjunction.allMatch(c -> c.accept(this));
+  }
 
-    @Override
-    public Boolean visit(Literal literal) {
-        return Boolean.TRUE;
-    }
+  @Override
+  public Boolean visit(Disjunction disjunction) {
+    return disjunction.allMatch(c -> c.accept(this));
+  }
 
-    @Override
-    public Boolean visit(XOperator xOperator) {
-        return xOperator.operand.accept(this);
-    }
+  @Override
+  public Boolean visit(Literal literal) {
+    return Boolean.TRUE;
+  }
 
-    @Override
-    public boolean test(Formula formula) {
-        return formula.accept(this);
-    }
+  @Override
+  public Boolean visit(XOperator xOperator) {
+    return xOperator.operand.accept(this);
+  }
 }

@@ -17,21 +17,21 @@
 
 package omega_automaton.acceptance;
 
+import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
-import java.util.List;
-
 public interface OmegaAcceptance {
-    String getName();
+  int getAcceptanceSets();
 
-    List<Object> getNameExtra();
+  /**
+   * Canonical Representation as Boolean Expression
+   *
+   * @return the canonical rep.
+   */
+  BooleanExpression<AtomAcceptance> getBooleanExpression();
 
-    int getAcceptanceSets();
+  String getName();
 
-    /**
-     * Canonical Representation as Boolean Expression
-     * @return the canonical rep.
-     */
-    BooleanExpression<AtomAcceptance> getBooleanExpression();
+  List<Object> getNameExtra();
 }

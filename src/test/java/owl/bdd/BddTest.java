@@ -21,9 +21,13 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.util.*;
-
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -48,95 +52,6 @@ public class BddTest {
       }
     }
     return bitSet;
-  }
-
-  @Test
-  public void testSupport() {
-    final Bdd bdd = new BddImpl(10);
-    final int v1 = bdd.createVariable();
-    final int v2 = bdd.createVariable();
-    final int v3 = bdd.createVariable();
-    final int v4 = bdd.createVariable();
-    final int v5 = bdd.createVariable();
-
-    assertThat(bdd.support(v1), is(buildBitSet("100")));
-    assertThat(bdd.support(v2), is(buildBitSet("010")));
-    assertThat(bdd.support(v3), is(buildBitSet("001")));
-
-    final List<Integer> variables = Arrays.asList(v1, v2, v3, v4, v5);
-
-    // The snippet below builds various BDDs by evaluating every possible subset of variables,
-    // combining the variables in this subset with different operations and then checking that the
-    // support of each combination equals the variables of the subset.
-    final List<Integer> subset = new ArrayList<>(variables.size());
-    for (int i = 1; i < 1 << variables.size(); i++) {
-      final BitSet subsetBitSet = buildBitSet(i, variables.size());
-      subsetBitSet.stream().forEach(setBit -> subset.add(variables.get(setBit)));
-
-      final Iterator<Integer> variableIterator = subset.iterator();
-      int variable = variableIterator.next();
-      int and = variable;
-      int or = variable;
-      int xor = variable;
-      int imp = variable;
-      int equiv = variable;
-      while (variableIterator.hasNext()) {
-        variable = variableIterator.next();
-        and = bdd.and(and, variable);
-        or = bdd.or(or, variable);
-        xor = bdd.xor(xor, variable);
-        imp = bdd.implication(imp, variable);
-        equiv = bdd.equivalence(equiv, variable);
-      }
-      assertThat(bdd.support(and), is(subsetBitSet));
-      assertThat(bdd.support(or), is(subsetBitSet));
-      assertThat(bdd.support(xor), is(subsetBitSet));
-      assertThat(bdd.support(imp), is(subsetBitSet));
-      assertThat(bdd.support(equiv), is(subsetBitSet));
-      subset.clear();
-    }
-  }
-
-  @Test
-  public void testIfThenElse() {
-    final Bdd bdd = new BddImpl(10);
-    final int v1 = bdd.createVariable();
-    final int v2 = bdd.createVariable();
-    final int v1andv2 = bdd.and(v1, v2);
-    assertThat(bdd.ifThenElse(v1, v1, v1), is(v1));
-    assertThat(bdd.ifThenElse(v1, v1andv2, v1andv2), is(v1andv2));
-    assertThat(bdd.ifThenElse(v1, v1andv2, v2), is(v2));
-    assertThat(bdd.ifThenElse(v1, v2, 0), is(bdd.and(v1, v2)));
-    assertThat(bdd.ifThenElse(v1, 1, v2), is(bdd.or(v1, v2)));
-    assertThat(bdd.ifThenElse(v1, bdd.not(v2), v2), is(bdd.xor(v1, v2)));
-    assertThat(bdd.ifThenElse(v1, 0, 1), is(bdd.not(v1)));
-    assertThat(bdd.ifThenElse(v1, v2, bdd.not(v2)), is(bdd.equivalence(v1, v2)));
-  }
-
-  @SuppressWarnings("ReuseOfLocalVariable")
-  @Test
-  public void testCompose() {
-    final BddImpl bdd = new BddImpl(10);
-    final int v1 = bdd.createVariable();
-    final int nv1 = bdd.not(v1);
-    final int v2 = bdd.createVariable();
-    final int v3 = bdd.createVariable();
-
-    final int v2orv3 = bdd.or(v2, v3);
-    final int v1andv2 = bdd.and(v1, v2);
-    final int v1andv2orv3 = bdd.and(v1, bdd.reference(v2orv3));
-    final int nv1andv2orv3 = bdd.and(nv1, bdd.reference(v2orv3));
-
-    int composition = bdd.compose(v1andv2, new int[] {v1, v2, v3});
-    assertThat(v1andv2, is(composition));
-    composition = bdd.compose(v1andv2, new int[] {v1, v2orv3, v3});
-    assertThat(composition, is(v1andv2orv3));
-    composition = bdd.compose(composition, new int[] {nv1});
-    assertThat(composition, is(nv1andv2orv3));
-    composition = bdd.compose(composition, new int[] {nv1});
-    assertThat(composition, is(v1andv2orv3));
-    composition = bdd.compose(v1andv2, new int[] {v2, v2});
-    assertThat(composition, is(v2));
   }
 
   /**
@@ -228,6 +143,48 @@ public class BddTest {
     assertThat(bdd.countSatisfyingAssignments(b1), is(8d));
   }
 
+  @SuppressWarnings("ReuseOfLocalVariable")
+  @Test
+  public void testCompose() {
+    final BddImpl bdd = new BddImpl(10);
+    final int v1 = bdd.createVariable();
+    final int nv1 = bdd.not(v1);
+    final int v2 = bdd.createVariable();
+    final int v3 = bdd.createVariable();
+
+    final int v2orv3 = bdd.or(v2, v3);
+    final int v1andv2 = bdd.and(v1, v2);
+    final int v1andv2orv3 = bdd.and(v1, bdd.reference(v2orv3));
+    final int nv1andv2orv3 = bdd.and(nv1, bdd.reference(v2orv3));
+
+    int composition = bdd.compose(v1andv2, new int[] {v1, v2, v3});
+    assertThat(v1andv2, is(composition));
+    composition = bdd.compose(v1andv2, new int[] {v1, v2orv3, v3});
+    assertThat(composition, is(v1andv2orv3));
+    composition = bdd.compose(composition, new int[] {nv1});
+    assertThat(composition, is(nv1andv2orv3));
+    composition = bdd.compose(composition, new int[] {nv1});
+    assertThat(composition, is(v1andv2orv3));
+    composition = bdd.compose(v1andv2, new int[] {v2, v2});
+    assertThat(composition, is(v2));
+  }
+
+  @Test
+  public void testIfThenElse() {
+    final Bdd bdd = new BddImpl(10);
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
+    final int v1andv2 = bdd.and(v1, v2);
+    assertThat(bdd.ifThenElse(v1, v1, v1), is(v1));
+    assertThat(bdd.ifThenElse(v1, v1andv2, v1andv2), is(v1andv2));
+    assertThat(bdd.ifThenElse(v1, v1andv2, v2), is(v2));
+    assertThat(bdd.ifThenElse(v1, v2, 0), is(bdd.and(v1, v2)));
+    assertThat(bdd.ifThenElse(v1, 1, v2), is(bdd.or(v1, v2)));
+    assertThat(bdd.ifThenElse(v1, bdd.not(v2), v2), is(bdd.xor(v1, v2)));
+    assertThat(bdd.ifThenElse(v1, 0, 1), is(bdd.not(v1)));
+    assertThat(bdd.ifThenElse(v1, v2, bdd.not(v2)), is(bdd.equivalence(v1, v2)));
+  }
+
   @Test
   public void testMember() {
     // TEST MEMBER: taken from the brace/rudell/bryant paper
@@ -249,6 +206,65 @@ public class BddTest {
   }
 
   @Test
+  public void testMinimalSolutionsForConstants() {
+    final Bdd bdd = new BddImpl(20);
+    List<BitSet> solutions;
+
+    solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getFalseNode()));
+    assertEquals(Collections.emptyList(), solutions);
+
+    solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getTrueNode()));
+    assertEquals(Collections.singletonList(new BitSet()), solutions);
+  }
+
+  @Test
+  public void testSupport() {
+    final Bdd bdd = new BddImpl(10);
+    final int v1 = bdd.createVariable();
+    final int v2 = bdd.createVariable();
+    final int v3 = bdd.createVariable();
+    final int v4 = bdd.createVariable();
+    final int v5 = bdd.createVariable();
+
+    assertThat(bdd.support(v1), is(buildBitSet("100")));
+    assertThat(bdd.support(v2), is(buildBitSet("010")));
+    assertThat(bdd.support(v3), is(buildBitSet("001")));
+
+    final List<Integer> variables = Arrays.asList(v1, v2, v3, v4, v5);
+
+    // The snippet below builds various BDDs by evaluating every possible subset of variables,
+    // combining the variables in this subset with different operations and then checking that the
+    // support of each combination equals the variables of the subset.
+    final List<Integer> subset = new ArrayList<>(variables.size());
+    for (int i = 1; i < 1 << variables.size(); i++) {
+      final BitSet subsetBitSet = buildBitSet(i, variables.size());
+      subsetBitSet.stream().forEach(setBit -> subset.add(variables.get(setBit)));
+
+      final Iterator<Integer> variableIterator = subset.iterator();
+      int variable = variableIterator.next();
+      int and = variable;
+      int or = variable;
+      int xor = variable;
+      int imp = variable;
+      int equiv = variable;
+      while (variableIterator.hasNext()) {
+        variable = variableIterator.next();
+        and = bdd.and(and, variable);
+        or = bdd.or(or, variable);
+        xor = bdd.xor(xor, variable);
+        imp = bdd.implication(imp, variable);
+        equiv = bdd.equivalence(equiv, variable);
+      }
+      assertThat(bdd.support(and), is(subsetBitSet));
+      assertThat(bdd.support(or), is(subsetBitSet));
+      assertThat(bdd.support(xor), is(subsetBitSet));
+      assertThat(bdd.support(imp), is(subsetBitSet));
+      assertThat(bdd.support(equiv), is(subsetBitSet));
+      subset.clear();
+    }
+  }
+
+  @Test
   public void testWorkStack() {
     final BddImpl bdd = new BddImpl(20);
     final int v1 = bdd.createVariable();
@@ -259,17 +275,5 @@ public class BddTest {
     bdd.popWorkStack();
     bdd.gc();
     assertThat(bdd.isNodeValidOrRoot(temporaryNode), is(false));
-  }
-
-  @Test
-  public void testMinimalSolutionsForConstants() {
-    final Bdd bdd = new BddImpl(20);
-    List<BitSet> solutions;
-
-    solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getFalseNode()));
-    assertEquals(Collections.emptyList(), solutions);
-
-    solutions = Lists.newArrayList(bdd.getMinimalSolutions(bdd.getTrueNode()));
-    assertEquals(Collections.singletonList(new BitSet()), solutions);
   }
 }

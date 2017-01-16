@@ -24,20 +24,22 @@ import owl.automaton.edge.Edge;
 
 public interface AutomatonState<S> {
 
-    @Nonnull
-    BitSet getSensitiveAlphabet();
+  default void free() {
 
-    /**
-     * Compute the successor of a state and return the corresponding edge. The acceptance indices are additionally
-     * stored in the {@link Edge}
-     *
-     * @param valuation set of letters read.
-     * @return null is returned if the transition would move to a non-accepting BSCC.
-     */
-    @Nullable
-    Edge<S> getSuccessor(BitSet valuation);
+  }
 
-    default void free() {
+  @Nonnull
+  BitSet getSensitiveAlphabet();
 
-    }
+  /**
+   * Compute the successor of a state and return the corresponding edge. The acceptance indices are
+   * additionally stored in the {@link Edge}
+   *
+   * @param valuation
+   *     set of letters read.
+   *
+   * @return null is returned if the transition would move to a non-accepting BSCC.
+   */
+  @Nullable
+  Edge<S> getSuccessor(BitSet valuation);
 }

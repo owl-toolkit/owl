@@ -18,117 +18,119 @@
 package ltl;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.stream.Stream;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
-import java.util.*;
-import java.util.stream.Stream;
-
 public final class Conjunction extends PropositionalFormula {
 
-    public Conjunction(Iterable<? extends Formula> conjuncts) {
-        super(conjuncts);
+  public Conjunction(Iterable<? extends Formula> conjuncts) {
+    super(conjuncts);
+  }
+
+  public Conjunction(Formula... conjuncts) {
+    super(conjuncts);
+  }
+
+  public Conjunction(Stream<? extends Formula> formulaStream) {
+    super(formulaStream);
+  }
+
+  public static Formula create(Formula... formulaStream) {
+    return create(Arrays.stream(formulaStream));
+  }
+
+  public static Formula create(Stream<? extends Formula> formulaStream) {
+    Iterator<? extends Formula> iterator = formulaStream.iterator();
+    ImmutableSet.Builder<Formula> builder = ImmutableSet.builder();
+
+    while (iterator.hasNext()) {
+      Formula child = iterator.next();
+
+      if (child == null) {
+        return null;
+      }
+
+      if (child == BooleanConstant.FALSE) {
+        return BooleanConstant.FALSE;
+      }
+
+      if (child == BooleanConstant.TRUE) {
+        continue;
+      }
+
+      if (child instanceof Conjunction) {
+        builder.addAll(((Conjunction) child).children);
+      } else {
+        builder.add(child);
+      }
     }
 
-    public Conjunction(Formula... conjuncts) {
-        super(conjuncts);
+    ImmutableSet<Formula> set = builder.build();
+
+    if (set.isEmpty()) {
+      return BooleanConstant.TRUE;
     }
 
-    public Conjunction(Stream<? extends Formula> formulaStream) {
-        super(formulaStream);
+    if (set.size() == 1) {
+      return set.iterator().next();
     }
 
-    @Override
-    public Formula not() {
-        return new Disjunction(children.stream().map(Formula::not));
-    }
+    return new Conjunction(set);
+  }
 
-    @Override
-    public int accept(IntVisitor v) {
-        return v.visit(this);
-    }
+  @Override
+  public int accept(IntVisitor v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Override
-    public Formula unfold() {
-        return create(children.stream().map(Formula::unfold));
-    }
+  @Override
+  protected char getOperator() {
+    return '&';
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return create(children.stream().map(c -> c.temporalStep(valuation)));
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return Objects.hash(Conjunction.class, children);
+  }
 
-    @Override
-    public Formula temporalStepUnfold(BitSet valuation) {
-        return create(children.stream().map(c -> c.temporalStepUnfold(valuation)));
-    }
+  @Override
+  public Formula not() {
+    return new Disjunction(children.stream().map(Formula::not));
+  }
 
-    @Override
-    public Formula unfoldTemporalStep(BitSet valuation) {
-        return create(children.stream().map(c -> c.unfoldTemporalStep(valuation)));
-    }
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return create(children.stream().map(c -> c.temporalStep(valuation)));
+  }
 
-    @Override
-    protected char getOperator() {
-        return '&';
-    }
+  @Override
+  public Formula temporalStepUnfold(BitSet valuation) {
+    return create(children.stream().map(c -> c.temporalStepUnfold(valuation)));
+  }
 
-    public static Formula create(Formula... formulaStream) {
-        return create(Arrays.stream(formulaStream));
-    }
+  @Override
+  public Formula unfold() {
+    return create(children.stream().map(Formula::unfold));
+  }
 
-    public static Formula create(Stream<? extends Formula> formulaStream) {
-        Iterator<? extends Formula> iterator = formulaStream.iterator();
-        ImmutableSet.Builder<Formula> builder = ImmutableSet.builder();
-
-        while (iterator.hasNext()) {
-            Formula child = iterator.next();
-
-            if (child == null) {
-                return null;
-            }
-
-            if (child == BooleanConstant.FALSE) {
-                return BooleanConstant.FALSE;
-            }
-
-            if (child == BooleanConstant.TRUE) {
-                continue;
-            }
-
-            if (child instanceof Conjunction) {
-                builder.addAll(((Conjunction) child).children);
-            } else {
-                builder.add(child);
-            }
-        }
-
-        ImmutableSet<Formula> set = builder.build();
-
-        if (set.isEmpty()) {
-            return BooleanConstant.TRUE;
-        }
-
-        if (set.size() == 1) {
-            return set.iterator().next();
-        }
-
-        return new Conjunction(set);
-    }
-
-    @Override
-    protected int hashCodeOnce() {
-        return Objects.hash(Conjunction.class, children);
-    }
+  @Override
+  public Formula unfoldTemporalStep(BitSet valuation) {
+    return create(children.stream().map(c -> c.unfoldTemporalStep(valuation)));
+  }
 }

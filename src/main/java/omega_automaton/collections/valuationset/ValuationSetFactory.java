@@ -21,13 +21,13 @@ import java.util.BitSet;
 
 public interface ValuationSetFactory {
 
-    ValuationSet createEmptyValuationSet();
+  ValuationSet createEmptyValuationSet();
 
-    ValuationSet createUniverseValuationSet();
+  ValuationSet createUniverseValuationSet();
 
-    ValuationSet createValuationSet(BitSet valuation);
+  ValuationSet createValuationSet(BitSet valuation);
 
-    ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet);
+  ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet);
 
-    int getSize();
+  int getSize();
 }

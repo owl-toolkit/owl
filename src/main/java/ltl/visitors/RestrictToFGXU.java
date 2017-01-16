@@ -17,31 +17,39 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.Formula;
+import ltl.GOperator;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
 
 public class RestrictToFGXU extends DefaultConverter {
 
-    @Override
-    public Formula visit(ROperator rOperator) {
-        Formula left = rOperator.left.accept(this);
-        Formula right = rOperator.right.accept(this);
+  @Override
+  public Formula visit(ROperator rOperator) {
+    Formula left = rOperator.left.accept(this);
+    Formula right = rOperator.right.accept(this);
 
-        return Disjunction.create(GOperator.create(right), UOperator.create(right, Conjunction.create(left, right)));
-    }
+    return Disjunction
+      .create(GOperator.create(right), UOperator.create(right, Conjunction.create(left, right)));
+  }
 
-    @Override
-    public Formula visit(WOperator wOperator) {
-        Formula left = wOperator.left.accept(this);
-        Formula right = wOperator.right.accept(this);
+  @Override
+  public Formula visit(WOperator wOperator) {
+    Formula left = wOperator.left.accept(this);
+    Formula right = wOperator.right.accept(this);
 
-        return Disjunction.create(GOperator.create(left), UOperator.create(left, right));
-    }
+    return Disjunction.create(GOperator.create(left), UOperator.create(left, right));
+  }
 
-    @Override
-    public Formula visit(MOperator mOperator) {
-        Formula left = mOperator.left.accept(this);
-        Formula right = mOperator.right.accept(this);
+  @Override
+  public Formula visit(MOperator mOperator) {
+    Formula left = mOperator.left.accept(this);
+    Formula right = mOperator.right.accept(this);
 
-        return UOperator.create(right, Conjunction.create(left, right));
-    }
+    return UOperator.create(right, Conjunction.create(left, right));
+  }
 }

@@ -18,16 +18,12 @@
 package ltl.equivalence;
 
 import ltl.Formula;
-import ltl.parser.Parser;
-import org.junit.Test;
-
-import static org.junit.Assert.assertNotEquals;
 
 public class BddEquivalenceClassTest extends EquivalenceClassTest {
 
-    @Override
-    public EquivalenceClassFactory setUpFactory(Formula domain) {
-        return new BDDEquivalenceClassFactory(domain);
-    }
+  @Override
+  public EquivalenceClassFactory setUpFactory(Formula domain) {
+    return new BDDEquivalenceClassFactory(domain);
+  }
 
 }

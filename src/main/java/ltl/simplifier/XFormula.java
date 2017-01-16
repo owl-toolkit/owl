@@ -21,25 +21,25 @@ import ltl.Formula;
 import ltl.XOperator;
 
 class XFormula {
-    int depth;
-    Formula formula;
+  int depth;
+  Formula formula;
 
-    XFormula(int depth, Formula formula) {
-        this.depth = depth;
-        this.formula = formula;
+  XFormula(int depth, Formula formula) {
+    this.depth = depth;
+    this.formula = formula;
+  }
+
+  Formula toFormula(int newDepth) {
+    int i = depth - newDepth;
+
+    for (; i > 0; i--) {
+      formula = new XOperator(formula);
     }
 
-    Formula toFormula(int newDepth) {
-        int i = depth - newDepth;
+    return formula;
+  }
 
-        for (; i > 0; i--) {
-            formula = new XOperator(formula);
-        }
-
-        return formula;
-    }
-
-    Formula toFormula() {
-        return toFormula(0);
-    }
+  Formula toFormula() {
+    return toFormula(0);
+  }
 }

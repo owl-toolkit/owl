@@ -19,58 +19,65 @@ package ltl.visitors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import ltl.BooleanConstant;
 import ltl.Conjunction;
 import ltl.Disjunction;
 import ltl.Formula;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class DisjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<Formula>>> {
 
-    private static final DisjunctiveNormalFormVisitor INSTANCE = new DisjunctiveNormalFormVisitor();
+  private static final DisjunctiveNormalFormVisitor INSTANCE = new DisjunctiveNormalFormVisitor();
 
-    public static List<Set<Formula>> normaliseStatic(Formula formula) {
-        return formula.accept(INSTANCE);
+  private DisjunctiveNormalFormVisitor() {
+
+  }
+
+  private static void minimise(List<Set<Formula>> dnf) {
+    dnf.removeIf(set -> dnf.stream().anyMatch(subset -> set != subset && set.containsAll(subset)));
+  }
+
+  public static List<Set<Formula>> normaliseStatic(Formula formula) {
+    return formula.accept(INSTANCE);
+  }
+
+  @Override
+  protected List<Set<Formula>> defaultAction(Formula formula) {
+    return Collections.singletonList(Sets.newHashSet(formula));
+  }
+
+  @Override
+  public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
+    return booleanConstant.value ?
+           Collections.singletonList(new HashSet<Formula>()) :
+           Collections.emptyList();
+  }
+
+  @Override
+  public List<Set<Formula>> visit(Conjunction conjunction) {
+    List<Set<Formula>> dnf = new LinkedList<>();
+    List<List<Set<Formula>>> allDnf = conjunction.children.stream().map(x -> x.accept(this))
+      .collect(Collectors.toList());
+
+    for (List<Set<Formula>> union : Lists.cartesianProduct(allDnf)) {
+      dnf.add(union.stream().flatMap(Collection::stream).collect(Collectors.toSet()));
     }
 
-    private DisjunctiveNormalFormVisitor() {
+    minimise(dnf);
+    return dnf;
+  }
 
-    }
-
-    private static void minimise(List<Set<Formula>> dnf) {
-        dnf.removeIf(set -> dnf.stream().anyMatch(subset -> set != subset && set.containsAll(subset)));
-    }
-
-    @Override
-    protected List<Set<Formula>> defaultAction(Formula formula) {
-        return Collections.singletonList(Sets.newHashSet(formula));
-    }
-
-    @Override
-    public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
-        return booleanConstant.value ? Collections.singletonList(new HashSet<Formula>()) : Collections.emptyList();
-    }
-
-    @Override
-    public List<Set<Formula>> visit(Conjunction conjunction) {
-        List<Set<Formula>> dnf = new LinkedList<>();
-        List<List<Set<Formula>>> allDnf = conjunction.children.stream().map(x -> x.accept(this)).collect(Collectors.toList());
-
-        for (List<Set<Formula>> union : Lists.cartesianProduct(allDnf)) {
-            dnf.add(union.stream().flatMap(Collection::stream).collect(Collectors.toSet()));
-        }
-
-        minimise(dnf);
-        return dnf;
-    }
-
-    @Override
-    public List<Set<Formula>> visit(Disjunction disjunction) {
-        List<Set<Formula>> dnf = new LinkedList<>();
-        disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
-        minimise(dnf);
-        return dnf;
-    }
+  @Override
+  public List<Set<Formula>> visit(Disjunction disjunction) {
+    List<Set<Formula>> dnf = new LinkedList<>();
+    disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
+    minimise(dnf);
+    return dnf;
+  }
 }

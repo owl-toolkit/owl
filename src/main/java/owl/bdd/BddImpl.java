@@ -37,39 +37,72 @@ final class BddImpl extends NodeTable implements Bdd {
     final int low = (int) getLowFromStore(nodeStore);
     final int high = (int) getHighFromStore(nodeStore);
     return low == FALSE_NODE && high == TRUE_NODE
-        || low == TRUE_NODE && high == FALSE_NODE;
+      || low == TRUE_NODE && high == FALSE_NODE;
   }
 
   @Override
-  public int numberOfVariables() {
-    return numberOfVariables;
+  public int and(final int node1, final int node2) {
+    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
+    pushToWorkStack(node1);
+    pushToWorkStack(node2);
+    final int result = andRecursive(node1, node2);
+    popWorkStack(2);
+    return result;
   }
 
-  @Override
-  public int createVariable() {
-    final int variableNode = makeNode(numberOfVariables, 0, 1);
-    saturateNode(variableNode);
-    final int notVariableNode = makeNode(numberOfVariables, 1, 0);
-    saturateNode(notVariableNode);
-    variableNodes.add(variableNode);
-    numberOfVariables++;
-
-    cache.putNot(variableNode, notVariableNode);
-    cache.putNot(notVariableNode, variableNode);
-    growTree(numberOfVariables);
-    cache.invalidateSatisfaction();
-    cache.invalidateCompose();
-    cache.reallocateVolatile();
-
-    return variableNode;
-  }
-
-  @Override
-  public int exists(final int node, final BitSet quantifiedVariables) {
-    if (getConfiguration().useShannonExists()) {
-      return existsShannon(node, quantifiedVariables);
+  private int andRecursive(final int node1, final int node2) {
+    if (node1 == node2 || node2 == TRUE_NODE) {
+      return node1;
     }
-    return existsSelfSubstitution(node, quantifiedVariables);
+    if (node1 == FALSE_NODE || node2 == FALSE_NODE) {
+      return 0;
+    }
+    if (node1 == TRUE_NODE) {
+      return node2;
+    }
+
+    final long node1store = getNodeStore(node1);
+    final long node2store = getNodeStore(node2);
+    final int node1var = (int) getVariableFromStore(node1store);
+    final int node2var = (int) getVariableFromStore(node2store);
+
+    if (node1var > node2var) {
+      if (cache.lookupAnd(node2, node1)) {
+        // We have a cache hit for this operation
+        return cache.getLookupResult();
+      }
+      final int hash = cache.getLookupHash();
+
+      // Guard the result - the recursive calls may cause the table to grow, kicking off a gc.
+      // If the produced variables are not guarded, they may get invalidated.
+      final int lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node2store), node1));
+      final int highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node2store), node1));
+      final int resultNode = makeNode(node2var, lowNode, highNode);
+      popWorkStack(2);
+      cache.putAnd(hash, node2, node1, resultNode);
+      return resultNode;
+    }
+
+    if (cache.lookupAnd(node1, node2)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
+    final int lowNode;
+    final int highNode;
+    if (node1var == node2var) {
+      lowNode = andRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
+      pushToWorkStack(lowNode);
+      highNode = andRecursive((int) getHighFromStore(node1store),
+        (int) getHighFromStore(node2store));
+      pushToWorkStack(highNode);
+    } else { // v < getVariable(node2)
+      lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node1store), node2));
+      highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node1store), node2));
+    }
+    final int resultNode = makeNode(node1var, lowNode, highNode);
+    popWorkStack(2);
+    cache.putAnd(hash, node1, node2, resultNode);
+    return resultNode;
   }
 
   @Override
@@ -127,35 +160,211 @@ final class BddImpl extends NodeTable implements Bdd {
     return result;
   }
 
+  @SuppressWarnings("PMD.UseVarargs")
+  private int composeRecursive(final int node, final int[] variableNodes,
+    final int highestReplacedVariable) {
+    if (node == TRUE_NODE || node == FALSE_NODE) {
+      return node;
+    }
+
+    final long nodeStore = getNodeStore(node);
+    final int nodeVariable = (int) getVariableFromStore(nodeStore);
+    // The tree is sorted (variable 0 on top), hence if the algorithm descended "far enough" there
+    // will not be any replacements.
+    if (nodeVariable > highestReplacedVariable) {
+      return node;
+    }
+
+    if (cache.lookupVolatile(node)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
+
+    final int variableReplacementNode = variableNodes[nodeVariable];
+    final int resultNode;
+    // Short-circuit constant replacements.
+    if (variableReplacementNode == TRUE_NODE) {
+      resultNode = composeRecursive((int) getHighFromStore(nodeStore), variableNodes,
+        highestReplacedVariable);
+    } else if (variableReplacementNode == FALSE_NODE) {
+      resultNode = composeRecursive((int) getLowFromStore(nodeStore), variableNodes,
+        highestReplacedVariable);
+    } else {
+      final int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
+        variableNodes, highestReplacedVariable));
+      final int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
+        variableNodes, highestReplacedVariable));
+      resultNode = ifThenElseRecursive(variableReplacementNode, highCompose, lowCompose);
+      popWorkStack(2);
+    }
+    cache.putVolatile(hash, node, resultNode);
+    return resultNode;
+  }
+
   @Override
-  public int ifThenElse(final int ifNode, final int thenNode, final int elseNode) {
-    assert isNodeValidOrRoot(ifNode) && isNodeValidOrRoot(thenNode) && isNodeValidOrRoot(elseNode);
-    pushToWorkStack(ifNode);
-    pushToWorkStack(thenNode);
-    pushToWorkStack(elseNode);
-    final int result = ifThenElseRecursive(ifNode, thenNode, elseNode);
-    popWorkStack(3);
+  public double countSatisfyingAssignments(final int node) {
+    // TODO Add overflow checks, an int version and a BigInteger version
+    if (node == FALSE_NODE) {
+      return 0d;
+    }
+    if (node == TRUE_NODE) {
+      //noinspection MagicNumber
+      return Math.pow(2d, (double) numberOfVariables);
+    }
+    final long nodeStore = getNodeStore(node);
+    final double variable = (double) getVariableFromStore(nodeStore);
+    //noinspection MagicNumber
+    return Math.pow(2d, variable) * countSatisfyingAssignmentsRecursive(node);
+  }
+
+  private double countSatisfyingAssignmentsRecursive(final int node) {
+    if (node == FALSE_NODE) {
+      return 0d;
+    }
+    if (node == TRUE_NODE) {
+      return 1d;
+    }
+
+    final double cacheLookup = cache.lookupSatisfaction(node);
+    if (cacheLookup >= 0d) {
+      return cacheLookup;
+    }
+    final int hash = cache.getLookupHash();
+
+    final long nodeStore = getNodeStore(node);
+    final int nodeVar = (int) getVariableFromStore(nodeStore);
+
+    final int lowNode = (int) getLowFromStore(nodeStore);
+    final double lowCount;
+    if (lowNode == FALSE_NODE) {
+      lowCount = 0d;
+    } else if (lowNode == TRUE_NODE) {
+      lowCount = Math.pow(2d, (double) (numberOfVariables - nodeVar - 1));
+    } else {
+      final long lowStore = getNodeStore(lowNode);
+      final int lowVar = (int) getVariableFromStore(lowStore);
+      lowCount = countSatisfyingAssignmentsRecursive(lowNode)
+        * Math.pow(2d, (double) (lowVar - nodeVar - 1));
+    }
+
+    final int highNode = (int) getHighFromStore(nodeStore);
+    final double highCount;
+    if (highNode == FALSE_NODE) {
+      highCount = 0d;
+    } else if (highNode == TRUE_NODE) {
+      highCount = Math.pow(2d, (double) (numberOfVariables - nodeVar - 1));
+    } else {
+      final long highStore = getNodeStore(highNode);
+      final int highVar = (int) getVariableFromStore(highStore);
+      highCount = countSatisfyingAssignmentsRecursive(highNode)
+        * Math.pow(2d, (double) (highVar - nodeVar - 1));
+    }
+
+    final double result = lowCount + highCount;
+    cache.putSatisfaction(hash, node, result);
     return result;
   }
 
   @Override
-  public int and(final int node1, final int node2) {
-    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
-    pushToWorkStack(node1);
-    pushToWorkStack(node2);
-    final int result = andRecursive(node1, node2);
-    popWorkStack(2);
-    return result;
+  public int createVariable() {
+    final int variableNode = makeNode(numberOfVariables, 0, 1);
+    saturateNode(variableNode);
+    final int notVariableNode = makeNode(numberOfVariables, 1, 0);
+    saturateNode(notVariableNode);
+    variableNodes.add(variableNode);
+    numberOfVariables++;
+
+    cache.putNot(variableNode, notVariableNode);
+    cache.putNot(notVariableNode, variableNode);
+    growTree(numberOfVariables);
+    cache.invalidateSatisfaction();
+    cache.invalidateCompose();
+    cache.reallocateVolatile();
+
+    return variableNode;
+  }
+
+  private int cube(final BitSet cubeVariables) {
+    int node = TRUE_NODE;
+    int currentVariableNumber = cubeVariables.nextSetBit(0);
+    while (currentVariableNumber != -1) {
+      // Variable nodes are saturated, no need to guard them
+      pushToWorkStack(node);
+      node = andRecursive(node, variableNodes.getInt(currentVariableNumber));
+      popWorkStack();
+      currentVariableNumber = cubeVariables.nextSetBit(currentVariableNumber + 1);
+    }
+    return node;
   }
 
   @Override
-  public int or(final int node1, final int node2) {
+  public int equivalence(final int node1, final int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int result = orRecursive(node1, node2);
+    final int ret = equivalenceRecursive(node1, node2);
     popWorkStack(2);
-    return result;
+    return ret;
+  }
+
+  private int equivalenceRecursive(final int node1, final int node2) {
+    if (node1 == node2) {
+      return TRUE_NODE;
+    }
+    if (node1 == FALSE_NODE) {
+      return notRecursive(node2);
+    }
+    if (node1 == TRUE_NODE) {
+      return node2;
+    }
+    if (node2 == FALSE_NODE) {
+      return notRecursive(node1);
+    }
+    if (node2 == TRUE_NODE) {
+      return node1;
+    }
+
+    final long node1store = getNodeStore(node1);
+    final long node2store = getNodeStore(node2);
+    final int node1var = (int) getVariableFromStore(node1store);
+    final int node2var = (int) getVariableFromStore(node2store);
+
+    if (node1var > node2var) {
+      if (cache.lookupEquivalence(node2, node1)) {
+        return cache.getLookupResult();
+      }
+      final int hash = cache.getLookupHash();
+      final int lowNode = equivalenceRecursive((int) getLowFromStore(node2store), node1);
+      pushToWorkStack(lowNode);
+      final int highNode = equivalenceRecursive((int) getHighFromStore(node2store), node1);
+      pushToWorkStack(highNode);
+      final int resultNode = makeNode(node2var, lowNode, highNode);
+      popWorkStack(2);
+      cache.putEquivalence(hash, node2, node1, resultNode);
+      return resultNode;
+    }
+
+    if (cache.lookupEquivalence(node1, node2)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
+    final int lowNode;
+    final int highNode;
+    if (node1var == node2var) {
+      lowNode = equivalenceRecursive((int) getLowFromStore(node1store),
+        (int) getLowFromStore(node2store));
+      pushToWorkStack(lowNode);
+      highNode = equivalenceRecursive((int) getHighFromStore(node1store),
+        (int) getHighFromStore(node2store));
+      pushToWorkStack(highNode);
+    } else { // v < getVariable(node2)
+      lowNode = pushToWorkStack(equivalenceRecursive((int) getLowFromStore(node1store), node2));
+      highNode = pushToWorkStack(equivalenceRecursive((int) getHighFromStore(node1store), node2));
+    }
+    final int resultNode = makeNode(node1var, lowNode, highNode);
+    popWorkStack(2);
+    cache.putEquivalence(hash, node1, node2, resultNode);
+    return resultNode;
   }
 
   @Override
@@ -176,160 +385,11 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int notAnd(final int node1, final int node2) {
-    pushToWorkStack(node1);
-    pushToWorkStack(node2);
-    final int ret = notAndRecursive(node1, node2);
-    popWorkStack(2);
-    return ret;
-  }
-
-  @Override
-  public int xor(final int node1, final int node2) {
-    pushToWorkStack(node1);
-    pushToWorkStack(node2);
-    final int ret = xorRecursive(node1, node2);
-    popWorkStack(2);
-    return ret;
-  }
-
-  @Override
-  public int equivalence(final int node1, final int node2) {
-    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
-    pushToWorkStack(node1);
-    pushToWorkStack(node2);
-    final int ret = equivalenceRecursive(node1, node2);
-    popWorkStack(2);
-    return ret;
-  }
-
-  @Override
-  public int implication(final int node1, final int node2) {
-    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
-    pushToWorkStack(node1);
-    pushToWorkStack(node2);
-    final int ret = implicationRecursive(node1, node2);
-    popWorkStack(2);
-    return ret;
-  }
-
-  @Override
-  public boolean implies(final int node1, final int node2) {
-    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
-    return impliesRecursive(node1, node2);
-  }
-
-  @Override
-  public int not(final int node) {
-    assert isNodeValidOrRoot(node);
-    pushToWorkStack(node);
-    final int ret = notRecursive(node);
-    popWorkStack();
-    return ret;
-  }
-
-  @Override
-  public double countSatisfyingAssignments(final int node) {
-    // TODO Add overflow checks, an int version and a BigInteger version
-    if (node == FALSE_NODE) {
-      return 0d;
+  public int exists(final int node, final BitSet quantifiedVariables) {
+    if (getConfiguration().useShannonExists()) {
+      return existsShannon(node, quantifiedVariables);
     }
-    if (node == TRUE_NODE) {
-      //noinspection MagicNumber
-      return Math.pow(2d, (double) numberOfVariables);
-    }
-    final long nodeStore = getNodeStore(node);
-    final double variable = (double) getVariableFromStore(nodeStore);
-    //noinspection MagicNumber
-    return Math.pow(2d, variable) * countSatisfyingAssignmentsRecursive(node);
-  }
-
-  @Override
-  public boolean isVariable(final int node) {
-    if (isNodeRoot(node)) {
-      return false;
-    }
-    final long nodeStore = getNodeStore(node);
-    return (int) getLowFromStore(nodeStore) == FALSE_NODE
-        && (int) getHighFromStore(nodeStore) == TRUE_NODE;
-  }
-
-  @Override
-  public boolean isVariableOrNegated(final int node) {
-    assert isNodeValidOrRoot(node);
-    if (isNodeRoot(node)) {
-      return false;
-    }
-    final long nodeStore = getNodeStore(node);
-    return isVariableOrNegatedStore(nodeStore);
-  }
-
-  @Override
-  public void support(final int node, final BitSet bitSet, final int highestVariable) {
-    assert isNodeValidOrRoot(node);
-    assert 0 <= highestVariable && highestVariable <= numberOfVariables;
-    bitSet.clear();
-    supportRecursive(node, bitSet, highestVariable);
-    unMarkTree(node);
-  }
-
-  @Override
-  public Iterator<BitSet> getMinimalSolutions(final int node) {
-    assert isNodeValidOrRoot(node);
-
-    if (node == FALSE_NODE) {
-      return Collections.emptyIterator();
-    }
-    if (numberOfVariables() == 0) {
-      // This implies that node == TRUE_NODE, as there only exist FALSE and TRUE in that case
-      return Iterators.singletonIterator(new BitSet());
-    }
-    return new MinimalSolutionIterator(this, node);
-  }
-
-  @Override
-  public int restrict(final int node, final BitSet restrictedVariables,
-      final BitSet restrictedVariableValues) {
-    assert isNodeValidOrRoot(node);
-    pushToWorkStack(node);
-    cache.clearVolatileCache();
-    final int resultNode = restrictRecursive(node, restrictedVariables, restrictedVariableValues);
-    popWorkStack();
-    return resultNode;
-  }
-
-  @Override
-  public int getFalseNode() {
-    return FALSE_NODE;
-  }
-
-  @Override
-  public int getTrueNode() {
-    return TRUE_NODE;
-  }
-
-  @VisibleForTesting
-  int existsShannon(final int node, final BitSet quantifiedVariables) {
-    assert quantifiedVariables.previousSetBit(quantifiedVariables.length()) <= numberOfVariables;
-    if (quantifiedVariables.cardinality() == numberOfVariables) {
-      return TRUE_NODE;
-    }
-
-    pushToWorkStack(node);
-    final int quantifiedVariablesCube = cube(quantifiedVariables);
-    pushToWorkStack(quantifiedVariablesCube);
-    final int result = existsShannonRecursive(node, quantifiedVariablesCube);
-    popWorkStack(2);
-    return result;
-  }
-
-  String getCacheStatistics() {
-    return cache.getStatistics();
-  }
-
-  @Override
-  void postRemovalCallback() {
-    cache.invalidate();
+    return existsSelfSubstitution(node, quantifiedVariables);
   }
 
   @VisibleForTesting
@@ -361,7 +421,7 @@ final class BddImpl extends NodeTable implements Bdd {
       cache.clearVolatileCache();
       // compute f(x, 1)
       replacementArray[i] =
-          pushToWorkStack(composeRecursive(quantifiedNode, replacementArray, i));
+        pushToWorkStack(composeRecursive(quantifiedNode, replacementArray, i));
       cache.clearVolatileCache();
       // compute f(x, f(x, 1))
       quantifiedNode = composeRecursive(quantifiedNode, replacementArray, i);
@@ -375,126 +435,19 @@ final class BddImpl extends NodeTable implements Bdd {
     return quantifiedNode;
   }
 
-  private int restrictRecursive(final int node, final BitSet restrictedVariables,
-      final BitSet restrictedVariableValues) {
-    if (node == TRUE_NODE || node == FALSE_NODE) {
-      return node;
+  @VisibleForTesting
+  int existsShannon(final int node, final BitSet quantifiedVariables) {
+    assert quantifiedVariables.previousSetBit(quantifiedVariables.length()) <= numberOfVariables;
+    if (quantifiedVariables.cardinality() == numberOfVariables) {
+      return TRUE_NODE;
     }
 
-    final long nodeStore = getNodeStore(node);
-    final int nodeVariable = (int) getVariableFromStore(nodeStore);
-    // The tree is sorted (variable 0 on top), hence if the algorithm descended far enough there
-    // will not be any replacements.
-    if (nodeVariable >= restrictedVariables.length()) {
-      return node;
-    }
-
-    if (cache.lookupVolatile(node)) {
-      return cache.getLookupResult();
-    }
-    final int hash = cache.getLookupHash();
-
-    final int resultNode;
-    if (restrictedVariables.get(nodeVariable)) {
-      if (restrictedVariableValues.get(nodeVariable)) {
-        resultNode = restrictRecursive((int) getHighFromStore(nodeStore), restrictedVariables,
-            restrictedVariableValues);
-      } else {
-        resultNode = restrictRecursive((int) getLowFromStore(nodeStore), restrictedVariables,
-            restrictedVariableValues);
-      }
-    } else {
-      final int lowRestrict = pushToWorkStack(restrictRecursive((int) getLowFromStore(nodeStore),
-          restrictedVariables, restrictedVariableValues));
-      final int highRestrict = pushToWorkStack(restrictRecursive((int) getHighFromStore(nodeStore),
-          restrictedVariables, restrictedVariableValues));
-      resultNode = makeNode(nodeVariable, lowRestrict, highRestrict);
-      popWorkStack(2);
-    }
-    cache.putVolatile(hash, node, resultNode);
-    return resultNode;
-  }
-
-  private int cube(final BitSet cubeVariables) {
-    int node = TRUE_NODE;
-    int currentVariableNumber = cubeVariables.nextSetBit(0);
-    while (currentVariableNumber != -1) {
-      // Variable nodes are saturated, no need to guard them
-      pushToWorkStack(node);
-      node = andRecursive(node, variableNodes.getInt(currentVariableNumber));
-      popWorkStack();
-      currentVariableNumber = cubeVariables.nextSetBit(currentVariableNumber + 1);
-    }
-    return node;
-  }
-
-  private double countSatisfyingAssignmentsRecursive(final int node) {
-    if (node == FALSE_NODE) {
-      return 0d;
-    }
-    if (node == TRUE_NODE) {
-      return 1d;
-    }
-
-    final double cacheLookup = cache.lookupSatisfaction(node);
-    if (cacheLookup >= 0d) {
-      return cacheLookup;
-    }
-    final int hash = cache.getLookupHash();
-
-    final long nodeStore = getNodeStore(node);
-    final int nodeVar = (int) getVariableFromStore(nodeStore);
-
-    final int lowNode = (int) getLowFromStore(nodeStore);
-    final double lowCount;
-    if (lowNode == FALSE_NODE) {
-      lowCount = 0d;
-    } else if (lowNode == TRUE_NODE) {
-      lowCount = Math.pow(2d, (double) (numberOfVariables - nodeVar - 1));
-    } else {
-      final long lowStore = getNodeStore(lowNode);
-      final int lowVar = (int) getVariableFromStore(lowStore);
-      lowCount = countSatisfyingAssignmentsRecursive(lowNode)
-          * Math.pow(2d, (double) (lowVar - nodeVar - 1));
-    }
-
-    final int highNode = (int) getHighFromStore(nodeStore);
-    final double highCount;
-    if (highNode == FALSE_NODE) {
-      highCount = 0d;
-    } else if (highNode == TRUE_NODE) {
-      highCount = Math.pow(2d, (double) (numberOfVariables - nodeVar - 1));
-    } else {
-      final long highStore = getNodeStore(highNode);
-      final int highVar = (int) getVariableFromStore(highStore);
-      highCount = countSatisfyingAssignmentsRecursive(highNode)
-          * Math.pow(2d, (double) (highVar - nodeVar - 1));
-    }
-
-    final double result = lowCount + highCount;
-    cache.putSatisfaction(hash, node, result);
+    pushToWorkStack(node);
+    final int quantifiedVariablesCube = cube(quantifiedVariables);
+    pushToWorkStack(quantifiedVariablesCube);
+    final int result = existsShannonRecursive(node, quantifiedVariablesCube);
+    popWorkStack(2);
     return result;
-  }
-
-  private void supportRecursive(final int node, final BitSet bitSet, final int highestVariable) {
-    if (isNodeRoot(node)) {
-      return;
-    }
-
-    final long nodeStore = getNodeStore(node);
-
-    if (isNodeStoreMarked(nodeStore)) {
-      return;
-    }
-
-    final int variable = (int) getVariableFromStore(nodeStore);
-
-    if (variable < highestVariable) {
-      bitSet.set(variable);
-      markNode(node);
-      supportRecursive((int) getLowFromStore(nodeStore), bitSet, highestVariable);
-      supportRecursive((int) getHighFromStore(nodeStore), bitSet, highestVariable);
-    }
   }
 
   private int existsShannonRecursive(final int node, final int quantifiedVariableCube) {
@@ -535,9 +488,9 @@ final class BddImpl extends NodeTable implements Bdd {
 
     // The "root" of the cube is guarded in the main invocation - no need to guard its descendants
     final int lowExists = pushToWorkStack(existsShannonRecursive((int) getLowFromStore(nodeStore),
-        currentCubeNode));
+      currentCubeNode));
     final int highExists = pushToWorkStack(existsShannonRecursive(
-        (int) getHighFromStore(nodeStore), currentCubeNode));
+      (int) getHighFromStore(nodeStore), currentCubeNode));
     final int resultNode;
     if (currentCubeNodeVariable > nodeVariable) {
       // The variable of this node is smaller than the variable looked for - only propagate the
@@ -552,54 +505,43 @@ final class BddImpl extends NodeTable implements Bdd {
     return resultNode;
   }
 
-  @SuppressWarnings("PMD.UseVarargs")
-  private int composeRecursive(final int node, final int[] variableNodes,
-      final int highestReplacedVariable) {
-    if (node == TRUE_NODE || node == FALSE_NODE) {
-      return node;
-    }
-
-    final long nodeStore = getNodeStore(node);
-    final int nodeVariable = (int) getVariableFromStore(nodeStore);
-    // The tree is sorted (variable 0 on top), hence if the algorithm descended "far enough" there
-    // will not be any replacements.
-    if (nodeVariable > highestReplacedVariable) {
-      return node;
-    }
-
-    if (cache.lookupVolatile(node)) {
-      return cache.getLookupResult();
-    }
-    final int hash = cache.getLookupHash();
-
-    final int variableReplacementNode = variableNodes[nodeVariable];
-    final int resultNode;
-    // Short-circuit constant replacements.
-    if (variableReplacementNode == TRUE_NODE) {
-      resultNode = composeRecursive((int) getHighFromStore(nodeStore), variableNodes,
-          highestReplacedVariable);
-    } else if (variableReplacementNode == FALSE_NODE) {
-      resultNode = composeRecursive((int) getLowFromStore(nodeStore), variableNodes,
-          highestReplacedVariable);
-    } else {
-      final int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
-          variableNodes, highestReplacedVariable));
-      final int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
-          variableNodes, highestReplacedVariable));
-      resultNode = ifThenElseRecursive(variableReplacementNode, highCompose, lowCompose);
-      popWorkStack(2);
-    }
-    cache.putVolatile(hash, node, resultNode);
-    return resultNode;
+  String getCacheStatistics() {
+    return cache.getStatistics();
   }
 
-  // TODO: Inline.
-  private int makeNode(final int variable, final int low, final int high) {
-    if (low == high) {
-      return low;
-    } else {
-      return add(variable, low, high);
+  @Override
+  public int getFalseNode() {
+    return FALSE_NODE;
+  }
+
+  @Override
+  public Iterator<BitSet> getMinimalSolutions(final int node) {
+    assert isNodeValidOrRoot(node);
+
+    if (node == FALSE_NODE) {
+      return Collections.emptyIterator();
     }
+    if (numberOfVariables() == 0) {
+      // This implies that node == TRUE_NODE, as there only exist FALSE and TRUE in that case
+      return Iterators.singletonIterator(new BitSet());
+    }
+    return new MinimalSolutionIterator(this, node);
+  }
+
+  @Override
+  public int getTrueNode() {
+    return TRUE_NODE;
+  }
+
+  @Override
+  public int ifThenElse(final int ifNode, final int thenNode, final int elseNode) {
+    assert isNodeValidOrRoot(ifNode) && isNodeValidOrRoot(thenNode) && isNodeValidOrRoot(elseNode);
+    pushToWorkStack(ifNode);
+    pushToWorkStack(thenNode);
+    pushToWorkStack(elseNode);
+    final int result = ifThenElseRecursive(ifNode, thenNode, elseNode);
+    popWorkStack(3);
+    return result;
   }
 
   private int ifThenElseRecursive(final int ifNode, final int thenNode, final int elseNode) {
@@ -682,22 +624,174 @@ final class BddImpl extends NodeTable implements Bdd {
 
     final int lowNode = pushToWorkStack(ifThenElseRecursive(ifLowNode, thenLowNode, elseLowNode));
     final int highNode =
-        pushToWorkStack(ifThenElseRecursive(ifHighNode, thenHighNode, elseHighNode));
+      pushToWorkStack(ifThenElseRecursive(ifHighNode, thenHighNode, elseHighNode));
     final int result = makeNode(minVar, lowNode, highNode);
     popWorkStack(2);
     cache.putIfThenElse(hash, ifNode, thenNode, elseNode, result);
     return result;
   }
 
-  private int andRecursive(final int node1, final int node2) {
-    if (node1 == node2 || node2 == TRUE_NODE) {
-      return node1;
-    }
-    if (node1 == FALSE_NODE || node2 == FALSE_NODE) {
-      return 0;
+  @Override
+  public int implication(final int node1, final int node2) {
+    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
+    pushToWorkStack(node1);
+    pushToWorkStack(node2);
+    final int ret = implicationRecursive(node1, node2);
+    popWorkStack(2);
+    return ret;
+  }
+
+  private int implicationRecursive(final int node1, final int node2) {
+    if (node1 == FALSE_NODE || node2 == TRUE_NODE || node1 == node2) {
+      return TRUE_NODE;
     }
     if (node1 == TRUE_NODE) {
       return node2;
+    }
+    if (node2 == FALSE_NODE) {
+      return notRecursive(node1);
+    }
+
+    if (cache.lookupImplication(node1, node2)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
+
+    final long node1store = getNodeStore(node1);
+    final long node2store = getNodeStore(node2);
+    final int node1var = (int) getVariableFromStore(node1store);
+    final int node2var = (int) getVariableFromStore(node2store);
+
+    final int lowNode;
+    final int highNode;
+    final int decisionVar;
+    if (node1var > node2var) {
+      lowNode = pushToWorkStack(implicationRecursive(node1, (int) getLowFromStore(node2store)));
+      highNode = pushToWorkStack(implicationRecursive(node1, (int) getHighFromStore(node2store)));
+      decisionVar = node2var;
+    } else if (node1var == node2var) {
+      lowNode = pushToWorkStack(implicationRecursive((int) getLowFromStore(node1store),
+        (int) getLowFromStore(node2store)));
+      highNode = pushToWorkStack(implicationRecursive((int) getHighFromStore(node1store),
+        (int) getHighFromStore(node2store)));
+      decisionVar = node1var;
+    } else {
+      lowNode = pushToWorkStack(implicationRecursive((int) getLowFromStore(node1store), node2));
+      highNode = pushToWorkStack(implicationRecursive((int) getHighFromStore(node1store), node2));
+      decisionVar = node1var;
+    }
+    final int resultNode = makeNode(decisionVar, lowNode, highNode);
+    popWorkStack(2);
+    cache.putImplication(hash, node1, node2, resultNode);
+    return resultNode;
+  }
+
+  @Override
+  public boolean implies(final int node1, final int node2) {
+    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
+    return impliesRecursive(node1, node2);
+  }
+
+  private boolean impliesRecursive(final int node1, final int node2) {
+    if (node1 == FALSE_NODE) {
+      // False implies anything
+      return true;
+    }
+    if (node2 == FALSE_NODE) {
+      // node1 != FALSE_NODE
+      return false;
+    }
+    if (node2 == TRUE_NODE) {
+      // node1 != FALSE_NODE
+      return true;
+    }
+    if (node1 == TRUE_NODE) {
+      // node2 != TRUE_NODE
+      return false;
+    }
+    if (node1 == node2) {
+      // Trivial implication
+      return true;
+    }
+
+    if (cache.lookupImplication(node1, node2)) {
+      return cache.getLookupResult() == TRUE_NODE;
+    }
+    final long node1store = getNodeStore(node1);
+    final long node2store = getNodeStore(node2);
+    final int node1var = (int) getVariableFromStore(node1store);
+    final int node2var = (int) getVariableFromStore(node2store);
+
+    if (node1var == node2var) {
+      return
+        impliesRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store))
+          && impliesRecursive((int) getHighFromStore(node1store),
+          (int) getHighFromStore(node2store));
+    } else if (node1var < node2var) {
+      return impliesRecursive((int) getLowFromStore(node1store), node2)
+        && impliesRecursive((int) getHighFromStore(node1store), node2);
+    } else {
+      return impliesRecursive(node1, (int) getLowFromStore(node2store))
+        && impliesRecursive(node1, (int) getHighFromStore(node2store));
+    }
+  }
+
+  @Override
+  public boolean isVariable(final int node) {
+    if (isNodeRoot(node)) {
+      return false;
+    }
+    final long nodeStore = getNodeStore(node);
+    return (int) getLowFromStore(nodeStore) == FALSE_NODE
+      && (int) getHighFromStore(nodeStore) == TRUE_NODE;
+  }
+
+  @Override
+  public boolean isVariableOrNegated(final int node) {
+    assert isNodeValidOrRoot(node);
+    if (isNodeRoot(node)) {
+      return false;
+    }
+    final long nodeStore = getNodeStore(node);
+    return isVariableOrNegatedStore(nodeStore);
+  }
+
+  // TODO: Inline.
+  private int makeNode(final int variable, final int low, final int high) {
+    if (low == high) {
+      return low;
+    } else {
+      return add(variable, low, high);
+    }
+  }
+
+  @Override
+  public int not(final int node) {
+    assert isNodeValidOrRoot(node);
+    pushToWorkStack(node);
+    final int ret = notRecursive(node);
+    popWorkStack();
+    return ret;
+  }
+
+  @Override
+  public int notAnd(final int node1, final int node2) {
+    pushToWorkStack(node1);
+    pushToWorkStack(node2);
+    final int ret = notAndRecursive(node1, node2);
+    popWorkStack(2);
+    return ret;
+  }
+
+  private int notAndRecursive(final int node1, final int node2) {
+    if (node1 == 0 || node2 == 0) {
+      return 1;
+    }
+    if (node1 == 1 || node1 == node2) {
+      return notRecursive(node2);
+    }
+    if (node2 == 1) {
+      return notRecursive(node1);
     }
 
     final long node1store = getNodeStore(node1);
@@ -706,42 +800,78 @@ final class BddImpl extends NodeTable implements Bdd {
     final int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var > node2var) {
-      if (cache.lookupAnd(node2, node1)) {
-        // We have a cache hit for this operation
+      if (cache.lookupNAnd(node2, node1)) {
         return cache.getLookupResult();
       }
       final int hash = cache.getLookupHash();
-
-      // Guard the result - the recursive calls may cause the table to grow, kicking off a gc.
-      // If the produced variables are not guarded, they may get invalidated.
-      final int lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node2store), node1));
-      final int highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node2store), node1));
+      final int lowNode = notAndRecursive((int) getLowFromStore(node2store), node1);
+      pushToWorkStack(lowNode);
+      final int highNode = notAndRecursive((int) getHighFromStore(node2store), node1);
+      pushToWorkStack(highNode);
       final int resultNode = makeNode(node2var, lowNode, highNode);
       popWorkStack(2);
-      cache.putAnd(hash, node2, node1, resultNode);
+      cache.putNAnd(hash, node2, node1, resultNode);
       return resultNode;
     }
 
-    if (cache.lookupAnd(node1, node2)) {
+    if (cache.lookupNAnd(node1, node2)) {
       return cache.getLookupResult();
     }
     final int hash = cache.getLookupHash();
     final int lowNode;
     final int highNode;
     if (node1var == node2var) {
-      lowNode = andRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
+      lowNode = notAndRecursive((int) getLowFromStore(node1store),
+        (int) getLowFromStore(node2store));
       pushToWorkStack(lowNode);
-      highNode = andRecursive((int) getHighFromStore(node1store),
-          (int) getHighFromStore(node2store));
+      highNode = notAndRecursive((int) getHighFromStore(node1store),
+        (int) getHighFromStore(node2store));
       pushToWorkStack(highNode);
     } else { // v < getVariable(node2)
-      lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node1store), node2));
-      highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node1store), node2));
+      lowNode = pushToWorkStack(notAndRecursive((int) getLowFromStore(node1store), node2));
+      highNode = pushToWorkStack(notAndRecursive((int) getHighFromStore(node1store), node2));
     }
     final int resultNode = makeNode(node1var, lowNode, highNode);
     popWorkStack(2);
-    cache.putAnd(hash, node1, node2, resultNode);
+    cache.putNAnd(hash, node1, node2, resultNode);
     return resultNode;
+  }
+
+  private int notRecursive(final int node) {
+    if (node == FALSE_NODE) {
+      return TRUE_NODE;
+    }
+    if (node == TRUE_NODE) {
+      return FALSE_NODE;
+    }
+
+    if (cache.lookupNot(node)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
+    final long nodeStore = getNodeStore(node);
+
+    final int lowNode = pushToWorkStack(notRecursive((int) getLowFromStore(nodeStore)));
+    final int highNode = pushToWorkStack(notRecursive((int) getHighFromStore(nodeStore)));
+    final int resultNode = makeNode((int) getVariableFromStore(nodeStore), lowNode, highNode);
+    popWorkStack(2);
+    cache.putNot(hash, node, resultNode);
+    return resultNode;
+  }
+
+  @Override
+  public int numberOfVariables() {
+    return numberOfVariables;
+  }
+
+  @Override
+  public int or(final int node1, final int node2) {
+    assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
+    pushToWorkStack(node1);
+    pushToWorkStack(node2);
+    final int result = orRecursive(node1, node2);
+    popWorkStack(2);
+    return result;
   }
 
   private int orRecursive(final int node1, final int node2) {
@@ -783,7 +913,7 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = orRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
       pushToWorkStack(lowNode);
       highNode = pushToWorkStack(orRecursive((int) getHighFromStore(node1store),
-          (int) getHighFromStore(node2store)));
+        (int) getHighFromStore(node2store)));
     } else { // v < getVariable(node2)
       lowNode = pushToWorkStack(orRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(orRecursive((int) getHighFromStore(node1store), node2));
@@ -792,6 +922,101 @@ final class BddImpl extends NodeTable implements Bdd {
     popWorkStack(2);
     cache.putOr(hash, node1, node2, resultNode);
     return resultNode;
+  }
+
+  @Override
+  void postRemovalCallback() {
+    cache.invalidate();
+  }
+
+  @Override
+  public int restrict(final int node, final BitSet restrictedVariables,
+    final BitSet restrictedVariableValues) {
+    assert isNodeValidOrRoot(node);
+    pushToWorkStack(node);
+    cache.clearVolatileCache();
+    final int resultNode = restrictRecursive(node, restrictedVariables, restrictedVariableValues);
+    popWorkStack();
+    return resultNode;
+  }
+
+  private int restrictRecursive(final int node, final BitSet restrictedVariables,
+    final BitSet restrictedVariableValues) {
+    if (node == TRUE_NODE || node == FALSE_NODE) {
+      return node;
+    }
+
+    final long nodeStore = getNodeStore(node);
+    final int nodeVariable = (int) getVariableFromStore(nodeStore);
+    // The tree is sorted (variable 0 on top), hence if the algorithm descended far enough there
+    // will not be any replacements.
+    if (nodeVariable >= restrictedVariables.length()) {
+      return node;
+    }
+
+    if (cache.lookupVolatile(node)) {
+      return cache.getLookupResult();
+    }
+    final int hash = cache.getLookupHash();
+
+    final int resultNode;
+    if (restrictedVariables.get(nodeVariable)) {
+      if (restrictedVariableValues.get(nodeVariable)) {
+        resultNode = restrictRecursive((int) getHighFromStore(nodeStore), restrictedVariables,
+          restrictedVariableValues);
+      } else {
+        resultNode = restrictRecursive((int) getLowFromStore(nodeStore), restrictedVariables,
+          restrictedVariableValues);
+      }
+    } else {
+      final int lowRestrict = pushToWorkStack(restrictRecursive((int) getLowFromStore(nodeStore),
+        restrictedVariables, restrictedVariableValues));
+      final int highRestrict = pushToWorkStack(restrictRecursive((int) getHighFromStore(nodeStore),
+        restrictedVariables, restrictedVariableValues));
+      resultNode = makeNode(nodeVariable, lowRestrict, highRestrict);
+      popWorkStack(2);
+    }
+    cache.putVolatile(hash, node, resultNode);
+    return resultNode;
+  }
+
+  @Override
+  public void support(final int node, final BitSet bitSet, final int highestVariable) {
+    assert isNodeValidOrRoot(node);
+    assert 0 <= highestVariable && highestVariable <= numberOfVariables;
+    bitSet.clear();
+    supportRecursive(node, bitSet, highestVariable);
+    unMarkTree(node);
+  }
+
+  private void supportRecursive(final int node, final BitSet bitSet, final int highestVariable) {
+    if (isNodeRoot(node)) {
+      return;
+    }
+
+    final long nodeStore = getNodeStore(node);
+
+    if (isNodeStoreMarked(nodeStore)) {
+      return;
+    }
+
+    final int variable = (int) getVariableFromStore(nodeStore);
+
+    if (variable < highestVariable) {
+      bitSet.set(variable);
+      markNode(node);
+      supportRecursive((int) getLowFromStore(nodeStore), bitSet, highestVariable);
+      supportRecursive((int) getHighFromStore(nodeStore), bitSet, highestVariable);
+    }
+  }
+
+  @Override
+  public int xor(final int node1, final int node2) {
+    pushToWorkStack(node1);
+    pushToWorkStack(node2);
+    final int ret = xorRecursive(node1, node2);
+    popWorkStack(2);
+    return ret;
   }
 
   private int xorRecursive(final int node1, final int node2) {
@@ -839,7 +1064,7 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = xorRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
       pushToWorkStack(lowNode);
       highNode = pushToWorkStack(xorRecursive((int) getHighFromStore(node1store),
-          (int) getHighFromStore(node2store)));
+        (int) getHighFromStore(node2store)));
     } else { // v < getVariable(node2)
       lowNode = pushToWorkStack(xorRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(xorRecursive((int) getHighFromStore(node1store), node2));
@@ -850,239 +1075,14 @@ final class BddImpl extends NodeTable implements Bdd {
     return resultNode;
   }
 
-  private boolean impliesRecursive(final int node1, final int node2) {
-    if (node1 == FALSE_NODE) {
-      // False implies anything
-      return true;
-    }
-    if (node2 == FALSE_NODE) {
-      // node1 != FALSE_NODE
-      return false;
-    }
-    if (node2 == TRUE_NODE) {
-      // node1 != FALSE_NODE
-      return true;
-    }
-    if (node1 == TRUE_NODE) {
-      // node2 != TRUE_NODE
-      return false;
-    }
-    if (node1 == node2) {
-      // Trivial implication
-      return true;
-    }
-
-    if (cache.lookupImplication(node1, node2)) {
-      return cache.getLookupResult() == TRUE_NODE;
-    }
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
-
-    if (node1var == node2var) {
-      return
-          impliesRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store))
-              && impliesRecursive((int) getHighFromStore(node1store),
-              (int) getHighFromStore(node2store));
-    } else if (node1var < node2var) {
-      return impliesRecursive((int) getLowFromStore(node1store), node2)
-          && impliesRecursive((int) getHighFromStore(node1store), node2);
-    } else {
-      return impliesRecursive(node1, (int) getLowFromStore(node2store))
-          && impliesRecursive(node1, (int) getHighFromStore(node2store));
-    }
-  }
-
-  private int notRecursive(final int node) {
-    if (node == FALSE_NODE) {
-      return TRUE_NODE;
-    }
-    if (node == TRUE_NODE) {
-      return FALSE_NODE;
-    }
-
-    if (cache.lookupNot(node)) {
-      return cache.getLookupResult();
-    }
-    final int hash = cache.getLookupHash();
-    final long nodeStore = getNodeStore(node);
-
-    final int lowNode = pushToWorkStack(notRecursive((int) getLowFromStore(nodeStore)));
-    final int highNode = pushToWorkStack(notRecursive((int) getHighFromStore(nodeStore)));
-    final int resultNode = makeNode((int) getVariableFromStore(nodeStore), lowNode, highNode);
-    popWorkStack(2);
-    cache.putNot(hash, node, resultNode);
-    return resultNode;
-  }
-
-  private int equivalenceRecursive(final int node1, final int node2) {
-    if (node1 == node2) {
-      return TRUE_NODE;
-    }
-    if (node1 == FALSE_NODE) {
-      return notRecursive(node2);
-    }
-    if (node1 == TRUE_NODE) {
-      return node2;
-    }
-    if (node2 == FALSE_NODE) {
-      return notRecursive(node1);
-    }
-    if (node2 == TRUE_NODE) {
-      return node1;
-    }
-
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
-
-    if (node1var > node2var) {
-      if (cache.lookupEquivalence(node2, node1)) {
-        return cache.getLookupResult();
-      }
-      final int hash = cache.getLookupHash();
-      final int lowNode = equivalenceRecursive((int) getLowFromStore(node2store), node1);
-      pushToWorkStack(lowNode);
-      final int highNode = equivalenceRecursive((int) getHighFromStore(node2store), node1);
-      pushToWorkStack(highNode);
-      final int resultNode = makeNode(node2var, lowNode, highNode);
-      popWorkStack(2);
-      cache.putEquivalence(hash, node2, node1, resultNode);
-      return resultNode;
-    }
-
-    if (cache.lookupEquivalence(node1, node2)) {
-      return cache.getLookupResult();
-    }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
-    if (node1var == node2var) {
-      lowNode = equivalenceRecursive((int) getLowFromStore(node1store),
-          (int) getLowFromStore(node2store));
-      pushToWorkStack(lowNode);
-      highNode = equivalenceRecursive((int) getHighFromStore(node1store),
-          (int) getHighFromStore(node2store));
-      pushToWorkStack(highNode);
-    } else { // v < getVariable(node2)
-      lowNode = pushToWorkStack(equivalenceRecursive((int) getLowFromStore(node1store), node2));
-      highNode = pushToWorkStack(equivalenceRecursive((int) getHighFromStore(node1store), node2));
-    }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
-    popWorkStack(2);
-    cache.putEquivalence(hash, node1, node2, resultNode);
-    return resultNode;
-  }
-
-  private int notAndRecursive(final int node1, final int node2) {
-    if (node1 == 0 || node2 == 0) {
-      return 1;
-    }
-    if (node1 == 1 || node1 == node2) {
-      return notRecursive(node2);
-    }
-    if (node2 == 1) {
-      return notRecursive(node1);
-    }
-
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
-
-    if (node1var > node2var) {
-      if (cache.lookupNAnd(node2, node1)) {
-        return cache.getLookupResult();
-      }
-      final int hash = cache.getLookupHash();
-      final int lowNode = notAndRecursive((int) getLowFromStore(node2store), node1);
-      pushToWorkStack(lowNode);
-      final int highNode = notAndRecursive((int) getHighFromStore(node2store), node1);
-      pushToWorkStack(highNode);
-      final int resultNode = makeNode(node2var, lowNode, highNode);
-      popWorkStack(2);
-      cache.putNAnd(hash, node2, node1, resultNode);
-      return resultNode;
-    }
-
-    if (cache.lookupNAnd(node1, node2)) {
-      return cache.getLookupResult();
-    }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
-    if (node1var == node2var) {
-      lowNode = notAndRecursive((int) getLowFromStore(node1store),
-          (int) getLowFromStore(node2store));
-      pushToWorkStack(lowNode);
-      highNode = notAndRecursive((int) getHighFromStore(node1store),
-          (int) getHighFromStore(node2store));
-      pushToWorkStack(highNode);
-    } else { // v < getVariable(node2)
-      lowNode = pushToWorkStack(notAndRecursive((int) getLowFromStore(node1store), node2));
-      highNode = pushToWorkStack(notAndRecursive((int) getHighFromStore(node1store), node2));
-    }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
-    popWorkStack(2);
-    cache.putNAnd(hash, node1, node2, resultNode);
-    return resultNode;
-  }
-
-  private int implicationRecursive(final int node1, final int node2) {
-    if (node1 == FALSE_NODE || node2 == TRUE_NODE || node1 == node2) {
-      return TRUE_NODE;
-    }
-    if (node1 == TRUE_NODE) {
-      return node2;
-    }
-    if (node2 == FALSE_NODE) {
-      return notRecursive(node1);
-    }
-
-    if (cache.lookupImplication(node1, node2)) {
-      return cache.getLookupResult();
-    }
-    final int hash = cache.getLookupHash();
-
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
-
-    final int lowNode;
-    final int highNode;
-    final int decisionVar;
-    if (node1var > node2var) {
-      lowNode = pushToWorkStack(implicationRecursive(node1, (int) getLowFromStore(node2store)));
-      highNode = pushToWorkStack(implicationRecursive(node1, (int) getHighFromStore(node2store)));
-      decisionVar = node2var;
-    } else if (node1var == node2var) {
-      lowNode = pushToWorkStack(implicationRecursive((int) getLowFromStore(node1store),
-          (int) getLowFromStore(node2store)));
-      highNode = pushToWorkStack(implicationRecursive((int) getHighFromStore(node1store),
-          (int) getHighFromStore(node2store)));
-      decisionVar = node1var;
-    } else {
-      lowNode = pushToWorkStack(implicationRecursive((int) getLowFromStore(node1store), node2));
-      highNode = pushToWorkStack(implicationRecursive((int) getHighFromStore(node1store), node2));
-      decisionVar = node1var;
-    }
-    final int resultNode = makeNode(decisionVar, lowNode, highNode);
-    popWorkStack(2);
-    cache.putImplication(hash, node1, node2, resultNode);
-    return resultNode;
-  }
-
   private static final class MinimalSolutionIterator implements Iterator<BitSet> {
     private final BddImpl bdd;
-    private final int[] path;
     private final BitSet bitSet;
+    private final int[] path;
+    private boolean firstRun = true;
     private int highestLowVariableWithNonFalseHighBranch;
     private int leafPosition;
     private boolean next;
-    private boolean firstRun = true;
 
     MinimalSolutionIterator(final BddImpl bdd, final int node) {
       // Require at least one possible solution to exist.

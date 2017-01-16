@@ -25,13 +25,18 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 final class EdgeGeneric<S> implements Edge<S> {
-  private final S successor;
   private final BitSet acceptance;
+  private final S successor;
 
   EdgeGeneric(final S successor, final BitSet acceptance) {
     assert acceptance.cardinality() > 1;
     this.successor = successor;
     this.acceptance = acceptance;
+  }
+
+  @Override
+  public IntStream acceptanceSetStream() {
+    return acceptance.stream();
   }
 
   @Override
@@ -46,7 +51,7 @@ final class EdgeGeneric<S> implements Edge<S> {
 
     final EdgeGeneric<?> other = (EdgeGeneric<?>) o;
     return Objects.equals(acceptance, other.acceptance)
-        && Objects.equals(successor, other.successor);
+      && Objects.equals(successor, other.successor);
   }
 
   @Override
@@ -62,11 +67,6 @@ final class EdgeGeneric<S> implements Edge<S> {
   @Override
   public boolean inSet(@Nonnegative final int i) {
     return acceptance.get(i);
-  }
-
-  @Override
-  public IntStream acceptanceSetStream() {
-    return acceptance.stream();
   }
 
   @Override

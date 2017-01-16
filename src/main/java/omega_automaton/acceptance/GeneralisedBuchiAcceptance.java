@@ -17,50 +17,49 @@
 
 package omega_automaton.acceptance;
 
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.output.HOAConsumerExtended;
 
-import javax.annotation.Nonnegative;
-import java.util.Collections;
-import java.util.List;
-
 public class GeneralisedBuchiAcceptance implements OmegaAcceptance {
 
-    @Nonnegative
-    public final int size;
+  @Nonnegative
+  public final int size;
 
-    public GeneralisedBuchiAcceptance(int size) {
-        this.size = size;
+  public GeneralisedBuchiAcceptance(int size) {
+    this.size = size;
+  }
+
+  @Override
+  public int getAcceptanceSets() {
+    return size;
+  }
+
+  @Override
+  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+    BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkInf(0);
+
+    for (int i = 1; i < size; i++) {
+      conjunction = conjunction.and(HOAConsumerExtended.mkInf(i));
     }
 
-    @Override
-    public String getName() {
-        return "generalized-Buchi";
-    }
+    return conjunction;
+  }
 
-    @Override
-    public List<Object> getNameExtra() {
-        return Collections.singletonList(size);
-    }
+  @Override
+  public String getName() {
+    return "generalized-Buchi";
+  }
 
-    @Override
-    public int getAcceptanceSets() {
-        return size;
-    }
+  @Override
+  public List<Object> getNameExtra() {
+    return Collections.singletonList(size);
+  }
 
-    @Override
-    public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-        BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkInf(0);
-
-        for (int i = 1; i < size; i++) {
-            conjunction = conjunction.and(HOAConsumerExtended.mkInf(i));
-        }
-
-        return conjunction;
-    }
-
-    public int getSize() {
-        return size;
-    }
+  public int getSize() {
+    return size;
+  }
 }

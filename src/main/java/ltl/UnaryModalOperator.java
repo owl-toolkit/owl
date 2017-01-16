@@ -23,38 +23,38 @@ import java.util.Objects;
 
 public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
 
-    public final Formula operand;
+  public final Formula operand;
 
-    UnaryModalOperator(Formula operand) {
-        this.operand = operand;
-    }
+  UnaryModalOperator(Formula operand) {
+    this.operand = operand;
+  }
 
-    @Override
-    public String toString() {
-        return getOperator() + operand.toString();
-    }
+  @Override
+  public boolean equals2(ImmutableObject o) {
+    UnaryModalOperator that = (UnaryModalOperator) o;
+    return Objects.equals(operand, that.operand);
+  }
 
-    @Override
-    public String toString(Map<Integer, String> atomMapping) {
-        return getOperator() + operand.toString(atomMapping);
-    }
+  public abstract String getOperator();
 
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        UnaryModalOperator that = (UnaryModalOperator) o;
-        return Objects.equals(operand, that.operand);
-    }
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return this;
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return this;
-    }
+  @Override
+  public Formula temporalStepUnfold(BitSet valuation) {
+    return unfold();
+  }
 
-    @Override
-    public Formula temporalStepUnfold(BitSet valuation) {
-        return unfold();
-    }
+  @Override
+  public String toString() {
+    return getOperator() + operand.toString();
+  }
 
-    public abstract String getOperator();
+  @Override
+  public String toString(Map<Integer, String> atomMapping) {
+    return getOperator() + operand.toString(atomMapping);
+  }
 
 }

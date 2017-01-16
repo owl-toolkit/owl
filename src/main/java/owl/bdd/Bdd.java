@@ -125,11 +125,33 @@ public interface Bdd {
   int getLow(int node);
 
   /**
+   * Iteratively computes all (minimal) solutions of the function represented by {@code node}. The
+   * returned solutions are all bit sets representing a path from node to <tt>true</tt> in the graph
+   * induced by the BDD structure. Furthermore, the solutions are generated in lexicographic
+   * ascending order.
+   * <p> <b>Note:</b> The returned iterator modifies the bit set in place. If all solutions should
+   * be gathered into a set or similar, they have to be copied after each call to
+   * {@link Iterator#next()}.</p>
+   *
+   * @param node
+   *     The node whose solutions should be computed.
+   *
+   * @return An iterator returning all minimal solutions in ascending order.
+   */
+  Iterator<BitSet> getMinimalSolutions(int node);
+
+  /**
    * Returns the node representing <tt>true</tt>.
    */
   int getTrueNode();
 
   int getVariable(int node);
+
+  /**
+   * Constructs the node representing <tt>IF {@code ifNode} THEN {@code thenNode} ELSE
+   * {@code elseNode}</tt>.
+   */
+  int ifThenElse(int ifNode, int thenNode, int elseNode);
 
   /**
    * Constructs the node representing <tt>{@code node1} IMPLIES {@code node2}</tt>.
@@ -157,6 +179,8 @@ public interface Bdd {
    */
   boolean implies(int node1, int node2);
 
+  boolean isNodeRoot(int node);
+
   /**
    * Determines whether the given {@code node} represents a variable.
    *
@@ -178,17 +202,6 @@ public interface Bdd {
   boolean isVariableOrNegated(int node);
 
   /**
-   * Constructs the node representing <tt>IF {@code ifNode} THEN {@code thenNode} ELSE
-   * {@code elseNode}</tt>.
-   */
-  int ifThenElse(int ifNode, int thenNode, int elseNode);
-
-  /**
-   * Constructs the node representing <tt>{@code node1} NAND {@code node2}</tt>.
-   */
-  int notAnd(int node1, int node2);
-
-  /**
    * Constructs the node representing <tt>NOT {@code node}</tt>.
    *
    * @param node
@@ -197,6 +210,11 @@ public interface Bdd {
    * @return The negation of the given BDD.
    */
   int not(int node);
+
+  /**
+   * Constructs the node representing <tt>{@code node1} NAND {@code node2}</tt>.
+   */
+  int notAnd(int node1, int node2);
 
   /**
    * Returns the number of variables in this BDD.
@@ -221,6 +239,40 @@ public interface Bdd {
   int reference(int node);
 
   /**
+   * Computes the restriction of the given {@code node}, where all variables specified by
+   * {@code restrictedVariables} are replaced by the value given in
+   * {@code restrictedVariableValues}. Formally, if {@code node} represents
+   * <tt>f(x_1, ..., x_n)</tt>, this method computes the node representing
+   * <tt>f(x_1, ..., x_{i_1-1}, c_1, x_{i_1+1}, ..., x_{i_2-1}, c_2, x_{i_2+1}, ..., x_n</tt>, where
+   * <tt>i_k</tt> are the elements of the {@code restrictedVariables} set and
+   * <tt>c_k := restrictedVariableValues.get(i_k)</tt>. This is semantically equivalent to calling
+   * compose where all specified variables are replaced by <tt>true</tt> or <tt>false</tt>, but
+   * slightly faster.
+   *
+   * @param node
+   *     The node to be restricted.
+   * @param restrictedVariables
+   *     The variables used in the restriction.
+   * @param restrictedVariableValues
+   *     The values of the restricted variables.
+   *
+   * @return The restricted node.
+   *
+   * @see #compose(int, int[])
+   */
+  default int restrict(int node, BitSet restrictedVariables, BitSet restrictedVariableValues) {
+    int[] compose = new int[numberOfVariables()];
+
+    for (int i = 0; i < compose.length; i++) {
+      compose[i] = restrictedVariables.get(i) ?
+                   (restrictedVariableValues.get(i) ? getTrueNode() : getFalseNode()) :
+                   -1;
+    }
+
+    return compose(node, compose);
+  }
+
+  /**
    * Computes the <b>support</b> of the function represented by the given {@code node}. The support
    * of a function are all variables which have an influence on its value.
    *
@@ -228,7 +280,7 @@ public interface Bdd {
    *     The node whose support should be computed.
    *
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
-   *     the support of {@code node}.
+   * the support of {@code node}.
    */
   default BitSet support(final int node) {
     return support(node, numberOfVariables());
@@ -277,54 +329,6 @@ public interface Bdd {
   void support(int node, BitSet bitSet, int highestVariable);
 
   /**
-   * Iteratively computes all (minimal) solutions of the function represented by {@code node}. The
-   * returned solutions are all bit sets representing a path from node to <tt>true</tt> in the graph
-   * induced by the BDD structure. Furthermore, the solutions are generated in lexicographic
-   * ascending order.
-   * <p> <b>Note:</b> The returned iterator modifies the bit set in place. If all solutions should
-   * be gathered into a set or similar, they have to be copied after each call to
-   * {@link Iterator#next()}.</p>
-   *
-   * @param node
-   *     The node whose solutions should be computed.
-   *
-   * @return An iterator returning all minimal solutions in ascending order.
-   */
-  Iterator<BitSet> getMinimalSolutions(int node);
-
-  /**
-   * Computes the restriction of the given {@code node}, where all variables specified by
-   * {@code restrictedVariables} are replaced by the value given in
-   * {@code restrictedVariableValues}. Formally, if {@code node} represents
-   * <tt>f(x_1, ..., x_n)</tt>, this method computes the node representing
-   * <tt>f(x_1, ..., x_{i_1-1}, c_1, x_{i_1+1}, ..., x_{i_2-1}, c_2, x_{i_2+1}, ..., x_n</tt>, where
-   * <tt>i_k</tt> are the elements of the {@code restrictedVariables} set and
-   * <tt>c_k := restrictedVariableValues.get(i_k)</tt>. This is semantically equivalent to calling
-   * compose where all specified variables are replaced by <tt>true</tt> or <tt>false</tt>, but
-   * slightly faster.
-   *
-   * @param node
-   *     The node to be restricted.
-   * @param restrictedVariables
-   *     The variables used in the restriction.
-   * @param restrictedVariableValues
-   *     The values of the restricted variables.
-   *
-   * @return The restricted node.
-   *
-   * @see #compose(int, int[])
-   */
-  default int restrict(int node, BitSet restrictedVariables, BitSet restrictedVariableValues) {
-    int[] compose = new int[numberOfVariables()];
-
-    for (int i = 0; i < compose.length; i++) {
-      compose[i] = restrictedVariables.get(i) ? (restrictedVariableValues.get(i) ? getTrueNode() : getFalseNode()) : -1;
-    }
-
-    return compose(node, compose);
-  }
-
-  /**
    * Auxiliary function useful for updating node variables. It dereferences {@code inputNode} and
    * references {@code result}. This is useful for assignments like {@code node = f(node, ...)}
    * where <tt>f</tt> is some operation on the BDD. In this case, calling {@code node =
@@ -350,8 +354,6 @@ public interface Bdd {
    * Constructs the node representing <tt>{@code node1} XOR {@code node2}</tt>.
    */
   int xor(int node1, int node2);
-
-  boolean isNodeRoot(int node);
 
   /**
    * A wrapper class to guard some node in an area where exceptions can occur. It increases the

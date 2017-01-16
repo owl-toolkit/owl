@@ -17,73 +17,85 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public class SkipVisitor implements Visitor<Formula> {
 
-    private final Visitor<Formula> visitor;
+  private final Visitor<Formula> visitor;
 
-    public SkipVisitor(Visitor<Formula> visitor) {
-        this.visitor = visitor;
-    }
+  public SkipVisitor(Visitor<Formula> visitor) {
+    this.visitor = visitor;
+  }
 
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-        return booleanConstant;
-    }
+  @Override
+  public Formula visit(BooleanConstant booleanConstant) {
+    return booleanConstant;
+  }
 
-    @Override
-    public Formula visit(Conjunction conjunction) {
-        return Conjunction.create(conjunction.children.stream().map(c -> c.accept(visitor)));
-    }
+  @Override
+  public Formula visit(Conjunction conjunction) {
+    return Conjunction.create(conjunction.children.stream().map(c -> c.accept(visitor)));
+  }
 
-    @Override
-    public Formula visit(Disjunction disjunction) {
-        return Disjunction.create(disjunction.children.stream().map(c -> c.accept(visitor)));
-    }
+  @Override
+  public Formula visit(Disjunction disjunction) {
+    return Disjunction.create(disjunction.children.stream().map(c -> c.accept(visitor)));
+  }
 
-    @Override
-    public Formula visit(FOperator fOperator) {
-        return FOperator.create(fOperator.operand.accept(visitor));
-    }
+  @Override
+  public Formula visit(FOperator fOperator) {
+    return FOperator.create(fOperator.operand.accept(visitor));
+  }
 
-    @Override
-    public Formula visit(FrequencyG freq) {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public Formula visit(FrequencyG freq) {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public Formula visit(GOperator gOperator) {
-        return GOperator.create(gOperator.operand.accept(visitor));
-    }
+  @Override
+  public Formula visit(GOperator gOperator) {
+    return GOperator.create(gOperator.operand.accept(visitor));
+  }
 
-    @Override
-    public Formula visit(Literal literal) {
-        return literal;
-    }
+  @Override
+  public Formula visit(Literal literal) {
+    return literal;
+  }
 
-    @Override
-    public Formula visit(MOperator mOperator) {
-        return MOperator.create(mOperator.left.accept(visitor), mOperator.right.accept(visitor));
-    }
+  @Override
+  public Formula visit(MOperator mOperator) {
+    return MOperator.create(mOperator.left.accept(visitor), mOperator.right.accept(visitor));
+  }
 
-    @Override
-    public Formula visit(UOperator uOperator) {
-        return UOperator.create(uOperator.left.accept(visitor), uOperator.right.accept(visitor));
-    }
+  @Override
+  public Formula visit(UOperator uOperator) {
+    return UOperator.create(uOperator.left.accept(visitor), uOperator.right.accept(visitor));
+  }
 
-    @Override
-    public Formula visit(WOperator wOperator) {
-        return WOperator.create(wOperator.left.accept(visitor), wOperator.right.accept(visitor));
-    }
+  @Override
+  public Formula visit(WOperator wOperator) {
+    return WOperator.create(wOperator.left.accept(visitor), wOperator.right.accept(visitor));
+  }
 
-    @Override
-    public Formula visit(ROperator rOperator) {
-        return ROperator.create(rOperator.left.accept(visitor), rOperator.right.accept(visitor));
-    }
+  @Override
+  public Formula visit(ROperator rOperator) {
+    return ROperator.create(rOperator.left.accept(visitor), rOperator.right.accept(visitor));
+  }
 
-    @Override
-    public Formula visit(XOperator xOperator) {
-        return XOperator.create(xOperator.operand.accept(visitor));
-    }
+  @Override
+  public Formula visit(XOperator xOperator) {
+    return XOperator.create(xOperator.operand.accept(visitor));
+  }
 }

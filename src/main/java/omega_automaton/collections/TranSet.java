@@ -18,137 +18,146 @@
 package omega_automaton.collections;
 
 
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 import omega_automaton.Automaton;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 
-import java.util.*;
-import java.util.function.Consumer;
-
 @Deprecated
 public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
 
-    private final Map<S, ValuationSet> backingMap;
-    private final ValuationSetFactory factory;
-    private final ValuationSet empty;
+  private final Map<S, ValuationSet> backingMap;
+  private final ValuationSet empty;
+  private final ValuationSetFactory factory;
 
-    public TranSet(ValuationSetFactory f) {
-        factory = f;
-        empty = f.createEmptyValuationSet();
-        backingMap = new HashMap<>();
+  public TranSet(ValuationSetFactory f) {
+    factory = f;
+    empty = f.createEmptyValuationSet();
+    backingMap = new HashMap<>();
+  }
+
+  public <T extends S> void addAll(T state, ValuationSet vs) {
+    if (vs == null || vs.isEmpty()) {
+      return;
     }
 
-    public Map<S, ValuationSet> asMap() {
-        return Collections.unmodifiableMap(backingMap);
+    ValuationSet valuationSet = backingMap.get(state);
+
+    if (valuationSet == null) {
+      valuationSet = vs.copy();
+      backingMap.put(state, valuationSet);
+    } else {
+      valuationSet.addAll(vs);
+    }
+  }
+
+  public void addAll(TranSet<S> other) {
+    other.backingMap.forEach(this::addAll);
+  }
+
+  public Map<S, ValuationSet> asMap() {
+    return Collections.unmodifiableMap(backingMap);
+  }
+
+  public <T extends S> boolean contains(T state) {
+    return backingMap.containsKey(state);
+  }
+
+  public boolean contains(Object state, BitSet valuation) {
+    return backingMap.getOrDefault(state, empty).contains(valuation);
+  }
+
+  public boolean containsAll(Object state, ValuationSet vs) {
+    return backingMap.getOrDefault(state, empty).containsAll(vs);
+  }
+
+  public boolean containsAll(TranSet<S> other) {
+    return other.backingMap.entrySet().stream()
+      .allMatch(e -> containsAll(e.getKey(), e.getValue()));
+  }
+
+  public boolean containsAll(Automaton<?, ?> automaton) {
+    return automaton.getStates().stream().allMatch(s -> {
+      ValuationSet vs = backingMap.get(s);
+      return vs != null && vs.isUniverse();
+    });
+  }
+
+  public TranSet<S> copy() {
+    TranSet<S> result = new TranSet<>(factory);
+    result.addAll(this);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    TranSet<?> tranSet = (TranSet<?>) o;
+    return Objects.equals(backingMap, tranSet.backingMap) &&
+      Objects.equals(factory, tranSet.factory);
+  }
+
+  @Override
+  public void forEach(Consumer<? super Map.Entry<S, ValuationSet>> action) {
+    backingMap.entrySet().forEach(action);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(backingMap, factory);
+  }
+
+  public boolean intersects(TranSet<? super S> other) {
+    return backingMap.entrySet().stream()
+      .anyMatch(e -> other.backingMap.getOrDefault(e.getKey(), empty).intersects(e.getValue()));
+  }
+
+  public boolean isEmpty() {
+    return backingMap.isEmpty();
+  }
+
+  @Override
+  public Iterator<Map.Entry<S, ValuationSet>> iterator() {
+    return backingMap.entrySet().iterator();
+  }
+
+  public void removeAll(S state, ValuationSet vs) {
+    ValuationSet valuationSet = backingMap.get(state);
+
+    if (valuationSet == null || vs == null) {
+      return;
     }
 
-    public <T extends S> void addAll(T state, ValuationSet vs) {
-        if (vs == null || vs.isEmpty()) {
-            return;
-        }
+    valuationSet.removeAll(vs);
 
-        ValuationSet valuationSet = backingMap.get(state);
-
-        if (valuationSet == null) {
-            valuationSet = vs.copy();
-            backingMap.put(state, valuationSet);
-        } else {
-            valuationSet.addAll(vs);
-        }
+    if (valuationSet.isEmpty()) {
+      backingMap.remove(state);
     }
+  }
 
-    public void addAll(TranSet<S> other) {
-        other.backingMap.forEach(this::addAll);
-    }
+  public void removeAll(TranSet<S> other) {
+    other.backingMap.forEach(this::removeAll);
+  }
 
-    public <T extends S> boolean contains(T state) {
-        return backingMap.containsKey(state);
-    }
+  @Override
+  public String toString() {
+    return backingMap.toString();
+  }
 
-    public boolean contains(Object state, BitSet valuation) {
-        return backingMap.getOrDefault(state, empty).contains(valuation);
-    }
-
-    public boolean containsAll(Object state, ValuationSet vs) {
-        return backingMap.getOrDefault(state, empty).containsAll(vs);
-    }
-
-    public boolean containsAll(TranSet<S> other) {
-        return other.backingMap.entrySet().stream()
-                .allMatch(e -> containsAll(e.getKey(), e.getValue()));
-    }
-
-    public boolean containsAll(Automaton<?, ?> automaton) {
-        return automaton.getStates().stream().allMatch(s -> {
-            ValuationSet vs = backingMap.get(s);
-            return vs != null && vs.isUniverse();
-        });
-    }
-
-    public boolean intersects(TranSet<? super S> other) {
-        return backingMap.entrySet().stream().anyMatch(e -> other.backingMap.getOrDefault(e.getKey(), empty).intersects(e.getValue()));
-    }
-
-    public boolean isEmpty() {
-        return backingMap.isEmpty();
-    }
-
-    public TranSet<S> union(TranSet<S> other) {
-        TranSet<S> result = this.copy();
-        result.addAll(other);
-        return result;
-    }
-
-    public void removeAll(S state, ValuationSet vs) {
-        ValuationSet valuationSet = backingMap.get(state);
-
-        if (valuationSet == null || vs == null) {
-            return;
-        }
-
-        valuationSet.removeAll(vs);
-
-        if (valuationSet.isEmpty()) {
-            backingMap.remove(state);
-        }
-    }
-
-    public void removeAll(TranSet<S> other) {
-        other.backingMap.forEach(this::removeAll);
-    }
-
-    public TranSet<S> copy() {
-        TranSet<S> result = new TranSet<>(factory);
-        result.addAll(this);
-        return result;
-    }
-
-    @Override
-    public Iterator<Map.Entry<S, ValuationSet>> iterator() {
-        return backingMap.entrySet().iterator();
-    }
-
-    @Override
-    public void forEach(Consumer<? super Map.Entry<S, ValuationSet>> action) {
-        backingMap.entrySet().forEach(action);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TranSet<?> tranSet = (TranSet<?>) o;
-        return Objects.equals(backingMap, tranSet.backingMap) &&
-                Objects.equals(factory, tranSet.factory);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(backingMap, factory);
-    }
-
-    @Override
-    public String toString() {
-        return backingMap.toString();
-    }
+  public TranSet<S> union(TranSet<S> other) {
+    TranSet<S> result = this.copy();
+    result.addAll(other);
+    return result;
+  }
 }

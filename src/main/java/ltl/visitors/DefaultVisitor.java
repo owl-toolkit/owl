@@ -17,70 +17,82 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public abstract class DefaultVisitor<T> implements Visitor<T> {
 
-    protected abstract T defaultAction(Formula formula);
+  protected abstract T defaultAction(Formula formula);
 
-    @Override
-    public T visit(BooleanConstant booleanConstant) {
-        return defaultAction(booleanConstant);
-    }
+  @Override
+  public T visit(BooleanConstant booleanConstant) {
+    return defaultAction(booleanConstant);
+  }
 
-    @Override
-    public T visit(Conjunction conjunction) {
-        return defaultAction(conjunction);
-    }
+  @Override
+  public T visit(Conjunction conjunction) {
+    return defaultAction(conjunction);
+  }
 
-    @Override
-    public T visit(Disjunction disjunction) {
-        return defaultAction(disjunction);
-    }
+  @Override
+  public T visit(Disjunction disjunction) {
+    return defaultAction(disjunction);
+  }
 
-    @Override
-    public T visit(FOperator fOperator) {
-        return defaultAction(fOperator);
-    }
+  @Override
+  public T visit(FOperator fOperator) {
+    return defaultAction(fOperator);
+  }
 
-    @Override
-    public T visit(FrequencyG freq) {
-        return defaultAction(freq);
-    }
+  @Override
+  public T visit(FrequencyG freq) {
+    return defaultAction(freq);
+  }
 
-    @Override
-    public T visit(GOperator gOperator) {
-        return defaultAction(gOperator);
-    }
+  @Override
+  public T visit(GOperator gOperator) {
+    return defaultAction(gOperator);
+  }
 
-    @Override
-    public T visit(Literal literal) {
-        return defaultAction(literal);
-    }
+  @Override
+  public T visit(Literal literal) {
+    return defaultAction(literal);
+  }
 
-    @Override
-    public T visit(MOperator mOperator) {
-        return defaultAction(mOperator);
-    }
+  @Override
+  public T visit(MOperator mOperator) {
+    return defaultAction(mOperator);
+  }
 
-    @Override
-    public T visit(ROperator rOperator) {
-        return defaultAction(rOperator);
-    }
+  @Override
+  public T visit(ROperator rOperator) {
+    return defaultAction(rOperator);
+  }
 
-    @Override
-    public T visit(UOperator uOperator) {
-        return defaultAction(uOperator);
-    }
+  @Override
+  public T visit(UOperator uOperator) {
+    return defaultAction(uOperator);
+  }
 
-    @Override
-    public T visit(WOperator wOperator) {
-        return defaultAction(wOperator);
-    }
+  @Override
+  public T visit(WOperator wOperator) {
+    return defaultAction(wOperator);
+  }
 
-    @Override
-    public T visit(XOperator xOperator) {
-        return defaultAction(xOperator);
-    }
+  @Override
+  public T visit(XOperator xOperator) {
+    return defaultAction(xOperator);
+  }
 
 }

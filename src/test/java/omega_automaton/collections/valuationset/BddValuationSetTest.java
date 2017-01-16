@@ -21,8 +21,8 @@ import com.google.common.collect.BiMap;
 
 public class BddValuationSetTest extends ValuationSetTest {
 
-    @Override
-    public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
-        return new BDDValuationSetFactory(aliases.size());
-    }
+  @Override
+  public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
+    return new BDDValuationSetFactory(aliases.size());
+  }
 }

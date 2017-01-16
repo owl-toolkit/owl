@@ -17,132 +17,132 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Objects;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.Visitor;
 
-import java.util.BitSet;
-import java.util.Objects;
-
 public class FrequencyG extends GOperator {
 
-    private static final double EPSILON = 1e-12;
+  private static final double EPSILON = 1e-12;
 
-    public final double bound;
-    public final Comparison cmp;
-    public final Limes limes;
+  public final double bound;
+  public final Comparison cmp;
+  public final Limes limes;
 
-    public FrequencyG(Formula f, double bound, Comparison cmp, Limes limes) {
-        super(f);
-        this.bound = bound;
-        this.cmp = cmp;
-        this.limes = limes;
-    }
+  public FrequencyG(Formula f, double bound, Comparison cmp, Limes limes) {
+    super(f);
+    this.bound = bound;
+    this.cmp = cmp;
+    this.limes = limes;
+  }
 
-    @Override
-    public FrequencyG unfold() {
-        return this;
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public FrequencyG not() {
-        return new FrequencyG(operand.not(), 1.0 - bound, cmp.theOther(), limes.theOther());
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Override
+  public boolean equals2(ImmutableObject o) {
+    FrequencyG that = (FrequencyG) o;
+    return Objects.equals(operand, that.operand) && Math.abs(this.bound - that.bound) < EPSILON
+      && this.cmp == that.cmp && this.limes == that.limes;
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public String getOperator() {
+    return "G{" + limes + " " + cmp + " " + bound + "}";
+  }
 
-    @Override
-    public boolean isPureEventual() {
-        throw new UnsupportedOperationException("To my best knowledge not defined");
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return Objects.hash(FrequencyG.class, operand, bound, cmp, limes);
+  }
 
-    @Override
-    public boolean isPureUniversal() {
-        throw new UnsupportedOperationException("To my best knowledge not defined");
-    }
+  @Override
+  public boolean isPureEventual() {
+    throw new UnsupportedOperationException("To my best knowledge not defined");
+  }
 
-    @Override
-    public boolean isSuspendable() {
-        throw new UnsupportedOperationException("To my best knowledge not defined");
-    }
+  @Override
+  public boolean isPureUniversal() {
+    throw new UnsupportedOperationException("To my best knowledge not defined");
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return this;
-    }
+  @Override
+  public boolean isSuspendable() {
+    throw new UnsupportedOperationException("To my best knowledge not defined");
+  }
 
-    @Override
-    protected int hashCodeOnce() {
-        return Objects.hash(FrequencyG.class, operand, bound, cmp, limes);
+  @Override
+  public FrequencyG not() {
+    return new FrequencyG(operand.not(), 1.0 - bound, cmp.theOther(), limes.theOther());
+  }
+
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return this;
+  }
+
+  @Override
+  public String toString() {
+    return "G {" + limes.toString() + cmp.toString() + bound + "} " + operand.toString();
+  }
+
+  @Override
+  public FrequencyG unfold() {
+    return this;
+  }
+
+  public enum Comparison {
+    GEQ, GT;
+
+    public Comparison theOther() {
+      switch (this) {
+        case GEQ:
+          return Comparison.GT;
+        case GT:
+          return Comparison.GEQ;
+        default:
+          throw new AssertionError();
+      }
     }
 
     @Override
     public String toString() {
-        return "G {" + limes.toString() + cmp.toString() + bound + "} " + operand.toString();
+      switch (this) {
+        case GEQ:
+          return ">=";
+        case GT:
+          return ">";
+        default:
+          throw new AssertionError();
+      }
+    }
+  }
+
+  public enum Limes {
+    SUP, INF;
+
+    public Limes theOther() {
+      if (this == SUP) {
+        return INF;
+      }
+
+      return SUP;
     }
 
     @Override
-    public String getOperator() {
-        return "G{" + limes + " " + cmp + " " + bound + "}";
+    public String toString() {
+      if (this == SUP) {
+        return "sup";
+      }
+      return "inf";
     }
-
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        FrequencyG that = (FrequencyG) o;
-        return Objects.equals(operand, that.operand) && Math.abs(this.bound - that.bound) < EPSILON && this.cmp == that.cmp && this.limes == that.limes;
-    }
-
-    public enum Comparison {
-        GEQ, GT;
-
-        public Comparison theOther() {
-            switch (this) {
-                case GEQ:
-                    return Comparison.GT;
-                case GT:
-                    return Comparison.GEQ;
-                default:
-                    throw new AssertionError();
-            }
-        }
-
-        @Override
-        public String toString() {
-            switch (this) {
-                case GEQ:
-                    return ">=";
-                case GT:
-                    return ">";
-                default:
-                    throw new AssertionError();
-            }
-        }
-    }
-
-    public enum Limes {
-        SUP, INF;
-
-        public Limes theOther() {
-            if (this == SUP) {
-                return INF;
-            }
-
-            return SUP;
-        }
-
-        @Override
-        public String toString() {
-            if (this == SUP) {
-                return "sup";
-            }
-            return "inf";
-        }
-    }
+  }
 }

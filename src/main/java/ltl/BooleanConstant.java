@@ -17,104 +17,102 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
-import javax.annotation.Nonnull;
-import java.util.BitSet;
-import java.util.Map;
-
 public final class BooleanConstant extends ImmutableObject implements Formula {
 
-    public static final BooleanConstant TRUE = new BooleanConstant(true);
-    public static final BooleanConstant FALSE = new BooleanConstant(false);
+  public static final BooleanConstant FALSE = new BooleanConstant(false);
+  public static final BooleanConstant TRUE = new BooleanConstant(true);
+  public final boolean value;
 
-    public final boolean value;
+  private BooleanConstant(boolean value) {
+    this.value = value;
+  }
 
-    private BooleanConstant(boolean value) {
-        this.value = value;
-    }
+  public static BooleanConstant get(boolean value) {
+    return value ? TRUE : FALSE;
+  }
 
-    public static BooleanConstant get(boolean value) {
-        return value ? TRUE : FALSE;
-    }
+  @Override
+  public int accept(IntVisitor v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public String toString() {
-        return value ? "true" : "false";
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public String toString(Map<Integer, String> atomMapping) {
-        return toString();
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Nonnull
-    @Override
-    public BooleanConstant not() {
-        return value ? FALSE : TRUE;
-    }
+  @Override
+  public boolean equals2(ImmutableObject o) {
+    BooleanConstant that = (BooleanConstant) o;
+    return value == that.value;
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return this;
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return Boolean.hashCode(value);
+  }
 
-    @Override
-    public Formula temporalStepUnfold(BitSet valuation) {
-        return this;
-    }
+  @Override
+  public boolean isPureEventual() {
+    return true;
+  }
 
-    @Override
-    public Formula unfoldTemporalStep(BitSet valuation) {
-        return this;
-    }
+  @Override
+  public boolean isPureUniversal() {
+    return true;
+  }
 
-    @Override
-    public int accept(IntVisitor v) {
-        return v.visit(this);
-    }
+  @Override
+  public boolean isSuspendable() {
+    return true;
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Nonnull
+  @Override
+  public BooleanConstant not() {
+    return value ? FALSE : TRUE;
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return this;
+  }
 
-    @Override
-    public boolean isPureEventual() {
-        return true;
-    }
+  @Override
+  public Formula temporalStepUnfold(BitSet valuation) {
+    return this;
+  }
 
-    @Override
-    public boolean isPureUniversal() {
-        return true;
-    }
+  @Override
+  public String toString() {
+    return value ? "true" : "false";
+  }
 
-    @Override
-    public boolean isSuspendable() {
-        return true;
-    }
+  @Override
+  public String toString(Map<Integer, String> atomMapping) {
+    return toString();
+  }
 
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        BooleanConstant that = (BooleanConstant) o;
-        return value == that.value;
-    }
+  @Override
+  public Formula unfold() {
+    return this;
+  }
 
-    @Override
-    public Formula unfold() {
-        return this;
-    }
-
-    @Override
-    protected int hashCodeOnce() {
-        return Boolean.hashCode(value);
-    }
+  @Override
+  public Formula unfoldTemporalStep(BitSet valuation) {
+    return this;
+  }
 
 }

@@ -17,51 +17,52 @@
 
 package omega_automaton.collections.valuationset;
 
+import java.util.BitSet;
+import javax.annotation.Nonnull;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 
-import javax.annotation.Nonnull;
-import java.util.BitSet;
-
 /**
- * This interface is very similar to {@link java.util.Set<BitSet>} but breaks on purpose several standard contracts, such
- * as returning a boolean, if the operation changes the underlying data-structure. This information is never used and it is
- * costly to support this.
+ * This interface is very similar to {@link java.util.Set<BitSet>} but breaks on purpose several
+ * standard contracts, such as returning a boolean, if the operation changes the underlying
+ * data-structure. This information is never used and it is costly to support this.
  */
 public interface ValuationSet extends Iterable<BitSet> {
-    ValuationSet complement();
+  void add(@Nonnull BitSet valuation);
 
-    boolean isUniverse();
+  void addAll(@Nonnull ValuationSet newVs);
 
-    BooleanExpression<AtomLabel> toExpression();
+  /**
+   * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.
+   *
+   * @param other
+   *     the other valuation set.
+   */
+  void addAllWith(@Nonnull ValuationSet other);
 
-    boolean contains(BitSet valuation);
+  ValuationSet complement();
 
-    boolean containsAll(ValuationSet vs);
+  boolean contains(BitSet valuation);
 
-    boolean isEmpty();
+  boolean containsAll(ValuationSet vs);
 
-    void add(@Nonnull BitSet valuation);
+  ValuationSet copy();
 
-    void addAll(@Nonnull ValuationSet newVs);
+  void free();
 
-    /**
-     * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.
-     * @param other the other valuation set.
-     */
-    void addAllWith(@Nonnull ValuationSet other);
+  ValuationSet intersect(ValuationSet v2);
 
-    void removeAll(@Nonnull ValuationSet other);
+  boolean intersects(ValuationSet value);
 
-    void retainAll(@Nonnull ValuationSet other);
+  boolean isEmpty();
 
-    int size();
+  boolean isUniverse();
 
-    void free();
+  void removeAll(@Nonnull ValuationSet other);
 
-    ValuationSet copy();
+  void retainAll(@Nonnull ValuationSet other);
 
-    boolean intersects(ValuationSet value);
+  int size();
 
-    ValuationSet intersect(ValuationSet v2);
+  BooleanExpression<AtomLabel> toExpression();
 }

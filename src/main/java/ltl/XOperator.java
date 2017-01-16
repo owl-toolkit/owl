@@ -17,92 +17,91 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Objects;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-
-import java.util.BitSet;
-import java.util.Objects;
 
 /**
  * Next.
  */
 public final class XOperator extends UnaryModalOperator {
 
-    public XOperator(Formula f) {
-        super(f);
+  public XOperator(Formula f) {
+    super(f);
+  }
+
+  public static Formula create(Formula operand) {
+    if (operand instanceof BooleanConstant) {
+      return operand;
     }
 
-    @Override
-    public Formula unfold() {
-        return this;
-    }
+    return new XOperator(operand);
+  }
 
-    @Override
-    public Formula not() {
-        return new XOperator(operand.not());
-    }
+  @Override
+  public int accept(IntVisitor v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return operand;
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public Formula temporalStepUnfold(BitSet valuation) {
-        return operand.unfold();
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Override
-    public Formula unfoldTemporalStep(BitSet valuation) {
-        return temporalStep(valuation);
-    }
+  @Override
+  public String getOperator() {
+    return "X";
+  }
 
-    @Override
-    public int accept(IntVisitor v) {
-        return v.visit(this);
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return Objects.hash(XOperator.class, operand);
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Override
+  public boolean isPureEventual() {
+    return operand.isPureEventual();
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public boolean isPureUniversal() {
+    return operand.isPureUniversal();
+  }
 
-    @Override
-    public boolean isPureEventual() {
-        return operand.isPureEventual();
-    }
+  @Override
+  public boolean isSuspendable() {
+    return operand.isSuspendable();
+  }
 
-    @Override
-    public boolean isPureUniversal() {
-        return operand.isPureUniversal();
-    }
+  @Override
+  public Formula not() {
+    return new XOperator(operand.not());
+  }
 
-    @Override
-    public boolean isSuspendable() {
-        return operand.isSuspendable();
-    }
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return operand;
+  }
 
-    @Override
-    public String getOperator() {
-        return "X";
-    }
+  @Override
+  public Formula temporalStepUnfold(BitSet valuation) {
+    return operand.unfold();
+  }
 
-    public static Formula create(Formula operand) {
-        if (operand instanceof BooleanConstant) {
-            return operand;
-        }
+  @Override
+  public Formula unfold() {
+    return this;
+  }
 
-        return new XOperator(operand);
-    }
-
-    @Override
-    protected int hashCodeOnce() {
-        return Objects.hash(XOperator.class, operand);
-    }
+  @Override
+  public Formula unfoldTemporalStep(BitSet valuation) {
+    return temporalStep(valuation);
+  }
 }

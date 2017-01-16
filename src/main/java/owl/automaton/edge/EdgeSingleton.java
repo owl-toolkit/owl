@@ -17,17 +17,16 @@
 
 package owl.automaton.edge;
 
-import javax.annotation.Nonnegative;
-import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import javax.annotation.Nonnegative;
+import javax.annotation.concurrent.Immutable;
 
 @Immutable
 final class EdgeSingleton<S> implements Edge<S> {
   private static final int EMPTY_ACCEPTANCE = -1;
-
-  private final S successor;
   private final int acceptance;
+  private final S successor;
 
   EdgeSingleton(final S successor) {
     this.acceptance = EMPTY_ACCEPTANCE;
@@ -38,6 +37,14 @@ final class EdgeSingleton<S> implements Edge<S> {
     assert acceptance >= 0;
     this.successor = successor;
     this.acceptance = acceptance;
+  }
+
+  @Override
+  public IntStream acceptanceSetStream() {
+    if (acceptance == EMPTY_ACCEPTANCE) {
+      return IntStream.empty();
+    }
+    return IntStream.of(acceptance);
   }
 
   @Override
@@ -52,7 +59,7 @@ final class EdgeSingleton<S> implements Edge<S> {
 
     final EdgeSingleton other = (EdgeSingleton) o;
     return Objects.equals(this.acceptance, other.acceptance) &&
-        Objects.equals(this.successor, other.successor);
+      Objects.equals(this.successor, other.successor);
   }
 
   @Override
@@ -69,14 +76,6 @@ final class EdgeSingleton<S> implements Edge<S> {
   public boolean inSet(@Nonnegative final int i) {
     assert i >= 0;
     return i == acceptance;
-  }
-
-  @Override
-  public IntStream acceptanceSetStream() {
-    if (acceptance == EMPTY_ACCEPTANCE) {
-      return IntStream.empty();
-    }
-    return IntStream.of(acceptance);
   }
 
   @Override

@@ -23,56 +23,55 @@ import ltl.visitors.Visitor;
 
 public final class Simplifier {
 
-    // TODO: Redesign Simplifier
-    private static final int ITERATIONS = 3;
+  private static final Visitor<Formula> AGGRESSIVE_SIMPLIFIER = new AggressiveSimplifier();
+  // TODO: Redesign Simplifier
+  private static final int ITERATIONS = 3;
+  private static final Visitor<Formula> MODAL_SIMPLIFIER = new ModalSimplifier();
+  private static final Visitor<XFormula> PULLUP_X = new PullupXVisitor();
+  private static final BinaryVisitor<Formula, Integer> PUSHDOWN_X = new PushDownXVisitor();
 
-    private static final Visitor<Formula> MODAL_SIMPLIFIER = new ModalSimplifier();
-    private static final Visitor<XFormula> PULLUP_X = new PullupXVisitor();
-    private static final Visitor<Formula> AGGRESSIVE_SIMPLIFIER = new AggressiveSimplifier();
-    private static final BinaryVisitor<Formula, Integer> PUSHDOWN_X = new PushDownXVisitor();
+  private Simplifier() {
+  }
 
-    private Simplifier() {
-    }
+  public static Formula simplify(Formula formula, Strategy strategy) {
+    switch (strategy) {
+      case PULLUP_X:
+        return formula.accept(PULLUP_X).toFormula();
 
-    public static Formula simplify(Formula formula, Strategy strategy) {
-        switch (strategy) {
-            case PULLUP_X:
-                return formula.accept(PULLUP_X).toFormula();
+      case MODAL_EXT:
+        Formula step0 = formula;
 
-            case MODAL_EXT:
-                Formula step0 = formula;
+        for (int i = 0; i < ITERATIONS; i++) {
+          Formula step2 = step0.accept(PULLUP_X).toFormula();
+          Formula step3 = step2.accept(MODAL_SIMPLIFIER);
 
-                for (int i = 0; i < ITERATIONS; i++) {
-                    Formula step2 = step0.accept(PULLUP_X).toFormula();
-                    Formula step3 = step2.accept(MODAL_SIMPLIFIER);
+          if (step0.equals(step3)) {
+            return step0;
+          }
 
-                    if (step0.equals(step3)) {
-                        return step0;
-                    }
-
-                    step0 = step3;
-                }
-
-                return step0;
-
-            case MODAL:
-                return formula.accept(Simplifier.MODAL_SIMPLIFIER);
-
-            case AGGRESSIVELY:
-                return formula.accept(Simplifier.AGGRESSIVE_SIMPLIFIER);
-
-            case PUSHDOWN_X:
-                return formula.accept(PUSHDOWN_X, 0);
-
-            case NONE:
-                return formula;
-
-            default:
-                throw new AssertionError();
+          step0 = step3;
         }
-    }
 
-    public enum Strategy {
-        NONE, MODAL, PULLUP_X, MODAL_EXT, AGGRESSIVELY, PUSHDOWN_X
+        return step0;
+
+      case MODAL:
+        return formula.accept(Simplifier.MODAL_SIMPLIFIER);
+
+      case AGGRESSIVELY:
+        return formula.accept(Simplifier.AGGRESSIVE_SIMPLIFIER);
+
+      case PUSHDOWN_X:
+        return formula.accept(PUSHDOWN_X, 0);
+
+      case NONE:
+        return formula;
+
+      default:
+        throw new AssertionError();
     }
+  }
+
+  public enum Strategy {
+    NONE, MODAL, PULLUP_X, MODAL_EXT, AGGRESSIVELY, PUSHDOWN_X
+  }
 }
