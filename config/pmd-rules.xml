@@ -13,6 +13,7 @@
   <rule ref="rulesets/java/unusedcode.xml"/>
   <rule ref="rulesets/java/finalizers.xml"/>
   <rule ref="rulesets/java/controversial.xml">
+    <exclude name="CallSuperInConstructor" />
     <exclude name="DefaultPackage" />
     <exclude name="OnlyOneReturn" />
     <exclude name="DataflowAnomalyAnalysis" />
@@ -28,7 +29,9 @@
   </rule>
   <rule ref="rulesets/java/strictexception.xml"/>
   <rule ref="rulesets/java/optimizations.xml">
+    <exclude name="LocalVariableCouldBeFinal" />
     <exclude name="RedundantFieldInitializer" />
+    <exclude name="MethodArgumentCouldBeFinal" />
   </rule>
 
   <!-- <rule ref="rulesets/java/codesize.xml/CyclomaticComplexity">

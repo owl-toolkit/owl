@@ -28,7 +28,6 @@ def defaultEncoding = 'UTF-8'
 [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
 
 repositories {
-    maven { url 'https://www7.in.tum.de/~sickert/maven/' }
     mavenCentral()
 }
 
@@ -48,7 +47,6 @@ dependencies {
     // findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.8.2'
 }
 
-
 idea {
     module {
         sourceDirs += file('src/main/generated')
@@ -61,7 +59,6 @@ idea {
         downloadSources = true
     }
 }
-
 
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
 findbugs {
@@ -110,10 +107,6 @@ checkstyle {
         configProperties = ['suppression-file':
                                     "$project.rootDir/config/checkstyle-test-suppression.xml"]
     }
-}
-
-tasks.withType(Checkstyle) {
-    include '**/owl/**'
 }
 
 // If a user file is present, include it.
