@@ -17,67 +17,79 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public abstract class DefaultConverter implements Visitor<Formula> {
 
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-        return booleanConstant;
-    }
+  @Override
+  public Formula visit(BooleanConstant booleanConstant) {
+    return booleanConstant;
+  }
 
-    @Override
-    public Formula visit(Conjunction conjunction) {
-        return Conjunction.create(conjunction.children.stream().map(c -> c.accept(this)));
-    }
+  @Override
+  public Formula visit(Conjunction conjunction) {
+    return Conjunction.create(conjunction.children.stream().map(c -> c.accept(this)));
+  }
 
-    @Override
-    public Formula visit(Disjunction disjunction) {
-        return Disjunction.create(disjunction.children.stream().map(c -> c.accept(this)));
-    }
+  @Override
+  public Formula visit(Disjunction disjunction) {
+    return Disjunction.create(disjunction.children.stream().map(c -> c.accept(this)));
+  }
 
-    @Override
-    public Formula visit(FOperator fOperator) {
-        return FOperator.create(fOperator.operand.accept(this));
-    }
+  @Override
+  public Formula visit(FOperator fOperator) {
+    return FOperator.create(fOperator.operand.accept(this));
+  }
 
-    @Override
-    public Formula visit(GOperator gOperator) {
-        return GOperator.create(gOperator.operand.accept(this));
-    }
+  @Override
+  public Formula visit(GOperator gOperator) {
+    return GOperator.create(gOperator.operand.accept(this));
+  }
 
-    @Override
-    public Formula visit(Literal literal) {
-        return literal;
-    }
+  @Override
+  public Formula visit(Literal literal) {
+    return literal;
+  }
 
-    @Override
-    public Formula visit(MOperator mOperator) {
-        return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
-    }
+  @Override
+  public Formula visit(MOperator mOperator) {
+    return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+  }
 
-    @Override
-    public Formula visit(FrequencyG freq) {
-        return new FrequencyG(freq.operand.accept(this), freq.bound, freq.cmp, freq.limes);
-    }
+  @Override
+  public Formula visit(FrequencyG freq) {
+    return new FrequencyG(freq.operand.accept(this), freq.bound, freq.cmp, freq.limes);
+  }
 
-    @Override
-    public Formula visit(UOperator uOperator) {
-        return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
-    }
+  @Override
+  public Formula visit(UOperator uOperator) {
+    return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+  }
 
-    @Override
-    public Formula visit(WOperator wOperator) {
-        return WOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
-    }
+  @Override
+  public Formula visit(WOperator wOperator) {
+    return WOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
+  }
 
-    @Override
-    public Formula visit(ROperator rOperator) {
-        return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
-    }
+  @Override
+  public Formula visit(ROperator rOperator) {
+    return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+  }
 
-    @Override
-    public Formula visit(XOperator xOperator) {
-        return XOperator.create(xOperator.operand.accept(this));
-    }
+  @Override
+  public Formula visit(XOperator xOperator) {
+    return XOperator.create(xOperator.operand.accept(this));
+  }
 }

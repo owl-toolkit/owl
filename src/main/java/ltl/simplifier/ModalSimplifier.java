@@ -17,182 +17,195 @@
 
 package ltl.simplifier;
 
-import ltl.*;
-import ltl.visitors.Visitor;
-
 import java.util.ArrayList;
 import java.util.List;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
+import ltl.visitors.Visitor;
 
 /* Pushes down F,G in the syntax tree
 * TODO: Reuse objects! */
 class ModalSimplifier implements Visitor<Formula> {
 
-    @Override
-    public Formula visit(FOperator fOperator) {
-        Formula operand = fOperator.operand.accept(this);
+  @Override
+  public Formula visit(FOperator fOperator) {
+    Formula operand = fOperator.operand.accept(this);
 
-        if (operand.isPureEventual() || operand.isSuspendable()) {
-            return operand;
-        }
-
-        if (operand instanceof ROperator) {
-            ROperator rOperator = (ROperator) operand;
-
-            return new Disjunction(new FOperator(new Conjunction(rOperator.left, rOperator.right)), new FOperator(new GOperator(rOperator.right)));
-        }
-
-        return FOperator.create(operand);
+    if (operand.isPureEventual() || operand.isSuspendable()) {
+      return operand;
     }
 
-    @Override
-    public Formula visit(FrequencyG freq) {
-        throw new UnsupportedOperationException();
+    if (operand instanceof ROperator) {
+      ROperator rOperator = (ROperator) operand;
+
+      return new Disjunction(new FOperator(new Conjunction(rOperator.left, rOperator.right)),
+        new FOperator(new GOperator(rOperator.right)));
     }
 
-    @Override
-    public Formula visit(GOperator gOperator) {
-        Formula operand = gOperator.operand.accept(this);
+    return FOperator.create(operand);
+  }
 
-        if (operand.isPureUniversal() || operand.isSuspendable()) {
-            return operand;
-        }
+  @Override
+  public Formula visit(FrequencyG freq) {
+    throw new UnsupportedOperationException();
+  }
 
-        if (operand instanceof UOperator) {
-            UOperator uOperator = (UOperator) operand;
+  @Override
+  public Formula visit(GOperator gOperator) {
+    Formula operand = gOperator.operand.accept(this);
 
-            return new Conjunction(new GOperator(new Disjunction(uOperator.left, uOperator.right)), new GOperator(new FOperator(uOperator.right)));
-        }
-
-        return GOperator.create(operand);
+    if (operand.isPureUniversal() || operand.isSuspendable()) {
+      return operand;
     }
 
-    @Override
-    public Formula visit(Literal literal) {
-        return literal;
+    if (operand instanceof UOperator) {
+      UOperator uOperator = (UOperator) operand;
+
+      return new Conjunction(new GOperator(new Disjunction(uOperator.left, uOperator.right)),
+        new GOperator(new FOperator(uOperator.right)));
     }
 
-    @Override
-    public Formula visit(MOperator mOperator) {
-        Formula left = mOperator.left.accept(this);
-        Formula right = mOperator.right.accept(this);
+    return GOperator.create(operand);
+  }
 
-        return MOperator.create(left, right);
+  @Override
+  public Formula visit(Literal literal) {
+    return literal;
+  }
+
+  @Override
+  public Formula visit(MOperator mOperator) {
+    Formula left = mOperator.left.accept(this);
+    Formula right = mOperator.right.accept(this);
+
+    return MOperator.create(left, right);
+  }
+
+  @Override
+  public Formula visit(UOperator uOperator) {
+    Formula left = uOperator.left.accept(this);
+    Formula right = uOperator.right.accept(this);
+
+    if (right.isSuspendable() || right.isPureEventual()) {
+      return right;
     }
 
-    @Override
-    public Formula visit(UOperator uOperator) {
-        Formula left = uOperator.left.accept(this);
-        Formula right = uOperator.right.accept(this);
-
-        if (right.isSuspendable() || right.isPureEventual()) {
-            return right;
-        }
-
-        if (left.isSuspendable() || left.isPureUniversal()) {
-            return Disjunction.create(Conjunction.create(left, FOperator.create(right)), right);
-        }
-
-        return UOperator.create(left, right);
+    if (left.isSuspendable() || left.isPureUniversal()) {
+      return Disjunction.create(Conjunction.create(left, FOperator.create(right)), right);
     }
 
-    @Override
-    public Formula visit(WOperator wOperator) {
-        Formula left = wOperator.left.accept(this);
-        Formula right = wOperator.right.accept(this);
+    return UOperator.create(left, right);
+  }
 
-        return WOperator.create(left, right);
+  @Override
+  public Formula visit(WOperator wOperator) {
+    Formula left = wOperator.left.accept(this);
+    Formula right = wOperator.right.accept(this);
+
+    return WOperator.create(left, right);
+  }
+
+  @Override
+  public Formula visit(ROperator rOperator) {
+    Formula left = rOperator.left.accept(this);
+    Formula right = rOperator.right.accept(this);
+
+    if (right.isSuspendable() || right.isPureUniversal()) {
+      return right;
     }
 
-    @Override
-    public Formula visit(ROperator rOperator) {
-        Formula left = rOperator.left.accept(this);
-        Formula right = rOperator.right.accept(this);
+    return ROperator.create(left, right);
+  }
 
-        if (right.isSuspendable() || right.isPureUniversal()) {
-            return right;
-        }
+  @Override
+  public Formula visit(XOperator xOperator) {
+    Formula operand = xOperator.operand.accept(this);
 
-        return ROperator.create(left, right);
+    if (operand.isSuspendable()) {
+      return operand;
     }
 
-    @Override
-    public Formula visit(XOperator xOperator) {
-        Formula operand = xOperator.operand.accept(this);
-
-        if (operand.isSuspendable()) {
-            return operand;
-        }
-
-        // Only call constructor, when necessary.
-        if (operand == xOperator.operand) {
-            return xOperator;
-        }
-
-        return new XOperator(operand);
+    // Only call constructor, when necessary.
+    if (operand == xOperator.operand) {
+      return xOperator;
     }
 
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-        return booleanConstant;
+    return new XOperator(operand);
+  }
+
+  @Override
+  public Formula visit(BooleanConstant booleanConstant) {
+    return booleanConstant;
+  }
+
+  @Override
+  public Formula visit(Conjunction conjunction) {
+    boolean newElement = false;
+    List<Formula> newChildren = new ArrayList<>(conjunction.children.size());
+
+    for (Formula child : conjunction.children) {
+      Formula newChild = child.accept(this);
+
+      if (newChild == BooleanConstant.FALSE) {
+        return BooleanConstant.FALSE;
+      }
+
+      newElement |= (child != newChild);
+      newChildren.add(newChild);
     }
 
-    @Override
-    public Formula visit(Conjunction conjunction) {
-        boolean newElement = false;
-        List<Formula> newChildren = new ArrayList<>(conjunction.children.size());
+    // Only call constructor, when necessary.
+    Formula c = newElement ? Conjunction.create(newChildren.stream()) : conjunction;
 
-        for (Formula child : conjunction.children) {
-            Formula newChild = child.accept(this);
+    if (c instanceof Conjunction) {
+      Conjunction c2 = (Conjunction) c;
 
-            if (newChild == BooleanConstant.FALSE) {
-                return BooleanConstant.FALSE;
-            }
-
-            newElement |= (child != newChild);
-            newChildren.add(newChild);
-        }
-
-        // Only call constructor, when necessary.
-        Formula c = newElement ? Conjunction.create(newChildren.stream()) : conjunction;
-
-        if (c instanceof Conjunction) {
-            Conjunction c2 = (Conjunction) c;
-
-            if (c2.children.stream().anyMatch(e -> c2.children.contains(e.not()))) {
-                return BooleanConstant.FALSE;
-            }
-        }
-
-        return c;
+      if (c2.children.stream().anyMatch(e -> c2.children.contains(e.not()))) {
+        return BooleanConstant.FALSE;
+      }
     }
 
-    @Override
-    public Formula visit(Disjunction disjunction) {
-        boolean newElement = false;
-        List<Formula> newChildren = new ArrayList<>(disjunction.children.size());
+    return c;
+  }
 
-        for (Formula child : disjunction.children) {
-            Formula newChild = child.accept(this);
+  @Override
+  public Formula visit(Disjunction disjunction) {
+    boolean newElement = false;
+    List<Formula> newChildren = new ArrayList<>(disjunction.children.size());
 
-            if (newChild == BooleanConstant.TRUE) {
-                return BooleanConstant.TRUE;
-            }
+    for (Formula child : disjunction.children) {
+      Formula newChild = child.accept(this);
 
-            newElement |= (child != newChild);
-            newChildren.add(newChild);
-        }
+      if (newChild == BooleanConstant.TRUE) {
+        return BooleanConstant.TRUE;
+      }
 
-        // Only call constructor, when necessary.
-        Formula d = newElement ? Disjunction.create(newChildren.stream()) : disjunction;
-
-        if (d instanceof Disjunction) {
-            Disjunction d2 = (Disjunction) d;
-
-            if (d2.children.stream().anyMatch(e -> d2.children.contains(e.not()))) {
-                return BooleanConstant.TRUE;
-            }
-        }
-
-        return d;
+      newElement |= (child != newChild);
+      newChildren.add(newChild);
     }
+
+    // Only call constructor, when necessary.
+    Formula d = newElement ? Disjunction.create(newChildren.stream()) : disjunction;
+
+    if (d instanceof Disjunction) {
+      Disjunction d2 = (Disjunction) d;
+
+      if (d2.children.stream().anyMatch(e -> d2.children.contains(e.not()))) {
+        return BooleanConstant.TRUE;
+      }
+    }
+
+    return d;
+  }
 }

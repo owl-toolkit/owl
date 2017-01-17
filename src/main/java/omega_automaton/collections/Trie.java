@@ -18,110 +18,115 @@
 package omega_automaton.collections;
 
 import com.google.common.collect.Lists;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
 
 public class Trie<T> {
 
-    private final Node<T> root;
+  private final Node<T> root;
 
-    public Trie() {
-        root = new Node<>();
+  public Trie() {
+    root = new Node<>();
+  }
+
+  /**
+   * Adds the list to the Trie.
+   *
+   * @return true if the element was not present before the operation.
+   */
+  public boolean add(List<T> element) {
+    Node<T> node = get(element);
+    boolean present = node.terminal;
+    node.terminal = true;
+    return !present;
+  }
+
+  private Node<T> get(List<T> element) {
+    Node<T> current = root;
+
+    for (T t : element) {
+      current = current.getSuccessor(t);
     }
 
-    /**
-     * Adds the list to the Trie.
-     * @param element
-     * @return true if the element was not present before the operation.
-     */
-    public boolean add(List<T> element) {
-        Node<T> node = get(element);
-        boolean present = node.terminal;
-        node.terminal = true;
-        return !present;
-    }
+    return current;
+  }
 
-    public Optional<List<T>> suffix(List<T> prefix, Set<T> elements) {
-        return suffix(prefix, elements::contains, elements.size());
-    }
+  private Optional<List<T>> suffix(List<T> prefix, Predicate<T> predicate, int depth) {
+    Optional<List<T>> suffix = Optional.ofNullable(get(prefix).findFirst(predicate, depth));
+    return suffix.map(Lists::reverse);
+  }
 
-    private Optional<List<T>> suffix(List<T> prefix, Predicate<T> predicate, int depth) {
-        Optional<List<T>> suffix = Optional.ofNullable(get(prefix).findFirst(predicate, depth));
-        return suffix.map(Lists::reverse);
-    }
+  public Optional<List<T>> suffix(List<T> prefix, Set<T> elements) {
+    return suffix(prefix, elements::contains, elements.size());
+  }
 
-    public List<List<T>> suffixes(List<T> prefix, Set<T> elements) {
-        return suffixes(prefix, elements::contains, elements.size());
-    }
+  private List<List<T>> suffixes(List<T> prefix, Predicate<T> predicate, int depth) {
+    return get(prefix).find(predicate, depth).stream().map(Lists::reverse)
+      .collect(Collectors.toList());
+  }
 
-    private List<List<T>> suffixes(List<T> prefix, Predicate<T> predicate, int depth) {
-        return get(prefix).find(predicate, depth).stream().map(Lists::reverse).collect(Collectors.toList());
-    }
+  public List<List<T>> suffixes(List<T> prefix, Set<T> elements) {
+    return suffixes(prefix, elements::contains, elements.size());
+  }
 
-    private Node<T> get(List<T> element) {
-        Node<T> current = root;
+  private static class Node<T> {
+    private Map<T, Node<T>> successors = new HashMap<>();
+    private boolean terminal;
 
-        for (T t : element) {
-            current = current.getSuccessor(t);
+    private List<List<T>> find(Predicate<T> continueWithBranch, @Nonnegative int depth) {
+      List<List<T>> suffixes = new ArrayList<>();
+
+      if (terminal && depth == 0) {
+        suffixes.add(new ArrayList<>());
+      }
+
+      for (Map.Entry<T, Node<T>> entry : successors.entrySet()) {
+        T label = entry.getKey();
+        Node<T> successor = entry.getValue();
+
+        if (continueWithBranch.test(label) && depth > 0) {
+          List<List<T>> suffixes2 = successor.find(continueWithBranch, depth - 1);
+          suffixes2.forEach(list -> list.add(label));
+          suffixes.addAll(suffixes2);
         }
+      }
 
-        return current;
+      return suffixes;
     }
 
-    private static class Node<T> {
-        private Map<T, Node<T>> successors = new HashMap<>();
-        private boolean terminal;
+    @Nullable
+    private List<T> findFirst(Predicate<T> continueWithBranch, @Nonnegative int depth) {
+      if (depth == 0) {
+        return terminal ? new ArrayList<>() : null;
+      }
 
-        private Node<T> getSuccessor(T node) {
-            return successors.computeIfAbsent(node, k -> new Node<>());
+      for (Map.Entry<T, Node<T>> entry : successors.entrySet()) {
+        T label = entry.getKey();
+        Node<T> successor = entry.getValue();
+
+        if (continueWithBranch.test(label)) {
+          List<T> suffix = successor.findFirst(continueWithBranch, depth - 1);
+
+          if (suffix != null) {
+            suffix.add(label);
+            return suffix;
+          }
         }
+      }
 
-        @Nullable
-        private List<T> findFirst(Predicate<T> continueWithBranch, @Nonnegative int depth) {
-            if (depth == 0) {
-                return terminal ? new ArrayList<>() : null;
-            }
-
-            for (Map.Entry<T, Node<T>> entry : successors.entrySet()) {
-                T label = entry.getKey();
-                Node<T> successor = entry.getValue();
-
-                if (continueWithBranch.test(label)) {
-                    List<T> suffix = successor.findFirst(continueWithBranch, depth - 1);
-
-                    if (suffix != null) {
-                        suffix.add(label);
-                        return suffix;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private List<List<T>> find(Predicate<T> continueWithBranch, @Nonnegative int depth) {
-            List<List<T>> suffixes = new ArrayList<>();
-
-            if (terminal && depth == 0) {
-                suffixes.add(new ArrayList<>());
-            }
-
-            for (Map.Entry<T, Node<T>> entry : successors.entrySet()) {
-                T label = entry.getKey();
-                Node<T> successor = entry.getValue();
-
-                if (continueWithBranch.test(label) && depth > 0) {
-                    List<List<T>> suffixes2 = successor.find(continueWithBranch, depth - 1);
-                    suffixes2.forEach(list -> list.add(label));
-                    suffixes.addAll(suffixes2);
-                }
-            }
-
-            return suffixes;
-        }
+      return null;
     }
+
+    private Node<T> getSuccessor(T node) {
+      return successors.computeIfAbsent(node, k -> new Node<>());
+    }
+  }
 }

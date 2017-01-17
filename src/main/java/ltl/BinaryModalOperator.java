@@ -23,40 +23,40 @@ import java.util.Objects;
 
 public abstract class BinaryModalOperator extends ImmutableObject implements Formula {
 
-    public final Formula left;
-    public final Formula right;
+  public final Formula left;
+  public final Formula right;
 
-    BinaryModalOperator(Formula left, Formula right) {
-        this.left = left;
-        this.right = right;
-    }
+  BinaryModalOperator(Formula left, Formula right) {
+    this.left = left;
+    this.right = right;
+  }
 
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        BinaryModalOperator that = (BinaryModalOperator) o;
-        return Objects.equals(left, that.left) && Objects.equals(right, that.right);
-    }
+  @Override
+  public boolean equals2(ImmutableObject o) {
+    BinaryModalOperator that = (BinaryModalOperator) o;
+    return Objects.equals(left, that.left) && Objects.equals(right, that.right);
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return this;
-    }
+  public abstract char getOperator();
 
-    @Override
-    public Formula temporalStepUnfold(BitSet valuation) {
-        return unfold();
-    }
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return this;
+  }
 
-    @Override
-    public String toString() {
-        return '(' + left.toString() + getOperator() + right.toString() + ')';
-    }
+  @Override
+  public Formula temporalStepUnfold(BitSet valuation) {
+    return unfold();
+  }
 
-    @Override
-    public String toString(Map<Integer, String> atomMapping) {
-        return '(' + left.toString(atomMapping) + getOperator() + right.toString(atomMapping) + ')';
-    }
+  @Override
+  public String toString(Map<Integer, String> atomMapping) {
+    return '(' + left.toString(atomMapping) + getOperator() + right.toString(atomMapping) + ')';
+  }
 
-    public abstract char getOperator();
+  @Override
+  public String toString() {
+    return '(' + left.toString() + getOperator() + right.toString() + ')';
+  }
 
 }

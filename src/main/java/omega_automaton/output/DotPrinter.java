@@ -17,7 +17,9 @@
 
 package omega_automaton.output;
 
+import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
@@ -26,127 +28,132 @@ import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.collections.Collections3;
 
-import java.io.PrintWriter;
-import java.util.List;
-
 public class DotPrinter implements HOAConsumer {
 
-    private final PrintWriter out;
-    private final Set<Integer> initialStates;
-    private String name;
+  private final Set<Integer> initialStates;
+  private final PrintWriter out;
+  private String name;
 
-    public DotPrinter(PrintWriter out) {
-        this.out = out;
-        initialStates = new HashSet<>();
-    }
+  public DotPrinter(PrintWriter out) {
+    this.out = out;
+    initialStates = new HashSet<>();
+  }
 
-    @Override
-    public boolean parserResolvesAliases() {
-        return false;
-    }
+  @Override
+  public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr)
+    throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void notifyHeaderStart(String version) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature)
+    throws HOAConsumerException {
+    out.println("\t\"" + stateId + "\" -> \"" + Collections3.getElement(conjSuccessors) + "\";");
+  }
 
-    @Override
-    public void setNumberOfStates(int numberOfStates) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
+    List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException {
+    out.println(
+      "\t\"" + stateId + "\" -> \"" + Collections3.getElement(conjSuccessors) + "\" [label=\""
+        + labelExpr + "\"];");
+  }
 
-    @Override
-    public void addStartStates(List<Integer> stateConjunction) throws HOAConsumerException {
-        initialStates.addAll(stateConjunction);
-    }
+  @Override
+  public void addMiscHeader(String name, List<Object> content) throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void addProperties(List<String> properties) throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void setAPs(List<String> aps) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void addStartStates(List<Integer> stateConjunction) throws HOAConsumerException {
+    initialStates.addAll(stateConjunction);
+  }
 
-    @Override
-    public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException {
-        // NOP
+  @Override
+  public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr,
+    List<Integer> accSignature) throws HOAConsumerException {
+    if (initialStates.contains(id)) {
+      out.println("\tnode [shape=oval, label=\"" + info + "\"] \"" + id + "\";");
+    } else {
+      out.println("\tnode [shape=rectangle, label=\"" + info + "\"] \"" + id + "\";");
     }
+  }
 
-    @Override
-    public void provideAcceptanceName(String name, List<Object> extraInfo) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void notifyAbort() {
+    out.println("-- ABORT --");
+    out.flush();
+  }
 
-    @Override
-    public void setName(String name) throws HOAConsumerException {
-        this.name = name;
-    }
+  @Override
+  public void notifyBodyStart() throws HOAConsumerException {
+    out.println("digraph \"" + name + "\"");
+    out.println('{');
+  }
 
-    @Override
-    public void setTool(String name, String version) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void notifyEnd() throws HOAConsumerException {
+    out.println('}');
+    out.flush();
+  }
 
-    @Override
-    public void addProperties(List<String> properties) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void notifyEndOfState(int stateId) throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void addMiscHeader(String name, List<Object> content) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void notifyHeaderStart(String version) throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void notifyBodyStart() throws HOAConsumerException {
-        out.println("digraph \"" + name + "\"");
-        out.println('{');
-    }
+  @Override
+  public void notifyWarning(String warning) throws HOAConsumerException {
+    out.print("-- ABORT: ");
+    out.print(warning);
+    out.println(" --");
+    out.flush();
+  }
 
-    @Override
-    public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException {
-        if (initialStates.contains(id)) {
-            out.println("\tnode [shape=oval, label=\"" + info + "\"] \"" + id + "\";");
-        } else {
-            out.println("\tnode [shape=rectangle, label=\"" + info + "\"] \"" + id + "\";");
-        }
-    }
+  @Override
+  public boolean parserResolvesAliases() {
+    return false;
+  }
 
-    @Override
-    public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException {
-        out.println("\t\"" + stateId + "\" -> \"" + Collections3.getElement(conjSuccessors) + "\";");
-    }
+  @Override
+  public void provideAcceptanceName(String name, List<Object> extraInfo)
+    throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException {
-        out.println("\t\"" + stateId + "\" -> \"" + Collections3.getElement(conjSuccessors) + "\" [label=\"" + labelExpr + "\"];");
-    }
+  @Override
+  public void setAPs(List<String> aps) throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void notifyEndOfState(int stateId) throws HOAConsumerException {
-        // NOP
-    }
+  @Override
+  public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr)
+    throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void notifyEnd() throws HOAConsumerException {
-        out.println('}');
-        out.flush();
-    }
+  @Override
+  public void setName(String name) throws HOAConsumerException {
+    this.name = name;
+  }
 
-    @Override
-    public void notifyAbort() {
-        out.println("-- ABORT --");
-        out.flush();
-    }
+  @Override
+  public void setNumberOfStates(int numberOfStates) throws HOAConsumerException {
+    // NOP
+  }
 
-    @Override
-    public void notifyWarning(String warning) throws HOAConsumerException {
-        out.print("-- ABORT: ");
-        out.print(warning);
-        out.println(" --");
-        out.flush();
-    }
+  @Override
+  public void setTool(String name, String version) throws HOAConsumerException {
+    // NOP
+  }
 }

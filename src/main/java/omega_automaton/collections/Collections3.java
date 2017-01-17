@@ -18,166 +18,166 @@
 package omega_automaton.collections;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntLists;
-
+import java.util.AbstractSet;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.stream.IntStream;
 
 public class Collections3 {
 
-    private Collections3() {
+  private Collections3() {
 
+  }
+
+  /**
+   * Retrieve an arbitrary element from an {@code Iterable}.
+   *
+   * @throws NoSuchElementException
+   *     The methods throws an {@code NoSuchElementException} if iterable is either null or cannot
+   *     provide an element.
+   */
+  public static <E> E getElement(@Nonnull Iterable<E> iterable) {
+    return Iterables.get(iterable, 0);
+  }
+
+  /**
+   * Determine if the set is a singleton, meaning it exactly contains one element.
+   *
+   * @param set
+   *     The set to be checked.
+   *
+   * @return false if the the set is null or has not exactly one element.
+   */
+  public static <E> boolean isSingleton(@Nullable Collection<E> set) {
+    return set != null && set.size() == 1;
+  }
+
+  public static Set<BitSet> powerSet(int i) {
+    BitSet bs = new BitSet(i);
+    bs.flip(0, i);
+    return powerSet(bs);
+  }
+
+  public static Set<BitSet> powerSet(BitSet bs) {
+    return new PowerBitSet(bs);
+  }
+
+  /**
+   * Checks if A is a subset of B.
+   */
+  public static boolean subset(BitSet A, BitSet B) {
+    BitSet C = (BitSet) A.clone();
+    C.andNot(B);
+    return C.isEmpty();
+  }
+
+  @Nullable
+  public static List<Integer> toList(IntStream bs) {
+    if (bs == null) {
+      return null;
     }
 
-    /**
-     * Determine if the set is a singleton, meaning it exactly contains one element.
-     *
-     * @param set The set to be checked.
-     * @return false if the the set is null or has not exactly one element.
-     */
-    public static <E> boolean isSingleton(@Nullable Collection<E> set) {
-        return set != null && set.size() == 1;
+    IntList list = new IntArrayList();
+    bs.forEach(list::add);
+
+    if (list.isEmpty()) {
+      return null;
     }
 
-    /**
-     * Retrieve an arbitrary element from an {@code Iterable}.
-     *
-     * @param iterable
-     * @param <E>
-     * @return
-     * @throws NoSuchElementException The methods throws an {@code NoSuchElementException} if iterable is either null
-     *                                or cannot provide an element.
-     */
-    public static <E> E getElement(@Nonnull Iterable<E> iterable) {
-        return Iterables.get(iterable, 0);
+    return list;
+  }
+
+  private static final class PowerBitSet extends AbstractSet<BitSet> {
+    final BitSet baseSet;
+
+    PowerBitSet(BitSet input) {
+      baseSet = (BitSet) input.clone();
     }
 
-    @Nullable
-    public static List<Integer> toList(IntStream bs) {
-        if (bs == null) {
-            return null;
-        }
+    @Override
+    public boolean contains(@Nullable Object obj) {
+      if (obj instanceof BitSet) {
+        BitSet set = (BitSet) ((BitSet) obj).clone();
+        set.andNot(baseSet);
+        return set.isEmpty();
+      }
 
-        IntList list = new IntArrayList();
-        bs.forEach(list::add);
-
-        if (list.isEmpty()) {
-            return null;
-        }
-
-        return list;
+      return false;
     }
 
-    public static Set<BitSet> powerSet(int i) {
-        BitSet bs = new BitSet(i);
-        bs.flip(0, i);
-        return powerSet(bs);
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof PowerBitSet) {
+        PowerBitSet that = (PowerBitSet) obj;
+        return baseSet.equals(that.baseSet);
+      }
+
+      return super.equals(obj);
     }
 
-    public static Set<BitSet> powerSet(BitSet bs) {
-        return new PowerBitSet(bs);
+    @Override
+    public int hashCode() {
+      return baseSet.hashCode() << (baseSet.cardinality() - 1);
     }
 
-    private static final class PowerBitSet extends AbstractSet<BitSet> {
-        final BitSet baseSet;
-
-        PowerBitSet(BitSet input) {
-            baseSet = (BitSet) input.clone();
-        }
-
-        @Override
-        public int size() {
-            return 1 << baseSet.cardinality();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Nonnull
-        @Override
-        public Iterator<BitSet> iterator() {
-            return new PowerBitSetIterator();
-        }
-
-        // TODO: Performance: Zero Copy
-        private class PowerBitSetIterator implements Iterator<BitSet> {
-
-            BitSet next = new BitSet();
-
-            @Override
-            public boolean hasNext() {
-                return (next != null);
-            }
-
-            @Override
-            public BitSet next() {
-                BitSet n = (BitSet) next.clone();
-
-                for (int i = baseSet.nextSetBit(0); i >= 0; i = baseSet.nextSetBit(i+1)) {
-                    if (!next.get(i)) {
-                        next.set(i);
-                        break;
-                    } else {
-                        next.clear(i);
-                    }
-                }
-
-                if (next.isEmpty()) {
-                    next = null;
-                }
-
-                return n;
-            }
-        }
-
-        @Override
-        public boolean contains(@Nullable Object obj) {
-            if (obj instanceof BitSet) {
-                BitSet set = (BitSet) ((BitSet) obj).clone();
-                set.andNot(baseSet);
-                return set.isEmpty();
-            }
-
-            return false;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof PowerBitSet) {
-                PowerBitSet that = (PowerBitSet) obj;
-                return baseSet.equals(that.baseSet);
-            }
-
-            return super.equals(obj);
-        }
-
-        @Override
-        public int hashCode() {
-            return baseSet.hashCode() << (baseSet.cardinality() - 1);
-        }
-
-        @Override
-        public String toString() {
-            return "powerSet(" + baseSet + ")";
-        }
+    @Override
+    public boolean isEmpty() {
+      return false;
     }
 
-    /**
-     * Checks if A is a subset of B.
-     * @param A
-     * @param B
-     * @return
-     */
-    public static boolean subset(BitSet A, BitSet B) {
-        BitSet C = (BitSet) A.clone();
-        C.andNot(B);
-        return C.isEmpty();
+    @Nonnull
+    @Override
+    public Iterator<BitSet> iterator() {
+      return new PowerBitSetIterator();
     }
+
+    @Override
+    public int size() {
+      return 1 << baseSet.cardinality();
+    }
+
+    @Override
+    public String toString() {
+      return "powerSet(" + baseSet + ")";
+    }
+
+    // TODO: Performance: Zero Copy
+    private class PowerBitSetIterator implements Iterator<BitSet> {
+
+      BitSet next = new BitSet();
+
+      @Override
+      public boolean hasNext() {
+        return (next != null);
+      }
+
+      @Override
+      public BitSet next() {
+        BitSet n = (BitSet) next.clone();
+
+        for (int i = baseSet.nextSetBit(0); i >= 0; i = baseSet.nextSetBit(i + 1)) {
+          if (!next.get(i)) {
+            next.set(i);
+            break;
+          } else {
+            next.clear(i);
+          }
+        }
+
+        if (next.isEmpty()) {
+          next = null;
+        }
+
+        return n;
+      }
+    }
+  }
 }

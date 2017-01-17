@@ -17,60 +17,51 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Map;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Map;
-
 public interface Formula {
 
-    int accept(IntVisitor visitor);
+  int accept(IntVisitor visitor);
 
-    <R> R accept(Visitor<R> visitor);
+  <R> R accept(Visitor<R> visitor);
 
-    <A, B> A accept(BinaryVisitor<A, B> visitor, B extra);
+  <A, B> A accept(BinaryVisitor<A, B> visitor, B extra);
 
-    // Temporal Properties of an LTL Formula
-    boolean isPureEventual();
+  // Temporal Properties of an LTL Formula
+  boolean isPureEventual();
 
-    boolean isPureUniversal();
+  boolean isPureUniversal();
 
-    boolean isSuspendable();
+  boolean isSuspendable();
 
-    /**
-     * Syntactically negate this formula.
-     *
-     * @return The negation of this formula in NNF.
-     */
-    Formula not();
+  /**
+   * Syntactically negate this formula.
+   *
+   * @return The negation of this formula in NNF.
+   */
+  Formula not();
 
-    /**
-     * Do a single temporal step. This means that one layer of X-operators is
-     * removed and literals are replaced by their valuations.
-     *
-     * @param valuation
-     * @return
-     */
-    Formula temporalStep(BitSet valuation);
+  /**
+   * Do a single temporal step. This means that one layer of X-operators is
+   * removed and literals are replaced by their valuations.
+   */
+  Formula temporalStep(BitSet valuation);
 
-    /**
-     * Short-cut operation to avoid intermediate construction of formula ASTs.
-     * @param valuation
-     * @return
-     */
-    Formula temporalStepUnfold(BitSet valuation);
+  /**
+   * Short-cut operation to avoid intermediate construction of formula ASTs.
+   */
+  Formula temporalStepUnfold(BitSet valuation);
 
-    Formula unfold();
+  String toString(Map<Integer, String> atomMapping);
 
-    /**
-     * Short-cut operation to avoid intermediate construction of formula ASTs.
-     * @param valuation
-     * @return
-     */
-    Formula unfoldTemporalStep(BitSet valuation);
+  Formula unfold();
 
-    String toString(Map<Integer, String> atomMapping);
+  /**
+   * Short-cut operation to avoid intermediate construction of formula ASTs.
+   */
+  Formula unfoldTemporalStep(BitSet valuation);
 }

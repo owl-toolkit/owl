@@ -17,30 +17,29 @@
 
 package omega_automaton.acceptance;
 
+import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
-import java.util.List;
-
 public class GeneralizedParityAcceptance implements OmegaAcceptance {
 
-    @Override
-    public String getName() {
-        throw new RuntimeException("Not yet implemented!");
-    }
+  @Override
+  public int getAcceptanceSets() {
+    throw new RuntimeException("Not yet implemented!");
+  }
 
-    @Override
-    public List<Object> getNameExtra() {
-        throw new RuntimeException("Not yet implemented!");
-    }
+  @Override
+  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+    throw new RuntimeException("Not yet implemented!");
+  }
 
-    @Override
-    public int getAcceptanceSets() {
-        throw new RuntimeException("Not yet implemented!");
-    }
+  @Override
+  public String getName() {
+    throw new RuntimeException("Not yet implemented!");
+  }
 
-    @Override
-    public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-        throw new RuntimeException("Not yet implemented!");
-    }
+  @Override
+  public List<Object> getNameExtra() {
+    throw new RuntimeException("Not yet implemented!");
+  }
 }

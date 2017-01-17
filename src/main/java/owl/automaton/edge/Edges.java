@@ -4,6 +4,9 @@ import java.util.BitSet;
 import javax.annotation.Nonnegative;
 
 public final class Edges {
+  private Edges() {
+  }
+
   /**
    * Creates an edge which belongs to the specified acceptance sets.
    *
@@ -55,8 +58,5 @@ public final class Edges {
   public static <S> Edge<S> create(final S successor, @Nonnegative final int acceptance) {
     assert acceptance >= 0;
     return new EdgeSingleton<>(successor, acceptance);
-  }
-
-  private Edges() {
   }
 }

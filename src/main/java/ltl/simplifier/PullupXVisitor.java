@@ -17,93 +17,109 @@
 
 package ltl.simplifier;
 
-import ltl.*;
-import ltl.visitors.Visitor;
-
 import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import ltl.BinaryModalOperator;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.UnaryModalOperator;
+import ltl.WOperator;
+import ltl.XOperator;
+import ltl.visitors.Visitor;
 
 class PullupXVisitor implements Visitor<XFormula> {
 
-    @Override
-    public XFormula visit(BooleanConstant booleanConstant) {
-        return new XFormula(0, booleanConstant);
-    }
+  @Override
+  public XFormula visit(BooleanConstant booleanConstant) {
+    return new XFormula(0, booleanConstant);
+  }
 
-    @Override
-    public XFormula visit(Conjunction conjunction) {
-        Collection<XFormula> children = conjunction.children.stream().map(c -> c.accept(this)).collect(Collectors.toList());
-        int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
-        return new XFormula(depth, new Conjunction(children.stream().map(c -> c.toFormula(depth))));
-    }
+  @Override
+  public XFormula visit(Conjunction conjunction) {
+    Collection<XFormula> children = conjunction.children.stream().map(c -> c.accept(this))
+      .collect(Collectors.toList());
+    int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
+    return new XFormula(depth, new Conjunction(children.stream().map(c -> c.toFormula(depth))));
+  }
 
-    @Override
-    public XFormula visit(Disjunction disjunction) {
-        Collection<XFormula> children = disjunction.children.stream().map(c -> c.accept(this)).collect(Collectors.toList());
-        int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
-        return new XFormula(depth, new Disjunction(children.stream().map(c -> c.toFormula(depth))));
-    }
+  @Override
+  public XFormula visit(Disjunction disjunction) {
+    Collection<XFormula> children = disjunction.children.stream().map(c -> c.accept(this))
+      .collect(Collectors.toList());
+    int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
+    return new XFormula(depth, new Disjunction(children.stream().map(c -> c.toFormula(depth))));
+  }
 
-    @Override
-    public XFormula visit(FOperator fOperator) {
-        return visit(fOperator, FOperator::create);
-    }
+  @Override
+  public XFormula visit(FOperator fOperator) {
+    return visit(fOperator, FOperator::create);
+  }
 
-    @Override
-    public XFormula visit(FrequencyG freq) {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public XFormula visit(FrequencyG freq) {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public XFormula visit(GOperator gOperator) {
-        return visit(gOperator, GOperator::create);
-    }
+  @Override
+  public XFormula visit(GOperator gOperator) {
+    return visit(gOperator, GOperator::create);
+  }
 
-    @Override
-    public XFormula visit(Literal literal) {
-        return new XFormula(0, literal);
-    }
+  @Override
+  public XFormula visit(Literal literal) {
+    return new XFormula(0, literal);
+  }
 
-    @Override
-    public XFormula visit(MOperator mOperator) {
-        return visit(mOperator, MOperator::create);
-    }
+  @Override
+  public XFormula visit(MOperator mOperator) {
+    return visit(mOperator, MOperator::create);
+  }
 
-    @Override
-    public XFormula visit(ROperator rOperator) {
-        return visit(rOperator, ROperator::create);
-    }
+  @Override
+  public XFormula visit(ROperator rOperator) {
+    return visit(rOperator, ROperator::create);
+  }
 
-    @Override
-    public XFormula visit(UOperator uOperator) {
-        return visit(uOperator, UOperator::create);
-    }
+  @Override
+  public XFormula visit(UOperator uOperator) {
+    return visit(uOperator, UOperator::create);
+  }
 
-    @Override
-    public XFormula visit(WOperator wOperator) {
-        return visit(wOperator, WOperator::create);
-    }
+  @Override
+  public XFormula visit(WOperator wOperator) {
+    return visit(wOperator, WOperator::create);
+  }
 
-    @Override
-    public XFormula visit(XOperator xOperator) {
-        XFormula r = xOperator.operand.accept(this);
-        r.depth++;
-        return r;
-    }
+  @Override
+  public XFormula visit(XOperator xOperator) {
+    XFormula r = xOperator.operand.accept(this);
+    r.depth++;
+    return r;
+  }
 
-    private XFormula visit(BinaryModalOperator operator, BiFunction<Formula, Formula, Formula> constructor) {
-        XFormula right = operator.right.accept(this);
-        XFormula left = operator.left.accept(this);
-        left.formula = constructor.apply(left.toFormula(right.depth), right.toFormula(left.depth));
-        left.depth = Math.min(left.depth, right.depth);
-        return left;
-    }
+  private XFormula visit(BinaryModalOperator operator,
+    BiFunction<Formula, Formula, Formula> constructor) {
+    XFormula right = operator.right.accept(this);
+    XFormula left = operator.left.accept(this);
+    left.formula = constructor.apply(left.toFormula(right.depth), right.toFormula(left.depth));
+    left.depth = Math.min(left.depth, right.depth);
+    return left;
+  }
 
-    private XFormula visit(UnaryModalOperator operator, Function<Formula, Formula> constructor) {
-        XFormula formula = operator.operand.accept(this);
-        formula.formula = constructor.apply(formula.formula);
-        return formula;
-    }
+  private XFormula visit(UnaryModalOperator operator, Function<Formula, Formula> constructor) {
+    XFormula formula = operator.operand.accept(this);
+    formula.formula = constructor.apply(formula.formula);
+    return formula;
+  }
 }

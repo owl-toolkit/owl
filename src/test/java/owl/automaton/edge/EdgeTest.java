@@ -34,29 +34,11 @@ import org.junit.Test;
 
 @SuppressWarnings("PMD.AtLeastOneConstructor")
 public class EdgeTest {
-  private Edge<?> emptyEdgeImplicit;
   private Edge<?> emptyEdgeDirect;
-  private Edge<?> singletonEdgeImplicit;
-  private Edge<?> singletonEdgeDirect;
+  private Edge<?> emptyEdgeImplicit;
   private Edge<?> genericEdgeOneTwo;
-
-  @Before
-  public void setUp() {
-    final Object successor = new Object();
-
-    emptyEdgeDirect = Edges.create(successor);
-    emptyEdgeImplicit = Edges.create(successor, new BitSet());
-
-    singletonEdgeDirect = Edges.create(successor, 0);
-    final BitSet singletonSet = new BitSet(1);
-    singletonSet.set(0);
-    singletonEdgeImplicit = Edges.create(successor, singletonSet);
-
-    final BitSet genericSetOneTwo = new BitSet(2);
-    genericSetOneTwo.set(0);
-    genericSetOneTwo.set(1);
-    genericEdgeOneTwo = Edges.create(successor, genericSetOneTwo);
-  }
+  private Edge<?> singletonEdgeDirect;
+  private Edge<?> singletonEdgeImplicit;
 
   @Test
   public void inSet() {
@@ -79,12 +61,30 @@ public class EdgeTest {
     assertFalse(emptyEdgeImplicit.acceptanceSetStream().iterator().hasNext());
 
     assertTrue(Iterators.elementsEqual(IntStream.of(0).iterator(),
-        singletonEdgeDirect.acceptanceSetStream().iterator()));
+      singletonEdgeDirect.acceptanceSetStream().iterator()));
     assertTrue(Iterators.elementsEqual(IntStream.of(0).iterator(),
-        singletonEdgeImplicit.acceptanceSetStream().iterator()));
+      singletonEdgeImplicit.acceptanceSetStream().iterator()));
 
     assertTrue(Iterators.elementsEqual(IntStream.of(0, 1).iterator(),
-        genericEdgeOneTwo.acceptanceSetStream().iterator()));
+      genericEdgeOneTwo.acceptanceSetStream().iterator()));
+  }
+
+  @Before
+  public void setUp() {
+    final Object successor = new Object();
+
+    emptyEdgeDirect = Edges.create(successor);
+    emptyEdgeImplicit = Edges.create(successor, new BitSet());
+
+    singletonEdgeDirect = Edges.create(successor, 0);
+    final BitSet singletonSet = new BitSet(1);
+    singletonSet.set(0);
+    singletonEdgeImplicit = Edges.create(successor, singletonSet);
+
+    final BitSet genericSetOneTwo = new BitSet(2);
+    genericSetOneTwo.set(0);
+    genericSetOneTwo.set(1);
+    genericEdgeOneTwo = Edges.create(successor, genericSetOneTwo);
   }
 
   @Test

@@ -31,222 +31,226 @@ import owl.bdd.BddFactory;
 
 public class BDDValuationSetFactory implements ValuationSetFactory {
 
-    private final int vars[];
-    private final Bdd factory;
+  private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
+  private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
+  private final Bdd factory;
+  private final int vars[];
 
-    public BDDValuationSetFactory(int alphabet) {
-        vars = new int[alphabet];
-        factory = BddFactory.buildBdd((1024 * alphabet * alphabet) + 256);
+  public BDDValuationSetFactory(int alphabet) {
+    vars = new int[alphabet];
+    factory = BddFactory.buildBdd((1024 * alphabet * alphabet) + 256);
 
-        for (int i = 0; i < alphabet; i++) {
-            vars[i] = factory.createVariable();
-        }
+    for (int i = 0; i < alphabet; i++) {
+      vars[i] = factory.createVariable();
+    }
+  }
+
+  int createBDD(BitSet set, PrimitiveIterator.OfInt base) {
+    int bdd = factory.getTrueNode();
+
+    while (base.hasNext()) {
+      int i = base.nextInt();
+
+      // Variables are saturated.
+      if (set.get(i)) {
+        bdd = factory.updateWith(factory.and(bdd, vars[i]), bdd);
+      } else {
+        // This is fine, since "not vars[i]" is a saturated variable.
+        bdd = factory.updateWith(factory.and(bdd, factory.not(vars[i])), bdd);
+      }
+    }
+
+    return bdd;
+  }
+
+  int createBDD(BitSet set) {
+    return createBDD(set, IntStream.range(0, vars.length).iterator());
+  }
+
+  @Override
+  public ValuationSet createEmptyValuationSet() {
+    return new BDDValuationSet(factory.getFalseNode());
+  }
+
+  BooleanExpression<AtomLabel> createRepresentative(int bdd) {
+    if (bdd == factory.getFalseNode()) {
+      return FALSE;
+    }
+
+    if (bdd == factory.getTrueNode()) {
+      return TRUE;
+    }
+
+    BooleanExpression<AtomLabel> letter = new BooleanExpression<>(
+      AtomLabel.createAPIndex(factory.getVariable(bdd)));
+    BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
+    BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd));
+
+    if (pos.isTRUE()) {
+      pos = letter;
+    } else if (!pos.isFALSE()) {
+      pos = letter.and(pos);
+    }
+
+    if (neg.isTRUE()) {
+      neg = letter.not();
+    } else if (!neg.isFALSE()) {
+      neg = letter.not().and(neg);
+    }
+
+    if (pos.isFALSE()) {
+      return neg;
+    } else if (neg.isFALSE()) {
+      return pos;
+    }
+
+    return pos.or(neg);
+  }
+
+  @Override
+  public ValuationSet createUniverseValuationSet() {
+    return new BDDValuationSet(factory.getTrueNode());
+  }
+
+  @Override
+  public ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet) {
+    return new BDDValuationSet(createBDD(valuation, restrictedAlphabet.stream().iterator()));
+  }
+
+  @Override
+  public ValuationSet createValuationSet(BitSet valuation) {
+    return new BDDValuationSet(createBDD(valuation));
+  }
+
+  @Override
+  public int getSize() {
+    return vars.length;
+  }
+
+  private class BDDValuationSet implements ValuationSet {
+
+    private static final int INVALID_BDD = -1;
+    private int bdd;
+
+    BDDValuationSet(int bdd) {
+      this.bdd = bdd;
     }
 
     @Override
-    public ValuationSet createEmptyValuationSet() {
-        return new BDDValuationSet(factory.getFalseNode());
+    public void add(@Nonnull BitSet set) {
+      int bddSet = createBDD(set);
+      bdd = factory.consume(factory.or(bdd, bddSet), bdd, bddSet);
     }
 
     @Override
-    public ValuationSet createUniverseValuationSet() {
-        return new BDDValuationSet(factory.getTrueNode());
+    public void addAll(@Nonnull ValuationSet other) {
+      BDDValuationSet otherSet = (BDDValuationSet) other;
+      bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
     }
 
     @Override
-    public ValuationSet createValuationSet(BitSet valuation) {
-        return new BDDValuationSet(createBDD(valuation));
+    public void addAllWith(@Nonnull ValuationSet other) {
+      addAll(other);
+      other.free();
     }
 
     @Override
-    public ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet) {
-        return new BDDValuationSet(createBDD(valuation, restrictedAlphabet.stream().iterator()));
+    public ValuationSet complement() {
+      return new BDDValuationSet(factory.reference(factory.not(bdd)));
     }
 
     @Override
-    public int getSize() {
-        return vars.length;
+    public boolean contains(BitSet valuation) {
+      return factory.evaluate(bdd, valuation);
     }
 
-    private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
-    private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
-
-    BooleanExpression<AtomLabel> createRepresentative(int bdd) {
-        if (bdd == factory.getFalseNode()) {
-            return FALSE;
-        }
-
-        if (bdd == factory.getTrueNode()) {
-            return TRUE;
-        }
-
-        BooleanExpression<AtomLabel> letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVariable(bdd)));
-        BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
-        BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd));
-
-        if (pos.isTRUE()) {
-            pos = letter;
-        } else if (!pos.isFALSE()) {
-            pos = letter.and(pos);
-        }
-
-        if (neg.isTRUE()) {
-            neg = letter.not();
-        } else if (!neg.isFALSE()) {
-            neg = letter.not().and(neg);
-        }
-
-        if (pos.isFALSE()) {
-            return neg;
-        } else if (neg.isFALSE()) {
-            return pos;
-        }
-
-        return pos.or(neg);
+    @Override
+    public boolean containsAll(ValuationSet other) {
+      BDDValuationSet otherSet = (BDDValuationSet) other;
+      return factory.implies(otherSet.bdd, bdd);
     }
 
-    int createBDD(BitSet set, PrimitiveIterator.OfInt base) {
-        int bdd = factory.getTrueNode();
-
-        while (base.hasNext()) {
-            int i = base.nextInt();
-
-            // Variables are saturated.
-            if (set.get(i)) {
-                bdd = factory.updateWith(factory.and(bdd, vars[i]), bdd);
-            } else {
-                // This is fine, since "not vars[i]" is a saturated variable.
-                bdd = factory.updateWith(factory.and(bdd, factory.not(vars[i])), bdd);
-            }
-        }
-
-        return bdd;
+    @Override
+    public BDDValuationSet copy() {
+      return new BDDValuationSet(factory.reference(bdd));
     }
 
-    int createBDD(BitSet set) {
-        return createBDD(set, IntStream.range(0, vars.length).iterator());
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      BDDValuationSet bitSets = (BDDValuationSet) o;
+      return bdd == bitSets.bdd;
     }
 
-    private class BDDValuationSet implements ValuationSet {
-
-        private static final int INVALID_BDD = -1;
-        private int bdd;
-
-        BDDValuationSet(int bdd) {
-            this.bdd = bdd;
-        }
-
-        @Override
-        public BooleanExpression<AtomLabel> toExpression() {
-            return createRepresentative(bdd);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            BDDValuationSet bitSets = (BDDValuationSet) o;
-            return bdd == bitSets.bdd;
-        }
-
-        @Override
-        public int hashCode() {
-            return bdd;
-        }
-
-        @Override
-        public boolean isUniverse() {
-            return bdd == factory.getTrueNode();
-        }
-
-        @Nonnull
-        public Iterator<BitSet> iterator() {
-            return Collections3.powerSet(vars.length).stream().filter(this::contains).iterator();
-        }
-
-        public int size() {
-            return (int) Math.round(factory.countSatisfyingAssignments(bdd));
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return bdd == factory.getFalseNode();
-        }
-
-        @Override
-        public void add(@Nonnull BitSet set) {
-            int bddSet = createBDD(set);
-            bdd = factory.consume(factory.or(bdd, bddSet), bdd, bddSet);
-        }
-
-        @Override
-        public void addAll(@Nonnull ValuationSet other) {
-            BDDValuationSet otherSet = (BDDValuationSet) other;
-            bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
-        }
-
-        @Override
-        public void addAllWith(@Nonnull ValuationSet other) {
-            addAll(other);
-            other.free();
-        }
-
-        @Override
-        public void removeAll(@Nonnull ValuationSet other) {
-            BDDValuationSet otherSet = (BDDValuationSet) other;
-            int notOtherIndex = factory.reference(factory.not(otherSet.bdd));
-            bdd = factory.updateWith(factory.and(bdd, notOtherIndex), bdd);
-            factory.dereference(notOtherIndex);
-        }
-
-        @Override
-        public void retainAll(@Nonnull ValuationSet other) {
-            BDDValuationSet otherSet = (BDDValuationSet) other;
-            bdd = factory.updateWith(factory.and(bdd, otherSet.bdd), bdd);
-        }
-
-        @Override
-        public ValuationSet complement() {
-            return new BDDValuationSet(factory.reference(factory.not(bdd)));
-        }
-
-        @Override
-        public BDDValuationSet copy() {
-            return new BDDValuationSet(factory.reference(bdd));
-        }
-
-        @Override
-        public void free() {
-            if (factory.isNodeRoot(bdd)) {
-                factory.dereference(bdd);
-                bdd = INVALID_BDD;
-            }
-        }
-
-        @Override
-        public boolean contains(BitSet valuation) {
-            return factory.evaluate(bdd, valuation);
-        }
-
-        @Override
-        public boolean containsAll(ValuationSet other) {
-            BDDValuationSet otherSet = (BDDValuationSet) other;
-            return factory.implies(otherSet.bdd, bdd);
-        }
-
-        public boolean intersects(ValuationSet other) {
-            return !intersect(other).isEmpty();
-        }
-
-        public ValuationSet intersect(ValuationSet other) {
-            ValuationSet thisClone = this.copy();
-            thisClone.retainAll(other);
-            return thisClone;
-        }
-
-        @Override
-        public String toString() {
-            return Sets.newHashSet(iterator()).toString();
-        }
+    @Override
+    public void free() {
+      if (factory.isNodeRoot(bdd)) {
+        factory.dereference(bdd);
+        bdd = INVALID_BDD;
+      }
     }
+
+    @Override
+    public int hashCode() {
+      return bdd;
+    }
+
+    public ValuationSet intersect(ValuationSet other) {
+      ValuationSet thisClone = this.copy();
+      thisClone.retainAll(other);
+      return thisClone;
+    }
+
+    public boolean intersects(ValuationSet other) {
+      return !intersect(other).isEmpty();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return bdd == factory.getFalseNode();
+    }
+
+    @Override
+    public boolean isUniverse() {
+      return bdd == factory.getTrueNode();
+    }
+
+    @Nonnull
+    public Iterator<BitSet> iterator() {
+      return Collections3.powerSet(vars.length).stream().filter(this::contains).iterator();
+    }
+
+    @Override
+    public void removeAll(@Nonnull ValuationSet other) {
+      BDDValuationSet otherSet = (BDDValuationSet) other;
+      int notOtherIndex = factory.reference(factory.not(otherSet.bdd));
+      bdd = factory.updateWith(factory.and(bdd, notOtherIndex), bdd);
+      factory.dereference(notOtherIndex);
+    }
+
+    @Override
+    public void retainAll(@Nonnull ValuationSet other) {
+      BDDValuationSet otherSet = (BDDValuationSet) other;
+      bdd = factory.updateWith(factory.and(bdd, otherSet.bdd), bdd);
+    }
+
+    public int size() {
+      return (int) Math.round(factory.countSatisfyingAssignments(bdd));
+    }
+
+    @Override
+    public BooleanExpression<AtomLabel> toExpression() {
+      return createRepresentative(bdd);
+    }
+
+    @Override
+    public String toString() {
+      return Sets.newHashSet(iterator()).toString();
+    }
+  }
 }

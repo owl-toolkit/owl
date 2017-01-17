@@ -17,70 +17,65 @@
 
 package ltl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.BitSet;
 import ltl.parser.Parser;
-import ltl.visitors.Collector;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
-import java.util.BitSet;
-
-import static org.junit.Assert.*;
-
 @RunWith(Theories.class)
 public class FormulaTest {
 
-    @DataPoints
-    public static final Formula[] FORMULAS = {
-            Parser.formula("true"),
-            Parser.formula("false"),
-            Parser.formula("a"),
-            Parser.formula("F a"),
-            Parser.formula("G a"),
-            Parser.formula("X a"),
-            Parser.formula("a U b"),
-            Parser.formula("a R b"),
-    };
+  @DataPoints
+  public static final Formula[] FORMULAS = {
+    Parser.formula("true"),
+    Parser.formula("false"),
+    Parser.formula("a"),
+    Parser.formula("F a"),
+    Parser.formula("G a"),
+    Parser.formula("X a"),
+    Parser.formula("a U b"),
+    Parser.formula("a R b"),
+  };
+  @DataPoint
+  public static final BitSet ONE = new BitSet();
+  @DataPoint
+  public static final BitSet THREE = new BitSet();
+  @DataPoint
+  public static final BitSet TWO = new BitSet();
+  @DataPoint
+  public static final BitSet ZERO = new BitSet();
 
-    @DataPoint
-    public static final BitSet ZERO = new BitSet();
+  static {
+    ONE.set(0);
+    TWO.set(1);
+    THREE.set(0, 2);
+  }
 
-    @DataPoint
-    public static final BitSet ONE = new BitSet();
+  @Theory
+  public void isSuspendable(Formula formula) {
+    assertTrue(!formula.isSuspendable() || formula.isPureUniversal());
+    assertTrue(!formula.isSuspendable() || formula.isPureEventual());
+  }
 
-    @DataPoint
-    public static final BitSet TWO = new BitSet();
+  @Theory
+  public void not(Formula formula) throws Exception {
+    assertEquals(formula, formula.not().not());
+    assertEquals(formula.not(), formula.not().not().not());
+  }
 
-    @DataPoint
-    public static final BitSet THREE = new BitSet();
+  @Theory
+  public void temporalStepUnfold(Formula formula, BitSet bitSet) throws Exception {
+    assertEquals(formula.temporalStep(bitSet).unfold(), formula.temporalStepUnfold(bitSet));
+  }
 
-    static {
-        ONE.set(0);
-        TWO.set(1);
-        THREE.set(0, 2);
-    }
-
-    @Theory
-    public void not(Formula formula) throws Exception {
-        assertEquals(formula, formula.not().not());
-        assertEquals(formula.not(), formula.not().not().not());
-    }
-
-    @Theory
-    public void unfoldTemporalStep(Formula formula, BitSet bitSet) throws Exception {
-        assertEquals(formula.unfold().temporalStep(bitSet), formula.unfoldTemporalStep(bitSet));
-    }
-
-    @Theory
-    public void temporalStepUnfold(Formula formula, BitSet bitSet) throws Exception {
-        assertEquals(formula.temporalStep(bitSet).unfold(), formula.temporalStepUnfold(bitSet));
-    }
-
-    @Theory
-    public void isSuspendable(Formula formula) {
-        assertTrue(!formula.isSuspendable() || formula.isPureUniversal());
-        assertTrue(!formula.isSuspendable() || formula.isPureEventual());
-    }
+  @Theory
+  public void unfoldTemporalStep(Formula formula, BitSet bitSet) throws Exception {
+    assertEquals(formula.unfold().temporalStep(bitSet), formula.unfoldTemporalStep(bitSet));
+  }
 }

@@ -17,11 +17,22 @@
 
 package ltl.simplifier;
 
-import ltl.*;
-import ltl.visitors.Visitor;
-
 import java.util.HashSet;
 import java.util.Set;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
+import ltl.visitors.Visitor;
 
 /**
  * this method tries to substitute the subformula b in the first argument by the
@@ -30,142 +41,143 @@ import java.util.Set;
  */
 class PseudoSubstitutionVisitor implements Visitor<Formula> {
 
-    private final Formula toReplace;
-    private final BooleanConstant replacement;
+  private final BooleanConstant replacement;
+  private final Formula toReplace;
 
-    PseudoSubstitutionVisitor(Formula toReplace, BooleanConstant replacement) {
-        this.toReplace = toReplace;
-        this.replacement = replacement;
+  PseudoSubstitutionVisitor(Formula toReplace, BooleanConstant replacement) {
+    this.toReplace = toReplace;
+    this.replacement = replacement;
+  }
+
+  @Override
+  public Formula visit(BooleanConstant booleanConstant) {
+    return booleanConstant;
+  }
+
+  @Override
+  public Formula visit(Conjunction co) {
+    if (toReplace.equals(co)) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-        return booleanConstant;
+    Set<Formula> set = new HashSet<>(co.children);
+    Set<Formula> toAdd = new HashSet<>();
+    Set<Formula> toRemove = new HashSet<>();
+    for (Formula form : set) {
+      Formula f = form.accept(this);
+      if (!f.equals(form)) {
+        toAdd.add(f);
+        toRemove.add(form);
+      }
     }
 
-    @Override
-    public Formula visit(Conjunction co) {
-        if (toReplace.equals(co)) {
-            return replacement;
-        }
-
-        Set<Formula> set = new HashSet<>(co.children);
-        Set<Formula> toAdd = new HashSet<>();
-        Set<Formula> toRemove = new HashSet<>();
-        for (Formula form : set) {
-            Formula f = form.accept(this);
-            if (!f.equals(form)) {
-                toAdd.add(f);
-                toRemove.add(form);
-            }
-        }
-
-        set.removeAll(toRemove);
-        set.addAll(toAdd);
-        if (!set.equals(co.children)) {
-            return Simplifier.simplify(new Conjunction(set), Simplifier.Strategy.AGGRESSIVELY);
-        }
-
-        return co;
+    set.removeAll(toRemove);
+    set.addAll(toAdd);
+    if (!set.equals(co.children)) {
+      return Simplifier.simplify(new Conjunction(set), Simplifier.Strategy.AGGRESSIVELY);
     }
 
-    @Override
-    public Formula visit(Disjunction d) {
-        if (toReplace.equals(d)) {
-            return replacement;
-        }
+    return co;
+  }
 
-        Set<Formula> set = new HashSet<>(d.children);
-        Set<Formula> toAdd = new HashSet<>();
-        Set<Formula> toRemove = new HashSet<>();
-        for (Formula form : set) {
-            Formula f = form.accept(this);
-            if (!f.equals(form)) {
-                toAdd.add(f);
-                toRemove.add(form);
-            }
-        }
-        set.removeAll(toRemove);
-        set.addAll(toAdd);
-
-        if (!set.equals(d.children)) {
-            return Simplifier.simplify(new Disjunction(set), Simplifier.Strategy.AGGRESSIVELY);
-        }
-
-        return d;
+  @Override
+  public Formula visit(Disjunction d) {
+    if (toReplace.equals(d)) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(FOperator f) {
-        if (toReplace.equals(f) || (replacement.value && f.operand.equals(toReplace))) {
-            return replacement;
-        }
+    Set<Formula> set = new HashSet<>(d.children);
+    Set<Formula> toAdd = new HashSet<>();
+    Set<Formula> toRemove = new HashSet<>();
+    for (Formula form : set) {
+      Formula f = form.accept(this);
+      if (!f.equals(form)) {
+        toAdd.add(f);
+        toRemove.add(form);
+      }
+    }
+    set.removeAll(toRemove);
+    set.addAll(toAdd);
 
-        return f;
+    if (!set.equals(d.children)) {
+      return Simplifier.simplify(new Disjunction(set), Simplifier.Strategy.AGGRESSIVELY);
     }
 
-    @Override
-    public Formula visit(FrequencyG freq) {
-        throw new UnsupportedOperationException();
+    return d;
+  }
+
+  @Override
+  public Formula visit(FOperator f) {
+    if (toReplace.equals(f) || (replacement.value && f.operand.equals(toReplace))) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(GOperator g) {
-        if (toReplace.equals(g) || (!replacement.value && g.operand.equals(toReplace))) {
-            return replacement;
-        }
+    return f;
+  }
 
-        return g;
+  @Override
+  public Formula visit(FrequencyG freq) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Formula visit(GOperator g) {
+    if (toReplace.equals(g) || (!replacement.value && g.operand.equals(toReplace))) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(Literal l) {
-        if (toReplace.equals(l)) {
-            return replacement;
-        }
+    return g;
+  }
 
-        return l;
+  @Override
+  public Formula visit(Literal l) {
+    if (toReplace.equals(l)) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(MOperator mOperator) {
-        throw new UnsupportedOperationException();
+    return l;
+  }
+
+  @Override
+  public Formula visit(MOperator mOperator) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Formula visit(UOperator u) {
+    if (u.equals(toReplace) || (u.right.equals(toReplace) && replacement.value)) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(UOperator u) {
-        if (u.equals(toReplace) || (u.right.equals(toReplace) && replacement.value)) {
-            return replacement;
-        }
+    return u;
+  }
 
-        return u;
+  @Override
+  public Formula visit(WOperator wOperator) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Formula visit(ROperator r) {
+    if (r.equals(toReplace) || (r.left.equals(toReplace) && replacement.value)) {
+      return r.right;
     }
 
-    @Override
-    public Formula visit(WOperator wOperator) {
-        throw new UnsupportedOperationException();
+    return r;
+  }
+
+  @Override
+  public Formula visit(XOperator x) {
+    if (x.equals(toReplace)) {
+      return replacement;
     }
 
-    @Override
-    public Formula visit(ROperator r) {
-        if (r.equals(toReplace) || (r.left.equals(toReplace) && replacement.value)) {
-            return r.right;
-        }
-
-        return r;
+    if (toReplace instanceof XOperator) {
+      PseudoSubstitutionVisitor visitor = new PseudoSubstitutionVisitor(
+        ((XOperator) toReplace).operand, replacement);
+      return new XOperator(x.operand.accept(visitor));
     }
 
-    @Override
-    public Formula visit(XOperator x) {
-        if (x.equals(toReplace)) {
-            return replacement;
-        }
-
-        if (toReplace instanceof XOperator) {
-            PseudoSubstitutionVisitor visitor = new PseudoSubstitutionVisitor(((XOperator) toReplace).operand, replacement);
-            return new XOperator(x.operand.accept(visitor));
-        }
-
-        return x;
-    }
+    return x;
+  }
 }

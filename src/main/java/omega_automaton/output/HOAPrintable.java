@@ -17,22 +17,21 @@
 
 package omega_automaton.output;
 
-import jhoafparser.consumer.HOAConsumer;
-
 import java.util.EnumSet;
 import java.util.Map;
+import jhoafparser.consumer.HOAConsumer;
 
 public interface HOAPrintable {
 
-    enum Option {
-        ANNOTATIONS
-    }
+  void setAtomMapping(Map<Integer, String> mapping);
 
-    default void toHOA(HOAConsumer consumer) {
-        toHOA(consumer, EnumSet.noneOf(Option.class));
-    }
+  void toHOA(HOAConsumer consumer, EnumSet<Option> options);
 
-    void toHOA(HOAConsumer consumer, EnumSet<Option> options);
+  default void toHOA(HOAConsumer consumer) {
+    toHOA(consumer, EnumSet.noneOf(Option.class));
+  }
 
-    void setAtomMapping(Map<Integer, String> mapping);
+  enum Option {
+    ANNOTATIONS
+  }
 }

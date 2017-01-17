@@ -17,32 +17,43 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public interface Visitor<R> {
 
-    R visit(BooleanConstant booleanConstant);
+  R visit(BooleanConstant booleanConstant);
 
-    R visit(Conjunction conjunction);
+  R visit(Conjunction conjunction);
 
-    R visit(Disjunction disjunction);
+  R visit(Disjunction disjunction);
 
-    R visit(FOperator fOperator);
+  R visit(FOperator fOperator);
 
-    R visit(FrequencyG freq);
+  R visit(FrequencyG freq);
 
-    R visit(GOperator gOperator);
+  R visit(GOperator gOperator);
 
-    R visit(Literal literal);
+  R visit(Literal literal);
 
-    R visit(MOperator mOperator);
+  R visit(MOperator mOperator);
 
-    R visit(ROperator rOperator);
+  R visit(ROperator rOperator);
 
-    R visit(UOperator uOperator);
+  R visit(UOperator uOperator);
 
-    R visit(WOperator wOperator);
+  R visit(WOperator wOperator);
 
-    R visit(XOperator xOperator);
+  R visit(XOperator xOperator);
 
 }

@@ -17,115 +17,119 @@
 
 package omega_automaton.acceptance;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.output.HOAConsumerExtended;
 
-import javax.annotation.Nonnegative;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
 public class ParityAcceptance implements OmegaAcceptance {
 
-    public enum Priority {
-        EVEN {
-            public Priority not() {
-                return ODD;
-            }
+  @Nonnegative
+  private final int colors;
+  private final Priority priority;
+  public ParityAcceptance(@Nonnegative int colors) {
+    this(colors, Priority.ODD);
+  }
 
-            @Override
-            public String toString() {
-                return "even";
-            }
-        },
+  public ParityAcceptance(@Nonnegative int colors, Priority priority) {
+    this.colors = colors;
+    this.priority = priority;
+  }
 
-        ODD {
-            public Priority not() {
-                return EVEN;
-            }
+  public ParityAcceptance complement() {
+    return new ParityAcceptance(colors, priority.not());
+  }
 
-            @Override
-            public String toString() {
-                return "odd";
-            }
-        };
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ParityAcceptance that = (ParityAcceptance) o;
+    return colors == that.colors &&
+      priority == that.priority;
+  }
 
-        public abstract Priority not();
+  @Override
+  public int getAcceptanceSets() {
+    return colors;
+  }
+
+  @Override
+  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+    if (colors == 0) {
+      return new BooleanExpression<>(priority == Priority.EVEN);
     }
 
-    @Nonnegative
-    private final int colors;
-    private final Priority priority;
+    int i = colors - 1;
 
-    public ParityAcceptance(@Nonnegative int colors) {
-        this(colors, Priority.ODD);
+    BooleanExpression<AtomAcceptance> exp = mkColor(i);
+
+    for (i--; 0 <= i; i--) {
+      if (i % 2 == 0 ^ priority == Priority.EVEN) {
+        exp = mkColor(i).and(exp);
+      } else {
+        exp = mkColor(i).or(exp);
+      }
     }
 
-    public ParityAcceptance(@Nonnegative int colors, Priority priority) {
-        this.colors = colors;
-        this.priority = priority;
-    }
+    return exp;
+  }
 
-    public Priority getPriority() {
-        return priority;
-    }
+  @Override
+  public String getName() {
+    return "parity";
+  }
 
-    public ParityAcceptance complement() {
-        return new ParityAcceptance(colors, priority.not());
-    }
+  @Override
+  public List<Object> getNameExtra() {
+    return Arrays.asList("min", priority.toString(), colors);
+  }
 
-    @Override
-    public String getName() {
-        return "parity";
-    }
+  public Priority getPriority() {
+    return priority;
+  }
 
-    @Override
-    public List<Object> getNameExtra() {
-        return Arrays.asList("min", priority.toString(), colors);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(colors, priority);
+  }
 
-    @Override
-    public int getAcceptanceSets() {
-        return colors;
-    }
+  private BooleanExpression<AtomAcceptance> mkColor(int i) {
+    return (i % 2 == 0 ^ priority == Priority.EVEN) ?
+           HOAConsumerExtended.mkFin(i) :
+           HOAConsumerExtended.mkInf(i);
+  }
 
-    @Override
-    public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-        if (colors == 0) {
-            return new BooleanExpression<>(priority == Priority.EVEN);
-        }
+  public enum Priority {
+    EVEN {
+      public Priority not() {
+        return ODD;
+      }
 
-        int i = colors - 1;
+      @Override
+      public String toString() {
+        return "even";
+      }
+    },
 
-        BooleanExpression<AtomAcceptance> exp = mkColor(i);
+    ODD {
+      public Priority not() {
+        return EVEN;
+      }
 
-        for (i--; 0 <= i; i--) {
-            if (i % 2 == 0 ^ priority == Priority.EVEN) {
-                exp = mkColor(i).and(exp);
-            } else {
-                exp = mkColor(i).or(exp);
-            }
-        }
+      @Override
+      public String toString() {
+        return "odd";
+      }
+    };
 
-        return exp;
-    }
-
-    private BooleanExpression<AtomAcceptance> mkColor(int i) {
-        return (i % 2 == 0 ^ priority == Priority.EVEN) ? HOAConsumerExtended.mkFin(i) : HOAConsumerExtended.mkInf(i);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ParityAcceptance that = (ParityAcceptance) o;
-        return colors == that.colors &&
-                priority == that.priority;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(colors, priority);
-    }
+    public abstract Priority not();
+  }
 }

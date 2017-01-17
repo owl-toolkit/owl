@@ -17,40 +17,41 @@
 
 package omega_automaton.acceptance;
 
-import omega_automaton.AutomatonState;
-import omega_automaton.collections.TranSet;
-
 import java.util.Collections;
 import java.util.List;
+import omega_automaton.AutomatonState;
+import omega_automaton.collections.TranSet;
 
 @Deprecated
 public class RabinAcceptance2<S extends AutomatonState<?>> extends GeneralisedRabinAcceptance2<S> {
 
-    public RabinAcceptance2(List<RabinPair2<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
-        super(acceptanceCondition);
-        checkIfValidArgument(acceptanceCondition);
+  public RabinAcceptance2(List<RabinPair2<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+    super(acceptanceCondition);
+    checkIfValidArgument(acceptanceCondition);
+  }
+
+  public void addRabinPair(TranSet<S> fin, TranSet<S> inf) {
+    this.acceptanceCondition
+      .add(new RabinPair2<>(fin.copy(), Collections.singletonList(inf.copy())));
+  }
+
+  private void checkIfValidArgument(
+    List<RabinPair2<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
+    for (RabinPair2<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
+      if (pair.right.size() != 1) {
+        throw new IllegalArgumentException("Acceptance condition is not a Rabin condition.");
+      }
     }
 
-    private void checkIfValidArgument(List<RabinPair2<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
-        for (RabinPair2<TranSet<S>, List<TranSet<S>>> pair : acceptanceCondition) {
-            if (pair.right.size() != 1) {
-                throw new IllegalArgumentException("Acceptance condition is not a Rabin condition.");
-            }
-        }
+  }
 
-    }
+  @Override
+  public String getName() {
+    return "Rabin";
+  }
 
-    @Override
-    public String getName() {
-        return "Rabin";
-    }
-
-    @Override
-    public List<Object> getNameExtra() {
-        return Collections.singletonList(this.acceptanceCondition.size());
-    }
-
-    public void addRabinPair(TranSet<S> fin, TranSet<S> inf) {
-        this.acceptanceCondition.add(new RabinPair2<>(fin.copy(), Collections.singletonList(inf.copy())));
-    }
+  @Override
+  public List<Object> getNameExtra() {
+    return Collections.singletonList(this.acceptanceCondition.size());
+  }
 }

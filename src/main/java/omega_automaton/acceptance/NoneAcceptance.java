@@ -17,31 +17,30 @@
 
 package omega_automaton.acceptance;
 
+import java.util.Collections;
+import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
-import java.util.Collections;
-import java.util.List;
-
 public class NoneAcceptance implements OmegaAcceptance {
 
-    @Override
-    public String getName() {
-        return "none";
-    }
+  @Override
+  public int getAcceptanceSets() {
+    return 0;
+  }
 
-    @Override
-    public List<Object> getNameExtra() {
-        return Collections.emptyList();
-    }
+  @Override
+  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+    return new BooleanExpression<>(false);
+  }
 
-    @Override
-    public int getAcceptanceSets() {
-        return 0;
-    }
+  @Override
+  public String getName() {
+    return "none";
+  }
 
-    @Override
-    public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-        return new BooleanExpression<>(false);
-    }
+  @Override
+  public List<Object> getNameExtra() {
+    return Collections.emptyList();
+  }
 }

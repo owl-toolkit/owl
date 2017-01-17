@@ -17,29 +17,26 @@
 
 package ltl.equivalence;
 
+import java.util.Map;
 import ltl.BooleanConstant;
 import ltl.Conjunction;
 import ltl.Formula;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
 public interface EquivalenceClassFactory {
 
-    EquivalenceClass createEquivalenceClass(Formula formula);
+  EquivalenceClass createEquivalenceClass(Formula formula);
 
-    default EquivalenceClass createEquivalenceClass(Iterable<Formula> formulas) {
-        return createEquivalenceClass(new Conjunction(formulas));
-    }
+  default EquivalenceClass createEquivalenceClass(Iterable<Formula> formulas) {
+    return createEquivalenceClass(new Conjunction(formulas));
+  }
 
-    default EquivalenceClass getTrue() {
-        return createEquivalenceClass(BooleanConstant.TRUE);
-    }
+  default EquivalenceClass getFalse() {
+    return createEquivalenceClass(BooleanConstant.FALSE);
+  }
 
-    default EquivalenceClass getFalse() {
-        return createEquivalenceClass(BooleanConstant.FALSE);
-    }
+  default EquivalenceClass getTrue() {
+    return createEquivalenceClass(BooleanConstant.TRUE);
+  }
 
-    void setAtomMapping(Map<Integer, String> mapping);
+  void setAtomMapping(Map<Integer, String> mapping);
 }

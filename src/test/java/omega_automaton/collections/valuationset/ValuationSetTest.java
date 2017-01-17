@@ -33,69 +33,69 @@ import org.junit.Test;
 
 public abstract class ValuationSetTest {
 
-    private ValuationSet universe;
-    private ValuationSet empty;
-    private ValuationSet abcd;
-    private ValuationSet containsA;
+  private ValuationSet abcd;
+  private ValuationSet containsA;
+  private ValuationSet empty;
+  private ValuationSet universe;
 
-    public abstract ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases);
+  @Before
+  public void setUp() throws Exception {
+    BiMap<String, Integer> aliases = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
+    ValuationSetFactory factory = setUpFactory(aliases);
 
-    @Before
-    public void setUp() throws Exception {
-        BiMap<String, Integer> aliases = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
-        ValuationSetFactory factory = setUpFactory(aliases);
+    empty = factory.createEmptyValuationSet();
+    universe = factory.createUniverseValuationSet();
 
-        empty = factory.createEmptyValuationSet();
-        universe = factory.createUniverseValuationSet();
+    BitSet bs = new BitSet(4);
+    bs.flip(0, 4);
+    abcd = factory.createValuationSet(bs);
 
-        BitSet bs = new BitSet(4);
-        bs.flip(0, 4);
-        abcd = factory.createValuationSet(bs);
+    bs.clear();
+    bs.set(0);
+    containsA = factory.createValuationSet(bs, bs);
+  }
 
-        bs.clear();
-        bs.set(0);
-        containsA = factory.createValuationSet(bs, bs);
+  public abstract ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases);
+
+  @Test
+  public void testComplement() throws Exception {
+    assertEquals(universe.complement(), empty);
+    assertEquals(empty.complement(), universe);
+    assertEquals(abcd.complement().complement(), abcd);
+    assertNotEquals(abcd.complement(), containsA);
+  }
+
+  @Test
+  public void testIsUniverse() throws Exception {
+    assertEquals(16, universe.size());
+    assertTrue(universe.isUniverse());
+
+    assertFalse(empty.isUniverse());
+    assertFalse(abcd.isUniverse());
+    assertFalse(containsA.isUniverse());
+  }
+
+  @Test
+  public void testIterator() {
+    Set<BitSet> seen = new HashSet<>();
+    for (BitSet valuation : universe) {
+      assertTrue(valuation.cardinality() <= 4);
+      assertTrue(seen.add(valuation));
     }
 
-    @Test
-    public void testComplement() throws Exception {
-        assertEquals(universe.complement(), empty);
-        assertEquals(empty.complement(), universe);
-        assertEquals(abcd.complement().complement(), abcd);
-        assertNotEquals(abcd.complement(), containsA);
+    for (BitSet valuation : containsA) {
+      assertTrue(valuation.get(0));
     }
 
-    @Test
-    public void testIsUniverse() throws Exception {
-        assertEquals(16, universe.size());
-        assertTrue(universe.isUniverse());
-
-        assertFalse(empty.isUniverse());
-        assertFalse(abcd.isUniverse());
-        assertFalse(containsA.isUniverse());
+    for (BitSet valuation : abcd) {
+      assertTrue(valuation.get(0));
+      assertTrue(valuation.get(1));
+      assertTrue(valuation.get(2));
+      assertTrue(valuation.get(3));
     }
 
-    @Test
-    public void testIterator() {
-        Set<BitSet> seen = new HashSet<>();
-        for (BitSet valuation : universe) {
-            assertTrue(valuation.cardinality() <= 4);
-            assertTrue(seen.add(valuation));
-        }
-
-        for (BitSet valuation : containsA) {
-            assertTrue(valuation.get(0));
-        }
-
-        for (BitSet valuation : abcd) {
-            assertTrue(valuation.get(0));
-            assertTrue(valuation.get(1));
-            assertTrue(valuation.get(2));
-            assertTrue(valuation.get(3));
-        }
-
-        for (BitSet valuation : empty) {
-            fail("empty should be empty, but it contains " + valuation);
-        }
+    for (BitSet valuation : empty) {
+      fail("empty should be empty, but it contains " + valuation);
     }
+  }
 }

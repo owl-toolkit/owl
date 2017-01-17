@@ -18,99 +18,100 @@
 package ltl;
 
 import com.google.common.collect.ImmutableSet;
-
-import java.util.*;
-import java.util.function.Function;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class PropositionalFormula extends ImmutableObject implements Formula {
 
-    public final Set<Formula> children;
+  public final Set<Formula> children;
 
-    PropositionalFormula(Iterable<? extends Formula> children) {
-        this.children = ImmutableSet.copyOf(children);
+  PropositionalFormula(Iterable<? extends Formula> children) {
+    this.children = ImmutableSet.copyOf(children);
+  }
+
+  PropositionalFormula(Formula... children) {
+    this.children = ImmutableSet.copyOf(children);
+  }
+
+  PropositionalFormula(Stream<? extends Formula> formulaStream) {
+    children = ImmutableSet.copyOf(formulaStream.iterator());
+  }
+
+  public boolean allMatch(Predicate<Formula> p) {
+    return children.stream().allMatch(p);
+  }
+
+  public boolean anyMatch(Predicate<Formula> p) {
+    return children.stream().anyMatch(p);
+  }
+
+  @Override
+  public boolean equals2(ImmutableObject o) {
+    PropositionalFormula that = (PropositionalFormula) o;
+    return Objects.equals(children, that.children);
+  }
+
+  protected abstract char getOperator();
+
+  @Override
+  public boolean isPureEventual() {
+    return allMatch(Formula::isPureEventual);
+  }
+
+  @Override
+  public boolean isPureUniversal() {
+    return allMatch(Formula::isPureUniversal);
+  }
+
+  @Override
+  public boolean isSuspendable() {
+    return allMatch(Formula::isSuspendable);
+  }
+
+  @Override
+  public String toString(Map<Integer, String> atomMapping) {
+    StringBuilder s = new StringBuilder(3 * children.size());
+
+    s.append('(');
+
+    Iterator<Formula> iter = children.iterator();
+
+    while (iter.hasNext()) {
+      s.append(iter.next().toString(atomMapping));
+
+      if (iter.hasNext()) {
+        s.append(getOperator());
+      }
     }
 
-    PropositionalFormula(Formula... children) {
-        this.children = ImmutableSet.copyOf(children);
+    s.append(')');
+
+    return s.toString();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder s = new StringBuilder(3 * children.size());
+
+    s.append('(');
+
+    Iterator<Formula> iter = children.iterator();
+
+    while (iter.hasNext()) {
+      s.append(iter.next());
+
+      if (iter.hasNext()) {
+        s.append(getOperator());
+      }
     }
 
-    PropositionalFormula(Stream<? extends Formula> formulaStream) {
-        children = ImmutableSet.copyOf(formulaStream.iterator());
-    }
+    s.append(')');
 
-    @Override
-    public String toString() {
-        StringBuilder s = new StringBuilder(3 * children.size());
-
-        s.append('(');
-
-        Iterator<Formula> iter = children.iterator();
-
-        while (iter.hasNext()) {
-            s.append(iter.next());
-
-            if (iter.hasNext()) {
-                s.append(getOperator());
-            }
-        }
-
-        s.append(')');
-
-        return s.toString();
-    }
-
-    @Override
-    public String toString(Map<Integer, String> atomMapping) {
-        StringBuilder s = new StringBuilder(3 * children.size());
-
-        s.append('(');
-
-        Iterator<Formula> iter = children.iterator();
-
-        while (iter.hasNext()) {
-            s.append(iter.next().toString(atomMapping));
-
-            if (iter.hasNext()) {
-                s.append(getOperator());
-            }
-        }
-
-        s.append(')');
-
-        return s.toString();
-    }
-
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        PropositionalFormula that = (PropositionalFormula) o;
-        return Objects.equals(children, that.children);
-    }
-
-    @Override
-    public boolean isPureEventual() {
-        return allMatch(Formula::isPureEventual);
-    }
-
-    @Override
-    public boolean isPureUniversal() {
-        return allMatch(Formula::isPureUniversal);
-    }
-
-    @Override
-    public boolean isSuspendable() {
-        return allMatch(Formula::isSuspendable);
-    }
-
-    public boolean allMatch(Predicate<Formula> p) {
-        return children.stream().allMatch(p);
-    }
-
-    public boolean anyMatch(Predicate<Formula> p) {
-        return children.stream().anyMatch(p);
-    }
-
-    protected abstract char getOperator();
+    return s.toString();
+  }
 
 }

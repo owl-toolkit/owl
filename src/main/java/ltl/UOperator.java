@@ -17,91 +17,91 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Objects;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-
-import java.util.BitSet;
-import java.util.Objects;
 
 /**
  * Strong Until.
  */
 public final class UOperator extends BinaryModalOperator {
 
-    public UOperator(Formula left, Formula right) {
-        super(left, right);
+  public UOperator(Formula left, Formula right) {
+    super(left, right);
+  }
+
+  public static Formula create(Formula left, Formula right) {
+    if (left == BooleanConstant.FALSE || right instanceof BooleanConstant) {
+      return right;
     }
 
-    @Override
-    public char getOperator() {
-        return 'U';
+    if (left.equals(right)) {
+      return left;
     }
 
-    @Override
-    public Formula unfold() {
-        return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
+    if (left == BooleanConstant.TRUE) {
+      return FOperator.create(right);
     }
 
-    @Override
-    public Formula unfoldTemporalStep(BitSet valuation) {
-        return Disjunction.create(right.unfoldTemporalStep(valuation), Conjunction.create(left.unfoldTemporalStep(valuation), this));
-    }
+    return new UOperator(left, right);
+  }
 
-    @Override
-    public ROperator not() {
-        return new ROperator(left.not(), right.not());
-    }
+  @Override
+  public int accept(IntVisitor v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public int accept(IntVisitor v) {
-        return v.visit(this);
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public char getOperator() {
+    return 'U';
+  }
 
-    @Override
-    public boolean isPureEventual() {
-        return right.isPureEventual();
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return Objects.hash(UOperator.class, left, right);
+  }
 
-    @Override
-    public boolean isPureUniversal() {
-        return left.isPureUniversal() && right.isPureUniversal();
-    }
+  @Override
+  public boolean isPureEventual() {
+    return right.isPureEventual();
+  }
 
-    @Override
-    public boolean isSuspendable() {
-        return right.isSuspendable();
-    }
+  @Override
+  public boolean isPureUniversal() {
+    return left.isPureUniversal() && right.isPureUniversal();
+  }
 
-    @Override
-    protected int hashCodeOnce() {
-        return Objects.hash(UOperator.class, left, right);
-    }
+  @Override
+  public boolean isSuspendable() {
+    return right.isSuspendable();
+  }
 
-    public static Formula create(Formula left, Formula right) {
-        if (left == BooleanConstant.FALSE || right instanceof BooleanConstant) {
-            return right;
-        }
+  @Override
+  public ROperator not() {
+    return new ROperator(left.not(), right.not());
+  }
 
-        if (left.equals(right)) {
-            return left;
-        }
+  @Override
+  public Formula unfold() {
+    return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
+  }
 
-        if (left == BooleanConstant.TRUE) {
-            return FOperator.create(right);
-        }
-
-        return new UOperator(left, right);
-    }
+  @Override
+  public Formula unfoldTemporalStep(BitSet valuation) {
+    return Disjunction.create(right.unfoldTemporalStep(valuation),
+      Conjunction.create(left.unfoldTemporalStep(valuation), this));
+  }
 
 }

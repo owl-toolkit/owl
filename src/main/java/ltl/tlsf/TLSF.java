@@ -18,130 +18,144 @@
 package ltl.tlsf;
 
 import com.google.common.collect.BiMap;
-import ltl.*;
+import java.util.BitSet;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.Formula;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.UOperator;
+import ltl.XOperator;
 import ltl.visitors.DefaultConverter;
 import org.immutables.value.Value;
-
-import java.util.BitSet;
 
 @Value.Immutable
 public abstract class TLSF {
 
-    public enum Semantics {
-        MEALY, MEALY_STRICT, MOORE, MOORE_STRICT;
+  @Value.Default
+  public Formula assert_() {
+    return BooleanConstant.TRUE;
+  }
 
-        public boolean isStrict() {
-            switch (this) {
-                case MEALY_STRICT:
-                case MOORE_STRICT:
-                    return true;
+  @Value.Default
+  public Formula assume() {
+    return BooleanConstant.TRUE;
+  }
 
-                default:
-                    return false;
-            }
-        }
-
-        public boolean isMealy() {
-            switch (this) {
-                case MEALY:
-                case MEALY_STRICT:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
-        public boolean isMoore() {
-            return !isMealy();
-        }
+  private Formula convert(Formula formula) {
+    if (semantics().isMealy() && target().isMoore()) {
+      return formula.accept(new MealyToMooreConverter());
     }
 
-    // Info Header
-    public abstract String title();
-    public abstract String description();
-    public abstract Semantics semantics();
-    public abstract Semantics target();
-
-    // Main / Body
-    public abstract BitSet inputs();
-    public abstract BitSet outputs();
-    public abstract BiMap<String, Integer> mapping();
-
-    @Value.Default
-    public Formula initially() {
-        return BooleanConstant.TRUE;
+    if (semantics().isMoore() && target().isMealy()) {
+      return formula.accept(new MooreToMealyConverter());
     }
 
-    @Value.Default
-    public Formula preset() {
-        return BooleanConstant.TRUE;
+    return formula;
+  }
+
+  public abstract String description();
+
+  @Value.Default
+  public Formula guarantee() {
+    return BooleanConstant.TRUE;
+  }
+
+  @Value.Default
+  public Formula initially() {
+    return BooleanConstant.TRUE;
+  }
+
+  // Main / Body
+  public abstract BitSet inputs();
+
+  public abstract BiMap<String, Integer> mapping();
+
+  public abstract BitSet outputs();
+
+  @Value.Default
+  public Formula preset() {
+    return BooleanConstant.TRUE;
+  }
+
+  @Value.Default
+  public Formula require() {
+    return BooleanConstant.TRUE;
+  }
+
+  public abstract Semantics semantics();
+
+  public abstract Semantics target();
+
+  // Info Header
+  public abstract String title();
+
+  @Value.Derived
+  public Formula toFormula() {
+    Formula formula = Disjunction.create(FOperator.create(require().not()), assume().not(),
+      Conjunction.create(GOperator.create(assert_()), guarantee()));
+
+    if (!semantics().isStrict()) {
+      formula = Conjunction.create(preset(), formula);
+    } else {
+      formula = Conjunction.create(preset(), formula, Disjunction
+        .create(UOperator.create(assert_(), require().not()), GOperator.create(assert_())));
     }
 
-    @Value.Default
-    public Formula require() {
-        return BooleanConstant.TRUE;
+    return convert(Disjunction.create(initially().not(), formula));
+  }
+
+  public enum Semantics {
+    MEALY, MEALY_STRICT, MOORE, MOORE_STRICT;
+
+    public boolean isMealy() {
+      switch (this) {
+        case MEALY:
+        case MEALY_STRICT:
+          return true;
+
+        default:
+          return false;
+      }
     }
 
-    @Value.Default
-    public Formula assert_() {
-        return BooleanConstant.TRUE;
+    public boolean isMoore() {
+      return !isMealy();
     }
 
-    @Value.Default
-    public Formula assume() {
-        return BooleanConstant.TRUE;
+    public boolean isStrict() {
+      switch (this) {
+        case MEALY_STRICT:
+        case MOORE_STRICT:
+          return true;
+
+        default:
+          return false;
+      }
     }
+  }
 
-    @Value.Default
-    public Formula guarantee() {
-        return BooleanConstant.TRUE;
+  private class MealyToMooreConverter extends DefaultConverter {
+    @Override
+    public Formula visit(Literal literal) {
+      if (outputs().get(literal.getAtom())) {
+        return new XOperator(literal);
+      }
+
+      return literal;
     }
+  }
 
-    @Value.Derived
-    public Formula toFormula() {
-        Formula formula = Disjunction.create(FOperator.create(require().not()), assume().not(), Conjunction.create(GOperator.create(assert_()), guarantee()));
+  private class MooreToMealyConverter extends DefaultConverter {
+    @Override
+    public Formula visit(Literal literal) {
+      if (inputs().get(literal.getAtom())) {
+        return new XOperator(literal);
+      }
 
-        if (!semantics().isStrict()) {
-            formula = Conjunction.create(preset(), formula);
-        } else {
-            formula = Conjunction.create(preset(), formula, Disjunction.create(UOperator.create(assert_(), require().not()), GOperator.create(assert_())));
-        }
-
-        return convert(Disjunction.create(initially().not(), formula));
+      return literal;
     }
-
-    private Formula convert(Formula formula) {
-        if (semantics().isMealy() && target().isMoore()) {
-            return formula.accept(new MealyToMooreConverter());
-        }
-
-        if (semantics().isMoore() && target().isMealy()) {
-            return formula.accept(new MooreToMealyConverter());
-        }
-
-        return formula;
-    }
-
-    private class MealyToMooreConverter extends DefaultConverter {
-        @Override
-        public Formula visit(Literal literal) {
-            if (outputs().get(literal.getAtom())) {
-                return new XOperator(literal);
-            }
-
-            return literal;
-        }
-    }
-
-    private class MooreToMealyConverter extends DefaultConverter {
-        @Override
-        public Formula visit(Literal literal) {
-            if (inputs().get(literal.getAtom())) {
-                return new XOperator(literal);
-            }
-
-            return literal;
-        }
-    }
+  }
 }

@@ -17,6 +17,8 @@
 
 package ltl.simplifier;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import ltl.Formula;
@@ -24,76 +26,72 @@ import ltl.parser.Parser;
 import ltl.simplifier.Simplifier.Strategy;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 public class SimplifierTest {
 
-    private static final String[] INPUT = new String[]{
-            "F (a U b)",
-            "F G X a",
-            "F G F b",
-    // TODO: This is part of the new simp: "(a & b) U (c | d)"
-    };
-
-    private static final String[] EXPECTED = new String[]{
-            "F b",
-            "F G a",
-            "G F b",
+  private static final String[] EXPECTED = new String[] {
+    "F b",
+    "F G a",
+    "G F b",
     // TODO: This is part of the new simp: "((a U c) & (b U c)) | ((a U d) & (b U d))"
-    };
+  };
+  private static final String[] INPUT = new String[] {
+    "F (a U b)",
+    "F G X a",
+    "F G F b",
+    // TODO: This is part of the new simp: "(a & b) U (c | d)"
+  };
+  private final Strategy strat = Simplifier.Strategy.AGGRESSIVELY;
 
-    private final Strategy strat = Simplifier.Strategy.AGGRESSIVELY;
+  @Test
+  public void testAggressiveSimplification() {
+    Formula f1 = Parser.formula("G ((r) | ((p) & (r)))");
+    Formula f2 = Parser.formula("G r");
+    assertEquals(Simplifier.simplify(f1, Strategy.AGGRESSIVELY), f2);
+  }
 
-    @Test
-    public void testModal() {
-        BiMap<String, Integer> aliases = HashBiMap.create();
+  @Test
+  public void testAggressiveSimplification1() {
+    Formula f1 = Parser.formula("G p0 & p0");
+    Formula f2 = Parser.formula("G p0");
+    assertEquals(Simplifier.simplify(f1, strat), f2);
+  }
 
-        for (int i = 0; i < INPUT.length; i++) {
-            Formula input = Parser.formula(INPUT[i], aliases);
-            Formula output = Parser.formula(EXPECTED[i], aliases);
-            assertEquals(output, Simplifier.simplify(input, Strategy.MODAL_EXT));
-        }
+  @Test
+  public void testAggressiveSimplification2() {
+    Formula f1 = Parser.formula("G p0 | p0");
+    Formula f2 = Parser.formula("p0");
+    assertEquals(Simplifier.simplify(f1, strat), f2);
+  }
+
+  @Test
+  public void testAggressiveSimplification3() {
+    Formula f1 = Parser.formula("F p0 | p0");
+    Formula f2 = Parser.formula("F p0");
+    assertEquals(Simplifier.simplify(f1, strat), f2);
+  }
+
+  @Test
+  public void testAggressiveSimplification4() {
+    Formula f1 = Parser.formula("a & (b | (a & c))");
+    Formula f2 = Parser.formula("a & (b | c)");
+    assertEquals(Simplifier.simplify(f1, strat), f2);
+  }
+
+  @Test
+  public void testModal() {
+    BiMap<String, Integer> aliases = HashBiMap.create();
+
+    for (int i = 0; i < INPUT.length; i++) {
+      Formula input = Parser.formula(INPUT[i], aliases);
+      Formula output = Parser.formula(EXPECTED[i], aliases);
+      assertEquals(output, Simplifier.simplify(input, Strategy.MODAL_EXT));
     }
+  }
 
-    @Test
-    public void testAggressiveSimplification() {
-        Formula f1 = Parser.formula("G ((r) | ((p) & (r)))");
-        Formula f2 = Parser.formula("G r");
-        assertEquals(Simplifier.simplify(f1, Strategy.AGGRESSIVELY), f2);
-    }
-
-    @Test
-    public void testAggressiveSimplification1() {
-        Formula f1 = Parser.formula("G p0 & p0");
-        Formula f2 = Parser.formula("G p0");
-        assertEquals(Simplifier.simplify(f1, strat), f2);
-    }
-
-    @Test
-    public void testAggressiveSimplification2() {
-        Formula f1 = Parser.formula("G p0 | p0");
-        Formula f2 = Parser.formula("p0");
-        assertEquals(Simplifier.simplify(f1, strat), f2);
-    }
-
-    @Test
-    public void testAggressiveSimplification3() {
-        Formula f1 = Parser.formula("F p0 | p0");
-        Formula f2 = Parser.formula("F p0");
-        assertEquals(Simplifier.simplify(f1, strat), f2);
-    }
-
-    @Test
-    public void testAggressiveSimplification4() {
-        Formula f1 = Parser.formula("a & (b | (a & c))");
-        Formula f2 = Parser.formula("a & (b | c)");
-        assertEquals(Simplifier.simplify(f1, strat), f2);
-    }
-
-    @Test
-    public void testPullupX() {
-        Formula f1 = Parser.formula(" G (F (X b))");
-        Formula f2 = Parser.formula("X(G(F(b)))");
-        assertEquals(Simplifier.simplify(f1, Simplifier.Strategy.PULLUP_X), f2);
-    }
+  @Test
+  public void testPullupX() {
+    Formula f1 = Parser.formula(" G (F (X b))");
+    Formula f2 = Parser.formula("X(G(F(b)))");
+    assertEquals(Simplifier.simplify(f1, Simplifier.Strategy.PULLUP_X), f2);
+  }
 }

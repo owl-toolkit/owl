@@ -22,17 +22,17 @@ import java.util.List;
 
 public class BuchiAcceptance extends GeneralisedBuchiAcceptance {
 
-    public BuchiAcceptance() {
-        super(1);
-    }
+  public BuchiAcceptance() {
+    super(1);
+  }
 
-    @Override
-    public String getName() {
-        return "Buchi";
-    }
+  @Override
+  public String getName() {
+    return "Buchi";
+  }
 
-    @Override
-    public List<Object> getNameExtra() {
-        return Collections.emptyList();
-    }
+  @Override
+  public List<Object> getNameExtra() {
+    return Collections.emptyList();
+  }
 }

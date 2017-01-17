@@ -31,6 +31,13 @@ import javax.annotation.Nonnegative;
  */
 public interface Edge<S> {
   /**
+   * A stream containing all acceptance sets this edge is a member of in ascending order.
+   *
+   * @return An int stream with all acceptance sets of this edge.
+   */
+  IntStream acceptanceSetStream();
+
+  /**
    * Get the target state of the edge.
    *
    * @return The state the edge points to.
@@ -46,11 +53,4 @@ public interface Edge<S> {
    * @return True if this edge is a member, false otherwise.
    */
   boolean inSet(@Nonnegative int i);
-
-  /**
-   * A stream containing all acceptance sets this edge is a member of in ascending order.
-   *
-   * @return An int stream with all acceptance sets of this edge.
-   */
-  IntStream acceptanceSetStream();
 }

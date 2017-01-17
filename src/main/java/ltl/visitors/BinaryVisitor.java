@@ -17,30 +17,40 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public interface BinaryVisitor<A, B> {
 
-    A visit(BooleanConstant b, B extra);
+  A visit(BooleanConstant b, B extra);
 
-    A visit(Conjunction c, B extra);
+  A visit(Conjunction c, B extra);
 
-    A visit(Disjunction b, B extra);
+  A visit(Disjunction b, B extra);
 
-    A visit(FOperator f, B extra);
+  A visit(FOperator f, B extra);
 
-    A visit(GOperator g, B extra);
+  A visit(GOperator g, B extra);
 
-    A visit(Literal l, B extra);
+  A visit(Literal l, B extra);
 
-    A visit(MOperator m, B extra);
+  A visit(MOperator m, B extra);
 
-    A visit(UOperator u, B extra);
+  A visit(UOperator u, B extra);
 
-    A visit(ROperator r, B extra);
+  A visit(ROperator r, B extra);
 
-    A visit(WOperator w, B extra);
+  A visit(WOperator w, B extra);
 
-    A visit(XOperator x, B extra);
+  A visit(XOperator x, B extra);
 
 }

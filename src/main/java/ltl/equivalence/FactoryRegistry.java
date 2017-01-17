@@ -21,27 +21,29 @@ import ltl.Formula;
 
 public class FactoryRegistry {
 
-    public static final Backend DEFAULT_BACKEND = Backend.BDD;
+  public static final Backend DEFAULT_BACKEND = Backend.BDD;
 
-    public static EquivalenceClassFactory createEquivalenceClassFactory(Formula formula) {
-        return createEquivalenceClassFactory(DEFAULT_BACKEND, formula);
-    }
+  public static EquivalenceClassFactory createEquivalenceClassFactory(Formula formula) {
+    return createEquivalenceClassFactory(DEFAULT_BACKEND, formula);
+  }
 
-    public static EquivalenceClassFactory createEquivalenceClassFactory(Backend backend, Formula formula) {
-        try {
-            switch (backend) {
-                case BDD:
-                default:
-                    return new BDDEquivalenceClassFactory(formula);
-            }
-        } catch (Exception e) {
-            System.err.println("Unable to instantiate factory with " + backend + " backend. Falling back to the BDD backend. (" + e + ")");
-            return new BDDEquivalenceClassFactory(formula);
-        }
+  public static EquivalenceClassFactory createEquivalenceClassFactory(Backend backend,
+    Formula formula) {
+    try {
+      switch (backend) {
+        case BDD:
+        default:
+          return new BDDEquivalenceClassFactory(formula);
+      }
+    } catch (Exception e) {
+      System.err.println("Unable to instantiate factory with " + backend
+        + " backend. Falling back to the BDD backend. (" + e + ")");
+      return new BDDEquivalenceClassFactory(formula);
     }
+  }
 
-    // TODO: expose different BDD backends.
-    public enum Backend {
-        BDD
-    }
+  // TODO: expose different BDD backends.
+  public enum Backend {
+    BDD
+  }
 }

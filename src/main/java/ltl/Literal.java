@@ -17,111 +17,110 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Map;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
 
-import java.util.BitSet;
-import java.util.Map;
-
 public final class Literal extends ImmutableObject implements Formula {
 
-    private final int atom;
+  private final int atom;
 
-    public Literal(int letter) {
-        this(letter, false);
+  public Literal(int letter) {
+    this(letter, false);
+  }
+
+  public Literal(int letter, boolean negate) {
+    if (letter < 0) {
+      throw new IllegalArgumentException();
     }
 
-    public Literal(int letter, boolean negate) {
-        if (letter < 0) {
-            throw new IllegalArgumentException();
-        }
+    this.atom = negate ? -(letter + 1) : letter + 1;
+  }
 
-        this.atom = negate ? -(letter + 1) : letter + 1;
-    }
+  @Override
+  public int accept(IntVisitor v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public String toString() {
-        return (isNegated() ? "!p" : "p") + getAtom();
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public String toString(Map<Integer, String> atomMapping) {
-        return (isNegated() ? "!" : "") + atomMapping.computeIfAbsent(getAtom(), atom -> "p" + atom);
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Override
-    public Literal not() {
-        return new Literal(getAtom(), !isNegated());
-    }
+  @Override
+  public boolean equals2(ImmutableObject o) {
+    Literal literal = (Literal) o;
+    return atom == literal.atom;
+  }
 
-    @Override
-    public Formula temporalStep(BitSet valuation) {
-        return BooleanConstant.get(valuation.get(getAtom()) ^ isNegated());
-    }
+  public int getAtom() {
+    return Math.abs(atom) - 1;
+  }
 
-    @Override
-    public Formula temporalStepUnfold(BitSet valuation) {
-        return temporalStep(valuation);
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return 17 * atom + 5;
+  }
 
-    @Override
-    public Formula unfoldTemporalStep(BitSet valuation) {
-        return temporalStep(valuation);
-    }
+  public boolean isNegated() {
+    return atom < 0;
+  }
 
-    @Override
-    public int accept(IntVisitor v) {
-        return v.visit(this);
-    }
+  @Override
+  public boolean isPureEventual() {
+    return false;
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Override
+  public boolean isPureUniversal() {
+    return false;
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public boolean isSuspendable() {
+    return false;
+  }
 
-    @Override
-    public boolean isPureEventual() {
-        return false;
-    }
+  @Override
+  public Literal not() {
+    return new Literal(getAtom(), !isNegated());
+  }
 
-    @Override
-    public boolean isPureUniversal() {
-        return false;
-    }
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return BooleanConstant.get(valuation.get(getAtom()) ^ isNegated());
+  }
 
-    @Override
-    public boolean isSuspendable() {
-        return false;
-    }
+  @Override
+  public Formula temporalStepUnfold(BitSet valuation) {
+    return temporalStep(valuation);
+  }
 
-    @Override
-    public boolean equals2(ImmutableObject o) {
-        Literal literal = (Literal) o;
-        return atom == literal.atom;
-    }
+  @Override
+  public String toString() {
+    return (isNegated() ? "!p" : "p") + getAtom();
+  }
 
-    public int getAtom() {
-        return Math.abs(atom) - 1;
-    }
+  @Override
+  public String toString(Map<Integer, String> atomMapping) {
+    return (isNegated() ? "!" : "") + atomMapping.computeIfAbsent(getAtom(), atom -> "p" + atom);
+  }
 
-    public boolean isNegated() {
-        return atom < 0;
-    }
+  @Override
+  public Formula unfold() {
+    return this;
+  }
 
-    @Override
-    protected int hashCodeOnce() {
-        return 17 * atom + 5;
-    }
-
-    @Override
-    public Formula unfold() {
-        return this;
-    }
+  @Override
+  public Formula unfoldTemporalStep(BitSet valuation) {
+    return temporalStep(valuation);
+  }
 
 }

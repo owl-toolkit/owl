@@ -20,27 +20,29 @@ package ltl;
 /* Move to separate Package */
 public abstract class ImmutableObject {
 
-    private int cachedHashCode;
+  private int cachedHashCode;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        return hashCode() == o.hashCode() && equals2((ImmutableObject) o);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    return hashCode() == o.hashCode() && equals2((ImmutableObject) o);
+  }
+
+  protected abstract boolean equals2(ImmutableObject o);
+
+  @Override
+  public int hashCode() {
+    if (cachedHashCode == 0) {
+      cachedHashCode = hashCodeOnce();
     }
 
-    @Override
-    public int hashCode() {
-        if (cachedHashCode == 0) {
-            cachedHashCode = hashCodeOnce();
-        }
+    return cachedHashCode;
+  }
 
-        return cachedHashCode;
-    }
-
-    protected abstract int hashCodeOnce();
-
-    protected abstract boolean equals2(ImmutableObject o);
+  protected abstract int hashCodeOnce();
 }

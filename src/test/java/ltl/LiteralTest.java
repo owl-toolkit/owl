@@ -17,84 +17,86 @@
 
 package ltl;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.BitSet;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class LiteralTest {
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructor(){
-        new Literal(-1);
+  @Test
+  public void getAtom() throws Exception {
+    for (int atom = 0; atom < 42; atom++) {
+      Literal literal = new Literal(atom, false);
+      Literal notLiteral = new Literal(atom, true);
+      assertEquals(atom, literal.getAtom());
+      assertEquals(atom, notLiteral.getAtom());
     }
+  }
 
-    @Test
-    public void not() throws Exception {
-        Literal literal = new Literal(1);
-        Literal notLiteral = new Literal(1, true);
+  @Test
+  public void isNegated() throws Exception {
+    Literal literal = new Literal(1);
+    Literal notLiteral = new Literal(1, true);
 
-        assertEquals(notLiteral, literal.not());
-        assertEquals(literal, literal.not().not());
+    assertFalse(literal.isNegated());
+    assertTrue(notLiteral.isNegated());
+  }
 
-        assertNotEquals(literal, notLiteral);
-    }
+  @Test
+  public void isPureEventual() throws Exception {
+    Literal literal = new Literal(0);
+    assertFalse(literal.isPureEventual());
+  }
 
-    @Test
-    public void temporalStep() throws Exception {
-        Literal literal = new Literal(1);
-        BitSet valuation = new BitSet();
+  @Test
+  public void isPureUniversal() throws Exception {
+    Literal literal = new Literal(0);
+    assertFalse(literal.isPureUniversal());
+  }
 
-        assertEquals(BooleanConstant.FALSE, literal.temporalStep(valuation));
-        assertEquals(BooleanConstant.TRUE, literal.not().temporalStep(valuation));
+  @Test
+  public void isSuspendable() throws Exception {
+    Literal literal = new Literal(0);
+    assertFalse(literal.isSuspendable());
+  }
 
-        valuation.set(1);
+  @Test
+  public void not() throws Exception {
+    Literal literal = new Literal(1);
+    Literal notLiteral = new Literal(1, true);
 
-        assertEquals(BooleanConstant.TRUE, literal.temporalStep(valuation));
-        assertEquals(BooleanConstant.FALSE, literal.not().temporalStep(valuation));
-    }
+    assertEquals(notLiteral, literal.not());
+    assertEquals(literal, literal.not().not());
 
-    @Test
-    public void isPureEventual() throws Exception {
-        Literal literal = new Literal(0);
-        assertFalse(literal.isPureEventual());
-    }
+    assertNotEquals(literal, notLiteral);
+  }
 
-    @Test
-    public void isPureUniversal() throws Exception {
-        Literal literal = new Literal(0);
-        assertFalse(literal.isPureUniversal());
-    }
+  @Test
+  public void temporalStep() throws Exception {
+    Literal literal = new Literal(1);
+    BitSet valuation = new BitSet();
 
-    @Test
-    public void isSuspendable() throws Exception {
-        Literal literal = new Literal(0);
-        assertFalse(literal.isSuspendable());
-    }
+    assertEquals(BooleanConstant.FALSE, literal.temporalStep(valuation));
+    assertEquals(BooleanConstant.TRUE, literal.not().temporalStep(valuation));
 
-    @Test
-    public void getAtom() throws Exception {
-        for (int atom = 0; atom < 42; atom++) {
-            Literal literal = new Literal(atom, false);
-            Literal notLiteral = new Literal(atom, true);
-            assertEquals(atom, literal.getAtom());
-            assertEquals(atom, notLiteral.getAtom());
-        }
-    }
+    valuation.set(1);
 
-    @Test
-    public void isNegated() throws Exception {
-        Literal literal = new Literal(1);
-        Literal notLiteral = new Literal(1, true);
+    assertEquals(BooleanConstant.TRUE, literal.temporalStep(valuation));
+    assertEquals(BooleanConstant.FALSE, literal.not().temporalStep(valuation));
+  }
 
-        assertFalse(literal.isNegated());
-        assertTrue(notLiteral.isNegated());
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void testConstructor() {
+    new Literal(-1);
+  }
 
-    @Test
-    public void unfold() throws Exception {
-        Literal literal = new Literal(1);
-        assertEquals(literal, literal.unfold());
-    }
+  @Test
+  public void unfold() throws Exception {
+    Literal literal = new Literal(1);
+    assertEquals(literal, literal.unfold());
+  }
 }

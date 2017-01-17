@@ -17,94 +17,93 @@
 
 package ltl;
 
+import java.util.BitSet;
+import java.util.Objects;
 import ltl.visitors.BinaryVisitor;
 import ltl.visitors.IntVisitor;
 import ltl.visitors.Visitor;
-
-import java.util.BitSet;
-import java.util.Objects;
 
 /**
  * Globally.
  */
 public class GOperator extends UnaryModalOperator {
 
-    public GOperator(Formula f) {
-        super(f);
+  public GOperator(Formula f) {
+    super(f);
+  }
+
+  public static Formula create(Formula operand) {
+    if (operand instanceof BooleanConstant) {
+      return operand;
     }
 
-    @Override
-    public String getOperator() {
-        return "G";
+    if (operand instanceof GOperator) {
+      return operand;
     }
 
-    @Override
-    public Formula unfold() {
-        return new Conjunction(operand.unfold(), this);
+    if (operand instanceof ROperator) {
+      return create(((ROperator) operand).right);
     }
 
-    @Override
-    public Formula unfoldTemporalStep(BitSet valuation) {
-        return Conjunction.create(operand.unfoldTemporalStep(valuation), this);
+    if (operand instanceof Conjunction) {
+      return Conjunction.create(((Conjunction) operand).children.stream().map(GOperator::create));
     }
 
-    @Override
-    public UnaryModalOperator not() {
-        return new FOperator(operand.not());
-    }
+    return new GOperator(operand);
+  }
 
-    @Override
-    public int accept(IntVisitor v) {
-        return v.visit(this);
-    }
+  @Override
+  public int accept(IntVisitor v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public <R> R accept(Visitor<R> v) {
-        return v.visit(this);
-    }
+  @Override
+  public <R> R accept(Visitor<R> v) {
+    return v.visit(this);
+  }
 
-    @Override
-    public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-        return v.visit(this, extra);
-    }
+  @Override
+  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
+    return v.visit(this, extra);
+  }
 
-    @Override
-    public boolean isPureEventual() {
-        return operand.isPureEventual();
-    }
+  @Override
+  public String getOperator() {
+    return "G";
+  }
 
-    @Override
-    public boolean isPureUniversal() {
-        return true;
-    }
+  @Override
+  protected int hashCodeOnce() {
+    return Objects.hash(GOperator.class, operand);
+  }
 
-    @Override
-    public boolean isSuspendable() {
-        return operand.isPureEventual() || operand.isSuspendable();
-    }
+  @Override
+  public boolean isPureEventual() {
+    return operand.isPureEventual();
+  }
 
-    public static Formula create(Formula operand) {
-        if (operand instanceof BooleanConstant) {
-            return operand;
-        }
+  @Override
+  public boolean isPureUniversal() {
+    return true;
+  }
 
-        if (operand instanceof GOperator) {
-            return operand;
-        }
+  @Override
+  public boolean isSuspendable() {
+    return operand.isPureEventual() || operand.isSuspendable();
+  }
 
-        if (operand instanceof ROperator) {
-            return create(((ROperator) operand).right);
-        }
+  @Override
+  public UnaryModalOperator not() {
+    return new FOperator(operand.not());
+  }
 
-        if (operand instanceof Conjunction) {
-            return Conjunction.create(((Conjunction) operand).children.stream().map(GOperator::create));
-        }
+  @Override
+  public Formula unfold() {
+    return new Conjunction(operand.unfold(), this);
+  }
 
-        return new GOperator(operand);
-    }
-
-    @Override
-    protected int hashCodeOnce() {
-        return Objects.hash(GOperator.class, operand);
-    }
+  @Override
+  public Formula unfoldTemporalStep(BitSet valuation) {
+    return Conjunction.create(operand.unfoldTemporalStep(valuation), this);
+  }
 }

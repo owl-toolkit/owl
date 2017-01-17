@@ -17,71 +17,82 @@
 
 package ltl.visitors;
 
-import ltl.*;
+import ltl.BooleanConstant;
+import ltl.Conjunction;
+import ltl.Disjunction;
+import ltl.FOperator;
 import ltl.Formula;
+import ltl.FrequencyG;
+import ltl.GOperator;
+import ltl.Literal;
+import ltl.MOperator;
+import ltl.ROperator;
+import ltl.UOperator;
+import ltl.WOperator;
+import ltl.XOperator;
 
 public abstract class DefaultIntVisitor implements IntVisitor {
 
-    protected abstract int defaultAction(Formula formula);
+  protected abstract int defaultAction(Formula formula);
 
-    @Override
-    public int visit(BooleanConstant booleanConstant) {
-        return defaultAction(booleanConstant);
-    }
+  @Override
+  public int visit(BooleanConstant booleanConstant) {
+    return defaultAction(booleanConstant);
+  }
 
-    @Override
-    public int visit(Conjunction conjunction) {
-        return defaultAction(conjunction);
-    }
+  @Override
+  public int visit(Conjunction conjunction) {
+    return defaultAction(conjunction);
+  }
 
-    @Override
-    public int visit(Disjunction disjunction) {
-        return defaultAction(disjunction);
-    }
+  @Override
+  public int visit(Disjunction disjunction) {
+    return defaultAction(disjunction);
+  }
 
-    @Override
-    public int visit(FOperator fOperator) {
-        return defaultAction(fOperator);
-    }
+  @Override
+  public int visit(FOperator fOperator) {
+    return defaultAction(fOperator);
+  }
 
-    @Override
-    public int visit(FrequencyG freq) {
-        return defaultAction(freq);
-    }
+  @Override
+  public int visit(FrequencyG freq) {
+    return defaultAction(freq);
+  }
 
-    @Override
-    public int visit(GOperator gOperator) {
-        return defaultAction(gOperator);
-    }
+  @Override
+  public int visit(GOperator gOperator) {
+    return defaultAction(gOperator);
+  }
 
-    @Override
-    public int visit(Literal literal) {
-        return defaultAction(literal);
-    }
+  @Override
+  public int visit(Literal literal) {
+    return defaultAction(literal);
+  }
 
-    @Override
-    public int visit(MOperator mOperator) {
-        return defaultAction(mOperator);
-    }
+  @Override
+  public int visit(MOperator mOperator) {
+    return defaultAction(mOperator);
+  }
 
-    @Override
-    public int visit(ROperator rOperator) {
-        return defaultAction(rOperator);
-    }
+  @Override
+  public int visit(ROperator rOperator) {
+    return defaultAction(rOperator);
+  }
 
-    @Override
-    public int visit(UOperator uOperator) {
-        return defaultAction(uOperator);
-    }
+  @Override
+  public int visit(UOperator uOperator) {
+    return defaultAction(uOperator);
+  }
 
-    @Override
-    public int visit(WOperator wOperator) {
-        return defaultAction(wOperator);
-    }
+  @Override
+  public int visit(WOperator wOperator) {
+    return defaultAction(wOperator);
+  }
 
-    @Override
-    public int visit(XOperator xOperator) {
-        return defaultAction(xOperator);
-    }
+  @Override
+  public int visit(XOperator xOperator) {
+    return defaultAction(xOperator);
+  }
 
 }

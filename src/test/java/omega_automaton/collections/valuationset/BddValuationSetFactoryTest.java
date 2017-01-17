@@ -17,31 +17,30 @@
 
 package omega_automaton.collections.valuationset;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-
 public class BddValuationSetFactoryTest {
-    private BDDValuationSetFactory factory;
-    private Set<String> alphabet;
+  private Set<String> alphabet;
+  private BDDValuationSetFactory factory;
 
-    @Before
-    public void setUp() throws Exception {
-        alphabet = ImmutableSet.of("a", "b");
-        factory = new BDDValuationSetFactory(2);
-    }
+  @Before
+  public void setUp() throws Exception {
+    alphabet = ImmutableSet.of("a", "b");
+    factory = new BDDValuationSetFactory(2);
+  }
 
-    @Test
-    public void testGetAlphabet() throws Exception {
-        assertEquals(alphabet.size(), factory.getSize());
-    }
+  @Test
+  public void testCreateEmptyValuationSet() throws Exception {
+    assertEquals(0, factory.createEmptyValuationSet().size());
+  }
 
-    @Test
-    public void testCreateEmptyValuationSet() throws Exception {
-        assertEquals(0, factory.createEmptyValuationSet().size());
-    }
+  @Test
+  public void testGetAlphabet() throws Exception {
+    assertEquals(alphabet.size(), factory.getSize());
+  }
 }

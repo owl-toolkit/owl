@@ -22,30 +22,34 @@ import java.util.Objects;
 @Deprecated
 public class RabinPair2<L, R> {
 
-    public final L left;
-    public final R right;
+  public final L left;
+  public final R right;
 
-    public RabinPair2(L l, R r) {
-        left = l;
-        right = r;
-    }
+  public RabinPair2(L l, R r) {
+    left = l;
+    right = r;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RabinPair2<?, ?> rabinPair = (RabinPair2<?, ?>) o;
-        return Objects.equals(left, rabinPair.left) &&
-                Objects.equals(right, rabinPair.right);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RabinPair2<?, ?> rabinPair = (RabinPair2<?, ?>) o;
+    return Objects.equals(left, rabinPair.left) &&
+      Objects.equals(right, rabinPair.right);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(left, right);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(left, right);
+  }
 
-    @Override
-    public String toString() {
-        return "<" + left + ", " + right + '>';
-    }
+  @Override
+  public String toString() {
+    return "<" + left + ", " + right + '>';
+  }
 }
