@@ -17,16 +17,15 @@
 
 package ltl.equivalence;
 
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -209,7 +208,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     return factory.compose(bdd, temporalStepSubstitution);
   }
 
-  private BitSet toBitSet(Iterable<Formula> formulas) {
+  private BitSet toBitSet(Iterable<? extends Formula> formulas) {
     BitSet bitSet = new BitSet();
     formulas.forEach(x -> bitSet.set(mapping.getInt(x) - 1));
     return bitSet;
@@ -249,11 +248,6 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
       EquivalenceClass and = and(eq);
       free();
       return and;
-    }
-
-    @Override
-    public EquivalenceClass apply(Function<? super Formula, ? extends Formula> function) {
-      return createEquivalenceClass(function.apply(representative));
     }
 
     @Override
@@ -362,17 +356,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public List<Set<Formula>> restrictedSatisfyingAssignments(Collection<Formula> supportCollection,
-      @Nullable EquivalenceClass restrictionClass) {
-      final BitSet support = toBitSet(supportCollection);
+    public ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> supportIterable) {
+      final BitSet support = toBitSet(supportIterable);
       final Set<BitSet> satisfyingAssignments = new HashSet<>();
-      final int restriction;
-
-      if (restrictionClass != null) {
-        restriction = ((BddEquivalenceClass) restrictionClass).bdd;
-      } else {
-        restriction = -2;
-      }
 
       factory.getMinimalSolutions(bdd)
         .forEachRemaining(x -> satisfyingAssignments.add((BitSet) x.clone()));
@@ -399,30 +385,16 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
           }
 
           candidates.add(nextValuation);
-
-          if (restriction < 0) {
-            satisfyingAssignments.add(nextValuation);
-          } else {
-            int oldBDD = factory.reference(factory.restrict(restriction, support, valuation));
-            int newBDD = factory.reference(factory.restrict(restriction, support, nextValuation));
-
-            if (factory.implies(oldBDD, newBDD)) {
-              satisfyingAssignments.add(nextValuation);
-            }
-
-            factory.dereference(newBDD);
-            factory.dereference(oldBDD);
-            candidates.add(nextValuation);
-          }
+          satisfyingAssignments.add(nextValuation);
         }
       }
 
       return satisfyingAssignments.stream().map(BDDEquivalenceClassFactory.this::toSet)
-        .collect(Collectors.toList());
+        .collect(ImmutableList.toImmutableList());
     }
 
     @Override
-    public EquivalenceClass substitute(Function<Formula, Formula> substitution) {
+    public EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution) {
       // TODO: Only construct map for elements in support.
       int[] substitutionMap = new int[reverseMapping.length];
 

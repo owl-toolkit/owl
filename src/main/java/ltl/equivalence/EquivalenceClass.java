@@ -18,8 +18,8 @@
 package ltl.equivalence;
 
 
+import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -74,8 +74,6 @@ public interface EquivalenceClass {
    */
   EquivalenceClass andWith(EquivalenceClass eq);
 
-  EquivalenceClass apply(Function<? super Formula, ? extends Formula> function);
-
   EquivalenceClass duplicate();
 
   EquivalenceClass exists(Predicate<Formula> predicate);
@@ -124,14 +122,13 @@ public interface EquivalenceClass {
    */
   EquivalenceClass orWith(EquivalenceClass eq);
 
-  Collection<Set<Formula>> restrictedSatisfyingAssignments(Collection<Formula> support,
-    EquivalenceClass restr);
-
-  default Collection<Set<Formula>> satisfyingAssignments() {
-    return restrictedSatisfyingAssignments(getSupport(), null);
+  default ImmutableList<Set<Formula>> satisfyingAssignments() {
+    return satisfyingAssignments(getSupport());
   }
 
-  EquivalenceClass substitute(Function<Formula, Formula> substitution);
+  ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support);
+
+  EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution);
 
   EquivalenceClass temporalStep(BitSet valuation);
 

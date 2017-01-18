@@ -124,20 +124,20 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass EB = B.exists(predicate);
     assertEquals(B, EB);
     assertEquals(Collections.singleton(Collections.singleton(formulas[1])),
-      Sets.newHashSet(EB.restrictedSatisfyingAssignments(Arrays.asList(formulas[1]), null)));
+      Sets.newHashSet(EB.satisfyingAssignments(Arrays.asList(formulas[1]))));
 
     EquivalenceClass C = factory.createEquivalenceClass(formulas[2]);
     EquivalenceClass EC = C.exists(predicate);
     Set<Formula> GS = Sets
       .newHashSet(Parser.formula("G a", mapping), Parser.formula("G b", mapping));
     assertEquals(factory.getTrue(), EC);
-    assertEquals(Sets.powerSet(GS), Sets.newHashSet(EC.restrictedSatisfyingAssignments(GS, null)));
+    assertEquals(Sets.powerSet(GS), Sets.newHashSet(EC.satisfyingAssignments(GS)));
 
     EquivalenceClass D = factory.createEquivalenceClass(formulas[3]);
     EquivalenceClass ED = D.exists(predicate);
     assertEquals(factory.createEquivalenceClass(Parser.formula("G a & G b", mapping)), ED);
     assertEquals(Collections.singleton(GS),
-      Sets.newHashSet(ED.restrictedSatisfyingAssignments(GS, null)));
+      Sets.newHashSet(ED.satisfyingAssignments(GS)));
   }
 
   @Test
