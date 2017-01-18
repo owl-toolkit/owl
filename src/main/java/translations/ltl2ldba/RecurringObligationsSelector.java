@@ -73,7 +73,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
         final Set<Formula> support = state.getSupport(INFINITY_OPERATORS);
         final EquivalenceClass skeleton = state.exists(INFINITY_OPERATORS.negate());
 
-        List<Set<GOperator>> sets = skeleton.restrictedSatisfyingAssignments(support, null)
+        List<Set<GOperator>> sets = skeleton.satisfyingAssignments(support)
                 .stream()
                 .map(RecurringObligationsSelector::normaliseInfinityOperators)
                 .collect(Collectors.toList());

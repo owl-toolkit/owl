@@ -85,7 +85,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
         final Set<Formula> support = state.getSupport(G_OPERATORS);
         final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
-        List<Set<GOperator>> sets = skeleton.restrictedSatisfyingAssignments(support, null)
+        List<Set<GOperator>> sets = skeleton.satisfyingAssignments(support)
                 .stream().map(RecurringObligations2Selector::normaliseToGOperators).collect(Collectors.toList());
 
         skeleton.free();
