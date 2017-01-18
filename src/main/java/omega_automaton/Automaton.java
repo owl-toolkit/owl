@@ -17,7 +17,9 @@
 
 package omega_automaton;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,7 +40,6 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.acceptance.OmegaAcceptance;
@@ -94,7 +95,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
    *     The state to be added to the initial state set
    */
   public final void addInitialState(S state) {
-    checkNotNull(state);
+    Preconditions.checkNotNull(state);
     if (this.initialStates instanceof ImmutableSet) {
       this.initialStates = new HashSet<>(this.initialStates);
     }
@@ -344,7 +345,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
    *     The state to be removed from the initial state set.
    */
   public void removeInitialState(S state) {
-    checkNotNull(state);
+    Preconditions.checkNotNull(state);
     if (this.initialStates instanceof ImmutableSet) {
       this.initialStates = new HashSet<>(this.initialStates);
     }
@@ -385,7 +386,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
    *     The new initial state.
    */
   public void setInitialState(S state) {
-    this.initialStates = ImmutableSet.of(checkNotNull(state));
+    this.initialStates = ImmutableSet.of(Preconditions.checkNotNull(state));
   }
 
   public void setInitialStates(Set<? extends S> states) {
