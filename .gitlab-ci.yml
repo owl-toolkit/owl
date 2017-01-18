@@ -111,5 +111,5 @@ test:ltl2dpa Parallel:
 
 test:ltl2det-parallel:
   variables:
-    LTL_TOOL: "{ltl2det} build/bin/ltl2det --parallel %f >%O"
+    LTL_TOOL: "{ltl2da} build/bin/ltl2da --parallel %f >%O"
   <<: *ltlcross_template

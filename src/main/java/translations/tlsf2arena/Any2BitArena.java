@@ -28,7 +28,7 @@ import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
 import owl.automaton.edge.Edge;
-import translations.ltl2parity.ParityAutomaton;
+import translations.ltl2dpa.ParityAutomaton;
 
 import java.io.*;
 import java.util.BitSet;

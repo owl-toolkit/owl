@@ -16,6 +16,6 @@
  */
 
 @ParametersAreNonnullByDefault
-package translations.ltl2parity;
+package translations.ltl2dpa;
 
 import javax.annotation.ParametersAreNonnullByDefault;

@@ -19,7 +19,7 @@ package translations;
 
 import ltl.Formula;
 import omega_automaton.output.HOAPrintable;
-import translations.ltl2parity.Ltl2Dpa;
+import translations.ltl2dpa.Ltl2Dpa;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;

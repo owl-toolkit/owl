@@ -21,8 +21,8 @@ import jhoafparser.consumer.HOAConsumerException;
 import ltl.parser.Parser;
 import ltl.tlsf.TLSF;
 import translations.Optimisation;
-import translations.ltl2parity.Ltl2Dpa;
-import translations.ltl2parity.ParityAutomaton;
+import translations.ltl2dpa.Ltl2Dpa;
+import translations.ltl2dpa.ParityAutomaton;
 
 import java.io.File;
 import java.io.FileInputStream;

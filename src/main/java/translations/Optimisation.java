@@ -24,6 +24,6 @@ public enum Optimisation {
     /* ltl2ldba */
     EAGER_UNFOLD, REMOVE_REDUNDANT_OBLIGATIONS, FORCE_JUMPS, MINIMIZE_JUMPS, OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS,
 
-    /* ltl2parity */
+    /* ltl2dpa */
     PARALLEL, PERMUTATION_SHARING
 }

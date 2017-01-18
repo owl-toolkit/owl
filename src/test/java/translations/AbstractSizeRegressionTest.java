@@ -17,8 +17,13 @@
 
 package translations;
 
+import static org.junit.Assert.assertThat;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import ltl.Formula;
@@ -27,12 +32,6 @@ import omega_automaton.output.HOAPrintable;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
-
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.function.Function;
-
-import static org.junit.Assert.assertThat;
 
 public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
 

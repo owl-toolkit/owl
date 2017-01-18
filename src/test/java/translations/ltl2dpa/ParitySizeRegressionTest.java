@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package translations.ltl2parity;
+package translations.ltl2dpa;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

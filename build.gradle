@@ -59,10 +59,10 @@ task createAllStartScripts() {
 }
 
 def scripts = [
-	'ltl2det':'translations.ltl2det.LTL2Det',
+	'ltl2da':'translations.LTL2DA',
+    'ltl2dpa':'translations.LTL2DPA',
     'ltl2ldba':'translations.LTL2LDBA',
     'nba2ldba':'translations.NBA2LDBA',
-    'ltl2dpa':'translations.LTL2DPA',
 ]
 
 scripts.each() {scriptName, className -> 

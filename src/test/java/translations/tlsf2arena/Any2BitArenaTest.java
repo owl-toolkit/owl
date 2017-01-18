@@ -19,7 +19,7 @@ package translations.tlsf2arena;
 
 import ltl.Formula;
 import ltl.parser.Parser;
-import translations.ltl2parity.Ltl2Dpa;
+import translations.ltl2dpa.Ltl2Dpa;
 
 import java.io.File;
 import java.util.BitSet;
