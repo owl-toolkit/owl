@@ -26,7 +26,7 @@ public interface EquivalenceClassFactory {
 
   EquivalenceClass createEquivalenceClass(Formula formula);
 
-  default EquivalenceClass createEquivalenceClass(Iterable<Formula> formulas) {
+  default EquivalenceClass createEquivalenceClass(Iterable<? extends Formula> formulas) {
     return createEquivalenceClass(new Conjunction(formulas));
   }
 

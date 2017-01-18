@@ -17,9 +17,6 @@
 
 package omega_automaton;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.collect.ImmutableSet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,6 +38,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.collect.Iterables;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import omega_automaton.acceptance.OmegaAcceptance;
@@ -59,7 +57,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   private final AtomicInteger atomicSize;
   protected Acc acceptance;
   protected Map<Integer, String> atomMapping;
-  private Set<S> initialStates;
+  protected Set<S> initialStates;
 
   protected Automaton(Acc acceptance, ValuationSetFactory factory) {
     this(acceptance, factory, new AtomicInteger(0));
@@ -200,9 +198,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
    */
   @Nonnull
   public S getInitialState() {
-    Set<S> initialStates = getInitialStates();
-    checkState(initialStates.size() == 1);
-    return initialStates.iterator().next();
+    return Iterables.getOnlyElement(getInitialStates());
   }
 
   /**
@@ -373,7 +369,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   }
 
   public void removeUnreachableStates(Set<S> reach) {
-    getReachableStates(new HashSet<>(reach));
+    getReachableStates(reach);
     removeStatesIf(s -> !reach.contains(s));
   }
 

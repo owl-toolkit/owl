@@ -294,7 +294,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         throw new IllegalStateException("double free");
       }
 
-      if (!factory.isNodeRoot(bdd)) {
+      if (!factory.isNodeRoot(bdd) && !factory.isVariableOrNegated(bdd)) {
         factory.dereference(bdd);
         bdd = INVALID_BDD;
         representative = null;
