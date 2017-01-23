@@ -15,16 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl.equivalence;
+package owl.factories;
 
-import ltl.Formula;
-import owl.factories.Registry;
-import owl.factories.Registry.Backend;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import ltl.equivalence.EquivalenceClassFactory;
+import omega_automaton.collections.valuationset.ValuationSetFactory;
 
-public class BddEquivalenceClassTest extends EquivalenceClassTest {
+@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
+public class Factories {
 
-  @Override
-  public EquivalenceClassFactory setUpFactory(Formula domain) {
-    return Registry.getFactories(domain, Backend.JDD).equivalenceClassFactory;
+  public final EquivalenceClassFactory equivalenceClassFactory;
+  public final ValuationSetFactory valuationSetFactory;
+
+  Factories(EquivalenceClassFactory factory1, ValuationSetFactory factory2) {
+    equivalenceClassFactory = factory1;
+    valuationSetFactory = factory2;
   }
 }

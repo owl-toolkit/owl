@@ -49,43 +49,46 @@ import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
 import omega_automaton.output.HOAPrintable;
 import owl.automaton.edge.Edge;
+import owl.factories.Factories;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance>
   implements HOAPrintable {
 
   protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
+  protected final Factories factories;
   protected final ValuationSetFactory valuationSetFactory;
   private final AtomicInteger atomicSize;
   protected Acc acceptance;
   protected Map<Integer, String> atomMapping;
   protected Set<S> initialStates;
 
-  protected Automaton(Acc acceptance, ValuationSetFactory factory) {
-    this(acceptance, factory, new AtomicInteger(0));
+  protected Automaton(Acc acceptance, Factories factories) {
+    this(acceptance, factories, new AtomicInteger(0));
   }
 
-  protected Automaton(Acc acceptance, ValuationSetFactory factory, AtomicInteger integer) {
-    this(new HashMap<>(), acceptance, factory, integer);
+  protected Automaton(Acc acceptance, Factories factories, AtomicInteger integer) {
+    this(new HashMap<>(), acceptance, factories, integer);
   }
 
   protected Automaton(Automaton<S, ?> automaton, Acc acceptance) {
-    this(automaton.valuationSetFactory, automaton.transitions, acceptance);
+    this(automaton.factories, automaton.transitions, acceptance);
   }
 
-  protected Automaton(ValuationSetFactory valuationSetFactory,
+  protected Automaton(Factories factories,
     Map<S, Map<Edge<S>, ValuationSet>> transitions, Acc acceptance) {
-    this(transitions, acceptance, valuationSetFactory, new AtomicInteger());
+    this(transitions, acceptance, factories, new AtomicInteger());
   }
 
   private Automaton(Map<S, Map<Edge<S>, ValuationSet>> transitions, Acc acceptance,
-    ValuationSetFactory valuationSetFactory, AtomicInteger atomicSize) {
+    Factories valuationSetFactory, AtomicInteger atomicSize) {
     this.transitions = transitions;
     this.acceptance = acceptance;
-    this.valuationSetFactory = valuationSetFactory;
+    this.valuationSetFactory = valuationSetFactory.valuationSetFactory;
+    this.factories = valuationSetFactory;
     this.atomicSize = atomicSize;
     this.atomMapping = new HashMap<>();
     this.initialStates = new HashSet<>();
-    IntStream.range(0, valuationSetFactory.getSize()).forEach(i -> atomMapping.put(i, "p" + i));
+    IntStream.range(0, this.valuationSetFactory.getSize()).forEach(i -> atomMapping.put(i, "p" + i));
   }
 
   /**
