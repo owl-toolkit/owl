@@ -44,8 +44,15 @@ public final class Disjunction extends PropositionalFormula {
     return create(Stream.of(formulaStream));
   }
 
+  public static Formula create(Iterable<? extends Formula> formulaStream) {
+    return create(formulaStream.iterator());
+  }
+
   public static Formula create(Stream<? extends Formula> formulaStream) {
-    Iterator<? extends Formula> iterator = formulaStream.iterator();
+    return create(formulaStream.iterator());
+  }
+
+  public static Formula create(Iterator<? extends Formula> iterator) {
     ImmutableSet.Builder<Formula> builder = ImmutableSet.builder();
 
     while (iterator.hasNext()) {
