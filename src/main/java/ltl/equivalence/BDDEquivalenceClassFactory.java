@@ -43,6 +43,7 @@ import ltl.UnaryModalOperator;
 import ltl.XOperator;
 import ltl.visitors.AlphabetVisitor;
 import ltl.visitors.DefaultIntVisitor;
+import ltl.visitors.DefaultVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.collections.Collections3;
 import owl.bdd.Bdd;
@@ -402,7 +403,9 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
         substitutionMap[i] = substitution.apply(reverseMapping[i]).accept(visitor);
       }
 
-      return new BddEquivalenceClass(null,
+      SubstVisitor visitor = new SubstVisitor(substitution);
+
+      return new BddEquivalenceClass(representative != null ? representative.accept(visitor) : null,
         factory.reference(factory.compose(bdd, substitutionMap)));
     }
 
@@ -495,6 +498,30 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
     @Override
     public int visit(BooleanConstant b) {
       return b.value ? factory.getTrueNode() : factory.getFalseNode();
+    }
+  }
+
+  private static class SubstVisitor extends DefaultVisitor<Formula> {
+
+    private final Function<? super Formula, ? extends Formula> subst;
+
+    public SubstVisitor(Function<? super Formula, ? extends Formula> subst) {
+      this.subst = subst;
+    }
+
+    @Override
+    protected Formula defaultAction(Formula formula) {
+      return subst.apply(formula);
+    }
+
+    @Override
+    public Formula visit(final Conjunction conjunction) {
+      return Conjunction.create(conjunction.children.stream().map(x -> x.accept(this)));
+    }
+
+    @Override
+    public Formula visit(final Disjunction disjunction) {
+      return Disjunction.create(disjunction.children.stream().map(x -> x.accept(this)));
     }
   }
 }
