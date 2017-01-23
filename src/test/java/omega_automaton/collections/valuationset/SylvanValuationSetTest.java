@@ -15,16 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ltl.equivalence;
+package omega_automaton.collections.valuationset;
 
-import ltl.Formula;
-import owl.factories.Registry;
-import owl.factories.Registry.Backend;
+import com.google.common.collect.BiMap;
 
-public class BddEquivalenceClassTest extends EquivalenceClassTest {
+public class SylvanValuationSetTest extends ValuationSetTest {
 
   @Override
-  public EquivalenceClassFactory setUpFactory(Formula domain) {
-    return Registry.getFactories(domain, Backend.JDD).equivalenceClassFactory;
+  public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
+    return new SylvanValuationSetFactory(aliases.size());
   }
 }

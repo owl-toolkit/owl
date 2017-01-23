@@ -20,6 +20,7 @@
     <exclude name="AvoidLiteralsInIfCondition" />
     <exclude name="AvoidFinalLocalVariable" />
     <exclude name="UseConcurrentHashMap" />
+    <exclude name="AvoidUsingNativeCode" />
   </rule>
   <rule ref="rulesets/java/junit.xml">
     <exclude name="JUnitTestContainsTooManyAsserts" />

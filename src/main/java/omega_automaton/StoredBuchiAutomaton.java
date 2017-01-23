@@ -42,13 +42,15 @@ import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.factories.Factories;
+import owl.factories.Registry;
 
 public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
 
   private Set<State> acceptingStates = new HashSet<>();
 
-  StoredBuchiAutomaton(ValuationSetFactory factory) {
-    super(new BuchiAcceptance(), factory);
+  StoredBuchiAutomaton(Factories factories) {
+    super(new BuchiAcceptance(), factories);
   }
 
   private State addState() {
@@ -220,7 +222,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         valuationSetFactory = new BDDValuationSetFactory(0);
       }
 
-      automaton = new StoredBuchiAutomaton(valuationSetFactory);
+      automaton = new StoredBuchiAutomaton(Registry.getFactories(valuationSetFactory.getSize()));
       ensureSpaceInMap(initialState);
       integerToState[initialState] = automaton.addState();
       automaton.setInitialState(integerToState[initialState]);

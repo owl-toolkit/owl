@@ -47,6 +47,11 @@ dependencies {
     // findbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:6.8.2'
 }
 
+// Add resources directory for native libraries.
+tasks.withType(Test) {
+    systemProperty "java.library.path", "src/main/resources/"
+}
+
 idea {
     module {
         sourceDirs += file('src/main/generated')
