@@ -33,16 +33,19 @@ import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import translations.Optimisation;
 import translations.ltl2ldba.AbstractAcceptingComponent;
+import translations.ltl2ldba.Evaluator;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.InitialComponentState;
+import translations.ltl2ldba.Selector;
 
-public class NondetInitialComponent<S extends AutomatonState<S>> extends InitialComponent<S, RecurringObligations2> {
+public class NondetInitialComponent<S extends AutomatonState<S>, T> extends InitialComponent<S, T> {
 
-    NondetInitialComponent(@Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, RecurringObligations2> acceptingComponent,
-                           Factories factories,
-                           EnumSet<Optimisation> optimisations,
-                           RecurringObligations2Selector recurringObligationsSelector,
-                           RecurringObligations2Evaluator recurringObligationsEvaluator) {
+    public NondetInitialComponent(@Nonnull
+        AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
+        Factories factories,
+        EnumSet<Optimisation> optimisations,
+        Selector<T> recurringObligationsSelector,
+        Evaluator<T> recurringObligationsEvaluator) {
         super(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
     }
 

@@ -36,6 +36,11 @@ test:ltl2ldba Büchi:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi %f >%O"
   <<: *ltlcross_template
 
+test:ltl2ldba Büchi Non-Det:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --nondeterministic-initial-component %f >%O"
+  <<: *ltlcross_template
+
 test:ltl2ldba Büchi Vanilla:
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
@@ -54,6 +59,11 @@ test:ltl2ldba Büchi Guess-F Vanilla:
 test:ltl2ldba generalised-Büchi:
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Non-Det:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --nondeterministic-initial-component %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Vanilla:

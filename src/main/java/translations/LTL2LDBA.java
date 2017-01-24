@@ -32,10 +32,12 @@ import java.util.function.Function;
 
 public class LTL2LDBA extends AbstractLTLCommandLineTool {
     enum Configuration {
-        GENERALISED, GUESS_F, // NONDET_INITIAL_COMPONENT
+        GENERALISED, GUESS_F, NONDET_INITIAL_COMPONENT;
     }
 
     private final Function<EnumSet<Optimisation>, Function<Formula, ? extends HOAPrintable>> constructor;
+
+    private final boolean nondet;
 
     private LTL2LDBA(EnumSet<Configuration> configuration) {
         if (configuration.contains(Configuration.GENERALISED)) {
@@ -51,10 +53,16 @@ public class LTL2LDBA extends AbstractLTLCommandLineTool {
                 constructor = Ltl2Ldba::new;
             }
         }
+
+        nondet = configuration.contains(Configuration.NONDET_INITIAL_COMPONENT);
     }
 
     @Override
     protected Function<Formula, ? extends HOAPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
+        if (nondet) {
+            optimisations.remove(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+        }
+
         return constructor.apply(optimisations);
     }
 
@@ -73,6 +81,10 @@ public class LTL2LDBA extends AbstractLTLCommandLineTool {
 
         if (args.remove("--guess-F")) {
             configuration.add(Configuration.GUESS_F);
+        }
+
+        if (args.remove("-n") || args.remove("--nondeterministic-initial-component")) {
+            configuration.add(Configuration.NONDET_INITIAL_COMPONENT);
         }
 
         new LTL2LDBA(configuration).execute(args);

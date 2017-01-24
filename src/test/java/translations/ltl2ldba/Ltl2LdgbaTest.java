@@ -17,8 +17,13 @@
 
 package translations.ltl2ldba;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import java.io.IOException;
+import java.util.EnumSet;
+import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumerException;
 import ltl.parser.Parser;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
@@ -26,12 +31,6 @@ import omega_automaton.output.HOAPrintable;
 import org.junit.Test;
 import translations.Optimisation;
 import translations.ldba.LimitDeterministicAutomaton;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.EnumSet;
-
-import static org.junit.Assert.assertEquals;
 
 public class Ltl2LdgbaTest {
 
@@ -243,7 +242,7 @@ public class Ltl2LdgbaTest {
     public void testEx() throws Exception {
         String ltl2 = "X G (a | F b)";
         testOutput(ltl2, 4);
-        testOutput(ltl2, EnumSet.noneOf(Optimisation.class), 10);
+        testOutput(ltl2, EnumSet.of(Optimisation.DETERMINISTIC_INITIAL_COMPONENT), 10);
     }
 
     @Test

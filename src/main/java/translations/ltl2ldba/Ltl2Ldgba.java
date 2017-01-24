@@ -25,6 +25,7 @@ import translations.Optimisation;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import translations.ltl2ldba.ng.NondetInitialComponent;
 
 public class Ltl2Ldgba extends Ltl2LdbaTemplate<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations, GeneralisedAcceptingComponent> {
 
@@ -46,7 +47,12 @@ public class Ltl2Ldgba extends Ltl2LdbaTemplate<GeneralisedAcceptingComponent.St
     protected InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations> createInitialComponent(Factories factories, GeneralisedAcceptingComponent acceptingComponent) {
         RecurringObligationsSelector recurringObligationsSelector = new RecurringObligationsSelector(optimisations, factories.equivalenceClassFactory);
         RecurringObligationsEvaluator recurringObligationsEvaluator = new RecurringObligationsEvaluator(factories.equivalenceClassFactory);
-        return new InitialComponent<>(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+
+        if (optimisations.contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT)) {
+            return new InitialComponent<>(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        } else {
+            return new NondetInitialComponent<>(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        }
     }
 
     @Override
