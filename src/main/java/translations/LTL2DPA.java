@@ -37,6 +37,8 @@ public class LTL2DPA extends AbstractLTLCommandLineTool {
 
     @Override
     protected Function<Formula, ? extends HOAPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
+        optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+
         if (parallel) {
             optimisations.add(Optimisation.PARALLEL);
         } else {
