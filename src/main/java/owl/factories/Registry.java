@@ -17,6 +17,7 @@
 
 package owl.factories;
 
+import java.io.IOException;
 import ltl.BooleanConstant;
 import ltl.Formula;
 import ltl.equivalence.BDDEquivalenceClassFactory;
@@ -31,19 +32,14 @@ public final class Registry {
     JDD, SYLVAN
   }
 
-  private static final Backend DEFAULT_BACKEND;
+  private static final Backend DEFAULT_BACKEND = Backend.JDD;
 
   static {
-    boolean loadSuccessful = false;
-
     try {
       NativeLibraryLoader.loadLibrary("sylvan");
-      loadSuccessful = true;
-    } catch (UnsatisfiedLinkError error) {
+    } catch (UnsatisfiedLinkError | IOException error) {
       System.err.print(error);
     }
-
-    DEFAULT_BACKEND = loadSuccessful ? Backend.SYLVAN : Backend.JDD;
   }
 
   private Registry() {

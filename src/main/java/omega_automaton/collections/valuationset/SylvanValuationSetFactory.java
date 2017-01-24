@@ -39,7 +39,7 @@ public class SylvanValuationSetFactory implements ValuationSetFactory {
     vars = new long[alphabet];
 
     for (int i = 0; i < alphabet; i++) {
-      vars[i] = JSylvan.ref(JSylvan.makeVar(i));
+      vars[i] = JSylvan.ithvar(i);
     }
   }
 
@@ -51,10 +51,10 @@ public class SylvanValuationSetFactory implements ValuationSetFactory {
 
       // Variables are saturated.
       if (set.get(i)) {
-        bdd = JSylvan.consume(JSylvan.makeAnd(bdd, vars[i]), bdd);
+        bdd = JSylvan.andConsuming(bdd, vars[i]);
       } else {
         // This is fine, since "not vars[i]" is a saturated variable.
-        bdd = JSylvan.consume(JSylvan.makeAnd(bdd, JSylvan.ref(JSylvan.makeNot(vars[i]))), bdd);
+        bdd = JSylvan.andConsuming(bdd, JSylvan.makeNot(vars[i]));
       }
     }
 
@@ -136,14 +136,13 @@ public class SylvanValuationSetFactory implements ValuationSetFactory {
 
     @Override
     public void add(@Nonnull BitSet set) {
-      long bddSet = createBDD(set);
-      bdd = JSylvan.consume(JSylvan.makeOr(bdd, bddSet), bdd, bddSet);
+      bdd = JSylvan.orConsuming(bdd, createBDD(set));
     }
 
     @Override
     public void addAll(@Nonnull ValuationSet other) {
       BDDValuationSet otherSet = (BDDValuationSet) other;
-      bdd = JSylvan.consume(JSylvan.makeOr(bdd, otherSet.bdd), bdd);
+      bdd = JSylvan.orConsuming(bdd, JSylvan.ref(otherSet.bdd));
     }
 
     @Override
@@ -198,14 +197,19 @@ public class SylvanValuationSetFactory implements ValuationSetFactory {
       return Long.hashCode(bdd);
     }
 
+    @Override
     public ValuationSet intersect(ValuationSet other) {
       ValuationSet thisClone = this.copy();
       thisClone.retainAll(other);
       return thisClone;
     }
 
+    @Override
     public boolean intersects(ValuationSet other) {
-      return !intersect(other).isEmpty();
+      long bdd = JSylvan.and(this.bdd, ((BDDValuationSet) other).bdd);
+      boolean result = bdd != JSylvan.getFalse();
+      JSylvan.deref(bdd);
+      return result;
     }
 
     @Override
@@ -227,14 +231,13 @@ public class SylvanValuationSetFactory implements ValuationSetFactory {
     public void removeAll(@Nonnull ValuationSet other) {
       BDDValuationSet otherSet = (BDDValuationSet) other;
       long notOtherIndex = JSylvan.ref(JSylvan.makeNot(otherSet.bdd));
-      bdd = JSylvan.consume(JSylvan.makeAnd(bdd, notOtherIndex), bdd);
-      JSylvan.deref(notOtherIndex);
+      bdd = JSylvan.andConsuming(bdd, notOtherIndex);
     }
 
     @Override
     public void retainAll(@Nonnull ValuationSet other) {
       BDDValuationSet otherSet = (BDDValuationSet) other;
-      bdd = JSylvan.consume(JSylvan.makeAnd(bdd, otherSet.bdd), bdd);
+      bdd = JSylvan.andConsuming(bdd, JSylvan.ref(otherSet.bdd));
     }
 
     public int size() {

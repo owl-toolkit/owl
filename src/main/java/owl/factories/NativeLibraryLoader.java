@@ -26,15 +26,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Locale;
 
-public final class NativeLibraryLoader {
+final class NativeLibraryLoader {
 
   private NativeLibraryLoader() {
   }
 
-  public enum OperatingSystem {
+  enum OperatingSystem {
     DARWIN, LINUX, UNKNOWN;
 
-    public static OperatingSystem getCurrentOS() {
+    static OperatingSystem getCurrentOS() {
       String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
       if (osName.contains("mac") || osName.contains("darwin")) {
@@ -49,11 +49,11 @@ public final class NativeLibraryLoader {
     }
   }
 
-  public static void loadLibrary(String libraryName) {
+  static void loadLibrary(String libraryName) throws IOException {
     try {
-      loadLibraryFromJar(libraryName);
-    } catch (IOException error) {
       System.loadLibrary(libraryName);
+    } catch (UnsatisfiedLinkError error) {
+      loadLibraryFromJar(libraryName);
     }
   }
 

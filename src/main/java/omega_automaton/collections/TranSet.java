@@ -20,10 +20,10 @@ package omega_automaton.collections;
 
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import omega_automaton.Automaton;
 import omega_automaton.collections.valuationset.ValuationSet;
@@ -39,7 +39,7 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
   public TranSet(ValuationSetFactory f) {
     factory = f;
     empty = f.createEmptyValuationSet();
-    backingMap = new HashMap<>();
+    backingMap = new ConcurrentHashMap<>();
   }
 
   public <T extends S> void addAll(T state, ValuationSet vs) {
@@ -47,14 +47,14 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
       return;
     }
 
-    ValuationSet valuationSet = backingMap.get(state);
+    backingMap.compute(state, (s, oldValue) -> {
+      if (oldValue == null) {
+        return vs.copy();
+      }
 
-    if (valuationSet == null) {
-      valuationSet = vs.copy();
-      backingMap.put(state, valuationSet);
-    } else {
-      valuationSet.addAll(vs);
-    }
+      oldValue.addAll(vs);
+      return oldValue;
+    });
   }
 
   public void addAll(TranSet<S> other) {
@@ -100,9 +100,11 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
     if (this == o) {
       return true;
     }
+
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
+
     TranSet<?> tranSet = (TranSet<?>) o;
     return Objects.equals(backingMap, tranSet.backingMap) &&
       Objects.equals(factory, tranSet.factory);
@@ -133,17 +135,14 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
   }
 
   public void removeAll(S state, ValuationSet vs) {
-    ValuationSet valuationSet = backingMap.get(state);
+    backingMap.compute(state, (x, oldvs) -> {
+      if (oldvs == null || vs == null) {
+        return null;
+      }
 
-    if (valuationSet == null || vs == null) {
-      return;
-    }
-
-    valuationSet.removeAll(vs);
-
-    if (valuationSet.isEmpty()) {
-      backingMap.remove(state);
-    }
+      oldvs.removeAll(vs);
+      return oldvs.isEmpty() ? null : oldvs;
+    });
   }
 
   public void removeAll(TranSet<S> other) {

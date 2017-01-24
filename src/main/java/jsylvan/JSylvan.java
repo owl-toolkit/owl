@@ -37,27 +37,16 @@ public class JSylvan {
    * higher granularity = use operations cache less often
    */
   static {
-    initLace((long) Math.max(2, Runtime.getRuntime().availableProcessors()), (long) 100000);
-    initSylvan(26, 24, 44);
+    // 0 -> detect number of cores automatically.
+    initLace(0L, 10000000L);
+    initSylvan(34, 32, 1);
     JSylvan.enableGC();
   }
 
   private JSylvan() {
   }
 
-  public static long consume(long x, long y) {
-    ref(x);
-    deref(y);
-    return x;
-  }
-
-  public static long consume(long x, long y, long z) {
-    ref(x);
-    deref(y);
-    deref(z);
-    return x;
-  }
-
+  // Does not have an effect on variable nodes and constants.
   public static native void deref(long bdd);
 
   public static native void disableGC();
@@ -107,10 +96,12 @@ public class JSylvan {
   private static native void initSylvan(int tablesize, int cachesize, int granularity);
 
   public static boolean isVariableOrNegated(long bdd) {
-    throw new UnsupportedOperationException();
+    return (getThen(bdd) == getTrue() && getElse(bdd) == getFalse()) || (getThen(bdd) == getFalse() && getElse(bdd) == getTrue());
   }
 
-  public static native long makeAnd(long a, long b);
+  public static native long and(long a, long b);
+
+  public static native long andConsuming(long a, long b);
 
   public static native long makeConstrain(long a, long b);
 
@@ -120,11 +111,13 @@ public class JSylvan {
     long exists = getTrue();
 
     for (int i = variables.nextSetBit(0); i >= 0; i = variables.nextSetBit(i + 1)) {
-      long var = ref(makeVar(i));
-      exists = consume(makeAnd(exists, var), exists, var);
+      exists = andConsuming(exists, ithvar(i));
     }
 
-    return consume(makeExists(a, exists), exists);
+    long x = makeExists(a, exists);
+    ref(x);
+    deref(exists);
+    return x;
   }
 
   public static native long makeExists(long a, long variables);
@@ -137,7 +130,9 @@ public class JSylvan {
 
   public static native long makeNotEquals(long a, long b);
 
-  public static native long makeOr(long a, long b);
+  public static native long or(long a, long b);
+
+  public static native long orConsuming(long a, long b);
 
   public static native long makeRestrict(long a, long b);
 
@@ -146,7 +141,9 @@ public class JSylvan {
    */
   public static native long makeSupport(long bdd);
 
-  public static native long makeVar(int a);
+  public static native long ithvar(int variable);
+
+  public static native long nithvar(int variable);
 
   /**
    * Calculate the number of nodes in the BDD
@@ -155,7 +152,7 @@ public class JSylvan {
 
   public static native void print(long bdd);
 
-  public static native long ref(long bdd); // returns same bdd
+  public static native long ref(long bdd);
 
   public static BitSet support(long bdd) {
     BitSet bitSet = new BitSet();
@@ -178,6 +175,6 @@ public class JSylvan {
   }
 
   public static boolean implies(long x, long y) {
-    return y == JSylvan.makeOr(x, y);
+    return JSylvan.makeImplies(x, y) == getTrue();
   }
 }

@@ -33,6 +33,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import jsylvan.JSylvan;
 import ltl.BinaryModalOperator;
 import ltl.BooleanConstant;
 import ltl.Conjunction;
@@ -40,11 +41,9 @@ import ltl.Disjunction;
 import ltl.Formula;
 import ltl.Literal;
 import ltl.UnaryModalOperator;
-import ltl.visitors.AlphabetVisitor;
 import ltl.visitors.DefaultVisitor;
 import ltl.visitors.predicates.XFragmentPredicate;
 import omega_automaton.collections.Collections3;
-import jsylvan.JSylvan;
 
 public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
 
@@ -56,10 +55,6 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
   private Map<Integer, String> atomMapping;
   private Formula[] reverseMapping;
   private long[] vars;
-
-  public SylvanEquivalenceClassFactory(Formula formula) {
-    this(formula, AlphabetVisitor.extractAlphabet(formula), null);
-  }
 
   public SylvanEquivalenceClassFactory(Formula formula, int alphabetSize, Map<Integer, String> atomMapping) {
     Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
@@ -76,7 +71,7 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
 
     for (i = 0; i < alphabetSize; i++) {
       Literal literal = new Literal(i);
-      vars[i] = JSylvan.ref(JSylvan.makeVar(i));
+      vars[i] = JSylvan.ithvar(i);
 
       // In order to "distinguish" -0 and +0 we shift the variables by 1 -> -1, 1.
       mapping.put(literal, i + 1);
@@ -136,24 +131,24 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
       resize(value);
     }
 
-    // We don't need to increment the reference-counter, since all variables are saturated.
-    return value > 0 ? JSylvan.ref(vars[value - 1]) : JSylvan.ref(JSylvan.makeNot(vars[-(value + 1)]));
+    // We don't need to increment the reference-counter, since all variables are protected.
+    return value > 0 ? vars[value - 1] : JSylvan.makeNot(vars[-(value + 1)]);
   }
 
-  private void register(Formula proposition, int i) {
+  private synchronized void register(Formula proposition, int i) {
     assert !(proposition instanceof Literal);
 
-    vars[i] = JSylvan.ref(JSylvan.makeVar(i));
+    vars[i] = JSylvan.ithvar(i);
     mapping.put(proposition, i + 1);
     reverseMapping[i] = proposition;
 
     if (proposition.accept(XFragmentPredicate.INSTANCE)) {
-      JSylvan.ref(JSylvan.makeNot(JSylvan.makeVar(i)));
+      JSylvan.nithvar(i);
       mapping.put(proposition.not(), -(i + 1));
     }
   }
 
-  private int register(Deque<Formula> propositions, int i) {
+  private synchronized int register(Deque<Formula> propositions, int i) {
     for (Formula proposition : propositions) {
       if (mapping.containsKey(proposition)) {
         continue;
@@ -204,7 +199,7 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
     public EquivalenceClass and(EquivalenceClass eq) {
       BddEquivalenceClass that = (BddEquivalenceClass) eq;
       return createEquivalenceClass(Conjunction.create(representative, that.representative),
-        JSylvan.ref(JSylvan.makeAnd(bdd, that.bdd)));
+        JSylvan.and(bdd, that.bdd));
     }
 
     @Override
@@ -306,7 +301,7 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
     public EquivalenceClass or(EquivalenceClass eq) {
       BddEquivalenceClass that = (BddEquivalenceClass) eq;
       return createEquivalenceClass(Disjunction.create(representative, that.representative),
-        JSylvan.ref(JSylvan.makeOr(bdd, that.bdd)));
+        JSylvan.or(bdd, that.bdd));
     }
 
     @Override
@@ -420,8 +415,7 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
       long x = JSylvan.getTrue();
 
       for (Formula child : c.children) {
-        long y = child.accept(this);
-        x = JSylvan.consume(JSylvan.makeAnd(x, y), x, y);
+        x = JSylvan.andConsuming(x, child.accept(this));
       }
 
       return x;
@@ -432,8 +426,7 @@ public class SylvanEquivalenceClassFactory implements EquivalenceClassFactory {
       long x = JSylvan.getFalse();
 
       for (Formula child : d.children) {
-        long y = child.accept(this);
-        x = JSylvan.consume(JSylvan.makeOr(x, y), x, y);
+        x = JSylvan.orConsuming(x, child.accept(this));
       }
 
       return x;

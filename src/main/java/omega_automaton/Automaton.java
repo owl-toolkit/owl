@@ -188,7 +188,11 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   }
 
   public ValuationSetFactory getFactory() {
-    return valuationSetFactory;
+    return factories.valuationSetFactory;
+  }
+
+  public Factories getFactories() {
+    return factories;
   }
 
   /**
@@ -379,6 +383,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
   public void setAtomMapping(Map<Integer, String> mapping) {
     atomMapping = new HashMap<>(mapping);
+    factories.equivalenceClassFactory.setAtomMapping(atomMapping);
   }
 
   /**
