@@ -17,33 +17,33 @@
 
 package translations.ltl2ldba.ng;
 
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.Collections3;
-import omega_automaton.collections.valuationset.ValuationSet;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import translations.Optimisation;
-import translations.ltl2ldba.AbstractAcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.InitialComponentState;
-
-import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
+import ltl.equivalence.EquivalenceClass;
+import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.collections.Collections3;
+import omega_automaton.collections.valuationset.ValuationSet;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
+import owl.factories.Factories;
+import translations.Optimisation;
+import translations.ltl2ldba.AbstractAcceptingComponent;
+import translations.ltl2ldba.InitialComponent;
+import translations.ltl2ldba.InitialComponentState;
 
 public class NondetInitialComponent<S extends AutomatonState<S>> extends InitialComponent<S, RecurringObligations2> {
 
     NondetInitialComponent(@Nonnull AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, RecurringObligations2> acceptingComponent,
-                           ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations,
+                           Factories factories,
+                           EnumSet<Optimisation> optimisations,
                            RecurringObligations2Selector recurringObligationsSelector,
                            RecurringObligations2Evaluator recurringObligationsEvaluator) {
-        super(acceptingComponent, valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        super(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
     }
 
     @Override

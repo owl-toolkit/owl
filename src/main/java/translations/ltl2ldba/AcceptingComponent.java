@@ -17,37 +17,39 @@
 
 package translations.ltl2ldba;
 
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.visitors.predicates.XFragmentPredicate;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import translations.Optimisation;
-
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Objects;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import ltl.ImmutableObject;
+import ltl.equivalence.EquivalenceClass;
+import ltl.visitors.predicates.XFragmentPredicate;
+import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.BuchiAcceptance;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
+import owl.factories.Factories;
+import translations.Optimisation;
 
 public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance, RecurringObligations> {
 
-    AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
-        super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
+    AcceptingComponent(Factories factories, EnumSet<Optimisation> optimisations) {
+        super(new BuchiAcceptance(), optimisations, factories);
     }
 
     @Nonnull
     @Override
     public State generateRejectingTrap() {
-        EquivalenceClass falseClass = equivalenceClassFactory.getFalse();
-        return new State(0, falseClass, falseClass, EMPTY, new RecurringObligations(equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
+        EquivalenceClass falseClass = factories.equivalenceClassFactory.getFalse();
+        return new State(0, falseClass, falseClass, EMPTY, new RecurringObligations(factories.equivalenceClassFactory.getTrue(), Collections.emptyList(), Collections.emptyList()));
     }
 
     private EquivalenceClass and(EquivalenceClass[] classes) {
-        EquivalenceClass conjunction = equivalenceClassFactory.getTrue();
+        EquivalenceClass conjunction = factories.equivalenceClassFactory.getTrue();
 
         for (EquivalenceClass clazz : classes) {
             conjunction = conjunction.andWith(clazz);
@@ -67,7 +69,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
 
         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
             safety = current.andWith(safety);
-            current = equivalenceClassFactory.getTrue();
+            current = factories.equivalenceClassFactory.getTrue();
         }
 
         EquivalenceClass environment = safety.and(and(obligations.liveness));
@@ -241,7 +243,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
                 if (obtainNewGoal && i == j) {
                     currentSuccessor = nextSuccessor.and(factory.getInitial(obligations.obligations[i], assumptions));
                     assumptions = assumptions.and(currentSuccessor);
-                    nextSuccessors[i] = equivalenceClassFactory.getTrue();
+                    nextSuccessors[i] = factories.equivalenceClassFactory.getTrue();
                 } else {
                     nextSuccessors[i] = nextSuccessor.and(factory.getInitial(obligations.obligations[i], assumptions));
                 }
@@ -293,7 +295,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         }
 
         public EquivalenceClass getCurrent() {
-            return index < 0 ? equivalenceClassFactory.getTrue() : current;
+            return index < 0 ? factories.equivalenceClassFactory.getTrue() : current;
         }
 
         private EquivalenceClass label = null;

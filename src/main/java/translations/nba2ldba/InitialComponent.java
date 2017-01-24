@@ -28,7 +28,7 @@ public class InitialComponent extends AbstractInitialComponent<StoredBuchiAutoma
     private final AcceptingComponent acceptingComponent;
 
     InitialComponent(StoredBuchiAutomaton nba, AcceptingComponent acceptingComponent) {
-        super(nba.getFactory());
+        super(nba.getFactories());
         this.nba = nba;
         this.transitions.putAll(nba.getTransitions());
         this.acceptingComponent = acceptingComponent;

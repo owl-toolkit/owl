@@ -18,19 +18,18 @@
 package translations.ltl2dpa;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.atomic.AtomicInteger;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.ParityAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import owl.factories.Factories;
 
 public abstract class ParityAutomaton<S extends AutomatonState<S>> extends Automaton<S, ParityAcceptance> {
 
     // fb-contrib does not honour the restrictions made by the type parameter.
     @SuppressFBWarnings("ocp")
-    ParityAutomaton(ParityAcceptance acceptance, ValuationSetFactory factory, AtomicInteger integer) {
-        super(acceptance, factory, integer);
+    ParityAutomaton(ParityAcceptance acceptance, Factories factories, AtomicInteger integer) {
+        super(acceptance, factories, integer);
     }
 
     @SuppressFBWarnings("ocp")

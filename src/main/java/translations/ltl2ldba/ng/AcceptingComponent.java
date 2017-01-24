@@ -17,28 +17,26 @@
 
 package translations.ltl2ldba.ng;
 
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import translations.Optimisation;
-import translations.ltl2ldba.AbstractAcceptingComponent;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Objects;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import ltl.ImmutableObject;
+import ltl.equivalence.EquivalenceClass;
+import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.BuchiAcceptance;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
+import owl.factories.Factories;
+import translations.Optimisation;
+import translations.ltl2ldba.AbstractAcceptingComponent;
 
 public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance, RecurringObligations2> {
 
-    AcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
-        super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
+    AcceptingComponent(Factories factories, EnumSet<Optimisation> optimisations) {
+        super(new BuchiAcceptance(), optimisations, factories);
     }
 
     @Override
@@ -49,7 +47,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
         if (obligations.liveness.length > 0) {
             liveness = factory.getInitial(obligations.liveness[0]);
         } else {
-            liveness = equivalenceClassFactory.getTrue();
+            liveness = factories.equivalenceClassFactory.getTrue();
         }
 
         return new State(0, factory.getInitial(safety, liveness), liveness, obligations);

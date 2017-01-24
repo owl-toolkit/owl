@@ -20,6 +20,7 @@ package translations.ltl2ldba;
 import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.acceptance.BuchiAcceptance;
+import owl.factories.Factories;
 import translations.Optimisation;
 
 import java.util.Collections;
@@ -33,7 +34,7 @@ public class Ltl2Ldba extends Ltl2LdbaTemplate<AcceptingComponent.State, BuchiAc
 
     @Override
     protected AcceptingComponent createAcceptingComponent(Factories factories) {
-        return new AcceptingComponent(factories.equivalenceClassFactory, factories.valuationSetFactory, optimisations);
+        return new AcceptingComponent(factories, optimisations);
     }
 
     @Override
@@ -45,7 +46,7 @@ public class Ltl2Ldba extends Ltl2LdbaTemplate<AcceptingComponent.State, BuchiAc
     protected InitialComponent<AcceptingComponent.State, RecurringObligations> createInitialComponent(Factories factories, AcceptingComponent acceptingComponent) {
         RecurringObligationsSelector recurringObligationsSelector = new RecurringObligationsSelector(optimisations, factories.equivalenceClassFactory);
         RecurringObligationsEvaluator recurringObligationsEvaluator = new RecurringObligationsEvaluator(factories.equivalenceClassFactory);
-        return new InitialComponent<>(acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        return new InitialComponent<>(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
     }
 
     @Override

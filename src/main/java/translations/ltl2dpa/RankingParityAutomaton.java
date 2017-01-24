@@ -19,6 +19,22 @@ package translations.ltl2dpa;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import ltl.Formula;
 import ltl.ImmutableObject;
 import ltl.equivalence.EquivalenceClass;
@@ -26,7 +42,6 @@ import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.BuchiAcceptance;
 import omega_automaton.acceptance.ParityAcceptance;
 import omega_automaton.collections.Trie;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import translations.Optimisation;
@@ -35,12 +50,6 @@ import translations.ltl2ldba.AcceptingComponent;
 import translations.ltl2ldba.InitialComponent;
 import translations.ltl2ldba.InitialComponentState;
 import translations.ltl2ldba.RecurringObligations;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
 
@@ -51,8 +60,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
     private final Map<RecurringObligations, Integer> volatileComponents;
     private int colors;
 
-    RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba, ValuationSetFactory factory, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
-        super(new ParityAcceptance(2), factory, integer);
+    RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba, AtomicInteger integer, EnumSet<Optimisation> optimisations) {
+        super(new ParityAcceptance(2), ldba.getAcceptingComponent().getFactories(), integer);
 
         acceptingComponent = ldba.getAcceptingComponent();
         initialComponent = ldba.getInitialComponent();
@@ -267,7 +276,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
             Map<RecurringObligations, EquivalenceClass> existingClasses = new HashMap<>();
 
             {
-                EquivalenceClass falseClass = acceptingComponent.getEquivalenceClassFactory().getFalse();
+                EquivalenceClass falseClass = factories.equivalenceClassFactory.getFalse();
 
                 for (AcceptingComponent.State jumpTarget : initialComponent.epsilonJumps.get(successor)) {
                     existingClasses.put(jumpTarget.getObligations(), falseClass);
@@ -309,7 +318,7 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
                 if (edge.inSet(0)) {
                     edgeColor = Math.min(2 * index + 1, edgeColor);
-                    existingClasses.replace(obligations, acceptingComponent.getEquivalenceClassFactory().getTrue());
+                    existingClasses.replace(obligations, factories.equivalenceClassFactory.getTrue());
                 }
             }
 

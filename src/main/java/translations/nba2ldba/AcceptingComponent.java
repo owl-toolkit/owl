@@ -17,7 +17,15 @@
 
 package translations.nba2ldba;
 
+import static java.util.Collections.singleton;
+
 import com.google.common.collect.ImmutableSet;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.StoredBuchiAutomaton;
@@ -25,18 +33,12 @@ import omega_automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
-
-import static java.util.Collections.singleton;
-
 public class AcceptingComponent extends Automaton<AcceptingComponent.State, BuchiAcceptance> {
 
     private final StoredBuchiAutomaton nba;
 
     AcceptingComponent(StoredBuchiAutomaton nba) {
-        super(new BuchiAcceptance(), nba.getFactory());
+        super(new BuchiAcceptance(), nba.getFactories());
         this.nba = nba;
     }
 

@@ -18,24 +18,20 @@
 package translations.ltl2ldba;
 
 import com.google.common.collect.Iterables;
-import ltl.Formula;
-import ltl.equivalence.BDDEquivalenceClassFactory;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.simplifier.Simplifier;
-import ltl.visitors.AlphabetVisitor;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.Collections3;
-import omega_automaton.collections.valuationset.BDDValuationSetFactory;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import translations.Optimisation;
-import translations.ldba.LimitDeterministicAutomaton;
-
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import ltl.Formula;
+import ltl.equivalence.EquivalenceClass;
+import ltl.simplifier.Simplifier;
+import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import omega_automaton.collections.Collections3;
+import owl.factories.Factories;
+import owl.factories.Registry;
+import translations.Optimisation;
+import translations.ldba.LimitDeterministicAutomaton;
 
 public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends GeneralisedBuchiAcceptance, C, A extends AbstractAcceptingComponent<S, B, C>> implements Function<Formula, LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A>> {
 
@@ -48,8 +44,7 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
     @Override
     public LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A> apply(Formula formula) {
         formula = preprocess(formula);
-
-        Factories factories = new Factories(new BDDEquivalenceClassFactory(formula), new BDDValuationSetFactory(AlphabetVisitor.extractAlphabet(formula)));
+        Factories factories = Registry.getFactories(formula);
 
         Evaluator<C> evaluator = createEvaluator(factories);
         Selector<C> selector = createSelector(factories);
@@ -95,14 +90,4 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
 
     protected abstract Selector<C> createSelector(Factories factories);
 
-    public static class Factories {
-
-        public final EquivalenceClassFactory equivalenceClassFactory;
-        public final ValuationSetFactory valuationSetFactory;
-
-        private Factories(EquivalenceClassFactory equivalenceClassFactory, ValuationSetFactory valuationSetFactory) {
-            this.equivalenceClassFactory = equivalenceClassFactory;
-            this.valuationSetFactory = valuationSetFactory;
-        }
-    }
 }

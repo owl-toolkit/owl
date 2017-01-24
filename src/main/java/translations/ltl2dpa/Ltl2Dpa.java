@@ -116,7 +116,7 @@ public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
             return new WrappedParityAutomaton(ldba.getAcceptingComponent());
         }
 
-        RankingParityAutomaton parity = new RankingParityAutomaton(ldba, ldba.getAcceptingComponent().getFactory(), size, optimisations);
+        RankingParityAutomaton parity = new RankingParityAutomaton(ldba, size, optimisations);
         parity.generate();
 
         return parity;

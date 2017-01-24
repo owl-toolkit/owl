@@ -21,24 +21,24 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.NoneAcceptance;
 import omega_automaton.collections.valuationset.ValuationSet;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import owl.factories.Factories;
 
 public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T extends AutomatonState<T>>  extends Automaton<S, NoneAcceptance> {
 
     public final SetMultimap<S, T> epsilonJumps;
     final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
-    protected AbstractInitialComponent(ValuationSetFactory factory) {
-        super(new NoneAcceptance(), factory);
-
+    protected AbstractInitialComponent(Factories factories) {
+        super(new NoneAcceptance(), factories);
         epsilonJumps = HashMultimap.create();
         valuationSetJumps = HashBasedTable.create();
     }

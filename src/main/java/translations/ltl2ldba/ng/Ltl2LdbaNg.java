@@ -21,6 +21,7 @@ import ltl.Formula;
 import ltl.equivalence.EquivalenceClass;
 import ltl.visitors.RestrictToFGXU;
 import omega_automaton.acceptance.BuchiAcceptance;
+import owl.factories.Factories;
 import translations.Optimisation;
 import translations.ltl2ldba.*;
 
@@ -34,7 +35,7 @@ public class Ltl2LdbaNg extends Ltl2LdbaTemplate<AcceptingComponent.State, Buchi
 
     @Override
     protected AcceptingComponent createAcceptingComponent(Factories factories) {
-        return new AcceptingComponent(factories.equivalenceClassFactory, factories.valuationSetFactory, optimisations);
+        return new AcceptingComponent(factories, optimisations);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class Ltl2LdbaNg extends Ltl2LdbaTemplate<AcceptingComponent.State, Buchi
     protected InitialComponent<AcceptingComponent.State, RecurringObligations2> createInitialComponent(Factories factories, AcceptingComponent acceptingComponent) {
         RecurringObligations2Selector recurringObligationsSelector = new RecurringObligations2Selector(optimisations, factories.equivalenceClassFactory);
         RecurringObligations2Evaluator recurringObligationsEvaluator = new RecurringObligations2Evaluator(factories.equivalenceClassFactory);
-        return new NondetInitialComponent<>(acceptingComponent, factories.valuationSetFactory, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
+        return new NondetInitialComponent<>(acceptingComponent, factories, optimisations, recurringObligationsSelector, recurringObligationsEvaluator);
     }
 
     @Override

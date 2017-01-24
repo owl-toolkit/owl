@@ -17,26 +17,27 @@
 
 package translations.ltl2ldba.ng;
 
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import translations.Optimisation;
-import translations.ltl2ldba.AbstractAcceptingComponent;
-
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.Objects;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import ltl.ImmutableObject;
+import ltl.equivalence.EquivalenceClass;
+import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
+import owl.factories.Factories;
+import translations.Optimisation;
+import translations.ltl2ldba.AbstractAcceptingComponent;
 
 public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations2> {
 
-    GeneralisedAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
-        super(new GeneralisedBuchiAcceptance(1), optimisations, valuationSetFactory, factory);
+    GeneralisedAcceptingComponent(Factories factories, EnumSet<Optimisation> optimisations) {
+        super(new GeneralisedBuchiAcceptance(1), optimisations, factories);
     }
 
     @Override

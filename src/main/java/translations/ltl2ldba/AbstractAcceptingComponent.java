@@ -17,22 +17,23 @@
 
 package translations.ltl2ldba;
 
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.Nullable;
 import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
 import omega_automaton.Automaton;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.OmegaAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.factories.Factories;
 import translations.Optimisation;
-
-import javax.annotation.Nullable;
-import java.util.*;
 
 public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends OmegaAcceptance, U> extends Automaton<S, T> {
 
     protected final BitSet ACCEPT;
     protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
-    protected final EquivalenceClassFactory equivalenceClassFactory;
     private Set<U> components = new HashSet<>();
     protected EquivalenceClassStateFactory factory;
 
@@ -44,16 +45,11 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
         return Collections.unmodifiableSet(components);
     }
 
-    protected AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, ValuationSetFactory valuationSetFactory, EquivalenceClassFactory factory) {
-        super(acc, valuationSetFactory);
-        equivalenceClassFactory = factory;
-        this.factory = new EquivalenceClassStateFactory(factory, optimisations);
+    protected AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations, Factories factories) {
+        super(acc, factories);
+        this.factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory, optimisations);
         ACCEPT = new BitSet();
         ACCEPT.set(0, 1);
-    }
-
-    public EquivalenceClassFactory getEquivalenceClassFactory() {
-        return equivalenceClassFactory;
     }
 
     @Nullable
@@ -73,10 +69,4 @@ public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T 
     }
 
     protected abstract S createState(EquivalenceClass remainder, U obligations);
-
-    @Override
-    public void setAtomMapping(Map<Integer, String> mapping) {
-        super.setAtomMapping(mapping);
-        equivalenceClassFactory.setAtomMapping(mapping);
-    }
 }

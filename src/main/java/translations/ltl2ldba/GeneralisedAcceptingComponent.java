@@ -17,29 +17,27 @@
 
 package translations.ltl2ldba;
 
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.visitors.predicates.XFragmentPredicate;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import translations.Optimisation;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import ltl.ImmutableObject;
+import ltl.equivalence.EquivalenceClass;
+import ltl.visitors.predicates.XFragmentPredicate;
+import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.BuchiAcceptance;
+import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
+import owl.factories.Factories;
+import translations.Optimisation;
 
 public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations> {
 
-    GeneralisedAcceptingComponent(EquivalenceClassFactory factory, ValuationSetFactory valuationSetFactory, EnumSet<Optimisation> optimisations) {
-        super(new BuchiAcceptance(), optimisations, valuationSetFactory, factory);
+    GeneralisedAcceptingComponent(Factories factories, EnumSet<Optimisation> optimisations) {
+        super(new BuchiAcceptance(), optimisations, factories);
     }
 
     @Override
@@ -57,7 +55,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
 
         if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
             safety = remainder.andWith(safety);
-            remainder = equivalenceClassFactory.getTrue();
+            remainder = factories.equivalenceClassFactory.getTrue();
         }
 
         if (length == 0) {
@@ -83,7 +81,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
         }
 
         EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.length];
-        Arrays.fill(next, equivalenceClassFactory.getTrue());
+        Arrays.fill(next, factories.equivalenceClassFactory.getTrue());
 
         return new State(obligations, safety, currentBuilder, next);
     }
@@ -163,7 +161,7 @@ public class GeneralisedAcceptingComponent extends AbstractAcceptingComponent<Ge
                 if (currentSuccessor.isTrue()) {
                     bs.set(i);
                     currentSuccessors[i] = nextSuccessor;
-                    nextSuccessors[i] = equivalenceClassFactory.getTrue();
+                    nextSuccessors[i] = factories.equivalenceClassFactory.getTrue();
                 } else {
                     currentSuccessors[i] = currentSuccessor;
                     nextSuccessors[i] = nextSuccessor;

@@ -17,17 +17,16 @@
 
 package translations.ltl2ldba;
 
+import java.util.BitSet;
+import java.util.EnumSet;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import ltl.equivalence.EquivalenceClass;
 import omega_automaton.AutomatonState;
 import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
+import owl.factories.Factories;
 import translations.Optimisation;
 import translations.ldba.AbstractInitialComponent;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.BitSet;
-import java.util.EnumSet;
 
 public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractInitialComponent<InitialComponentState, S> {
 
@@ -37,17 +36,17 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
     protected final EquivalenceClassStateFactory factory;
 
     protected InitialComponent(AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
-                               ValuationSetFactory valuationSetFactory,
+                               Factories factories,
                                EnumSet<Optimisation> optimisations,
                                Selector<T> selector,
                                Evaluator<T> evaluator) {
-        super(valuationSetFactory);
+        super(factories);
 
         this.acceptingComponent = acceptingComponent;
         this.selector = selector;
         this.evaluator = evaluator;
 
-        factory = new EquivalenceClassStateFactory(acceptingComponent.getEquivalenceClassFactory(), optimisations);
+        factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory, optimisations);
     }
 
     @Nullable
