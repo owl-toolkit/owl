@@ -21,7 +21,7 @@ apply plugin: 'application'
 apply plugin: 'pmd'
 
 project.group = 'de.tum.in'
-project.version = '0.9.5'
+project.version = '1.0.0'
 
 mainClassName = 'enteEnteEnteEnteEnteGANS'
 
