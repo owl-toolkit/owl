@@ -18,6 +18,7 @@
 package owl.factories;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 import ltl.BooleanConstant;
 import ltl.Formula;
 import ltl.equivalence.BDDEquivalenceClassFactory;
@@ -38,7 +39,8 @@ public final class Registry {
     try {
       NativeLibraryLoader.loadLibrary("sylvan");
     } catch (UnsatisfiedLinkError | IOException error) {
-      System.err.print(error);
+      Logger.getGlobal().info("Failed to load the jSylvan native BDD library.\n"
+        + "The following exception occurred: " + error.toString());
     }
   }
 
