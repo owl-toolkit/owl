@@ -5,9 +5,120 @@ before_script:
 
 build:
   script:
-    - ./gradlew --no-daemon build  
+    - ./gradlew --no-daemon build
   artifacts:
     paths:
     - build/reports/
     when: on_failure
     expire_in: 1 week
+
+.ltlcross: &ltlcross_template
+  script: 
+    - JAVA_OPTS="-enableassertions"
+    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
+    - ./gradlew --no-daemon distTar
+    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf | ltlcross --stop-on-error --grind=debug.ltl --timeout=300 "$SPOT_TOOL" "$LTL_TOOL"
+  artifacts:
+    paths:
+    - debug.ltl
+    when: on_failure
+    expire_in: 1 week
+
+# LTL to LDBA translations
+
+test:ltl2ldba Büchi:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba Büchi Non-Det:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --nondeterministic-initial-component %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba Büchi Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba Büchi Guess-F:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --guess-F %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba Büchi Guess-F Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Non-Det:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --nondeterministic-initial-component %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Guess-F:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F %f >%O"
+  <<: *ltlcross_template
+
+test:ltl2ldba generalised-Büchi Guess-F Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+  <<: *ltlcross_template
+
+# NBA to LDBA translations
+
+test:nba2ldba Vanilla:
+  variables:
+    LTL_TOOL: "{nba2ldba} ltl2tgba --ba -H -f %f | build/bin/nba2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS >%O"
+  <<: *ltlcross_template
+
+# LTL to DPA translations
+
+test:ltl2dpa:
+  variables:
+    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa %f >%O"
+  <<: *ltlcross_template
+
+# Copy & Modify - Spot cannot handle parity automata without optimisation.
+test:ltl2dpa Vanilla:
+  variables:
+    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --optimisations=none %f >%O"
+  script: 
+    - JAVA_OPTS="-enableassertions"
+    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
+    - ./gradlew --no-daemon distTar
+    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+  artifacts:
+    paths:
+    - debug.ltl
+    when: on_failure
+    expire_in: 1 week
+
+test:ltl2dpa Parallel:
+  variables:
+    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --parallel %f >%O"
+  <<: *ltlcross_template
+
+# LTL to D*A translations
+
+test:ltl2det-parallel:
+  variables:
+    LTL_TOOL: "{ltl2da} build/bin/ltl2da --parallel %f >%O"
+  <<: *ltlcross_template

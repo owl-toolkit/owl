@@ -1,0 +1,10 @@
+// These formulas produces an error with ltlcross. However passing the automaton through autfilt -B magically solves the problem. Manually inspection suggests that something is wrong with Spot complementation procedure.
+
+G((F((f) & (F(a)))) W (d))
+((G(!(a))) | ((f) & (G((d) M (X(!(e)))))) | ((!(f)) & (F((!(d)) W (X(e)))))) W (F((d) & (F(a)) & ((a) W ((f) | (X(a))))))
+
+// ltlcross cannot handle this...
+G(!a | ((!b | X(G!c | (!d U ((!c & d) | (d & Fe))))) U (d | G(!b | X(G!c | (!d U ((!c & d) | (c & Fe))))))))
+
+(((f) W (a)) & (((X(G(((a) R (b)) M (b)))) & (X(a))) | ((X(F(((!(a)) U (!(b))) W (!(b))))) & (X(!(a)))))) | (((!(f)) M (!(a))) & (((X(G(((a) R (b)) M (b)))) & (X(!(a)))) | ((X(a)) & (X(F(((!(a)) U (!(b))) W (!(b))))))))
+((X(G(((a) R (b)) M (b)))) & (X(a))) | ((X(F(((!(a)) U (!(b))) W (!(b))))) & (X(!(a))))
