@@ -4,6 +4,8 @@ before_script:
   - chmod +x gradlew
 
 build:
+  stage:
+    build
   script:
     - ./gradlew --no-daemon build
   artifacts:
@@ -32,52 +34,52 @@ build:
 
 test:ltl2ldba Büchi:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Non-Det:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --nondeterministic-initial-component %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --nondeterministic-initial-component %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Vanilla:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Guess-F:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --guess-F %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --guess-F %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Guess-F Vanilla:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Non-Det:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --nondeterministic-initial-component %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Vanilla:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Guess-F:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --guess-F %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Guess-F Vanilla:
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Büchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 # NBA to LDBA translations
