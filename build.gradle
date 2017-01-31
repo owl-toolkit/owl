@@ -80,7 +80,7 @@ findbugs {
 tasks.withType(FindBugs) {
     // Findbugs doesn't respect include for some reason ...
     classes = classes.filter {
-        it.path.contains('/owl/')
+        it.path.contains('/main/owl/') || it.path.contains('/test/owl/')
     }
 
     reports {
