@@ -73,7 +73,7 @@ public class BDDEquivalenceClassFactory implements EquivalenceClassFactory {
 
     mapping = new Object2IntOpenHashMap<>();
     int size = alphabetSize + queuedFormulas.size();
-    factory = BddFactory.buildBdd(64 * (size + 1));
+    factory = BddFactory.buildBdd(1024 * (size + 1));
     visitor = new BddVisitor();
 
     vars = new int[size];

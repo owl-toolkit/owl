@@ -42,7 +42,7 @@ final class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.St
 
     @Nonnull
     @Override
-    protected AcceptingComponent.State generateRejectingTrap() {
+    public AcceptingComponent.State generateRejectingTrap() {
         return ba.generateRejectingTrap();
     }
 }

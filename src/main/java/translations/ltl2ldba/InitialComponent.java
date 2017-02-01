@@ -64,7 +64,13 @@ public class InitialComponent<S extends AutomatonState<S>, T> extends AbstractIn
         return acceptingComponent.getAcceptBitSet();
     }
 
+    @Nonnull
     @Override
+    public InitialComponentState generateRejectingTrap() {
+        return new InitialComponentState(this, factories.equivalenceClassFactory.getFalse());
+    }
+
+  @Override
     public void generateJumps(@Nonnull InitialComponentState state) {
         selector.select(state.getClazz()).forEach((obligation) -> {
             if (obligation == null) {

@@ -27,10 +27,12 @@ public abstract class ImmutableObject {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+
+    if (o == null || getClass() != o.getClass() || hashCode() != o.hashCode()) {
       return false;
     }
-    return hashCode() == o.hashCode() && equals2((ImmutableObject) o);
+
+    return equals2((ImmutableObject) o);
   }
 
   protected abstract boolean equals2(ImmutableObject o);

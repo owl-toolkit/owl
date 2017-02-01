@@ -17,7 +17,7 @@
 
 package translations.ltl2ldba;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import ltl.*;
 import ltl.equivalence.EquivalenceClass;
 import ltl.equivalence.EquivalenceClassFactory;
@@ -52,21 +52,21 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
     /**
      * Is the first language a subset of the second language?
      *
-     * @param entry - first language
-     * @param otherEntry - second language
+     * @param obligations - first language
+     * @param otherObligations - second language
      * @param master - remainder
      * @return true if is a sub-language
      */
-    private boolean isSublanguage(Map.Entry<Set<GOperator>, RecurringObligations> entry, Map.Entry<Set<GOperator>, RecurringObligations> otherEntry, EquivalenceClass master) {
-        EquivalenceClass setClass = evaluator.evaluate(master, entry.getValue());
-        EquivalenceClass subsetClass = evaluator.evaluate(master, otherEntry.getValue());
+    private boolean isSublanguage(RecurringObligations obligations, RecurringObligations otherObligations, EquivalenceClass master) {
+        EquivalenceClass setClass = evaluator.evaluate(master, obligations);
+        EquivalenceClass subsetClass = evaluator.evaluate(master, otherObligations);
 
-        boolean implies = setClass.implies(subsetClass);
+        boolean equals = setClass.equals(subsetClass);
 
         setClass.free();
         subsetClass.free();
 
-        return implies && entry.getValue().implies(otherEntry.getValue());
+        return equals && obligations.implies(otherObligations);
     }
 
     private List<Set<GOperator>> selectSkeletonMonitors(EquivalenceClass state) {
@@ -91,7 +91,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
     @Override
     public Set<RecurringObligations> select(EquivalenceClass input, boolean isInitialState) {
         final Collection<Set<GOperator>> keys;
-        final Map<Set<GOperator>, RecurringObligations> jumps = new HashMap<>();
+        final BiMap<Set<GOperator>, RecurringObligations> jumps = HashBiMap.create();
 
         EquivalenceClass state = optimisations.contains(Optimisation.EAGER_UNFOLD) ? input.duplicate() : input.unfold();
 
@@ -107,22 +107,25 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
             RecurringObligations obligations = cache.computeIfAbsent(Gs, this::constructRecurringObligations);
 
             if (obligations != null) {
-                jumps.put(Gs, obligations);
+                if (!jumps.containsValue(obligations)) {
+                  jumps.put(Gs, obligations);
+                }
+
                 obligations.associatedGs.addAll(Gs);
             }
         }
 
         if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-            jumps.entrySet().removeIf(entry -> {
+            jumps.values().removeIf(obligation -> {
                 if (!isInitialState) {
-                    EquivalenceClass remainder = evaluator.evaluate(state, entry.getValue());
+                    EquivalenceClass remainder = evaluator.evaluate(state, obligation);
 
                     Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
                     remainder.getSupport().forEach(x -> x.accept(externalLiteralCollector));
                     BitSet externalAtoms = extractAtoms(externalLiteralCollector);
 
                     Collector internalLiteralCollector = new Collector(x -> x instanceof Literal);
-                    entry.getKey().forEach(x -> x.accept(internalLiteralCollector));
+                    obligation.forEach(x -> x.getSupport().forEach(y -> y.accept(internalLiteralCollector)));
                     BitSet internalAtoms = extractAtoms(internalLiteralCollector);
 
                     // Check if external atoms are non-empty and disjoint.
@@ -135,7 +138,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
                     }
                 }
 
-                return jumps.entrySet().stream().anyMatch(otherEntry -> otherEntry != entry && isSublanguage(entry, otherEntry, state));
+                return jumps.values().stream().anyMatch(otherObligation -> obligation != otherObligation && isSublanguage(obligation, otherObligation, state));
             });
         }
 
