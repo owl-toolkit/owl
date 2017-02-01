@@ -63,6 +63,6 @@ public class Ltl2LdbaRegressionTest {
     @Test
     public void testRegression7() throws Exception {
         String ltl = "(X(p1)) R (((G(p2)) R (p3)) W (p4))";
-        testOutput(ltl, 22);
+        testOutput(ltl, 24);
     }
 }

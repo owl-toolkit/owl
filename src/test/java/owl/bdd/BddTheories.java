@@ -1,50 +1,21 @@
 package owl.bdd;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeThat;
-import static org.junit.Assume.assumeTrue;
+import com.google.common.collect.*;
+import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.*;
+import java.util.*;
+import java.util.logging.*;
+import org.hamcrest.number.*;
+import org.junit.*;
+import org.junit.experimental.theories.*;
+import org.junit.runner.*;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.hamcrest.number.IsCloseTo;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import static junit.framework.TestCase.assertFalse;
+import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsNot.*;
+import static org.hamcrest.number.OrderingComparison.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 /**
  * Tests various logical functions of BDDs and checks invariants.
@@ -53,7 +24,7 @@ import org.junit.runner.RunWith;
 @SuppressWarnings({"PMD.GodClass", "checkstyle:javadoc"})
 public class BddTheories {
   private static final BddImpl bdd = new BddImpl(10);
-  private static final int binaryCount = 20000;
+  private static final int binaryCount = 10000;
   private static final Collection<BinaryDataPoint> binaryDataPoints;
   private static final int initialNodeCount;
   private static final int initialReferencedNodeCount;
@@ -63,7 +34,7 @@ public class BddTheories {
   private static final Collection<TernaryDataPoint> ternaryDataPoints;
   private static final int treeDepth = 15;
   private static final int treeWidth = 2000;
-  private static final int unaryCount = 20000;
+  private static final int unaryCount = 10000;
   /* The @DataPoints annotated method is called multiple times - which would create new variables
    * each time, exploding the runtime of the tests. */
   private static final Collection<UnaryDataPoint> unaryDataPoints;

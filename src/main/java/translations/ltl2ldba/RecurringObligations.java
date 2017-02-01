@@ -17,14 +17,10 @@
 
 package translations.ltl2ldba;
 
-import ltl.GOperator;
-import ltl.ImmutableObject;
+import java.util.*;
+import java.util.function.*;
+import ltl.*;
 import ltl.equivalence.EquivalenceClass;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class RecurringObligations extends ImmutableObject {
 
@@ -123,5 +119,17 @@ public class RecurringObligations extends ImmutableObject {
     boolean implies(RecurringObligations other) {
         // TODO: fix memory leak.
         return getObligation().implies(other.getObligation());
+    }
+
+    void forEach(Consumer<EquivalenceClass> consumer) {
+      consumer.accept(safety);
+
+      for (EquivalenceClass clazz : liveness) {
+        consumer.accept(clazz);
+      }
+
+      for (EquivalenceClass clazz : obligations) {
+        consumer.accept(clazz);
+      }
     }
 }

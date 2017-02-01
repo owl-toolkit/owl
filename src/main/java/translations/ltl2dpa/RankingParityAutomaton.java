@@ -17,39 +17,20 @@
 
 package translations.ltl2dpa;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-import ltl.Formula;
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.acceptance.ParityAcceptance;
-import omega_automaton.collections.Trie;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import translations.Optimisation;
-import translations.ldba.LimitDeterministicAutomaton;
-import translations.ltl2ldba.AcceptingComponent;
-import translations.ltl2ldba.InitialComponent;
-import translations.ltl2ldba.InitialComponentState;
-import translations.ltl2ldba.RecurringObligations;
+import com.google.common.collect.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import javax.annotation.*;
+import javax.annotation.concurrent.*;
+import ltl.*;
+import ltl.equivalence.*;
+import omega_automaton.*;
+import omega_automaton.acceptance.*;
+import omega_automaton.collections.*;
+import owl.automaton.edge.*;
+import translations.*;
+import translations.ldba.*;
+import translations.ltl2ldba.*;
 
 final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomaton.State> {
 
@@ -105,8 +86,8 @@ final class RankingParityAutomaton extends ParityAutomaton<RankingParityAutomato
 
     @Nonnull
     @Override
-    protected State generateRejectingTrap() {
-        return new State(null, ImmutableList.of(), 0);
+    public State generateRejectingTrap() {
+        return new State(initialComponent.generateRejectingTrap(), ImmutableList.of(), 0);
     }
 
     @Immutable

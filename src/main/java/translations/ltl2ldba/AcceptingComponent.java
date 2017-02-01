@@ -216,7 +216,6 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             final int livenessLength = obligations.liveness.length;
 
             boolean acceptingEdge = false;
-
             boolean obtainNewGoal = false;
             int j;
 
