@@ -18,7 +18,7 @@
 package translations.ldba;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
 import java.util.Collection;
@@ -39,7 +39,7 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
 
     protected AbstractInitialComponent(Factories factories) {
         super(new NoneAcceptance(), factories);
-        epsilonJumps = HashMultimap.create();
+        epsilonJumps = LinkedHashMultimap.create();
         valuationSetJumps = HashBasedTable.create();
     }
 
