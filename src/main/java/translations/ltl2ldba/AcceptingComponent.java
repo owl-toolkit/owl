@@ -127,6 +127,7 @@ public class AcceptingComponent extends AbstractAcceptingComponent<AcceptingComp
             if (sensitiveAlphabet == null) {
                 sensitiveAlphabet = factory.getSensitiveAlphabet(current);
                 sensitiveAlphabet.or(factory.getSensitiveAlphabet(safety));
+                sensitiveAlphabet.or(factory.getSensitiveAlphabet(obligations.safety));
 
                 for (EquivalenceClass clazz : next) {
                     sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
