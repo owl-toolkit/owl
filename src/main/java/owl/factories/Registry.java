@@ -21,17 +21,13 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import ltl.BooleanConstant;
 import ltl.Formula;
-import ltl.equivalence.BDDEquivalenceClassFactory;
-import ltl.equivalence.SylvanEquivalenceClassFactory;
+import ltl.equivalence.JddFactory;
+import ltl.equivalence.SylvanFactory;
 import ltl.visitors.AlphabetVisitor;
 import omega_automaton.collections.valuationset.BDDValuationSetFactory;
 import omega_automaton.collections.valuationset.SylvanValuationSetFactory;
 
 public final class Registry {
-
-  public enum Backend {
-    JDD, SYLVAN
-  }
 
   private static final Backend DEFAULT_BACKEND = Backend.JDD;
 
@@ -62,11 +58,16 @@ public final class Registry {
   public static Factories getFactories(Formula formula, int alphabetSize, Backend backend) {
     switch (backend) {
       case SYLVAN:
-        return new Factories(new SylvanEquivalenceClassFactory(formula, alphabetSize, null), new SylvanValuationSetFactory(alphabetSize));
+        return new Factories(new SylvanFactory(formula, alphabetSize, null),
+          new SylvanValuationSetFactory(alphabetSize));
 
       case JDD:
       default:
-        return new Factories(new BDDEquivalenceClassFactory(formula), new BDDValuationSetFactory(alphabetSize));
+        return new Factories(new JddFactory(formula), new BDDValuationSetFactory(alphabetSize));
     }
+  }
+
+  public enum Backend {
+    JDD, SYLVAN
   }
 }

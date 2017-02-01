@@ -46,6 +46,10 @@ public class JSylvan {
   private JSylvan() {
   }
 
+  public static native long and(long a, long b);
+
+  public static native long andConsuming(long a, long b);
+
   // Does not have an effect on variable nodes and constants.
   public static native void deref(long bdd);
 
@@ -91,17 +95,20 @@ public class JSylvan {
 
   public static native int getVar(long bdd);
 
+  public static boolean implies(long x, long y) {
+    return JSylvan.makeImplies(x, y) == getTrue();
+  }
+
   private static native void initLace(long workers, long stacksize);
 
   private static native void initSylvan(int tablesize, int cachesize, int granularity);
 
   public static boolean isVariableOrNegated(long bdd) {
-    return (getThen(bdd) == getTrue() && getElse(bdd) == getFalse()) || (getThen(bdd) == getFalse() && getElse(bdd) == getTrue());
+    return (getThen(bdd) == getTrue() && getElse(bdd) == getFalse()) || (getThen(bdd) == getFalse()
+      && getElse(bdd) == getTrue());
   }
 
-  public static native long and(long a, long b);
-
-  public static native long andConsuming(long a, long b);
+  public static native long ithvar(int variable);
 
   public static native long makeConstrain(long a, long b);
 
@@ -130,10 +137,6 @@ public class JSylvan {
 
   public static native long makeNotEquals(long a, long b);
 
-  public static native long or(long a, long b);
-
-  public static native long orConsuming(long a, long b);
-
   public static native long makeRestrict(long a, long b);
 
   /**
@@ -141,14 +144,16 @@ public class JSylvan {
    */
   public static native long makeSupport(long bdd);
 
-  public static native long ithvar(int variable);
-
   public static native long nithvar(int variable);
 
   /**
    * Calculate the number of nodes in the BDD
    */
   public static native long nodecount(long bdd);
+
+  public static native long or(long a, long b);
+
+  public static native long orConsuming(long a, long b);
 
   public static native void print(long bdd);
 
@@ -172,9 +177,5 @@ public class JSylvan {
     BitSet support = support(bdd);
     support.clear(alphabetSize, support.size());
     return support;
-  }
-
-  public static boolean implies(long x, long y) {
-    return JSylvan.makeImplies(x, y) == getTrue();
   }
 }

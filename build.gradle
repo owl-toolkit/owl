@@ -75,14 +75,10 @@ findbugs {
     reportsDir = file("$project.buildDir/reports/findbugs")
     effort = "max"
     reportLevel = "low"
+    ignoreFailures = true
 }
 
 tasks.withType(FindBugs) {
-    // Findbugs doesn't respect include for some reason ...
-    classes = classes.filter {
-        it.path.contains('/main/owl/') || it.path.contains('/test/owl/')
-    }
-
     reports {
         xml.enabled false
         html.enabled true
@@ -94,11 +90,11 @@ pmd {
     reportsDir = file("$project.buildDir/reports/pmd")
     ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
     ruleSets = [] // We specify all rules in rules.xml
-    consoleOutput = false // Don't litter console
+    consoleOutput = false
+    ignoreFailures = true
 }
 
 tasks.withType(Pmd) {
-    include '**/owl/**'
     reports {
         xml.enabled = false
         html.enabled = true
@@ -125,14 +121,14 @@ task createAllStartScripts() {
 }
 
 def scripts = [
-	'ltl2da':'translations.LTL2DA',
-    'ltl2dpa':'translations.LTL2DPA',
-    'ltl2ldba':'translations.LTL2LDBA',
-    'nba2ldba':'translations.NBA2LDBA',
+	'ltl2da':'owl.translations.LTL2DA',
+    'ltl2dpa':'owl.translations.LTL2DPA',
+    'ltl2ldba':'owl.translations.LTL2LDBA',
+    'nba2ldba':'owl.translations.NBA2LDBA',
 ]
 
-scripts.each() {scriptName, className -> 
-    def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) 
+scripts.each() {scriptName, className ->
+    def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts)
     {
         mainClassName = className
         applicationName = scriptName

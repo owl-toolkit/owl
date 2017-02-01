@@ -54,8 +54,8 @@ import owl.factories.Factories;
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance>
   implements HOAPrintable {
 
-  protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
   protected final Factories factories;
+  protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
   protected final ValuationSetFactory valuationSetFactory;
   private final AtomicInteger atomicSize;
   protected Acc acceptance;
@@ -88,7 +88,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     this.atomicSize = atomicSize;
     this.atomMapping = new HashMap<>();
     this.initialStates = new HashSet<>();
-    IntStream.range(0, this.valuationSetFactory.getSize()).forEach(i -> atomMapping.put(i, "p" + i));
+    IntStream.range(0, this.valuationSetFactory.getSize())
+      .forEach(i -> atomMapping.put(i, "p" + i));
   }
 
   /**
@@ -187,12 +188,12 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     return atomMapping;
   }
 
-  public ValuationSetFactory getFactory() {
-    return factories.valuationSetFactory;
-  }
-
   public Factories getFactories() {
     return factories;
+  }
+
+  public ValuationSetFactory getFactory() {
+    return factories.valuationSetFactory;
   }
 
   /**

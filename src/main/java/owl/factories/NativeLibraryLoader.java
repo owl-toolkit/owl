@@ -31,21 +31,15 @@ final class NativeLibraryLoader {
   private NativeLibraryLoader() {
   }
 
-  enum OperatingSystem {
-    DARWIN, LINUX, UNKNOWN;
+  private static String getLibrarySuffix(OperatingSystem operatingSystem) {
+    switch (operatingSystem) {
+      case DARWIN:
+        return ".dylib";
 
-    static OperatingSystem getCurrentOS() {
-      String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-
-      if (osName.contains("mac") || osName.contains("darwin")) {
-        return DARWIN;
-      }
-
-      if (osName.contains("linux")) {
-        return LINUX;
-      }
-
-      return UNKNOWN;
+      case LINUX:
+      case UNKNOWN:
+      default:
+        return ".so";
     }
   }
 
@@ -59,12 +53,15 @@ final class NativeLibraryLoader {
 
   /**
    * Loads library from current JAR archive
+   * The file from JAR is copied into system temporary directory and then loaded. The temporary file
+   * is deleted after exiting. Method uses String as filename because the pathname is "abstract",
+   * not system-dependent.
    *
-   * The file from JAR is copied into system temporary directory and then loaded. The temporary file is deleted after exiting.
-   * Method uses String as filename because the pathname is "abstract", not system-dependent.
+   * @param libraryName
+   *     The name of the library. Platform specific suffixes are handled by the method.
    *
-   * @param libraryName The name of the library. Platform specific suffixes are handled by the method.
-   * @throws IOException If temporary file creation or read/write operation fails
+   * @throws IOException
+   *     If temporary file creation or read/write operation fails
    */
   private static void loadLibraryFromJar(String libraryName) throws IOException {
     String librarySuffix = getLibrarySuffix(OperatingSystem.getCurrentOS());
@@ -81,7 +78,8 @@ final class NativeLibraryLoader {
       getResourceAsStream("lib" + libraryName + librarySuffix)) {
       // Open and check input stream
       if (is == null) {
-        throw new FileNotFoundException("File lib" + libraryName + librarySuffix + " was not found inside JAR.");
+        throw new FileNotFoundException(
+          "File lib" + libraryName + librarySuffix + " was not found inside JAR.");
       }
 
       try (OutputStream os = new FileOutputStream(temp)) {
@@ -92,15 +90,21 @@ final class NativeLibraryLoader {
     System.load(temp.getAbsolutePath());
   }
 
-  private static String getLibrarySuffix(OperatingSystem operatingSystem) {
-    switch (operatingSystem) {
-      case DARWIN:
-        return ".dylib";
+  enum OperatingSystem {
+    DARWIN, LINUX, UNKNOWN;
 
-      case LINUX:
-      case UNKNOWN:
-      default:
-        return ".so";
+    static OperatingSystem getCurrentOS() {
+      String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+
+      if (osName.contains("mac") || osName.contains("darwin")) {
+        return DARWIN;
+      }
+
+      if (osName.contains("linux")) {
+        return LINUX;
+      }
+
+      return UNKNOWN;
     }
   }
 }

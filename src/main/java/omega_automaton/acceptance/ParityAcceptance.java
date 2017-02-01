@@ -30,6 +30,7 @@ public class ParityAcceptance implements OmegaAcceptance {
   @Nonnegative
   private final int colors;
   private final Priority priority;
+
   public ParityAcceptance(@Nonnegative int colors) {
     this(colors, Priority.ODD);
   }

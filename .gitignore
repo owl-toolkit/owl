@@ -84,6 +84,7 @@ local.properties
 
 ## File-based project format:
 *.iws
+*.ipr
 
 ## Plugin-specific files:
 
@@ -101,4 +102,3 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-owl.ipr
