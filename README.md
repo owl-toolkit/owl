@@ -73,6 +73,14 @@ Furthermore, the parallel mode can be enable by passing: `--parallel`
 
     $ ltl2tgba -B "F G (a | X b)" | ./Tools/owl-1.0.0/bin/nba2ldba
 
+## Publications
+
+* Salomon Sickert, Javier Esparza, Stefan Jaax, Jan Kretínský: 
+  Limit-Deterministic Büchi Automata for Linear Temporal Logic. CAV 2016
+
+* Javier Esparza, Jan Kretínský, Jean-François Raskin, Salomon Sickert:
+  From LTL and Limit-Deterministic Büchi Automata to Deterministic Parity Automata. TACAS 2017
+
 ## History
 
 owl is a merger of the previous seperate projects owl-base and owl-translations. owl-base is a merger of the previous seperate projects ltl-lib and omega-automaton-lib. Parts of the code originated from Rabinizer.
