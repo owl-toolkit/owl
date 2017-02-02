@@ -215,12 +215,12 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     EquivalenceClass setClass = evaluator.evaluate(master, entry.getValue());
     EquivalenceClass subsetClass = evaluator.evaluate(master, otherEntry.getValue());
 
-    boolean implies = setClass.implies(subsetClass);
+    boolean equals = setClass.equals(subsetClass);
 
     setClass.free();
     subsetClass.free();
 
-    return implies && entry.getValue().implies(otherEntry.getValue());
+    return equals && entry.getValue().implies(otherEntry.getValue());
   }
 
   @Override
@@ -340,7 +340,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
     skeleton.free();
 
-    // Enhance with FOperors:
+    // Enhance with FOperators:
 
     return sets.stream().map(x -> {
       Collector scopedFOperators = new Collector(F_OPERATORS);

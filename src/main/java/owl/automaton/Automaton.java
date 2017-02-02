@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.edge.Edges;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
@@ -438,6 +439,29 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
       return stream.toString();
     } catch (IOException ex) {
       throw new IllegalStateException(ex.toString(), ex);
+    }
+  }
+
+  public void updateEdge(S state, S successor, BitSet acceptance) {
+    Map<Edge<S>, ValuationSet> successors = transitions.get(state);
+
+    if (successors == null) {
+      return;
+    }
+
+    ValuationSet valuationSet = factories.valuationSetFactory.createEmptyValuationSet();
+
+    successors.entrySet().removeIf((entry) -> {
+      if (entry.getKey().getSuccessor().equals(successor)) {
+        valuationSet.addAll(entry.getValue());
+        return true;
+      }
+
+      return false;
+    });
+
+    if (!valuationSet.isEmpty()) {
+      successors.put(Edges.create(successor, acceptance), valuationSet);
     }
   }
 }

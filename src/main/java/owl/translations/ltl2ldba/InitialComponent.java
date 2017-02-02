@@ -79,6 +79,9 @@ public class InitialComponent<S extends AutomatonState<S>, T>
 
       epsilonJumps.put(state, successor);
     });
+
+    InitialComponentState trueSink = new InitialComponentState(this, factories.equivalenceClassFactory.getTrue());
+    updateEdge(trueSink, trueSink, getAcceptBitSet());
   }
 
   @Nonnull
