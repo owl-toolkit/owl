@@ -12,14 +12,6 @@ public class ParserTokenManager implements ParserConstants {
   /** Debug output. */
   public java.io.PrintStream debugStream = System.out;
 
-
-
-
-
-
-
-
-
   private int jjMoveStringLiteralDfa0_0() {
     switch (curChar) {
       case 33:
@@ -321,50 +313,6 @@ public class ParserTokenManager implements ParserConstants {
     }
     return jjStartNfa_0(4, active0);
   }
-
-  private int jjMoveStringLiteralDfa6_0(long old0, long active0) {
-    if (((active0 &= old0)) == 0L) {
-      return jjStartNfa_0(4, old0);
-    }
-    try {
-      curChar = input_stream.readChar();
-    } catch (java.io.IOException e) {
-      jjStopStringLiteralDfa_0(5, active0);
-      return 6;
-    }
-    switch (curChar) {
-      case 58:
-        if ((active0 & 0x2000L) != 0L) {
-          return jjStopAtPos(6, 13);
-        }
-        break;
-      case 69:
-        if ((active0 & 0x1000000L) != 0L) {
-          return jjStartNfaWithStates_0(6, 24, 32);
-        }
-        break;
-      case 73:
-        return jjMoveStringLiteralDfa7_0(active0, 0x1000L);
-      case 76:
-        return jjMoveStringLiteralDfa7_0(active0, 0x400000L);
-      case 80:
-        return jjMoveStringLiteralDfa7_0(active0, 0x800L);
-      case 83:
-        if ((active0 & 0x200000L) != 0L) {
-          return jjStartNfaWithStates_0(6, 21, 32);
-        }
-        return jjMoveStringLiteralDfa7_0(active0, 0x60000L);
-      default:
-        break;
-    }
-    return jjStartNfa_0(5, active0);
-  }
-
-
-
-
-
-
 
   private int jjMoveStringLiteralDfa10_0(long old0, long active0) {
     if (((active0 &= old0)) == 0L) {
