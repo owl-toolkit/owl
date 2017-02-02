@@ -46,7 +46,7 @@ public class GeneralizedAcceptingComponent extends
     final int length = obligations.obligations.length + obligations.liveness.length;
 
     // If it is necessary, increase the number of acceptance conditions.
-    if (length > acceptance.getSize()) {
+    if (length > acceptance.getAcceptanceSets()) {
       acceptance = new GeneralizedBuchiAcceptance(length);
       ACCEPT.set(0, length);
     }
@@ -155,7 +155,7 @@ public class GeneralizedAcceptingComponent extends
 
       // Create acceptance set and set all unused indices to 1.
       BitSet bs = new BitSet();
-      bs.set(length, acceptance.getSize());
+      bs.set(length, acceptance.getAcceptanceSets());
 
       for (int i = 0; i < next.length; i++) {
         EquivalenceClass currentSuccessor = factory.getSuccessor(current[i], valuation, nextSafety);

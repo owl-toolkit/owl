@@ -36,7 +36,7 @@ public class LDGBASizeRegressionTest extends
   @Override
   protected int getAccSize(
     LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
-    return automaton.getAcceptingComponent().getAcceptance().getSize();
+    return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
   }
 
   @Override

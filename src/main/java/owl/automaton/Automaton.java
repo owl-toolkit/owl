@@ -42,15 +42,16 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.collections.BitSets;
-import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 import owl.automaton.output.HOAConsumerExtended;
 import owl.automaton.output.HOAPrintable;
-import owl.automaton.edge.Edge;
+import owl.collections.BitSets;
+import owl.collections.ValuationSet;
 import owl.factories.Factories;
+import owl.factories.ValuationSetFactory;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance>
   implements HOAPrintable {
@@ -221,20 +222,6 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     return ImmutableSet.copyOf(initialStates);
   }
 
-  private void getReachableStates(Set<S> states) {
-    Deque<S> workDeque = new ArrayDeque<>(states);
-
-    while (!workDeque.isEmpty()) {
-      S state = workDeque.remove();
-
-      getSuccessors(state).forEach((edge, v) -> {
-        if (states.add(edge.getSuccessor())) {
-          workDeque.add(edge.getSuccessor());
-        }
-      });
-    }
-  }
-
   @Nonnull
   public Set<S> getStates() {
     return transitions.keySet();
@@ -317,6 +304,33 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     return true;
   }
 
+  private boolean isDeadState(S state, Map<Edge<S>, ValuationSet> successors) {
+    // The state has no successors, thus it is dead.
+    if (successors.isEmpty()) {
+      return true;
+    }
+
+    if (acceptance instanceof GeneralizedBuchiAcceptance) {
+      GeneralizedBuchiAcceptance acceptance = (GeneralizedBuchiAcceptance) this.acceptance;
+
+      BitSet requiredSets = new BitSet();
+      requiredSets.set(0, acceptance.getAcceptanceSets());
+
+      successors.keySet().forEach(edge -> {
+        if (!edge.getSuccessor().equals(state)) {
+          requiredSets.clear();
+        }
+        edge.acceptanceSetStream().forEach(requiredSets::clear);
+      });
+
+      if (!requiredSets.isEmpty()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   public boolean isDeterministic() {
     return getStates().stream().allMatch(this::isDeterministic);
   }
@@ -348,6 +362,60 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   }
 
   /**
+   * Remove states from the automaton, that are unreachable from the set of protected states or
+   * that cannot belong to an infinite path.
+   *
+   * @param protectedStates
+   *     the set of states that are the initial states for a reachability analysis
+   *
+   * @return states that cannot belong to an infinite path
+   */
+  public Set<S> removeDeadStates(Set<S> protectedStates) {
+    Set<S> deadStates = new HashSet<>();
+
+    Set<S> reachableStates = new HashSet<>(protectedStates);
+    Deque<S> workDeque = new ArrayDeque<>(protectedStates);
+
+    while (!workDeque.isEmpty()) {
+      S current = workDeque.remove();
+
+      Map<Edge<S>, ValuationSet> successors = getSuccessors(current);
+
+      if (isDeadState(current, successors)) {
+        deadStates.add(current);
+        continue;
+      }
+
+      successors.forEach((edge, v) -> {
+        if (reachableStates.add(edge.getSuccessor())) {
+          workDeque.add(edge.getSuccessor());
+        }
+      });
+    }
+
+    // Remove dead and unreachable states
+    removeStatesIf(s -> deadStates.contains(s) || !reachableStates.contains(s));
+
+    // Fix-point iteration. (Inefficient...)
+    int oldSize;
+
+    do {
+      oldSize = size();
+
+      transitions.forEach((state, successors) -> {
+        if (isDeadState(state, successors)) {
+          deadStates.add(state);
+        }
+      });
+
+      removeStatesIf(deadStates::contains);
+    }
+    while (oldSize > size());
+
+    return deadStates;
+  }
+
+  /**
    * Removes given state from the initial state set, if present.
    *
    * @param state
@@ -371,16 +439,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
       transitions.keySet().removeIf(predicate);
       transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.getSuccessor())));
     }
+
     setInitialStates(initialStates);
-  }
-
-  public void removeUnreachableStates() {
-    removeUnreachableStates(getInitialStates());
-  }
-
-  public void removeUnreachableStates(Set<S> reach) {
-    getReachableStates(reach);
-    removeStatesIf(s -> !reach.contains(s));
   }
 
   public void setAtomMapping(Map<Integer, String> mapping) {

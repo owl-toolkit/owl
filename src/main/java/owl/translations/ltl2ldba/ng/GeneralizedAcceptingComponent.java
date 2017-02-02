@@ -50,7 +50,7 @@ public class GeneralizedAcceptingComponent extends
     }
 
     // If it is necessary, increase the number of acceptance conditions.
-    if (liveness.length > acceptance.getSize()) {
+    if (liveness.length > acceptance.getAcceptanceSets()) {
       acceptance = new GeneralizedBuchiAcceptance(liveness.length);
       ACCEPT.set(0, liveness.length);
     }
@@ -99,7 +99,7 @@ public class GeneralizedAcceptingComponent extends
       EquivalenceClass[] livenessSuccessor = new EquivalenceClass[liveness.length];
 
       BitSet bs = new BitSet();
-      bs.set(liveness.length, acceptance.getSize());
+      bs.set(liveness.length, acceptance.getAcceptanceSets());
 
       for (int i = 0; i < liveness.length; i++) {
         livenessSuccessor[i] = factory.getSuccessor(liveness[i], valuation);

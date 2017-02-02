@@ -80,9 +80,12 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
     acceptingComponent.generate();
 
+    // Remove dead-states
+    Set<S_A> deadStates = acceptingComponent.removeDeadStates(acceptingComponent.getInitialStates());
+    initialComponent.epsilonJumps.values().removeIf(deadStates::contains);
+
     if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
-      Set<S_A> accReach = new HashSet<>(
-        (Set<S_A>) Sets.intersection(initialStates, acceptingComponent.getStates()));
+      Set<S_A> accReach = new HashSet<>(acceptingComponent.getInitialStates());
 
       for (S_I state : initialComponent.getStates()) {
         Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
@@ -103,9 +106,8 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
       }
 
       initialComponent.epsilonJumps.clear();
-      initialComponent.removeUnreachableStates(
-        new HashSet<>((Set<S_I>) Sets.intersection(initialStates, initialComponent.getStates())));
-      acceptingComponent.removeUnreachableStates(accReach);
+      initialComponent.removeDeadStates(initialComponent.getInitialStates());
+      acceptingComponent.removeDeadStates(accReach);
       initialComponent.removeDeadEnds(initialComponent.valuationSetJumps.rowKeySet());
       initialStates.removeIf(
         x -> !Sets.union(initialComponent.getStates(), acceptingComponent.getStates()).contains(x));

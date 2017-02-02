@@ -59,7 +59,4 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
     return Collections.singletonList(size);
   }
 
-  public int getSize() {
-    return size;
-  }
 }

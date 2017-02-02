@@ -98,7 +98,7 @@ public class Ltl2LdgbaTest {
     testOutput(ltl2, 3);
 
     String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & ((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-    testOutput(ltl3, 4);
+    testOutput(ltl3, 3);
   }
 
   @Test
@@ -109,10 +109,10 @@ public class Ltl2LdgbaTest {
     ltl = "((G F p0)|(F G p1)) & ((G F (! p1))|(F G p2))";
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-    testOutput(ltl, opts, 5);
+    testOutput(ltl, opts, 4);
 
     ltl = "(G p0 |(G p1)|(G p2))&((F G p3)|(G F p4)|(G F p5))&((F G !p4)|(G F !p3)|(G F p5))";
-    testOutput(ltl, opts, 22);
+    testOutput(ltl, opts, 16);
   }
 
   @Test
