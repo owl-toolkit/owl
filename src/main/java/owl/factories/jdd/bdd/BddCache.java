@@ -239,7 +239,6 @@ final class BddCache {
     Arrays.fill(volatileKeyStorage, 0);
   }
 
-  @SuppressWarnings("PMD.UseVarargs")
   private int composeHash(final int inputNode, final int[] replacementArray) {
     final int composeHashSize = getComposeKeyCount();
     final int hash = Util.hash(inputNode, replacementArray) % composeHashSize;
@@ -440,7 +439,6 @@ final class BddCache {
     return binaryLookup(BINARY_OPERATION_AND, inputNode1, inputNode2);
   }
 
-  @SuppressWarnings("PMD.UseVarargs")
   boolean lookupCompose(final int inputNode, final int[] replacementArray) {
     assert composeStorage != null;
     assert associatedBdd.isNodeValid(inputNode);

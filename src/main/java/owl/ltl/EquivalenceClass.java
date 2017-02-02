@@ -17,7 +17,6 @@
 
 package owl.ltl;
 
-
 import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
 import java.util.Set;
@@ -33,7 +32,6 @@ import javax.annotation.Nullable;
  * {@code false}.
  */
 public interface EquivalenceClass {
-
   static void free(@Nullable EquivalenceClass clazz) {
     if (clazz != null) {
       clazz.free();
@@ -69,7 +67,7 @@ public interface EquivalenceClass {
 
   /**
    * Performs the same operation as {@link EquivalenceClass#and}, but also calls free() on the
-   * instance {@link this}
+   * instance {@link this}.
    */
   EquivalenceClass andWith(EquivalenceClass eq);
 
@@ -117,7 +115,7 @@ public interface EquivalenceClass {
 
   /**
    * Performs the same operation as {@link EquivalenceClass#or}, but also calls free() on the
-   * instance {@link this}
+   * instance {@link this}.
    */
   EquivalenceClass orWith(EquivalenceClass eq);
 

@@ -1,11 +1,9 @@
 package owl.ltl.tools;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import java.io.FileNotFoundException;
+import com.google.common.collect.ImmutableList;
 import java.io.PrintStream;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -21,28 +19,37 @@ import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.parser.Parser;
+import owl.ltl.parser.LtlParseResult;
+import owl.ltl.parser.LtlParser;
+import owl.ltl.parser.ParseException;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.UnabbreviateVisitor;
 
-public class Ltl2FGXU {
-
-  public static void main(String[] argv) throws FileNotFoundException {
-    BiMap<String, Integer> mapping = HashBiMap.create();
-    Formula formula = Parser.formula(argv[0], mapping).accept(new UnabbreviateVisitor(ROperator.class, MOperator.class, WOperator.class));
-    Printer printer = new Printer(System.out, mapping.inverse());
-    formula.accept(printer);
-    printer.printer.flush();
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
+public final class Ltl2FGXU {
+  private Ltl2FGXU() {
   }
 
-  private static class Printer implements IntVisitor {
+  public static void main(String[] argv) throws ParseException {
+    final LtlParseResult ltlParseResult = LtlParser.parse(argv[0]);
+    Formula formula = ltlParseResult.getFormula().accept(
+      new UnabbreviateVisitor(ROperator.class, MOperator.class, WOperator.class));
+    Printer printer = new Printer(System.out, ltlParseResult.getVariableMapping());
+    formula.accept(printer);
+    printer.flush();
+  }
 
-    Map<Integer, String> mapping;
-    PrintStream printer;
+  private static final class Printer implements IntVisitor {
+    private final List<String> mapping;
+    private final PrintStream printer;
 
-    private Printer(PrintStream printer, Map<Integer, String> mapping) {
+    public void flush() {
+      this.printer.flush();
+    }
+
+    Printer(PrintStream printer, List<String> mapping) {
       this.printer = printer;
-      this.mapping = mapping;
+      this.mapping = ImmutableList.copyOf(mapping);
     }
 
     @Override

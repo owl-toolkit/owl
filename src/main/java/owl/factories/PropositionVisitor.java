@@ -42,7 +42,7 @@ import owl.ltl.visitors.IntVisitor;
  * literals (a, !a) are treated as propositions.
  * TODO: Extract alphabet.
  */
-public class PropositionVisitor implements IntVisitor {
+public final class PropositionVisitor implements IntVisitor {
 
   private final Deque<Formula> mapping;
 

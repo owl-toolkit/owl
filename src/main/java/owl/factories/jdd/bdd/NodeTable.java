@@ -1,6 +1,5 @@
 package owl.factories.jdd.bdd;
 
-
 import static com.google.common.base.Preconditions.checkState;
 import static owl.factories.jdd.bdd.BitUtil.fits;
 
@@ -807,7 +806,7 @@ class NodeTable {
    * @see #isNodeRoot(int)
    */
   public final boolean isNodeValidOrRoot(final int node) {
-    assert 0 <= node && node < getTableSize();
+    assert 0 <= node && node < getTableSize() : node + " invalid";
     return node <= biggestValidNode && (isNodeRoot(node) || isValidNodeStore(nodeStorage[node]));
   }
 

@@ -19,11 +19,12 @@ package owl.ltl;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import owl.util.ImmutableObject;
 
 public abstract class PropositionalFormula extends ImmutableObject implements Formula {
 
@@ -51,6 +52,8 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   @Override
   public boolean equals2(ImmutableObject o) {
+    assert o instanceof PropositionalFormula;
+    // If equals2 is called, classes are equal
     PropositionalFormula that = (PropositionalFormula) o;
     return Objects.equals(children, that.children);
   }
@@ -73,7 +76,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   }
 
   @Override
-  public String toString(Map<Integer, String> atomMapping) {
+  public String toString(List<String> variables) {
     StringBuilder s = new StringBuilder(3 * children.size());
 
     s.append('(');
@@ -81,7 +84,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     Iterator<Formula> iter = children.iterator();
 
     while (iter.hasNext()) {
-      s.append(iter.next().toString(atomMapping));
+      s.append(iter.next().toString(variables));
 
       if (iter.hasNext()) {
         s.append(getOperator());

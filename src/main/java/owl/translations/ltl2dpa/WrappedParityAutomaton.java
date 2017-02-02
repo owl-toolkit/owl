@@ -24,8 +24,7 @@ import owl.automaton.edge.Edges;
 import owl.translations.ltl2ldba.AcceptingComponent;
 
 final class WrappedParityAutomaton extends ParityAutomaton<AcceptingComponent.State> {
-
-  private AcceptingComponent ba;
+  private final AcceptingComponent ba;
 
   WrappedParityAutomaton(AcceptingComponent ba) {
     super(ba, new ParityAcceptance(1, ParityAcceptance.Priority.EVEN));

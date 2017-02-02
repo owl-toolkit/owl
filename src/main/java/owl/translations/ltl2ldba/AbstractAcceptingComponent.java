@@ -23,34 +23,35 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 
-public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>, T extends OmegaAcceptance, U>
+public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>,
+  T extends OmegaAcceptance, U>
   extends Automaton<S, T> {
 
   protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
-  protected final BitSet ACCEPT;
+  protected final BitSet accept;
   protected EquivalenceClassStateFactory factory;
-  private Set<U> components = new HashSet<>();
+  private final Set<U> components = new HashSet<>();
 
   protected AbstractAcceptingComponent(T acc, EnumSet<Optimisation> optimisations,
     Factories factories) {
     super(acc, factories);
     this.factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory,
       optimisations);
-    ACCEPT = new BitSet();
-    ACCEPT.set(0, 1);
+    accept = new BitSet();
+    accept.set(0, 1);
   }
 
   protected abstract S createState(EquivalenceClass remainder, U obligations);
 
   public BitSet getAcceptBitSet() {
-    return ACCEPT;
+    return accept;
   }
 
   public Set<U> getComponents() {

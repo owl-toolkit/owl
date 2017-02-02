@@ -17,11 +17,11 @@
 
 package owl.factories;
 
-import java.util.Map;
+import java.util.List;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
-import owl.ltl.Formula;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
 
 public interface EquivalenceClassFactory {
 
@@ -39,5 +39,5 @@ public interface EquivalenceClassFactory {
     return createEquivalenceClass(BooleanConstant.TRUE);
   }
 
-  void setAtomMapping(Map<Integer, String> mapping);
+  void setVariables(List<String> variables);
 }

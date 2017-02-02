@@ -6,10 +6,17 @@ insert_final_newline=false
 indent_style=space
 indent_size=4
 
+[*.py]
+indent_size=4
+
+[*.sh]
+indent_size=2
+
 [*.java]
-indent_style=space
+indent_size=2
+
+[*.g4]
 indent_size=2
 
 [{*.yml,*.yaml}]
-indent_style=space
 indent_size=2

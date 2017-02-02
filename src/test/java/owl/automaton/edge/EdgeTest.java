@@ -21,101 +21,156 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-import java.util.ArrayList;
-import java.util.Arrays;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.IntStream;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.List;
+import java.util.PrimitiveIterator.OfInt;
+import org.junit.experimental.theories.DataPoints;
+import org.junit.experimental.theories.Theories;
+import org.junit.experimental.theories.Theory;
+import org.junit.runner.RunWith;
 
-@SuppressWarnings("PMD.AtLeastOneConstructor")
+@RunWith(Theories.class)
 public class EdgeTest {
-  private Edge<?> emptyEdgeDirect;
-  private Edge<?> emptyEdgeImplicit;
-  private Edge<?> genericEdgeOneTwo;
-  private Edge<?> singletonEdgeDirect;
-  private Edge<?> singletonEdgeImplicit;
+  private static final ImmutableList<TestCase> testCases;
 
-  @Test
-  public void inSet() {
-    assertFalse(emptyEdgeDirect.inSet(0));
-    assertFalse(emptyEdgeImplicit.inSet(0));
-    assertTrue(singletonEdgeDirect.inSet(0));
-    assertTrue(singletonEdgeImplicit.inSet(0));
-    assertTrue(genericEdgeOneTwo.inSet(0));
+  static {
+    int[][] acceptanceSets = {
+      {},
+      {0},
+      {1},
+      {0, 1},
+      {1, 2},
+      {4, 5},
+      {0, 20},
+      {0, 100},
+      {100, 200},
+      {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+      {0, 2, 4, 6, 8, 10},
+      {1, 2, 3, 5, 7, 11, 13, 17}
+    };
 
-    assertFalse(emptyEdgeDirect.inSet(1));
-    assertFalse(emptyEdgeImplicit.inSet(1));
-    assertFalse(singletonEdgeDirect.inSet(1));
-    assertFalse(singletonEdgeImplicit.inSet(1));
-    assertTrue(genericEdgeOneTwo.inSet(1));
-  }
+    Object[] successors = {
+      "1", "2", "3"
+    };
 
-  @Test
-  public void iterator() {
-    assertFalse(emptyEdgeDirect.acceptanceSetStream().iterator().hasNext());
-    assertFalse(emptyEdgeImplicit.acceptanceSetStream().iterator().hasNext());
-
-    assertTrue(Iterators.elementsEqual(IntStream.of(0).iterator(),
-      singletonEdgeDirect.acceptanceSetStream().iterator()));
-    assertTrue(Iterators.elementsEqual(IntStream.of(0).iterator(),
-      singletonEdgeImplicit.acceptanceSetStream().iterator()));
-
-    assertTrue(Iterators.elementsEqual(IntStream.of(0, 1).iterator(),
-      genericEdgeOneTwo.acceptanceSetStream().iterator()));
-  }
-
-  @Before
-  public void setUp() {
-    final Object successor = new Object();
-
-    emptyEdgeDirect = Edges.create(successor);
-    emptyEdgeImplicit = Edges.create(successor, new BitSet());
-
-    singletonEdgeDirect = Edges.create(successor, 0);
-    final BitSet singletonSet = new BitSet(1);
-    singletonSet.set(0);
-    singletonEdgeImplicit = Edges.create(successor, singletonSet);
-
-    final BitSet genericSetOneTwo = new BitSet(2);
-    genericSetOneTwo.set(0);
-    genericSetOneTwo.set(1);
-    genericEdgeOneTwo = Edges.create(successor, genericSetOneTwo);
-  }
-
-  @Test
-  @SuppressWarnings("PMD.CompareObjectsWithEquals")
-  public void testEqualsAndHashCode() {
-    final Collection<Collection<Edge<?>>> pairs = new ArrayList<>();
-    pairs.add(Arrays.asList(emptyEdgeDirect, emptyEdgeImplicit));
-    pairs.add(Arrays.asList(singletonEdgeDirect, singletonEdgeImplicit));
-    pairs.add(Collections.singletonList(genericEdgeOneTwo));
-
-    for (final Collection<Edge<?>> pair : pairs) {
-      for (final Edge<?> edge : pair) {
-        for (final Edge<?> other : pair) {
-          assertEquals(edge, other);
-          assertEquals((long) edge.hashCode(), (long) other.hashCode());
+    ImmutableList.Builder<TestCase> testCasesBuilder = ImmutableList.builder();
+    for (Object successor : successors) {
+      for (int[] acceptanceSetArray : acceptanceSets) {
+        BitSet acceptanceSet = new BitSet();
+        for (int acceptance : acceptanceSetArray) {
+          acceptanceSet.set(acceptance);
         }
+
+        ImmutableList.Builder<Edge<?>> representatives = ImmutableList.builder();
+        representatives.add(Edges.create(successor, acceptanceSet));
+        if (acceptanceSetArray.length == 0) {
+          representatives.add(Edges.create(successor));
+        } else if (acceptanceSetArray.length == 1) {
+          representatives.add(Edges.create(successor, acceptanceSetArray[0]));
+        }
+        testCasesBuilder.add(new TestCase(representatives.build(), successor, acceptanceSet));
       }
     }
 
-    for (final Collection<Edge<?>> pair : pairs) {
-      for (final Collection<Edge<?>> other : pairs) {
-        if (pair == other) {
-          continue;
-        }
-        for (final Edge<?> edge : pair) {
-          for (final Edge<?> otherEdge : other) {
-            assertNotEquals(edge, otherEdge);
-            assertNotEquals((long) edge.hashCode(), (long) otherEdge.hashCode());
-          }
+    testCases = testCasesBuilder.build();
+  }
+
+  @DataPoints
+  public static List<TestCase> dataPoints() {
+    return testCases;
+  }
+
+  @Theory
+  public void inSet(TestCase testCase) {
+    IntList acceptance = testCase.getAcceptance();
+    for (Edge<?> edge : testCase.getEdges()) {
+      for (int i = 0; i < 200; i++) {
+        if (acceptance.contains(i)) {
+          assertTrue(edge.inSet(i));
+        } else {
+          assertFalse(edge.inSet(i));
         }
       }
+    }
+  }
+
+  @Theory
+  public void inSetConsistent(TestCase testCase) {
+    for (Edge<?> edge : testCase.getEdges()) {
+      final OfInt iterator = edge.acceptanceSetIterator();
+      while (iterator.hasNext()) {
+        assertTrue(edge.inSet(iterator.nextInt()));
+      }
+    }
+  }
+
+  @Theory
+  public void iterator(TestCase testCase) {
+    IntList acceptance = testCase.getAcceptance();
+
+    for (Edge<?> edge : testCase.getEdges()) {
+      assertTrue(Iterators.elementsEqual(acceptance.iterator(),
+        edge.acceptanceSetIterator()));
+    }
+  }
+
+  @Theory
+  @SuppressWarnings("PMD.CompareObjectsWithEquals")
+  public void testEqualsAndHashCodeDifferent(TestCase first, TestCase second) {
+    assumeTrue(first != second);
+
+    for (final Edge<?> firstEdge : first.getEdges()) {
+      for (final Edge<?> secondEdge : second.getEdges()) {
+        assertNotEquals(firstEdge, secondEdge);
+      }
+    }
+  }
+
+  @Theory
+  public void testEqualsAndHashCodeSame(TestCase testCase) {
+    for (Edge<?> edge : testCase.getEdges()) {
+      for (Edge<?> otherEdge : testCase.getEdges()) {
+        assertEquals(edge, otherEdge);
+        assertEquals(edge.hashCode(), otherEdge.hashCode());
+      }
+    }
+  }
+
+  @Theory
+  public void testSuccessor(TestCase testCase) {
+    for (Edge<?> edge : testCase.getEdges()) {
+      assertEquals(edge.getSuccessor(), testCase.getSuccessor());
+    }
+  }
+
+  private static final class TestCase {
+    private final IntList acceptance;
+    private final ImmutableList<Edge<?>> edges;
+    private final Object successor;
+
+    TestCase(List<Edge<?>> edges, Object successor, BitSet acceptance) {
+      this.edges = ImmutableList.copyOf(edges);
+      this.successor = successor;
+      this.acceptance = new IntArrayList(acceptance.cardinality());
+      acceptance.stream().forEachOrdered(this.acceptance::add);
+    }
+
+    IntList getAcceptance() {
+      return acceptance;
+    }
+
+    ImmutableList<Edge<?>> getEdges() {
+      return edges;
+    }
+
+    Object getSuccessor() {
+      return successor;
     }
   }
 }

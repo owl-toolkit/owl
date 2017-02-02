@@ -18,6 +18,7 @@
 package owl.automaton;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.io.ByteArrayOutputStream;
@@ -25,17 +26,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
@@ -46,52 +48,54 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.automaton.output.HOAConsumerExtended;
-import owl.automaton.output.HOAPrintable;
+import owl.automaton.output.HoaConsumerExtended;
+import owl.automaton.output.HoaPrintable;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
 
-public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance>
-  implements HOAPrintable {
+// We could do something about the GodClass?
+@SuppressWarnings({"PMD.GodClass", "PMD.EmptyMethodInAbstractClassShouldBeAbstract",
+                    "PMD.UncommentedEmptyMethodBody"})
+public abstract class Automaton<S extends AutomatonState<S>, AccT extends OmegaAcceptance>
+  implements HoaPrintable {
 
   protected final Factories factories;
   protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
   protected final ValuationSetFactory valuationSetFactory;
   private final AtomicInteger atomicSize;
-  protected Acc acceptance;
-  protected Map<Integer, String> atomMapping;
+  protected AccT acceptance;
+  protected List<String> variables;
   protected Set<S> initialStates;
 
-  protected Automaton(Acc acceptance, Factories factories) {
+  protected Automaton(AccT acceptance, Factories factories) {
     this(acceptance, factories, new AtomicInteger(0));
   }
 
-  protected Automaton(Acc acceptance, Factories factories, AtomicInteger integer) {
+  protected Automaton(AccT acceptance, Factories factories, AtomicInteger integer) {
     this(new HashMap<>(), acceptance, factories, integer);
   }
 
-  protected Automaton(Automaton<S, ?> automaton, Acc acceptance) {
+  protected Automaton(Automaton<S, ?> automaton, AccT acceptance) {
     this(automaton.factories, automaton.transitions, acceptance);
   }
 
   protected Automaton(Factories factories,
-    Map<S, Map<Edge<S>, ValuationSet>> transitions, Acc acceptance) {
+    Map<S, Map<Edge<S>, ValuationSet>> transitions, AccT acceptance) {
     this(transitions, acceptance, factories, new AtomicInteger());
   }
 
-  private Automaton(Map<S, Map<Edge<S>, ValuationSet>> transitions, Acc acceptance,
+  private Automaton(Map<S, Map<Edge<S>, ValuationSet>> transitions, AccT acceptance,
     Factories valuationSetFactory, AtomicInteger atomicSize) {
     this.transitions = transitions;
     this.acceptance = acceptance;
     this.valuationSetFactory = valuationSetFactory.valuationSetFactory;
     this.factories = valuationSetFactory;
     this.atomicSize = atomicSize;
-    this.atomMapping = new HashMap<>();
     this.initialStates = new HashSet<>();
-    IntStream.range(0, this.valuationSetFactory.getSize())
-      .forEach(i -> atomMapping.put(i, "p" + i));
+    this.variables = IntStream.range(0, this.valuationSetFactory.getSize())
+      .mapToObj(i -> "p" + i).collect(ImmutableList.toImmutableList());
   }
 
   /**
@@ -140,7 +144,6 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   }
 
   public void generate() {
-    Collection<S> seenStates = new HashSet<>(getInitialStates());
     Deque<S> workDeque = new ArrayDeque<>(getInitialStates());
 
     workDeque.removeIf(transitions::containsKey);
@@ -150,6 +153,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     if (workDeque.isEmpty()) {
       return;
     }
+
+    Set<S> seenStates = new HashSet<>(getInitialStates());
 
     while (!workDeque.isEmpty()) {
       S current = workDeque.removeLast();
@@ -182,12 +187,12 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     throw new UnsupportedOperationException();
   }
 
-  public Acc getAcceptance() {
+  public AccT getAcceptance() {
     return acceptance;
   }
 
-  public Map<Integer, String> getAtomMapping() {
-    return atomMapping;
+  public List<String> getVariables() {
+    return variables;
   }
 
   public Factories getFactories() {
@@ -285,14 +290,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   }
 
   /**
-   * This method has no side effects
+   * This method has no side effects.
    *
    * @param scc:
    *     set of states
    *
    * @return true if the only transitions from scc go to scc again and false otherwise
    */
-  public boolean isBSCC(Set<S> scc) {
+  public boolean isBscc(Set<S> scc) {
     for (S s : scc) {
       for (Edge<S> edge : getSuccessors(s).keySet()) {
         if (!scc.contains(edge.getSuccessor())) {
@@ -320,7 +325,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
         if (!edge.getSuccessor().equals(state)) {
           requiredSets.clear();
         }
-        edge.acceptanceSetStream().forEach(requiredSets::clear);
+        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) requiredSets::clear);
       });
 
       if (!requiredSets.isEmpty()) {
@@ -437,15 +442,16 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
       transitions.clear();
     } else {
       transitions.keySet().removeIf(predicate);
-      transitions.forEach((k, v) -> v.keySet().removeIf(t -> predicate.test(t.getSuccessor())));
+      transitions.forEach((state, successors) -> successors.keySet()
+        .removeIf(edge -> predicate.test(edge.getSuccessor())));
     }
 
     setInitialStates(initialStates);
   }
 
-  public void setAtomMapping(Map<Integer, String> mapping) {
-    atomMapping = new HashMap<>(mapping);
-    factories.equivalenceClassFactory.setAtomMapping(atomMapping);
+  public void setVariables(List<String> variables) {
+    this.variables = ImmutableList.copyOf(variables);
+    factories.equivalenceClassFactory.setVariables(this.variables);
   }
 
   /**
@@ -468,18 +474,18 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   }
 
   @Override
-  public void toHOA(HOAConsumer consumer, EnumSet<Option> options) {
-    HOAConsumerExtended hoa = new HOAConsumerExtended(consumer, valuationSetFactory.getSize(),
-      atomMapping, acceptance, initialStates, size(), options);
-    toHOABody(hoa);
+  public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+    HoaConsumerExtended hoa = new HoaConsumerExtended(consumer, valuationSetFactory.getSize(),
+      variables, acceptance, initialStates, size(), options);
+    toHoaBody(hoa);
     hoa.notifyEnd();
   }
 
-  public final void toHOABody(HOAConsumerExtended hoa) {
+  public final void toHoaBody(HoaConsumerExtended hoa) {
     getStates().forEach(s -> {
       hoa.addState(s);
       getSuccessors(s).forEach(hoa::addEdge);
-      toHOABodyEdge(s, hoa);
+      toHoaBodyEdge(s, hoa);
       hoa.notifyEndOfState();
     });
   }
@@ -488,14 +494,14 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
    * Override this method, if you want output additional edges for {@param state} not present in
    * {@link Automaton#transitions}.
    */
-  protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
+  protected void toHoaBodyEdge(S state, HoaConsumerExtended hoa) {
 
   }
 
   @Override
   public String toString() {
     try (OutputStream stream = new ByteArrayOutputStream()) {
-      toHOA(new HOAConsumerPrint(stream), EnumSet.of(Option.ANNOTATIONS));
+      toHoa(new HOAConsumerPrint(stream), EnumSet.of(Option.ANNOTATIONS));
       return stream.toString();
     } catch (IOException ex) {
       throw new IllegalStateException(ex.toString(), ex);

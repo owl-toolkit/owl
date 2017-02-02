@@ -35,35 +35,38 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import owl.ltl.Formula;
-import owl.ltl.ImmutableObject;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.collections.Trie;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.translations.Optimisation;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.collections.Trie;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
+import owl.translations.Optimisation;
 import owl.translations.ltl2dpa.RankingParityAutomaton.State;
 import owl.translations.ltl2ldba.AcceptingComponent;
 import owl.translations.ltl2ldba.InitialComponent;
 import owl.translations.ltl2ldba.InitialComponentState;
 import owl.translations.ltl2ldba.RecurringObligations;
+import owl.util.ImmutableObject;
 
+@SuppressWarnings("PMD.GodClass")
 final class RankingParityAutomaton extends ParityAutomaton<State> {
 
   private final AcceptingComponent acceptingComponent;
   private final InitialComponent<AcceptingComponent.State, RecurringObligations> initialComponent;
+  @Nullable
   private final Map<InitialComponentState, Trie<AcceptingComponent.State>> trie;
   private final Map<RecurringObligations, Integer> volatileComponents;
   private final int volatileMaxIndex;
   private int colors;
 
-  RankingParityAutomaton(
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba,
-    AtomicInteger integer, EnumSet<Optimisation> optimisations) {
+  RankingParityAutomaton(LimitDeterministicAutomaton<InitialComponentState,
+    AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State,
+    RecurringObligations>, AcceptingComponent> ldba, AtomicInteger integer,
+    EnumSet<Optimisation> optimisations) {
     super(new ParityAcceptance(2), ldba.getAcceptingComponent().getFactories(), integer);
 
     acceptingComponent = ldba.getAcceptingComponent();
@@ -93,18 +96,22 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
   }
 
   private int distance(int base, int index) {
-    if (base >= index) {
-      index += volatileMaxIndex + 1;
+    int distanceIndex = index;
+    if (base >= distanceIndex) {
+      distanceIndex += volatileMaxIndex + 1;
     }
 
-    return index - base;
+    return distanceIndex - base;
   }
 
   @Nonnull
   @Override
   protected Edge<State> generateRejectingEdge(RankingParityAutomaton.State successor) {
-    return Edges
-      .create(successor, acceptance.getPriority() == ParityAcceptance.Priority.ODD ? 0 : 1);
+    if (acceptance.getPriority() == ParityAcceptance.Priority.ODD) {
+      return Edges.create(successor, 0);
+    } else {
+      return Edges.create(successor, 1);
+    }
   }
 
   @Nonnull
@@ -120,7 +127,7 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
     private final InitialComponentState initialComponentState;
     private final int volatileIndex;
 
-    private State(InitialComponentState state) {
+    State(InitialComponentState state) {
       initialComponentState = state;
       List<AcceptingComponent.State> ranking = new ArrayList<>();
       volatileIndex = appendJumps(state, ranking);
@@ -134,7 +141,7 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
         && volatileIndex < volatileMaxIndex);
     }
 
-    private State(InitialComponentState state, ImmutableList<AcceptingComponent.State> ranking,
+    State(InitialComponentState state, ImmutableList<AcceptingComponent.State> ranking,
       int volatileIndex) {
       assert (volatileMaxIndex == 0 && volatileIndex == 0) || (0 <= volatileIndex
         && volatileIndex < volatileMaxIndex);
@@ -165,7 +172,8 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
 
         // It is a volatile state
         if (candidateIndex != null && accState.getCurrent().isTrue()) {
-          // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning. This state should be suppressed.";
+          // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning.
+          // This state should be suppressed.";
 
           // The distance is too large...
           if (nextVolatileState != null
@@ -206,11 +214,14 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
         suffixes.add(nextVolatileState);
       }
 
-      Optional<List<AcceptingComponent.State>> append = trie != null ?
-                                                        trie
-                                                          .computeIfAbsent(state, x -> new Trie<>())
-                                                          .suffix(ranking, suffixes) :
-                                                        Optional.empty();
+      Optional<List<AcceptingComponent.State>> append;
+      if (trie == null) {
+        append = Optional.empty();
+      } else {
+        append = trie
+          .computeIfAbsent(state, x -> new Trie<>())
+          .suffix(ranking, suffixes);
+      }
 
       if (append.isPresent()) {
         ranking.addAll(append.get());
@@ -238,17 +249,17 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
     protected boolean equals2(ImmutableObject o) {
       State that = (State) o;
       return that.volatileIndex == this.volatileIndex && Objects
-        .equals(initialComponentState, that.initialComponentState) &&
-        Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
+        .equals(initialComponentState, that.initialComponentState)
+        && Objects.equals(acceptingComponentRanking, that.acceptingComponentRanking);
     }
 
-        /* IDEAS:
-            - suppress jump if the current goal only contains literals and X.
-            - filter in the initial state, when jumps are done.
-            - detect if initial component is true -> move to according state.
-            - move "volatile" formulas to the back. select "infinity" formulas to stay upfront.
-            - if a monitor couldn't be reached from a jump, delete it.
-        */
+    /* IDEAS:
+     * - suppress jump if the current goal only contains literals and X.
+     * - filter in the initial state, when jumps are done.
+     * - detect if initial component is true -> move to according state.
+     * - move "volatile" formulas to the back. select "infinity" formulas to stay upfront.
+     * - if a monitor couldn't be reached from a jump, delete it.
+     */
 
     @Override
     @Nonnull

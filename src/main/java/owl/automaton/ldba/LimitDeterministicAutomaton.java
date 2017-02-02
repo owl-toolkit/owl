@@ -29,18 +29,20 @@ import java.util.Map;
 import java.util.Set;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
-import owl.algorithms.SCCAnalyser;
+import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HOAConsumerExtended;
-import owl.automaton.output.HOAPrintable;
+import owl.automaton.output.HoaConsumerExtended;
+import owl.automaton.output.HoaPrintable;
 import owl.collections.ValuationSet;
 import owl.translations.Optimisation;
 
-public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends GeneralizedBuchiAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>>
-  implements HOAPrintable {
+public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
+  S_A extends AutomatonState<S_A>, Acc extends GeneralizedBuchiAcceptance, I
+  extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>>
+  implements HoaPrintable {
 
   private final A acceptingComponent;
   private final I initialComponent;
@@ -59,9 +61,9 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     initialComponent.generate();
 
     // Generate Jump Table
-    List<Set<S_I>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS) ?
-                          SCCAnalyser.computeSCCs(initialComponent) :
-                          Collections.singletonList(initialComponent.getStates());
+    List<Set<S_I>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS)
+      ? SccAnalyser.computeAllScc(initialComponent)
+      : Collections.singletonList(initialComponent.getStates());
 
     for (Set<S_I> scc : sccs) {
       // Skip non-looping states with successors of a singleton SCC.
@@ -81,7 +83,8 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
     acceptingComponent.generate();
 
     // Remove dead-states
-    Set<S_A> deadStates = acceptingComponent.removeDeadStates(acceptingComponent.getInitialStates());
+    Set<S_A> deadStates =
+      acceptingComponent.removeDeadStates(acceptingComponent.getInitialStates());
     initialComponent.epsilonJumps.values().removeIf(deadStates::contains);
 
     if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
@@ -106,7 +109,8 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
       }
       
       initialComponent.epsilonJumps.clear();
-      initialComponent.removeDeadStates(Sets.union(initialComponent.getInitialStates(), initialComponent.valuationSetJumps.rowKeySet()));
+      initialComponent.removeDeadStates(Sets.union(initialComponent.getInitialStates(),
+        initialComponent.valuationSetJumps.rowKeySet()));
       acceptingComponent.removeDeadStates(accReach);
       initialComponent.removeDeadEnds(initialComponent.valuationSetJumps.rowKeySet());
       initialStates.removeIf(x -> !initialComponent.getStates().contains(x)
@@ -127,8 +131,8 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
   }
 
   @Override
-  public void setAtomMapping(Map<Integer, String> mapping) {
-    acceptingComponent.setAtomMapping(mapping);
+  public void setVariables(List<String> variables) {
+    acceptingComponent.setVariables(variables);
   }
 
   public int size() {
@@ -136,12 +140,12 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
   }
 
   @Override
-  public void toHOA(HOAConsumer c, EnumSet<Option> options) {
-    HOAConsumerExtended consumer = new HOAConsumerExtended(c,
-      acceptingComponent.getFactory().getSize(), acceptingComponent.getAtomMapping(),
+  public void toHoa(HOAConsumer c, EnumSet<Option> options) {
+    HoaConsumerExtended consumer = new HoaConsumerExtended(c,
+      acceptingComponent.getFactory().getSize(), acceptingComponent.getVariables(),
       acceptingComponent.getAcceptance(), initialStates, size(), options);
-    initialComponent.toHOABody(consumer);
-    acceptingComponent.toHOABody(consumer);
+    initialComponent.toHoaBody(consumer);
+    acceptingComponent.toHoaBody(consumer);
     consumer.notifyEnd();
   }
 
@@ -156,7 +160,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
 
   public String toString(EnumSet<Option> options) throws IOException {
     try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-      toHOA(new HOAConsumerPrint(stream), options);
+      toHoa(new HOAConsumerPrint(stream), options);
       return stream.toString("UTF8");
     }
   }

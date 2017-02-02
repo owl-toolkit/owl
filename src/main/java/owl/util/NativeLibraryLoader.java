@@ -18,12 +18,13 @@
 package owl.util;
 
 import com.google.common.io.ByteStreams;
-import java.io.File;
+import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 
 public final class NativeLibraryLoader {
@@ -64,36 +65,36 @@ public final class NativeLibraryLoader {
    *     If temporary file creation or read/write operation fails
    */
   private static void loadLibraryFromJar(String libraryName) throws IOException {
-    String librarySuffix = getLibrarySuffix(OperatingSystem.getCurrentOS());
+    String librarySuffix = getLibrarySuffix(OperatingSystem.getCurrentOperatingSystem());
 
     // Prepare temporary file
-    File temp = File.createTempFile("lib" + libraryName, librarySuffix);
-    temp.deleteOnExit();
+    Path temp = Files.createTempFile("lib" + libraryName, librarySuffix).toAbsolutePath();
+    temp.toFile().deleteOnExit();
 
-    if (!temp.exists()) {
-      throw new FileNotFoundException("File " + temp.getAbsolutePath() + " does not exist.");
+    if (!Files.exists(temp)) {
+      throw new FileNotFoundException("File " + temp + " does not exist.");
     }
 
-    try (InputStream is = NativeLibraryLoader.class.
-      getResourceAsStream("lib" + libraryName + librarySuffix)) {
+    try (InputStream is =
+           NativeLibraryLoader.class.getResourceAsStream("lib" + libraryName + librarySuffix)) {
       // Open and check input stream
       if (is == null) {
         throw new FileNotFoundException(
           "File lib" + libraryName + librarySuffix + " was not found inside JAR.");
       }
 
-      try (OutputStream os = new FileOutputStream(temp)) {
+      try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(temp))) {
         ByteStreams.copy(is, os);
       }
     }
 
-    System.load(temp.getAbsolutePath());
+    System.load(temp.toString());
   }
 
   enum OperatingSystem {
     DARWIN, LINUX, UNKNOWN;
 
-    static OperatingSystem getCurrentOS() {
+    static OperatingSystem getCurrentOperatingSystem() {
       String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
       if (osName.contains("mac") || osName.contains("darwin")) {

@@ -23,15 +23,15 @@ import java.util.Objects;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.ImmutableObject;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponent;
+import owl.util.ImmutableObject;
 
 public class AcceptingComponent extends
   AbstractAcceptingComponent<AcceptingComponent.State, BuchiAcceptance, RecurringObligations2> {
@@ -63,7 +63,7 @@ public class AcceptingComponent extends
     private final EquivalenceClass safety;
     private BitSet sensitiveAlphabet;
 
-    private State(@Nonnegative int index, EquivalenceClass safety, EquivalenceClass liveness,
+    State(@Nonnegative int index, EquivalenceClass safety, EquivalenceClass liveness,
       RecurringObligations2 obligations) {
       assert 0 == index || (0 < index && index < obligations.liveness.length);
 
@@ -114,7 +114,8 @@ public class AcceptingComponent extends
       int j;
 
       // Scan for new index if currentSuccessor currentSuccessor is true.
-      // In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
+      // In this way we can skip several fullfilled break-points at a time and are not bound to
+      // slowly check one by one.
       if (livenessSuccessor.isTrue()) {
         obtainNewGoal = true;
         j = scan(index + 1, valuation);
@@ -148,29 +149,30 @@ public class AcceptingComponent extends
 
     @Nonnegative
     private int scan(@Nonnegative int i, BitSet valuation) {
+      int index = i;
       final int livenessLength = obligations.liveness.length;
 
-      while (i < livenessLength) {
+      while (index < livenessLength) {
         EquivalenceClass successor = factory
-          .getSuccessor(factory.getInitial(obligations.liveness[i]), valuation);
+          .getSuccessor(factory.getInitial(obligations.liveness[index]), valuation);
 
         if (successor.isTrue()) {
-          i++;
+          index++;
         } else {
           break;
         }
       }
 
-      return i;
+      return index;
     }
 
     @Override
     public String toString() {
-      return "[obligations=" + obligations +
-        (!safety.isTrue() ? ", safety=" + safety : "") +
-        (index != 0 ? ", index=" + index : "") +
-        (!liveness.isTrue() ? ", current-liveness=" + liveness : "") +
-        ']';
+      return "[obligations=" + obligations
+        + (safety.isTrue() ? "" : ", safety=" + safety)
+        + (index == 0 ? "" : ", index=" + index)
+        + (liveness.isTrue() ? "" : ", current-liveness=" + liveness)
+        + ']';
     }
   }
 }

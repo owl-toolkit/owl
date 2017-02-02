@@ -22,12 +22,12 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import owl.automaton.output.HOAConsumerExtended;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
+import owl.automaton.output.HoaConsumerExtended;
 
 @RunWith(Theories.class)
 public class ParityAcceptanceTest {
@@ -36,34 +36,33 @@ public class ParityAcceptanceTest {
   public static final ParityAcceptance ACCEPTANCE = new ParityAcceptance(1);
 
   @DataPoint
-  public static final ParityAcceptance ACCEPTANCE_COMPLEMENT = (new ParityAcceptance(1))
-    .complement();
+  public static final ParityAcceptance ACCEPTANCE_COMPLEMENT = new ParityAcceptance(1).complement();
 
   @Theory
-  public void complement(ParityAcceptance acceptance) throws Exception {
+  public void complement(ParityAcceptance acceptance) {
     ParityAcceptance complement = acceptance.complement();
     assertNotEquals(acceptance, complement);
     assertEquals(acceptance, complement.complement());
   }
 
   @Theory
-  public void getAcceptanceSets(OmegaAcceptance acceptance) throws Exception {
+  public void getAcceptanceSets(OmegaAcceptance acceptance) {
     assertEquals(1, acceptance.getAcceptanceSets());
   }
 
   @Test
-  public void getBooleanExpression() throws Exception {
-    assertEquals(HOAConsumerExtended.mkFin(0), ACCEPTANCE.getBooleanExpression());
-    assertEquals(HOAConsumerExtended.mkInf(0), ACCEPTANCE_COMPLEMENT.getBooleanExpression());
+  public void getBooleanExpression() {
+    assertEquals(HoaConsumerExtended.mkFin(0), ACCEPTANCE.getBooleanExpression());
+    assertEquals(HoaConsumerExtended.mkInf(0), ACCEPTANCE_COMPLEMENT.getBooleanExpression());
   }
 
   @Theory
-  public void getName(OmegaAcceptance acceptance) throws Exception {
+  public void getName(OmegaAcceptance acceptance) {
     assertEquals("parity", acceptance.getName());
   }
 
   @Theory
-  public void getNameExtra(OmegaAcceptance acceptance) throws Exception {
+  public void getNameExtra(OmegaAcceptance acceptance) {
     List<Object> extra = acceptance.getNameExtra();
 
     // Check types

@@ -21,10 +21,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.GOperator;
-import owl.ltl.ImmutableObject;
-import owl.ltl.EquivalenceClass;
+import owl.util.ImmutableObject;
 
 public class RecurringObligations2 extends ImmutableObject {
 
@@ -86,20 +86,21 @@ public class RecurringObligations2 extends ImmutableObject {
 
   @Override
   public String toString() {
-    String toString = "";
+    StringBuilder stringBuilder = new StringBuilder(50);
 
+    stringBuilder.append('<');
     if (!safety.isTrue()) {
-      toString += "safety=" + safety;
+      stringBuilder.append("safety=").append(safety);
     }
 
     if (liveness.length > 0) {
       if (!safety.isTrue()) {
-        toString += ", ";
+        stringBuilder.append(", ");
       }
 
-      toString += "liveness=" + Arrays.toString(liveness);
+      stringBuilder.append("liveness=").append(Arrays.toString(liveness));
     }
-
-    return '<' + toString + '>';
+    stringBuilder.append('>');
+    return stringBuilder.toString();
   }
 }

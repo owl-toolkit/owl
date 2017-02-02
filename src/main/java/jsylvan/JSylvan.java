@@ -25,7 +25,7 @@ import owl.collections.BitSets;
  * After every call to makeXXX, call ref.
  * To dereference, call deref.
  */
-public class JSylvan {
+public final class JSylvan {
 
   private static long one;
   private static long zero;

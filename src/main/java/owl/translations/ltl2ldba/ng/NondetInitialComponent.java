@@ -17,21 +17,22 @@
 
 package owl.translations.ltl2ldba.ng;
 
+import static owl.collections.BitSets.collect;
+
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.collections.BitSets;
-import owl.collections.ValuationSet;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.collections.BitSets;
+import owl.collections.ValuationSet;
 import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponent;
 import owl.translations.ltl2ldba.Evaluator;
@@ -49,12 +50,6 @@ public class NondetInitialComponent<S extends AutomatonState<S>, T> extends Init
     Evaluator<T> recurringObligationsEvaluator) {
     super(acceptingComponent, factories, optimisations, recurringObligationsSelector,
       recurringObligationsEvaluator);
-  }
-
-  static private BitSet collect(IntStream stream) {
-    BitSet bitSet = new BitSet();
-    stream.forEach(bitSet::set);
-    return bitSet;
   }
 
   @Override
@@ -85,7 +80,7 @@ public class NondetInitialComponent<S extends AutomatonState<S>, T> extends Init
         for (EquivalenceClass successorState : successorsList) {
           Edge<InitialComponentState> splitSuccessor = Edges
             .create(new InitialComponentState(this, successorState),
-              collect(successor.acceptanceSetStream()));
+              collect(successor.acceptanceSetIterator()));
 
           ValuationSet oldVs = successors.get(splitSuccessor);
           ValuationSet newVs = valuationSetFactory.createValuationSet(valuation, sensitiveAlphabet);

@@ -3,12 +3,9 @@ package owl.factories.jdd.bdd;
 import org.junit.Test;
 
 /**
- * A collection of tests motivated by regressions
+ * A collection of tests motivated by regressions.
  */
-// I don't see why PMD is nagging here but not for the other classes
-@SuppressWarnings("PMD.AtLeastOneConstructor")
 public class BddRegressionTest {
-
   @Test
   public void testReferenceOverflow() {
     final BddImpl bdd = new BddImpl(20);

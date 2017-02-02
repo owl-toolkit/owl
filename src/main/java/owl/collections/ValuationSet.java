@@ -23,9 +23,9 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 
 /**
- * This interface is very similar to {@link java.util.Set<BitSet>} but breaks on purpose several
- * standard contracts, such as returning a boolean, if the operation changes the underlying
- * data-structure. This information is never used and it is costly to support this.
+ * This interface is very similar to a {@link java.util.Set} containing {@link BitSet}s but breaks
+ * several standard contracts on purpose, such as returning a boolean, if the operation changes the
+ * underlying data-structure. This information is never used and it is costly to support this.
  */
 public interface ValuationSet extends Iterable<BitSet> {
   void add(@Nonnull BitSet valuation);
@@ -38,7 +38,10 @@ public interface ValuationSet extends Iterable<BitSet> {
    * @param other
    *     the other valuation set.
    */
-  void addAllWith(@Nonnull ValuationSet other);
+  default void addAllWith(@Nonnull ValuationSet other) {
+    addAll(other);
+    other.free();
+  }
 
   ValuationSet complement();
 

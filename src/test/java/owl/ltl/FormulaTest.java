@@ -20,28 +20,39 @@ package owl.ltl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
-import owl.ltl.parser.Parser;
+import java.util.List;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
+import owl.ltl.parser.LtlParser;
+import owl.ltl.parser.ParseException;
 
 @RunWith(Theories.class)
 public class FormulaTest {
+  static {
+    LtlParser parser = new LtlParser();
+    try {
+      FORMULAS = ImmutableList.of(
+        parser.parseLtl("true"),
+        parser.parseLtl("false"),
+        parser.parseLtl("a"),
+        parser.parseLtl("F a"),
+        parser.parseLtl("G a"),
+        parser.parseLtl("X a"),
+        parser.parseLtl("a U b"),
+        parser.parseLtl("a R b")
+      );
+    } catch (ParseException ex) {
+      throw new AssertionError(ex);
+    }
+  }
 
   @DataPoints
-  public static final Formula[] FORMULAS = {
-    Parser.formula("true"),
-    Parser.formula("false"),
-    Parser.formula("a"),
-    Parser.formula("F a"),
-    Parser.formula("G a"),
-    Parser.formula("X a"),
-    Parser.formula("a U b"),
-    Parser.formula("a R b"),
-  };
+  public static final List<Formula> FORMULAS;
   @DataPoint
   public static final BitSet ONE = new BitSet();
   @DataPoint
@@ -64,18 +75,18 @@ public class FormulaTest {
   }
 
   @Theory
-  public void not(Formula formula) throws Exception {
+  public void not(Formula formula) {
     assertEquals(formula, formula.not().not());
     assertEquals(formula.not(), formula.not().not().not());
   }
 
   @Theory
-  public void temporalStepUnfold(Formula formula, BitSet bitSet) throws Exception {
+  public void temporalStepUnfold(Formula formula, BitSet bitSet) {
     assertEquals(formula.temporalStep(bitSet).unfold(), formula.temporalStepUnfold(bitSet));
   }
 
   @Theory
-  public void unfoldTemporalStep(Formula formula, BitSet bitSet) throws Exception {
+  public void unfoldTemporalStep(Formula formula, BitSet bitSet) {
     assertEquals(formula.unfold().temporalStep(bitSet), formula.unfoldTemporalStep(bitSet));
   }
 }

@@ -18,25 +18,29 @@
 package owl.automaton.edge;
 
 import java.util.BitSet;
+import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.stream.IntStream;
+import java.util.PrimitiveIterator;
+import java.util.PrimitiveIterator.OfInt;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
 final class EdgeGeneric<S> implements Edge<S> {
   private final BitSet acceptance;
+  private final int cachedHashCode;
   private final S successor;
 
   EdgeGeneric(final S successor, final BitSet acceptance) {
     assert acceptance.cardinality() > 1;
     this.successor = successor;
     this.acceptance = acceptance;
+    this.cachedHashCode = 31 * (31 + successor.hashCode()) + acceptance.hashCode();
   }
 
   @Override
-  public IntStream acceptanceSetStream() {
-    return acceptance.stream();
+  public OfInt acceptanceSetIterator() {
+    return new BitSetIterator(acceptance);
   }
 
   @Override
@@ -61,16 +65,43 @@ final class EdgeGeneric<S> implements Edge<S> {
 
   @Override
   public int hashCode() {
-    return 31 * (31 + successor.hashCode()) + acceptance.hashCode();
+    return cachedHashCode;
   }
 
   @Override
   public boolean inSet(@Nonnegative final int i) {
+    assert i >= 0;
     return acceptance.get(i);
   }
 
   @Override
   public String toString() {
-    return "-> " + successor + " {" + acceptance + '}';
+    return Edge.toString(this);
+  }
+
+  // Copied from ava.util.BitSet#stream()
+  private static final class BitSetIterator implements PrimitiveIterator.OfInt {
+    private final BitSet bitSet;
+    private int next;
+
+    BitSetIterator(BitSet bitSet) {
+      this.bitSet = bitSet;
+      next = bitSet.nextSetBit(0);
+    }
+
+    @Override
+    public boolean hasNext() {
+      return next != -1;
+    }
+
+    @Override
+    public int nextInt() {
+      if (next == -1) {
+        throw new NoSuchElementException();
+      }
+      int current = next;
+      next = bitSet.nextSetBit(next + 1);
+      return current;
+    }
   }
 }

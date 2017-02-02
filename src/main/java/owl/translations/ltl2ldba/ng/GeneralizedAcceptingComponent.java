@@ -23,18 +23,18 @@ import java.util.EnumSet;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.ImmutableObject;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponent;
+import owl.util.ImmutableObject;
 
-public class GeneralizedAcceptingComponent extends
-  AbstractAcceptingComponent<GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, RecurringObligations2> {
+public class GeneralizedAcceptingComponent extends AbstractAcceptingComponent<
+  GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, RecurringObligations2> {
 
   GeneralizedAcceptingComponent(Factories factories, EnumSet<Optimisation> optimisations) {
     super(new GeneralizedBuchiAcceptance(1), optimisations, factories);
@@ -43,7 +43,7 @@ public class GeneralizedAcceptingComponent extends
   @Override
   protected State createState(EquivalenceClass remainder, RecurringObligations2 obligations) {
     EquivalenceClass safety = remainder.andWith(obligations.safety);
-    EquivalenceClass liveness[] = new EquivalenceClass[obligations.liveness.length];
+    EquivalenceClass[] liveness = new EquivalenceClass[obligations.liveness.length];
 
     for (int i = 0; i < liveness.length; i++) {
       liveness[i] = factory.getInitial(obligations.liveness[i]);
@@ -52,7 +52,7 @@ public class GeneralizedAcceptingComponent extends
     // If it is necessary, increase the number of acceptance conditions.
     if (liveness.length > acceptance.getAcceptanceSets()) {
       acceptance = new GeneralizedBuchiAcceptance(liveness.length);
-      ACCEPT.set(0, liveness.length);
+      accept.set(0, liveness.length);
     }
 
     return new State(factory.getInitial(safety, liveness), liveness, obligations);
@@ -65,7 +65,7 @@ public class GeneralizedAcceptingComponent extends
     private final EquivalenceClass safety;
     private BitSet sensitiveAlphabet;
 
-    private State(EquivalenceClass safety, EquivalenceClass[] liveness,
+    State(EquivalenceClass safety, EquivalenceClass[] liveness,
       RecurringObligations2 obligations) {
       this.liveness = liveness;
       this.obligations = obligations;
@@ -130,10 +130,10 @@ public class GeneralizedAcceptingComponent extends
 
     @Override
     public String toString() {
-      return "[obligations=" + obligations +
-        (!safety.isTrue() ? ", safety=" + safety : "") +
-        ", liveness=" + Arrays.toString(liveness) +
-        ']';
+      return "[obligations=" + obligations
+        + (safety.isTrue() ? "" : ", safety=" + safety)
+        + ", liveness=" + Arrays.toString(liveness)
+        + ']';
     }
   }
 }

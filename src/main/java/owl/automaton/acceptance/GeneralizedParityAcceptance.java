@@ -25,21 +25,21 @@ public class GeneralizedParityAcceptance implements OmegaAcceptance {
 
   @Override
   public int getAcceptanceSets() {
-    throw new RuntimeException("Not yet implemented!");
+    throw new UnsupportedOperationException("Not yet implemented!");
   }
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    throw new RuntimeException("Not yet implemented!");
+    throw new UnsupportedOperationException("Not yet implemented!");
   }
 
   @Override
   public String getName() {
-    throw new RuntimeException("Not yet implemented!");
+    throw new UnsupportedOperationException("Not yet implemented!");
   }
 
   @Override
   public List<Object> getNameExtra() {
-    throw new RuntimeException("Not yet implemented!");
+    throw new UnsupportedOperationException("Not yet implemented!");
   }
 }

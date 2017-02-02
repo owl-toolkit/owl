@@ -17,8 +17,7 @@
 
 package owl.automaton;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -37,17 +36,19 @@ import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.factories.jdd.VSFactory;
-import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.collections.ValuationSet;
 import owl.factories.Factories;
 import owl.factories.Registry;
+import owl.factories.ValuationSetFactory;
+import owl.factories.jdd.ValuationFactory;
 
+// TODO Abstract a generic automaton reader class which just delegates the acceptance condition
+// parsing
+@SuppressWarnings("PMD.GodClass")
 public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
-
-  private Set<State> acceptingStates = new HashSet<>();
+  private final Set<State> acceptingStates = new HashSet<>();
 
   StoredBuchiAutomaton(Factories factories) {
     super(new BuchiAcceptance(), factories);
@@ -64,9 +65,12 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
   private void addTransition(State source, ValuationSet label, State successor) {
     Map<Edge<State>, ValuationSet> transition = transitions.get(source);
-    Edge<State> edge = acceptingStates.contains(source) ?
-                       Edges.create(successor, 0) :
-                       Edges.create(successor);
+    Edge<State> edge;
+    if (acceptingStates.contains(source)) {
+      edge = Edges.create(successor, 0);
+    } else {
+      edge = Edges.create(successor);
+    }
     ValuationSet oldLabel = transition.get(edge);
 
     if (oldLabel == null) {
@@ -76,7 +80,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     }
   }
 
-  public Map<StoredBuchiAutomaton.State, Map<Edge<StoredBuchiAutomaton.State>, ValuationSet>> getTransitions() {
+  public Map<StoredBuchiAutomaton.State, Map<Edge<StoredBuchiAutomaton.State>, ValuationSet>>
+  getTransitions() {
     return transitions;
   }
 
@@ -87,11 +92,15 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
   public static class Builder implements HOAConsumer {
 
     private final Deque<StoredBuchiAutomaton> automata = new ArrayDeque<>();
+    @Nullable
     private StoredBuchiAutomaton automaton;
     private int implicitEdgeCounter;
+    @Nullable
     private Integer initialState;
+    @Nullable
     private State[] integerToState;
-    private Map<Integer, String> mapping;
+    private List<String> variables;
+    @Nullable
     private ValuationSetFactory valuationSetFactory;
 
     private static boolean isAcceptingState(@Nullable List<Integer> list)
@@ -101,7 +110,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         return false;
       }
 
-      if (!(list.size() == 1)) {
+      if (list.size() != 1) {
         throw new HOAConsumerException("Only state-based Büchi Acceptance is supported.");
       }
 
@@ -124,6 +133,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     @Override
     public void addEdgeImplicit(int i, List<Integer> list, List<Integer> list1)
       throws HOAConsumerException {
+      assert valuationSetFactory != null;
       addEdgeWithLabel(i,
         BooleanExpression.fromImplicit(implicitEdgeCounter, valuationSetFactory.getSize()), list,
         list1);
@@ -133,7 +143,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     @Override
     public void addEdgeWithLabel(int i, BooleanExpression<AtomLabel> booleanExpression,
       List<Integer> successors, List<Integer> accList) throws HOAConsumerException {
-      State source = integerToState[i];
+      assert integerToState != null;
+      assert automaton != null;
 
       if (accList != null && !accList.isEmpty()) {
         throw new HOAConsumerException("Edge acceptance is not supported.");
@@ -151,9 +162,11 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
       State successor = integerToState[index];
 
       if (successor == null) {
-        integerToState[index] = successor = automaton.addState();
+        successor = automaton.addState();
+        integerToState[index] = successor;
       }
 
+      State source = integerToState[i];
       automaton.addTransition(source, toValuationSet(booleanExpression), successor);
     }
 
@@ -179,9 +192,16 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     @Override
     public void addState(int i, String s, BooleanExpression<AtomLabel> booleanExpression,
       @Nullable List<Integer> list) throws HOAConsumerException {
+      assert automaton != null;
       ensureSpaceInMap(i);
+      assert integerToState != null;
 
-      String label = (s == null) ? Integer.toString(i) : s;
+      String label;
+      if (s == null) {
+        label = Integer.toString(i);
+      } else {
+        label = s;
+      }
       State state = integerToState[i];
 
       // Create state, if missing.
@@ -191,7 +211,7 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
       }
 
       // Update label and acceptance marking for state.
-      state.label = label;
+      state.setLabel(label);
 
       if (isAcceptingState(list)) {
         automaton.acceptingStates.add(state);
@@ -219,15 +239,19 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
     @Override
     public void notifyBodyStart() throws HOAConsumerException {
+      if (initialState == null) {
+        throw new HOAConsumerException("No initial state");
+      }
       if (valuationSetFactory == null) {
-        valuationSetFactory = new VSFactory(0);
+        valuationSetFactory = new ValuationFactory(0);
       }
 
       automaton = new StoredBuchiAutomaton(Registry.getFactories(valuationSetFactory.getSize()));
       ensureSpaceInMap(initialState);
+      assert integerToState != null;
       integerToState[initialState] = automaton.addState();
       automaton.setInitialState(integerToState[initialState]);
-      automaton.setAtomMapping(mapping);
+      automaton.setVariables(variables);
     }
 
     @Override
@@ -242,6 +266,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     }
 
     @Override
+    // We reset the state of the reader here
+    @SuppressWarnings("PMD.NullAssignment")
     public void notifyHeaderStart(String s) {
       valuationSetFactory = null;
       integerToState = null;
@@ -268,10 +294,8 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
 
     @Override
     public void setAPs(List<String> list) throws HOAConsumerException {
-      BiMap<String, Integer> aliases = HashBiMap.create(list.size());
-      list.forEach(ap -> aliases.put(ap, aliases.size()));
-      mapping = aliases.inverse();
-      valuationSetFactory = new VSFactory(list.size());
+      this.variables = ImmutableList.copyOf(list);
+      valuationSetFactory = new ValuationFactory(list.size());
     }
 
     @Override
@@ -336,8 +360,13 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
   }
 
   public static class State implements AutomatonState<State> {
+    @Nullable
+    private String label;
 
-    String label;
+    @Nullable
+    public String getLabel() {
+      return label;
+    }
 
     @Nonnull
     @Override
@@ -353,9 +382,16 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
         "Stored Automaton State cannot perform on-demand computations.");
     }
 
+    public void setLabel(String label) {
+      this.label = label;
+    }
+
     @Override
     public String toString() {
-      return label == null ? "null" : label;
+      if (label == null) {
+        return "null";
+      }
+      return label;
     }
   }
 }

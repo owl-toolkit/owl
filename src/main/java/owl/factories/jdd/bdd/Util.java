@@ -38,7 +38,6 @@ final class Util {
     return fnv1aRound(FNV_OFFSET, key);
   }
 
-  @SuppressWarnings("PMD.UseVarargs")
   public static int hash(final int key, final int[] keys) {
     int hash = fnv1aRound(FNV_OFFSET, key);
     for (final int arrayKey : keys) {

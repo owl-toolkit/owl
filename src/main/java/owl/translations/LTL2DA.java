@@ -22,28 +22,28 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import owl.ltl.Formula;
 import owl.automaton.Automaton;
-import owl.automaton.output.HOAPrintable;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.output.HoaPrintable;
+import owl.ltl.Formula;
 import owl.translations.ltl2dpa.Ltl2Dpa;
-import owl.translations.ltl2ldba.Ltl2Ldgba;
+import owl.translations.ltl2ldba.LTL2LDGBA;
 
-public class LTL2DA extends AbstractLTLCommandLineTool {
-
+public final class LTL2DA extends AbstractLtlCommandLineTool {
   private final boolean parallel;
 
   private LTL2DA(boolean parallel) {
     this.parallel = parallel;
   }
 
-  public static void main(String... argsArray) throws Exception {
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  public static void main(String... argsArray) throws Exception { // NOPMD
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new LTL2DA(args.remove("--parallel")).execute(args);
   }
 
-  private static HOAPrintable translate(Formula formula, EnumSet<Optimisation> optimisations) {
-    Ltl2Ldgba ltl2Ldgba = new Ltl2Ldgba(optimisations);
+  private static HoaPrintable translate(Formula formula, EnumSet<Optimisation> optimisations) {
+    LTL2LDGBA ltl2Ldgba = new LTL2LDGBA(optimisations);
     Ltl2Dpa ltl2Dpa = new Ltl2Dpa(optimisations);
 
     LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = ltl2Ldgba.apply(formula);
@@ -57,7 +57,7 @@ public class LTL2DA extends AbstractLTLCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, ? extends HOAPrintable> getTranslation(
+  protected Function<Formula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
     if (parallel) {
       optimisations.add(Optimisation.PARALLEL);
@@ -65,6 +65,6 @@ public class LTL2DA extends AbstractLTLCommandLineTool {
       optimisations.remove(Optimisation.PARALLEL);
     }
 
-    return (x) -> (translate(x, optimisations));
+    return x -> translate(x, optimisations);
   }
 }

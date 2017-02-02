@@ -23,10 +23,9 @@ import java.util.Objects;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.output.HOAConsumerExtended;
+import owl.automaton.output.HoaConsumerExtended;
 
 public class ParityAcceptance implements OmegaAcceptance {
-
   @Nonnegative
   private final int colors;
   private final Priority priority;
@@ -53,8 +52,8 @@ public class ParityAcceptance implements OmegaAcceptance {
       return false;
     }
     ParityAcceptance that = (ParityAcceptance) o;
-    return colors == that.colors &&
-      priority == that.priority;
+    return colors == that.colors
+      && priority == that.priority;
   }
 
   @Override
@@ -68,15 +67,15 @@ public class ParityAcceptance implements OmegaAcceptance {
       return new BooleanExpression<>(priority == Priority.EVEN);
     }
 
-    int i = colors - 1;
+    int index = colors - 1;
 
-    BooleanExpression<AtomAcceptance> exp = mkColor(i);
+    BooleanExpression<AtomAcceptance> exp = mkColor(index);
 
-    for (i--; 0 <= i; i--) {
-      if (i % 2 == 0 ^ priority == Priority.EVEN) {
-        exp = mkColor(i).and(exp);
+    for (index--; 0 <= index; index--) {
+      if (index % 2 == 0 ^ priority == Priority.EVEN) {
+        exp = mkColor(index).and(exp);
       } else {
-        exp = mkColor(i).or(exp);
+        exp = mkColor(index).or(exp);
       }
     }
 
@@ -103,9 +102,9 @@ public class ParityAcceptance implements OmegaAcceptance {
   }
 
   private BooleanExpression<AtomAcceptance> mkColor(int i) {
-    return (i % 2 == 0 ^ priority == Priority.EVEN) ?
-           HOAConsumerExtended.mkFin(i) :
-           HOAConsumerExtended.mkInf(i);
+    return (i % 2 == 0 ^ priority == Priority.EVEN)
+      ? HoaConsumerExtended.mkFin(i)
+      : HoaConsumerExtended.mkInf(i);
   }
 
   public enum Priority {

@@ -34,21 +34,20 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.factories.EquivalenceClassFactory;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.ROperator;
 import owl.ltl.WOperator;
-import owl.ltl.EquivalenceClass;
-import owl.factories.EquivalenceClassFactory;
 import owl.ltl.simplifier.Simplifier;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.translations.Optimisation;
 
 public class RecurringObligationsSelector implements Selector<RecurringObligations> {
-
-  private final static Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator
+  private static final Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator
     || x instanceof ROperator || x instanceof WOperator;
   private final Map<Set<GOperator>, RecurringObligations> cache;
   private final Evaluator<RecurringObligations> evaluator;
@@ -123,8 +122,8 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
       GOperator gOperator = gOperators.get(i);
 
       // We only propagate information from already constructed G-monitors.
-      RecurringObligationsEvaluator.EvaluateVisitor evaluateVisitor = new RecurringObligationsEvaluator.EvaluateVisitor(
-        gOperators.subList(0, i), factory);
+      RecurringObligationsEvaluator.EvaluateVisitor evaluateVisitor =
+        new RecurringObligationsEvaluator.EvaluateVisitor(gOperators.subList(0, i), factory);
 
       Formula formula = Simplifier.simplify(Simplifier
           .simplify(gOperator.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT),
@@ -170,14 +169,14 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
   }
 
   /**
-   * Is the first language a subset of the second language?
+   * Determines if the first language is a subset of the second language.
    *
    * @param obligations
-   *     - first language
+   *     first language
    * @param otherObligations
-   *     - second language
+   *     second language
    * @param master
-   *     - remainder
+   *     remainder
    *
    * @return true if is a sub-language
    */
@@ -199,9 +198,9 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
     final Collection<Set<GOperator>> keys;
     final BiMap<Set<GOperator>, RecurringObligations> jumps = HashBiMap.create();
 
-    EquivalenceClass state = optimisations.contains(Optimisation.EAGER_UNFOLD) ?
-                             input.duplicate() :
-                             input.unfold();
+    EquivalenceClass state = optimisations.contains(Optimisation.EAGER_UNFOLD)
+      ? input.duplicate()
+      : input.unfold();
 
     // Find interesting Gs
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
@@ -241,7 +240,7 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
           if (!externalAtoms.isEmpty()) {
             externalAtoms.and(internalAtoms);
 
-            if (externalAtoms.isEmpty()) {
+            if (externalAtoms.isEmpty()) { // NOPMD
               return true;
             }
           }

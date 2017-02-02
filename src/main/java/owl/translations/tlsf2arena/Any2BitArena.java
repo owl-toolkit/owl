@@ -17,6 +17,10 @@
 
 package owl.translations.tlsf2arena;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
+import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -35,13 +39,14 @@ import java.io.Writer;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.edge.Edge;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
-import owl.automaton.edge.Edge;
 import owl.translations.ltl2dpa.ParityAutomaton;
 
 class Any2BitArena {
@@ -56,29 +61,28 @@ class Any2BitArena {
   private BitSet sndAlphabet;
 
   void readBinary(File nodeFile, File edgeFile) throws IOException {
-    try (DataInputStream nodeStream = new DataInputStream(
-      new BufferedInputStream(new FileInputStream(nodeFile)));
-         DataInputStream edgeStream = new DataInputStream(
-           new BufferedInputStream(new FileInputStream(edgeFile)))) {
+    try (DataInputStream nodeStream =
+           new DataInputStream(new BufferedInputStream(new FileInputStream(nodeFile)));
+         DataInputStream edgeStream =
+           new DataInputStream(new BufferedInputStream(new FileInputStream(edgeFile)))) {
       System.out.println("Number of Nodes: " + nodeStream.readInt());
       System.out.println("Number of Edges: " + edgeStream.readInt());
       System.out.println("Initial State: " + nodeStream.readInt());
       System.out.println(
-        "First Player: " + (nodeStream.readInt() == Player.Environment.ordinal() ? "env" : "sys"));
+        "First Player: " + (nodeStream.readInt() == Player.ENVIRONMENT.ordinal() ? "env" : "sys"));
       int maxColor = edgeStream.readInt();
       System.out.println("Max Color: " + maxColor);
 
-      int currentNode = nodeStream.readInt();
       int currentEdgePos = nodeStream.readInt();
-
-      if (currentEdgePos != 0) {
-        throw new RuntimeException();
-      }
+      checkState(currentEdgePos == 0);
+      int currentNode = nodeStream.readInt();
 
       int nextNode;
       int nextEdgePos;
 
       try {
+        // TODO This might need an overhaul
+        //noinspection InfiniteLoopStatement - Stopped by EOFException
         while (true) {
           nextNode = nodeStream.readInt();
           nextEdgePos = nodeStream.readInt();
@@ -91,19 +95,13 @@ class Any2BitArena {
 
             System.out.println(currentNode + " -(" + color + ")-> " + desti);
 
-            if (desti * currentNode > 0) {
-              throw new RuntimeException("Edge corrupt");
-            }
-
-            if (color < 0 || color > maxColor) {
-              throw new RuntimeException("Color corrupt");
-            }
+            checkState(desti * currentNode <= 0, "Edge corrupt");
+            checkState(color >= 0 && color <= maxColor, "Color corrupt");
           }
-
           currentNode = nextNode;
         }
-      } catch (EOFException ex) {
-
+      } catch (EOFException ignored) {
+        // Ignored
       }
     }
 
@@ -111,17 +109,17 @@ class Any2BitArena {
 
   private <S extends AutomatonState<S>> void setUp(Automaton<S, ?> automaton, Player firstPlayer,
     BitSet envAlphabet) {
-    if (!(automaton.getAcceptance() instanceof ParityAcceptance) && !(automaton
-      .getAcceptance() instanceof BuchiAcceptance)) {
-      throw new RuntimeException("Unsupported acceptance: " + automaton.getAcceptance());
-    }
+    checkArgument(automaton.getAcceptance() instanceof ParityAcceptance
+        || automaton.getAcceptance() instanceof BuchiAcceptance,
+      "Unsupported acceptance: %s", automaton.getAcceptance());
 
     this.firstPlayer = firstPlayer;
+    @SuppressWarnings("UseOfClone")
     BitSet sysAlphabet = (BitSet) envAlphabet.clone();
     sysAlphabet.flip(0, automaton.getFactory().getSize());
 
-    this.fstAlphabet = (firstPlayer == Player.Environment) ? envAlphabet : sysAlphabet;
-    this.sndAlphabet = (firstPlayer == Player.System) ? envAlphabet : sysAlphabet;
+    this.fstAlphabet = (firstPlayer == Player.ENVIRONMENT) ? envAlphabet : sysAlphabet;
+    this.sndAlphabet = (firstPlayer == Player.SYSTEM) ? envAlphabet : sysAlphabet;
 
     primaryNodes = 0;
     secondaryNodes = 0;
@@ -175,8 +173,8 @@ class Any2BitArena {
   }
 
   private <S extends AutomatonState<S>> void writeState(final DataOutputStream nodeStream,
-    final DataOutputStream edgeStream, final Writer labelStream, final ParityAutomaton<S> automaton,
-    final S state) throws IOException {
+    final DataOutputStream edgeStream, @Nullable final Writer labelStream,
+    final ParityAutomaton<S> automaton, final S state) throws IOException {
     BitSet fstAlpha = state.getSensitiveAlphabet();
     BitSet sndAlpha = (BitSet) fstAlpha.clone();
 
@@ -184,8 +182,9 @@ class Any2BitArena {
     sndAlpha.and(sndAlphabet);
 
     // Compute intermediate states and transitions.
-    int beforeSecondaryNodes = secondaryNodes;
+    final int beforeSecondaryNodes = secondaryNodes;
 
+    //noinspection LabeledStatement
     fstChoice:
     for (BitSet fstChoice : BitSets.powerSet(fstAlpha)) {
       Map<S, Int2ObjectMap<ValuationSet>> intermediateStates = new HashMap<>();
@@ -195,20 +194,17 @@ class Any2BitArena {
         Edge<S> edge = automaton.getSuccessor(state, sndChoice);
 
         if (edge == null) {
-          if (firstPlayer == Player.System) {
+          if (firstPlayer == Player.SYSTEM) {
             continue fstChoice;
           } else {
             continue;
           }
         }
 
-        final int color = edge.acceptanceSetStream().findFirst().orElse(this.colors);
-        Int2ObjectMap<ValuationSet> colorMap = intermediateStates.get(edge);
-
-        if (colorMap == null) {
-          colorMap = new Int2ObjectArrayMap<>();
-          intermediateStates.put(edge.getSuccessor(), colorMap);
-        }
+        @SuppressWarnings("ConstantConditions")
+        final int color = Iterators.getNext(edge.acceptanceSetIterator(), this.colors);
+        Int2ObjectMap<ValuationSet> colorMap = intermediateStates
+          .computeIfAbsent(edge.getSuccessor(), k -> new Int2ObjectArrayMap<>());
 
         ValuationSet vs = colorMap.get(color);
 
@@ -251,5 +247,7 @@ class Any2BitArena {
     }
   }
 
-  enum Player {System, Environment}
+  enum Player {
+    SYSTEM, ENVIRONMENT
+  }
 }

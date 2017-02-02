@@ -41,7 +41,7 @@ public abstract class ValuationSetTest {
   private ValuationSet universe;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     BiMap<String, Integer> aliases = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
     ValuationSetFactory factory = setUpFactory(aliases);
 
@@ -60,7 +60,7 @@ public abstract class ValuationSetTest {
   public abstract ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases);
 
   @Test
-  public void testComplement() throws Exception {
+  public void testComplement() {
     assertEquals(universe.complement(), empty);
     assertEquals(empty.complement(), universe);
     assertEquals(abcd.complement().complement(), abcd);
@@ -68,7 +68,7 @@ public abstract class ValuationSetTest {
   }
 
   @Test
-  public void testIsUniverse() throws Exception {
+  public void testIsUniverse() {
     assertEquals(16, universe.size());
     assertTrue(universe.isUniverse());
 

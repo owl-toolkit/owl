@@ -19,12 +19,12 @@ package owl.collections.valuationset;
 
 import com.google.common.collect.BiMap;
 import owl.factories.ValuationSetFactory;
-import owl.factories.jdd.VSFactory;
+import owl.factories.jdd.ValuationFactory;
 
 public class BddValuationSetTest extends ValuationSetTest {
 
   @Override
   public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
-    return new VSFactory(aliases.size());
+    return new ValuationFactory(aliases.size());
   }
 }

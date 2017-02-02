@@ -1,6 +1,3 @@
-/src/main/generated
-/src/test/generated
-
 # ==== Gradle files ====
 # Source: https://github.com/github/gitignore/blob/master/Gradle.gitignore
 
@@ -83,6 +80,7 @@ local.properties
 .idea
 
 ## File-based project format:
+*.iml
 *.iws
 *.ipr
 

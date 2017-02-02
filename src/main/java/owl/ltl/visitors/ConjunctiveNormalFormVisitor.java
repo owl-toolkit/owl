@@ -31,7 +31,7 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 
-public class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<Formula>>> {
+public final class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<Formula>>> {
 
   private static final ConjunctiveNormalFormVisitor INSTANCE = new ConjunctiveNormalFormVisitor();
 
@@ -54,9 +54,9 @@ public class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<Formul
 
   @Override
   public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
-    return booleanConstant.value ?
-           Collections.emptyList() :
-           Collections.singletonList(new HashSet<Formula>());
+    return booleanConstant.value
+      ? Collections.emptyList()
+      : Collections.singletonList(new HashSet<Formula>());
   }
 
   @Override

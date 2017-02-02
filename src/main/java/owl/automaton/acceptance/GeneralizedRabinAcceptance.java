@@ -28,9 +28,10 @@ import java.util.LinkedList;
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.output.HOAConsumerExtended;
 import owl.automaton.edge.Edge;
+import owl.automaton.output.HoaConsumerExtended;
 
+@SuppressWarnings("PMD.GodClass")
 public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   private final List<GeneralizedRabinPair> pairList;
   private int setCount;
@@ -45,7 +46,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     return pair;
   }
 
-  private int createSet(final GeneralizedRabinPair pair) {
+  private int createSet() {
     final int index = setCount;
     setCount += 1;
     return index;
@@ -114,7 +115,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   }
 
   /**
-   * Returns an unmodifiable view of the pair collection
+   * Returns an unmodifiable view of the pair collection.
    *
    * @return The rabin pairs of this acceptance condition
    */
@@ -123,7 +124,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   }
 
   public String toString() {
-    final StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder(40);
     builder.append("GeneralisedRabinAcceptance: ");
     for (final GeneralizedRabinPair pair : pairList) {
       builder.append(pair.toString());
@@ -137,7 +138,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     private final int pairNumber;
     private int finiteIndex;
 
-    private GeneralizedRabinPair(final GeneralizedRabinAcceptance acceptance,
+    GeneralizedRabinPair(final GeneralizedRabinAcceptance acceptance,
       final int pairNumber) {
       this.acceptance = acceptance;
       this.pairNumber = pairNumber;
@@ -185,7 +186,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     }
 
     public int createInfiniteSet() {
-      final int index = acceptance.createSet(this);
+      final int index = acceptance.createSet();
       infiniteIndices.add(index);
       return index;
     }
@@ -196,15 +197,15 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       BooleanExpression<AtomAcceptance> acceptance;
       if (finiteIndex == -1) {
         // Only inf sets
-        acceptance = HOAConsumerExtended.mkInf(infiniteIndices.get(0));
+        acceptance = HoaConsumerExtended.mkInf(infiniteIndices.get(0));
       } else {
-        acceptance = HOAConsumerExtended.mkFin(finiteIndex);
+        acceptance = HoaConsumerExtended.mkFin(finiteIndex);
         if (!infiniteIndices.isEmpty()) {
-          acceptance = acceptance.and(HOAConsumerExtended.mkInf(infiniteIndices.get(0)));
+          acceptance = acceptance.and(HoaConsumerExtended.mkInf(infiniteIndices.get(0)));
         }
       }
       for (int i = 1; i < infiniteIndices.size(); i++) {
-        acceptance = acceptance.and(HOAConsumerExtended.mkInf(infiniteIndices.get(i)));
+        acceptance = acceptance.and(HoaConsumerExtended.mkInf(infiniteIndices.get(i)));
       }
       return acceptance;
     }
@@ -226,7 +227,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     public int getOrCreateFiniteIndex() {
       if (finiteIndex == -1) {
         // Not allocated yet
-        this.finiteIndex = acceptance.createSet(this);
+        this.finiteIndex = acceptance.createSet();
       }
       return finiteIndex;
     }

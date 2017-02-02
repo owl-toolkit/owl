@@ -33,7 +33,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
@@ -44,18 +46,17 @@ import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.EquivalenceClass;
-import owl.factories.EquivalenceClassFactory;
 import owl.ltl.visitors.Collector;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.Evaluator;
 import owl.translations.ltl2ldba.Selector;
 
+@SuppressWarnings("PMD.GodClass")
 class RecurringObligations2Selector implements Selector<RecurringObligations2> {
-
-  private final static Predicate<Formula> F_OPERATORS = x -> x instanceof FOperator
+  private static final Predicate<Formula> F_OPERATORS = x -> x instanceof FOperator
     || x instanceof UOperator; // x instanceof MOperator, ROp, WOp, ...
-  private final static Predicate<Formula> G_OPERATORS = x -> x instanceof GOperator; // || x instanceof ROperator || x instanceof WOperator;
+  private static final Predicate<Formula> G_OPERATORS = x -> x instanceof GOperator;
+  // || x instanceof ROperator || x instanceof WOperator;
   private final Map<Set<UnaryModalOperator>, RecurringObligations2> cache;
   private final Evaluator<RecurringObligations2> evaluator;
   private final EquivalenceClassFactory factory;
@@ -147,10 +148,9 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     Set<GOperator> gOperators) {
     // Fields for RecurringObligations
     EquivalenceClass safety = factory.getTrue();
-    List<EquivalenceClass> livenessList = new ArrayList<>(fOperators.size());
 
-    RecurringObligations2Evaluator.SubstitutionVisitor substitutionVisitor = new RecurringObligations2Evaluator.SubstitutionVisitor(
-      fOperators, gOperators);
+    RecurringObligations2Evaluator.SubstitutionVisitor substitutionVisitor =
+      new RecurringObligations2Evaluator.SubstitutionVisitor(fOperators, gOperators);
 
     for (GOperator gOperator : gOperators) {
       Formula formula = gOperator.operand.accept(substitutionVisitor);
@@ -163,10 +163,12 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
       }
     }
 
+    List<EquivalenceClass> livenessList = new ArrayList<>(fOperators.size());
     for (FOperator fOperator : fOperators) {
       Formula formula = fOperator.operand.accept(substitutionVisitor).accept(substitutionVisitor);
 
       while (formula instanceof XOperator) {
+        //noinspection OverlyStrongTypeCast
         formula = ((XOperator) formula).operand;
       }
 
@@ -199,14 +201,14 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
   }
 
   /**
-   * Is the first language a subset of the second language?
+   * Determines if the first language is a subset of the second language.
    *
    * @param entry
-   *     - first language
+   *     first language
    * @param otherEntry
-   *     - second language
+   *     second language
    * @param master
-   *     - remainder
+   *     remainder
    *
    * @return true if is a sub-language
    */
@@ -270,7 +272,7 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
           if (!externalAtoms.isEmpty()) {
             externalAtoms.and(internalAtoms);
 
-            if (externalAtoms.isEmpty()) {
+            if (externalAtoms.isEmpty()) { // NOPMD
               return true;
             }
           }
@@ -284,8 +286,8 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     // Compute if jump is urgent.
     boolean isUrgent = false;
 
-    if ((isInitialState || optimisations.contains(Optimisation.FORCE_JUMPS)) &&
-      jumps.entrySet().size() == 1) {
+    if ((isInitialState || optimisations.contains(Optimisation.FORCE_JUMPS))
+      && jumps.entrySet().size() == 1) {
       final Set<Formula> support = state.getSupport(G_OPERATORS);
       final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 

@@ -23,11 +23,11 @@ import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.StoredBuchiAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.output.HOAPrintable;
-import owl.translations.Optimisation;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.output.HoaPrintable;
+import owl.translations.Optimisation;
 
-public class Nba2Ldba implements Function<StoredBuchiAutomaton, HOAPrintable> {
+public class Nba2Ldba implements Function<StoredBuchiAutomaton, HoaPrintable> {
 
   private final EnumSet<Optimisation> optimisations;
 
@@ -36,19 +36,20 @@ public class Nba2Ldba implements Function<StoredBuchiAutomaton, HOAPrintable> {
   }
 
   @Override
-  public HOAPrintable apply(StoredBuchiAutomaton nba) {
+  public HoaPrintable apply(StoredBuchiAutomaton nba) {
     if (nba.isDeterministic()) {
       return nba;
     }
 
     AcceptingComponent acceptingComponent = new AcceptingComponent(nba);
     InitialComponent initialComponent = new InitialComponent(nba, acceptingComponent);
-    LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State, BuchiAcceptance, InitialComponent, AcceptingComponent> ldba;
+    LimitDeterministicAutomaton<StoredBuchiAutomaton.State, AcceptingComponent.State,
+      BuchiAcceptance, InitialComponent, AcceptingComponent> ldba;
     StoredBuchiAutomaton.State initialState = Iterables.getOnlyElement(nba.getInitialStates());
     ldba = new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent,
       Sets.newHashSet(initialComponent.createState(initialState)), optimisations);
     ldba.generate();
-    ldba.setAtomMapping(nba.getAtomMapping());
+    ldba.setVariables(nba.getVariables());
     return ldba;
   }
 }

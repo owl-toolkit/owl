@@ -24,14 +24,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import owl.ltl.Formula;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.translations.Optimisation;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.ltl.Formula;
+import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AcceptingComponent;
 import owl.translations.ltl2ldba.InitialComponent;
 import owl.translations.ltl2ldba.InitialComponentState;
-import owl.translations.ltl2ldba.Ltl2Ldba;
+import owl.translations.ltl2ldba.LTL2LDBA;
 import owl.translations.ltl2ldba.RecurringObligations;
 
 public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
@@ -39,7 +39,7 @@ public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
   private final EnumSet<Optimisation> optimisations;
-  private final Ltl2Ldba translator;
+  private final LTL2LDBA translator;
 
   public Ltl2Dpa() {
     this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
@@ -49,7 +49,7 @@ public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
     this.optimisations = EnumSet.copyOf(optimisations);
     this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     this.optimisations.remove(Optimisation.FORCE_JUMPS);
-    translator = new Ltl2Ldba(this.optimisations);
+    translator = new LTL2LDBA(this.optimisations);
   }
 
   @Override
@@ -104,19 +104,21 @@ public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
       }
     } catch (ExecutionException ex) {
       // The translation broke down, it is unsafe to continue...
-      // In order to immediately shutdown the JVM without using System.exit(), we cancel all running Futures.
+      // In order to immediately shutdown the JVM without using SYSTEM.exit(), we cancel all running
+      // Futures.
 
       automatonFuture.cancel(true);
       complementFuture.cancel(true);
-      throw new RuntimeException(ex);
+      throw new RuntimeException(ex); // NOPMD
     } finally {
       executor.shutdown();
     }
   }
 
   private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba = translator
-      .apply(formula);
+    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
+      InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba =
+      translator.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new WrappedParityAutomaton(ldba.getAcceptingComponent());

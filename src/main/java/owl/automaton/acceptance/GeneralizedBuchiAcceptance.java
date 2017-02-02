@@ -22,7 +22,7 @@ import java.util.List;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.output.HOAConsumerExtended;
+import owl.automaton.output.HoaConsumerExtended;
 
 public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
 
@@ -40,10 +40,10 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    BooleanExpression<AtomAcceptance> conjunction = HOAConsumerExtended.mkInf(0);
+    BooleanExpression<AtomAcceptance> conjunction = HoaConsumerExtended.mkInf(0);
 
     for (int i = 1; i < size; i++) {
-      conjunction = conjunction.and(HOAConsumerExtended.mkInf(i));
+      conjunction = conjunction.and(HoaConsumerExtended.mkInf(i));
     }
 
     return conjunction;

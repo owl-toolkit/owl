@@ -35,8 +35,7 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.IntVisitor;
 
-class AlphabetVisitor implements IntVisitor {
-
+final class AlphabetVisitor implements IntVisitor {
   private static final AlphabetVisitor INSTANCE = new AlphabetVisitor();
 
   private AlphabetVisitor() {

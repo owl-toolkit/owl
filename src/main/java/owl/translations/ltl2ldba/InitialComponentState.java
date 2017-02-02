@@ -22,14 +22,13 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.AutomatonState;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.ng.NondetInitialComponent;
 
 public class InitialComponentState implements AutomatonState<InitialComponentState> {
-
   private final EquivalenceClass clazz;
   private final InitialComponent<?, ?> parent;
   // TODO: Move this map to parent.
@@ -90,9 +89,9 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
     }
 
     InitialComponentState successor = new InitialComponentState(parent, successorClass);
-    return successorClass.isTrue() ?
-           Edges.create(successor, parent.getAcceptBitSet()) :
-           Edges.create(successor);
+    return successorClass.isTrue()
+      ? Edges.create(successor, parent.getAcceptBitSet())
+      : Edges.create(successor);
   }
 
   @Override

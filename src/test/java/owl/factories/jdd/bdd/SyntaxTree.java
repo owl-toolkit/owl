@@ -120,14 +120,14 @@ final class SyntaxTree {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
+  public boolean equals(final Object object) {
+    if (this == object) {
       return true;
     }
-    if (!(o instanceof SyntaxTree)) {
+    if (!(object instanceof SyntaxTree)) {
       return false;
     }
-    final SyntaxTree that = (SyntaxTree) o;
+    final SyntaxTree that = (SyntaxTree) object;
     return Objects.equals(rootNode, that.rootNode);
   }
 
@@ -168,17 +168,16 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof SyntaxTreeBinaryOperation)) {
+      if (!(object instanceof SyntaxTreeBinaryOperation)) {
         return false;
       }
-      final SyntaxTreeBinaryOperation that = (SyntaxTreeBinaryOperation) o;
-      return Objects.equals(left, that.left) &&
-        Objects.equals(right, that.right) &&
-        type == that.type;
+      final SyntaxTreeBinaryOperation that = (SyntaxTreeBinaryOperation) object;
+      return type == that.type && Objects.equals(left, that.left)
+        && Objects.equals(right, that.right);
     }
 
     @Override
@@ -251,14 +250,14 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof SyntaxTreeConstant)) {
+      if (!(object instanceof SyntaxTreeConstant)) {
         return false;
       }
-      final SyntaxTreeConstant that = (SyntaxTreeConstant) o;
+      final SyntaxTreeConstant that = (SyntaxTreeConstant) object;
       return value == that.value;
     }
 
@@ -302,14 +301,14 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof SyntaxTreeLiteral)) {
+      if (!(object instanceof SyntaxTreeLiteral)) {
         return false;
       }
-      final SyntaxTreeLiteral that = (SyntaxTreeLiteral) o;
+      final SyntaxTreeLiteral that = (SyntaxTreeLiteral) object;
       return variableNumber == that.variableNumber;
     }
 
@@ -368,14 +367,14 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof SyntaxTreeNot)) {
+      if (!(object instanceof SyntaxTreeNot)) {
         return false;
       }
-      final SyntaxTreeNot that = (SyntaxTreeNot) o;
+      final SyntaxTreeNot that = (SyntaxTreeNot) object;
       return Objects.equals(child, that.child);
     }
 
@@ -430,18 +429,16 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof SyntaxTreeTernaryOperation)) {
+      if (!(object instanceof SyntaxTreeTernaryOperation)) {
         return false;
       }
-      final SyntaxTreeTernaryOperation that = (SyntaxTreeTernaryOperation) o;
-      return Objects.equals(first, that.first) &&
-        Objects.equals(second, that.second) &&
-        Objects.equals(third, that.third) &&
-        type == that.type;
+      final SyntaxTreeTernaryOperation that = (SyntaxTreeTernaryOperation) object;
+      return type == that.type && Objects.equals(first, that.first)
+        &&  Objects.equals(second, that.second) && Objects.equals(third, that.third);
     }
 
     @Override
