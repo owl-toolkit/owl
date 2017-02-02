@@ -20,7 +20,10 @@ package owl.translations.ltl2ldba.ng;
 import java.util.EnumSet;
 import owl.ltl.Formula;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.visitors.RestrictToFGXU;
+import owl.ltl.MOperator;
+import owl.ltl.ROperator;
+import owl.ltl.WOperator;
+import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
@@ -72,6 +75,7 @@ public class Ltl2LdbaNg extends
 
   @Override
   protected Formula preprocess(Formula formula) {
-    return super.preprocess(super.preprocess(formula).accept(new RestrictToFGXU()));
+    return super.preprocess(super.preprocess(formula).accept(new UnabbreviateVisitor(ROperator.class,
+      WOperator.class, MOperator.class)));
   }
 }

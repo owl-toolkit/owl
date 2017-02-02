@@ -15,24 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl.visitors;
+package owl.ltl;
 
-import static org.junit.Assert.assertTrue;
+import owl.factories.EquivalenceClassFactory;
+import owl.factories.Registry;
+import owl.factories.Registry.Backend;
 
-import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
-import owl.ltl.parser.Parser;
-import org.junit.Test;
+public class BddEquivalenceClassTest extends EquivalenceClassTest {
 
-public class TestDefaultConverter {
-
-  @Test
-  public void testNoUnneccessaryChanges_frequencyG() {
-    Formula freq = Parser.formula("G {>= 0.6} a");
-    // DefaultConverter is abstract, ergo we have to use a subclass for
-    // testing
-    freq = freq.accept(new RestrictToFGXU());
-    assertTrue(freq instanceof FrequencyG);
-
+  @Override
+  public EquivalenceClassFactory setUpFactory(Formula domain) {
+    return Registry.getFactories(domain, Backend.JDD).equivalenceClassFactory;
   }
 }

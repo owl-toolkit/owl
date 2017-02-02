@@ -29,11 +29,12 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
+import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.Parser;
 import owl.ltl.simplifier.Simplifier.Strategy;
-import owl.ltl.visitors.RestrictToFGXU;
+import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.ltl.visitors.Visitor;
 import org.junit.Test;
 
@@ -83,7 +84,7 @@ public class TestFormula {
     Formula f2 = new UOperator(f0, f1);
     Formula f3 = f2.not();
     System.out.print(f3);
-    f3 = f3.accept(new RestrictToFGXU());
+    f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
     Formula f4 = new Literal(1, true);
     Formula f5 = new Literal(0, true);
@@ -99,7 +100,7 @@ public class TestFormula {
     Formula f1 = new Literal(0, false);
     Formula f2 = new GOperator(new UOperator(f0, f1));
     Formula f3 = f2.not();
-    f3 = f3.accept(new RestrictToFGXU());
+    f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
     assertEquals(f3, Parser.formula("((F G !a) | F (!a & !b))"));
   }

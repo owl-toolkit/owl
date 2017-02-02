@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl.equivalence;
+package owl.ltl;
 
 import owl.factories.EquivalenceClassFactory;
-import owl.ltl.Formula;
 import owl.factories.Registry;
 import owl.factories.Registry.Backend;
 

@@ -23,13 +23,13 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.Parser;
 import owl.ltl.visitors.IntVisitor;
-import owl.ltl.visitors.RestrictToFGXU;
+import owl.ltl.visitors.UnabbreviateVisitor;
 
 public class Ltl2FGXU {
 
   public static void main(String[] argv) throws FileNotFoundException {
     BiMap<String, Integer> mapping = HashBiMap.create();
-    Formula formula = Parser.formula(argv[0], mapping).accept(new RestrictToFGXU());
+    Formula formula = Parser.formula(argv[0], mapping).accept(new UnabbreviateVisitor(ROperator.class, MOperator.class, WOperator.class));
     Printer printer = new Printer(System.out, mapping.inverse());
     formula.accept(printer);
     printer.printer.flush();
