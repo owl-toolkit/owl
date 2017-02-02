@@ -29,14 +29,14 @@ import java.util.Map;
 import java.util.Set;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
+import owl.algorithms.SCCAnalyser;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.algorithms.SCCAnalyser;
-import owl.collections.ValuationSet;
+import owl.automaton.edge.Edge;
 import owl.automaton.output.HOAConsumerExtended;
 import owl.automaton.output.HOAPrintable;
-import owl.automaton.edge.Edge;
+import owl.collections.ValuationSet;
 import owl.translations.Optimisation;
 
 public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A extends AutomatonState<S_A>, Acc extends GeneralizedBuchiAcceptance, I extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>>
@@ -105,12 +105,14 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
         });
       }
 
+      System.out.print(initialComponent.getStates());
+
       initialComponent.epsilonJumps.clear();
-      initialComponent.removeDeadStates(initialComponent.getInitialStates());
+      initialComponent.removeDeadStates(Sets.union(initialComponent.getInitialStates(), initialComponent.valuationSetJumps.rowKeySet()));
       acceptingComponent.removeDeadStates(accReach);
       initialComponent.removeDeadEnds(initialComponent.valuationSetJumps.rowKeySet());
-      initialStates.removeIf(
-        x -> !Sets.union(initialComponent.getStates(), acceptingComponent.getStates()).contains(x));
+      initialStates.removeIf(x -> !initialComponent.getStates().contains(x)
+        && !acceptingComponent.getStates().contains(x));
     }
   }
 

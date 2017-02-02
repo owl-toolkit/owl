@@ -381,7 +381,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
 
       Map<Edge<S>, ValuationSet> successors = getSuccessors(current);
 
-      if (isDeadState(current, successors)) {
+      if (isDeadState(current, successors) && !protectedStates.contains(current)) {
         deadStates.add(current);
         continue;
       }
@@ -403,7 +403,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
       oldSize = size();
 
       transitions.forEach((state, successors) -> {
-        if (isDeadState(state, successors)) {
+        if (isDeadState(state, successors) && !protectedStates.contains(state)) {
           deadStates.add(state);
         }
       });
