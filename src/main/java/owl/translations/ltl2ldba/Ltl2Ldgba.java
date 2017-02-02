@@ -19,23 +19,23 @@ package owl.translations.ltl2ldba;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import ltl.Formula;
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.ltl.Formula;
+import owl.ltl.EquivalenceClass;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.ng.NondetInitialComponent;
 
 public class Ltl2Ldgba extends
-  Ltl2LdbaTemplate<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations, GeneralisedAcceptingComponent> {
+  Ltl2LdbaTemplate<GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, RecurringObligations, GeneralizedAcceptingComponent> {
 
   public Ltl2Ldgba(EnumSet<Optimisation> optimisations) {
     super(optimisations);
   }
 
   @Override
-  protected GeneralisedAcceptingComponent createAcceptingComponent(Factories factories) {
-    return new GeneralisedAcceptingComponent(factories, optimisations);
+  protected GeneralizedAcceptingComponent createAcceptingComponent(Factories factories) {
+    return new GeneralizedAcceptingComponent(factories, optimisations);
   }
 
   @Override
@@ -51,8 +51,8 @@ public class Ltl2Ldgba extends
   }
 
   @Override
-  protected InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations> createInitialComponent(
-    Factories factories, GeneralisedAcceptingComponent acceptingComponent) {
+  protected InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations> createInitialComponent(
+    Factories factories, GeneralizedAcceptingComponent acceptingComponent) {
     RecurringObligationsSelector recurringObligationsSelector = new RecurringObligationsSelector(
       optimisations, factories.equivalenceClassFactory);
     RecurringObligationsEvaluator recurringObligationsEvaluator = new RecurringObligationsEvaluator(

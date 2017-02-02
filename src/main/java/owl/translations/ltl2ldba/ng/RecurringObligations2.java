@@ -21,10 +21,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import ltl.FOperator;
-import ltl.GOperator;
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
+import owl.ltl.FOperator;
+import owl.ltl.GOperator;
+import owl.ltl.ImmutableObject;
+import owl.ltl.EquivalenceClass;
 
 public class RecurringObligations2 extends ImmutableObject {
 

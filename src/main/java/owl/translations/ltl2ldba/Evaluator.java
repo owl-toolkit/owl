@@ -17,7 +17,7 @@
 
 package owl.translations.ltl2ldba;
 
-import ltl.equivalence.EquivalenceClass;
+import owl.ltl.EquivalenceClass;
 
 public interface Evaluator<T> {
 

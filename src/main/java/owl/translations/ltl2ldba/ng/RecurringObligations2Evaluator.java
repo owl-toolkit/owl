@@ -18,19 +18,19 @@
 package owl.translations.ltl2ldba.ng;
 
 import java.util.Set;
-import ltl.BooleanConstant;
-import ltl.Conjunction;
-import ltl.Disjunction;
-import ltl.FOperator;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Literal;
-import ltl.UOperator;
-import ltl.XOperator;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.simplifier.Simplifier;
-import ltl.visitors.DefaultVisitor;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.UOperator;
+import owl.ltl.XOperator;
+import owl.ltl.EquivalenceClass;
+import owl.factories.EquivalenceClassFactory;
+import owl.ltl.simplifier.Simplifier;
+import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.ltl2ldba.Evaluator;
 
 class RecurringObligations2Evaluator implements Evaluator<RecurringObligations2> {

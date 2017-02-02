@@ -18,8 +18,6 @@
 package owl.factories;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import ltl.equivalence.EquivalenceClassFactory;
-import omega_automaton.collections.valuationset.ValuationSetFactory;
 
 @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 public class Factories {

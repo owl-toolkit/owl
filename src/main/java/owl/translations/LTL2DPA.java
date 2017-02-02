@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import ltl.Formula;
-import omega_automaton.output.HOAPrintable;
+import owl.ltl.Formula;
+import owl.automaton.output.HOAPrintable;
 import owl.translations.ltl2dpa.Ltl2Dpa;
 
 public class LTL2DPA extends AbstractLTLCommandLineTool {

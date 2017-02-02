@@ -35,12 +35,12 @@ import java.io.Writer;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
-import omega_automaton.Automaton;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.acceptance.ParityAcceptance;
-import omega_automaton.collections.Collections3;
-import omega_automaton.collections.valuationset.ValuationSet;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonState;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
+import owl.collections.BitSets;
+import owl.collections.ValuationSet;
 import owl.automaton.edge.Edge;
 import owl.translations.ltl2dpa.ParityAutomaton;
 
@@ -187,10 +187,10 @@ class Any2BitArena {
     int beforeSecondaryNodes = secondaryNodes;
 
     fstChoice:
-    for (BitSet fstChoice : Collections3.powerSet(fstAlpha)) {
+    for (BitSet fstChoice : BitSets.powerSet(fstAlpha)) {
       Map<S, Int2ObjectMap<ValuationSet>> intermediateStates = new HashMap<>();
 
-      for (BitSet sndChoice : Collections3.powerSet(sndAlpha)) {
+      for (BitSet sndChoice : BitSets.powerSet(sndAlpha)) {
         sndChoice.or(fstChoice);
         Edge<S> edge = automaton.getSuccessor(state, sndChoice);
 

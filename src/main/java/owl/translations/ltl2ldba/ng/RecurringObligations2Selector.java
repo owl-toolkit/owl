@@ -33,21 +33,20 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import ltl.BooleanConstant;
-import ltl.FOperator;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Literal;
-import ltl.PropositionalFormula;
-import ltl.ROperator;
-import ltl.UOperator;
-import ltl.UnaryModalOperator;
-import ltl.WOperator;
-import ltl.XOperator;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.visitors.Collector;
-import omega_automaton.collections.Collections3;
+import owl.ltl.BooleanConstant;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.PropositionalFormula;
+import owl.ltl.ROperator;
+import owl.ltl.UOperator;
+import owl.ltl.UnaryModalOperator;
+import owl.ltl.WOperator;
+import owl.ltl.XOperator;
+import owl.ltl.EquivalenceClass;
+import owl.factories.EquivalenceClassFactory;
+import owl.ltl.visitors.Collector;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.Evaluator;
 import owl.translations.ltl2ldba.Selector;
@@ -285,8 +284,8 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
     // Compute if jump is urgent.
     boolean isUrgent = false;
 
-    if ((isInitialState || optimisations.contains(Optimisation.FORCE_JUMPS)) && Collections3
-      .isSingleton(jumps.entrySet())) {
+    if ((isInitialState || optimisations.contains(Optimisation.FORCE_JUMPS)) &&
+      jumps.entrySet().size() == 1) {
       final Set<Formula> support = state.getSupport(G_OPERATORS);
       final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
@@ -343,12 +342,11 @@ class RecurringObligations2Selector implements Selector<RecurringObligations2> {
 
     // Enhance with FOperors:
 
-    List<Set<UnaryModalOperator>> sets2 = sets.stream().map(x -> {
+    return sets.stream().map(x -> {
       Collector scopedFOperators = new Collector(F_OPERATORS);
       x.forEach(y -> y.accept(scopedFOperators));
       return Sets.powerSet(scopedFOperators.getCollection()).stream()
         .map(z -> Sets.union(x, normaliseToFOperators(z)));
     }).flatMap(x -> x).collect(Collectors.toList());
-    return sets2;
   }
 }

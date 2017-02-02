@@ -22,18 +22,17 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
-import ltl.Formula;
-import ltl.equivalence.EquivalenceClass;
-import ltl.simplifier.Simplifier;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.Collections3;
+import owl.ltl.Formula;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.simplifier.Simplifier;
+import owl.automaton.AutomatonState;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.factories.Factories;
 import owl.factories.Registry;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 
-public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends GeneralisedBuchiAcceptance, C, A extends AbstractAcceptingComponent<S, B, C>>
+public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends GeneralizedBuchiAcceptance, C, A extends AbstractAcceptingComponent<S, B, C>>
   implements
   Function<Formula, LimitDeterministicAutomaton<InitialComponentState, S, B, InitialComponent<S, C>, A>> {
 
@@ -60,7 +59,7 @@ public abstract class Ltl2LdbaTemplate<S extends AutomatonState<S>, B extends Ge
       AutomatonState<?> initialState;
       Set<C> obligations = selector.select(initialClass, true);
 
-      if (Collections3.isSingleton(obligations) && Iterables.getOnlyElement(obligations) != null) {
+      if (obligations.size() == 1 && Iterables.getOnlyElement(obligations) != null) {
         EquivalenceClass remainingGoal = evaluator
           .evaluate(initialClass, Iterables.getOnlyElement(obligations));
         initialState = acceptingComponent

@@ -23,10 +23,10 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.Automaton;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.OmegaAcceptance;
+import owl.ltl.EquivalenceClass;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonState;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
 

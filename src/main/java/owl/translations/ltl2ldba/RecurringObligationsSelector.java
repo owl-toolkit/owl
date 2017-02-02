@@ -34,16 +34,16 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Literal;
-import ltl.ROperator;
-import ltl.WOperator;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.simplifier.Simplifier;
-import ltl.visitors.Collector;
-import ltl.visitors.predicates.XFragmentPredicate;
+import owl.ltl.Formula;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.ROperator;
+import owl.ltl.WOperator;
+import owl.ltl.EquivalenceClass;
+import owl.factories.EquivalenceClassFactory;
+import owl.ltl.simplifier.Simplifier;
+import owl.ltl.visitors.Collector;
+import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.translations.Optimisation;
 
 public class RecurringObligationsSelector implements Selector<RecurringObligations> {

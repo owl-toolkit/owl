@@ -27,8 +27,8 @@ import java.io.OutputStream;
 import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
-import ltl.parser.Parser;
-import omega_automaton.output.HOAPrintable;
+import owl.ltl.parser.Parser;
+import owl.automaton.output.HOAPrintable;
 import org.junit.Test;
 import owl.translations.Optimisation;
 

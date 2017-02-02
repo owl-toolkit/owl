@@ -28,7 +28,7 @@ import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.transformations.ToStateAcceptance;
-import omega_automaton.output.HOAPrintable;
+import owl.automaton.output.HOAPrintable;
 
 public abstract class AbstractCommandLineTool<T> {
 

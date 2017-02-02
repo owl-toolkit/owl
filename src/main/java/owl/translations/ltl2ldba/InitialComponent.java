@@ -21,23 +21,23 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.ltl.EquivalenceClass;
+import owl.automaton.AutomatonState;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
-import owl.translations.ldba.AbstractInitialComponent;
+import owl.automaton.ldba.AbstractInitialComponent;
 
 public class InitialComponent<S extends AutomatonState<S>, T>
   extends AbstractInitialComponent<InitialComponentState, S> {
 
   protected final EquivalenceClassStateFactory factory;
   final Selector<T> selector;
-  private final AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent;
+  private final AbstractAcceptingComponent<S, ? extends GeneralizedBuchiAcceptance, T> acceptingComponent;
   private final Evaluator<T> evaluator;
 
   protected InitialComponent(
-    AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
+    AbstractAcceptingComponent<S, ? extends GeneralizedBuchiAcceptance, T> acceptingComponent,
     Factories factories,
     EnumSet<Optimisation> optimisations,
     Selector<T> selector,

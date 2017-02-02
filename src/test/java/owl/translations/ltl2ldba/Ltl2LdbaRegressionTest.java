@@ -23,11 +23,11 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import java.io.IOException;
 import java.util.EnumSet;
-import ltl.parser.Parser;
-import omega_automaton.acceptance.BuchiAcceptance;
+import owl.ltl.parser.Parser;
+import owl.automaton.acceptance.BuchiAcceptance;
 import org.junit.Test;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 
 public class Ltl2LdbaRegressionTest {
 

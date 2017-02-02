@@ -18,10 +18,10 @@
 package owl.translations.ltl2ldba.ng;
 
 import java.util.EnumSet;
-import ltl.Formula;
-import ltl.equivalence.EquivalenceClass;
-import ltl.visitors.RestrictToFGXU;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.ltl.Formula;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.visitors.RestrictToFGXU;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
@@ -31,15 +31,15 @@ import owl.translations.ltl2ldba.Ltl2LdbaTemplate;
 import owl.translations.ltl2ldba.Selector;
 
 public class Ltl2LdgbaNg extends
-  Ltl2LdbaTemplate<GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, RecurringObligations2, GeneralisedAcceptingComponent> {
+  Ltl2LdbaTemplate<GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, RecurringObligations2, GeneralizedAcceptingComponent> {
 
   public Ltl2LdgbaNg(EnumSet<Optimisation> optimisations) {
     super(optimisations);
   }
 
   @Override
-  protected GeneralisedAcceptingComponent createAcceptingComponent(Factories factories) {
-    return new GeneralisedAcceptingComponent(factories, optimisations);
+  protected GeneralizedAcceptingComponent createAcceptingComponent(Factories factories) {
+    return new GeneralizedAcceptingComponent(factories, optimisations);
   }
 
   @Override
@@ -55,8 +55,8 @@ public class Ltl2LdgbaNg extends
   }
 
   @Override
-  protected InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations2> createInitialComponent(
-    Factories factories, GeneralisedAcceptingComponent acceptingComponent) {
+  protected InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations2> createInitialComponent(
+    Factories factories, GeneralizedAcceptingComponent acceptingComponent) {
     RecurringObligations2Selector recurringObligationsSelector = new RecurringObligations2Selector(
       optimisations, factories.equivalenceClassFactory);
     RecurringObligations2Evaluator recurringObligationsEvaluator = new RecurringObligations2Evaluator(

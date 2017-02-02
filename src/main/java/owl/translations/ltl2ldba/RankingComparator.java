@@ -21,20 +21,20 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import ltl.BooleanConstant;
-import ltl.Conjunction;
-import ltl.Disjunction;
-import ltl.FOperator;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Literal;
-import ltl.MOperator;
-import ltl.PropositionalFormula;
-import ltl.ROperator;
-import ltl.UOperator;
-import ltl.WOperator;
-import ltl.XOperator;
-import ltl.visitors.DefaultIntVisitor;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.MOperator;
+import owl.ltl.PropositionalFormula;
+import owl.ltl.ROperator;
+import owl.ltl.UOperator;
+import owl.ltl.WOperator;
+import owl.ltl.XOperator;
+import owl.ltl.visitors.DefaultIntVisitor;
 
 @SuppressFBWarnings("SE_COMPARATOR_SHOULD_BE_SERIALIZABLE")
 public class RankingComparator implements Comparator<GOperator> {

@@ -18,23 +18,25 @@
 package owl.translations.ltl2ldba;
 
 import com.google.common.collect.Iterables;
-import ltl.BooleanConstant;
-import ltl.Conjunction;
-import ltl.Disjunction;
-import ltl.FOperator;
-import ltl.Formula;
-import ltl.FrequencyG;
-import ltl.GOperator;
-import ltl.Literal;
-import ltl.MOperator;
-import ltl.ROperator;
-import ltl.UOperator;
-import ltl.WOperator;
-import ltl.XOperator;
-import ltl.equivalence.EquivalenceClass;
-import ltl.equivalence.EquivalenceClassFactory;
-import ltl.simplifier.Simplifier;
-import ltl.visitors.Visitor;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.FrequencyG;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.MOperator;
+import owl.ltl.ROperator;
+import owl.ltl.UOperator;
+import owl.ltl.WOperator;
+import owl.ltl.XOperator;
+import owl.ltl.EquivalenceClass;
+import owl.factories.EquivalenceClassFactory;
+import owl.ltl.simplifier.Simplifier;
+import owl.ltl.visitors.Visitor;
 
 public class RecurringObligationsEvaluator implements Evaluator<RecurringObligations> {
 
@@ -77,7 +79,9 @@ public class RecurringObligationsEvaluator implements Evaluator<RecurringObligat
     EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory factory) {
       this.factory = factory;
       environment = factory.createEquivalenceClass(
-        Iterables.concat(gMonitors, Iterables.transform(gMonitors, x -> x.operand)));
+        Iterables.concat(gMonitors,
+          StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
+            .collect(Collectors.toList())));
     }
 
     private Formula defaultAction(Formula formula) {

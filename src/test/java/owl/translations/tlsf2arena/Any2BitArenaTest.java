@@ -19,8 +19,8 @@ package owl.translations.tlsf2arena;
 
 import java.io.File;
 import java.util.BitSet;
-import ltl.Formula;
-import ltl.parser.Parser;
+import owl.ltl.Formula;
+import owl.ltl.parser.Parser;
 import owl.translations.ltl2dpa.Ltl2Dpa;
 
 public class Any2BitArenaTest {

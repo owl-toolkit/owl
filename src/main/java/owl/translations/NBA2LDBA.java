@@ -25,8 +25,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.function.Function;
 import jhoafparser.parser.HOAFParser;
-import omega_automaton.StoredBuchiAutomaton;
-import omega_automaton.output.HOAPrintable;
+import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.output.HOAPrintable;
 import owl.translations.nba2ldba.Nba2Ldba;
 
 public class NBA2LDBA extends AbstractCommandLineTool<StoredBuchiAutomaton> {

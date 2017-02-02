@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import ltl.Formula;
-import omega_automaton.output.HOAPrintable;
+import owl.ltl.Formula;
+import owl.automaton.output.HOAPrintable;
 import owl.translations.ltl2ldba.Ltl2Ldba;
 import owl.translations.ltl2ldba.Ltl2Ldgba;
 import owl.translations.ltl2ldba.ng.Ltl2LdbaNg;
@@ -87,6 +87,6 @@ public class LTL2LDBA extends AbstractLTLCommandLineTool {
   }
 
   enum Configuration {
-    GENERALISED, GUESS_F, NONDET_INITIAL_COMPONENT;
+    GENERALISED, GUESS_F, NONDET_INITIAL_COMPONENT
   }
 }

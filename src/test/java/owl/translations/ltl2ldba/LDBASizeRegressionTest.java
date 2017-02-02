@@ -18,12 +18,12 @@
 package owl.translations.ltl2ldba;
 
 import java.util.EnumSet;
-import omega_automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.BuchiAcceptance;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 
 @RunWith(Parameterized.class)
 public class LDBASizeRegressionTest extends

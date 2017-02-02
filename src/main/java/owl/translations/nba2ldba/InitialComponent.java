@@ -18,8 +18,8 @@
 package owl.translations.nba2ldba;
 
 import javax.annotation.Nonnull;
-import omega_automaton.StoredBuchiAutomaton;
-import owl.translations.ldba.AbstractInitialComponent;
+import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.ldba.AbstractInitialComponent;
 
 public class InitialComponent
   extends AbstractInitialComponent<StoredBuchiAutomaton.State, AcceptingComponent.State> {

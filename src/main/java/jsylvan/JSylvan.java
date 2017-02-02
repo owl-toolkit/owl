@@ -18,7 +18,7 @@ package jsylvan;
 
 import java.util.BitSet;
 import java.util.Iterator;
-import omega_automaton.collections.Collections3;
+import owl.collections.BitSets;
 
 /**
  * NOTE: you will have to manage references.
@@ -84,7 +84,7 @@ public class JSylvan {
   public static native long getIf(long bdd);
 
   public static Iterator<BitSet> getMinimalSolutions(long bdd) {
-    return Collections3.powerSet(support(bdd)).stream().filter(x -> evaluate(bdd, x)).iterator();
+    return BitSets.powerSet(support(bdd)).stream().filter(x -> evaluate(bdd, x)).iterator();
   }
 
   public static native long getThen(long bdd);

@@ -24,11 +24,11 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.collections.Collections3;
-import omega_automaton.collections.valuationset.ValuationSet;
+import owl.ltl.EquivalenceClass;
+import owl.automaton.AutomatonState;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.collections.BitSets;
+import owl.collections.ValuationSet;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
@@ -42,7 +42,7 @@ import owl.translations.ltl2ldba.Selector;
 public class NondetInitialComponent<S extends AutomatonState<S>, T> extends InitialComponent<S, T> {
 
   public NondetInitialComponent(@Nonnull
-    AbstractAcceptingComponent<S, ? extends GeneralisedBuchiAcceptance, T> acceptingComponent,
+    AbstractAcceptingComponent<S, ? extends GeneralizedBuchiAcceptance, T> acceptingComponent,
     Factories factories,
     EnumSet<Optimisation> optimisations,
     Selector<T> recurringObligationsSelector,
@@ -71,7 +71,7 @@ public class NondetInitialComponent<S extends AutomatonState<S>, T> extends Init
       BitSet sensitiveAlphabet = state.getSensitiveAlphabet();
       successors = new LinkedHashMap<>();
 
-      for (BitSet valuation : Collections3.powerSet(sensitiveAlphabet)) {
+      for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
         Edge<InitialComponentState> successor = state.getSuccessor(valuation);
 
         if (successor == null) {

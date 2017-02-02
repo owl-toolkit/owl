@@ -21,11 +21,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.EnumSet;
 import java.util.function.Function;
-import omega_automaton.StoredBuchiAutomaton;
-import omega_automaton.acceptance.BuchiAcceptance;
-import omega_automaton.output.HOAPrintable;
+import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.output.HOAPrintable;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 
 public class Nba2Ldba implements Function<StoredBuchiAutomaton, HOAPrintable> {
 

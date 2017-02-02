@@ -26,10 +26,10 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import omega_automaton.Automaton;
-import omega_automaton.AutomatonState;
-import omega_automaton.StoredBuchiAutomaton;
-import omega_automaton.acceptance.BuchiAcceptance;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonState;
+import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 

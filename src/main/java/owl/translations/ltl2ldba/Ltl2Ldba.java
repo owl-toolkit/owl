@@ -19,9 +19,9 @@ package owl.translations.ltl2ldba;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import ltl.Formula;
-import ltl.equivalence.EquivalenceClass;
-import omega_automaton.acceptance.BuchiAcceptance;
+import owl.ltl.Formula;
+import owl.ltl.EquivalenceClass;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.ng.NondetInitialComponent;

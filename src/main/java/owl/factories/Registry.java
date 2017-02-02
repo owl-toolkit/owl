@@ -19,13 +19,11 @@ package owl.factories;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-import ltl.BooleanConstant;
-import ltl.Formula;
-import ltl.equivalence.JddFactory;
-import ltl.equivalence.SylvanFactory;
-import ltl.visitors.AlphabetVisitor;
-import omega_automaton.collections.valuationset.BDDValuationSetFactory;
-import omega_automaton.collections.valuationset.SylvanValuationSetFactory;
+import owl.factories.sylvan.EQFactory;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Formula;
+import owl.factories.jdd.VSFactory;
+import owl.util.NativeLibraryLoader;
 
 public final class Registry {
 
@@ -44,7 +42,11 @@ public final class Registry {
   }
 
   public static Factories getFactories(int alphabetSize) {
-    return getFactories(BooleanConstant.TRUE, alphabetSize, DEFAULT_BACKEND);
+    return getFactories(alphabetSize, DEFAULT_BACKEND);
+  }
+
+  public static Factories getFactories(int alphabetSize, Backend backend) {
+    return getFactories(BooleanConstant.TRUE, alphabetSize, backend);
   }
 
   public static Factories getFactories(Formula formula) {
@@ -58,12 +60,12 @@ public final class Registry {
   public static Factories getFactories(Formula formula, int alphabetSize, Backend backend) {
     switch (backend) {
       case SYLVAN:
-        return new Factories(new SylvanFactory(formula, alphabetSize, null),
-          new SylvanValuationSetFactory(alphabetSize));
+        return new Factories(new EQFactory(formula, alphabetSize, null),
+          new owl.factories.sylvan.VSFactory(alphabetSize));
 
       case JDD:
       default:
-        return new Factories(new JddFactory(formula), new BDDValuationSetFactory(alphabetSize));
+        return new Factories(new owl.factories.jdd.EQFactory(formula, alphabetSize, null), new VSFactory(alphabetSize));
     }
   }
 

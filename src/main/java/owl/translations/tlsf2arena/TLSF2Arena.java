@@ -22,8 +22,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumerException;
-import ltl.parser.Parser;
-import ltl.tlsf.TLSF;
+import owl.ltl.parser.Parser;
+import owl.ltl.tlsf.TLSF;
 import owl.translations.Optimisation;
 import owl.translations.ltl2dpa.Ltl2Dpa;
 import owl.translations.ltl2dpa.ParityAutomaton;
@@ -31,7 +31,7 @@ import owl.translations.ltl2dpa.ParityAutomaton;
 public class TLSF2Arena {
 
   public static void main(String... args)
-    throws ltl.parser.ParseException, HOAConsumerException, IOException {
+    throws owl.ltl.parser.ParseException, HOAConsumerException, IOException {
     if (args.length == 0) {
       args = new String[] {
         "/Users/sickert/Documents/workspace/syntcomp/Benchmarks2016/TLSF/acaciaplus/easy.tlsf"};

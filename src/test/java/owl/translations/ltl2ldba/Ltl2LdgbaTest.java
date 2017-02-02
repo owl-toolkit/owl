@@ -25,12 +25,12 @@ import java.io.IOException;
 import java.util.EnumSet;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumerException;
-import ltl.parser.Parser;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
-import omega_automaton.output.HOAPrintable;
+import owl.ltl.parser.Parser;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.output.HOAPrintable;
 import org.junit.Test;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 
 public class Ltl2LdgbaTest {
 
@@ -58,7 +58,7 @@ public class Ltl2LdgbaTest {
     @Nullable String expectedOutput) throws IOException {
     BiMap<String, Integer> mapping = HashBiMap.create();
     Ltl2Ldgba translation = new Ltl2Ldgba(opts);
-    LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent> automaton = translation
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent> automaton = translation
       .apply(Parser.formula(ltl, mapping));
     automaton.getAcceptingComponent().setAtomMapping(mapping.inverse());
     String hoaString = automaton.toString();

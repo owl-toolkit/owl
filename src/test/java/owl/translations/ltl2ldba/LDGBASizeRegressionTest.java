@@ -18,16 +18,16 @@
 package owl.translations.ltl2ldba;
 
 import java.util.EnumSet;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 
 @RunWith(Parameterized.class)
 public class LDGBASizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent>> {
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent>> {
 
   public LDGBASizeRegressionTest(FormulaGroup selectedClass) {
     super(selectedClass, new Ltl2Ldgba(EnumSet.allOf(Optimisation.class)));
@@ -35,7 +35,7 @@ public class LDGBASizeRegressionTest extends
 
   @Override
   protected int getAccSize(
-    LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
     return automaton.getAcceptingComponent().getAcceptance().getSize();
   }
 
@@ -102,7 +102,7 @@ public class LDGBASizeRegressionTest extends
 
   @Override
   protected int getSize(
-    LimitDeterministicAutomaton<InitialComponentState, GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<GeneralisedAcceptingComponent.State, RecurringObligations>, GeneralisedAcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
     return automaton.size();
   }
 }

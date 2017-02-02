@@ -18,7 +18,7 @@
 package owl.translations.ltl2dpa;
 
 import javax.annotation.Nonnull;
-import omega_automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.translations.ltl2ldba.AcceptingComponent;

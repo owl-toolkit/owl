@@ -3,15 +3,16 @@ package owl.translations.ltl2ldba;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
-import ltl.BooleanConstant;
-import ltl.FOperator;
-import ltl.Formula;
-import ltl.GOperator;
-import ltl.Literal;
-import ltl.equivalence.JddFactory;
-import ltl.parser.Parser;
-import ltl.visitors.Collector;
+import owl.ltl.BooleanConstant;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.parser.Parser;
+import owl.ltl.visitors.Collector;
 import org.junit.Test;
+import owl.factories.Factories;
+import owl.factories.Registry;
 
 public class GMonitorVisitorTest {
 
@@ -29,8 +30,9 @@ public class GMonitorVisitorTest {
   public void testEvaluateSetG() throws Exception {
     GOperator G1 = (GOperator) Parser.formula("G(p2)");
     Formula formula = Parser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
+    Factories factories = Registry.getFactories(formula);
     RecurringObligationsEvaluator.EvaluateVisitor visitor = new RecurringObligationsEvaluator.EvaluateVisitor(
-      Collections.singleton(G1), new JddFactory(formula));
+      Collections.singleton(G1), factories.equivalenceClassFactory);
     assertEquals(BooleanConstant.FALSE, formula.accept(visitor));
   }
 }

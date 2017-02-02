@@ -19,9 +19,9 @@ package owl.translations.ltl2dpa;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.atomic.AtomicInteger;
-import omega_automaton.Automaton;
-import omega_automaton.AutomatonState;
-import omega_automaton.acceptance.ParityAcceptance;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonState;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.factories.Factories;
 
 public abstract class ParityAutomaton<S extends AutomatonState<S>>

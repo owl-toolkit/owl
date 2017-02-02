@@ -26,8 +26,8 @@ import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
-import omega_automaton.StoredBuchiAutomaton;
-import omega_automaton.output.HOAPrintable;
+import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.output.HOAPrintable;
 import org.junit.Test;
 import owl.translations.Optimisation;
 

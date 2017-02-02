@@ -18,10 +18,10 @@
 package owl.translations.ltl2ldba.ng;
 
 import java.util.EnumSet;
-import ltl.Formula;
-import ltl.equivalence.EquivalenceClass;
-import ltl.visitors.RestrictToFGXU;
-import omega_automaton.acceptance.BuchiAcceptance;
+import owl.ltl.Formula;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.visitors.RestrictToFGXU;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.factories.Factories;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.EquivalenceClassStateFactory;

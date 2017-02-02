@@ -18,7 +18,7 @@
 package owl.translations.ltl2ldba;
 
 import java.util.Set;
-import ltl.equivalence.EquivalenceClass;
+import owl.ltl.EquivalenceClass;
 
 public interface Selector<T> {
 

@@ -22,9 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import ltl.GOperator;
-import ltl.ImmutableObject;
-import ltl.equivalence.EquivalenceClass;
+import owl.ltl.GOperator;
+import owl.ltl.ImmutableObject;
+import owl.ltl.EquivalenceClass;
 
 public class RecurringObligations extends ImmutableObject {
 

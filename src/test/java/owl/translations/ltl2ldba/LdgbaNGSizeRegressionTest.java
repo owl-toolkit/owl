@@ -18,18 +18,18 @@
 package owl.translations.ltl2ldba;
 
 import java.util.EnumSet;
-import omega_automaton.acceptance.GeneralisedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
-import owl.translations.ldba.LimitDeterministicAutomaton;
-import owl.translations.ltl2ldba.ng.Ltl2LdgbaNg;
-import owl.translations.ltl2ldba.ng.RecurringObligations2;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.translations.ltl2ldba.ng.*;
+import owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponent;
 
 @RunWith(Parameterized.class)
 public class LdgbaNGSizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent.State, RecurringObligations2>, owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent>> {
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations2>, GeneralizedAcceptingComponent>> {
 
   public LdgbaNGSizeRegressionTest(FormulaGroup selectedClass) {
     super(selectedClass, new Ltl2LdgbaNg(EnumSet.allOf(Optimisation.class)));
@@ -37,7 +37,7 @@ public class LdgbaNGSizeRegressionTest extends
 
   @Override
   protected int getAccSize(
-    LimitDeterministicAutomaton<InitialComponentState, owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent.State, RecurringObligations2>, owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations2>, GeneralizedAcceptingComponent> automaton) {
     return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
   }
 
@@ -107,7 +107,7 @@ public class LdgbaNGSizeRegressionTest extends
 
   @Override
   protected int getSize(
-    LimitDeterministicAutomaton<InitialComponentState, owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent.State, GeneralisedBuchiAcceptance, InitialComponent<owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent.State, RecurringObligations2>, owl.translations.ltl2ldba.ng.GeneralisedAcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State, RecurringObligations2>, GeneralizedAcceptingComponent> automaton) {
     return automaton.size();
   }
 }

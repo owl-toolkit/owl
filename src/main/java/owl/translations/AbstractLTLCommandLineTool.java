@@ -19,9 +19,9 @@ package owl.translations;
 
 import java.io.InputStream;
 import java.util.Map;
-import ltl.Formula;
-import ltl.parser.ParseException;
-import ltl.parser.Parser;
+import owl.ltl.Formula;
+import owl.ltl.parser.ParseException;
+import owl.ltl.parser.Parser;
 
 public abstract class AbstractLTLCommandLineTool extends AbstractCommandLineTool<Formula> {
   private Map<Integer, String> mapping;

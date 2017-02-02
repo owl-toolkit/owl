@@ -22,10 +22,10 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import ltl.Formula;
-import omega_automaton.Automaton;
-import omega_automaton.output.HOAPrintable;
-import owl.translations.ldba.LimitDeterministicAutomaton;
+import owl.ltl.Formula;
+import owl.automaton.Automaton;
+import owl.automaton.output.HOAPrintable;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.translations.ltl2dpa.Ltl2Dpa;
 import owl.translations.ltl2ldba.Ltl2Ldgba;
 
