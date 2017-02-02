@@ -12,7 +12,7 @@ Owl (**O**mega **W**ord and automata **L**ibrary) is a library tailored for --- 
 
 1. Build the project using gradle. All dependencies are downloaded automatically.
 
-    `$ ./gradlew build`  
+    $ ./gradlew build
 
 2. Unzip the tools located in `build/distributions`
 
