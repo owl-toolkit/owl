@@ -104,9 +104,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>, S_A ex
           }
         });
       }
-
-      System.out.print(initialComponent.getStates());
-
+      
       initialComponent.epsilonJumps.clear();
       initialComponent.removeDeadStates(Sets.union(initialComponent.getInitialStates(), initialComponent.valuationSetJumps.rowKeySet()));
       acceptingComponent.removeDeadStates(accReach);
