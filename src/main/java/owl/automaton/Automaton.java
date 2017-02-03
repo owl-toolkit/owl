@@ -478,6 +478,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
   public final void toHOABody(HOAConsumerExtended hoa) {
     getStates().forEach(s -> {
       hoa.addState(s);
+      getSuccessors(s).forEach(hoa::addEdge);
       toHOABodyEdge(s, hoa);
       hoa.notifyEndOfState();
     });
@@ -488,8 +489,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
    * {@link Automaton#transitions}.
    */
   protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
-    getSuccessors(state).forEach((edge, valuationSet) -> hoa
-      .addEdge(valuationSet, edge.getSuccessor(), edge.acceptanceSetStream()));
+
   }
 
   @Override

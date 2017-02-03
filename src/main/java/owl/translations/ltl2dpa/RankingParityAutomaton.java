@@ -159,7 +159,7 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
       AcceptingComponent.State nextVolatileState = null;
       int nextVolatileStateIndex = -1;
 
-      for (AcceptingComponent.State accState : initialComponent.epsilonJumps.get(state)) {
+      for (AcceptingComponent.State accState : initialComponent.getEpsilonJumps(state)) {
         RecurringObligations obligations = accState.getObligations();
         Integer candidateIndex = volatileComponents.get(obligations);
 
@@ -290,7 +290,7 @@ final class RankingParityAutomaton extends ParityAutomaton<State> {
       {
         EquivalenceClass falseClass = factories.equivalenceClassFactory.getFalse();
 
-        for (AcceptingComponent.State jumpTarget : initialComponent.epsilonJumps.get(successor)) {
+        for (AcceptingComponent.State jumpTarget : initialComponent.getEpsilonJumps(successor)) {
           existingClasses.put(jumpTarget.getObligations(), falseClass);
         }
       }

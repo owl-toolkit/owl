@@ -22,6 +22,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,13 +36,21 @@ import owl.factories.Factories;
 public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T extends AutomatonState<T>>
   extends Automaton<S, NoneAcceptance> {
 
-  public final SetMultimap<S, T> epsilonJumps;
+  protected final SetMultimap<S, T> epsilonJumps;
   final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
   protected AbstractInitialComponent(Factories factories) {
     super(new NoneAcceptance(), factories);
     epsilonJumps = LinkedHashMultimap.create();
     valuationSetJumps = HashBasedTable.create();
+  }
+
+  public Set<T> getEpsilonJumps(S state) {
+    return Collections.unmodifiableSet(epsilonJumps.get(state));
+  }
+
+  public Map<ValuationSet, Set<T>> getValuationSetJumps(S state) {
+    return Collections.unmodifiableMap(valuationSetJumps.row(state));
   }
 
   public abstract void generateJumps(S state);
@@ -65,14 +74,11 @@ public abstract class AbstractInitialComponent<S extends AutomatonState<S>, T ex
   protected void toHOABodyEdge(S state, HOAConsumerExtended hoa) {
     super.toHOABodyEdge(state, hoa);
 
-    for (T accState : epsilonJumps.get(state)) {
-      hoa.addEpsilonEdge(accState);
-    }
-
-    for (Map.Entry<ValuationSet, Set<T>> entry : valuationSetJumps.row(state).entrySet()) {
-      for (T accState : entry.getValue()) {
-        hoa.addEdge(entry.getKey(), accState);
+    epsilonJumps.get(state).forEach(hoa::addEpsilonEdge);
+    valuationSetJumps.row(state).forEach((vs, targets) -> {
+      for (T accState : targets) {
+        hoa.addEdge(vs, accState);
       }
-    }
+    });
   }
 }

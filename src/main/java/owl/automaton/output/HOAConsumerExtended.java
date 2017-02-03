@@ -34,6 +34,7 @@ import jhoafparser.consumer.HOAConsumerException;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.edge.Edge;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 
@@ -107,15 +108,19 @@ public class HOAConsumerExtended {
       new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
   }
 
-  public void addEdge(ValuationSet key, AutomatonState<?> end) {
-    addEdgeBackend(key, end, null);
+  public void addEdge(ValuationSet label, AutomatonState<?> end) {
+    addEdgeBackend(label, end, null);
   }
 
-  public void addEdge(ValuationSet label, AutomatonState<?> end, IntStream accSets) {
+  protected void addEdge(ValuationSet label, AutomatonState<?> end, IntStream accSets) {
     addEdgeBackend(label, end, BitSets.toList(accSets));
   }
 
-  protected void addEdgeBackend(ValuationSet label, AutomatonState<?> end, List<Integer> accSets) {
+  public void addEdge(Edge<? extends AutomatonState<?>> edge, ValuationSet label) {
+    addEdge(label, edge.getSuccessor(), edge.acceptanceSetStream());
+  }
+
+  private void addEdgeBackend(ValuationSet label, AutomatonState<?> end, List<Integer> accSets) {
     if (label.isEmpty()) {
       return;
     }
