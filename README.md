@@ -2,6 +2,8 @@
 
 [![build status](https://gitlab.lrz.de/i7/owl/badges/master/build.svg)](https://gitlab.lrz.de/i7/owl/commits/master)
 
+[Website](https://www7.in.tum.de/~sickert/projects/owl/)
+
 ## About
 
 Owl (**O**mega **W**ord and automata **L**ibrary) is a library tailored for --- but not limited to --- semantic-based translations from LTL to deterministic automata. It ships basic building blocks for constructiong omega-automata and includes several command-line tools implementing these translations.
