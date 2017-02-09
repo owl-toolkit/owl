@@ -23,7 +23,6 @@ import owl.ltl.visitors.Visitor;
 
 public final class Simplifier {
 
-  private static final Visitor<Formula> AGGRESSIVE_SIMPLIFIER = new AggressiveSimplifier();
   // TODO: Redesign Simplifier
   private static final int ITERATIONS = 3;
   private static final Visitor<Formula> MODAL_SIMPLIFIER = new ModalSimplifier();
@@ -38,6 +37,7 @@ public final class Simplifier {
       case PULLUP_X:
         return formula.accept(PULLUP_X).toFormula();
 
+      case AGGRESSIVELY:
       case MODAL_EXT:
         Formula step0 = formula;
 
@@ -56,9 +56,6 @@ public final class Simplifier {
 
       case MODAL:
         return formula.accept(Simplifier.MODAL_SIMPLIFIER);
-
-      case AGGRESSIVELY:
-        return formula.accept(Simplifier.AGGRESSIVE_SIMPLIFIER);
 
       case PUSHDOWN_X:
         return formula.accept(PUSHDOWN_X, 0);

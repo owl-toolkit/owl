@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.BitSet;
+import org.junit.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -35,8 +36,6 @@ import owl.ltl.XOperator;
 import owl.ltl.parser.Parser;
 import owl.ltl.simplifier.Simplifier.Strategy;
 import owl.ltl.visitors.UnabbreviateVisitor;
-import owl.ltl.visitors.Visitor;
-import org.junit.Test;
 
 public class TestFormula {
 
@@ -200,34 +199,6 @@ public class TestFormula {
   }
 
   @Test
-  public void testImplication1() {
-    Formula f1 = new Literal(1, false);
-    Formula f2 = new GOperator(f1);
-    Formula f3 = new XOperator(f1);
-    Formula f4 = new GOperator(new FOperator(f3));
-    Formula f5 = Simplifier.simplify(new Conjunction(f4, f2), Strategy.MODAL);
-    ImplicationVisitor v = ImplicationVisitor.getVisitor();
-    assertEquals(f2.accept(v, f5), true);
-  }
-
-  @Test
-  public void testSetToConst1() {
-    Formula f0 = new Literal(1, false);
-    Visitor<Formula> visitor = new PseudoSubstitutionVisitor(f0, BooleanConstant.TRUE);
-    Formula f1 = f0.accept(visitor);
-    assertEquals(f1, BooleanConstant.get(true));
-  }
-
-  @Test
-  public void testSetToConst2() {
-    Formula f1 = new Literal(0, false);
-    Formula f2 = new Literal(2, false);
-    Formula f3 = Simplifier.simplify(new Disjunction(f1, f2), Strategy.MODAL);
-    Formula f4 = f3.accept(new PseudoSubstitutionVisitor(f2, BooleanConstant.FALSE));
-    assertEquals(f4, f1);
-  }
-
-  @Test
   public void testSimplifyAggressively1() {
     Formula f1 = new Literal(1, false);
     Formula f2 = new GOperator(new FOperator(f1));
@@ -236,15 +207,7 @@ public class TestFormula {
     assertEquals(Simplifier.simplify(f4, Strategy.MODAL_EXT), f2);
   }
 
-  @Test
-  public void testSimplifyAggressively2() {
-    Formula f1 = new Literal(1, false);
-    Formula f2 = new GOperator(f1);
-    Formula f3 = new XOperator(f1);
-    Formula f4 = new GOperator(new FOperator(f3));
-    Formula f5 = Simplifier.simplify(new Conjunction(f4, f2), Strategy.MODAL);
-    assertEquals(Simplifier.simplify(f5, Strategy.AGGRESSIVELY), f2);
-  }
+
 
   @Test
   public void testSimplifyAggressively3() {
@@ -314,14 +277,6 @@ public class TestFormula {
     Formula f6 = Simplifier.simplify(Conjunction.create(f5, f1, f2), Strategy.MODAL);
 
     assertEquals(f6, Simplifier.simplify(f5.unfold(), Strategy.MODAL));
-  }
-
-  @Test
-  public void test_setConst() {
-    Formula f1 = new Literal(1, false);
-    Formula f2 = new Literal(0, false);
-    Formula f3 = new FOperator(Simplifier.simplify(new Conjunction(f1, f2), Strategy.MODAL));
-    assertEquals(f3.accept(new PseudoSubstitutionVisitor(f1, BooleanConstant.TRUE)), f3);
   }
 
   @Test

@@ -37,16 +37,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import owl.factories.EquivalenceClassFactory;
-import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
-import owl.ltl.EquivalenceClass;
-import owl.ltl.FOperator;
-import owl.ltl.Formula;
-import owl.ltl.GOperator;
-import owl.ltl.Literal;
 import owl.ltl.parser.Parser;
 import owl.ltl.simplifier.Simplifier;
+import owl.ltl.simplifier.Simplifier.Strategy;
 
 public abstract class EquivalenceClassTest {
   private static final List<String> formulaeStrings = ImmutableList
@@ -275,5 +268,28 @@ public abstract class EquivalenceClassTest {
       assertEquals(ref, clazz);
       assertEquals(clazz, clazz.unfold());
     }
+  }
+
+  // @Test
+  public void testLTLBackgroundTheory1() {
+    Formula f1 = Parser.formula("G p0 & p0");
+    Formula f2 = Parser.formula("G p0");
+    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
+  }
+
+  // @Test
+  public void testLTLBackgroundTheory2() {
+    Formula f1 = Parser.formula("G p0 | p0");
+    Formula f2 = Parser.formula("p0");
+    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
+  }
+
+  // @Test
+  public void testLTLBackgroundTheory3() {
+    Formula f1 = new Literal(1, false);
+    Formula f2 = new GOperator(f1);
+    Formula f5 = Simplifier.simplify(new Conjunction(
+      new GOperator(new FOperator(new XOperator(f1))), f2), Strategy.MODAL);
+    assertEquals(Simplifier.simplify(f5, Strategy.AGGRESSIVELY), f2);
   }
 }
