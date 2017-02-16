@@ -28,7 +28,7 @@ import org.junit.Test;
 public class LiteralTest {
 
   @Test
-  public void getAtom() throws Exception {
+  public void getAtom() {
     for (int atom = 0; atom < 42; atom++) {
       Literal literal = new Literal(atom, false);
       Literal notLiteral = new Literal(atom, true);
@@ -38,7 +38,7 @@ public class LiteralTest {
   }
 
   @Test
-  public void isNegated() throws Exception {
+  public void isNegated() {
     Literal literal = new Literal(1);
     Literal notLiteral = new Literal(1, true);
 
@@ -47,25 +47,25 @@ public class LiteralTest {
   }
 
   @Test
-  public void isPureEventual() throws Exception {
+  public void isPureEventual() {
     Literal literal = new Literal(0);
     assertFalse(literal.isPureEventual());
   }
 
   @Test
-  public void isPureUniversal() throws Exception {
+  public void isPureUniversal() {
     Literal literal = new Literal(0);
     assertFalse(literal.isPureUniversal());
   }
 
   @Test
-  public void isSuspendable() throws Exception {
+  public void isSuspendable() {
     Literal literal = new Literal(0);
     assertFalse(literal.isSuspendable());
   }
 
   @Test
-  public void not() throws Exception {
+  public void not() {
     Literal literal = new Literal(1);
     Literal notLiteral = new Literal(1, true);
 
@@ -76,7 +76,7 @@ public class LiteralTest {
   }
 
   @Test
-  public void temporalStep() throws Exception {
+  public void temporalStep() {
     Literal literal = new Literal(1);
     BitSet valuation = new BitSet();
 
@@ -95,7 +95,7 @@ public class LiteralTest {
   }
 
   @Test
-  public void unfold() throws Exception {
+  public void unfold() {
     Literal literal = new Literal(1);
     assertEquals(literal, literal.unfold());
   }

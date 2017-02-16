@@ -17,7 +17,6 @@
 
 package owl.collections;
 
-
 import java.util.AbstractCollection;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -37,9 +36,8 @@ import javax.annotation.Nonnull;
  * the stack twice
  */
 public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
-
-  private Set<E> elementsInTheStack;
-  private Deque<E> stack;
+  private final Set<E> elementsInTheStack;
+  private final Deque<E> stack;
 
   public TarjanStack() {
     stack = new ArrayDeque<>();
@@ -47,21 +45,21 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
   }
 
   @Override
-  public boolean add(E e) {
-    elementsInTheStack.add(e);
-    return stack.add(e);
+  public boolean add(E element) {
+    elementsInTheStack.add(element);
+    return stack.add(element);
   }
 
   @Override
-  public void addFirst(E e) {
-    stack.addFirst(e);
-    elementsInTheStack.add(e);
+  public void addFirst(E element) {
+    stack.addFirst(element);
+    elementsInTheStack.add(element);
   }
 
   @Override
-  public void addLast(E e) {
-    stack.addLast(e);
-    elementsInTheStack.add(e);
+  public void addLast(E element) {
+    stack.addLast(element);
+    elementsInTheStack.add(element);
   }
 
   @Override
@@ -71,8 +69,8 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
   }
 
   @Override
-  public boolean contains(Object o) {
-    return elementsInTheStack.contains(o);
+  public boolean contains(Object element) {
+    return elementsInTheStack.contains(element);
   }
 
   @Nonnull
@@ -108,21 +106,21 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
   }
 
   @Override
-  public boolean offer(E e) {
-    elementsInTheStack.add(e);
-    return stack.offer(e);
+  public boolean offer(E element) {
+    elementsInTheStack.add(element);
+    return stack.offer(element);
   }
 
   @Override
-  public boolean offerFirst(E e) {
-    elementsInTheStack.add(e);
-    return stack.offerFirst(e);
+  public boolean offerFirst(E element) {
+    elementsInTheStack.add(element);
+    return stack.offerFirst(element);
   }
 
   @Override
-  public boolean offerLast(E e) {
-    elementsInTheStack.add(e);
-    return stack.offerLast(e);
+  public boolean offerLast(E element) {
+    elementsInTheStack.add(element);
+    return stack.offerLast(element);
   }
 
   @Override
@@ -142,62 +140,62 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
 
   @Override
   public E poll() {
-    E e = stack.poll();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.poll();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
   public E pollFirst() {
-    E e = stack.pollFirst();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.pollFirst();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
   public E pollLast() {
-    E e = stack.pollLast();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.pollLast();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
   public E pop() {
-    E e = stack.pop();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.pop();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
-  public void push(E e) {
-    stack.push(e);
-    elementsInTheStack.add(e);
+  public void push(E element) {
+    stack.push(element);
+    elementsInTheStack.add(element);
   }
 
   @Override
   public E remove() {
-    E e = stack.remove();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.remove();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
-  public boolean remove(Object o) {
-    elementsInTheStack.remove(o);
-    return stack.remove(o);
+  public boolean remove(Object element) {
+    elementsInTheStack.remove(element);
+    return stack.remove(element);
   }
 
   @Override
   public E removeFirst() {
-    E e = stack.removeFirst();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.removeFirst();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
-  public boolean removeFirstOccurrence(Object o) {
-    if (this.contains(o)) {
-      this.remove(o);
+  public boolean removeFirstOccurrence(Object element) {
+    if (this.contains(element)) {
+      this.remove(element);
       return true;
     }
 
@@ -206,14 +204,14 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
 
   @Override
   public E removeLast() {
-    E e = stack.removeLast();
-    elementsInTheStack.remove(e);
-    return e;
+    E element = stack.removeLast();
+    elementsInTheStack.remove(element);
+    return element;
   }
 
   @Override
-  public boolean removeLastOccurrence(Object o) {
-    return removeFirstOccurrence(o);
+  public boolean removeLastOccurrence(Object element) {
+    return removeFirstOccurrence(element);
   }
 
   @Override
@@ -229,7 +227,7 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
 
   @Nonnull
   @Override
-  public <T> T[] toArray(@Nonnull T[] a) {
-    return stack.toArray(a);
+  public <T> T[] toArray(@Nonnull T[] array) {
+    return stack.toArray(array);
   }
 }

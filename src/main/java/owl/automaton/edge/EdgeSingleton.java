@@ -18,33 +18,37 @@
 package owl.automaton.edge;
 
 import java.util.Objects;
-import java.util.stream.IntStream;
+import java.util.PrimitiveIterator;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-final class EdgeSingleton<S> implements Edge<S> {
+public final class EdgeSingleton<S> implements Edge<S> {
   private static final int EMPTY_ACCEPTANCE = -1;
   private final int acceptance;
+  private final int cachedHashCode;
   private final S successor;
 
   EdgeSingleton(final S successor) {
     this.acceptance = EMPTY_ACCEPTANCE;
     this.successor = successor;
+    this.cachedHashCode = 31 * (31 + successor.hashCode()) + acceptance;
   }
 
   EdgeSingleton(final S successor, @Nonnegative final int acceptance) {
     assert acceptance >= 0;
     this.successor = successor;
     this.acceptance = acceptance;
+    this.cachedHashCode = 31 * (31 + successor.hashCode()) + acceptance;
+  }
+
+  public int getAcceptance() {
+    return acceptance;
   }
 
   @Override
-  public IntStream acceptanceSetStream() {
-    if (acceptance == EMPTY_ACCEPTANCE) {
-      return IntStream.empty();
-    }
-    return IntStream.of(acceptance);
+  public PrimitiveIterator.OfInt acceptanceSetIterator() {
+    return new SingletonIterator(acceptance);
   }
 
   @Override
@@ -58,8 +62,8 @@ final class EdgeSingleton<S> implements Edge<S> {
     }
 
     final EdgeSingleton other = (EdgeSingleton) o;
-    return Objects.equals(this.acceptance, other.acceptance) &&
-      Objects.equals(this.successor, other.successor);
+    return Objects.equals(this.acceptance, other.acceptance)
+      && Objects.equals(this.successor, other.successor);
   }
 
   @Override
@@ -69,7 +73,7 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public int hashCode() {
-    return 31 * (31 + successor.hashCode()) + acceptance;
+    return cachedHashCode;
   }
 
   @Override
@@ -80,6 +84,26 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public String toString() {
-    return "-> " + successor + ((acceptance == -1) ? "" : " {" + acceptance + '}');
+    return Edge.toString(this);
+  }
+
+  private static final class SingletonIterator implements PrimitiveIterator.OfInt {
+    private int value;
+
+    SingletonIterator(int value) {
+      this.value = value;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return value != EMPTY_ACCEPTANCE;
+    }
+
+    @Override
+    public int nextInt() {
+      int value = this.value;
+      this.value = EMPTY_ACCEPTANCE;
+      return value;
+    }
   }
 }

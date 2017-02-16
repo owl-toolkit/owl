@@ -19,12 +19,11 @@ package owl.ltl.simplifier;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import owl.ltl.Formula;
-import owl.ltl.parser.Parser;
-import owl.ltl.simplifier.Simplifier.Strategy;
 import org.junit.Test;
+import owl.ltl.Formula;
+import owl.ltl.parser.LtlParser;
+import owl.ltl.parser.ParseException;
+import owl.ltl.simplifier.Simplifier.Strategy;
 
 public class SimplifierTest {
 
@@ -42,20 +41,20 @@ public class SimplifierTest {
   };
 
   @Test
-  public void testModal() {
-    BiMap<String, Integer> aliases = HashBiMap.create();
-
+  public void testModal() throws ParseException {
     for (int i = 0; i < INPUT.length; i++) {
-      Formula input = Parser.formula(INPUT[i], aliases);
-      Formula output = Parser.formula(EXPECTED[i], aliases);
+      LtlParser parser = new LtlParser();
+      Formula input = parser.parseLtl(INPUT[i]);
+      Formula output = parser.parseLtl(EXPECTED[i]);
       assertEquals(output, Simplifier.simplify(input, Strategy.MODAL_EXT));
     }
   }
 
   @Test
-  public void testPullupX() {
-    Formula f1 = Parser.formula(" G (F (X b))");
-    Formula f2 = Parser.formula("X(G(F(b)))");
+  public void testPullupX() throws ParseException {
+    LtlParser parser = new LtlParser();
+    Formula f1 = parser.parseLtl(" G (F (X b))");
+    Formula f2 = parser.parseLtl("X(G(F(b)))");
     assertEquals(Simplifier.simplify(f1, Simplifier.Strategy.PULLUP_X), f2);
   }
 }

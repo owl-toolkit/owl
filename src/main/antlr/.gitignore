@@ -1,0 +1,2 @@
+# IntelliJ ANTLR plugin generates the .tokens files in this folder
+*.tokens

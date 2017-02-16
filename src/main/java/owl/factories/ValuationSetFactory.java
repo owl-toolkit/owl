@@ -21,7 +21,6 @@ import java.util.BitSet;
 import owl.collections.ValuationSet;
 
 public interface ValuationSetFactory {
-
   ValuationSet createEmptyValuationSet();
 
   ValuationSet createUniverseValuationSet();

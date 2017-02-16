@@ -22,36 +22,37 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
+import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.automaton.output.HOAPrintable;
-import owl.translations.ltl2ldba.Ltl2Ldba;
-import owl.translations.ltl2ldba.Ltl2Ldgba;
-import owl.translations.ltl2ldba.ng.Ltl2LdbaNg;
-import owl.translations.ltl2ldba.ng.Ltl2LdgbaNg;
+import owl.translations.ltl2ldba.LTL2LDGBA;
+import owl.translations.ltl2ldba.ng.LTL2LDBAng;
+import owl.translations.ltl2ldba.ng.LTL2LDGBAng;
 
-public class LTL2LDBA extends AbstractLTLCommandLineTool {
-  private final Function<EnumSet<Optimisation>, Function<Formula, ? extends HOAPrintable>> constructor;
+public final class LTL2LDBA extends AbstractLtlCommandLineTool {
+  private final Function<EnumSet<Optimisation>, Function<Formula, ? extends HoaPrintable>>
+    constructor;
   private final boolean nondet;
 
   private LTL2LDBA(EnumSet<Configuration> configuration) {
     if (configuration.contains(Configuration.GENERALISED)) {
       if (configuration.contains(Configuration.GUESS_F)) {
-        constructor = Ltl2LdgbaNg::new;
+        constructor = LTL2LDGBAng::new;
       } else {
-        constructor = Ltl2Ldgba::new;
+        constructor = LTL2LDGBA::new;
       }
     } else {
       if (configuration.contains(Configuration.GUESS_F)) {
-        constructor = Ltl2LdbaNg::new;
+        constructor = LTL2LDBAng::new;
       } else {
-        constructor = Ltl2Ldba::new;
+        constructor = owl.translations.ltl2ldba.LTL2LDBA::new;
       }
     }
 
     nondet = configuration.contains(Configuration.NONDET_INITIAL_COMPONENT);
   }
 
-  public static void main(String... argsArray) throws Exception {
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  public static void main(String... argsArray) throws Exception { // NOPMD
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
 
     EnumSet<Configuration> configuration = EnumSet.of(Configuration.GENERALISED);
@@ -62,7 +63,7 @@ public class LTL2LDBA extends AbstractLTLCommandLineTool {
 
     if ((args.remove("--generalised-Büchi") || args.remove("--generalised-Buchi")) && !configuration
       .contains(Configuration.GENERALISED)) {
-      throw new RuntimeException("Invalid arguments: " + Arrays.toString(argsArray));
+      throw new IllegalArgumentException("Invalid arguments: " + Arrays.toString(argsArray));
     }
 
     if (args.remove("--guess-F")) {
@@ -77,7 +78,7 @@ public class LTL2LDBA extends AbstractLTLCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, ? extends HOAPrintable> getTranslation(
+  protected Function<Formula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
     if (nondet) {
       optimisations.remove(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);

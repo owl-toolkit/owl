@@ -18,72 +18,72 @@
 package owl.translations.tlsf2arena;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.BitSet;
 import owl.ltl.Formula;
-import owl.ltl.parser.Parser;
+import owl.ltl.parser.LtlParser;
 import owl.translations.ltl2dpa.Ltl2Dpa;
 
 public class Any2BitArenaTest {
+  private static final Ltl2Dpa translation = new Ltl2Dpa();
 
-  private final static Ltl2Dpa translation = new Ltl2Dpa();
-
-  public void testWriteBinaryEnv() throws Exception {
-    Formula ltl = Parser.formula("G ((a & b) | (!a & (!b)))");
+  public void testWriteBinaryEnv() throws IOException {
+    Formula ltl = LtlParser.formula("G ((a & b) | (!a & (!b)))");
     BitSet bs = new BitSet();
     bs.set(0);
 
     Any2BitArena writer = new Any2BitArena();
-    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.Environment, bs,
+    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.ENVIRONMENT, bs,
       new File("G(a<->b)_env.nodes"), new File("G(a<->b)_env.edges"));
   }
 
-  public void testWriteBinarySimpEnv() throws Exception {
-    Formula ltl = Parser.formula("G (!a | b)");
+  public void testWriteBinarySimpEnv() throws IOException {
+    Formula ltl = LtlParser.formula("G (!a | b)");
     BitSet bs = new BitSet();
     bs.set(0);
 
     Any2BitArena writer = new Any2BitArena();
-    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.Environment, bs,
+    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.ENVIRONMENT, bs,
       new File("G(a->b)_env.nodes"), new File("G(a->b)_env.edges"));
   }
 
-  public void testWriteBinarySimpSystem() throws Exception {
-    Formula ltl = Parser.formula("G (!a | b)");
+  public void testWriteBinarySimpSystem() throws IOException {
+    Formula ltl = LtlParser.formula("G (!a | b)");
     BitSet bs = new BitSet();
     bs.set(0);
 
     Any2BitArena writer = new Any2BitArena();
-    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.System, bs,
+    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.SYSTEM, bs,
       new File("G(a->b)_sys.nodes"), new File("G(a->b)_sys.edges"));
   }
 
-  public void testWriteBinarySystem() throws Exception {
-    Formula ltl = Parser.formula("G ((a & b) | (!a & !b))");
+  public void testWriteBinarySystem() throws IOException {
+    Formula ltl = LtlParser.formula("G ((a & b) | (!a & !b))");
     BitSet bs = new BitSet();
     bs.set(0);
 
     Any2BitArena writer = new Any2BitArena();
-    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.System, bs,
+    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.SYSTEM, bs,
       new File("G(a<->b)_sys.nodes"), new File("G(a<->b)_sys.edges"));
   }
 
-  public void testWriteBinaryXEnv() throws Exception {
-    Formula ltl = Parser.formula("G ((a & X b) | (!a & (X!b)))");
+  public void testWriteBinaryXEnv() throws IOException {
+    Formula ltl = LtlParser.formula("G ((a & X b) | (!a & (X!b)))");
     BitSet bs = new BitSet();
     bs.set(0);
 
     Any2BitArena writer = new Any2BitArena();
-    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.Environment, bs,
+    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.ENVIRONMENT, bs,
       new File("G(a<->Xb)_env.nodes"), new File("G(a<->Xb)_env.edges"));
   }
 
-  public void testWriteBinaryXSystem() throws Exception {
-    Formula ltl = Parser.formula("G ((a & X b) | (!a & X!b))");
+  public void testWriteBinaryXSystem() throws IOException {
+    Formula ltl = LtlParser.formula("G ((a & X b) | (!a & X!b))");
     BitSet bs = new BitSet();
     bs.set(0);
 
     Any2BitArena writer = new Any2BitArena();
-    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.System, bs,
+    writer.writeBinary(translation.apply(ltl), Any2BitArena.Player.SYSTEM, bs,
       new File("G(a<->Xb)_sys.nodes"), new File("G(a<->Xb)_sys.edges"));
   }
 }

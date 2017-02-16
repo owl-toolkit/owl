@@ -18,14 +18,14 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Map;
+import java.util.List;
 import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.ImmutableObject;
 
 public final class BooleanConstant extends ImmutableObject implements Formula {
-
   public static final BooleanConstant FALSE = new BooleanConstant(false);
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
@@ -54,7 +54,7 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   }
 
   @Override
-  public boolean equals2(ImmutableObject o) {
+  protected boolean equals2(ImmutableObject o) {
     BooleanConstant that = (BooleanConstant) o;
     return value == that.value;
   }
@@ -101,7 +101,7 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   }
 
   @Override
-  public String toString(Map<Integer, String> atomMapping) {
+  public String toString(List<String> variables) {
     return toString();
   }
 

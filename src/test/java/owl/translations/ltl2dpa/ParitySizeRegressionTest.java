@@ -34,8 +34,8 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
   }
 
   @Override
-  protected int[] getExpectedAccSize(FormulaGroup t) {
-    switch (t) {
+  protected int[] getExpectedAccSize(FormulaGroup formulaGroup) {
+    switch (formulaGroup) {
       case VOLATILE:
         return new int[] {2, 2, 2, 2};
 
@@ -73,8 +73,8 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
   }
 
   @Override
-  protected int[] getExpectedSize(FormulaGroup t) {
-    switch (t) {
+  protected int[] getExpectedSize(FormulaGroup formulaGroup) {
+    switch (formulaGroup) {
       case FG:
         return new int[] {1, 2, 2, 4, 2, 2, 2, 2};
 

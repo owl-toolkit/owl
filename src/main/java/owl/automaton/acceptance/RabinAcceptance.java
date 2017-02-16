@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Set;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.output.HOAConsumerExtended;
 import owl.automaton.edge.Edge;
+import owl.automaton.output.HoaConsumerExtended;
 
 /**
  * This class represents a Rabin acceptance. It consists of multiple
@@ -54,7 +54,7 @@ public class RabinAcceptance implements OmegaAcceptance {
     return pair;
   }
 
-  private int createSet(final RabinPair pair) {
+  private int createSet() {
     final int index = setCount;
     setCount += 1;
     return index;
@@ -135,7 +135,7 @@ public class RabinAcceptance implements OmegaAcceptance {
   }
 
   public String toString() {
-    final StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder(30);
     builder.append("RabinAcceptance: ");
     for (final RabinPair pair : pairList) {
       builder.append(pair.toString());
@@ -149,7 +149,7 @@ public class RabinAcceptance implements OmegaAcceptance {
     private int finiteIndex;
     private int infiniteIndex;
 
-    private RabinPair(final RabinAcceptance acceptance, final int pairNumber) {
+    RabinPair(final RabinAcceptance acceptance, final int pairNumber) {
       this.acceptance = acceptance;
       this.pairNumber = pairNumber;
       finiteIndex = -1;
@@ -187,12 +187,12 @@ public class RabinAcceptance implements OmegaAcceptance {
     private BooleanExpression<AtomAcceptance> getBooleanExpression() {
       assert !isEmpty();
       if (finiteIndex == -1) {
-        return HOAConsumerExtended.mkInf(infiniteIndex);
+        return HoaConsumerExtended.mkInf(infiniteIndex);
       }
       if (infiniteIndex == -1) {
-        return HOAConsumerExtended.mkFin(finiteIndex);
+        return HoaConsumerExtended.mkFin(finiteIndex);
       }
-      return HOAConsumerExtended.mkFin(finiteIndex).and(HOAConsumerExtended.mkInf(infiniteIndex));
+      return HoaConsumerExtended.mkFin(finiteIndex).and(HoaConsumerExtended.mkInf(infiniteIndex));
     }
 
     /**
@@ -201,7 +201,7 @@ public class RabinAcceptance implements OmegaAcceptance {
     public int getOrCreateFiniteIndex() {
       if (finiteIndex == -1) {
         // Not allocated yet
-        finiteIndex = acceptance.createSet(this);
+        finiteIndex = acceptance.createSet();
       }
       return finiteIndex;
     }
@@ -211,7 +211,7 @@ public class RabinAcceptance implements OmegaAcceptance {
      */
     public int getOrCreateInfiniteIndex() {
       if (infiniteIndex == -1) {
-        infiniteIndex = acceptance.createSet(this);
+        infiniteIndex = acceptance.createSet();
       }
       return infiniteIndex;
     }

@@ -1,14 +1,20 @@
 package owl.automaton.edge;
 
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nonnegative;
 
 public final class Edges {
+  private static final Map<BitSet, BitSet> internalCache = new HashMap<>();
+
   private Edges() {
   }
 
   /**
-   * Creates an edge which belongs to the specified acceptance sets.
+   * Creates an edge which belongs to the specified acceptance sets. The passed {@code acceptance}
+   * must not be modified afterwards.
    *
    * @param successor
    *     Successor of this edge.
@@ -26,7 +32,15 @@ public final class Edges {
     if (acceptance.cardinality() == 1) {
       return new EdgeSingleton<>(successor, acceptance.nextSetBit(0));
     }
-    return new EdgeGeneric<>(successor, acceptance);
+    if (acceptance.length() <= Long.SIZE) {
+      return new EdgeLong<>(successor, acceptance);
+    }
+
+    @SuppressWarnings("UseOfClone")
+    final BitSet cachedSet = internalCache
+      .computeIfAbsent(acceptance, key -> (BitSet) acceptance.clone());
+    assert Objects.equals(cachedSet, acceptance);
+    return new EdgeGeneric<>(successor, cachedSet);
   }
 
   /**
@@ -55,7 +69,7 @@ public final class Edges {
    *
    * @return An edge leading to {@code successor} with given acceptance.
    */
-  public static <S> Edge<S> create(final S successor, @Nonnegative final int acceptance) {
+  public static <S> EdgeSingleton<S> create(final S successor, @Nonnegative final int acceptance) {
     assert acceptance >= 0;
     return new EdgeSingleton<>(successor, acceptance);
   }

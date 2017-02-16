@@ -22,53 +22,60 @@ import java.io.InputStream;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.transformations.ToStateAcceptance;
-import owl.automaton.output.HOAPrintable;
+import owl.automaton.output.HoaPrintable;
 
 public abstract class AbstractCommandLineTool<T> {
-
   private static final String ANNOTATIONS = "--annotations";
   private static final String OPTIMISATIONS = "--optimisations=";
 
-  void execute(Deque<String> args) throws Exception {
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  void execute(Deque<String> args) throws Exception { // NOPMD
     // Read input.
-    EnumSet<HOAPrintable.Option> options = parseHOAOutputOptions(args);
-    EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
-    Function<T, ? extends HOAPrintable> translation = getTranslation(optimisations);
+    final EnumSet<HoaPrintable.Option> options = parseHoaOutputOptions(args);
+    final EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
+    final Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
     boolean stateAcceptance = args.remove("--state-acceptance");
     boolean readStdin = args.isEmpty();
-    T input = parseInput(
-      readStdin ? System.in : new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
+    T input;
+    if (readStdin) {
+      input = parseInput(System.in);
+    } else {
+      input = parseInput(new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
+    }
 
     // Apply translation.
-    HOAPrintable result = translation.apply(input);
+    HoaPrintable result = translation.apply(input);
 
     // Write output.
-    result.setAtomMapping(getAtomMapping());
+    result.setVariables(getVariables());
     HOAConsumer consumer = new HOAConsumerPrint(System.out);
     if (stateAcceptance) {
       consumer = new HOAIntermediateStoreAndManipulate(consumer, new ToStateAcceptance());
     }
-    result.toHOA(consumer, options);
+    result.toHoa(consumer, options);
   }
 
-  protected abstract Map<Integer, String> getAtomMapping();
+  protected abstract List<String> getVariables();
 
-  protected abstract Function<T, ? extends HOAPrintable> getTranslation(
+  protected abstract Function<T, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations);
 
-  private EnumSet<HOAPrintable.Option> parseHOAOutputOptions(Deque<String> args) {
-    return args.remove(ANNOTATIONS)
-           ? EnumSet.of(HOAPrintable.Option.ANNOTATIONS)
-           : EnumSet.noneOf(HOAPrintable.Option.class);
+  private EnumSet<HoaPrintable.Option> parseHoaOutputOptions(Deque<String> args) {
+    if (args.remove(ANNOTATIONS)) {
+      return EnumSet.of(HoaPrintable.Option.ANNOTATIONS);
+    } else {
+      return EnumSet.noneOf(HoaPrintable.Option.class);
+    }
   }
 
-  protected abstract T parseInput(InputStream stream) throws Exception;
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  protected abstract T parseInput(InputStream stream) throws Exception; // NOPMD
 
   private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {
     EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);

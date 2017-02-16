@@ -21,19 +21,20 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.EquivalenceClass;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.factories.Factories;
-import owl.translations.Optimisation;
 import owl.automaton.ldba.AbstractInitialComponent;
+import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
+import owl.translations.Optimisation;
 
 public class InitialComponent<S extends AutomatonState<S>, T>
   extends AbstractInitialComponent<InitialComponentState, S> {
 
   protected final EquivalenceClassStateFactory factory;
   final Selector<T> selector;
-  private final AbstractAcceptingComponent<S, ? extends GeneralizedBuchiAcceptance, T> acceptingComponent;
+  private final AbstractAcceptingComponent<S, ? extends GeneralizedBuchiAcceptance, T>
+    acceptingComponent;
   private final Evaluator<T> evaluator;
 
   protected InitialComponent(
@@ -80,7 +81,8 @@ public class InitialComponent<S extends AutomatonState<S>, T>
       epsilonJumps.put(state, successor);
     });
 
-    InitialComponentState trueSink = new InitialComponentState(this, factories.equivalenceClassFactory.getTrue());
+    InitialComponentState trueSink =
+      new InitialComponentState(this, factories.equivalenceClassFactory.getTrue());
     updateEdge(trueSink, trueSink, getAcceptBitSet());
   }
 

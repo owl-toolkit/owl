@@ -22,37 +22,38 @@ import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 import jhoafparser.parser.HOAFParser;
+import jhoafparser.parser.generated.ParseException;
 import owl.automaton.StoredBuchiAutomaton;
-import owl.automaton.output.HOAPrintable;
-import owl.translations.nba2ldba.Nba2Ldba;
+import owl.automaton.output.HoaPrintable;
 
 public class NBA2LDBA extends AbstractCommandLineTool<StoredBuchiAutomaton> {
-  private Map<Integer, String> mapping;
+  private List<String> variables;
 
-  public static void main(String... args) throws Exception {
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  public static void main(String... args) throws Exception { // NOPMD
     new NBA2LDBA().execute(new ArrayDeque<>(Arrays.asList(args)));
   }
 
   @Override
-  protected Map<Integer, String> getAtomMapping() {
-    return mapping;
+  protected List<String> getVariables() {
+    return variables;
   }
 
   @Override
-  protected Function<StoredBuchiAutomaton, ? extends HOAPrintable> getTranslation(
+  protected Function<StoredBuchiAutomaton, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
-    return new Nba2Ldba(optimisations);
+    return new owl.translations.nba2ldba.Nba2Ldba(optimisations);
   }
 
   @Override
-  protected StoredBuchiAutomaton parseInput(InputStream stream) throws Exception {
+  protected StoredBuchiAutomaton parseInput(InputStream stream) throws ParseException {
     StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
     HOAFParser.parseHOA(stream, builder);
     StoredBuchiAutomaton nba = Iterables.getOnlyElement(builder.getAutomata());
-    mapping = nba.getAtomMapping();
+    variables = nba.getVariables();
     return nba;
   }
 }

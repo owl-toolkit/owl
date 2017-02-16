@@ -21,6 +21,7 @@ import java.util.BitSet;
 import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.ImmutableObject;
 
 public class FrequencyG extends GOperator {
 
@@ -48,7 +49,7 @@ public class FrequencyG extends GOperator {
   }
 
   @Override
-  public boolean equals2(ImmutableObject o) {
+  protected boolean equals2(ImmutableObject o) {
     FrequencyG that = (FrequencyG) o;
     return Objects.equals(operand, that.operand) && Math.abs(this.bound - that.bound) < EPSILON
       && this.cmp == that.cmp && this.limes == that.limes;

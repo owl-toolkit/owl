@@ -19,28 +19,28 @@ package owl.translations;
 
 import static org.junit.Assert.assertThat;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
-import owl.ltl.Formula;
-import owl.ltl.parser.Parser;
-import owl.automaton.output.HOAPrintable;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
+import owl.automaton.output.HoaPrintable;
+import owl.ltl.Formula;
+import owl.ltl.parser.LtlParser;
 
-public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
-
-  private final static BiMap<String, Integer> ALIASES;
-  private final static EnumMap<FormulaGroup, String[]> FORMULA_GROUP_MAP;
+public abstract class AbstractSizeRegressionTest<T extends HoaPrintable> {
+  @SuppressWarnings("PMD.UnusedPrivateField")
+  private static final List<String> ALIASES;
+  private static final EnumMap<FormulaGroup, String[]> FORMULA_GROUP_MAP;
 
   // TODO: Move this to a JSON file.
   static {
-    ALIASES = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3, "e", 4);
+    ALIASES = ImmutableList.of("a", "b", "c","d", "e");
     FORMULA_GROUP_MAP = new EnumMap<>(FormulaGroup.class);
 
     FORMULA_GROUP_MAP.put(FormulaGroup.VOLATILE, new String[] {
@@ -72,7 +72,8 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
       "F G a | F G b | F G c | F G d",
       "F G a | F G b | F G c | F G d | F G e",
       // Liveness Round Robin.
-      "G (F (a & X F (b & X F c))) & G (F (a2 & X F (b2 & X F c2))) & G (F (a3 & X F (b3 & X F c3)))"
+      "G (F (a & X F (b & X F c))) & G (F (a2 & X F (b2 & X F c2))) & "
+        + "G (F (a3 & X F (b3 & X F c3)))"
     });
 
     FORMULA_GROUP_MAP.put(FormulaGroup.CONJUNCTION, new String[] {
@@ -114,7 +115,8 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
       "F (G (a1 | (b1 & X F b1))) & F (G (a2 | (b2 & X F b2))) & F (G (a3 | (b3 & X F b3)))"
     });
 
-    // This class of formulas is challenging, since the automaton has to track the state of the different disjuncts within the scope of the G.
+    // This class of formulas is challenging, since the automaton has to track the state of the
+    // different disjuncts within the scope of the G.
     FORMULA_GROUP_MAP.put(FormulaGroup.G_DISJUNCTION, new String[] {
       "G ((a1 & F b1) | (a2 & F b2) | (a3 & F b3))",
       "G ((a1 & G b1) | (a2 & G b2) | (a3 & G b3))",
@@ -136,13 +138,13 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
     return EnumSet.allOf(FormulaGroup.class);
   }
 
-  abstract protected int getAccSize(T automaton);
+  protected abstract int getAccSize(T automaton);
 
-  abstract protected int[] getExpectedAccSize(FormulaGroup t);
+  protected abstract int[] getExpectedAccSize(FormulaGroup formulaGroup);
 
-  abstract protected int[] getExpectedSize(FormulaGroup t);
+  protected abstract int[] getExpectedSize(FormulaGroup formulaGroup);
 
-  abstract protected int getSize(T automaton);
+  protected abstract int getSize(T automaton);
 
   @Test
   public void testAcceptanceSize() {
@@ -150,19 +152,19 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
     int[] accSize = getExpectedAccSize(selectedClass);
 
     for (int i = 0; i < formulas.length; i++) {
-      T automaton = translator.apply(Parser.formula(formulas[i]));
+      T automaton = translator.apply(LtlParser.formula(formulas[i]));
       assertThat("Acceptance Sets for " + formulas[i] + " (index " + i + ')', getAccSize(automaton),
         Matchers.lessThanOrEqualTo(accSize[i]));
     }
   }
 
   @Test
-  public void testHOAOutput() {
+  public void testHoaOutput() {
     String[] formulas = FORMULA_GROUP_MAP.get(selectedClass);
 
     for (String formula : formulas) {
-      translator.apply(Parser.formula(formula))
-        .toHOA(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+      translator.apply(LtlParser.formula(formula))
+        .toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     }
   }
 
@@ -172,7 +174,7 @@ public abstract class AbstractSizeRegressionTest<T extends HOAPrintable> {
     int[] size = getExpectedSize(selectedClass);
 
     for (int i = 0; i < formulas.length; i++) {
-      T automaton = translator.apply(Parser.formula(formulas[i]));
+      T automaton = translator.apply(LtlParser.formula(formulas[i]));
       assertThat("States for " + formulas[i] + " (index " + i + ')', getSize(automaton),
         Matchers.lessThanOrEqualTo(size[i]));
     }

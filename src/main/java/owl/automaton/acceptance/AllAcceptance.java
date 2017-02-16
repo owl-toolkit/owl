@@ -23,7 +23,6 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
 public class AllAcceptance implements OmegaAcceptance {
-
   @Override
   public int getAcceptanceSets() {
     return 0;

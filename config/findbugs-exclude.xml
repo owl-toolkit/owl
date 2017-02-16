@@ -1,46 +1,63 @@
 <FindBugsFilter>
-  <!-- Match all things to be excluded here! -->
+    <!-- Match all things to be excluded here! -->
+    <Match>
+        <!-- Restrict to test folder ... -->
+        <Folder name="~test\..*"/>
+        <!-- ... and classes named ...Test -->
+        <Or>
+            <Class name="~.*Test$" />
+            <!-- Include inner classes -->
+            <Class name="~.*Test\$[0-9]*" />
+        </Or>
+        <!-- Test classes often use @SetUp to initialize their values -->
+        <Bug code="UwF"/>
+    </Match>
+    <Match>
+        <!-- Completely disables checks for generated files -->
+        <Folder name="~main\.owl\.grammar" />
+    </Match>
 
-  <!-- Exclude class
-  <Match>
-      <Class name="com.foobar.ClassNotToBeAnalyzed" />
-  </Match> -->
+    <!-- Exclude class
+    <Match>
+        <Class name="com.foobar.ClassNotToBeAnalyzed" />
+    </Match> -->
 
-  <!-- Exclude some bugs in class
-  <Match>
-      <Class name="com.foobar.ClassWithSomeBugsMatched" />
-      <Bug code="DE,UrF,SIC" />
-  </Match> -->
+    <!-- Exclude some bugs in class
+    <Match>
+        <Class name="com.foobar.ClassWithSomeBugsMatched" />
+        <Bug code="DE,UrF,SIC" />
+    </Match> -->
 
-  <!-- Exclude all XYZ bugs
-  <Match>
-      <Bug code="XYZ" />
-  </Match>  -->
+    <!-- Exclude all XYZ bugs
+    <Match>
+        <Bug code="XYZ" />
+    </Match>  -->
 
-  <!-- Match all doublecheck violations in these methods of "AnotherClass".
-  <Match>
-      <Class name="com.foobar.AnotherClass" />
-      <Or>
-          <Method name="nonOverloadedMethod" />
-          <Method name="frob" params="int,java.lang.String" returns="void" />
-          <Method name="blat" params="" returns="boolean" />
-      </Or>
-      <Bug code="DC" />
-  </Match> -->
+    <!-- Match all doublecheck violations in these methods of "AnotherClass".
+    <Match>
+        <Class name="com.foobar.AnotherClass" />
+        <Or>
+            <Method name="nonOverloadedMethod" />
+            <Method name="frob" params="int,java.lang.String" returns="void" />
+            <Method name="blat" params="" returns="boolean" />
+        </Or>
+        <Bug code="DC" />
+    </Match> -->
 
-  <!-- A method with a dead local store false positive (medium priority).
-  <Match>
-      <Class name="com.foobar.MyClass" />
-      <Method name="someMethod" />
-      <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-      <Priority value="2" />
-  </Match> -->
+    <!-- A method with a dead local store false positive (medium priority).
+    <Match>
+        <Class name="com.foobar.MyClass" />
+        <Method name="someMethod" />
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+        <Priority value="2" />
+    </Match> -->
 
-  <!-- All bugs in test classes, except for JUnit-specific bugs
-  <Match>
-      <Class name="~.*\.*Test" />
-      <Not>
-          <Bug code="IJU" />
-      </Not>
-  </Match> -->
+    <!-- All bugs in test classes, except for JUnit-specific bugs
+    <Match>
+        <Class name="~.*\.*Test" />
+        <Not>
+            <Bug code="IJU" />
+        </Not>
+    </Match> -->
+
 </FindBugsFilter>

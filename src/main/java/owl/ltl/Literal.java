@@ -18,10 +18,11 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Map;
+import java.util.List;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.ImmutableObject;
 
 public final class Literal extends ImmutableObject implements Formula {
 
@@ -55,7 +56,8 @@ public final class Literal extends ImmutableObject implements Formula {
   }
 
   @Override
-  public boolean equals2(ImmutableObject o) {
+  protected boolean equals2(ImmutableObject o) {
+    assert o instanceof Literal;
     Literal literal = (Literal) o;
     return atom == literal.atom;
   }
@@ -109,8 +111,8 @@ public final class Literal extends ImmutableObject implements Formula {
   }
 
   @Override
-  public String toString(Map<Integer, String> atomMapping) {
-    return (isNegated() ? "!" : "") + atomMapping.computeIfAbsent(getAtom(), atom -> "p" + atom);
+  public String toString(List<String> atomMapping) {
+    return (isNegated() ? "!" : "") + atomMapping.get(getAtom());
   }
 
   @Override

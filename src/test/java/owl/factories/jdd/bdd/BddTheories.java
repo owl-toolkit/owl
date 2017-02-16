@@ -523,8 +523,8 @@ public class BddTheories {
 
     assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables), unquantifiedAssignment -> {
       assert unquantifiedAssignment != null;
-      return bdd.evaluate(existsNode, unquantifiedAssignment) ==
-        Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
+      return bdd.evaluate(existsNode, unquantifiedAssignment)
+        == Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
           if (bitSet == null) {
             return false;
           }
@@ -559,8 +559,8 @@ public class BddTheories {
 
     assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables), unquantifiedAssignment -> {
       assert unquantifiedAssignment != null;
-      return bdd.evaluate(existsNode, unquantifiedAssignment) ==
-        Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
+      return bdd.evaluate(existsNode, unquantifiedAssignment)
+        == Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
           if (bitSet == null) {
             return false;
           }
@@ -829,7 +829,7 @@ public class BddTheories {
         // We deliberately want to test the exception handling here
         throw new IllegalArgumentException("Bogus");
       }
-    } catch (final IllegalArgumentException e) {
+    } catch (final IllegalArgumentException ex) {
       assertThat(bdd.getReferenceCount(node), is(referenceCount));
     }
   }
@@ -1073,16 +1073,15 @@ public class BddTheories {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof BinaryDataPoint)) {
+      if (!(object instanceof BinaryDataPoint)) {
         return false;
       }
-      final BinaryDataPoint other = (BinaryDataPoint) o;
-      return left == other.left &&
-        right == other.right;
+      final BinaryDataPoint other = (BinaryDataPoint) object;
+      return left == other.left && right == other.right;
     }
 
     public int getLeft() {
@@ -1174,17 +1173,15 @@ public class BddTheories {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof TernaryDataPoint)) {
+      if (!(object instanceof TernaryDataPoint)) {
         return false;
       }
-      final TernaryDataPoint other = (TernaryDataPoint) o;
-      return first == other.first &&
-        second == other.second &&
-        third == other.third;
+      final TernaryDataPoint other = (TernaryDataPoint) object;
+      return first == other.first && second == other.second && third == other.third;
     }
 
     public int getFirst() {
@@ -1227,14 +1224,14 @@ public class BddTheories {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (this == o) {
+    public boolean equals(final Object object) {
+      if (this == object) {
         return true;
       }
-      if (!(o instanceof UnaryDataPoint)) {
+      if (!(object instanceof UnaryDataPoint)) {
         return false;
       }
-      final UnaryDataPoint other = (UnaryDataPoint) o;
+      final UnaryDataPoint other = (UnaryDataPoint) object;
       return node == other.node;
     }
 

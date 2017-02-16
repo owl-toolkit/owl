@@ -29,7 +29,6 @@ public interface Bdd {
    *
    * @return The node representing the composed function.
    */
-  @SuppressWarnings({"PMD.UseVarargs"})
   int compose(int node, int[] variableNodes);
 
   /**
@@ -264,9 +263,15 @@ public interface Bdd {
     int[] compose = new int[numberOfVariables()];
 
     for (int i = 0; i < compose.length; i++) {
-      compose[i] = restrictedVariables.get(i) ?
-                   (restrictedVariableValues.get(i) ? getTrueNode() : getFalseNode()) :
-                   -1;
+      if (restrictedVariables.get(i)) {
+        if (restrictedVariableValues.get(i)) {
+          compose[i] = getTrueNode();
+        } else {
+          compose[i] = getFalseNode();
+        }
+      } else {
+        compose[i] = -1;
+      }
     }
 
     return compose(node, compose);

@@ -22,25 +22,24 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
+import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.automaton.output.HOAPrintable;
-import owl.translations.ltl2dpa.Ltl2Dpa;
 
-public class LTL2DPA extends AbstractLTLCommandLineTool {
-
+public final class LTL2DPA extends AbstractLtlCommandLineTool {
   private final boolean parallel;
 
   private LTL2DPA(boolean parallel) {
     this.parallel = parallel;
   }
 
-  public static void main(String... argsArray) throws Exception {
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  public static void main(String... argsArray) throws Exception { // NOPMD
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new LTL2DPA(args.remove("--parallel")).execute(args);
   }
 
   @Override
-  protected Function<Formula, ? extends HOAPrintable> getTranslation(
+  protected Function<Formula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
     optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
 
@@ -50,6 +49,6 @@ public class LTL2DPA extends AbstractLTLCommandLineTool {
       optimisations.remove(Optimisation.PARALLEL);
     }
 
-    return new Ltl2Dpa(optimisations);
+    return new owl.translations.ltl2dpa.Ltl2Dpa(optimisations);
   }
 }

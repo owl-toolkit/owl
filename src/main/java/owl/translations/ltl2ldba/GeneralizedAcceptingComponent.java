@@ -23,19 +23,19 @@ import java.util.EnumSet;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.ImmutableObject;
-import owl.ltl.EquivalenceClass;
-import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.translations.Optimisation;
+import owl.util.ImmutableObject;
 
-public class GeneralizedAcceptingComponent extends
-  AbstractAcceptingComponent<GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, RecurringObligations> {
+public class GeneralizedAcceptingComponent extends AbstractAcceptingComponent<
+  GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, RecurringObligations> {
 
   GeneralizedAcceptingComponent(Factories factories, EnumSet<Optimisation> optimisations) {
     super(new BuchiAcceptance(), optimisations, factories);
@@ -43,34 +43,35 @@ public class GeneralizedAcceptingComponent extends
 
   @Override
   public State createState(EquivalenceClass remainder, RecurringObligations obligations) {
+    EquivalenceClass theRemainder = remainder;
     final int length = obligations.obligations.length + obligations.liveness.length;
 
     // If it is necessary, increase the number of acceptance conditions.
     if (length > acceptance.getAcceptanceSets()) {
       acceptance = new GeneralizedBuchiAcceptance(length);
-      ACCEPT.set(0, length);
+      accept.set(0, length);
     }
 
     EquivalenceClass safety = obligations.safety;
-    EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
 
-    if (remainder.testSupport(XFragmentPredicate.INSTANCE)) {
-      safety = remainder.andWith(safety);
-      remainder = factories.equivalenceClassFactory.getTrue();
+    if (theRemainder.testSupport(XFragmentPredicate.INSTANCE)) {
+      safety = theRemainder.andWith(safety);
+      theRemainder = factories.equivalenceClassFactory.getTrue();
     }
 
     if (length == 0) {
-      if (remainder.isTrue()) {
+      if (theRemainder.isTrue()) {
         return new State(obligations, safety, EMPTY, EMPTY);
       } else {
-        return new State(obligations, safety, new EquivalenceClass[] {remainder}, EMPTY);
+        return new State(obligations, safety, new EquivalenceClass[] {theRemainder}, EMPTY);
       }
     }
 
+    EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
     if (obligations.obligations.length > 0) {
-      currentBuilder[0] = factory.getInitial(remainder.andWith(obligations.obligations[0]));
+      currentBuilder[0] = factory.getInitial(theRemainder.andWith(obligations.obligations[0]));
     } else {
-      currentBuilder[0] = factory.getInitial(remainder.andWith(obligations.liveness[0]));
+      currentBuilder[0] = factory.getInitial(theRemainder.andWith(obligations.liveness[0]));
     }
 
     for (int i = 1; i < obligations.obligations.length; i++) {
@@ -97,8 +98,8 @@ public class GeneralizedAcceptingComponent extends
     private final EquivalenceClass safety;
     private BitSet sensitiveAlphabet;
 
-    private State(RecurringObligations obligations, EquivalenceClass safety,
-      EquivalenceClass[] current, EquivalenceClass[] next) {
+    State(RecurringObligations obligations, EquivalenceClass safety, EquivalenceClass[] current,
+      EquivalenceClass[] next) {
       this.obligations = obligations;
       this.safety = safety;
       this.current = current;
@@ -118,6 +119,7 @@ public class GeneralizedAcceptingComponent extends
       // next.forEach(EquivalenceClass::free);
     }
 
+    @Override
     @Nonnull
     public BitSet getSensitiveAlphabet() {
       if (sensitiveAlphabet == null) {
@@ -132,9 +134,11 @@ public class GeneralizedAcceptingComponent extends
         }
       }
 
+      //noinspection UseOfClone
       return (BitSet) sensitiveAlphabet.clone();
     }
 
+    @Override
     @Nullable
     public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
       // Check the safety field first.
@@ -224,7 +228,7 @@ public class GeneralizedAcceptingComponent extends
         }
       }
 
-      return Edges.create(new State(obligations, nextSafety, EMPTY, EMPTY), ACCEPT);
+      return Edges.create(new State(obligations, nextSafety, EMPTY, EMPTY), accept);
     }
 
     @Override
@@ -234,11 +238,11 @@ public class GeneralizedAcceptingComponent extends
 
     @Override
     public String toString() {
-      return "[obligations=" + obligations +
-        ", safety=" + safety +
-        ", current=" + Arrays.toString(current) +
-        ", next=" + Arrays.toString(next) +
-        ']';
+      return "[obligations=" + obligations
+        + ", safety=" + safety
+        + ", current=" + Arrays.toString(current)
+        + ", next=" + Arrays.toString(next)
+        + ']';
     }
   }
 }

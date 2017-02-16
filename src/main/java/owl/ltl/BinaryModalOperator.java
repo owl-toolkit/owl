@@ -18,8 +18,9 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
+import owl.util.ImmutableObject;
 
 public abstract class BinaryModalOperator extends ImmutableObject implements Formula {
 
@@ -32,7 +33,8 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
   }
 
   @Override
-  public boolean equals2(ImmutableObject o) {
+  protected boolean equals2(ImmutableObject o) {
+    assert o instanceof BinaryModalOperator;
     BinaryModalOperator that = (BinaryModalOperator) o;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
   }
@@ -50,8 +52,8 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
   }
 
   @Override
-  public String toString(Map<Integer, String> atomMapping) {
-    return '(' + left.toString(atomMapping) + getOperator() + right.toString(atomMapping) + ')';
+  public String toString(List<String> variables) {
+    return '(' + left.toString(variables) + getOperator() + right.toString(variables) + ')';
   }
 
   @Override

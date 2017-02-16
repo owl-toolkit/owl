@@ -17,7 +17,6 @@
 
 package owl.ltl.visitors.predicates;
 
-
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;

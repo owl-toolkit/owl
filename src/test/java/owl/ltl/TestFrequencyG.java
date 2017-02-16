@@ -19,24 +19,26 @@ package owl.ltl;
 
 import static org.junit.Assert.assertEquals;
 
-import owl.ltl.parser.Parser;
 import org.junit.Test;
+import owl.ltl.parser.LtlParser;
+import owl.ltl.parser.ParseException;
 
 public class TestFrequencyG {
 
   @Test
-  public void testNegation() {
+  public void testNegation() throws ParseException {
     String test = "G { >= 0.4} a";
     String testNegated = "G {sup > 0.6} (!a)";
-    Formula f = Parser.formula(test);
-    Formula notF = Parser.formula(testNegated);
-    assertEquals(f.not(), notF);
+    LtlParser parser = new LtlParser();
+    Formula formula = parser.parseLtl(test);
+    Formula notF = parser.parseLtl(testNegated);
+    assertEquals(formula.not(), notF);
   }
 
   @Test
   public void testUnfoldingWorks() {
     String test = "G { >= 0.4} a";
-    Formula f = Parser.formula(test);
-    assertEquals(f, f.unfold());
+    Formula formula = LtlParser.formula(test);
+    assertEquals(formula, formula.unfold());
   }
 }

@@ -30,7 +30,6 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 
 public class Trie<T> {
-
   private final Node<T> root;
 
   public Trie() {
@@ -78,7 +77,7 @@ public class Trie<T> {
   }
 
   private static class Node<T> {
-    private Map<T, Node<T>> successors = new HashMap<>();
+    private final Map<T, Node<T>> successors = new HashMap<>();
     private boolean terminal;
 
     private List<List<T>> find(Predicate<T> continueWithBranch, @Nonnegative int depth) {

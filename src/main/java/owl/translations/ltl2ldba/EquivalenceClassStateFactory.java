@@ -25,9 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.ltl.Formula;
-import owl.ltl.EquivalenceClass;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
 import owl.ltl.visitors.DisjunctiveNormalFormVisitor;
 import owl.translations.Optimisation;
 

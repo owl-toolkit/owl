@@ -25,16 +25,16 @@ import java.util.Objects;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.ltl.ImmutableObject;
-import owl.ltl.EquivalenceClass;
-import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.automaton.AutomatonState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AcceptingComponent.State;
+import owl.util.ImmutableObject;
 
 public class AcceptingComponent
   extends AbstractAcceptingComponent<State, BuchiAcceptance, RecurringObligations> {
@@ -107,7 +107,8 @@ public class AcceptingComponent
   public final class State extends ImmutableObject implements AutomatonState<State> {
 
     private final EquivalenceClass current;
-    // Index of the current checked obligation. A negative index means a liveness obligation is checked.
+    // Index of the current checked obligation. A negative index means a liveness obligation is
+    // checked.
     private final int index;
     private final EquivalenceClass[] next;
     private final RecurringObligations obligations;
@@ -115,7 +116,7 @@ public class AcceptingComponent
     private EquivalenceClass label = null;
     private BitSet sensitiveAlphabet;
 
-    private State(int index, EquivalenceClass safety, EquivalenceClass current,
+    State(int index, EquivalenceClass safety, EquivalenceClass current,
       EquivalenceClass[] next, RecurringObligations obligations) {
       assert (obligations.isPureSafety() && index == 0) || (-obligations.liveness.length <= index
         && index < obligations.obligations.length);
@@ -227,7 +228,8 @@ public class AcceptingComponent
       int j;
 
       // Scan for new index if currentSuccessor currentSuccessor is true.
-      // In this way we can skip several fullfilled break-points at a time and are not bound to slowly check one by one.
+      // In this way we can skip several fullfilled break-points at a time and are not bound to
+      // slowly check one by one.
       if (currentSuccessor.isTrue()) {
         obtainNewGoal = true;
         j = scan(index + 1, nextSuccessors, valuation, assumptions);
@@ -290,55 +292,57 @@ public class AcceptingComponent
 
     private int scan(int i, EquivalenceClass[] obligations, BitSet valuation,
       EquivalenceClass environment) {
-      if (i < 0) {
-        i = scanLiveness(i, valuation, environment);
+      int index = i;
+      if (index < 0) {
+        index = scanLiveness(index, valuation, environment);
       }
 
-      if (0 <= i) {
-        i = scanObligations(i, obligations);
+      if (0 <= index) {
+        index = scanObligations(index, obligations);
       }
 
-      return i;
+      return index;
     }
 
     private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment) {
+      int index = i;
       final int livenessLength = obligations.liveness.length;
 
-      while (i < 0) {
+      while (index < 0) {
         EquivalenceClass successor = factory.getSuccessor(
-          factory.getInitial(obligations.liveness[livenessLength + i]),
+          factory.getInitial(obligations.liveness[livenessLength + index]),
           valuation,
           environment);
 
         if (successor.isTrue()) {
-          i++;
+          index++;
         } else {
           break;
         }
       }
 
-      return i;
+      return index;
     }
 
     @Nonnegative
     private int scanObligations(@Nonnegative int i, EquivalenceClass[] obligations) {
       final int obligationsLength = obligations.length;
+      int index = i;
 
-      while (i < obligationsLength && obligations[i].isTrue()) {
-        i++;
+      while (index < obligationsLength && obligations[index].isTrue()) {
+        index++;
       }
 
-      return i;
+      return index;
     }
 
     @Override
     public String toString() {
-      return "[obligations=" + obligations +
-        (!safety.isTrue() ? ", safety=" + safety : "") +
-        (index != 0 ? ", index=" + index : "") +
-        (!current.isTrue() ? ", current=" + current : "") +
-        (next.length > 0 ? ", next=" + Arrays.toString(next) : "") +
-        ']';
+      return "[obligations=" + obligations
+        + (safety.isTrue() ? "" : ", safety=" + safety)
+        + (index == 0 ? "" : ", index=" + index)
+        + (current.isTrue() ? "" : ", current=" + current)
+        + (next.length <= 0 ? "" : ", next=" + Arrays.toString(next)) + ']';
     }
   }
 }

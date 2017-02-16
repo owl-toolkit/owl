@@ -18,7 +18,7 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Map;
+import java.util.List;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -56,7 +56,7 @@ public interface Formula {
    */
   Formula temporalStepUnfold(BitSet valuation);
 
-  String toString(Map<Integer, String> atomMapping);
+  String toString(List<String> atomMapping);
 
   Formula unfold();
 

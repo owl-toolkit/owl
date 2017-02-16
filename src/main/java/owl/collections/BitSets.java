@@ -22,14 +22,14 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator;
 import java.util.Set;
-import java.util.stream.IntStream;
+import java.util.function.IntConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class BitSets {
-
+public final class BitSets {
   private BitSets() {
 
   }
@@ -48,19 +48,22 @@ public class BitSets {
    * Checks if A is a subset of B.
    */
   public static boolean subset(BitSet A, BitSet B) {
-    BitSet C = (BitSet) A.clone();
-    C.andNot(B);
-    return C.isEmpty();
+    @SuppressWarnings("UseOfClone")
+    BitSet subset = (BitSet) A.clone();
+    subset.andNot(B);
+    return subset.isEmpty();
+  }
+
+  public static BitSet collect(PrimitiveIterator.OfInt stream) {
+    BitSet bitSet = new BitSet();
+    stream.forEachRemaining((IntConsumer) bitSet::set);
+    return bitSet;
   }
 
   @Nullable
-  public static List<Integer> toList(IntStream bs) {
-    if (bs == null) {
-      return null;
-    }
-
+  public static IntList toList(PrimitiveIterator.OfInt bs) {
     IntList list = new IntArrayList();
-    bs.forEach(list::add);
+    bs.forEachRemaining((IntConsumer) list::add);
 
     if (list.isEmpty()) {
       return null;
@@ -70,7 +73,7 @@ public class BitSets {
   }
 
   private static final class PowerBitSet extends AbstractSet<BitSet> {
-    final BitSet baseSet;
+    private final BitSet baseSet;
 
     PowerBitSet(BitSet input) {
       baseSet = (BitSet) input.clone();
@@ -110,7 +113,7 @@ public class BitSets {
     @Nonnull
     @Override
     public Iterator<BitSet> iterator() {
-      return new PowerBitSetIterator();
+      return new PowerBitSetIterator(baseSet);
     }
 
     @Override
@@ -122,36 +125,44 @@ public class BitSets {
     public String toString() {
       return "powerSet(" + baseSet + ")";
     }
+  }
 
-    // TODO: Performance: Zero Copy
-    private class PowerBitSetIterator implements Iterator<BitSet> {
+  private static final class PowerBitSetIterator implements Iterator<BitSet> {
+    private final BitSet baseSet;
+    @Nullable
+    private BitSet next = new BitSet();
 
-      BitSet next = new BitSet();
+    PowerBitSetIterator(BitSet baseSet) {
+      this.baseSet = baseSet;
+    }
 
-      @Override
-      public boolean hasNext() {
-        return (next != null);
+    @Override
+    public boolean hasNext() {
+      return (next != null);
+    }
+
+    @Override
+    public BitSet next() {
+      if (next == null) {
+        throw new NoSuchElementException("No next element");
+      }
+      @SuppressWarnings("UseOfClone")
+      BitSet current = (BitSet) next.clone();
+
+      for (int i = baseSet.nextSetBit(0); i >= 0; i = baseSet.nextSetBit(i + 1)) {
+        if (next.get(i)) {
+          next.clear(i);
+        } else {
+          next.set(i);
+          break;
+        }
       }
 
-      @Override
-      public BitSet next() {
-        BitSet n = (BitSet) next.clone();
-
-        for (int i = baseSet.nextSetBit(0); i >= 0; i = baseSet.nextSetBit(i + 1)) {
-          if (!next.get(i)) {
-            next.set(i);
-            break;
-          } else {
-            next.clear(i);
-          }
-        }
-
-        if (next.isEmpty()) {
-          next = null;
-        }
-
-        return n;
+      if (next.isEmpty()) {
+        next = null;
       }
+
+      return current;
     }
   }
 }

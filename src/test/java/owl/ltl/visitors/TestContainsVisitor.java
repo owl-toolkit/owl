@@ -19,12 +19,12 @@ package owl.ltl.visitors;
 
 import static org.junit.Assert.assertFalse;
 
+import org.junit.Test;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.visitors.predicates.ContainsPredicate;
-import org.junit.Test;
 
 public class TestContainsVisitor {
 
@@ -33,7 +33,7 @@ public class TestContainsVisitor {
    */
   @Test
   public void testContainsVisitorROperator() {
-    Formula f = new ROperator(new Literal(0), new Literal(1));
-    assertFalse(f.accept(new ContainsPredicate(UOperator.class)));
+    Formula formula = new ROperator(new Literal(0), new Literal(1));
+    assertFalse(formula.accept(new ContainsPredicate(UOperator.class)));
   }
 }

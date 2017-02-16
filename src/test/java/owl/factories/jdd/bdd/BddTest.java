@@ -55,7 +55,7 @@ public class BddTest {
   }
 
   /**
-   * This is a remainder of JDD
+   * This is a remainder of the original JDD.
    */
   @Test
   public void internalTest() {

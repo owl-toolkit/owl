@@ -94,13 +94,12 @@ class ModalSimplifier implements Visitor<Formula> {
 
   @Override
   public Formula visit(UOperator uOperator) {
-    Formula left = uOperator.left.accept(this);
     Formula right = uOperator.right.accept(this);
-
     if (right.isSuspendable() || right.isPureEventual()) {
       return right;
     }
 
+    Formula left = uOperator.left.accept(this);
     if (left.isSuspendable() || left.isPureUniversal()) {
       return Disjunction.create(Conjunction.create(left, FOperator.create(right)), right);
     }
@@ -118,13 +117,12 @@ class ModalSimplifier implements Visitor<Formula> {
 
   @Override
   public Formula visit(ROperator rOperator) {
-    Formula left = rOperator.left.accept(this);
     Formula right = rOperator.right.accept(this);
-
     if (right.isSuspendable() || right.isPureUniversal()) {
       return right;
     }
 
+    Formula left = rOperator.left.accept(this);
     return ROperator.create(left, right);
   }
 
@@ -161,12 +159,17 @@ class ModalSimplifier implements Visitor<Formula> {
         return BooleanConstant.FALSE;
       }
 
-      newElement |= (child != newChild);
+      newElement |= (child != newChild); // NOPMD
       newChildren.add(newChild);
     }
 
     // Only call constructor, when necessary.
-    Formula c = newElement ? Conjunction.create(newChildren.stream()) : conjunction;
+    Formula c;
+    if (newElement) {
+      c = Conjunction.create(newChildren.stream());
+    } else {
+      c = conjunction;
+    }
 
     if (c instanceof Conjunction) {
       Conjunction c2 = (Conjunction) c;
@@ -191,12 +194,17 @@ class ModalSimplifier implements Visitor<Formula> {
         return BooleanConstant.TRUE;
       }
 
-      newElement |= (child != newChild);
+      newElement |= (child != newChild); // NOPMD
       newChildren.add(newChild);
     }
 
     // Only call constructor, when necessary.
-    Formula d = newElement ? Disjunction.create(newChildren.stream()) : disjunction;
+    Formula d;
+    if (newElement) {
+      d = Disjunction.create(newChildren.stream());
+    } else {
+      d = disjunction;
+    }
 
     if (d instanceof Disjunction) {
       Disjunction d2 = (Disjunction) d;

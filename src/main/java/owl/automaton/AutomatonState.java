@@ -25,7 +25,8 @@ import owl.automaton.edge.Edge;
 public interface AutomatonState<S> {
 
   default void free() {
-
+    // Per default, states don't need to free anything. Only BDD based states need to implement
+    // this.
   }
 
   @Nonnull

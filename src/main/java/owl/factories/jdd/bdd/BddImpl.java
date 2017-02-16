@@ -160,7 +160,6 @@ final class BddImpl extends NodeTable implements Bdd {
     return result;
   }
 
-  @SuppressWarnings("PMD.UseVarargs")
   private int composeRecursive(final int node, final int[] variableNodes,
     final int highestReplacedVariable) {
     if (node == TRUE_NODE || node == FALSE_NODE) {

@@ -23,25 +23,25 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
-import owl.factories.jdd.VSFactory;
+import owl.factories.jdd.ValuationFactory;
 
 public class BddValuationSetFactoryTest {
   private Set<String> alphabet;
-  private VSFactory factory;
+  private ValuationFactory factory;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     alphabet = ImmutableSet.of("a", "b");
-    factory = new VSFactory(2);
+    factory = new ValuationFactory(2);
   }
 
   @Test
-  public void testCreateEmptyValuationSet() throws Exception {
+  public void testCreateEmptyValuationSet() {
     assertEquals(0, factory.createEmptyValuationSet().size());
   }
 
   @Test
-  public void testGetAlphabet() throws Exception {
+  public void testGetAlphabet() {
     assertEquals(alphabet.size(), factory.getSize());
   }
 }

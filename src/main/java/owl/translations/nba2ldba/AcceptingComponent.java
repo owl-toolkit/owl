@@ -69,8 +69,8 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Buch
       }
 
       State state = (State) o;
-      return Objects.equals(left, state.left) &&
-        Objects.equals(right, state.right);
+      return Objects.equals(left, state.left)
+        && Objects.equals(right, state.right);
     }
 
     @Nonnull

@@ -18,8 +18,9 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
+import owl.util.ImmutableObject;
 
 public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
 
@@ -30,7 +31,9 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
   }
 
   @Override
-  public boolean equals2(ImmutableObject o) {
+  protected boolean equals2(ImmutableObject o) {
+    assert o instanceof UnaryModalOperator;
+    // If equals2 is called, classes are equal
     UnaryModalOperator that = (UnaryModalOperator) o;
     return Objects.equals(operand, that.operand);
   }
@@ -53,8 +56,8 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
   }
 
   @Override
-  public String toString(Map<Integer, String> atomMapping) {
-    return getOperator() + operand.toString(atomMapping);
+  public String toString(List<String> variables) {
+    return getOperator() + operand.toString(variables);
   }
 
 }
