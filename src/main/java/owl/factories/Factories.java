@@ -21,12 +21,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 public class Factories {
-
   public final EquivalenceClassFactory equivalenceClassFactory;
   public final ValuationSetFactory valuationSetFactory;
 
-  Factories(EquivalenceClassFactory factory1, ValuationSetFactory factory2) {
-    equivalenceClassFactory = factory1;
-    valuationSetFactory = factory2;
+  Factories(EquivalenceClassFactory equivalenceClassFactory,
+    ValuationSetFactory valuationSetFactory) {
+    this.equivalenceClassFactory = equivalenceClassFactory;
+    this.valuationSetFactory = valuationSetFactory;
   }
 }

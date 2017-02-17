@@ -44,7 +44,7 @@ public class ValuationFactory implements ValuationSetFactory {
     }
   }
 
-  long createBdd(BitSet set, PrimitiveIterator.OfInt base) {
+  private long createBdd(BitSet set, PrimitiveIterator.OfInt base) {
     long bdd = JSylvan.getTrue();
 
     while (base.hasNext()) {
@@ -62,7 +62,7 @@ public class ValuationFactory implements ValuationSetFactory {
     return bdd;
   }
 
-  long createBdd(BitSet set) {
+  private long createBdd(BitSet set) {
     return createBdd(set, IntStream.range(0, vars.length).iterator());
   }
 
@@ -99,7 +99,8 @@ public class ValuationFactory implements ValuationSetFactory {
 
     if (pos.isFALSE()) {
       return neg;
-    } else if (neg.isFALSE()) {
+    }
+    if (neg.isFALSE()) {
       return pos;
     }
 
@@ -136,12 +137,12 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void add(@Nonnull BitSet set) {
+    public void add(BitSet set) {
       bdd = JSylvan.orConsuming(bdd, createBdd(set));
     }
 
     @Override
-    public void addAll(@Nonnull ValuationSet other) {
+    public void addAll(ValuationSet other) {
       assert other instanceof BddValuationSet;
       BddValuationSet that = (BddValuationSet) other;
       bdd = JSylvan.orConsuming(bdd, JSylvan.ref(that.bdd));
@@ -228,7 +229,7 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void removeAll(@Nonnull ValuationSet other) {
+    public void removeAll(ValuationSet other) {
       assert other instanceof BddValuationSet;
 
       BddValuationSet otherSet = (BddValuationSet) other;
@@ -237,7 +238,7 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void retainAll(@Nonnull ValuationSet other) {
+    public void retainAll(ValuationSet other) {
       assert other instanceof BddValuationSet;
 
       BddValuationSet otherSet = (BddValuationSet) other;

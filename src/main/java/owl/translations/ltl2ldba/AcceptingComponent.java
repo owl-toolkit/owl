@@ -191,7 +191,7 @@ public class AcceptingComponent
     }
 
     @Nullable
-    public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
+    public Edge<State> getSuccessor(BitSet valuation) {
       EquivalenceClass safetySuccessor = factory.getSuccessor(safety, valuation)
         .andWith(obligations.safety);
 

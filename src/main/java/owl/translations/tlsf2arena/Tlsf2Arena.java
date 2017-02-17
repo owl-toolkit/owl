@@ -25,7 +25,7 @@ import owl.ltl.parser.ParseException;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 import owl.translations.Optimisation;
-import owl.translations.ltl2dpa.Ltl2Dpa;
+import owl.translations.ltl2dpa.LTL2DPA;
 import owl.translations.ltl2dpa.ParityAutomaton;
 
 public final class Tlsf2Arena {
@@ -52,7 +52,7 @@ public final class Tlsf2Arena {
     File nodeFile = new File(arguments[0] + ".arena.nodes");
     File edgeFile = new File(arguments[0] + ".arena.edges");
 
-    Ltl2Dpa translation = new Ltl2Dpa();
+    LTL2DPA translation = new LTL2DPA();
     ParityAutomaton<?> parity = translation.apply(Tlsf.toFormula());
     System.out.print(parity);
     bit.writeBinary(parity, fstPlayer, Tlsf.inputs(), nodeFile, edgeFile);

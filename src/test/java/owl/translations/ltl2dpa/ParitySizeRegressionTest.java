@@ -25,7 +25,7 @@ import owl.translations.AbstractSizeRegressionTest;
 public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityAutomaton<?>> {
 
   public ParitySizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new Ltl2Dpa());
+    super(selectedClass, new LTL2DPA());
   }
 
   @Override

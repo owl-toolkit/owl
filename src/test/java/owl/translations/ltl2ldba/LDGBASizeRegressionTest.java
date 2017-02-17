@@ -24,45 +24,39 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponent;
-import owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponent.State;
-import owl.translations.ltl2ldba.ng.LTL2LDGBAng;
-import owl.translations.ltl2ldba.ng.RecurringObligations2;
 
 @RunWith(Parameterized.class)
-public class LdgbaNgSizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, State,
-    GeneralizedBuchiAcceptance, InitialComponent<State, RecurringObligations2>,
-    GeneralizedAcceptingComponent>> {
+public class LDGBASizeRegressionTest extends
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState,
+    GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<
+    GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent>> {
 
-  public LdgbaNgSizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new LTL2LDGBAng(EnumSet.allOf(Optimisation.class)));
+  public LDGBASizeRegressionTest(FormulaGroup selectedClass) {
+    super(selectedClass, new LTL2LDGBA(EnumSet.allOf(Optimisation.class)));
   }
 
   @Override
-  protected int getAccSize(LimitDeterministicAutomaton<InitialComponentState, State,
-    GeneralizedBuchiAcceptance, InitialComponent<State, RecurringObligations2>,
-    GeneralizedAcceptingComponent> automaton) {
-    return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
+  protected int getAccSize(
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State,
+      GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State,
+      RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
+    return automaton.getAcceptingComponent().getAcceptance().size;
   }
 
   @Override
   protected int[] getExpectedAccSize(FormulaGroup formulaGroup) {
     switch (formulaGroup) {
       case MIXED:
-        return new int[] {1, 1, 1, 1, 1, 2, 1, 1, 2, 1};
+        return new int[] {1, 1, 1, 1, 1, 1, 1, 1, 2, 1};
 
       case ROUND_ROBIN:
-        return new int[] {1, 1, 1, 1, 1, 9};
+        return new int[] {1, 1, 1, 1, 1, 3};
 
       case FG:
         return new int[] {1, 2, 1, 2, 2, 1};
 
       case ORDERINGS:
         return new int[] {1, 3};
-
-      case G_DISJUNCTION:
-        return new int[] {3, 16, 73};
 
       default:
         return new int[] {1, 1, 1, 1, 1, 1, 1, 1, 2, 1};
@@ -73,16 +67,16 @@ public class LdgbaNgSizeRegressionTest extends
   protected int[] getExpectedSize(FormulaGroup formulaGroup) {
     switch (formulaGroup) {
       case FG:
-        return new int[] {3, 3, 5, 5, 3, 4};
+        return new int[] {3, 3, 4, 4, 3, 3};
 
       case VOLATILE:
         return new int[] {3, 3, 5, 4};
 
       case ROUND_ROBIN:
-        return new int[] {2, 4, 6, 8, 10, 1};
+        return new int[] {2, 3, 4, 5, 6, 27};
 
       case REACH:
-        return new int[] {3, 3, 112};
+        return new int[] {2, 3, 314};
 
       case CONJUNCTION:
         return new int[] {1, 2};
@@ -91,19 +85,19 @@ public class LdgbaNgSizeRegressionTest extends
         return new int[] {1, 3};
 
       case DISJUNCTION:
-        return new int[] {2, 4};
+        return new int[] {3, 3};
 
       case MIXED:
-        return new int[] {4, 4, 6, 7, 9, 18, 5, 4, 8, 8};
+        return new int[] {3, 4, 6, 6, 4, 4, 4, 2, 8, 20};
 
       case FG_UNSTABLE:
-        return new int[] {3, 5, 5, 5, 4, 3};
+        return new int[] {4, 6, 5, 5, 4, 3};
 
       case ORDERINGS:
-        return new int[] {9, 9, 3, 4};
+        return new int[] {10, 28, 3, 4};
 
       case G_DISJUNCTION:
-        return new int[] {30, 16, 41};
+        return new int[] {212, 24, 133};
 
       default:
         return new int[0];
@@ -111,9 +105,10 @@ public class LdgbaNgSizeRegressionTest extends
   }
 
   @Override
-  protected int getSize(LimitDeterministicAutomaton<InitialComponentState, State,
-    GeneralizedBuchiAcceptance, InitialComponent<State, RecurringObligations2>,
-    GeneralizedAcceptingComponent> automaton) {
+  protected int getSize(
+    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State,
+      GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State,
+      RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
     return automaton.size();
   }
 }

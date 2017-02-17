@@ -65,7 +65,7 @@ public class InitialComponent<S extends AutomatonState<S>, T>
   }
 
   @Override
-  public void generateJumps(@Nonnull InitialComponentState state) {
+  public void generateJumps(InitialComponentState state) {
     selector.select(state.getClazz()).forEach((obligation) -> {
       if (obligation == null) {
         return;

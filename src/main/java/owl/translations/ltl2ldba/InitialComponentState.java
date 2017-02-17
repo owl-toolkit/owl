@@ -69,7 +69,7 @@ public class InitialComponentState implements AutomatonState<InitialComponentSta
 
   @Nullable
   @Override
-  public Edge<InitialComponentState> getSuccessor(@Nonnull BitSet valuation) {
+  public Edge<InitialComponentState> getSuccessor(BitSet valuation) {
     EquivalenceClass successorClass;
 
     if (parent instanceof NondetInitialComponent) {

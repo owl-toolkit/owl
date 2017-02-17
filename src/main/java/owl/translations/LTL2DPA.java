@@ -49,6 +49,6 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
       optimisations.remove(Optimisation.PARALLEL);
     }
 
-    return new owl.translations.ltl2dpa.Ltl2Dpa(optimisations);
+    return new owl.translations.ltl2dpa.LTL2DPA(optimisations);
   }
 }

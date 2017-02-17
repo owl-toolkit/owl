@@ -45,18 +45,22 @@ public final class BitSets {
   }
 
   /**
-   * Checks if A is a subset of B.
+   * Checks if {@code first} is a subset of {@code second}.
    */
-  public static boolean subset(BitSet A, BitSet B) {
-    @SuppressWarnings("UseOfClone")
-    BitSet subset = (BitSet) A.clone();
-    subset.andNot(B);
-    return subset.isEmpty();
+  public static boolean subset(BitSet first, BitSet second) {
+    for (int i = first.nextSetBit(0); i >= 0; i = first.nextSetBit(i + 1)) {
+      if (!second.get(i)) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  public static BitSet collect(PrimitiveIterator.OfInt stream) {
+  public static BitSet collect(PrimitiveIterator.OfInt iterator) {
     BitSet bitSet = new BitSet();
-    stream.forEachRemaining((IntConsumer) bitSet::set);
+    while (iterator.hasNext()) {
+      bitSet.set(iterator.nextInt());
+    }
     return bitSet;
   }
 
@@ -76,18 +80,13 @@ public final class BitSets {
     private final BitSet baseSet;
 
     PowerBitSet(BitSet input) {
+      //noinspection UseOfClone
       baseSet = (BitSet) input.clone();
     }
 
     @Override
     public boolean contains(@Nullable Object obj) {
-      if (obj instanceof BitSet) {
-        BitSet set = (BitSet) ((BitSet) obj).clone();
-        set.andNot(baseSet);
-        return set.isEmpty();
-      }
-
-      return false;
+      return obj instanceof BitSet && BitSets.subset((BitSet) obj, baseSet);
     }
 
     @Override
@@ -143,6 +142,8 @@ public final class BitSets {
 
     @Override
     public BitSet next() {
+      // TODO this can quite easily be replaced by an in-place iterator
+
       if (next == null) {
         throw new NoSuchElementException("No next element");
       }

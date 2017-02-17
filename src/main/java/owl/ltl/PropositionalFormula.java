@@ -21,14 +21,12 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import owl.util.ImmutableObject;
 
 public abstract class PropositionalFormula extends ImmutableObject implements Formula {
-
-  public final Set<Formula> children;
+  public final ImmutableSet<Formula> children;
 
   PropositionalFormula(Iterable<? extends Formula> children) {
     this.children = ImmutableSet.copyOf(children);

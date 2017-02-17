@@ -1,7 +1,12 @@
 package owl.factories.jdd.bdd;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import owl.util.BitUtil;
 
 /*
  * Possible improvements:
@@ -26,6 +31,11 @@ final class BddCache {
   private static final int UNARY_CACHE_TYPE_LENGTH = 1;
   private static final int UNARY_OPERATION_NOT = 0;
 
+  private static final Logger logger = Logger.getLogger(BddCache.class.getName());
+  private static final Collection<BddCache> cacheShutdownHook = new ConcurrentLinkedDeque<>();
+
+  @Nullable
+  private static Runnable shutdownHook = null;
   private final BddImpl associatedBdd;
   private final CacheAccessStatistics binaryAccessStatistics = new CacheAccessStatistics();
   private final int binaryBinsPerHash;
@@ -52,7 +62,7 @@ final class BddCache {
   private int[] volatileKeyStorage;
   private int[] volatileResultStorage;
 
-  public BddCache(final BddImpl associatedBdd) {
+  BddCache(final BddImpl associatedBdd) {
     this.associatedBdd = associatedBdd;
     final BddConfiguration configuration = associatedBdd.getConfiguration();
     unaryBinsPerHash = configuration.cacheUnaryBinsPerHash();
@@ -67,6 +77,21 @@ final class BddCache {
     reallocateSatisfaction();
     reallocateCompose();
     reallocateVolatile();
+
+    if (configuration.logStatisticsOnShutdown()) {
+      logger.log(Level.FINER, "Adding {0} to shutdown hook", this);
+      addToShutdownHook(this);
+    }
+  }
+
+  private static void addToShutdownHook(BddCache cache) {
+    synchronized (BddCache.class) {
+      if (shutdownHook == null) {
+        shutdownHook = new ShutdownHookPrinter();
+        Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook));
+      }
+    }
+    cacheShutdownHook.add(cache);
   }
 
   private static long buildBinaryKeyStore(final long operationId, final long inputNode1,
@@ -863,6 +888,19 @@ final class BddCache {
           + "       invalidation: %d times, since last: put=%d, hit=%d",
         putCount, hitCount, hitToPutRatio, invalidationCount,
         putCountSinceInvalidation, hitCountSinceInvalidation);
+    }
+  }
+
+  private static final class ShutdownHookPrinter implements Runnable {
+    @Override
+    public void run() {
+      Logger logger = Logger.getLogger(BddCache.class.getName() + ".Statistics");
+      if (!logger.isLoggable(Level.FINE)) {
+        return;
+      }
+      for (BddCache cache : cacheShutdownHook) {
+        logger.log(Level.FINE, cache.getStatistics());
+      }
     }
   }
 }

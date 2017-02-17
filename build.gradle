@@ -170,7 +170,7 @@ tasks.withType(Pmd) {
 
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
 checkstyle {
-    toolVersion = "7.5"
+    toolVersion = "7.5.1"
     configFile = file("$project.rootDir/config/checkstyle.xml")
     ignoreFailures = false
     showViolations = false // Don't litter console

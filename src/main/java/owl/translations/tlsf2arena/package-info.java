@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@ParametersAreNonnullByDefault
+@EverythingIsNonnullByDefault
 package owl.translations.tlsf2arena;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import owl.util.EverythingIsNonnullByDefault;

@@ -17,26 +17,25 @@
 
 package owl.ltl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.BitSet;
 import java.util.List;
+import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.util.ImmutableObject;
 
 public final class Literal extends ImmutableObject implements Formula {
-
   private final int atom;
 
-  public Literal(int letter) {
+  public Literal(@Nonnegative int letter) {
     this(letter, false);
   }
 
-  public Literal(int letter, boolean negate) {
-    if (letter < 0) {
-      throw new IllegalArgumentException();
-    }
-
+  public Literal(@Nonnegative int letter, boolean negate) {
+    checkArgument(letter >= 0);
     this.atom = negate ? -(letter + 1) : letter + 1;
   }
 
@@ -112,7 +111,10 @@ public final class Literal extends ImmutableObject implements Formula {
 
   @Override
   public String toString(List<String> atomMapping) {
-    return (isNegated() ? "!" : "") + atomMapping.get(getAtom());
+    if (atomMapping.size() > getAtom()) {
+      return (isNegated() ? "!" : "") + atomMapping.get(getAtom());
+    }
+    return toString();
   }
 
   @Override

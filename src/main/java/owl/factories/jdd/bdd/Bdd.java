@@ -2,6 +2,7 @@ package owl.factories.jdd.bdd;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import javax.annotation.Nonnegative;
 
 public interface Bdd {
   /**
@@ -64,11 +65,23 @@ public interface Bdd {
   double countSatisfyingAssignments(int node);
 
   /**
-   * Creates a new variable and returns the node representing it.
+   * Creates a new variable and returns the node representing it. The implementation guarantees that
+   * variables are always allocated sequentially starting from 0, i.e.
+   * {@code getVariable(createVariable()) == numberOfVariables() - 1}.
    *
    * @return The node representing the new variable.
    */
   int createVariable();
+
+  /**
+   * Creates the conjunction of all variables specified by {@code cubeVariables}.
+   *
+   * @param cubeVariables
+   *     The variables to build the cube.
+   *
+   * @return The conjunction of specified variables.
+   */
+  int cube(BitSet cubeVariables);
 
   /**
    * Decreases the reference count of the specified {@code node}.
@@ -147,6 +160,17 @@ public interface Bdd {
   int getVariable(int node);
 
   /**
+   * Returns the node which represents the variable with given {@code variableNumber}. The variable
+   * must already have been created.
+   *
+   * @param variableNumber
+   *     The number of the requested variable.
+   *
+   * @return The corresponding node.
+   */
+  int getVariableNode(@Nonnegative int variableNumber);
+
+  /**
    * Constructs the node representing <tt>IF {@code ifNode} THEN {@code thenNode} ELSE
    * {@code elseNode}</tt>.
    */
@@ -178,6 +202,14 @@ public interface Bdd {
    */
   boolean implies(int node1, int node2);
 
+  /**
+   * Determines whether the given {@code node} represents a constant, i.e. TRUE or FALSE.
+   *
+   * @param node
+   *     The node to be checked.
+   *
+   * @return If the {@code node} represents a constant.
+   */
   boolean isNodeRoot(int node);
 
   /**
@@ -189,6 +221,16 @@ public interface Bdd {
    * @return If the {@code node} represents a variable.
    */
   boolean isVariable(int node);
+
+  /**
+   * Determines whether the given {@code node} represents a negated variable.
+   *
+   * @param node
+   *     The node to be checked.
+   *
+   * @return If the {@code node} represents a negated variable.
+   */
+  boolean isVariableNegated(int node);
 
   /**
    * Determines whether the given {@code node} represents a variable or it's negation.

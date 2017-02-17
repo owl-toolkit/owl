@@ -19,7 +19,6 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.Objects;
-import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -33,7 +32,7 @@ public final class MOperator extends BinaryModalOperator {
     super(left, right);
   }
 
-  public static Formula create(@Nonnull Formula left, @Nonnull Formula right) {
+  public static Formula create(Formula left, Formula right) {
     if (left == BooleanConstant.FALSE || right == BooleanConstant.FALSE) {
       return BooleanConstant.FALSE;
     }

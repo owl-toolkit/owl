@@ -1,11 +1,12 @@
 package owl.factories.jdd.bdd;
 
 import static com.google.common.base.Preconditions.checkState;
-import static owl.factories.jdd.bdd.BitUtil.fits;
+import static owl.util.BitUtil.fits;
 
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import owl.util.BitUtil;
 
 /* Implementation notes:
  * - Many asserts in the long store accessor functions are commented out, as the JVM might not
@@ -248,7 +249,11 @@ class NodeTable {
     return nodeStore & ~1L;
   }
 
-  final int add(final int variable, final int low, final int high) {
+  final int makeNode(final int variable, final int low, final int high) {
+    if (low == high) {
+      return low;
+    }
+
     final long nodeStore = buildNodeStore((long) variable, (long) low, (long) high);
     int hash = hashNodeStore(nodeStore);
     int currentLookupNode = (int) getChainStartFromStore(referenceStorage[hash]);
@@ -265,15 +270,20 @@ class NodeTable {
     }
 
     // Check we have enough space to add the node
-    if (freeNodeCount < 2) { // do not change "2" to "0" !
-      grow();
-      // Table size might have changed, hence re-hash
-      hash = hashNodeStore(nodeStore);
+    assert freeNodeCount > 0;
+    if (freeNodeCount == 1) {
+      // We need a starting point for the free chain node, hence grow if only one node is remaining
+      // instead of occupying that node
+      if (grow()) { // NOPMD
+        // Table size has changed, hence re-hash
+        hash = hashNodeStore(nodeStore);
+      }
     }
 
     // Take next free node
     final int freeNode = firstFreeNode;
     firstFreeNode = (int) getNextChainEntryFromStore(referenceStorage[firstFreeNode]);
+    assert firstFreeNode < nodeStorage.length;
     freeNodeCount--;
     assert !isValidNodeStore(nodeStorage[freeNode]) : "Overwriting existing node";
     // Adjust and write node
@@ -427,6 +437,9 @@ class NodeTable {
       // This also excludes possible loops
       checkState(nextFreeNode == 0 || currentFreeNode < nextFreeNode,
         "Free node chain is not well ordered, %s <= %s", nextFreeNode, currentFreeNode);
+      checkState(nextFreeNode < nodeStorage.length,
+        "Next free node points over horizon, %s -> %s (%s)", currentFreeNode, nextFreeNode,
+        nodeStorage.length);
       currentFreeNode = nextFreeNode;
     }
     while (currentFreeNode != 0);
@@ -505,11 +518,13 @@ class NodeTable {
    *
    * @return Number of freed nodes.
    */
-  final int gc() {
-    return gcInternal(true);
+  public final int forceGc() {
+    final int freedNodes = doGarbageCollection();
+    notifyGcRun();
+    return freedNodes;
   }
 
-  private int gcInternal(final boolean callCallback) {
+  private int doGarbageCollection() {
     assert check();
     int topOfStack = 0;
     for (int i = 0; i < workStackTos; i++) {
@@ -574,10 +589,6 @@ class NodeTable {
 
     approximateDeadNodeCount = 0;
 
-    if (callCallback) {
-      postRemovalCallback();
-    }
-
     assert check();
     return freeNodeCount - previousFreeNodes;
   }
@@ -595,6 +606,10 @@ class NodeTable {
   }
 
   private int getGrowSize(final int currentSize) {
+    assert 0 <= configuration.minimumNodeTableGrowth()
+      && 0 <= configuration.maximumNodeTableGrowth()
+      && configuration.minimumNodeTableGrowth() <= configuration.maximumNodeTableGrowth();
+
     // TODO: Maybe check available memory
     if (currentSize <= configuration.nodeTableSmallThreshold()) {
       return currentSize + configuration.minimumNodeTableGrowth();
@@ -602,10 +617,14 @@ class NodeTable {
     if (currentSize >= configuration.nodeTableBigThreshold()) {
       return currentSize + configuration.maximumNodeTableGrowth();
     }
-    return currentSize
-      + (configuration.maximumNodeTableGrowth() - configuration.minimumNodeTableGrowth())
-      * (currentSize - configuration.nodeTableSmallThreshold()) / (
-      configuration.nodeTableBigThreshold() - configuration.nodeTableSmallThreshold());
+    // Linear interpolation between {smallThresh, bigThresh} and values {smallGrowth, bigGrowth}
+    final int growthDiff = configuration.maximumNodeTableGrowth()
+      - configuration.minimumNodeTableGrowth();
+    final int thresholdDiff = configuration.nodeTableBigThreshold()
+      - configuration.nodeTableSmallThreshold();
+    final int offset = currentSize - configuration.nodeTableSmallThreshold();
+    final int growth = configuration.minimumNodeTableGrowth() + offset * growthDiff / thresholdDiff;
+    return currentSize + growth;
   }
 
   public final int getHigh(final int node) {
@@ -661,23 +680,25 @@ class NodeTable {
   }
 
   /**
-   * Tries to free space by calling {@link #gc()} and, if that fails, re-sizes the table, recreating
-   * hashes.
+   * Tries to free space by garbage collection and, if that does not yield enough free nodes,
+   * re-sizes the table, recreating hashes.
+   *
+   * @return Whether the table size has changed.
    */
-  final void grow() {
+  final boolean grow() {
     assert check();
     logger.log(Level.FINE, "Grow of {0} requested", this);
 
-    if (approximateDeadNodeCount > 0 || getTableSize() > configuration
-      .minimumDeadNodesCountForGcInGrow()) {
+    if (approximateDeadNodeCount > 0
+      || getTableSize() > configuration.minimumDeadNodesCountForGcInGrow()) {
       logger.log(Level.FINE, "{0} has size {1} and at least {2} dead nodes",
         new Object[] {this, getTableSize(), approximateDeadNodeCount});
 
-      gcInternal(false);
+      doGarbageCollection();
 
       if (isEnoughFreeNodesAfterGc(freeNodeCount, getTableSize())) {
-        postRemovalCallback(); // Force all caches to be wiped out!
-        return;
+        notifyGcRun(); // Force all caches to be wiped out!
+        return false;
       }
     }
 
@@ -686,6 +707,7 @@ class NodeTable {
 
     final int oldSize = getTableSize();
     final int newSize = getGrowSize(oldSize);
+    assert oldSize < newSize;
 
     nodeStorage = Arrays.copyOf(nodeStorage, newSize);
     referenceStorage = Arrays.copyOf(referenceStorage, newSize);
@@ -719,8 +741,14 @@ class NodeTable {
       }
     }
 
-    postRemovalCallback();
     assert check();
+
+    notifyTableSizeChanged();
+    return true;
+  }
+
+  void notifyTableSizeChanged() {
+    /* do nothing */
   }
 
   /**
@@ -988,7 +1016,7 @@ class NodeTable {
     workStackTos -= amount;
   }
 
-  void postRemovalCallback() { /* do nothing */ }
+  void notifyGcRun() { /* do nothing */ }
 
   /**
    * Pushes the given node onto the stack. While a node is on the work stack, it will not be

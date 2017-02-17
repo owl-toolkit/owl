@@ -27,11 +27,11 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.translations.Optimisation;
 
-public class Nba2Ldba implements Function<StoredBuchiAutomaton, HoaPrintable> {
+public class NBA2LDBA implements Function<StoredBuchiAutomaton, HoaPrintable> {
 
   private final EnumSet<Optimisation> optimisations;
 
-  public Nba2Ldba(EnumSet<Optimisation> optimisations) {
+  public NBA2LDBA(EnumSet<Optimisation> optimisations) {
     this.optimisations = optimisations;
   }
 

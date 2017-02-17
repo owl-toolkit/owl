@@ -15,11 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@FieldsAreNonnullByDefault
-@ReturnValueIsNonnullByDefault
-@ParametersAreNonnullByDefault
+@EverythingIsNonnullByDefault
 package owl.ltl.parser;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import owl.util.FieldsAreNonnullByDefault;
-import owl.util.ReturnValueIsNonnullByDefault;
+import owl.util.EverythingIsNonnullByDefault;

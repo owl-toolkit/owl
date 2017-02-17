@@ -38,7 +38,7 @@ public class LTL2DPATest {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.PARALLEL);
     LtlParseResult parseResult = LtlParser.parse(ltl);
-    Ltl2Dpa translation = new Ltl2Dpa(opts);
+    LTL2DPA translation = new LTL2DPA(opts);
     ParityAutomaton<?> automaton = translation.apply(parseResult.getFormula());
     automaton.setVariables(parseResult.getVariableMapping());
 

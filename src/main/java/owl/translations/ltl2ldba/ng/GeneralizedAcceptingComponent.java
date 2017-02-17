@@ -95,7 +95,7 @@ public class GeneralizedAcceptingComponent extends AbstractAcceptingComponent<
     }
 
     @Nullable
-    public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
+    public Edge<State> getSuccessor(BitSet valuation) {
       EquivalenceClass[] livenessSuccessor = new EquivalenceClass[liveness.length];
 
       BitSet bs = new BitSet();

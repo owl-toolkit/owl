@@ -283,15 +283,15 @@ final class BddImpl extends NodeTable implements Bdd {
     return variableNode;
   }
 
-  private int cube(final BitSet cubeVariables) {
+  @Override
+  public int cube(final BitSet cubeVariables) {
     int node = TRUE_NODE;
-    int currentVariableNumber = cubeVariables.nextSetBit(0);
-    while (currentVariableNumber != -1) {
+    for (int currentVariableNumber = cubeVariables.nextSetBit(0); currentVariableNumber != -1;
+         currentVariableNumber = cubeVariables.nextSetBit(currentVariableNumber + 1)) {
       // Variable nodes are saturated, no need to guard them
       pushToWorkStack(node);
       node = andRecursive(node, variableNodes.getInt(currentVariableNumber));
       popWorkStack();
-      currentVariableNumber = cubeVariables.nextSetBit(currentVariableNumber + 1);
     }
     return node;
   }
@@ -533,6 +533,12 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
+  public int getVariableNode(final int variableNumber) {
+    assert 0 <= variableNumber && variableNumber < numberOfVariables();
+    return variableNodes.get(variableNumber);
+  }
+
+  @Override
   public int ifThenElse(final int ifNode, final int thenNode, final int elseNode) {
     assert isNodeValidOrRoot(ifNode) && isNodeValidOrRoot(thenNode) && isNodeValidOrRoot(elseNode);
     pushToWorkStack(ifNode);
@@ -746,6 +752,16 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
+  public boolean isVariableNegated(int node) {
+    if (isNodeRoot(node)) {
+      return false;
+    }
+    final long nodeStore = getNodeStore(node);
+    return (int) getLowFromStore(nodeStore) == TRUE_NODE
+      && (int) getHighFromStore(nodeStore) == FALSE_NODE;
+  }
+
+  @Override
   public boolean isVariableOrNegated(final int node) {
     assert isNodeValidOrRoot(node);
     if (isNodeRoot(node)) {
@@ -753,15 +769,6 @@ final class BddImpl extends NodeTable implements Bdd {
     }
     final long nodeStore = getNodeStore(node);
     return isVariableOrNegatedStore(nodeStore);
-  }
-
-  // TODO: Inline.
-  private int makeNode(final int variable, final int low, final int high) {
-    if (low == high) {
-      return low;
-    } else {
-      return add(variable, low, high);
-    }
   }
 
   @Override
@@ -859,6 +866,18 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
+  void notifyGcRun() {
+    // TODO partial invalidate - don't need to re-compute hashes, only throw out all invalidated
+    // nodes
+    cache.invalidate();
+  }
+
+  @Override
+  void notifyTableSizeChanged() {
+    cache.invalidate();
+  }
+
+  @Override
   public int numberOfVariables() {
     return numberOfVariables;
   }
@@ -921,11 +940,6 @@ final class BddImpl extends NodeTable implements Bdd {
     popWorkStack(2);
     cache.putOr(hash, node1, node2, resultNode);
     return resultNode;
-  }
-
-  @Override
-  void postRemovalCallback() {
-    cache.invalidate();
   }
 
   @Override
@@ -1093,8 +1107,8 @@ final class BddImpl extends NodeTable implements Bdd {
       this.path = new int[bdd.numberOfVariables()];
       this.bitSet = new BitSet(bdd.numberOfVariables());
 
-      Arrays.fill(path, -1);
-      this.path[0] = node;
+      path[0] = node;
+      Arrays.fill(path, 1, path.length, -1);
       leafPosition = 0;
       next = true;
     }
@@ -1115,10 +1129,10 @@ final class BddImpl extends NodeTable implements Bdd {
         currentNode = path[leafPosition];
         int branchPosition = leafPosition;
         while (bitSet.get(branchPosition) || bdd.getHigh(currentNode) == FALSE_NODE) {
-          branchPosition -= 1;
-          while (path[branchPosition] == -1) {
+          do {
             branchPosition -= 1;
           }
+          while (path[branchPosition] == -1);
           if (branchPosition == -1) {
             throw new NoSuchElementException("No next element");
           }

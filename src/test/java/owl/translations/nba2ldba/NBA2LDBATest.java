@@ -53,7 +53,7 @@ public class NBA2LDBATest {
   public void testApply() throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-    final Nba2Ldba translation = new Nba2Ldba(optimisations);
+    final NBA2LDBA translation = new NBA2LDBA(optimisations);
 
     StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
     HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);

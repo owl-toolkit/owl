@@ -20,8 +20,6 @@ package owl.factories.jdd;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.PrimitiveIterator;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -35,37 +33,39 @@ public class ValuationFactory implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
   private final Bdd factory;
-  private final int[] vars;
 
   public ValuationFactory(int alphabet) {
-    vars = new int[alphabet];
     factory = BddFactory.buildBdd((1024 * alphabet * alphabet) + 256);
 
     for (int i = 0; i < alphabet; i++) {
-      vars[i] = factory.createVariable();
+      factory.createVariable();
     }
   }
 
-  int createBdd(BitSet set, PrimitiveIterator.OfInt base) {
+  private int createBdd(BitSet set, BitSet base) {
     int bdd = factory.getTrueNode();
-
-    while (base.hasNext()) {
-      int i = base.nextInt();
-
-      // Variables are saturated.
-      if (set.get(i)) {
-        bdd = factory.updateWith(factory.and(bdd, vars[i]), bdd);
-      } else {
-        // This is fine, since "not vars[i]" is a saturated variable.
-        bdd = factory.updateWith(factory.and(bdd, factory.not(vars[i])), bdd);
-      }
+    for (int i = base.nextSetBit(0); i != -1; i = base.nextSetBit(i + 1)) {
+      bdd = createBddUpdateHelper(set, i, bdd);
     }
-
     return bdd;
   }
 
-  int createBdd(BitSet set) {
-    return createBdd(set, IntStream.range(0, vars.length).iterator());
+  private int createBdd(BitSet set) {
+    int bdd = factory.getTrueNode();
+    for (int i = 0; i < factory.numberOfVariables(); i++) {
+      bdd = createBddUpdateHelper(set, i, bdd);
+    }
+    return bdd;
+  }
+
+  private int createBddUpdateHelper(BitSet set, int var, int bdd) {
+    if (set.get(var)) {
+      // Variables are saturated.
+      return factory.updateWith(factory.and(bdd, factory.getVariableNode(var)), bdd);
+    } else {
+      // This is fine, since "not vars[i]" is a saturated variable.
+      return factory.updateWith(factory.and(bdd, factory.not(factory.getVariableNode(var))), bdd);
+    }
   }
 
   @Override
@@ -73,7 +73,7 @@ public class ValuationFactory implements ValuationSetFactory {
     return new BddValuationSet(factory.getFalseNode());
   }
 
-  BooleanExpression<AtomLabel> createRepresentative(int bdd) {
+  private BooleanExpression<AtomLabel> createRepresentative(int bdd) {
     if (bdd == factory.getFalseNode()) {
       return FALSE;
     }
@@ -101,7 +101,8 @@ public class ValuationFactory implements ValuationSetFactory {
 
     if (pos.isFALSE()) {
       return neg;
-    } else if (neg.isFALSE()) {
+    }
+    if (neg.isFALSE()) {
       return pos;
     }
 
@@ -115,7 +116,7 @@ public class ValuationFactory implements ValuationSetFactory {
 
   @Override
   public ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet) {
-    return new BddValuationSet(createBdd(valuation, restrictedAlphabet.stream().iterator()));
+    return new BddValuationSet(createBdd(valuation, restrictedAlphabet));
   }
 
   @Override
@@ -125,7 +126,7 @@ public class ValuationFactory implements ValuationSetFactory {
 
   @Override
   public int getSize() {
-    return vars.length;
+    return factory.numberOfVariables();
   }
 
   private class BddValuationSet implements ValuationSet {
@@ -137,13 +138,13 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void add(@Nonnull BitSet set) {
+    public void add(BitSet set) {
       int bddSet = createBdd(set);
       bdd = factory.consume(factory.or(bdd, bddSet), bdd, bddSet);
     }
 
     @Override
-    public void addAll(@Nonnull ValuationSet other) {
+    public void addAll(ValuationSet other) {
       assert other instanceof BddValuationSet;
       BddValuationSet otherSet = (BddValuationSet) other;
       bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
@@ -221,11 +222,12 @@ public class ValuationFactory implements ValuationSetFactory {
     @Override
     @Nonnull
     public Iterator<BitSet> iterator() {
-      return BitSets.powerSet(vars.length).stream().filter(this::contains).iterator();
+      return BitSets.powerSet(factory.numberOfVariables()).stream()
+        .filter(this::contains).iterator();
     }
 
     @Override
-    public void removeAll(@Nonnull ValuationSet other) {
+    public void removeAll(ValuationSet other) {
       assert other instanceof BddValuationSet;
 
       BddValuationSet otherSet = (BddValuationSet) other;
@@ -235,7 +237,7 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void retainAll(@Nonnull ValuationSet other) {
+    public void retainAll(ValuationSet other) {
       assert other instanceof BddValuationSet;
 
       BddValuationSet otherSet = (BddValuationSet) other;

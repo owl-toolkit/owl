@@ -227,7 +227,7 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
 
   @Nonnull
   @Override
-  public <T> T[] toArray(@Nonnull T[] array) {
+  public <T> T[] toArray(T[] array) {
     return stack.toArray(array);
   }
 }
