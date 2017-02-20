@@ -1,6 +1,7 @@
 package owl.factories.jdd.bdd;
 
 import com.google.common.math.IntMath;
+import owl.util.BitUtil;
 
 final class Util {
   private static final int BYTE_MASK = BitUtil.intMaskLength(Byte.SIZE);

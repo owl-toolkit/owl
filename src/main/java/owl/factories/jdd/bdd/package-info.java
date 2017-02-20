@@ -1,4 +1,5 @@
-@ParametersAreNonnullByDefault
+
+@EverythingIsNonnullByDefault
 package owl.factories.jdd.bdd;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import owl.util.EverythingIsNonnullByDefault;

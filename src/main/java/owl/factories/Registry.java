@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.factories.jdd.ValuationFactory;
-import owl.factories.sylvan.EquivalenceFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.util.NativeLibraryLoader;
@@ -59,12 +58,12 @@ public final class Registry {
   public static Factories getFactories(Formula formula, int alphabetSize, Backend backend) {
     switch (backend) {
       case SYLVAN:
-        return new Factories(new EquivalenceFactory(formula, alphabetSize, null),
+        return new Factories(owl.factories.sylvan.EquivalenceFactory.create(formula, alphabetSize),
           new owl.factories.sylvan.ValuationFactory(alphabetSize));
 
       case JDD:
       default:
-        return new Factories(new owl.factories.jdd.EquivalenceFactory(formula, alphabetSize, null),
+        return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),
           new ValuationFactory(alphabetSize));
     }
   }

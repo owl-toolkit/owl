@@ -140,7 +140,7 @@ public class GeneralizedAcceptingComponent extends AbstractAcceptingComponent<
 
     @Override
     @Nullable
-    public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
+    public Edge<State> getSuccessor(BitSet valuation) {
       // Check the safety field first.
       EquivalenceClass nextSafety = factory.getSuccessor(safety, valuation)
         .andWith(obligations.safety);

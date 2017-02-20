@@ -26,12 +26,12 @@ import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
 
 @RunWith(Parameterized.class)
-public class LdbaSizeRegressionTest extends
+public class LDBASizeRegressionTest extends
   AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState,
     AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State,
     RecurringObligations>, AcceptingComponent>> {
 
-  public LdbaSizeRegressionTest(FormulaGroup selectedClass) {
+  public LDBASizeRegressionTest(FormulaGroup selectedClass) {
     super(selectedClass, new LTL2LDBA(EnumSet.allOf(Optimisation.class)));
   }
 

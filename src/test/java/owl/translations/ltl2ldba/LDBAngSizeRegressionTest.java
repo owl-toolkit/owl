@@ -29,12 +29,12 @@ import owl.translations.ltl2ldba.ng.LTL2LDBAng;
 import owl.translations.ltl2ldba.ng.RecurringObligations2;
 
 @RunWith(Parameterized.class)
-public class LdbaNgSizeRegressionTest extends
+public class LDBAngSizeRegressionTest extends
   AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState,
     AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State,
     RecurringObligations2>, AcceptingComponent>> {
 
-  public LdbaNgSizeRegressionTest(FormulaGroup selectedClass) {
+  public LDBAngSizeRegressionTest(FormulaGroup selectedClass) {
     super(selectedClass, new LTL2LDBAng(EnumSet.allOf(Optimisation.class)));
   }
 

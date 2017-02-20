@@ -5,8 +5,9 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 
 <suppressions>
-    <suppress files="LTL2.*|NBA2.*" checks="AbbreviationAsWordInName" />
-  <!-- Test don't need doc and checkstyle doesn't recognize @Theory methods as tests -->
-  <suppress checks="JavadocMethod" files=".*"/>
-  <suppress checks="JavadocPackage" files=".*"/>
+    <suppress files="LTL2.*|NBA2.*|LD.*" checks="AbbreviationAsWordInName"/>
+
+    <!-- Test don't need doc and checkstyle doesn't recognize @Theory methods as tests -->
+    <suppress checks="JavadocMethod" files=".*"/>
+    <suppress checks="JavadocPackage" files=".*"/>
 </suppressions>

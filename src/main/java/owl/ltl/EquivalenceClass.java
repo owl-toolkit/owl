@@ -63,13 +63,17 @@ public interface EquivalenceClass {
     }
   }
 
-  EquivalenceClass and(EquivalenceClass eq);
+  EquivalenceClass and(EquivalenceClass equivalenceClass);
 
   /**
    * Performs the same operation as {@link EquivalenceClass#and}, but also calls free() on the
    * instance {@link this}.
    */
-  EquivalenceClass andWith(EquivalenceClass eq);
+  default EquivalenceClass andWith(EquivalenceClass equivalenceClass) {
+    EquivalenceClass and = and(equivalenceClass);
+    free();
+    return and;
+  }
 
   EquivalenceClass duplicate();
 
@@ -111,13 +115,17 @@ public interface EquivalenceClass {
 
   boolean isTrue();
 
-  EquivalenceClass or(EquivalenceClass eq);
+  EquivalenceClass or(EquivalenceClass equivalenceClass);
 
   /**
    * Performs the same operation as {@link EquivalenceClass#or}, but also calls free() on the
    * instance {@link this}.
    */
-  EquivalenceClass orWith(EquivalenceClass eq);
+  default EquivalenceClass orWith(EquivalenceClass equivalenceClass) {
+    EquivalenceClass or = or(equivalenceClass);
+    free();
+    return or;
+  }
 
   default ImmutableList<Set<Formula>> satisfyingAssignments() {
     return satisfyingAssignments(getSupport());

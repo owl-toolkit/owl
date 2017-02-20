@@ -87,6 +87,11 @@ public class BddConfiguration {
   }
 
   @Value.Default
+  public boolean logStatisticsOnShutdown() {
+    return true;
+  }
+
+  @Value.Default
   public int maximumNodeTableGrowth() {
     return DEFAULT_NODE_TABLE_MAXIMUM_GROWTH;
   }

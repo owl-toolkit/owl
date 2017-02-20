@@ -45,7 +45,7 @@ public class NBA2LDBA extends AbstractCommandLineTool<StoredBuchiAutomaton> {
   @Override
   protected Function<StoredBuchiAutomaton, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
-    return new owl.translations.nba2ldba.Nba2Ldba(optimisations);
+    return new owl.translations.nba2ldba.NBA2LDBA(optimisations);
   }
 
   @Override

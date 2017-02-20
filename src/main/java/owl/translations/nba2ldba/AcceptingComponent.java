@@ -83,7 +83,7 @@ public class AcceptingComponent extends Automaton<AcceptingComponent.State, Buch
 
     @Nullable
     @Override
-    public Edge<State> getSuccessor(@Nonnull BitSet valuation) {
+    public Edge<State> getSuccessor(BitSet valuation) {
       // Standard Subset Construction
       Set<StoredBuchiAutomaton.State> rightSuccessor = new HashSet<>();
 

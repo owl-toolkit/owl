@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -50,10 +49,10 @@ public class HoaConsumerExtended {
   private final Map<AutomatonState<?>, Integer> stateNumbers;
   protected AutomatonState<?> currentState;
 
-  public HoaConsumerExtended(@Nonnull HOAConsumer hoa, int alphabetSize,
-    @Nonnull List<String> aliases, @Nonnull OmegaAcceptance acceptance,
+  public HoaConsumerExtended(HOAConsumer hoa, int alphabetSize,
+    List<String> aliases, OmegaAcceptance acceptance,
     Set<? extends AutomatonState<?>> initialStates,
-    int size, @Nonnull EnumSet<HoaPrintable.Option> options) {
+    int size, EnumSet<HoaPrintable.Option> options) {
     this.hoa = hoa;
     this.options = options;
 

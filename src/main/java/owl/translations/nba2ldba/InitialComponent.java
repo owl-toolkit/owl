@@ -17,7 +17,6 @@
 
 package owl.translations.nba2ldba;
 
-import javax.annotation.Nonnull;
 import owl.automaton.StoredBuchiAutomaton;
 import owl.automaton.ldba.AbstractInitialComponent;
 
@@ -40,7 +39,7 @@ public class InitialComponent
   }
 
   @Override
-  public void generateJumps(@Nonnull StoredBuchiAutomaton.State state) {
+  public void generateJumps(StoredBuchiAutomaton.State state) {
     if (nba.isAccepting(state)) {
       AcceptingComponent.State succ2 = acceptingComponent.createState(state);
       epsilonJumps.put(state, succ2);

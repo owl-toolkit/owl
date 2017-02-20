@@ -8,11 +8,12 @@
     <!-- Suppress everything for generated files -->
     <suppress files="owl[\\/]grammar[\\/]" checks=".*"/>
 
-    <suppress files="LTL2.*|NBA2.*" checks="AbbreviationAsWordInName" />
+    <suppress files="LTL2.*|NBA2.*" checks="AbbreviationAsWordInName"/>
+
     <suppress files="JSylvan.java" checks=".*"/>
     <!-- Soon we will doc everything ... -->
     <suppress checks="JavadocMethod" files=".*"/>
     <!-- There are a ton of single-letter variables -->
-    <suppress checks="ParameterName" files=".*" />
-    <suppress checks="LocalVariableName" files=".*" />
+    <suppress checks="ParameterName" files=".*"/>
+    <suppress checks="LocalVariableName" files=".*"/>
 </suppressions>

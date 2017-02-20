@@ -24,7 +24,6 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
 public interface EquivalenceClassFactory {
-
   EquivalenceClass createEquivalenceClass(Formula formula);
 
   default EquivalenceClass createEquivalenceClass(Iterable<? extends Formula> formulas) {

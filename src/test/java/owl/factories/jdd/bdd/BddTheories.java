@@ -45,6 +45,7 @@ import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
+import owl.collections.BitSets;
 
 /**
  * Tests various logical functions of BDDs and checks invariants.
@@ -52,27 +53,36 @@ import org.junit.runner.RunWith;
 @RunWith(Theories.class)
 @SuppressWarnings({"PMD.GodClass", "checkstyle:javadoc"})
 public class BddTheories {
-  private static final BddImpl bdd = new BddImpl(10);
-  private static final int binaryCount = 10000;
+  private static final BddImpl bdd;
+  private static final int binaryCount = 2000;
   private static final Collection<BinaryDataPoint> binaryDataPoints;
   private static final int initialNodeCount;
   private static final int initialReferencedNodeCount;
   private static final Logger logger = Logger.getLogger(BddTheories.class.getName());
   private static final Int2ObjectMap<SyntaxTree> syntaxTreeMap;
-  private static final int ternaryCount = 10000;
+  private static final int ternaryCount = 1000;
   private static final Collection<TernaryDataPoint> ternaryDataPoints;
   private static final int treeDepth = 15;
-  private static final int treeWidth = 2000;
-  private static final int unaryCount = 10000;
+  private static final int treeWidth = 500;
+  private static final int unaryCount = 6000;
   /* The @DataPoints annotated method is called multiple times - which would create new variables
    * each time, exploding the runtime of the tests. */
   private static final Collection<UnaryDataPoint> unaryDataPoints;
-  private static final List<BitSet> valuations;
+  private static final Set<BitSet> valuations;
   private static final int variableCount = 10;
   private static final IntList variableList;
 
   static {
     // It is important other the generation of data is ordered for the tests to be reproducible.
+
+    logger.log(Level.INFO, "Building base BDD structure");
+    // Have a lot of GC sweeps
+    BddConfiguration config = ImmutableBddConfiguration.builder()
+      .logStatisticsOnShutdown(false)
+      .maximumNodeTableGrowth(100)
+      .minimumNodeTableGrowth(100)
+      .build();
+    bdd = new BddImpl(10, config);
 
     final Random filter = new Random(0L);
     variableList = new IntArrayList(variableCount);
@@ -215,20 +225,11 @@ public class BddTheories {
       + " data points", new Object[] {initialNodeCount, initialReferencedNodeCount,
       unaryDataPointSet.size(), binaryDataPointSet.size(), ternaryDataPointSet.size()});
 
-    final ImmutableList.Builder<BitSet> valuationBuilder = ImmutableList.builder();
-    for (int i = 0; i < 1 << variableList.size(); i++) {
-      @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-      final BitSet bitSet = new BitSet(variableList.size());
-      for (int j = 0; j < variableList.size(); j++) {
-        if (((i >>> j) & 1) == 1) {
-          bitSet.set(j);
-        }
-      }
-      //noinspection ResultOfMethodCallIgnored
-      valuationBuilder.add(bitSet);
+    BitSet alphabet = new BitSet();
+    for (int i = 0; i < variableList.size(); i++) {
+      alphabet.set(i);
     }
-
-    valuations = valuationBuilder.build();
+    valuations = BitSets.powerSet(alphabet);
   }
 
   private final Random skipCheckRandom = new Random(0L);
@@ -243,8 +244,9 @@ public class BddTheories {
     doCheckInvariants();
   }
 
+  @SuppressWarnings("UseOfClone")
   private static BitSet copyBitSet(final BitSet bitSet) {
-    return BitSet.valueOf(bitSet.toLongArray());
+    return (BitSet) bitSet.clone();
   }
 
   @SuppressWarnings("TypeMayBeWeakened")
@@ -521,18 +523,21 @@ public class BddTheories {
     final BitSet unquantifiedVariables = copyBitSet(quantificationBitSet);
     unquantifiedVariables.flip(0, bdd.numberOfVariables());
 
-    assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables), unquantifiedAssignment -> {
-      assert unquantifiedAssignment != null;
-      return bdd.evaluate(existsNode, unquantifiedAssignment)
-        == Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
-          if (bitSet == null) {
-            return false;
-          }
-          final BitSet actualBitSet = copyBitSet(bitSet);
-          actualBitSet.or(unquantifiedAssignment);
-          return bdd.evaluate(node, actualBitSet);
-        });
-    }));
+    assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables),
+      unquantifiedAssignment -> {
+        assert unquantifiedAssignment != null;
+        boolean bddEvaluation = bdd.evaluate(existsNode, unquantifiedAssignment);
+        boolean setEvaluation = Iterators.any(getBitSetIterator(quantificationBitSet),
+          bitSet -> {
+            if (bitSet == null) {
+              return false;
+            }
+            final BitSet actualBitSet = copyBitSet(bitSet);
+            actualBitSet.or(unquantifiedAssignment);
+            return bdd.evaluate(node, actualBitSet);
+          });
+        return bddEvaluation == setEvaluation;
+      }));
   }
 
   @Theory(nullsAccepted = false)
@@ -557,18 +562,21 @@ public class BddTheories {
     final BitSet unquantifiedVariables = copyBitSet(quantificationBitSet);
     unquantifiedVariables.flip(0, bdd.numberOfVariables());
 
-    assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables), unquantifiedAssignment -> {
-      assert unquantifiedAssignment != null;
-      return bdd.evaluate(existsNode, unquantifiedAssignment)
-        == Iterators.any(getBitSetIterator(quantificationBitSet), bitSet -> {
-          if (bitSet == null) {
-            return false;
-          }
-          final BitSet actualBitSet = copyBitSet(bitSet);
-          actualBitSet.or(unquantifiedAssignment);
-          return bdd.evaluate(node, actualBitSet);
-        });
-    }));
+    assertTrue(Iterators.all(getBitSetIterator(unquantifiedVariables),
+      unquantifiedAssignment -> {
+        assert unquantifiedAssignment != null;
+        boolean bddEvaluation = bdd.evaluate(existsNode, unquantifiedAssignment);
+        boolean setEvaluation = Iterators.any(getBitSetIterator(quantificationBitSet),
+          bitSet -> {
+            if (bitSet == null) {
+              return false;
+            }
+            final BitSet actualBitSet = copyBitSet(bitSet);
+            actualBitSet.or(unquantifiedAssignment);
+            return bdd.evaluate(node, actualBitSet);
+          });
+        return bddEvaluation == setEvaluation;
+      }));
   }
 
   @Theory(nullsAccepted = false)
@@ -1014,7 +1022,7 @@ public class BddTheories {
     private final Set<BitSet> assignments;
     private final Bdd bdd;
 
-    public BddPathExplorer(final Bdd bdd, final int startingNode) {
+    BddPathExplorer(final Bdd bdd, final int startingNode) {
       this.bdd = bdd;
       this.assignments = new HashSet<>();
       if (startingNode == bdd.getTrueNode()) {
@@ -1026,7 +1034,7 @@ public class BddTheories {
       }
     }
 
-    public Set<BitSet> getAssignments() {
+    Set<BitSet> getAssignments() {
       return assignments;
     }
 
@@ -1064,7 +1072,7 @@ public class BddTheories {
     private final int right;
     private final SyntaxTree rightTree;
 
-    public BinaryDataPoint(final int left, final int right, final SyntaxTree leftTree,
+    BinaryDataPoint(final int left, final int right, final SyntaxTree leftTree,
       final SyntaxTree rightTree) {
       this.left = left;
       this.right = right;
@@ -1084,19 +1092,19 @@ public class BddTheories {
       return left == other.left && right == other.right;
     }
 
-    public int getLeft() {
+    int getLeft() {
       return left;
     }
 
-    public SyntaxTree getLeftTree() {
+    SyntaxTree getLeftTree() {
       return leftTree;
     }
 
-    public int getRight() {
+    int getRight() {
       return right;
     }
 
-    public SyntaxTree getRightTree() {
+    SyntaxTree getRightTree() {
       return rightTree;
     }
 
@@ -1162,7 +1170,7 @@ public class BddTheories {
     private final int third;
     private final SyntaxTree thirdTree;
 
-    public TernaryDataPoint(final int first, final int second, final int third,
+    TernaryDataPoint(final int first, final int second, final int third,
       final SyntaxTree firstTree, final SyntaxTree secondTree, final SyntaxTree thirdTree) {
       this.first = first;
       this.second = second;
@@ -1184,27 +1192,27 @@ public class BddTheories {
       return first == other.first && second == other.second && third == other.third;
     }
 
-    public int getFirst() {
+    int getFirst() {
       return first;
     }
 
-    public SyntaxTree getFirstTree() {
+    SyntaxTree getFirstTree() {
       return firstTree;
     }
 
-    public int getSecond() {
+    int getSecond() {
       return second;
     }
 
-    public SyntaxTree getSecondTree() {
+    SyntaxTree getSecondTree() {
       return secondTree;
     }
 
-    public int getThird() {
+    int getThird() {
       return third;
     }
 
-    public SyntaxTree getThirdTree() {
+    SyntaxTree getThirdTree() {
       return thirdTree;
     }
 
@@ -1218,7 +1226,7 @@ public class BddTheories {
     private final int node;
     private final SyntaxTree tree;
 
-    public UnaryDataPoint(final int node, final SyntaxTree tree) {
+    UnaryDataPoint(final int node, final SyntaxTree tree) {
       this.node = node;
       this.tree = tree;
     }
@@ -1235,11 +1243,11 @@ public class BddTheories {
       return node == other.node;
     }
 
-    public int getNode() {
+    int getNode() {
       return node;
     }
 
-    public SyntaxTree getTree() {
+    SyntaxTree getTree() {
       return tree;
     }
 

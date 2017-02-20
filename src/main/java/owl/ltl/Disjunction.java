@@ -57,10 +57,7 @@ public final class Disjunction extends PropositionalFormula {
 
     while (iterator.hasNext()) {
       Formula child = iterator.next();
-
-      if (child == null) {
-        return null;
-      }
+      assert child != null;
 
       if (child == BooleanConstant.TRUE) {
         return BooleanConstant.TRUE;

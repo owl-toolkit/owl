@@ -34,18 +34,18 @@ import owl.translations.ltl2ldba.InitialComponentState;
 import owl.translations.ltl2ldba.LTL2LDBA;
 import owl.translations.ltl2ldba.RecurringObligations;
 
-public class Ltl2Dpa implements Function<Formula, ParityAutomaton<?>> {
+public class LTL2DPA implements Function<Formula, ParityAutomaton<?>> {
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
   private final EnumSet<Optimisation> optimisations;
   private final LTL2LDBA translator;
 
-  public Ltl2Dpa() {
+  public LTL2DPA() {
     this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
   }
 
-  public Ltl2Dpa(EnumSet<Optimisation> optimisations) {
+  public LTL2DPA(EnumSet<Optimisation> optimisations) {
     this.optimisations = EnumSet.copyOf(optimisations);
     this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     this.optimisations.remove(Optimisation.FORCE_JUMPS);

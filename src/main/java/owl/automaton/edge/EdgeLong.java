@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.PrimitiveIterator;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
+import owl.util.BitUtil;
 
 @Immutable
 class EdgeLong<S> implements Edge<S> {
@@ -18,10 +19,6 @@ class EdgeLong<S> implements Edge<S> {
     assert bitSetLongs.length == 1;
     this.store = bitSetLongs[0];
     this.successor = successor;
-  }
-
-  private static boolean isSet(long store, int pos) {
-    return ((store >>> pos) & 1L) != 0L;
   }
 
   @Override
@@ -56,7 +53,7 @@ class EdgeLong<S> implements Edge<S> {
   @Override
   public boolean inSet(@Nonnegative int i) {
     assert i >= 0;
-    return i < Long.SIZE && isSet(store, i);
+    return i < Long.SIZE && BitUtil.isSet(store, i);
   }
 
   @Override
@@ -64,23 +61,14 @@ class EdgeLong<S> implements Edge<S> {
     return Edge.toString(this);
   }
 
-  // Copied from ava.util.BitSet#stream()
+  // Inspired by java.util.BitSet#stream()
   private static final class LongBitIterator implements PrimitiveIterator.OfInt {
     private final long store;
     private int next;
 
     LongBitIterator(long store) {
       this.store = store;
-      this.next = getNext(0, store);
-    }
-
-    private static int getNext(int position, long store) {
-      for (int pos = position; pos < Long.SIZE; pos++) {
-        if (isSet(store, pos)) {
-          return pos;
-        }
-      }
-      return -1;
+      this.next = BitUtil.nextSetBit(store, 0);
     }
 
     @Override
@@ -94,7 +82,7 @@ class EdgeLong<S> implements Edge<S> {
         throw new NoSuchElementException();
       }
       int current = next;
-      next = getNext(next + 1, store);
+      next = BitUtil.nextSetBit(store, next + 1);
       return current;
     }
   }

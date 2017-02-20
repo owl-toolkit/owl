@@ -18,7 +18,6 @@
 package owl.collections;
 
 import java.util.BitSet;
-import javax.annotation.Nonnull;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 
@@ -28,9 +27,9 @@ import jhoafparser.ast.BooleanExpression;
  * underlying data-structure. This information is never used and it is costly to support this.
  */
 public interface ValuationSet extends Iterable<BitSet> {
-  void add(@Nonnull BitSet valuation);
+  void add(BitSet valuation);
 
-  void addAll(@Nonnull ValuationSet newVs);
+  void addAll(ValuationSet newVs);
 
   /**
    * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.
@@ -38,7 +37,7 @@ public interface ValuationSet extends Iterable<BitSet> {
    * @param other
    *     the other valuation set.
    */
-  default void addAllWith(@Nonnull ValuationSet other) {
+  default void addAllWith(ValuationSet other) {
     addAll(other);
     other.free();
   }
@@ -61,9 +60,9 @@ public interface ValuationSet extends Iterable<BitSet> {
 
   boolean isUniverse();
 
-  void removeAll(@Nonnull ValuationSet other);
+  void removeAll(ValuationSet other);
 
-  void retainAll(@Nonnull ValuationSet other);
+  void retainAll(ValuationSet other);
 
   int size();
 

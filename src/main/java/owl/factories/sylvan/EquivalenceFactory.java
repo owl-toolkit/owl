@@ -18,23 +18,23 @@
 package owl.factories.sylvan;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Ordering;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import jsylvan.JSylvan;
-import owl.collections.BitSets;
 import owl.factories.EquivalenceClassFactory;
+import owl.factories.EquivalenceClassUtil;
 import owl.factories.PropositionVisitor;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
@@ -45,10 +45,11 @@ import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.visitors.SubstitutionVisitor;
 import owl.ltl.visitors.predicates.XFragmentPredicate;
 
 @SuppressWarnings("PMD.GodClass")
-public class EquivalenceFactory implements EquivalenceClassFactory {
+public final class EquivalenceFactory implements EquivalenceClassFactory {
   private final int alphabetSize;
   private final BddEquivalenceClass falseClass;
   private final Object2IntMap<Formula> mapping;
@@ -58,12 +59,7 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
   private Formula[] reverseMapping;
   private long[] vars;
 
-  public EquivalenceFactory(Formula formula, int alphabetSize) {
-    this(formula, alphabetSize, null);
-  }
-
-  public EquivalenceFactory(Formula formula, int alphabetSize,
-    @Nullable List<String> atomMapping) {
+  private EquivalenceFactory(Formula formula, int alphabetSize, List<String> atomMapping) {
     Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
     this.alphabetSize = alphabetSize;
 
@@ -91,11 +87,16 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
 
     trueClass = new BddEquivalenceClass(BooleanConstant.TRUE, JSylvan.getTrue());
     falseClass = new BddEquivalenceClass(BooleanConstant.FALSE, JSylvan.getFalse());
-    if (atomMapping == null) {
-      this.atomMapping = ImmutableList.of();
-    } else {
-      this.atomMapping = ImmutableList.copyOf(atomMapping);
-    }
+    this.atomMapping = ImmutableList.copyOf(atomMapping);
+  }
+
+  public static EquivalenceFactory create(Formula formula, int alphabetSize) {
+    return create(formula, alphabetSize, ImmutableList.of());
+  }
+
+  public static EquivalenceFactory create(Formula formula, int alphabetSize,
+    List<String> atomMapping) {
+    return new EquivalenceFactory(formula, alphabetSize, atomMapping);
   }
 
   @Override
@@ -125,7 +126,7 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
     return trueClass;
   }
 
-  private long getVariable(@Nonnull Formula formula) {
+  private long getVariable(Formula formula) {
     assert formula instanceof Literal || formula instanceof UnaryModalOperator
       || formula instanceof BinaryModalOperator;
 
@@ -188,41 +189,21 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
   }
 
   @Override
-  public void setVariables(@Nonnull List<String> variables) {
+  public void setVariables(List<String> variables) {
     atomMapping = ImmutableList.copyOf(variables);
   }
 
   private BitSet toBitSet(Iterable<? extends Formula> formulas) {
     BitSet bitSet = new BitSet();
-    formulas.forEach(x -> bitSet.set(mapping.getInt(x) - 1));
+    formulas.forEach(x -> {
+      assert mapping.containsKey(x);
+      bitSet.set(mapping.getInt(x) - 1);
+    });
     return bitSet;
   }
 
   private Set<Formula> toSet(BitSet bitSet) {
     return bitSet.stream().mapToObj(x -> reverseMapping[x]).collect(Collectors.toSet());
-  }
-
-  private static final class SubstVisitor extends DefaultVisitor<Formula> {
-    private final Function<? super Formula, ? extends Formula> subst;
-
-    SubstVisitor(Function<? super Formula, ? extends Formula> subst) {
-      this.subst = subst;
-    }
-
-    @Override
-    protected Formula defaultAction(Formula formula) {
-      return subst.apply(formula);
-    }
-
-    @Override
-    public Formula visit(final Conjunction conjunction) {
-      return Conjunction.create(conjunction.children.stream().map(x -> x.accept(this)));
-    }
-
-    @Override
-    public Formula visit(final Disjunction disjunction) {
-      return Disjunction.create(disjunction.children.stream().map(x -> x.accept(this)));
-    }
   }
 
   @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
@@ -351,60 +332,19 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public EquivalenceClass orWith(EquivalenceClass eq) {
-      EquivalenceClass or = or(eq);
-      free();
-      return or;
-    }
-
-    @Override
     public ImmutableList<Set<Formula>> satisfyingAssignments(
       Iterable<? extends Formula> supportIterable) {
-      final BitSet support = toBitSet(supportIterable);
-      final Set<BitSet> satisfyingAssignments = new HashSet<>();
-
-      // Build restricted upward closure
-      //noinspection UseOfClone
-      JSylvan.getMinimalSolutions(bdd).forEachRemaining(
-        bitSet -> satisfyingAssignments.add((BitSet) bitSet.clone()));
-      final Deque<BitSet> candidates = new ArrayDeque<>(satisfyingAssignments);
-
-      // Loop over all minimal solutions and all additional candidates
-      while (!candidates.isEmpty()) {
-        final BitSet valuation = candidates.removeFirst();
-        assert BitSets.subset(valuation, support);
-
-        for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
-          if (valuation.get(i)) {
-            continue;
-          }
-
-          // Check if we already have seen this before we clone it - need to revert our changes
-          // afterwards!
-          valuation.set(i);
-          if (satisfyingAssignments.contains(valuation)) {
-            valuation.clear(i);
-            continue;
-          }
-
-          // Clone the bit sets here, as the minimal solution iterator modifies in-place
-          @SuppressWarnings("UseOfClone")
-          final BitSet nextValuation = (BitSet) valuation.clone();
-          valuation.clear(i);
-
-          candidates.add(nextValuation);
-          satisfyingAssignments.add(nextValuation);
-        }
-      }
-
-      return satisfyingAssignments.stream().map(EquivalenceFactory.this::toSet)
+      BitSet support = toBitSet(supportIterable);
+      Iterator<BitSet> minimalSolutions = JSylvan.getMinimalSolutions(bdd);
+      Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(support, minimalSolutions);
+      return closure.stream().map(EquivalenceFactory.this::toSet)
         .collect(ImmutableList.toImmutableList());
     }
 
     @Override
     public EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution) {
       assert representative != null;
-      SubstVisitor visitor = new SubstVisitor(substitution);
+      SubstitutionVisitor visitor = new SubstitutionVisitor(substitution);
       return createEquivalenceClass(representative.accept(visitor));
     }
 
@@ -428,15 +368,17 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public String toString() {
+      assert Ordering.natural().isStrictlyOrdered(new LongArrayList(vars));
+
       String representativeString;
 
       if (JSylvan.isVariableOrNegated(bdd)) {
-        int variablePos = Arrays.binarySearch(vars, bdd);
+        final int variablePos = Arrays.binarySearch(vars, bdd);
 
         if (variablePos >= 0) {
           representativeString = reverseMapping[variablePos].toString(atomMapping);
         } else {
-          int notVariablePosition = Arrays.binarySearch(vars, JSylvan.makeNot(bdd));
+          final int notVariablePosition = Arrays.binarySearch(vars, JSylvan.makeNot(bdd));
           representativeString = reverseMapping[notVariablePosition].not().toString(atomMapping);
         }
       } else if (representative == null) {
@@ -461,7 +403,7 @@ public class EquivalenceFactory implements EquivalenceClassFactory {
     }
   }
 
-  private class BddVisitor extends DefaultVisitor<Long> {
+  private final class BddVisitor extends DefaultVisitor<Long> {
     @Override
     protected Long defaultAction(Formula formula) {
       return getVariable(formula);

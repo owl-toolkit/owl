@@ -75,12 +75,12 @@ public class BddTest {
     bdd.grow(); // make sure there is room for it
     final int g1 = bdd.and(v3, v2);
     final int g2 = bdd.reference(bdd.or(g1, v1));
-    assertThat(bdd.gc(), is(0));
+    assertThat(bdd.forceGc(), is(0));
     bdd.dereference(g2);
 
     // bdd.show_table();
-    assertThat(bdd.gc(), is(2));
-    bdd.gc(); // Should free g1 and g2
+    assertThat(bdd.forceGc(), is(2));
+    bdd.forceGc(); // Should free g1 and g2
 
     final int nv1 = bdd.reference(bdd.not(v1));
     final int nv2 = bdd.reference(bdd.not(v2));
@@ -270,10 +270,10 @@ public class BddTest {
     final int v1 = bdd.createVariable();
     final int v2 = bdd.createVariable();
     final int temporaryNode = bdd.pushToWorkStack(bdd.and(v1, v2));
-    bdd.gc();
+    bdd.forceGc();
     assertThat(bdd.isNodeValidOrRoot(temporaryNode), is(true));
     bdd.popWorkStack();
-    bdd.gc();
+    bdd.forceGc();
     assertThat(bdd.isNodeValidOrRoot(temporaryNode), is(false));
   }
 }

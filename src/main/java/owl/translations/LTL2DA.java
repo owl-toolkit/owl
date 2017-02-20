@@ -26,7 +26,7 @@ import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.translations.ltl2dpa.Ltl2Dpa;
+import owl.translations.ltl2dpa.LTL2DPA;
 import owl.translations.ltl2ldba.LTL2LDGBA;
 
 public final class LTL2DA extends AbstractLtlCommandLineTool {
@@ -44,7 +44,7 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
 
   private static HoaPrintable translate(Formula formula, EnumSet<Optimisation> optimisations) {
     LTL2LDGBA ltl2Ldgba = new LTL2LDGBA(optimisations);
-    Ltl2Dpa ltl2Dpa = new Ltl2Dpa(optimisations);
+    LTL2DPA ltl2Dpa = new LTL2DPA(optimisations);
 
     LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = ltl2Ldgba.apply(formula);
     Automaton<?, ?> automaton = ltl2Dpa.apply(formula);
