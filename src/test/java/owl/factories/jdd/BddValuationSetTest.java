@@ -15,17 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections.valuationset;
+package owl.factories.jdd;
 
 import com.google.common.collect.BiMap;
-import owl.factories.Registry;
-import owl.factories.Registry.Backend;
+import owl.collections.ValuationSetTest;
 import owl.factories.ValuationSetFactory;
 
-public class SylvanValuationSetTest extends ValuationSetTest {
-
+public class BddValuationSetTest extends ValuationSetTest {
   @Override
   public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
-    return Registry.getFactories(aliases.size(), Backend.SYLVAN).valuationSetFactory;
+    return new ValuationFactory(aliases.size());
   }
 }

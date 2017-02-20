@@ -26,14 +26,15 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
+import owl.automaton.LegacyAutomaton;
 import owl.automaton.StoredBuchiAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.translations.nba2ldba.AcceptingComponent.State;
 
-public class AcceptingComponent extends Automaton<AcceptingComponent.State, BuchiAcceptance> {
+public class AcceptingComponent extends LegacyAutomaton<State, BuchiAcceptance> {
 
   private final StoredBuchiAutomaton nba;
 

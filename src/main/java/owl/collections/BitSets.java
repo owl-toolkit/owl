@@ -66,13 +66,11 @@ public final class BitSets {
 
   @Nullable
   public static IntList toList(PrimitiveIterator.OfInt bs) {
-    IntList list = new IntArrayList();
-    bs.forEachRemaining((IntConsumer) list::add);
-
-    if (list.isEmpty()) {
+    if (!bs.hasNext()) {
       return null;
     }
-
+    IntList list = new IntArrayList();
+    bs.forEachRemaining((IntConsumer) list::add);
     return list;
   }
 

@@ -23,8 +23,8 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
+import owl.automaton.LegacyAutomaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
@@ -32,7 +32,7 @@ import owl.translations.Optimisation;
 
 public abstract class AbstractAcceptingComponent<S extends AutomatonState<S>,
   T extends OmegaAcceptance, U>
-  extends Automaton<S, T> {
+  extends LegacyAutomaton<S, T> {
 
   protected static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
   protected final BitSet accept;

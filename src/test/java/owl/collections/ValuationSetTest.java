@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections.valuationset;
+package owl.collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,11 +30,9 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
-import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationSetTest {
-
   private ValuationSet abcd;
   private ValuationSet containsA;
   private ValuationSet empty;

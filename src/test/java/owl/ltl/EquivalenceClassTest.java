@@ -212,6 +212,31 @@ public abstract class EquivalenceClassTest {
     assertFalse(tautologyClass.implies(literalClass));
   }
 
+  // @Test
+  public void testLtlBackgroundTheory1() throws ParseException {
+    LtlParser parser = new LtlParser();
+    Formula f1 = parser.parseLtl("G p0 & p0");
+    Formula f2 = parser.parseLtl("G p0");
+    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
+  }
+
+  // @Test
+  public void testLtlBackgroundTheory2() throws ParseException {
+    LtlParser parser = new LtlParser();
+    Formula f1 = parser.parseLtl("G p0 | p0");
+    Formula f2 = parser.parseLtl("p0");
+    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
+  }
+
+  // @Test
+  public void testLtlBackgroundTheory3() {
+    Formula f1 = new Literal(1, false);
+    Formula f2 = new GOperator(f1);
+    Formula f5 = Simplifier.simplify(new Conjunction(
+      new GOperator(new FOperator(new XOperator(f1))), f2), Strategy.MODAL);
+    assertEquals(Simplifier.simplify(f5, Strategy.AGGRESSIVELY), f2);
+  }
+
   @Test
   public void testSubstitute() throws ParseException {
     LtlParser parser = new LtlParser();
@@ -269,30 +294,5 @@ public abstract class EquivalenceClassTest {
       assertEquals(ref, clazz);
       assertEquals(clazz, clazz.unfold());
     }
-  }
-
-  // @Test
-  public void testLtlBackgroundTheory1() throws ParseException {
-    LtlParser parser = new LtlParser();
-    Formula f1 = parser.parseLtl("G p0 & p0");
-    Formula f2 = parser.parseLtl("G p0");
-    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
-  }
-
-  // @Test
-  public void testLtlBackgroundTheory2() throws ParseException {
-    LtlParser parser = new LtlParser();
-    Formula f1 = parser.parseLtl("G p0 | p0");
-    Formula f2 = parser.parseLtl("p0");
-    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
-  }
-
-  // @Test
-  public void testLtlBackgroundTheory3() {
-    Formula f1 = new Literal(1, false);
-    Formula f2 = new GOperator(f1);
-    Formula f5 = Simplifier.simplify(new Conjunction(
-      new GOperator(new FOperator(new XOperator(f1))), f2), Strategy.MODAL);
-    assertEquals(Simplifier.simplify(f5, Strategy.AGGRESSIVELY), f2);
   }
 }

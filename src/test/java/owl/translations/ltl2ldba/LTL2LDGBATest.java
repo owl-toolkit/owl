@@ -214,21 +214,6 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testSccPatient() throws IOException, ParseException {
-    String ltl = "X (a & (X (b & X G c)))";
-    testOutput(ltl, 4);
-  }
-
-  @Test
-  public void testSpot() throws IOException, ParseException {
-    String ltl = "p U (r | s)";
-    testOutput(ltl, 2);
-
-    ltl = "!(p U (r | s))";
-    testOutput(ltl, 3);
-  }
-
-  @Test
   public void testSanityCheckFailed() throws IOException, ParseException {
     String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U "
       + "((b) | (G(c))))))";
@@ -242,9 +227,24 @@ public class LTL2LDGBATest {
   }
 
   @Test
+  public void testSccPatient() throws IOException, ParseException {
+    String ltl = "X (a & (X (b & X G c)))";
+    testOutput(ltl, 4);
+  }
+
+  @Test
   public void testSingle() throws IOException, ParseException {
     String ltl = "G ((F a) & (F b))";
     testOutput(ltl, 1);
+  }
+
+  @Test
+  public void testSpot() throws IOException, ParseException {
+    String ltl = "p U (r | s)";
+    testOutput(ltl, 2);
+
+    ltl = "!(p U (r | s))";
+    testOutput(ltl, 3);
   }
 
   @Test

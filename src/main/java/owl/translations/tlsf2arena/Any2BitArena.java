@@ -40,8 +40,8 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
+import owl.automaton.LegacyAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -107,7 +107,8 @@ class Any2BitArena {
 
   }
 
-  private <S extends AutomatonState<S>> void setUp(Automaton<S, ?> automaton, Player firstPlayer,
+  private <S extends AutomatonState<S>> void setUp(LegacyAutomaton<S, ?> automaton,
+    Player firstPlayer,
     BitSet envAlphabet) {
     checkArgument(automaton.getAcceptance() instanceof ParityAcceptance
         || automaton.getAcceptance() instanceof BuchiAcceptance,

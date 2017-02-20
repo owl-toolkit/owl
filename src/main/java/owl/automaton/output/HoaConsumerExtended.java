@@ -17,6 +17,9 @@
 
 package owl.automaton.output;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -25,78 +28,73 @@ import java.util.List;
 import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
-import owl.automaton.AutomatonState;
+import owl.automaton.LabelledEdge;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 
-public class HoaConsumerExtended {
+public class HoaConsumerExtended<S> {
+  private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
 
-  protected static final Logger LOGGER = Logger.getLogger(HoaConsumerExtended.class.getName());
-
-  private final HOAConsumer hoa;
+  private final HOAConsumer consumer;
   private final EnumSet<HoaPrintable.Option> options;
-  private final Map<AutomatonState<?>, Integer> stateNumbers;
-  protected AutomatonState<?> currentState;
+  private final Map<S, Integer> stateNumbers;
+  @Nullable
+  private S currentState;
 
-  public HoaConsumerExtended(HOAConsumer hoa, int alphabetSize,
-    List<String> aliases, OmegaAcceptance acceptance,
-    Set<? extends AutomatonState<?>> initialStates,
-    int size, EnumSet<HoaPrintable.Option> options) {
-    this.hoa = hoa;
-    this.options = options;
+  public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
+    Set<? extends S> initialStates, int size, EnumSet<HoaPrintable.Option> options) {
+    checkArgument(initialStates.size() <= size);
 
-    stateNumbers = new HashMap<>(size);
+    this.consumer = consumer;
+    this.options = EnumSet.copyOf(options);
+    stateNumbers = new HashMap<>();
 
     try {
-      hoa.notifyHeaderStart("v1");
-      hoa.setTool("Owl", "* *"); // Owl in a cave.
+      consumer.notifyHeaderStart("v1");
+      consumer.setTool("Owl", "* *"); // Owl in a cave.
 
       if (options.contains(HoaPrintable.Option.ANNOTATIONS)) {
-        hoa.setName("Automaton for " + initialStates.toString());
+        consumer.setName("LegacyAutomaton for " + initialStates.toString());
       }
 
       if (size >= 0) {
-        hoa.setNumberOfStates(size);
+        consumer.setNumberOfStates(size);
       }
 
-      if (!initialStates.isEmpty() && size > 0) {
-        for (AutomatonState<?> initialState : initialStates) {
-          hoa.addStartStates(Collections.singletonList(getStateId(initialState)));
-        }
-
-        if (acceptance.getName() != null) {
-          hoa.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
-        }
-
-        hoa.setAcceptanceCondition(acceptance.getAcceptanceSets(),
-          acceptance.getBooleanExpression());
+      if (initialStates.isEmpty()) {
+        OmegaAcceptance noneAcceptance = new NoneAcceptance();
+        consumer.provideAcceptanceName(noneAcceptance.getName(), noneAcceptance.getNameExtra());
+        consumer.setAcceptanceCondition(noneAcceptance.getAcceptanceSets(),
+          noneAcceptance.getBooleanExpression());
       } else {
-        OmegaAcceptance acceptance1 = new NoneAcceptance();
-        hoa.provideAcceptanceName(acceptance1.getName(), acceptance1.getNameExtra());
-        hoa.setAcceptanceCondition(acceptance1.getAcceptanceSets(),
-          acceptance1.getBooleanExpression());
+        for (S state : initialStates) {
+          consumer.addStartStates(Collections.singletonList(getStateId(state)));
+        }
+
+        consumer.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
+        consumer.setAcceptanceCondition(acceptance.getAcceptanceSets(),
+          acceptance.getBooleanExpression());
       }
 
-      hoa.setAPs(
-        IntStream.range(0, alphabetSize).mapToObj(aliases::get).collect(Collectors.toList()));
-      hoa.notifyBodyStart();
+      consumer.setAPs(aliases);
+      consumer.notifyBodyStart();
 
       if (initialStates.isEmpty() || size == 0) {
-        hoa.notifyEnd();
+        consumer.notifyEnd();
       }
     } catch (HOAConsumerException ex) {
-      LOGGER.warning(ex.toString());
+      log.log(Level.WARNING, "Error during HOA writing", ex);
     }
   }
 
@@ -110,77 +108,81 @@ public class HoaConsumerExtended {
       new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
   }
 
-  public void addEdge(ValuationSet label, AutomatonState<?> end) {
+  public void addEdge(ValuationSet label, S end) {
     addEdgeBackend(label, end, null);
   }
 
-  public void addEdge(ValuationSet label, AutomatonState<?> end, PrimitiveIterator.OfInt accSets) {
+  public void addEdge(ValuationSet label, S end, PrimitiveIterator.OfInt accSets) {
     addEdgeBackend(label, end, BitSets.toList(accSets));
   }
 
-  public void addEdge(Edge<? extends AutomatonState<?>> edge, ValuationSet label) {
+  public void addEdge(LabelledEdge<? extends S> labelledEdge) {
+    addEdge(labelledEdge.edge, labelledEdge.valuations);
+  }
+
+  public void addEdge(Edge<? extends S> edge, ValuationSet label) {
     addEdge(label, edge.getSuccessor(), edge.acceptanceSetIterator());
   }
 
-  protected void addEdgeBackend(ValuationSet label, AutomatonState<?> end, @Nullable
-    IntList accSets) {
+  private void addEdgeBackend(ValuationSet label, S end, @Nullable IntList accSets) {
+    checkState(currentState != null);
 
     if (label.isEmpty()) {
       return;
     }
 
     try {
-      hoa.addEdgeWithLabel(getStateId(currentState), label.toExpression(),
+      consumer.addEdgeWithLabel(getStateId(currentState), label.toExpression(),
         Collections.singletonList(getStateId(end)), accSets);
     } catch (HOAConsumerException ex) {
-      LOGGER.warning(ex.toString());
+      log.log(Level.WARNING, "Error during HOA writing", ex);
     }
   }
 
-  public void addEpsilonEdge(AutomatonState<?> successor) {
+  public void addEpsilonEdge(S successor) {
+    checkState(currentState != null);
+    log.log(Level.WARNING, "Warning: HOA currently does not support epsilon-transitions. "
+      + "({0} -> {1})", new Object[] {currentState, successor});
+
     try {
-      LOGGER.warning(
-        "Warning: HOA currently does not support epsilon-transitions. (" + currentState + " -> "
-          + successor + ')');
-      hoa.addEdgeWithLabel(getStateId(currentState), null,
+      consumer.addEdgeWithLabel(getStateId(currentState), null,
         Collections.singletonList(getStateId(successor)), null);
     } catch (HOAConsumerException ex) {
-      LOGGER.warning(ex.toString());
+      log.log(Level.WARNING, "Error during HOA writing", ex);
     }
   }
 
-  public void addState(AutomatonState<?> state) {
+  public void addState(S state) {
     try {
       currentState = state;
-      if (options.contains(HoaPrintable.Option.ANNOTATIONS)) {
-        hoa.addState(getStateId(state), state.toString(), null, null);
-      } else {
-        hoa.addState(getStateId(state), null, null, null);
-      }
+      @Nullable
+      String label = options.contains(Option.ANNOTATIONS) ? state.toString() : null;
+      consumer.addState(getStateId(state), label, null, null);
     } catch (HOAConsumerException ex) {
-      LOGGER.warning(ex.toString());
+      log.log(Level.WARNING, "Error during HOA writing", ex);
     }
   }
 
-  private int getStateId(AutomatonState<?> state) {
+  private int getStateId(S state) {
     return stateNumbers.computeIfAbsent(state, k -> stateNumbers.size());
   }
 
   public void notifyEnd() {
     try {
       if (!stateNumbers.isEmpty()) {
-        hoa.notifyEnd();
+        consumer.notifyEnd();
       }
     } catch (HOAConsumerException ex) {
-      LOGGER.warning(ex.toString());
+      log.log(Level.WARNING, "Error during HOA writing", ex);
     }
   }
 
   public void notifyEndOfState() {
+    checkState(currentState != null);
     try {
-      hoa.notifyEndOfState(getStateId(currentState));
+      consumer.notifyEndOfState(getStateId(currentState));
     } catch (HOAConsumerException ex) {
-      LOGGER.warning(ex.toString());
+      log.log(Level.WARNING, "Error during HOA writing", ex);
     }
   }
 }

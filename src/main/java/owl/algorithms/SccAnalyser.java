@@ -26,22 +26,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
+import owl.automaton.LegacyAutomaton;
 import owl.collections.TarjanStack;
 import owl.collections.ValuationSet;
 
 public class SccAnalyser<S extends AutomatonState<S>> {
 
   protected final Set<S> allowedStates;
-  protected final Automaton<S, ?> automaton;
+  protected final LegacyAutomaton<S, ?> automaton;
   protected final Map<S, ValuationSet> forbiddenEdges;
   protected final Deque<S> stack = new TarjanStack<>();
   private final Object2IntMap<S> id = new Object2IntOpenHashMap<>();
   private final Object2IntMap<S> lowlink = new Object2IntOpenHashMap<>();
   protected int num = 0;
 
-  protected SccAnalyser(Automaton<S, ?> automaton, Set<S> allowedStates,
+  protected SccAnalyser(LegacyAutomaton<S, ?> automaton, Set<S> allowedStates,
     Map<S, ValuationSet> forbiddenEdges) {
     this.automaton = automaton;
     this.allowedStates = allowedStates;
@@ -66,7 +66,7 @@ public class SccAnalyser<S extends AutomatonState<S>> {
    * is in the list before b
    */
   public static <S extends AutomatonState<S>> List<Set<S>> computeAllScc(
-    Automaton<S, ?> automaton) {
+    LegacyAutomaton<S, ?> automaton) {
     SccAnalyser<S> analyser =
       new SccAnalyser<>(automaton, automaton.getStates(), Collections.emptyMap());
     List<Set<S>> sccList = new ArrayList<>();

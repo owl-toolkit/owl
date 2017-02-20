@@ -60,7 +60,6 @@ public final class Registry {
       case SYLVAN:
         return new Factories(owl.factories.sylvan.EquivalenceFactory.create(formula, alphabetSize),
           new owl.factories.sylvan.ValuationFactory(alphabetSize));
-
       case JDD:
       default:
         return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),

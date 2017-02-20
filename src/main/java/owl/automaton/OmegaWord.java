@@ -15,33 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections.valuationset;
+package owl.automaton;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.ImmutableList;
+import java.util.BitSet;
+import java.util.List;
 
-import com.google.common.collect.ImmutableSet;
-import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import owl.factories.jdd.ValuationFactory;
+public final class OmegaWord {
+  final ImmutableList<BitSet> loop;
+  final ImmutableList<BitSet> prefix;
 
-public class BddValuationSetFactoryTest {
-  private Set<String> alphabet;
-  private ValuationFactory factory;
-
-  @Before
-  public void setUp() {
-    alphabet = ImmutableSet.of("a", "b");
-    factory = new ValuationFactory(2);
+  private OmegaWord(List<BitSet> prefix, List<BitSet> loop) {
+    assert !loop.isEmpty();
+    this.prefix = ImmutableList.copyOf(prefix);
+    this.loop = ImmutableList.copyOf(loop);
   }
 
-  @Test
-  public void testCreateEmptyValuationSet() {
-    assertEquals(0, factory.createEmptyValuationSet().size());
+  public static OmegaWord create(List<BitSet> loop) {
+    return new OmegaWord(ImmutableList.of(), ImmutableList.copyOf(loop));
   }
 
-  @Test
-  public void testGetAlphabet() {
-    assertEquals(alphabet.size(), factory.getSize());
+  public static OmegaWord create(List<BitSet> prefix, List<BitSet> loop) {
+    return new OmegaWord(ImmutableList.copyOf(prefix), ImmutableList.copyOf(loop));
   }
 }

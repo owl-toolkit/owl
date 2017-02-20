@@ -30,8 +30,8 @@ import java.util.Set;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import owl.algorithms.SccAnalyser;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
+import owl.automaton.LegacyAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
@@ -41,7 +41,7 @@ import owl.translations.Optimisation;
 
 public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
   S_A extends AutomatonState<S_A>, Acc extends GeneralizedBuchiAcceptance, I
-  extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>>
+  extends AbstractInitialComponent<S_I, S_A>, A extends LegacyAutomaton<S_A, Acc>>
   implements HoaPrintable {
 
   private final A acceptingComponent;
@@ -53,7 +53,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
     Set<? extends AutomatonState<?>> initialStates, EnumSet<Optimisation> optimisations) {
     this.initialComponent = initialComponent;
     this.acceptingComponent = acceptingComponent;
-    this.optimisations = optimisations;
+    this.optimisations = EnumSet.copyOf(optimisations);
     this.initialStates = initialStates;
   }
 
@@ -107,7 +107,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
           }
         });
       }
-      
+
       initialComponent.epsilonJumps.clear();
       initialComponent.removeDeadStates(Sets.union(initialComponent.getInitialStates(),
         initialComponent.valuationSetJumps.rowKeySet()));
@@ -130,7 +130,6 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
     return initialComponent.size() == 0;
   }
 
-  @Override
   public void setVariables(List<String> variables) {
     acceptingComponent.setVariables(variables);
   }
@@ -142,7 +141,7 @@ public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
   @Override
   public void toHoa(HOAConsumer c, EnumSet<Option> options) {
     HoaConsumerExtended consumer = new HoaConsumerExtended(c,
-      acceptingComponent.getFactory().getSize(), acceptingComponent.getVariables(),
+      acceptingComponent.getVariables(),
       acceptingComponent.getAcceptance(), initialStates, size(), options);
     initialComponent.toHoaBody(consumer);
     acceptingComponent.toHoaBody(consumer);

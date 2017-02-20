@@ -26,15 +26,16 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonState;
+import owl.automaton.LegacyAutomaton;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
 import owl.factories.Factories;
 
 public abstract class AbstractInitialComponent
-  <S extends AutomatonState<S>, T extends AutomatonState<T>> extends Automaton<S, NoneAcceptance> {
+  <S extends AutomatonState<S>, T extends AutomatonState<T>> extends
+  LegacyAutomaton<S, NoneAcceptance> {
 
   protected final SetMultimap<S, T> epsilonJumps;
   final Table<S, ValuationSet, Set<T>> valuationSetJumps;

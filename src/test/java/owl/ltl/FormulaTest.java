@@ -33,6 +33,17 @@ import owl.ltl.parser.ParseException;
 
 @RunWith(Theories.class)
 public class FormulaTest {
+  @DataPoints
+  public static final List<Formula> FORMULAS;
+  @DataPoint
+  public static final BitSet ONE = new BitSet();
+  @DataPoint
+  public static final BitSet THREE = new BitSet();
+  @DataPoint
+  public static final BitSet TWO = new BitSet();
+  @DataPoint
+  public static final BitSet ZERO = new BitSet();
+
   static {
     LtlParser parser = new LtlParser();
     try {
@@ -50,17 +61,6 @@ public class FormulaTest {
       throw new AssertionError(ex);
     }
   }
-
-  @DataPoints
-  public static final List<Formula> FORMULAS;
-  @DataPoint
-  public static final BitSet ONE = new BitSet();
-  @DataPoint
-  public static final BitSet THREE = new BitSet();
-  @DataPoint
-  public static final BitSet TWO = new BitSet();
-  @DataPoint
-  public static final BitSet ZERO = new BitSet();
 
   static {
     ONE.set(0);

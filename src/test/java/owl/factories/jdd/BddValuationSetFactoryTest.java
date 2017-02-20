@@ -15,16 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections.valuationset;
+package owl.factories.jdd;
 
-import com.google.common.collect.BiMap;
-import owl.factories.ValuationSetFactory;
-import owl.factories.jdd.ValuationFactory;
+import static org.junit.Assert.assertEquals;
 
-public class BddValuationSetTest extends ValuationSetTest {
+import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import org.junit.Before;
+import org.junit.Test;
 
-  @Override
-  public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
-    return new ValuationFactory(aliases.size());
+public class BddValuationSetFactoryTest {
+  private Set<String> alphabet;
+  private ValuationFactory factory;
+
+  @Before
+  public void setUp() {
+    alphabet = ImmutableSet.of("a", "b");
+    factory = new ValuationFactory(2);
+  }
+
+  @Test
+  public void testCreateEmptyValuationSet() {
+    assertEquals(0, factory.createEmptyValuationSet().size());
+  }
+
+  @Test
+  public void testGetAlphabet() {
+    assertEquals(alphabet.size(), factory.getSize());
   }
 }

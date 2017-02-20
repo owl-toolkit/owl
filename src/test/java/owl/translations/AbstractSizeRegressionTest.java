@@ -19,10 +19,8 @@ package owl.translations;
 
 import static org.junit.Assert.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
@@ -34,13 +32,10 @@ import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 
 public abstract class AbstractSizeRegressionTest<T extends HoaPrintable> {
-  @SuppressWarnings("PMD.UnusedPrivateField")
-  private static final List<String> ALIASES;
   private static final EnumMap<FormulaGroup, String[]> FORMULA_GROUP_MAP;
 
   // TODO: Move this to a JSON file.
   static {
-    ALIASES = ImmutableList.of("a", "b", "c","d", "e");
     FORMULA_GROUP_MAP = new EnumMap<>(FormulaGroup.class);
 
     FORMULA_GROUP_MAP.put(FormulaGroup.VOLATILE, new String[] {

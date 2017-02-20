@@ -67,4 +67,15 @@ public interface ValuationSet extends Iterable<BitSet> {
   int size();
 
   BooleanExpression<AtomLabel> toExpression();
+
+  static ValuationSet union(ValuationSet vs1, ValuationSet vs2) {
+    vs1.addAllWith(vs2);
+    return vs1;
+  }
+
+  static ValuationSet intersection(ValuationSet vs1, ValuationSet vs2) {
+    vs1.removeAll(vs2);
+    vs2.free();
+    return vs1;
+  }
 }

@@ -29,7 +29,6 @@ import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 
 public class DotPrinter implements HOAConsumer {
-
   private final Set<Integer> initialStates;
   private final PrintWriter out;
   private String name;

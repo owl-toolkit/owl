@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import owl.automaton.Automaton;
+import owl.automaton.LegacyAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
@@ -47,7 +47,7 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
     LTL2DPA ltl2Dpa = new LTL2DPA(optimisations);
 
     LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = ltl2Ldgba.apply(formula);
-    Automaton<?, ?> automaton = ltl2Dpa.apply(formula);
+    LegacyAutomaton<?, ?> automaton = ltl2Dpa.apply(formula);
 
     if (ldba.isDeterministic() && ldba.getAcceptingComponent().size() <= automaton.size()) {
       automaton = ldba.getAcceptingComponent();
