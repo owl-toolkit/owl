@@ -24,38 +24,43 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import owl.automaton.Automaton;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.transformations.ParityAutomatonUtil;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.AcceptingComponent;
-import owl.translations.ltl2ldba.InitialComponent;
-import owl.translations.ltl2ldba.InitialComponentState;
-import owl.translations.ltl2ldba.LTL2LDBA;
+import owl.translations.ltl2ldba.DegeneralizedBreakpointState;
+import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.RecurringObligations;
 
-public class LTL2DPA implements Function<Formula, ParityAutomaton<?>> {
+public class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcceptance>> {
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
   private final EnumSet<Optimisation> optimisations;
-  private final LTL2LDBA translator;
+  private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+    DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations>> translator;
 
-  public LTL2DPA() {
+  public LTL2DPAFunction() {
     this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
   }
 
-  public LTL2DPA(EnumSet<Optimisation> optimisations) {
+  public LTL2DPAFunction(EnumSet<Optimisation> optimisations) {
     this.optimisations = EnumSet.copyOf(optimisations);
     this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     this.optimisations.remove(Optimisation.FORCE_JUMPS);
-    translator = new LTL2LDBA(this.optimisations);
+    translator = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(this.optimisations);
   }
 
   @Override
-  public ParityAutomaton<?> apply(Formula formula) {
+  public Automaton<?, ParityAcceptance> apply(Formula formula) {
     if (!optimisations.contains(Optimisation.PARALLEL)) {
-      return apply(formula, new AtomicInteger());
+      return apply(formula, new AtomicInteger()).automaton;
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -63,13 +68,13 @@ public class LTL2DPA implements Function<Formula, ParityAutomaton<?>> {
     AtomicInteger automatonCounter = new AtomicInteger(-1);
     AtomicInteger complementCounter = new AtomicInteger(-1);
 
-    Future<ParityAutomaton<?>> automatonFuture = executor
+    Future<ComplementableAutomaton<?>> automatonFuture = executor
       .submit(() -> apply(formula, automatonCounter));
-    Future<ParityAutomaton<?>> complementFuture = executor
+    Future<ComplementableAutomaton<?>> complementFuture = executor
       .submit(() -> apply(formula.not(), complementCounter));
 
-    ParityAutomaton<?> automaton = null;
-    ParityAutomaton<?> complement = null;
+    ComplementableAutomaton<?> automaton = null;
+    ComplementableAutomaton<?> complement = null;
 
     try {
       while (true) {
@@ -83,18 +88,22 @@ public class LTL2DPA implements Function<Formula, ParityAutomaton<?>> {
             complement = complementFuture.get();
           }
 
-          int size = automaton == null ? automatonCounter.get() : automaton.size();
-          int complementSize = complement == null ? complementCounter.get() : complement.size();
+          int size = automaton == null
+                     ? automatonCounter.get()
+                     : automaton.automaton.stateCount();
+          int complementSize = complement == null
+                               ? complementCounter.get()
+                               : complement.automaton.stateCount();
 
           if (automaton != null && size <= complementSize) {
             complementFuture.cancel(true);
-            return automaton;
+            return automaton.automaton;
           }
 
           if (complement != null && complementSize < size) {
             automatonFuture.cancel(true);
             complement.complement();
-            return complement;
+            return complement.automaton;
           }
 
           Thread.sleep(SLEEP_MS);
@@ -115,18 +124,36 @@ public class LTL2DPA implements Function<Formula, ParityAutomaton<?>> {
     }
   }
 
-  private ParityAutomaton<?> apply(Formula formula, AtomicInteger size) {
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
-      InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent> ldba =
-      translator.apply(formula);
+  private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
+    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
+      RecurringObligations> ldba = translator.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return new WrappedParityAutomaton(ldba.getAcceptingComponent());
+      return new ComplementableAutomaton<>(ParityAutomatonUtil.changeAcceptance(
+        ldba.getAcceptingComponent()), DegeneralizedBreakpointState::createSink);
     }
 
-    RankingParityAutomaton parity = new RankingParityAutomaton(ldba, size, optimisations);
-    parity.generate();
+    assert ldba.getInitialComponent().getInitialStates().size() == 1;
+    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    return parity;
+    RankingAutomatonBuilder builder = RankingAutomatonBuilder
+      .create(ldba, sizeCounter, optimisations, ldba.getAcceptingComponent().getFactory());
+    builder.add(ldba.getInitialComponent().getInitialState());
+    return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+  }
+
+  static final class ComplementableAutomaton<T> {
+    final MutableAutomaton<T, ParityAcceptance> automaton;
+    final Supplier<T> sinkSupplier;
+
+    ComplementableAutomaton(MutableAutomaton<T, ParityAcceptance> automaton,
+      Supplier<T> sinkSupplier) {
+      this.automaton = automaton;
+      this.sinkSupplier = sinkSupplier;
+    }
+
+    void complement() {
+      ParityAutomatonUtil.complement(automaton, sinkSupplier);
+    }
   }
 }

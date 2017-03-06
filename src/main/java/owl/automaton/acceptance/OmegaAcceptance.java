@@ -18,8 +18,11 @@
 package owl.automaton.acceptance;
 
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.edge.Edge;
 
 public interface OmegaAcceptance {
   int getAcceptanceSets();
@@ -34,4 +37,8 @@ public interface OmegaAcceptance {
   String getName();
 
   List<Object> getNameExtra();
+
+  default <S> boolean isAccepting(Set<S> scc, Function<S, Iterable<Edge<S>>> successorFunction) {
+    throw new UnsupportedOperationException("");
+  }
 }

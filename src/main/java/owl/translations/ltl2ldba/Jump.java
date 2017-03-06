@@ -15,25 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton;
+package owl.translations.ltl2ldba;
 
-import java.util.Map;
 import java.util.Objects;
-import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.ltl.EquivalenceClass;
 
-public final class LabelledEdge<S> {
-  public final Edge<S> edge;
-  public final ValuationSet valuations;
+class Jump<U> {
+  final U obligations;
+  final EquivalenceClass remainder;
 
-  LabelledEdge(Edge<S> edge, ValuationSet valuations) {
-    this.edge = edge;
-    this.valuations = valuations;
-  }
-
-  LabelledEdge(Map.Entry<Edge<S>, ValuationSet> entry) {
-    this.edge = entry.getKey();
-    this.valuations = entry.getValue();
+  Jump(EquivalenceClass remainder, U obligations) {
+    this.remainder = remainder;
+    this.obligations = obligations;
   }
 
   @Override
@@ -41,21 +34,18 @@ public final class LabelledEdge<S> {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof LabelledEdge)) {
+
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    final LabelledEdge<?> that = (LabelledEdge<?>) o;
-    return Objects.equals(edge, that.edge)
-      && Objects.equals(valuations, that.valuations);
+
+    final Jump<?> jump = (Jump<?>) o;
+    return Objects.equals(remainder, jump.remainder)
+      && Objects.equals(obligations, jump.obligations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(edge, valuations);
-  }
-
-  @Override
-  public String toString() {
-    return edge + "(" + valuations + ")";
+    return Objects.hash(remainder, obligations);
   }
 }

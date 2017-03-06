@@ -27,20 +27,20 @@ import owl.automaton.output.HoaConsumerExtended;
 
 public class ParityAcceptance implements OmegaAcceptance {
   @Nonnegative
-  private final int colors;
-  private final Priority priority;
+  private int colours;
+  private Priority priority;
 
-  public ParityAcceptance(@Nonnegative int colors) {
-    this(colors, Priority.ODD);
+  public ParityAcceptance(@Nonnegative int colours) {
+    this(colours, Priority.ODD);
   }
 
-  public ParityAcceptance(@Nonnegative int colors, Priority priority) {
-    this.colors = colors;
+  public ParityAcceptance(@Nonnegative int colours, Priority priority) {
+    this.colours = colours;
     this.priority = priority;
   }
 
-  public ParityAcceptance complement() {
-    return new ParityAcceptance(colors, priority.not());
+  public void complement() {
+    priority = priority.not();
   }
 
   @Override
@@ -52,22 +52,22 @@ public class ParityAcceptance implements OmegaAcceptance {
       return false;
     }
     ParityAcceptance that = (ParityAcceptance) o;
-    return colors == that.colors
+    return colours == that.colours
       && priority == that.priority;
   }
 
   @Override
   public int getAcceptanceSets() {
-    return colors;
+    return colours;
   }
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    if (colors == 0) {
+    if (colours == 0) {
       return new BooleanExpression<>(priority == Priority.EVEN);
     }
 
-    int index = colors - 1;
+    int index = colours - 1;
 
     BooleanExpression<AtomAcceptance> exp = mkColor(index);
 
@@ -89,7 +89,7 @@ public class ParityAcceptance implements OmegaAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
-    return Arrays.asList("min", priority.toString(), colors);
+    return Arrays.asList("min", priority.toString(), colours);
   }
 
   public Priority getPriority() {
@@ -98,13 +98,17 @@ public class ParityAcceptance implements OmegaAcceptance {
 
   @Override
   public int hashCode() {
-    return Objects.hash(colors, priority);
+    return Objects.hash(colours, priority);
   }
 
   private BooleanExpression<AtomAcceptance> mkColor(int i) {
     return (i % 2 == 0 ^ priority == Priority.EVEN)
-      ? HoaConsumerExtended.mkFin(i)
-      : HoaConsumerExtended.mkInf(i);
+           ? HoaConsumerExtended.mkFin(i)
+           : HoaConsumerExtended.mkInf(i);
+  }
+
+  public void setAcceptanceSets(@Nonnegative int colors) {
+    this.colours = colors;
   }
 
   public enum Priority {

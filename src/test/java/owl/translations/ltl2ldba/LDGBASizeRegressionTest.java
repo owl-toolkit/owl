@@ -22,24 +22,24 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.ltl.EquivalenceClass;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
 
 @RunWith(Parameterized.class)
 public class LDGBASizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState,
-    GeneralizedAcceptingComponent.State, GeneralizedBuchiAcceptance, InitialComponent<
-    GeneralizedAcceptingComponent.State, RecurringObligations>, GeneralizedAcceptingComponent>> {
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<EquivalenceClass,
+    GeneralizedBreakpointState, GeneralizedBuchiAcceptance, RecurringObligations>> {
 
   public LDGBASizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new LTL2LDGBA(EnumSet.allOf(Optimisation.class)));
+    super(selectedClass,
+      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(EnumSet.allOf(Optimisation.class)));
   }
 
   @Override
   protected int getAccSize(
-    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State,
-      GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State,
-      RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
+      GeneralizedBuchiAcceptance, RecurringObligations> automaton) {
     return automaton.getAcceptingComponent().getAcceptance().size;
   }
 
@@ -106,9 +106,8 @@ public class LDGBASizeRegressionTest extends
 
   @Override
   protected int getSize(
-    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State,
-      GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State,
-      RecurringObligations>, GeneralizedAcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
+      GeneralizedBuchiAcceptance, RecurringObligations> automaton) {
     return automaton.size();
   }
 }

@@ -39,10 +39,6 @@ public final class EdgeSingleton<S> implements Edge<S> {
     this.acceptance = acceptance;
   }
 
-  public int getAcceptance() {
-    return acceptance;
-  }
-
   @Override
   public PrimitiveIterator.OfInt acceptanceSetIterator() {
     return new SingletonIterator(acceptance);
@@ -62,6 +58,10 @@ public final class EdgeSingleton<S> implements Edge<S> {
     final EdgeSingleton other = (EdgeSingleton) o;
     return Objects.equals(this.acceptance, other.acceptance)
       && Objects.equals(this.successor, other.successor);
+  }
+
+  public int getAcceptance() {
+    return acceptance;
   }
 
   @Override

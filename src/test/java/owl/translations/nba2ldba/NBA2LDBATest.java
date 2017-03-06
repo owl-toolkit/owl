@@ -28,6 +28,7 @@ import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.StoredBuchiAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.translations.Optimisation;
@@ -53,14 +54,14 @@ public class NBA2LDBATest {
   public void testApply() throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-    final NBA2LDBA translation = new NBA2LDBA(optimisations);
+    final NBA2LDBAFunction translation = new NBA2LDBAFunction(optimisations);
 
     StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
     HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);
     final StoredBuchiAutomaton nba = Iterables.getOnlyElement(builder.getAutomata());
 
     nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    HoaPrintable result = translation.apply(nba);
+    HoaPrintable result = translation.apply(AutomatonFactory.fromLegacy(nba));
     result.setVariables(MAPPING);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
   }

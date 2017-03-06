@@ -100,9 +100,9 @@ public class StoredBuchiAutomaton extends LegacyAutomaton<State, BuchiAcceptance
     private Integer initialState;
     @Nullable
     private State[] integerToState;
-    private List<String> variables;
     @Nullable
     private ValuationSetFactory valuationSetFactory;
+    private List<String> variables;
 
     private static boolean isAcceptingState(@Nullable List<Integer> list)
       throws HOAConsumerException {

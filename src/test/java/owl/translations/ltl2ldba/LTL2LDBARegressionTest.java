@@ -23,6 +23,7 @@ import java.util.EnumSet;
 import org.junit.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.ParseException;
@@ -32,11 +33,10 @@ public class LTL2LDBARegressionTest {
 
   static void testOutput(String ltl, int size) throws ParseException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-    LTL2LDBA translation = new LTL2LDBA(opts);
     LtlParseResult parseResult = LtlParser.parse(ltl);
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
-      InitialComponent<AcceptingComponent.State, RecurringObligations>, AcceptingComponent>
-      automaton = translation.apply(parseResult.getFormula());
+    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
+      RecurringObligations> automaton = LTL2LDBAFunction
+      .createDegeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
     automaton.setVariables(parseResult.getVariableMapping());
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());

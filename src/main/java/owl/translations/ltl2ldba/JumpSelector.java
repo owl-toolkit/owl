@@ -20,7 +20,7 @@ package owl.translations.ltl2ldba;
 import java.util.Set;
 import owl.ltl.EquivalenceClass;
 
-public interface Selector<T> {
+public interface JumpSelector<T> {
 
   default Set<T> select(EquivalenceClass clazz) {
     return select(clazz, false);

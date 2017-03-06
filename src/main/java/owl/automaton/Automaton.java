@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
 import owl.factories.ValuationSetFactory;
@@ -146,6 +147,17 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    */
   Set<S> getStates();
 
+  @Nullable
+  default S getSuccessor(S state, BitSet valuation) {
+    Edge<S> edge = getEdge(state, valuation);
+
+    if (edge == null) {
+      return null;
+    }
+
+    return edge.getSuccessor();
+  }
+
   default Set<S> getSuccessors(S state) {
     Set<S> successors = new HashSet<>();
     getLabelledEdges(state)
@@ -197,7 +209,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   default int stateCount() {
     return getStates().size();
   }
-
+  
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
@@ -208,5 +220,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       getLabelledEdges(state).forEach(hoa::addEdge);
       hoa.notifyEndOfState();
     }
+
+    hoa.notifyEnd();
   }
 }

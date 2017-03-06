@@ -22,24 +22,24 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.ltl.EquivalenceClass;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
 
 @RunWith(Parameterized.class)
 public class LDBASizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState,
-    AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State,
-    RecurringObligations>, AcceptingComponent>> {
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<EquivalenceClass,
+    DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations>> {
 
   public LDBASizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new LTL2LDBA(EnumSet.allOf(Optimisation.class)));
+    super(selectedClass,
+      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(EnumSet.allOf(Optimisation.class)));
   }
 
   @Override
   protected int getAccSize(
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
-      InitialComponent<AcceptingComponent.State, RecurringObligations>,
-      AcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<EquivalenceClass,
+      DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations> automaton) {
     return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
   }
 
@@ -91,9 +91,8 @@ public class LDBASizeRegressionTest extends
 
   @Override
   protected int getSize(
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
-      InitialComponent<AcceptingComponent.State, RecurringObligations>,
-      AcceptingComponent> automaton) {
+    LimitDeterministicAutomaton<EquivalenceClass,
+      DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations> automaton) {
     return automaton.size();
   }
 }

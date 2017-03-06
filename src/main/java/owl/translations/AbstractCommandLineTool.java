@@ -18,6 +18,7 @@
 package owl.translations;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.EnumSet;
@@ -29,13 +30,14 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.transformations.ToStateAcceptance;
 import owl.automaton.output.HoaPrintable;
+import owl.ltl.parser.ParseException;
 
 public abstract class AbstractCommandLineTool<T> {
   private static final String ANNOTATIONS = "--annotations";
   private static final String OPTIMISATIONS = "--optimisations=";
 
-  @SuppressWarnings("ProhibitedExceptionDeclared")
-  void execute(Deque<String> args) throws Exception { // NOPMD
+  void execute(Deque<String> args) throws IOException, ParseException,
+    jhoafparser.parser.generated.ParseException {
     // Read input.
     final EnumSet<HoaPrintable.Option> options = parseHoaOutputOptions(args);
     final EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
@@ -61,10 +63,10 @@ public abstract class AbstractCommandLineTool<T> {
     result.toHoa(consumer, options);
   }
 
-  protected abstract List<String> getVariables();
-
   protected abstract Function<T, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations);
+
+  protected abstract List<String> getVariables();
 
   private EnumSet<HoaPrintable.Option> parseHoaOutputOptions(Deque<String> args) {
     if (args.remove(ANNOTATIONS)) {
@@ -74,8 +76,8 @@ public abstract class AbstractCommandLineTool<T> {
     }
   }
 
-  @SuppressWarnings("ProhibitedExceptionDeclared")
-  protected abstract T parseInput(InputStream stream) throws Exception; // NOPMD
+  protected abstract T parseInput(InputStream stream) throws IOException, ParseException,
+    jhoafparser.parser.generated.ParseException;
 
   private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {
     EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);

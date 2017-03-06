@@ -33,11 +33,11 @@ public final class AutomatonFactory {
   }
 
   public static <S extends AutomatonState<S>, A extends OmegaAcceptance> HashMapAutomaton<S, A>
-    fromLegacy(Set<S> initialStates, A acceptance, ValuationSetFactory factory) {
+  fromLegacy(Set<S> initialStates, A acceptance, ValuationSetFactory factory) {
     HashMapAutomaton<S, A> automaton = new HashMapAutomaton<>(factory, acceptance);
     automaton.addStates(initialStates);
     automaton.setInitialStates(initialStates);
-    automaton.explore(initialStates, AutomatonState::getSuccessor,
+    AutomatonUtil.exploreDeterministic(automaton, initialStates, AutomatonState::getSuccessor,
       AutomatonState::getSensitiveAlphabet);
     return automaton;
   }
@@ -48,8 +48,7 @@ public final class AutomatonFactory {
       new HashMapAutomaton<>(old.getFactory(), old.getAcceptance());
     automaton.setVariables(old.getVariables());
     automaton.setInitialStates(old.getInitialStates());
-    automaton.explore(old.getInitialStates(), old::getSuccessor,
-      AutomatonState::getSensitiveAlphabet);
+    AutomatonUtil.exploreDeterministic(automaton, old.getInitialStates(), old::getSuccessor);
     assert automaton.stateCount() == old.size();
     return automaton;
   }

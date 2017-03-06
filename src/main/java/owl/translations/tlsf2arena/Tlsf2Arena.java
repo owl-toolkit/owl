@@ -21,12 +21,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
+import owl.automaton.Automaton;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.ltl.parser.ParseException;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 import owl.translations.Optimisation;
-import owl.translations.ltl2dpa.LTL2DPA;
-import owl.translations.ltl2dpa.ParityAutomaton;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class Tlsf2Arena {
   private Tlsf2Arena() {
@@ -45,15 +46,15 @@ public final class Tlsf2Arena {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-    Any2BitArena bit = new Any2BitArena();
+    Any2BitArena bit = new Any2BitArena<>();
     Any2BitArena.Player fstPlayer = Tlsf.target().isMealy()
-      ? Any2BitArena.Player.ENVIRONMENT : Any2BitArena.Player.SYSTEM;
+                                    ? Any2BitArena.Player.ENVIRONMENT : Any2BitArena.Player.SYSTEM;
 
     File nodeFile = new File(arguments[0] + ".arena.nodes");
     File edgeFile = new File(arguments[0] + ".arena.edges");
 
-    LTL2DPA translation = new LTL2DPA();
-    ParityAutomaton<?> parity = translation.apply(Tlsf.toFormula());
+    LTL2DPAFunction translation = new LTL2DPAFunction();
+    Automaton<?, ParityAcceptance> parity = translation.apply(Tlsf.toFormula());
     System.out.print(parity);
     bit.writeBinary(parity, fstPlayer, Tlsf.inputs(), nodeFile, edgeFile);
     bit.readBinary(nodeFile, edgeFile);

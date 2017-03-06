@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
 
@@ -39,6 +40,11 @@ public final class ValuationSetMapUtil {
     secondMap.forEach((edge, valuations) -> add(map, edge, valuations));
   }
 
+  public static <S> void clear(Map<Edge<S>, ValuationSet> map) {
+    map.values().forEach(ValuationSet::free);
+    map.clear();
+  }
+
   @Nullable
   public static <K> K findFirst(Map<K, ValuationSet> map, BitSet valuation) {
     for (Map.Entry<K, ValuationSet> entry : map.entrySet()) {
@@ -51,7 +57,18 @@ public final class ValuationSetMapUtil {
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state) {
-    map.keySet().removeIf(edge -> edge.getSuccessor().equals(state));
+    remove(map, (Predicate<S>) state::equals);
+  }
+
+  public static <S> void remove(Map<Edge<S>, ValuationSet> map, Predicate<S> predicate) {
+    map.entrySet().removeIf(entry -> {
+      if (!predicate.test(entry.getKey().getSuccessor())) {
+        return false;
+      }
+
+      entry.getValue().free();
+      return true;
+    });
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state, ValuationSet valuations) {

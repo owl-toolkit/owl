@@ -26,6 +26,7 @@ import org.junit.Test;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.ParseException;
@@ -53,14 +54,12 @@ public class LTL2LDGBATest {
     + "[t] 0 {0}\n"
     + "--END--\n";
 
-  static void testOutput(String ltl, EnumSet<Optimisation> opts, int size,
+  private static void testOutput(String ltl, EnumSet<Optimisation> opts, int size,
     @Nullable String expectedOutput) throws IOException, ParseException {
-    LTL2LDGBA translation = new LTL2LDGBA(opts);
     LtlParseResult parseResult = LtlParser.parse(ltl);
-    LimitDeterministicAutomaton<InitialComponentState, GeneralizedAcceptingComponent.State,
-      GeneralizedBuchiAcceptance, InitialComponent<GeneralizedAcceptingComponent.State,
-      RecurringObligations>, GeneralizedAcceptingComponent> automaton =
-      translation.apply(parseResult.getFormula());
+    LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
+      GeneralizedBuchiAcceptance, RecurringObligations> automaton =
+      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
     automaton.getAcceptingComponent().setVariables(parseResult.getVariableMapping());
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
@@ -70,18 +69,19 @@ public class LTL2LDGBATest {
     }
   }
 
-  static void testOutput(String ltl, int size, String expectedOutput)
+  private static void testOutput(String ltl, int size, String expectedOutput)
     throws IOException, ParseException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     testOutput(ltl, opts, size, expectedOutput);
   }
 
-  static void testOutput(String ltl, EnumSet<Optimisation> opts, int size) throws IOException,
+  private static void testOutput(String ltl, EnumSet<Optimisation> opts, int size)
+    throws IOException,
     ParseException {
     testOutput(ltl, opts, size, null);
   }
 
-  static void testOutput(String ltl, int size) throws IOException, ParseException {
+  private static void testOutput(String ltl, int size) throws IOException, ParseException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     testOutput(ltl, opts, size, null);
   }
@@ -164,10 +164,8 @@ public class LTL2LDGBATest {
 
   @Test
   public void testJumps() throws IOException, ParseException {
-    // TODO: if something has to hold right now, do jump and replace in the successor the Gs with
-    // false?
-    String ltl = "(G a) | X X X X b";
-    testOutput(ltl, 11); // was 7
+    String ltl = "(G a) | X X X b";
+    testOutput(ltl, 9);
   }
 
   @Test

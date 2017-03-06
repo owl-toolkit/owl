@@ -78,7 +78,9 @@ public class RabinAcceptance implements OmegaAcceptance {
       if (pair.isEmpty()) {
         continue;
       }
-      final BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
+      
+      BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
+
       if (expression == null) {
         expression = pairExpression;
       } else {

@@ -249,52 +249,6 @@ class NodeTable {
     return nodeStore & ~1L;
   }
 
-  final int makeNode(final int variable, final int low, final int high) {
-    if (low == high) {
-      return low;
-    }
-
-    final long nodeStore = buildNodeStore((long) variable, (long) low, (long) high);
-    int hash = hashNodeStore(nodeStore);
-    int currentLookupNode = (int) getChainStartFromStore(referenceStorage[hash]);
-    assert currentLookupNode < getTableSize() : "Invalid previous entry for " + hash;
-
-    // Search for the the node in the hash chain
-    while (currentLookupNode != 0) {
-      if (nodeStoresEqual(nodeStore, nodeStorage[currentLookupNode])) {
-        return currentLookupNode;
-      }
-      final long currentLookupNodeReferenceStore = referenceStorage[currentLookupNode];
-      assert (int) getNextChainEntryFromStore(currentLookupNodeReferenceStore) != currentLookupNode;
-      currentLookupNode = (int) getNextChainEntryFromStore(currentLookupNodeReferenceStore);
-    }
-
-    // Check we have enough space to add the node
-    assert freeNodeCount > 0;
-    if (freeNodeCount == 1) {
-      // We need a starting point for the free chain node, hence grow if only one node is remaining
-      // instead of occupying that node
-      if (grow()) { // NOPMD
-        // Table size has changed, hence re-hash
-        hash = hashNodeStore(nodeStore);
-      }
-    }
-
-    // Take next free node
-    final int freeNode = firstFreeNode;
-    firstFreeNode = (int) getNextChainEntryFromStore(referenceStorage[firstFreeNode]);
-    assert firstFreeNode < nodeStorage.length;
-    freeNodeCount--;
-    assert !isValidNodeStore(nodeStorage[freeNode]) : "Overwriting existing node";
-    // Adjust and write node
-    nodeStorage[freeNode] = nodeStore;
-    if (biggestValidNode < freeNode) {
-      biggestValidNode = freeNode;
-    }
-    connectHashList(freeNode, hash);
-    return freeNode;
-  }
-
   /**
    * Over-approximates the number of nodes below the specified {@code node}, possibly counting
    * shared sub-trees multiple times. Guaranteed to be bigger or equal to {@link #nodeCount(int)}.
@@ -497,33 +451,6 @@ class NodeTable {
     return node;
   }
 
-  private void ensureMarkStackSize(final int size) {
-    if (size < markStack.length) {
-      return;
-    }
-    // At least double the size each new allocation
-    markStack = Arrays.copyOf(markStack, Math.max(size, 2 * markStack.length));
-  }
-
-  private void ensureWorkStackSize(final int size) {
-    if (size < workStack.length) {
-      return;
-    }
-    final int newSize = workStack.length * 2;
-    workStack = Arrays.copyOf(workStack, newSize);
-  }
-
-  /**
-   * Perform garbage collection by freeing up dead nodes.
-   *
-   * @return Number of freed nodes.
-   */
-  public final int forceGc() {
-    final int freedNodes = doGarbageCollection();
-    notifyGcRun();
-    return freedNodes;
-  }
-
   private int doGarbageCollection() {
     assert check();
     int topOfStack = 0;
@@ -591,6 +518,33 @@ class NodeTable {
 
     assert check();
     return freeNodeCount - previousFreeNodes;
+  }
+
+  private void ensureMarkStackSize(final int size) {
+    if (size < markStack.length) {
+      return;
+    }
+    // At least double the size each new allocation
+    markStack = Arrays.copyOf(markStack, Math.max(size, 2 * markStack.length));
+  }
+
+  private void ensureWorkStackSize(final int size) {
+    if (size < workStack.length) {
+      return;
+    }
+    final int newSize = workStack.length * 2;
+    workStack = Arrays.copyOf(workStack, newSize);
+  }
+
+  /**
+   * Perform garbage collection by freeing up dead nodes.
+   *
+   * @return Number of freed nodes.
+   */
+  public final int forceGc() {
+    final int freedNodes = doGarbageCollection();
+    notifyGcRun();
+    return freedNodes;
   }
 
   public final int getApproximateDeadNodeCount() {
@@ -747,10 +701,6 @@ class NodeTable {
     return true;
   }
 
-  void notifyTableSizeChanged() {
-    /* do nothing */
-  }
-
   /**
    * Inform the table about a new tree size, i.e. the amount of variables changed.
    *
@@ -854,6 +804,52 @@ class NodeTable {
    */
   final boolean isWorkStackEmpty() {
     return workStackTos == 0;
+  }
+
+  final int makeNode(final int variable, final int low, final int high) {
+    if (low == high) {
+      return low;
+    }
+
+    final long nodeStore = buildNodeStore((long) variable, (long) low, (long) high);
+    int hash = hashNodeStore(nodeStore);
+    int currentLookupNode = (int) getChainStartFromStore(referenceStorage[hash]);
+    assert currentLookupNode < getTableSize() : "Invalid previous entry for " + hash;
+
+    // Search for the the node in the hash chain
+    while (currentLookupNode != 0) {
+      if (nodeStoresEqual(nodeStore, nodeStorage[currentLookupNode])) {
+        return currentLookupNode;
+      }
+      final long currentLookupNodeReferenceStore = referenceStorage[currentLookupNode];
+      assert (int) getNextChainEntryFromStore(currentLookupNodeReferenceStore) != currentLookupNode;
+      currentLookupNode = (int) getNextChainEntryFromStore(currentLookupNodeReferenceStore);
+    }
+
+    // Check we have enough space to add the node
+    assert freeNodeCount > 0;
+    if (freeNodeCount == 1) {
+      // We need a starting point for the free chain node, hence grow if only one node is remaining
+      // instead of occupying that node
+      if (grow()) { // NOPMD
+        // Table size has changed, hence re-hash
+        hash = hashNodeStore(nodeStore);
+      }
+    }
+
+    // Take next free node
+    final int freeNode = firstFreeNode;
+    firstFreeNode = (int) getNextChainEntryFromStore(referenceStorage[firstFreeNode]);
+    assert firstFreeNode < nodeStorage.length;
+    freeNodeCount--;
+    assert !isValidNodeStore(nodeStorage[freeNode]) : "Overwriting existing node";
+    // Adjust and write node
+    nodeStorage[freeNode] = nodeStore;
+    if (biggestValidNode < freeNode) {
+      biggestValidNode = freeNode;
+    }
+    connectHashList(freeNode, hash);
+    return freeNode;
   }
 
   private void markAllOnStack(final int topOfMarkStack) {
@@ -993,6 +989,12 @@ class NodeTable {
     return new NodeToStringSupplier(this, node);
   }
 
+  void notifyGcRun() { /* do nothing */ }
+
+  void notifyTableSizeChanged() {
+    /* do nothing */
+  }
+
   /**
    * Removes the topmost element from the stack.
    *
@@ -1015,8 +1017,6 @@ class NodeTable {
     assert workStackTos >= amount;
     workStackTos -= amount;
   }
-
-  void notifyGcRun() { /* do nothing */ }
 
   /**
    * Pushes the given node onto the stack. While a node is on the work stack, it will not be

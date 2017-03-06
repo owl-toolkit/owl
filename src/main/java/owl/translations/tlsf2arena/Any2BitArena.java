@@ -40,20 +40,18 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
-import owl.automaton.AutomatonState;
-import owl.automaton.LegacyAutomaton;
+import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
-import owl.translations.ltl2dpa.ParityAutomaton;
 
-class Any2BitArena {
+class Any2BitArena<S> {
 
   int colors;
   int edges;
-  Object2IntMap<AutomatonState<?>> ids;
+  Object2IntMap<S> ids;
   int primaryNodes;
   int secondaryNodes;
   private Player firstPlayer;
@@ -107,7 +105,7 @@ class Any2BitArena {
 
   }
 
-  private <S extends AutomatonState<S>> void setUp(LegacyAutomaton<S, ?> automaton,
+  private void setUp(Automaton<S, ?> automaton,
     Player firstPlayer,
     BitSet envAlphabet) {
     checkArgument(automaton.getAcceptance() instanceof ParityAcceptance
@@ -126,9 +124,9 @@ class Any2BitArena {
     secondaryNodes = 0;
     edges = 0;
 
-    ids = new Object2IntOpenHashMap<>(automaton.size());
+    ids = new Object2IntOpenHashMap<>(automaton.stateCount());
 
-    for (AutomatonState<?> state : automaton.getStates()) {
+    for (S state : automaton.getStates()) {
       ids.put(state, primaryNodes);
       primaryNodes += 1;
     }
@@ -140,7 +138,7 @@ class Any2BitArena {
     }
   }
 
-  <S extends AutomatonState<S>> void writeBinary(ParityAutomaton<S> automaton, Player firstPlayer,
+  void writeBinary(Automaton<S, ParityAcceptance> automaton, Player firstPlayer,
     BitSet envAlphabet, File nodeFile, File edgeFile) throws IOException {
     setUp(automaton, firstPlayer, envAlphabet);
 
@@ -173,10 +171,11 @@ class Any2BitArena {
     }
   }
 
-  private <S extends AutomatonState<S>> void writeState(final DataOutputStream nodeStream,
+  private void writeState(final DataOutputStream nodeStream,
     final DataOutputStream edgeStream, @Nullable final Writer labelStream,
-    final ParityAutomaton<S> automaton, final S state) throws IOException {
-    BitSet fstAlpha = state.getSensitiveAlphabet();
+    final Automaton<S, ?> automaton, final S state) throws IOException {
+    BitSet fstAlpha = new BitSet();
+    fstAlpha.set(0, automaton.getFactory().getSize());
     BitSet sndAlpha = (BitSet) fstAlpha.clone();
 
     fstAlpha.and(fstAlphabet);
@@ -192,7 +191,7 @@ class Any2BitArena {
 
       for (BitSet sndChoice : BitSets.powerSet(sndAlpha)) {
         sndChoice.or(fstChoice);
-        Edge<S> edge = automaton.getSuccessor(state, sndChoice);
+        Edge<S> edge = automaton.getEdge(state, sndChoice);
 
         if (edge == null) {
           if (firstPlayer == Player.SYSTEM) {

@@ -11,6 +11,7 @@
     </rule>
     <rule ref="rulesets/java/design.xml">
         <exclude name="UseVarargs"/>
+        <exclude name="ConfusingTernary"/>
     </rule>
     <rule ref="rulesets/java/unusedcode.xml"/>
     <rule ref="rulesets/java/finalizers.xml"/>

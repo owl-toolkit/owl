@@ -18,17 +18,198 @@
 package owl.automaton;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import java.util.ArrayDeque;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
+import owl.automaton.edge.LabelledEdge;
+import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 
 public final class AutomatonUtil {
 
   private AutomatonUtil() {
+  }
+
+  /**
+   * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
+   * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once,
+   * if and only if a sink is added. This state will be returned wrapped in an {@link Optional},
+   * if instead no state was added {@link Optional#empty()} is returned. After adding the sink
+   * state, the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop.
+   * </p>
+   * Note: The completion process considers unreachable states.
+   *
+   * @param sinkSupplier
+   *     Supplier of a sink state. Will be called once iff a sink needs to be added.
+   * @param rejectingAcceptanceSupplier
+   *     Supplier of a rejecting acceptance, called iff a sink state was added.
+   *
+   * @return The added state or {@code empty} if none was added.
+   */
+  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, Supplier<S> sinkSupplier,
+    Supplier<BitSet> rejectingAcceptanceSupplier) {
+    Map<S, ValuationSet> incompleteStates = automaton.getIncompleteStates();
+
+    if (automaton.stateCount() != 0 && incompleteStates.isEmpty()) {
+      return Optional.empty();
+    }
+
+    S sinkState = sinkSupplier.get();
+    Edge<S> sinkEdge = Edges.create(sinkState, rejectingAcceptanceSupplier.get());
+    automaton.addEdge(sinkState, sinkEdge);
+    incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
+
+    if (automaton.getInitialStates().isEmpty()) {
+      automaton.addInitialState(sinkState);
+    }
+
+    return Optional.of(sinkState);
+  }
+
+  private static <S, T, U> BiFunction<S, T, Iterable<U>> embed(BiFunction<S, T, U> function) {
+    return (x, y) -> {
+      U z = function.apply(x, y);
+      return z == null ? Collections.emptyList() : Collections.singletonList(z);
+    };
+  }
+
+  /**
+   * Adds the given states and all states transitively reachable through {@code explorationFunction}
+   * to the automaton.</p>
+   * Note that if some reachable state is already present, the specified transitions still get
+   * added, potentially introducing non-determinism. If two states of the given {@code states} can
+   * reach a particular state, the resulting transitions only get added once.
+   *
+   * @param states
+   *     The starting states of the exploration.
+   * @param explorationFunction
+   *     The function describing the transition relation.
+   *
+   * @see #explore(MutableAutomaton, Iterable, BiFunction, Function, AtomicInteger)
+   */
+  public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, Iterable<Edge<S>>> explorationFunction) {
+    explore(automaton, states, explorationFunction, s -> null, new AtomicInteger());
+  }
+
+  /**
+   * Adds the given states and all states transitively reachable through {@code explorationFunction}
+   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
+   * alphabet of a particular state, which reduces the number of calls to the exploration function.
+   * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
+   * can be obtained.</p>
+   * Note that if some reachable state is already present, the specified transitions still get
+   * added, potentially introducing non-determinism. If two states of the given {@code states} can
+   * reach a particular state, the resulting transitions only get added once.
+   *
+   * @param states
+   *     The starting states of the exploration.
+   * @param explorationFunction
+   *     The function describing the transition relation.
+   */
+  public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
+    Function<S, BitSet> sensitiveAlphabetOracle) {
+    explore(automaton, states, explorationFunction, sensitiveAlphabetOracle, new AtomicInteger());
+  }
+
+  /**
+   * Adds the given states and all states transitively reachable through {@code explorationFunction}
+   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
+   * alphabet of a particular state, which reduces the number of calls to the exploration function.
+   * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
+   * can be obtained.</p>
+   * Note that if some reachable state is already present, the specified transitions still get
+   * added, potentially introducing non-determinism. If two states of the given {@code states} can
+   * reach a particular state, the resulting transitions only get added once.
+   *
+   * @param states
+   *     The starting states of the exploration.
+   * @param explorationFunction
+   *     The function describing the transition relation.
+   */
+  public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
+    Function<S, BitSet> sensitiveAlphabetOracle, AtomicInteger sizeCounter) {
+    final int alphabetSize = automaton.getFactory().getSize();
+    final BitSet alphabet = new BitSet(alphabetSize);
+    alphabet.set(0, alphabetSize);
+
+    Set<S> exploredStates = Sets.newHashSet(states);
+    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.poll();
+      BitSet sensitiveAlphabet = sensitiveAlphabetOracle.apply(state);
+      BitSet powerSetBase = sensitiveAlphabet == null ? alphabet : sensitiveAlphabet;
+
+      for (BitSet valuation : BitSets.powerSet(powerSetBase)) {
+        for (Edge<S> edge : explorationFunction.apply(state, valuation)) {
+          ValuationSet valuationSet;
+
+          if (sensitiveAlphabet == null) {
+            valuationSet = automaton.getFactory().createValuationSet(valuation);
+          } else {
+            valuationSet = automaton.getFactory().createValuationSet(valuation, sensitiveAlphabet);
+          }
+
+          S successorState = edge.getSuccessor();
+
+          if (exploredStates.add(successorState)) {
+            workQueue.add(successorState);
+          }
+
+          automaton.addEdge(state, valuationSet, edge);
+        }
+      }
+
+      sizeCounter.lazySet(exploredStates.size());
+
+      // Generating the automaton is a long-running task. If the thread gets interrupted, we
+      // just cancel everything. Warning: All data structures are now inconsistent!
+      if (Thread.interrupted()) {
+        throw new CancellationException();
+      }
+    }
+  }
+
+  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, Edge<S>> explorationFunction) {
+    exploreDeterministic(automaton, states, explorationFunction, new AtomicInteger());
+  }
+
+  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, Edge<S>> explorationFunction, AtomicInteger sizeCounter) {
+    exploreDeterministic(automaton, states, explorationFunction, s -> null, sizeCounter);
+  }
+
+  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, Edge<S>> explorationFunction,
+    Function<S, BitSet> sensitiveAlphabetOracle) {
+    exploreDeterministic(automaton, states, explorationFunction, sensitiveAlphabetOracle,
+      new AtomicInteger());
+  }
+
+  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
+    BiFunction<S, BitSet, Edge<S>> explorationFunction,
+    Function<S, BitSet> sensitiveAlphabetOracle,
+    AtomicInteger sizeCounter) {
+    explore(automaton, states, embed(explorationFunction), sensitiveAlphabetOracle, sizeCounter);
   }
 
   /**
@@ -101,11 +282,13 @@ public final class AutomatonUtil {
     final ValuationSet seenValuations = successorIterator.next().valuations.copy();
 
     while (successorIterator.hasNext()) {
-      final ValuationSet nextEdge = successorIterator.next().valuations;
+      ValuationSet nextEdge = successorIterator.next().valuations;
+
       if (seenValuations.intersects(nextEdge)) {
         seenValuations.free();
         return false;
       }
+
       seenValuations.addAll(nextEdge);
     }
 

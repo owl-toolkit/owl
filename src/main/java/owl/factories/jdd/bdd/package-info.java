@@ -1,4 +1,3 @@
-
 @EverythingIsNonnullByDefault
 package owl.factories.jdd.bdd;
 

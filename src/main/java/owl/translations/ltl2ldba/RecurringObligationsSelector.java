@@ -46,17 +46,17 @@ import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.predicates.XFragmentPredicate;
 import owl.translations.Optimisation;
 
-public class RecurringObligationsSelector implements Selector<RecurringObligations> {
+public class RecurringObligationsSelector implements JumpSelector<RecurringObligations> {
   private static final Predicate<Formula> INFINITY_OPERATORS = x -> x instanceof GOperator
     || x instanceof ROperator || x instanceof WOperator;
   private final Map<Set<GOperator>, RecurringObligations> cache;
-  private final Evaluator<RecurringObligations> evaluator;
+  private final JumpEvaluator<RecurringObligations> evaluator;
   private final EquivalenceClassFactory factory;
   private final EnumSet<Optimisation> optimisations;
   private final Comparator<GOperator> rankingComparator;
 
-  public RecurringObligationsSelector(Collection<Optimisation> optimisations,
-    EquivalenceClassFactory factory) {
+  RecurringObligationsSelector(EquivalenceClassFactory factory,
+    EnumSet<Optimisation> optimisations) {
     this.optimisations = EnumSet.copyOf(optimisations);
     this.factory = factory;
     this.cache = new HashMap<>();
@@ -199,8 +199,8 @@ public class RecurringObligationsSelector implements Selector<RecurringObligatio
     final BiMap<Set<GOperator>, RecurringObligations> jumps = HashBiMap.create();
 
     EquivalenceClass state = optimisations.contains(Optimisation.EAGER_UNFOLD)
-      ? input.duplicate()
-      : input.unfold();
+                             ? input.duplicate()
+                             : input.unfold();
 
     // Find interesting Gs
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {

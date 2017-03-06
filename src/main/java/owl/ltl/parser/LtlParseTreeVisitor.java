@@ -37,8 +37,8 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
 final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
-  private final List<String> variables;
   private final List<Literal> literalCache;
+  private final List<String> variables;
 
   LtlParseTreeVisitor() {
     literalCache = new ArrayList<>();

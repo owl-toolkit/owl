@@ -34,7 +34,7 @@ public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool
   }
 
   @Override
-  protected Formula parseInput(InputStream stream) throws ParseException, IOException {
+  protected Formula parseInput(InputStream stream) throws IOException, ParseException {
     LtlParseResult parser = LtlParser.parse(stream);
     Formula formula = parser.getFormula();
     variables = parser.getVariableMapping();

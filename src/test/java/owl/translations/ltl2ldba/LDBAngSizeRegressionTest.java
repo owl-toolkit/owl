@@ -22,26 +22,31 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.ltl.EquivalenceClass;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.ng.AcceptingComponent;
-import owl.translations.ltl2ldba.ng.LTL2LDBAng;
+import owl.translations.ltl2ldba.ng.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.ng.RecurringObligations2;
 
 @RunWith(Parameterized.class)
 public class LDBAngSizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState,
-    AcceptingComponent.State, BuchiAcceptance, InitialComponent<AcceptingComponent.State,
-    RecurringObligations2>, AcceptingComponent>> {
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<EquivalenceClass,
+    DegeneralizedBreakpointFreeState, BuchiAcceptance, RecurringObligations2>> {
 
   public LDBAngSizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new LTL2LDBAng(EnumSet.allOf(Optimisation.class)));
+    super(selectedClass, LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(getOpt()));
+  }
+
+  private static EnumSet<Optimisation> getOpt() {
+    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+    optimisations.remove(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+    return optimisations;
   }
 
   @Override
   protected int getAccSize(
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
-      InitialComponent<AcceptingComponent.State, RecurringObligations2>, AcceptingComponent>
+    LimitDeterministicAutomaton<EquivalenceClass,
+      DegeneralizedBreakpointFreeState, BuchiAcceptance, RecurringObligations2>
       automaton) {
     return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
   }
@@ -94,8 +99,8 @@ public class LDBAngSizeRegressionTest extends
 
   @Override
   protected int getSize(
-    LimitDeterministicAutomaton<InitialComponentState, AcceptingComponent.State, BuchiAcceptance,
-      InitialComponent<AcceptingComponent.State, RecurringObligations2>, AcceptingComponent>
+    LimitDeterministicAutomaton<EquivalenceClass,
+      DegeneralizedBreakpointFreeState, BuchiAcceptance, RecurringObligations2>
       automaton) {
     return automaton.size();
   }

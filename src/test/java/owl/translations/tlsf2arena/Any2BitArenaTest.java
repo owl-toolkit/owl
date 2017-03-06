@@ -22,10 +22,10 @@ import java.io.IOException;
 import java.util.BitSet;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.ltl2dpa.LTL2DPA;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class Any2BitArenaTest {
-  private static final LTL2DPA translation = new LTL2DPA();
+  private static final LTL2DPAFunction translation = new LTL2DPAFunction();
 
   public void testWriteBinaryEnv() throws IOException {
     Formula ltl = LtlParser.formula("G ((a & b) | (!a & (!b)))");

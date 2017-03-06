@@ -20,8 +20,10 @@ package owl.translations.ltl2ldba;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.GOperator;
 import owl.util.ImmutableObject;
@@ -36,15 +38,20 @@ public class RecurringObligations extends ImmutableObject {
   // obligations[] are co-safety languages.
   final EquivalenceClass[] obligations;
   // G(safety) is a safety language.
+  @Nullable
   final EquivalenceClass safety;
 
   RecurringObligations(EquivalenceClass safety) {
     this(safety, Arrays.asList(EMPTY), Arrays.asList(EMPTY));
   }
 
-  RecurringObligations(EquivalenceClass safety, List<EquivalenceClass> liveness,
+  RecurringObligations(@Nullable EquivalenceClass safety, List<EquivalenceClass> liveness,
     List<EquivalenceClass> obligations) {
-    safety.freeRepresentative();
+
+    if (safety != null) {
+      safety.freeRepresentative();
+    }
+
     liveness.forEach(EquivalenceClass::freeRepresentative);
     obligations.forEach(EquivalenceClass::freeRepresentative);
 
@@ -89,7 +96,7 @@ public class RecurringObligations extends ImmutableObject {
 
   @Override
   protected int hashCodeOnce() {
-    return 31 * (31 * safety.hashCode() + Arrays.hashCode(liveness)) + Arrays.hashCode(obligations);
+    return Objects.hash(safety, Arrays.hashCode(liveness), Arrays.hashCode(obligations));
   }
 
   boolean implies(RecurringObligations other) {
@@ -114,12 +121,12 @@ public class RecurringObligations extends ImmutableObject {
     StringBuilder stringBuilder = new StringBuilder(50);
 
     stringBuilder.append('<');
-    if (!safety.isTrue()) {
+    if (safety != null && !safety.isTrue()) {
       stringBuilder.append("safety=").append(safety);
     }
 
     if (liveness.length > 0) {
-      if (!safety.isTrue()) {
+      if (safety != null && !safety.isTrue()) {
         stringBuilder.append(", ");
       }
 
@@ -127,7 +134,7 @@ public class RecurringObligations extends ImmutableObject {
     }
 
     if (obligations.length > 0) {
-      if (!safety.isTrue() || liveness.length > 0) {
+      if (safety != null && !safety.isTrue() || liveness.length > 0) {
         stringBuilder.append(", ");
       }
 

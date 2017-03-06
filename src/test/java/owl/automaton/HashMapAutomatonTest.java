@@ -31,6 +31,7 @@ import java.util.Objects;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edges;
+import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.factories.jdd.ValuationFactory;
 

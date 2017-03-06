@@ -66,8 +66,8 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
   protected final ValuationSetFactory valuationSetFactory;
   private final AtomicInteger atomicSize;
   protected AccT acceptance;
-  protected List<String> variables;
   protected Set<S> initialStates;
+  protected List<String> variables;
 
   protected LegacyAutomaton(AccT acceptance, Factories factories) {
     this(acceptance, factories, new AtomicInteger(0));
@@ -191,10 +191,6 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
     return acceptance;
   }
 
-  public List<String> getVariables() {
-    return variables;
-  }
-
   public Factories getFactories() {
     return factories;
   }
@@ -285,6 +281,10 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
     return successors;
   }
 
+  public List<String> getVariables() {
+    return variables;
+  }
+
   public boolean hasSuccessors(S state) {
     return !getSuccessors(state).isEmpty();
   }
@@ -368,7 +368,7 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
 
   /**
    * Remove states from the automaton, that are unreachable from the set of protected states or
-   * that cannot belong to an infinite path.
+   * that cannot belong to an infinite accepting path.
    *
    * @param protectedStates
    *     the set of states that are the initial states for a reachability analysis
@@ -449,11 +449,6 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
     setInitialStates(initialStates);
   }
 
-  public void setVariables(List<String> variables) {
-    this.variables = ImmutableList.copyOf(variables);
-    factories.equivalenceClassFactory.setVariables(this.variables);
-  }
-
   /**
    * Sets the unique initial state set. This is equivalent to calling
    * {@link #setInitialStates(Set)} with {@code ImmutableSet.of(state)}.
@@ -467,6 +462,11 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
 
   public void setInitialStates(Set<? extends S> states) {
     this.initialStates = ImmutableSet.copyOf(states);
+  }
+
+  public void setVariables(List<String> variables) {
+    this.variables = ImmutableList.copyOf(variables);
+    factories.equivalenceClassFactory.setVariables(this.variables);
   }
 
   public int size() {

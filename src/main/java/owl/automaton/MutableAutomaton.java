@@ -19,17 +19,15 @@ package owl.automaton;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
+import java.util.function.IntUnaryOperator;
+import java.util.function.Predicate;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
 
 public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automaton<S, A> {
@@ -77,7 +75,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *
    * @throws IllegalArgumentException
    *     If the specified state is not part of the automaton.
-   * @see #addInitialStates(Set)
+   * @see #addInitialStates(Iterable)
    */
   default void addInitialState(S state) {
     addInitialStates(ImmutableSet.of(state));
@@ -93,7 +91,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If any of the specified states is not part of the automaton.
    */
-  void addInitialStates(Set<S> states);
+  void addInitialStates(Iterable<S> states);
 
   /**
    * Adds a {@code state} without outgoing edges to the set of states. If the state is already
@@ -102,7 +100,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param state
    *     The state to be added.
    *
-   * @see #addStates(Set)
+   * @see #addStates(Iterable)
    */
   default void addState(S state) {
     addStates(ImmutableSet.of(state));
@@ -115,76 +113,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param states
    *     The states to be added.
    */
-  void addStates(Set<S> states);
-
-  /**
-   * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
-   * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once,
-   * if and only if a sink is added. This state will be returned wrapped in an {@link Optional},
-   * if instead no state was added {@link Optional#empty()} is returned. After adding the sink
-   * state, the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop.
-   * </p>
-   * Note: The completion process considers unreachable states.
-   *
-   * @param sinkSupplier
-   *     Supplier of a sink state. Will be called once iff a sink needs to be added.
-   * @param rejectingAcceptanceSupplier
-   *     Supplier of a rejecting acceptance, called iff a sink state was added.
-   *
-   * @return The added state or {@code empty} if none was added.
-   */
-  default Optional<S> complete(Supplier<S> sinkSupplier,
-    Supplier<BitSet> rejectingAcceptanceSupplier) {
-    Map<S, ValuationSet> incompleteStates = getIncompleteStates();
-
-    if (incompleteStates.isEmpty()) {
-      return Optional.empty();
-    }
-
-    S sinkState = sinkSupplier.get();
-    BitSet rejectingAcceptance = rejectingAcceptanceSupplier.get();
-    Edge<S> rejectingEdge = Edges.create(sinkState, rejectingAcceptance);
-    addEdge(sinkState, rejectingEdge);
-    return Optional.of(sinkState);
-  }
-
-  // void explore(S state, Function<S, Iterable<ValuationSet, Edge<S>>> explorationFunction);
-
-  /**
-   * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton.</p>
-   * Note that if some reachable state is already present, the specified transitions still get
-   * added, potentially introducing non-determinism. If two states of the given {@code states} can
-   * reach a particular state, the resulting transitions only get added once.
-   *
-   * @param states
-   *     The starting states of the exploration.
-   * @param explorationFunction
-   *     The function describing the transition relation.
-   *
-   * @see #explore(Iterable, BiFunction, Function)
-   */
-  default void explore(Iterable<S> states, BiFunction<S, BitSet, Edge<S>> explorationFunction) {
-    explore(states, explorationFunction, s -> null);
-  }
-
-  /**
-   * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
-   * alphabet of a particular state, which reduces the number of calls to the exploration function.
-   * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
-   * can be obtained.</p>
-   * Note that if some reachable state is already present, the specified transitions still get
-   * added, potentially introducing non-determinism. If two states of the given {@code states} can
-   * reach a particular state, the resulting transitions only get added once.
-   *
-   * @param states
-   *     The starting states of the exploration.
-   * @param explorationFunction
-   *     The function describing the transition relation.
-   */
-  void explore(Iterable<S> states, BiFunction<S, BitSet, Edge<S>> explorationFunction,
-    Function<S, BitSet> sensitiveAlphabetOracle);
+  void addStates(Iterable<S> states);
 
   /**
    * Determines all states which are incomplete, i.e. there are valuations for which the state has
@@ -206,7 +135,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If any state specified is not present in the automaton.
    */
-  void remapAcceptance(Set<S> states, IntFunction<Integer> transformer);
+  void remapAcceptance(Set<S> states, IntUnaryOperator transformer);
 
   /**
    * Remaps the acceptance sets of each edge in the automaton as specified by {@code f}.
@@ -282,7 +211,15 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param states
    *     The states to be removed.
    */
-  void removeStates(Iterable<S> states);
+  boolean removeStates(Iterable<S> states);
+
+  /**
+   * Removes the specified {@code states} and all transitions involving them from the automaton.
+   *
+   * @param states
+   *     The states to be removed.
+   */
+  boolean removeStates(Predicate<S> states);
 
   /**
    * Removes all states which are not reachable from the initial states and returns all removed
@@ -311,14 +248,15 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * Removes all states which are not reachable from the specified {@code start} set and returns all
    * removed states.
    *
-   * @return All unreachable, removed states.
+   * @return All unreachable, removed states. The returned set is modifiable and belongs to the
+   * caller.
    *
    * @see #removeUnreachableStates(Iterable, Consumer)
    */
   default Set<S> removeUnreachableStates(Iterable<S> start) {
-    ImmutableSet.Builder<S> builder = ImmutableSet.builder();
-    removeUnreachableStates(start, builder::add);
-    return builder.build();
+    Set<S> unreachableStates = new HashSet<>();
+    removeUnreachableStates(start, unreachableStates::add);
+    return unreachableStates;
   }
 
   /**

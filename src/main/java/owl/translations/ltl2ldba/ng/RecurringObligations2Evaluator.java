@@ -31,9 +31,9 @@ import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.simplifier.Simplifier;
 import owl.ltl.visitors.DefaultVisitor;
-import owl.translations.ltl2ldba.Evaluator;
+import owl.translations.ltl2ldba.JumpEvaluator;
 
-class RecurringObligations2Evaluator implements Evaluator<RecurringObligations2> {
+class RecurringObligations2Evaluator implements JumpEvaluator<RecurringObligations2> {
 
   private final EquivalenceClassFactory factory;
 

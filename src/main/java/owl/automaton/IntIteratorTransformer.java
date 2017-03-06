@@ -19,17 +19,17 @@ package owl.automaton;
 
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
-import java.util.function.IntFunction;
+import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
 
-final class PrimitiveIntTransformer implements PrimitiveIterator.OfInt {
+final class IntIteratorTransformer implements PrimitiveIterator.OfInt {
   private final OfInt delegate;
-  private final IntFunction<Integer> transformer;
+  private final IntUnaryOperator transformer;
 
   // A negative value indicates that there are no more elements.
   private int next;
 
-  PrimitiveIntTransformer(OfInt delegate, IntFunction<Integer> transformer) {
+  IntIteratorTransformer(OfInt delegate, IntUnaryOperator transformer) {
     this.delegate = delegate;
     this.transformer = transformer;
     obtainNext();
@@ -54,10 +54,10 @@ final class PrimitiveIntTransformer implements PrimitiveIterator.OfInt {
 
   private void obtainNext() {
     while (delegate.hasNext()) {
-      Integer nextCandidate = transformer.apply(delegate.nextInt());
+      int nextCandidate = transformer.applyAsInt(delegate.nextInt());
 
-      // If the transformer returns null or a negative value, the element is skipped.
-      if (nextCandidate != null && nextCandidate >= 0) {
+      // If the transformer returns a negative value, the element is skipped.
+      if (nextCandidate >= 0) {
         next = nextCandidate;
         return;
       }

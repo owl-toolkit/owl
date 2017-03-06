@@ -32,7 +32,7 @@ public final class Registry {
     try {
       NativeLibraryLoader.loadLibrary("sylvan");
     } catch (UnsatisfiedLinkError | IOException error) {
-      Logger.getGlobal().log(Level.INFO, "Failed to load the jSylvan native BDD library.", error);
+      Logger.getGlobal().log(Level.FINER, "Failed to load the jSylvan native BDD library.", error);
     }
   }
 

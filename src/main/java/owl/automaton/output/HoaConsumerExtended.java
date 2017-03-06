@@ -17,7 +17,6 @@
 
 package owl.automaton.output;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -35,10 +34,10 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
-import owl.automaton.LabelledEdge;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
@@ -54,8 +53,6 @@ public class HoaConsumerExtended<S> {
 
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
     Set<? extends S> initialStates, int size, EnumSet<HoaPrintable.Option> options) {
-    checkArgument(initialStates.size() <= size);
-
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
     stateNumbers = new HashMap<>();
@@ -65,7 +62,7 @@ public class HoaConsumerExtended<S> {
       consumer.setTool("Owl", "* *"); // Owl in a cave.
 
       if (options.contains(HoaPrintable.Option.ANNOTATIONS)) {
-        consumer.setName("LegacyAutomaton for " + initialStates.toString());
+        consumer.setName("Automaton for " + initialStates.toString());
       }
 
       if (size >= 0) {
@@ -94,7 +91,7 @@ public class HoaConsumerExtended<S> {
         consumer.notifyEnd();
       }
     } catch (HOAConsumerException ex) {
-      log.log(Level.WARNING, "Error during HOA writing", ex);
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 
@@ -126,6 +123,7 @@ public class HoaConsumerExtended<S> {
 
   private void addEdgeBackend(ValuationSet label, S end, @Nullable IntList accSets) {
     checkState(currentState != null);
+    checkState(end != null);
 
     if (label.isEmpty()) {
       return;
@@ -135,20 +133,20 @@ public class HoaConsumerExtended<S> {
       consumer.addEdgeWithLabel(getStateId(currentState), label.toExpression(),
         Collections.singletonList(getStateId(end)), accSets);
     } catch (HOAConsumerException ex) {
-      log.log(Level.WARNING, "Error during HOA writing", ex);
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 
   public void addEpsilonEdge(S successor) {
     checkState(currentState != null);
-    log.log(Level.WARNING, "Warning: HOA currently does not support epsilon-transitions. "
+    log.log(Level.FINER, "HOA currently does not support epsilon-transitions. "
       + "({0} -> {1})", new Object[] {currentState, successor});
 
     try {
       consumer.addEdgeWithLabel(getStateId(currentState), null,
         Collections.singletonList(getStateId(successor)), null);
     } catch (HOAConsumerException ex) {
-      log.log(Level.WARNING, "Error during HOA writing", ex);
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 
@@ -159,7 +157,7 @@ public class HoaConsumerExtended<S> {
       String label = options.contains(Option.ANNOTATIONS) ? state.toString() : null;
       consumer.addState(getStateId(state), label, null, null);
     } catch (HOAConsumerException ex) {
-      log.log(Level.WARNING, "Error during HOA writing", ex);
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 
@@ -173,7 +171,7 @@ public class HoaConsumerExtended<S> {
         consumer.notifyEnd();
       }
     } catch (HOAConsumerException ex) {
-      log.log(Level.WARNING, "Error during HOA writing", ex);
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 
@@ -182,7 +180,7 @@ public class HoaConsumerExtended<S> {
     try {
       consumer.notifyEndOfState(getStateId(currentState));
     } catch (HOAConsumerException ex) {
-      log.log(Level.WARNING, "Error during HOA writing", ex);
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 }

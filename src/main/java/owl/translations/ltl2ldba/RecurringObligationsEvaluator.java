@@ -38,7 +38,7 @@ import owl.ltl.XOperator;
 import owl.ltl.simplifier.Simplifier;
 import owl.ltl.visitors.Visitor;
 
-public class RecurringObligationsEvaluator implements Evaluator<RecurringObligations> {
+public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObligations> {
 
   private final EquivalenceClassFactory factory;
 

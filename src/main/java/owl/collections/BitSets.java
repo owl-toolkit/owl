@@ -34,14 +34,22 @@ public final class BitSets {
 
   }
 
-  public static Set<BitSet> powerSet(int i) {
-    BitSet bs = new BitSet(i);
-    bs.flip(0, i);
-    return powerSet(bs);
+  public static BitSet collect(PrimitiveIterator.OfInt iterator) {
+    BitSet bitSet = new BitSet();
+    while (iterator.hasNext()) {
+      bitSet.set(iterator.nextInt());
+    }
+    return bitSet;
   }
 
   public static Set<BitSet> powerSet(BitSet bs) {
     return new PowerBitSet(bs);
+  }
+
+  public static Set<BitSet> powerSet(int i) {
+    BitSet bs = new BitSet(i);
+    bs.flip(0, i);
+    return powerSet(bs);
   }
 
   /**
@@ -54,14 +62,6 @@ public final class BitSets {
       }
     }
     return true;
-  }
-
-  public static BitSet collect(PrimitiveIterator.OfInt iterator) {
-    BitSet bitSet = new BitSet();
-    while (iterator.hasNext()) {
-      bitSet.set(iterator.nextInt());
-    }
-    return bitSet;
   }
 
   @Nullable

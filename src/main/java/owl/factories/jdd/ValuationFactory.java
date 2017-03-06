@@ -82,6 +82,10 @@ public class ValuationFactory implements ValuationSetFactory {
       return TRUE;
     }
 
+    if (bdd == BddValuationSet.INVALID_BDD) {
+      throw new IllegalStateException("Valuationset already freed!");
+    }
+
     BooleanExpression<AtomLabel> letter = new BooleanExpression<>(
       AtomLabel.createAPIndex(factory.getVariable(bdd)));
     BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
@@ -130,7 +134,7 @@ public class ValuationFactory implements ValuationSetFactory {
   }
 
   private class BddValuationSet implements ValuationSet {
-    private static final int INVALID_BDD = -1;
+    static final int INVALID_BDD = -1;
     private int bdd;
 
     BddValuationSet(int bdd) {
@@ -186,10 +190,10 @@ public class ValuationFactory implements ValuationSetFactory {
 
     @Override
     public void free() {
-      if (factory.isNodeRoot(bdd)) {
-        factory.dereference(bdd);
-        bdd = INVALID_BDD;
-      }
+      //if (factory.isNodeRoot(bdd)) {
+      //  factory.dereference(bdd);
+      //  bdd = INVALID_BDD;
+      //}
     }
 
     @Override

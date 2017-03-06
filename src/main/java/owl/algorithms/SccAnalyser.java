@@ -20,32 +20,23 @@ package owl.algorithms;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import owl.automaton.AutomatonState;
-import owl.automaton.LegacyAutomaton;
+import java.util.function.Function;
+import owl.automaton.Automaton;
 import owl.collections.TarjanStack;
-import owl.collections.ValuationSet;
 
-public class SccAnalyser<S extends AutomatonState<S>> {
-
-  protected final Set<S> allowedStates;
-  protected final LegacyAutomaton<S, ?> automaton;
-  protected final Map<S, ValuationSet> forbiddenEdges;
-  protected final Deque<S> stack = new TarjanStack<>();
+public final class SccAnalyser<S> {
   private final Object2IntMap<S> id = new Object2IntOpenHashMap<>();
   private final Object2IntMap<S> lowlink = new Object2IntOpenHashMap<>();
-  protected int num = 0;
+  private final Deque<S> stack = new TarjanStack<>();
+  private final Function<S, Set<S>> successorFunction;
+  private int num = 0;
 
-  protected SccAnalyser(LegacyAutomaton<S, ?> automaton, Set<S> allowedStates,
-    Map<S, ValuationSet> forbiddenEdges) {
-    this.automaton = automaton;
-    this.allowedStates = allowedStates;
-    this.forbiddenEdges = forbiddenEdges;
+  private SccAnalyser(Function<S, Set<S>> successorFunction) {
+    this.successorFunction = successorFunction;
   }
 
   /**
@@ -65,41 +56,31 @@ public class SccAnalyser<S extends AutomatonState<S>> {
    * the SCCs are vertices, ordered such that for each transition a->b in the condensation graph, a
    * is in the list before b
    */
-  public static <S extends AutomatonState<S>> List<Set<S>> computeAllScc(
-    LegacyAutomaton<S, ?> automaton) {
-    SccAnalyser<S> analyser =
-      new SccAnalyser<>(automaton, automaton.getStates(), Collections.emptyMap());
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton) {
+    SccAnalyser<S> analyser = new SccAnalyser<>(automaton::getSuccessors);
     List<Set<S>> sccList = new ArrayList<>();
 
     for (S state : automaton.getInitialStates()) {
       analyser.stack.push(state);
-      sccList.addAll(analyser.computeAllScc());
+      sccList.addAll(analyser.computeSccs());
     }
 
     return sccList;
   }
 
-  protected List<Set<S>> computeAllScc() {
+  private List<Set<S>> computeSccs() {
     num++;
     S node = stack.peek();
     lowlink.put(node, num);
     id.put(node, num);
     List<Set<S>> result = new ArrayList<>();
 
-    automaton.getSuccessors(node).forEach((edge, valuation) -> {
-      ValuationSet forbidden = forbiddenEdges.get(node);
-
-      if (forbidden != null && forbidden.containsAll(valuation)) {
-        return;
-      }
-
-      S successor = edge.getSuccessor();
-
-      if (allowedStates.contains(successor) && !id.containsKey(successor)) {
+    successorFunction.apply(node).forEach((successor) -> {
+      if (!id.containsKey(successor)) {
         stack.push(successor);
-        result.addAll(computeAllScc());
+        result.addAll(computeSccs());
         lowlink.put(node, Math.min(lowlink.getInt(node), lowlink.getInt(successor)));
-      } else if (allowedStates.contains(successor) && id.getInt(successor) < id.getInt(node)
+      } else if (id.getInt(successor) < id.getInt(node)
         && stack.contains(successor)) {
         lowlink.put(node, Math.min(lowlink.getInt(node), id.getInt(successor)));
       }

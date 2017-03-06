@@ -19,7 +19,11 @@ package owl.translations.ltl2ldba;
 
 import owl.ltl.EquivalenceClass;
 
-public interface Evaluator<T> {
+public interface JumpEvaluator<T> {
+
+  default EquivalenceClass evaluate(Jump<T> jump) {
+    return evaluate(jump.remainder, jump.obligations);
+  }
 
   EquivalenceClass evaluate(EquivalenceClass clazz, T obligation);
 }

@@ -26,26 +26,28 @@ import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import org.junit.Test;
+import owl.automaton.Automaton;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.ParseException;
 import owl.translations.Optimisation;
 
-public class LTL2DPATest {
+public class LTL2DPAFunctionTest {
 
-  static void testOutput(String ltl, int size, int accSize) throws ParseException {
+  private static void testOutput(String ltl, int size, int accSize) throws ParseException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.PARALLEL);
     LtlParseResult parseResult = LtlParser.parse(ltl);
-    LTL2DPA translation = new LTL2DPA(opts);
-    ParityAutomaton<?> automaton = translation.apply(parseResult.getFormula());
+    LTL2DPAFunction translation = new LTL2DPAFunction(opts);
+    Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult.getFormula());
     automaton.setVariables(parseResult.getVariableMapping());
 
     try (OutputStream stream = new ByteArrayOutputStream()) {
       HOAConsumer consumer = new HOAConsumerPrint(stream);
       automaton.toHoa(consumer, EnumSet.allOf(HoaPrintable.Option.class));
-      assertEquals(stream.toString(), size, automaton.size());
+      assertEquals(stream.toString(), size, automaton.stateCount());
       assertEquals(stream.toString(), accSize, automaton.getAcceptance().getAcceptanceSets());
     } catch (IOException ex) {
       throw new IllegalStateException(ex.toString(), ex);
@@ -55,14 +57,14 @@ public class LTL2DPATest {
   @Test
   public void testRegression1() throws ParseException {
     String ltl = "G (F (a & (a U b)))";
-    testOutput(ltl, 2, 1);
+    testOutput(ltl, 2, 2);
     testOutput("! " + ltl, 2, 4);
   }
 
   @Test
   public void testRegression2() throws ParseException {
     String ltl = "G (F (a & X (F b)))";
-    testOutput(ltl, 2, 1);
+    testOutput(ltl, 2, 2);
     testOutput("! " + ltl, 3, 2);
   }
 
