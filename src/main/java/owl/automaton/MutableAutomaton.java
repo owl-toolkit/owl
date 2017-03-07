@@ -20,7 +20,6 @@ package owl.automaton;
 import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -116,14 +115,6 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   void addStates(Iterable<S> states);
 
   /**
-   * Determines all states which are incomplete, i.e. there are valuations for which the state has
-   * no successor.
-   *
-   * @return The set of incomplete states and the missing valuations.
-   */
-  Map<S, ValuationSet> getIncompleteStates();
-
-  /**
    * Remaps the acceptance sets of each outgoing edge of the specified {@code states} according to
    * {@code transformer}. Requires all {@code states} to be present in the automaton.
    *
@@ -138,7 +129,9 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   void remapAcceptance(Set<S> states, IntUnaryOperator transformer);
 
   /**
-   * Remaps the acceptance sets of each edge in the automaton as specified by {@code f}.
+   * Remaps the acceptance sets of each edge in the automaton as specified by {@code f}. The
+   * function is allowed to return {@code null} which indicates that the acceptance of this
+   * particular edge should not be changed.
    *
    * @param f
    *     The remapping function.

@@ -22,34 +22,34 @@ public final class LtlParser {
   public static Formula formula(String input) {
     try {
       return new LtlParser().parseLtl(input);
-    } catch (ParseException e) {
+    } catch (ParserException e) {
       throw new AssertionError(e);
     }
   }
 
-  private static LtlParseResult parse(ANTLRInputStream stream) throws ParseException {
+  private static LtlParseResult parse(ANTLRInputStream stream) throws ParserException {
     final LtlParser parser = new LtlParser();
     final Formula formula = parser.parseLtl(stream);
     return new LtlParseResult(formula, parser.variables());
   }
 
-  public static LtlParseResult parse(String input) throws ParseException {
+  public static LtlParseResult parse(String input) throws ParserException {
     return parse(new ANTLRInputStream(input));
   }
 
-  public static LtlParseResult parse(InputStream input) throws IOException, ParseException {
+  public static LtlParseResult parse(InputStream input) throws IOException, ParserException {
     return parse(new ANTLRInputStream(input));
   }
 
-  public Formula parseLtl(String input) throws ParseException {
+  public Formula parseLtl(String input) throws ParserException {
     return parseLtl(new ANTLRInputStream(input));
   }
 
-  public Formula parseLtl(InputStream input) throws IOException, ParseException {
+  public Formula parseLtl(InputStream input) throws IOException, ParserException {
     return parseLtl(new ANTLRInputStream(input));
   }
 
-  private Formula parseLtl(ANTLRInputStream stream) throws ParseException {
+  private Formula parseLtl(ANTLRInputStream stream) throws ParserException {
     final LTLLexer lexer = new LTLLexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
     final CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -59,7 +59,7 @@ public final class LtlParser {
     try {
       return treeVisitor.visit(parser.formula());
     } catch (ParseCancellationException e) {
-      throw new ParseException(e);
+      throw new ParserException(e);
     }
   }
 

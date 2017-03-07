@@ -33,7 +33,7 @@ import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
-public class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
+public final class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
   <DegeneralizedBreakpointFreeState, BuchiAcceptance, RecurringObligations2> {
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
@@ -99,14 +99,14 @@ public class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingCom
       return null;
     }
 
-    final int livenessLength = state.obligations.liveness.length;
+    int livenessLength = state.obligations.liveness.length;
 
     boolean acceptingEdge = false;
     boolean obtainNewGoal = false;
     int j;
 
     // Scan for new index if currentSuccessor currentSuccessor is true.
-    // In this way we can skip several fullfilled break-points at a time and are not bound to
+    // In this way we can skip several fulfilled break-points at a time and are not bound to
     // slowly check one by one.
     if (livenessSuccessor.isTrue()) {
       obtainNewGoal = true;
@@ -138,7 +138,7 @@ public class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingCom
   @Nonnegative
   private int scan(DegeneralizedBreakpointFreeState state, @Nonnegative int i, BitSet valuation) {
     int index = i;
-    final int livenessLength = state.obligations.liveness.length;
+    int livenessLength = state.obligations.liveness.length;
 
     while (index < livenessLength) {
       EquivalenceClass successor = factory

@@ -22,6 +22,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -75,7 +76,7 @@ public final class ValuationSetMapUtil {
     map.entrySet().removeIf(entry -> {
       S successorState = entry.getKey().getSuccessor();
 
-      if (!state.equals(successorState)) {
+      if (!Objects.equals(state, successorState)) {
         return false;
       }
 
@@ -112,7 +113,7 @@ public final class ValuationSetMapUtil {
       K oldKey = entry.getKey();
       K newKey = keyUpdater.apply(oldKey);
 
-      if (oldKey.equals(newKey)) {
+      if (Objects.equals(oldKey, newKey)) {
         return false;
       }
 

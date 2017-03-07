@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -144,7 +143,7 @@ public class HashMapAutomatonTest {
     assertThat(automaton.getEdges("2", new BitSet()), empty());
 
     automaton.remapAcceptance((state, edge) -> {
-      final BitSet result = new BitSet();
+      BitSet result = new BitSet();
       if (Objects.equals(state, "1")) {
         result.set(0);
         return result;
@@ -153,17 +152,17 @@ public class HashMapAutomatonTest {
       return result;
     });
 
-    for (LabelledEdge successorEdge : automaton.getLabelledEdges("1")) {
+    for (LabelledEdge<String> successorEdge : automaton.getLabelledEdges("1")) {
       assertThat(ImmutableList.copyOf(successorEdge.edge.acceptanceSetIterator()),
         containsInAnyOrder(0));
     }
 
-    for (LabelledEdge successorEdge : automaton.getLabelledEdges("2")) {
+    for (LabelledEdge<String> successorEdge : automaton.getLabelledEdges("2")) {
       assertThat(ImmutableList.copyOf(successorEdge.edge.acceptanceSetIterator()),
         containsInAnyOrder(1));
     }
 
-    assertTrue("LegacyAutomaton is incositent.",
-      ((HashMapAutomaton<?, ?>) automaton).checkConsistency());
+    assertThat("LegacyAutomaton is inconsistent.",
+      ((HashMapAutomaton<?, ?>) automaton).checkConsistency(), is(true));
   }
 }

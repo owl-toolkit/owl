@@ -17,11 +17,13 @@
 
 package owl.automaton.edge;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
@@ -103,7 +105,7 @@ public class EdgeTest {
   @Theory
   public void inSetConsistent(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
-      final OfInt iterator = edge.acceptanceSetIterator();
+      OfInt iterator = edge.acceptanceSetIterator();
       while (iterator.hasNext()) {
         assertTrue(edge.inSet(iterator.nextInt()));
       }
@@ -121,12 +123,11 @@ public class EdgeTest {
   }
 
   @Theory
-  @SuppressWarnings("PMD.CompareObjectsWithEquals")
   public void testEqualsAndHashCodeDifferent(TestCase first, TestCase second) {
-    assumeTrue(first != second);
+    assumeThat(first, not(sameInstance(second)));
 
-    for (final Edge<?> firstEdge : first.getEdges()) {
-      for (final Edge<?> secondEdge : second.getEdges()) {
+    for (Edge<?> firstEdge : first.getEdges()) {
+      for (Edge<?> secondEdge : second.getEdges()) {
         assertNotEquals(firstEdge, secondEdge);
       }
     }

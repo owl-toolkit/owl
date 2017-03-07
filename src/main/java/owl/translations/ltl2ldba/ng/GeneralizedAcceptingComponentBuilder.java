@@ -33,7 +33,7 @@ import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
-public class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
+public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
   <GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, RecurringObligations2> {
 
   @Nonnegative

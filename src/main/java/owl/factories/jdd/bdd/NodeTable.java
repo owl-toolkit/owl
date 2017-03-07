@@ -11,7 +11,8 @@ import owl.util.BitUtil;
 /* Implementation notes:
  * - Many asserts in the long store accessor functions are commented out, as the JVM might not
  *   inline the methods when they are too big. */
-@SuppressWarnings({"PMD.AvoidDeeplyNestedIfStmts", "PMD.GodClass", "WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess", "unused",
+                    "NumericCastThatLosesPrecision"})
 class NodeTable {
   /**
    * The maximal supported bit size of the node identifier. Internally, we store the tree structure
@@ -57,7 +58,7 @@ class NodeTable {
 
   private final BddConfiguration configuration;
   /* Under-approximation of dead node count. */
-  private int approximateDeadNodeCount;
+  private int approximateDeadNodeCount = 0;
   /* Tracks the index of the last node which is referenced. Invariants on this variable:
    * biggestReferencedNode <= biggestValidNode and if a node has positive reference count, its
    * index is less than or equal to biggestReferencedNode. */
@@ -96,7 +97,7 @@ class NodeTable {
   /* This is just the number of variables. As currently, BDD and NodeTable are separate, both need
    * to keep track of this value. While not entirely necessary, we can use this value to ensure
    * that our markStack is big enough for a full recursive marking. */
-  private int treeSize;
+  private int treeSize = 0;
   /* The work stack is used to store intermediate nodes created by some BDD operations. While
    * constructing a new BDD, e.g. v1 and v2, we may need to create multiple intermediate BDDs. As
    * during each creation the node table may run out of space, GC might be called and could
@@ -105,11 +106,11 @@ class NodeTable {
    * structure. */
   private int[] workStack;
   /* Current top of the work stack. */
-  private int workStackTos;
+  private int workStackTos = 0;
 
-  NodeTable(final int nodeSize, final BddConfiguration configuration) {
+  NodeTable(int nodeSize, BddConfiguration configuration) {
     this.configuration = configuration;
-    final int nodeCount = Math.max(nodeSize, configuration.minimumNodeTableSize());
+    int nodeCount = Math.max(nodeSize, configuration.minimumNodeTableSize());
     nodeStorage = new long[nodeCount];
     referenceStorage = new long[nodeCount];
 
@@ -133,7 +134,7 @@ class NodeTable {
     markStack = new int[INITIAL_STACK_SIZE];
   }
 
-  private static long buildNodeStore(final long variable, final long low, final long high) {
+  private static long buildNodeStore(long variable, long low, long high) {
     assert fits(variable, VARIABLE_BIT_SIZE) && fits(low, TREE_REFERENCE_BIT_SIZE) && fits(high,
       TREE_REFERENCE_BIT_SIZE) : "Bit size exceeded";
     long store = 0L;
@@ -143,50 +144,49 @@ class NodeTable {
     return store;
   }
 
-  private static long clearChainStartInStore(final long referenceStore) {
-    //noinspection NumericOverflow
+  private static long clearChainStartInStore(long referenceStore) {
     return referenceStore & ~(LIST_REFERENCE_MASK << CHAIN_START_OFFSET);
   }
 
-  private static long decreaseReferenceCountInStore(final long referenceStore) {
+  private static long decreaseReferenceCountInStore(long referenceStore) {
     assert !isStoreSaturated(referenceStore);
     return referenceStore - 2L;
   }
 
-  private static long getChainStartFromStore(final long referenceStore) {
+  private static long getChainStartFromStore(long referenceStore) {
     return (referenceStore >>> CHAIN_START_OFFSET) & LIST_REFERENCE_MASK;
   }
 
-  static long getHighFromStore(final long nodeStore) {
+  static long getHighFromStore(long nodeStore) {
     return (nodeStore >>> HIGH_OFFSET) & TREE_REFERENCE_MASK;
   }
 
-  static long getLowFromStore(final long nodeStore) {
+  static long getLowFromStore(long nodeStore) {
     return (nodeStore >>> LOW_OFFSET) & TREE_REFERENCE_MASK;
   }
 
-  private static long getMarkFromStore(final long nodeStore) {
+  private static long getMarkFromStore(long nodeStore) {
     return nodeStore & 1L;
   }
 
-  private static int getMarkStackSizeForTreeSize(final int treeSize) {
+  private static int getMarkStackSizeForTreeSize(int treeSize) {
     return treeSize * 4 + 3;
   }
 
-  private static long getNextChainEntryFromStore(final long referenceStore) {
+  private static long getNextChainEntryFromStore(long referenceStore) {
     return (referenceStore >>> CHAIN_NEXT_OFFSET) & LIST_REFERENCE_MASK;
   }
 
-  private static long getReferenceCountFromStore(final long referenceStore) {
+  private static long getReferenceCountFromStore(long referenceStore) {
     assert !isStoreSaturated(referenceStore);
     return (referenceStore >>> 1) & REFERENCE_COUNT_MASK;
   }
 
-  static long getVariableFromStore(final long nodeStore) {
+  static long getVariableFromStore(long nodeStore) {
     return nodeStore >>> VARIABLE_OFFSET;
   }
 
-  private static long increaseReferenceCountInStore(final long referenceStore) {
+  private static long increaseReferenceCountInStore(long referenceStore) {
     assert !isStoreSaturated(referenceStore);
     return referenceStore + 2L;
   }
@@ -195,56 +195,55 @@ class NodeTable {
     return INVALID_NODE_VALUE << VARIABLE_OFFSET;
   }
 
-  static boolean isNodeStoreMarked(final long nodeStore) {
+  static boolean isNodeStoreMarked(long nodeStore) {
     return getMarkFromStore(nodeStore) != 0L;
   }
 
-  private static boolean isReferencedOrSaturatedNodeStore(final long referenceStore) {
+  private static boolean isReferencedOrSaturatedNodeStore(long referenceStore) {
     return isStoreSaturated(referenceStore) || getReferenceCountFromStore(referenceStore) > 0L;
   }
 
-  private static boolean isStoreSaturated(final long referenceStore) {
+  private static boolean isStoreSaturated(long referenceStore) {
     return (referenceStore & 1L) != 0L;
   }
 
-  private static boolean isValidNodeStore(final long nodeStore) {
+  private static boolean isValidNodeStore(long nodeStore) {
     return (nodeStore >>> VARIABLE_OFFSET) != INVALID_NODE_VALUE;
   }
 
-  private static boolean nodeStoresEqual(final long nodeStore, final long otherNodeStore) {
+  private static boolean nodeStoresEqual(long nodeStore, long otherNodeStore) {
     // See if the two nodes are equal. As the layout is <VAL><HI><LO><MASK>, value, high and low
     // are equal if the two differ at most on the mask.
     return (nodeStore >>> 1) == (otherNodeStore >>> 1);
   }
 
-  private static long saturateStore(final long referenceStore) {
+  private static long saturateStore(long referenceStore) {
     return referenceStore | 1L;
   }
 
-  private static long setChainStartInStore(final long referenceStore, final long chainStart) {
+  private static long setChainStartInStore(long referenceStore, long chainStart) {
     assert 0L <= chainStart && fits(chainStart, CHAIN_REFERENCE_BIT_SIZE);
-    //noinspection NumericOverflow
     return (referenceStore & ~(LIST_REFERENCE_MASK << CHAIN_START_OFFSET))
       | chainStart << CHAIN_START_OFFSET;
   }
 
-  private static long setMarkInStore(final long nodeStore) {
+  private static long setMarkInStore(long nodeStore) {
     assert isValidNodeStore(nodeStore);
     return nodeStore | 1L;
   }
 
-  private static long setNextChainEntryInStore(final long referenceStore, final long next) {
+  private static long setNextChainEntryInStore(long referenceStore, long next) {
     assert 0L <= next && fits(next, CHAIN_REFERENCE_BIT_SIZE);
     return (referenceStore & ~(LIST_REFERENCE_MASK << CHAIN_NEXT_OFFSET))
       | next << CHAIN_NEXT_OFFSET;
   }
 
-  private static long startNoneAndNextStore(final int next) {
+  private static long startNoneAndNextStore(int next) {
     assert 0 <= next && fits(next, CHAIN_REFERENCE_BIT_SIZE);
     return ((long) next) << CHAIN_NEXT_OFFSET;
   }
 
-  private static long unsetMarkInStore(final long nodeStore) {
+  private static long unsetMarkInStore(long nodeStore) {
     assert isValidNodeStore(nodeStore);
     return nodeStore & ~1L;
   }
@@ -260,12 +259,12 @@ class NodeTable {
    *
    * @see #nodeCount(int)
    */
-  public final int approximateNodeCount(final int node) {
+  public final int approximateNodeCount(int node) {
     assert isNodeValidOrRoot(node);
     if (isNodeRoot(node)) {
       return 0;
     }
-    final long bddStore = nodeStorage[node];
+    long bddStore = nodeStorage[node];
     return 1 + approximateNodeCount((int) getLowFromStore(bddStore)) + approximateNodeCount(
       (int) getHighFromStore(bddStore));
   }
@@ -275,7 +274,7 @@ class NodeTable {
    *
    * @return True. This way, check can easily be called by an {@code assert} statement.
    */
-  @SuppressWarnings("ConstantConditions")
+  @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
   final boolean check() {
     checkState(biggestReferencedNode <= biggestValidNode);
 
@@ -315,10 +314,10 @@ class NodeTable {
 
     // Check each node's children
     for (int i = 2; i <= biggestValidNode; i++) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (isValidNodeStore(nodeStore)) {
-        final int low = (int) getLowFromStore(nodeStore);
-        final int high = (int) getHighFromStore(nodeStore);
+        int low = (int) getLowFromStore(nodeStore);
+        int high = (int) getHighFromStore(nodeStore);
         checkState(isNodeValidOrRoot(low), "Invalid low entry (%s) -> (%s)",
           nodeToStringSupplier(i), nodeToStringSupplier(low));
         checkState(isNodeValidOrRoot(high), "Invalid high entry (%s) -> (%s)",
@@ -337,13 +336,13 @@ class NodeTable {
     }
 
     // Check if there are duplicate nodes
-    final int maximalNodeCountChecked = 500;
+    int maximalNodeCountChecked = 500;
     if (getTableSize() < maximalNodeCountChecked) {
       for (int i = 2; i <= biggestValidNode; i++) {
-        final long storeOfI = nodeStorage[i];
+        long storeOfI = nodeStorage[i];
         if (isValidNodeStore(storeOfI)) {
           for (int j = i + 1; j < getTableSize(); j++) {
-            final long storeOfJ = nodeStorage[j];
+            long storeOfJ = nodeStorage[j];
             if (isValidNodeStore(storeOfJ)) {
               checkState(!nodeStoresEqual(storeOfI, storeOfJ), "Duplicate entries (%s) and (%s)",
                 nodeToStringSupplier(i), nodeToStringSupplier(j));
@@ -355,14 +354,13 @@ class NodeTable {
 
     // Check the integrity of the hash chain
     for (int i = 2; i < getTableSize(); i++) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (isValidNodeStore(nodeStore)) {
         // Check if each element is in its own hash chain
         int chainPosition = (int) getChainStartFromStore(
           referenceStorage[hashNodeStore(nodeStore)]);
         boolean found = false;
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-        final StringBuilder hashChain = new StringBuilder();
+        StringBuilder hashChain = new StringBuilder(32);
         while (chainPosition != 0) {
           hashChain.append(' ').append(chainPosition);
           if (chainPosition == i) {
@@ -387,7 +385,7 @@ class NodeTable {
     do {
       checkState(!isValidNodeStore(nodeStorage[currentFreeNode]),
         "Node (%s) in free node chain is valid", nodeToStringSupplier(currentFreeNode));
-      final int nextFreeNode = (int) getNextChainEntryFromStore(referenceStorage[currentFreeNode]);
+      int nextFreeNode = (int) getNextChainEntryFromStore(referenceStorage[currentFreeNode]);
       // This also excludes possible loops
       checkState(nextFreeNode == 0 || currentFreeNode < nextFreeNode,
         "Free node chain is not well ordered, %s <= %s", nextFreeNode, currentFreeNode);
@@ -401,10 +399,10 @@ class NodeTable {
     return true;
   }
 
-  private void connectHashList(final int node, final int hash) {
+  private void connectHashList(int node, int hash) {
     assert isNodeValid(node) && 0 <= hash && hash == hashNodeStore(nodeStorage[node]);
-    final long hashReferenceStore = referenceStorage[hash];
-    final int hashChainStart = (int) getChainStartFromStore(hashReferenceStore);
+    long hashReferenceStore = referenceStorage[hash];
+    int hashChainStart = (int) getChainStartFromStore(hashReferenceStore);
 
     // Search the hash list if this node is already in there in order to avoid loops
     int currentChainNode = hashChainStart;
@@ -413,7 +411,7 @@ class NodeTable {
         // The node is already contained in the hash list
         return;
       }
-      final long currentChainStore = referenceStorage[currentChainNode];
+      long currentChainStore = referenceStorage[currentChainNode];
       assert (int) getNextChainEntryFromStore(currentChainStore) != currentChainNode;
       currentChainNode = (int) getNextChainEntryFromStore(currentChainStore);
     }
@@ -424,9 +422,10 @@ class NodeTable {
     referenceStorage[hash] = setChainStartInStore(referenceStorage[hash], (long) node);
   }
 
-  public final int dereference(final int node) {
+  @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
+  public final int dereference(int node) {
     assert isNodeValidOrRoot(node);
-    final long referenceStore = referenceStorage[node];
+    long referenceStore = referenceStorage[node];
     if (isStoreSaturated(referenceStore)) {
       return node;
     }
@@ -455,7 +454,7 @@ class NodeTable {
     assert check();
     int topOfStack = 0;
     for (int i = 0; i < workStackTos; i++) {
-      final int node = workStack[i];
+      int node = workStack[i];
       if (!isNodeRoot(node) && isNodeValid(node)) {
         ensureMarkStackSize(topOfStack);
         markStack[topOfStack] = node;
@@ -470,7 +469,7 @@ class NodeTable {
     referenceStorage[0] = clearChainStartInStore(referenceStorage[0]);
     referenceStorage[1] = clearChainStartInStore(referenceStorage[1]);
     for (int i = 2; i <= biggestValidNode; i++) {
-      final long referenceStore = referenceStorage[i];
+      long referenceStore = referenceStorage[i];
       if (i <= biggestReferencedNode && isReferencedOrSaturatedNodeStore(referenceStore)) {
         ensureMarkStackSize(topOfStack);
         markStack[topOfStack] = i;
@@ -480,7 +479,7 @@ class NodeTable {
     }
     markAllOnStack(topOfStack);
 
-    final int previousFreeNodes = freeNodeCount;
+    int previousFreeNodes = freeNodeCount;
     firstFreeNode = 0;
     freeNodeCount = getTableSize() - (biggestValidNode + 1);
 
@@ -493,7 +492,7 @@ class NodeTable {
     // We need to rebuild the chain for unused nodes first as a smaller, unused node might be part
     // of a chain containing bigger nodes which are in use.
     for (int i = biggestValidNode; i >= 2; i--) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (!isNodeStoreMarked(nodeStore)) {
         // This node is unused
         nodeStorage[i] = invalidStore();
@@ -506,7 +505,7 @@ class NodeTable {
       }
     }
     for (int i = biggestValidNode; i >= 2; i--) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (isNodeStoreMarked(nodeStore)) {
         // This node is used
         nodeStorage[i] = unsetMarkInStore(nodeStore);
@@ -520,7 +519,7 @@ class NodeTable {
     return freeNodeCount - previousFreeNodes;
   }
 
-  private void ensureMarkStackSize(final int size) {
+  private void ensureMarkStackSize(int size) {
     if (size < markStack.length) {
       return;
     }
@@ -528,11 +527,11 @@ class NodeTable {
     markStack = Arrays.copyOf(markStack, Math.max(size, 2 * markStack.length));
   }
 
-  private void ensureWorkStackSize(final int size) {
+  private void ensureWorkStackSize(int size) {
     if (size < workStack.length) {
       return;
     }
-    final int newSize = workStack.length * 2;
+    int newSize = workStack.length * 2;
     workStack = Arrays.copyOf(workStack, newSize);
   }
 
@@ -542,7 +541,7 @@ class NodeTable {
    * @return Number of freed nodes.
    */
   public final int forceGc() {
-    final int freedNodes = doGarbageCollection();
+    int freedNodes = doGarbageCollection();
     notifyGcRun();
     return freedNodes;
   }
@@ -559,7 +558,7 @@ class NodeTable {
     return freeNodeCount;
   }
 
-  private int getGrowSize(final int currentSize) {
+  private int getGrowSize(int currentSize) {
     assert 0 <= configuration.minimumNodeTableGrowth()
       && 0 <= configuration.maximumNodeTableGrowth()
       && configuration.minimumNodeTableGrowth() <= configuration.maximumNodeTableGrowth();
@@ -572,21 +571,21 @@ class NodeTable {
       return currentSize + configuration.maximumNodeTableGrowth();
     }
     // Linear interpolation between {smallThresh, bigThresh} and values {smallGrowth, bigGrowth}
-    final int growthDiff = configuration.maximumNodeTableGrowth()
+    int growthDiff = configuration.maximumNodeTableGrowth()
       - configuration.minimumNodeTableGrowth();
-    final int thresholdDiff = configuration.nodeTableBigThreshold()
+    int thresholdDiff = configuration.nodeTableBigThreshold()
       - configuration.nodeTableSmallThreshold();
-    final int offset = currentSize - configuration.nodeTableSmallThreshold();
-    final int growth = configuration.minimumNodeTableGrowth() + offset * growthDiff / thresholdDiff;
+    int offset = currentSize - configuration.nodeTableSmallThreshold();
+    int growth = configuration.minimumNodeTableGrowth() + offset * growthDiff / thresholdDiff;
     return currentSize + growth;
   }
 
-  public final int getHigh(final int node) {
+  public final int getHigh(int node) {
     assert isNodeValid(node);
     return (int) getHighFromStore(nodeStorage[node]);
   }
 
-  public final int getLow(final int node) {
+  public final int getLow(int node) {
     assert isNodeValid(node);
     return (int) getLowFromStore(nodeStorage[node]);
   }
@@ -602,7 +601,7 @@ class NodeTable {
    *
    * @see #isNodeValid(int)
    */
-  final long getNodeStore(final int node) {
+  final long getNodeStore(int node) {
     assert isNodeValid(node);
     return nodeStorage[node];
   }
@@ -615,9 +614,9 @@ class NodeTable {
    *
    * @return The reference count of {@code node}.
    */
-  public final int getReferenceCount(final int node) {
+  public final int getReferenceCount(int node) {
     assert isNodeValidOrRoot(node);
-    final long referenceStore = referenceStorage[node];
+    long referenceStore = referenceStorage[node];
     if (isStoreSaturated(referenceStore)) {
       return -1;
     }
@@ -628,7 +627,7 @@ class NodeTable {
     return nodeStorage.length;
   }
 
-  public final int getVariable(final int node) {
+  public final int getVariable(int node) {
     assert isNodeValid(node);
     return (int) getVariableFromStore(nodeStorage[node]);
   }
@@ -659,8 +658,8 @@ class NodeTable {
     // Could not free enough space by GC, start growing:
     logger.log(Level.FINER, "Growing the table of {0}", this);
 
-    final int oldSize = getTableSize();
-    final int newSize = getGrowSize(oldSize);
+    int oldSize = getTableSize();
+    int newSize = getGrowSize(oldSize);
     assert oldSize < newSize;
 
     nodeStorage = Arrays.copyOf(nodeStorage, newSize);
@@ -684,7 +683,7 @@ class NodeTable {
 
     // Update the hash references and free nodes chain of the old nodes.
     for (int i = oldSize - 1; i >= 2; i--) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (isValidNodeStore(nodeStore)) {
         connectHashList(i, hashNodeStore(nodeStore));
       } else {
@@ -707,17 +706,17 @@ class NodeTable {
    * @param newTreeSize
    *     The new maximal tree height (when interpreting a BDD as a graph)
    */
-  final void growTree(final int newTreeSize) {
+  final void growTree(int newTreeSize) {
     assert newTreeSize >= treeSize;
     treeSize = newTreeSize;
     ensureMarkStackSize(getMarkStackSizeForTreeSize(newTreeSize));
     ensureWorkStackSize(newTreeSize * 2);
   }
 
-  private int hashNodeStore(final long nodeStore) {
-    final int tableSize = getTableSize();
+  private int hashNodeStore(long nodeStore) {
+    int tableSize = getTableSize();
     // Mark must not be hashed
-    final int hash = Util.hash(nodeStore >>> 1) % tableSize;
+    int hash = Util.hash(nodeStore >>> 1) % tableSize;
     if (hash < 0) {
       return hash + tableSize;
     }
@@ -726,7 +725,7 @@ class NodeTable {
 
   // I really feel like not simplifying here improves readability.
   @SuppressWarnings({"RedundantIfStatement", "PMD.SimplifyBooleanReturns"})
-  private boolean isEnoughFreeNodesAfterGc(final int freeNodesCount, final int nodeCount) {
+  private boolean isEnoughFreeNodesAfterGc(int freeNodesCount, int nodeCount) {
     if (freeNodesCount > configuration.minimumFreeNodeCountAfterGc()) {
       return true;
     }
@@ -746,7 +745,7 @@ class NodeTable {
    *
    * @return If {@code node} is a root node.
    */
-  public final boolean isNodeRoot(final int node) {
+  public final boolean isNodeRoot(int node) {
     assert 0 <= node && node < getTableSize();
     return node <= 1;
   }
@@ -762,12 +761,12 @@ class NodeTable {
    *
    * @see #saturateNode(int)
    */
-  public final boolean isNodeSaturated(final int node) {
+  public final boolean isNodeSaturated(int node) {
     assert isNodeValidOrRoot(node);
     return isStoreSaturated(referenceStorage[node]);
   }
 
-  public final boolean isNodeValid(final int node) {
+  public final boolean isNodeValid(int node) {
     assert 0 <= node && node < getTableSize();
     return 2 <= node && node <= biggestValidNode && isValidNodeStore(nodeStorage[node]);
   }
@@ -783,7 +782,7 @@ class NodeTable {
    *
    * @see #isNodeRoot(int)
    */
-  public final boolean isNodeValidOrRoot(final int node) {
+  public final boolean isNodeValidOrRoot(int node) {
     assert 0 <= node && node < getTableSize() : node + " invalid";
     return node <= biggestValidNode && (isNodeRoot(node) || isValidNodeStore(nodeStorage[node]));
   }
@@ -806,12 +805,12 @@ class NodeTable {
     return workStackTos == 0;
   }
 
-  final int makeNode(final int variable, final int low, final int high) {
+  final int makeNode(int variable, int low, int high) {
     if (low == high) {
       return low;
     }
 
-    final long nodeStore = buildNodeStore((long) variable, (long) low, (long) high);
+    long nodeStore = buildNodeStore((long) variable, (long) low, (long) high);
     int hash = hashNodeStore(nodeStore);
     int currentLookupNode = (int) getChainStartFromStore(referenceStorage[hash]);
     assert currentLookupNode < getTableSize() : "Invalid previous entry for " + hash;
@@ -821,7 +820,7 @@ class NodeTable {
       if (nodeStoresEqual(nodeStore, nodeStorage[currentLookupNode])) {
         return currentLookupNode;
       }
-      final long currentLookupNodeReferenceStore = referenceStorage[currentLookupNode];
+      long currentLookupNodeReferenceStore = referenceStorage[currentLookupNode];
       assert (int) getNextChainEntryFromStore(currentLookupNodeReferenceStore) != currentLookupNode;
       currentLookupNode = (int) getNextChainEntryFromStore(currentLookupNodeReferenceStore);
     }
@@ -838,7 +837,7 @@ class NodeTable {
     }
 
     // Take next free node
-    final int freeNode = firstFreeNode;
+    int freeNode = firstFreeNode;
     firstFreeNode = (int) getNextChainEntryFromStore(referenceStorage[firstFreeNode]);
     assert firstFreeNode < nodeStorage.length;
     freeNodeCount--;
@@ -852,26 +851,26 @@ class NodeTable {
     return freeNode;
   }
 
-  private void markAllOnStack(final int topOfMarkStack) {
-    int currentTopOfStack = topOfMarkStack;
+  private void markAllOnStack(int topOfMarkStack) {
     /* The algorithm does not descend into trees whose root is marked, hence at the start of the
      * algorithm, there must be no marks in the tree to ensure correctness. */
     assert isNoneMarked();
+    int currentTopOfStack = topOfMarkStack;
     for (int i = 0; i < currentTopOfStack; i++) {
-      final int node = markStack[i];
+      int node = markStack[i];
       nodeStorage[node] = setMarkInStore(nodeStorage[node]);
     }
 
     ensureMarkStackSize(currentTopOfStack + getMarkStackSizeForTreeSize(treeSize));
     while (currentTopOfStack > 0) {
       currentTopOfStack -= 1;
-      final int currentNode = markStack[currentTopOfStack];
-      final long currentNodeStore = nodeStorage[currentNode];
+      int currentNode = markStack[currentTopOfStack];
+      long currentNodeStore = nodeStorage[currentNode];
       assert !isNodeRoot(currentNode) && isNodeStoreMarked(currentNodeStore);
 
-      final int low = (int) getLowFromStore(currentNodeStore);
+      int low = (int) getLowFromStore(currentNodeStore);
       if (low > 1) {
-        final long lowStore = nodeStorage[low];
+        long lowStore = nodeStorage[low];
         if (!isNodeStoreMarked(lowStore)) {
           nodeStorage[low] = setMarkInStore(lowStore);
           markStack[currentTopOfStack] = low;
@@ -879,9 +878,9 @@ class NodeTable {
         }
       }
 
-      final int high = (int) getHighFromStore(currentNodeStore);
+      int high = (int) getHighFromStore(currentNodeStore);
       if (high > 1) {
-        final long highStore = nodeStorage[high];
+        long highStore = nodeStorage[high];
         if (!isNodeStoreMarked(highStore)) {
           nodeStorage[high] = setMarkInStore(highStore);
           markStack[currentTopOfStack] = high;
@@ -891,7 +890,7 @@ class NodeTable {
     }
   }
 
-  final void markNode(final int node) {
+  final void markNode(int node) {
     assert isNodeValid(node);
     nodeStorage[node] = setMarkInStore(nodeStorage[node]);
   }
@@ -904,10 +903,10 @@ class NodeTable {
    *
    * @return The number of non-root nodes below {@code node}.
    */
-  public final int nodeCount(final int node) {
+  public final int nodeCount(int node) {
     assert isNodeValidOrRoot(node);
     assert isNoneMarked();
-    final int result = nodeCountRecursive(node);
+    int result = nodeCountRecursive(node);
     if (result > 0) {
       unMarkTree(node);
     }
@@ -918,8 +917,9 @@ class NodeTable {
   /**
    * Counts the number of active nodes in the BDD (i.e. the ones which are not invalid),
    * <b>excluding</b> the root nodes.
-   * </p>
+   * <p>
    * Note that this operation is somewhat expensive.
+   * </p>
    *
    * @return Number of active nodes.
    */
@@ -929,9 +929,9 @@ class NodeTable {
     assert isNoneMarked();
     int topOfStack = 0;
     for (int i = 2; i < getTableSize(); i++) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (isValidNodeStore(nodeStore)) {
-        final long referenceStore = referenceStorage[i];
+        long referenceStore = referenceStorage[i];
         if (isStoreSaturated(referenceStore) || getReferenceCountFromStore(referenceStore) > 0L) {
           ensureMarkStackSize(topOfStack);
           markStack[topOfStack] = i;
@@ -942,9 +942,9 @@ class NodeTable {
     markAllOnStack(topOfStack);
     int count = 0;
     for (int i = 2; i < getTableSize(); i++) {
-      final long nodeStore = nodeStorage[i];
+      long nodeStore = nodeStorage[i];
       if (isValidNodeStore(nodeStore)) {
-        final long unmarkedNodeStore = unsetMarkInStore(nodeStore);
+        long unmarkedNodeStore = unsetMarkInStore(nodeStore);
         if (nodeStore != unmarkedNodeStore) { // Node was marked
           count++;
           nodeStorage[i] = unmarkedNodeStore;
@@ -955,11 +955,11 @@ class NodeTable {
     return count;
   }
 
-  private int nodeCountRecursive(final int node) {
+  private int nodeCountRecursive(int node) {
     if (isNodeRoot(node)) {
       return 0;
     }
-    final long bddStore = nodeStorage[node];
+    long bddStore = nodeStorage[node];
     if (isNodeStoreMarked(bddStore)) {
       // This node has already been counted
       return 0;
@@ -969,13 +969,13 @@ class NodeTable {
       (int) getHighFromStore(bddStore));
   }
 
-  final String nodeToString(final int node) {
-    final long nodeStore = nodeStorage[node];
+  final String nodeToString(int node) {
+    long nodeStore = nodeStorage[node];
     if (!isValidNodeStore(nodeStore)) {
       return String.format("%5d| == INVALID ==", node);
     }
-    final long referenceStore = referenceStorage[node];
-    final String referenceCountString;
+    long referenceStore = referenceStorage[node];
+    String referenceCountString;
     if (isStoreSaturated(referenceStore)) {
       referenceCountString = "SAT";
     } else {
@@ -985,7 +985,7 @@ class NodeTable {
       getLowFromStore(nodeStore), getHighFromStore(nodeStore), referenceCountString);
   }
 
-  final NodeToStringSupplier nodeToStringSupplier(final int node) {
+  final NodeToStringSupplier nodeToStringSupplier(int node) {
     return new NodeToStringSupplier(this, node);
   }
 
@@ -1013,7 +1013,7 @@ class NodeTable {
    *
    * @see #pushToWorkStack(int)
    */
-  final void popWorkStack(final int amount) {
+  final void popWorkStack(int amount) {
     assert workStackTos >= amount;
     workStackTos -= amount;
   }
@@ -1030,7 +1030,7 @@ class NodeTable {
    *
    * @see #popWorkStack(int)
    */
-  final int pushToWorkStack(final int node) {
+  final int pushToWorkStack(int node) {
     assert isNodeValidOrRoot(node);
     ensureWorkStackSize(workStackTos);
     workStack[workStackTos] = node;
@@ -1038,9 +1038,9 @@ class NodeTable {
     return node;
   }
 
-  public final int reference(final int node) {
+  public final int reference(int node) {
     assert isNodeValidOrRoot(node);
-    final long referenceStore = referenceStorage[node];
+    long referenceStore = referenceStorage[node];
     if (isStoreSaturated(referenceStore)) {
       return node;
     }
@@ -1075,7 +1075,7 @@ class NodeTable {
     return count;
   }
 
-  final void saturateNode(final int node) {
+  final void saturateNode(int node) {
     assert isNodeValidOrRoot(node);
     if (node > biggestReferencedNode) {
       biggestReferencedNode = node;
@@ -1091,25 +1091,24 @@ class NodeTable {
    *
    * @return A string representing the given node.
    */
-  public final String treeToString(final int node) {
+  public final String treeToString(int node) {
     assert isNodeValidOrRoot(node);
     assert isNoneMarked();
     if (isNodeRoot(node)) {
-      return "Node " + node + "\n";
+      return String.format("Node %d%n", node);
     }
-    @SuppressWarnings("PMD.ConsecutiveLiteralAppends")
-    final StringBuilder builder = new StringBuilder(50).append("Node ").append(node).append('\n')
+    StringBuilder builder = new StringBuilder(50).append("Node ").append(node).append('\n')
       .append("  NODE|VAR| LOW | HIGH|REF\n");
     treeToStringRecursive(node, builder);
     unMarkTree(node);
     return builder.toString();
   }
 
-  private void treeToStringRecursive(final int node, final StringBuilder builder) {
+  private void treeToStringRecursive(int node, StringBuilder builder) {
     if (isNodeRoot(node)) {
       return;
     }
-    final long nodeStore = nodeStorage[node];
+    long nodeStore = nodeStorage[node];
     if (isNodeStoreMarked(nodeStore)) {
       return;
     }
@@ -1126,18 +1125,18 @@ class NodeTable {
    * @param node
    *     The node whose descendants should be unmarked.
    */
-  final void unMarkTree(final int node) {
+  final void unMarkTree(int node) {
     assert isNodeValidOrRoot(node);
     unMarkTreeRecursive(node);
     assert isNoneMarked();
   }
 
-  private void unMarkTreeRecursive(final int node) {
+  private void unMarkTreeRecursive(int node) {
     if (isNodeRoot(node)) {
       return;
     }
 
-    final long nodeStore = nodeStorage[node];
+    long nodeStore = nodeStorage[node];
     if (!isNodeStoreMarked(nodeStore)) {
       return;
     }
@@ -1151,7 +1150,7 @@ class NodeTable {
     private final int node;
     private final NodeTable table;
 
-    public NodeToStringSupplier(final NodeTable table, final int node) {
+    public NodeToStringSupplier(NodeTable table, int node) {
       this.table = table;
       this.node = node;
     }

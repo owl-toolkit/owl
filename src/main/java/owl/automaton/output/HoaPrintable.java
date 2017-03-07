@@ -19,6 +19,7 @@ package owl.automaton.output;
 
 import java.util.EnumSet;
 import java.util.List;
+import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 
 public interface HoaPrintable {
@@ -28,6 +29,11 @@ public interface HoaPrintable {
 
   default void toHoa(HOAConsumer consumer) {
     toHoa(consumer, EnumSet.noneOf(Option.class));
+  }
+
+  @Nullable
+  default String getName() {
+    return null;
   }
 
   enum Option {

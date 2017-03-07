@@ -14,45 +14,45 @@ import owl.factories.jdd.bdd.SyntaxTree.SyntaxTreeBinaryOperation.BinaryType;
 /**
  * Utility class used to represent propositional formulae.
  */
-@SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject", "QuestionableName", "unused",
+@SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject", "unused",
                     "WeakerAccess", "PMD.GodClass", "checkstyle:javadoc"})
 // TODO Add a "toBddNode(BDD bdd)" method
 final class SyntaxTree {
   private final SyntaxTreeNode rootNode;
   private final Map<BitSet, Boolean> valuationCache = new HashMap<>();
 
-  SyntaxTree(final SyntaxTreeNode rootNode) {
+  SyntaxTree(SyntaxTreeNode rootNode) {
     this.rootNode = rootNode;
   }
 
-  static SyntaxTree and(final SyntaxTree left, final SyntaxTree right) {
+  static SyntaxTree and(SyntaxTree left, SyntaxTree right) {
     return new SyntaxTree(new SyntaxTreeBinaryOperation(left.getRootNode(), right.getRootNode(),
       BinaryType.AND));
   }
 
-  static SyntaxTree buildReplacementTree(final SyntaxTree base,
-    final Int2ObjectMap<SyntaxTree> replacements) {
+  static SyntaxTree buildReplacementTree(SyntaxTree base,
+    Int2ObjectMap<SyntaxTree> replacements) {
     return new SyntaxTree(buildReplacementTreeRecursive(base.rootNode, replacements));
   }
 
-  private static SyntaxTreeNode buildReplacementTreeRecursive(final SyntaxTreeNode currentNode,
-    final Int2ObjectMap<SyntaxTree> replacements) {
+  private static SyntaxTreeNode buildReplacementTreeRecursive(SyntaxTreeNode currentNode,
+    Int2ObjectMap<SyntaxTree> replacements) {
     if (currentNode instanceof SyntaxTreeConstant) {
       return currentNode;
     }
     if (currentNode instanceof SyntaxTreeLiteral) {
-      final int variableNumber = ((SyntaxTreeLiteral) currentNode).getVariableNumber();
+      int variableNumber = ((SyntaxTreeLiteral) currentNode).getVariableNumber();
       if (replacements.containsKey(variableNumber)) {
         return replacements.get(variableNumber).rootNode;
       }
       return currentNode;
     }
     if (currentNode instanceof SyntaxTreeNot) {
-      final SyntaxTreeNot unaryNode = (SyntaxTreeNot) currentNode;
+      SyntaxTreeNot unaryNode = (SyntaxTreeNot) currentNode;
       return new SyntaxTreeNot(buildReplacementTreeRecursive(unaryNode.child, replacements));
     }
     if (currentNode instanceof SyntaxTreeBinaryOperation) {
-      final SyntaxTreeBinaryOperation binaryNode = (SyntaxTreeBinaryOperation) currentNode;
+      SyntaxTreeBinaryOperation binaryNode = (SyntaxTreeBinaryOperation) currentNode;
       return new SyntaxTreeBinaryOperation(
         buildReplacementTreeRecursive(binaryNode.getLeft(), replacements),
         buildReplacementTreeRecursive(binaryNode.getRight(), replacements),
@@ -60,7 +60,7 @@ final class SyntaxTree {
       );
     }
     if (currentNode instanceof SyntaxTreeTernaryOperation) {
-      final SyntaxTreeTernaryOperation ternaryNode = (SyntaxTreeTernaryOperation) currentNode;
+      SyntaxTreeTernaryOperation ternaryNode = (SyntaxTreeTernaryOperation) currentNode;
       return new SyntaxTreeTernaryOperation(
         buildReplacementTreeRecursive(ternaryNode.getFirst(), replacements),
         buildReplacementTreeRecursive(ternaryNode.getSecond(), replacements),
@@ -71,46 +71,46 @@ final class SyntaxTree {
     throw new IllegalArgumentException("Unknown type " + currentNode.getClass().getSimpleName());
   }
 
-  static SyntaxTree constant(final boolean value) {
+  static SyntaxTree constant(boolean value) {
     return new SyntaxTree(new SyntaxTreeConstant(value));
   }
 
-  static SyntaxTree equivalence(final SyntaxTree left, final SyntaxTree right) {
+  static SyntaxTree equivalence(SyntaxTree left, SyntaxTree right) {
     return new SyntaxTree(new SyntaxTreeBinaryOperation(left.getRootNode(), right.getRootNode(),
       BinaryType.EQUIVALENCE));
   }
 
-  static SyntaxTree ifThenElse(final SyntaxTree first, final SyntaxTree second,
-    final SyntaxTree third) {
+  static SyntaxTree ifThenElse(SyntaxTree first, SyntaxTree second,
+    SyntaxTree third) {
     return new SyntaxTree(new SyntaxTreeTernaryOperation(first.getRootNode(), second.getRootNode(),
       third.getRootNode(), ITE));
   }
 
-  static SyntaxTree implication(final SyntaxTree left, final SyntaxTree right) {
+  static SyntaxTree implication(SyntaxTree left, SyntaxTree right) {
     return new SyntaxTree(new SyntaxTreeBinaryOperation(left.getRootNode(), right.getRootNode(),
       BinaryType.IMPLICATION));
   }
 
-  static SyntaxTree literal(final int variableNumber) {
+  static SyntaxTree literal(int variableNumber) {
     return new SyntaxTree(new SyntaxTreeLiteral(variableNumber));
   }
 
-  static SyntaxTree not(final SyntaxTree tree) {
+  static SyntaxTree not(SyntaxTree tree) {
     return new SyntaxTree(new SyntaxTreeNot(tree.getRootNode()));
   }
 
-  static SyntaxTree or(final SyntaxTree left, final SyntaxTree right) {
+  static SyntaxTree or(SyntaxTree left, SyntaxTree right) {
     return new SyntaxTree(new SyntaxTreeBinaryOperation(left.getRootNode(), right.getRootNode(),
       BinaryType.OR));
   }
 
-  static SyntaxTree xor(final SyntaxTree left, final SyntaxTree right) {
+  static SyntaxTree xor(SyntaxTree left, SyntaxTree right) {
     return new SyntaxTree(
       new SyntaxTreeBinaryOperation(left.getRootNode(), right.getRootNode(), BinaryType.XOR));
   }
 
   public IntSet containedVariables() {
-    final IntSet set = new IntOpenHashSet();
+    IntSet set = new IntOpenHashSet();
     rootNode.gatherVariables(set);
     return set;
   }
@@ -120,18 +120,18 @@ final class SyntaxTree {
   }
 
   @Override
-  public boolean equals(final Object object) {
+  public boolean equals(Object object) {
     if (this == object) {
       return true;
     }
     if (!(object instanceof SyntaxTree)) {
       return false;
     }
-    final SyntaxTree that = (SyntaxTree) object;
+    SyntaxTree that = (SyntaxTree) object;
     return Objects.equals(rootNode, that.rootNode);
   }
 
-  boolean evaluate(final BitSet valuation) {
+  boolean evaluate(BitSet valuation) {
     return valuationCache.computeIfAbsent(valuation, k -> rootNode.evaluate(valuation));
   }
 
@@ -154,8 +154,8 @@ final class SyntaxTree {
     private final SyntaxTreeNode right;
     private final BinaryType type;
 
-    SyntaxTreeBinaryOperation(final SyntaxTreeNode left, final SyntaxTreeNode right,
-      final BinaryType type) {
+    SyntaxTreeBinaryOperation(SyntaxTreeNode left, SyntaxTreeNode right,
+      BinaryType type) {
       super();
       this.left = left;
       this.right = right;
@@ -168,20 +168,20 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public boolean equals(Object object) {
       if (this == object) {
         return true;
       }
       if (!(object instanceof SyntaxTreeBinaryOperation)) {
         return false;
       }
-      final SyntaxTreeBinaryOperation that = (SyntaxTreeBinaryOperation) object;
+      SyntaxTreeBinaryOperation that = (SyntaxTreeBinaryOperation) object;
       return type == that.type && Objects.equals(left, that.left)
         && Objects.equals(right, that.right);
     }
 
     @Override
-    boolean evaluate(final BitSet valuation) {
+    boolean evaluate(BitSet valuation) {
       switch (type) {
         case AND:
           return left.evaluate(valuation) && right.evaluate(valuation);
@@ -199,7 +199,7 @@ final class SyntaxTree {
     }
 
     @Override
-    public void gatherVariables(final IntSet set) {
+    public void gatherVariables(IntSet set) {
       left.gatherVariables(set);
       right.gatherVariables(set);
     }
@@ -217,7 +217,7 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean hasVariable(final int number) {
+    public boolean hasVariable(int number) {
       return left.hasVariable(number) || right.hasVariable(number);
     }
 
@@ -239,7 +239,7 @@ final class SyntaxTree {
   static final class SyntaxTreeConstant extends SyntaxTreeNode {
     private final boolean value;
 
-    SyntaxTreeConstant(final boolean value) {
+    SyntaxTreeConstant(boolean value) {
       super();
       this.value = value;
     }
@@ -250,29 +250,29 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public boolean equals(Object object) {
       if (this == object) {
         return true;
       }
       if (!(object instanceof SyntaxTreeConstant)) {
         return false;
       }
-      final SyntaxTreeConstant that = (SyntaxTreeConstant) object;
+      SyntaxTreeConstant that = (SyntaxTreeConstant) object;
       return value == that.value;
     }
 
     @Override
-    boolean evaluate(final BitSet valuation) {
+    boolean evaluate(BitSet valuation) {
       return value;
     }
 
     @Override
-    public void gatherVariables(final IntSet set) {
+    public void gatherVariables(IntSet set) {
       // No variables in this leaf
     }
 
     @Override
-    public boolean hasVariable(final int number) {
+    public boolean hasVariable(int number) {
       return false;
     }
 
@@ -290,7 +290,7 @@ final class SyntaxTree {
   static final class SyntaxTreeLiteral extends SyntaxTreeNode {
     private final int variableNumber;
 
-    SyntaxTreeLiteral(final int variableNumber) {
+    SyntaxTreeLiteral(int variableNumber) {
       super();
       this.variableNumber = variableNumber;
     }
@@ -301,24 +301,24 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public boolean equals(Object object) {
       if (this == object) {
         return true;
       }
       if (!(object instanceof SyntaxTreeLiteral)) {
         return false;
       }
-      final SyntaxTreeLiteral that = (SyntaxTreeLiteral) object;
+      SyntaxTreeLiteral that = (SyntaxTreeLiteral) object;
       return variableNumber == that.variableNumber;
     }
 
     @Override
-    boolean evaluate(final BitSet valuation) {
+    boolean evaluate(BitSet valuation) {
       return valuation.get(variableNumber);
     }
 
     @Override
-    public void gatherVariables(final IntSet set) {
+    public void gatherVariables(IntSet set) {
       set.add(variableNumber);
     }
 
@@ -327,7 +327,7 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean hasVariable(final int number) {
+    public boolean hasVariable(int number) {
       return variableNumber == number;
     }
 
@@ -355,7 +355,7 @@ final class SyntaxTree {
   static final class SyntaxTreeNot extends SyntaxTreeNode {
     private final SyntaxTreeNode child;
 
-    SyntaxTreeNot(final SyntaxTreeNode child) {
+    SyntaxTreeNot(SyntaxTreeNode child) {
       super();
       this.child = child;
     }
@@ -367,24 +367,24 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public boolean equals(Object object) {
       if (this == object) {
         return true;
       }
       if (!(object instanceof SyntaxTreeNot)) {
         return false;
       }
-      final SyntaxTreeNot that = (SyntaxTreeNot) object;
+      SyntaxTreeNot that = (SyntaxTreeNot) object;
       return Objects.equals(child, that.child);
     }
 
     @Override
-    boolean evaluate(final BitSet valuation) {
+    boolean evaluate(BitSet valuation) {
       return !child.evaluate(valuation);
     }
 
     @Override
-    public void gatherVariables(final IntSet set) {
+    public void gatherVariables(IntSet set) {
       child.gatherVariables(set);
     }
 
@@ -393,7 +393,7 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean hasVariable(final int number) {
+    public boolean hasVariable(int number) {
       return child.hasVariable(number);
     }
 
@@ -414,8 +414,8 @@ final class SyntaxTree {
     private final SyntaxTreeNode third;
     private final TernaryType type;
 
-    SyntaxTreeTernaryOperation(final SyntaxTreeNode first, final SyntaxTreeNode second,
-      final SyntaxTreeNode third, final TernaryType type) {
+    SyntaxTreeTernaryOperation(SyntaxTreeNode first, SyntaxTreeNode second,
+      SyntaxTreeNode third, TernaryType type) {
       super();
       this.first = first;
       this.second = second;
@@ -429,20 +429,20 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public boolean equals(Object object) {
       if (this == object) {
         return true;
       }
       if (!(object instanceof SyntaxTreeTernaryOperation)) {
         return false;
       }
-      final SyntaxTreeTernaryOperation that = (SyntaxTreeTernaryOperation) object;
+      SyntaxTreeTernaryOperation that = (SyntaxTreeTernaryOperation) object;
       return type == that.type && Objects.equals(first, that.first)
         && Objects.equals(second, that.second) && Objects.equals(third, that.third);
     }
 
     @Override
-    boolean evaluate(final BitSet valuation) {
+    boolean evaluate(BitSet valuation) {
       if (type == ITE) {
         if (first.evaluate(valuation)) {
           return second.evaluate(valuation);
@@ -454,7 +454,7 @@ final class SyntaxTree {
     }
 
     @Override
-    public void gatherVariables(final IntSet set) {
+    public void gatherVariables(IntSet set) {
       first.gatherVariables(set);
       second.gatherVariables(set);
       third.gatherVariables(set);
@@ -477,7 +477,7 @@ final class SyntaxTree {
     }
 
     @Override
-    public boolean hasVariable(final int number) {
+    public boolean hasVariable(int number) {
       return first.hasVariable(number) || second.hasVariable(number) || third.hasVariable(number);
     }
 

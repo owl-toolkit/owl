@@ -31,12 +31,12 @@ public final class TlsfParser {
   private TlsfParser() {
   }
 
-  public static Tlsf parse(String input) throws ParseException {
+  public static Tlsf parse(String input) throws ParserException {
     return parse(new ANTLRInputStream(input));
   }
 
   @SuppressWarnings("PMD.ConfusingTernary")
-  private static Tlsf parse(ANTLRInputStream stream) throws ParseException {
+  private static Tlsf parse(ANTLRInputStream stream) throws ParserException {
     final TLSFLexer lexer = new TLSFLexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
     final CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -47,7 +47,7 @@ public final class TlsfParser {
     try {
       tree = parser.tlsf();
     } catch (ParseCancellationException e) {
-      throw new ParseException(e);
+      throw new ParserException(e);
     }
 
     final Builder builder = ImmutableTlsf.builder();
@@ -65,7 +65,7 @@ public final class TlsfParser {
     } else if (semantics.MOORE_STRICT() != null) {
       builder.semantics(Semantics.MOORE_STRICT);
     } else {
-      throw new ParseException("Unknown semantics");
+      throw new ParserException("Unknown semantics");
     }
     final TargetContext target = tree.target();
     if (target.MEALY() != null) {
@@ -73,7 +73,7 @@ public final class TlsfParser {
     } else if (target.MOORE() != null) {
       builder.target(Semantics.MOORE);
     } else {
-      throw new ParseException("Unknown semantics");
+      throw new ParserException("Unknown semantics");
     }
 
     // Input / output
@@ -124,7 +124,7 @@ public final class TlsfParser {
       } else if (specificationContext.GUARANTEE() != null) {
         guarantee.add(formula);
       } else {
-        throw new ParseException("Unknown specification type");
+        throw new ParserException("Unknown specification type");
       }
     }
     if (!initial.isEmpty()) {
@@ -155,7 +155,7 @@ public final class TlsfParser {
     return builder.build();
   }
 
-  public static Tlsf parse(InputStream input) throws IOException, ParseException {
+  public static Tlsf parse(InputStream input) throws IOException, ParserException {
     return parse(new ANTLRInputStream(input));
   }
 }

@@ -17,8 +17,8 @@
 
 package owl.automaton.edge;
 
-import java.util.Objects;
 import java.util.PrimitiveIterator;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -28,12 +28,12 @@ public final class EdgeSingleton<S> implements Edge<S> {
   private final int acceptance;
   private final S successor;
 
-  EdgeSingleton(final S successor) {
+  EdgeSingleton(S successor) {
     this.acceptance = EMPTY_ACCEPTANCE;
     this.successor = successor;
   }
 
-  EdgeSingleton(final S successor, @Nonnegative final int acceptance) {
+  EdgeSingleton(S successor, @Nonnegative int acceptance) {
     assert acceptance >= 0;
     this.successor = successor;
     this.acceptance = acceptance;
@@ -45,7 +45,16 @@ public final class EdgeSingleton<S> implements Edge<S> {
   }
 
   @Override
-  public boolean equals(final Object o) {
+  public IntStream acceptanceSetStream() {
+    if (acceptance == EMPTY_ACCEPTANCE) {
+      return IntStream.empty();
+    }
+
+    return IntStream.of(acceptance);
+  }
+
+  @Override
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -55,9 +64,9 @@ public final class EdgeSingleton<S> implements Edge<S> {
       return false;
     }
 
-    final EdgeSingleton other = (EdgeSingleton) o;
-    return Objects.equals(this.acceptance, other.acceptance)
-      && Objects.equals(this.successor, other.successor);
+    EdgeSingleton<?> other = (EdgeSingleton<?>) o;
+    return this.acceptance == other.acceptance
+      && this.successor == other.successor;
   }
 
   public int getAcceptance() {
@@ -71,11 +80,12 @@ public final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public int hashCode() {
+    // Not using Objects.hash to avoid var-ags array instantiation
     return 31 * (31 + successor.hashCode()) + acceptance;
   }
 
   @Override
-  public boolean inSet(@Nonnegative final int i) {
+  public boolean inSet(@Nonnegative int i) {
     assert i >= 0;
     return i == acceptance;
   }

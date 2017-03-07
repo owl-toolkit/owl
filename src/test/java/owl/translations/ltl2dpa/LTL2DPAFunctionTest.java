@@ -31,12 +31,12 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 import owl.translations.Optimisation;
 
 public class LTL2DPAFunctionTest {
 
-  private static void testOutput(String ltl, int size, int accSize) throws ParseException {
+  private static void testOutput(String ltl, int size, int accSize) throws ParserException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.PARALLEL);
     LtlParseResult parseResult = LtlParser.parse(ltl);
@@ -55,21 +55,21 @@ public class LTL2DPAFunctionTest {
   }
 
   @Test
-  public void testRegression1() throws ParseException {
+  public void testRegression1() throws ParserException {
     String ltl = "G (F (a & (a U b)))";
     testOutput(ltl, 2, 2);
     testOutput("! " + ltl, 2, 4);
   }
 
   @Test
-  public void testRegression2() throws ParseException {
+  public void testRegression2() throws ParserException {
     String ltl = "G (F (a & X (F b)))";
     testOutput(ltl, 2, 2);
     testOutput("! " + ltl, 2, 2);
   }
 
   @Test
-  public void testRegression3() throws ParseException {
+  public void testRegression3() throws ParserException {
     String ltl = "F ((a | (G b)) & (c | (G d)) & (e | (G f)))";
     testOutput(ltl, 32, 2);
   }

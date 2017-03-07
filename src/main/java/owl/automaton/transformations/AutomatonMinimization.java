@@ -17,54 +17,99 @@
 
 package owl.automaton.transformations;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 
 public final class AutomatonMinimization {
-
   private AutomatonMinimization() {
   }
 
   private static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
+    assert automaton.getStates().containsAll(trap);
     return trap.stream().allMatch(s -> trap.containsAll(automaton.getSuccessors(s)));
   }
 
   /**
-   * Remove states from the automaton, that are unreachable from the set of protected states or
+   * Remove states from the automaton which are unreachable from the set of initial states or
    * that cannot belong to an infinite accepting path.
    *
-   * @param protectedStates
-   *     the set of states that are the initial states for a reachability analysis
+   * @param automaton
+   *     The automaton considered by the analysis.
    *
+   * @see #removeDeadStates(MutableAutomaton, Set, Consumer)
+   */
+  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
+    removeDeadStates(automaton, automaton.getInitialStates(), s -> {
+    });
+  }
+
+  /**
+   * Remove states from the automaton which are unreachable from the set of initial states or
+   * that cannot belong to an infinite accepting path.
+   *
+   * @param automaton
+   *     The automaton considered by the analysis.
+   * @param initialStates
+   *     The set of states that are the initial states for the reachability analysis. Required to be
+   *     part of the automaton.
+   *
+   * @see #removeDeadStates(MutableAutomaton, Set, Consumer)
+   */
+  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton, Set<S> initialStates) {
+    removeDeadStates(automaton, initialStates, s -> {
+    });
+  }
+
+  /**
+   * Remove states from the automaton which are unreachable from the set of initial states or
+   * that cannot belong to an infinite accepting path.
+   *
+   * @param automaton
+   *     The automaton considered by the analysis.
+   * @param initialStates
+   *     The set of states that are the initial states for the reachability analysis. Required to be
+   *     part of the automaton.
+   * @param removedStatesConsumer
+   *     A consumer called exactly once for each state removed from the automaton in no particular
+   *     order.
+   *
+   * @see owl.automaton.acceptance.OmegaAcceptance#containsAcceptingRun(Set,
+   * java.util.function.Function)
    */
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
-    Set<S> protectedStates) {
-    automaton.removeUnreachableStates(protectedStates);
+    Set<S> initialStates, Consumer<S> removedStatesConsumer) {
+    assert automaton.containsStates(initialStates) :
+      String.format("States %s not part of the automaton",
+        Sets.filter(initialStates, state -> !automaton.containsState(state)));
+
+    automaton.removeUnreachableStates(initialStates, removedStatesConsumer);
 
     // We start from the bottom of the condensation graph.
-    List<Set<S>> sccs = Lists.reverse(SccAnalyser.computeSccs(automaton));
+    List<Set<S>> sccs =
+      Lists.reverse(SccAnalyser.computeSccs(initialStates, automaton::getSuccessors));
 
     for (Set<S> scc : sccs) {
-      // The SCC contains protected states.
-      if (!Sets.intersection(scc, protectedStates).isEmpty()) {
+      if (!Collections.disjoint(scc, initialStates)) {
+        // The SCC contains protected states.
         continue;
       }
 
-      // The SCC is not a BSCC.
       if (!isTrap(automaton, scc)) {
+        // The SCC is not a BSCC.
         continue;
       }
 
-      // The SCC is rejecting.
-      if (!automaton.getAcceptance().isAccepting(scc, x ->
-        Iterables.transform(automaton.getLabelledEdges(x), y -> y.edge))) {
+      // There are no accepting runs.
+      if (!automaton.getAcceptance().containsAcceptingRun(scc, automaton::getEdges)) {
         automaton.removeStates(scc);
+        scc.forEach(removedStatesConsumer);
       }
     }
   }

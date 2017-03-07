@@ -29,7 +29,7 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 
 @RunWith(Theories.class)
 public class FormulaTest {
@@ -57,7 +57,7 @@ public class FormulaTest {
         parser.parseLtl("a U b"),
         parser.parseLtl("a R b")
       );
-    } catch (ParseException ex) {
+    } catch (ParserException ex) {
       throw new AssertionError(ex);
     }
   }

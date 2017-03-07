@@ -30,7 +30,7 @@ import owl.factories.jdd.bdd.Bdd;
 import owl.factories.jdd.bdd.BddFactory;
 import owl.ltl.Literal;
 
-public class ValuationFactory implements ValuationSetFactory {
+public final class ValuationFactory implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
   private final Bdd factory;
@@ -149,7 +149,7 @@ public class ValuationFactory implements ValuationSetFactory {
     return factory.numberOfVariables();
   }
 
-  private class BddValuationSet implements ValuationSet {
+  private final class BddValuationSet implements ValuationSet {
     static final int INVALID_BDD = -1;
     private int bdd;
 
@@ -158,15 +158,15 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void add(BitSet set) {
-      int bddSet = createBdd(set);
+    public void add(BitSet valuation) {
+      int bddSet = createBdd(valuation);
       bdd = factory.consume(factory.or(bdd, bddSet), bdd, bddSet);
     }
 
     @Override
-    public void addAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-      BddValuationSet otherSet = (BddValuationSet) other;
+    public void addAll(ValuationSet newVs) {
+      assert newVs instanceof BddValuationSet;
+      BddValuationSet otherSet = (BddValuationSet) newVs;
       bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
     }
 
@@ -181,9 +181,9 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public boolean containsAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-      BddValuationSet otherSet = (BddValuationSet) other;
+    public boolean containsAll(ValuationSet vs) {
+      assert vs instanceof BddValuationSet;
+      BddValuationSet otherSet = (BddValuationSet) vs;
       return factory.implies(otherSet.bdd, bdd);
     }
 
@@ -218,15 +218,15 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public ValuationSet intersect(ValuationSet other) {
+    public ValuationSet intersect(ValuationSet v2) {
       ValuationSet thisClone = this.copy();
-      thisClone.retainAll(other);
+      thisClone.retainAll(v2);
       return thisClone;
     }
 
     @Override
-    public boolean intersects(ValuationSet other) {
-      return !intersect(other).isEmpty();
+    public boolean intersects(ValuationSet value) {
+      return !intersect(value).isEmpty();
     }
 
     @Override
@@ -266,7 +266,7 @@ public class ValuationFactory implements ValuationSetFactory {
 
     @Override
     public int size() {
-      return (int) Math.round(factory.countSatisfyingAssignments(bdd));
+      return Math.toIntExact(Math.round(factory.countSatisfyingAssignments(bdd)));
     }
 
     @Override

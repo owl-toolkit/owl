@@ -59,8 +59,9 @@ public interface Bdd {
 
   /**
    * Counts the number of satisfying assignments for the function represented by this node.
-   * </p>
+   * <p>
    * <b>Warning:</b> Floating-point overflow easily possible for complex functions!
+   * </p>
    */
   double countSatisfyingAssignments(int node);
 
@@ -125,7 +126,7 @@ public interface Bdd {
    *
    * @return The node representing the quantification.
    */
-  int exists(final int node, BitSet quantifiedVariables);
+  int exists(int node, BitSet quantifiedVariables);
 
   /**
    * Returns the node representing <tt>false</tt>.
@@ -329,7 +330,7 @@ public interface Bdd {
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
    * the support of {@code node}.
    */
-  default BitSet support(final int node) {
+  default BitSet support(int node) {
     return support(node, numberOfVariables());
   }
 
@@ -343,7 +344,7 @@ public interface Bdd {
    * @return A bit set where a bit at position {@code i} is set iff the {@code i}-th variable is in
    * the support of {@code node}.
    */
-  default BitSet support(final int node, final int highestVariable) {
+  default BitSet support(int node, int highestVariable) {
     BitSet bitSet = new BitSet(highestVariable);
     support(node, bitSet, highestVariable);
     return bitSet;
@@ -359,7 +360,7 @@ public interface Bdd {
    *
    * @see #support(int)
    */
-  default void support(final int node, final BitSet bitSet) {
+  default void support(int node, BitSet bitSet) {
     support(node, bitSet, numberOfVariables());
   }
 
@@ -405,15 +406,16 @@ public interface Bdd {
   /**
    * A wrapper class to guard some node in an area where exceptions can occur. It increases the
    * reference count of the given node and decreases it when it's closed.
-   * </p>
+   * <p>
    * Note: This should seldom be used, as the overhead of object construction and deconstruction
    * is noticeable.
+   * </p>
    */
   final class ReferenceGuard implements AutoCloseable {
     private final Bdd bdd;
     private final int node;
 
-    public ReferenceGuard(final int node, final Bdd bdd) {
+    public ReferenceGuard(int node, Bdd bdd) {
       this.node = bdd.reference(node);
       this.bdd = bdd;
     }

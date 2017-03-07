@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -50,8 +51,8 @@ public final class AcceptingComponentBuilder<S>
   }
 
   @Override
-  public BreakpointState<S> add(S jumpTarget) {
-    ImmutableSet<S> singleton = ImmutableSet.of(jumpTarget);
+  public BreakpointState<S> add(S stateKey) {
+    ImmutableSet<S> singleton = ImmutableSet.of(stateKey);
     BreakpointState<S> state = new BreakpointState<>(singleton, singleton);
     initialStates.add(state);
     return state;
@@ -86,7 +87,7 @@ public final class AcceptingComponentBuilder<S>
       .filter(x -> x.inSet(0))
       .forEach(x -> leftSuccessor.add(x.getSuccessor()));
 
-    if (!state.left.equals(state.right)) {
+    if (!Objects.equals(state.left, state.right)) {
       state.left.forEach(s -> leftSuccessor.addAll(nba.getSuccessors(s, valuation)));
     }
 
@@ -95,9 +96,9 @@ public final class AcceptingComponentBuilder<S>
       return null;
     }
 
-    BreakpointState<S> successor = new BreakpointState<S>(leftSuccessor, rightSuccessor);
+    BreakpointState<S> successor = new BreakpointState<>(leftSuccessor, rightSuccessor);
 
-    return state.left.equals(state.right)
+    return Objects.equals(state.left, state.right)
            ? Edges.create(successor, 0)
            : Edges.create(successor);
   }

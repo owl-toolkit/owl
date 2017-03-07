@@ -18,11 +18,14 @@
 package owl.collections;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.IntConsumer;
@@ -34,11 +37,15 @@ public final class BitSets {
 
   }
 
+  public static BitSet collect(IntIterator iterator) {
+    BitSet bitSet = new BitSet();
+    iterator.forEachRemaining(bitSet::set);
+    return bitSet;
+  }
+
   public static BitSet collect(PrimitiveIterator.OfInt iterator) {
     BitSet bitSet = new BitSet();
-    while (iterator.hasNext()) {
-      bitSet.set(iterator.nextInt());
-    }
+    iterator.forEachRemaining((IntConsumer) bitSet::set);
     return bitSet;
   }
 
@@ -74,6 +81,20 @@ public final class BitSets {
     return list;
   }
 
+  public static BitSet toSet(boolean... indices) {
+    BitSet bitSet = new BitSet(indices.length);
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i]) {
+        bitSet.set(i);
+      }
+    }
+    return bitSet;
+  }
+
+  public static BitSet toSet(int... indices) {
+    return collect(IntIterators.wrap(indices));
+  }
+
   private static final class PowerBitSet extends AbstractSet<BitSet> {
     private final BitSet baseSet;
 
@@ -91,7 +112,7 @@ public final class BitSets {
     public boolean equals(Object obj) {
       if (obj instanceof PowerBitSet) {
         PowerBitSet that = (PowerBitSet) obj;
-        return baseSet.equals(that.baseSet);
+        return Objects.equals(baseSet, that.baseSet);
       }
 
       return super.equals(obj);
@@ -102,6 +123,7 @@ public final class BitSets {
       return baseSet.hashCode() << (baseSet.cardinality() - 1);
     }
 
+    @SuppressWarnings("MethodReturnAlwaysConstant")
     @Override
     public boolean isEmpty() {
       return false;
@@ -120,7 +142,7 @@ public final class BitSets {
 
     @Override
     public String toString() {
-      return "powerSet(" + baseSet + ")";
+      return String.format("powerSet(%s)", baseSet);
     }
   }
 

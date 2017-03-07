@@ -4,6 +4,7 @@ import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.ValuationSetFactory;
 
+@SuppressWarnings("unused")
 public final class AutomatonFactory {
   private AutomatonFactory() {
   }

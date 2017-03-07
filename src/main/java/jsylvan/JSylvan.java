@@ -25,14 +25,16 @@ import owl.collections.BitSets;
  * After every call to makeXXX, call ref.
  * To dereference, call deref.
  */
+@SuppressWarnings({"QuestionableName", "StaticVariableMayNotBeInitialized",
+                    "StaticVariableUsedBeforeInitialization"})
 public final class JSylvan {
 
   private static long one;
   private static long zero;
 
-  /**
+  /*
    * Initialize: number of workers, size of the work-stealing stack (Lace)
-   * 2^tablesize nodes and 2^cachesize cache entries
+   * 2^table size nodes and 2^cachesize cache entries
    * also: granularity (default: 4, sensible values: 1-10 or so) influences operations cache
    * higher granularity = use operations cache less often
    */

@@ -57,7 +57,7 @@ public final class PropositionVisitor implements IntVisitor {
   }
 
   @Override
-  public int visit(BooleanConstant formula) {
+  public int visit(BooleanConstant booleanConstant) {
     return 0;
   }
 

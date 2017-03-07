@@ -35,7 +35,7 @@ public final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, No
     this.nba = nba;
   }
 
-  public static <S> InitialComponentBuilder create(Automaton<S, BuchiAcceptance> nba) {
+  public static <S> InitialComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
     return new InitialComponentBuilder<>(nba);
   }
 

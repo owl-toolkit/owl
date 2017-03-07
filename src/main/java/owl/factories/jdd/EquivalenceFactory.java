@@ -108,8 +108,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
   }
 
   @Override
-  public BddEquivalenceClass createEquivalenceClass(Formula representative) {
-    return createEquivalenceClass(representative, representative.accept(visitor));
+  public BddEquivalenceClass createEquivalenceClass(Formula formula) {
+    return createEquivalenceClass(formula, formula.accept(visitor));
   }
 
   private BddEquivalenceClass createEquivalenceClass(@Nullable Formula representative, int bdd) {
@@ -152,7 +152,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     // We don't need to increment the reference-counter, since all variables are saturated.
-    final int result;
+    int result;
     if (value > 0) {
       result = factory.getVariableNode(value - 1);
     } else {
@@ -241,7 +241,6 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     return factory.compose(bdd, unfoldSubstitution);
   }
 
-  @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
   private final class BddEquivalenceClass implements EquivalenceClass {
     private static final int INVALID_BDD = -1;
     private int bdd;
@@ -261,9 +260,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     @Override
     public EquivalenceClass and(EquivalenceClass equivalenceClass) {
       assert equivalenceClass instanceof BddEquivalenceClass;
-      final BddEquivalenceClass that = (BddEquivalenceClass) equivalenceClass;
-      @Nullable
-      final Formula representative;
+      BddEquivalenceClass that = (BddEquivalenceClass) equivalenceClass;
+      @Nullable Formula representative;
       if (this.representative == null || that.representative == null) {
         representative = null;
       } else {
@@ -293,7 +291,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public EquivalenceClass exists(Predicate<Formula> predicate) {
-      final BitSet exists = new BitSet();
+      BitSet exists = new BitSet();
 
       for (int i = 0; i < reverseMapping.length; i++) {
         if (predicate.test(reverseMapping[i])) {
@@ -372,9 +370,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     @Override
     public EquivalenceClass or(EquivalenceClass equivalenceClass) {
       assert equivalenceClass instanceof BddEquivalenceClass;
-      final BddEquivalenceClass that = (BddEquivalenceClass) equivalenceClass;
-      @Nullable
-      final Formula representative;
+      BddEquivalenceClass that = (BddEquivalenceClass) equivalenceClass;
+      @Nullable Formula representative;
       if (this.representative == null || that.representative == null) {
         representative = null;
       } else {
@@ -385,10 +382,10 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public ImmutableList<Set<Formula>> satisfyingAssignments(
-      Iterable<? extends Formula> supportIterable) {
-      BitSet support = toBitSet(supportIterable);
+      Iterable<? extends Formula> support) {
+      BitSet supportBitSet = toBitSet(support);
       Iterator<BitSet> minimalSolutions = factory.getMinimalSolutions(bdd);
-      Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(support, minimalSolutions);
+      Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(supportBitSet, minimalSolutions);
       return closure.stream().map(EquivalenceFactory.this::toSet)
         .collect(ImmutableList.toImmutableList());
     }
@@ -396,12 +393,12 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     @Override
     public EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution) {
       // TODO: Only construct map for elements in support.
-      final int[] substitutionMap = new int[reverseMapping.length];
+      int[] substitutionMap = new int[reverseMapping.length];
       for (int i = 0; i < substitutionMap.length; i++) {
         substitutionMap[i] = substitution.apply(reverseMapping[i]).accept(visitor);
       }
 
-      final int substitutedBdd = factory.reference(factory.compose(bdd, substitutionMap));
+      int substitutedBdd = factory.reference(factory.compose(bdd, substitutionMap));
       if (representative == null) {
         return new BddEquivalenceClass(substitutedBdd);
       }
@@ -412,8 +409,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public EquivalenceClass temporalStep(BitSet valuation) {
-      @Nullable
-      final Formula successorRepresentative =
+      @Nullable Formula successorRepresentative =
         representative == null ? null : representative.temporalStep(valuation);
       return createEquivalenceClass(successorRepresentative,
         factory.reference(temporalStepBdd(bdd, valuation)));
@@ -421,8 +417,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public EquivalenceClass temporalStepUnfold(BitSet valuation) {
-      @Nullable
-      final Formula successorRepresentative =
+      @Nullable Formula successorRepresentative =
         representative == null ? null : representative.temporalStepUnfold(valuation);
       return createEquivalenceClass(successorRepresentative,
         factory.reference(unfoldBdd(temporalStepBdd(bdd, valuation))));
@@ -430,13 +425,13 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public boolean testSupport(Predicate<Formula> predicate) {
-      final BitSet support = factory.support(bdd);
+      BitSet support = factory.support(bdd);
       return support.stream().allMatch(i -> predicate.test(reverseMapping[i]));
     }
 
     @Override
     public String toString() {
-      final String representativeString;
+      String representativeString;
 
       if (factory.isVariableOrNegated(bdd)) {
         representativeString = reverseMapping[factory.getVariable(bdd)].toString(atomMapping);
@@ -446,21 +441,19 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
         representativeString = representative.toString(atomMapping);
       }
 
-      return representativeString + " (" + bdd + ")";
+      return String.format("%s (%d)", representativeString, bdd);
     }
 
     @Override
     public EquivalenceClass unfold() {
-      @Nullable
-      final Formula successorRepresentative =
+      @Nullable Formula successorRepresentative =
         representative == null ? null : representative.unfold();
       return createEquivalenceClass(successorRepresentative, factory.reference(unfoldBdd(bdd)));
     }
 
     @Override
     public EquivalenceClass unfoldTemporalStep(BitSet valuation) {
-      @Nullable
-      final Formula successorRepresentative =
+      @Nullable Formula successorRepresentative =
         representative == null ? null : representative.unfoldTemporalStep(valuation);
       return createEquivalenceClass(successorRepresentative,
         factory.reference(temporalStepBdd(unfoldBdd(bdd), valuation)));
@@ -474,10 +467,10 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public int visit(Conjunction c) {
+    public int visit(Conjunction conjunction) {
       int x = factory.getTrueNode();
 
-      for (Formula child : c.children) {
+      for (Formula child : conjunction.children) {
         int y = child.accept(this);
         x = factory.consume(factory.and(x, y), x, y);
       }
@@ -486,10 +479,10 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public int visit(Disjunction d) {
+    public int visit(Disjunction disjunction) {
       int x = factory.getFalseNode();
 
-      for (Formula child : d.children) {
+      for (Formula child : disjunction.children) {
         int y = child.accept(this);
         x = factory.consume(factory.or(x, y), x, y);
       }
@@ -498,8 +491,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public int visit(BooleanConstant b) {
-      if (b.value) {
+    public int visit(BooleanConstant booleanConstant) {
+      if (booleanConstant.value) {
         return factory.getTrueNode();
       } else {
         return factory.getFalseNode();

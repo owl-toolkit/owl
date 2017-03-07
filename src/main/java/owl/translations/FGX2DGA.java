@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
+import jhoafparser.parser.generated.ParseException;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -30,7 +31,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.DefaultVisitor;
@@ -49,8 +50,7 @@ public final class FGX2DGA extends AbstractLtlCommandLineTool {
     this.allowFallback = allowFallback;
   }
 
-  public static void main(String... argsArray)
-    throws ParseException, jhoafparser.parser.generated.ParseException, IOException {
+  public static void main(String... argsArray) throws ParserException, ParseException, IOException {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new FGX2DGA(args.remove("--fallback")).execute(args);
   }

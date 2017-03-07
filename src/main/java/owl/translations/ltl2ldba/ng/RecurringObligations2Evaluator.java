@@ -34,7 +34,7 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.ltl2ldba.JumpEvaluator;
 
-class RecurringObligations2Evaluator implements JumpEvaluator<RecurringObligations2> {
+final class RecurringObligations2Evaluator implements JumpEvaluator<RecurringObligations2> {
 
   private final EquivalenceClassFactory factory;
 
@@ -51,7 +51,7 @@ class RecurringObligations2Evaluator implements JumpEvaluator<RecurringObligatio
     return factory.createEquivalenceClass(evaluated);
   }
 
-  static class SubstitutionVisitor extends DefaultVisitor<Formula> {
+  static final class SubstitutionVisitor extends DefaultVisitor<Formula> {
     private final Set<FOperator> trueFs;
     private final Set<GOperator> trueGs;
 

@@ -17,51 +17,59 @@
 
 package owl.translations;
 
-import com.google.common.collect.Iterables;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
-import jhoafparser.parser.HOAFParser;
+import javax.annotation.Nullable;
 import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
-import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.AutomatonReader;
+import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
+import owl.ltl.parser.ParserException;
 import owl.translations.nba2ldba.NBA2LDBAFunction;
 
-public class NBA2LDBA extends AbstractCommandLineTool<Automaton<StoredBuchiAutomaton.State,
+public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   BuchiAcceptance>> {
-  private List<String> variables;
+  @Nullable
+  private List<String> variables = null;
 
   public static void main(String... args)
-    throws owl.ltl.parser.ParseException, ParseException, IOException {
+    throws ParserException, ParseException, IOException {
     new NBA2LDBA().execute(new ArrayDeque<>(Arrays.asList(args)));
   }
 
   @Override
-  protected Function<Automaton<StoredBuchiAutomaton.State, BuchiAcceptance>,
-    ? extends HoaPrintable> getTranslation(
-    EnumSet<Optimisation> optimisations) {
+  protected Function<Automaton<HoaState, BuchiAcceptance>, ? extends HoaPrintable>
+  getTranslation(EnumSet<Optimisation> optimisations) {
     return new NBA2LDBAFunction<>(optimisations);
   }
 
   @Override
   protected List<String> getVariables() {
+    checkState(variables != null);
     return variables;
   }
 
   @Override
-  protected Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> parseInput(InputStream stream)
+  protected Automaton<HoaState, BuchiAcceptance> parseInput(InputStream stream)
     throws ParseException {
-    StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
-    HOAFParser.parseHOA(stream, builder);
-    StoredBuchiAutomaton nba = Iterables.getOnlyElement(builder.getAutomata());
-    variables = nba.getVariables();
-    return AutomatonFactory.fromLegacy(nba);
+    Collection<Automaton<HoaState, ?>> automata =
+      AutomatonReader.readHoaInput(stream);
+    checkArgument(automata.size() == 1);
+    Automaton<HoaState, ?> automaton = automata.iterator().next();
+    checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
+    this.variables = automaton.getVariables();
+    //noinspection unchecked
+    return (Automaton<HoaState, BuchiAcceptance>) automaton;
   }
 }

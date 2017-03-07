@@ -42,14 +42,14 @@ import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 
-public class HoaConsumerExtended<S> {
+public final class HoaConsumerExtended<S> {
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
 
   private final HOAConsumer consumer;
   private final EnumSet<HoaPrintable.Option> options;
   private final Map<S, Integer> stateNumbers;
   @Nullable
-  private S currentState;
+  private S currentState = null;
 
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
     Set<? extends S> initialStates, int size, EnumSet<HoaPrintable.Option> options) {
@@ -62,7 +62,7 @@ public class HoaConsumerExtended<S> {
       consumer.setTool("Owl", "* *"); // Owl in a cave.
 
       if (options.contains(HoaPrintable.Option.ANNOTATIONS)) {
-        consumer.setName("Automaton for " + initialStates.toString());
+        consumer.setName("Automaton for " + initialStates);
       }
 
       if (size >= 0) {

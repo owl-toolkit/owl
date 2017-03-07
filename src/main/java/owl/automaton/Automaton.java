@@ -17,13 +17,15 @@
 
 package owl.automaton;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,12 +37,37 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
+import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 /**
  * Note: Every implementation should support concurrent read-access.
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
+  /**
+   * Determines whether the automaton contains the given {@code state}.
+   *
+   * @param state
+   *     The state to be checked.
+   *
+   * @return Whether the state is in the automaton.
+   */
+  default boolean containsState(S state) {
+    return containsStates(ImmutableList.of(state));
+  }
+
+  /**
+   * Determines whether the automaton contains all the given {@code states}.
+   *
+   * @param states
+   *     The states to be checked.
+   *
+   * @return Whether all of the states are in the automaton.
+   */
+  default boolean containsStates(Iterable<S> states) {
+    return Iterables.all(states, getStates()::contains);
+  }
+
   /**
    * Returns the acceptance condition of this automaton.
    *
@@ -70,6 +97,18 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   /**
+   * Returns all successor edges of the specified {@code state} under any valuation.
+   *
+   * @param state
+   *     The starting state of the edges.
+   *
+   * @return The set of edges originating from {@code state}
+   */
+  default Collection<Edge<S>> getEdges(S state) {
+    return Collections2.transform(getLabelledEdges(state), LabelledEdge::getEdge);
+  }
+
+  /**
    * Returns the successor edges of the specified {@code state} under the given {@code valuation}.
    *
    * @param state
@@ -80,13 +119,21 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The successor edges, possibly empty.
    */
   default Collection<Edge<S>> getEdges(S state, BitSet valuation) {
-    return StreamSupport.stream(getLabelledEdges(state).spliterator(), false)
-      .filter(labelledEdge -> labelledEdge.valuations.contains(valuation))
-      .map(labelledEdge -> labelledEdge.edge)
-      .collect(Collectors.toList());
+    //noinspection ConstantConditions
+    return Collections2.transform(Collections2.filter(getLabelledEdges(state),
+      labelledEdge -> labelledEdge.valuations.contains(valuation)),
+      LabelledEdge::getEdge);
   }
 
   ValuationSetFactory getFactory();
+
+  /**
+   * Determines all states which are incomplete, i.e. there are valuations for which the state has
+   * no successor. The valuations sets have to be free'd after use.
+   *
+   * @return The set of incomplete states and the missing valuations.
+   */
+  Map<S, ValuationSet> getIncompleteStates();
 
   /**
    * Returns the initial state. Throws an {@link IllegalStateException} if there a no or multiple
@@ -109,7 +156,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The set of initial states.
    */
-  ImmutableSet<S> getInitialStates();
+  Set<S> getInitialStates();
 
   /**
    * Returns all successors of the specified {@code state}.
@@ -119,7 +166,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return All successors of the state.
    */
-  Iterable<LabelledEdge<S>> getLabelledEdges(S state);
+  Collection<LabelledEdge<S>> getLabelledEdges(S state);
 
   /**
    * Returns all states reachable from the initial states.
@@ -159,10 +206,9 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Set<S> getSuccessors(S state) {
-    Set<S> successors = new HashSet<>();
-    getLabelledEdges(state)
-      .forEach(labelledEdge -> successors.add(labelledEdge.edge.getSuccessor()));
-    return successors;
+    //noinspection StaticPseudoFunctionalStyleMethod,ConstantConditions
+    return Sets.newHashSet(Iterables.transform(getLabelledEdges(state),
+      labelledEdge -> labelledEdge.edge.getSuccessor()));
   }
 
   default Collection<S> getSuccessors(S state, BitSet valuation) {

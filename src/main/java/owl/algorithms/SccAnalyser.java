@@ -26,17 +26,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
+import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import owl.collections.TarjanStack;
 
 public final class SccAnalyser<S> {
   private final Object2IntMap<S> id = new Object2IntOpenHashMap<>();
-  private final Object2IntMap<S> lowlink = new Object2IntOpenHashMap<>();
+  private final Object2IntMap<S> lowLink = new Object2IntOpenHashMap<>();
+  private final List<Set<S>> result = new ArrayList<>();
   private final Deque<S> stack = new TarjanStack<>();
-  private final Function<S, Set<S>> successorFunction;
+  private final Function<S, Iterable<S>> successorFunction;
   private int num = 0;
 
-  private SccAnalyser(Function<S, Set<S>> successorFunction) {
+  private SccAnalyser(Function<S, Iterable<S>> successorFunction) {
     this.successorFunction = successorFunction;
+    id.defaultReturnValue(Integer.MAX_VALUE);
+    lowLink.defaultReturnValue(Integer.MAX_VALUE);
   }
 
   /**
@@ -57,46 +62,70 @@ public final class SccAnalyser<S> {
    * is in the list before b
    */
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton) {
-    SccAnalyser<S> analyser = new SccAnalyser<>(automaton::getSuccessors);
+    return computeSccs(automaton.getInitialStates(), automaton::getSuccessors);
+  }
+
+  public static <S> List<Set<S>> computeSccs(Set<S> states,
+    Function<S, Iterable<S>> successorFunction) {
+    SccAnalyser<S> analyser = new SccAnalyser<>(successorFunction);
     List<Set<S>> sccList = new ArrayList<>();
 
-    for (S state : automaton.getInitialStates()) {
+    for (S state : states) {
       analyser.stack.push(state);
-      sccList.addAll(analyser.computeSccs());
+      analyser.computeSccs();
+      sccList.addAll(analyser.result);
+      // TODO Do we need to clear here?
+      analyser.result.clear();
     }
 
     return sccList;
   }
 
-  private List<Set<S>> computeSccs() {
-    num++;
+  public static <S> List<Set<S>> computeSccsWithEdges(Set<S> states,
+    Function<S, Iterable<Edge<S>>> successorFunction) {
+    return computeSccs(states, successorFunction.andThen(Edges::toSuccessors));
+  }
+
+  private void computeSccs() {
     S node = stack.peek();
-    lowlink.put(node, num);
+    lowLink.put(node, num);
     id.put(node, num);
-    List<Set<S>> result = new ArrayList<>();
+    int nodeIndex = num;
+    num++;
 
     successorFunction.apply(node).forEach((successor) -> {
-      if (!id.containsKey(successor)) {
+      int successorId = id.getInt(successor);
+      if (successorId == id.defaultReturnValue()) {
+        // Successor was not processed
+        assert !id.containsKey(successor);
+
+        // Add successor to work stack
         stack.push(successor);
-        result.addAll(computeSccs());
-        lowlink.put(node, Math.min(lowlink.getInt(node), lowlink.getInt(successor)));
-      } else if (id.getInt(successor) < id.getInt(node)
-        && stack.contains(successor)) {
-        lowlink.put(node, Math.min(lowlink.getInt(node), id.getInt(successor)));
+        // Recurse
+        computeSccs();
+
+        // Set the low-link of the node to the min of it and the successor's low-link
+        int successorLink = lowLink.getInt(successor);
+        if (successorLink < lowLink.getInt(node)) {
+          lowLink.put(node, successorLink);
+        }
+      } else if (successorId < nodeIndex && stack.contains(successor)
+        && successorId < lowLink.getInt(node)) {
+        // The successor belongs to some earlier component, set the low-link of the node to the min
+        // of it and the successor's id.
+        lowLink.put(node, successorId);
       }
     });
 
-    if (lowlink.getInt(node) == id.getInt(node)) {
+    if (lowLink.getInt(node) == nodeIndex) {
       Set<S> set = new HashSet<>();
 
-      while (!stack.isEmpty() && id.getInt(stack.peek()) >= id.getInt(node)) {
+      while (!stack.isEmpty() && id.getInt(stack.peek()) >= nodeIndex) {
         S otherNode = stack.pop();
         set.add(otherNode);
       }
 
       result.add(set);
     }
-
-    return result;
   }
 }

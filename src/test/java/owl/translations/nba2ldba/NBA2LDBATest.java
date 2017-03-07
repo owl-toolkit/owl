@@ -18,18 +18,16 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.List;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
-import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
-import owl.automaton.AutomatonFactory;
-import owl.automaton.StoredBuchiAutomaton;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonReader;
+import owl.automaton.AutomatonReader.HoaState;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.translations.Optimisation;
 
@@ -54,14 +52,13 @@ public class NBA2LDBATest {
   public void testApply() throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-    final NBA2LDBAFunction translation = new NBA2LDBAFunction(optimisations);
+    NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(optimisations);
 
-    StoredBuchiAutomaton.Builder builder = new StoredBuchiAutomaton.Builder();
-    HOAFParser.parseHOA(new ByteArrayInputStream(INPUT.getBytes(StandardCharsets.UTF_8)), builder);
-    final StoredBuchiAutomaton nba = Iterables.getOnlyElement(builder.getAutomata());
+    Automaton<HoaState, BuchiAcceptance> automaton =
+      AutomatonReader.readHoaInput(INPUT, BuchiAcceptance.class);
 
-    nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    HoaPrintable result = translation.apply(AutomatonFactory.fromLegacy(nba));
+    automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrintable result = translation.apply(automaton);
     result.setVariables(MAPPING);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
   }

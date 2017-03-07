@@ -28,24 +28,25 @@ import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
+import jhoafparser.parser.generated.ParseException;
 import jhoafparser.transformations.ToStateAcceptance;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 
 public abstract class AbstractCommandLineTool<T> {
   private static final String ANNOTATIONS = "--annotations";
   private static final String OPTIMISATIONS = "--optimisations=";
 
-  void execute(Deque<String> args) throws IOException, ParseException,
-    jhoafparser.parser.generated.ParseException {
+  void execute(Deque<String> args) throws IOException, ParserException,
+    ParseException {
     // Read input.
-    final EnumSet<HoaPrintable.Option> options = parseHoaOutputOptions(args);
-    final EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
-    final Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
+    EnumSet<HoaPrintable.Option> options = parseHoaOutputOptions(args);
+    EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
+    Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
     boolean stateAcceptance = args.remove("--state-acceptance");
-    boolean readStdin = args.isEmpty();
+    boolean readStdIn = args.isEmpty();
     T input;
-    if (readStdin) {
+    if (readStdIn) {
       input = parseInput(System.in);
     } else {
       input = parseInput(new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
@@ -76,8 +77,8 @@ public abstract class AbstractCommandLineTool<T> {
     }
   }
 
-  protected abstract T parseInput(InputStream stream) throws IOException, ParseException,
-    jhoafparser.parser.generated.ParseException;
+  protected abstract T parseInput(InputStream stream) throws IOException, ParserException,
+    ParseException;
 
   private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {
     EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);

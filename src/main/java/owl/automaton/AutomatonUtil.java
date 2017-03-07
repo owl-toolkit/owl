@@ -17,11 +17,13 @@
 
 package owl.automaton;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,8 +53,9 @@ public final class AutomatonUtil {
    * if and only if a sink is added. This state will be returned wrapped in an {@link Optional},
    * if instead no state was added {@link Optional#empty()} is returned. After adding the sink
    * state, the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop.
-   * </p>
+   * <p>
    * Note: The completion process considers unreachable states.
+   * </p>
    *
    * @param sinkSupplier
    *     Supplier of a sink state. Will be called once iff a sink needs to be added.
@@ -73,6 +76,7 @@ public final class AutomatonUtil {
     Edge<S> sinkEdge = Edges.create(sinkState, rejectingAcceptanceSupplier.get());
     automaton.addEdge(sinkState, sinkEdge);
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
+    incompleteStates.values().forEach(ValuationSet::free);
 
     if (automaton.getInitialStates().isEmpty()) {
       automaton.addInitialState(sinkState);
@@ -84,16 +88,18 @@ public final class AutomatonUtil {
   private static <S, T, U> BiFunction<S, T, Iterable<U>> embed(BiFunction<S, T, U> function) {
     return (x, y) -> {
       U z = function.apply(x, y);
-      return z == null ? Collections.emptyList() : Collections.singletonList(z);
+      return z == null ? ImmutableList.of() : ImmutableList.of(z);
     };
   }
 
   /**
    * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton.</p>
+   * to the automaton.
+   * <p>
    * Note that if some reachable state is already present, the specified transitions still get
    * added, potentially introducing non-determinism. If two states of the given {@code states} can
    * reach a particular state, the resulting transitions only get added once.
+   * </p>
    *
    * @param states
    *     The starting states of the exploration.
@@ -112,10 +118,12 @@ public final class AutomatonUtil {
    * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
    * alphabet of a particular state, which reduces the number of calls to the exploration function.
    * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
-   * can be obtained.</p>
+   * can be obtained.
+   * <p>
    * Note that if some reachable state is already present, the specified transitions still get
    * added, potentially introducing non-determinism. If two states of the given {@code states} can
    * reach a particular state, the resulting transitions only get added once.
+   * </p>
    *
    * @param states
    *     The starting states of the exploration.
@@ -133,10 +141,12 @@ public final class AutomatonUtil {
    * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
    * alphabet of a particular state, which reduces the number of calls to the exploration function.
    * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
-   * can be obtained.</p>
+   * can be obtained.
+   * <p>
    * Note that if some reachable state is already present, the specified transitions still get
    * added, potentially introducing non-determinism. If two states of the given {@code states} can
    * reach a particular state, the resulting transitions only get added once.
+   * </p>
    *
    * @param states
    *     The starting states of the exploration.
@@ -146,8 +156,8 @@ public final class AutomatonUtil {
   public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
     BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
     Function<S, BitSet> sensitiveAlphabetOracle, AtomicInteger sizeCounter) {
-    final int alphabetSize = automaton.getFactory().getSize();
-    final BitSet alphabet = new BitSet(alphabetSize);
+    int alphabetSize = automaton.getFactory().getSize();
+    BitSet alphabet = new BitSet(alphabetSize);
     alphabet.set(0, alphabetSize);
 
     Set<S> exploredStates = Sets.newHashSet(states);
@@ -250,7 +260,7 @@ public final class AutomatonUtil {
    * @return Whether this successor set is complete.
    */
   public static <S> boolean isComplete(Iterable<LabelledEdge<S>> labelledEdges) {
-    final Iterator<LabelledEdge<S>> successorIterator = labelledEdges.iterator();
+    Iterator<LabelledEdge<S>> successorIterator = labelledEdges.iterator();
 
     if (!successorIterator.hasNext()) {
       return false;
@@ -279,7 +289,7 @@ public final class AutomatonUtil {
       return true;
     }
 
-    final ValuationSet seenValuations = successorIterator.next().valuations.copy();
+    ValuationSet seenValuations = successorIterator.next().valuations.copy();
 
     while (successorIterator.hasNext()) {
       ValuationSet nextEdge = successorIterator.next().valuations;
@@ -322,5 +332,24 @@ public final class AutomatonUtil {
     }
 
     return true;
+  }
+
+  public static <S> boolean isScc(Set<S> states,
+    Function<S, Iterable<Edge<S>>> successorFunction) {
+    if (states.size() == 1) {
+      return true;
+    }
+    Function<S, Iterable<S>> successorFun =
+      successorFunction.andThen(iter -> Iterables.transform(iter, Edge::getSuccessor));
+    return isSccHelper(states, successorFun);
+  }
+
+  private static <S> boolean isSccHelper(Set<S> states,
+    Function<S, Iterable<S>> successorFunction) {
+    return states.parallelStream()
+      .map(successorFunction)
+      .map(Streams::stream)
+      .allMatch(successors -> successors
+        .anyMatch(states::contains));
   }
 }

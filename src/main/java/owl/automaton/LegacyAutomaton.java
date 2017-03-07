@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,9 +56,6 @@ import owl.collections.ValuationSet;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
 
-// We could do something about the GodClass?
-@SuppressWarnings({"PMD.GodClass", "PMD.EmptyMethodInAbstractClassShouldBeAbstract",
-                    "PMD.UncommentedEmptyMethodBody"})
 public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends OmegaAcceptance>
   implements HoaPrintable {
 
@@ -65,7 +63,7 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
   protected final Map<S, Map<Edge<S>, ValuationSet>> transitions;
   protected final ValuationSetFactory valuationSetFactory;
   private final AtomicInteger atomicSize;
-  protected AccT acceptance;
+  protected final AccT acceptance;
   protected Set<S> initialStates;
   protected List<String> variables;
 
@@ -322,7 +320,7 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
       requiredSets.set(0, acceptance.getAcceptanceSets());
 
       successors.keySet().forEach(edge -> {
-        if (!edge.getSuccessor().equals(state)) {
+        if (!Objects.equals(edge.getSuccessor(), state)) {
           requiredSets.clear();
         }
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) requiredSets::clear);
@@ -358,12 +356,12 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
 
   public boolean isSink(S state) {
     return getSuccessors(state).keySet().stream()
-      .allMatch(edge -> state.equals(edge.getSuccessor()));
+      .allMatch(edge -> Objects.equals(state, edge.getSuccessor()));
   }
 
   public boolean isTransient(S state) {
     return getSuccessors(state).keySet().stream()
-      .noneMatch(edge -> state.equals(edge.getSuccessor()));
+      .noneMatch(edge -> Objects.equals(state, edge.getSuccessor()));
   }
 
   /**
@@ -464,6 +462,7 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
     this.initialStates = ImmutableSet.copyOf(states);
   }
 
+  @Override
   public void setVariables(List<String> variables) {
     this.variables = ImmutableList.copyOf(variables);
     factories.equivalenceClassFactory.setVariables(this.variables);
@@ -494,8 +493,9 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
    * Override this method, if you want output additional edges for {@param state} not present in
    * {@link LegacyAutomaton#transitions}.
    */
-  protected void toHoaBodyEdge(S state, HoaConsumerExtended hoa) {
-
+  @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
+  protected void toHoaBodyEdge(S state, HoaConsumerExtended<S> hoa) {
+    // To be overridden
   }
 
   @Override
@@ -518,7 +518,7 @@ public abstract class LegacyAutomaton<S extends AutomatonState<S>, AccT extends 
     ValuationSet valuationSet = factories.valuationSetFactory.createEmptyValuationSet();
 
     successors.entrySet().removeIf((entry) -> {
-      if (entry.getKey().getSuccessor().equals(successor)) {
+      if (Objects.equals(entry.getKey().getSuccessor(), successor)) {
         valuationSet.addAll(entry.getValue());
         return true;
       }

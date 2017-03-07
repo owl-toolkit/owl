@@ -48,15 +48,18 @@ import owl.ltl.visitors.DefaultVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 import owl.ltl.visitors.predicates.XFragment;
 
-@SuppressWarnings("PMD.GodClass")
 public final class EquivalenceFactory implements EquivalenceClassFactory {
+  private final Object lock = new Object();
+
   private final int alphabetSize;
   private final BddEquivalenceClass falseClass;
   private final Object2IntMap<Formula> mapping;
   private final BddEquivalenceClass trueClass;
   private final BddVisitor visitor;
   private List<String> atomMapping;
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private Formula[] reverseMapping;
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private long[] vars;
 
   private EquivalenceFactory(Formula formula, int alphabetSize, List<String> atomMapping) {
@@ -100,8 +103,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
   }
 
   @Override
-  public BddEquivalenceClass createEquivalenceClass(Formula representative) {
-    return createEquivalenceClass(representative, representative.accept(visitor));
+  public BddEquivalenceClass createEquivalenceClass(Formula formula) {
+    return createEquivalenceClass(formula, formula.accept(visitor));
   }
 
   private BddEquivalenceClass createEquivalenceClass(@Nullable Formula representative, long bdd) {
@@ -154,7 +157,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
   private void register(Formula proposition, int i) {
     assert !(proposition instanceof Literal);
 
-    synchronized (this) {
+    synchronized (lock) {
       vars[i] = JSylvan.ithvar(i);
       mapping.put(proposition, i + 1);
       reverseMapping[i] = proposition;
@@ -168,7 +171,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
   private int register(Deque<Formula> propositions, int i) {
     int counter = i;
-    synchronized (this) {
+    synchronized (lock) {
       for (Formula proposition : propositions) {
         if (mapping.containsKey(proposition)) {
           continue;
@@ -206,7 +209,6 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     return bitSet.stream().mapToObj(x -> reverseMapping[x]).collect(Collectors.toSet());
   }
 
-  @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
   private final class BddEquivalenceClass implements EquivalenceClass {
     private static final long INVALID_BDD = -1L;
     @Nullable
@@ -338,10 +340,10 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public ImmutableList<Set<Formula>> satisfyingAssignments(
-      Iterable<? extends Formula> supportIterable) {
-      BitSet support = toBitSet(supportIterable);
+      Iterable<? extends Formula> support) {
+      BitSet supportBitSet = toBitSet(support);
       Iterator<BitSet> minimalSolutions = JSylvan.getMinimalSolutions(bdd);
-      Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(support, minimalSolutions);
+      Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(supportBitSet, minimalSolutions);
       return closure.stream().map(EquivalenceFactory.this::toSet)
         .collect(ImmutableList.toImmutableList());
     }
@@ -378,12 +380,12 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
       String representativeString;
 
       if (JSylvan.isVariableOrNegated(bdd)) {
-        final int variablePos = Arrays.binarySearch(vars, bdd);
+        int variablePos = Arrays.binarySearch(vars, bdd);
 
         if (variablePos >= 0) {
           representativeString = reverseMapping[variablePos].toString(atomMapping);
         } else {
-          final int notVariablePosition = Arrays.binarySearch(vars, JSylvan.makeNot(bdd));
+          int notVariablePosition = Arrays.binarySearch(vars, JSylvan.makeNot(bdd));
           representativeString = reverseMapping[notVariablePosition].not().toString(atomMapping);
         }
       } else if (representative == null) {
@@ -392,7 +394,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
         representativeString = representative.toString(atomMapping);
       }
 
-      return representativeString + " (" + bdd + ")";
+      return String.format("%s (%d)", representativeString, bdd);
     }
 
     @Override
@@ -415,10 +417,10 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public Long visit(Conjunction c) {
+    public Long visit(Conjunction conjunction) {
       long x = JSylvan.getTrue();
 
-      for (Formula child : c.children) {
+      for (Formula child : conjunction.children) {
         x = JSylvan.andConsuming(x, child.accept(this));
       }
 
@@ -426,10 +428,10 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public Long visit(Disjunction d) {
+    public Long visit(Disjunction disjunction) {
       long x = JSylvan.getFalse();
 
-      for (Formula child : d.children) {
+      for (Formula child : disjunction.children) {
         x = JSylvan.orConsuming(x, child.accept(this));
       }
 
@@ -437,8 +439,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public Long visit(BooleanConstant b) {
-      if (b.value) {
+    public Long visit(BooleanConstant booleanConstant) {
+      if (booleanConstant.value) {
         return JSylvan.getTrue();
       } else {
         return JSylvan.getFalse();

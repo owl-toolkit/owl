@@ -17,8 +17,8 @@
 
 package owl.automaton.transformations;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,11 +35,14 @@ import owl.factories.ValuationSetFactory;
 
 public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   B extends OmegaAcceptance> implements MutableAutomaton<S, A> {
-
   private final MutableAutomaton<S, B> automaton;
 
   public ForwardingMutableAutomaton(MutableAutomaton<S, B> automaton) {
     this.automaton = automaton;
+  }
+
+  protected MutableAutomaton<S, B> getAutomaton() {
+    return automaton;
   }
 
   @Override
@@ -78,12 +81,12 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public ImmutableSet<S> getInitialStates() {
+  public Set<S> getInitialStates() {
     return automaton.getInitialStates();
   }
 
   @Override
-  public Iterable<LabelledEdge<S>> getLabelledEdges(S state) {
+  public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
     return automaton.getLabelledEdges(state);
   }
 
@@ -104,12 +107,12 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
 
   @Override
   public void remapAcceptance(Set<S> states, IntUnaryOperator transformer) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Not supported");
   }
 
   @Override
   public void remapAcceptance(BiFunction<S, Edge<S>, BitSet> f) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Not supported");
   }
 
   @Override

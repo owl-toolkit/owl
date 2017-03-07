@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
  *   corner cases, as the structure of BDD algorithms is the same for most of the operations.
  * - Due to the implementation of all operations, variable numbers increase while descending the
  *   tree of a particular node. */
-@SuppressWarnings({"PMD.GodClass"})
+@SuppressWarnings("NumericCastThatLosesPrecision")
 final class BddImpl extends NodeTable implements Bdd {
   private static final int FALSE_NODE = 0;
   private static final int TRUE_NODE = 1;
@@ -23,34 +23,36 @@ final class BddImpl extends NodeTable implements Bdd {
   private final IntList variableNodes = new IntArrayList();
   private int numberOfVariables;
 
-  BddImpl(final int nodeSize) {
+  BddImpl(int nodeSize) {
     this(nodeSize, ImmutableBddConfiguration.builder().build());
   }
 
-  BddImpl(final int nodeSize, final BddConfiguration configuration) {
+  BddImpl(int nodeSize, BddConfiguration configuration) {
     super(Util.nextPrime(nodeSize), configuration);
     cache = new BddCache(this);
     numberOfVariables = 0;
   }
 
-  private static boolean isVariableOrNegatedStore(final long nodeStore) {
-    final int low = (int) getLowFromStore(nodeStore);
-    final int high = (int) getHighFromStore(nodeStore);
+  private static boolean isVariableOrNegatedStore(long nodeStore) {
+    //noinspection NumericCastThatLosesPrecision
+    int low = (int) getLowFromStore(nodeStore);
+    //noinspection NumericCastThatLosesPrecision
+    int high = (int) getHighFromStore(nodeStore);
     return low == FALSE_NODE && high == TRUE_NODE
       || low == TRUE_NODE && high == FALSE_NODE;
   }
 
   @Override
-  public int and(final int node1, final int node2) {
+  public int and(int node1, int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int result = andRecursive(node1, node2);
+    int result = andRecursive(node1, node2);
     popWorkStack(2);
     return result;
   }
 
-  private int andRecursive(final int node1, final int node2) {
+  private int andRecursive(int node1, int node2) {
     if (node1 == node2 || node2 == TRUE_NODE) {
       return node1;
     }
@@ -61,23 +63,27 @@ final class BddImpl extends NodeTable implements Bdd {
       return node2;
     }
 
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var > node2var) {
       if (cache.lookupAnd(node2, node1)) {
         // We have a cache hit for this operation
         return cache.getLookupResult();
       }
-      final int hash = cache.getLookupHash();
+      int hash = cache.getLookupHash();
 
       // Guard the result - the recursive calls may cause the table to grow, kicking off a gc.
       // If the produced variables are not guarded, they may get invalidated.
-      final int lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node2store), node1));
-      final int highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node2store), node1));
-      final int resultNode = makeNode(node2var, lowNode, highNode);
+      //noinspection NumericCastThatLosesPrecision
+      int lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node2store), node1));
+      //noinspection NumericCastThatLosesPrecision
+      int highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node2store), node1));
+      int resultNode = makeNode(node2var, lowNode, highNode);
       popWorkStack(2);
       cache.putAnd(hash, node2, node1, resultNode);
       return resultNode;
@@ -86,9 +92,9 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupAnd(node1, node2)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
+    int hash = cache.getLookupHash();
+    int lowNode;
+    int highNode;
     if (node1var == node2var) {
       lowNode = andRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
       pushToWorkStack(lowNode);
@@ -99,15 +105,15 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = pushToWorkStack(andRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(andRecursive((int) getHighFromStore(node1store), node2));
     }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
+    int resultNode = makeNode(node1var, lowNode, highNode);
     popWorkStack(2);
     cache.putAnd(hash, node1, node2, resultNode);
     return resultNode;
   }
 
   @Override
-  public int compose(final int node, final int[] variableReplacementNodes) {
-    assert variableReplacementNodes.length <= numberOfVariables;
+  public int compose(int node, int[] variableNodes) {
+    assert variableNodes.length <= numberOfVariables;
 
     if (node == TRUE_NODE || node == FALSE_NODE) {
       return node;
@@ -116,23 +122,23 @@ final class BddImpl extends NodeTable implements Bdd {
     // Guard the elements and replace -1 by actual variable reference
     pushToWorkStack(node);
     int elements = 1;
-    for (int i = 0; i < variableReplacementNodes.length; i++) {
-      if (variableReplacementNodes[i] == -1) {
-        variableReplacementNodes[i] = variableNodes.get(i);
+    for (int i = 0; i < variableNodes.length; i++) {
+      if (variableNodes[i] == -1) {
+        variableNodes[i] = this.variableNodes.get(i);
       } else {
-        assert isNodeValidOrRoot(variableReplacementNodes[i]);
-        if (!isNodeSaturated(variableReplacementNodes[i])) {
-          pushToWorkStack(variableReplacementNodes[i]);
+        assert isNodeValidOrRoot(variableNodes[i]);
+        if (!isNodeSaturated(variableNodes[i])) {
+          pushToWorkStack(variableNodes[i]);
           elements++;
         }
       }
     }
 
-    int highestReplacedVariable = variableReplacementNodes.length - 1;
+    int highestReplacedVariable = variableNodes.length - 1;
     // Optimise the replacement array
-    for (int i = variableReplacementNodes.length - 1; i >= 0; i--) {
-      final int value = variableReplacementNodes[i];
-      if (value != variableNodes.get(i)) {
+    for (int i = variableNodes.length - 1; i >= 0; i--) {
+      int value = variableNodes[i];
+      if (value != this.variableNodes.get(i)) {
         highestReplacedVariable = i;
         break;
       }
@@ -141,9 +147,9 @@ final class BddImpl extends NodeTable implements Bdd {
       return node;
     }
 
-    final int hash;
+    int hash;
     if (getConfiguration().useGlobalComposeCache()) {
-      if (cache.lookupCompose(node, variableReplacementNodes)) {
+      if (cache.lookupCompose(node, variableNodes)) {
         return cache.getLookupResult();
       }
       hash = cache.getLookupHash();
@@ -152,22 +158,23 @@ final class BddImpl extends NodeTable implements Bdd {
     }
 
     cache.clearVolatileCache();
-    final int result = composeRecursive(node, variableReplacementNodes, highestReplacedVariable);
+    int result = composeRecursive(node, variableNodes, highestReplacedVariable);
     popWorkStack(elements);
     if (getConfiguration().useGlobalComposeCache()) {
-      cache.putCompose(hash, node, variableReplacementNodes, result);
+      cache.putCompose(hash, node, variableNodes, result);
     }
     return result;
   }
 
-  private int composeRecursive(final int node, final int[] variableNodes,
-    final int highestReplacedVariable) {
+  private int composeRecursive(int node, int[] variableNodes,
+    int highestReplacedVariable) {
     if (node == TRUE_NODE || node == FALSE_NODE) {
       return node;
     }
 
-    final long nodeStore = getNodeStore(node);
-    final int nodeVariable = (int) getVariableFromStore(nodeStore);
+    long nodeStore = getNodeStore(node);
+    //noinspection NumericCastThatLosesPrecision
+    int nodeVariable = (int) getVariableFromStore(nodeStore);
     // The tree is sorted (variable 0 on top), hence if the algorithm descended "far enough" there
     // will not be any replacements.
     if (nodeVariable > highestReplacedVariable) {
@@ -177,10 +184,10 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupVolatile(node)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
+    int hash = cache.getLookupHash();
 
-    final int variableReplacementNode = variableNodes[nodeVariable];
-    final int resultNode;
+    int variableReplacementNode = variableNodes[nodeVariable];
+    int resultNode;
     // Short-circuit constant replacements.
     if (variableReplacementNode == TRUE_NODE) {
       resultNode = composeRecursive((int) getHighFromStore(nodeStore), variableNodes,
@@ -189,9 +196,11 @@ final class BddImpl extends NodeTable implements Bdd {
       resultNode = composeRecursive((int) getLowFromStore(nodeStore), variableNodes,
         highestReplacedVariable);
     } else {
-      final int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
+      //noinspection NumericCastThatLosesPrecision
+      int lowCompose = pushToWorkStack(composeRecursive((int) getLowFromStore(nodeStore),
         variableNodes, highestReplacedVariable));
-      final int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
+      //noinspection NumericCastThatLosesPrecision
+      int highCompose = pushToWorkStack(composeRecursive((int) getHighFromStore(nodeStore),
         variableNodes, highestReplacedVariable));
       resultNode = ifThenElseRecursive(variableReplacementNode, highCompose, lowCompose);
       popWorkStack(2);
@@ -201,74 +210,83 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public double countSatisfyingAssignments(final int node) {
+  public double countSatisfyingAssignments(int node) {
     // TODO Add overflow checks, an int version and a BigInteger version
     if (node == FALSE_NODE) {
-      return 0d;
+      return 0.0d;
     }
     if (node == TRUE_NODE) {
-      //noinspection MagicNumber
-      return Math.pow(2d, (double) numberOfVariables);
+      //noinspection NonReproducibleMathCall
+      return Math.pow(2.0d, (double) numberOfVariables);
     }
-    final long nodeStore = getNodeStore(node);
-    final double variable = (double) getVariableFromStore(nodeStore);
-    //noinspection MagicNumber
-    return Math.pow(2d, variable) * countSatisfyingAssignmentsRecursive(node);
+    long nodeStore = getNodeStore(node);
+    double variable = (double) getVariableFromStore(nodeStore);
+    //noinspection NonReproducibleMathCall
+    return Math.pow(2.0d, variable) * countSatisfyingAssignmentsRecursive(node);
   }
 
-  private double countSatisfyingAssignmentsRecursive(final int node) {
+  private double countSatisfyingAssignmentsRecursive(int node) {
     if (node == FALSE_NODE) {
-      return 0d;
+      return 0.0d;
     }
     if (node == TRUE_NODE) {
-      return 1d;
+      return 1.0d;
     }
 
-    final double cacheLookup = cache.lookupSatisfaction(node);
-    if (cacheLookup >= 0d) {
+    double cacheLookup = cache.lookupSatisfaction(node);
+    if (cacheLookup >= 0.0d) {
       return cacheLookup;
     }
-    final int hash = cache.getLookupHash();
+    int hash = cache.getLookupHash();
 
-    final long nodeStore = getNodeStore(node);
-    final int nodeVar = (int) getVariableFromStore(nodeStore);
+    long nodeStore = getNodeStore(node);
+    //noinspection NumericCastThatLosesPrecision
+    int nodeVar = (int) getVariableFromStore(nodeStore);
 
-    final int lowNode = (int) getLowFromStore(nodeStore);
-    final double lowCount;
+    //noinspection NumericCastThatLosesPrecision
+    int lowNode = (int) getLowFromStore(nodeStore);
+    double lowCount;
     if (lowNode == FALSE_NODE) {
-      lowCount = 0d;
+      lowCount = 0.0d;
     } else if (lowNode == TRUE_NODE) {
-      lowCount = Math.pow(2d, (double) (numberOfVariables - nodeVar - 1));
+      //noinspection NonReproducibleMathCall
+      lowCount = Math.pow(2.0d, (double) (numberOfVariables - nodeVar - 1));
     } else {
-      final long lowStore = getNodeStore(lowNode);
-      final int lowVar = (int) getVariableFromStore(lowStore);
+      long lowStore = getNodeStore(lowNode);
+      //noinspection NumericCastThatLosesPrecision
+      int lowVar = (int) getVariableFromStore(lowStore);
+      //noinspection NonReproducibleMathCall
       lowCount = countSatisfyingAssignmentsRecursive(lowNode)
-        * Math.pow(2d, (double) (lowVar - nodeVar - 1));
+        * Math.pow(2.0d, (double) (lowVar - nodeVar - 1));
     }
 
-    final int highNode = (int) getHighFromStore(nodeStore);
-    final double highCount;
+    //noinspection NumericCastThatLosesPrecision
+    int highNode = (int) getHighFromStore(nodeStore);
+    double highCount;
     if (highNode == FALSE_NODE) {
-      highCount = 0d;
+      highCount = 0.0d;
     } else if (highNode == TRUE_NODE) {
-      highCount = Math.pow(2d, (double) (numberOfVariables - nodeVar - 1));
+      //noinspection NonReproducibleMathCall
+      highCount = Math.pow(2.0d, (double) (numberOfVariables - nodeVar - 1));
     } else {
-      final long highStore = getNodeStore(highNode);
-      final int highVar = (int) getVariableFromStore(highStore);
+      long highStore = getNodeStore(highNode);
+      //noinspection NumericCastThatLosesPrecision
+      int highVar = (int) getVariableFromStore(highStore);
+      //noinspection NonReproducibleMathCall
       highCount = countSatisfyingAssignmentsRecursive(highNode)
-        * Math.pow(2d, (double) (highVar - nodeVar - 1));
+        * Math.pow(2.0d, (double) (highVar - nodeVar - 1));
     }
 
-    final double result = lowCount + highCount;
+    double result = lowCount + highCount;
     cache.putSatisfaction(hash, node, result);
     return result;
   }
 
   @Override
   public int createVariable() {
-    final int variableNode = makeNode(numberOfVariables, 0, 1);
+    int variableNode = makeNode(numberOfVariables, 0, 1);
     saturateNode(variableNode);
-    final int notVariableNode = makeNode(numberOfVariables, 1, 0);
+    int notVariableNode = makeNode(numberOfVariables, 1, 0);
     saturateNode(notVariableNode);
     variableNodes.add(variableNode);
     numberOfVariables++;
@@ -284,7 +302,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int cube(final BitSet cubeVariables) {
+  public int cube(BitSet cubeVariables) {
     int node = TRUE_NODE;
     for (int currentVariableNumber = cubeVariables.nextSetBit(0); currentVariableNumber != -1;
          currentVariableNumber = cubeVariables.nextSetBit(currentVariableNumber + 1)) {
@@ -297,16 +315,16 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int equivalence(final int node1, final int node2) {
+  public int equivalence(int node1, int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int ret = equivalenceRecursive(node1, node2);
+    int ret = equivalenceRecursive(node1, node2);
     popWorkStack(2);
     return ret;
   }
 
-  private int equivalenceRecursive(final int node1, final int node2) {
+  private int equivalenceRecursive(int node1, int node2) {
     if (node1 == node2) {
       return TRUE_NODE;
     }
@@ -323,21 +341,25 @@ final class BddImpl extends NodeTable implements Bdd {
       return node1;
     }
 
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var > node2var) {
       if (cache.lookupEquivalence(node2, node1)) {
         return cache.getLookupResult();
       }
-      final int hash = cache.getLookupHash();
-      final int lowNode = equivalenceRecursive((int) getLowFromStore(node2store), node1);
+      int hash = cache.getLookupHash();
+      //noinspection NumericCastThatLosesPrecision
+      int lowNode = equivalenceRecursive((int) getLowFromStore(node2store), node1);
       pushToWorkStack(lowNode);
-      final int highNode = equivalenceRecursive((int) getHighFromStore(node2store), node1);
+      //noinspection NumericCastThatLosesPrecision
+      int highNode = equivalenceRecursive((int) getHighFromStore(node2store), node1);
       pushToWorkStack(highNode);
-      final int resultNode = makeNode(node2var, lowNode, highNode);
+      int resultNode = makeNode(node2var, lowNode, highNode);
       popWorkStack(2);
       cache.putEquivalence(hash, node2, node1, resultNode);
       return resultNode;
@@ -346,9 +368,9 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupEquivalence(node1, node2)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
+    int hash = cache.getLookupHash();
+    int lowNode;
+    int highNode;
     if (node1var == node2var) {
       lowNode = equivalenceRecursive((int) getLowFromStore(node1store),
         (int) getLowFromStore(node2store));
@@ -360,20 +382,18 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = pushToWorkStack(equivalenceRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(equivalenceRecursive((int) getHighFromStore(node1store), node2));
     }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
+    int resultNode = makeNode(node1var, lowNode, highNode);
     popWorkStack(2);
     cache.putEquivalence(hash, node1, node2, resultNode);
     return resultNode;
   }
 
   @Override
-  public boolean evaluate(final int node, final BitSet assignment) {
+  public boolean evaluate(int node, BitSet assignment) {
     int currentBdd = node;
-    long currentBddStore;
-    int currentBddVariable;
     while (currentBdd >= 2) {
-      currentBddStore = getNodeStore(currentBdd);
-      currentBddVariable = (int) getVariableFromStore(currentBddStore);
+      long currentBddStore = getNodeStore(currentBdd);
+      int currentBddVariable = (int) getVariableFromStore(currentBddStore);
       if (assignment.get(currentBddVariable)) {
         currentBdd = (int) getHighFromStore(currentBddStore);
       } else {
@@ -384,7 +404,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int exists(final int node, final BitSet quantifiedVariables) {
+  public int exists(int node, BitSet quantifiedVariables) {
     if (getConfiguration().useShannonExists()) {
       return existsShannon(node, quantifiedVariables);
     }
@@ -392,7 +412,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @VisibleForTesting
-  int existsSelfSubstitution(final int node, final BitSet quantifiedVariables) {
+  int existsSelfSubstitution(int node, BitSet quantifiedVariables) {
     assert quantifiedVariables.previousSetBit(quantifiedVariables.length()) <= numberOfVariables;
     if (quantifiedVariables.cardinality() == numberOfVariables) {
       return TRUE_NODE;
@@ -402,19 +422,19 @@ final class BddImpl extends NodeTable implements Bdd {
       return node;
     }
 
-    int workStackElements = 1;
     pushToWorkStack(node);
 
-    int quantifiedNode = node;
-    final int[] replacementArray = new int[quantifiedVariables.length()];
+    int[] replacementArray = new int[quantifiedVariables.length()];
     for (int i = 0; i < replacementArray.length; i++) {
       replacementArray[i] = variableNodes.get(i);
     }
+    int quantifiedNode = node;
+    int workStackElements = 1;
     for (int i = 0; i < quantifiedVariables.length(); i++) {
       if (!quantifiedVariables.get(i)) {
         continue;
       }
-      final int variableNode = replacementArray[i];
+      int variableNode = replacementArray[i];
 
       replacementArray[i] = TRUE_NODE;
       cache.clearVolatileCache();
@@ -435,21 +455,21 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @VisibleForTesting
-  int existsShannon(final int node, final BitSet quantifiedVariables) {
+  int existsShannon(int node, BitSet quantifiedVariables) {
     assert quantifiedVariables.previousSetBit(quantifiedVariables.length()) <= numberOfVariables;
     if (quantifiedVariables.cardinality() == numberOfVariables) {
       return TRUE_NODE;
     }
 
     pushToWorkStack(node);
-    final int quantifiedVariablesCube = cube(quantifiedVariables);
+    int quantifiedVariablesCube = cube(quantifiedVariables);
     pushToWorkStack(quantifiedVariablesCube);
-    final int result = existsShannonRecursive(node, quantifiedVariablesCube);
+    int result = existsShannonRecursive(node, quantifiedVariablesCube);
     popWorkStack(2);
     return result;
   }
 
-  private int existsShannonRecursive(final int node, final int quantifiedVariableCube) {
+  private int existsShannonRecursive(int node, int quantifiedVariableCube) {
     if (node == TRUE_NODE || node == FALSE_NODE) {
       return node;
     }
@@ -457,11 +477,13 @@ final class BddImpl extends NodeTable implements Bdd {
       return node;
     }
 
-    final long nodeStore = getNodeStore(node);
-    final int nodeVariable = (int) getVariableFromStore(nodeStore);
+    long nodeStore = getNodeStore(node);
+    //noinspection NumericCastThatLosesPrecision
+    int nodeVariable = (int) getVariableFromStore(nodeStore);
 
     int currentCubeNode = quantifiedVariableCube;
     long currentCubeNodeStore = getNodeStore(currentCubeNode);
+    //noinspection NumericCastThatLosesPrecision
     int currentCubeNodeVariable = (int) getVariableFromStore(currentCubeNodeStore);
     while (currentCubeNodeVariable < nodeVariable) {
       currentCubeNode = (int) getHighFromStore(currentCubeNodeStore);
@@ -483,14 +505,16 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupExists(node, currentCubeNode)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
+    int hash = cache.getLookupHash();
 
     // The "root" of the cube is guarded in the main invocation - no need to guard its descendants
-    final int lowExists = pushToWorkStack(existsShannonRecursive((int) getLowFromStore(nodeStore),
+    //noinspection NumericCastThatLosesPrecision
+    int lowExists = pushToWorkStack(existsShannonRecursive((int) getLowFromStore(nodeStore),
       currentCubeNode));
-    final int highExists = pushToWorkStack(existsShannonRecursive(
+    //noinspection NumericCastThatLosesPrecision
+    int highExists = pushToWorkStack(existsShannonRecursive(
       (int) getHighFromStore(nodeStore), currentCubeNode));
-    final int resultNode;
+    int resultNode;
     if (currentCubeNodeVariable > nodeVariable) {
       // The variable of this node is smaller than the variable looked for - only propagate the
       // quantification downward
@@ -514,7 +538,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public Iterator<BitSet> getMinimalSolutions(final int node) {
+  public Iterator<BitSet> getMinimalSolutions(int node) {
     assert isNodeValidOrRoot(node);
 
     if (node == FALSE_NODE) {
@@ -533,23 +557,23 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int getVariableNode(final int variableNumber) {
+  public int getVariableNode(int variableNumber) {
     assert 0 <= variableNumber && variableNumber < numberOfVariables();
     return variableNodes.get(variableNumber);
   }
 
   @Override
-  public int ifThenElse(final int ifNode, final int thenNode, final int elseNode) {
+  public int ifThenElse(int ifNode, int thenNode, int elseNode) {
     assert isNodeValidOrRoot(ifNode) && isNodeValidOrRoot(thenNode) && isNodeValidOrRoot(elseNode);
     pushToWorkStack(ifNode);
     pushToWorkStack(thenNode);
     pushToWorkStack(elseNode);
-    final int result = ifThenElseRecursive(ifNode, thenNode, elseNode);
+    int result = ifThenElseRecursive(ifNode, thenNode, elseNode);
     popWorkStack(3);
     return result;
   }
 
-  private int ifThenElseRecursive(final int ifNode, final int thenNode, final int elseNode) {
+  private int ifThenElseRecursive(int ifNode, int thenNode, int elseNode) {
     if (ifNode == 1) {
       return thenNode;
     }
@@ -569,7 +593,7 @@ final class BddImpl extends NodeTable implements Bdd {
       if (elseNode == 1) {
         return notRecursive(ifNode);
       }
-      final int result = andRecursive(pushToWorkStack(notRecursive(ifNode)), elseNode);
+      int result = andRecursive(pushToWorkStack(notRecursive(ifNode)), elseNode);
       popWorkStack();
       return result;
     }
@@ -578,7 +602,7 @@ final class BddImpl extends NodeTable implements Bdd {
       return andRecursive(ifNode, thenNode);
     }
     if (elseNode == 1) {
-      final int result = notAndRecursive(ifNode, pushToWorkStack(notRecursive(thenNode)));
+      int result = notAndRecursive(ifNode, pushToWorkStack(notRecursive(thenNode)));
       popWorkStack();
       return result;
     }
@@ -586,22 +610,21 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupIfThenElse(ifNode, thenNode, elseNode)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final long ifStore = getNodeStore(ifNode);
-    final long thenStore = getNodeStore(thenNode);
-    final long elseStore = getNodeStore(elseNode);
+    int hash = cache.getLookupHash();
+    long ifStore = getNodeStore(ifNode);
+    long thenStore = getNodeStore(thenNode);
+    long elseStore = getNodeStore(elseNode);
 
-    final int ifVar = (int) getVariableFromStore(ifStore);
-    final int thenVar = (int) getVariableFromStore(thenStore);
-    final int elseVar = (int) getVariableFromStore(elseStore);
+    //noinspection NumericCastThatLosesPrecision
+    int ifVar = (int) getVariableFromStore(ifStore);
+    //noinspection NumericCastThatLosesPrecision
+    int thenVar = (int) getVariableFromStore(thenStore);
+    //noinspection NumericCastThatLosesPrecision
+    int elseVar = (int) getVariableFromStore(elseStore);
 
-    final int minVar = Math.min(ifVar, Math.min(thenVar, elseVar));
-    final int ifLowNode;
-    final int ifHighNode;
-    final int thenLowNode;
-    final int thenHighNode;
-    final int elseLowNode;
-    final int elseHighNode;
+    int minVar = Math.min(ifVar, Math.min(thenVar, elseVar));
+    int ifLowNode;
+    int ifHighNode;
 
     if (ifVar == minVar) {
       ifLowNode = (int) getLowFromStore(ifStore);
@@ -611,6 +634,8 @@ final class BddImpl extends NodeTable implements Bdd {
       ifHighNode = ifNode;
     }
 
+    int thenHighNode;
+    int thenLowNode;
     if (thenVar == minVar) {
       thenLowNode = (int) getLowFromStore(thenStore);
       thenHighNode = (int) getHighFromStore(thenStore);
@@ -619,6 +644,8 @@ final class BddImpl extends NodeTable implements Bdd {
       thenHighNode = thenNode;
     }
 
+    int elseHighNode;
+    int elseLowNode;
     if (elseVar == minVar) {
       elseLowNode = (int) getLowFromStore(elseStore);
       elseHighNode = (int) getHighFromStore(elseStore);
@@ -627,26 +654,26 @@ final class BddImpl extends NodeTable implements Bdd {
       elseHighNode = elseNode;
     }
 
-    final int lowNode = pushToWorkStack(ifThenElseRecursive(ifLowNode, thenLowNode, elseLowNode));
-    final int highNode =
+    int lowNode = pushToWorkStack(ifThenElseRecursive(ifLowNode, thenLowNode, elseLowNode));
+    int highNode =
       pushToWorkStack(ifThenElseRecursive(ifHighNode, thenHighNode, elseHighNode));
-    final int result = makeNode(minVar, lowNode, highNode);
+    int result = makeNode(minVar, lowNode, highNode);
     popWorkStack(2);
     cache.putIfThenElse(hash, ifNode, thenNode, elseNode, result);
     return result;
   }
 
   @Override
-  public int implication(final int node1, final int node2) {
+  public int implication(int node1, int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int ret = implicationRecursive(node1, node2);
+    int ret = implicationRecursive(node1, node2);
     popWorkStack(2);
     return ret;
   }
 
-  private int implicationRecursive(final int node1, final int node2) {
+  private int implicationRecursive(int node1, int node2) {
     if (node1 == FALSE_NODE || node2 == TRUE_NODE || node1 == node2) {
       return TRUE_NODE;
     }
@@ -660,16 +687,18 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupImplication(node1, node2)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
+    int hash = cache.getLookupHash();
 
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
-    final int lowNode;
-    final int highNode;
-    final int decisionVar;
+    int lowNode;
+    int highNode;
+    int decisionVar;
     if (node1var > node2var) {
       lowNode = pushToWorkStack(implicationRecursive(node1, (int) getLowFromStore(node2store)));
       highNode = pushToWorkStack(implicationRecursive(node1, (int) getHighFromStore(node2store)));
@@ -685,19 +714,19 @@ final class BddImpl extends NodeTable implements Bdd {
       highNode = pushToWorkStack(implicationRecursive((int) getHighFromStore(node1store), node2));
       decisionVar = node1var;
     }
-    final int resultNode = makeNode(decisionVar, lowNode, highNode);
+    int resultNode = makeNode(decisionVar, lowNode, highNode);
     popWorkStack(2);
     cache.putImplication(hash, node1, node2, resultNode);
     return resultNode;
   }
 
   @Override
-  public boolean implies(final int node1, final int node2) {
+  public boolean implies(int node1, int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     return impliesRecursive(node1, node2);
   }
 
-  private boolean impliesRecursive(final int node1, final int node2) {
+  private boolean impliesRecursive(int node1, int node2) {
     if (node1 == FALSE_NODE) {
       // False implies anything
       return true;
@@ -722,10 +751,12 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupImplication(node1, node2)) {
       return cache.getLookupResult() == TRUE_NODE;
     }
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var == node2var) {
       return
@@ -742,11 +773,11 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public boolean isVariable(final int node) {
+  public boolean isVariable(int node) {
     if (isNodeRoot(node)) {
       return false;
     }
-    final long nodeStore = getNodeStore(node);
+    long nodeStore = getNodeStore(node);
     return (int) getLowFromStore(nodeStore) == FALSE_NODE
       && (int) getHighFromStore(nodeStore) == TRUE_NODE;
   }
@@ -756,40 +787,40 @@ final class BddImpl extends NodeTable implements Bdd {
     if (isNodeRoot(node)) {
       return false;
     }
-    final long nodeStore = getNodeStore(node);
+    long nodeStore = getNodeStore(node);
     return (int) getLowFromStore(nodeStore) == TRUE_NODE
       && (int) getHighFromStore(nodeStore) == FALSE_NODE;
   }
 
   @Override
-  public boolean isVariableOrNegated(final int node) {
+  public boolean isVariableOrNegated(int node) {
     assert isNodeValidOrRoot(node);
     if (isNodeRoot(node)) {
       return false;
     }
-    final long nodeStore = getNodeStore(node);
+    long nodeStore = getNodeStore(node);
     return isVariableOrNegatedStore(nodeStore);
   }
 
   @Override
-  public int not(final int node) {
+  public int not(int node) {
     assert isNodeValidOrRoot(node);
     pushToWorkStack(node);
-    final int ret = notRecursive(node);
+    int ret = notRecursive(node);
     popWorkStack();
     return ret;
   }
 
   @Override
-  public int notAnd(final int node1, final int node2) {
+  public int notAnd(int node1, int node2) {
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int ret = notAndRecursive(node1, node2);
+    int ret = notAndRecursive(node1, node2);
     popWorkStack(2);
     return ret;
   }
 
-  private int notAndRecursive(final int node1, final int node2) {
+  private int notAndRecursive(int node1, int node2) {
     if (node1 == 0 || node2 == 0) {
       return 1;
     }
@@ -800,21 +831,25 @@ final class BddImpl extends NodeTable implements Bdd {
       return notRecursive(node1);
     }
 
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var > node2var) {
       if (cache.lookupNAnd(node2, node1)) {
         return cache.getLookupResult();
       }
-      final int hash = cache.getLookupHash();
-      final int lowNode = notAndRecursive((int) getLowFromStore(node2store), node1);
+      int hash = cache.getLookupHash();
+      //noinspection NumericCastThatLosesPrecision
+      int lowNode = notAndRecursive((int) getLowFromStore(node2store), node1);
       pushToWorkStack(lowNode);
-      final int highNode = notAndRecursive((int) getHighFromStore(node2store), node1);
+      //noinspection NumericCastThatLosesPrecision
+      int highNode = notAndRecursive((int) getHighFromStore(node2store), node1);
       pushToWorkStack(highNode);
-      final int resultNode = makeNode(node2var, lowNode, highNode);
+      int resultNode = makeNode(node2var, lowNode, highNode);
       popWorkStack(2);
       cache.putNAnd(hash, node2, node1, resultNode);
       return resultNode;
@@ -823,9 +858,9 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupNAnd(node1, node2)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
+    int hash = cache.getLookupHash();
+    int lowNode;
+    int highNode;
     if (node1var == node2var) {
       lowNode = notAndRecursive((int) getLowFromStore(node1store),
         (int) getLowFromStore(node2store));
@@ -837,13 +872,13 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = pushToWorkStack(notAndRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(notAndRecursive((int) getHighFromStore(node1store), node2));
     }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
+    int resultNode = makeNode(node1var, lowNode, highNode);
     popWorkStack(2);
     cache.putNAnd(hash, node1, node2, resultNode);
     return resultNode;
   }
 
-  private int notRecursive(final int node) {
+  private int notRecursive(int node) {
     if (node == FALSE_NODE) {
       return TRUE_NODE;
     }
@@ -854,12 +889,15 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupNot(node)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final long nodeStore = getNodeStore(node);
+    int hash = cache.getLookupHash();
+    long nodeStore = getNodeStore(node);
 
-    final int lowNode = pushToWorkStack(notRecursive((int) getLowFromStore(nodeStore)));
-    final int highNode = pushToWorkStack(notRecursive((int) getHighFromStore(nodeStore)));
-    final int resultNode = makeNode((int) getVariableFromStore(nodeStore), lowNode, highNode);
+    //noinspection NumericCastThatLosesPrecision
+    int lowNode = pushToWorkStack(notRecursive((int) getLowFromStore(nodeStore)));
+    //noinspection NumericCastThatLosesPrecision
+    int highNode = pushToWorkStack(notRecursive((int) getHighFromStore(nodeStore)));
+    //noinspection NumericCastThatLosesPrecision
+    int resultNode = makeNode((int) getVariableFromStore(nodeStore), lowNode, highNode);
     popWorkStack(2);
     cache.putNot(hash, node, resultNode);
     return resultNode;
@@ -883,16 +921,16 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int or(final int node1, final int node2) {
+  public int or(int node1, int node2) {
     assert isNodeValidOrRoot(node1) && isNodeValidOrRoot(node2);
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int result = orRecursive(node1, node2);
+    int result = orRecursive(node1, node2);
     popWorkStack(2);
     return result;
   }
 
-  private int orRecursive(final int node1, final int node2) {
+  private int orRecursive(int node1, int node2) {
     if (node1 == TRUE_NODE || node2 == TRUE_NODE) {
       return 1;
     }
@@ -903,19 +941,23 @@ final class BddImpl extends NodeTable implements Bdd {
       return node1;
     }
 
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var > node2var) {
       if (cache.lookupOr(node2, node1)) {
         return cache.getLookupResult();
       }
-      final int hash = cache.getLookupHash();
-      final int lowNode = pushToWorkStack(orRecursive((int) getLowFromStore(node2store), node1));
-      final int highNode = pushToWorkStack(orRecursive((int) getHighFromStore(node2store), node1));
-      final int resultNode = makeNode(node2var, lowNode, highNode);
+      int hash = cache.getLookupHash();
+      //noinspection NumericCastThatLosesPrecision
+      int lowNode = pushToWorkStack(orRecursive((int) getLowFromStore(node2store), node1));
+      //noinspection NumericCastThatLosesPrecision
+      int highNode = pushToWorkStack(orRecursive((int) getHighFromStore(node2store), node1));
+      int resultNode = makeNode(node2var, lowNode, highNode);
       popWorkStack(2);
       cache.putOr(hash, node2, node1, resultNode);
       return resultNode;
@@ -924,9 +966,9 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupOr(node1, node2)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
+    int hash = cache.getLookupHash();
+    int lowNode;
+    int highNode;
     if (node1var == node2var) {
       lowNode = orRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
       pushToWorkStack(lowNode);
@@ -936,31 +978,32 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = pushToWorkStack(orRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(orRecursive((int) getHighFromStore(node1store), node2));
     }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
+    int resultNode = makeNode(node1var, lowNode, highNode);
     popWorkStack(2);
     cache.putOr(hash, node1, node2, resultNode);
     return resultNode;
   }
 
   @Override
-  public int restrict(final int node, final BitSet restrictedVariables,
-    final BitSet restrictedVariableValues) {
+  public int restrict(int node, BitSet restrictedVariables,
+    BitSet restrictedVariableValues) {
     assert isNodeValidOrRoot(node);
     pushToWorkStack(node);
     cache.clearVolatileCache();
-    final int resultNode = restrictRecursive(node, restrictedVariables, restrictedVariableValues);
+    int resultNode = restrictRecursive(node, restrictedVariables, restrictedVariableValues);
     popWorkStack();
     return resultNode;
   }
 
-  private int restrictRecursive(final int node, final BitSet restrictedVariables,
-    final BitSet restrictedVariableValues) {
+  private int restrictRecursive(int node, BitSet restrictedVariables,
+    BitSet restrictedVariableValues) {
     if (node == TRUE_NODE || node == FALSE_NODE) {
       return node;
     }
 
-    final long nodeStore = getNodeStore(node);
-    final int nodeVariable = (int) getVariableFromStore(nodeStore);
+    long nodeStore = getNodeStore(node);
+    //noinspection NumericCastThatLosesPrecision
+    int nodeVariable = (int) getVariableFromStore(nodeStore);
     // The tree is sorted (variable 0 on top), hence if the algorithm descended far enough there
     // will not be any replacements.
     if (nodeVariable >= restrictedVariables.length()) {
@@ -970,9 +1013,9 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupVolatile(node)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
+    int hash = cache.getLookupHash();
 
-    final int resultNode;
+    int resultNode;
     if (restrictedVariables.get(nodeVariable)) {
       if (restrictedVariableValues.get(nodeVariable)) {
         resultNode = restrictRecursive((int) getHighFromStore(nodeStore), restrictedVariables,
@@ -982,9 +1025,11 @@ final class BddImpl extends NodeTable implements Bdd {
           restrictedVariableValues);
       }
     } else {
-      final int lowRestrict = pushToWorkStack(restrictRecursive((int) getLowFromStore(nodeStore),
+      //noinspection NumericCastThatLosesPrecision
+      int lowRestrict = pushToWorkStack(restrictRecursive((int) getLowFromStore(nodeStore),
         restrictedVariables, restrictedVariableValues));
-      final int highRestrict = pushToWorkStack(restrictRecursive((int) getHighFromStore(nodeStore),
+      //noinspection NumericCastThatLosesPrecision
+      int highRestrict = pushToWorkStack(restrictRecursive((int) getHighFromStore(nodeStore),
         restrictedVariables, restrictedVariableValues));
       resultNode = makeNode(nodeVariable, lowRestrict, highRestrict);
       popWorkStack(2);
@@ -994,7 +1039,7 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public void support(final int node, final BitSet bitSet, final int highestVariable) {
+  public void support(int node, BitSet bitSet, int highestVariable) {
     assert isNodeValidOrRoot(node);
     assert 0 <= highestVariable && highestVariable <= numberOfVariables;
     bitSet.clear();
@@ -1002,18 +1047,19 @@ final class BddImpl extends NodeTable implements Bdd {
     unMarkTree(node);
   }
 
-  private void supportRecursive(final int node, final BitSet bitSet, final int highestVariable) {
+  private void supportRecursive(int node, BitSet bitSet, int highestVariable) {
     if (isNodeRoot(node)) {
       return;
     }
 
-    final long nodeStore = getNodeStore(node);
+    long nodeStore = getNodeStore(node);
 
     if (isNodeStoreMarked(nodeStore)) {
       return;
     }
 
-    final int variable = (int) getVariableFromStore(nodeStore);
+    //noinspection NumericCastThatLosesPrecision
+    int variable = (int) getVariableFromStore(nodeStore);
 
     if (variable < highestVariable) {
       bitSet.set(variable);
@@ -1024,15 +1070,15 @@ final class BddImpl extends NodeTable implements Bdd {
   }
 
   @Override
-  public int xor(final int node1, final int node2) {
+  public int xor(int node1, int node2) {
     pushToWorkStack(node1);
     pushToWorkStack(node2);
-    final int ret = xorRecursive(node1, node2);
+    int ret = xorRecursive(node1, node2);
     popWorkStack(2);
     return ret;
   }
 
-  private int xorRecursive(final int node1, final int node2) {
+  private int xorRecursive(int node1, int node2) {
     if (node1 == node2) {
       return 0;
     }
@@ -1049,19 +1095,23 @@ final class BddImpl extends NodeTable implements Bdd {
       return notRecursive(node1);
     }
 
-    final long node1store = getNodeStore(node1);
-    final long node2store = getNodeStore(node2);
-    final int node1var = (int) getVariableFromStore(node1store);
-    final int node2var = (int) getVariableFromStore(node2store);
+    long node1store = getNodeStore(node1);
+    long node2store = getNodeStore(node2);
+    //noinspection NumericCastThatLosesPrecision
+    int node1var = (int) getVariableFromStore(node1store);
+    //noinspection NumericCastThatLosesPrecision
+    int node2var = (int) getVariableFromStore(node2store);
 
     if (node1var > node2var) {
       if (cache.lookupXor(node2, node1)) {
         return cache.getLookupResult();
       }
-      final int hash = cache.getLookupHash();
-      final int lowNode = pushToWorkStack(xorRecursive((int) getLowFromStore(node2store), node1));
-      final int highNode = pushToWorkStack(xorRecursive((int) getHighFromStore(node2store), node1));
-      final int resultNode = makeNode(node2var, lowNode, highNode);
+      int hash = cache.getLookupHash();
+      //noinspection NumericCastThatLosesPrecision
+      int lowNode = pushToWorkStack(xorRecursive((int) getLowFromStore(node2store), node1));
+      //noinspection NumericCastThatLosesPrecision
+      int highNode = pushToWorkStack(xorRecursive((int) getHighFromStore(node2store), node1));
+      int resultNode = makeNode(node2var, lowNode, highNode);
       popWorkStack(2);
       cache.putXor(hash, node2, node1, resultNode);
       return resultNode;
@@ -1070,9 +1120,9 @@ final class BddImpl extends NodeTable implements Bdd {
     if (cache.lookupXor(node1, node2)) {
       return cache.getLookupResult();
     }
-    final int hash = cache.getLookupHash();
-    final int lowNode;
-    final int highNode;
+    int hash = cache.getLookupHash();
+    int lowNode;
+    int highNode;
     if (node1var == node2var) {
       lowNode = xorRecursive((int) getLowFromStore(node1store), (int) getLowFromStore(node2store));
       pushToWorkStack(lowNode);
@@ -1082,7 +1132,7 @@ final class BddImpl extends NodeTable implements Bdd {
       lowNode = pushToWorkStack(xorRecursive((int) getLowFromStore(node1store), node2));
       highNode = pushToWorkStack(xorRecursive((int) getHighFromStore(node1store), node2));
     }
-    final int resultNode = makeNode(node1var, lowNode, highNode);
+    int resultNode = makeNode(node1var, lowNode, highNode);
     popWorkStack(2);
     cache.putXor(hash, node1, node2, resultNode);
     return resultNode;
@@ -1093,11 +1143,11 @@ final class BddImpl extends NodeTable implements Bdd {
     private final BitSet bitSet;
     private final int[] path;
     private boolean firstRun = true;
-    private int highestLowVariableWithNonFalseHighBranch;
+    private int highestLowVariableWithNonFalseHighBranch = 0;
     private int leafPosition;
     private boolean next;
 
-    MinimalSolutionIterator(final BddImpl bdd, final int node) {
+    MinimalSolutionIterator(BddImpl bdd, int node) {
       // Require at least one possible solution to exist.
       assert bdd.isNodeValid(node) || node == TRUE_NODE;
       // Assignments don't make much sense otherwise
@@ -1161,11 +1211,12 @@ final class BddImpl extends NodeTable implements Bdd {
 
       while (currentNode != TRUE_NODE) {
         assert currentNode != FALSE_NODE;
-        final long currentNodeStore = bdd.getNodeStore(currentNode);
+        long currentNodeStore = bdd.getNodeStore(currentNode);
         leafPosition = (int) getVariableFromStore(currentNodeStore);
         path[leafPosition] = currentNode;
 
-        final int low = (int) getLowFromStore(currentNodeStore);
+        //noinspection NumericCastThatLosesPrecision
+        int low = (int) getLowFromStore(currentNodeStore);
         if (low == FALSE_NODE) {
           // Descend high path
           bitSet.set(leafPosition);

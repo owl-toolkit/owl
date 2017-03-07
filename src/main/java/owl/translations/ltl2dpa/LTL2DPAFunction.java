@@ -38,7 +38,7 @@ import owl.translations.ltl2ldba.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.RecurringObligations;
 
-public class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcceptance>> {
+public final class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcceptance>> {
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
@@ -60,6 +60,7 @@ public class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcc
   @Override
   public Automaton<?, ParityAcceptance> apply(Formula formula) {
     if (!optimisations.contains(Optimisation.PARALLEL)) {
+      // TODO Instead, one should use a direct executor here
       return apply(formula, new AtomicInteger()).automaton;
     }
 
@@ -73,11 +74,11 @@ public class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcc
     Future<ComplementableAutomaton<?>> complementFuture = executor
       .submit(() -> apply(formula.not(), complementCounter));
 
-    ComplementableAutomaton<?> automaton = null;
-    ComplementableAutomaton<?> complement = null;
-
     try {
+      ComplementableAutomaton<?> complement = null;
+      ComplementableAutomaton<?> automaton = null;
       while (true) {
+        //noinspection NestedTryStatement
         try {
           // Get new results.
           if (automaton == null && automatonFuture.isDone()) {
@@ -106,8 +107,9 @@ public class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcc
             return complement.automaton;
           }
 
+          //noinspection BusyWait
           Thread.sleep(SLEEP_MS);
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException ignored) {
           // Let's continue checking stuff...
         }
       }
@@ -118,6 +120,7 @@ public class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcc
 
       automatonFuture.cancel(true);
       complementFuture.cancel(true);
+      //noinspection ProhibitedExceptionThrown
       throw new RuntimeException(ex); // NOPMD
     } finally {
       executor.shutdown();

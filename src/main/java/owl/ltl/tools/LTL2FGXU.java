@@ -21,17 +21,16 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.UnabbreviateVisitor;
 
-@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
-public final class Ltl2FGXU {
-  private Ltl2FGXU() {
+public final class LTL2FGXU {
+  private LTL2FGXU() {
   }
 
-  public static void main(String[] argv) throws ParseException {
-    final LtlParseResult ltlParseResult = LtlParser.parse(argv[0]);
+  public static void main(String[] argv) throws ParserException {
+    LtlParseResult ltlParseResult = LtlParser.parse(argv[0]);
     Formula formula = ltlParseResult.getFormula().accept(
       new UnabbreviateVisitor(ROperator.class, MOperator.class, WOperator.class));
     Printer printer = new Printer(System.out, ltlParseResult.getVariableMapping());

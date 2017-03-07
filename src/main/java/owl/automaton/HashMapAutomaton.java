@@ -26,11 +26,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -58,13 +59,14 @@ import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 
 // TODO: use Cofoja to ensure invariants.
-@SuppressWarnings("PMD.GodClass")
 public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   implements MutableAutomaton<S, A> {
   private final A acceptance;
   private final Set<S> initialStates = new HashSet<>();
   private final Map<S, Map<Edge<S>, ValuationSet>> transitions;
   private final ValuationSetFactory valuationSetFactory;
+  @Nullable
+  private String name = null;
   private ImmutableList<String> variables;
 
   HashMapAutomaton(ValuationSetFactory valuationSetFactory, A acceptance) {
@@ -75,14 +77,13 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
       ImmutableList.toImmutableList());
   }
 
-  public <B extends OmegaAcceptance> HashMapAutomaton(HashMapAutomaton<S, B> copy2,
+  public <B extends OmegaAcceptance> HashMapAutomaton(HashMapAutomaton<S, B> copy,
     A newAcceptance) {
-    this.valuationSetFactory = copy2.valuationSetFactory;
+    this.valuationSetFactory = copy.valuationSetFactory;
     this.acceptance = newAcceptance;
-    transitions = copy2.transitions;
-    variables = copy2.variables;
-    initialStates.addAll(copy2.initialStates);
-    addStates(initialStates);
+    transitions = copy.transitions;
+    variables = copy.variables;
+    initialStates.addAll(copy.initialStates);
   }
 
   @Override
@@ -109,8 +110,8 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public void addInitialStates(Iterable<S> states) {
-    Iterables.addAll(initialStates, states);
     addStates(states);
+    Iterables.addAll(initialStates, states);
   }
 
   @Override
@@ -127,7 +128,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
     // No "outgoing" edges
     transitions.forEach((state, edges) -> {
-      final Set<S> successorStates = Sets.newHashSet(ValuationSetMapUtil.viewSuccessors(edges));
+      Set<S> successorStates = Sets.newHashSet(ValuationSetMapUtil.viewSuccessors(edges));
       checkState(transitions.keySet().containsAll(successorStates));
       successors.putAll(state, successorStates);
       for (S successor : successorStates) {
@@ -136,6 +137,20 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     });
 
     return true;
+  }
+
+  @Override
+  public boolean containsState(S state) {
+    return transitions.containsKey(state);
+  }
+
+  @Override
+  public boolean containsStates(Iterable<S> states) {
+    if (states instanceof Collection<?>) {
+      return transitions.keySet().containsAll((Collection<?>) states);
+    }
+
+    return Iterables.all(states, transitions.keySet()::contains);
   }
 
   void free() {
@@ -151,7 +166,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   @Override
   public Edge<S> getEdge(S state, BitSet valuation) {
     Map<Edge<S>, ValuationSet> edges = transitions.get(state);
-    checkArgument(edges != null);
+    checkArgument(edges != null, "State %s not in automaton", state);
     return ValuationSetMapUtil.findFirst(edges, valuation);
   }
 
@@ -167,9 +182,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     transitions.forEach((state, successors) -> {
       ValuationSet unionSet = valuationSetFactory.createEmptyValuationSet();
 
-      successors.forEach((edge, valuation) -> {
-        unionSet.addAll(valuation);
-      });
+      successors.forEach((edge, valuation) -> unionSet.addAll(valuation));
 
       // State is incomplete; complement() creates a new, referenced node.
       if (!unionSet.isUniverse()) {
@@ -188,27 +201,37 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public Iterable<LabelledEdge<S>> getLabelledEdges(S state) {
-    checkArgument(transitions.containsKey(state), "Unknown state: " + state);
-    return Collections2.transform(transitions.get(state).entrySet(), LabelledEdge::new);
+  public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    Map<Edge<S>, ValuationSet> transitionMap = transitions.get(state);
+    checkArgument(transitionMap != null, "State %s not in automaton", state);
+
+    return Collections2.transform(Collections.unmodifiableCollection(transitionMap.entrySet()),
+      LabelledEdge::new);
+  }
+
+  @Override
+  public String getName() {
+    if (name == null) {
+      return String.format("Automaton for %s", getInitialStates());
+    }
+    return name;
   }
 
   @Override
   public Set<S> getReachableStates(Iterable<S> start) {
+    assert containsStates(start) :
+      String.format("Some of the states %s are not in the automaton", start);
+
     Set<S> reachedStates = Sets.newHashSet(start);
     Queue<S> workQueue = new ArrayDeque<>(reachedStates);
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Map<Edge<S>, ValuationSet> successors = transitions.get(state);
+      Map<Edge<S>, ValuationSet> edges = transitions.get(state);
+      assert edges != null : String.format("State %s not in automaton", state);
 
-      if (successors == null) {
-        continue;
-      }
-
-      ValuationSetMapUtil.viewSuccessors(successors).forEach(successor -> {
-        if (!reachedStates.contains(successor)) {
-          reachedStates.add(successor);
+      ValuationSetMapUtil.viewSuccessors(edges).forEach(successor -> {
+        if (reachedStates.add(successor)) {
           workQueue.add(successor);
         }
       });
@@ -229,24 +252,26 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public void remapAcceptance(Set<S> states, IntUnaryOperator transformer) {
+    // assert instead of checkArgument for performance
+    assert containsStates(states) :
+      String.format("Some of the states %s are not in the automaton", states);
+
     Function<Edge<S>, Edge<S>> edgeUpdater = edge -> Edges.create(edge.getSuccessor(),
       new IntIteratorTransformer(edge.acceptanceSetIterator(), transformer));
-    transitions.forEach((state, edges) -> ValuationSetMapUtil.update(edges, edgeUpdater));
+    states.forEach(state -> ValuationSetMapUtil.update(transitions.get(state), edgeUpdater));
   }
 
   @Override
   public void remapAcceptance(BiFunction<S, Edge<S>, BitSet> f) {
-    transitions.forEach((state, edges) -> {
-      ValuationSetMapUtil.update(edges, edge -> {
-        BitSet resultAcceptance = f.apply(state, edge);
+    transitions.forEach((state, edges) -> ValuationSetMapUtil.update(edges, edge -> {
+      BitSet resultAcceptance = f.apply(state, edge);
 
-        if (resultAcceptance == null) {
-          return edge;
-        }
+      if (resultAcceptance == null) {
+        return edge;
+      }
 
-        return Edges.create(edge.getSuccessor(), resultAcceptance);
-      });
-    });
+      return Edges.create(edge.getSuccessor(), resultAcceptance);
+    }));
   }
 
   @Override
@@ -258,11 +283,9 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public void removeEdge(S source, ValuationSet valuations, S destination) {
-    Map<Edge<S>, ValuationSet> successorSet = transitions.get(source);
-
-    if (successorSet != null) {
-      ValuationSetMapUtil.remove(successorSet, destination, valuations);
-    }
+    Map<Edge<S>, ValuationSet> edges = transitions.get(source);
+    checkArgument(edges != null, "State %s not in automaton", source);
+    ValuationSetMapUtil.remove(edges, destination, valuations);
   }
 
   @Override
@@ -272,26 +295,23 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public boolean removeStates(Iterable<S> states) {
-    if (states instanceof Set) {
-      return removeStates(((Set<S>) states)::contains);
-    }
-
+    // Iterables.contains is smart about data types
     return removeStates(state -> Iterables.contains(states, state));
   }
 
   @Override
-  public boolean removeStates(Predicate<S> predicate) {
-    initialStates.removeIf(predicate);
+  public boolean removeStates(Predicate<S> states) {
+    initialStates.removeIf(states);
 
     return transitions.entrySet().removeIf(entry -> {
-      boolean removeState = predicate.test(entry.getKey());
+      boolean removeState = states.test(entry.getKey());
 
       Map<Edge<S>, ValuationSet> edges = entry.getValue();
 
       if (removeState) {
         ValuationSetMapUtil.clear(edges);
       } else {
-        ValuationSetMapUtil.remove(edges, predicate);
+        ValuationSetMapUtil.remove(edges, states);
       }
 
       return removeState;
@@ -300,8 +320,13 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public void removeUnreachableStates(Iterable<S> start, Consumer<S> removedStatesConsumer) {
+    assert containsStates(start) :
+      String.format("Some of the states %s are not in the automaton", start);
+
     Set<S> reachableStates = getReachableStates(start);
-    List<S> statesToRemove = new ArrayList<>();
+    assert containsStates(reachableStates) : "Internal inconsistency";
+    int expectedSize = transitions.size() - reachableStates.size();
+    List<S> statesToRemove = Lists.newArrayListWithCapacity(expectedSize);
 
     for (S state : transitions.keySet()) {
       if (!reachableStates.contains(state)) {
@@ -309,6 +334,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
       }
     }
 
+    assert statesToRemove.size() == expectedSize;
     removeStates(statesToRemove);
     statesToRemove.forEach(removedStatesConsumer);
   }
@@ -317,6 +343,10 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   public void setInitialStates(Iterable<S> states) {
     initialStates.clear();
     addInitialStates(states);
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   @Override
