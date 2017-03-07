@@ -26,24 +26,17 @@ import javax.annotation.concurrent.Immutable;
 public final class EdgeSingleton<S> implements Edge<S> {
   private static final int EMPTY_ACCEPTANCE = -1;
   private final int acceptance;
-  private final int cachedHashCode;
   private final S successor;
 
   EdgeSingleton(final S successor) {
     this.acceptance = EMPTY_ACCEPTANCE;
     this.successor = successor;
-    this.cachedHashCode = 31 * (31 + successor.hashCode()) + acceptance;
   }
 
   EdgeSingleton(final S successor, @Nonnegative final int acceptance) {
     assert acceptance >= 0;
     this.successor = successor;
     this.acceptance = acceptance;
-    this.cachedHashCode = 31 * (31 + successor.hashCode()) + acceptance;
-  }
-
-  public int getAcceptance() {
-    return acceptance;
   }
 
   @Override
@@ -56,6 +49,7 @@ public final class EdgeSingleton<S> implements Edge<S> {
     if (this == o) {
       return true;
     }
+
     if (!(o instanceof EdgeSingleton)) {
       // instanceof is false when o == null
       return false;
@@ -66,6 +60,10 @@ public final class EdgeSingleton<S> implements Edge<S> {
       && Objects.equals(this.successor, other.successor);
   }
 
+  public int getAcceptance() {
+    return acceptance;
+  }
+
   @Override
   public S getSuccessor() {
     return successor;
@@ -73,7 +71,7 @@ public final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public int hashCode() {
-    return cachedHashCode;
+    return 31 * (31 + successor.hashCode()) + acceptance;
   }
 
   @Override

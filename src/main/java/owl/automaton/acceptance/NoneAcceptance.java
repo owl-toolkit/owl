@@ -19,8 +19,11 @@ package owl.automaton.acceptance;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.edge.Edge;
 
 public class NoneAcceptance implements OmegaAcceptance {
   @Override
@@ -41,5 +44,10 @@ public class NoneAcceptance implements OmegaAcceptance {
   @Override
   public List<Object> getNameExtra() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public <S> boolean isAccepting(Set<S> scc, Function<S, Iterable<Edge<S>>> successorFunction) {
+    return false;
   }
 }

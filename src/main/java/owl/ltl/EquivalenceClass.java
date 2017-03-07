@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.factories.EquivalenceClassFactory;
 
 /**
  * EquivalenceClass interface.
@@ -87,6 +88,8 @@ public interface EquivalenceClass {
    * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
    */
   BitSet getAtoms();
+
+  EquivalenceClassFactory getFactory();
 
   @Nullable
   Formula getRepresentative();

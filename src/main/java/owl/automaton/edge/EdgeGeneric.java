@@ -28,14 +28,12 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 final class EdgeGeneric<S> implements Edge<S> {
   private final BitSet acceptance;
-  private final int cachedHashCode;
   private final S successor;
 
   EdgeGeneric(final S successor, final BitSet acceptance) {
     assert acceptance.cardinality() > 1;
     this.successor = successor;
     this.acceptance = acceptance;
-    this.cachedHashCode = 31 * (31 + successor.hashCode()) + acceptance.hashCode();
   }
 
   @Override
@@ -65,7 +63,7 @@ final class EdgeGeneric<S> implements Edge<S> {
 
   @Override
   public int hashCode() {
-    return cachedHashCode;
+    return Objects.hash(successor, acceptance);
   }
 
   @Override
@@ -99,6 +97,7 @@ final class EdgeGeneric<S> implements Edge<S> {
       if (next == -1) {
         throw new NoSuchElementException();
       }
+
       int current = next;
       next = bitSet.nextSetBit(next + 1);
       return current;

@@ -31,6 +31,7 @@ class EdgeLong<S> implements Edge<S> {
     if (this == o) {
       return true;
     }
+
     if (!(o instanceof EdgeLong)) {
       return false;
     }
@@ -81,6 +82,7 @@ class EdgeLong<S> implements Edge<S> {
       if (next == -1) {
         throw new NoSuchElementException();
       }
+
       int current = next;
       next = BitUtil.nextSetBit(store, next + 1);
       return current;

@@ -87,7 +87,17 @@ test:ltl2ldba generalised-Büchi Guess-F Vanilla:
 test:nba2ldba Vanilla:
   variables:
     LTL_TOOL: "{nba2ldba} ltl2tgba --ba -H -f %f | build/bin/nba2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS >%O"
-  <<: *ltlcross_template
+  script: 
+    - JAVA_OPTS="-enableassertions"
+    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
+    - ./gradlew --no-daemon distTar
+    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
+    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
+  artifacts:
+    paths:
+    - debug.ltl
+    when: on_failure
+    expire_in: 1 week
 
 # LTL to DPA translations
 

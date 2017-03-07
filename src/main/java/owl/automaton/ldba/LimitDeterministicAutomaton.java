@@ -17,135 +17,111 @@
 
 package owl.automaton.ldba;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
-import owl.algorithms.SccAnalyser;
-import owl.automaton.Automaton;
-import owl.automaton.AutomatonState;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.edge.Edge;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
 import owl.collections.ValuationSet;
-import owl.translations.Optimisation;
 
-public class LimitDeterministicAutomaton<S_I extends AutomatonState<S_I>,
-  S_A extends AutomatonState<S_A>, Acc extends GeneralizedBuchiAcceptance, I
-  extends AbstractInitialComponent<S_I, S_A>, A extends Automaton<S_A, Acc>>
+public class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
   implements HoaPrintable {
 
-  private final A acceptingComponent;
-  private final I initialComponent;
-  private final Set<? extends AutomatonState<?>> initialStates;
-  private final EnumSet<Optimisation> optimisations;
+  private final MutableAutomaton<T, U> acceptingComponent;
+  private final Set<T> acceptingComponentInitialStates;
+  private final Function<T, V> componentAnnotation;
+  private final Set<V> components;
+  private final SetMultimap<S, T> epsilonJumps;
+  private final MutableAutomaton<S, NoneAcceptance> initialComponent;
+  private final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
-  public LimitDeterministicAutomaton(I initialComponent, A acceptingComponent,
-    Set<? extends AutomatonState<?>> initialStates, EnumSet<Optimisation> optimisations) {
+  LimitDeterministicAutomaton(MutableAutomaton<S, NoneAcceptance> initialComponent,
+    MutableAutomaton<T, U> acceptingComponent,
+    SetMultimap<S, T> epsilonJumps,
+    Table<S, ValuationSet, Set<T>> valuationSetJumps,
+    Set<T> acceptingComponentInitialStates,
+    Set<V> component,
+    Function<T, V> componentAnnotation) {
     this.initialComponent = initialComponent;
     this.acceptingComponent = acceptingComponent;
-    this.optimisations = optimisations;
-    this.initialStates = initialStates;
+    this.epsilonJumps = epsilonJumps;
+    this.valuationSetJumps = valuationSetJumps;
+    this.acceptingComponentInitialStates = acceptingComponentInitialStates;
+    components = component;
+    this.componentAnnotation = componentAnnotation;
   }
 
-  public void generate() {
-    initialComponent.generate();
-
-    // Generate Jump Table
-    List<Set<S_I>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS)
-      ? SccAnalyser.computeAllScc(initialComponent)
-      : Collections.singletonList(initialComponent.getStates());
-
-    for (Set<S_I> scc : sccs) {
-      // Skip non-looping states with successors of a singleton SCC.
-      if (scc.size() == 1) {
-        S_I state = Iterables.getOnlyElement(scc);
-
-        if (initialComponent.isTransient(state) && initialComponent.hasSuccessors(state)) {
-          continue;
-        }
-      }
-
-      for (S_I state : scc) {
-        initialComponent.generateJumps(state);
-      }
-    }
-
-    acceptingComponent.generate();
-
-    // Remove dead-states
-    Set<S_A> deadStates =
-      acceptingComponent.removeDeadStates(acceptingComponent.getInitialStates());
-    initialComponent.epsilonJumps.values().removeIf(deadStates::contains);
-
-    if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
-      Set<S_A> accReach = new HashSet<>(acceptingComponent.getInitialStates());
-
-      for (S_I state : initialComponent.getStates()) {
-        Map<Edge<S_I>, ValuationSet> successors = initialComponent.getSuccessors(state);
-        Map<ValuationSet, Set<S_A>> successorJumps = initialComponent.valuationSetJumps.row(state);
-
-        successors.forEach((successor, vs) -> {
-          // Copy successors to a new collection, since clear() will also empty these collections.
-          Set<S_A> targets = new HashSet<>(
-            initialComponent.epsilonJumps.get(successor.getSuccessor()));
-          accReach.addAll(targets);
-
-          // Non-determinism!
-          Set<S_A> oldTargets = successorJumps.put(vs, targets);
-          if (oldTargets != null) {
-            targets.addAll(oldTargets);
-          }
-        });
-      }
-      
-      initialComponent.epsilonJumps.clear();
-      initialComponent.removeDeadStates(Sets.union(initialComponent.getInitialStates(),
-        initialComponent.valuationSetJumps.rowKeySet()));
-      acceptingComponent.removeDeadStates(accReach);
-      initialComponent.removeDeadEnds(initialComponent.valuationSetJumps.rowKeySet());
-      initialStates.removeIf(x -> !initialComponent.getStates().contains(x)
-        && !acceptingComponent.getStates().contains(x));
-    }
-  }
-
-  public A getAcceptingComponent() {
+  public MutableAutomaton<T, U> getAcceptingComponent() {
     return acceptingComponent;
   }
 
-  public I getInitialComponent() {
+  public V getAnnotation(T key) {
+    return componentAnnotation.apply(key);
+  }
+
+  public Set<V> getComponents() {
+    return components;
+  }
+
+  public Set<T> getEpsilonJumps(S state) {
+    return Collections.unmodifiableSet(epsilonJumps.get(state));
+  }
+
+  public MutableAutomaton<S, NoneAcceptance> getInitialComponent() {
     return initialComponent;
   }
 
-  public boolean isDeterministic() {
-    return initialComponent.size() == 0;
+  public Map<ValuationSet, Set<T>> getValuationSetJumps(S state) {
+    return Collections.unmodifiableMap(valuationSetJumps.row(state));
   }
 
-  @Override
+  public boolean isDeterministic() {
+    return initialComponent.stateCount() == 0;
+  }
+
   public void setVariables(List<String> variables) {
     acceptingComponent.setVariables(variables);
   }
 
   public int size() {
-    return acceptingComponent.size() + initialComponent.size();
+    return initialComponent.stateCount() + acceptingComponent.stateCount();
   }
 
   @Override
   public void toHoa(HOAConsumer c, EnumSet<Option> options) {
-    HoaConsumerExtended consumer = new HoaConsumerExtended(c,
-      acceptingComponent.getFactory().getSize(), acceptingComponent.getVariables(),
-      acceptingComponent.getAcceptance(), initialStates, size(), options);
-    initialComponent.toHoaBody(consumer);
-    acceptingComponent.toHoaBody(consumer);
+    HoaConsumerExtended<Object> consumer = new HoaConsumerExtended<>(c,
+      acceptingComponent.getVariables(),
+      acceptingComponent.getAcceptance(),
+      Sets.union(initialComponent.getInitialStates(), acceptingComponentInitialStates),
+      size(), options);
+
+    for (S state : initialComponent.getStates()) {
+      consumer.addState(state);
+      initialComponent.getLabelledEdges(state).forEach(consumer::addEdge);
+      epsilonJumps.get(state).forEach(consumer::addEpsilonEdge);
+      valuationSetJumps.row(state).forEach((a, b) -> b.forEach(d -> consumer.addEdge(a, d)));
+      consumer.notifyEndOfState();
+    }
+
+    for (T state : acceptingComponent.getStates()) {
+      consumer.addState(state);
+      acceptingComponent.getLabelledEdges(state).forEach(consumer::addEdge);
+      consumer.notifyEndOfState();
+    }
+
     consumer.notifyEnd();
   }
 

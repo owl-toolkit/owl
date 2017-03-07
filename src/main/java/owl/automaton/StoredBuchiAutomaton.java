@@ -35,6 +35,7 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
+import owl.automaton.StoredBuchiAutomaton.State;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -47,7 +48,7 @@ import owl.factories.jdd.ValuationFactory;
 // TODO Abstract a generic automaton reader class which just delegates the acceptance condition
 // parsing
 @SuppressWarnings("PMD.GodClass")
-public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, BuchiAcceptance> {
+public class StoredBuchiAutomaton extends LegacyAutomaton<State, BuchiAcceptance> {
   private final Set<State> acceptingStates = new HashSet<>();
 
   StoredBuchiAutomaton(Factories factories) {
@@ -99,9 +100,9 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     private Integer initialState;
     @Nullable
     private State[] integerToState;
-    private List<String> variables;
     @Nullable
     private ValuationSetFactory valuationSetFactory;
+    private List<String> variables;
 
     private static boolean isAcceptingState(@Nullable List<Integer> list)
       throws HOAConsumerException {
@@ -372,14 +373,14 @@ public class StoredBuchiAutomaton extends Automaton<StoredBuchiAutomaton.State, 
     @Override
     public BitSet getSensitiveAlphabet() {
       throw new UnsupportedOperationException(
-        "Stored Automaton State cannot perform on-demand computations.");
+        "Stored LegacyAutomaton State cannot perform on-demand computations.");
     }
 
     @Nullable
     @Override
     public Edge<State> getSuccessor(BitSet valuation) {
       throw new UnsupportedOperationException(
-        "Stored Automaton State cannot perform on-demand computations.");
+        "Stored LegacyAutomaton State cannot perform on-demand computations.");
     }
 
     public void setLabel(String label) {

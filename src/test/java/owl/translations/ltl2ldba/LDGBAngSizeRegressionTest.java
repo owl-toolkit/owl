@@ -22,27 +22,31 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.ltl.EquivalenceClass;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponent;
-import owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponent.State;
-import owl.translations.ltl2ldba.ng.LTL2LDGBAng;
+import owl.translations.ltl2ldba.ng.GeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.ng.RecurringObligations2;
 
 @RunWith(Parameterized.class)
 public class LDGBAngSizeRegressionTest extends
-  AbstractSizeRegressionTest<LimitDeterministicAutomaton<InitialComponentState, State,
-    GeneralizedBuchiAcceptance, InitialComponent<State, RecurringObligations2>,
-    GeneralizedAcceptingComponent>> {
+  AbstractSizeRegressionTest<LimitDeterministicAutomaton<EquivalenceClass,
+    GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, RecurringObligations2>> {
 
   public LDGBAngSizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new LTL2LDGBAng(EnumSet.allOf(Optimisation.class)));
+    super(selectedClass, LTL2LDBAFunction.createGeneralizedBreakpointFreeLDBABuilder(getOpt()));
+  }
+
+  private static EnumSet<Optimisation> getOpt() {
+    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+    optimisations.remove(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+    return optimisations;
   }
 
   @Override
-  protected int getAccSize(LimitDeterministicAutomaton<InitialComponentState, State,
-    GeneralizedBuchiAcceptance, InitialComponent<State, RecurringObligations2>,
-    GeneralizedAcceptingComponent> automaton) {
+  protected int getAccSize(
+    LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointFreeState,
+      GeneralizedBuchiAcceptance, RecurringObligations2> automaton) {
     return automaton.getAcceptingComponent().getAcceptance().getAcceptanceSets();
   }
 
@@ -111,9 +115,9 @@ public class LDGBAngSizeRegressionTest extends
   }
 
   @Override
-  protected int getSize(LimitDeterministicAutomaton<InitialComponentState, State,
-    GeneralizedBuchiAcceptance, InitialComponent<State, RecurringObligations2>,
-    GeneralizedAcceptingComponent> automaton) {
+  protected int getSize(
+    LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointFreeState,
+      GeneralizedBuchiAcceptance, RecurringObligations2> automaton) {
     return automaton.size();
   }
 }

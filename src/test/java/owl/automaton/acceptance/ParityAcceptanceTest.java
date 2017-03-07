@@ -18,7 +18,6 @@
 package owl.automaton.acceptance;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -35,16 +34,6 @@ public class ParityAcceptanceTest {
   @DataPoint
   public static final ParityAcceptance ACCEPTANCE = new ParityAcceptance(1);
 
-  @DataPoint
-  public static final ParityAcceptance ACCEPTANCE_COMPLEMENT = new ParityAcceptance(1).complement();
-
-  @Theory
-  public void complement(ParityAcceptance acceptance) {
-    ParityAcceptance complement = acceptance.complement();
-    assertNotEquals(acceptance, complement);
-    assertEquals(acceptance, complement.complement());
-  }
-
   @Theory
   public void getAcceptanceSets(OmegaAcceptance acceptance) {
     assertEquals(1, acceptance.getAcceptanceSets());
@@ -53,7 +42,6 @@ public class ParityAcceptanceTest {
   @Test
   public void getBooleanExpression() {
     assertEquals(HoaConsumerExtended.mkFin(0), ACCEPTANCE.getBooleanExpression());
-    assertEquals(HoaConsumerExtended.mkInf(0), ACCEPTANCE_COMPLEMENT.getBooleanExpression());
   }
 
   @Theory

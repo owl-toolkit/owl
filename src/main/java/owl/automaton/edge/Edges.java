@@ -1,20 +1,15 @@
 package owl.automaton.edge;
 
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.PrimitiveIterator;
 import javax.annotation.Nonnegative;
 
 public final class Edges {
-  private static final Map<BitSet, BitSet> internalCache = new HashMap<>();
-
   private Edges() {
   }
 
   /**
-   * Creates an edge which belongs to the specified acceptance sets. The passed {@code acceptance}
-   * must not be modified afterwards.
+   * Creates an edge which belongs to the specified acceptance sets.
    *
    * @param successor
    *     Successor of this edge.
@@ -29,18 +24,16 @@ public final class Edges {
     if (acceptance.isEmpty()) {
       return new EdgeSingleton<>(successor);
     }
+
     if (acceptance.cardinality() == 1) {
       return new EdgeSingleton<>(successor, acceptance.nextSetBit(0));
     }
+
     if (acceptance.length() <= Long.SIZE) {
       return new EdgeLong<>(successor, acceptance);
     }
 
-    @SuppressWarnings("UseOfClone")
-    final BitSet cachedSet = internalCache
-      .computeIfAbsent(acceptance, key -> (BitSet) acceptance.clone());
-    assert Objects.equals(cachedSet, acceptance);
-    return new EdgeGeneric<>(successor, cachedSet);
+    return new EdgeGeneric<>(successor, (BitSet) acceptance.clone());
   }
 
   /**
@@ -72,5 +65,42 @@ public final class Edges {
   public static <S> EdgeSingleton<S> create(final S successor, @Nonnegative final int acceptance) {
     assert acceptance >= 0;
     return new EdgeSingleton<>(successor, acceptance);
+  }
+
+  /**
+   * Creates an edge which belongs to the specified acceptance sets.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   * @param acceptance
+   *     An iterator returning the acceptance sets this edge should belong to.
+   *
+   * @return An edge leading to {@code successor} with given acceptance.
+   */
+  public static <S> Edge<S> create(final S successor, final PrimitiveIterator.OfInt acceptance) {
+    if (!acceptance.hasNext()) {
+      return new EdgeSingleton<>(successor);
+    }
+
+    int first = acceptance.nextInt();
+
+    if (!acceptance.hasNext()) {
+      return new EdgeSingleton<>(successor, first);
+    }
+
+    BitSet acceptanceSet = new BitSet();
+    acceptanceSet.set(first);
+
+    while (acceptance.hasNext()) {
+      acceptanceSet.set(acceptance.nextInt());
+    }
+
+    if (acceptanceSet.length() <= Long.SIZE) {
+      return new EdgeLong<>(successor, acceptanceSet);
+    }
+
+    return new EdgeGeneric<>(successor, acceptanceSet);
   }
 }

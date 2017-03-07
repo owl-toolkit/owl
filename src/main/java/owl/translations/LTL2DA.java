@@ -17,6 +17,7 @@
 
 package owl.translations;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -26,8 +27,9 @@ import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.translations.ltl2dpa.LTL2DPA;
-import owl.translations.ltl2ldba.LTL2LDGBA;
+import owl.ltl.parser.ParseException;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public final class LTL2DA extends AbstractLtlCommandLineTool {
   private final boolean parallel;
@@ -36,20 +38,20 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
     this.parallel = parallel;
   }
 
-  @SuppressWarnings("ProhibitedExceptionDeclared")
-  public static void main(String... argsArray) throws Exception { // NOPMD
+  public static void main(String... argsArray)
+    throws IOException, ParseException, jhoafparser.parser.generated.ParseException {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new LTL2DA(args.remove("--parallel")).execute(args);
   }
 
   private static HoaPrintable translate(Formula formula, EnumSet<Optimisation> optimisations) {
-    LTL2LDGBA ltl2Ldgba = new LTL2LDGBA(optimisations);
-    LTL2DPA ltl2Dpa = new LTL2DPA(optimisations);
-
-    LimitDeterministicAutomaton<?, ?, ?, ?, ?> ldba = ltl2Ldgba.apply(formula);
+    LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(optimisations);
+    LimitDeterministicAutomaton<?, ?, ?, ?> ldba = LTL2LDBAFunction
+      .createGeneralizedBreakpointLDBABuilder(optimisations).apply(formula);
     Automaton<?, ?> automaton = ltl2Dpa.apply(formula);
 
-    if (ldba.isDeterministic() && ldba.getAcceptingComponent().size() <= automaton.size()) {
+    if (ldba.isDeterministic()
+      && ldba.getAcceptingComponent().stateCount() <= automaton.stateCount()) {
       automaton = ldba.getAcceptingComponent();
     }
 
@@ -59,6 +61,7 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
   @Override
   protected Function<Formula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
+
     if (parallel) {
       optimisations.add(Optimisation.PARALLEL);
     } else {

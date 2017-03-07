@@ -30,10 +30,8 @@ final class BddCache {
   private static final int UNARY_CACHE_OPERATION_ID_OFFSET = 63;
   private static final int UNARY_CACHE_TYPE_LENGTH = 1;
   private static final int UNARY_OPERATION_NOT = 0;
-
-  private static final Logger logger = Logger.getLogger(BddCache.class.getName());
   private static final Collection<BddCache> cacheShutdownHook = new ConcurrentLinkedDeque<>();
-
+  private static final Logger logger = Logger.getLogger(BddCache.class.getName());
   @Nullable
   private static Runnable shutdownHook = null;
   private final BddImpl associatedBdd;

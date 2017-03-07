@@ -19,17 +19,20 @@ package owl.translations.ltl2dpa;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import owl.automaton.Automaton;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.translations.AbstractSizeRegressionTest;
 
 @RunWith(Parameterized.class)
-public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityAutomaton<?>> {
+public class ParitySizeRegressionTest
+  extends AbstractSizeRegressionTest<Automaton<?, ParityAcceptance>> {
 
   public ParitySizeRegressionTest(FormulaGroup selectedClass) {
-    super(selectedClass, new LTL2DPA());
+    super(selectedClass, new LTL2DPAFunction());
   }
 
   @Override
-  protected int getAccSize(ParityAutomaton<?> automaton) {
+  protected int getAccSize(Automaton<?, ParityAcceptance> automaton) {
     return automaton.getAcceptance().getAcceptanceSets();
   }
 
@@ -40,23 +43,23 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
         return new int[] {2, 2, 2, 2};
 
       case ROUND_ROBIN:
-        return new int[] {2, 2, 2, 2, 2, 1};
+        return new int[] {2, 2, 2, 2, 2, 2};
 
       case REACH:
       case DISJUNCTION:
         return new int[] {2, 2, 2};
 
       case IMMEDIATE:
-        return new int[] {1, 1};
+        return new int[] {2, 2};
 
       case CONJUNCTION:
-        return new int[] {1, 2};
+        return new int[] {2, 2};
 
       case FG:
         return new int[] {4, 4, 4, 4, 4, 5};
 
       case MIXED:
-        return new int[] {4, 3, 2, 2, 4, 1, 2, 1, 1, 7};
+        return new int[] {4, 3, 2, 2, 4, 2, 2, 2, 2, 7};
 
       case FG_UNSTABLE:
         return new int[] {3, 4, 2, 4, 4, 5};
@@ -65,7 +68,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
         return new int[] {8, 8};
 
       case G_DISJUNCTION:
-        return new int[] {1, 2, 7};
+        return new int[] {2, 2, 7};
 
       default:
         return new int[0];
@@ -114,7 +117,7 @@ public class ParitySizeRegressionTest extends AbstractSizeRegressionTest<ParityA
   }
 
   @Override
-  protected int getSize(ParityAutomaton<?> automaton) {
-    return automaton.size();
+  protected int getSize(Automaton<?, ParityAcceptance> automaton) {
+    return automaton.stateCount();
   }
 }

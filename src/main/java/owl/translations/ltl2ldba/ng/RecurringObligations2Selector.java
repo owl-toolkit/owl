@@ -48,22 +48,23 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.Evaluator;
-import owl.translations.ltl2ldba.Selector;
+import owl.translations.ltl2ldba.JumpEvaluator;
+import owl.translations.ltl2ldba.JumpSelector;
 
 @SuppressWarnings("PMD.GodClass")
-class RecurringObligations2Selector implements Selector<RecurringObligations2> {
+public class RecurringObligations2Selector implements JumpSelector<RecurringObligations2> {
   private static final Predicate<Formula> F_OPERATORS = x -> x instanceof FOperator
     || x instanceof UOperator; // x instanceof MOperator, ROp, WOp, ...
   private static final Predicate<Formula> G_OPERATORS = x -> x instanceof GOperator;
   // || x instanceof ROperator || x instanceof WOperator;
   private final Map<Set<UnaryModalOperator>, RecurringObligations2> cache;
-  private final Evaluator<RecurringObligations2> evaluator;
+  private final JumpEvaluator<RecurringObligations2> evaluator;
   private final EquivalenceClassFactory factory;
   private final EnumSet<Optimisation> optimisations;
 
-  RecurringObligations2Selector(Collection<Optimisation> optimisations,
-    EquivalenceClassFactory factory) {
+  public RecurringObligations2Selector(EquivalenceClassFactory factory,
+    EnumSet<Optimisation> optimisations
+  ) {
     this.optimisations = EnumSet.copyOf(optimisations);
     this.factory = factory;
     this.cache = new HashMap<>();

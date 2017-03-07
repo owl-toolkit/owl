@@ -438,7 +438,7 @@ final class SyntaxTree {
       }
       final SyntaxTreeTernaryOperation that = (SyntaxTreeTernaryOperation) object;
       return type == that.type && Objects.equals(first, that.first)
-        &&  Objects.equals(second, that.second) && Objects.equals(third, that.third);
+        && Objects.equals(second, that.second) && Objects.equals(third, that.third);
     }
 
     @Override

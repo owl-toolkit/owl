@@ -17,11 +17,16 @@
 
 package owl.automaton.acceptance;
 
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
 public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
@@ -59,4 +64,25 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
     return Collections.singletonList(size);
   }
 
+  @Override
+  public <S> boolean isAccepting(Set<S> scc, Function<S, Iterable<Edge<S>>> successorFunction) {
+    BitSet remaining = new BitSet(size);
+    remaining.set(0, size);
+
+    for (S state : scc) {
+      for (Edge<S> successorEdge : successorFunction.apply(state)) {
+        if (!scc.contains(successorEdge.getSuccessor())) {
+          continue;
+        }
+
+        successorEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) remaining::clear);
+
+        if (remaining.isEmpty()) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
 }

@@ -24,9 +24,7 @@ import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.translations.ltl2ldba.LTL2LDGBA;
-import owl.translations.ltl2ldba.ng.LTL2LDBAng;
-import owl.translations.ltl2ldba.ng.LTL2LDGBAng;
+import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public final class LTL2LDBA extends AbstractLtlCommandLineTool {
   private final Function<EnumSet<Optimisation>, Function<Formula, ? extends HoaPrintable>>
@@ -36,15 +34,15 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
   private LTL2LDBA(EnumSet<Configuration> configuration) {
     if (configuration.contains(Configuration.GENERALISED)) {
       if (configuration.contains(Configuration.GUESS_F)) {
-        constructor = LTL2LDGBAng::new;
+        constructor = LTL2LDBAFunction::createGeneralizedBreakpointFreeLDBABuilder;
       } else {
-        constructor = LTL2LDGBA::new;
+        constructor = LTL2LDBAFunction::createGeneralizedBreakpointLDBABuilder;
       }
     } else {
       if (configuration.contains(Configuration.GUESS_F)) {
-        constructor = LTL2LDBAng::new;
+        constructor = LTL2LDBAFunction::createDegeneralizedBreakpointFreeLDBABuilder;
       } else {
-        constructor = owl.translations.ltl2ldba.LTL2LDBA::new;
+        constructor = LTL2LDBAFunction::createDegeneralizedBreakpointLDBABuilder;
       }
     }
 

@@ -43,13 +43,13 @@ public final class Ltl2FGXU {
     private final List<String> mapping;
     private final PrintStream printer;
 
-    public void flush() {
-      this.printer.flush();
-    }
-
     Printer(PrintStream printer, List<String> mapping) {
       this.printer = printer;
       this.mapping = ImmutableList.copyOf(mapping);
+    }
+
+    public void flush() {
+      this.printer.flush();
     }
 
     @Override

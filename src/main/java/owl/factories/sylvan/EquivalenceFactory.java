@@ -288,6 +288,11 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
+    public EquivalenceClassFactory getFactory() {
+      return EquivalenceFactory.this;
+    }
+
+    @Override
     @Nullable
     public Formula getRepresentative() {
       return representative;

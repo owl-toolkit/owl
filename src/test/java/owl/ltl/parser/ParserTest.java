@@ -155,7 +155,7 @@ public class ParserTest {
 
   @Test
   public void testTlsf2() throws ParseException {
-    Tlsf tlsf =  TlsfParser.parse(TLSF2);
+    Tlsf tlsf = TlsfParser.parse(TLSF2);
 
     assertEquals(Tlsf.Semantics.MOORE, tlsf.semantics());
     assertEquals(Tlsf.Semantics.MEALY, tlsf.target());

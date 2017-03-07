@@ -32,7 +32,7 @@ public final class Registry {
     try {
       NativeLibraryLoader.loadLibrary("sylvan");
     } catch (UnsatisfiedLinkError | IOException error) {
-      Logger.getGlobal().log(Level.INFO, "Failed to load the jSylvan native BDD library.", error);
+      Logger.getGlobal().log(Level.FINER, "Failed to load the jSylvan native BDD library.", error);
     }
   }
 
@@ -60,7 +60,6 @@ public final class Registry {
       case SYLVAN:
         return new Factories(owl.factories.sylvan.EquivalenceFactory.create(formula, alphabetSize),
           new owl.factories.sylvan.ValuationFactory(alphabetSize));
-
       case JDD:
       default:
         return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),

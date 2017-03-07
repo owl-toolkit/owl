@@ -24,6 +24,7 @@ import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2DPA extends AbstractLtlCommandLineTool {
   private final boolean parallel;
@@ -49,6 +50,6 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
       optimisations.remove(Optimisation.PARALLEL);
     }
 
-    return new owl.translations.ltl2dpa.LTL2DPA(optimisations);
+    return new LTL2DPAFunction(optimisations);
   }
 }
