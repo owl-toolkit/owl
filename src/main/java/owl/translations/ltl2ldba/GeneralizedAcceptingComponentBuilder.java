@@ -32,7 +32,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.visitors.predicates.XFragmentPredicate;
+import owl.ltl.visitors.predicates.XFragment;
 import owl.translations.Optimisation;
 
 public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
@@ -78,7 +78,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     EquivalenceClass safety = obligations.safety;
 
-    if (theRemainder.testSupport(XFragmentPredicate.INSTANCE)) {
+    if (theRemainder.testSupport(XFragment.INSTANCE)) {
       safety = theRemainder.andWith(safety);
       theRemainder = factories.equivalenceClassFactory.getTrue();
     }

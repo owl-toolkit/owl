@@ -29,28 +29,28 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-public interface BinaryVisitor<A, B> {
+public interface BinaryVisitor<P, R> {
 
-  A visit(BooleanConstant b, B extra);
+  R visit(BooleanConstant booleanConstant, P parameter);
 
-  A visit(Conjunction c, B extra);
+  R visit(Conjunction conjunction, P parameter);
 
-  A visit(Disjunction b, B extra);
+  R visit(Disjunction disjunction, P parameter);
 
-  A visit(FOperator f, B extra);
+  R visit(FOperator fOperator, P parameter);
 
-  A visit(GOperator g, B extra);
+  R visit(GOperator gOperator, P parameter);
 
-  A visit(Literal l, B extra);
+  R visit(Literal literal, P parameter);
 
-  A visit(MOperator m, B extra);
+  R visit(MOperator mOperator, P parameter);
 
-  A visit(UOperator u, B extra);
+  R visit(UOperator uOperator, P parameter);
 
-  A visit(ROperator r, B extra);
+  R visit(ROperator rOperator, P parameter);
 
-  A visit(WOperator w, B extra);
+  R visit(WOperator wOperator, P parameter);
 
-  A visit(XOperator x, B extra);
+  R visit(XOperator xOperator, P parameter);
 
 }

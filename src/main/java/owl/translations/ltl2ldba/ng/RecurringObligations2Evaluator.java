@@ -29,7 +29,8 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
-import owl.ltl.simplifier.Simplifier;
+import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.ltl2ldba.JumpEvaluator;
 
@@ -46,7 +47,7 @@ class RecurringObligations2Evaluator implements JumpEvaluator<RecurringObligatio
     Formula formula = clazz.getRepresentative();
     SubstitutionVisitor substitutionVisitor = new SubstitutionVisitor(obligation);
     Formula subst = formula.accept(substitutionVisitor);
-    Formula evaluated = Simplifier.simplify(subst, Simplifier.Strategy.MODAL);
+    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
     return factory.createEquivalenceClass(evaluated);
   }
 

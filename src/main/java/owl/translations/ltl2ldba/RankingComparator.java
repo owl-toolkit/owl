@@ -29,17 +29,16 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultIntVisitor;
+import owl.ltl.visitors.XDepthVisitor;
 
 @SuppressFBWarnings("SE_COMPARATOR_SHOULD_BE_SERIALIZABLE")
 public class RankingComparator implements Comparator<GOperator> {
 
-  private static final XDepthVisitor DEPTH_VISITOR = new XDepthVisitor();
   private final Map<GOperator, Integer> ranking = new HashMap<>();
   private final RankVisitor rankingVisitor = new RankVisitor();
 
@@ -66,45 +65,8 @@ public class RankingComparator implements Comparator<GOperator> {
   }
 
   private void insert(GOperator operator, int rank) {
-    ranking
-      .computeIfAbsent(operator, key -> rank < 0 ? operator.operand.accept(DEPTH_VISITOR) : rank);
-  }
-
-  private static class XDepthVisitor extends DefaultIntVisitor {
-
-    @Override
-    protected int defaultAction(Formula formula) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int visit(BooleanConstant booleanConstant) {
-      return -1;
-    }
-
-    @Override
-    public int visit(Conjunction conjunction) {
-      return visit((PropositionalFormula) conjunction);
-    }
-
-    @Override
-    public int visit(Disjunction disjunction) {
-      return visit((PropositionalFormula) disjunction);
-    }
-
-    @Override
-    public int visit(Literal literal) {
-      return -1;
-    }
-
-    @Override
-    public int visit(XOperator xOperator) {
-      return xOperator.operand.accept(this) - 1;
-    }
-
-    private int visit(PropositionalFormula formula) {
-      return formula.children.stream().mapToInt(x -> x.accept(this)).min().orElse(-1);
-    }
+    ranking.computeIfAbsent(operator,
+      key -> rank < 0 ? -(XDepthVisitor.getDepth(operator.operand) + 1) : rank);
   }
 
   private class RankVisitor extends DefaultIntVisitor {

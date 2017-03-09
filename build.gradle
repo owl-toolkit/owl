@@ -205,6 +205,7 @@ def scripts = [
     'ltl2dpa' : 'owl.translations.LTL2DPA',
     'ltl2ldba': 'owl.translations.LTL2LDBA',
     'nba2ldba': 'owl.translations.NBA2LDBA',
+    'fgx2dga' : 'owl.translations.FGX2DGA',
 ]
 
 scripts.each() { scriptName, className ->

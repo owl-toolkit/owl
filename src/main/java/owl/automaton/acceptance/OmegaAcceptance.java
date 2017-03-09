@@ -20,6 +20,7 @@ package owl.automaton.acceptance;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
@@ -34,6 +35,7 @@ public interface OmegaAcceptance {
    */
   BooleanExpression<AtomAcceptance> getBooleanExpression();
 
+  @Nullable
   String getName();
 
   List<Object> getNameExtra();

@@ -30,6 +30,7 @@ import jsylvan.JSylvan;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
+import owl.ltl.Literal;
 
 public class ValuationFactory implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
@@ -120,6 +121,21 @@ public class ValuationFactory implements ValuationSetFactory {
   @Override
   public ValuationSet createValuationSet(BitSet valuation) {
     return new BddValuationSet(createBdd(valuation));
+  }
+
+  @Override
+  public ValuationSet createValuationSet(Literal literal) {
+    long bdd;
+
+    if (literal.isNegated()) {
+      // This is fine, since "not vars[i]" is a saturated variable.
+      bdd = JSylvan.makeNot(vars[literal.getAtom()]);
+    } else {
+      // Variables are saturated.
+      bdd = vars[literal.getAtom()];
+    }
+
+    return new BddValuationSet(bdd);
   }
 
   @Override

@@ -50,7 +50,7 @@ public class LDGBASizeRegressionTest extends
         return new int[] {1, 1, 1, 1, 1, 1, 1, 1, 2, 1};
 
       case ROUND_ROBIN:
-        return new int[] {1, 1, 1, 1, 1, 3};
+        return new int[] {1, 1, 1, 1, 1, 9};
 
       case FG:
         return new int[] {1, 2, 1, 2, 2, 1};
@@ -73,7 +73,7 @@ public class LDGBASizeRegressionTest extends
         return new int[] {3, 3, 5, 4};
 
       case ROUND_ROBIN:
-        return new int[] {2, 3, 4, 5, 6, 27};
+        return new int[] {2, 3, 4, 5, 6, 1};
 
       case REACH:
         return new int[] {2, 3, 314};
@@ -94,7 +94,7 @@ public class LDGBASizeRegressionTest extends
         return new int[] {4, 6, 5, 5, 4, 3};
 
       case ORDERINGS:
-        return new int[] {10, 28, 3, 4};
+        return new int[] {4, 2, 3, 4};
 
       case G_DISJUNCTION:
         return new int[] {212, 24, 133};

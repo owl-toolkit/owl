@@ -65,7 +65,7 @@ public class LTL2DPAFunctionTest {
   public void testRegression2() throws ParseException {
     String ltl = "G (F (a & X (F b)))";
     testOutput(ltl, 2, 2);
-    testOutput("! " + ltl, 3, 2);
+    testOutput("! " + ltl, 2, 2);
   }
 
   @Test

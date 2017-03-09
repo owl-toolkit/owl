@@ -37,7 +37,8 @@ import owl.ltl.Formula;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.WOperator;
-import owl.ltl.simplifier.Simplifier;
+import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.ng.DegeneralizedBreakpointFreeState;
@@ -110,8 +111,8 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
   }
 
   private static Formula preProcess(Formula formula) {
-    Formula processedFormula = Simplifier.simplify(formula, Simplifier.Strategy.MODAL_EXT);
-    return Simplifier.simplify(processedFormula, Simplifier.Strategy.PUSHDOWN_X);
+    Formula processedFormula = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
+    return RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, processedFormula);
   }
 
   private static Formula removeMpreProcess(Formula formula) {

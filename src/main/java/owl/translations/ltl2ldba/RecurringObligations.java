@@ -49,7 +49,7 @@ public class RecurringObligations extends ImmutableObject {
     List<EquivalenceClass> obligations) {
 
     if (safety != null) {
-      safety.freeRepresentative();
+      // safety.freeRepresentative();
     }
 
     liveness.forEach(EquivalenceClass::freeRepresentative);

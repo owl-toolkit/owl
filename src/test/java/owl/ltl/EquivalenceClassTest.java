@@ -37,8 +37,8 @@ import org.junit.Test;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.ParseException;
-import owl.ltl.simplifier.Simplifier;
-import owl.ltl.simplifier.Simplifier.Strategy;
+import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public abstract class EquivalenceClassTest {
   private static final List<String> formulaeStrings = ImmutableList
@@ -93,8 +93,8 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass equivalenceClass = factory.createEquivalenceClass(contradiction);
 
     assertEquals(equivalenceClass, equivalenceClass);
-    assertEquals(equivalenceClass, factory.createEquivalenceClass(Simplifier
-      .simplify(new Conjunction(literal, new Literal(0, true)), Simplifier.Strategy.MODAL_EXT)));
+    assertEquals(equivalenceClass, factory.createEquivalenceClass(RewriterFactory
+      .apply(RewriterEnum.MODAL_ITERATIVE, new Conjunction(literal, new Literal(0, true)))));
   }
 
   @Test
@@ -217,7 +217,7 @@ public abstract class EquivalenceClassTest {
     LtlParser parser = new LtlParser();
     Formula f1 = parser.parseLtl("G p0 & p0");
     Formula f2 = parser.parseLtl("G p0");
-    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
+    assertEquals(f2, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f1));
   }
 
   // @Test
@@ -225,16 +225,16 @@ public abstract class EquivalenceClassTest {
     LtlParser parser = new LtlParser();
     Formula f1 = parser.parseLtl("G p0 | p0");
     Formula f2 = parser.parseLtl("p0");
-    assertEquals(f2, Simplifier.simplify(f1, Strategy.AGGRESSIVELY));
+    assertEquals(f2, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f1));
   }
 
   // @Test
   public void testLtlBackgroundTheory3() {
     Formula f1 = new Literal(1, false);
     Formula f2 = new GOperator(f1);
-    Formula f5 = Simplifier.simplify(new Conjunction(
-      new GOperator(new FOperator(new XOperator(f1))), f2), Strategy.MODAL);
-    assertEquals(Simplifier.simplify(f5, Strategy.AGGRESSIVELY), f2);
+    Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(
+      new GOperator(new FOperator(new XOperator(f1))), f2));
+    assertEquals(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f5), f2);
   }
 
   @Test

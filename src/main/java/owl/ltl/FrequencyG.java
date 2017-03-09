@@ -44,8 +44,8 @@ public class FrequencyG extends GOperator {
   }
 
   @Override
-  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-    return v.visit(this, extra);
+  public <A, B> A accept(BinaryVisitor<B, A> v, B parameter) {
+    return v.visit(this, parameter);
   }
 
   @Override

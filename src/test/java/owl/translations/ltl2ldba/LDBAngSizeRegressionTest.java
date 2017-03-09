@@ -90,7 +90,7 @@ public class LDBAngSizeRegressionTest extends
         return new int[] {9, 14, 3, 4};
 
       case G_DISJUNCTION:
-        return new int[] {35, 16, 73};
+        return new int[] {32, 16, 73};
 
       default:
         return new int[0];

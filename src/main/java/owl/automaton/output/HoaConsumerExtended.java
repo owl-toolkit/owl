@@ -79,7 +79,12 @@ public class HoaConsumerExtended<S> {
           consumer.addStartStates(Collections.singletonList(getStateId(state)));
         }
 
-        consumer.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
+        String accName = acceptance.getName();
+
+        if (accName != null) {
+          consumer.provideAcceptanceName(accName, acceptance.getNameExtra());
+        }
+
         consumer.setAcceptanceCondition(acceptance.getAcceptanceSets(),
           acceptance.getBooleanExpression());
       }

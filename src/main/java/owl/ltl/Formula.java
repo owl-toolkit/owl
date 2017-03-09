@@ -29,7 +29,7 @@ public interface Formula {
 
   <R> R accept(Visitor<R> visitor);
 
-  <A, B> A accept(BinaryVisitor<A, B> visitor, B extra);
+  <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter);
 
   // Temporal Properties of an LTL Formula
   boolean isPureEventual();

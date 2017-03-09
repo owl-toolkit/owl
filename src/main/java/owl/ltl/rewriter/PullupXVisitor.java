@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl.simplifier;
+package owl.ltl.rewriter;
 
 import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
@@ -38,7 +39,14 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
-class PullupXVisitor implements Visitor<XFormula> {
+class PullupXVisitor implements Visitor<PullupXVisitor.XFormula>, UnaryOperator<Formula> {
+
+  static final UnaryOperator<Formula> INSTANCE = new PullupXVisitor();
+
+  @Override
+  public Formula apply(Formula formula) {
+    return formula.accept(this).toFormula();
+  }
 
   @Override
   public XFormula visit(BooleanConstant booleanConstant) {
@@ -121,5 +129,29 @@ class PullupXVisitor implements Visitor<XFormula> {
     XFormula formula = operator.operand.accept(this);
     formula.formula = constructor.apply(formula.formula);
     return formula;
+  }
+
+  static final class XFormula {
+    int depth;
+    Formula formula;
+
+    XFormula(int depth, Formula formula) {
+      this.depth = depth;
+      this.formula = formula;
+    }
+
+    Formula toFormula(int newDepth) {
+      int i = depth - newDepth;
+
+      for (; i > 0; i--) {
+        formula = new XOperator(formula);
+      }
+
+      return formula;
+    }
+
+    Formula toFormula() {
+      return toFormula(0);
+    }
   }
 }

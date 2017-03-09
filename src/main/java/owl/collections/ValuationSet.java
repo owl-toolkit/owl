@@ -28,7 +28,7 @@ import jhoafparser.ast.BooleanExpression;
  */
 public interface ValuationSet extends Iterable<BitSet> {
   static ValuationSet intersection(ValuationSet vs1, ValuationSet vs2) {
-    vs1.removeAll(vs2);
+    vs1.retainAll(vs2);
     vs2.free();
     return vs1;
   }

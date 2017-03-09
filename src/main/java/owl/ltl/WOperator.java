@@ -63,8 +63,8 @@ public final class WOperator extends BinaryModalOperator {
   }
 
   @Override
-  public <A, B> A accept(BinaryVisitor<A, B> v, B f) {
-    return v.visit(this, f);
+  public <A, B> A accept(BinaryVisitor<B, A> v, B parameter) {
+    return v.visit(this, parameter);
   }
 
   @Override
