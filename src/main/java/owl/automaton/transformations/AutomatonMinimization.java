@@ -30,7 +30,7 @@ public final class AutomatonMinimization {
 
   private AutomatonMinimization() {
   }
-  
+
   private static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
     return trap.stream().allMatch(s -> trap.containsAll(automaton.getSuccessors(s)));
   }

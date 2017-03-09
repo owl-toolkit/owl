@@ -209,7 +209,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   default int stateCount() {
     return getStates().size();
   }
-  
+
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),

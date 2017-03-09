@@ -32,6 +32,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -46,10 +47,12 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
+import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
@@ -324,6 +327,20 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   @Override
   public int stateCount() {
     return transitions.size();
+  }
+
+  @Override
+  public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
+      getAcceptance(), ImmutableSet.copyOf(initialStates), stateCount(), options);
+
+    transitions.forEach((state, edges) -> {
+      hoa.addState(state);
+      edges.forEach(hoa::addEdge);
+      hoa.notifyEndOfState();
+    });
+
+    hoa.notifyEnd();
   }
 }
 
