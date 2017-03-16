@@ -103,7 +103,7 @@ public class LTL2LDGBATest {
 
     String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & "
       + "((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-    testOutput(ltl3, 4);
+    testOutput(ltl3, 1);
   }
 
   @Test
@@ -177,7 +177,7 @@ public class LTL2LDGBATest {
   @Test
   public void testOptimisations2() throws IOException, ParseException {
     String ltl = "G F (b | a)";
-    testOutput(ltl, 1);
+    testOutput(ltl, 3);
   }
 
   @Test

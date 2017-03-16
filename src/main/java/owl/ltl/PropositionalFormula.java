@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import owl.util.ImmutableObject;
@@ -46,6 +48,14 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   public boolean anyMatch(Predicate<Formula> p) {
     return children.stream().anyMatch(p);
+  }
+
+  public <T> Stream<T> map(Function<Formula, T> mapper) {
+    return children.stream().map(mapper);
+  }
+
+  public void forEach(Consumer<Formula> consumer) {
+    children.forEach(consumer);
   }
 
   @Override

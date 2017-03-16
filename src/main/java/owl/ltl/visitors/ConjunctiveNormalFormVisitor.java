@@ -47,6 +47,10 @@ public final class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
     return formula.accept(INSTANCE);
   }
 
+  public static Formula normaliseStaticToFormula(Formula formula) {
+    return Conjunction.create(normaliseStatic(formula).stream().map(Disjunction::create));
+  }
+
   @Override
   protected List<Set<Formula>> defaultAction(Formula formula) {
     return Collections.singletonList(Sets.newHashSet(formula));

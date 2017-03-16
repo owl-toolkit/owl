@@ -41,9 +41,10 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.ROperator;
 import owl.ltl.WOperator;
-import owl.ltl.simplifier.Simplifier;
+import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.predicates.XFragmentPredicate;
+import owl.ltl.visitors.predicates.XFragment;
 import owl.translations.Optimisation;
 
 public class RecurringObligationsSelector implements JumpSelector<RecurringObligations> {
@@ -125,9 +126,9 @@ public class RecurringObligationsSelector implements JumpSelector<RecurringOblig
       RecurringObligationsEvaluator.EvaluateVisitor evaluateVisitor =
         new RecurringObligationsEvaluator.EvaluateVisitor(gOperators.subList(0, i), factory);
 
-      Formula formula = Simplifier.simplify(Simplifier
-          .simplify(gOperator.operand.accept(evaluateVisitor), Simplifier.Strategy.MODAL_EXT),
-        Simplifier.Strategy.PUSHDOWN_X);
+      Formula formula = RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, RewriterFactory
+          .apply(RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor))
+      );
       EquivalenceClass clazz = factory.createEquivalenceClass(formula);
 
       evaluateVisitor.free();
@@ -138,7 +139,7 @@ public class RecurringObligationsSelector implements JumpSelector<RecurringOblig
       }
 
       if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS)) {
-        if (clazz.testSupport(XFragmentPredicate::testStatic)) {
+        if (clazz.testSupport(XFragment::testStatic)) {
           safety = safety.andWith(clazz);
           clazz.free();
           continue;

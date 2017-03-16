@@ -65,7 +65,7 @@ public class ParitySizeRegressionTest
         return new int[] {3, 4, 2, 4, 4, 5};
 
       case ORDERINGS:
-        return new int[] {8, 8};
+        return new int[] {2, 2};
 
       case G_DISJUNCTION:
         return new int[] {2, 2, 7};
@@ -106,7 +106,7 @@ public class ParitySizeRegressionTest
         return new int[] {2, 2, 4, 4, 2, 2, 2, 2};
 
       case ORDERINGS:
-        return new int[] {462, 109};
+        return new int[] {3, 1};
 
       case G_DISJUNCTION:
         return new int[] {212, 44, 346};

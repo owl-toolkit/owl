@@ -36,7 +36,6 @@ public final class DisjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
   private static final DisjunctiveNormalFormVisitor INSTANCE = new DisjunctiveNormalFormVisitor();
 
   private DisjunctiveNormalFormVisitor() {
-
   }
 
   private static void minimise(List<Set<Formula>> dnf) {
@@ -45,6 +44,10 @@ public final class DisjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
 
   public static List<Set<Formula>> normaliseStatic(Formula formula) {
     return formula.accept(INSTANCE);
+  }
+
+  public static Formula normaliseStaticToFormula(Formula formula) {
+    return Disjunction.create(normaliseStatic(formula).stream().map(Conjunction::create));
   }
 
   @Override

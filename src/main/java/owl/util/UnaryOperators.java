@@ -15,7 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
-package owl.ltl.simplifier;
+package owl.util;
 
-import owl.util.EverythingIsNonnullByDefault;
+import com.google.common.collect.ImmutableList;
+import java.util.function.UnaryOperator;
+
+public final class UnaryOperators {
+
+  private UnaryOperators(){
+  }
+
+  public static <T> UnaryOperator<T> chain(ImmutableList<UnaryOperator<T>> operators) {
+    return (x) -> chain(x, operators);
+  }
+
+  private static <T> T chain(T input, ImmutableList<UnaryOperator<T>> operators) {
+    T output = input;
+
+    for (UnaryOperator<T> operator : operators) {
+      output = operator.apply(output);
+    }
+
+    return output;
+  }
+}

@@ -33,11 +33,21 @@ public final class XOperator extends UnaryModalOperator {
   }
 
   public static Formula create(Formula operand) {
+    return create(operand, 1);
+  }
+
+  public static Formula create(Formula operand, int n) {
     if (operand instanceof BooleanConstant) {
       return operand;
     }
 
-    return new XOperator(operand);
+    Formula formula = operand;
+
+    for (int i = 0; i < n; i++) {
+      formula = new XOperator(formula);
+    }
+
+    return formula;
   }
 
   @Override
@@ -51,8 +61,8 @@ public final class XOperator extends UnaryModalOperator {
   }
 
   @Override
-  public <A, B> A accept(BinaryVisitor<A, B> v, B extra) {
-    return v.visit(this, extra);
+  public <A, B> A accept(BinaryVisitor<B, A> v, B parameter) {
+    return v.visit(this, parameter);
   }
 
   @Override

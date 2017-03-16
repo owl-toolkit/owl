@@ -1,0 +1,33 @@
+0
+F G a
+G F a
+F G X a
+F (G a | G b | G F c)
+G F (a | b)
+F G (X a | F (b | c))
+F G (a | F (b & c))
+G (F(a | b) & F(b | c))
+F G b & G F a
+(F G b & G F a) | (G F !b & F G !a)
+G (F b & F a)
+(G F a) & (G F !a)
+F(Ga | GFb)
+F(Ga | GFb) & F(Gc | GFd)
+F(Ga | GFb) & F(Gc | GFd) & F(Gh | GFk)
+GF(a | GFb)
+F(Gb | GF(a | XXb)) & FG(c & X (a & Xb))
+F(Gb | GFa) & F(GFc | G(d & Xe))
+F(Gb | GF(a | XXc)) & F(GFc | G(d & X(a & Xb)))
+F(Gb | GFa)
+F(Gb | GFa) & F(GFb | Gc)
+F(Gb | GFa) & F(GFc | Gd) & F(GFb | Gc)
+FG(!c | (a & b))
+G(F!a & Fd & F(b & !c))
+F G (a | X X X b)
+G F (a & X X X b)
+F G X (a & X b)
+F (G (a | X X X e) | G X X b | G F (X c & d))
+G F (a | X X b)
+F G (X a | F (X b | c))
+F G (a | F (b & X c))
+G (F(a & X X b) & F(b | X X c))

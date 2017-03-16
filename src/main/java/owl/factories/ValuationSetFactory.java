@@ -19,11 +19,14 @@ package owl.factories;
 
 import java.util.BitSet;
 import owl.collections.ValuationSet;
+import owl.ltl.Literal;
 
 public interface ValuationSetFactory {
   ValuationSet createEmptyValuationSet();
 
   ValuationSet createUniverseValuationSet();
+
+  ValuationSet createValuationSet(Literal literal);
 
   ValuationSet createValuationSet(BitSet valuation);
 

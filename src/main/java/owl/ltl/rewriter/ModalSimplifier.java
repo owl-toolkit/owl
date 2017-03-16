@@ -15,10 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl.simplifier;
+package owl.ltl.rewriter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
+import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -36,7 +38,15 @@ import owl.ltl.visitors.Visitor;
 
 /* Pushes down F,G in the syntax tree
 * TODO: Reuse objects! */
-class ModalSimplifier implements Visitor<Formula> {
+@SuppressWarnings("PMD.GodClass")
+class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
+
+  static final UnaryOperator<Formula> INSTANCE = new ModalSimplifier();
+
+  @Override
+  public Formula apply(Formula formula) {
+    return formula.accept(this);
+  }
 
   @Override
   public Formula visit(FOperator fOperator) {
@@ -46,11 +56,21 @@ class ModalSimplifier implements Visitor<Formula> {
       return operand;
     }
 
+    if (operand instanceof MOperator) {
+      MOperator mOperator = (MOperator) operand;
+      return FOperator.create(Conjunction.create(mOperator.left, mOperator.right));
+    }
+
     if (operand instanceof ROperator) {
       ROperator rOperator = (ROperator) operand;
 
       return new Disjunction(new FOperator(new Conjunction(rOperator.left, rOperator.right)),
         new FOperator(new GOperator(rOperator.right)));
+    }
+
+    if (operand instanceof Conjunction && ((Conjunction) operand)
+      .allMatch(Formula::isPureUniversal)) {
+      return Conjunction.create(((Conjunction) operand).children.stream().map(FOperator::create));
     }
 
     return FOperator.create(operand);
@@ -69,11 +89,21 @@ class ModalSimplifier implements Visitor<Formula> {
       return operand;
     }
 
+    if (operand instanceof WOperator) {
+      WOperator wOperator = (WOperator) operand;
+      return GOperator.create(Disjunction.create(wOperator.left, wOperator.right));
+    }
+
     if (operand instanceof UOperator) {
       UOperator uOperator = (UOperator) operand;
 
       return new Conjunction(new GOperator(new Disjunction(uOperator.left, uOperator.right)),
         new GOperator(new FOperator(uOperator.right)));
+    }
+
+    if (operand instanceof Disjunction && ((Disjunction) operand)
+      .allMatch(Formula::isPureEventual)) {
+      return Disjunction.create(((Disjunction) operand).children.stream().map(GOperator::create));
     }
 
     return GOperator.create(operand);
@@ -149,7 +179,7 @@ class ModalSimplifier implements Visitor<Formula> {
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    boolean newElement = false;
+    boolean elementsChanged = false;
     List<Formula> newChildren = new ArrayList<>(conjunction.children.size());
 
     for (Formula child : conjunction.children) {
@@ -159,13 +189,26 @@ class ModalSimplifier implements Visitor<Formula> {
         return BooleanConstant.FALSE;
       }
 
-      newElement |= (child != newChild); // NOPMD
+      if (newChild instanceof FOperator && conjunction.children
+        .contains(((FOperator) newChild).operand)) {
+        elementsChanged = true;
+        continue;
+      }
+
+      if ((newChild instanceof UOperator || newChild instanceof WOperator) && conjunction.children
+        .contains(((BinaryModalOperator) newChild).right)) {
+        elementsChanged = true;
+        continue;
+      }
+
+      elementsChanged |= (child != newChild); // NOPMD
       newChildren.add(newChild);
     }
 
     // Only call constructor, when necessary.
     Formula c;
-    if (newElement) {
+
+    if (elementsChanged) {
       c = Conjunction.create(newChildren.stream());
     } else {
       c = conjunction;
@@ -184,7 +227,7 @@ class ModalSimplifier implements Visitor<Formula> {
 
   @Override
   public Formula visit(Disjunction disjunction) {
-    boolean newElement = false;
+    boolean elementsChanged = false;
     List<Formula> newChildren = new ArrayList<>(disjunction.children.size());
 
     for (Formula child : disjunction.children) {
@@ -194,13 +237,19 @@ class ModalSimplifier implements Visitor<Formula> {
         return BooleanConstant.TRUE;
       }
 
-      newElement |= (child != newChild); // NOPMD
+      if (newChild instanceof GOperator && disjunction.children
+        .contains(((GOperator) newChild).operand)) {
+        elementsChanged = true;
+        continue;
+      }
+
+      elementsChanged |= (child != newChild); // NOPMD
       newChildren.add(newChild);
     }
 
     // Only call constructor, when necessary.
     Formula d;
-    if (newElement) {
+    if (elementsChanged) {
       d = Disjunction.create(newChildren.stream());
     } else {
       d = disjunction;

@@ -15,31 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl.simplifier;
+@EverythingIsNonnullByDefault
+package owl.ltl.rewriter;
 
-import owl.ltl.Formula;
-import owl.ltl.XOperator;
-
-class XFormula {
-  int depth;
-  Formula formula;
-
-  XFormula(int depth, Formula formula) {
-    this.depth = depth;
-    this.formula = formula;
-  }
-
-  Formula toFormula(int newDepth) {
-    int i = depth - newDepth;
-
-    for (; i > 0; i--) {
-      formula = new XOperator(formula);
-    }
-
-    return formula;
-  }
-
-  Formula toFormula() {
-    return toFormula(0);
-  }
-}
+import owl.util.EverythingIsNonnullByDefault;

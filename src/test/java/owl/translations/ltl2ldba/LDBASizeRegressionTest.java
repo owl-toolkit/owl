@@ -79,7 +79,7 @@ public class LDBASizeRegressionTest extends
         return new int[] {4, 5, 5, 5, 4, 3};
 
       case ORDERINGS:
-        return new int[] {10, 26, 3, 4};
+        return new int[] {4, 2, 3, 4};
 
       case G_DISJUNCTION:
         return new int[] {212, 24, 133};

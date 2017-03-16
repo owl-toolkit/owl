@@ -35,7 +35,8 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.simplifier.Simplifier;
+import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Visitor;
 
 public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObligations> {
@@ -50,7 +51,7 @@ public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObl
   *
   *  CODE: EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
       EquivalenceClass goal = clazz.substitute(proposition ->
-              Simplifier.simplify(proposition.accept(evaluateVisitor), Simplifier.Strategy.MODAL));
+              Simplifier.simplify(proposition.accept(evaluateVisitor), RewriterEnum.MODAL));
 
       if (evaluateVisitor.environment.implies(goal)) {
           evaluateVisitor.free();
@@ -65,7 +66,7 @@ public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObl
     Formula formula = clazz.getRepresentative();
     EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.associatedGs, factory);
     Formula subst = formula.accept(evaluateVisitor);
-    Formula evaluated = Simplifier.simplify(subst, Simplifier.Strategy.MODAL);
+    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
     EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
     evaluateVisitor.free();
     return goal;
