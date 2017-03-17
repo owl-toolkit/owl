@@ -141,19 +141,19 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitUnaryOperation(UnaryOperationContext ctx) {
     assert ctx.getChildCount() == 2;
     final UnaryOpContext unaryOp = ctx.unaryOp();
-    final Formula innerFormula = visit(ctx.inner);
+    final Formula operand = visit(ctx.inner);
 
     if (unaryOp.NOT() != null) {
-      return innerFormula.not();
+      return operand.not();
     }
     if (unaryOp.FINALLY() != null) {
-      return FOperator.create(innerFormula);
+      return FOperator.create(operand);
     }
     if (unaryOp.GLOBALLY() != null) {
-      return GOperator.create(innerFormula);
+      return GOperator.create(operand);
     }
     if (unaryOp.NEXT() != null) {
-      return XOperator.create(innerFormula);
+      return XOperator.create(operand);
     }
     if (unaryOp.frequencyOp() != null) {
       final FrequencyOpContext freqCtx = unaryOp.frequencyOp();
@@ -221,10 +221,10 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
       final Formula finalFormula;
       final double finalValue;
       if (negateComparison == negateOperator) {
-        finalFormula = innerFormula;
+        finalFormula = operand;
         finalValue = value;
       } else {
-        finalFormula = innerFormula.not();
+        finalFormula = operand.not();
         finalValue = 1 - value;
       }
 
@@ -240,14 +240,15 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     assert variables.size() == literalCache.size();
     final String name = ctx.getText();
     int index = variables.indexOf(name);
-    final Literal literal;
+
     if (index == -1) {
       int newIndex = variables.size();
-      literal = new Literal(newIndex);
+      Literal literal = new Literal(newIndex);
       variables.add(name);
       literalCache.add(literal);
       return literal;
     }
+
     assert index >= 0;
     return literalCache.get(index);
   }

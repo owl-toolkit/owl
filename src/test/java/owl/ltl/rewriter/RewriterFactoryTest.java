@@ -32,7 +32,8 @@ public class RewriterFactoryTest {
     "F G X a",
     "F G F b",
     "a & a U b",
-    "b & a U b"
+    "b & a U b",
+    "! F G (a <-> (F b))",
     // TODO: This is part of the new simp: "(a & b) U (c | d)"
   };
 
@@ -41,7 +42,8 @@ public class RewriterFactoryTest {
     "F G a",
     "G F b",
     "a & a U b",
-    "b"
+    "b",
+    "((G F b & G F !a) | (F G !b & G F a))",
     // TODO: This is part of the new simp: "((a U c) & (b U c)) | ((a U d) & (b U d))"
   };
 
