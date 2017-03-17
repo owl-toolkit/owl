@@ -205,7 +205,6 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
       List<Formula> xFragment = new ArrayList<>();
       List<Set<Formula>> disjuncts = new ArrayList<>();
 
-
       conjunction.forEach(child -> {
         if (child instanceof FOperator) {
           conjuncts.add(((FOperator) child).operand.accept(this));
@@ -219,7 +218,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         }
       });
 
-      disjuncts.add(Collections.singleton(Disjunction.create(xFragment)));
+      disjuncts.add(Collections.singleton(Conjunction.create(xFragment)));
       Formula disjunction = Disjunction.create(Sets.cartesianProduct(disjuncts).stream()
         .map(Conjunction::create));
 
