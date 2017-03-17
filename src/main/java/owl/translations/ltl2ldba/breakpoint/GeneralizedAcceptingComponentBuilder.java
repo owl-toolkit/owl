@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -30,22 +30,25 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
-public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
-  <GeneralizedBreakpointState, GeneralizedBuchiAcceptance, RecurringObligations> {
+public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder<
+  GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations> {
 
   @Nullable
   private BitSet accept;
   @Nonnegative
   private int acceptanceSets;
 
-  GeneralizedAcceptingComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations) {
+  public GeneralizedAcceptingComponentBuilder(Factories factories,
+    EnumSet<Optimisation> optimisations) {
     super(optimisations, factories,
-      new RecurringObligationsEvaluator(factories.equivalenceClassFactory));
+      new GObligationsEvaluator(factories.equivalenceClassFactory));
     acceptanceSets = 1;
   }
 
@@ -67,7 +70,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
   @Override
   public GeneralizedBreakpointState createState(EquivalenceClass remainder,
-    RecurringObligations obligations) {
+    GObligations obligations) {
     EquivalenceClass theRemainder = remainder;
     final int length = obligations.obligations.length + obligations.liveness.length;
 
@@ -85,10 +88,11 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     if (length == 0) {
       if (theRemainder.isTrue()) {
-        return new GeneralizedBreakpointState(obligations, safety, EMPTY, EMPTY);
+        return new GeneralizedBreakpointState(obligations, safety, EquivalenceClassUtil.EMPTY,
+          EquivalenceClassUtil.EMPTY);
       } else {
         return new GeneralizedBreakpointState(obligations, safety,
-          new EquivalenceClass[] {theRemainder}, EMPTY);
+          new EquivalenceClass[] {theRemainder}, EquivalenceClassUtil.EMPTY);
       }
     }
 
@@ -164,8 +168,8 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       EquivalenceClass nextSuccessor = factory.getSuccessor(state.next[i], valuation, assumptions);
 
       if (nextSuccessor.isFalse()) {
-        EquivalenceClass.free(currentSuccessors);
-        EquivalenceClass.free(nextSuccessors);
+        EquivalenceClassUtil.free(currentSuccessors);
+        EquivalenceClassUtil.free(nextSuccessors);
         assumptions.free();
         return null;
       }
@@ -223,13 +227,15 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       if (!remainder.isTrue()) {
         return Edges
           .create(new GeneralizedBreakpointState(state.obligations, nextSafety,
-            new EquivalenceClass[] {remainder}, EMPTY));
+            new EquivalenceClass[] {remainder}, EquivalenceClassUtil.EMPTY));
       }
     }
 
     assert accept != null;
 
-    return Edges.create(new GeneralizedBreakpointState(state.obligations, nextSafety, EMPTY, EMPTY),
+    return Edges.create(
+      new GeneralizedBreakpointState(state.obligations, nextSafety, EquivalenceClassUtil.EMPTY,
+        EquivalenceClassUtil.EMPTY),
       accept);
   }
 }

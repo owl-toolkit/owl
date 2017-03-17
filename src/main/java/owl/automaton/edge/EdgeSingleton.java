@@ -17,6 +17,7 @@
 
 package owl.automaton.edge;
 
+import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
@@ -66,7 +67,7 @@ public final class EdgeSingleton<S> implements Edge<S> {
 
     EdgeSingleton<?> other = (EdgeSingleton<?>) o;
     return this.acceptance == other.acceptance
-      && this.successor == other.successor;
+      && Objects.equals(this.successor, other.successor);
   }
 
   public int getAcceptance() {

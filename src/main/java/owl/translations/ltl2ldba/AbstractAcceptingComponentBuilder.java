@@ -30,8 +30,6 @@ import owl.translations.Optimisation;
 public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAcceptance, U>
   implements ExploreBuilder<Jump<U>, S, T> {
 
-  static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
-
   protected final List<S> anchors = new ArrayList<>();
   private final JumpEvaluator<U> evaluator;
   protected final Factories factories;

@@ -15,21 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba.ng;
+package owl.translations.ltl2ldba.breakpointfree;
 
-import java.util.Arrays;
 import java.util.Objects;
+import javax.annotation.Nonnegative;
 import owl.ltl.EquivalenceClass;
 import owl.util.ImmutableObject;
 
-public final class GeneralizedBreakpointFreeState extends ImmutableObject {
+public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
 
-  final EquivalenceClass[] liveness;
-  final RecurringObligations2 obligations;
+  @Nonnegative // Index of the current checked liveness (F) obligation.
+  final int index;
+  final EquivalenceClass liveness;
+  final FGObligations obligations;
   final EquivalenceClass safety;
 
-  GeneralizedBreakpointFreeState(EquivalenceClass safety, EquivalenceClass[] liveness,
-    RecurringObligations2 obligations) {
+  DegeneralizedBreakpointFreeState(@Nonnegative int index, EquivalenceClass safety,
+    EquivalenceClass liveness,
+    FGObligations obligations) {
+    assert 0 == index || (0 < index && index < obligations.liveness.length);
+
+    this.index = index;
     this.liveness = liveness;
     this.obligations = obligations;
     this.safety = safety;
@@ -37,25 +43,26 @@ public final class GeneralizedBreakpointFreeState extends ImmutableObject {
 
   @Override
   protected boolean equals2(ImmutableObject o) {
-    GeneralizedBreakpointFreeState that = (GeneralizedBreakpointFreeState) o;
-    return Objects.equals(obligations, that.obligations) && Objects.equals(safety, that.safety)
-      && Arrays.equals(liveness, that.liveness);
+    DegeneralizedBreakpointFreeState that = (DegeneralizedBreakpointFreeState) o;
+    return index == that.index && Objects.equals(safety, that.safety) && Objects
+      .equals(liveness, that.liveness) && Objects.equals(obligations, that.obligations);
   }
 
-  public RecurringObligations2 getObligations() {
+  public FGObligations getObligations() {
     return obligations;
   }
 
   @Override
   protected int hashCodeOnce() {
-    return Objects.hash(Arrays.hashCode(liveness), obligations, safety);
+    return Objects.hash(liveness, obligations, safety, index);
   }
 
   @Override
   public String toString() {
     return "[obligations=" + obligations
       + (safety.isTrue() ? "" : ", safety=" + safety)
-      + ", liveness=" + Arrays.toString(liveness)
+      + (index == 0 ? "" : ", index=" + index)
+      + (liveness.isTrue() ? "" : ", current-liveness=" + liveness)
       + ']';
   }
 }

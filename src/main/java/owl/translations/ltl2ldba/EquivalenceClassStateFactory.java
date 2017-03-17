@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
+import owl.factories.EquivalenceClassUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.visitors.DisjunctiveNormalFormVisitor;
@@ -146,7 +147,7 @@ public class EquivalenceClassStateFactory {
       successors[i] = getSuccessor(clazz[i], valuation, environment);
 
       if (successors[i].isFalse()) {
-        EquivalenceClass.free(successors);
+        EquivalenceClassUtil.free(successors);
         return null;
       }
     }

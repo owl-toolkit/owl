@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import owl.collections.Trie;
 import owl.ltl.EquivalenceClass;
-import owl.translations.ltl2ldba.DegeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.util.ImmutableObject;
 
 @Immutable

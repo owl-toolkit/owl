@@ -1,4 +1,4 @@
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,8 +21,8 @@ public class GMonitorVisitorTest {
     GOperator operator = (GOperator) LtlParser.formula("G(p2)");
     Formula formula = LtlParser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
     Factories factories = Registry.getFactories(formula);
-    RecurringObligationsEvaluator.EvaluateVisitor visitor =
-      new RecurringObligationsEvaluator.EvaluateVisitor(Collections.singleton(operator),
+    GObligationsEvaluator.EvaluateVisitor visitor =
+      new GObligationsEvaluator.EvaluateVisitor(Collections.singleton(operator),
         factories.equivalenceClassFactory);
     assertEquals(BooleanConstant.FALSE, formula.accept(visitor));
   }
@@ -32,8 +32,6 @@ public class GMonitorVisitorTest {
     Formula f1 = new Literal(0, false);
     Formula f2 = new FOperator(new GOperator(f1));
 
-    Collector collector = new Collector(GOperator.class::isInstance);
-    f2.accept(collector);
-    assertEquals(Collections.singleton(new GOperator(f1)), collector.getCollection());
+    assertEquals(Collections.singleton(new GOperator(f1)), Collector.collectGOperators(f2));
   }
 }
