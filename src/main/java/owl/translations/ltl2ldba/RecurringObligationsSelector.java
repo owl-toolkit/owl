@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.ROperator;
@@ -44,7 +45,6 @@ import owl.ltl.WOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.predicates.XFragment;
 import owl.translations.Optimisation;
 
 public class RecurringObligationsSelector implements JumpSelector<RecurringObligations> {
@@ -139,7 +139,7 @@ public class RecurringObligationsSelector implements JumpSelector<RecurringOblig
       }
 
       if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS)) {
-        if (clazz.testSupport(XFragment::testStatic)) {
+        if (clazz.testSupport(Fragments::isX)) {
           safety = safety.andWith(clazz);
           clazz.free();
           continue;

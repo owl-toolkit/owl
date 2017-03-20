@@ -349,7 +349,8 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), ImmutableSet.copyOf(initialStates), stateCount(), options);
+      getAcceptance(), ImmutableSet.copyOf(initialStates), stateCount(), options,
+      isDeterministic());
 
     transitions.forEach((state, edges) -> {
       hoa.addState(state);

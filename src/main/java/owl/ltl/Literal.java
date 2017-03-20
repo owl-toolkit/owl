@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -127,4 +128,13 @@ public final class Literal extends ImmutableObject implements Formula {
     return temporalStep(valuation);
   }
 
+  @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
 }

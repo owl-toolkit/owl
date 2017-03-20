@@ -19,6 +19,7 @@ package owl.collections;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -61,7 +62,6 @@ public final class Lists2 {
   public static <T, U> boolean zipAllMatch(List<T> list1, List<U> list2,
     BiPredicate<T, U> predicate) {
     Preconditions.checkArgument(list1.size() == list2.size());
-
     Iterator<T> iterator1 = list1.iterator();
     Iterator<U> iterator2 = list2.iterator();
 
@@ -88,5 +88,41 @@ public final class Lists2 {
     }
 
     return false;
+  }
+
+  public static <T> List<T> cons(T element, List<T> list) {
+    return new AbstractList<T>() {
+      @Override
+      public T get(int index) {
+        if (index == 0) {
+          return element;
+        }
+
+        return list.get(index - 1);
+      }
+
+      @Override
+      public int size() {
+        return list.size() + 1;
+      }
+    };
+  }
+
+  public static <T> List<T> append(List<T> list, T element) {
+    return new AbstractList<T>() {
+      @Override
+      public T get(int index) {
+        if (index == list.size()) {
+          return element;
+        }
+
+        return list.get(index);
+      }
+
+      @Override
+      public int size() {
+        return list.size() + 1;
+      }
+    };
   }
 }

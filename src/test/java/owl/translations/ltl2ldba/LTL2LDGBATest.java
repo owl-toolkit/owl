@@ -39,6 +39,7 @@ public class LTL2LDGBATest {
     + "States: 0\n"
     + "acc-name: none\n"
     + "Acceptance: 0 f\n"
+    + "properties: trans-acc trans-label \n"
     + "AP: 0\n"
     + "--BODY--\n"
     + "--END--\n";
@@ -48,6 +49,7 @@ public class LTL2LDGBATest {
     + "Start: 0\n"
     + "acc-name: Buchi\n"
     + "Acceptance: 1 Inf(0)\n"
+    + "properties: trans-acc trans-label \n"
     + "AP: 0\n"
     + "--BODY--\n"
     + "State: 0\n"

@@ -30,20 +30,19 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.ltl.XOperator;
 import owl.ltl.parser.ParserException;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.DefaultVisitor;
-import owl.ltl.visitors.predicates.FGXFragment;
 import owl.translations.fgx2generic.Builder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class FGX2DGA extends AbstractLtlCommandLineTool {
 
   private static final IsSupportedFragmentChecker CHECKER = new IsSupportedFragmentChecker();
-  private static final Builder BUILDER = new Builder();
-
   private final boolean allowFallback;
 
   private FGX2DGA(boolean allowFallback) {
@@ -55,37 +54,40 @@ public final class FGX2DGA extends AbstractLtlCommandLineTool {
     new FGX2DGA(args.remove("--fallback")).execute(args);
   }
 
-  @Override
-  protected Function<Formula, ? extends HoaPrintable> getTranslation(
+  private static HoaPrintable translateWithFallback(Formula formula,
     EnumSet<Optimisation> optimisations) {
-
-    return allowFallback ? FGX2DGA::translateWithFallback : FGX2DGA::translateWithoutFallback;
-  }
-
-  private static HoaPrintable translateWithFallback(Formula formula) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
 
     if (!rewritten.accept(FGX2DGA.CHECKER)) {
       return new LTL2DPAFunction().apply(rewritten);
     }
 
-    return BUILDER.apply(rewritten);
+    return new Builder(optimisations).apply(rewritten);
   }
 
-  private static HoaPrintable translateWithoutFallback(Formula formula) {
+  private static HoaPrintable translateWithoutFallback(Formula formula,
+    EnumSet<Optimisation> optimisations) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
 
     if (!rewritten.accept(FGX2DGA.CHECKER)) {
-      throw new UnsupportedOperationException("Outside of supported fragment.");
+      throw new UnsupportedOperationException("Outside of supported fragment." + rewritten);
     }
 
-    return BUILDER.apply(rewritten);
+    return new Builder(optimisations).apply(rewritten);
+  }
+
+  @Override
+  protected Function<Formula, ? extends HoaPrintable> getTranslation(
+    EnumSet<Optimisation> optimisations) {
+    return allowFallback
+           ? x -> FGX2DGA.translateWithFallback(x, optimisations)
+           : x -> FGX2DGA.translateWithoutFallback(x, optimisations);
   }
 
   private static class IsSupportedFragmentChecker extends DefaultVisitor<Boolean> {
     @Override
     protected Boolean defaultAction(Formula formula) {
-      return false;
+      return Fragments.isSafety(formula) || Fragments.isCoSafety(formula);
     }
 
     @Override
@@ -95,22 +97,29 @@ public final class FGX2DGA extends AbstractLtlCommandLineTool {
 
     @Override
     public Boolean visit(Conjunction conjunction) {
-      return conjunction.allMatch(x -> x.accept(this));
+      return conjunction.children.stream().allMatch(x -> x.accept(this));
     }
 
     @Override
     public Boolean visit(Disjunction disjunction) {
-      return disjunction.allMatch(x -> x.accept(this));
+      return disjunction.children.stream().allMatch(x -> x.accept(this));
     }
 
     @Override
     public Boolean visit(FOperator fOperator) {
-      return fOperator.operand instanceof GOperator && FGXFragment.testStatic(fOperator);
+      return Fragments.isCoSafety(fOperator) || fOperator.operand instanceof GOperator && Fragments
+        .isFgx(fOperator);
     }
 
     @Override
     public Boolean visit(GOperator gOperator) {
-      return gOperator.operand instanceof FOperator && FGXFragment.testStatic(gOperator);
+      return Fragments.isSafety(gOperator) || gOperator.operand instanceof FOperator && Fragments
+        .isFgx(gOperator);
+    }
+
+    @Override
+    public Boolean visit(XOperator xOperator) {
+      return xOperator.operand.accept(this);
     }
   }
 }

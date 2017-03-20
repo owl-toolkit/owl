@@ -43,12 +43,12 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultIntVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
-import owl.ltl.visitors.predicates.XFragment;
 
 public final class EquivalenceFactory implements EquivalenceClassFactory {
   private final int alphabetSize;
@@ -170,7 +170,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     mapping.put(proposition, i + 1);
     reverseMapping[i] = proposition;
 
-    if (XFragment.testStatic(proposition)) {
+    if (Fragments.isX(proposition)) {
       mapping.put(proposition.not(), -(i + 1));
     }
 

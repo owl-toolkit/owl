@@ -18,14 +18,21 @@
 package owl.translations.fgx2generic;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.util.BitSet;
+import java.util.List;
+import java.util.Objects;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
 
-public class HistoryState {
+public class ProductState {
 
   final ImmutableList<BitSet> history;
+  final ImmutableMap<Formula, EquivalenceClass> safetyStates;
 
-  HistoryState(ImmutableList<BitSet> history) {
-    this.history = history;
+  public ProductState(ImmutableMap<Formula, EquivalenceClass> safetyStates, List<BitSet> history) {
+    this.safetyStates = safetyStates;
+    this.history = ImmutableList.copyOf(history);
   }
 
   @Override
@@ -38,16 +45,17 @@ public class HistoryState {
       return false;
     }
 
-    return history.equals(((HistoryState) o).history);
+    ProductState that = (ProductState) o;
+    return safetyStates.equals(that.safetyStates) && history.equals(that.history);
   }
 
   @Override
   public int hashCode() {
-    return history.hashCode();
+    return Objects.hash(safetyStates, history);
   }
 
   @Override
   public String toString() {
-    return "HistoryState{" + history + '}';
+    return "ProductState{history=" + history + ", safetyStates=" + safetyStates + '}';
   }
 }

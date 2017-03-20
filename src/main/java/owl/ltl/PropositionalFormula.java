@@ -43,11 +43,11 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   }
 
   public boolean allMatch(Predicate<Formula> p) {
-    return children.stream().allMatch(p);
+    return p.test(this) && children.stream().allMatch(x -> x.allMatch(p));
   }
 
   public boolean anyMatch(Predicate<Formula> p) {
-    return children.stream().anyMatch(p);
+    return p.test(this) || children.stream().anyMatch(x -> x.anyMatch(p));
   }
 
   public <T> Stream<T> map(Function<Formula, T> mapper) {
@@ -70,17 +70,17 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   @Override
   public boolean isPureEventual() {
-    return allMatch(Formula::isPureEventual);
+    return children.stream().allMatch(Formula::isPureEventual);
   }
 
   @Override
   public boolean isPureUniversal() {
-    return allMatch(Formula::isPureUniversal);
+    return children.stream().allMatch(Formula::isPureUniversal);
   }
 
   @Override
   public boolean isSuspendable() {
-    return allMatch(Formula::isSuspendable);
+    return children.stream().allMatch(Formula::isSuspendable);
   }
 
   @Override
@@ -124,5 +124,4 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
     return s.toString();
   }
-
 }

@@ -18,7 +18,7 @@
 package owl.translations;
 
 public enum Optimisation {
-  /* LDBA Construction */
+  /* LDBA Constructions */
   SCC_ANALYSIS, REMOVE_EPSILON_TRANSITIONS,
 
   /* ltl2ldba */
@@ -26,5 +26,8 @@ public enum Optimisation {
   OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS, DETERMINISTIC_INITIAL_COMPONENT,
 
   /* ltl2dpa */
-  PARALLEL, PERMUTATION_SHARING
+  PARALLEL, PERMUTATION_SHARING,
+
+  /* fgx2dba */
+  DYNAMIC_HISTORY
 }
