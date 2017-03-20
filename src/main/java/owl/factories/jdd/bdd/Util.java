@@ -12,42 +12,43 @@ final class Util {
   }
 
   @SuppressWarnings("MagicNumber")
-  private static int fnv1aRound(final int hash, final int number) {
+  private static int fnv1aRound(int hash, int number) {
     return (hash ^ ((number >>> 24) & BYTE_MASK)
       ^ ((number >>> 16) & BYTE_MASK)
       ^ ((number >>> 8) & BYTE_MASK)
       ^ (number & BYTE_MASK)) * FNV_PRIME;
   }
 
-  private static int fnv1aRound(final int hash, final long number) {
+  private static int fnv1aRound(int hash, long number) {
+    //noinspection NumericCastThatLosesPrecision
     return fnv1aRound(fnv1aRound(hash, (int) (number >>> Integer.SIZE)), (int) number);
   }
 
-  public static int hash(final long firstKey, final int secondKey) {
+  public static int hash(long firstKey, int secondKey) {
     return fnv1aRound(fnv1aRound(FNV_OFFSET, firstKey), secondKey);
   }
 
-  public static int hash(final long firstKey, final long secondKey) {
+  public static int hash(long firstKey, long secondKey) {
     return fnv1aRound(fnv1aRound(FNV_OFFSET, firstKey), secondKey);
   }
 
-  public static int hash(final int key) {
+  public static int hash(int key) {
     return fnv1aRound(FNV_OFFSET, key);
   }
 
-  public static int hash(final long key) {
+  public static int hash(long key) {
     return fnv1aRound(FNV_OFFSET, key);
   }
 
-  public static int hash(final int key, final int[] keys) {
+  public static int hash(int key, int[] keys) {
     int hash = fnv1aRound(FNV_OFFSET, key);
-    for (final int arrayKey : keys) {
+    for (int arrayKey : keys) {
       hash = fnv1aRound(hash, arrayKey);
     }
     return hash;
   }
 
-  public static int nextPrime(final int prime) {
+  public static int nextPrime(int prime) {
     int nextPrime = Math.max(3, prime | 1);
 
     while (!IntMath.isPrime(nextPrime)) {

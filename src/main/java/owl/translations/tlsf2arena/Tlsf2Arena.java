@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.EnumSet;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 import owl.translations.Optimisation;
@@ -33,7 +33,7 @@ public final class Tlsf2Arena {
   private Tlsf2Arena() {
   }
 
-  public static void main(String... args) throws ParseException, IOException {
+  public static void main(String... args) throws ParserException, IOException {
     String[] arguments = args;
     // TODO
     if (arguments.length == 0) {
@@ -46,7 +46,7 @@ public final class Tlsf2Arena {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
 
-    Any2BitArena bit = new Any2BitArena<>();
+    Any2BitArena<Object> bit = new Any2BitArena<>();
     Any2BitArena.Player fstPlayer = Tlsf.target().isMealy()
                                     ? Any2BitArena.Player.ENVIRONMENT : Any2BitArena.Player.SYSTEM;
 
@@ -56,7 +56,9 @@ public final class Tlsf2Arena {
     LTL2DPAFunction translation = new LTL2DPAFunction();
     Automaton<?, ParityAcceptance> parity = translation.apply(Tlsf.toFormula());
     System.out.print(parity);
-    bit.writeBinary(parity, fstPlayer, Tlsf.inputs(), nodeFile, edgeFile);
+    //noinspection unchecked
+    bit.writeBinary((Automaton<Object, ParityAcceptance>) parity,
+      fstPlayer, Tlsf.inputs(), nodeFile, edgeFile);
     bit.readBinary(nodeFile, edgeFile);
   }
 }

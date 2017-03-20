@@ -20,21 +20,24 @@ package owl.translations;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import javax.annotation.Nullable;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 
 public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool<Formula> {
-  private List<String> variables;
+  @Nullable
+  private List<String> variables = null;
 
   @Override
   protected List<String> getVariables() {
+    assert variables != null;
     return variables;
   }
 
   @Override
-  protected Formula parseInput(InputStream stream) throws IOException, ParseException {
+  protected Formula parseInput(InputStream stream) throws IOException, ParserException {
     LtlParseResult parser = LtlParser.parse(stream);
     Formula formula = parser.getFormula();
     variables = parser.getVariableMapping();

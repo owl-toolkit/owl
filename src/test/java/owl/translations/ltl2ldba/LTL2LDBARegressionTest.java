@@ -26,12 +26,12 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 import owl.translations.Optimisation;
 
 public class LTL2LDBARegressionTest {
 
-  static void testOutput(String ltl, int size) throws ParseException {
+  static void testOutput(String ltl, int size) throws ParserException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     LtlParseResult parseResult = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
@@ -43,25 +43,25 @@ public class LTL2LDBARegressionTest {
   }
 
   @Test
-  public void testLivenessRegression() throws ParseException {
+  public void testLivenessRegression() throws ParserException {
     String ltl = "G (F (a & (F b)))";
     testOutput(ltl, 2);
   }
 
   @Test
-  public void testLivenessRegression2() throws ParseException {
+  public void testLivenessRegression2() throws ParserException {
     String ltl = "G (F a & F b)";
     testOutput(ltl, 2);
   }
 
   @Test
-  public void testObligationSizeRegression() throws ParseException {
+  public void testObligationSizeRegression() throws ParserException {
     String ltl = "G F (b & G b)";
     testOutput(ltl, 2);
   }
 
   @Test
-  public void testRegression7() throws ParseException {
+  public void testRegression7() throws ParserException {
     String ltl = "(X(p1)) R (((G(p2)) R (p3)) W (p4))";
     testOutput(ltl, 24);
   }

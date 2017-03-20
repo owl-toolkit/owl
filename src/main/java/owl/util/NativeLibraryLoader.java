@@ -39,15 +39,16 @@ public final class NativeLibraryLoader {
 
       case LINUX:
       case UNKNOWN:
-      default:
         return ".so";
+      default:
+        throw new AssertionError("Fallthrough");
     }
   }
 
   public static void loadLibrary(String libraryName) throws IOException {
     try {
       System.loadLibrary(libraryName);
-    } catch (UnsatisfiedLinkError error) {
+    } catch (@SuppressWarnings("ErrorNotRethrown") UnsatisfiedLinkError ignored) {
       loadLibraryFromJar(libraryName);
     }
   }
@@ -83,6 +84,7 @@ public final class NativeLibraryLoader {
           "File lib" + libraryName + librarySuffix + " was not found inside JAR.");
       }
 
+      //noinspection NestedTryStatement
       try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(temp))) {
         ByteStreams.copy(is, os);
       }

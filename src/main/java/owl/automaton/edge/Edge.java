@@ -18,6 +18,7 @@
 package owl.automaton.edge;
 
 import java.util.PrimitiveIterator;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 
 /**
@@ -33,7 +34,7 @@ public interface Edge<S> {
   static <S> String toString(Edge<S> edge) {
     StringBuilder builder = new StringBuilder(10);
     builder.append("-> ").append(edge.getSuccessor());
-    final PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
+    PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
     if (acceptanceSetIterator.hasNext()) {
       builder.append('{');
       while (true) {
@@ -52,9 +53,16 @@ public interface Edge<S> {
   /**
    * An iterator containing all acceptance sets this edge is a member of in ascending order.
    *
-   * @return An iterator stream with all acceptance sets of this edge.
+   * @return An iterator with all acceptance sets of this edge.
    */
   PrimitiveIterator.OfInt acceptanceSetIterator();
+
+  /**
+   * A stream containing all acceptance sets this edge is a member of in ascending order.
+   *
+   * @return An stream with all acceptance sets of this edge.
+   */
+  IntStream acceptanceSetStream();
 
   /**
    * Get the target state of the edge.

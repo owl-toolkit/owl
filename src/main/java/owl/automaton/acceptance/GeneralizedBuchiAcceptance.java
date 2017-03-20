@@ -26,6 +26,7 @@ import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
@@ -39,7 +40,32 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
   }
 
   @Override
-  public int getAcceptanceSets() {
+  public <S> boolean containsAcceptingRun(Set<S> scc,
+    Function<S, Iterable<Edge<S>>> successorFunction) {
+    assert AutomatonUtil.isScc(scc, successorFunction);
+    BitSet remaining = new BitSet(size);
+    remaining.set(0, size);
+
+    for (S state : scc) {
+      Iterable<Edge<S>> successors = successorFunction.apply(state);
+
+      for (Edge<S> successorEdge : successors) {
+        if (!scc.contains(successorEdge.getSuccessor())) {
+          continue;
+        }
+
+        successorEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) remaining::clear);
+
+        if (remaining.isEmpty()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public final int getAcceptanceSets() {
     return size;
   }
 
@@ -65,24 +91,7 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
   }
 
   @Override
-  public <S> boolean isAccepting(Set<S> scc, Function<S, Iterable<Edge<S>>> successorFunction) {
-    BitSet remaining = new BitSet(size);
-    remaining.set(0, size);
-
-    for (S state : scc) {
-      for (Edge<S> successorEdge : successorFunction.apply(state)) {
-        if (!scc.contains(successorEdge.getSuccessor())) {
-          continue;
-        }
-
-        successorEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) remaining::clear);
-
-        if (remaining.isEmpty()) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return edge.acceptanceSetStream().allMatch(index -> index < size);
   }
 }

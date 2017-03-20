@@ -17,13 +17,22 @@
 
 package owl.automaton.acceptance;
 
+import static owl.automaton.acceptance.AcceptanceHelper.filterSuccessorFunction;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.algorithms.SccAnalyser;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
@@ -35,12 +44,79 @@ import owl.automaton.output.HoaConsumerExtended;
  * Rabin acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
  * acceptance without any pairs rejects every word.
  */
-public class RabinAcceptance implements OmegaAcceptance {
+public final class RabinAcceptance implements OmegaAcceptance {
   private final List<RabinPair> pairList;
-  private int setCount;
+  private int setCount = 0;
 
   public RabinAcceptance() {
     pairList = new ArrayList<>();
+  }
+
+  @Override
+  public <S> boolean containsAcceptingRun(Set<S> scc,
+    Function<S, Iterable<Edge<S>>> successorFunction) {
+    assert AutomatonUtil.isScc(scc, successorFunction);
+
+    IntSet noFinitePairs = new IntArraySet();
+    List<RabinPair> finitePairs = new ArrayList<>();
+    for (RabinPair rabinPair : pairList) {
+      if (rabinPair.hasFinite()) {
+        finitePairs.add(rabinPair);
+      } else if (rabinPair.hasInfinite()) {
+        noFinitePairs.add(rabinPair.getInfiniteIndex());
+      }
+    }
+
+    if (!noFinitePairs.isEmpty()) {
+      Function<S, Iterable<Edge<S>>> filteredSuccessorFunction =
+        filterSuccessorFunction(successorFunction, scc);
+
+      // Check if there is any edge containing the infinite index of some pair with no finite index
+      Predicate<Iterable<Edge<S>>> predicate = iter -> {
+        for (Edge<S> edge : iter) {
+          PrimitiveIterator.OfInt acceptanceIterator = edge.acceptanceSetIterator();
+          while (acceptanceIterator.hasNext()) {
+            if (noFinitePairs.contains(acceptanceIterator.nextInt())) {
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      boolean anyNoFinitePairAccepts = scc.parallelStream()
+        .map(filteredSuccessorFunction)
+        .anyMatch(predicate);
+      if (anyNoFinitePairAccepts) {
+        return true;
+      }
+    }
+
+    return !finitePairs.isEmpty() && finitePairs.parallelStream().anyMatch(finitePair -> {
+      // Compute all SCCs after removing the finite edges of the current finite pair
+      Function<S, Iterable<Edge<S>>> filteredSuccessorFunction =
+        filterSuccessorFunction(successorFunction,
+          edge -> scc.contains(edge.getSuccessor()) && !finitePair.containsFinite(edge));
+
+      return SccAnalyser.computeSccsWithEdges(scc, filteredSuccessorFunction)
+        .stream().anyMatch(subScc -> {
+          // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
+          for (S state : subScc) {
+            for (Edge<S> edge : successorFunction.apply(state)) {
+              if (!subScc.contains(edge.getSuccessor()) || finitePair.containsFinite(edge)) {
+                // This edge does not qualify for an accepting cycle
+                continue;
+              }
+              if (finitePair.containsInfinite(edge)) {
+                // This edge yields an accepting cycle
+                return true;
+              }
+            }
+          }
+          // No accepting edge was found in this sub-SCC
+          return false;
+        });
+    });
   }
 
   /**
@@ -49,13 +125,13 @@ public class RabinAcceptance implements OmegaAcceptance {
    * @return The created pair.
    */
   public RabinPair createPair() {
-    final RabinPair pair = new RabinPair(this, pairList.size());
+    RabinPair pair = new RabinPair(this, pairList.size());
     pairList.add(pair);
     return pair;
   }
 
   private int createSet() {
-    final int index = setCount;
+    int index = setCount;
     setCount += 1;
     return index;
   }
@@ -74,11 +150,11 @@ public class RabinAcceptance implements OmegaAcceptance {
     }
     BooleanExpression<AtomAcceptance> expression = null;
 
-    for (final RabinPair pair : pairList) {
+    for (RabinPair pair : pairList) {
       if (pair.isEmpty()) {
         continue;
       }
-      
+
       BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
 
       if (expression == null) {
@@ -136,11 +212,17 @@ public class RabinAcceptance implements OmegaAcceptance {
     return ImmutableSet.copyOf(pairList);
   }
 
+  @Override
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return edge.acceptanceSetStream().allMatch(index -> index < setCount);
+  }
+
+  @Override
   public String toString() {
-    final StringBuilder builder = new StringBuilder(30);
+    StringBuilder builder = new StringBuilder(30);
     builder.append("RabinAcceptance: ");
-    for (final RabinPair pair : pairList) {
-      builder.append(pair.toString());
+    for (RabinPair pair : pairList) {
+      builder.append(pair);
     }
     return builder.toString();
   }
@@ -151,7 +233,7 @@ public class RabinAcceptance implements OmegaAcceptance {
     private int finiteIndex;
     private int infiniteIndex;
 
-    RabinPair(final RabinAcceptance acceptance, final int pairNumber) {
+    RabinPair(RabinAcceptance acceptance, int pairNumber) {
       this.acceptance = acceptance;
       this.pairNumber = pairNumber;
       finiteIndex = -1;
@@ -168,7 +250,7 @@ public class RabinAcceptance implements OmegaAcceptance {
      *
      * @see Edge#inSet(int)
      */
-    public boolean containsFinite(final Edge<?> edge) {
+    public boolean containsFinite(Edge<?> edge) {
       return hasFinite() && edge.inSet(finiteIndex);
     }
 
@@ -182,7 +264,7 @@ public class RabinAcceptance implements OmegaAcceptance {
      *
      * @see Edge#inSet(int)
      */
-    public boolean containsInfinite(final Edge<?> edge) {
+    public boolean containsInfinite(Edge<?> edge) {
       return hasInfinite() && edge.inSet(infiniteIndex);
     }
 
@@ -195,6 +277,16 @@ public class RabinAcceptance implements OmegaAcceptance {
         return HoaConsumerExtended.mkFin(finiteIndex);
       }
       return HoaConsumerExtended.mkFin(finiteIndex).and(HoaConsumerExtended.mkInf(infiniteIndex));
+    }
+
+    public int getFiniteIndex() {
+      assert hasFinite();
+      return finiteIndex;
+    }
+
+    public int getInfiniteIndex() {
+      assert hasInfinite();
+      return infiniteIndex;
     }
 
     /**
@@ -268,7 +360,7 @@ public class RabinAcceptance implements OmegaAcceptance {
         return "";
       }
 
-      final StringBuilder builder = new StringBuilder(10);
+      StringBuilder builder = new StringBuilder(10);
       builder.append('(').append(pairNumber).append(':');
       if (finiteIndex == -1) {
         builder.append('#');

@@ -7,6 +7,9 @@
 <suppressions>
     <suppress files="LTL2.*|NBA2.*|LD.*" checks="AbbreviationAsWordInName"/>
 
+    <!-- We avoid final modifier -->
+    <suppress checks="VariableDeclarationUsageDistanceCheck" files=".*" />
+
     <!-- Test don't need doc and checkstyle doesn't recognize @Theory methods as tests -->
     <suppress checks="JavadocMethod" files=".*"/>
     <suppress checks="JavadocPackage" files=".*"/>

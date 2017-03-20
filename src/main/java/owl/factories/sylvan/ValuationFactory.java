@@ -32,7 +32,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.Literal;
 
-public class ValuationFactory implements ValuationSetFactory {
+public final class ValuationFactory implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
   private final long[] vars;
@@ -72,7 +72,7 @@ public class ValuationFactory implements ValuationSetFactory {
     return new BddValuationSet(JSylvan.getFalse());
   }
 
-  BooleanExpression<AtomLabel> createRepresentative(long bdd) {
+  static BooleanExpression<AtomLabel> createRepresentative(long bdd) {
     if (bdd == JSylvan.getFalse()) {
       return FALSE;
     }
@@ -143,7 +143,7 @@ public class ValuationFactory implements ValuationSetFactory {
     return vars.length;
   }
 
-  private class BddValuationSet implements ValuationSet {
+  private final class BddValuationSet implements ValuationSet {
 
     private static final int INVALID_BDD = -1;
     private long bdd;
@@ -153,14 +153,14 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void add(BitSet set) {
-      bdd = JSylvan.orConsuming(bdd, createBdd(set));
+    public void add(BitSet valuation) {
+      bdd = JSylvan.orConsuming(bdd, createBdd(valuation));
     }
 
     @Override
-    public void addAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-      BddValuationSet that = (BddValuationSet) other;
+    public void addAll(ValuationSet newVs) {
+      assert newVs instanceof BddValuationSet;
+      BddValuationSet that = (BddValuationSet) newVs;
       bdd = JSylvan.orConsuming(bdd, JSylvan.ref(that.bdd));
     }
 
@@ -175,10 +175,10 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public boolean containsAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
+    public boolean containsAll(ValuationSet vs) {
+      assert vs instanceof BddValuationSet;
 
-      BddValuationSet otherSet = (BddValuationSet) other;
+      BddValuationSet otherSet = (BddValuationSet) vs;
       return JSylvan.implies(otherSet.bdd, bdd);
     }
 
@@ -213,16 +213,16 @@ public class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public ValuationSet intersect(ValuationSet other) {
+    public ValuationSet intersect(ValuationSet v2) {
       ValuationSet clone = this.copy();
-      clone.retainAll(other);
+      clone.retainAll(v2);
       return clone;
     }
 
     @Override
-    public boolean intersects(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-      long bdd = JSylvan.and(this.bdd, ((BddValuationSet) other).bdd);
+    public boolean intersects(ValuationSet value) {
+      assert value instanceof BddValuationSet;
+      long bdd = JSylvan.and(this.bdd, ((BddValuationSet) value).bdd);
       boolean result = bdd != JSylvan.getFalse();
       JSylvan.deref(bdd);
       return result;

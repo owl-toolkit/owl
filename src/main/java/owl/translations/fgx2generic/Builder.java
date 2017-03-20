@@ -70,8 +70,8 @@ public class Builder implements Function<Formula, Automaton<HistoryState, Generi
     return automaton;
   }
 
-  private Edge<HistoryState> getSuccessor(Map<List<ValuationSet>, Integer> sets, HistoryState state,
-    BitSet valuation) {
+  private static Edge<HistoryState> getSuccessor(Map<List<ValuationSet>, Integer> sets,
+    HistoryState state, BitSet valuation) {
     BitSet acceptance = new BitSet();
 
     // Replace by Lists2.

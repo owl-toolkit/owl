@@ -20,13 +20,14 @@ package owl.translations.ltl2ldba.ng;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.GOperator;
 import owl.util.ImmutableObject;
 
-public class RecurringObligations2 extends ImmutableObject {
+public final class RecurringObligations2 extends ImmutableObject {
 
   private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
   final Set<FOperator> associatedFs;
@@ -45,6 +46,7 @@ public class RecurringObligations2 extends ImmutableObject {
     // liveness.forEach(EquivalenceClass::freeRepresentative);
 
     this.safety = safety;
+    //noinspection ToArrayCallWithZeroLengthArrayArgument
     this.liveness = new HashSet<>(liveness).toArray(EMPTY);
     this.associatedGs = new HashSet<>();
     this.associatedFs = new HashSet<>();
@@ -53,7 +55,7 @@ public class RecurringObligations2 extends ImmutableObject {
   @Override
   protected boolean equals2(ImmutableObject o) {
     RecurringObligations2 that = (RecurringObligations2) o;
-    return safety.equals(that.safety) && Arrays.equals(liveness, that.liveness);
+    return Objects.equals(safety, that.safety) && Arrays.equals(liveness, that.liveness);
   }
 
   EquivalenceClass getObligation() {

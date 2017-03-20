@@ -35,6 +35,14 @@ public final class LabelledEdge<S> {
     this.valuations = entry.getValue();
   }
 
+  public Edge<S> getEdge() {
+    return edge;
+  }
+
+  public ValuationSet getValuations() {
+    return valuations;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -43,18 +51,19 @@ public final class LabelledEdge<S> {
     if (!(o instanceof LabelledEdge)) {
       return false;
     }
-    final LabelledEdge<?> that = (LabelledEdge<?>) o;
+    LabelledEdge<?> that = (LabelledEdge<?>) o;
     return Objects.equals(edge, that.edge)
       && Objects.equals(valuations, that.valuations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(edge, valuations);
+    // Not using Objects.hash to avoid var-ags array instantiation
+    return 31 * edge.hashCode() + valuations.hashCode();
   }
 
   @Override
   public String toString() {
-    return edge + "(" + valuations + ")";
+    return String.format("%s(%s)", edge, valuations);
   }
 }

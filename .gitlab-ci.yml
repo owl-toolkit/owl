@@ -3,6 +3,12 @@ image: gitlab-runner/owl
 before_script:
   - chmod +x gradlew
 
+stages:
+  - build
+  - test
+  - test-optimizations
+  - test-parallel-translation
+
 build:
   stage:
     build
@@ -15,7 +21,7 @@ build:
     expire_in: 1 week
 
 .ltlcross: &ltlcross_template
-  script: 
+  script:
     - JAVA_OPTS="-enableassertions"
     - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew --no-daemon distTar
@@ -33,51 +39,61 @@ build:
 # LTL to LDBA translations
 
 test:ltl2ldba Büchi:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Non-Det:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --nondeterministic-initial-component %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Vanilla:
+  stage: test
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Guess-F:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --guess-F %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Guess-F Vanilla:
+  stage: test
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Non-Det:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Vanilla:
+  stage: test
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Guess-F:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --guess-F %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Guess-F Vanilla:
+  stage: test
   variables:
     LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --guess-F --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
@@ -85,9 +101,10 @@ test:ltl2ldba generalised-Büchi Guess-F Vanilla:
 # NBA to LDBA translations
 
 test:nba2ldba Vanilla:
+  stage: test
   variables:
     LTL_TOOL: "{nba2ldba} ltl2tgba --ba -H -f %f | build/bin/nba2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS >%O"
-  script: 
+  script:
     - JAVA_OPTS="-enableassertions"
     - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew --no-daemon distTar
@@ -102,15 +119,17 @@ test:nba2ldba Vanilla:
 # LTL to DPA translations
 
 test:ltl2dpa:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa %f >%O"
   <<: *ltlcross_template
 
 # Copy & Modify - Spot cannot handle parity automata without optimisation.
 test:ltl2dpa Vanilla:
+  stage: test
   variables:
     LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --optimisations=none %f >%O"
-  script: 
+  script:
     - JAVA_OPTS="-enableassertions"
     - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew --no-daemon distTar
@@ -123,14 +142,16 @@ test:ltl2dpa Vanilla:
     when: on_failure
     expire_in: 1 week
 
-test:ltl2dpa Parallel:
+test-parallel:ltl2dpa Parallel:
+  stage: test-parallel-translation
   variables:
     LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --parallel %f >%O"
   <<: *ltlcross_template
 
 # LTL to D*A translations
 
-test:ltl2det-parallel:
+test-parallel:ltl2det-parallel:
+  stage: test-parallel-translation
   variables:
     LTL_TOOL: "{ltl2da} build/bin/ltl2da --parallel %f >%O"
   <<: *ltlcross_template

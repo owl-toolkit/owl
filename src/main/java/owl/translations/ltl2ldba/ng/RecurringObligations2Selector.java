@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,8 +52,7 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.JumpEvaluator;
 import owl.translations.ltl2ldba.JumpSelector;
 
-@SuppressWarnings("PMD.GodClass")
-public class RecurringObligations2Selector implements JumpSelector<RecurringObligations2> {
+public final class RecurringObligations2Selector implements JumpSelector<RecurringObligations2> {
   private static final Predicate<Formula> F_OPERATORS = x -> x instanceof FOperator
     || x instanceof UOperator; // x instanceof MOperator, ROp, WOp, ...
   private static final Predicate<Formula> G_OPERATORS = x -> x instanceof GOperator;
@@ -195,7 +195,7 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
   // Compute support from Gs and scoped Fs.
   private Set<Formula> extractRelevantOperators(EquivalenceClass state) {
     Collector scopedFOperators = new Collector(F_OPERATORS);
-    final Set<Formula> support = state.getSupport(G_OPERATORS);
+    Set<Formula> support = state.getSupport(G_OPERATORS);
     support.forEach(x -> x.accept(scopedFOperators));
     support.addAll(scopedFOperators.getCollection());
     return support;
@@ -213,12 +213,12 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
    *
    * @return true if is a sub-language
    */
-  private boolean isSublanguage(Map.Entry<?, RecurringObligations2> entry,
+  private boolean isSubLanguage(Map.Entry<?, RecurringObligations2> entry,
     Map.Entry<?, RecurringObligations2> otherEntry, EquivalenceClass master) {
     EquivalenceClass setClass = evaluator.evaluate(master, entry.getValue());
     EquivalenceClass subsetClass = evaluator.evaluate(master, otherEntry.getValue());
 
-    boolean equals = setClass.equals(subsetClass);
+    boolean equals = Objects.equals(setClass, subsetClass);
 
     setClass.free();
     subsetClass.free();
@@ -227,18 +227,18 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
   }
 
   @Override
-  public Set<RecurringObligations2> select(EquivalenceClass state, boolean isInitialState) {
-    final Collection<Set<UnaryModalOperator>> keys;
-    final Map<Set<UnaryModalOperator>, RecurringObligations2> jumps = new HashMap<>();
+  public Set<RecurringObligations2> select(EquivalenceClass clazz, boolean isInitialState) {
+    Collection<Set<UnaryModalOperator>> keys;
 
     // Find interesting Fs and Gs
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-      keys = selectReducedMonitors(state);
+      keys = selectReducedMonitors(clazz);
     } else {
-      keys = selectAllMonitors(state);
+      keys = selectAllMonitors(clazz);
     }
 
     // Compute resulting RecurringObligations.
+    Map<Set<UnaryModalOperator>, RecurringObligations2> jumps = new HashMap<>();
     for (Set<UnaryModalOperator> operators : keys) {
       Set<FOperator> fOperators = operators.stream().filter(F_OPERATORS).map(x -> (FOperator) x)
         .collect(Collectors.toSet());
@@ -259,7 +259,7 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
       removedCoveredLanguage = jumps.entrySet().removeIf(entry -> {
         if (!isInitialState) {
-          EquivalenceClass remainder = evaluator.evaluate(state, entry.getValue());
+          EquivalenceClass remainder = evaluator.evaluate(clazz, entry.getValue());
 
           Collector externalLiteralCollector = new Collector(x -> x instanceof Literal);
           remainder.getSupport().forEach(x -> x.accept(externalLiteralCollector));
@@ -280,7 +280,7 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
         }
 
         return jumps.entrySet().stream()
-          .anyMatch(otherEntry -> otherEntry != entry && isSublanguage(entry, otherEntry, state));
+          .anyMatch(otherEntry -> otherEntry != entry && isSubLanguage(entry, otherEntry, clazz));
       });
     }
 
@@ -289,23 +289,25 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
 
     if ((isInitialState || optimisations.contains(Optimisation.FORCE_JUMPS))
       && jumps.entrySet().size() == 1) {
-      final Set<Formula> support = state.getSupport(G_OPERATORS);
-      final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
+      Set<Formula> support = clazz.getSupport(G_OPERATORS);
+      EquivalenceClass skeleton = clazz.exists(x -> !support.contains(x));
 
       Collector collector = new Collector(G_OPERATORS);
-      state.getSupport().forEach(x -> x.accept(collector));
+      clazz.getSupport().forEach(x -> x.accept(collector));
 
       EquivalenceClass gConjunction = factory.createEquivalenceClass(collector.getCollection());
 
       Collector externCollector = new Collector(x -> !(x instanceof PropositionalFormula));
       Collector internCollector = new Collector(x -> !(x instanceof PropositionalFormula));
 
-      state.getSupport().forEach(x -> x.accept(externCollector));
+      clazz.getSupport().forEach(x -> x.accept(externCollector));
       skeleton.getSupport().forEach(x -> x.accept(internCollector));
 
-      if (gConjunction.equals(skeleton) && normaliseToGOperators(collector.getCollection())
-        .equals(Iterables.getOnlyElement(jumps.values()).associatedGs) && externCollector
-        .getCollection().equals(internCollector.getCollection())) {
+      if (Objects.equals(gConjunction, skeleton) && Objects
+        .equals(normaliseToGOperators(collector.getCollection()),
+          Iterables.getOnlyElement(jumps.values()).associatedGs) && Objects
+        .equals(externCollector
+          .getCollection(), internCollector.getCollection())) {
         isUrgent = true;
       }
     }
@@ -317,7 +319,7 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
         jumps.put(Collections.emptySet(), null);
       } else {
         Collector collector = new Collector(G_OPERATORS.or(F_OPERATORS));
-        state.getSupport().forEach(x -> x.accept(collector));
+        clazz.getSupport().forEach(x -> x.accept(collector));
 
         if (!jumps.containsKey(normalise(collector.getCollection()))
           || !optimisations.contains(Optimisation.FORCE_JUMPS) && !isInitialState) {
@@ -334,8 +336,8 @@ public class RecurringObligations2Selector implements JumpSelector<RecurringObli
   }
 
   private List<Set<UnaryModalOperator>> selectReducedMonitors(EquivalenceClass state) {
-    final Set<Formula> support = state.getSupport(G_OPERATORS);
-    final EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
+    Set<Formula> support = state.getSupport(G_OPERATORS);
+    EquivalenceClass skeleton = state.exists(x -> !support.contains(x));
 
     List<Set<GOperator>> sets = skeleton.satisfyingAssignments(support)
       .stream().map(RecurringObligations2Selector::normaliseToGOperators)

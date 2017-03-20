@@ -12,6 +12,7 @@
     <rule ref="rulesets/java/design.xml">
         <exclude name="UseVarargs"/>
         <exclude name="ConfusingTernary"/>
+        <exclude name="GodClass"/>
     </rule>
     <rule ref="rulesets/java/unusedcode.xml"/>
     <rule ref="rulesets/java/finalizers.xml"/>

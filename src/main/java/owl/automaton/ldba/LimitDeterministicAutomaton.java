@@ -37,7 +37,7 @@ import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
 import owl.collections.ValuationSet;
 
-public class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
+public final class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
   implements HoaPrintable {
 
   private final MutableAutomaton<T, U> acceptingComponent;
@@ -92,6 +92,7 @@ public class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAccepta
     return initialComponent.stateCount() == 0;
   }
 
+  @Override
   public void setVariables(List<String> variables) {
     acceptingComponent.setVariables(variables);
   }
@@ -101,28 +102,28 @@ public class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAccepta
   }
 
   @Override
-  public void toHoa(HOAConsumer c, EnumSet<Option> options) {
-    HoaConsumerExtended<Object> consumer = new HoaConsumerExtended<>(c,
+  public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+    HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
       acceptingComponent.getVariables(),
       acceptingComponent.getAcceptance(),
       Sets.union(initialComponent.getInitialStates(), acceptingComponentInitialStates),
       size(), options);
 
     for (S state : initialComponent.getStates()) {
-      consumer.addState(state);
-      initialComponent.getLabelledEdges(state).forEach(consumer::addEdge);
-      epsilonJumps.get(state).forEach(consumer::addEpsilonEdge);
-      valuationSetJumps.row(state).forEach((a, b) -> b.forEach(d -> consumer.addEdge(a, d)));
-      consumer.notifyEndOfState();
+      consumerExt.addState(state);
+      initialComponent.getLabelledEdges(state).forEach(consumerExt::addEdge);
+      epsilonJumps.get(state).forEach(consumerExt::addEpsilonEdge);
+      valuationSetJumps.row(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
+      consumerExt.notifyEndOfState();
     }
 
     for (T state : acceptingComponent.getStates()) {
-      consumer.addState(state);
-      acceptingComponent.getLabelledEdges(state).forEach(consumer::addEdge);
-      consumer.notifyEndOfState();
+      consumerExt.addState(state);
+      acceptingComponent.getLabelledEdges(state).forEach(consumerExt::addEdge);
+      consumerExt.notifyEndOfState();
     }
 
-    consumer.notifyEnd();
+    consumerExt.notifyEnd();
   }
 
   @Override

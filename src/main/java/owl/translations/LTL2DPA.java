@@ -17,13 +17,16 @@
 
 package owl.translations;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
+import jhoafparser.parser.generated.ParseException;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
+import owl.ltl.parser.ParserException;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2DPA extends AbstractLtlCommandLineTool {
@@ -33,8 +36,8 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
     this.parallel = parallel;
   }
 
-  @SuppressWarnings("ProhibitedExceptionDeclared")
-  public static void main(String... argsArray) throws Exception { // NOPMD
+  public static void main(String... argsArray)
+    throws IOException, ParserException, ParseException {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new LTL2DPA(args.remove("--parallel")).execute(args);
   }

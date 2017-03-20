@@ -27,7 +27,8 @@ import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.output.HoaPrintable;
 import owl.translations.Optimisation;
 
-public class NBA2LDBAFunction<S> implements Function<Automaton<S, BuchiAcceptance>, HoaPrintable> {
+public final class NBA2LDBAFunction<S>
+  implements Function<Automaton<S, BuchiAcceptance>, HoaPrintable> {
 
   private final EnumSet<Optimisation> optimisations;
 
@@ -51,11 +52,11 @@ public class NBA2LDBAFunction<S> implements Function<Automaton<S, BuchiAcceptanc
       return Collections.emptyList();
     };
 
-    AcceptingComponentBuilder acceptingComponentBuilder = AcceptingComponentBuilder.create(nba);
-    InitialComponentBuilder initialComponentBuilder = InitialComponentBuilder.create(nba);
-    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder
-      = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder, jump, (x) -> null, optimisations);
+    AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder.create(nba);
+    InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
+    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder =
+      LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+        acceptingComponentBuilder, jump, (x) -> null, optimisations);
 
     return builder.build();
   }

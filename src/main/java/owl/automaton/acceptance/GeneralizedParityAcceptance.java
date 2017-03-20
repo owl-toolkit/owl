@@ -20,8 +20,9 @@ package owl.automaton.acceptance;
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.edge.Edge;
 
-public class GeneralizedParityAcceptance implements OmegaAcceptance {
+public final class GeneralizedParityAcceptance implements OmegaAcceptance {
 
   @Override
   public int getAcceptanceSets() {
@@ -40,6 +41,11 @@ public class GeneralizedParityAcceptance implements OmegaAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
+    throw new UnsupportedOperationException("Not yet implemented!");
+  }
+
+  @Override
+  public boolean isWellFormedEdge(Edge<?> edge) {
     throw new UnsupportedOperationException("Not yet implemented!");
   }
 }

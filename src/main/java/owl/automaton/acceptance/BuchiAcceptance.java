@@ -22,12 +22,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.edge.Edge;
 
-public class BuchiAcceptance extends GeneralizedBuchiAcceptance {
+public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
 
   public BuchiAcceptance() {
     super(1);
+  }
+
+  @Override
+  public <S> boolean containsAcceptingRun(Set<S> scc,
+    Function<S, Iterable<Edge<S>>> successorFunction) {
+    assert AutomatonUtil.isScc(scc, successorFunction);
+    return scc.parallelStream()
+      .map(successorFunction)
+      .flatMap(Streams::stream)
+      .anyMatch(edge -> scc.contains(edge.getSuccessor()) && edge.inSet(0));
   }
 
   @Override
@@ -38,13 +49,5 @@ public class BuchiAcceptance extends GeneralizedBuchiAcceptance {
   @Override
   public List<Object> getNameExtra() {
     return Collections.emptyList();
-  }
-
-  @Override
-  public <S> boolean isAccepting(Set<S> scc, Function<S, Iterable<Edge<S>>> successorFunction) {
-    return scc.parallelStream()
-      .map(successorFunction)
-      .flatMap(Streams::stream)
-      .anyMatch(edge -> scc.contains(edge.getSuccessor()) && edge.inSet(0));
   }
 }

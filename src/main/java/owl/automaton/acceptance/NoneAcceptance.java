@@ -23,9 +23,17 @@ import java.util.Set;
 import java.util.function.Function;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.edge.Edge;
 
-public class NoneAcceptance implements OmegaAcceptance {
+public final class NoneAcceptance implements OmegaAcceptance {
+  @Override
+  public <S> boolean containsAcceptingRun(Set<S> scc,
+    Function<S, Iterable<Edge<S>>> successorFunction) {
+    assert AutomatonUtil.isScc(scc, successorFunction);
+    return false;
+  }
+
   @Override
   public int getAcceptanceSets() {
     return 0;
@@ -47,7 +55,7 @@ public class NoneAcceptance implements OmegaAcceptance {
   }
 
   @Override
-  public <S> boolean isAccepting(Set<S> scc, Function<S, Iterable<Edge<S>>> successorFunction) {
-    return false;
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return !edge.acceptanceSetIterator().hasNext();
   }
 }

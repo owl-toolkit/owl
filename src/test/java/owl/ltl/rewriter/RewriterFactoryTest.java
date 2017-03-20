@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParseException;
+import owl.ltl.parser.ParserException;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class RewriterFactoryTest {
@@ -48,7 +48,7 @@ public class RewriterFactoryTest {
   };
 
   @Test
-  public void testModal() throws ParseException {
+  public void testModal() throws ParserException {
     for (int i = 0; i < INPUT.length; i++) {
       LtlParser parser = new LtlParser();
       Formula input = parser.parseLtl(INPUT[i]);
@@ -58,7 +58,7 @@ public class RewriterFactoryTest {
   }
 
   @Test
-  public void testPullupX() throws ParseException {
+  public void testPullupX() throws ParserException {
     LtlParser parser = new LtlParser();
     Formula f1 = parser.parseLtl(" G (F (X b))");
     Formula f2 = parser.parseLtl("X(G(F(b)))");

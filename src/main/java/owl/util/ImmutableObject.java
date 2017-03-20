@@ -18,7 +18,7 @@
 package owl.util;
 
 public abstract class ImmutableObject {
-  private int cachedHashCode;
+  private int cachedHashCode = 0;
 
   @Override
   public final boolean equals(Object o) {

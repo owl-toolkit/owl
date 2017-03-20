@@ -47,16 +47,20 @@ import owl.automaton.edge.Edge;
 import owl.collections.BitSets;
 import owl.collections.ValuationSet;
 
-class Any2BitArena<S> {
+final class Any2BitArena<S> {
 
-  int colors;
-  int edges;
-  Object2IntMap<S> ids;
-  int primaryNodes;
-  int secondaryNodes;
-  private Player firstPlayer;
-  private BitSet fstAlphabet;
-  private BitSet sndAlphabet;
+  int colors = 0;
+  int edges = 0;
+  @Nullable
+  Object2IntMap<S> ids = null;
+  int primaryNodes = 0;
+  int secondaryNodes = 0;
+  @Nullable
+  private Player firstPlayer = null;
+  @Nullable
+  private BitSet fstAlphabet = null;
+  @Nullable
+  private BitSet sndAlphabet = null;
 
   void readBinary(File nodeFile, File edgeFile) throws IOException {
     try (DataInputStream nodeStream =
@@ -75,25 +79,23 @@ class Any2BitArena<S> {
       checkState(currentEdgePos == 0);
       int currentNode = nodeStream.readInt();
 
-      int nextNode;
-      int nextEdgePos;
-
+      //noinspection NestedTryStatement
       try {
         // TODO This might need an overhaul
         //noinspection InfiniteLoopStatement - Stopped by EOFException
         while (true) {
-          nextNode = nodeStream.readInt();
-          nextEdgePos = nodeStream.readInt();
+          int nextNode = nodeStream.readInt();
+          int nextEdgePos = nodeStream.readInt();
 
           System.out.println("Node: " + currentNode);
 
           for (; currentEdgePos < nextEdgePos; currentEdgePos++) {
-            int desti = edgeStream.readInt();
+            int destination = edgeStream.readInt();
             int color = edgeStream.readInt();
 
-            System.out.println(currentNode + " -(" + color + ")-> " + desti);
+            System.out.println(currentNode + " -(" + color + ")-> " + destination);
 
-            checkState(desti * currentNode <= 0, "Edge corrupt");
+            checkState(destination * currentNode <= 0, "Edge corrupt");
             checkState(color >= 0 && color <= maxColor, "Color corrupt");
           }
           currentNode = nextNode;
@@ -105,9 +107,7 @@ class Any2BitArena<S> {
 
   }
 
-  private void setUp(Automaton<S, ?> automaton,
-    Player firstPlayer,
-    BitSet envAlphabet) {
+  private void setUp(Automaton<? extends S, ?> automaton, Player firstPlayer, BitSet envAlphabet) {
     checkArgument(automaton.getAcceptance() instanceof ParityAcceptance
         || automaton.getAcceptance() instanceof BuchiAcceptance,
       "Unsupported acceptance: %s", automaton.getAcceptance());
@@ -140,6 +140,7 @@ class Any2BitArena<S> {
 
   void writeBinary(Automaton<S, ParityAcceptance> automaton, Player firstPlayer,
     BitSet envAlphabet, File nodeFile, File edgeFile) throws IOException {
+    assert ids != null;
     setUp(automaton, firstPlayer, envAlphabet);
 
     try (DataOutputStream nodeStream = new DataOutputStream(
@@ -148,7 +149,7 @@ class Any2BitArena<S> {
            new BufferedOutputStream(new FileOutputStream(edgeFile)))) {
 
       nodeStream.writeInt(0);
-      nodeStream.writeInt(ids.get(automaton.getInitialStates()));
+      nodeStream.writeInt(ids.get(automaton.getInitialState()));
       nodeStream.writeInt(firstPlayer.ordinal());
 
       // Write empty header.
@@ -171,18 +172,20 @@ class Any2BitArena<S> {
     }
   }
 
-  private void writeState(final DataOutputStream nodeStream,
-    final DataOutputStream edgeStream, @Nullable final Writer labelStream,
-    final Automaton<S, ?> automaton, final S state) throws IOException {
+  private void writeState(DataOutputStream nodeStream, DataOutputStream edgeStream,
+    @Nullable Writer labelStream, Automaton<S, ?> automaton, S state) throws IOException {
+    assert ids != null;
+
     BitSet fstAlpha = new BitSet();
     fstAlpha.set(0, automaton.getFactory().getSize());
+    //noinspection UseOfClone
     BitSet sndAlpha = (BitSet) fstAlpha.clone();
 
     fstAlpha.and(fstAlphabet);
     sndAlpha.and(sndAlphabet);
 
     // Compute intermediate states and transitions.
-    final int beforeSecondaryNodes = secondaryNodes;
+    int beforeSecondaryNodes = secondaryNodes;
 
     //noinspection LabeledStatement
     fstChoice:
@@ -202,15 +205,15 @@ class Any2BitArena<S> {
         }
 
         @SuppressWarnings("ConstantConditions")
-        final int color = Iterators.getNext(edge.acceptanceSetIterator(), this.colors);
+        int color = Iterators.getNext(edge.acceptanceSetIterator(), this.colors);
         Int2ObjectMap<ValuationSet> colorMap = intermediateStates
           .computeIfAbsent(edge.getSuccessor(), k -> new Int2ObjectArrayMap<>());
 
         ValuationSet vs = colorMap.get(color);
 
         if (vs == null) {
-          vs = automaton.getFactory().createValuationSet(sndChoice, sndAlpha);
-          colorMap.put(color, vs);
+          ValuationSet newVs = automaton.getFactory().createValuationSet(sndChoice, sndAlpha);
+          colorMap.put(color, newVs);
         } else {
           vs.add(sndChoice);
         }

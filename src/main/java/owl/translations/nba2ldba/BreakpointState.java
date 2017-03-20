@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Objects;
 import java.util.Set;
 
-class BreakpointState<S> {
+final class BreakpointState<S> {
   final ImmutableSet<S> left;
   final ImmutableSet<S> right;
 
@@ -40,13 +40,13 @@ class BreakpointState<S> {
       return false;
     }
 
-    BreakpointState state = (BreakpointState) o;
+    BreakpointState<?> state = (BreakpointState<?>) o;
     return Objects.equals(left, state.left)
       && Objects.equals(right, state.right);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(left, right);
+    return 31 * left.hashCode() + right.hashCode();
   }
 }

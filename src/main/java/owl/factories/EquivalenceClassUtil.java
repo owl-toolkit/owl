@@ -14,15 +14,15 @@ public final class EquivalenceClassUtil {
 
   public static Set<BitSet> upwardClosure(BitSet support, Iterator<BitSet> minimalPaths) {
     // Build restricted upward closure
-    final Set<BitSet> paths = new HashSet<>();
+    Set<BitSet> paths = new HashSet<>();
 
     //noinspection UseOfClone
     minimalPaths.forEachRemaining(bitSet -> paths.add((BitSet) bitSet.clone()));
-    final Deque<BitSet> candidates = new ArrayDeque<>(paths);
+    Deque<BitSet> candidates = new ArrayDeque<>(paths);
 
     // Loop over all minimal solutions and all additional candidates
     while (!candidates.isEmpty()) {
-      final BitSet valuation = candidates.removeFirst();
+      BitSet valuation = candidates.removeFirst();
       assert BitSets.subset(valuation, support);
 
       for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
@@ -39,8 +39,7 @@ public final class EquivalenceClassUtil {
         }
 
         // Clone the bit sets here, as the iterator modifies in-place
-        @SuppressWarnings("UseOfClone")
-        final BitSet nextValuation = (BitSet) valuation.clone();
+        @SuppressWarnings("UseOfClone") BitSet nextValuation = (BitSet) valuation.clone();
         valuation.clear(i);
 
         candidates.add(nextValuation);

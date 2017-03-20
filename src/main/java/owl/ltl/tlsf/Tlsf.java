@@ -137,7 +137,7 @@ public abstract class Tlsf {
     }
   }
 
-  private class MealyToMooreConverter extends DefaultConverter {
+  private final class MealyToMooreConverter extends DefaultConverter {
     @Override
     public Formula visit(Literal literal) {
       if (outputs().get(literal.getAtom())) {
@@ -148,7 +148,7 @@ public abstract class Tlsf {
     }
   }
 
-  private class MooreToMealyConverter extends DefaultConverter {
+  private final class MooreToMealyConverter extends DefaultConverter {
     @Override
     public Formula visit(Literal literal) {
       if (inputs().get(literal.getAtom())) {

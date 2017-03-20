@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.edge.Edge;
 
 public class GenericAcceptance implements OmegaAcceptance {
 
@@ -33,5 +34,10 @@ public class GenericAcceptance implements OmegaAcceptance {
   @Override
   public List<Object> getNameExtra() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return true;
   }
 }

@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 
-public class Trie<T> {
+public final class Trie<T> {
   private final Node<T> root;
 
   public Trie() {
@@ -41,6 +41,7 @@ public class Trie<T> {
    *
    * @return true if the element was not present before the operation.
    */
+  @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
   public boolean add(List<T> element) {
     Node<T> node = get(element);
     boolean present = node.terminal;
@@ -58,11 +59,14 @@ public class Trie<T> {
     return current;
   }
 
+  @SuppressWarnings("OptionalContainsCollection")
   private Optional<List<T>> suffix(List<T> prefix, Predicate<T> predicate, int depth) {
+    //noinspection OptionalContainsCollection
     Optional<List<T>> suffix = Optional.ofNullable(get(prefix).findFirst(predicate, depth));
     return suffix.map(Lists::reverse);
   }
 
+  @SuppressWarnings("OptionalContainsCollection")
   public Optional<List<T>> suffix(List<T> prefix, Set<T> elements) {
     return suffix(prefix, elements::contains, elements.size());
   }
@@ -76,9 +80,9 @@ public class Trie<T> {
     return suffixes(prefix, elements::contains, elements.size());
   }
 
-  private static class Node<T> {
+  private static final class Node<T> {
     private final Map<T, Node<T>> successors = new HashMap<>();
-    private boolean terminal;
+    private boolean terminal = false;
 
     private List<List<T>> find(Predicate<T> continueWithBranch, @Nonnegative int depth) {
       List<List<T>> suffixes = new ArrayList<>();

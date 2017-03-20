@@ -23,6 +23,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -149,10 +150,14 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
 
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
 
-    // Remove dead states in the accepting component
+    // Remove dead states in the accepting component. Note that the .values() collection is backed
+    // by the internal map of the epsilonJumps, hence removal is forwarded.
+    Collection<T> epsilonJumpValues = epsilonJumps.values();
+    epsilonJumpValues.removeIf(state -> !acceptingComponent.containsState(state));
+    initialStates.removeIf(state -> !acceptingComponent.containsState(state));
     AutomatonMinimization.removeDeadStates(acceptingComponent, Sets.union(initialStates,
-      new HashSet<>(epsilonJumps.values())));
-    epsilonJumps.values().removeIf(x -> !acceptingComponent.getStates().contains(x));
+      new HashSet<>(epsilonJumpValues)), epsilonJumpValues::remove);
+    assert acceptingComponent.containsStates(epsilonJumpValues);
 
     if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
       Set<T> reachableStates = new HashSet<>(initialStates);
@@ -178,8 +183,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
 
       AutomatonMinimization.removeDeadStates(initialComponent,
         Sets.union(initialComponent.getInitialStates(), valuationSetJumps.rowKeySet()));
-      AutomatonMinimization.removeDeadStates(acceptingComponent, reachableStates);
-      initialStates.removeIf(x -> !acceptingComponent.getStates().contains(x));
+      AutomatonMinimization.removeDeadStates(acceptingComponent, reachableStates,
+        initialStates::remove);
+      assert acceptingComponent.containsStates(initialStates);
       epsilonJumps.clear();
     } else {
       Set<S> protectedStates = new HashSet<>();

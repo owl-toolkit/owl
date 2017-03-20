@@ -17,9 +17,11 @@
 
 package owl.automaton.transformations;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import static com.google.common.base.Preconditions.checkState;
+
+import com.google.common.collect.Collections2;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.function.Supplier;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -93,7 +95,7 @@ public final class ParityAutomatonUtil {
     }
 
     private Edge<S> convertParityToBuchi(Edge<S> edge) {
-      Preconditions.checkState(isAcceptanceCompat());
+      checkState(isAcceptanceCompat());
 
       if (edge.inSet(0)) {
         return Edges.create(edge.getSuccessor(), 0);
@@ -118,8 +120,9 @@ public final class ParityAutomatonUtil {
     }
 
     @Override
-    public Iterable<LabelledEdge<S>> getLabelledEdges(S state) {
-      return Iterables.transform(super.getLabelledEdges(state), labelledEdge ->
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      //noinspection ConstantConditions
+      return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
         new LabelledEdge<>(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
     }
   }

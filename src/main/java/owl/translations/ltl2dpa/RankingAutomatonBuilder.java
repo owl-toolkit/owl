@@ -175,6 +175,7 @@ final class RankingAutomatonBuilder
       suffixes.add(nextVolatileState);
     }
 
+    //noinspection OptionalContainsCollection
     Optional<List<DegeneralizedBreakpointState>> append;
 
     if (trie == null) {

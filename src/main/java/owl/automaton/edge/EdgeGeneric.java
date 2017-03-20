@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -30,7 +31,7 @@ final class EdgeGeneric<S> implements Edge<S> {
   private final BitSet acceptance;
   private final S successor;
 
-  EdgeGeneric(final S successor, final BitSet acceptance) {
+  EdgeGeneric(S successor, BitSet acceptance) {
     assert acceptance.cardinality() > 1;
     this.successor = successor;
     this.acceptance = acceptance;
@@ -42,18 +43,8 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public boolean equals(final Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof EdgeGeneric)) {
-      // instanceof is false when o == null
-      return false;
-    }
-
-    final EdgeGeneric<?> other = (EdgeGeneric<?>) o;
-    return Objects.equals(acceptance, other.acceptance)
-      && Objects.equals(successor, other.successor);
+  public IntStream acceptanceSetStream() {
+    return acceptance.stream();
   }
 
   @Override
@@ -62,12 +53,28 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(successor, acceptance);
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof EdgeGeneric)) {
+      // instanceof is false when o == null
+      return false;
+    }
+
+    EdgeGeneric<?> other = (EdgeGeneric<?>) o;
+    return Objects.equals(acceptance, other.acceptance)
+      && Objects.equals(successor, other.successor);
   }
 
   @Override
-  public boolean inSet(@Nonnegative final int i) {
+  public int hashCode() {
+    // Not using Objects.hash to avoid var-ags array instantiation
+    return 31 * acceptance.hashCode() + successor.hashCode();
+  }
+
+  @Override
+  public boolean inSet(@Nonnegative int i) {
     assert i >= 0;
     return acceptance.get(i);
   }
@@ -77,7 +84,7 @@ final class EdgeGeneric<S> implements Edge<S> {
     return Edge.toString(this);
   }
 
-  // Copied from ava.util.BitSet#stream()
+  // Copied from java.util.BitSet#stream()
   private static final class BitSetIterator implements PrimitiveIterator.OfInt {
     private final BitSet bitSet;
     private int next;

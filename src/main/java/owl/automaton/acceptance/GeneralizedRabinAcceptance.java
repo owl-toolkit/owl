@@ -31,23 +31,22 @@ import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
-@SuppressWarnings("PMD.GodClass")
 public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   private final List<GeneralizedRabinPair> pairList;
-  private int setCount;
+  private int setCount = 0;
 
   public GeneralizedRabinAcceptance() {
     pairList = new LinkedList<>();
   }
 
   public GeneralizedRabinPair createPair() {
-    final GeneralizedRabinPair pair = new GeneralizedRabinPair(this, pairList.size());
+    GeneralizedRabinPair pair = new GeneralizedRabinPair(this, pairList.size());
     pairList.add(pair);
     return pair;
   }
 
   private int createSet() {
-    final int index = setCount;
+    int index = setCount;
     setCount += 1;
     return index;
   }
@@ -67,11 +66,11 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
 
     BooleanExpression<AtomAcceptance> expression = null;
 
-    for (final GeneralizedRabinPair pair : pairList) {
+    for (GeneralizedRabinPair pair : pairList) {
       if (pair.isEmpty()) {
         continue;
       }
-      final BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
+      BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
       if (expression == null) {
         expression = pairExpression;
       } else {
@@ -90,11 +89,11 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   @Override
   public List<Object> getNameExtra() {
     // <pair_count> <inf_pairs_of_1> <inf_pairs_of_2> <...>
-    final List<Object> extra = new ArrayList<>(getPairCount() + 1);
+    List<Object> extra = new ArrayList<>(getPairCount() + 1);
     extra.add(0); // Will be replaced by count of non-empty pairs.
 
     int nonEmptyPairs = 0;
-    for (final GeneralizedRabinPair pair : pairList) {
+    for (GeneralizedRabinPair pair : pairList) {
       if (pair.isEmpty()) {
         continue;
       }
@@ -123,11 +122,17 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     return Collections.unmodifiableCollection(pairList);
   }
 
+  @Override
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return edge.acceptanceSetStream().allMatch(index -> index < setCount);
+  }
+
+  @Override
   public String toString() {
-    final StringBuilder builder = new StringBuilder(40);
+    StringBuilder builder = new StringBuilder(40);
     builder.append("GeneralisedRabinAcceptance: ");
-    for (final GeneralizedRabinPair pair : pairList) {
-      builder.append(pair.toString());
+    for (GeneralizedRabinPair pair : pairList) {
+      builder.append(pair);
     }
     return builder.toString();
   }
@@ -138,15 +143,15 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     private final int pairNumber;
     private int finiteIndex;
 
-    GeneralizedRabinPair(final GeneralizedRabinAcceptance acceptance,
-      final int pairNumber) {
+    GeneralizedRabinPair(GeneralizedRabinAcceptance acceptance,
+      int pairNumber) {
       this.acceptance = acceptance;
       this.pairNumber = pairNumber;
       this.infiniteIndices = new IntArrayList();
       finiteIndex = -1;
     }
 
-    public boolean contains(final int index) {
+    public boolean contains(int index) {
       return finiteIndex != -1 && finiteIndex == index //
         || infiniteIndices.contains(index);
     }
@@ -161,7 +166,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
      *
      * @see Edge#inSet(int)
      */
-    public boolean containsFinite(final Edge<?> edge) {
+    public boolean containsFinite(Edge<?> edge) {
       return hasFinite() && edge.inSet(finiteIndex);
     }
 
@@ -175,9 +180,9 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
      *
      * @see Edge#inSet(int)
      */
-    public boolean containsInfinite(final Edge<?> edge) {
+    public boolean containsInfinite(Edge<?> edge) {
       // infiniteIndices.stream().anyMatch(edge::inSet), unrolled for performance
-      for (final int index : infiniteIndices) {
+      for (int index : infiniteIndices) {
         if (edge.inSet(index)) {
           return true;
         }
@@ -186,7 +191,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     }
 
     public int createInfiniteSet() {
-      final int index = acceptance.createSet();
+      int index = acceptance.createSet();
       infiniteIndices.add(index);
       return index;
     }
@@ -254,10 +259,10 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
      *
      * @see Edge#inSet(int)
      */
-    public IntSet infiniteSetsOfEdge(final Edge<?> edge) {
+    public IntSet infiniteSetsOfEdge(Edge<?> edge) {
       // infiniteIndices.stream().filter(edge::inSet).collect(...), unrolled for performance
       IntSet set = new IntArraySet(infiniteIndices.size());
-      for (final int index : infiniteIndices) {
+      for (int index : infiniteIndices) {
         if (edge.inSet(index)) {
           set.add(index);
         }
@@ -269,17 +274,17 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       return finiteIndex == -1 && infiniteIndices.isEmpty();
     }
 
-    public boolean isFinite(final int index) {
+    public boolean isFinite(int index) {
       return finiteIndex != -1 && finiteIndex == index;
     }
 
-    public boolean isInfinite(final int index) {
+    public boolean isInfinite(int index) {
       return infiniteIndices.contains(index);
     }
 
     @Override
     public String toString() {
-      final StringBuilder builder = new StringBuilder((getInfiniteSetCount() + 1) * 3);
+      StringBuilder builder = new StringBuilder((getInfiniteSetCount() + 1) * 3);
       builder.append('(').append(pairNumber).append(':');
       if (finiteIndex == -1) {
         builder.append('#');

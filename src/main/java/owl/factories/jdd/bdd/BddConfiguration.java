@@ -2,7 +2,7 @@ package owl.factories.jdd.bdd;
 
 import org.immutables.value.Value;
 
-@SuppressWarnings("PMD.AtLeastOneConstructor")
+@SuppressWarnings("MethodReturnAlwaysConstant")
 @Value.Immutable
 public class BddConfiguration {
   private static final int DEFAULT_CACHE_BINARY_BINS_PER_HASH = 3;
@@ -36,7 +36,7 @@ public class BddConfiguration {
     return DEFAULT_CACHE_BINARY_DIVIDER;
   }
 
-  public int cacheComposeBinsPerHash() {
+  public final int cacheComposeBinsPerHash() {
     // Currently only 1 supported
     return 1;
   }

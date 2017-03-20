@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
  * This class always assumes the Objects to be unique, i.e. no Object can be in
  * the stack twice
  */
-public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
+public final class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
   private final Set<E> elementsInTheStack;
   private final Deque<E> stack;
 
@@ -227,6 +227,7 @@ public class TarjanStack<E> extends AbstractCollection<E> implements Deque<E> {
 
   @Nonnull
   @Override
+  @SuppressWarnings("SuspiciousToArrayCall")
   public <T> T[] toArray(T[] array) {
     return stack.toArray(array);
   }
