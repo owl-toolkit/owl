@@ -34,15 +34,11 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
-  B extends OmegaAcceptance> implements MutableAutomaton<S, A> {
-  private final MutableAutomaton<S, B> automaton;
+  B extends OmegaAcceptance> extends ForwardingAutomaton<S, A, B, MutableAutomaton<S, B>>
+  implements MutableAutomaton<S, A> {
 
-  public ForwardingMutableAutomaton(MutableAutomaton<S, B> automaton) {
-    this.automaton = automaton;
-  }
-
-  protected MutableAutomaton<S, B> getAutomaton() {
-    return automaton;
+  protected ForwardingMutableAutomaton(MutableAutomaton<S, B> automaton) {
+    super(automaton);
   }
 
   @Override
@@ -61,12 +57,12 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public void addInitialStates(Iterable<S> states) {
+  public void addInitialStates(Collection<S> states) {
     automaton.addInitialStates(states);
   }
 
   @Override
-  public void addStates(Iterable<S> states) {
+  public void addStates(Collection<S> states) {
     automaton.addStates(states);
   }
 
@@ -91,7 +87,7 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public Set<S> getReachableStates(Iterable<S> start) {
+  public Set<S> getReachableStates(Collection<S> start) {
     return automaton.getReachableStates(start);
   }
 
@@ -131,7 +127,7 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public boolean removeStates(Iterable<S> states) {
+  public boolean removeStates(Collection<S> states) {
     return automaton.removeStates(states);
   }
 
@@ -141,12 +137,12 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public void removeUnreachableStates(Iterable<S> start, Consumer<S> removedStatesConsumer) {
+  public void removeUnreachableStates(Collection<S> start, Consumer<S> removedStatesConsumer) {
     automaton.removeUnreachableStates(start, removedStatesConsumer);
   }
 
   @Override
-  public void setInitialStates(Iterable<S> states) {
+  public void setInitialStates(Collection<S> states) {
     automaton.setInitialStates(states);
   }
 

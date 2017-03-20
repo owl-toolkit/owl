@@ -1,6 +1,5 @@
 package owl.automaton;
 
-import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.ValuationSetFactory;
 
@@ -31,26 +30,5 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> create(
     A acceptance, ValuationSetFactory valuationSetFactory) {
     return new HashMapAutomaton<>(valuationSetFactory, acceptance);
-  }
-
-  public static <S extends AutomatonState<S>, A extends OmegaAcceptance> HashMapAutomaton<S, A>
-  fromLegacy(Set<S> initialStates, A acceptance, ValuationSetFactory factory) {
-    HashMapAutomaton<S, A> automaton = new HashMapAutomaton<>(factory, acceptance);
-    automaton.addStates(initialStates);
-    automaton.setInitialStates(initialStates);
-    AutomatonUtil.exploreDeterministic(automaton, initialStates, AutomatonState::getSuccessor,
-      AutomatonState::getSensitiveAlphabet);
-    return automaton;
-  }
-
-  public static <S extends AutomatonState<S>, A extends OmegaAcceptance> HashMapAutomaton<S, A>
-  fromLegacy(LegacyAutomaton<S, A> old) {
-    HashMapAutomaton<S, A> automaton =
-      new HashMapAutomaton<>(old.getFactory(), old.getAcceptance());
-    automaton.setVariables(old.getVariables());
-    automaton.setInitialStates(old.getInitialStates());
-    AutomatonUtil.exploreDeterministic(automaton, old.getInitialStates(), old::getSuccessor);
-    assert automaton.stateCount() == old.size();
-    return automaton;
   }
 }
