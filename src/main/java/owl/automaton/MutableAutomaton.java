@@ -19,6 +19,7 @@ package owl.automaton;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -74,7 +75,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *
    * @throws IllegalArgumentException
    *     If the specified state is not part of the automaton.
-   * @see #addInitialStates(Iterable)
+   * @see #addInitialStates(Collection)
    */
   default void addInitialState(S state) {
     addInitialStates(ImmutableSet.of(state));
@@ -90,7 +91,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If any of the specified states is not part of the automaton.
    */
-  void addInitialStates(Iterable<S> states);
+  void addInitialStates(Collection<S> states);
 
   /**
    * Adds a {@code state} without outgoing edges to the set of states. If the state is already
@@ -99,7 +100,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param state
    *     The state to be added.
    *
-   * @see #addStates(Iterable)
+   * @see #addStates(Collection)
    */
   default void addState(S state) {
     addStates(ImmutableSet.of(state));
@@ -112,7 +113,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param states
    *     The states to be added.
    */
-  void addStates(Iterable<S> states);
+  void addStates(Collection<S> states);
 
   /**
    * Remaps the acceptance sets of each outgoing edge of the specified {@code states} according to
@@ -192,7 +193,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param state
    *     The state to be removed.
    *
-   * @see #removeStates(Iterable)
+   * @see #removeStates(Collection)
    */
   default void removeState(S state) {
     removeStates(ImmutableSet.of(state));
@@ -204,7 +205,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param states
    *     The states to be removed.
    */
-  boolean removeStates(Iterable<S> states);
+  boolean removeStates(Collection<S> states);
 
   /**
    * Removes the specified {@code states} and all transitions involving them from the automaton.
@@ -220,7 +221,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *
    * @return All unreachable, removed states.
    *
-   * @see #removeUnreachableStates(Iterable, Consumer)
+   * @see #removeUnreachableStates(Collection, Consumer)
    */
   default Set<S> removeUnreachableStates() {
     return removeUnreachableStates(getInitialStates());
@@ -231,7 +232,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * to {@code removedStatesConsumer}, used for e.g. freeing of BDD nodes or collecting them in a
    * set.
    *
-   * @see #removeUnreachableStates(Iterable, Consumer)
+   * @see #removeUnreachableStates(Collection, Consumer)
    */
   default void removeUnreachableStates(Consumer<S> removedStatesConsumer) {
     removeUnreachableStates(getInitialStates(), removedStatesConsumer);
@@ -244,9 +245,9 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @return All unreachable, removed states. The returned set is modifiable and belongs to the
    * caller.
    *
-   * @see #removeUnreachableStates(Iterable, Consumer)
+   * @see #removeUnreachableStates(Collection, Consumer)
    */
-  default Set<S> removeUnreachableStates(Iterable<S> start) {
+  default Set<S> removeUnreachableStates(Collection<S> start) {
     Set<S> unreachableStates = new HashSet<>();
     removeUnreachableStates(start, unreachableStates::add);
     return unreachableStates;
@@ -257,9 +258,9 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * removed state to {@code removedStatesConsumer}, used for e.g. freeing of BDD nodes or
    * collecting them in a set.
    *
-   * @see #removeUnreachableStates(Iterable)
+   * @see #removeUnreachableStates(Collection)
    */
-  void removeUnreachableStates(Iterable<S> start, Consumer<S> removedStatesConsumer);
+  void removeUnreachableStates(Collection<S> start, Consumer<S> removedStatesConsumer);
 
   /**
    * Set the initial state of the automaton. Requires the specified state to be present.
@@ -284,5 +285,5 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If any of the specified {@code states} is not part of the automaton.
    */
-  void setInitialStates(Iterable<S> states);
+  void setInitialStates(Collection<S> states);
 }

@@ -11,15 +11,11 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ForwardingAutomaton<S, A extends OmegaAcceptance,
-  B extends OmegaAcceptance> implements Automaton<S, A> {
-  private final Automaton<S, B> automaton;
+  B extends OmegaAcceptance, T extends Automaton<S, B>> implements Automaton<S, A> {
+  protected final T automaton;
 
-  public ForwardingAutomaton(Automaton<S, B> automaton) {
+  protected ForwardingAutomaton(T automaton) {
     this.automaton = automaton;
-  }
-
-  protected Automaton<S, B> getAutomaton() {
-    return automaton;
   }
 
   @Override
@@ -43,7 +39,7 @@ public abstract class ForwardingAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public Set<S> getReachableStates(Iterable<S> start) {
+  public Set<S> getReachableStates(Collection<S> start) {
     return automaton.getReachableStates(start);
   }
 

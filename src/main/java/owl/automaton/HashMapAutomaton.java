@@ -77,15 +77,6 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
       ImmutableList.toImmutableList());
   }
 
-  public <B extends OmegaAcceptance> HashMapAutomaton(HashMapAutomaton<S, B> copy,
-    A newAcceptance) {
-    this.valuationSetFactory = copy.valuationSetFactory;
-    this.acceptance = newAcceptance;
-    transitions = copy.transitions;
-    variables = copy.variables;
-    initialStates.addAll(copy.initialStates);
-  }
-
   @Override
   public void addEdge(S source, Edge<S> edge) {
     addEdge(source, valuationSetFactory.createUniverseValuationSet(), edge);
@@ -109,13 +100,13 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public void addInitialStates(Iterable<S> states) {
+  public void addInitialStates(Collection<S> states) {
     addStates(states);
-    Iterables.addAll(initialStates, states);
+    initialStates.addAll(states);
   }
 
   @Override
-  public void addStates(Iterable<S> states) {
+  public void addStates(Collection<S> states) {
     states.forEach(state -> transitions.computeIfAbsent(state, x -> new LinkedHashMap<>()));
   }
 
@@ -145,12 +136,8 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public boolean containsStates(Iterable<S> states) {
-    if (states instanceof Collection<?>) {
-      return transitions.keySet().containsAll((Collection<?>) states);
-    }
-
-    return Iterables.all(states, transitions.keySet()::contains);
+  public boolean containsStates(Collection<S> states) {
+    return transitions.keySet().containsAll(states);
   }
 
   void free() {
@@ -218,7 +205,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public Set<S> getReachableStates(Iterable<S> start) {
+  public Set<S> getReachableStates(Collection<S> start) {
     assert containsStates(start) :
       String.format("Some of the states %s are not in the automaton", start);
 
@@ -294,7 +281,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public boolean removeStates(Iterable<S> states) {
+  public boolean removeStates(Collection<S> states) {
     // Iterables.contains is smart about data types
     return removeStates(state -> Iterables.contains(states, state));
   }
@@ -319,7 +306,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public void removeUnreachableStates(Iterable<S> start, Consumer<S> removedStatesConsumer) {
+  public void removeUnreachableStates(Collection<S> start, Consumer<S> removedStatesConsumer) {
     assert containsStates(start) :
       String.format("Some of the states %s are not in the automaton", start);
 
@@ -340,7 +327,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public void setInitialStates(Iterable<S> states) {
+  public void setInitialStates(Collection<S> states) {
     initialStates.clear();
     addInitialStates(states);
   }

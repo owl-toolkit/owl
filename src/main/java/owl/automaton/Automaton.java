@@ -64,8 +64,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return Whether all of the states are in the automaton.
    */
-  default boolean containsStates(Iterable<S> states) {
-    return Iterables.all(states, getStates()::contains);
+  default boolean containsStates(Collection<S> states) {
+    return getStates().containsAll(states);
   }
 
   /**
@@ -173,7 +173,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return All reachable states.
    *
-   * @see #getReachableStates(Iterable)
+   * @see #getReachableStates(Collection)
    */
   default Set<S> getReachableStates() {
     return getReachableStates(getInitialStates());
@@ -185,7 +185,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @param start
    *     Starting states for the reachable states search.
    */
-  Set<S> getReachableStates(Iterable<S> start);
+  Set<S> getReachableStates(Collection<S> start);
 
   /**
    * Returns all states in this automaton.
@@ -211,11 +211,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       labelledEdge -> labelledEdge.edge.getSuccessor()));
   }
 
-  default Collection<S> getSuccessors(S state, BitSet valuation) {
+  default Set<S> getSuccessors(S state, BitSet valuation) {
     return StreamSupport.stream(getLabelledEdges(state).spliterator(), false)
       .filter(labelledEdge -> labelledEdge.valuations.contains(valuation))
       .map(labelledEdge -> labelledEdge.edge.getSuccessor())
-      .collect(Collectors.toList());
+      .collect(Collectors.toSet());
   }
 
   List<String> getVariables();
