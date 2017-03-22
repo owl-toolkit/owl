@@ -19,6 +19,7 @@ package owl.automaton.output;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -52,7 +53,8 @@ public final class HoaConsumerExtended<S> {
   private S currentState = null;
 
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
-    Set<? extends S> initialStates, int size, EnumSet<HoaPrintable.Option> options) {
+    Set<? extends S> initialStates, int size, EnumSet<HoaPrintable.Option> options,
+    boolean isDeterministic) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
     stateNumbers = new HashMap<>();
@@ -87,6 +89,13 @@ public final class HoaConsumerExtended<S> {
 
         consumer.setAcceptanceCondition(acceptance.getAcceptanceSets(),
           acceptance.getBooleanExpression());
+      }
+
+      // TODO: fix this.
+      consumer.addProperties(ImmutableList.of("trans-acc", "trans-label"));
+
+      if (isDeterministic) {
+        consumer.addProperties(ImmutableList.of("deterministic"));
       }
 
       consumer.setAPs(aliases);

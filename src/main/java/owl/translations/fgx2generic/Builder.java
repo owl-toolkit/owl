@@ -18,13 +18,12 @@
 package owl.translations.fgx2generic;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -36,56 +35,90 @@ import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Lists2;
-import owl.collections.ValuationSet;
 import owl.factories.Factories;
 import owl.factories.Registry;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.ltl.visitors.XDepthVisitor;
+import owl.translations.Optimisation;
 
-public class Builder implements Function<Formula, Automaton<HistoryState, GenericAcceptance>> {
+public class Builder implements Function<Formula, Automaton<ProductState, GenericAcceptance>> {
+
+  private final EnumSet<Optimisation> optimisations;
+
+  public Builder(EnumSet<Optimisation> optimisations) {
+    this.optimisations = EnumSet.copyOf(optimisations);
+  }
 
   @Override
-  public Automaton<HistoryState, GenericAcceptance> apply(Formula formula) {
+  public Automaton<ProductState, GenericAcceptance> apply(Formula formula) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-
     Factories factories = Registry.getFactories(rewritten);
-    int history = XDepthVisitor.getDepth(rewritten);
-    GenericAcceptanceComputation visitor = new GenericAcceptanceComputation(factories, history);
 
-    BooleanExpression<AtomAcceptance> expression = rewritten.accept(visitor);
-    int sets = visitor.getSets().size();
+    ProductState initialState;
+    DependencyTree tree;
+
+    DependencyTreeFactory treeConverter = new DependencyTreeFactory(factories);
+    tree = formula.accept(treeConverter);
+    BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
+    int sets = treeConverter.setNumber;
+
+    {
+      int maxHistory = tree.getMaxRequiredHistoryLength();
+      BitSet bitSet = new BitSet();
+      ImmutableList<BitSet> defaultHistory = Lists2.tabulate((x) -> bitSet, maxHistory);
+      initialState = new ProductState(treeConverter.getInitialSafetyState(),
+        getHistory(defaultHistory, bitSet, treeConverter.getInitialSafetyState(), tree));
+    }
+
     GenericAcceptance acceptance = new GenericAcceptance(sets, expression);
 
-    MutableAutomaton<HistoryState, GenericAcceptance> automaton = AutomatonFactory
+    MutableAutomaton<ProductState, GenericAcceptance> automaton = AutomatonFactory
       .create(acceptance, factories.valuationSetFactory);
 
-    BitSet bitSet = new BitSet();
-    HistoryState state = new HistoryState(Lists2.tabulate((i) -> bitSet, history));
-
-    AutomatonUtil.exploreDeterministic(automaton, Collections.singletonList(state),
-      (x, y) -> getSuccessor(visitor.getSets(), x, y));
-    automaton.setInitialState(state);
+    AutomatonUtil.exploreDeterministic(automaton, Collections.singletonList(initialState),
+      (x, y) -> getSuccessor(x, y, tree));
+    automaton.setInitialState(initialState);
     return automaton;
   }
 
-  private static Edge<HistoryState> getSuccessor(Map<List<ValuationSet>, Integer> sets,
-    HistoryState state, BitSet valuation) {
-    BitSet acceptance = new BitSet();
+  private ImmutableList<BitSet> getHistory(ImmutableList<BitSet> previousHistory, BitSet valuation,
+    ImmutableMap<Formula, EquivalenceClass> currentState, DependencyTree tree) {
+    ImmutableList.Builder<BitSet> history = new ImmutableList.Builder<>();
 
-    // Replace by Lists2.
-    List<BitSet> seenValuations = Lists
-      .newArrayList(Iterables.concat(state.history, ImmutableList.of(valuation)));
+    if (optimisations.contains(Optimisation.DYNAMIC_HISTORY)) {
+      List<BitSet> requiredHistory = tree.getRequiredHistory(currentState);
 
-    sets.forEach((set, id) -> {
-      if (Lists2.zipAllMatch(set, seenValuations, ValuationSet::contains)) {
-        acceptance.set(id);
+      int i = 0;
+      for (BitSet historyValuation : requiredHistory) {
+
+        if (i == 0) {
+          historyValuation.and(valuation);
+        } else if (i <= previousHistory.size()) {
+          historyValuation.and(previousHistory.get(i - 1));
+        } else {
+          historyValuation.clear();
+        }
+
+        history.add(historyValuation);
+        i++;
       }
-    });
+    } else if (!previousHistory.isEmpty()) {
+      history.add(valuation);
+      history.addAll(previousHistory.subList(0, previousHistory.size() - 1));
+    }
 
-    List<BitSet> newHistory = Lists2.shift(new ArrayList<>(state.history), valuation);
-    HistoryState successor = new HistoryState(ImmutableList.copyOf(newHistory));
+    return history.build();
+  }
+
+  private Edge<ProductState> getSuccessor(ProductState state, BitSet valuation,
+    DependencyTree tree) {
+    ImmutableMap<Formula, EquivalenceClass> safetySuccessor = ImmutableMap.copyOf(
+      Maps.transformValues(state.safetyStates, x -> x.unfoldTemporalStep(valuation)));
+    ProductState successor = new ProductState(safetySuccessor,
+      getHistory(state.history, valuation, safetySuccessor, tree));
+    BitSet acceptance = tree.getEdgeAcceptance(state, valuation);
     return Edges.create(successor, acceptance);
   }
 }

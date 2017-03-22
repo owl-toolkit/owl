@@ -107,7 +107,7 @@ public final class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiA
       acceptingComponent.getVariables(),
       acceptingComponent.getAcceptance(),
       Sets.union(initialComponent.getInitialStates(), acceptingComponentInitialStates),
-      size(), options);
+      size(), options, false);
 
     for (S state : initialComponent.getStates()) {
       consumerExt.addState(state);

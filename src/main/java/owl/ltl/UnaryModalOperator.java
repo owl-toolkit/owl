@@ -20,6 +20,7 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import owl.util.ImmutableObject;
 
 public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
@@ -60,4 +61,13 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
     return getOperator() + operand.toString(variables);
   }
 
+  @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this) && operand.allMatch(predicate);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this) || operand.anyMatch(predicate);
+  }
 }

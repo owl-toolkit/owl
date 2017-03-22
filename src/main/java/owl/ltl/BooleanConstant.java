@@ -19,6 +19,7 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -115,4 +116,13 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
     return this;
   }
 
+  @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
 }

@@ -19,6 +19,7 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Predicate;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -64,4 +65,8 @@ public interface Formula {
    * Short-cut operation to avoid intermediate construction of formula ASTs.
    */
   Formula unfoldTemporalStep(BitSet valuation);
+
+  boolean allMatch(Predicate<Formula> predicate);
+
+  boolean anyMatch(Predicate<Formula> predicate);
 }

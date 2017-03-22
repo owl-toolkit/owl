@@ -32,3 +32,5 @@ G F (a | X X b)
 F G (X a | F (X b | c))
 F G (a | F (b & X c))
 G (F(a & X X b) & F(b | X X c))
+X X G a
+F (a | X b) & G c & F G d

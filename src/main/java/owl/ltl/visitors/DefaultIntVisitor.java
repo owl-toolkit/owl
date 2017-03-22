@@ -33,7 +33,9 @@ import owl.ltl.XOperator;
 
 public abstract class DefaultIntVisitor implements IntVisitor {
 
-  protected abstract int defaultAction(Formula formula);
+  protected int defaultAction(Formula formula) {
+    throw new UnsupportedOperationException("No operation defined for " + formula);
+  }
 
   @Override
   public int visit(BooleanConstant booleanConstant) {

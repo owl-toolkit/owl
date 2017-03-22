@@ -32,7 +32,9 @@ import owl.ltl.XOperator;
 
 public abstract class DefaultBinaryVisitor<P, R> implements BinaryVisitor<P, R> {
 
-  protected abstract R defaultAction(Formula formula, P parameter);
+  protected R defaultAction(Formula formula, P parameter) {
+    throw new UnsupportedOperationException("No operation defined for " + formula);
+  }
 
   @Override
   public R visit(BooleanConstant booleanConstant, P parameter) {

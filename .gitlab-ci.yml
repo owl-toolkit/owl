@@ -158,7 +158,26 @@ test-parallel:ltl2det-parallel:
 
 # FGX to DGA translations
 
+test:fgx2dga Vanilla:
+  stage: test
+  variables:
+    LTL_TOOL: "{fgx2dga} build/bin/fgx2dga --optimisations=none %f >%O"
+    LTL_TOOL_FALLBACK: "{fgx2dga} build/bin/fgx2dga --fallback --optimisations=none %f >%O"
+  script: 
+    - JAVA_OPTS="-enableassertions"
+    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
+    - ./gradlew --no-daemon distTar
+    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
+    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
+    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/fgx.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
+  artifacts:
+    paths:
+    - debug.ltl
+    when: on_failure
+    expire_in: 1 week
+
 test:fgx2dga:
+  stage: test-optimizations
   variables:
     LTL_TOOL: "{fgx2dga} build/bin/fgx2dga %f >%O"
     LTL_TOOL_FALLBACK: "{fgx2dga} build/bin/fgx2dga --fallback %f >%O"
@@ -167,7 +186,8 @@ test:fgx2dga:
     - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew --no-daemon distTar
     - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
-    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/fgx.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
+    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
+    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/fgx.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
   artifacts:
     paths:
     - debug.ltl

@@ -31,7 +31,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.visitors.predicates.XFragment;
+import owl.ltl.Fragments;
 import owl.translations.Optimisation;
 
 public final class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
@@ -71,7 +71,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass safety = obligations.safety;
     EquivalenceClass current = remainder;
 
-    if (remainder.testSupport(XFragment.INSTANCE)) {
+    if (remainder.testSupport(Fragments::isX)) {
       safety = current.andWith(safety);
       current = factories.equivalenceClassFactory.getTrue();
     }

@@ -29,12 +29,11 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultVisitor;
-import owl.ltl.visitors.predicates.FGXFragment;
-import owl.ltl.visitors.predicates.XFragment;
 
 @SuppressWarnings("PMD.GodClass")
 class FairnessSimplifier implements UnaryOperator<Formula> {
@@ -79,7 +78,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
   }
 
   public static boolean isApplicable(Formula formula) {
-    return FGXFragment.testStatic(formula) && (getAlmostAllOperand(formula) != null
+    return Fragments.isFgx(formula) && (getAlmostAllOperand(formula) != null
       || getInfinitelyOftenOperand(formula) != null);
   }
 
@@ -120,7 +119,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (XFragment.testStatic(conjunction)) {
+      if (Fragments.isX(conjunction)) {
         return wrap(conjunction);
       }
 
@@ -129,7 +128,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (XFragment.testStatic(disjunction)) {
+      if (Fragments.isX(disjunction)) {
         return wrap(disjunction);
       }
 
@@ -142,7 +141,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
           disjuncts.add(((FOperator) child).operand.accept(INFINITELY_OFTEN_VISITOR));
         } else if (child instanceof GOperator) {
           disjuncts.add(((GOperator) child).operand.accept(this));
-        } else if (XFragment.testStatic(child)) {
+        } else if (Fragments.isX(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Conjunction;
@@ -197,7 +196,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (XFragment.testStatic(conjunction)) {
+      if (Fragments.isX(conjunction)) {
         return wrap(conjunction);
       }
 
@@ -210,7 +209,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
           conjuncts.add(((FOperator) child).operand.accept(this));
         } else if (child instanceof GOperator) {
           conjuncts.add(((GOperator) child).operand.accept(ALMOST_ALL_VISITOR));
-        } else if (XFragment.testStatic(child)) {
+        } else if (Fragments.isX(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Disjunction;
@@ -228,7 +227,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (XFragment.testStatic(disjunction)) {
+      if (Fragments.isX(disjunction)) {
         return wrap(disjunction);
       }
 

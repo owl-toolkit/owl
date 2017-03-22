@@ -23,12 +23,11 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultBinaryVisitor;
-import owl.ltl.visitors.predicates.FGXFragment;
-import owl.ltl.visitors.predicates.XFragment;
 
 final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
   UnaryOperator<Formula> {
@@ -37,7 +36,7 @@ final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
     NormaliseX::isApplicable);
 
   public static boolean isApplicable(Formula formula) {
-    return FGXFragment.testStatic(formula) && (
+    return Fragments.isFgx(formula) && (
       FairnessSimplifier.getAlmostAllOperand(formula) != null
         || FairnessSimplifier.getInfinitelyOftenOperand(formula) != null);
   }
@@ -59,7 +58,7 @@ final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
 
   @Override
   public Formula visit(Conjunction conjunction, Integer depth) {
-    if (XFragment.testStatic(conjunction)) {
+    if (Fragments.isX(conjunction)) {
       return XOperator.create(conjunction, depth);
     }
 
@@ -68,7 +67,7 @@ final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
 
   @Override
   public Formula visit(Disjunction disjunction, Integer depth) {
-    if (XFragment.testStatic(disjunction)) {
+    if (Fragments.isX(disjunction)) {
       return XOperator.create(disjunction, depth);
     }
 

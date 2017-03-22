@@ -69,7 +69,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     }
 
     if (operand instanceof Conjunction && ((Conjunction) operand)
-      .allMatch(Formula::isPureUniversal)) {
+      .children.stream().allMatch(Formula::isPureUniversal)) {
       return Conjunction.create(((Conjunction) operand).children.stream().map(FOperator::create));
     }
 
@@ -102,7 +102,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     }
 
     if (operand instanceof Disjunction && ((Disjunction) operand)
-      .allMatch(Formula::isPureEventual)) {
+      .children.stream().allMatch(Formula::isPureEventual)) {
       return Disjunction.create(((Disjunction) operand).children.stream().map(GOperator::create));
     }
 

@@ -259,7 +259,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), getInitialStates(), stateCount(), options);
+      getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic());
 
     for (S state : getStates()) {
       hoa.addState(state);
