@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -120,7 +121,7 @@ public final class HoaConsumerExtended<S> {
   }
 
   public void addEdge(ValuationSet label, S end) {
-    addEdgeBackend(label, end, null);
+    addEdgeBackend(label, end, IntLists.EMPTY_LIST);
   }
 
   public void addEdge(ValuationSet label, S end, PrimitiveIterator.OfInt accSets) {
@@ -135,9 +136,8 @@ public final class HoaConsumerExtended<S> {
     addEdge(label, edge.getSuccessor(), edge.acceptanceSetIterator());
   }
 
-  private void addEdgeBackend(ValuationSet label, S end, @Nullable IntList accSets) {
+  private void addEdgeBackend(ValuationSet label, S end, IntList accSets) {
     checkState(currentState != null);
-    checkState(end != null);
 
     if (label.isEmpty()) {
       return;
@@ -145,7 +145,7 @@ public final class HoaConsumerExtended<S> {
 
     try {
       consumer.addEdgeWithLabel(getStateId(currentState), label.toExpression(),
-        Collections.singletonList(getStateId(end)), accSets);
+        Collections.singletonList(getStateId(end)), accSets.isEmpty() ? null : accSets);
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
