@@ -2,6 +2,7 @@ package owl.collections;
 
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
+import java.util.function.IntConsumer;
 
 public interface BitIntSet extends IntSortedSet {
   @Override
@@ -22,4 +23,6 @@ public interface BitIntSet extends IntSortedSet {
   void clear(int from, int to);
 
   boolean containsAny(IntCollection o);
+
+  void forEach(IntConsumer consumer);
 }

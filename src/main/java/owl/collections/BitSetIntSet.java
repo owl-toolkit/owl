@@ -15,6 +15,11 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 
 class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
+  // TODO Some methods could be rewritten to use the approach of BitSet#toString() -
+  // The idea there is to not blindly iterate via nextSetBit but determine "blocks" by alternating
+  // nextSetBit and nextClearBit. If the sets are rather tightly packed, this can save a lot of
+  // calls!
+
   private final BitSet bitSet;
   private final int max;
   private final int min;
@@ -143,6 +148,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
             return false;
           }
         }
+        // Alternative: Check otherBitSet.clone().andNot(bitSet).isEmpty(); - Remains to be tested!
         return true;
       } else if ((max - min) <= otherCardinality) {
         // The otherBitSet contains more elements than this view can possibly hold
@@ -168,6 +174,13 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       }
     }
     return false;
+  }
+
+  @Override
+  public void forEach(IntConsumer consumer) {
+    for (int i = min; i < max && i >= 0; i = bitSet.nextSetBit(i + 1)) {
+      consumer.accept(i);
+    }
   }
 
   @Override
@@ -202,7 +215,11 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   @Override
   @Nonnegative
   public int firstInt() {
-    return bitSet.nextSetBit(min);
+    int first = bitSet.nextSetBit(min);
+    if (first == -1) {
+      throw new NoSuchElementException("Set is empty");
+    }
+    return first;
   }
 
   @Override
@@ -221,7 +238,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   /**
    * Determines whether the given {@code bitSet} is a subset of the view specified by the
-   * {@code min} and {@code max} fields. This is necessary to perform most optimized operations.
+   * {@code min} and {@code max} fields, i.e. there is no element in {@code bitSet} which can't be
+   * contained in this set. This allows to perform some operations directly on the bit set.
    */
   private boolean isContainedInView(BitSet bitSet) {
     return isFullSet() || min <= bitSet.nextSetBit(0) && bitSet.length() <= max;
@@ -229,9 +247,18 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public boolean isEmpty() {
-    return bitSet.isEmpty();
+    if (isFullSet()) {
+      return bitSet.isEmpty();
+    }
+    int firstBit = bitSet.nextSetBit(min);
+    return firstBit == -1 || firstBit >= max;
   }
 
+  /**
+   * Returns true if {@code min == 0} and {@code max == Integer.MAX_VALUE}. This implies that the
+   * elements contained in this set object are always exactly those contained in the bit set. This
+   * allows to perform some operations directly on the underlying bit set.
+   */
   private boolean isFullSet() {
     return min == 0 && max == Integer.MAX_VALUE;
   }
@@ -249,7 +276,16 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   @Override
   @Nonnegative
   public int lastInt() {
-    return max == Integer.MAX_VALUE ? bitSet.length() - 1 : bitSet.previousSetBit(max);
+    int last;
+    if (max == Integer.MAX_VALUE) {
+      last = bitSet.length() - 1;
+    } else {
+      last = bitSet.previousSetBit(max);
+    }
+    if (last == -1) {
+      throw new NoSuchElementException("Set is empty");
+    }
+    return last;
   }
 
   @Override
@@ -390,7 +426,12 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
     private int getNext(int current) {
       if (current < set.max) {
-        int next = set.bitSet.nextSetBit(current + 1);
+        int next;
+        if (current < set.min) {
+          next = set.bitSet.nextSetBit(set.min);
+        } else {
+          next = set.bitSet.nextSetBit(current + 1);
+        }
         if (next >= set.max) {
           return -1;
         }
@@ -401,7 +442,12 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
     private int getPrevious(int current) {
       if (current >= set.min) {
-        int previous = set.bitSet.previousSetBit(current);
+        int previous;
+        if (current >= set.max) {
+          previous = set.bitSet.previousSetBit(set.max);
+        } else {
+          previous = set.bitSet.previousSetBit(current);
+        }
         if (previous < set.min) {
           return -1;
         }
