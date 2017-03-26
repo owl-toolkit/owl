@@ -15,21 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton;
+package owl.util;
 
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
 
-final class IntIteratorTransformer implements PrimitiveIterator.OfInt {
+public final class IntIteratorTransformer implements PrimitiveIterator.OfInt {
   private final OfInt delegate;
   private final IntUnaryOperator transformer;
 
   // A negative value indicates that there are no more elements.
   private int next;
 
-  IntIteratorTransformer(OfInt delegate, IntUnaryOperator transformer) {
+  public IntIteratorTransformer(OfInt delegate, IntUnaryOperator transformer) {
     this.delegate = delegate;
     this.transformer = transformer;
     obtainNext();

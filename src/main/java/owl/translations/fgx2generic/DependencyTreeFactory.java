@@ -17,69 +17,72 @@
 
 package owl.translations.fgx2generic;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import owl.automaton.Automaton;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.visitors.DefaultVisitor;
-import owl.translations.fgx2generic.DependencyTree.And;
+import owl.translations.fgx2generic.DependencyTree.FallbackLeaf;
 import owl.translations.fgx2generic.DependencyTree.Leaf;
-import owl.translations.fgx2generic.DependencyTree.Or;
 import owl.translations.fgx2generic.DependencyTree.Type;
 
-class DependencyTreeFactory extends DefaultVisitor<DependencyTree> {
+class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
+  private final ProductState.Builder<T> builder;
+  private final Function<Formula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor;
   private final EquivalenceClassFactory factory;
-  private final ImmutableMap.Builder<Formula, EquivalenceClass> safetyMap;
   int setNumber;
 
-  DependencyTreeFactory(Factories factory) {
+  DependencyTreeFactory(Factories factory,
+    Function<Formula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor) {
     this.factory = factory.equivalenceClassFactory;
     setNumber = 0;
-    safetyMap = ImmutableMap.builder();
+    builder = ProductState.builder();
+    this.constructor = constructor;
+  }
+
+  ProductState<T> buildInitialState() {
+    return builder.build();
   }
 
   @Override
-  protected DependencyTree defaultAction(Formula formula) {
-    Leaf leaf = new Leaf(formula, setNumber);
+  protected DependencyTree<T> defaultAction(Formula formula) {
+    Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber, () ->
+      constructor.apply(formula));
 
     if (leaf.type == Type.COSAFETY || leaf.type == Type.SAFETY) {
-      safetyMap.put(formula, factory.createEquivalenceClass(formula));
+      builder.safety.put(formula, factory.createEquivalenceClass(formula.unfold()));
     }
 
-    setNumber++;
+    if (leaf instanceof FallbackLeaf) {
+      FallbackLeaf<T> fallbackLeaf = (FallbackLeaf<T>) leaf;
+      setNumber += fallbackLeaf.automaton.getAcceptance().getAcceptanceSets();
+      builder.fallback.put(formula, fallbackLeaf.automaton.getInitialState());
+    } else {
+      setNumber++;
+    }
+
     return leaf;
   }
 
-  ImmutableMap<Formula, EquivalenceClass> getInitialSafetyState() {
-    return safetyMap.build();
+  @Override
+  public DependencyTree<T> visit(BooleanConstant booleanConstant) {
+    throw new IllegalStateException("The input formula should be constant-free.");
   }
 
   @Override
-  public DependencyTree visit(Conjunction conjunction) {
-    List<DependencyTree> children = new ArrayList<>();
+  public DependencyTree<T> visit(Conjunction conjunction) {
     List<Formula> safety = new ArrayList<>();
     List<Formula> coSafety = new ArrayList<>();
-
-    conjunction.forEach(x -> {
-      if (Fragments.isSafety(x)) {
-        safety.add(x);
-        return;
-      }
-
-      if (Fragments.isCoSafety(x)) {
-        coSafety.add(x);
-        return;
-      }
-
-      children.add(x.accept(this));
-    });
+    List<DependencyTree<T>> children = group(conjunction.children, safety, coSafety);
 
     if (!safety.isEmpty()) {
       children.add(defaultAction(Conjunction.create(safety)));
@@ -89,28 +92,14 @@ class DependencyTreeFactory extends DefaultVisitor<DependencyTree> {
       children.add(defaultAction(Conjunction.create(coSafety)));
     }
 
-    return new And(children);
+    return DependencyTree.createAnd(children);
   }
 
   @Override
-  public DependencyTree visit(Disjunction disjunction) {
-    List<DependencyTree> children = new ArrayList<>();
+  public DependencyTree<T> visit(Disjunction disjunction) {
     List<Formula> safety = new ArrayList<>();
     List<Formula> coSafety = new ArrayList<>();
-
-    disjunction.forEach(x -> {
-      if (Fragments.isSafety(x)) {
-        safety.add(x);
-        return;
-      }
-
-      if (Fragments.isCoSafety(x)) {
-        coSafety.add(x);
-        return;
-      }
-
-      children.add(x.accept(this));
-    });
+    List<DependencyTree<T>> children = group(disjunction.children, safety, coSafety);
 
     if (!safety.isEmpty()) {
       children.add(defaultAction(Disjunction.create(safety)));
@@ -120,6 +109,39 @@ class DependencyTreeFactory extends DefaultVisitor<DependencyTree> {
       children.add(defaultAction(Disjunction.create(coSafety)));
     }
 
-    return new Or(children);
+    return DependencyTree.createOr(children);
+  }
+
+  private List<DependencyTree<T>> group(Iterable<Formula> formulas, List<Formula> safety,
+    List<Formula> coSafety) {
+    List<DependencyTree<T>> children = new ArrayList<>();
+    List<Formula> xFragment = new ArrayList<>();
+
+    formulas.forEach(x -> {
+      if (Fragments.isX(x)) {
+        xFragment.add(x);
+        return;
+      }
+
+      if (Fragments.isCoSafety(x)) {
+        coSafety.add(x);
+        return;
+      }
+
+      if (Fragments.isSafety(x)) {
+        safety.add(x);
+        return;
+      }
+
+      children.add(x.accept(this));
+    });
+
+    if (!safety.isEmpty()) {
+      safety.addAll(xFragment);
+    } else {
+      coSafety.addAll(xFragment);
+    }
+
+    return children;
   }
 }

@@ -77,7 +77,7 @@ class SatisfactionRelation {
         return Boolean.FALSE;
       }
 
-      // Access last position in history record.
+      // Access the last position in history record.
       return Lists.reverse(history).get(0).get(literal.getAtom()) ^ literal.isNegated();
     }
 

@@ -57,6 +57,7 @@ import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
+import owl.util.IntIteratorTransformer;
 
 // TODO: use Cofoja to ensure invariants.
 public final class HashMapAutomaton<S, A extends OmegaAcceptance>

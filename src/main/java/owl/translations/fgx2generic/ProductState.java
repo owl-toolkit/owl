@@ -17,22 +17,27 @@
 
 package owl.translations.fgx2generic;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.BitSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
-public class ProductState {
+class ProductState<T> {
 
-  final ImmutableList<BitSet> history;
-  final ImmutableMap<Formula, EquivalenceClass> safetyStates;
+  final ImmutableMap<Formula, T> fallback;
+  final ImmutableMap<DependencyTree<T>, Boolean> finished;
+  final ImmutableMap<Formula, EquivalenceClass> safety;
 
-  public ProductState(ImmutableMap<Formula, EquivalenceClass> safetyStates, List<BitSet> history) {
-    this.safetyStates = safetyStates;
-    this.history = ImmutableList.copyOf(history);
+  ProductState(Map<Formula, T> fallback, Map<DependencyTree<T>, Boolean> finished,
+    Map<Formula, EquivalenceClass> safety) {
+    this.fallback = ImmutableMap.copyOf(fallback);
+    this.finished = ImmutableMap.copyOf(finished);
+    this.safety = ImmutableMap.copyOf(safety);
+  }
+
+  static <T> Builder<T> builder() {
+    return new Builder<>();
   }
 
   @Override
@@ -45,17 +50,36 @@ public class ProductState {
       return false;
     }
 
-    ProductState that = (ProductState) o;
-    return safetyStates.equals(that.safetyStates) && history.equals(that.history);
+    final ProductState<?> that = (ProductState<?>) o;
+    return Objects.equals(fallback, that.fallback)
+      && Objects.equals(safety, that.safety)
+      && Objects.equals(finished, that.finished);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(safetyStates, history);
+    return Objects.hash(fallback, safety, finished);
   }
 
-  @Override
-  public String toString() {
-    return "ProductState{history=" + history + ", safetyStates=" + safetyStates + '}';
+  static class Builder<T> {
+    final ImmutableMap.Builder<Formula, T> fallback;
+    final ImmutableMap.Builder<DependencyTree<T>, Boolean> finished;
+    final ImmutableMap.Builder<Formula, EquivalenceClass> safety;
+
+    Builder() {
+      fallback = ImmutableMap.builder();
+      finished = ImmutableMap.builder();
+      safety = ImmutableMap.builder();
+    }
+
+    ProductState<T> build() {
+      return new ProductState<>(fallback.build(), finished.build(), safety.build());
+    }
+
+    void putAll(Builder<T> other) {
+      fallback.putAll(other.fallback.build());
+      finished.putAll(other.finished.build());
+      safety.putAll(other.safety.build());
+    }
   }
 }

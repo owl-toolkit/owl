@@ -59,6 +59,4 @@ final class Util {
   static Formula unwrap(Formula formula) {
     return ((UnaryModalOperator) ((UnaryModalOperator) formula).operand).operand;
   }
-
-
 }
