@@ -1,5 +1,6 @@
 G ((! a) W b)
 G (a M (F b))
+a | (G (F (a)))
 a U (b & (F a))
 G (F (a & (F b)))
 G (F (a & (G a)))

@@ -61,6 +61,7 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
         }
       }
     }
+
     return false;
   }
 
