@@ -18,12 +18,14 @@
 package owl.collections;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import java.util.AbstractSet;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -48,6 +50,15 @@ public final class BitSets {
     BitSet bitSet = new BitSet();
     iterator.forEachRemaining((IntConsumer) bitSet::set);
     return bitSet;
+  }
+
+  public static BitIntSet createBitSet(IntCollection collection) {
+    BitSet backingSet = new BitSet();
+    IntIterator iterator = collection.iterator();
+    while (iterator.hasNext()) {
+      backingSet.set(iterator.nextInt());
+    }
+    return new BitSetIntSet(backingSet);
   }
 
   public static BitIntSet createBitSet() {
@@ -105,6 +116,14 @@ public final class BitSets {
       }
     }
     return bitSet;
+  }
+
+  public static BitSet toSet(Collection<Integer> indices) {
+    return collect(IntIterators.asIntIterator(indices.iterator()));
+  }
+
+  public static BitSet toSet(IntCollection indices) {
+    return collect(indices.iterator());
   }
 
   public static BitSet toSet(int... indices) {

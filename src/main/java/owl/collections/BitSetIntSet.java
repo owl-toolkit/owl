@@ -40,7 +40,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   }
 
   private static boolean isSubRange(int subFrom, int subTo, int from, int to) {
-    return from <= subFrom && subTo < to;
+    return from <= subFrom && subTo <= to;
   }
 
   private static boolean validRange(int from, int to) {
@@ -178,7 +178,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public void forEach(IntConsumer consumer) {
-    for (int i = min; i < max && i >= 0; i = bitSet.nextSetBit(i + 1)) {
+    for (int i = bitSet.nextSetBit(min); i < max && i >= 0; i = bitSet.nextSetBit(i + 1)) {
       consumer.accept(i);
     }
   }
@@ -354,7 +354,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   }
 
   @Override
-  public BitIntSet subSet(int fromElement, int toElement) {
+  public BitSetIntSet subSet(int fromElement, int toElement) {
     checkInRange(fromElement, toElement);
     if (min == fromElement && max == toElement) {
       return this;
@@ -397,6 +397,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
     private final BitSetIntSet set;
     private int next;
     private int previous;
+    private int last = -1;
 
     BitSetIterator(BitSetIntSet set) {
       this.set = set;
@@ -444,9 +445,9 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       if (current >= set.min) {
         int previous;
         if (current >= set.max) {
-          previous = set.bitSet.previousSetBit(set.max);
+          previous = set.bitSet.previousSetBit(set.max - 1);
         } else {
-          previous = set.bitSet.previousSetBit(current);
+          previous = set.bitSet.previousSetBit(current - 1);
         }
         if (previous < set.min) {
           return -1;
@@ -473,6 +474,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       }
       previous = next;
       next = getNext(next);
+      last = previous;
       return previous;
     }
 
@@ -483,8 +485,19 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       }
       next = previous;
       previous = getPrevious(previous);
+      last = next;
       return next;
+    }
 
+    @Override
+    public void remove() {
+      if (last == -1) {
+        throw new IllegalStateException("");
+      }
+      if (!set.rem(last)) {
+        throw new IllegalStateException("Concurrent modification");
+      }
+      last = -1;
     }
   }
 }
