@@ -3,6 +3,7 @@ package owl.collections;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
@@ -33,8 +34,15 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class BitSetIntSetTest {
+  /*
+   * Implementation note: As a post-condition, we assert that baseSet and baseReference are equal,
+   * hence all operations carried out on set also have to be carried out on reference in each test.
+   */
+
   private final IntSortedSet baseReference;
   private final BitSetIntSet baseSet;
+  @Nullable
+  private final SubsetRange range;
   private final IntSortedSet reference;
   private final BitSetIntSet set;
   private final IntSortedSet valuesInRange;
@@ -42,6 +50,7 @@ public class BitSetIntSetTest {
   public BitSetIntSetTest(List<Integer> input, @Nullable SubsetRange range) {
     baseReference = new IntAVLTreeSet(input);
     baseSet = new BitSetIntSet(BitSets.toSet(input));
+    this.range = range;
 
     if (range == null) {
       this.reference = baseReference;
@@ -78,24 +87,26 @@ public class BitSetIntSetTest {
       {ImmutableList.of(1, 4, 5, 8), null},
       {ImmutableList.of(1, 4, 5, 8), new SubsetRange(3, 5)},
       {ImmutableList.of(1, 4, 8, 123, 1, 34, 54, 23, 650, 34), null},
-      {ImmutableList.copyOf(IntStream.range(0, 30).boxed().collect(Collectors.toList())),
-        new SubsetRange(10, 20)},
+      {ImmutableList.copyOf(IntStream.range(0, 10).boxed().collect(Collectors.toList())),
+        new SubsetRange(2, 7)},
     });
   }
 
   @After
   public void checkBaseSet() {
+    // This check "guarantees" that there was no exception - unfortunately there is no easy way
+    // to detect this using @After and of course there can't be any kind of consistency when
+    // exceptions are involved.
+    assumeThat(set, equalTo(reference));
     assertThat(baseSet, equalTo(baseReference));
   }
 
   @Test
-  public void subSet() {
-  }
-
-  @Test
   public void testAdd() {
-    assertThat(set.add(1), is(reference.add(1)));
-    assertThat(set, equalTo(reference));
+    for (int i : valuesInRange) {
+      assertThat(set.add(i), is(reference.add(i)));
+      assertThat(set, equalTo(reference));
+    }
   }
 
   @Test
@@ -106,11 +117,20 @@ public class BitSetIntSetTest {
 
   @Test
   public void testAddAllOptimized() {
-    BitIntSet testSet = BitSets.createBitSet();
-    testSet.addAll(valuesInRange);
+    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
 
     assertThat(set.addAll(testSet), is(reference.addAll(valuesInRange)));
     assertThat(set, equalTo(reference));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testAddAllOptimizedOutOfBounds() {
+    assumeThat(range, notNullValue());
+
+    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    testSet.add(range.high);
+
+    set.addAll(testSet);
   }
 
   @Test
@@ -126,11 +146,28 @@ public class BitSetIntSetTest {
     assertThat(set, equalTo(reference));
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testAddOutOfBounds() {
+    assumeThat(range, notNullValue());
+
+    set.add(range.high);
+  }
+
   @Test
   public void testClear() {
-    reference.rem(1);
-    set.clear(1);
-    assertThat(set, is(reference));
+    for (int i : valuesInRange) {
+      reference.rem(i);
+      set.clear(i);
+      assertThat(set, is(reference));
+    }
+  }
+
+
+  @Test
+  public void testClearOutOfBounds() {
+    assumeThat(range, notNullValue());
+
+    set.clear(range.high);
   }
 
   @Test
@@ -142,6 +179,14 @@ public class BitSetIntSetTest {
     reference.removeAll(rangeSet);
     set.clear(valuesInRange.firstInt(), valuesInRange.lastInt());
     assertThat(set, is(reference));
+  }
+
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testClearRangeOutOfBounds() {
+    assumeThat(range, notNullValue());
+
+    set.clear(range.high, range.high + 1);
   }
 
   @Test(expected = CloneNotSupportedException.class)
@@ -199,8 +244,29 @@ public class BitSetIntSetTest {
   }
 
   @Test
+  public void testContainsNegative() {
+    assumeThat(range, nullValue());
+
+    assertThat(set.contains(-1), is(false));
+  }
+
+  @Test
+  public void testContainsOutOfBounds() {
+    assumeThat(range, notNullValue());
+
+    set.contains(range.high);
+  }
+
+  @Test
   public void testEquals() {
     assertThat(set, equalTo(reference));
+  }
+
+  @Test
+  public void testEqualsOptimized() {
+    BitIntSet testSet = BitSets.createBitSet(reference);
+
+    assertThat(set, equalTo(testSet));
   }
 
   @Test
@@ -280,7 +346,7 @@ public class BitSetIntSetTest {
   public void testIteratorLast() {
     assumeThat(set.isEmpty(), is(false));
 
-    IntBidirectionalIterator iterator = set.iterator(set.lastInt());
+    IntBidirectionalIterator iterator = set.iterator(set.lastInt() + 1);
     assertThat(iterator.hasNext(), is(false));
 
     IntSet elements = new IntArraySet();
@@ -299,7 +365,6 @@ public class BitSetIntSetTest {
     assertThat(set.lastInt(), is(reference.lastInt()));
   }
 
-
   @Test(expected = NoSuchElementException.class)
   public void testLastIntEmpty() {
     assumeThat(set.isEmpty(), is(true));
@@ -309,7 +374,9 @@ public class BitSetIntSetTest {
 
   @Test
   public void testRemove() {
-    assertThat(set.rem(1), is(reference.rem(1)));
+    for (int i : valuesInRange) {
+      assertThat(set.rem(i), is(reference.rem(i)));
+    }
   }
 
   @Test
@@ -321,6 +388,8 @@ public class BitSetIntSetTest {
   @Test
   public void testRemoveAllEmpty() {
     assertThat(set.removeAll(reference), is(not(reference.isEmpty())));
+    reference.clear();
+
     assertThat(set.isEmpty(), is(true));
   }
 
@@ -352,6 +421,8 @@ public class BitSetIntSetTest {
   @Test
   public void testRetainAllEmpty() {
     assertThat(set.retainAll(IntLists.EMPTY_LIST), is(not(reference.isEmpty())));
+    reference.retainAll(IntLists.EMPTY_LIST);
+
     assertThat(set.isEmpty(), is(true));
   }
 
@@ -372,9 +443,11 @@ public class BitSetIntSetTest {
 
   @Test
   public void testSet() {
-    set.set(1);
-    reference.add(1);
-    assertThat(set, equalTo(reference));
+    for (int i : valuesInRange) {
+      set.set(i);
+      reference.add(i);
+      assertThat(set, equalTo(reference));
+    }
   }
 
   @Test
@@ -394,8 +467,22 @@ public class BitSetIntSetTest {
   }
 
   @Test
-  public void testSubset() {
+  public void testSubSetEmpty() {
     assumeThat(set.isEmpty(), is(false));
+
+    assertThat(set.subSet(valuesInRange.firstInt(), valuesInRange.firstInt()).isEmpty(), is(true));
+  }
+
+  @Test
+  public void testSubSetFull() {
+    assumeThat(set.isEmpty(), is(false));
+
+    assertThat(set.subSet(reference.firstInt(), reference.lastInt() + 1), is(reference));
+  }
+
+  @Test
+  public void testSubset() {
+    assumeThat(valuesInRange.isEmpty(), is(false));
 
     assertThat(set.subSet(valuesInRange.firstInt(), valuesInRange.lastInt()),
       is(reference.subSet(valuesInRange.firstInt(), valuesInRange.lastInt())));
@@ -447,20 +534,5 @@ public class BitSetIntSetTest {
   public void testToStringNoError() {
     //noinspection ResultOfMethodCallIgnored
     set.toString();
-  }
-
-  private static final class SubsetRange {
-    public final int high;
-    public final int low;
-
-    public SubsetRange(int low, int high) {
-      this.low = low;
-      this.high = high;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("[%d, %d)", low, high);
-    }
   }
 }
