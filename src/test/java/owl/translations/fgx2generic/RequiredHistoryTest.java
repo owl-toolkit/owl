@@ -28,7 +28,6 @@ import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 
 public class RequiredHistoryTest {
 
@@ -38,7 +37,7 @@ public class RequiredHistoryTest {
   }
 
   @Test
-  public void getRequiredHistoryLarge() throws ParserException {
+  public void getRequiredHistoryLarge() {
     LtlParser parser = new LtlParser();
     Formula formula = parser.parseLtl("X (a | (X (b & X c)))");
 
@@ -59,7 +58,7 @@ public class RequiredHistoryTest {
   }
 
   @Test
-  public void getRequiredHistorySmall() throws ParserException {
+  public void getRequiredHistorySmall() {
     LtlParser parser = new LtlParser();
     Formula formula = parser.parseLtl("a | (X b)");
 

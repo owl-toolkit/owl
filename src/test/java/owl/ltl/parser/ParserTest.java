@@ -129,7 +129,7 @@ public class ParserTest {
     + "}\n";
 
   @Test
-  public void formula() throws ParserException {
+  public void formula() {
     for (int i = 0; i < INPUT.length; i++) {
       Formula formula = LtlParser.formula(INPUT[i]);
       assertEquals(INPUT[i], FORMULAS[i], formula);
@@ -137,7 +137,7 @@ public class ParserTest {
   }
 
   @Test
-  public void testTlsf1() throws ParserException {
+  public void testTlsf1() {
     // Parser parser = new Parser(new StringReader(TLSF1));
     // Tlsf tlsf = parser.tlsf();
     Tlsf tlsf = TlsfParser.parse(TLSF1);
@@ -154,7 +154,7 @@ public class ParserTest {
   }
 
   @Test
-  public void testTlsf2() throws ParserException {
+  public void testTlsf2() {
     Tlsf tlsf = TlsfParser.parse(TLSF2);
 
     assertEquals(Tlsf.Semantics.MOORE, tlsf.semantics());

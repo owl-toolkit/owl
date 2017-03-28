@@ -29,7 +29,6 @@ import owl.automaton.output.HoaPrintable;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 import owl.translations.Optimisation;
 
 public class LTL2LDGBATest {
@@ -57,7 +56,7 @@ public class LTL2LDGBATest {
     + "--END--\n";
 
   private static void testOutput(String ltl, EnumSet<Optimisation> opts, int size,
-    @Nullable String expectedOutput) throws IOException, ParserException {
+    @Nullable String expectedOutput) throws IOException {
     LtlParseResult parseResult = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
       GeneralizedBuchiAcceptance, RecurringObligations> automaton =
@@ -72,24 +71,23 @@ public class LTL2LDGBATest {
   }
 
   private static void testOutput(String ltl, int size, String expectedOutput)
-    throws IOException, ParserException {
+    throws IOException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     testOutput(ltl, opts, size, expectedOutput);
   }
 
   private static void testOutput(String ltl, EnumSet<Optimisation> opts, int size)
-    throws IOException,
-    ParserException {
+    throws IOException {
     testOutput(ltl, opts, size, null);
   }
 
-  private static void testOutput(String ltl, int size) throws IOException, ParserException {
+  private static void testOutput(String ltl, int size) throws IOException {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     testOutput(ltl, opts, size, null);
   }
 
   // @Test
-  public void regressionTestStack() throws IOException, ParserException {
+  public void regressionTestStack() throws IOException {
     String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | "
       + "(G((!(b)) | ((c) & (X(F(e))))))))))";
     testOutput(ltl, 46);

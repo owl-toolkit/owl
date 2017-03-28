@@ -8,7 +8,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 
 public class FragmentsTest {
 
@@ -17,30 +16,27 @@ public class FragmentsTest {
 
   static {
     LtlParser parser = new LtlParser();
-    try {
-      FORMULAS = ImmutableList.of(
-        parser.parseLtl("true"),
-        parser.parseLtl("false"),
-        parser.parseLtl("a"),
-        parser.parseLtl("F a"),
-        parser.parseLtl("G a"),
-        parser.parseLtl("X a"),
-        parser.parseLtl("a U b"),
-        parser.parseLtl("a R b"),
-        parser.parseLtl("a & X F b")
-      );
-    } catch (ParserException ex) {
-      throw new AssertionError(ex);
-    }
+
+    FORMULAS = ImmutableList.of(
+      parser.parseLtl("true"),
+      parser.parseLtl("false"),
+      parser.parseLtl("a"),
+      parser.parseLtl("F a"),
+      parser.parseLtl("G a"),
+      parser.parseLtl("X a"),
+      parser.parseLtl("a U b"),
+      parser.parseLtl("a R b"),
+      parser.parseLtl("a & X F b")
+    );
   }
 
   @Test
-  public void isCoSafety() throws ParserException {
+  public void isCoSafety() {
     assertTrue(Fragments.isCoSafety(FORMULAS.get(0)));
   }
 
   @Test
-  public void isX() throws ParserException {
+  public void isX() {
     assertTrue(Fragments.isX(FORMULAS.get(0)));
     assertTrue(Fragments.isX(FORMULAS.get(1)));
     assertTrue(Fragments.isX(FORMULAS.get(2)));

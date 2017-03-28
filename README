@@ -6,7 +6,7 @@
 
 ## About
 
-Owl (**O**mega **W**ord and automata **L**ibrary) is a library tailored for --- but not limited to --- semantic-based translations from LTL to deterministic automata. It ships basic building blocks for constructiong omega-automata and includes several command-line tools implementing these translations.
+Owl (**O**mega **W**ord and automata **L**ibrary) is a library tailored for --- but not limited to --- semantic-based translations from LTL to deterministic automata. It ships basic building blocks for constructing omega-automata and includes several command-line tools implementing these translations.
 
 ## Building
 
@@ -30,6 +30,10 @@ Owl (**O**mega **W**ord and automata **L**ibrary) is a library tailored for --- 
 
 ## Tool Guide
 
+### LTL Input
+
+The supported input grammar for LTL is described in the file `LTL_GRAMMAR`.
+
 ### General Commandline Flags
 
 The following flags are understood by all tools contained in Owl:
@@ -39,7 +43,7 @@ The following flags are understood by all tools contained in Owl:
 
 ### ltl2ldba
 
-`ltl2ldba` produces in its default configuration limit-determinisitc generalized Büchi automata and enables all optimisations. The formula can either be passed as an argument or piped to `stdin`. The automaton is always written to `stdout`. To construct the automaton for an LTL formula simply type: 
+`ltl2ldba` produces in its default configuration limit-deterministic generalized Büchi automata and enables all optimizations. The formula can either be passed as an argument or piped to `stdin`. The automaton is always written to `stdout`. To construct the automaton for an LTL formula simply type: 
 
     $ ./Tools/owl-1.0.0/bin/ltl2ldba "! (a U (b W c))"
     $ echo "a -> X b" | ./Tools/owl-1.0.0/bin/ltl2ldba
@@ -85,4 +89,4 @@ Furthermore, the parallel mode can be enable by passing: `--parallel`
 
 ## History
 
-owl is a merger of the previous seperate projects owl-base and owl-translations. owl-base is a merger of the previous seperate projects ltl-lib and omega-automaton-lib. Parts of the code originated from Rabinizer.
+owl is a merger of the previous separate projects owl-base and owl-translations. owl-base is a merger of the previous separate projects ltl-lib and omega-automaton-lib. Parts of the code originated from Rabinizer.

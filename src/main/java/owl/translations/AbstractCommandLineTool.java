@@ -30,15 +30,15 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.transformations.ToStateAcceptance;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.parser.ParserException;
 
 public abstract class AbstractCommandLineTool<T> {
   private static final String ANNOTATIONS = "--annotations";
   private static final String OPTIMISATIONS = "--optimisations=";
 
-  void execute(Deque<String> args) throws IOException, ParserException,
-    ParseException {
+  @SuppressWarnings("PMD.PrematureDeclaration")
+  void execute(Deque<String> args) {
     // Read input.
     EnumSet<HoaPrintable.Option> options = parseHoaOutputOptions(args);
     EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
@@ -46,10 +46,16 @@ public abstract class AbstractCommandLineTool<T> {
     boolean stateAcceptance = args.remove("--state-acceptance");
     boolean readStdIn = args.isEmpty();
     T input;
-    if (readStdIn) {
-      input = parseInput(System.in);
-    } else {
-      input = parseInput(new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
+
+    try {
+      if (readStdIn) {
+        input = parseInput(System.in);
+      } else {
+        input = parseInput(new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
+      }
+    } catch (ParseCancellationException | ParseException | IOException ex) {
+      System.err.println("Failed to read input. Reason: " + ex);
+      return;
     }
 
     // Apply translation.
@@ -58,9 +64,11 @@ public abstract class AbstractCommandLineTool<T> {
     // Write output.
     result.setVariables(getVariables());
     HOAConsumer consumer = new HOAConsumerPrint(System.out);
+
     if (stateAcceptance) {
       consumer = new HOAIntermediateStoreAndManipulate(consumer, new ToStateAcceptance());
     }
+
     result.toHoa(consumer, options);
   }
 
@@ -77,8 +85,7 @@ public abstract class AbstractCommandLineTool<T> {
     }
   }
 
-  protected abstract T parseInput(InputStream stream) throws IOException, ParserException,
-    ParseException;
+  protected abstract T parseInput(InputStream stream) throws IOException, ParseException;
 
   private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {
     EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);

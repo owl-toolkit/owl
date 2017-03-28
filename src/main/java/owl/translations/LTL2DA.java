@@ -17,7 +17,6 @@
 
 package owl.translations;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -27,7 +26,6 @@ import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.ltl.parser.ParserException;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
@@ -38,8 +36,7 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
     this.parallel = parallel;
   }
 
-  public static void main(String... argsArray)
-    throws IOException, ParserException, jhoafparser.parser.generated.ParseException {
+  public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new LTL2DA(args.remove("--parallel")).execute(args);
   }

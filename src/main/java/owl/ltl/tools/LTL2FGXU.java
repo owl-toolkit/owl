@@ -21,7 +21,6 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.UnabbreviateVisitor;
 
@@ -29,7 +28,7 @@ public final class LTL2FGXU {
   private LTL2FGXU() {
   }
 
-  public static void main(String[] argv) throws ParserException {
+  public static void main(String[] argv) {
     LtlParseResult ltlParseResult = LtlParser.parse(argv[0]);
     Formula formula = ltlParseResult.getFormula().accept(
       new UnabbreviateVisitor(ROperator.class, MOperator.class, WOperator.class));

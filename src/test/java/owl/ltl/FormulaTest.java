@@ -29,7 +29,6 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 
 @RunWith(Theories.class)
 public class FormulaTest {
@@ -46,20 +45,17 @@ public class FormulaTest {
 
   static {
     LtlParser parser = new LtlParser();
-    try {
-      FORMULAS = ImmutableList.of(
-        parser.parseLtl("true"),
-        parser.parseLtl("false"),
-        parser.parseLtl("a"),
-        parser.parseLtl("F a"),
-        parser.parseLtl("G a"),
-        parser.parseLtl("X a"),
-        parser.parseLtl("a U b"),
-        parser.parseLtl("a R b")
-      );
-    } catch (ParserException ex) {
-      throw new AssertionError(ex);
-    }
+
+    FORMULAS = ImmutableList.of(
+      parser.parseLtl("true"),
+      parser.parseLtl("false"),
+      parser.parseLtl("a"),
+      parser.parseLtl("F a"),
+      parser.parseLtl("G a"),
+      parser.parseLtl("X a"),
+      parser.parseLtl("a U b"),
+      parser.parseLtl("a R b")
+    );
   }
 
   static {

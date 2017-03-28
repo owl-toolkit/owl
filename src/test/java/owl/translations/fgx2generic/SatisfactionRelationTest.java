@@ -33,12 +33,11 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 
 public class SatisfactionRelationTest {
 
   @Test
-  public void modelsConjunction() throws ParserException {
+  public void modelsConjunction() {
     LtlParser parser = new LtlParser();
     Formula formula = parser.parseLtl("a | (X b)");
     BitSet now = new BitSet();
@@ -88,7 +87,7 @@ public class SatisfactionRelationTest {
   }
 
   @Test
-  public void modelsRequiredHistoryCompatible() throws ParserException {
+  public void modelsRequiredHistoryCompatible() {
     LtlParser parser = new LtlParser();
     Formula formula = parser.parseLtl("X (a | (X (b & X c)))");
 

@@ -26,7 +26,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
-project.version = '1.1.0-SNAPSHOT'
+project.version = '1.1.0'
 
 //noinspection GroovyUnusedAssignment
 mainClassName = ''
@@ -50,7 +50,7 @@ dependencies {
     compileOnly 'org.immutables:value:2.3.9'
 
     compile 'com.google.guava:guava:21.0'
-    compile 'it.unimi.dsi:fastutil:7.0.13'
+    compile 'it.unimi.dsi:fastutil:7.1.0'
     compile 'org.antlr:antlr4-runtime:4.6'
     compile files('lib/jhoafparser-1.1.1.jar')
 
@@ -196,10 +196,6 @@ tasks.withType(Checkstyle).each { checkstyleTask ->
     }
 }
 
-task createAllStartScripts() {
-    // just a placeholder
-}
-
 def scripts = [
     'ltl2da'  : 'owl.translations.LTL2DA',
     'ltl2dpa' : 'owl.translations.LTL2DPA',
@@ -217,16 +213,23 @@ scripts.each() { scriptName, className ->
             //noinspection GroovyAccessibility
             classpath = jar.outputs.files + project.configurations.runtime
         }
-    applicationDistribution.into("bin") {
-        from(t)
-        fileMode = 0755
-    }
-    createAllStartScripts.dependsOn(t)
+
+    startScripts.dependsOn(t)
 }
 
 distributions {
     main {
         baseName = 'owl'
+
+        contents {
+            from "AUTHORS"
+            from "README"
+            from "CHANGELOG"
+            from "LICENSE"
+            from "LTL_GRAMMAR"
+            exclude "owl"
+            exclude "owl.bat"
+        }
     }
 }
 
