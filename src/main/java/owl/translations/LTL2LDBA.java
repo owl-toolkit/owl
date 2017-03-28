@@ -17,16 +17,13 @@
 
 package owl.translations;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import jhoafparser.parser.generated.ParseException;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.ltl.parser.ParserException;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public final class LTL2LDBA extends AbstractLtlCommandLineTool {
@@ -52,8 +49,7 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
     nondet = configuration.contains(Configuration.NONDET_INITIAL_COMPONENT);
   }
 
-  public static void main(String... argsArray)
-    throws IllegalArgumentException, IOException, ParserException, ParseException {
+  public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
 
     EnumSet<Configuration> configuration = EnumSet.of(Configuration.GENERALISED);

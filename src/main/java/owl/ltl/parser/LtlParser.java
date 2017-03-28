@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.grammar.LTLLexer;
 import owl.grammar.LTLParser;
 import owl.ltl.Formula;
@@ -20,47 +19,38 @@ public final class LtlParser {
   }
 
   public static Formula formula(String input) {
-    try {
-      return new LtlParser().parseLtl(input);
-    } catch (ParserException e) {
-      throw new AssertionError(e);
-    }
+    return new LtlParser().parseLtl(input);
   }
 
-  private static LtlParseResult parse(ANTLRInputStream stream) throws ParserException {
+  private static LtlParseResult parse(ANTLRInputStream stream) {
     final LtlParser parser = new LtlParser();
     final Formula formula = parser.parseLtl(stream);
     return new LtlParseResult(formula, parser.variables());
   }
 
-  public static LtlParseResult parse(String input) throws ParserException {
+  public static LtlParseResult parse(String input) {
     return parse(new ANTLRInputStream(input));
   }
 
-  public static LtlParseResult parse(InputStream input) throws IOException, ParserException {
+  public static LtlParseResult parse(InputStream input) throws IOException {
     return parse(new ANTLRInputStream(input));
   }
 
-  public Formula parseLtl(String input) throws ParserException {
+  public Formula parseLtl(String input) {
     return parseLtl(new ANTLRInputStream(input));
   }
 
-  public Formula parseLtl(InputStream input) throws IOException, ParserException {
+  public Formula parseLtl(InputStream input) throws IOException {
     return parseLtl(new ANTLRInputStream(input));
   }
 
-  private Formula parseLtl(ANTLRInputStream stream) throws ParserException {
+  private Formula parseLtl(ANTLRInputStream stream) {
     final LTLLexer lexer = new LTLLexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
     final CommonTokenStream tokens = new CommonTokenStream(lexer);
     final LTLParser parser = new LTLParser(tokens);
     parser.setErrorHandler(new BailErrorStrategy());
-
-    try {
-      return treeVisitor.visit(parser.formula());
-    } catch (ParseCancellationException e) {
-      throw new ParserException(e);
-    }
+    return treeVisitor.visit(parser.formula());
   }
 
   public ImmutableList<String> variables() {

@@ -20,7 +20,6 @@ package owl.translations;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -35,7 +34,6 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.parser.ParserException;
 import owl.translations.nba2ldba.NBA2LDBAFunction;
 
 public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
@@ -43,8 +41,7 @@ public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   @Nullable
   private List<String> variables = null;
 
-  public static void main(String... args)
-    throws ParserException, ParseException, IOException {
+  public static void main(String... args) {
     new NBA2LDBA().execute(new ArrayDeque<>(Arrays.asList(args)));
   }
 

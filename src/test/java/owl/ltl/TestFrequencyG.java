@@ -21,12 +21,11 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 
 public class TestFrequencyG {
 
   @Test
-  public void testNegation() throws ParserException {
+  public void testNegation() {
     String test = "G { >= 0.4} a";
     String testNegated = "G {sup > 0.6} (!a)";
     LtlParser parser = new LtlParser();

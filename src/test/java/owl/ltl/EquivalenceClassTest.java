@@ -37,7 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
@@ -99,7 +98,7 @@ public abstract class EquivalenceClassTest {
   }
 
   @Test
-  public void testExistsAndSat() throws ParserException {
+  public void testExistsAndSat() {
     Predicate<Formula> predicate = ((Predicate<Formula>) GOperator.class::isInstance).negate();
     LtlParser parser = new LtlParser();
 
@@ -135,7 +134,7 @@ public abstract class EquivalenceClassTest {
   }
 
   @Test
-  public void testFrequencyGNotFalse() throws ParserException, ParseException {
+  public void testFrequencyGNotFalse() throws ParseException {
     Formula formula = LtlParser.formula("G { >= 0.4} a");
     EquivalenceClassFactory factory = setUpFactory(formula);
     EquivalenceClass clazz = factory.createEquivalenceClass(formula);
@@ -181,7 +180,7 @@ public abstract class EquivalenceClassTest {
   }
 
   @Test
-  public void testGetSupport() throws ParserException {
+  public void testGetSupport() {
     LtlParser parser = new LtlParser();
     Formula[] formulas = {
       parser.parseLtl("a"),
@@ -214,7 +213,7 @@ public abstract class EquivalenceClassTest {
   }
 
   // @Test
-  public void testLtlBackgroundTheory1() throws ParserException {
+  public void testLtlBackgroundTheory1() {
     LtlParser parser = new LtlParser();
     Formula f1 = parser.parseLtl("G p0 & p0");
     Formula f2 = parser.parseLtl("G p0");
@@ -222,7 +221,7 @@ public abstract class EquivalenceClassTest {
   }
 
   // @Test
-  public void testLtlBackgroundTheory2() throws ParserException {
+  public void testLtlBackgroundTheory2() {
     LtlParser parser = new LtlParser();
     Formula f1 = parser.parseLtl("G p0 | p0");
     Formula f2 = parser.parseLtl("p0");
@@ -239,7 +238,7 @@ public abstract class EquivalenceClassTest {
   }
 
   @Test
-  public void testSubstitute() throws ParserException {
+  public void testSubstitute() {
     LtlParser parser = new LtlParser();
     EquivalenceClass[] formulas = {
       factory.createEquivalenceClass(parser.parseLtl("a")),
@@ -254,7 +253,7 @@ public abstract class EquivalenceClassTest {
 
   @SuppressWarnings("ReuseOfLocalVariable")
   @Test
-  public void testTemporalStep() throws ParserException {
+  public void testTemporalStep() {
     BitSet stepSet = new BitSet();
     LtlParser parser = new LtlParser();
     Formula formula = parser.parseLtl("a & X (! a)");

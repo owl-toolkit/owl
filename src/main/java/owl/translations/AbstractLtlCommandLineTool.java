@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 
 public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool<Formula> {
   @Nullable
@@ -37,7 +36,7 @@ public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool
   }
 
   @Override
-  protected Formula parseInput(InputStream stream) throws IOException, ParserException {
+  protected Formula parseInput(InputStream stream) throws IOException {
     LtlParseResult parser = LtlParser.parse(stream);
     Formula formula = parser.getFormula();
     variables = parser.getVariableMapping();

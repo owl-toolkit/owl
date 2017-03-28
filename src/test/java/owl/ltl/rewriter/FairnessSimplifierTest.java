@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.ParserException;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class FairnessSimplifierTest {
@@ -19,7 +18,7 @@ public class FairnessSimplifierTest {
   };
 
   @Test
-  public void apply() throws ParserException {
+  public void apply() {
     for (int i = 0; i < INPUT.length; i++) {
       LtlParser parser = new LtlParser();
       Formula input = parser.parseLtl(INPUT[i]);

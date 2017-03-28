@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.EnumSet;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.ltl.parser.ParserException;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 import owl.translations.Optimisation;
@@ -33,7 +32,7 @@ public final class Tlsf2Arena {
   private Tlsf2Arena() {
   }
 
-  public static void main(String... args) throws ParserException, IOException {
+  public static void main(String... args) throws IOException {
     String[] arguments = args;
     // TODO
     if (arguments.length == 0) {

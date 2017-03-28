@@ -17,18 +17,15 @@
 
 package owl.translations;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
-import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.ltl.parser.ParserException;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.fgx2generic.Builder;
@@ -45,7 +42,7 @@ public final class FGX2DGA extends AbstractLtlCommandLineTool {
     fallback = ((Function) new LTL2DPAFunction(fallbackOptimisations));
   }
 
-  public static void main(String... argsArray) throws ParserException, ParseException, IOException {
+  public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
     new FGX2DGA(args.remove("--strict")).execute(args);
   }
