@@ -23,3 +23,9 @@ All tools based on `Owl` understand the same LTL input language. The following c
 * Weak Until: `W`
 * (Weak) Release: `R`
 * Strong Release: `M`
+
+## Precedence Rules
+
+The parser uses the following precedence:
+
+`OR` < `AND` < Binary Expressions < Unary Expressions < Literals, Constants, Parentheses

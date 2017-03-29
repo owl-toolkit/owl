@@ -46,7 +46,7 @@ unaryOp
   ;
 
 binaryOp
-  : BIIMP | IMP | UNTIL | WUNTIL | RELEASE | SRELEASE
+  : BIIMP | IMP | XOR | UNTIL | WUNTIL | RELEASE | SRELEASE
   ;
 
 bool
