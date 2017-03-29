@@ -26,7 +26,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
-project.version = '1.1.0'
+project.version = '1.2.0-SNAPSHOT'
 
 //noinspection GroovyUnusedAssignment
 mainClassName = ''
@@ -223,10 +223,10 @@ distributions {
 
         contents {
             from "AUTHORS"
-            from "README"
-            from "CHANGELOG"
+            from "README.md"
+            from "CHANGELOG.md"
             from "LICENSE"
-            from "LTL_GRAMMAR"
+            from "LTL_GRAMMAR.md"
             exclude "owl"
             exclude "owl.bat"
         }

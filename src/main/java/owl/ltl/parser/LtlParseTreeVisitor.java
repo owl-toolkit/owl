@@ -52,55 +52,67 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitAndExpression(AndExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
-    if (ctx.getChildCount() == 1) {
-      return visit(ctx.getChild(0));
-    }
-    final Formula f = Conjunction.create(ctx.children.stream()
+
+    return Conjunction.create(ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit));
-    assert f != null;
-    return f;
   }
 
   @Override
   public Formula visitBinaryOperation(BinaryOperationContext ctx) {
     assert ctx.getChildCount() == 3;
     assert ctx.left != null && ctx.right != null;
-    final BinaryOpContext binaryOp = ctx.binaryOp();
-    final Formula left = visit(ctx.left);
-    final Formula right = visit(ctx.right);
+
+    BinaryOpContext binaryOp = ctx.binaryOp();
+    Formula left = visit(ctx.left);
+    Formula right = visit(ctx.right);
+
     if (binaryOp.BIIMP() != null) {
       return Disjunction.create(Conjunction.create(left, right),
         Conjunction.create(left.not(), right.not()));
     }
+
     if (binaryOp.IMP() != null) {
       return Disjunction.create(left.not(), right);
     }
+
+    if (binaryOp.XOR() != null) {
+      return Disjunction.create(Conjunction.create(left, right.not()),
+        Conjunction.create(left.not(), right));
+    }
+
     if (binaryOp.UNTIL() != null) {
       return UOperator.create(left, right);
     }
+
     if (binaryOp.WUNTIL() != null) {
       return WOperator.create(left, right);
     }
+
     if (binaryOp.RELEASE() != null) {
       return ROperator.create(left, right);
     }
+
     if (binaryOp.SRELEASE() != null) {
       return MOperator.create(left, right);
     }
+
     throw new ParseCancellationException("Unknown operator");
   }
 
   @Override
   public Formula visitBoolean(BooleanContext ctx) {
     assert ctx.getChildCount() == 1;
-    final BoolContext constant = ctx.bool();
+    BoolContext constant = ctx.bool();
+
     if (constant.FALSE() != null) {
       return BooleanConstant.FALSE;
     }
+
     if (constant.TRUE() != null) {
       return BooleanConstant.TRUE;
     }
+
     throw new ParseCancellationException("Unknown constant");
   }
 
@@ -126,14 +138,10 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitOrExpression(OrExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
-    if (ctx.getChildCount() == 1) {
-      return visit(ctx.getChild(0));
-    }
-    final Formula f = Disjunction.create(ctx.children.stream()
+
+    return Disjunction.create(ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit));
-    assert f != null;
-    return f;
   }
 
   @Override
@@ -146,15 +154,19 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     if (unaryOp.NOT() != null) {
       return operand.not();
     }
+
     if (unaryOp.FINALLY() != null) {
       return FOperator.create(operand);
     }
+
     if (unaryOp.GLOBALLY() != null) {
       return GOperator.create(operand);
     }
+
     if (unaryOp.NEXT() != null) {
       return XOperator.create(operand);
     }
+
     if (unaryOp.frequencyOp() != null) {
       final FrequencyOpContext freqCtx = unaryOp.frequencyOp();
       assert freqCtx.op != null && freqCtx.comp != null && freqCtx.prob != null;

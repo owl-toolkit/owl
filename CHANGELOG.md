@@ -1,3 +1,8 @@
+# 1.2-SNAPSHOT
+
+Library:
+ * Support the `xor` operator in the LTL input.
+
 # 1.1 (2017-03-28)
 
 Tools:

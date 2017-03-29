@@ -14,6 +14,7 @@ NOT        : '!' | 'NOT';
 // Logical Binary
 IMP        : '->' | '=>' | 'IMP';
 BIIMP      : '<->' | '<=>' | 'BIIMP';
+XOR        : '^' | 'XOR' | 'xor';
 
 // Logical n-ary
 AND        : '&&' | '&' | 'AND' ;

@@ -3,6 +3,9 @@
 a
 a & b
 a | b
+a -> b
+a <-> b
+a xor b
 F a
 G a
 X a
