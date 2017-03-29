@@ -45,39 +45,39 @@ The following flags are understood by all tools contained in Owl:
 
 `ltl2ldba` produces in its default configuration limit-deterministic generalized Büchi automata and enables all optimizations. The formula can either be passed as an argument or piped to `stdin`. The automaton is always written to `stdout`. To construct the automaton for an LTL formula simply type: 
 
-    $ ./Tools/owl-1.0.0/bin/ltl2ldba "! (a U (b W c))"
-    $ echo "a -> X b" | ./Tools/owl-1.0.0/bin/ltl2ldba
+    $ ./ltl2ldba "! (a U (b W c))"
+    $ echo "a -> X b" | ./ltl2ldba
 
-To obtain a Büchi automaton pass use the `--Buchi` flag:
+To obtain a Büchi automaton pass the `--Buchi` flag:
 
-    $ ./Tools/owl-1.0.0/bin/ltl2ldba --Buchi "(F G (a U (! X b))) & G F c"
+    $ ./ltl2ldba --Buchi "(F G (a U (! X b))) & G F c"
 
-To obtain to a non-deterministic initial component pass `-n`:
+To obtain a non-deterministic initial component pass `-n`:
 
-    $ ./Tools/owl-1.0.0/bin/ltl2ldba -n "F (a & X X X b)"
+    $ ./ltl2ldba -n "F (a & X X X b)"
 
 ### ltl2dpa
 
 `ltl2dpa` produces a deterministic parity automaton. The formula can either be passed as an argument or piped to `stdin`. The automaton is always written to `stdout`.
 
-    $ ./Tools/owl-1.0.0/bin/ltl2dpa "! (a U (b W c))"
-    $ echo "a -> X b" | ./Tools/owl-1.0.0/bin/ltl2dpa
+    $ ./bin/ltl2dpa "! (a U (b W c))"
+    $ echo "a -> X b" | ./bin/ltl2dpa
 
 Furthermore, the parallel mode can be enable by passing: `--parallel`
 
-    $ ./Tools/owl-1.0.0/bin/ltl2dpa --parallel "(F G (a U (! X b))) & G F c"
+    $ ./bin/ltl2dpa --parallel "(F G (a U (! X b))) & G F c"
 
 ### ltl2da
 
 `ltl2da` selects automatically the smallest deterministic automaton it can produce. It has the same usage as `ltl2dpa`.
 
-    $ ./Tools/owl-1.0.0/bin/ltl2da "! (a U (b W c)))"
+    $ ./bin/ltl2da "! (a U (b W c)))"
 
 ### nba2ldba
 
 `nba2ldba` reads a non-deterministic Büchi automaton from `stdin` (HOA expected) and writes the result to `stdout`.
 
-    $ ltl2tgba -B "F G (a | X b)" | ./Tools/owl-1.0.0/bin/nba2ldba
+    $ ltl2tgba -B "F G (a | X b)" | ./bin/nba2ldba
 
 ## Publications
 
