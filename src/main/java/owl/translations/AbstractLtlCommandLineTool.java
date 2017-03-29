@@ -17,29 +17,26 @@
 
 package owl.translations;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import javax.annotation.Nullable;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import owl.ltl.Formula;
-import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
 
 public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool<Formula> {
-  @Nullable
-  private List<String> variables = null;
-
   @Override
-  protected List<String> getVariables() {
-    assert variables != null;
-    return variables;
-  }
-
-  @Override
-  protected Formula parseInput(InputStream stream) throws IOException {
-    LtlParseResult parser = LtlParser.parse(stream);
-    Formula formula = parser.getFormula();
-    variables = parser.getVariableMapping();
-    return formula;
+  protected Collection<CommandLineInput<Formula>> parseInput(InputStream stream)
+    throws IOException {
+    try (BufferedReader reader =
+           new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+      return reader.lines()
+        .map(LtlParser::parse)
+        .map(parser -> new CommandLineInput<>(parser.getFormula(), parser.getVariableMapping()))
+        .collect(Collectors.toList());
+    }
   }
 }

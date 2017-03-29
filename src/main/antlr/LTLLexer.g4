@@ -38,7 +38,7 @@ RPAREN     : ')';
 LCPAREN    : '{' -> mode(FREQUENCY_SPEC);
 
 // Need to be at the bottom because of precedence rules
-VARIABLE   : [a-zA-Z_][a-zA-Z_0-9]* ;
+VARIABLE   : [a-z_][a-zA-Z_0-9]* ;
 
 fragment
 WHITESPACE : [ \t\n\r\f]+;
