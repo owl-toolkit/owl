@@ -20,7 +20,6 @@ package owl.automaton.acceptance;
 import static owl.automaton.acceptance.AcceptanceHelper.filterSuccessorFunction;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
@@ -30,6 +29,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import jhoafparser.ast.AtomAcceptance;
+import jhoafparser.ast.AtomAcceptance.Type;
 import jhoafparser.ast.BooleanExpression;
 import owl.algorithms.SccAnalyser;
 import owl.automaton.AutomatonUtil;
@@ -45,21 +45,51 @@ import owl.automaton.output.HoaConsumerExtended;
  * acceptance without any pairs rejects every word.
  */
 public final class RabinAcceptance implements OmegaAcceptance {
-  private final List<RabinPair> pairList;
-  private int setCount = 0;
+  private final List<RabinPair> pairs;
 
   public RabinAcceptance() {
-    pairList = new ArrayList<>();
+    pairs = new ArrayList<>();
+  }
+
+  public static RabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
+    RabinAcceptance acceptance = new RabinAcceptance();
+
+    for (BooleanExpression<AtomAcceptance> pair : BooleanExpressions.getDisjuncts(expression)) {
+      int fin = -1;
+      int inf = -1;
+
+      for (BooleanExpression<AtomAcceptance> element : BooleanExpressions.getConjuncts(pair)) {
+        AtomAcceptance atom = element.getAtom();
+
+        switch (atom.getType()) {
+          case TEMPORAL_FIN:
+            fin = atom.getAcceptanceSet();
+            break;
+
+          case TEMPORAL_INF:
+            inf = atom.getAcceptanceSet();
+            break;
+
+          default:
+            assert false;
+            break;
+        }
+      }
+
+      acceptance.createPair(fin, inf);
+    }
+
+    return acceptance;
   }
 
   @Override
   public <S> boolean containsAcceptingRun(Set<S> scc,
-    Function<S, Iterable<Edge<S>>> successorFunction) {
+      Function<S, Iterable<Edge<S>>> successorFunction) {
     assert AutomatonUtil.isScc(scc, successorFunction);
 
     IntSet noFinitePairs = new IntArraySet();
     List<RabinPair> finitePairs = new ArrayList<>();
-    for (RabinPair rabinPair : pairList) {
+    for (RabinPair rabinPair : pairs) {
       if (rabinPair.hasFinite()) {
         finitePairs.add(rabinPair);
       } else if (rabinPair.hasInfinite()) {
@@ -119,42 +149,22 @@ public final class RabinAcceptance implements OmegaAcceptance {
     });
   }
 
-  /**
-   * Creates a new Rabin pair.
-   *
-   * @return The created pair.
-   */
-  public RabinPair createPair() {
-    RabinPair pair = new RabinPair(this, pairList.size());
-    pairList.add(pair);
+  private RabinPair createPair(int fin, int inf) {
+    RabinPair pair = new RabinPair(fin, inf);
+    pairs.add(pair);
     return pair;
-  }
-
-  private int createSet() {
-    int index = setCount;
-    setCount += 1;
-    return index;
   }
 
   @Override
   public int getAcceptanceSets() {
-    return setCount;
+    return 2 * pairs.size();
   }
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    // RA is EXISTS pair. (finitely often Fin set AND infinitely often Inf set)
-    if (pairList.isEmpty()) {
-      // Empty EXISTS is false
-      return new BooleanExpression<>(false);
-    }
     BooleanExpression<AtomAcceptance> expression = null;
 
-    for (RabinPair pair : pairList) {
-      if (pair.isEmpty()) {
-        continue;
-      }
-
+    for (RabinPair pair : pairs) {
       BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
 
       if (expression == null) {
@@ -163,7 +173,11 @@ public final class RabinAcceptance implements OmegaAcceptance {
         expression = expression.or(pairExpression);
       }
     }
-    assert expression != null;
+
+    if (expression == null) {
+      return new BooleanExpression<>(false);
+    }
+
     return expression;
   }
 
@@ -174,70 +188,51 @@ public final class RabinAcceptance implements OmegaAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
-    // <number_of_sets>
-    return ImmutableList.of(setCount);
-  }
-
-  /**
-   * Returns the pair with the specified number, if present.
-   *
-   * @param pairNumber
-   *     The number of the requested pair
-   *
-   * @return The corresponding pair.
-   *
-   * @throws java.util.NoSuchElementException
-   *     If no pair with this particular number is present.
-   * @see RabinPair#getPairNumber()
-   */
-  public RabinPair getPairByNumber(int pairNumber) {
-    return pairList.get(pairNumber);
-  }
-
-  /**
-   * Returns the amount of pairs this acceptance contains.
-   *
-   * @return The amount of Rabin pairs.
-   */
-  public int getPairCount() {
-    return pairList.size();
-  }
-
-  /**
-   * Returns an unmodifiable collection of all pairs in this acceptance.
-   *
-   * @return The rabin pairs of this acceptance condition.
-   */
-  public Set<RabinPair> getPairs() {
-    return ImmutableSet.copyOf(pairList);
+    return ImmutableList.of(pairs.size());
   }
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.acceptanceSetStream().allMatch(index -> index < setCount);
+    return edge.acceptanceSetStream().allMatch(index -> index < 2 * pairs.size());
   }
 
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder(30);
     builder.append("RabinAcceptance: ");
-    for (RabinPair pair : pairList) {
+    for (RabinPair pair : pairs) {
       builder.append(pair);
     }
     return builder.toString();
   }
 
-  public static final class RabinPair {
-    private final RabinAcceptance acceptance;
-    private final int pairNumber;
-    private int finiteIndex;
-    private int infiniteIndex;
+  public static boolean checkWellformednes(
+      BooleanExpression<AtomAcceptance> acceptanceExpression) {
+    if (acceptanceExpression.isAtom() || acceptanceExpression.isNOT()) {
+      return false;
+    }
+    if (acceptanceExpression.isAND()) {
+      if (acceptanceExpression.getLeft().isAtom() && acceptanceExpression.getRight().isAtom()) {
+        return acceptanceExpression.getLeft().getAtom().getType() == Type.TEMPORAL_FIN
+            && acceptanceExpression.getRight().getAtom().getType() == Type.TEMPORAL_INF;
+      } else {
+        return false;
+      }
+    }
+    if (acceptanceExpression.isOR()) {
+      return checkWellformednes(acceptanceExpression.getLeft())
+          && checkWellformednes(acceptanceExpression.getRight());
+    }
+    return false;
+  }
 
-    RabinPair(RabinAcceptance acceptance, int pairNumber) {
-      this.acceptance = acceptance;
-      this.pairNumber = pairNumber;
-      finiteIndex = -1;
-      infiniteIndex = -1;
+  public static final class RabinPair {
+    private final int finiteIndex;
+    private final int infiniteIndex;
+
+    RabinPair(int fin, int inf) {
+      finiteIndex = fin;
+      infiniteIndex = inf;
     }
 
     /**
@@ -280,41 +275,11 @@ public final class RabinAcceptance implements OmegaAcceptance {
     }
 
     public int getFiniteIndex() {
-      assert hasFinite();
       return finiteIndex;
     }
 
     public int getInfiniteIndex() {
-      assert hasInfinite();
       return infiniteIndex;
-    }
-
-    /**
-     * Returns the index representing the <b>Fin</b> set of this pair, allocating it if required.
-     */
-    public int getOrCreateFiniteIndex() {
-      if (finiteIndex == -1) {
-        // Not allocated yet
-        finiteIndex = acceptance.createSet();
-      }
-      return finiteIndex;
-    }
-
-    /**
-     * Returns the index representing the <b>Inf</b> set of this pair, allocating it if required.
-     */
-    public int getOrCreateInfiniteIndex() {
-      if (infiniteIndex == -1) {
-        infiniteIndex = acceptance.createSet();
-      }
-      return infiniteIndex;
-    }
-
-    /**
-     * Returns the number of this pair.
-     */
-    public int getPairNumber() {
-      return pairNumber;
     }
 
     /**
@@ -361,7 +326,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
       }
 
       StringBuilder builder = new StringBuilder(10);
-      builder.append('(').append(pairNumber).append(':');
+      builder.append('(');
       if (finiteIndex == -1) {
         builder.append('#');
       } else {

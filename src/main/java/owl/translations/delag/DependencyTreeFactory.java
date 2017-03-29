@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.fgx2generic;
+package owl.translations.delag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +30,9 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.visitors.DefaultVisitor;
-import owl.translations.fgx2generic.DependencyTree.FallbackLeaf;
-import owl.translations.fgx2generic.DependencyTree.Leaf;
-import owl.translations.fgx2generic.DependencyTree.Type;
+import owl.translations.delag.DependencyTree.FallbackLeaf;
+import owl.translations.delag.DependencyTree.Leaf;
+import owl.translations.delag.DependencyTree.Type;
 
 class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 

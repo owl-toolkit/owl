@@ -5,31 +5,23 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Streams;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntArraySet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.AtomAcceptance.Type;
-import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerStore;
+import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.storage.StoredAutomaton;
@@ -38,12 +30,17 @@ import jhoafparser.storage.StoredEdgeWithLabel;
 import jhoafparser.storage.StoredHeader;
 import jhoafparser.storage.StoredHeader.NameAndExtra;
 import jhoafparser.storage.StoredState;
+import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
@@ -55,66 +52,71 @@ public final class AutomatonReader {
   private AutomatonReader() {
   }
 
-  public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoaInput(
-    String input, Class<A> acceptanceClass) throws ParseException {
-    return readHoaInput(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)),
-      acceptanceClass);
+  public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoa(String input,
+    Class<A> acceptanceClass) throws ParseException {
+    return readHoa(toStream(input), null, acceptanceClass);
   }
 
-  public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoaInput(
-    InputStream stream, Class<A> acceptanceClass) throws ParseException {
+  public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoa(InputStream stream,
+    @Nullable ValuationSetFactory factory, Class<A> acceptanceClass) throws ParseException {
     List<Automaton<HoaState, A>> automata = new ArrayList<>();
-    readHoaInput(stream, automaton -> {
+
+    Consumer<Automaton<HoaState, ?>> automatonConsumer = automaton -> {
       checkArgument(acceptanceClass.isInstance(automaton.getAcceptance()));
-      checkArgument(automata.isEmpty());
-      //noinspection unchecked
+      // noinspection unchecked
       automata.add((Automaton<HoaState, A>) automaton);
-    });
-    checkArgument(automata.size() == 1);
-    return automata.iterator().next();
+    };
+
+    HOAFParser.parseHOA(stream, () ->
+      new HOAIntermediateCheckValidity(
+      new ToTransitionAcceptance(
+      new HoaConsumerAutomaton(automatonConsumer, factory))));
+
+    return Iterables.getOnlyElement(automata);
   }
 
-  public static Collection<Automaton<HoaState, ?>> readHoaInput(String input)
-    throws ParseException {
-    return readHoaInput(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+  public static List<Automaton<HoaState, ?>> readHoaCollection(String input) throws ParseException {
+    return readHoaCollection(toStream(input), null);
   }
 
-  public static Collection<Automaton<HoaState, ?>> readHoaInput(InputStream stream)
-    throws ParseException {
-    Collection<Automaton<HoaState, ?>> automatonList = new ArrayList<>();
-    readHoaInput(stream, automatonList::add);
+  public static List<Automaton<HoaState, ?>> readHoaCollection(InputStream stream,
+    @Nullable ValuationSetFactory factory) throws ParseException {
+    List<Automaton<HoaState, ?>> automatonList = new ArrayList<>();
+
+    HOAFParser.parseHOA(stream, () ->
+      new HOAIntermediateCheckValidity(
+      new ToTransitionAcceptance(
+      new HoaConsumerAutomaton(automatonList::add, factory))));
+
     return automatonList;
   }
 
-  public static void readHoaInput(InputStream stream,
-    Consumer<Automaton<HoaState, ?>> automatonConsumer) throws ParseException {
-    HOAFParser.parseHOA(stream, () -> new HoaConsumerAutomaton(automatonConsumer));
+  private static InputStream toStream(String string) {
+    return new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
   }
 
   private static final class HoaConsumerAutomaton extends HOAConsumerStore {
     private final Consumer<Automaton<HoaState, ?>> consumer;
+    @Nullable
+    private final ValuationSetFactory factory;
 
-    public HoaConsumerAutomaton(Consumer<Automaton<HoaState, ?>> consumer) {
+    HoaConsumerAutomaton(Consumer<Automaton<HoaState, ?>> consumer,
+      @Nullable ValuationSetFactory factory) {
       this.consumer = consumer;
+      this.factory = factory;
     }
 
     @Override
     public void notifyEnd() throws HOAConsumerException {
       super.notifyEnd();
-      consumer.accept(new StoredConverter(getStoredAutomaton()).transform());
+      consumer.accept(new StoredConverter(getStoredAutomaton(), factory).transform());
     }
-
   }
 
   public static final class HoaState {
-    private final int id;
+    final int id;
     @Nullable
-    private final String info;
-
-    HoaState(int id) {
-      this.id = id;
-      this.info = null;
-    }
+    final String info;
 
     HoaState(int id, @Nullable String info) {
       this.id = id;
@@ -129,55 +131,51 @@ public final class AutomatonReader {
       if (!(o instanceof HoaState)) {
         return false;
       }
+
       HoaState that = (HoaState) o;
       return id == that.id;
     }
 
-    int getId() {
-      return id;
-    }
-
-    @Nullable
-    public String getInfo() {
-      return info;
-    }
-
     @Override
     public int hashCode() {
-      return 31 * id;
+      return id;
     }
 
     @Override
     public String toString() {
       if (info == null) {
-        return String.valueOf(id);
+        return Integer.toString(id);
       }
+
       return String.format("%d (%s)", id, info);
     }
   }
 
   private static final class StoredConverter {
+    private final boolean aliasRemap;
     private final MutableAutomaton<HoaState, ?> automaton;
     private final Int2ObjectMap<HoaState> states;
     private final StoredAutomaton storedAutomaton;
     private final StoredHeader storedHeader;
     private final ValuationSetFactory valuationSetFactory;
 
-    StoredConverter(StoredAutomaton storedAutomaton)
+    StoredConverter(StoredAutomaton storedAutomaton, @Nullable ValuationSetFactory factory)
       throws HOAConsumerException {
       check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported");
 
       this.storedAutomaton = storedAutomaton;
       this.storedHeader = storedAutomaton.getStoredHeader();
+      this.aliasRemap = factory != null;
 
       List<String> variables = storedHeader.getAPs();
-      if (variables == null) {
-        variables = extractVariables(storedAutomaton);
-      }
 
       OmegaAcceptance acceptance = getAcceptance();
-      valuationSetFactory =
-        Registry.getFactories(variables.size()).valuationSetFactory;
+      if (factory == null) {
+        valuationSetFactory = Registry.getFactories(variables.size()).valuationSetFactory;
+      } else {
+        valuationSetFactory = factory;
+      }
+
       automaton = new HashMapAutomaton<>(valuationSetFactory, acceptance);
       automaton.setVariables(variables);
       states = new Int2ObjectLinkedOpenHashMap<>(storedAutomaton.getNumberOfStates());
@@ -195,83 +193,29 @@ public final class AutomatonReader {
       throws HOAConsumerException {
       if (!condition) {
         String message;
+
         if (Strings.isNullOrEmpty(formatString) || args == null || args.length == 0) {
           message = "";
         } else {
           message = String.format(formatString, args);
         }
+
         throw new HOAConsumerException(message);
       }
     }
 
-    private static List<String> extractVariables(StoredAutomaton storedAutomaton) {
-      IntSet apSet = new IntArraySet();
-      Streams.stream(storedAutomaton.getStoredStates()) // Over all states
-        .flatMap(state -> {
-          // Get all expressions related to this state (state and edge labels)
-          int stateId = state.getStateId();
-          assert !storedAutomaton.hasEdgesImplicit(stateId);
-          Stream<BooleanExpression<AtomLabel>> stream;
-          if (state.getLabelExpr() == null) {
-            stream = Stream.empty();
-          } else {
-            stream = Stream.of(state.getLabelExpr());
-          }
-          if (storedAutomaton.hasEdgesWithLabel(stateId)) {
-            Stream<StoredEdgeWithLabel> edgeStream =
-              Streams.stream(storedAutomaton.getEdgesWithLabel(stateId));
-            stream = Stream.concat(stream, edgeStream.map(StoredEdgeWithLabel::getLabelExpr));
-          }
-          return stream;
-        })
-        .map(StoredConverter::getAtoms) // Extract all the atoms
-        .flatMap(Collection::stream) // Flat to stream of atoms
-        .mapToInt(AtomLabel::getAPIndex) // Extract AP indices
-        .forEach(apSet::add); // Add to set
+    private void addEdge(HoaState source, ValuationSet valuationSet,
+      @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
+      throws HOAConsumerException {
 
-      // AP indices might be sparse
-      int maxAp = Collections.max(apSet);
-      List<String> variables = new ArrayList<>(maxAp);
-      for (int i = 0; i < maxAp; i++) {
-        // TODO Fill those up with "p" + i?
-        variables.add(null);
-      }
-      apSet.forEach(ap -> variables.set(ap, "p" + ap));
-      return variables;
-    }
+      Edge<HoaState> edge;
 
-    private static Collection<AtomLabel> getAtoms(BooleanExpression<AtomLabel> expression) {
-      Set<AtomLabel> set = new HashSet<>();
-      getAtomsRecursive(expression, set);
-      return set;
-    }
+      if (storedEdgeAcceptance == null) {
+        edge = Edges.create(successor);
+      } else {
+        edge = Edges.create(successor, storedEdgeAcceptance.stream().mapToInt(x -> x).iterator());
+      }
 
-    private static void getAtomsRecursive(BooleanExpression<AtomLabel> expression,
-      Collection<AtomLabel> accumulator) {
-      if (expression.isFALSE() || expression.isTRUE()) {
-        return;
-      }
-      if (expression.isAtom()) {
-        accumulator.add(expression.getAtom());
-      } else if (expression.isNOT()) {
-        getAtomsRecursive(expression.getLeft(), accumulator);
-      } else if (expression.isAND() || expression.isOR()) {
-        getAtomsRecursive(expression.getLeft(), accumulator);
-        getAtomsRecursive(expression.getRight(), accumulator);
-      }
-    }
-
-    private void addEdge(HoaState source, @Nullable List<Integer> storedStateAcceptance,
-      ValuationSet valuationSet, @Nullable List<Integer> storedEdgeAcceptance,
-      HoaState successor) throws HOAConsumerException {
-      IntSet acceptanceSet = new IntArraySet();
-      if (storedEdgeAcceptance != null) {
-        acceptanceSet.addAll(storedEdgeAcceptance);
-      }
-      if (storedStateAcceptance != null) {
-        acceptanceSet.addAll(storedStateAcceptance);
-      }
-      Edge<HoaState> edge = Edges.create(successor, acceptanceSet.iterator());
       check(automaton.getAcceptance().isWellFormedEdge(edge));
       automaton.addEdge(source, valuationSet, edge);
     }
@@ -281,38 +225,30 @@ public final class AutomatonReader {
         storedHeader.getAcceptanceCondition();
       int numberOfAcceptanceSets = storedHeader.getNumberOfAcceptanceSets();
 
-      List<NameAndExtra<List<Object>>> acceptanceNames =
-        storedHeader.getAcceptanceNames();
+      List<NameAndExtra<List<Object>>> acceptanceNames = storedHeader.getAcceptanceNames();
       checkState(acceptanceNames.size() == 1);
       NameAndExtra<List<Object>> acceptanceDescription = acceptanceNames.get(0);
-      String acceptanceName = acceptanceDescription.name;
-      List<Object> acceptanceExtraInfo = acceptanceDescription.extra;
+      List<Object> acceptanceExtra = acceptanceDescription.extra;
 
-      check(acceptanceName != null && acceptanceExtraInfo != null);
-      assert acceptanceName != null && acceptanceExtraInfo != null;
-
-      switch (acceptanceName.toLowerCase(Locale.ENGLISH)) {
+      switch (acceptanceDescription.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
-          check(acceptanceExtraInfo.isEmpty()
-            && acceptanceExpression.isTRUE() && numberOfAcceptanceSets == 0);
           return new AllAcceptance();
+
         case "none":
-          check(acceptanceExtraInfo.isEmpty()
-            && acceptanceExpression.isFALSE() && numberOfAcceptanceSets == 0);
           return new NoneAcceptance();
+
         case "buchi":
-          check(acceptanceExtraInfo.isEmpty() && numberOfAcceptanceSets == 1);
-          check(acceptanceExpression.isAtom()
-            && acceptanceExpression.getAtom().getType() == Type.TEMPORAL_INF);
           return new BuchiAcceptance();
+
         case "parity":
-          check(acceptanceExtraInfo.size() == 3);
-          String stringComparison = acceptanceExtraInfo.get(0).toString();
+          check(acceptanceExtra.size() == 3);
+          String stringComparison = acceptanceExtra.get(0).toString();
+
           if (!Objects.equals(stringComparison, "min")) {
             throw new HOAConsumerException("Only min priority is supported");
           }
 
-          String stringPriority = acceptanceExtraInfo.get(1).toString();
+          String stringPriority = acceptanceExtra.get(1).toString();
           Priority priority;
           if (Objects.equals(stringPriority, "even")) {
             priority = Priority.EVEN;
@@ -322,7 +258,7 @@ public final class AutomatonReader {
             throw new HOAConsumerException("Unknown priority " + stringPriority);
           }
 
-          String stringColours = acceptanceExtraInfo.get(2).toString();
+          String stringColours = acceptanceExtra.get(2).toString();
           int colours;
           try {
             colours = Integer.valueOf(stringColours);
@@ -331,12 +267,45 @@ public final class AutomatonReader {
               "Failed to parse colours " + stringColours).initCause(e);
           }
           check(colours >= 0, "Negative colours");
-          check(colours == numberOfAcceptanceSets, "Mismatch between colours (%d) and acceptance"
-            + " set count (%d)", colours, numberOfAcceptanceSets);
+          check(colours == numberOfAcceptanceSets,
+            "Mismatch between colours (%d) and acceptance" + " set count (%d)", colours,
+            numberOfAcceptanceSets);
 
           return new ParityAcceptance(numberOfAcceptanceSets, priority);
+
+        case "co-buchi":
+          // acc-name: co-Buchi
+          // Acceptance: 1 Fin(0)
+          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+
+        case "generalized-buchi":
+          // acc-name: generalized-Buchi 3
+          // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
+          int sets = Integer.parseInt(acceptanceExtra.get(0).toString());
+          return new GeneralizedBuchiAcceptance(sets);
+
+        case "generalized-co-buchi":
+          // acc-name: generalized-co-Buchi 3
+          // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
+          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+
+        case "streett":
+          // acc-name: Streett 3
+          // Acceptance: 6 (Fin(0)|Inf(1))&(Fin(2)|Inf(3))&(Fin(4)|Inf(5))
+          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+
+        case "rabin":
+          // acc-name: Rabin 3
+          // Acceptance: 6 (Fin(0)&Inf(1))|(Fin(2)&Inf(3))|(Fin(4)&Inf(5))
+          return RabinAcceptance.create(acceptanceExpression);
+
+        case "generalized-rabin":
+          // acc-name: generalized-Rabin 2 3 2
+          // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
+          return GeneralizedRabinAcceptance.create(acceptanceExpression);
+
         default:
-          throw new HOAConsumerException("Acceptance " + acceptanceName + " not supported");
+          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
       }
     }
 
@@ -346,6 +315,8 @@ public final class AutomatonReader {
     }
 
     MutableAutomaton<HoaState, ?> transform() throws HOAConsumerException {
+      List<String> variables = storedAutomaton.getStoredHeader().getAPs();
+
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
         int stateId = storedState.getStateId();
         HoaState state = new HoaState(stateId, storedState.getInfo());
@@ -357,9 +328,9 @@ public final class AutomatonReader {
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
         int stateId = storedState.getStateId();
         HoaState state = states.get(stateId);
-        assert state != null;
 
-        List<Integer> stateAcceptance = storedState.getAccSignature();
+        assert state != null;
+        assert storedState.getAccSignature() == null || storedState.getAccSignature().isEmpty();
 
         if (storedAutomaton.hasEdgesImplicit(stateId)) {
           assert !storedAutomaton.hasEdgesWithLabel(stateId);
@@ -371,27 +342,26 @@ public final class AutomatonReader {
             check(counter < (1L << storedHeader.getAPs().size()));
 
             HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
+
             ValuationSet valuationSet =
               valuationSetFactory.createValuationSet(BooleanExpression.fromImplicit(counter));
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
 
-            addEdge(state, stateAcceptance, valuationSet, edgeAcceptance, successorState);
+            addEdge(state, valuationSet, edgeAcceptance, successorState);
             counter += 1;
           }
 
           check(counter == (1L << storedHeader.getAPs().size()));
         } else if (storedAutomaton.hasEdgesWithLabel(stateId)) {
-          Iterable<StoredEdgeWithLabel> edgesWithLabel =
-            storedAutomaton.getEdgesWithLabel(stateId);
-          assert edgesWithLabel != null;
 
-          for (StoredEdgeWithLabel edgeWithLabel : edgesWithLabel) {
+          for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
             HoaState successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
-            ValuationSet valuationSet =
-              ValuationSetUtil.toValuationSet(valuationSetFactory, edgeWithLabel.getLabelExpr());
-            List<Integer> edgeAcceptance = edgeWithLabel.getAccSignature();
+            ValuationSet valuationSet = ValuationSetUtil.toValuationSet(
+              valuationSetFactory,
+              edgeWithLabel.getLabelExpr(),
+              aliasRemap ? (i) -> Integer.parseInt(variables.get(i).substring(1)) : null);
 
-            addEdge(state, stateAcceptance, valuationSet, edgeAcceptance, successorState);
+            addEdge(state, valuationSet, edgeWithLabel.getAccSignature(), successorState);
           }
         }
       }

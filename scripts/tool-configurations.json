@@ -28,10 +28,11 @@
         "ltl2da": {
             "executable": "build/bin/ltl2da"
         },
-        "fgx2dga": {
-            "executable": "build/bin/fgx2dga",
+        "delag": {
+            "executable": "build/bin/delag",
             "flags": {
-                "strict": "--strict"
+                "strict": "--strict",
+                "fallback": "--fallback='ltl2tgba -H --deterministic --generic'"
             }
         }
     },

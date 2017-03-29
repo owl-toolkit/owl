@@ -55,7 +55,7 @@ public class NBA2LDBATest {
     NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(optimisations);
 
     Automaton<HoaState, BuchiAcceptance> automaton =
-      AutomatonReader.readHoaInput(INPUT, BuchiAcceptance.class);
+      AutomatonReader.readHoa(INPUT, BuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrintable result = translation.apply(automaton);

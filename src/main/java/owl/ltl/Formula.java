@@ -57,7 +57,7 @@ public interface Formula {
    */
   Formula temporalStepUnfold(BitSet valuation);
 
-  String toString(List<String> atomMapping);
+  String toString(List<String> atomMapping, boolean fullyParenthesized);
 
   Formula unfold();
 

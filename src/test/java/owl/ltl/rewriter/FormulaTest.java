@@ -188,8 +188,8 @@ public class FormulaTest {
     Formula f4 = new UOperator(f3, f2);
 
     Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(f2,
-        new FOperator(RewriterFactory.apply(RewriterEnum.MODAL,
-          new Conjunction(new XOperator(f2), f3))))
+      new FOperator(RewriterFactory.apply(RewriterEnum.MODAL,
+        new Conjunction(new XOperator(f2), f3))))
     );
     assertNotEquals(f4, f5);
   }

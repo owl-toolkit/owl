@@ -27,6 +27,7 @@ public interface HoaPrintable {
 
   void toHoa(HOAConsumer consumer, EnumSet<Option> options);
 
+  // rename feedTo...
   default void toHoa(HOAConsumer consumer) {
     toHoa(consumer, EnumSet.noneOf(Option.class));
   }

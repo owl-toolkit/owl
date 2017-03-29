@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 package owl.ltl;
 
 import java.util.BitSet;
@@ -53,13 +54,14 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
   }
 
   @Override
-  public String toString(List<String> variables) {
-    return '(' + left.toString(variables) + getOperator() + right.toString(variables) + ')';
+  public String toString() {
+    return '(' + left.toString() + getOperator() + right.toString() + ')';
   }
 
   @Override
-  public String toString() {
-    return '(' + left.toString() + getOperator() + right.toString() + ')';
+  public String toString(List<String> variables, boolean fullyParenthesized) {
+    return "(" + left.toString(variables, fullyParenthesized) + ")" + getOperator() + "("
+        + right.toString(variables, fullyParenthesized) + ")";
   }
 
   @Override

@@ -28,29 +28,42 @@ import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.translations.fgx2generic.Builder;
+import owl.translations.delag.Builder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.util.ExternalTranslator;
 
-public final class FGX2DGA extends AbstractLtlCommandLineTool {
+public final class Delag extends AbstractLtlCommandLineTool {
 
   private final boolean strict;
-  private final Function<Formula, Automaton<Object, OmegaAcceptance>> fallback;
+  private final Function<Formula, Automaton<?, OmegaAcceptance>> fallback;
 
-  private FGX2DGA(boolean strict) {
+  private Delag(boolean strict, Function<Formula, Automaton<?, OmegaAcceptance>> fallback) {
     this.strict = strict;
-    EnumSet<Optimisation> fallbackOptimisations = EnumSet.allOf(Optimisation.class);
-    fallback = ((Function) new LTL2DPAFunction(fallbackOptimisations));
+    this.fallback = fallback;
   }
 
   public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
-    new FGX2DGA(args.remove("--strict")).execute(args);
+
+    Function<Formula, Automaton<?, OmegaAcceptance>> fallback =
+      (Function) new LTL2DPAFunction(EnumSet.allOf(Optimisation.class));
+
+    for (String arg : args) {
+      if (arg.startsWith("--fallback")) {
+        String tool = arg.substring(11, arg.length());
+        fallback = (Function) new ExternalTranslator(tool);
+        args.remove(arg);
+        break;
+      }
+    }
+
+    new Delag(args.remove("--strict"), fallback).execute(args);
   }
 
   private HoaPrintable translateWithFallback(Formula formula,
     EnumSet<Optimisation> optimisations) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    return new Builder<>(fallback, optimisations).apply(rewritten);
+    return new Builder(fallback, optimisations).apply(rewritten);
   }
 
   private HoaPrintable translateWithoutFallback(Formula formula,

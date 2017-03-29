@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.fgx2generic;
+package owl.translations.delag;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

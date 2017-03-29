@@ -434,11 +434,12 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
       String representativeString;
 
       if (factory.isVariableOrNegated(bdd)) {
-        representativeString = reverseMapping[factory.getVariable(bdd)].toString(atomMapping);
+        representativeString = reverseMapping[factory.getVariable(bdd)]
+          .toString(atomMapping, false);
       } else if (representative == null) {
         representativeString = "?";
       } else {
-        representativeString = representative.toString(atomMapping);
+        representativeString = representative.toString(atomMapping, false);
       }
 
       return String.format("%s (%d)", representativeString, bdd);

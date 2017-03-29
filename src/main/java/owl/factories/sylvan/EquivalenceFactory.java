@@ -383,15 +383,16 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
         int variablePos = Arrays.binarySearch(vars, bdd);
 
         if (variablePos >= 0) {
-          representativeString = reverseMapping[variablePos].toString(atomMapping);
+          representativeString = reverseMapping[variablePos].toString(atomMapping, false);
         } else {
           int notVariablePosition = Arrays.binarySearch(vars, JSylvan.makeNot(bdd));
-          representativeString = reverseMapping[notVariablePosition].not().toString(atomMapping);
+          representativeString = reverseMapping[notVariablePosition].not()
+            .toString(atomMapping, false);
         }
       } else if (representative == null) {
         representativeString = "?";
       } else {
-        representativeString = representative.toString(atomMapping);
+        representativeString = representative.toString(atomMapping, false);
       }
 
       return String.format("%s (%d)", representativeString, bdd);

@@ -33,27 +33,49 @@ import owl.automaton.output.HoaConsumerExtended;
 
 public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   private final List<GeneralizedRabinPair> pairList;
-  private int setCount = 0;
+  private int setCount;
 
   public GeneralizedRabinAcceptance() {
     pairList = new LinkedList<>();
+    setCount = 0;
   }
 
-  public GeneralizedRabinPair createPair() {
-    GeneralizedRabinPair pair = new GeneralizedRabinPair(this, pairList.size());
+  public static GeneralizedRabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
+    GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
+
+    for (BooleanExpression<AtomAcceptance> dis : BooleanExpressions.getDisjuncts(expression)) {
+      int fin = -1;
+      IntList inf = new IntArrayList();
+
+      for (BooleanExpression<AtomAcceptance> element : BooleanExpressions.getConjuncts(dis)) {
+        AtomAcceptance atom = element.getAtom();
+
+        switch (atom.getType()) {
+          case TEMPORAL_FIN:
+            fin = atom.getAcceptanceSet();
+            break;
+
+          case TEMPORAL_INF:
+            inf.add(atom.getAcceptanceSet());
+            break;
+
+          default:
+            assert false;
+            break;
+        }
+      }
+
+      acceptance.createPair(fin, inf);
+    }
+
+    return acceptance;
+  }
+
+  public GeneralizedRabinPair createPair(int fin, IntList inf) {
+    GeneralizedRabinPair pair = new GeneralizedRabinPair(this, pairList.size(), fin, inf);
     pairList.add(pair);
+    setCount += 1 + inf.size();
     return pair;
-  }
-
-  private int createSet() {
-    int index = setCount;
-    setCount += 1;
-    return index;
-  }
-
-  @Override
-  public int getAcceptanceSets() {
-    return setCount;
   }
 
   @Override
@@ -137,23 +159,28 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     return builder.toString();
   }
 
+  @Override
+  public int getAcceptanceSets() {
+    return setCount;
+  }
+
   public static final class GeneralizedRabinPair {
     private final GeneralizedRabinAcceptance acceptance;
     private final IntList infiniteIndices;
     private final int pairNumber;
-    private int finiteIndex;
+    private final int finiteIndex;
 
-    GeneralizedRabinPair(GeneralizedRabinAcceptance acceptance,
-      int pairNumber) {
+    GeneralizedRabinPair(GeneralizedRabinAcceptance acceptance, int pairNumber, int fin,
+        IntList inf) {
       this.acceptance = acceptance;
       this.pairNumber = pairNumber;
-      this.infiniteIndices = new IntArrayList();
-      finiteIndex = -1;
+      this.infiniteIndices = inf;
+      finiteIndex = fin;
     }
 
     public boolean contains(int index) {
       return finiteIndex != -1 && finiteIndex == index //
-        || infiniteIndices.contains(index);
+          || infiniteIndices.contains(index);
     }
 
     /**
@@ -190,12 +217,6 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       return false;
     }
 
-    public int createInfiniteSet() {
-      int index = acceptance.createSet();
-      infiniteIndices.add(index);
-      return index;
-    }
-
     private BooleanExpression<AtomAcceptance> getBooleanExpression() {
       assert !isEmpty();
 
@@ -227,14 +248,6 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
 
     public int getInfiniteSetCount() {
       return infiniteIndices.size();
-    }
-
-    public int getOrCreateFiniteIndex() {
-      if (finiteIndex == -1) {
-        // Not allocated yet
-        this.finiteIndex = acceptance.createSet();
-      }
-      return finiteIndex;
     }
 
     public int getPairNumber() {
@@ -304,4 +317,5 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       return builder.toString();
     }
   }
+
 }

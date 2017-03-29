@@ -104,9 +104,9 @@ public class IntBitSetTheories {
   private static final class DataPointHolder {
     final IntSortedSet baseReference;
     final IntBitSet baseSet;
+    final SubsetRange range;
     final IntSortedSet reference;
     final IntBitSet set;
-    final SubsetRange range;
 
     DataPointHolder(List<Integer> input, @Nullable SubsetRange range) {
       baseReference = new IntAVLTreeSet(input);
