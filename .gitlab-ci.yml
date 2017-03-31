@@ -57,21 +57,18 @@ test:ltl2ldba generalised-Büchi:
   stage: test-optimizations
   variables:
     TEST_NAME: "ltl2ldba-genb"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Non-Det:
   stage: test-optimizations
   variables:
     TEST_NAME: "ltl2ldba-genb-nondet"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Vanilla:
   stage: test
   variables:
     TEST_NAME: "ltl2ldba-genb-vanilla"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 ## Breakpoint-Free
@@ -80,47 +77,41 @@ test:ltl2ldba Büchi Breakpoint-Free:
   stage: test-optimizations
   variables:
     TEST_NAME: "ltl2ldba-bpfree"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --breakpoint-free %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Breakpoint-Free Non-Det:
   stage: test-optimizations
   variables:
     TEST_NAME: "ltl2ldba-bpfree-nondet"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --nondeterministic-initial-component --breakpoint-free %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Breakpoint-Free Vanilla:
   stage: test
   variables:
     TEST_NAME: "ltl2ldba-bpfree-vanilla"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --breakpoint-free --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Breakpoint-Free:
   stage: test-optimizations
   variables:
     TEST_NAME: "ltl2ldba-genb-bpfree"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --breakpoint-free %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Breakpoint-Free Non-Det:
   stage: test-optimizations
   variables:
     TEST_NAME: "ltl2ldba-genb-bpfree-nondet"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component --breakpoint-free %f >%O"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Breakpoint-Free Vanilla:
   stage: test
   variables:
     TEST_NAME: "ltl2ldba-genb-bpfree-vanilla"
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --breakpoint-free --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
   <<: *ltlcross_template
 
 # NBA to LDBA translations
 
-test:nba2ldba Vanilla:
+test:nba2ldba:
   stage: test
   variables:
     TEST_NAME: "nba2ldba"
