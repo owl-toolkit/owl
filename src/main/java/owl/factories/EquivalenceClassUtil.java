@@ -6,10 +6,54 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import javax.annotation.Nullable;
 import owl.collections.BitSets;
+import owl.ltl.EquivalenceClass;
 
 public final class EquivalenceClassUtil {
+
+  public static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
+
   private EquivalenceClassUtil() {
+  }
+
+  public static void free(@Nullable EquivalenceClass clazz) {
+    if (clazz != null) {
+      clazz.free();
+    }
+  }
+
+  public static void free(@Nullable EquivalenceClass[] classes) {
+    if (classes == null) {
+      return;
+    }
+
+    for (EquivalenceClass clazz : classes) {
+      free(clazz);
+    }
+  }
+
+  public static void free(@Nullable EquivalenceClass clazz, @Nullable EquivalenceClass... classes) {
+    free(clazz);
+    free(classes);
+  }
+
+  public static void free(@Nullable Iterable<EquivalenceClass> classes) {
+    if (classes == null) {
+      return;
+    }
+
+    for (EquivalenceClass clazz : classes) {
+      free(clazz);
+    }
+  }
+
+  public static void free(@Nullable EquivalenceClass clazz1, EquivalenceClass clazz2,
+    Iterable<EquivalenceClass> iterable1, Iterable<EquivalenceClass> iterable2) {
+    free(clazz1);
+    free(clazz2);
+    free(iterable1);
+    free(iterable2);
   }
 
   public static Set<BitSet> upwardClosure(BitSet support, Iterator<BitSet> minimalPaths) {

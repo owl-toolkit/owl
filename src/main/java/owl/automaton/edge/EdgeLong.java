@@ -2,6 +2,7 @@ package owl.automaton.edge;
 
 import java.util.BitSet;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
@@ -46,7 +47,7 @@ final class EdgeLong<S> implements Edge<S> {
 
     EdgeLong<?> other = (EdgeLong<?>) o;
     return this.store == other.store
-      && this.successor == other.successor;
+      && Objects.equals(this.successor, other.successor);
   }
 
   @Override

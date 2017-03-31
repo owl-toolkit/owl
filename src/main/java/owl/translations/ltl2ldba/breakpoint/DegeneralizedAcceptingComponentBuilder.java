@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.EnumSet;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -29,17 +28,20 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
-public final class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
-  <DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations> {
+public final class DegeneralizedAcceptingComponentBuilder extends
+  AbstractAcceptingComponentBuilder<DegeneralizedBreakpointState, BuchiAcceptance, GObligations> {
 
-  DegeneralizedAcceptingComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations) {
+  public DegeneralizedAcceptingComponentBuilder(Factories factories,
+    EnumSet<Optimisation> optimisations) {
     super(optimisations, factories,
-      new RecurringObligationsEvaluator(factories.equivalenceClassFactory));
+      new GObligationsEvaluator(factories.equivalenceClassFactory));
   }
 
   private EquivalenceClass and(EquivalenceClass[] classes) {
@@ -63,7 +65,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Override
   public DegeneralizedBreakpointState createState(EquivalenceClass remainder,
-    RecurringObligations obligations) {
+    GObligations obligations) {
     final int length = obligations.obligations.length + obligations.liveness.length;
 
     // TODO: field for extra data.
@@ -80,7 +82,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,
-        factory.getInitial(current, environment), EMPTY, obligations);
+        factory.getInitial(current, environment), EquivalenceClassUtil.EMPTY, obligations);
     }
 
     EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];
@@ -104,14 +106,6 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     return new DegeneralizedBreakpointState(
       obligations.obligations.length > 0 ? 0 : -obligations.liveness.length, safety,
       current, nextBuilder, obligations);
-  }
-
-
-  public DegeneralizedBreakpointState generateRejectingTrap() {
-    EquivalenceClass falseClass = factories.equivalenceClassFactory.getFalse();
-    return new DegeneralizedBreakpointState(0, falseClass, falseClass, EMPTY,
-      new RecurringObligations(factories.equivalenceClassFactory.getTrue(), Collections.emptyList(),
-        Collections.emptyList()));
   }
 
   @Nonnull
@@ -145,21 +139,21 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       .getSuccessor(state.current, valuation, safetySuccessor);
 
     if (currentSuccessor.isFalse()) {
-      EquivalenceClass.free(safetySuccessor);
+      EquivalenceClassUtil.free(safetySuccessor);
       return null;
     }
 
     EquivalenceClass assumptions = currentSuccessor.and(safetySuccessor);
 
     if (assumptions.isFalse()) {
-      EquivalenceClass.free(safetySuccessor, currentSuccessor);
+      EquivalenceClassUtil.free(safetySuccessor, currentSuccessor);
       return null;
     }
 
     EquivalenceClass[] nextSuccessors = factory.getSuccessors(state.next, valuation, assumptions);
 
     if (nextSuccessors == null) {
-      EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
+      EquivalenceClassUtil.free(safetySuccessor, currentSuccessor, assumptions);
       return null;
     }
 
@@ -208,15 +202,15 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     }
 
     if (currentSuccessor.isFalse()) {
-      EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
-      EquivalenceClass.free(nextSuccessors);
+      EquivalenceClassUtil.free(safetySuccessor, currentSuccessor, assumptions);
+      EquivalenceClassUtil.free(nextSuccessors);
       return null;
     }
 
     for (EquivalenceClass clazz : nextSuccessors) {
       if (clazz.isFalse()) {
-        EquivalenceClass.free(safetySuccessor, currentSuccessor, assumptions);
-        EquivalenceClass.free(nextSuccessors);
+        EquivalenceClassUtil.free(safetySuccessor, currentSuccessor, assumptions);
+        EquivalenceClassUtil.free(nextSuccessors);
         return null;
       }
     }
@@ -230,7 +224,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   }
 
   private int scan(int i, EquivalenceClass[] obligations, BitSet valuation,
-    EquivalenceClass environment, RecurringObligations obligations2) {
+    EquivalenceClass environment, GObligations obligations2) {
     int index = i;
     if (index < 0) {
       index = scanLiveness(index, valuation, environment, obligations2);
@@ -244,7 +238,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   }
 
   private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment,
-    RecurringObligations obligations) {
+    GObligations obligations) {
     int index = i;
     final int livenessLength = obligations.liveness.length;
 

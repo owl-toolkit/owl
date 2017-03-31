@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba.ng;
+package owl.translations.ltl2ldba.breakpointfree;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -34,7 +34,7 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
 public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
-  <GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, RecurringObligations2> {
+  <GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations> {
 
   @Nonnegative
   private int acceptanceSets;
@@ -42,7 +42,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public GeneralizedAcceptingComponentBuilder(Factories factories,
     EnumSet<Optimisation> optimisations) {
     super(optimisations, factories,
-      new RecurringObligations2Evaluator(factories.equivalenceClassFactory));
+      new FGObligationsEvaluator(factories.equivalenceClassFactory));
     acceptanceSets = 1;
   }
 
@@ -58,7 +58,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
   @Override
   protected GeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
-    RecurringObligations2 obligations) {
+    FGObligations obligations) {
     EquivalenceClass safety = remainder.andWith(obligations.safety);
     EquivalenceClass[] liveness = new EquivalenceClass[obligations.liveness.length];
 
@@ -77,7 +77,6 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
   private BitSet getSensitiveAlphabet(GeneralizedBreakpointFreeState state) {
     BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.safety);
-    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.obligations.safety));
 
     for (EquivalenceClass clazz : state.liveness) {
       sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
@@ -104,8 +103,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     }
 
     EquivalenceClass safetySuccessor = factory
-      .getSuccessor(state.safety, valuation, livenessSuccessor)
-      .andWith(factory.getInitial(state.obligations.safety));
+      .getSuccessor(state.safety, valuation, livenessSuccessor);
 
     if (safetySuccessor.isFalse()) {
       return null;

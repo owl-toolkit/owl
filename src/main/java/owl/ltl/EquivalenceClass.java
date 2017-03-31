@@ -33,36 +33,6 @@ import owl.factories.EquivalenceClassFactory;
  * {@code false}.
  */
 public interface EquivalenceClass {
-  static void free(@Nullable EquivalenceClass clazz) {
-    if (clazz != null) {
-      clazz.free();
-    }
-  }
-
-  static void free(@Nullable EquivalenceClass[] classes) {
-    if (classes == null) {
-      return;
-    }
-
-    for (EquivalenceClass clazz : classes) {
-      free(clazz);
-    }
-  }
-
-  static void free(@Nullable EquivalenceClass clazz, @Nullable EquivalenceClass... classes) {
-    free(clazz);
-    free(classes);
-  }
-
-  static void free(@Nullable Iterable<EquivalenceClass> classes) {
-    if (classes == null) {
-      return;
-    }
-
-    for (EquivalenceClass clazz : classes) {
-      free(clazz);
-    }
-  }
 
   EquivalenceClass and(EquivalenceClass equivalenceClass);
 

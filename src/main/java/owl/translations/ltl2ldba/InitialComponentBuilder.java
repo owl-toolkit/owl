@@ -51,7 +51,7 @@ public class InitialComponentBuilder<K>
   private final Set<EquivalenceClass> patientStates;
   private final JumpSelector<K> selector;
 
-  protected InitialComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations,
+  InitialComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations,
     JumpSelector<K> selector) {
     this.factories = factories;
     this.selector = selector;
@@ -108,10 +108,6 @@ public class InitialComponentBuilder<K>
         jumps.put(state, new Jump<>(state, obligation));
       }
     });
-  }
-
-  public EquivalenceClass generateRejectingTrap() {
-    return factories.equivalenceClassFactory.getFalse();
   }
 
   @Nullable

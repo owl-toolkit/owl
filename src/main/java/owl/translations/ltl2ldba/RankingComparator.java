@@ -25,7 +25,6 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
-import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -70,11 +69,6 @@ public class RankingComparator implements Comparator<GOperator> {
   }
 
   private class RankVisitor extends DefaultIntVisitor {
-
-    @Override
-    protected int defaultAction(Formula formula) {
-      throw new UnsupportedOperationException();
-    }
 
     @Override
     public int visit(BooleanConstant booleanConstant) {

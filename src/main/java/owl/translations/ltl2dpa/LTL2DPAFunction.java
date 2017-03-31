@@ -34,9 +34,9 @@ import owl.automaton.transformations.ParityAutomatonUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
-import owl.translations.ltl2ldba.RecurringObligations;
+import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpoint.GObligations;
 
 public final class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcceptance>> {
 
@@ -44,7 +44,7 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
   private static final int SLEEP_MS = 50;
   private final EnumSet<Optimisation> optimisations;
   private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations>> translator;
+    DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translator;
 
   public LTL2DPAFunction() {
     this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
@@ -129,7 +129,7 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
 
   private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-      RecurringObligations> ldba = translator.apply(formula);
+      GObligations> ldba = translator.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new ComplementableAutomaton<>(ParityAutomatonUtil.changeAcceptance(

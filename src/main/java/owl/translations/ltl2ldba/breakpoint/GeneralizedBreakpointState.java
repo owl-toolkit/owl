@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -26,10 +26,10 @@ public final class GeneralizedBreakpointState extends ImmutableObject {
 
   final EquivalenceClass[] current;
   final EquivalenceClass[] next;
-  final RecurringObligations obligations;
+  final GObligations obligations;
   final EquivalenceClass safety;
 
-  GeneralizedBreakpointState(RecurringObligations obligations, EquivalenceClass safety,
+  GeneralizedBreakpointState(GObligations obligations, EquivalenceClass safety,
     EquivalenceClass[] current, EquivalenceClass[] next) {
     this.obligations = obligations;
     this.safety = safety;
@@ -44,7 +44,7 @@ public final class GeneralizedBreakpointState extends ImmutableObject {
       && Arrays.equals(current, that.current) && Arrays.equals(next, that.next);
   }
 
-  public RecurringObligations getObligations() {
+  public GObligations getObligations() {
     return obligations;
   }
 

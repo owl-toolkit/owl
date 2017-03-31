@@ -115,6 +115,7 @@ public final class Literal extends ImmutableObject implements Formula {
     if (atomMapping.size() > getAtom()) {
       return (isNegated() ? "!" : "") + atomMapping.get(getAtom());
     }
+
     return toString();
   }
 

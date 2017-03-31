@@ -125,11 +125,13 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
   @Override
   public Formula visit(UOperator uOperator) {
     Formula right = uOperator.right.accept(this);
+
     if (right.isSuspendable() || right.isPureEventual()) {
       return right;
     }
 
     Formula left = uOperator.left.accept(this);
+
     if (left.isSuspendable() || left.isPureUniversal()) {
       return Disjunction.create(Conjunction.create(left, FOperator.create(right)), right);
     }
@@ -142,17 +144,31 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula left = wOperator.left.accept(this);
     Formula right = wOperator.right.accept(this);
 
+    if (left.isPureUniversal() || left.isSuspendable()) {
+      return Disjunction.create(left, right);
+    }
+
+    if (right.isSuspendable() || right.isPureEventual()) {
+      return Disjunction.create(GOperator.create(left), right);
+    }
+
     return WOperator.create(left, right);
   }
 
   @Override
   public Formula visit(ROperator rOperator) {
     Formula right = rOperator.right.accept(this);
+
     if (right.isSuspendable() || right.isPureUniversal()) {
       return right;
     }
 
     Formula left = rOperator.left.accept(this);
+
+    if (left.isSuspendable()) {
+      return Disjunction.create(Conjunction.create(left, right), GOperator.create(right));
+    }
+
     return ROperator.create(left, right);
   }
 

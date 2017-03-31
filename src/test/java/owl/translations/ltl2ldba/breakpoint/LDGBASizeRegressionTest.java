@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import java.util.EnumSet;
 import org.junit.runner.RunWith;
@@ -25,11 +25,12 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.EquivalenceClass;
 import owl.translations.AbstractSizeRegressionTest;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 @RunWith(Parameterized.class)
 public class LDGBASizeRegressionTest extends
   AbstractSizeRegressionTest<LimitDeterministicAutomaton<EquivalenceClass,
-    GeneralizedBreakpointState, GeneralizedBuchiAcceptance, RecurringObligations>> {
+    GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>> {
 
   public LDGBASizeRegressionTest(FormulaGroup selectedClass) {
     super(selectedClass,
@@ -39,7 +40,7 @@ public class LDGBASizeRegressionTest extends
   @Override
   protected int getAccSize(
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
-      GeneralizedBuchiAcceptance, RecurringObligations> automaton) {
+      GeneralizedBuchiAcceptance, GObligations> automaton) {
     return automaton.getAcceptingComponent().getAcceptance().size;
   }
 
@@ -107,7 +108,7 @@ public class LDGBASizeRegressionTest extends
   @Override
   protected int getSize(
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
-      GeneralizedBuchiAcceptance, RecurringObligations> automaton) {
+      GeneralizedBuchiAcceptance, GObligations> automaton) {
     return automaton.size();
   }
 }

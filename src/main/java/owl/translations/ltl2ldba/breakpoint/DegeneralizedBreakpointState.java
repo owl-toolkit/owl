@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
-import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.Nullable;
+import owl.factories.EquivalenceClassUtil;
 import owl.ltl.EquivalenceClass;
 import owl.util.ImmutableObject;
 
@@ -31,28 +31,27 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
   // checked.
   final int index;
   final EquivalenceClass[] next;
-  final RecurringObligations obligations;
+  final GObligations obligations;
   final EquivalenceClass safety;
 
   @Nullable
   private EquivalenceClass label = null;
 
-  public static DegeneralizedBreakpointState createSink() {
-    return new DegeneralizedBreakpointState(0, null, null,
-      AbstractAcceptingComponentBuilder.EMPTY, new RecurringObligations(null,
-      ImmutableList.of(), ImmutableList.of()));
-  }
-
   DegeneralizedBreakpointState(int index, EquivalenceClass safety, EquivalenceClass current,
-    EquivalenceClass[] next, RecurringObligations obligations) {
-    assert (obligations.isPureSafety() && index == 0) || (-obligations.liveness.length <= index
-      && index < obligations.obligations.length);
+    EquivalenceClass[] next, GObligations obligations) {
+    assert obligations == null || ((obligations.isPureSafety() && index == 0)
+      || (-obligations.liveness.length <= index && index < obligations.obligations.length));
 
     this.index = index;
     this.current = current;
     this.obligations = obligations;
     this.safety = safety;
     this.next = next;
+  }
+
+  public static DegeneralizedBreakpointState createSink() {
+    return new DegeneralizedBreakpointState(0, null, null,
+      EquivalenceClassUtil.EMPTY, null);
   }
 
   @Override
@@ -87,7 +86,7 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
     return label;
   }
 
-  public RecurringObligations getObligations() {
+  public GObligations getObligations() {
     return obligations;
   }
 

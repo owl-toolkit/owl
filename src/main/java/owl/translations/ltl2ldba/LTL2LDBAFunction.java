@@ -29,22 +29,23 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
-import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.Registry;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.MOperator;
-import owl.ltl.ROperator;
-import owl.ltl.WOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.ng.DegeneralizedBreakpointFreeState;
-import owl.translations.ltl2ldba.ng.GeneralizedBreakpointFreeState;
-import owl.translations.ltl2ldba.ng.RecurringObligations2;
-import owl.translations.ltl2ldba.ng.RecurringObligations2Selector;
+import owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder;
+import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpoint.GObligations;
+import owl.translations.ltl2ldba.breakpoint.GObligationsSelector;
+import owl.translations.ltl2ldba.breakpoint.GeneralizedAcceptingComponentBuilder;
+import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
+import owl.translations.ltl2ldba.breakpointfree.FGObligations;
+import owl.translations.ltl2ldba.breakpointfree.FGObligationsSelector;
+import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 
 public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> implements
   Function<Formula, LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
@@ -54,12 +55,11 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
   private final Function<Formula, Formula> formulaPreprocessor;
   private final Function<S, C> getAnnotation;
   private final EnumSet<Optimisation> optimisations;
-  private final BiFunction<EquivalenceClassFactory,
-    EnumSet<Optimisation>, JumpSelector<C>> selectorConstructor;
+  private final BiFunction<Factories, EnumSet<Optimisation>, JumpSelector<C>> selectorConstructor;
 
   private LTL2LDBAFunction(
     Function<Formula, Formula> formulaPreprocessor,
-    BiFunction<EquivalenceClassFactory, EnumSet<Optimisation>, JumpSelector<C>> selectorConstructor,
+    BiFunction<Factories, EnumSet<Optimisation>, JumpSelector<C>> selectorConstructor,
     BiFunction<Factories, EnumSet<Optimisation>,
       ExploreBuilder<Jump<C>, S, B>> builderConstructor,
     EnumSet<Optimisation> optimisations, Function<S, C> getAnnotation) {
@@ -71,40 +71,40 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
   }
 
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointFreeState, BuchiAcceptance, RecurringObligations2>>
-    createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::removeMpreProcess,
-      RecurringObligations2Selector::new,
-      owl.translations.ltl2ldba.ng.DegeneralizedAcceptingComponentBuilder::new,
+    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
+  createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
+    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+      FGObligationsSelector::new,
+      owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder::new,
       optimisations,
       DegeneralizedBreakpointFreeState::getObligations);
   }
 
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations>>
-    createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
+    DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
+  createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
-      RecurringObligationsSelector::new,
+      GObligationsSelector::new,
       DegeneralizedAcceptingComponentBuilder::new,
       optimisations,
       DegeneralizedBreakpointState::getObligations);
   }
 
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, RecurringObligations2>>
-    createGeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::removeMpreProcess,
-      RecurringObligations2Selector::new,
-      owl.translations.ltl2ldba.ng.GeneralizedAcceptingComponentBuilder::new,
+    GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
+  createGeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
+    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+      FGObligationsSelector::new,
+      owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder::new,
       optimisations,
       GeneralizedBreakpointFreeState::getObligations);
   }
 
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    GeneralizedBreakpointState, GeneralizedBuchiAcceptance, RecurringObligations>>
-    createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
+    GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
+  createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
-      RecurringObligationsSelector::new,
+      GObligationsSelector::new,
       GeneralizedAcceptingComponentBuilder::new,
       optimisations,
       GeneralizedBreakpointState::getObligations);
@@ -115,18 +115,12 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
     return RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, processedFormula);
   }
 
-  private static Formula removeMpreProcess(Formula formula) {
-    return preProcess(preProcess(formula).accept(new UnabbreviateVisitor(
-      ROperator.class, WOperator.class, MOperator.class)));
-  }
-
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(Formula formula) {
     Formula processedFormula = formulaPreprocessor.apply(formula);
     Factories factories = Registry.getFactories(processedFormula);
 
-    JumpSelector<C> selector = selectorConstructor
-      .apply(factories.equivalenceClassFactory, EnumSet.copyOf(optimisations));
+    JumpSelector<C> selector = selectorConstructor.apply(factories, EnumSet.copyOf(optimisations));
 
     LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
       builder = createBuilder(factories, selector);
