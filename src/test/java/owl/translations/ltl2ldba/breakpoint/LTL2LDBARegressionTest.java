@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,6 +27,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public class LTL2LDBARegressionTest {
 
@@ -34,7 +35,7 @@ public class LTL2LDBARegressionTest {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     LtlParseResult parseResult = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-      RecurringObligations> automaton = LTL2LDBAFunction
+      GObligations> automaton = LTL2LDBAFunction
       .createDegeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
     automaton.setVariables(parseResult.getVariableMapping());
     String hoaString = automaton.toString();
@@ -62,6 +63,6 @@ public class LTL2LDBARegressionTest {
   @Test
   public void testRegression7() {
     String ltl = "(X(p1)) R (((G(p2)) R (p3)) W (p4))";
-    testOutput(ltl, 24);
+    testOutput(ltl, 23);
   }
 }

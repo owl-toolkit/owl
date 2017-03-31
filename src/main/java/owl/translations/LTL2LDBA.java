@@ -33,13 +33,13 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
 
   private LTL2LDBA(EnumSet<Configuration> configuration) {
     if (configuration.contains(Configuration.GENERALISED)) {
-      if (configuration.contains(Configuration.GUESS_F)) {
+      if (configuration.contains(Configuration.BREAKPOINT_FREE)) {
         constructor = LTL2LDBAFunction::createGeneralizedBreakpointFreeLDBABuilder;
       } else {
         constructor = LTL2LDBAFunction::createGeneralizedBreakpointLDBABuilder;
       }
     } else {
-      if (configuration.contains(Configuration.GUESS_F)) {
+      if (configuration.contains(Configuration.BREAKPOINT_FREE)) {
         constructor = LTL2LDBAFunction::createDegeneralizedBreakpointFreeLDBABuilder;
       } else {
         constructor = LTL2LDBAFunction::createDegeneralizedBreakpointLDBABuilder;
@@ -51,20 +51,22 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
 
   public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
-
     EnumSet<Configuration> configuration = EnumSet.of(Configuration.GENERALISED);
 
     if (args.remove("--Büchi") || args.remove("--Buchi")) {
       configuration.remove(Configuration.GENERALISED);
     }
 
-    if ((args.remove("--generalised-Büchi") || args.remove("--generalised-Buchi")) && !configuration
-      .contains(Configuration.GENERALISED)) {
-      throw new IllegalArgumentException("Invalid arguments: " + Arrays.toString(argsArray));
+    if (args.remove("--generalised-Büchi") || args.remove("--generalised-Buchi")) {
+      configuration.add(Configuration.GENERALISED);
     }
 
-    if (args.remove("--guess-F")) {
-      configuration.add(Configuration.GUESS_F);
+    if (args.remove("--breakpoint")) {
+      configuration.remove(Configuration.BREAKPOINT_FREE);
+    }
+
+    if (args.remove("--breakpoint-free")) {
+      configuration.add(Configuration.BREAKPOINT_FREE);
     }
 
     if (args.remove("-n") || args.remove("--nondeterministic-initial-component")) {
@@ -77,6 +79,7 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
   @Override
   protected Function<Formula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
+
     if (nondet) {
       optimisations.remove(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
     }
@@ -85,6 +88,6 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
   }
 
   enum Configuration {
-    GENERALISED, GUESS_F, NONDET_INITIAL_COMPONENT
+    GENERALISED, BREAKPOINT_FREE, NONDET_INITIAL_COMPONENT
   }
 }

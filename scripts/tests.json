@@ -33,13 +33,15 @@
         "ltl2ldba": "ltl2ldba",
         "ltl2ldba-nondet": "ltl2ldba#nondet-init",
         "ltl2ldba-vanilla": "ltl2ldba#no-eps",
-        "ltl2ldba-guessf": "ltl2ldba#guess-f",
-        "ltl2ldba-guessf-vanilla": "ltl2ldba#guess-f,no-eps",
-        "ltl2ldba-gen-buchi": "ltl2ldba#gen-buchi",
-        "ltl2ldba-gen-buchi-nondet": "ltl2ldba#gen-buchi,nondet-init",
-        "ltl2ldba-gen-buchi-nondet-vanilla": "ltl2ldba#gen-buchi,nondet-init,no-eps",
-        "ltl2ldba-gen-buchi-guessf": "ltl2ldba#gen-buchi,guess-f",
-        "ltl2ldba-gen-buchi-guessf-vanilla": "ltl2ldba#gen-buchi,guess-f,no-eps",
+        "ltl2ldba-bpfree": "ltl2ldba#breakpoint-free",
+        "ltl2ldba-bpfree-nondet": "ltl2ldba#breakpoint-free,nondet-init",
+        "ltl2ldba-bpfree-vanilla": "ltl2ldba#breakpoint-free,no-eps",
+        "ltl2ldba-genb": "ltl2ldba#gen-buchi",
+        "ltl2ldba-genb-nondet": "ltl2ldba#gen-buchi,nondet-init",
+        "ltl2ldba-genb-nondet-vanilla": "ltl2ldba#gen-buchi,nondet-init,no-eps",
+        "ltl2ldba-genb-bpfree": "ltl2ldba#gen-buchi,breakpoint-free",
+        "ltl2ldba-genb-bpfree-nondet": "ltl2ldba#gen-buchi,nondet-init,breakpoint-free",
+        "ltl2ldba-genb-bpfree-vanilla": "ltl2ldba#gen-buchi,no-eps,breakpoint-free",
         "ltl2dpa": "ltl2dpa",
         "ltl2dpa-vanilla": "ltl2dpa#no-eps",
         "ltl2dpa-parallel": "ltl2dpa#parallel",
@@ -89,3 +91,47 @@
     }
 }
 
+
+
+
+TEST_NAME: "ltl2ldba"
+
+TEST_NAME: "ltl2ldba-nondet"
+
+TEST_NAME: "ltl2ldba-vanilla"
+
+TEST_NAME: "ltl2ldba-genb"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi %f >%O"
+
+TEST_NAME: "ltl2ldba-genb-nondet"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component %f >%O"
+
+TEST_NAME: "ltl2ldba-genb-vanilla"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+
+TEST_NAME: "ltl2ldba-bpfree"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --breakpoint-free %f >%O"
+
+TEST_NAME: "ltl2ldba-bpfree-nondet"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --nondeterministic-initial-component --breakpoint-free %f >%O"
+
+TEST_NAME: "ltl2ldba-bpfree-vanilla"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --breakpoint-free --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+
+TEST_NAME: "ltl2ldba-genb-bpfree"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --breakpoint-free %f >%O"
+
+TEST_NAME: "ltl2ldba-genb-bpfree-nondet"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component --breakpoint-free %f >%O"
+
+TEST_NAME: "ltl2ldba-genb-bpfree-vanilla"
+LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --breakpoint-free --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+
+TEST_NAME: "nba2ldba"
+TEST_NAME: "ltl2dpa"
+TEST_NAME: "ltl2dpa-vanilla"
+TEST_NAME: "ltl2dpa-parallel"
+TEST_NAME: "ltl2da-parallel"
+TEST_NAME: "fgx2da-strict"
+TEST_NAME: "fgx2dga-vanilla"
+TEST_NAME: "fgx2dga"

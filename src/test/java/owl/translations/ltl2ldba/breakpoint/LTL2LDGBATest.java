@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,6 +30,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParseResult;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public class LTL2LDGBATest {
 
@@ -59,7 +60,7 @@ public class LTL2LDGBATest {
     @Nullable String expectedOutput) throws IOException {
     LtlParseResult parseResult = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
-      GeneralizedBuchiAcceptance, RecurringObligations> automaton =
+      GeneralizedBuchiAcceptance, GObligations> automaton =
       LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
     automaton.getAcceptingComponent().setVariables(parseResult.getVariableMapping());
     String hoaString = automaton.toString();

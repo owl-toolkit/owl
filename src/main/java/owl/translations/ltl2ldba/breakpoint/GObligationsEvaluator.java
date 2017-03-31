@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.ltl2ldba.breakpoint;
 
 import com.google.common.collect.Iterables;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -38,33 +39,21 @@ import owl.ltl.XOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Visitor;
+import owl.translations.ltl2ldba.JumpEvaluator;
 
-public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObligations> {
+public class GObligationsEvaluator implements JumpEvaluator<GObligations> {
 
   private final EquivalenceClassFactory factory;
 
-  RecurringObligationsEvaluator(EquivalenceClassFactory factory) {
+  GObligationsEvaluator(EquivalenceClassFactory factory) {
     this.factory = factory;
   }
 
-  /* TODO: Port to EquivalenceClass, Dynamically extend environement?, Move to evaluate Vistior
-  *
-  *  CODE: EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys, factory);
-      EquivalenceClass goal = clazz.substitute(proposition ->
-              Simplifier.simplify(proposition.accept(evaluateVisitor), RewriterEnum.MODAL));
-
-      if (evaluateVisitor.environment.implies(goal)) {
-          evaluateVisitor.free();
-          return factory.getTrue();
-      }
-
-      evaluateVisitor.free();
-      return goal;
-  **/
   @Override
-  public EquivalenceClass evaluate(EquivalenceClass clazz, RecurringObligations keys) {
+  public EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
     Formula formula = clazz.getRepresentative();
-    EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.associatedGs, factory);
+    EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.associatedGs, factory,
+      keys.getObligation());
     Formula subst = formula.accept(evaluateVisitor);
     Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
     EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
@@ -77,12 +66,24 @@ public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObl
     private final EquivalenceClass environment;
     private final EquivalenceClassFactory factory;
 
-    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory factory) {
+    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory factory,
+      @Nullable EquivalenceClass label) {
       this.factory = factory;
-      environment = factory.createEquivalenceClass(
-        Iterables.concat(gMonitors,
-          StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
-            .collect(Collectors.toList())));
+      if (label == null) {
+        environment = factory.createEquivalenceClass(
+          Iterables.concat(gMonitors,
+            StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
+              .collect(Collectors.toList())));
+      } else {
+        environment = label.and(factory.createEquivalenceClass(
+          Iterables.concat(gMonitors,
+            StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
+              .collect(Collectors.toList()))));
+      }
+    }
+
+    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory factory) {
+      this(gMonitors, factory, null);
     }
 
     private Formula defaultAction(Formula formula) {
@@ -141,7 +142,7 @@ public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObl
 
     @Override
     public Formula visit(GOperator gOperator) {
-      return BooleanConstant.get(defaultAction(gOperator.operand) == BooleanConstant.TRUE);
+      return BooleanConstant.get(gOperator.operand.accept(this) == BooleanConstant.TRUE);
     }
 
     @Override
@@ -173,7 +174,7 @@ public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObl
 
     @Override
     public Formula visit(WOperator wOperator) {
-      if (defaultAction(wOperator.left) == BooleanConstant.TRUE) {
+      if (wOperator.left.accept(this) == BooleanConstant.TRUE) {
         return BooleanConstant.TRUE;
       }
 
@@ -182,7 +183,7 @@ public class RecurringObligationsEvaluator implements JumpEvaluator<RecurringObl
 
     @Override
     public Formula visit(ROperator rOperator) {
-      if (defaultAction(rOperator.right) == BooleanConstant.TRUE) {
+      if (rOperator.right.accept(this) == BooleanConstant.TRUE) {
         return BooleanConstant.TRUE;
       }
 

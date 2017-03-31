@@ -225,7 +225,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
   private BitSet toBitSet(Iterable<? extends Formula> formulas) {
     BitSet bitSet = new BitSet();
     formulas.forEach(x -> {
-      assert mapping.containsKey(x);
+      getVariable(x);
       bitSet.set(mapping.getInt(x) - 1);
     });
     return bitSet;

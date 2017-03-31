@@ -12,7 +12,8 @@
                 "gen-buchi": "--generalised-Buchi",
                 "buchi": "--Buchi",
                 "guess-f": "--guess-F",
-                "nondet-init": "--nondeterministic-initial-component"
+                "nondet-init": "--nondeterministic-initial-component",
+                "breakpoint-free": "--breakpoint-free"
             },
             "optimisations": {
                 "no-eps": "REMOVE_EPSILON_TRANSITIONS"

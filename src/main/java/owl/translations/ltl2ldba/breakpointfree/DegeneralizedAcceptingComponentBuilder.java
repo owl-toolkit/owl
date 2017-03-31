@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba.ng;
+package owl.translations.ltl2ldba.breakpointfree;
 
 import java.util.BitSet;
 import java.util.EnumSet;
@@ -34,12 +34,12 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
 public final class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
-  <DegeneralizedBreakpointFreeState, BuchiAcceptance, RecurringObligations2> {
+  <DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations> {
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
     EnumSet<Optimisation> optimisations) {
     super(optimisations, factories,
-      new RecurringObligations2Evaluator(factories.equivalenceClassFactory));
+      new FGObligationsEvaluator(factories.equivalenceClassFactory));
   }
 
   @Override
@@ -54,7 +54,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   @Nullable
   protected DegeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
-    RecurringObligations2 obligations) {
+    FGObligations obligations) {
     EquivalenceClass safety = remainder.andWith(obligations.safety);
 
     if (safety.isFalse()) {
@@ -78,8 +78,6 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.liveness);
     sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.safety));
 
-    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.obligations.safety));
-
     for (EquivalenceClass clazz : state.obligations.liveness) {
       sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
     }
@@ -92,8 +90,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     BitSet valuation) {
     EquivalenceClass livenessSuccessor = factory.getSuccessor(state.liveness, valuation);
     EquivalenceClass safetySuccessor = factory
-      .getSuccessor(state.safety, valuation, livenessSuccessor)
-      .andWith(factory.getInitial(state.obligations.safety));
+      .getSuccessor(state.safety, valuation, livenessSuccessor);
 
     if (safetySuccessor.isFalse()) {
       return null;

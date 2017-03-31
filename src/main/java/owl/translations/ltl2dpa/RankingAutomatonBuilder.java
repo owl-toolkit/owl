@@ -47,8 +47,8 @@ import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.DegeneralizedBreakpointState;
-import owl.translations.ltl2ldba.RecurringObligations;
+import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpoint.GObligations;
 
 final class RankingAutomatonBuilder
   implements ExploreBuilder<EquivalenceClass, RankingState, ParityAcceptance> {
@@ -59,16 +59,16 @@ final class RankingAutomatonBuilder
   private final Automaton<EquivalenceClass, NoneAcceptance> initialComponent;
   private final List<RankingState> initialStates;
   private final LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations> ldba;
+    DegeneralizedBreakpointState, BuchiAcceptance, GObligations> ldba;
   private final AtomicInteger sizeCounter;
   @Nullable
   private final Map<EquivalenceClass, Trie<DegeneralizedBreakpointState>> trie;
-  private final Map<RecurringObligations, Integer> volatileComponents;
+  private final Map<GObligations, Integer> volatileComponents;
   private final int volatileMaxIndex;
 
   private RankingAutomatonBuilder(
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-      RecurringObligations> ldba,
+      GObligations> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory) {
     acceptingComponent = ldba.getAcceptingComponent();
     initialComponent = ldba.getInitialComponent();
@@ -76,7 +76,7 @@ final class RankingAutomatonBuilder
 
     volatileComponents = new HashMap<>();
 
-    for (RecurringObligations value : ldba.getComponents()) {
+    for (GObligations value : ldba.getComponents()) {
       assert !volatileComponents.containsKey(value);
 
       if (value.isPureSafety()) {
@@ -101,7 +101,7 @@ final class RankingAutomatonBuilder
 
   public static RankingAutomatonBuilder create(
     LimitDeterministicAutomaton<EquivalenceClass,
-      DegeneralizedBreakpointState, BuchiAcceptance, RecurringObligations> ldba,
+      DegeneralizedBreakpointState, BuchiAcceptance, GObligations> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory) {
     return new RankingAutomatonBuilder(ldba, sizeCounter, optimisations, factory);
   }
@@ -120,14 +120,14 @@ final class RankingAutomatonBuilder
   }
 
   private int appendJumps(EquivalenceClass state, List<DegeneralizedBreakpointState> ranking,
-    Map<RecurringObligations, EquivalenceClass> existingClasses, int currentVolatileIndex) {
+    Map<GObligations, EquivalenceClass> existingClasses, int currentVolatileIndex) {
     List<DegeneralizedBreakpointState> pureEventual = new ArrayList<>();
     List<DegeneralizedBreakpointState> mixed = new ArrayList<>();
     DegeneralizedBreakpointState nextVolatileState = null;
     int nextVolatileStateIndex = -1;
 
     for (DegeneralizedBreakpointState accState : ldba.getEpsilonJumps(state)) {
-      RecurringObligations obligations = ldba.getAnnotation(accState);
+      GObligations obligations = ldba.getAnnotation(accState);
       Integer candidateIndex = volatileComponents.get(obligations);
 
       // It is a volatile state
@@ -181,9 +181,7 @@ final class RankingAutomatonBuilder
     if (trie == null) {
       append = Optional.empty();
     } else {
-      append = trie
-        .computeIfAbsent(state, x -> new Trie<>())
-        .suffix(ranking, suffixes);
+      append = trie.computeIfAbsent(state, x -> new Trie<>()).suffix(ranking, suffixes);
     }
 
     if (append.isPresent()) {
@@ -256,7 +254,7 @@ final class RankingAutomatonBuilder
     }
 
     // We compute the relevant accepting components, which we can jump to.
-    Map<RecurringObligations, EquivalenceClass> existingClasses = new HashMap<>();
+    Map<GObligations, EquivalenceClass> existingClasses = new HashMap<>();
     EquivalenceClass falseClass = successor.getFactory().getFalse();
 
     for (DegeneralizedBreakpointState jumpTarget : ldba.getEpsilonJumps(successor)) {
@@ -280,7 +278,7 @@ final class RankingAutomatonBuilder
       }
 
       DegeneralizedBreakpointState rankingSuccessor = edge.getSuccessor();
-      RecurringObligations obligations = ldba.getAnnotation(rankingSuccessor);
+      GObligations obligations = ldba.getAnnotation(rankingSuccessor);
       EquivalenceClass existingClass = existingClasses.get(obligations);
 
       if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass)) {
