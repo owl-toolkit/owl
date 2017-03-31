@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016  (See AUTHORS)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package owl.collections;
 
 import it.unimi.dsi.fastutil.ints.AbstractIntBidirectionalIterator;
@@ -14,7 +31,7 @@ import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 
-class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
+class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   // TODO Some methods could be rewritten to use the approach of BitSet#toString() -
   // The idea there is to not blindly iterate via nextSetBit but determine "blocks" by alternating
   // nextSetBit and nextClearBit. If the sets are rather tightly packed, this can save a lot of
@@ -24,14 +41,14 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   private final int max;
   private final int min;
 
-  private BitSetIntSet(BitSet bitSet, int min, int max) {
+  private IntBitSetImpl(BitSet bitSet, int min, int max) {
     assert min <= max;
     this.min = Math.max(0, min);
     this.max = max;
     this.bitSet = bitSet;
   }
 
-  BitSetIntSet(BitSet bitSet) {
+  IntBitSetImpl(BitSet bitSet) {
     this(bitSet, Integer.MIN_VALUE, Integer.MAX_VALUE);
   }
 
@@ -59,8 +76,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public boolean addAll(IntCollection c) {
-    if (c instanceof BitSetIntSet) {
-      BitSetIntSet other = (BitSetIntSet) c;
+    if (c instanceof IntBitSetImpl) {
+      IntBitSetImpl other = (IntBitSetImpl) c;
       BitSet otherBitSet = other.bitSet;
       if (isSetInView(otherBitSet) && (other.isOwnSetInView())) {
         int cardinality = this.bitSet.cardinality();
@@ -71,13 +88,6 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
     return super.addAll(c);
   }
 
-  private void checkValue(int value) {
-    if (!(isValidValue(value))) {
-      throw new IllegalArgumentException(String.format("Specified value %d out of bounds [%d, %d)",
-        value, min, max));
-    }
-  }
-
   private void checkRange(int from, int to) {
     if (!isValidRange(from, to)) {
       throw new IllegalArgumentException(String.format("Invalid range %d, %d", from, to));
@@ -85,6 +95,13 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
     if (!(isSubRange(from, to, min, max))) {
       throw new IllegalArgumentException(String.format("Specified range [%d, %d) out of bounds "
         + "[%d, %d)", from, to, min, max));
+    }
+  }
+
+  private void checkValue(int value) {
+    if (!(isValidValue(value))) {
+      throw new IllegalArgumentException(String.format("Specified value %d out of bounds [%d, %d)",
+        value, min, max));
     }
   }
 
@@ -118,7 +135,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   @SuppressWarnings({"UseOfClone", "MethodDoesntCallSuperMethod"})
-  public BitSetIntSet clone() throws CloneNotSupportedException {
+  public IntBitSetImpl clone() throws CloneNotSupportedException {
     throw new CloneNotSupportedException("");
   }
 
@@ -139,8 +156,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public boolean containsAll(IntCollection c) {
-    if (c instanceof BitSetIntSet) {
-      BitSetIntSet other = (BitSetIntSet) c;
+    if (c instanceof IntBitSetImpl) {
+      IntBitSetImpl other = (IntBitSetImpl) c;
       BitSet otherBitSet = other.bitSet;
       int otherCardinality = otherBitSet.cardinality();
       if (isSetInView(otherBitSet) && (other.isOwnSetInView())) {
@@ -167,8 +184,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public boolean containsAny(IntCollection o) {
-    if (o instanceof BitSetIntSet) {
-      BitSetIntSet other = (BitSetIntSet) o;
+    if (o instanceof IntBitSetImpl) {
+      IntBitSetImpl other = (IntBitSetImpl) o;
       BitSet otherBitSet = other.bitSet;
       if (isSetInView(otherBitSet) && other.isOwnSetInView()) {
         return bitSet.intersects(otherBitSet);
@@ -191,8 +208,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       return true;
     }
 
-    if (o instanceof BitSetIntSet) {
-      BitSetIntSet other = (BitSetIntSet) o;
+    if (o instanceof IntBitSetImpl) {
+      IntBitSetImpl other = (IntBitSetImpl) o;
 
       if (isOwnSetInView() && other.isOwnSetInView()) {
         return Objects.equals(this.bitSet, other.bitSet);
@@ -224,31 +241,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   }
 
   @Override
-  public BitSetIntSet headSet(int toElement) {
+  public IntBitSetImpl headSet(int toElement) {
     return subSet(min, toElement);
-  }
-
-  private boolean isValidValue(int i) {
-    return inRange(i, min, max);
-  }
-
-  /**
-   * Determines whether the given {@code bitSet} is a subset of the view specified by the
-   * {@code min} and {@code max} fields, i.e. there is no element in {@code bitSet} which can't be
-   * contained in this set. This allows to perform some operations directly on the bit set.
-   */
-  private boolean isSetInView(BitSet bitSet) {
-    return isFullSet() || min <= bitSet.nextSetBit(0) && bitSet.length() < max;
-  }
-
-  /**
-   * Determines whether the own {@code bitSet} is a subset of the view specified by the {@code min}
-   * and {@code max} fields.
-   *
-   * @see #isSetInView(BitSet)
-   */
-  private boolean isOwnSetInView() {
-    return isSetInView(bitSet);
   }
 
   @Override
@@ -269,14 +263,37 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
     return min == 0 && max == Integer.MAX_VALUE;
   }
 
+  /**
+   * Determines whether the own {@code bitSet} is a subset of the view specified by the {@code min}
+   * and {@code max} fields.
+   *
+   * @see #isSetInView(BitSet)
+   */
+  private boolean isOwnSetInView() {
+    return isSetInView(bitSet);
+  }
+
+  /**
+   * Determines whether the given {@code bitSet} is a subset of the view specified by the
+   * {@code min} and {@code max} fields, i.e. there is no element in {@code bitSet} which can't be
+   * contained in this set. This allows to perform some operations directly on the bit set.
+   */
+  private boolean isSetInView(BitSet bitSet) {
+    return isFullSet() || min <= bitSet.nextSetBit(0) && bitSet.length() < max;
+  }
+
+  private boolean isValidValue(int i) {
+    return inRange(i, min, max);
+  }
+
   @Override
   public IntBidirectionalIterator iterator(int fromElement) {
-    return new BitSetIterator(this, fromElement);
+    return new BitSetIterator(fromElement);
   }
 
   @Override
   public IntBidirectionalIterator iterator() {
-    return new BitSetIterator(this);
+    return new BitSetIterator();
   }
 
   @Override
@@ -308,8 +325,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public boolean removeAll(IntCollection c) {
-    if (c instanceof BitSetIntSet) {
-      BitSetIntSet other = (BitSetIntSet) c;
+    if (c instanceof IntBitSetImpl) {
+      IntBitSetImpl other = (IntBitSetImpl) c;
       if (isOwnSetInView() && other.isOwnSetInView()) {
         int cardinality = this.bitSet.cardinality();
         this.bitSet.andNot(other.bitSet);
@@ -321,8 +338,8 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   @Override
   public boolean retainAll(IntCollection c) {
-    if (c instanceof BitSetIntSet) {
-      BitSetIntSet other = (BitSetIntSet) c;
+    if (c instanceof IntBitSetImpl) {
+      IntBitSetImpl other = (IntBitSetImpl) c;
       if (isOwnSetInView() && other.isOwnSetInView()) {
         int cardinality = bitSet.cardinality();
         bitSet.and(other.bitSet);
@@ -359,17 +376,17 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
   }
 
   @Override
-  public BitSetIntSet subSet(int fromElement, int toElement) {
+  public IntBitSetImpl subSet(int fromElement, int toElement) {
     assert fromElement <= toElement;
     if (min == fromElement && max == toElement) {
       return this;
     }
     checkRange(Math.max(0, fromElement), toElement);
-    return new BitSetIntSet(bitSet, fromElement, toElement);
+    return new IntBitSetImpl(bitSet, fromElement, toElement);
   }
 
   @Override
-  public BitSetIntSet tailSet(int fromElement) {
+  public IntBitSetImpl tailSet(int fromElement) {
     return subSet(fromElement, max);
   }
 
@@ -397,69 +414,54 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
 
   }
 
-  @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-  private static final class BitSetIterator extends AbstractIntBidirectionalIterator
+  private final class BitSetIterator extends AbstractIntBidirectionalIterator
     implements PrimitiveIterator.OfInt {
-    private final BitSetIntSet set;
     private int last = -1;
     private int next;
     private int previous;
 
-    BitSetIterator(BitSetIntSet set) {
-      this.set = set;
+    BitSetIterator() {
       previous = -1;
-      next = set.bitSet.nextSetBit(set.min);
-      if (next >= set.max) {
+      next = bitSet.nextSetBit(min);
+      if (next >= max) {
         next = -1;
       }
     }
 
-    BitSetIterator(BitSetIntSet set, int startingPoint) {
-      this.set = set;
+    BitSetIterator(int startingPoint) {
       this.previous = getPrevious(startingPoint);
       this.next = getNext(startingPoint);
       assert this.previous < this.next || this.next == -1 || this.previous == -1;
     }
 
-    @Override
-    public void forEachRemaining(IntConsumer action) {
-      while (next != -1) {
-        action.accept(next);
-        previous = next;
-        next = getNext(next);
-      }
-    }
-
     private int getNext(int current) {
-      if (current < set.max) {
-        int next;
-        if (current < set.min) {
-          next = set.bitSet.nextSetBit(set.min);
-        } else {
-          next = set.bitSet.nextSetBit(current + 1);
-        }
-        if (next >= set.max) {
-          return -1;
-        }
-        return next;
+      if (current >= max) {
+        return -1;
       }
-      return -1;
+
+      int next;
+      if (current < min) {
+        next = bitSet.nextSetBit(min);
+      } else {
+        next = bitSet.nextSetBit(current + 1);
+      }
+
+      return next < max ? next : -1;
     }
 
     private int getPrevious(int current) {
-      if (current >= set.min) {
-        int previous;
-        if (current >= set.max) {
-          previous = set.bitSet.previousSetBit(set.max - 1);
-        } else {
-          previous = set.bitSet.previousSetBit(current - 1);
-        }
-        if (previous < set.min) {
-          return -1;
-        }
-        return previous;
+      if (current < min) {
+        return -1;
       }
-      return -1;
+
+      int previous;
+      if (current >= max) {
+        previous = bitSet.previousSetBit(max - 1);
+      } else {
+        previous = bitSet.previousSetBit(current - 1);
+      }
+
+      return previous < min ? -1 : previous;
     }
 
     @Override
@@ -480,7 +482,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       previous = next;
       next = getNext(next);
       last = previous;
-      assert last != -1 && set.contains(last);
+      assert last != -1 && contains(last);
       return previous;
     }
 
@@ -492,7 +494,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       next = previous;
       previous = getPrevious(previous);
       last = next;
-      assert last != -1 && set.contains(last);
+      assert last != -1 && contains(last);
       return next;
     }
 
@@ -501,7 +503,7 @@ class BitSetIntSet extends AbstractIntSortedSet implements BitIntSet {
       if (last == -1) {
         throw new IllegalStateException("");
       }
-      if (!set.rem(last)) {
+      if (!rem(last)) {
         throw new IllegalStateException("Concurrent modification");
       }
       last = -1;

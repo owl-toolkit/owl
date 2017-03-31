@@ -52,23 +52,23 @@ public final class BitSets {
     return bitSet;
   }
 
-  public static BitIntSet createBitSet(IntCollection collection) {
+  public static IntBitSet createBitSet(IntCollection collection) {
     BitSet backingSet = new BitSet();
     IntIterator iterator = collection.iterator();
     while (iterator.hasNext()) {
       backingSet.set(iterator.nextInt());
     }
-    return new BitSetIntSet(backingSet);
+    return new IntBitSetImpl(backingSet);
   }
 
-  public static BitIntSet createBitSet() {
+  public static IntBitSet createBitSet() {
     BitSet backingSet = new BitSet();
-    return new BitSetIntSet(backingSet);
+    return new IntBitSetImpl(backingSet);
   }
 
-  public static BitIntSet createBitSet(int size) {
+  public static IntBitSet createBitSet(int size) {
     BitSet backingSet = new BitSet(size);
-    return new BitSetIntSet(backingSet);
+    return new IntBitSetImpl(backingSet);
   }
 
   public static void forEach(BitSet bitSet, IntConsumer consumer) {

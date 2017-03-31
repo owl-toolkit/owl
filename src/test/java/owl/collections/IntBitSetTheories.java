@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016  (See AUTHORS)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package owl.collections;
 
 import static org.hamcrest.Matchers.is;
@@ -16,7 +33,7 @@ import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
 @RunWith(Theories.class)
-public class BitSetIntSetTheories {
+public class IntBitSetTheories {
   @DataPoints
   public static Collection<DataPointHolder> dataPoints() {
     return ImmutableList.<DataPointHolder>builder()
@@ -86,14 +103,14 @@ public class BitSetIntSetTheories {
 
   private static final class DataPointHolder {
     final IntSortedSet baseReference;
-    final BitSetIntSet baseSet;
+    final IntBitSet baseSet;
     final IntSortedSet reference;
-    final BitSetIntSet set;
+    final IntBitSet set;
     final SubsetRange range;
 
     DataPointHolder(List<Integer> input, @Nullable SubsetRange range) {
       baseReference = new IntAVLTreeSet(input);
-      baseSet = new BitSetIntSet(BitSets.toSet(input));
+      baseSet = new IntBitSetImpl(BitSets.toSet(input));
 
       if (range == null) {
         this.reference = baseReference;

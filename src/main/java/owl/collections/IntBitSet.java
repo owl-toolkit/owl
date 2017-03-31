@@ -4,15 +4,15 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.function.IntConsumer;
 
-public interface BitIntSet extends IntSortedSet {
+public interface IntBitSet extends IntSortedSet {
   @Override
-  BitIntSet subSet(int fromElement, int toElement);
+  IntBitSet subSet(int fromElement, int toElement);
 
   @Override
-  BitIntSet headSet(int toElement);
+  IntBitSet headSet(int toElement);
 
   @Override
-  BitIntSet tailSet(int fromElement);
+  IntBitSet tailSet(int fromElement);
 
   void set(int i);
 

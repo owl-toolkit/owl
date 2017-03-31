@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016  (See AUTHORS)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package owl.collections;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -33,23 +50,23 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class BitSetIntSetTest {
+public class IntBitSetTest {
   /*
    * Implementation note: As a post-condition, we assert that baseSet and baseReference are equal,
    * hence all operations carried out on set also have to be carried out on reference in each test.
    */
 
   private final IntSortedSet baseReference;
-  private final BitSetIntSet baseSet;
+  private final IntBitSet baseSet;
   @Nullable
   private final SubsetRange range;
   private final IntSortedSet reference;
-  private final BitSetIntSet set;
+  private final IntBitSet set;
   private final IntSortedSet valuesInRange;
 
-  public BitSetIntSetTest(List<Integer> input, @Nullable SubsetRange range) {
+  public IntBitSetTest(List<Integer> input, @Nullable SubsetRange range) {
     baseReference = new IntAVLTreeSet(input);
-    baseSet = new BitSetIntSet(BitSets.toSet(input));
+    baseSet = new IntBitSetImpl(BitSets.toSet(input));
     this.range = range;
 
     if (range == null) {
@@ -117,7 +134,7 @@ public class BitSetIntSetTest {
 
   @Test
   public void testAddAllOptimized() {
-    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
 
     assertThat(set.addAll(testSet), is(reference.addAll(valuesInRange)));
     assertThat(set, equalTo(reference));
@@ -127,7 +144,7 @@ public class BitSetIntSetTest {
   public void testAddAllOptimizedOutOfBounds() {
     assumeThat(range, notNullValue());
 
-    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
     testSet.add(range.high);
 
     set.addAll(testSet);
@@ -181,18 +198,11 @@ public class BitSetIntSetTest {
     assertThat(set, is(reference));
   }
 
-
   @Test(expected = IllegalArgumentException.class)
   public void testClearRangeOutOfBounds() {
     assumeThat(range, notNullValue());
 
     set.clear(range.high, range.high + 1);
-  }
-
-  @Test(expected = CloneNotSupportedException.class)
-  public void testCloneNotSupported() throws CloneNotSupportedException {
-    //noinspection UseOfClone - We test it
-    set.clone();
   }
 
   @Test
@@ -219,7 +229,7 @@ public class BitSetIntSetTest {
     //noinspection CollectionAddedToSelf
     assertThat(set.containsAll(set), is(true));
 
-    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
 
     assertThat(set.containsAll(testSet), is(reference.containsAll(valuesInRange)));
   }
@@ -237,7 +247,7 @@ public class BitSetIntSetTest {
     //noinspection CollectionAddedToSelf
     assertThat(set.containsAny(set), is(not(reference.isEmpty())));
 
-    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
 
     boolean referenceContainsAny = reference.stream().anyMatch(valuesInRange::contains);
     assertThat(set.containsAny(testSet), is(referenceContainsAny));
@@ -264,7 +274,7 @@ public class BitSetIntSetTest {
 
   @Test
   public void testEqualsOptimized() {
-    BitIntSet testSet = BitSets.createBitSet(reference);
+    IntBitSet testSet = BitSets.createBitSet(reference);
 
     assertThat(set, equalTo(testSet));
   }
@@ -395,7 +405,7 @@ public class BitSetIntSetTest {
 
   @Test
   public void testRemoveAllOptimized() {
-    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
 
     assertThat(set.removeAll(testSet), is(reference.removeAll(valuesInRange)));
     assertThat(set, equalTo(reference));
@@ -428,7 +438,7 @@ public class BitSetIntSetTest {
 
   @Test
   public void testRetainAllOptimized() {
-    BitIntSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
 
     assertThat(set.retainAll(testSet), is(reference.retainAll(valuesInRange)));
     assertThat(set, equalTo(reference));
