@@ -22,6 +22,10 @@
             },
             {
                 "type": "file",
+                "path": "formulas/fgx.ltl"
+            },
+            {
+                "type": "file",
                 "path": "formulas/check.ltl"
             },
             {
@@ -80,7 +84,8 @@
             "data": [
                 {
                     "type": "file",
-                    "path": "formulas/base.ltl"
+                    "path": "formulas/base.ltl",
+                    "determinize": true
                 },
                 {
                     "type": "file",
