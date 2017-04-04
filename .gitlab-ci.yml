@@ -22,18 +22,13 @@ build:
 
 .ltlcross: &ltlcross_template
   script:
-    - JAVA_OPTS="-enableassertions"
-    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
     - ./gradlew --no-daemon distTar
     - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
-    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/check.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf | ltlcross --stop-on-error --grind=debug.ltl --timeout=300 "$SPOT_TOOL" "$LTL_TOOL"
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/tests.py $TEST_NAME
   artifacts:
     paths:
-    - debug.ltl
-    when: on_failure
+    - build/results/
+    when: always
     expire_in: 1 week
 
 # LTL to LDBA Translations
@@ -43,37 +38,37 @@ build:
 test:ltl2ldba Büchi:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi %f >%O"
+    TEST_NAME: "ltl2ldba"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Non-Det:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --nondeterministic-initial-component %f >%O"
+    TEST_NAME: "ltl2ldba-nondet"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Vanilla:
   stage: test
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    TEST_NAME: "ltl2ldba-vanilla"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi %f >%O"
+    TEST_NAME: "ltl2ldba-genb"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Non-Det:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component %f >%O"
+    TEST_NAME: "ltl2ldba-genb-nondet"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Vanilla:
   stage: test
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    TEST_NAME: "ltl2ldba-genb-vanilla"
   <<: *ltlcross_template
 
 ## Breakpoint-Free
@@ -81,87 +76,65 @@ test:ltl2ldba generalised-Büchi Vanilla:
 test:ltl2ldba Büchi Breakpoint-Free:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --breakpoint-free %f >%O"
+    TEST_NAME: "ltl2ldba-bpfree"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Breakpoint-Free Non-Det:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --nondeterministic-initial-component --breakpoint-free %f >%O"
+    TEST_NAME: "ltl2ldba-bpfree-nondet"
   <<: *ltlcross_template
 
 test:ltl2ldba Büchi Breakpoint-Free Vanilla:
   stage: test
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --Buchi --breakpoint-free --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    TEST_NAME: "ltl2ldba-bpfree-vanilla"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Breakpoint-Free:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --breakpoint-free %f >%O"
+    TEST_NAME: "ltl2ldba-genb-bpfree"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Breakpoint-Free Non-Det:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --nondeterministic-initial-component --breakpoint-free %f >%O"
+    TEST_NAME: "ltl2ldba-genb-bpfree-nondet"
   <<: *ltlcross_template
 
 test:ltl2ldba generalised-Büchi Breakpoint-Free Vanilla:
   stage: test
   variables:
-    LTL_TOOL: "{ltl2ldba} build/bin/ltl2ldba --generalised-Buchi --breakpoint-free --optimisations=REMOVE_EPSILON_TRANSITIONS %f >%O"
+    TEST_NAME: "ltl2ldba-genb-bpfree-vanilla"
   <<: *ltlcross_template
 
 # NBA to LDBA translations
 
-test:nba2ldba Vanilla:
+test:nba2ldba:
   stage: test
   variables:
-    LTL_TOOL: "{nba2ldba} ltl2tgba --ba -H -f %f | build/bin/nba2ldba --optimisations=REMOVE_EPSILON_TRANSITIONS >%O"
-  script:
-    - JAVA_OPTS="-enableassertions"
-    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
-    - ./gradlew --no-daemon distTar
-    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
-    - ltlcross --determinize --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-  artifacts:
-    paths:
-    - debug.ltl
-    when: on_failure
-    expire_in: 1 week
+    TEST_NAME: "nba2ldba"
+  <<: *ltlcross_template
 
 # LTL to DPA translations
 
 test:ltl2dpa:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa %f >%O"
+    TEST_NAME: "ltl2dpa"
   <<: *ltlcross_template
 
-# Copy & Modify - Spot cannot handle parity automata without optimisation.
 test:ltl2dpa Vanilla:
   stage: test
   variables:
-    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --optimisations=none %f >%O"
-  script:
-    - JAVA_OPTS="-enableassertions"
-    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
-    - ./gradlew --no-daemon distTar
-    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
-    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/regressions.ltl" "$SPOT_TOOL" "$LTL_TOOL"
-  artifacts:
-    paths:
-    - debug.ltl
-    when: on_failure
-    expire_in: 1 week
+    TEST_NAME: "ltl2dpa-vanilla"
+  <<: *ltlcross_template
 
 test-parallel:ltl2dpa Parallel:
   stage: test-parallel-translation
   variables:
-    LTL_TOOL: "{ltl2dpa} build/bin/ltl2dpa --parallel %f >%O"
+    TEST_NAME: "ltl2dpa-parallel"
   <<: *ltlcross_template
 
 # LTL to D*A translations
@@ -169,7 +142,7 @@ test-parallel:ltl2dpa Parallel:
 test-parallel:ltl2det-parallel:
   stage: test-parallel-translation
   variables:
-    LTL_TOOL: "{ltl2da} build/bin/ltl2da --parallel %f >%O"
+    TEST_NAME: "ltl2da-parallel"
   <<: *ltlcross_template
 
 # FGX to DGA translations
@@ -177,30 +150,17 @@ test-parallel:ltl2det-parallel:
 test:fgx2dga Strict:
   stage: test
   variables:
-    LTL_TOOL: "{fgx2dga} build/bin/fgx2dga --strict --optimisations=none %f >%O"
-    LTL_TOOL_FALLBACK: "{fgx2dga} build/bin/fgx2dga --optimisations=none %f >%O"
-  script: 
-    - JAVA_OPTS="-enableassertions"
-    - SPOT_TOOL="{spot} ltl2tgba -H -f %f >%O"
-    - ./gradlew --no-daemon distTar
-    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
-    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/base.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
-    - ltlcross --stop-on-error --grind=debug.ltl --timeout=300 -F "formulas/fgx.ltl" "$SPOT_TOOL" "$LTL_TOOL" "$LTL_TOOL_FALLBACK"
-  artifacts:
-    paths:
-    - debug.ltl
-    when: on_failure
-    expire_in: 1 week
+    TEST_NAME: "fgx2da-strict"
+  <<: *ltlcross_template
 
 test:fgx2dga Vanilla:
   stage: test
   variables:
-    LTL_TOOL: "{fgx2dga} build/bin/fgx2dga --optimisations=none %f >%O"
+    TEST_NAME: "fgx2dga-vanilla"
   <<: *ltlcross_template
 
 test:fgx2dga:
   stage: test-optimizations
   variables:
-    LTL_TOOL: "{fgx2dga} build/bin/fgx2dga %f >%O"
+    TEST_NAME: "fgx2dga"
   <<: *ltlcross_template
-

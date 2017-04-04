@@ -20,10 +20,12 @@ package owl.translations;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
@@ -45,37 +47,42 @@ public abstract class AbstractCommandLineTool<T> {
     Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
     boolean stateAcceptance = args.remove("--state-acceptance");
     boolean readStdIn = args.isEmpty();
-    T input;
+    Collection<CommandLineInput<T>> inputs;
 
     try {
       if (readStdIn) {
-        input = parseInput(System.in);
+        inputs = parseInput(System.in);
+      } else if (args.getFirst().equals("-F")) {
+        args.pollFirst();
+        try (InputStream input = Files.newInputStream(Paths.get(args.pollFirst()))) {
+          inputs = parseInput(input);
+        }
       } else {
-        input = parseInput(new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
+        inputs = parseInput(new ByteArrayInputStream(args.getFirst().getBytes("UTF-8")));
       }
     } catch (ParseCancellationException | ParseException | IOException ex) {
       System.err.println("Failed to read input. Reason: " + ex);
+      ex.printStackTrace();
       return;
     }
 
-    // Apply translation.
-    HoaPrintable result = translation.apply(input);
+    for (CommandLineInput<T> input : inputs) {
+      // Apply translation.
+      HoaPrintable result = translation.apply(input.input);
+      // Write output.
+      result.setVariables(input.variables);
+      HOAConsumer consumer = new HOAConsumerPrint(System.out);
 
-    // Write output.
-    result.setVariables(getVariables());
-    HOAConsumer consumer = new HOAConsumerPrint(System.out);
+      if (stateAcceptance) {
+        consumer = new HOAIntermediateStoreAndManipulate(consumer, new ToStateAcceptance());
+      }
 
-    if (stateAcceptance) {
-      consumer = new HOAIntermediateStoreAndManipulate(consumer, new ToStateAcceptance());
+      result.toHoa(consumer, options);
     }
-
-    result.toHoa(consumer, options);
   }
 
   protected abstract Function<T, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations);
-
-  protected abstract List<String> getVariables();
 
   private EnumSet<HoaPrintable.Option> parseHoaOutputOptions(Deque<String> args) {
     if (args.remove(ANNOTATIONS)) {
@@ -85,7 +92,8 @@ public abstract class AbstractCommandLineTool<T> {
     }
   }
 
-  protected abstract T parseInput(InputStream stream) throws IOException, ParseException;
+  protected abstract Collection<CommandLineInput<T>> parseInput(InputStream stream)
+    throws IOException, ParseException;
 
   private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {
     EnumSet<Optimisation> set = EnumSet.noneOf(Optimisation.class);

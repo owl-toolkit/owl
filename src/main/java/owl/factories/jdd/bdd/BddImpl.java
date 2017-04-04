@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
  * - Due to the implementation of all operations, variable numbers increase while descending the
  *   tree of a particular node. */
 @SuppressWarnings("NumericCastThatLosesPrecision")
-final class BddImpl extends NodeTable implements Bdd {
+class BddImpl extends NodeTable implements Bdd {
   private static final int FALSE_NODE = 0;
   private static final int TRUE_NODE = 1;
   private final BddCache cache;
@@ -244,38 +244,10 @@ final class BddImpl extends NodeTable implements Bdd {
     int nodeVar = (int) getVariableFromStore(nodeStore);
 
     //noinspection NumericCastThatLosesPrecision
-    int lowNode = (int) getLowFromStore(nodeStore);
-    double lowCount;
-    if (lowNode == FALSE_NODE) {
-      lowCount = 0.0d;
-    } else if (lowNode == TRUE_NODE) {
-      //noinspection NonReproducibleMathCall
-      lowCount = Math.pow(2.0d, (double) (numberOfVariables - nodeVar - 1));
-    } else {
-      long lowStore = getNodeStore(lowNode);
-      //noinspection NumericCastThatLosesPrecision
-      int lowVar = (int) getVariableFromStore(lowStore);
-      //noinspection NonReproducibleMathCall
-      lowCount = countSatisfyingAssignmentsRecursive(lowNode)
-        * Math.pow(2.0d, (double) (lowVar - nodeVar - 1));
-    }
+    double lowCount = doCountSatisfyingAssignments((int) getLowFromStore(nodeStore), nodeVar);
 
     //noinspection NumericCastThatLosesPrecision
-    int highNode = (int) getHighFromStore(nodeStore);
-    double highCount;
-    if (highNode == FALSE_NODE) {
-      highCount = 0.0d;
-    } else if (highNode == TRUE_NODE) {
-      //noinspection NonReproducibleMathCall
-      highCount = Math.pow(2.0d, (double) (numberOfVariables - nodeVar - 1));
-    } else {
-      long highStore = getNodeStore(highNode);
-      //noinspection NumericCastThatLosesPrecision
-      int highVar = (int) getVariableFromStore(highStore);
-      //noinspection NonReproducibleMathCall
-      highCount = countSatisfyingAssignmentsRecursive(highNode)
-        * Math.pow(2.0d, (double) (highVar - nodeVar - 1));
-    }
+    double highCount = doCountSatisfyingAssignments((int) getHighFromStore(nodeStore), nodeVar);
 
     double result = lowCount + highCount;
     cache.putSatisfaction(hash, node, result);
@@ -312,6 +284,22 @@ final class BddImpl extends NodeTable implements Bdd {
       popWorkStack();
     }
     return node;
+  }
+
+  private double doCountSatisfyingAssignments(int subNode, int currentVar) {
+    if (subNode == FALSE_NODE) {
+      return 0.0d;
+    } else if (subNode == TRUE_NODE) {
+      //noinspection NonReproducibleMathCall
+      return Math.pow(2.0d, (double) (numberOfVariables - currentVar - 1));
+    } else {
+      long subStore = getNodeStore(subNode);
+      //noinspection NumericCastThatLosesPrecision
+      int subVar = (int) getVariableFromStore(subStore);
+      //noinspection NonReproducibleMathCall
+      double multiplier = Math.pow(2.0d, (double) (subVar - currentVar - 1));
+      return multiplier * countSatisfyingAssignmentsRecursive(subNode);
+    }
   }
 
   @Override

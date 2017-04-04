@@ -1,0 +1,41 @@
+{
+    "tools": {
+        "ltl2ldba": {
+            "executable": "build/bin/ltl2ldba",
+            "defaults": [
+                "buchi"
+            ],
+            "exclusive-flags": [
+                ["buchi", "gen-buchi"]
+            ],
+            "flags": {
+                "gen-buchi": "--generalised-Buchi",
+                "buchi": "--Buchi",
+                "guess-f": "--guess-F",
+                "nondet-init": "--nondeterministic-initial-component",
+                "breakpoint-free": "--breakpoint-free"
+            },
+            "optimisations": {
+                "no-eps": "REMOVE_EPSILON_TRANSITIONS"
+            }
+        },
+        "ltl2dpa": {
+            "executable": "build/bin/ltl2dpa",
+            "optimisations": {
+                "no-eps": "REMOVE_EPSILON_TRANSITIONS"
+            }
+        },
+        "ltl2da": {
+            "executable": "build/bin/ltl2da"
+        },
+        "fgx2dga": {
+            "executable": "build/bin/fgx2dga",
+            "flags": {
+                "strict": "--strict"
+            }
+        }
+    },
+    "aliases": {
+
+    }
+}

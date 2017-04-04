@@ -18,16 +18,14 @@
 package owl.translations;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
@@ -38,9 +36,6 @@ import owl.translations.nba2ldba.NBA2LDBAFunction;
 
 public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   BuchiAcceptance>> {
-  @Nullable
-  private List<String> variables = null;
-
   public static void main(String... args) {
     new NBA2LDBA().execute(new ArrayDeque<>(Arrays.asList(args)));
   }
@@ -52,21 +47,17 @@ public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   }
 
   @Override
-  protected List<String> getVariables() {
-    checkState(variables != null);
-    return variables;
-  }
-
-  @Override
-  protected Automaton<HoaState, BuchiAcceptance> parseInput(InputStream stream)
-    throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata =
-      AutomatonReader.readHoaInput(stream);
-    checkArgument(automata.size() == 1);
-    Automaton<HoaState, ?> automaton = automata.iterator().next();
-    checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
-    this.variables = automaton.getVariables();
-    //noinspection unchecked
-    return (Automaton<HoaState, BuchiAcceptance>) automaton;
+  protected Collection<CommandLineInput<Automaton<HoaState, BuchiAcceptance>>>
+  parseInput(InputStream stream) throws ParseException {
+    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaInput(stream);
+    Collection<CommandLineInput<Automaton<HoaState, BuchiAcceptance>>> inputs =
+      new ArrayList<>(automata.size());
+    for (Automaton<HoaState, ?> automaton : automata) {
+      checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
+      //noinspection unchecked
+      inputs.add(new CommandLineInput<>((Automaton<HoaState, BuchiAcceptance>) automaton,
+        automaton.getVariables()));
+    }
+    return inputs;
   }
 }
