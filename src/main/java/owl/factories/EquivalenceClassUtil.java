@@ -67,7 +67,7 @@ public final class EquivalenceClassUtil {
     // Loop over all minimal solutions and all additional candidates
     while (!candidates.isEmpty()) {
       BitSet valuation = candidates.removeFirst();
-      assert BitSets.subset(valuation, support);
+      assert BitSets.isSubset(valuation, support);
 
       for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
         if (valuation.get(i)) {

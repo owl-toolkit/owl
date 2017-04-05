@@ -18,11 +18,14 @@
 package owl.collections;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import java.util.AbstractSet;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -49,20 +52,35 @@ public final class BitSets {
     return bitSet;
   }
 
-  public static Set<BitSet> powerSet(BitSet bs) {
-    return new PowerBitSet(bs);
+  public static IntBitSet createBitSet(IntCollection collection) {
+    BitSet backingSet = new BitSet();
+    IntIterator iterator = collection.iterator();
+    while (iterator.hasNext()) {
+      backingSet.set(iterator.nextInt());
+    }
+    return new IntBitSetImpl(backingSet);
   }
 
-  public static Set<BitSet> powerSet(int i) {
-    BitSet bs = new BitSet(i);
-    bs.flip(0, i);
-    return powerSet(bs);
+  public static IntBitSet createBitSet() {
+    BitSet backingSet = new BitSet();
+    return new IntBitSetImpl(backingSet);
+  }
+
+  public static IntBitSet createBitSet(int size) {
+    BitSet backingSet = new BitSet(size);
+    return new IntBitSetImpl(backingSet);
+  }
+
+  public static void forEach(BitSet bitSet, IntConsumer consumer) {
+    for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
+      consumer.accept(i);
+    }
   }
 
   /**
    * Checks if {@code first} is a subset of {@code second}.
    */
-  public static boolean subset(BitSet first, BitSet second) {
+  public static boolean isSubset(BitSet first, BitSet second) {
     for (int i = first.nextSetBit(0); i >= 0; i = first.nextSetBit(i + 1)) {
       if (!second.get(i)) {
         return false;
@@ -72,10 +90,19 @@ public final class BitSets {
     return true;
   }
 
-  @Nullable
+  public static Set<BitSet> powerSet(BitSet bs) {
+    return new PowerBitSet(bs);
+  }
+
+  public static Set<BitSet> powerSet(int i) {
+    BitSet bs = new BitSet(i);
+    bs.set(0, i);
+    return powerSet(bs);
+  }
+
   public static IntList toList(PrimitiveIterator.OfInt bs) {
     if (!bs.hasNext()) {
-      return null;
+      return IntLists.EMPTY_LIST;
     }
     IntList list = new IntArrayList();
     bs.forEachRemaining((IntConsumer) list::add);
@@ -92,6 +119,14 @@ public final class BitSets {
     return bitSet;
   }
 
+  public static BitSet toSet(Collection<Integer> indices) {
+    return collect(IntIterators.asIntIterator(indices.iterator()));
+  }
+
+  public static BitSet toSet(IntCollection indices) {
+    return collect(indices.iterator());
+  }
+
   public static BitSet toSet(int... indices) {
     return collect(IntIterators.wrap(indices));
   }
@@ -106,7 +141,7 @@ public final class BitSets {
 
     @Override
     public boolean contains(@Nullable Object obj) {
-      return obj instanceof BitSet && BitSets.subset((BitSet) obj, baseSet);
+      return obj instanceof BitSet && BitSets.isSubset((BitSet) obj, baseSet);
     }
 
     @Override
