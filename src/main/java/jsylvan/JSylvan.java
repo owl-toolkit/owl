@@ -18,7 +18,7 @@ package jsylvan;
 
 import java.util.BitSet;
 import java.util.Iterator;
-import owl.collections.BitSets;
+import owl.collections.ints.BitSets;
 
 /**
  * NOTE: you will have to manage references.

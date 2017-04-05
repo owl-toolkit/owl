@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.collections.BitSets;
+import owl.collections.ints.BitSets;
 import owl.ltl.EquivalenceClass;
 
 public final class EquivalenceClassUtil {

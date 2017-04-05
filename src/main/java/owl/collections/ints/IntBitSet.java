@@ -1,10 +1,10 @@
-package owl.collections;
+package owl.collections.ints;
 
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.function.IntConsumer;
 
-public interface IntBitSet extends IntSortedSet {
+public interface IntBitSet extends IntSortedSet, IntSet2 {
   @Override
   IntBitSet subSet(int fromElement, int toElement);
 

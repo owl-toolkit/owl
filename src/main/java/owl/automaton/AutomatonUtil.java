@@ -39,8 +39,8 @@ import java.util.stream.Collectors;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
-import owl.collections.BitSets;
 import owl.collections.ValuationSet;
+import owl.collections.ints.BitSets;
 
 public final class AutomatonUtil {
 

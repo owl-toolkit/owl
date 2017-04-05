@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections;
+package owl.collections.ints;
 
 import it.unimi.dsi.fastutil.ints.AbstractIntBidirectionalIterator;
 import it.unimi.dsi.fastutil.ints.AbstractIntSortedSet;
@@ -222,9 +222,11 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   @Nonnegative
   public int firstInt() {
     int first = bitSet.nextSetBit(min);
+
     if (first == -1) {
       throw new NoSuchElementException("Set is empty");
     }
+
     return first;
   }
 
@@ -292,7 +294,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   }
 
   @Override
-  public IntBidirectionalIterator iterator() {
+  public IntBidirectionalIterator2 iterator() {
     return new BitSetIterator();
   }
 
@@ -415,7 +417,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   }
 
   private final class BitSetIterator extends AbstractIntBidirectionalIterator
-    implements PrimitiveIterator.OfInt {
+    implements PrimitiveIterator.OfInt, IntBidirectionalIterator2 {
     private int last = -1;
     private int next;
     private int previous;
@@ -440,6 +442,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
       }
 
       int next;
+
       if (current < min) {
         next = bitSet.nextSetBit(min);
       } else {
@@ -455,6 +458,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
       }
 
       int previous;
+
       if (current >= max) {
         previous = bitSet.previousSetBit(max - 1);
       } else {
@@ -476,9 +480,10 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
 
     @Override
     public int nextInt() {
-      if (next == -1) {
+      if (!hasNext()) {
         throw new NoSuchElementException();
       }
+
       previous = next;
       next = getNext(next);
       last = previous;
@@ -487,10 +492,18 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
     }
 
     @Override
+    public void forEachRemaining(IntConsumer action) {
+      while (hasNext()) {
+        action.accept(nextInt());
+      }
+    }
+
+    @Override
     public int previousInt() {
-      if (previous == -1) {
+      if (!hasPrevious()) {
         throw new NoSuchElementException();
       }
+
       next = previous;
       previous = getPrevious(previous);
       last = next;
@@ -503,9 +516,11 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
       if (last == -1) {
         throw new IllegalStateException("");
       }
+
       if (!rem(last)) {
         throw new IllegalStateException("Concurrent modification");
       }
+
       last = -1;
     }
   }

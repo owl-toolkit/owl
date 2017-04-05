@@ -41,8 +41,8 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrintable.Option;
-import owl.collections.BitSets;
 import owl.collections.ValuationSet;
+import owl.collections.ints.BitSets;
 
 public final class HoaConsumerExtended<S> {
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());

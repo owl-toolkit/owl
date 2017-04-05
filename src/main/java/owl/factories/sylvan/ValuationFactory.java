@@ -27,8 +27,8 @@ import javax.annotation.Nonnull;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jsylvan.JSylvan;
-import owl.collections.BitSets;
 import owl.collections.ValuationSet;
+import owl.collections.ints.BitSets;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.Literal;
 
