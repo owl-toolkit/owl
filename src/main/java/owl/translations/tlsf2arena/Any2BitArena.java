@@ -44,8 +44,8 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.BitSets;
 import owl.collections.ValuationSet;
+import owl.collections.ints.BitSets;
 
 final class Any2BitArena<S> {
 

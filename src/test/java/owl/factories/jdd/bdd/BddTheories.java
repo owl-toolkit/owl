@@ -45,7 +45,7 @@ import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
-import owl.collections.BitSets;
+import owl.collections.ints.BitSets;
 
 /**
  * Tests various logical functions of BDDs and checks invariants.

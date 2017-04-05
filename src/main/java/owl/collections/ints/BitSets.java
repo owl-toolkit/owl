@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections;
+package owl.collections.ints;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
@@ -36,8 +36,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public final class BitSets {
-  private BitSets() {
 
+  private BitSets() {
   }
 
   public static BitSet collect(IntIterator iterator) {
@@ -55,20 +55,20 @@ public final class BitSets {
   public static IntBitSet createBitSet(IntCollection collection) {
     BitSet backingSet = new BitSet();
     IntIterator iterator = collection.iterator();
+
     while (iterator.hasNext()) {
       backingSet.set(iterator.nextInt());
     }
+
     return new IntBitSetImpl(backingSet);
   }
 
   public static IntBitSet createBitSet() {
-    BitSet backingSet = new BitSet();
-    return new IntBitSetImpl(backingSet);
+    return new IntBitSetImpl(new BitSet());
   }
 
   public static IntBitSet createBitSet(int size) {
-    BitSet backingSet = new BitSet(size);
-    return new IntBitSetImpl(backingSet);
+    return new IntBitSetImpl(new BitSet(size));
   }
 
   public static void forEach(BitSet bitSet, IntConsumer consumer) {
