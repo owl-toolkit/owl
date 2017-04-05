@@ -30,6 +30,7 @@ build:
     - build/results/
     when: always
     expire_in: 1 week
+  dependencies: []
 
 # LTL to LDBA Translations
 
