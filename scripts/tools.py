@@ -70,7 +70,7 @@ def get_tool(tool_description):
         elif modifier in tool_json.get("optimisations", {}):
             optimisations.add(tool_json["optimisations"][modifier])
         elif modifier == "parallel":
-            flags["parallel"] = "parallel"
+            flags["parallel"] = "--parallel"
         elif modifier == "no-opt":
             optimisations.add("none")
         else:

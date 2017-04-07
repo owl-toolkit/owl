@@ -22,8 +22,7 @@ build:
 
 .ltlcross: &ltlcross_template
   script:
-    - ./gradlew --no-daemon distTar
-    - tar xvf build/distributions/owl-*.tar -C build --strip-components=1
+    - scripts/dist.sh
     - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/tests.py $TEST_NAME
   artifacts:
     paths:

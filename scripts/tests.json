@@ -1,15 +1,6 @@
 {
-    "defaults": {
-        "reference": {
-            "name": "ltl2tgba",
-            "exec": [
-                "ltl2tgba",
-                "-H",
-                "-f",
-                "%f"
-            ]
-        },
-        "data": [
+    "dataset": {
+        "full": [
             {
                 "type": "file",
                 "path": "formulas/base.ltl",
@@ -31,7 +22,34 @@
             {
                 "type": "random"
             }
+        ],
+        "small": [
+            {
+                "type": "file",
+                "path": "formulas/base.ltl",
+                "determinize": true
+            },
+            {
+                "type": "file",
+                "path": "formulas/regressions.ltl",
+                "determinize": true
+            },
+            {
+                "type": "random"
+            }
         ]
+    },
+    "defaults": {
+        "reference": {
+            "name": "ltl2tgba",
+            "exec": [
+                "ltl2tgba",
+                "-H",
+                "-f",
+                "%f"
+            ]
+        },
+        "data": "full"
     },
     "tests": {
         "ltl2ldba": "ltl2ldba",
@@ -47,7 +65,10 @@
         "ltl2ldba-genb-bpfree-nondet": "ltl2ldba#gen-buchi,breakpoint-free,nondet-init",
         "ltl2ldba-genb-bpfree-vanilla": "ltl2ldba#gen-buchi,breakpoint-free,no-eps",
         "ltl2dpa": "ltl2dpa",
-        "ltl2dpa-vanilla": "ltl2dpa#no-eps",
+        "ltl2dpa-vanilla": {
+            "tools": "ltl2dpa#no-eps",
+            "data": "small"
+        },
         "ltl2dpa-parallel": "ltl2dpa#parallel",
         "ltl2da-parallel": "ltl2da#parallel",
         "nba2ldba": {
