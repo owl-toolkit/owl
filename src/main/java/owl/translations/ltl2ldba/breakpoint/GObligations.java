@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -45,7 +44,7 @@ public final class GObligations extends ImmutableObject {
   private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
   private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
-  final Set<GOperator> associatedGs;
+  final ImmutableSet<GOperator> associatedGs;
   // G(liveness[]) is a liveness language.
   final EquivalenceClass[] liveness;
 
@@ -131,8 +130,8 @@ public final class GObligations extends ImmutableObject {
   @Override
   protected boolean equals2(ImmutableObject o) {
     GObligations that = (GObligations) o;
-    return safety.equals(that.safety) && Arrays.equals(liveness, that.liveness) && Arrays
-      .equals(obligations, that.obligations);
+    // TODO: fix memory leak.
+    return getObligation().equals(that.getObligation());
   }
 
   void forEach(Consumer<EquivalenceClass> consumer) {
@@ -163,7 +162,8 @@ public final class GObligations extends ImmutableObject {
 
   @Override
   protected int hashCodeOnce() {
-    return Objects.hash(safety, Arrays.hashCode(liveness), Arrays.hashCode(obligations));
+    // TODO: fix memory leak.
+    return getObligation().hashCode();
   }
 
   boolean implies(GObligations other) {
