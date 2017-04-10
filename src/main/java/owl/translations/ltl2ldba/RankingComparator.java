@@ -17,113 +17,89 @@
 
 package owl.translations.ltl2ldba;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import java.io.Serializable;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Formula;
 import owl.ltl.GOperator;
-import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultIntVisitor;
-import owl.ltl.visitors.XDepthVisitor;
 
-@SuppressFBWarnings("SE_COMPARATOR_SHOULD_BE_SERIALIZABLE")
-public class RankingComparator implements Comparator<GOperator> {
+/*
+ * Note: this comparator imposes orderings that are inconsistent with equals.
+ */
+public class RankingComparator implements Comparator<GOperator>, Serializable {
 
-  private final Map<GOperator, Integer> ranking = new HashMap<>();
-  private final RankVisitor rankingVisitor = new RankVisitor();
+  private static final LoadingCache<GOperator, Integer> LOADING_CACHE = CacheBuilder.newBuilder()
+    .maximumSize(1000L).build(
+      new CacheLoader<GOperator, Integer>() {
+        @Override
+        public Integer load(GOperator key) {
+          return key.accept(VISITOR);
+        }
+      });
 
-  private static int max(int a, int b, int c) {
-    return a > b ? (a > c ? a : c) : (b > c ? b : c);
-  }
+  private static final RankVisitor VISITOR = new RankVisitor();
 
   @Override
   public int compare(GOperator o1, GOperator o2) {
-    int rank1 = ranking.computeIfAbsent(o1, key -> {
-      key.accept(rankingVisitor);
-      return ranking.get(key);
-    });
-    int rank2 = ranking.computeIfAbsent(o2, key -> {
-      key.accept(rankingVisitor);
-      return ranking.get(key);
-    });
-
-    if (rank1 >= 0) {
-      return rank2 >= 0 ? Integer.compare(rank1, rank2) : 1;
-    }
-
-    return rank2 < 0 ? Integer.compare(-rank1, -rank2) : -1;
+    return Integer.compare(LOADING_CACHE.getUnchecked(o1), LOADING_CACHE.getUnchecked(o2));
   }
 
-  private void insert(GOperator operator, int rank) {
-    ranking.computeIfAbsent(operator,
-      key -> rank < 0 ? -(XDepthVisitor.getDepth(operator.operand) + 1) : rank);
-  }
-
-  private class RankVisitor extends DefaultIntVisitor {
+  private static class RankVisitor extends DefaultIntVisitor {
 
     @Override
-    public int visit(BooleanConstant booleanConstant) {
-      return -1;
+    protected int defaultAction(Formula formula) {
+      return 0;
     }
 
     @Override
     public int visit(Conjunction conjunction) {
-      return conjunction.children.stream().mapToInt(x -> x.accept(this)).max().orElse(-1);
+      return conjunction.children.stream().mapToInt(x -> x.accept(this)).max().orElse(0);
     }
 
     @Override
     public int visit(Disjunction disjunction) {
-      return disjunction.children.stream().mapToInt(x -> x.accept(this)).max().orElse(-1);
+      return disjunction.children.stream().mapToInt(x -> x.accept(this)).max().orElse(0);
     }
 
     @Override
     public int visit(FOperator fOperator) {
-      return Math.max(0, fOperator.operand.accept(this));
+      return fOperator.operand.accept(this);
     }
 
     @Override
     public int visit(GOperator gOperator) {
-      int depth = gOperator.operand.accept(this);
-      insert(gOperator, depth);
-      return Math.max(1, depth + 1);
-    }
-
-    @Override
-    public int visit(Literal literal) {
-      return -1;
+      return gOperator.operand.accept(this) + 1;
     }
 
     @Override
     public int visit(MOperator mOperator) {
-      return max(0, mOperator.left.accept(this), mOperator.right.accept(this));
+      return Math.max(mOperator.left.accept(this), mOperator.right.accept(this));
     }
 
     @Override
     public int visit(ROperator rOperator) {
-      int depth = rOperator.right.accept(this);
-      insert(new GOperator(rOperator.right), depth);
-      return max(1, depth + 1, rOperator.left.accept(this));
+      return Math.max(rOperator.left.accept(this), rOperator.right.accept(this) + 1);
     }
 
     @Override
     public int visit(UOperator uOperator) {
-      return max(0, uOperator.left.accept(this), uOperator.right.accept(this));
+      return Math.max(uOperator.left.accept(this), uOperator.right.accept(this));
     }
 
     @Override
     public int visit(WOperator wOperator) {
-      int depth = wOperator.left.accept(this);
-      insert(new GOperator(wOperator.left), depth);
-      return max(1, depth + 1, wOperator.right.accept(this));
+      return Math.max(wOperator.left.accept(this) + 1, wOperator.right.accept(this));
     }
 
     @Override
