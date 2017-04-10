@@ -89,16 +89,29 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       return operand;
     }
 
-    if (operand instanceof WOperator) {
-      WOperator wOperator = (WOperator) operand;
-      return GOperator.create(Disjunction.create(wOperator.left, wOperator.right));
+    if (operand instanceof MOperator) {
+      MOperator mOperator = (MOperator) operand;
+
+      return Conjunction.create(GOperator.create(mOperator.right),
+        GOperator.create(FOperator.create(Conjunction.create(mOperator.left))));
+    }
+
+    if (operand instanceof ROperator) {
+      ROperator rOperator = (ROperator) operand;
+      return GOperator.create(rOperator.right);
     }
 
     if (operand instanceof UOperator) {
       UOperator uOperator = (UOperator) operand;
 
-      return new Conjunction(new GOperator(new Disjunction(uOperator.left, uOperator.right)),
-        new GOperator(new FOperator(uOperator.right)));
+      return Conjunction.create(
+        GOperator.create(Disjunction.create(uOperator.left, uOperator.right)),
+        GOperator.create(FOperator.create(uOperator.right)));
+    }
+
+    if (operand instanceof WOperator) {
+      WOperator wOperator = (WOperator) operand;
+      return GOperator.create(Disjunction.create(wOperator.left, wOperator.right));
     }
 
     if (operand instanceof Disjunction && ((Disjunction) operand)
