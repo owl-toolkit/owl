@@ -27,6 +27,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     defaults_json = config["defaults"]
+    dataset_json = config["dataset"]
     test_json = config["tests"][test_name]
 
     if type(test_json) is str:
@@ -49,10 +50,17 @@ if __name__ == "__main__":
         else:
             data = defaults_json["data"]
 
+    if type(data) is str:
+        if data in dataset_json:
+            data = dataset_json[data]
+        else:
+            print("Unknown dataset {}".format(data))
+            sys.exit(1)
+
     test_arguments = [os.path.join(script_dir, "ltlcross-run.sh")]
 
     test_arguments.append(reference["name"])
-    test_arguments.append(" ".join(reference["exec"]) + " >%O")
+    test_arguments.append(" ".join(reference["exec"]))
 
     for tool in tools:
         test_arguments.append("-t")
@@ -66,10 +74,10 @@ if __name__ == "__main__":
             else:
                 test_arguments.append(loaded_tool["name"])
 
-            test_arguments.append(" ".join(loaded_tool["exec"]) + " %f >%O")
+            test_arguments.append(" ".join(loaded_tool["exec"]) + " %f")
         else:
             test_arguments.append(tool["name"])
-            test_arguments.append(" ".join(tool["exec"]) + " >%O")
+            test_arguments.append(" ".join(tool["exec"]))
 
     for data_set in data:
         if data_set.get("determinize", False):
@@ -87,4 +95,5 @@ if __name__ == "__main__":
 
     sub_env = os.environ.copy()
     sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
-    subprocess.run(test_arguments, env=sub_env)
+    process = subprocess.run(test_arguments, env=sub_env)
+    sys.exit(process.returncode)

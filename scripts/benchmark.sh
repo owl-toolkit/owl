@@ -114,7 +114,11 @@ if [ -n "$REPEATS" ] && [ "$METHOD" != "perf" ]; then
   exit 1
 fi
 
-FORMULA_FILE=$(mktemp)
+if ! FORMULA_FILE=$(mktemp -t owl.tmp.XXXXXXXXXX); then
+  echo "Failed to obtain temporary file"
+  exit 1
+fi
+
 function remove_temp {
   rm -f ${FORMULA_FILE}
 }

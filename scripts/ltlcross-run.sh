@@ -3,11 +3,14 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+echo "Running test with args " $@
+
 SCRIPT_FOLDER="$(dirname $(realpath "$0"))"
 BASE_FOLDER="$(dirname "$SCRIPT_FOLDER")"
 RESULTS_FOLDER="$BASE_FOLDER/build/results"
 EVALUATION_SCRIPT="$SCRIPT_FOLDER/ltlcross-eval.py"
 TIMEOUT_SEC="300"
+ANY_ERROR=0
 
 # This tool will be the "trusted" one - we assume that this is always correct
 REFERENCE_TOOL_NAME="$1"
@@ -23,7 +26,7 @@ declare -a TOOLS_INVOCATION
 while [ "$1" == "-t" ]; do
   TOOL_NAMES+=("$2")
   TOOL_INVOCATIONS+=("$3")
-  TOOLS_INVOCATION+=("{$2} $3")
+  TOOLS_INVOCATION+=("{$2} $3 >%O")
   echo "Testing tool $2 - $3"
   shift 3
 done
@@ -60,28 +63,44 @@ while [ ${#} -gt 0 ]; do
   GRIND_FILE="$RESULTS_FOLDER/debug-$DATASET_NAME.ltl"
   CSV_FILE="$RESULTS_FOLDER/data-$DATASET_NAME.csv"
 
-  ERROR="1"
+  DATASET_ERROR="0"
+  echo -n "Invocation: "
   if [ "$DATASET" = "random" ]; then
-    if randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf | \
+    echo "randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf |" \
+      "ltlcross --stop-on-error --strength --csv=\"${CSV_FILE}\" ${ADDITIONAL_ARGS}" \
+      "--grind=\"$GRIND_FILE\" --timeout=\"$TIMEOUT_SEC\"" \
+      "\"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\"" \
+      ${TOOLS_INVOCATION[@]}
+    echo ""
+
+    if ! randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf | \
       ltlcross --stop-on-error --strength --csv="$CSV_FILE" ${ADDITIONAL_ARGS} \
       --grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" \
-      "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION" \
+      "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
       ${TOOLS_INVOCATION[@]} 2> >(tee "$LTLCROSS_OUTPUT_FILE"); then
-      ERROR="0"
+      DATASET_ERROR="1"
     fi
   else
-    if ltlcross --stop-on-error --strength --csv="$CSV_FILE" ${ADDITIONAL_ARGS} \
+    echo "ltlcross --stop-on-error --strength --csv=\"$CSV_FILE\" ${ADDITIONAL_ARGS}" \
+      "--grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" -F$(realpath ${DATASET})" \
+      "\"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\"" \
+      ${TOOLS_INVOCATION[@]}
+    echo ""
+
+    if ! ltlcross --stop-on-error --strength --csv="$CSV_FILE" ${ADDITIONAL_ARGS} \
       --grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" -F$(realpath ${DATASET}) \
-      "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION" \
+      "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
       ${TOOLS_INVOCATION[@]} 2> >(tee "$LTLCROSS_OUTPUT_FILE"); then
-      ERROR="0"
+      DATASET_ERROR="1"
     fi
   fi
 
-  if [ ${ERROR} = "0" ]; then
+  if [ ${DATASET_ERROR} = "0" ]; then
     # Keep the directory clean
     rm -f "$GRIND_FILE"
   else
+    ANY_ERROR=1
+
     FAULTY_FORMULA="$(tail -n1 "$GRIND_FILE")"
     if [ -z "$FAULTY_FORMULA" ]; then
       echo "Not generating automaton image as no faulty formula is present"
@@ -92,10 +111,9 @@ while [ ${#} -gt 0 ]; do
     for i in "${!TOOL_NAMES[@]}"; do
       # Find the tool which caused the problem
       # TODO For each tool, find the last problematic formula
-
       declare -a POS_HIGHLIGHT
       declare -a NEG_HIGHLIGHT
-      ERROR="0"
+      TOOL_ERROR="0"
       TOOL_IND=$((i+1))
       TESTED_TOOL_INVOCATION=${TOOL_INVOCATIONS[$i]}
       TESTED_TOOL_NAME=${TOOL_NAMES[$i]}
@@ -119,18 +137,18 @@ while [ ${#} -gt 0 ]; do
       if [ -n "$P0NT_ERR" ]; then
         # reference_pos * test_neg not empty, test_neg is faulty
         NEG_HIGHLIGHT+=( "--highlight-word=0,$P0NT_ERR" )
-        ERROR="1"
+        TOOL_ERROR="1"
       fi
       if [ -n "$PTN0_ERR" ]; then
         # reference_neg * test_pos not empty, test_pos is faulty
         POS_HIGHLIGHT+=( "--highlight-word=0,$PTN0_ERR" )
-        ERROR="1"
+        TOOL_ERROR="1"
       fi
       if [ -n "$PTNT_ERR" ]; then
         # test_pos * test_neg not empty, one of them is faulty
         POS_HIGHLIGHT+=( "--highlight-word=1,$PTNT_ERR" )
         NEG_HIGHLIGHT+=( "--highlight-word=1,$PTNT_ERR" )
-        ERROR="1"
+        TOOL_ERROR="1"
       fi
 
       # Cross comparison checks
@@ -142,11 +160,11 @@ while [ ${#} -gt 0 ]; do
 
       if [ -n "$PT_ERR" ]; then
         POS_HIGHLIGHT+=( "--highlight-word=2,$PT_ERR" )
-        ERROR="1"
+        TOOL_ERROR="1"
       fi
       if [ -n "$NT_ERR" ]; then
         NEG_HIGHLIGHT+=( "--highlight-word=2,$NT_ERR" )
-        ERROR="1"
+        TOOL_ERROR="1"
       fi
 
       # Create images
@@ -156,11 +174,25 @@ while [ ${#} -gt 0 ]; do
         DESTINATION="$2"
         declare -a HIGHLIGHT=("${!3}")
 
-        OUTPUT=$(eval timeout -s KILL -k 1s "${TIMEOUT_SEC}s" \
-          "${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"}" 2>&1)
-        if [ "$?" != "0" ]; then
-          echo "$TESTED_TOOL_NAME failed for $FORMULA:"
-          echo "$OUTPUT"
+        if ! DESTINATION_FILE=$(mktemp -t owl.tmp.XXXXXXXXXX); then
+          echo "Failed to obtain temprorary file"
+          exit 1
+        fi
+
+        FORMULA_INVOCATION="${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"}"
+        if ! ERR_OUTPUT=$(eval timeout -s KILL -k 1s "${TIMEOUT_SEC}s" \
+          ${FORMULA_INVOCATION} 2>&1 >"$DESTINATION_FILE"); then
+          rm ${DESTINATION_FILE}
+          echo "$TESTED_TOOL_NAME failed for formula $FORMULA"
+          echo "Invocation: ${FORMULA_INVOCATION}"
+          echo "Output:"
+          echo "$ERR_OUTPUT"
+          return 0
+        fi
+        if ! [ -s "$DESTINATION_FILE" ]; then
+          rm -f "$DESTINATION_FILE"
+          echo "$TESTED_TOOL_NAME produced no output for formula $FORMULA"
+          echo "Invocation: ${FORMULA_INVOCATION}"
           return 0
         fi
 
@@ -172,11 +204,11 @@ while [ ${#} -gt 0 ]; do
 
         # highlight-word fails for fin acceptance, have to strip it
         if [ ${#HIGHLIGHT[@]} -eq 0 ]; then
-          echo "$OUTPUT" | autfilt --dot > "$DESTINATION.dot"
-        elif ! echo "$OUTPUT" | autfilt --dot "${HIGHLIGHT[@]}" > "$DESTINATION.dot" 2>/dev/null; \
-          then
-          echo "$OUTPUT" | autfilt --dot > "$DESTINATION.dot"
-          echo "$OUTPUT" | autfilt --dot --strip-acceptance "${HIGHLIGHT[@]}" \
+         cat ${DESTINATION_FILE} | autfilt --dot > "$DESTINATION.dot"
+        elif ! cat ${DESTINATION_FILE} | autfilt --dot "${HIGHLIGHT[@]}" > "$DESTINATION.dot" \
+          2>/dev/null; then
+          cat ${DESTINATION_FILE} | autfilt --dot > "$DESTINATION.dot"
+          cat ${DESTINATION_FILE} | autfilt --dot --strip-acceptance "${HIGHLIGHT[@]}" \
             > "$DESTINATION-trace.dot"
         fi
 
@@ -186,7 +218,7 @@ while [ ${#} -gt 0 ]; do
         fi
       }
 
-      if [ ${ERROR} = "1" ]; then
+      if [ ${TOOL_ERROR} = "1" ]; then
         make_image "$FAULTY_FORMULA" "$RESULTS_FOLDER/error-pos" POS_HIGHLIGHT[@]
         make_image "$FAULTY_FORMULA" "$RESULTS_FOLDER/error-neg" NEG_HIGHLIGHT[@]
       fi
@@ -199,7 +231,15 @@ while [ ${#} -gt 0 ]; do
   echo ""
 
   CSV_FILES+=( "$CSV_FILE" )
+
+  if [ "$DATASET_ERROR" = "1" ]; then
+    # If this dataset failed, don't evaluate more sets
+    break
+  fi
 done
 
 echo "Overall stats"
 python3 "$EVALUATION_SCRIPT" "${CSV_FILES[@]}" | tee "$RESULTS_FOLDER/stats.txt"
+
+# Propagate the error
+exit ${ANY_ERROR}
