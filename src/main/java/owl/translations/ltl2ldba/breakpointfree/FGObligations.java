@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
@@ -52,8 +55,11 @@ public final class FGObligations {
   }
 
   @Nullable
-  static FGObligations constructRecurringObligations(ImmutableSet<FOperator> fOperators,
-    ImmutableSet<GOperator> gOperators, EquivalenceClassFactory factory) {
+  static FGObligations constructRecurringObligations(Set<FOperator> fOperators1,
+    Set<GOperator> gOperators1, EquivalenceClassFactory factory) {
+
+    ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(fOperators1);
+    ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(gOperators1);
 
     // TODO: prune gOper/fOperatos (Gset, Fset)
 
@@ -86,6 +92,10 @@ public final class FGObligations {
         EquivalenceClassUtil.free(safety);
         EquivalenceClassUtil.free(livenessList);
         return null;
+      }
+
+      if (formula == BooleanConstant.TRUE) {
+        Logger.getGlobal().log(Level.FINER, "Found true obligation.");
       }
 
       // Wrap into F.

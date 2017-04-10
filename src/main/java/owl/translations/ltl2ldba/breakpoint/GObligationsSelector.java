@@ -36,6 +36,7 @@ import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 import owl.ltl.ROperator;
 import owl.ltl.WOperator;
@@ -114,6 +115,10 @@ public class GObligationsSelector implements JumpSelector<GObligations> {
 
   @Override
   public Set<GObligations> select(EquivalenceClass input, boolean isInitialState) {
+    if (input.testSupport(Fragments::isCoSafety) || input.testSupport(Fragments::isSafety)) {
+      return Collections.singleton(null);
+    }
+
     final Collection<Set<GOperator>> keys;
     final BiMap<Set<GOperator>, GObligations> jumps = HashBiMap.create();
 

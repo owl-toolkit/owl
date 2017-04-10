@@ -97,7 +97,7 @@ public class LTL2LDGBATest {
   @Test
   public void testAcceptanceSetSize() throws Exception {
     String ltl = "G ((p1 & p2 & (X(((p1)) | (p2)))) | G(! p2))";
-    testOutput(ltl, 5);
+    testOutput(ltl, 3);
 
     String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
     testOutput(ltl2, 3);
@@ -200,7 +200,7 @@ public class LTL2LDGBATest {
   @Test
   public void testRelease() throws Exception {
     String ltl1 = "a R b";
-    testOutput(ltl1, 3);
+    testOutput(ltl1, 2);
 
     String ltl2 = "(b U a) | (G b)";
     testOutput(ltl2, 3);
@@ -223,7 +223,7 @@ public class LTL2LDGBATest {
   @Test
   public void testSanityCheckFailed2() throws Exception {
     String ltl = "!(((X a) | (F b)) U (a))";
-    testOutput(ltl, 5);
+    testOutput(ltl, 4);
   }
 
   @Test
@@ -244,7 +244,7 @@ public class LTL2LDGBATest {
     testOutput(ltl1, 2);
 
     String ltl2 = "!(p U (r | s))";
-    testOutput(ltl2, 3);
+    testOutput(ltl2, 2);
   }
 
   @Test

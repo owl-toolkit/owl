@@ -20,6 +20,7 @@ package owl.collections;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import java.util.AbstractList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -30,6 +31,25 @@ import java.util.stream.IntStream;
 public final class Lists2 {
 
   private Lists2() {
+  }
+
+  public static <T> boolean addDistinct(List<T> list, T element) {
+    if (list.contains(element)) {
+      return false;
+    }
+
+    list.add(element);
+    return true;
+  }
+
+  public static <T> boolean addAllDistinct(List<T> list, Collection<T> elements) {
+    boolean changed = false;
+
+    for (T element : elements) {
+      changed |= addDistinct(list, element);
+    }
+
+    return changed;
   }
 
   public static <T> List<T> shift(List<T> list, T element) {

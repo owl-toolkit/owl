@@ -56,7 +56,7 @@ public class LDBASizeRegressionTest extends
         return new int[] {3, 4, 4, 5, 4, 3};
 
       case VOLATILE:
-        return new int[] {3, 3, 5, 4};
+        return new int[] {3, 2, 5, 4};
 
       case ROUND_ROBIN:
         return new int[] {2, 3, 4, 5, 6, 9};
@@ -83,7 +83,7 @@ public class LDBASizeRegressionTest extends
         return new int[] {4, 2, 3, 4};
 
       case G_DISJUNCTION:
-        return new int[] {212, 24, 133};
+        return new int[] {212, 18, 133};
 
       default:
         return new int[0];

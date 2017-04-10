@@ -83,7 +83,7 @@ public class GeneralisedSizeRegressionTest extends
         return new int[] {2, 4, 6, 8, 10, 1};
 
       case REACH:
-        return new int[] {3, 3, 112};
+        return new int[] {3, 3, 314};
 
       case CONJUNCTION:
         return new int[] {1, 2};
@@ -92,19 +92,19 @@ public class GeneralisedSizeRegressionTest extends
         return new int[] {1, 3};
 
       case DISJUNCTION:
-        return new int[] {2, 4};
+        return new int[] {3, 4};
 
       case MIXED:
-        return new int[] {4, 4, 16, 20, 11, 18, 5, 4, 9, 16}; // was 4, 4, 6, 7, 7 ... 8
+        return new int[] {4, 4, 9, 10, 12, 18, 8, 4, 9, 17}; // was 4, 4, 6, 7, 7 ... 8
 
       case FG_UNSTABLE:
-        return new int[] {3, 5, 6, 5, 4, 3};
+        return new int[] {4, 5, 6, 6, 4, 3};
 
       case ORDERINGS:
         return new int[] {9, 9, 3, 4};
 
       case G_DISJUNCTION:
-        return new int[] {30, 18, 57};
+        return new int[] {40, 18, 57};
 
       default:
         return new int[0];
@@ -115,6 +115,6 @@ public class GeneralisedSizeRegressionTest extends
   protected int getSize(
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointFreeState,
       GeneralizedBuchiAcceptance, FGObligations> automaton) {
-    return 1; // DEACTIVATE TEST UNTIL FGSelector is improved.
+    return automaton.size();
   }
 }

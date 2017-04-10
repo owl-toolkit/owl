@@ -82,7 +82,7 @@ public class ParitySizeRegressionTest
         return new int[] {1, 2, 2, 4, 2, 2, 2, 2};
 
       case VOLATILE:
-        return new int[] {2, 2, 4, 3};
+        return new int[] {2, 1, 4, 3};
 
       case ROUND_ROBIN:
         return new int[] {1, 2, 3, 4, 5, 9};

@@ -63,6 +63,6 @@ public class LTL2LDBARegressionTest {
   @Test
   public void testRegression7() {
     String ltl = "(X(p1)) R (((G(p2)) R (p3)) W (p4))";
-    testOutput(ltl, 23);
+    testOutput(ltl, 15);
   }
 }

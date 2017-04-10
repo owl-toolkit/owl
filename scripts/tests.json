@@ -105,11 +105,6 @@
             "data": [
                 {
                     "type": "file",
-                    "path": "formulas/base.ltl",
-                    "determinize": true
-                },
-                {
-                    "type": "file",
                     "path": "formulas/fgx.ltl"
                 }
             ]
