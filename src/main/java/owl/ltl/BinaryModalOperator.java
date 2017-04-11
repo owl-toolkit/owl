@@ -69,6 +69,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
 
   @Override
   public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) || left.allMatch(predicate) || right.allMatch(predicate);
+    return predicate.test(this) || left.anyMatch(predicate) || right.anyMatch(predicate);
   }
 }

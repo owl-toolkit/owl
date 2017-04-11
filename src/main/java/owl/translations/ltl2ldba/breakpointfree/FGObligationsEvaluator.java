@@ -17,7 +17,12 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -51,6 +56,12 @@ final class FGObligationsEvaluator implements JumpEvaluator<FGObligations> {
     return formula.accept(visitor);
   }
 
+  static Formula replaceFOperators(FGObligations obligations, Formula formula) {
+    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligations.foperators,
+      obligations.goperators);
+    return formula.accept(visitor);
+  }
+
   // TODO: also use FOps Information
   static Formula replaceGOperators(ImmutableSet<GOperator> trueGOperators, Formula formula) {
     ReplaceGOperatorsVisitor visitor = new ReplaceGOperatorsVisitor(trueGOperators);
@@ -60,8 +71,10 @@ final class FGObligationsEvaluator implements JumpEvaluator<FGObligations> {
   @Override
   public EquivalenceClass evaluate(EquivalenceClass clazz, FGObligations obligation) {
     Formula formula = clazz.getRepresentative();
-    Formula fFreeFormula = replaceFOperators(obligation.foperators, formula);
+    Formula fFreeFormula = replaceFOperators(obligation, formula);
     Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, fFreeFormula);
+    Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " +  evaluated
+      + " using " + obligation);
     return factory.createEquivalenceClass(evaluated);
   }
 
@@ -95,8 +108,23 @@ final class FGObligationsEvaluator implements JumpEvaluator<FGObligations> {
   static class ReplaceFOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
     private final ImmutableSet<FOperator> foperators;
 
+    @Nullable
+    private final ImmutableSet<GOperator> goperators;
+
     ReplaceFOperatorsVisitor(ImmutableSet<FOperator> foperators) {
+      this(foperators, null);
+    }
+
+    ReplaceFOperatorsVisitor(ImmutableSet<FOperator> foperators,
+      @Nullable ImmutableSet<GOperator> goperators) {
       this.foperators = foperators;
+
+      if (goperators != null) {
+        this.goperators = ImmutableSet.copyOf(Iterables.concat(goperators,
+          Collections2.transform(foperators, GOperator::new)));
+      } else {
+        this.goperators = null;
+      }
     }
 
     @Override
@@ -106,6 +134,10 @@ final class FGObligationsEvaluator implements JumpEvaluator<FGObligations> {
 
     @Override
     public Formula visit(GOperator gOperator) {
+      if (goperators != null) {
+        return BooleanConstant.get(goperators.contains(gOperator));
+      }
+
       return GOperator.create(gOperator.operand.accept(this));
     }
 

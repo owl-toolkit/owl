@@ -179,7 +179,7 @@ while [ ${#} -gt 0 ]; do
           exit 1
         fi
 
-        FORMULA_INVOCATION="${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"}"
+        FORMULA_INVOCATION="${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"} --annotations"
         if ! ERR_OUTPUT=$(eval timeout -s KILL -k 1s "${TIMEOUT_SEC}s" \
           ${FORMULA_INVOCATION} 2>&1 >"$DESTINATION_FILE"); then
           rm ${DESTINATION_FILE}
@@ -195,6 +195,8 @@ while [ ${#} -gt 0 ]; do
           echo "Invocation: ${FORMULA_INVOCATION}"
           return 0
         fi
+
+        cp ${DESTINATION_FILE} "$DESTINATION.hoa"
 
         # b: Bullets for acceptance, a: Print acceptance, h: Horizontal layout,
         # R: Colours for acceptance, C: State colour, f: Font, k: Use state labels, n: Display name
@@ -220,7 +222,7 @@ while [ ${#} -gt 0 ]; do
 
       if [ ${TOOL_ERROR} = "1" ]; then
         make_image "$FAULTY_FORMULA" "$RESULTS_FOLDER/error-pos" POS_HIGHLIGHT[@]
-        make_image "$FAULTY_FORMULA" "$RESULTS_FOLDER/error-neg" NEG_HIGHLIGHT[@]
+        make_image "!($FAULTY_FORMULA)" "$RESULTS_FOLDER/error-neg" NEG_HIGHLIGHT[@]
       fi
     done
   fi

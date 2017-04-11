@@ -33,6 +33,7 @@ import owl.factories.Factories;
 import owl.factories.Registry;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.Optimisation;
@@ -83,7 +84,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
   createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
       GObligationsSelector::new,
       DegeneralizedAcceptingComponentBuilder::new,
       optimisations,
@@ -103,16 +104,19 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
   createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
       GObligationsSelector::new,
       GeneralizedAcceptingComponentBuilder::new,
       optimisations,
       GeneralizedBreakpointState::getObligations);
   }
 
+  private static Formula preProcessPushX(Formula formula) {
+    return RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, preProcess(formula));
+  }
+
   private static Formula preProcess(Formula formula) {
-    Formula processedFormula = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    return RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, processedFormula);
+    return RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
   }
 
   @Override
@@ -141,7 +145,9 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
     BitSet bitSet = new BitSet();
     bitSet.set(0, ldba.getAcceptingComponent().getAcceptance().size);
     ldba.getInitialComponent().remapAcceptance((state, x) -> {
-      if (state.isTrue()) {
+      assert !state.isFalse();
+
+      if (state.testSupport(Fragments::isSafety)) {
         return bitSet;
       }
 
@@ -164,7 +170,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
       initialComponentBuilder::getJumps,
       getAnnotation,
       EnumSet.copyOf(optimisations),
-      EquivalenceClass::isTrue);
+      x -> x.testSupport(Fragments::isSafety));
   }
 
   private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {

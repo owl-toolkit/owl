@@ -17,32 +17,52 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import owl.collections.Lists2;
+import owl.collections.Sets2;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
-import owl.ltl.BinaryModalOperator;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.MOperator;
+import owl.ltl.ROperator;
+import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
+import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
+import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.JumpEvaluator;
@@ -68,11 +88,25 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
     return set.containsAll(subset);
   }
 
-  private static Set<UnaryModalOperator> selectAllMonitors(EquivalenceClass state) {
+  private static Multimap<Set<FOperator>, Set<GOperator>> selectAllMonitors(
+    EquivalenceClass state) {
     Formula formula = state.getRepresentative();
+
     Set<GOperator> gOperators = Collector.collectTransformedGOperators(formula);
     Set<FOperator> fOperators = Collector.collectTransformedFOperators(gOperators);
-    return Sets.union(gOperators, fOperators);
+
+    SetMultimap<Set<FOperator>, Set<GOperator>> multimap = MultimapBuilder
+      .hashKeys()
+      .hashSetValues()
+      .build();
+
+    for (Set<FOperator> fSet : Sets.powerSet(fOperators)) {
+      for (Set<GOperator> gSet : Sets.powerSet(gOperators)) {
+        multimap.put(fSet, gSet);
+      }
+    }
+
+    return multimap;
   }
 
   private static Set<UnaryModalOperator> selectReducedMonitors(GOperator gOperator) {
@@ -87,37 +121,38 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
     return Sets.union(operators, fOperators);
   }
 
-  private static Set<UnaryModalOperator> selectReducedMonitors(EquivalenceClass state) {
-    // Scan only content of topmost Gs.
-    Set<UnaryModalOperator> operators = new HashSet<>();
+  private static Multimap<Set<FOperator>, Set<GOperator>> selectReducedMonitors(
+    EquivalenceClass state) {
+    SetMultimap<Set<FOperator>, Set<GOperator>> multimap = MultimapBuilder
+      .hashKeys()
+      .hashSetValues()
+      .build();
 
-    for (Formula support : state.getSupport()) {
-      // No decomposition needed.
-      if (Fragments.isSafety(support) || Fragments.isCoSafety(support)) {
-        continue;
-      }
+    Formula formula = state.getRepresentative();
+    boolean delayJump = false;
 
-      assert support instanceof UnaryModalOperator || support instanceof BinaryModalOperator;
+    for (Set<UnaryModalOperator> obligations : formula.accept(ToplevelSelectVisitor.INSTANCE)) {
+      Set<FOperator> fOperators = obligations.stream()
+        .filter(FOperator.class::isInstance)
+        .map(FOperator.class::cast)
+        .collect(Collectors.toSet());
 
-      Formula formula = support;
+      Set<GOperator> gOperators = obligations.stream()
+        .filter(GOperator.class::isInstance)
+        .map(GOperator.class::cast)
+        .collect(Collectors.toSet());
 
-      while (formula instanceof XOperator) {
-        formula = ((XOperator) formula).operand;
-      }
+      delayJump |= fOperators.removeIf(x -> x.operand instanceof GOperator);
+      gOperators.removeIf(x -> x.operand instanceof FOperator);
 
-      GOperator gOperator = Collector.transformToGOperator(formula);
-
-
-      if (gOperator != null) {
-        operators.addAll(selectReducedMonitors(gOperator));
-      } else {
-        FOperator fOperator = Collector.transformToFOperator(formula);
-        assert fOperator != null;
-        operators.addAll(selectReducedMonitors(fOperator));
-      }
+      multimap.put(fOperators, gOperators);
     }
 
-    return operators;
+    if (delayJump) {
+      multimap.put(ImmutableSet.of(), ImmutableSet.of());
+    }
+
+    return multimap;
   }
 
   private static Set<UnaryModalOperator> selectReducedMonitors(FOperator fOperator) {
@@ -132,10 +167,14 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
     return Sets.union(operators, gOperators);
   }
 
-  private boolean containsSuperLanguage(FGObligations set, Iterable<FGObligations> sets,
+  private boolean containsSuperLanguage(@Nullable FGObligations set, Iterable<FGObligations> sets,
     EquivalenceClass master) {
+    if (set == null) {
+      return false;
+    }
+
     for (FGObligations superSet : sets) {
-      if (set.equals(superSet)) {
+      if (superSet == null || set.equals(superSet)) {
         continue;
       }
 
@@ -181,40 +220,56 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
     return isLanguageContained;
   }
 
+  /* Literals are differently encoded in support */
+  private static boolean equalsInSupport(Formula formula1, Formula formula2) {
+    return formula1.equals(formula2) || formula1 instanceof Literal && formula2 instanceof Literal
+      && ((Literal) formula1).getAtom() == ((Literal) formula2).getAtom();
+  }
+
   @Override
   public Set<FGObligations> select(EquivalenceClass state, boolean isInitialState) {
-    if (state.testSupport(Fragments::isX)) {
-      Logger.getGlobal().log(Level.FINER, () -> state + " is finite. Suppressing jumps.");
+    if (state.testSupport(Fragments::isCoSafety) || state.testSupport(Fragments::isSafety)) {
+      Logger.getGlobal().log(Level.FINER, () -> state + " is finite/(co)safety. Suppressing jump.");
       return Collections.singleton(null);
     }
 
-    if (optimisations.contains(Optimisation.FORCE_JUMPS)
-      && state.testSupport(Fragments::isSafety)) {
-      Logger.getGlobal().log(Level.FINER, () -> state + " is pure safety. Forcing jump.");
-      return Collections.singleton(FGObligations.constructRecurringObligations(ImmutableSet.of(),
-        ImmutableSet.of(), factory));
-    }
+    assert !state.isFalse() : "False state should be filtered.";
 
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-      // State is a boolean function over co-safety properties.
-      if (state.testSupport(Fragments::isCoSafety)) {
-        Logger.getGlobal().log(Level.FINER, () -> state + " is pure co-safety. Suppressing jumps.");
+
+
+      // Check if there is a Satassigment of Safety properties. If yes suppress jump.
+      /*EquivalenceClass safety = state.exists(Fragments::isSafety);
+      boolean existsSafetyCore = safety.isTrue();
+      safety.free();
+
+      if (existsSafetyCore) {
+        Logger.getGlobal().log(Level.FINER, () -> state + " has a safety core. Suppressing jumps.");
         return Collections.singleton(null);
-      }
+      }*/
+
+
 
       // Check for dependency on co-safety properties.
-      EquivalenceClass coSafety = state.exists(x -> !Fragments.isCoSafety(x));
-      boolean isDependent = !coSafety.isTrue();
+
+      Set<Formula> notCoSafety = state.getSupport(x -> !Fragments.isCoSafety(x));
+      EquivalenceClass coSafety = state.exists(x -> notCoSafety.stream()
+        .anyMatch(y -> y.anyMatch(z -> equalsInSupport(x, z))));
+      boolean existsExternalCondition = !coSafety.isTrue();
       coSafety.free();
 
-      if (isDependent) {
+      if (existsExternalCondition) {
         Logger.getGlobal().log(Level.FINER,
-          () -> state + " is dependent on co-safety. Suppressing jumps.");
-        // return Collections.singleton(null);
+          () -> state + " has independent co-safety property. Suppressing jumps. Support"
+          + notCoSafety + " CosafetySupport" + coSafety.getSupport());
+        return Collections.singleton(null);
       }
     }
 
-    Set<UnaryModalOperator> keys;
+    // Compute resulting FGObligations.
+    Multimap<Set<FOperator>, Set<GOperator>> keys;
+
+    Set<FGObligations> fgObligations = new HashSet<>();
 
     // Find interesting Fs and Gs
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
@@ -226,15 +281,16 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
     Logger.getGlobal().log(Level.FINER,
       () -> state + " can jump to the following components: " + keys);
 
-    // Compute resulting FGObligations.
-    Map<Set<UnaryModalOperator>, FGObligations> jumps = new HashMap<>();
+    for (Map.Entry<Set<FOperator>, Set<GOperator>> entry : keys.entries()) {
+      ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(entry.getKey());
+      ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(entry.getValue());
 
-    for (Set<UnaryModalOperator> operators : Sets.powerSet(keys)) {
-      ImmutableSet<FOperator> fOperators = operators.stream().filter(FOperator.class::isInstance)
-        .map(x -> (FOperator) x).collect(ImmutableSet.toImmutableSet());
-      ImmutableSet<GOperator> gOperators = operators.stream().filter(GOperator.class::isInstance)
-        .map(x -> (GOperator) x).collect(ImmutableSet.toImmutableSet());
+      if (fOperators.isEmpty() && gOperators.isEmpty()) {
+        fgObligations.add(null);
+        continue;
+      }
 
+      // TODO: Bump to computeIfAbsent if available.
       FGObligations obligations = cache.get(fOperators, gOperators);
 
       if (obligations == null) {
@@ -245,24 +301,27 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
         }
       }
 
-      if (obligations != null) {
-        EquivalenceClass remainder = evaluator.evaluate(state, obligations);
+      if (obligations == null) {
+        Logger.getGlobal().log(Level.FINER, () -> "Did not create FGObligations for " + entry);
+        continue;
+      }
 
-        if (!remainder.isFalse()) {
-          jumps.put(operators, obligations);
-        }
+      EquivalenceClass remainder = evaluator.evaluate(state, obligations);
+
+      if (!remainder.isFalse()) {
+        fgObligations.add(obligations);
       }
     }
 
-    Logger.getGlobal().log(Level.FINER, () -> state + " has the following jumps: " + jumps);
+    Logger.getGlobal().log(Level.FINER, () -> state + " has the following jumps: " + fgObligations);
 
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-      jumps.values().removeIf(set -> containsSuperLanguage(set, jumps.values(), state));
+      fgObligations.removeIf(set -> containsSuperLanguage(set, fgObligations, state));
     }
 
     boolean patientState = true;
 
-    if (jumps.size() == 1 && optimisations.contains(Optimisation.FORCE_JUMPS)) {
+    if (fgObligations.size() == 1 && optimisations.contains(Optimisation.FORCE_JUMPS)) {
       Set<Formula> infinitelyOften = state.getSupport(GOperator.class::isInstance);
 
       if (state.equals(stateFactory.getInitial(Conjunction.create(infinitelyOften)))) {
@@ -271,9 +330,233 @@ public final class FGObligationsSelector implements JumpSelector<FGObligations> 
     }
 
     if (patientState) {
-      jumps.put(null, null);
+      fgObligations.add(null);
     }
 
-    return new HashSet<>(jumps.values());
+    return fgObligations;
+  }
+
+  @VisibleForTesting
+  abstract static class AbstractSelectVisitor
+    extends DefaultVisitor<List<Set<UnaryModalOperator>>> {
+
+    protected static <T> List<Set<T>> and(List<Set<T>> conjunct1, List<Set<T>> conjunct2) {
+      return and(ImmutableList.of(conjunct1, conjunct2));
+    }
+
+    private static <T> List<Set<T>> and(Iterable<List<Set<T>>> conjuncts) {
+      List<Set<T>> intersection = new ArrayList<>();
+
+      for (List<Set<T>> sets : Lists.cartesianProduct(ImmutableList.copyOf(conjuncts))) {
+        Lists2.addDistinct(intersection, Sets2.parallelUnion(sets));
+      }
+
+      return intersection;
+    }
+
+    protected static <T> List<Set<T>> or(Iterable<List<Set<T>>> disjuncts, boolean upwardClosure) {
+      List<Set<T>> union = new ArrayList<>();
+
+      if (!upwardClosure) {
+        disjuncts.forEach(x -> Lists2.addAllDistinct(union, x));
+        return union;
+      }
+
+      for (List<Set<T>> sets : Lists.cartesianProduct(ImmutableList.copyOf(disjuncts))) {
+        for (Set<T> activeSet : sets) {
+          Set<T> otherSetsUnion = sets.stream()
+            .filter(x -> activeSet != x)
+            .flatMap(Collection::stream)
+            .collect(ImmutableSet.toImmutableSet());
+
+          for (Set<T> x : Sets.powerSet(otherSetsUnion)) {
+            Set<T> upwardClosedSet = Sets.newHashSet(Iterables.concat(activeSet, x));
+            Lists2.addDistinct(union, upwardClosedSet);
+          }
+        }
+      }
+
+      return union;
+    }
+
+    protected static <T> List<Set<T>> or(List<Set<T>> disjunct1, List<Set<T>> disjunct2) {
+      return or(ImmutableList.of(disjunct1, disjunct2), true);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value
+             ? Collections.singletonList(new HashSet<>())
+             : Collections.emptyList();
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(Literal literal) {
+      return Collections.singletonList(new HashSet<>());
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(XOperator xOperator) {
+      return xOperator.operand.accept(this);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(Conjunction conjunction) {
+      return and(Collections2.transform(conjunction.children, x -> x.accept(this)));
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(Disjunction disjunction) {
+      return or(Collections2.transform(disjunction.children, x -> x.accept(this)), true);
+    }
+  }
+
+  @VisibleForTesting
+  static class FScopedSelectVisitor extends AbstractSelectVisitor {
+
+    static final FScopedSelectVisitor INSTANCE = new FScopedSelectVisitor();
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {
+      return fOperator.operand.accept(this);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(GOperator gOperator) {
+      List<Set<UnaryModalOperator>> sets = gOperator.operand.accept(GScopedSelectVisitor.INSTANCE);
+      sets.forEach(x -> x.add(gOperator));
+      return sets;
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(MOperator mOperator) {
+      return visitM(mOperator.left, mOperator.right);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(ROperator rOperator) {
+      // Assume G(right)
+      List<Set<UnaryModalOperator>> gSet = rOperator.right.accept(GScopedSelectVisitor.INSTANCE);
+
+      // Create G for R
+      GOperator gOperator = new GOperator(rOperator.right);
+      gSet.forEach(x -> x.add(gOperator));
+
+      // Fallback to M
+      return or(gSet, visitM(rOperator.left, rOperator.right));
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(UOperator uOperator) {
+      return visitU(uOperator.left, uOperator.right);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(WOperator wOperator) {
+      // Assume G(left)
+      List<Set<UnaryModalOperator>> gSet = wOperator.left.accept(GScopedSelectVisitor.INSTANCE);
+
+      // Create G for W
+      GOperator gOperator = new GOperator(wOperator.left);
+      gSet.forEach(x -> x.add(gOperator));
+
+      // Fallback to U
+      return or(gSet, visitU(wOperator.left, wOperator.right));
+    }
+
+    private List<Set<UnaryModalOperator>> visitM(Formula left, Formula right) {
+      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
+      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
+      return and(leftSets, rightSets);
+    }
+
+    private List<Set<UnaryModalOperator>> visitU(Formula left, Formula right) {
+      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
+      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
+      return or(and(leftSets, rightSets), rightSets);
+    }
+  }
+
+  @VisibleForTesting
+  static class ToplevelSelectVisitor extends AbstractSelectVisitor {
+
+    static final ToplevelSelectVisitor INSTANCE = new ToplevelSelectVisitor();
+
+    @Override
+    protected List<Set<UnaryModalOperator>> defaultAction(Formula formula) {
+      return formula.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(Disjunction disjunction) {
+      return or(Collections2.transform(disjunction.children, x -> x.accept(this)), false);
+    }
+  }
+
+  @VisibleForTesting
+  static class GScopedSelectVisitor extends AbstractSelectVisitor {
+
+    static final GScopedSelectVisitor INSTANCE = new GScopedSelectVisitor();
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {
+      List<Set<UnaryModalOperator>> sets = fOperator.operand.accept(FScopedSelectVisitor.INSTANCE);
+      sets.forEach(x -> x.add(fOperator));
+      return sets;
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(GOperator gOperator) {
+      return gOperator.operand.accept(this);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(MOperator mOperator) {
+      List<Set<UnaryModalOperator>> left = mOperator.left.accept(FScopedSelectVisitor.INSTANCE);
+      List<Set<UnaryModalOperator>> right = mOperator.right.accept(this);
+
+      // Create F from M.
+      FOperator fOperator = new FOperator(mOperator.left);
+      left.forEach(x -> x.add(fOperator));
+
+      // Both sides need to hold for M.
+      return and(left, right);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(ROperator rOperator) {
+      return visitR(rOperator.left, rOperator.right);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(UOperator uOperator) {
+      List<Set<UnaryModalOperator>> left = uOperator.left.accept(this);
+      List<Set<UnaryModalOperator>> right = uOperator.right.accept(FScopedSelectVisitor.INSTANCE);
+
+      // Create F from U.
+      FOperator fOperator = new FOperator(uOperator.right);
+      right.forEach(x -> x.add(fOperator));
+
+      // Assume left does not hold or both sides hold;
+      // TODO: extend left with empty list?
+      return or(right, and(left, right));
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(WOperator wOperator) {
+      return visitW(wOperator.left, wOperator.right);
+    }
+
+    private List<Set<UnaryModalOperator>> visitR(Formula left, Formula right) {
+      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
+      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
+      return or(rightSets, and(leftSets, rightSets));
+    }
+
+    private List<Set<UnaryModalOperator>> visitW(Formula left, Formula right) {
+      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
+      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
+      return or(leftSets, and(leftSets, rightSets));
+    }
   }
 }

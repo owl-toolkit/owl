@@ -217,6 +217,7 @@ final class RankingAutomatonBuilder
   public MutableAutomaton<RankingState, ParityAcceptance> build() {
     MutableAutomaton<RankingState, ParityAcceptance> automaton = AutomatonFactory
       .create(acceptance, factory);
+    // TODO: add getSensitiveAlphabet Method
     AutomatonUtil.exploreDeterministic(automaton, initialStates, this::getSuccessor, sizeCounter);
     automaton.setInitialStates(initialStates);
     return automaton;
@@ -224,6 +225,7 @@ final class RankingAutomatonBuilder
 
   private int distance(int base, int index) {
     int distanceIndex = index;
+
     if (base >= distanceIndex) {
       distanceIndex += volatileMaxIndex + 1;
     }
@@ -240,17 +242,22 @@ final class RankingAutomatonBuilder
    */
   @Nullable
   private Edge<RankingState> getSuccessor(RankingState state, BitSet valuation) {
-    // We obtain the successor of the state in the initial component.
-    EquivalenceClass successor = initialComponent.getSuccessor(state.state, valuation);
+    EquivalenceClass successor;
 
-    // The initial component moved to a rejecting sink. Thus all runs die.
-    if (successor == null) {
-      return null;
-    }
+    { // We obtain the successor of the state in the initial component.
+      Edge<EquivalenceClass> edge = initialComponent.getEdge(state.state, valuation);
 
-    // If we reached the state "true": we're done and can loop forever.
-    if (successor.isTrue()) {
-      return Edges.create(RankingState.create(successor), 1);
+      // The initial component moved to a rejecting sink. Thus all runs die.
+      if (edge == null) {
+        return null;
+      }
+
+      successor = edge.getSuccessor();
+
+      // If we reached the state "true" or something that is a safety condition, we drop all jumps.
+      if (edge.inSet(0)) {
+        return Edges.create(RankingState.create(successor), 1);
+      }
     }
 
     // We compute the relevant accepting components, which we can jump to.

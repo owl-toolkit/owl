@@ -87,9 +87,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     ExploreBuilder<X2, T, Acc> acceptingComponentBuilder, Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annot,
     EnumSet<Optimisation> optimisations,
-    Predicate<S> isPr) {
+    Predicate<S> isProtected) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-      acceptingComponentBuilder, jumpGenerator, annot, optimisations, isPr);
+      acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected);
   }
 
   @Nullable
