@@ -68,6 +68,18 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
         new FOperator(new GOperator(rOperator.right)));
     }
 
+    if (operand instanceof UOperator) {
+      UOperator uOperator = (UOperator) operand;
+
+      return FOperator.create(uOperator.right);
+    }
+
+    if (operand instanceof WOperator) {
+      WOperator wOperator = (WOperator) operand;
+      return Disjunction.create(FOperator.create(GOperator.create(wOperator.left)),
+        FOperator.create(wOperator.right));
+    }
+
     if (operand instanceof Conjunction && ((Conjunction) operand)
       .children.stream().allMatch(Formula::isPureUniversal)) {
       return Conjunction.create(((Conjunction) operand).children.stream().map(FOperator::create));
