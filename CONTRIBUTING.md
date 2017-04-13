@@ -4,7 +4,9 @@ A working Intelji IDEA development enviroment can be optained by typing:
 
 `./gradlew idea`
 
-And then importing the project to IDEA. Independenlty the code formatting rules can be imported from the `congfig` folder. 
+And then importing the project to IDEA. 
+
+Independenlty the code formatting rules can be imported from the `config` folder. 
 
 # Checks
 
