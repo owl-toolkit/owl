@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
+
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -111,7 +112,7 @@ public final class Literal extends ImmutableObject implements Formula {
   }
 
   @Override
-  public String toString(List<String> atomMapping) {
+  public String toString(List<String> atomMapping, boolean fullyParenthesized) {
     if (atomMapping.size() > getAtom()) {
       return (isNegated() ? "!" : "") + atomMapping.get(getAtom());
     }

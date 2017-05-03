@@ -16,6 +16,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.translations.fgx2generic;
+package owl.translations.delag;
 
 import owl.util.EverythingIsNonnullByDefault;

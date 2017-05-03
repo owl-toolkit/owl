@@ -57,8 +57,12 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
   }
 
   @Override
-  public String toString(List<String> variables) {
-    return getOperator() + operand.toString(variables);
+  public String toString(List<String> variables, boolean fullyParenthesized) {
+    if (fullyParenthesized) {
+      return getOperator() + "(" + operand.toString(variables, fullyParenthesized) + ")";
+    } else {
+      return getOperator() + operand.toString(variables, fullyParenthesized);
+    }
   }
 
   @Override

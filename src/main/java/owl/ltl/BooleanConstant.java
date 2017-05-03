@@ -102,7 +102,7 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   }
 
   @Override
-  public String toString(List<String> variables) {
+  public String toString(List<String> variables, boolean fullyParenthesized) {
     return toString();
   }
 

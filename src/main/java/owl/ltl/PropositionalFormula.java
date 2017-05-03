@@ -84,7 +84,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   }
 
   @Override
-  public String toString(List<String> variables) {
+  public String toString() {
     StringBuilder s = new StringBuilder(3 * children.size());
 
     s.append('(');
@@ -92,7 +92,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     Iterator<Formula> iter = children.iterator();
 
     while (iter.hasNext()) {
-      s.append(iter.next().toString(variables));
+      s.append(iter.next());
 
       if (iter.hasNext()) {
         s.append(getOperator());
@@ -105,7 +105,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   }
 
   @Override
-  public String toString() {
+  public String toString(List<String> variables, boolean fullyParenthesized) {
     StringBuilder s = new StringBuilder(3 * children.size());
 
     s.append('(');
@@ -113,7 +113,11 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     Iterator<Formula> iter = children.iterator();
 
     while (iter.hasNext()) {
-      s.append(iter.next());
+      if (fullyParenthesized) {
+        s.append("(" + iter.next().toString(variables, fullyParenthesized) + ")");
+      } else {
+        s.append(iter.next().toString(variables, fullyParenthesized));
+      }
 
       if (iter.hasNext()) {
         s.append(getOperator());

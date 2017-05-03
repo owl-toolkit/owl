@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.fgx2generic;
+package owl.translations.delag;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -37,7 +37,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.visitors.XDepthVisitor;
-import owl.translations.fgx2generic.ProductState.Builder;
+import owl.translations.delag.ProductState.Builder;
 
 abstract class DependencyTree<T> {
 

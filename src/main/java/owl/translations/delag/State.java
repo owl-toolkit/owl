@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.fgx2generic;
+package owl.translations.delag;
 
 import com.google.common.collect.ImmutableList;
 import java.util.BitSet;

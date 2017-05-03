@@ -95,12 +95,14 @@
                 }
             ]
         },
-        "fgx2dga-vanilla": "fgx2dga#no-opt",
-        "fgx2dga": "fgx2dga",
-        "fgx2da-strict": {
+        "delag-vanilla": "delag#no-opt",
+        "delag-vanilla-fallback": "delag#no-opt,fallback",
+        "delag": "delag",
+        "delag-fallback": "delag#fallback",
+        "delag-strict": {
             "tools": [
-                "fgx2dga#strict",
-                "fgx2dga#no-opt"
+                "delag#strict",
+                "delag#no-opt"
             ],
             "data": [
                 {

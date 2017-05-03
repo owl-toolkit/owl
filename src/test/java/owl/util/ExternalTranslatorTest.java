@@ -17,16 +17,31 @@
 
 package owl.util;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import javax.annotation.Nonnull;
-import javax.annotation.meta.TypeQualifierDefault;
+import org.junit.Test;
+import owl.ltl.Formula;
+import owl.ltl.parser.LtlParser;
 
-@Documented
-@Nonnull
-@TypeQualifierDefault({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface EverythingIsNonnullByDefault {
+public class ExternalTranslatorTest {
+
+  private static final String[] FORMULA = new String[] {
+    "(G F a) | (b U c)",
+    "F(X((b) W (a)))",
+    "G (F (a & X F (b & X F c)))"
+  };
+
+  private static final String[] TOOL = new String[] {
+    "ltl2tgba -H",
+    "ltl2tgba -H --deterministic --generic",
+    "ltl2tgba -H --deterministic --generic"
+  };
+
+  @Test
+  public void testApply() {
+    for (int i = 0; i < FORMULA.length; i++) {
+      LtlParser parser = new LtlParser();
+      Formula formula = parser.parseLtl(FORMULA[i]);
+      ExternalTranslator tool = new ExternalTranslator(TOOL[i]);
+      tool.apply(formula);
+    }
+  }
 }

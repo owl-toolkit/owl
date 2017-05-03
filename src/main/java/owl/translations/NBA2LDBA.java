@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.function.Function;
 import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
@@ -47,17 +48,18 @@ public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   }
 
   @Override
-  protected Collection<CommandLineInput<Automaton<HoaState, BuchiAcceptance>>>
-  parseInput(InputStream stream) throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaInput(stream);
-    Collection<CommandLineInput<Automaton<HoaState, BuchiAcceptance>>> inputs =
-      new ArrayList<>(automata.size());
+  protected Collection<CommandLineInput<Automaton<HoaState, BuchiAcceptance>>> parseInput(
+    InputStream stream) throws ParseException {
+    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream, null);
+    List<CommandLineInput<Automaton<HoaState, BuchiAcceptance>>> inputs = new ArrayList<>();
+
     for (Automaton<HoaState, ?> automaton : automata) {
       checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
       //noinspection unchecked
       inputs.add(new CommandLineInput<>((Automaton<HoaState, BuchiAcceptance>) automaton,
         automaton.getVariables()));
     }
+
     return inputs;
   }
 }

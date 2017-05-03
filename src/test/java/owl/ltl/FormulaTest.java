@@ -83,6 +83,22 @@ public class FormulaTest {
   }
 
   @Theory
+  public void allMatch(Formula formula) {
+    Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
+    assertTrue(formula.allMatch(x -> x instanceof BooleanConstant
+      || x instanceof PropositionalFormula || subformulas.contains(x)));
+  }
+
+  @Theory
+  public void anyMatch(Formula formula) {
+    Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
+
+    for (Formula x : subformulas) {
+      assertTrue(formula.anyMatch(x::equals));
+    }
+  }
+
+  @Theory
   public void isSuspendable(Formula formula) {
     assertTrue(!formula.isSuspendable() || formula.isPureUniversal());
     assertTrue(!formula.isSuspendable() || formula.isPureEventual());
@@ -102,21 +118,5 @@ public class FormulaTest {
   @Theory
   public void unfoldTemporalStep(Formula formula, BitSet bitSet) {
     assertEquals(formula.unfold().temporalStep(bitSet), formula.unfoldTemporalStep(bitSet));
-  }
-
-  @Theory
-  public void anyMatch(Formula formula) {
-    Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
-
-    for (Formula x : subformulas) {
-      assertTrue(formula.anyMatch(x::equals));
-    }
-  }
-
-  @Theory
-  public void allMatch(Formula formula) {
-    Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
-    assertTrue(formula.allMatch(x -> x instanceof BooleanConstant
-      || x instanceof PropositionalFormula || subformulas.contains(x)));
   }
 }

@@ -145,22 +145,34 @@ ltl2da Parallel:
     TEST_NAME: "ltl2da-parallel"
   <<: *ltlcross_template
 
-# FGX to DGA translations
+# LTL to DELA translations
 
-fgx2dga Strict:
+delag Strict:
   stage: test
   variables:
-    TEST_NAME: "fgx2da-strict"
+    TEST_NAME: "delag-strict"
   <<: *ltlcross_template
 
-fgx2dga Vanilla:
+delag Vanilla:
   stage: test
   variables:
-    TEST_NAME: "fgx2dga-vanilla"
+    TEST_NAME: "delag-vanilla"
   <<: *ltlcross_template
 
-fgx2dga:
+delag Vanilla Fallback:
+  stage: test
+  variables:
+    TEST_NAME: "delag-vanilla-fallback"
+  <<: *ltlcross_template
+
+delag:
   stage: test-optimizations
   variables:
-    TEST_NAME: "fgx2dga"
+    TEST_NAME: "delag"
+  <<: *ltlcross_template
+
+delag Fallback:
+  stage: test-optimizations
+  variables:
+    TEST_NAME: "delag-fallback"
   <<: *ltlcross_template
