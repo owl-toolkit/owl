@@ -131,7 +131,14 @@ abstract class DependencyTree<T> {
 
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
-      Edge<T> edge = automaton.getEdge(state.productState.fallback.get(formula), valuation);
+      T fallbackState = state.productState.fallback.get(formula);
+
+      if (fallbackState == null) {
+        builder.finished.put(this, Boolean.FALSE);
+        return Boolean.FALSE;
+      }
+
+      Edge<T> edge = automaton.getEdge(fallbackState, valuation);
 
       if (edge == null) {
         builder.finished.put(this, Boolean.FALSE);
