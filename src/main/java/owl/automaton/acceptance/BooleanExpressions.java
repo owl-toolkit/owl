@@ -45,4 +45,44 @@ public final class BooleanExpressions {
     disjuncts.addAll(getDisjuncts(exp.getRight()));
     return disjuncts;
   }
+
+  public static <T extends Atom> BooleanExpression<T> createConjunction(
+    Iterable<BooleanExpression<T>> conjuncts) {
+
+    BooleanExpression<T> conjunction = null;
+
+    for (BooleanExpression<T> conjunct : conjuncts) {
+      if (conjunction == null) {
+        conjunction = conjunct;
+      } else {
+        conjunction = conjunction.and(conjunct);
+      }
+    }
+
+    if (conjunction == null) {
+      return new BooleanExpression<>(true);
+    }
+
+    return conjunction;
+  }
+
+  public static <T extends Atom> BooleanExpression<T> createDisjunction(
+    Iterable<BooleanExpression<T>> disjuncts) {
+
+    BooleanExpression<T> disjunction = null;
+
+    for (BooleanExpression<T> disjunct : disjuncts) {
+      if (disjunction == null) {
+        disjunction = disjunct;
+      } else {
+        disjunction = disjunction.or(disjunct);
+      }
+    }
+
+    if (disjunction == null) {
+      return new BooleanExpression<>(false);
+    }
+
+    return disjunction;
+  }
 }

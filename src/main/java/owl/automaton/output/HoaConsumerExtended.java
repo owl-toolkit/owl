@@ -22,6 +22,8 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -33,9 +35,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
+import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
+import owl.automaton.acceptance.BooleanExpressions;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -47,6 +51,7 @@ import owl.collections.ints.BitSets;
 public final class HoaConsumerExtended<S> {
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
 
+  private final int alphabetSize;
   private final HOAConsumer consumer;
   private final EnumSet<HoaPrintable.Option> options;
   private final Map<S, Integer> stateNumbers;
@@ -59,6 +64,7 @@ public final class HoaConsumerExtended<S> {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
     stateNumbers = new HashMap<>();
+    alphabetSize = aliases.size();
 
     try {
       consumer.notifyHeaderStart("v1");
@@ -121,30 +127,39 @@ public final class HoaConsumerExtended<S> {
   }
 
   public void addEdge(ValuationSet label, S end) {
-    addEdgeBackend(label, end, IntLists.EMPTY_LIST);
+    if (label.isEmpty()) {
+      return;
+    }
+
+    addEdgeBackend(label.toExpression(), end, IntLists.EMPTY_LIST);
   }
 
   public void addEdge(ValuationSet label, S end, PrimitiveIterator.OfInt accSets) {
-    addEdgeBackend(label, end, BitSets.toList(accSets));
+    if (label.isEmpty()) {
+      return;
+    }
+
+    addEdgeBackend(label.toExpression(), end, BitSets.toList(accSets));
   }
 
   public void addEdge(LabelledEdge<? extends S> labelledEdge) {
     addEdge(labelledEdge.edge, labelledEdge.valuations);
   }
 
+  public void addEdge(Edge<? extends S> edge, BitSet label) {
+    addEdgeBackend(toLabel(label), edge.getSuccessor(),
+      BitSets.toList(edge.acceptanceSetIterator()));
+  }
+
   public void addEdge(Edge<? extends S> edge, ValuationSet label) {
     addEdge(label, edge.getSuccessor(), edge.acceptanceSetIterator());
   }
 
-  private void addEdgeBackend(ValuationSet label, S end, IntList accSets) {
+  private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {
     checkState(currentState != null);
 
-    if (label.isEmpty()) {
-      return;
-    }
-
     try {
-      consumer.addEdgeWithLabel(getStateId(currentState), label.toExpression(),
+      consumer.addEdgeWithLabel(getStateId(currentState), label,
         Collections.singletonList(getStateId(end)), accSets.isEmpty() ? null : accSets);
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
@@ -196,5 +211,21 @@ public final class HoaConsumerExtended<S> {
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
+  }
+
+  BooleanExpression<AtomLabel> toLabel(BitSet label) {
+    List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
+
+    for (int i = 0; i < alphabetSize; i++) {
+      BooleanExpression<AtomLabel> atom = new BooleanExpression<>(AtomLabel.createAPIndex(i));
+
+      if (label.get(i)) {
+        conjuncts.add(atom);
+      } else {
+        conjuncts.add(atom.not());
+      }
+    }
+
+    return BooleanExpressions.createConjunction(conjuncts);
   }
 }

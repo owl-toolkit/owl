@@ -1,26 +1,26 @@
 package owl.automaton;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
-@SuppressWarnings("unused")
 public final class AutomatonFactory {
   private AutomatonFactory() {
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(Automaton<S, A> source) {
-    throw new UnsupportedOperationException("");
   }
 
   /**
@@ -38,9 +38,26 @@ public final class AutomatonFactory {
    *
    * @return Empty automaton with the specified parameters.
    */
-  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> create(
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
     A acceptance, ValuationSetFactory valuationSetFactory) {
     return new HashMapAutomaton<>(valuationSetFactory, acceptance);
+  }
+
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
+    A acceptance, ValuationSetFactory valuationSetFactory, Collection<S> initialStates,
+    BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
+    MutableAutomaton<S, A> automaton = AutomatonFactory
+      .createMutableAutomaton(acceptance, valuationSetFactory);
+    AutomatonUtil.exploreDeterministic(automaton, initialStates, successors, alphabet);
+    automaton.setInitialStates(initialStates);
+    return automaton;
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> createStreamingAutomaton(
+    A acceptance, S initialState, ValuationSetFactory factory,
+    BiFunction<S, BitSet, Edge<S>> transitions) {
+    return new StreamingAutomaton<>(acceptance, factory,
+      ImmutableSet.of(initialState), transitions);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {

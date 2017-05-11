@@ -73,7 +73,9 @@ class ProductState<T> {
     }
 
     ProductState<T> build() {
-      return new ProductState<>(fallback.build(), finished.build(), safety.build());
+      return new ProductState<>(fallback.build(),
+        finished.build(),
+        safety.build());
     }
 
     void putAll(Builder<T> other) {

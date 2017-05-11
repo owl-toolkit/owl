@@ -89,15 +89,10 @@
             ],
             "data": "full"
         },
-        "delag-vanilla": "delag#no-opt",
-        "delag-vanilla-fallback": "delag#no-opt,fallback",
         "delag": "delag",
         "delag-fallback": "delag#fallback",
         "delag-strict": {
-            "tools": [
-                "delag#strict",
-                "delag#no-opt"
-            ],
+            "tools": "delag#strict",
             "data": [
                 {
                     "type": "file",

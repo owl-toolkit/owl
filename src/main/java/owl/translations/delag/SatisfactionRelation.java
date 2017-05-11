@@ -17,78 +17,96 @@
 
 package owl.translations.delag;
 
-import com.google.common.collect.Lists;
 import java.util.BitSet;
-import java.util.List;
+import javax.annotation.Nonnegative;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultBinaryVisitor;
+import owl.ltl.visitors.DefaultIntVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 
 class SatisfactionRelation {
-
-  private static final Evaluator INSTANCE = new Evaluator();
 
   private SatisfactionRelation() {
   }
 
   /**
-   * @param history
-   *     0 -> now, 1 -> one step before, 2 -> two steps before...
+   * @param past
+   *
    * @param formula
    *     the formula
    *
-   * @return true if history |= formula.
+   * @return true if past |= formula.
    */
-  static boolean models(List<BitSet> history, Formula formula) {
-    int requiredHistory =
-      XDepthVisitor.getDepth(formula) + (formula.anyMatch(Literal.class::isInstance) ? 1 : 0);
+  static boolean models(History past, BitSet present, Formula formula) {
+    @Nonnegative
+    int xDepth = XDepthVisitor.getDepth(formula);
 
-    if (requiredHistory > history.size()) {
-      return false;
-    }
-
-    return formula.accept(INSTANCE, history.subList(0, requiredHistory));
+    return xDepth <= past.size() && formula.accept(new Evaluator(past, present, xDepth)) == 1;
   }
 
-  private static class Evaluator extends DefaultBinaryVisitor<List<BitSet>, Boolean> {
-    @Override
-    public Boolean visit(BooleanConstant booleanConstant, List<BitSet> history) {
-      return booleanConstant.value ? Boolean.TRUE : Boolean.FALSE;
+  private static class Evaluator extends DefaultIntVisitor {
+
+    private final History past;
+    private final BitSet present;
+    private int offset;
+
+    Evaluator(History past, BitSet present, int requiredHistory) {
+      this.past = past;
+      this.present = present;
+      this.offset = past.size() - requiredHistory;
     }
 
     @Override
-    public Boolean visit(Conjunction conjunction, List<BitSet> history) {
-      return conjunction.children.stream().allMatch(x -> x.accept(this, history));
+    public int visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value ? 1 : 0;
     }
 
     @Override
-    public Boolean visit(Disjunction disjunction, List<BitSet> history) {
-      return disjunction.children.stream().anyMatch(x -> x.accept(this, history));
-    }
-
-    @Override
-    public Boolean visit(Literal literal, List<BitSet> history) {
-      if (history.isEmpty()) {
-        return Boolean.FALSE;
+    public int visit(Conjunction conjunction) {
+      for (Formula child : conjunction.children) {
+        if (child.accept(this) == 0) {
+          return 0;
+        }
       }
 
-      // Access the last position in history record.
-      return Lists.reverse(history).get(0).get(literal.getAtom()) ^ literal.isNegated();
+      return 1;
     }
 
     @Override
-    public Boolean visit(XOperator xOperator, List<BitSet> history) {
-      if (history.isEmpty()) {
-        return Boolean.FALSE;
+    public int visit(Disjunction disjunction) {
+      for (Formula child : disjunction.children) {
+        if (child.accept(this) == 1) {
+          return 1;
+        }
       }
 
-      // Drop last element of history. We're moving into the future.
-      return xOperator.operand.accept(this, history.subList(0, history.size() - 1));
+      return 0;
+    }
+
+    @Override
+    public int visit(Literal literal) {
+      boolean models;
+
+      if (offset == past.size()) {
+        models = present.get(literal.getAtom()) ^ literal.isNegated();
+      } else {
+        models = past.get(offset, literal);
+      }
+
+      return models ? 1 : 0;
+    }
+
+    @Override
+    public int visit(XOperator xOperator) {
+      int models;
+      offset++;
+      models = xOperator.operand.accept(this);
+      offset--;
+      return models;
     }
   }
 }

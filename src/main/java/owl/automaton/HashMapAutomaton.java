@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,11 +61,11 @@ import owl.factories.ValuationSetFactory;
 import owl.util.IntIteratorTransformer;
 
 // TODO: use Cofoja to ensure invariants.
-public final class HashMapAutomaton<S, A extends OmegaAcceptance>
-  implements MutableAutomaton<S, A> {
+final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAutomaton<S, A> {
   private final A acceptance;
-  private final Set<S> initialStates = new HashSet<>();
+  private final Set<S> initialStates;
   private final Map<S, Map<Edge<S>, ValuationSet>> transitions;
+  private final Map<S, S> uniqueStates;
   private final ValuationSetFactory valuationSetFactory;
   @Nullable
   private String name = null;
@@ -73,9 +74,29 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   HashMapAutomaton(ValuationSetFactory valuationSetFactory, A acceptance) {
     this.valuationSetFactory = valuationSetFactory;
     this.acceptance = acceptance;
-    transitions = new HashMap<>();
+
+    // Warning: Before doing ANY operation on transitions one needs to make the key unique!
+    transitions = new IdentityHashMap<>();
+    uniqueStates = new HashMap<>();
+    initialStates = new HashSet<>();
     variables = IntStream.range(0, valuationSetFactory.getSize()).mapToObj(i -> "p" + i).collect(
       ImmutableList.toImmutableList());
+  }
+
+  private S makeUnique(S state) {
+    S uniqueState = uniqueStates.get(state);
+
+    if (uniqueState != null) {
+      return uniqueState;
+    }
+
+    uniqueStates.put(state, state);
+    return state;
+  }
+
+  private Edge<S> makeUnique(Edge<S> edge) {
+    S successor = makeUnique(edge.getSuccessor());
+    return Edges.create(successor, edge.acceptanceSetIterator());
   }
 
   @Override
@@ -94,9 +115,9 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
       return;
     }
 
-    Map<Edge<S>, ValuationSet> map = transitions.computeIfAbsent(source,
+    Map<Edge<S>, ValuationSet> map = transitions.computeIfAbsent(makeUnique(source),
       x -> new LinkedHashMap<>());
-    ValuationSetMapUtil.add(map, edge, valuations.copy());
+    ValuationSetMapUtil.add(map, makeUnique(edge), valuations.copy());
     addState(edge.getSuccessor());
   }
 
@@ -108,7 +129,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public void addStates(Collection<S> states) {
-    states.forEach(state -> transitions.computeIfAbsent(state, x -> new LinkedHashMap<>()));
+    states.forEach(state -> transitions.putIfAbsent(makeUnique(state), new LinkedHashMap<>()));
   }
 
   @VisibleForTesting
@@ -133,12 +154,12 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public boolean containsState(S state) {
-    return transitions.containsKey(state);
+    return uniqueStates.containsKey(state);
   }
 
   @Override
   public boolean containsStates(Collection<S> states) {
-    return transitions.keySet().containsAll(states);
+    return uniqueStates.keySet().containsAll(states);
   }
 
   void free() {
@@ -153,7 +174,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   @Nullable
   @Override
   public Edge<S> getEdge(S state, BitSet valuation) {
-    Map<Edge<S>, ValuationSet> edges = transitions.get(state);
+    Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(state));
     checkArgument(edges != null, "State %s not in automaton", state);
     return ValuationSetMapUtil.findFirst(edges, valuation);
   }
@@ -190,7 +211,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-    Map<Edge<S>, ValuationSet> transitionMap = transitions.get(state);
+    Map<Edge<S>, ValuationSet> transitionMap = transitions.get(makeUnique(state));
     checkArgument(transitionMap != null, "State %s not in automaton", state);
 
     return Collections2.transform(Collections.unmodifiableCollection(transitionMap.entrySet()),
@@ -202,6 +223,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     if (name == null) {
       return String.format("Automaton for %s", getInitialStates());
     }
+
     return name;
   }
 
@@ -215,7 +237,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Map<Edge<S>, ValuationSet> edges = transitions.get(state);
+      Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(state));
       assert edges != null : String.format("State %s not in automaton", state);
 
       ValuationSetMapUtil.viewSuccessors(edges).forEach(successor -> {
@@ -246,7 +268,8 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
     Function<Edge<S>, Edge<S>> edgeUpdater = edge -> Edges.create(edge.getSuccessor(),
       new IntIteratorTransformer(edge.acceptanceSetIterator(), transformer));
-    states.forEach(state -> ValuationSetMapUtil.update(transitions.get(state), edgeUpdater));
+    states.forEach(state -> ValuationSetMapUtil.update(transitions.get(makeUnique(state)),
+      edgeUpdater));
   }
 
   @Override

@@ -18,7 +18,6 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -26,11 +25,9 @@ import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -79,13 +76,8 @@ final class AcceptingComponentBuilder<S>
 
   @Override
   public MutableAutomaton<BreakpointState<S>, BuchiAcceptance> build() {
-    MutableAutomaton<BreakpointState<S>, BuchiAcceptance> automaton =
-      AutomatonFactory.create(new BuchiAcceptance(), nba.getFactory());
-
-    AutomatonUtil.exploreDeterministic(automaton, initialStates, this::explore);
-    automaton.setInitialStates(initialStates);
-
-    return automaton;
+    return AutomatonFactory.createMutableAutomaton(new BuchiAcceptance(), nba.getFactory(),
+      initialStates, this::explore, (x) -> null);
   }
 
   @Nullable

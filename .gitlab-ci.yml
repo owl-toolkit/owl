@@ -153,26 +153,14 @@ delag Strict:
     TEST_NAME: "delag-strict"
   <<: *ltlcross_template
 
-delag Vanilla:
-  stage: test
-  variables:
-    TEST_NAME: "delag-vanilla"
-  <<: *ltlcross_template
-
-delag Vanilla Fallback:
-  stage: test
-  variables:
-    TEST_NAME: "delag-vanilla-fallback"
-  <<: *ltlcross_template
-
 delag:
-  stage: test-optimizations
+  stage: test
   variables:
     TEST_NAME: "delag"
   <<: *ltlcross_template
 
 delag Fallback:
-  stage: test-optimizations
+  stage: test
   variables:
     TEST_NAME: "delag-fallback"
   <<: *ltlcross_template

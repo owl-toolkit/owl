@@ -137,6 +137,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Table<S, ValuationSet, Set<T>> valuationSetJumps = HashBasedTable.create();
     generateJumps(initialComponent, epsilonJumps, valuationSetJumps);
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
+    acceptingComponent.setInitialStates(Collections.emptySet());
 
     // Remove dead states in the accepting component. Note that the .values() collection is backed
     // by the internal map of the epsilonJumps, hence removal is forwarded.

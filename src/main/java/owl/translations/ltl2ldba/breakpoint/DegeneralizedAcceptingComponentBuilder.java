@@ -23,7 +23,6 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
@@ -56,11 +55,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends
 
   @Override
   public MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance> build() {
-    MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance> automaton = AutomatonFactory
-      .create(new BuchiAcceptance(), factories.valuationSetFactory);
-    AutomatonUtil
-      .exploreDeterministic(automaton, anchors, this::getSuccessor, this::getSensitiveAlphabet);
-    return automaton;
+    return AutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
+      factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override

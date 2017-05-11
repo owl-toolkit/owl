@@ -20,6 +20,8 @@ package owl.translations.delag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import javax.annotation.Nullable;
+import jhoafparser.ast.AtomAcceptance;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.EquivalenceClassFactory;
@@ -55,71 +57,48 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
   @Override
   protected DependencyTree<T> defaultAction(Formula formula) {
+    return defaultAction(formula, null);
+  }
+
+  protected DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
     Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber, () ->
-      constructor.apply(formula));
+      constructor.apply(formula), piggyback);
 
     if (leaf.type == Type.COSAFETY || leaf.type == Type.SAFETY) {
       builder.safety.put(formula, factory.createEquivalenceClass(formula.unfold()));
     }
 
     if (leaf instanceof FallbackLeaf) {
+      assert piggyback == null;
       FallbackLeaf<T> fallbackLeaf = (FallbackLeaf<T>) leaf;
       setNumber += fallbackLeaf.automaton.getAcceptance().getAcceptanceSets();
       builder.fallback.put(formula, fallbackLeaf.automaton.getInitialState());
-    } else {
+    } else if (piggyback == null) {
       setNumber++;
     }
 
     return leaf;
   }
 
-  @Override
-  public DependencyTree<T> visit(BooleanConstant booleanConstant) {
-    throw new IllegalStateException("The input formula should be constant-free.");
-  }
-
-  @Override
-  public DependencyTree<T> visit(Conjunction conjunction) {
-    List<Formula> safety = new ArrayList<>();
-    List<Formula> coSafety = new ArrayList<>();
-    List<DependencyTree<T>> children = group(conjunction.children, safety, coSafety);
-
-    if (!safety.isEmpty()) {
-      children.add(defaultAction(Conjunction.create(safety)));
+  @Nullable
+  private AtomAcceptance findPiggybackableLeaf(List<DependencyTree<T>> leafs) {
+    for (DependencyTree<T> leaf : leafs) {
+      if ((leaf instanceof Leaf)
+        && (((Leaf) leaf).type == Type.LIMIT_GF || ((Leaf) leaf).type == Type.LIMIT_FG)) {
+        return leaf.getAcceptanceExpression().getAtom();
+      }
     }
 
-    if (!coSafety.isEmpty()) {
-      children.add(defaultAction(Conjunction.create(coSafety)));
-    }
-
-    return DependencyTree.createAnd(children);
-  }
-
-  @Override
-  public DependencyTree<T> visit(Disjunction disjunction) {
-    List<Formula> safety = new ArrayList<>();
-    List<Formula> coSafety = new ArrayList<>();
-    List<DependencyTree<T>> children = group(disjunction.children, safety, coSafety);
-
-    if (!safety.isEmpty()) {
-      children.add(defaultAction(Disjunction.create(safety)));
-    }
-
-    if (!coSafety.isEmpty()) {
-      children.add(defaultAction(Disjunction.create(coSafety)));
-    }
-
-    return DependencyTree.createOr(children);
+    return null;
   }
 
   private List<DependencyTree<T>> group(Iterable<Formula> formulas, List<Formula> safety,
-    List<Formula> coSafety) {
+    List<Formula> coSafety, List<Formula> finite) {
     List<DependencyTree<T>> children = new ArrayList<>();
-    List<Formula> xFragment = new ArrayList<>();
 
     formulas.forEach(x -> {
       if (Fragments.isX(x)) {
-        xFragment.add(x);
+        finite.add(x);
         return;
       }
 
@@ -136,12 +115,61 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
       children.add(x.accept(this));
     });
 
+    return children;
+  }
+
+  @Override
+  public DependencyTree<T> visit(Disjunction disjunction) {
+    List<Formula> safety = new ArrayList<>();
+    List<Formula> coSafety = new ArrayList<>();
+    List<Formula> finite = new ArrayList<>();
+
+    List<DependencyTree<T>> children = group(disjunction.children, safety, coSafety, finite);
+
     if (!safety.isEmpty()) {
-      safety.addAll(xFragment);
+      safety.addAll(finite);
     } else {
-      coSafety.addAll(xFragment);
+      coSafety.addAll(finite);
     }
 
-    return children;
+    if (!safety.isEmpty()) {
+      children.add(defaultAction(Disjunction.create(safety), findPiggybackableLeaf(children)));
+    }
+
+    if (!coSafety.isEmpty()) {
+      children.add(defaultAction(Disjunction.create(coSafety)));
+    }
+
+    return DependencyTree.createOr(children);
+  }
+
+  @Override
+  public DependencyTree<T> visit(BooleanConstant booleanConstant) {
+    throw new IllegalStateException("The input formula should be constant-free.");
+  }
+
+  @Override
+  public DependencyTree<T> visit(Conjunction conjunction) {
+    List<Formula> safety = new ArrayList<>();
+    List<Formula> coSafety = new ArrayList<>();
+    List<Formula> finite = new ArrayList<>();
+
+    List<DependencyTree<T>> children = group(conjunction.children, safety, coSafety, finite);
+
+    if (!coSafety.isEmpty()) {
+      coSafety.addAll(finite);
+    } else {
+      safety.addAll(finite);
+    }
+
+    if (!safety.isEmpty()) {
+      children.add(defaultAction(Conjunction.create(safety)));
+    }
+
+    if (!coSafety.isEmpty()) {
+      children.add(defaultAction(Conjunction.create(coSafety), findPiggybackableLeaf(children)));
+    }
+
+    return DependencyTree.createAnd(children);
   }
 }

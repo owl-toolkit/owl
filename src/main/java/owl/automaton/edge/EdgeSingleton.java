@@ -24,7 +24,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public final class EdgeSingleton<S> implements Edge<S> {
+final class EdgeSingleton<S> implements Edge<S> {
   private static final int EMPTY_ACCEPTANCE = -1;
   private final int acceptance;
   private final S successor;
