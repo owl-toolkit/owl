@@ -17,14 +17,18 @@
 
 package owl.translations.nba2ldba;
 
-import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.output.HoaPrintable;
+import owl.collections.ValuationSet;
 import owl.translations.Optimisation;
 
 public final class NBA2LDBAFunction<S>
@@ -41,22 +45,39 @@ public final class NBA2LDBAFunction<S>
     if (nba.isDeterministic()) {
       return nba;
     }
+    
+    AcceptingComponentBuilder<S> acceptingComponentBuilder = 
+        AcceptingComponentBuilder.create(nba);
 
     Function<S, Iterable<S>> jump = (s) -> {
+      Set<S> states = new HashSet<>();
       for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(s)) {
         if (labelledEdge.edge.inSet(0)) {
-          return Collections.singletonList(s);
+          states.add(labelledEdge.edge.getSuccessor());
         }
       }
 
-      return Collections.emptyList();
+      return states;
+    };
+    
+    Function<S, Map<ValuationSet, Set<S>>> jump2 = (s) -> {
+      Map<ValuationSet, Set<S>> states = new HashMap<>();
+      for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(s)) {
+        if (labelledEdge.edge.inSet(0)) {
+          if (!states.containsKey(labelledEdge.getValuations())) {
+            states.put(labelledEdge.getValuations(), new HashSet<>());
+          }
+          states.get(labelledEdge.getValuations()).add(labelledEdge.edge.getSuccessor());
+        }
+      }
+
+      return states;
     };
 
-    AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder.create(nba);
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
-    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder =
-      LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-        acceptingComponentBuilder, jump, (x) -> null, optimisations);
+    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void>
+      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder, 
+      acceptingComponentBuilder, jump, (x) -> null, optimisations, null, jump2);
 
     return builder.build();
   }

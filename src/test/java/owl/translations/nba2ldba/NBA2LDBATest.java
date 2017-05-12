@@ -18,12 +18,16 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableList;
+
 import java.util.EnumSet;
 import java.util.List;
+
 import jhoafparser.consumer.HOAConsumerNull;
+import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
+
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
@@ -46,6 +50,41 @@ public class NBA2LDBATest {
     + " [t]   0 \n"
     + " [!0]  1 \n"
     + "--END--";
+  
+  private static final String INPUT2 = "HOA: v1\n"
+      + "States: 2\n"
+      + "Start: 0\n"
+      + "acc-name: Buchi\n"
+      + "Acceptance: 1 Inf(0)\n"
+      + "AP: 1 \"a\"\n"
+      + "--BODY--\n"
+      + "State: 0 {0}\n"
+      + " [0]   1 \n"
+      + "State: 1 \n"
+      + " [!0]  0 \n"
+      + " [!0]  1 \n"
+      + "--END--";
+  
+  private static final String INPUT3 =  "HOA: v1\n" 
+      + "States: 3\n" 
+      + "Start: 0\n" 
+      + "acc-name: Buchi\n"
+      + "Acceptance: 1 Inf(0)\n"
+      + "properties: trans-acc trans-label\n" 
+      + "AP: 2 \"a\" \"b\"\n" 
+      + "--BODY--\n" 
+      + "State: 1\n" 
+      + "[0] 1 {0}\n" 
+      + "[!0] 2 {0}\n" 
+      + "State: 0\n" 
+      + "[0] 1\n" 
+      + "[t] 0\n" 
+      + "[!0] 2\n" 
+      + "State: 2\n" 
+      + "[0 & 1] 1 {0}\n" 
+      + "[!0 & 1] 2 {0}\n" 
+      + "--END--" ; 
+  
   private static final List<String> MAPPING = ImmutableList.of("a");
 
   @Test
@@ -61,5 +100,38 @@ public class NBA2LDBATest {
     HoaPrintable result = translation.apply(automaton);
     result.setVariables(MAPPING);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    result.toHoa(new HOAConsumerPrint(System.out));
+  }
+  
+  @Test
+  public void testApply2() throws ParseException {
+    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+    optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
+    NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(optimisations);
+
+    Automaton<HoaState, BuchiAcceptance> automaton =
+      AutomatonReader.readHoa(INPUT2, BuchiAcceptance.class);
+
+    automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrintable result = translation.apply(automaton);
+    result.setVariables(MAPPING);
+    result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    result.toHoa(new HOAConsumerPrint(System.out));
+  }
+  
+  @Test
+  public void testApply3() throws ParseException {
+    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+    optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
+    NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(optimisations);
+
+    Automaton<HoaState, BuchiAcceptance> automaton =
+      AutomatonReader.readHoa(INPUT3, BuchiAcceptance.class);
+
+    automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrintable result = translation.apply(automaton);
+    result.setVariables(MAPPING);
+    result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    result.toHoa(new HOAConsumerPrint(System.out));
   }
 }

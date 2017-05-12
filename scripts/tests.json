@@ -87,13 +87,7 @@
                     ]
                 }
             ],
-            "data": [
-                {
-                    "type": "file",
-                    "path": "formulas/base.ltl",
-                    "determinize": true
-                }
-            ]
+            "data": "full"
         },
         "delag-vanilla": "delag#no-opt",
         "delag-vanilla-fallback": "delag#no-opt,fallback",

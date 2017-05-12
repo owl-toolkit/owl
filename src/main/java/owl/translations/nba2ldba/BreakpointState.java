@@ -1,36 +1,32 @@
-/*
- * Copyright (C) 2016  (See AUTHORS)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
+
 import java.util.Objects;
 import java.util.Set;
 
-final class BreakpointState<S> {
-  final ImmutableSet<S> left;
-  final ImmutableSet<S> right;
+public class BreakpointState<S> {
 
-  BreakpointState(Set<S> left, Set<S> right) {
-    this.left = ImmutableSet.copyOf(left);
-    this.right = ImmutableSet.copyOf(right);
+  final int ix;
+  final Set<S> mx;
+  final Set<S> nx;
+
+  BreakpointState(int i, Set<S> m, Set<S> n) {
+    this.ix = i;
+    this.mx = ImmutableSet.copyOf(m);
+    this.nx = ImmutableSet.copyOf(n);
   }
 
-  @Override
+  BreakpointState(S state) {
+    this.ix = -1;
+    this.mx = ImmutableSet.of(state);
+    this.nx = ImmutableSet.of(state);
+  }
+
+  public String toString() {
+    return "(" + ix + ", " + this.mx + ", " + this.nx + ")";
+  }
+
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -41,12 +37,13 @@ final class BreakpointState<S> {
     }
 
     BreakpointState<?> state = (BreakpointState<?>) o;
-    return Objects.equals(left, state.left)
-      && Objects.equals(right, state.right);
+    return ix == state.ix && Objects.equals(mx, state.mx)
+        && Objects.equals(nx, state.nx);
   }
 
   @Override
   public int hashCode() {
-    return 31 * left.hashCode() + right.hashCode();
+    return 31 * mx.hashCode() + nx.hashCode() + ix;
   }
+
 }
