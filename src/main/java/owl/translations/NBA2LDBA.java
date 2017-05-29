@@ -44,7 +44,7 @@ public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   @Override
   protected Function<Automaton<HoaState, BuchiAcceptance>, ? extends HoaPrintable>
   getTranslation(EnumSet<Optimisation> optimisations) {
-    return new NBA2LDBAFunction<>(optimisations);
+    return new NBA2LDBAFunction<>();
   }
 
   @Override

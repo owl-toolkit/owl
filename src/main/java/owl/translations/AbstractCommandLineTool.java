@@ -71,6 +71,7 @@ public abstract class AbstractCommandLineTool<T> {
       HoaPrintable result = translation.apply(input.input);
       // Write output.
       result.setVariables(input.variables);
+
       HOAConsumer consumer = new HOAConsumerPrint(System.out);
 
       if (stateAcceptance) {

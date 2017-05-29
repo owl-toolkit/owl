@@ -17,11 +17,9 @@
 
 package owl.translations.nba2ldba;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder.SetMultimapBuilder;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -36,8 +34,8 @@ public final class NBA2LDBAFunction<S>
 
   private final EnumSet<Optimisation> optimisations;
 
-  public NBA2LDBAFunction(EnumSet<Optimisation> optimisations) {
-    this.optimisations = optimisations;
+  public NBA2LDBAFunction() {
+    this.optimisations = EnumSet.noneOf(Optimisation.class);
   }
 
   @Override
@@ -45,39 +43,25 @@ public final class NBA2LDBAFunction<S>
     if (nba.isDeterministic()) {
       return nba;
     }
-    
-    AcceptingComponentBuilder<S> acceptingComponentBuilder = 
-        AcceptingComponentBuilder.create(nba);
-
-    Function<S, Iterable<S>> jump = (s) -> {
-      Set<S> states = new HashSet<>();
-      for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(s)) {
-        if (labelledEdge.edge.inSet(0)) {
-          states.add(labelledEdge.edge.getSuccessor());
-        }
-      }
-
-      return states;
-    };
-    
-    Function<S, Map<ValuationSet, Set<S>>> jump2 = (s) -> {
-      Map<ValuationSet, Set<S>> states = new HashMap<>();
-      for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(s)) {
-        if (labelledEdge.edge.inSet(0)) {
-          if (!states.containsKey(labelledEdge.getValuations())) {
-            states.put(labelledEdge.getValuations(), new HashSet<>());
-          }
-          states.get(labelledEdge.getValuations()).add(labelledEdge.edge.getSuccessor());
-        }
-      }
-
-      return states;
-    };
 
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
+    AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder.create(nba);
+
+    Function<S, Multimap<ValuationSet, S>> jump2 = (state) -> {
+      Multimap<ValuationSet, S> jumps = SetMultimapBuilder.hashKeys().hashSetValues().build();
+
+      for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(state)) {
+        if (labelledEdge.edge.inSet(0)) {
+          jumps.put(labelledEdge.getValuations(), labelledEdge.edge.getSuccessor());
+        }
+      }
+
+      return jumps;
+    };
+
     LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void>
-      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder, 
-      acceptingComponentBuilder, jump, (x) -> null, optimisations, null, jump2);
+      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+      acceptingComponentBuilder, (x) -> null, (x) -> null, optimisations, (x) -> true, jump2);
 
     return builder.build();
   }

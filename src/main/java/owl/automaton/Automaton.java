@@ -125,13 +125,13 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       labelledEdge -> labelledEdge.valuations.contains(valuation)),
       LabelledEdge::getEdge);
   }
-  
+
   default Set<Edge<S>> getEdges(Set<S> states, BitSet valuation) {
     Set<Edge<S>> edges = new HashSet<>();
     states.forEach(x -> edges.addAll(getEdges(x, valuation)));
     return edges;
   }
-  
+
   ValuationSetFactory getFactory();
 
   /**
@@ -224,11 +224,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       .map(labelledEdge -> labelledEdge.edge.getSuccessor())
       .collect(Collectors.toSet());
   }
-  
+
   default Set<S> getSuccessors(Set<S> states, BitSet valuation) {
-    Set<S> succs = new HashSet<>();
-    states.forEach(x -> succs.addAll(getSuccessors(x, valuation)));
-    return succs;
+    Set<S> successors = new HashSet<>();
+    states.forEach(x -> successors.addAll(getSuccessors(x, valuation)));
+    return successors;
   }
 
   List<String> getVariables();

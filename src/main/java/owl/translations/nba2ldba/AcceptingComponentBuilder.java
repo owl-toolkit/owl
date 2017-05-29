@@ -27,6 +27,7 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -36,7 +37,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 
-public final class AcceptingComponentBuilder<S>
+final class AcceptingComponentBuilder<S>
   implements ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> {
 
   private final List<BreakpointState<S>> initialStates;
@@ -47,8 +48,8 @@ public final class AcceptingComponentBuilder<S>
   private AcceptingComponentBuilder(Automaton<S, BuchiAcceptance> nba) {
     this.nba = nba;
     initialStates = new ArrayList<>();
-    max = nba.getAcceptance().getAcceptanceSets();
-    
+    max = Math.max(nba.getAcceptance().getAcceptanceSets(), 1);
+
     this.finEdges = new ArrayList<>(max);
     for (int i = 0; i < max; i++) {
       finEdges.add(new HashSet<>());
@@ -63,16 +64,15 @@ public final class AcceptingComponentBuilder<S>
     assert finEdges.get(0) != null;
   }
 
-  public static <S> AcceptingComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
+  static <S> AcceptingComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
     return new AcceptingComponentBuilder<>(nba);
   }
 
   @Override
   public BreakpointState<S> add(S stateKey) {
-    int i1 = max > 1 ? 1 : 0;
     Set<S> m1 = ImmutableSet.of(stateKey);
     Set<S> n1 = ImmutableSet.of();
-    BreakpointState<S> state = new BreakpointState<>(i1, m1, n1);
+    BreakpointState<S> state = new BreakpointState<>(1, m1, n1);
     initialStates.add(state);
     return state;
   }
@@ -88,36 +88,39 @@ public final class AcceptingComponentBuilder<S>
     return automaton;
   }
 
-  private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, 
-      BitSet valuation) {
+  @Nullable
+  private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
     Set<S> m1 = nba.getSuccessors(ldbaState.mx, valuation);
+
     if (m1.isEmpty()) {
       return null;
     }
-    
+
     Set<Edge<S>> outEdgesM = nba.getEdges(ldbaState.mx, valuation);
     Set<Edge<S>> outEdgesN = nba.getEdges(ldbaState.nx, valuation);
     Set<Edge<S>> intersection =
         outEdgesM.stream().filter(x -> finEdges.get((ldbaState.ix + 1) % max).contains(x))
             .collect(Collectors.toSet());
     outEdgesN.addAll(intersection);
+
     Set<S> n1;
-    int i1 = -1;
+    int i1;
+
     if (outEdgesM.equals(outEdgesN)) {
       i1 = (ldbaState.ix + 1) % max;
-      n1 = intersection.stream().map(x -> x.getSuccessor()).collect(Collectors.toSet());
+      n1 = intersection.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
     } else {
-      n1 = outEdgesN.stream().map(x -> x.getSuccessor()).collect(Collectors.toSet());
+      n1 = outEdgesN.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
       i1 = ldbaState.ix;
     }
-    BreakpointState<S> newState = new BreakpointState<>(i1, m1, n1);
-    Edge<BreakpointState<S>> edge;
+
+    BreakpointState<S> successor = new BreakpointState<>(i1, m1, n1);
+
     if (i1 == 0 && outEdgesM.equals(outEdgesN)) {
-      edge = Edges.create(newState, 0);
-    } else {
-      edge = Edges.create(newState);
+      return Edges.create(successor, 0);
     }
-    return edge;
+
+    return Edges.create(successor);
   }
 
 }
