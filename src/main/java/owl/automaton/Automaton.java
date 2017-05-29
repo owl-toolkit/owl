@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -125,6 +126,12 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       LabelledEdge::getEdge);
   }
 
+  default Set<Edge<S>> getEdges(Set<S> states, BitSet valuation) {
+    Set<Edge<S>> edges = new HashSet<>();
+    states.forEach(x -> edges.addAll(getEdges(x, valuation)));
+    return edges;
+  }
+
   ValuationSetFactory getFactory();
 
   /**
@@ -216,6 +223,12 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       .filter(labelledEdge -> labelledEdge.valuations.contains(valuation))
       .map(labelledEdge -> labelledEdge.edge.getSuccessor())
       .collect(Collectors.toSet());
+  }
+
+  default Set<S> getSuccessors(Set<S> states, BitSet valuation) {
+    Set<S> successors = new HashSet<>();
+    states.forEach(x -> successors.addAll(getSuccessors(x, valuation)));
+    return successors;
   }
 
   List<String> getVariables();

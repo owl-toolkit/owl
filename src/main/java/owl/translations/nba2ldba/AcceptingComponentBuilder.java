@@ -18,13 +18,15 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
+
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
@@ -35,25 +37,42 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 
-public final class AcceptingComponentBuilder<S>
+final class AcceptingComponentBuilder<S>
   implements ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> {
 
   private final List<BreakpointState<S>> initialStates;
   private final Automaton<S, BuchiAcceptance> nba;
+  private final List<Set<Edge<S>>> finEdges;
+  private final int max;
 
   private AcceptingComponentBuilder(Automaton<S, BuchiAcceptance> nba) {
     this.nba = nba;
     initialStates = new ArrayList<>();
+    max = Math.max(nba.getAcceptance().getAcceptanceSets(), 1);
+
+    this.finEdges = new ArrayList<>(max);
+    for (int i = 0; i < max; i++) {
+      finEdges.add(new HashSet<>());
+    }
+    for (S state : nba.getStates()) {
+      for (Edge<S> edge : nba.getEdges(state)) {
+        OfInt it = edge.acceptanceSetIterator();
+        it.forEachRemaining((int x) -> {
+          finEdges.get(x).add(edge); });
+      }
+    }
+    assert finEdges.get(0) != null;
   }
 
-  public static <S> AcceptingComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
+  static <S> AcceptingComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
     return new AcceptingComponentBuilder<>(nba);
   }
 
   @Override
   public BreakpointState<S> add(S stateKey) {
-    ImmutableSet<S> singleton = ImmutableSet.of(stateKey);
-    BreakpointState<S> state = new BreakpointState<>(singleton, singleton);
+    Set<S> m1 = ImmutableSet.of(stateKey);
+    Set<S> n1 = ImmutableSet.of();
+    BreakpointState<S> state = new BreakpointState<>(1, m1, n1);
     initialStates.add(state);
     return state;
   }
@@ -70,37 +89,38 @@ public final class AcceptingComponentBuilder<S>
   }
 
   @Nullable
-  private Edge<BreakpointState<S>> explore(BreakpointState<S> state, BitSet valuation) {
-    // Standard Subset Construction
-    Set<S> rightSuccessor = new HashSet<>();
+  private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
+    Set<S> m1 = nba.getSuccessors(ldbaState.mx, valuation);
 
-    for (S rightState : state.right) {
-      rightSuccessor.addAll(nba.getSuccessors(rightState, valuation));
-    }
-
-    Set<S> leftSuccessor = new HashSet<>();
-
-    // Add all states reached from an accepting trackedState
-    state.right.stream()
-      .map(x -> nba.getEdges(x, valuation))
-      .flatMap(Collection::stream)
-      .filter(x -> x.inSet(0))
-      .forEach(x -> leftSuccessor.add(x.getSuccessor()));
-
-    if (!Objects.equals(state.left, state.right)) {
-      state.left.forEach(s -> leftSuccessor.addAll(nba.getSuccessors(s, valuation)));
-    }
-
-    // Don't construct the trap trackedState.
-    if (leftSuccessor.isEmpty() && rightSuccessor.isEmpty()) {
+    if (m1.isEmpty()) {
       return null;
     }
 
-    BreakpointState<S> successor = new BreakpointState<>(leftSuccessor, rightSuccessor);
+    Set<Edge<S>> outEdgesM = nba.getEdges(ldbaState.mx, valuation);
+    Set<Edge<S>> outEdgesN = nba.getEdges(ldbaState.nx, valuation);
+    Set<Edge<S>> intersection =
+        outEdgesM.stream().filter(x -> finEdges.get((ldbaState.ix + 1) % max).contains(x))
+            .collect(Collectors.toSet());
+    outEdgesN.addAll(intersection);
 
-    return Objects.equals(state.left, state.right)
-           ? Edges.create(successor, 0)
-           : Edges.create(successor);
+    Set<S> n1;
+    int i1;
+
+    if (outEdgesM.equals(outEdgesN)) {
+      i1 = (ldbaState.ix + 1) % max;
+      n1 = intersection.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
+    } else {
+      n1 = outEdgesN.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
+      i1 = ldbaState.ix;
+    }
+
+    BreakpointState<S> successor = new BreakpointState<>(i1, m1, n1);
+
+    if (i1 == 0 && outEdgesM.equals(outEdgesN)) {
+      return Edges.create(successor, 0);
+    }
+
+    return Edges.create(successor);
   }
 
 }

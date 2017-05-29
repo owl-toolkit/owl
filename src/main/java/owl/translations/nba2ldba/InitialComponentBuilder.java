@@ -27,7 +27,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
 
-public final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, NoneAcceptance> {
+final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, NoneAcceptance> {
 
   private final Automaton<S, BuchiAcceptance> nba;
 
@@ -35,7 +35,7 @@ public final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, No
     this.nba = nba;
   }
 
-  public static <S> InitialComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
+  static <S> InitialComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
     return new InitialComponentBuilder<>(nba);
   }
 

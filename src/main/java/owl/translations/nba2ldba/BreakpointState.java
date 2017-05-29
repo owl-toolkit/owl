@@ -18,19 +18,28 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
+
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnegative;
 
-final class BreakpointState<S> {
-  final ImmutableSet<S> left;
-  final ImmutableSet<S> right;
+public class BreakpointState<S> {
 
-  BreakpointState(Set<S> left, Set<S> right) {
-    this.left = ImmutableSet.copyOf(left);
-    this.right = ImmutableSet.copyOf(right);
+  @Nonnegative
+  final int ix;
+  final Set<S> mx;
+  final Set<S> nx;
+
+  BreakpointState(@Nonnegative int i, Set<S> m, Set<S> n) {
+    this.ix = i;
+    this.mx = ImmutableSet.copyOf(m);
+    this.nx = ImmutableSet.copyOf(n);
   }
 
-  @Override
+  public String toString() {
+    return "(" + ix + ", " + this.mx + ", " + this.nx + ")";
+  }
+
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -41,12 +50,12 @@ final class BreakpointState<S> {
     }
 
     BreakpointState<?> state = (BreakpointState<?>) o;
-    return Objects.equals(left, state.left)
-      && Objects.equals(right, state.right);
+    return ix == state.ix && Objects.equals(mx, state.mx)
+        && Objects.equals(nx, state.nx);
   }
 
   @Override
   public int hashCode() {
-    return 31 * left.hashCode() + right.hashCode();
+    return 31 * mx.hashCode() + nx.hashCode() + ix;
   }
 }
