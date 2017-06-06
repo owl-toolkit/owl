@@ -17,23 +17,20 @@
 
 package owl.translations.delag;
 
-import com.google.common.collect.ImmutableList;
-import java.util.BitSet;
-import java.util.List;
 import java.util.Objects;
 
 public class State<T> {
 
-  final ImmutableList<BitSet> history;
+  final History past;
   final ProductState<T> productState;
 
   State() {
-    history = ImmutableList.of();
+    past = new History();
     productState = (ProductState<T>) ProductState.builder().build();
   }
 
-  State(ProductState<T> state, List<BitSet> history) {
-    this.history = ImmutableList.copyOf(history);
+  State(ProductState<T> state, History past) {
+    this.past = past;
     this.productState = state;
   }
 
@@ -49,12 +46,12 @@ public class State<T> {
 
     final State<?> state = (State<?>) o;
     return Objects.equals(productState, state.productState)
-      && Objects.equals(history, state.history);
+      && Objects.equals(past, state.past);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(productState, history);
+    return Objects.hash(productState, past);
   }
 
   @Override
@@ -62,6 +59,6 @@ public class State<T> {
     return "Fallback: " + productState.fallback
       + " Finished: " + productState.finished
       + " Safety: " + productState.safety
-      + " History: " + history;
+      + " History: " + past;
   }
 }

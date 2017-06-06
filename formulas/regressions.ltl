@@ -1,3 +1,5 @@
+F a & G F b
+G a | G F a
 G ((! a) W b)
 G (a M (F b))
 a | (G (F (a)))

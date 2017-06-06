@@ -47,7 +47,7 @@ public class LTL2LDGBATest {
     + "tool: \"Owl\" \"* *\"\n"
     + "States: 1\n"
     + "Start: 0\n"
-    + "acc-name: Buchi\n"
+    + "acc-name: generalized-Buchi 1\n"
     + "Acceptance: 1 Inf(0)\n"
     + "properties: trans-acc trans-label \n"
     + "AP: 0\n"

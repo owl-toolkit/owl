@@ -17,73 +17,92 @@
 
 package owl.translations.delag;
 
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.List;
-import owl.collections.Lists2;
+import com.google.common.base.Preconditions;
+import javax.annotation.Nonnegative;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.visitors.DefaultIntVisitor;
+import owl.ltl.visitors.XDepthVisitor;
 
 class RequiredHistory {
 
-  private static final Extractor INSTANCE = new Extractor();
+  private static final long[] EMPTY = new long[0];
 
   private RequiredHistory() {
   }
 
-  static List<BitSet> getRequiredHistory(Formula formula) {
-    List<BitSet> reversedRequiredHistory = formula.accept(INSTANCE);
+  @SuppressWarnings("PMD.AvoidArrayLoops")
+  static long[] getRequiredHistory(Formula formula) {
+    @Nonnegative
+    int xDepth = XDepthVisitor.getDepth(formula);
 
-    if (reversedRequiredHistory.isEmpty()) {
-      return Collections.emptyList();
+    if (xDepth == 0) {
+      return EMPTY;
     }
 
-    reversedRequiredHistory = reversedRequiredHistory
-      .subList(0, reversedRequiredHistory.size() - 1);
-    List<BitSet> requiredHistory = new ArrayList<>(Lists.reverse(reversedRequiredHistory));
+    Extractor extractor = new Extractor(xDepth);
+    formula.accept(extractor);
 
-    // Closure
-    for (int i = requiredHistory.size() - 1; i > 0; i--) {
-      BitSet set = requiredHistory.get(i);
-      requiredHistory.subList(0, i).forEach(x -> x.or(set));
+    long[] history = extractor.past;
+    long accumulator = history[0];
+
+    for (int i = 1; i < history.length; i++) {
+      history[i] |= accumulator;
+      accumulator = history[i];
     }
 
-    return requiredHistory;
+    return history;
   }
 
-  static class Extractor extends DefaultVisitor<List<BitSet>> {
-    @Override
-    public List<BitSet> visit(BooleanConstant booleanConstant) {
-      return Collections.emptyList();
+  private static class Extractor extends DefaultIntVisitor {
+    @Nonnegative
+    private int index;
+    private final long[] past;
+
+    Extractor(int xDepth) {
+      this.past = new long[xDepth];
+      this.index = 0;
     }
 
     @Override
-    public List<BitSet> visit(Conjunction conjunction) {
-      return conjunction.map(x -> x.accept(this)).reduce(new ArrayList<>(), Util::union);
+    public int visit(BooleanConstant booleanConstant) {
+      return 0;
     }
 
     @Override
-    public List<BitSet> visit(Disjunction disjunction) {
-      return disjunction.map(x -> x.accept(this)).reduce(new ArrayList<>(), Util::union);
+    public int visit(Conjunction conjunction) {
+      conjunction.children.forEach(x -> x.accept(this));
+      return 0;
     }
 
     @Override
-    public List<BitSet> visit(Literal literal) {
-      BitSet alphabet = new BitSet();
-      alphabet.set(literal.getAtom());
-      return Collections.singletonList(alphabet);
+    public int visit(Disjunction disjunction) {
+      disjunction.children.forEach(x -> x.accept(this));
+      return 0;
     }
 
     @Override
-    public List<BitSet> visit(XOperator xOperator) {
-      return Lists2.cons(new BitSet(), xOperator.operand.accept(this));
+    public int visit(Literal literal) {
+      // We're in the present.
+      if (index == past.length) {
+        return 0;
+      }
+
+      Preconditions.checkArgument(literal.getAtom() < 64);
+      past[index] |= 1L << literal.getAtom();
+      return 0;
+    }
+
+    @Override
+    public int visit(XOperator xOperator) {
+      index++;
+      xOperator.operand.accept(this);
+      index--;
+      return 0;
     }
   }
 }

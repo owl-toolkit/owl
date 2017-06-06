@@ -19,9 +19,7 @@ package owl.translations.delag;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
-import java.util.Collections;
 import org.junit.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
@@ -33,7 +31,11 @@ public class RequiredHistoryTest {
 
   @Test
   public void getRequiredHistoryConstant() {
-    assertEquals(Collections.emptyList(), RequiredHistory.getRequiredHistory(BooleanConstant.TRUE));
+    History emptyHistory = new History();
+    assertEquals(emptyHistory,
+      new History(RequiredHistory.getRequiredHistory(BooleanConstant.TRUE)));
+    assertEquals(emptyHistory,
+      new History(RequiredHistory.getRequiredHistory(BooleanConstant.FALSE)));
   }
 
   @Test
@@ -41,20 +43,15 @@ public class RequiredHistoryTest {
     LtlParser parser = new LtlParser();
     Formula formula = parser.parseLtl("X (a | (X (b & X c)))");
 
-    BitSet timeStep2 = new BitSet();
-    timeStep2.set(0);
-    BitSet timeStep1 = new BitSet();
-    timeStep1.set(0);
-    timeStep1.set(1);
+    History past = new History(new long[]{0, 1L, 3L});
 
-    assertEquals(ImmutableList.of(timeStep1, timeStep2, new BitSet()),
-      RequiredHistory.getRequiredHistory(formula));
+    assertEquals(past, new History(RequiredHistory.getRequiredHistory(formula)));
   }
 
   @Test
   public void getRequiredHistoryLiteral() {
-    Literal literal = new Literal(0);
-    assertEquals(Collections.emptyList(), RequiredHistory.getRequiredHistory(literal));
+    History emptyHistory = new History();
+    assertEquals(emptyHistory, new History(RequiredHistory.getRequiredHistory(new Literal(0))));
   }
 
   @Test
@@ -65,13 +62,14 @@ public class RequiredHistoryTest {
     BitSet set = new BitSet();
     set.set(0);
 
-    assertEquals(Collections.singletonList(set), RequiredHistory.getRequiredHistory(formula));
+    History expected = new History(new long[]{1L});
+    assertEquals(expected, new History(RequiredHistory.getRequiredHistory(formula)));
   }
 
   @Test
   public void getRequiredHistoryXOperator() {
     Formula formula = new XOperator(new Literal(0));
-    BitSet set = new BitSet();
-    assertEquals(Collections.singletonList(set), RequiredHistory.getRequiredHistory(formula));
+    History oneStepHistory = new History(new long[1]);
+    assertEquals(oneStepHistory, new History(RequiredHistory.getRequiredHistory(formula)));
   }
 }

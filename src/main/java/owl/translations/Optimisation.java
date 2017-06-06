@@ -27,7 +27,4 @@ public enum Optimisation {
 
   /* ltl2dpa */
   PARALLEL, PERMUTATION_SHARING,
-
-  /* fgx2dba */
-  DYNAMIC_HISTORY
 }

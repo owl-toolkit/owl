@@ -43,11 +43,31 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   }
 
   public boolean allMatch(Predicate<Formula> p) {
-    return p.test(this) && children.stream().allMatch(x -> x.allMatch(p));
+    return p.test(this) && allMatchChildren(p);
+  }
+
+  private boolean allMatchChildren(Predicate<Formula> p) {
+    for (Formula child : children) {
+      if (!child.allMatch(p)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   public boolean anyMatch(Predicate<Formula> p) {
-    return p.test(this) || children.stream().anyMatch(x -> x.anyMatch(p));
+    return p.test(this) || anyMatchChildren(p);
+  }
+
+  private boolean anyMatchChildren(Predicate<Formula> p) {
+    for (Formula child : children) {
+      if (child.anyMatch(p)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public <T> Stream<T> map(Function<Formula, T> mapper) {

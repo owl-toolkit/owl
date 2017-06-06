@@ -1,5 +1,8 @@
 package owl.ltl.visitors;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import javax.annotation.Nonnegative;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -12,53 +15,74 @@ import owl.ltl.XOperator;
 
 public class XDepthVisitor extends DefaultIntVisitor {
 
-  public static final XDepthVisitor INSTANCE = new XDepthVisitor();
+  private static final XDepthVisitor INSTANCE = new XDepthVisitor();
+  private static final Object2IntMap<Formula> CACHE = new Object2IntOpenHashMap<>();
 
+  @Nonnegative
   public static int getDepth(Formula formula) {
-    return formula.accept(INSTANCE);
+    if (CACHE.size() > 1024) {
+      CACHE.clear();
+    }
+
+    return CACHE.computeIfAbsent(formula, x -> x.accept(INSTANCE));
   }
 
+  @Nonnegative
   @Override
   protected int defaultAction(Formula formula) {
     throw new UnsupportedOperationException();
   }
 
+  @Nonnegative
   @Override
   public int visit(FOperator fOperator) {
     return fOperator.operand.accept(this);
   }
 
+  @Nonnegative
   @Override
   public int visit(GOperator gOperator) {
     return gOperator.operand.accept(this);
   }
 
+  @Nonnegative
   @Override
   public int visit(BooleanConstant booleanConstant) {
     return 0;
   }
 
+  @Nonnegative
   @Override
   public int visit(Conjunction conjunction) {
     return visit((PropositionalFormula) conjunction);
   }
 
+  @Nonnegative
   @Override
   public int visit(Disjunction disjunction) {
     return visit((PropositionalFormula) disjunction);
   }
 
+  @Nonnegative
   @Override
   public int visit(Literal literal) {
     return 0;
   }
 
+  @Nonnegative
   @Override
   public int visit(XOperator xOperator) {
     return xOperator.operand.accept(this) + 1;
   }
 
+  @Nonnegative
   private int visit(PropositionalFormula formula) {
-    return formula.children.stream().mapToInt(x -> x.accept(this)).max().orElse(0);
+    int max = 0;
+
+    for (Formula child : formula.children) {
+      max = Math.max(max, child.accept(this));
+    }
+
+    return max;
   }
 }

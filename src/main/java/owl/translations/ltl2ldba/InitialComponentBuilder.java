@@ -79,7 +79,7 @@ public class InitialComponentBuilder<K>
   @Override
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
     MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
-      AutomatonFactory.create(new NoneAcceptance(), factories.valuationSetFactory);
+      AutomatonFactory.createMutableAutomaton(new NoneAcceptance(), factories.valuationSetFactory);
 
     if (constructDeterministic) {
       AutomatonUtil

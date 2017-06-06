@@ -25,14 +25,16 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
+import owl.collections.ints.UnmodifiableBitSet;
 
 @Immutable
 final class EdgeGeneric<S> implements Edge<S> {
   private final BitSet acceptance;
   private final S successor;
 
-  EdgeGeneric(S successor, BitSet acceptance) {
+  EdgeGeneric(S successor, UnmodifiableBitSet acceptance) {
     assert acceptance.cardinality() > 1;
+
     this.successor = successor;
     this.acceptance = acceptance;
   }

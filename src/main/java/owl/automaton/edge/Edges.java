@@ -6,6 +6,7 @@ import java.util.BitSet;
 import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
 import javax.annotation.Nonnegative;
+import owl.collections.ints.UnmodifiableBitSet;
 
 public final class Edges {
   private Edges() {
@@ -36,8 +37,7 @@ public final class Edges {
       return new EdgeLong<>(successor, acceptance);
     }
 
-    //noinspection UseOfClone
-    return new EdgeGeneric<>(successor, (BitSet) acceptance.clone());
+    return new EdgeGeneric<>(successor, UnmodifiableBitSet.copyOf(acceptance));
   }
 
   /**
@@ -105,7 +105,7 @@ public final class Edges {
       return new EdgeLong<>(successor, acceptanceSet);
     }
 
-    return new EdgeGeneric<>(successor, acceptanceSet);
+    return new EdgeGeneric<>(successor, UnmodifiableBitSet.copyOf(acceptanceSet));
   }
 
   public static <S> Edge<S> create(S successor, IntIterator acceptance) {
@@ -119,7 +119,7 @@ public final class Edges {
   private static final class PrimitiveCompatibility implements OfInt {
     private final IntIterator delegate;
 
-    public PrimitiveCompatibility(IntIterator delegate) {
+    PrimitiveCompatibility(IntIterator delegate) {
       this.delegate = delegate;
     }
 

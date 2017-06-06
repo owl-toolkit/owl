@@ -60,26 +60,24 @@ public final class Delag extends AbstractLtlCommandLineTool {
     new Delag(args.remove("--strict"), fallback).execute(args);
   }
 
-  private HoaPrintable translateWithFallback(Formula formula,
-    EnumSet<Optimisation> optimisations) {
+  private HoaPrintable translateWithFallback(Formula formula) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    return new Builder(fallback, optimisations).apply(rewritten);
+    return new Builder(fallback).apply(rewritten);
   }
 
-  private HoaPrintable translateWithoutFallback(Formula formula,
-    EnumSet<Optimisation> optimisations) {
+  private HoaPrintable translateWithoutFallback(Formula formula) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
     return new Builder<>((x) -> {
       throw new UnsupportedOperationException("Outside of supported fragment." + rewritten);
-    }, optimisations).apply(rewritten);
+    }).apply(rewritten);
   }
 
   @Override
   protected Function<Formula, HoaPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
     if (strict) {
-      return x -> translateWithoutFallback(x, optimisations);
+      return this::translateWithoutFallback;
     } else {
-      return x -> translateWithFallback(x, optimisations);
+      return this::translateWithFallback;
     }
   }
 }

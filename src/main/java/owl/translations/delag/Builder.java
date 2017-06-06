@@ -17,42 +17,36 @@
 
 package owl.translations.delag;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.collections.Lists2;
 import owl.factories.Factories;
 import owl.factories.Registry;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.translations.Optimisation;
 
 public class Builder<T>
   implements Function<Formula, Automaton<State<T>, ? extends OmegaAcceptance>> {
 
   private final Function<Formula, Automaton<T, OmegaAcceptance>> fallback;
-  private final EnumSet<Optimisation> optimisations;
+  @Nullable
+  private LoadingCache<ProductState<T>, History> requiredHistoryCache;
 
-  public Builder(Function<Formula, Automaton<T, OmegaAcceptance>> fallback,
-    EnumSet<Optimisation> optimisations) {
+  public Builder(Function<Formula, Automaton<T, OmegaAcceptance>> fallback) {
     this.fallback = fallback;
-    this.optimisations = EnumSet.copyOf(optimisations);
   }
 
   @Override
@@ -76,49 +70,25 @@ public class Builder<T>
     BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 
-    {
-      int maxHistory = tree.getMaxRequiredHistoryLength();
-      BitSet bitSet = new BitSet();
-      ProductState<T> initialProduct = treeConverter.buildInitialState();
-      ImmutableList<BitSet> defaultHistory = Lists2.tabulate((x) -> bitSet, maxHistory + 1);
-      initialState = new State<>(initialProduct, getHistory(defaultHistory, initialProduct, tree));
-    }
+    requiredHistoryCache = CacheBuilder.newBuilder().maximumSize(1024L).build(
+      new CacheLoader<ProductState<T>, History>() {
+        @Override
+        public History load(ProductState<T> key) {
+          return History.create(tree.getRequiredHistory(key));
+        }
+      });
+
+    ProductState<T> initialProduct = treeConverter.buildInitialState();
+    initialState = new State<>(initialProduct, getHistory(null, new BitSet(), initialProduct));
 
     GenericAcceptance acceptance = new GenericAcceptance(sets, expression);
-
-    MutableAutomaton<State<T>, GenericAcceptance> automaton = AutomatonFactory
-      .create(acceptance, factories.valuationSetFactory);
-
-    AutomatonUtil.exploreDeterministic(automaton, Collections.singletonList(initialState),
-      (x, y) -> this.getSuccessor(tree, x, y));
-    automaton.setInitialState(initialState);
-    return automaton;
+    return AutomatonFactory.createStreamingAutomaton(acceptance, initialState,
+      factories.valuationSetFactory, (x, y) -> this.getSuccessor(tree, x, y));
   }
 
-  private ImmutableList<BitSet> getHistory(List<BitSet> previousHistory,
-    ProductState<T> currentState, DependencyTree<T> tree) {
-    ImmutableList.Builder<BitSet> history = new ImmutableList.Builder<>();
-
-    if (optimisations.contains(Optimisation.DYNAMIC_HISTORY)) {
-      List<BitSet> requiredHistory = tree.getRequiredHistory(currentState);
-
-      int i = 0;
-      for (BitSet historyValuation : requiredHistory) {
-
-        if (i < previousHistory.size()) {
-          historyValuation.and(previousHistory.get(i));
-        } else {
-          historyValuation.clear();
-        }
-
-        history.add(historyValuation);
-        i++;
-      }
-    } else if (!previousHistory.isEmpty()) {
-      history.addAll(previousHistory.subList(0, previousHistory.size() - 1));
-    }
-
-    return history.build();
+  private History getHistory(History past, BitSet present, ProductState<T> state) {
+    History requiredHistory = requiredHistoryCache.getUnchecked(state);
+    return History.stepHistory(past, present, requiredHistory);
   }
 
   @Nullable
@@ -131,7 +101,7 @@ public class Builder<T>
     }
 
     ProductState<T> successor = builder.build();
-    List<BitSet> history = getHistory(Lists2.cons(valuation, state.history), successor, tree);
+    History history = getHistory(state.past, valuation, successor);
     return Edges.create(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
   }
 }

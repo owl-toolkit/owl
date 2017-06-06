@@ -38,7 +38,8 @@ RPAREN     : ')';
 LCPAREN    : '{' -> mode(FREQUENCY_SPEC);
 
 // Need to be at the bottom because of precedence rules
-VARIABLE   : [a-z_][a-zA-Z_0-9]* ;
+// Include capital L for PRISM
+VARIABLE   : [a-zL_][a-zA-Z_0-9]* ;
 
 fragment
 WHITESPACE : [ \t\n\r\f]+;

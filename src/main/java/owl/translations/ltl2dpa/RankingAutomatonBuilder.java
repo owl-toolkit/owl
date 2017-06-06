@@ -216,7 +216,7 @@ final class RankingAutomatonBuilder
   @Override
   public MutableAutomaton<RankingState, ParityAcceptance> build() {
     MutableAutomaton<RankingState, ParityAcceptance> automaton = AutomatonFactory
-      .create(acceptance, factory);
+      .createMutableAutomaton(acceptance, factory);
     // TODO: add getSensitiveAlphabet Method
     AutomatonUtil.exploreDeterministic(automaton, initialStates, this::getSuccessor, sizeCounter);
     automaton.setInitialStates(initialStates);
