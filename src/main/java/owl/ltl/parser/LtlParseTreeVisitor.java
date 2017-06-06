@@ -3,6 +3,7 @@ package owl.ltl.parser;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import owl.grammar.LTLParser.AndExpressionContext;
@@ -43,6 +44,20 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   LtlParseTreeVisitor() {
     literalCache = new ArrayList<>();
     variables = new ArrayList<>();
+  }
+
+  LtlParseTreeVisitor(List<String> literals) {
+    ListIterator<String> literalIterator = literals.listIterator();
+    ImmutableList.Builder<Literal> literalBuilder = ImmutableList.builder();
+    ImmutableList.Builder<String> variableBuilder = ImmutableList.builder();
+    while (literalIterator.hasNext()) {
+      int index = literalIterator.nextIndex();
+      String name = literalIterator.next();
+      literalBuilder.add(new Literal(index));
+      variableBuilder.add(name);
+    }
+    literalCache = literalBuilder.build();
+    variables = variableBuilder.build();
   }
 
   public ImmutableList<String> variables() {
@@ -148,8 +163,8 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @SuppressWarnings("PMD.ConfusingTernary")
   public Formula visitUnaryOperation(UnaryOperationContext ctx) {
     assert ctx.getChildCount() == 2;
-    final UnaryOpContext unaryOp = ctx.unaryOp();
-    final Formula operand = visit(ctx.inner);
+    UnaryOpContext unaryOp = ctx.unaryOp();
+    Formula operand = visit(ctx.inner);
 
     if (unaryOp.NOT() != null) {
       return operand.not();
@@ -168,10 +183,10 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     }
 
     if (unaryOp.frequencyOp() != null) {
-      final FrequencyOpContext freqCtx = unaryOp.frequencyOp();
+      FrequencyOpContext freqCtx = unaryOp.frequencyOp();
       assert freqCtx.op != null && freqCtx.comp != null && freqCtx.prob != null;
-      final FrequencyG.Comparison comparison;
-      final boolean negateComparison;
+      FrequencyG.Comparison comparison;
+      boolean negateComparison;
       if (freqCtx.comp.GE() != null) {
         comparison = FrequencyG.Comparison.GEQ;
         negateComparison = false;
@@ -188,7 +203,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
         throw new ParseCancellationException("Unknown comparison");
       }
 
-      final boolean negateOperator;
+      boolean negateOperator;
       //noinspection StatementWithEmptyBody
       if (freqCtx.GLOBALLY() != null) {
         negateOperator = false;
@@ -198,13 +213,13 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
         throw new ParseCancellationException("Unknown operator");
       }
 
-      final double value;
+      double value;
       if (freqCtx.prob instanceof FractionContext) {
-        final FractionContext fraction = (FractionContext) freqCtx.prob;
-        final String numeratorString = fraction.numerator.getText();
-        final String denominatorString = fraction.denominator.getText();
-        final double numerator;
-        final double denominator;
+        FractionContext fraction = (FractionContext) freqCtx.prob;
+        String numeratorString = fraction.numerator.getText();
+        String denominatorString = fraction.denominator.getText();
+        double numerator;
+        double denominator;
         try {
           numerator = Double.parseDouble(numeratorString);
           denominator = Double.parseDouble(denominatorString);
@@ -216,22 +231,22 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
           throw new ParseCancellationException("Invalid numbers");
         }
       } else if (freqCtx.prob instanceof ProbabilityContext) {
-        final ProbabilityContext probability = (ProbabilityContext) freqCtx.prob;
-        final String valueString = probability.value.getText();
+        ProbabilityContext probability = (ProbabilityContext) freqCtx.prob;
+        String valueString = probability.value.getText();
         value = Double.parseDouble(valueString);
       } else {
         throw new ParseCancellationException("Unknown frequency spec");
       }
 
-      final Limes limes;
+      Limes limes;
       if (freqCtx.SUP() != null) {
         limes = Limes.SUP;
       } else {
         limes = Limes.INF;
       }
 
-      final Formula finalFormula;
-      final double finalValue;
+      Formula finalFormula;
+      double finalValue;
       if (negateComparison == negateOperator) {
         finalFormula = operand;
         finalValue = value;
@@ -250,10 +265,14 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitVariable(VariableContext ctx) {
     assert ctx.getChildCount() == 1;
     assert variables.size() == literalCache.size();
-    final String name = ctx.getText();
+    String name = ctx.getText();
     int index = variables.indexOf(name);
 
     if (index == -1) {
+      if (variables instanceof ImmutableList) {
+        throw new IllegalStateException(
+          String.format("Encountered unknown variable %s with fixed set %s", name, variables));
+      }
       int newIndex = variables.size();
       Literal literal = new Literal(newIndex);
       variables.add(name);

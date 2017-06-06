@@ -47,33 +47,31 @@ public class FormulaTest {
   public static final BitSet ZERO = new BitSet();
 
   static {
-    LtlParser parser = new LtlParser();
-
     // TODO: Provide central Formula Database.
     FORMULAS = ImmutableList.of(
-      parser.parseLtl("true"),
-      parser.parseLtl("false"),
-      parser.parseLtl("a"),
+      LtlParser.formula("true"),
+      LtlParser.formula("false"),
+      LtlParser.formula("a"),
 
-      parser.parseLtl("! a"),
-      parser.parseLtl("a & b"),
-      parser.parseLtl("a | b"),
-      parser.parseLtl("a -> b"),
-      parser.parseLtl("a xor b"),
+      LtlParser.formula("! a"),
+      LtlParser.formula("a & b"),
+      LtlParser.formula("a | b"),
+      LtlParser.formula("a -> b"),
+      LtlParser.formula("a xor b"),
 
-      parser.parseLtl("F a"),
-      parser.parseLtl("G a"),
-      parser.parseLtl("X a"),
+      LtlParser.formula("F a"),
+      LtlParser.formula("G a"),
+      LtlParser.formula("X a"),
 
-      parser.parseLtl("a U b"),
-      parser.parseLtl("a R b"),
-      parser.parseLtl("a W b"),
-      parser.parseLtl("a M b"),
+      LtlParser.formula("a U b"),
+      LtlParser.formula("a R b"),
+      LtlParser.formula("a W b"),
+      LtlParser.formula("a M b"),
 
-      parser.parseLtl("F ((a W b) & c)"),
-      parser.parseLtl("F ((a R b) & c)"),
-      parser.parseLtl("G ((a M b) | c)"),
-      parser.parseLtl("G ((a U b) | c)"));
+      LtlParser.formula("F ((a W b) & c)"),
+      LtlParser.formula("F ((a R b) & c)"),
+      LtlParser.formula("G ((a M b) | c)"),
+      LtlParser.formula("G ((a U b) | c)"));
   }
 
   static {

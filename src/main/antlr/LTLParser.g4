@@ -26,7 +26,7 @@ andExpression
   ;
 
 binaryExpression
-  : left=unaryExpression op=binaryOp right=unaryExpression # binaryOperation
+  : left=unaryExpression op=binaryOp right=binaryExpression # binaryOperation
   | unaryExpression # binaryUnary
   ;
 

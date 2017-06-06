@@ -23,13 +23,13 @@ import owl.ltl.parser.LtlParser;
 
 public class ExternalTranslatorTest {
 
-  private static final String[] FORMULA = new String[] {
+  private static final String[] FORMULA = {
     "(G F a) | (b U c)",
     "F(X((b) W (a)))",
     "G (F (a & X F (b & X F c)))"
   };
 
-  private static final String[] TOOL = new String[] {
+  private static final String[] TOOL = {
     "ltl2tgba -H",
     "ltl2tgba -H --deterministic --generic",
     "ltl2tgba -H --deterministic --generic"
@@ -38,8 +38,7 @@ public class ExternalTranslatorTest {
   @Test
   public void testApply() {
     for (int i = 0; i < FORMULA.length; i++) {
-      LtlParser parser = new LtlParser();
-      Formula formula = parser.parseLtl(FORMULA[i]);
+      Formula formula = LtlParser.formula(FORMULA[i]);
       ExternalTranslator tool = new ExternalTranslator(TOOL[i]);
       tool.apply(formula);
     }
