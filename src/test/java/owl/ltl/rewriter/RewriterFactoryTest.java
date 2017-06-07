@@ -19,14 +19,17 @@ package owl.ltl.rewriter;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.junit.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class RewriterFactoryTest {
+  private static final List<String> literals = ImmutableList.of("a", "b");
 
-  private static final String[] INPUT = new String[] {
+  private static final String[] INPUT = {
     "F (a U b)",
     "F G X a",
     "F G F b",
@@ -36,7 +39,7 @@ public class RewriterFactoryTest {
     // TODO: This is part of the new simp: "(a & b) U (c | d)"
   };
 
-  private static final String[] OUTPUT = new String[] {
+  private static final String[] OUTPUT = {
     "F b",
     "F G a",
     "G F b",
@@ -49,18 +52,16 @@ public class RewriterFactoryTest {
   @Test
   public void testModal() {
     for (int i = 0; i < INPUT.length; i++) {
-      LtlParser parser = new LtlParser();
-      Formula input = parser.parseLtl(INPUT[i]);
-      Formula output = parser.parseLtl(OUTPUT[i]);
+      Formula input = LtlParser.create(INPUT[i]).parse(literals).getFormula();
+      Formula output = LtlParser.create(OUTPUT[i]).parse(literals).getFormula();
       assertEquals(output, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, input));
     }
   }
 
   @Test
   public void testPullupX() {
-    LtlParser parser = new LtlParser();
-    Formula f1 = parser.parseLtl(" G (F (X b))");
-    Formula f2 = parser.parseLtl("X(G(F(b)))");
+    Formula f1 = LtlParser.formula("G (F (X b))");
+    Formula f2 = LtlParser.formula("X(G(F(b)))");
     assertEquals(RewriterFactory.apply(RewriterEnum.PULLUP_X, f1), f2);
   }
 }

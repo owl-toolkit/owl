@@ -30,6 +30,7 @@ import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
+import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.tlsf.Tlsf;
 
@@ -47,7 +48,9 @@ public class ParserTest {
     new FrequencyG(new FOperator(new Literal(0)), 0.5, FrequencyG.Comparison.GEQ,
       FrequencyG.Limes.INF),
     new ROperator(new Literal(0), new Literal(1)),
-    new UOperator(new Literal(0, true), new Literal(1, true))
+    new UOperator(new Literal(0, true), new Literal(1, true)),
+    new WOperator(new Literal(0), new UOperator(new Literal(1),
+      new ROperator(new Literal(2), new Literal(0))))
   };
   private static final String[] INPUT = {
     "!a",
@@ -59,7 +62,8 @@ public class ParserTest {
     "G {sup < 0.5} F a",
     "G { >= 0.5} F a",
     "a R b",
-    "!(a R b)"
+    "!(a R b)",
+    "a W b U c R a"
   };
   private static final String TLSF1 = "INFO {\n"
     + "  TITLE:       \"LTL -> DBA  -  Example 12\"\n"

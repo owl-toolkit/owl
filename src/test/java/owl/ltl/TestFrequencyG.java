@@ -28,9 +28,8 @@ public class TestFrequencyG {
   public void testNegation() {
     String test = "G { >= 0.4} a";
     String testNegated = "G {sup > 0.6} (!a)";
-    LtlParser parser = new LtlParser();
-    Formula formula = parser.parseLtl(test);
-    Formula notF = parser.parseLtl(testNegated);
+    Formula formula = LtlParser.formula(test);
+    Formula notF = LtlParser.formula(testNegated);
     assertEquals(formula.not(), notF);
   }
 

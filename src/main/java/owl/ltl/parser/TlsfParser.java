@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.function.Function;
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -32,26 +33,26 @@ public final class TlsfParser {
   }
 
   public static Tlsf parse(String input) {
-    return parse(new ANTLRInputStream(input));
+    return parse(CharStreams.fromString(input));
   }
 
   @SuppressWarnings("PMD.ConfusingTernary")
-  private static Tlsf parse(ANTLRInputStream stream) {
-    final TLSFLexer lexer = new TLSFLexer(stream);
+  private static Tlsf parse(CharStream stream) {
+    TLSFLexer lexer = new TLSFLexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
-    final CommonTokenStream tokens = new CommonTokenStream(lexer);
-    final TLSFParser parser = new TLSFParser(tokens);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    TLSFParser parser = new TLSFParser(tokens);
     parser.setErrorHandler(new BailErrorStrategy());
 
-    final TlsfContext tree;
+    TlsfContext tree;
     tree = parser.tlsf();
 
-    final Builder builder = ImmutableTlsf.builder();
+    Builder builder = ImmutableTlsf.builder();
 
     // Info
     builder.title(tree.title.getText());
     builder.description(tree.description.getText());
-    final SemanticsContext semantics = tree.semantics();
+    SemanticsContext semantics = tree.semantics();
     if (semantics.MEALY() != null) {
       builder.semantics(Semantics.MEALY);
     } else if (semantics.MOORE() != null) {
@@ -63,7 +64,7 @@ public final class TlsfParser {
     } else {
       throw new ParseCancellationException("Unknown semantics");
     }
-    final TargetContext target = tree.target();
+    TargetContext target = tree.target();
     if (target.MEALY() != null) {
       builder.target(Semantics.MEALY);
     } else if (target.MOORE() != null) {
@@ -73,17 +74,17 @@ public final class TlsfParser {
     }
 
     // Input / output
-    final BitSet inputs = new BitSet();
-    final BitSet outputs = new BitSet();
-    final BiMap<String, Integer> variables = HashBiMap.create();
-    final Function<String, Integer> valueFunction = key -> variables.size();
-    for (final TerminalNode variableNode : tree.input().VAR_ID()) {
-      final String variableName = variableNode.getText();
+    BitSet inputs = new BitSet();
+    BitSet outputs = new BitSet();
+    BiMap<String, Integer> variables = HashBiMap.create();
+    Function<String, Integer> valueFunction = key -> variables.size();
+    for (TerminalNode variableNode : tree.input().VAR_ID()) {
+      String variableName = variableNode.getText();
       int index = variables.computeIfAbsent(variableName, valueFunction);
       inputs.set(index);
     }
-    for (final TerminalNode variableNode : tree.output().VAR_ID()) {
-      final String variableName = variableNode.getText();
+    for (TerminalNode variableNode : tree.output().VAR_ID()) {
+      String variableName = variableNode.getText();
       int index = variables.computeIfAbsent(variableName, valueFunction);
       outputs.set(index);
     }
@@ -98,14 +99,14 @@ public final class TlsfParser {
     Collection<Formula> assert_ = new ArrayList<>();
     Collection<Formula> assume = new ArrayList<>();
     Collection<Formula> guarantee = new ArrayList<>();
-    for (final SpecificationContext specificationContext : tree.specification()) {
-      final String formulaString = specificationContext.formula.getText();
+    for (SpecificationContext specificationContext : tree.specification()) {
+      String formulaString = specificationContext.formula.getText();
       assert !formulaString.isEmpty();
       // Strip trailing ;
-      final String sanitizedFormula = formulaString
+      String sanitizedFormula = formulaString
         .substring(0, formulaString.length() - 1)
         .trim();
-      final Formula formula = LtlParser.parse(sanitizedFormula).getFormula();
+      Formula formula = LtlParser.parse(sanitizedFormula).getFormula();
 
       if (specificationContext.INITIALLY() != null) {
         initial.add(formula);
@@ -152,6 +153,6 @@ public final class TlsfParser {
   }
 
   public static Tlsf parse(InputStream input) throws IOException {
-    return parse(new ANTLRInputStream(input));
+    return parse(CharStreams.fromStream(input));
   }
 }

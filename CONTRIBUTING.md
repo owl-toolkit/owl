@@ -1,25 +1,25 @@
-# Development Setup
+# Setup
 
-A working Intelji IDEA development enviroment can be optained by typing:
+A working Intelji IDEA development environment can be obtained by typing:
 
 `./gradlew idea`
 
-And then importing the project to IDEA. 
+and then importing the generated project (`owl.ipr`) to IDEA.
 
-Independenlty the code formatting rules can be imported from the `config` folder. 
+If you instead want to work with the IDEA gradle plugin, import the project as usual ("Open Project" > `build.gradle`) and perform the following configuration:
+* "Annotation Processors":
+  * Enable annotation processing
+  * Store generated sources relative to module content root
+  * Production sources directory: `build/generated-src/annot/main`
+  * Test sources directory: `build/generated-src/annot/test`
+* "Code Style": Import from `config/idea-codestyle.xml`
+* "Inspections": Import from `config/idea-inspection-profile.xml`
 
 # Checks
 
-Before submitting code please run locally `./gradlew check` to run all jUnit tests and to check for the following errors.
+Before submitting code please executed `./gradlew check` locally to run all code checks.
+Apart from jUnit tests, static code analysis is performed by [PMD](https://pmd.github.io/) and [FindBugs](http://findbugs.sourceforge.net/) (rules are located in the `config` folder).
+Further, [checkstyle](http://checkstyle.sourceforge.net/) is used to check compliance with the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html). 
+Passing all these tests is mandatory for submitted code.
 
-## PMD
 
-https://pmd.github.io/
-
-## Findbugs
-
-http://findbugs.sourceforge.net/
-
-## Checkstyle 
-
-The [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) is mandatory for submitting code and will be checked by checkstyle.

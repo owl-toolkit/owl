@@ -51,7 +51,7 @@ dependencies {
 
     compile 'com.google.guava:guava:22.0'
     compile 'it.unimi.dsi:fastutil:7.2.1'
-    compile 'org.antlr:antlr4-runtime:4.6'
+    compile 'org.antlr:antlr4-runtime:4.7'
     compile files('lib/jhoafparser-1.1.1.jar')
 
     testCompile 'junit:junit:4+'
@@ -59,7 +59,7 @@ dependencies {
     testCompile 'org.hamcrest:hamcrest-library:1.3'
     testCompileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
-    antlr ('org.antlr:antlr4:4.6') // Introduces unused runtime dependencies
+    antlr 'org.antlr:antlr4:4.7' // Introduces unused runtime dependencies
 }
 
 configurations {
@@ -90,7 +90,6 @@ idea {
                 def projectXml = xmlProvider.asNode()
                 customizeCompiler(projectXml)
                 customizeCodeStyle(projectXml, file("config/idea-codestyle.xml").getText("UTF-8"))
-                // customizeVCS(projectXml)
                 customizeEncoding(projectXml)
             }
         }
@@ -99,11 +98,18 @@ idea {
     module {
         iml {
             // Add annotation processor output as source set (similar to what antlr is doing)
-            withXml { provider ->
-                def module = provider.asNode()
-                customizeAnnotationProcessingSourceRoot(module)
-            }
+            // withXml { xmlProvider -> customizeAnnotationProcessingSourceRoot(xmlProvider.asNode()) }
         }
+
+        def annotSrcFolder = file("build/generated-src/annot/main")
+        def annotTestFolder = file("build/generated-src/annot/test")
+
+        sourceDirs += annotSrcFolder
+        generatedSourceDirs += annotSrcFolder
+        sourceDirs += annotTestFolder
+        generatedSourceDirs += annotTestFolder
+
+        name = 'owl'
 
         downloadJavadoc = true
         downloadSources = true
@@ -146,8 +152,8 @@ findbugs {
 
 tasks.withType(FindBugs) {
     reports {
-        xml.enabled false
-        html.enabled true
+        xml.enabled = false
+        html.enabled = true
     }
 }
 
@@ -285,11 +291,6 @@ static customizeCodeStyle(project, codeStyle) {
     }
 }
 
-static customizeVCS(project) {
-    project.appendNode('component', [name: 'VcsDirectoryMappings'])
-        .appendNode('mapping', [directory: '', vcs: 'Git'])
-}
-
 static customizeEncoding(project) {
     def encoding = findComponent(project, 'Encoding')
 
@@ -308,17 +309,15 @@ static customizeEncoding(project) {
 static customizeAnnotationProcessingSourceRoot(module) {
     def moduleRootManager = findComponent(module, 'NewModuleRootManager')
 
-    moduleRootManager.appendNode('content', [
-        url: 'file://$MODULE_DIR$/../../build/generated-src/annot/main'
-    ]).appendNode('sourceFolder', [
-        url: 'file://$MODULE_DIR$/../../build/generated-src/annot/main',
-        isTestSource: false
+    def contentRoot = moduleRootManager.content.find { it.@url == 'file://$MODULE_DIR$/' }
+    contentRoot.appendNode('sourceFolder', [
+        url: 'file://$MODULE_DIR$/build/generated-src/annot/main',
+        isTestSource: false,
+        generated: true
     ])
-
-    moduleRootManager.appendNode('content', [
-        url: 'file://$MODULE_DIR$/../../build/generated-src/annot/test'
-    ]).appendNode('sourceFolder', [
-        url: 'file://$MODULE_DIR$/../../build/generated-src/annot/test',
-        isTestSource: true
+    contentRoot.appendNode('sourceFolder', [
+        url: 'file://$MODULE_DIR$/build/generated-src/annot/test',
+        isTestSource: true,
+        generated: true
     ])
 }

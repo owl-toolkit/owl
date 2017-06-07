@@ -12,7 +12,7 @@ FALSE      : 'ff' | 'false' | '0';
 NOT        : '!' | 'NOT';
 
 // Logical Binary
-IMP        : '->' | '=>' | 'IMP';
+IMP        : '->' | '-->' | '=>' | '==>' | 'IMP';
 BIIMP      : '<->' | '<=>' | 'BIIMP';
 XOR        : '^' | 'XOR' | 'xor';
 
