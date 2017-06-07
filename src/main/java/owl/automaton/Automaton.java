@@ -24,13 +24,11 @@ import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -78,8 +76,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   /**
    * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
-   * Throws an {@link IllegalArgumentException} if there is a non-deterministic choice or no
-   * successor in this state for the specified valuation.
+   * Throws an {@link IllegalArgumentException} if there is a non-deterministic choice in this state
+   * for the specified valuation.
    *
    * @param state
    *     The starting state of the transition.
@@ -124,12 +122,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return Collections2.transform(Collections2.filter(getLabelledEdges(state),
       labelledEdge -> labelledEdge.valuations.contains(valuation)),
       LabelledEdge::getEdge);
-  }
-
-  default Set<Edge<S>> getEdges(Set<S> states, BitSet valuation) {
-    Set<Edge<S>> edges = new HashSet<>();
-    states.forEach(x -> edges.addAll(getEdges(x, valuation)));
-    return edges;
   }
 
   ValuationSetFactory getFactory();
@@ -219,16 +211,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {
-    return StreamSupport.stream(getLabelledEdges(state).spliterator(), false)
-      .filter(labelledEdge -> labelledEdge.valuations.contains(valuation))
-      .map(labelledEdge -> labelledEdge.edge.getSuccessor())
-      .collect(Collectors.toSet());
-  }
-
-  default Set<S> getSuccessors(Set<S> states, BitSet valuation) {
-    Set<S> successors = new HashSet<>();
-    states.forEach(x -> successors.addAll(getSuccessors(x, valuation)));
-    return successors;
+    return getEdges(state, valuation).stream().map(Edge::getSuccessor).collect(Collectors.toSet());
   }
 
   List<String> getVariables();

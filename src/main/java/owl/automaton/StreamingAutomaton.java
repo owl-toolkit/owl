@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -98,6 +99,12 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   @Override
   public A getAcceptance() {
     return acceptance;
+  }
+
+  @Override
+  public Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+    return edge != null ? Collections.singleton(edge) : Collections.emptySet();
   }
 
   @Override

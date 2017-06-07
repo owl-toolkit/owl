@@ -82,17 +82,19 @@ final class AcceptingComponentBuilder<S>
 
   @Nullable
   private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
-    Set<S> m1 = nba.getSuccessors(ldbaState.mx, valuation);
+    Set<Edge<S>> outEdgesM = ldbaState.mx.stream().flatMap(x -> nba.getEdges(x, valuation).stream())
+      .collect(Collectors.toSet());
 
-    if (m1.isEmpty()) {
+    if (outEdgesM.isEmpty()) {
       return null;
     }
 
-    Set<Edge<S>> outEdgesM = nba.getEdges(ldbaState.mx, valuation);
-    Set<Edge<S>> outEdgesN = nba.getEdges(ldbaState.nx, valuation);
-    Set<Edge<S>> intersection =
-        outEdgesM.stream().filter(x -> finEdges.get((ldbaState.ix + 1) % max).contains(x))
-            .collect(Collectors.toSet());
+    Set<Edge<S>> outEdgesN = ldbaState.nx.stream().flatMap(x -> nba.getEdges(x, valuation).stream())
+      .collect(Collectors.toSet());
+
+    Set<Edge<S>> intersection = outEdgesM.stream()
+      .filter(x -> finEdges.get((ldbaState.ix + 1) % max).contains(x)).collect(Collectors.toSet());
+
     outEdgesN.addAll(intersection);
 
     Set<S> n1;
@@ -106,7 +108,8 @@ final class AcceptingComponentBuilder<S>
       i1 = ldbaState.ix;
     }
 
-    BreakpointState<S> successor = new BreakpointState<>(i1, m1, n1);
+    BreakpointState<S> successor = new BreakpointState<>(i1, outEdgesM.stream().map(
+      Edge::getSuccessor).collect(Collectors.toSet()), n1);
 
     if (i1 == 0 && outEdgesM.equals(outEdgesN)) {
       return Edges.create(successor, 0);
