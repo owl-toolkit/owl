@@ -40,8 +40,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
   public GeneralizedAcceptingComponentBuilder(Factories factories,
     EnumSet<Optimisation> optimisations) {
-    super(optimisations, factories,
-      new FGObligationsEvaluator(factories.equivalenceClassFactory));
+    super(optimisations, factories, new FGObligationsEvaluator(factories.equivalenceClassFactory));
     acceptanceSets = 1;
   }
 
