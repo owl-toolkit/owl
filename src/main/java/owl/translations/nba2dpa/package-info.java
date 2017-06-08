@@ -15,16 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations;
+@EverythingIsNonnullByDefault
+package owl.translations.nba2dpa;
 
-public enum Optimisation {
-  /* LDBA Constructions */
-  SCC_ANALYSIS, REMOVE_EPSILON_TRANSITIONS,
-
-  /* ltl2ldba */
-  EAGER_UNFOLD, REMOVE_REDUNDANT_OBLIGATIONS, FORCE_JUMPS, MINIMIZE_JUMPS,
-  OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS, DETERMINISTIC_INITIAL_COMPONENT,
-
-  /* ltl2dpa */
-  PARALLEL, PERMUTATION_SHARING
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

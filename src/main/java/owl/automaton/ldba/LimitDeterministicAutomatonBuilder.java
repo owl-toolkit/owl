@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -57,15 +56,13 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   private final Predicate<S> isProtected;
   private final Function<S, Iterable<KeyT>> epsilonJumpGenerator;
   private final EnumSet<Optimisation> optimisations;
-  private final Function<S, Multimap<ValuationSet, KeyT>> valuationSetJumpGenerator;
 
   private LimitDeterministicAutomatonBuilder(
     ExploreBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder,
     ExploreBuilder<KeyT, T, B> acceptingComponentBuilder,
     Function<S, Iterable<KeyT>> epsilonJumpGenerator,
     Function<T, C> annot,
-    EnumSet<Optimisation> optimisations, Predicate<S> isProtected,
-    Function<S, Multimap<ValuationSet, KeyT>> valuationSetJumpGenerator) {
+    EnumSet<Optimisation> optimisations, Predicate<S> isProtected) {
     this.initialComponentBuilder = initialComponentBuilder;
     this.acceptingComponentBuilder = acceptingComponentBuilder;
     this.optimisations = EnumSet.copyOf(optimisations);
@@ -74,7 +71,6 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     components = new HashSet<>();
     getComponent = annot;
     this.isProtected = isProtected;
-    this.valuationSetJumpGenerator = valuationSetJumpGenerator;
   }
 
   public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
@@ -84,7 +80,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Function<T, X3> annot,
     EnumSet<Optimisation> optimisations) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-      acceptingComponentBuilder, jumpGenerator, annot, optimisations, x -> true, x -> null);
+    acceptingComponentBuilder, jumpGenerator, annot, optimisations, x -> true);
   }
 
   public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
@@ -96,21 +92,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     EnumSet<Optimisation> optimisations,
     Predicate<S> isProtected) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-      acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected, x -> null);
-  }
-
-  public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
-  LimitDeterministicAutomatonBuilder<X, S, X2, T, Acc, X3> create(
-    ExploreBuilder<X, S, NoneAcceptance> initialComponentBuilder,
-    ExploreBuilder<X2, T, Acc> acceptingComponentBuilder,
-    Function<S, Iterable<X2>> jumpGenerator,
-    Function<T, X3> annot,
-    EnumSet<Optimisation> optimisations,
-    Predicate<S> isProtected,
-    Function<S, Multimap<ValuationSet, X2>> valuationSetJumpGenerator) {
-    return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-      acceptingComponentBuilder, jumpGenerator, annot,
-      optimisations, isProtected, valuationSetJumpGenerator);
+    acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected);
   }
 
   @Nullable
@@ -135,7 +117,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     MutableAutomaton<S, NoneAcceptance> initialComponent = initialComponentBuilder.build();
     SetMultimap<S, T> epsilonJumps = MultimapBuilder.hashKeys().hashSetValues().build();
     Table<S, ValuationSet, Set<T>> valuationSetJumps = HashBasedTable.create();
-    generateJumps(initialComponent, epsilonJumps, valuationSetJumps);
+    generateJumps(initialComponent, epsilonJumps);
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
     acceptingComponent.setInitialStates(Collections.emptySet());
 
@@ -215,7 +197,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   }
 
   private void generateJumps(Automaton<S, NoneAcceptance> initialComponent,
-    Multimap<S, T> epsilonJumps, Table<S, ValuationSet, Set<T>> valuationSetJumps) {
+    Multimap<S, T> epsilonJumps) {
     // Decompose into SCCs
     List<Set<S>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS)
                         ? SccAnalyser.computeSccs(initialComponent)
@@ -247,32 +229,6 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
           if (target != null) {
             components.add(getComponent.apply(target));
             epsilonJumps.put(state, target);
-          }
-        }
-      }
-
-      for (S state : scc) {
-        Multimap<ValuationSet, KeyT> jumps = valuationSetJumpGenerator.apply(state);
-
-        if (jumps == null) {
-          continue;
-        }
-
-        for (Map.Entry<ValuationSet, KeyT> entry : jumps.entries()) {
-          T target = acceptingComponentBuilder.add(entry.getValue());
-
-          BiFunction<ValuationSet, Set<T>, Set<T>> updater = (key, oldSet) -> {
-            if (oldSet == null) {
-              return Sets.newHashSet(target);
-            }
-
-            oldSet.add(target);
-            return oldSet;
-          };
-
-          if (target != null) {
-            components.add(getComponent.apply(target));
-            valuationSetJumps.row(state).compute(entry.getKey(), updater);
           }
         }
       }

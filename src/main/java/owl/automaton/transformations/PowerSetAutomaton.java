@@ -67,7 +67,7 @@ public class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {
 
     for (BitSet valuation : BitSets.powerSet(getFactory().getSize())) {
       edges.add(new LabelledEdge<>(Edges.create(getSuccessor(state, valuation)),
-        getFactory().createValuationSet(valuation)));
+          getFactory().createValuationSet(valuation)));
     }
 
     return edges;

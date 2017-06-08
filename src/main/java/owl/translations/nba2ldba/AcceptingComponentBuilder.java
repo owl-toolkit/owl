@@ -31,6 +31,7 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 
@@ -38,11 +39,11 @@ final class AcceptingComponentBuilder<S>
   implements ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> {
 
   private final List<BreakpointState<S>> initialStates;
-  private final Automaton<S, BuchiAcceptance> nba;
+  private final Automaton<S, GeneralizedBuchiAcceptance> nba;
   private final List<Set<Edge<S>>> finEdges;
   private final int max;
 
-  private AcceptingComponentBuilder(Automaton<S, BuchiAcceptance> nba) {
+  private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     this.nba = nba;
     initialStates = new ArrayList<>();
     max = Math.max(nba.getAcceptance().getAcceptanceSets(), 1);
@@ -51,6 +52,7 @@ final class AcceptingComponentBuilder<S>
     for (int i = 0; i < max; i++) {
       finEdges.add(new HashSet<>());
     }
+
     for (S state : nba.getStates()) {
       for (Edge<S> edge : nba.getEdges(state)) {
         OfInt it = edge.acceptanceSetIterator();
@@ -58,18 +60,18 @@ final class AcceptingComponentBuilder<S>
           finEdges.get(x).add(edge); });
       }
     }
+
     assert finEdges.get(0) != null;
   }
 
-  static <S> AcceptingComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
+  static <S> AcceptingComponentBuilder<S> create(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     return new AcceptingComponentBuilder<>(nba);
   }
 
   @Override
   public BreakpointState<S> add(S stateKey) {
-    Set<S> m1 = ImmutableSet.of(stateKey);
-    Set<S> n1 = ImmutableSet.of();
-    BreakpointState<S> state = new BreakpointState<>(1, m1, n1);
+    BreakpointState<S> state = new BreakpointState<>(0, ImmutableSet.of(stateKey),
+      ImmutableSet.of());
     initialStates.add(state);
     return state;
   }
@@ -93,7 +95,7 @@ final class AcceptingComponentBuilder<S>
       .collect(Collectors.toSet());
 
     Set<Edge<S>> intersection = outEdgesM.stream()
-      .filter(x -> finEdges.get((ldbaState.ix + 1) % max).contains(x)).collect(Collectors.toSet());
+      .filter(x -> finEdges.get(ldbaState.ix % max).contains(x)).collect(Collectors.toSet());
 
     outEdgesN.addAll(intersection);
 
@@ -102,7 +104,9 @@ final class AcceptingComponentBuilder<S>
 
     if (outEdgesM.equals(outEdgesN)) {
       i1 = (ldbaState.ix + 1) % max;
-      n1 = intersection.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
+      Set<Edge<S>> intersection2 = outEdgesM.stream()
+          .filter(x -> finEdges.get(i1).contains(x)).collect(Collectors.toSet());
+      n1 = intersection2.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
     } else {
       n1 = outEdgesN.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
       i1 = ldbaState.ix;
@@ -117,5 +121,4 @@ final class AcceptingComponentBuilder<S>
 
     return Edges.create(successor);
   }
-
 }

@@ -27,8 +27,8 @@ public class BreakpointState<S> {
 
   @Nonnegative
   final int ix;
-  final Set<S> mx;
-  final Set<S> nx;
+  final ImmutableSet<S> mx;
+  final ImmutableSet<S> nx;
 
   BreakpointState(@Nonnegative int i, Set<S> m, Set<S> n) {
     this.ix = i;
@@ -36,10 +36,12 @@ public class BreakpointState<S> {
     this.nx = ImmutableSet.copyOf(n);
   }
 
+  @Override
   public String toString() {
     return "(" + ix + ", " + this.mx + ", " + this.nx + ")";
   }
 
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -49,13 +51,20 @@ public class BreakpointState<S> {
       return false;
     }
 
-    BreakpointState<?> state = (BreakpointState<?>) o;
-    return ix == state.ix && Objects.equals(mx, state.mx)
-        && Objects.equals(nx, state.nx);
+    final BreakpointState<?> that = (BreakpointState<?>) o;
+    return ix == that.ix
+        && Objects.equals(mx, that.mx)
+        && Objects.equals(nx, that.nx);
   }
 
   @Override
   public int hashCode() {
-    return 31 * mx.hashCode() + nx.hashCode() + ix;
+    int result = ix;
+
+    for (Object element : new Object[] {mx, nx}) {
+      result = 31 * result + element.hashCode();
+    }
+
+    return result;
   }
 }

@@ -35,7 +35,7 @@ public class LTL2LDBARegressionTest {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     LtlParseResult parseResult = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-      GObligations> automaton = LTL2LDBAFunction
+    GObligations> automaton = LTL2LDBAFunction
       .createDegeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
     automaton.setVariables(parseResult.getVariableMapping());
     String hoaString = automaton.toString();
