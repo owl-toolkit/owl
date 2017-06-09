@@ -22,7 +22,7 @@ build:
 
 .ltlcross: &ltlcross_template
   script:
-    - scripts/dist.sh
+    - ./gradlew --no-daemon buildBin
     - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/tests.py $TEST_NAME
   artifacts:
     paths:

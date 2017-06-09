@@ -5,9 +5,8 @@ IFS=$'\n\t'
 
 echo "Running test with args " $@
 
-SCRIPT_FOLDER="$(dirname $(realpath "$0"))"
-BASE_FOLDER="$(dirname "$SCRIPT_FOLDER")"
-RESULTS_FOLDER="$BASE_FOLDER/build/results"
+source "$(dirname $0)/vars.sh"
+RESULTS_FOLDER="$PROJECT_FOLDER/build/results"
 EVALUATION_SCRIPT="$SCRIPT_FOLDER/ltlcross-eval.py"
 TIMEOUT_SEC="300"
 ANY_ERROR=0
