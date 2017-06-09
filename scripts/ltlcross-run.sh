@@ -35,6 +35,12 @@ declare -a CSV_FILES
 
 mkdir -p "$RESULTS_FOLDER"
 
+NUM_DATASETS=${#}
+if [ ${NUM_DATASETS} -eq 0 ]; then
+  echo "No datasets given"
+  exit 1
+fi
+
 while [ ${#} -gt 0 ]; do
   ADDITIONAL_ARGS=""
 
@@ -227,10 +233,12 @@ while [ ${#} -gt 0 ]; do
     done
   fi
 
-  echo ""
-  echo "Stats for dataset $DATASET_NAME"
-  python3 "$EVALUATION_SCRIPT" "$CSV_FILE" | tee "$RESULTS_FOLDER/stats-$DATASET_NAME.txt"
-  echo ""
+  if [ ${NUM_DATASETS} -gt 1 ]; then
+    echo ""
+    echo "Stats for dataset $DATASET_NAME"
+    python3 "$EVALUATION_SCRIPT" "$CSV_FILE" | tee "$RESULTS_FOLDER/stats-$DATASET_NAME.txt"
+    echo ""
+  fi
 
   CSV_FILES+=( "$CSV_FILE" )
 
@@ -240,7 +248,7 @@ while [ ${#} -gt 0 ]; do
   fi
 done
 
-echo "Overall stats"
+[ ${NUM_DATASETS} -eq 1 ] || echo "Overall stats"
 python3 "$EVALUATION_SCRIPT" "${CSV_FILES[@]}" | tee "$RESULTS_FOLDER/stats.txt"
 
 # Propagate the error
