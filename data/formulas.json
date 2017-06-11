@@ -1,0 +1,21 @@
+{
+    "base": {
+        "type": "file",
+        "path": "data/formulas/base.ltl"
+    },
+    "regressions": {
+        "type": "file",
+        "path": "data/formulas/regressions.ltl"
+    },
+    "fgx": {
+        "type": "file",
+        "path": "data/formulas/fgx.ltl"
+    },
+    "check": {
+        "type": "file",
+        "path": "data/formulas/check.ltl"
+    },
+    "random": {
+        "type": "random"
+    }
+}

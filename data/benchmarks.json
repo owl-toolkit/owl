@@ -1,0 +1,33 @@
+{
+    "dataset": {
+        "full": [
+            "base",
+            "regressions",
+            "fgx",
+            "check"
+        ],
+        "small": [
+            "base",
+            "regressions"
+        ]
+    },
+    "defaults": {
+        "data": "full",
+        "repeat": 3,
+        "update": true
+    },
+    "benchmark": {
+        "ltl2ldba": "ltl2ldba",
+        "ltl2ldba-genb": "ltl2ldba#gen-buchi",
+        "ltl2ldba-nondet": "ltl2ldba#nondet-init",
+        "delag": "delag",
+        "ltl2dpa": "ltl2dpa",
+        "ltl2dpa-parallel": "ltl2dpa#parallel",
+        "ltl2da": "ltl2da",
+        "ltl2da-parallel": "ltl2da#parallel",
+        "ltl2tgba": {
+            "tool": "ltl2tgba",
+            "update": false
+        }
+    }
+}

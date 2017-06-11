@@ -6,7 +6,10 @@
                 "buchi"
             ],
             "exclusive-flags": [
-                ["buchi", "gen-buchi"]
+                [
+                    "buchi",
+                    "gen-buchi"
+                ]
             ],
             "flags": {
                 "gen-buchi": "--generalised-Buchi",
@@ -34,9 +37,17 @@
                 "strict": "--strict",
                 "fallback": "--fallback='ltl2tgba -H --deterministic --generic'"
             }
+        },
+        "ltl2tgba": {
+            "executable": "ltl2tgba",
+            "defaults": [
+                "hoaf"
+            ],
+            "flags": {
+                "hoaf": "--hoaf=1.1"
+            }
         }
     },
     "aliases": {
-
     }
 }

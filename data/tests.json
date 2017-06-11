@@ -2,41 +2,27 @@
     "dataset": {
         "full": [
             {
-                "type": "file",
-                "path": "formulas/base.ltl",
+                "name": "base",
                 "determinize": true
             },
             {
-                "type": "file",
-                "path": "formulas/regressions.ltl",
+                "name": "regressions",
                 "determinize": true
             },
-            {
-                "type": "file",
-                "path": "formulas/fgx.ltl"
-            },
-            {
-                "type": "file",
-                "path": "formulas/check.ltl"
-            },
-            {
-                "type": "random"
-            }
+            "fgx",
+            "check",
+            "random"
         ],
         "small": [
             {
-                "type": "file",
-                "path": "formulas/base.ltl",
+                "name": "base",
                 "determinize": true
             },
             {
-                "type": "file",
-                "path": "formulas/regressions.ltl",
+                "name": "regressions",
                 "determinize": true
             },
-            {
-                "type": "random"
-            }
+            "random"
         ]
     },
     "defaults": {
@@ -93,12 +79,7 @@
         "delag-fallback": "delag#fallback",
         "delag-strict": {
             "tools": "delag#strict",
-            "data": [
-                {
-                    "type": "file",
-                    "path": "formulas/fgx.ltl"
-                }
-            ]
+            "data": "fgx"
         }
     }
 }

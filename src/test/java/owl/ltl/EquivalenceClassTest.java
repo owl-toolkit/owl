@@ -41,10 +41,10 @@ import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public abstract class EquivalenceClassTest {
-  private static final List<String> formulaeStrings = ImmutableList
+  private static final List<String> formulaStrings = ImmutableList
     .of("G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b");
-  private static final List<Formula> formulae = ImmutableList
-    .copyOf(formulaeStrings.stream().map(LtlParser::formula).collect(Collectors.toList()));
+  private static final List<Formula> formulas = ImmutableList
+    .copyOf(formulaStrings.stream().map(LtlParser::formula).collect(Collectors.toList()));
   private Formula contradiction;
   private EquivalenceClassFactory factory;
   private Formula literal;
@@ -284,7 +284,7 @@ public abstract class EquivalenceClassTest {
 
   @Test
   public void testUnfoldUnfold() {
-    for (Formula formula : formulae) {
+    for (Formula formula : formulas) {
       EquivalenceClassFactory factory = setUpFactory(formula);
       EquivalenceClass ref = factory.createEquivalenceClass(formula.unfold());
       EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold();

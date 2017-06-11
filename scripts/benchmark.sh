@@ -69,48 +69,31 @@ if [ ${#} -eq 0 ]; then
 fi
 shift
 
-if [ ${#} -eq 1 ] && TOOL_EXEC_LINES=$(python3 "${SCRIPT_FOLDER}/tools.py" "$1"); then
-    TOOL_NAME="$1"
-    echo "Known tool $TOOL_NAME specified"
-    for ARG in ${TOOL_EXEC_LINES}; do
-      TOOL_EXEC+=("$ARG")
-    done
-    shift
-else
-  TOOL_EXECUTABLE="$1"
-  if ! [ -x ${TOOL_EXECUTABLE} ] && ! hash ${TOOL_EXECUTABLE} 2>/dev/null; then
-    echo "Specified tool executable $TOOL_EXECUTABLE not found"
-    exit 1
-  fi
-  TOOL_NAME="custom"
-  echo "Custom tool specified"
-
-  while [ ${#} -gt 0 ]; do
-    TOOL_EXEC+=("$1")
-    shift
-  done
+TOOL_EXECUTABLE="$1"
+if ! [ -x ${TOOL_EXECUTABLE} ] && ! hash ${TOOL_EXECUTABLE} 2>/dev/null; then
+  echo "Specified tool executable $TOOL_EXECUTABLE not found"
+  exit 1
 fi
+while [ ${#} -gt 0 ]; do TOOL_EXEC+=("$1"); shift; done
+echo "Tested tool: $TOOL_EXEC"
 
 if [ "$UPDATE" = "1" ]; then
   echo "Updating binaries"
   (
     cd ${PROJECT_FOLDER}
-    if ! OUTPUT="$(./gradlew distTar 2>&1)"; then
+    if ! OUTPUT=$(./gradlew --no-daemon buildBin); then
       echo "Gradle failed, output:"
-      echo ${OUTPUT}
-      exit 1
-    fi
-    if ! OUTPUT="$(tar xvf build/distributions/owl-*.tar -C build --strip-components=1 2>&1)"; then
-      echo "Tar failed"
       echo ${OUTPUT}
       exit 1
     fi
   )
 fi
 
-if [ "$REPEATS" -gt 0 ] && [ "$METHOD" != "perf" ]; then
-  echo "Specifying repeats only supported together with using perf"
-  exit 1
+if [ -z "$REPEATS" ] || [[ "$REPEATS" -le 0 ]]; then
+  REPEATS="1"
+fi
+if [ "$REPEATS" -gt 1 ] && [ "$METHOD" != "perf" ]; then
+  echo "Specifying repeats only supported together with using perf; ignoring"
 fi
 
 if ! FORMULA_FILE=$(mktemp -t owl.tmp.XXXXXXXXXX); then
@@ -122,6 +105,8 @@ function remove_temp {
   rm -f ${FORMULA_FILE}
 }
 trap remove_temp EXIT
+
+echo "Building formula file"
 
 if [ ${#FORMULA_FILES[@]} -gt 0 ]; then
   for FILE in "${FORMULA_FILES[@]}"; do
@@ -138,18 +123,15 @@ if [ "$READ_STDIN" = "1" ]; then
 fi
 
 if ! [ -s ${FORMULA_FILE} ]; then
-  echo "No input formulae available in aggregation file ${FORMULA_FILE}"
+  echo "No input formulas available in aggregation file ${FORMULA_FILE}"
   exit 1
 fi
 
-echo -n "Running benchmark of $TOOL_NAME with $METHOD and formulae from $FORMULA_FILE "
-echo    "(total of $(wc -l < ${FORMULA_FILE}) formulae)"
+echo -n "Running benchmark with $METHOD and formulas from $FORMULA_FILE "
+echo    "(total of $(wc -l < ${FORMULA_FILE}) formulas)"
 
 if [ "$METHOD" = "time" ]; then
-  /usr/bin/time -v ${TOOL_EXEC[@]} -F ${FORMULA_FILE} >/dev/null
+  /usr/bin/time -v ${TOOL_EXEC[@]} -F ${FORMULA_FILE} 2>&1 >/dev/null
 elif [ "$METHOD" = "perf" ]; then
-  if [ -z "$REPEATS" ] || [[ "$REPEATS" -le 0 ]]; then
-    REPEATS="1"
-  fi
-  perf stat -d -r ${REPEATS} ${TOOL_EXEC[@]} -F ${FORMULA_FILE} >/dev/null
+  perf stat -d -r ${REPEATS} ${TOOL_EXEC[@]} -F ${FORMULA_FILE} 2>&1 >/dev/null
 fi

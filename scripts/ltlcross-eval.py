@@ -15,12 +15,12 @@ if __name__ == "__main__":
             print("No file at " + file)
             exit(1)
 
-    # Read all formulae, mapping tool -> formula -> stats
+    # Read all formulas, mapping tool -> formula -> stats
     numeric_keys = ['time', 'states', 'edges', 'transitions', 'acc', 'scc', 'nonacc_scc',
                     'strong_scc', 'weak_scc', 'terminal_scc']
     data = dict()
     tools = set()
-    formulae = set()
+    formulas = set()
     for file in files:
         with open(file, 'r') as csv_file:
             reader = csv.DictReader(csv_file, dialect='unix')
@@ -30,7 +30,7 @@ if __name__ == "__main__":
                 if not formula:
                     print("Row without formula in " + file)
                     exit(1)
-                formulae.add(formula)
+                formulas.add(formula)
 
                 tool = row['tool']
                 # Dynamically discover tools
@@ -52,16 +52,16 @@ if __name__ == "__main__":
                 # Add the tool stats to the big dictionary
                 tool_data[formula] = stats
 
-    # Remove all formulae for which any tool failed
-    failed_formulae = set()
+    # Remove all formulas for which any tool failed
+    failed_formulas = set()
     for tool, tool_data in data.items():
-        missing_formulae = formulae.difference(tool_data.keys())
+        missing_formulas = formulas.difference(tool_data.keys())
         for formula, stats in tool_data.items():
             if stats['status'] != "ok":
-                failed_formulae.add(formula)
+                failed_formulas.add(formula)
 
-    if len(failed_formulae) == len(formulae):
-        print("No formulae for which all tools succeeded")
+    if len(failed_formulas) == len(formulas):
+        print("No formulas for which all tools succeeded")
         exit(0)
 
     # Compute statistics
@@ -91,10 +91,9 @@ if __name__ == "__main__":
 
             tool_stats[key] = (average, median, deviation)
 
-
     # Formatting and printing
 
-    def print(string):
+    def print_utf8(string):
         sys.stdout.buffer.write((string + "\n").encode("utf-8"))
 
 
@@ -116,9 +115,9 @@ if __name__ == "__main__":
 
     header_string = "|".join([" {0:^{1}} ".format(tool, width)
                               for tool in tools])
-    print("{0:>{1}}:{2}".format("tool", maximum_key_name_length, header_string))
+    print_utf8("{0:>{1}}:{2}".format("tool", maximum_key_name_length, header_string))
 
     for key in numeric_keys:
         key_string = "|".join(" {0:>{1}s} ".format(stats_formatted[(key, tool)], width)
-                                for tool in tools)
-        print("{0:>{1}}:{2}".format(key, maximum_key_name_length, key_string))
+                              for tool in tools)
+        print_utf8("{0:>{1}}:{2}".format(key, maximum_key_name_length, key_string))
