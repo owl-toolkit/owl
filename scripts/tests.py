@@ -57,10 +57,8 @@ if __name__ == "__main__":
             print("Unknown dataset {}".format(data))
             sys.exit(1)
 
-    test_arguments = [os.path.join(script_dir, "ltlcross-run.sh")]
-
-    test_arguments.append(reference["name"])
-    test_arguments.append(" ".join(reference["exec"]))
+    test_arguments = [os.path.join(script_dir, "ltlcross-run.sh"),
+                      reference["name"], " ".join(reference["exec"])]
 
     for tool in tools:
         test_arguments.append("-t")

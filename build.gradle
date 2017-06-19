@@ -28,58 +28,203 @@ apply plugin: 'application'
 project.group = 'de.tum.in'
 project.version = '1.2.0-SNAPSHOT'
 
-//noinspection GroovyUnusedAssignment
-mainClassName = ''
-//noinspection GroovyUnusedAssignment
-sourceCompatibility = '1.8'
-//noinspection GroovyUnusedAssignment
-targetCompatibility = '1.8'
-//noinspection GroovyUnusedAssignment
-archivesBaseName = 'owl'
+project.sourceCompatibility = '1.8'
+project.targetCompatibility = '1.8'
+project.archivesBaseName = 'owl'
 
 def defaultEncoding = 'UTF-8'
-[compileJava, compileTestJava]*.options*.encoding = defaultEncoding
+tasks.withType(JavaCompile) { options.encoding = defaultEncoding }
+tasks.withType(Javadoc) { options.encoding = defaultEncoding }
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
     compileOnly 'com.google.code.findbugs:annotations:3.0.1'
     compileOnly 'org.immutables:value:2.5.3'
 
     compile 'com.google.guava:guava:22.0'
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'it.unimi.dsi:fastutil:7.2.1'
     compile 'org.antlr:antlr4-runtime:4.7'
     compile files('lib/jhoafparser-1.1.1.jar')
 
+    testCompile 'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'junit:junit:4+'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'org.hamcrest:hamcrest-library:1.3'
-    testCompileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
     antlr 'org.antlr:antlr4:4.7' // Introduces unused runtime dependencies
 }
 
-configurations {
-    // Unused during runtime
-    runtime.exclude group: 'org.antlr', module: 'antlr4'
-    runtime.exclude group: 'org.antlr', module: 'antlr-runtime'
-    runtime.exclude group: 'org.antlr', module: 'ST4'
-    runtime.exclude group: 'org.abego.treelayout'
-    runtime.exclude group: 'org.glassfish'
-    testCompile.exclude group: 'org.antlr', module: 'antlr4'
-    testCompile.exclude group: 'org.antlr', module: 'antlr-runtime'
-    testCompile.exclude group: 'org.antlr', module: 'ST4'
-    testCompile.exclude group: 'org.abego.treelayout'
-    testCompile.exclude group: 'org.glassfish'
+// Unused during runtime
+def unused = [[group: 'org.antlr', module: 'antlr4'],
+              [group: 'org.antlr', module: 'antlr-runtime'],
+              [group: 'org.antlr', module: 'ST4'],
+              [group: 'org.abego.treelayout'],
+              [group: 'org.glassfish']]
+unused.each { unusedDependency ->
+    configurations.runtime.exclude unusedDependency
+    configurations.testCompile.exclude unusedDependency
 }
 
 // Add resources directory for native libraries.
 tasks.withType(Test) {
     systemProperty "java.library.path", "src/main/resources/"
 }
+
+// Antlr
+import groovy.io.FileType
+generateGrammarSource {
+    arguments += ["-visitor", "-long-messages", "-lib", "src/main/antlr"]
+    // http://stackoverflow.com/questions/30642144/generating-antlr4-grammar-files-with-package-declaration-in-gradle
+    // Using outputDirectory here doesn't work - then IDEA does not pick up the folder as source
+    // root anymore.
+    doLast {
+        def move = [/*File wrong position*/:/*File right position*/]
+        generateGrammarSource.outputDirectory.eachFileMatch(FileType.FILES, ~/.*\.java/) { f ->
+            def pkg = f.readLines().find { it.trim() =~ /^package/ }
+            if (pkg) {
+                pkg = pkg.split(' ')[1].replace(';', '')
+                pkg = pkg.replace('.', '/')
+                //noinspection GroovyAssignabilityCheck
+                move.put(f, new File("${generateGrammarSource.outputDirectory}/$pkg/${f.name}"))
+            }
+        }
+        move.each { s, t ->
+            t.parentFile.mkdirs()
+            s.renameTo(t.absolutePath)
+        }
+    }
+}
+
+// Findbugs
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
+findbugs {
+    reportsDir = file("$project.buildDir/reports/findbugs")
+    effort = "max"
+    reportLevel = "low"
+    excludeFilter = file("$project.projectDir/config/findbugs-exclude.xml")
+    ignoreFailures = false
+}
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+// PMD
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
+pmd {
+    reportsDir = file("$project.buildDir/reports/pmd")
+    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
+    ruleSets = [] // We specify all rules in rules.xml
+    consoleOutput = false
+    ignoreFailures = false
+}
+tasks.withType(Pmd) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+// Checkstyle
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
+checkstyle {
+    toolVersion = "7.8.1"
+    configFile = file("$project.rootDir/config/checkstyle.xml")
+    ignoreFailures = false
+    showViolations = false // Don't litter console
+    checkstyleMain {
+        configProperties = ['suppression-file':
+                                "$project.rootDir/config/checkstyle-main-suppression.xml"]
+    }
+    checkstyleTest {
+        configProperties = ['suppression-file':
+                                "$project.rootDir/config/checkstyle-test-suppression.xml"]
+    }
+}
+// See https://github.com/gradle/gradle/issues/881
+tasks.withType(Checkstyle).each { checkstyleTask ->
+    checkstyleTask.doLast {
+        reports.all { report ->
+            def outputFile = report.destination
+            if (outputFile.exists() && outputFile.text.contains("<error ")) {
+                throw new GradleException("There were checkstyle warnings! See $outputFile")
+            }
+        }
+    }
+}
+
+// Create startup scripts for each tool
+def scripts = [
+    'ltl2da'  : 'owl.translations.LTL2DA',
+    'ltl2dpa' : 'owl.translations.LTL2DPA',
+    'ltl2ldba': 'owl.translations.LTL2LDBA',
+    'nba2ldba': 'owl.translations.NBA2LDBA',
+    'delag'   : 'owl.translations.Delag',
+]
+scripts.each() { scriptName, className ->
+    def t = tasks.create(name: scriptName + 'StartScript', type: CreateStartScripts) {
+        mainClassName = className
+        applicationName = scriptName
+        outputDir = new File(project.buildDir, 'scripts')
+        //noinspection GroovyAccessibility
+        classpath = jar.outputs.files + project.configurations.runtime
+    }
+
+    t.dependsOn(jar)
+    startScripts.dependsOn(t)
+}
+startScripts.enabled = false // Don't generate an "owl" executable
+run.enabled = false
+
+// Compile the markdown files
+tasks.create(name: "compileMarkdown", type: Exec) {
+    executable = 'scripts/render-markdown.sh'
+    outputs.dir "$project.docsDir/markdown"
+    args = ["$project.docsDir/markdown"]
+}
+
+// Configure the distribution to include the documentation etc.
+distributions.main {
+    baseName = 'owl'
+
+    contents {
+        from "AUTHORS"
+        from "LICENSE"
+        from javadoc into "doc"
+        from compileMarkdown
+    }
+}
+
+// Task to create a minimal running jar
+tasks.create(name : "buildBin", type : Copy) {
+    destinationDir = project.buildDir
+    into ('bin') {
+        // Copy all start-scripts and make them executable
+        from (startScripts) {
+            exclude "*.bat"
+        }
+        fileMode = 0755
+    }
+    into ('lib') {
+        from(jar) // Copy the jar itself
+        from([project.configurations.runtime]) // Copy the dependencies
+    }
+}
+
+// If a user file is present, include it.
+if (file('../user.gradle').exists()) {
+    apply from: '../user.gradle'
+}
+
+// Gradle IDEA project configuration stuff
+// Partly from http://mrhaki.blogspot.com/2012/09/gradle-goodness-customize-idea-project.html and
+// various SO posts
 
 idea {
     project {
@@ -116,145 +261,16 @@ idea {
     }
 }
 
-import groovy.io.FileType
-generateGrammarSource {
-    arguments += ["-visitor", "-long-messages", "-lib", "src/main/antlr"]
-    // http://stackoverflow.com/questions/30642144/generating-antlr4-grammar-files-with-package-declaration-in-gradle
-    // Using outputDirectory here doesn't work - then IDEA does not pick up the folder as source
-    // root anymore.
-    doLast {
-        def move = [/*File wrong position*/:/*File right position*/]
-        generateGrammarSource.outputDirectory.eachFileMatch(FileType.FILES, ~/.*\.java/) { f ->
-            def pkg = f.readLines().find { it.trim() =~ /^package/ }
-            if (pkg) {
-                pkg = pkg.split(' ')[1].replace(';', '')
-                pkg = pkg.replace('.', '/')
-                move.put(f, new File("${generateGrammarSource.outputDirectory}/$pkg/${f.name}"))
-            }
-        }
-        move.each { s, t ->
-            logger.info("Moving ${s.name} to right location ..")
-            t.parentFile.mkdirs()
-            s.renameTo(t.absolutePath)
-        }
-    }
-}
-
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
-findbugs {
-    // toolVersion = ""
-    reportsDir = file("$project.buildDir/reports/findbugs")
-    effort = "max"
-    reportLevel = "low"
-    excludeFilter = file("$rootProject.projectDir/config/findbugs-exclude.xml")
-    ignoreFailures = false
-}
-
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
-pmd {
-    reportsDir = file("$project.buildDir/reports/pmd")
-    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
-    ruleSets = [] // We specify all rules in rules.xml
-    consoleOutput = false
-    ignoreFailures = false
-}
-
-tasks.withType(Pmd) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
-checkstyle {
-    toolVersion = "7.8.1"
-    configFile = file("$project.rootDir/config/checkstyle.xml")
-    ignoreFailures = false
-    showViolations = false // Don't litter console
-    checkstyleMain {
-        configProperties = ['suppression-file':
-                                "$project.rootDir/config/checkstyle-main-suppression.xml"]
-    }
-    checkstyleTest {
-        configProperties = ['suppression-file':
-                                "$project.rootDir/config/checkstyle-test-suppression.xml"]
-    }
-}
-
-// See https://github.com/gradle/gradle/issues/881
-tasks.withType(Checkstyle).each { checkstyleTask ->
-    checkstyleTask.doLast {
-        reports.all { report ->
-            def outputFile = report.destination
-            if (outputFile.exists() && outputFile.text.contains("<error ")) {
-                throw new GradleException("There were checkstyle warnings! See $outputFile")
-            }
-        }
-    }
-}
-
-def scripts = [
-    'ltl2da'  : 'owl.translations.LTL2DA',
-    'ltl2dpa' : 'owl.translations.LTL2DPA',
-    'ltl2ldba': 'owl.translations.LTL2LDBA',
-    'nba2ldba': 'owl.translations.NBA2LDBA',
-    'delag'   : 'owl.translations.Delag',
-]
-
-scripts.each() { scriptName, className ->
-    def t = tasks.create(name: scriptName + 'StartScript', type: CreateStartScripts)
-        {
-            mainClassName = className
-            applicationName = scriptName
-            outputDir = new File(project.buildDir, 'scripts')
-            //noinspection GroovyAccessibility
-            classpath = jar.outputs.files + project.configurations.runtime
-        }
-
-    startScripts.dependsOn(t)
-}
-
-distributions {
-    main {
-        baseName = 'owl'
-
-        contents {
-            from "AUTHORS"
-            from "README.md"
-            from "CHANGELOG.md"
-            from "LICENSE"
-            from "LTL_GRAMMAR.md"
-            exclude "owl"
-            exclude "owl.bat"
-        }
-    }
-}
-
-// If a user file is present, include it.
-if (file('../user.gradle').exists()) {
-    apply from: '../user.gradle'
-}
-
-// Gradle IDEA project configuration stuff
-// Partly from http://mrhaki.blogspot.com/2012/09/gradle-goodness-customize-idea-project.html and
-// various SO posts
-
 // Helpers
 
 /* Search component with given name */
+
 static findComponent(node, name) {
     node.component.find { it.@name == name }
 }
 
 /* Set value for option node with given name */
+
 static changeOption(node, name, value) {
     node.option.find { it.@name == name }.@value = value
 }
@@ -301,7 +317,7 @@ static customizeEncoding(project) {
         encoding.@defaultCharsetForPropertiesFiles = 'UTF-8'
     } else {
         // Create new node with default values.
-        project.appendNode 'Encoding', [useUTFGuessing: true, native2AsciiForPropertiesFiles: true,
+        project.appendNode 'Encoding', [useUTFGuessing                  : true, native2AsciiForPropertiesFiles: true,
                                         defaultCharsetForPropertiesFiles: 'UTF-8']
     }
 }
@@ -311,13 +327,13 @@ static customizeAnnotationProcessingSourceRoot(module) {
 
     def contentRoot = moduleRootManager.content.find { it.@url == 'file://$MODULE_DIR$/' }
     contentRoot.appendNode('sourceFolder', [
-        url: 'file://$MODULE_DIR$/build/generated-src/annot/main',
+        url         : 'file://$MODULE_DIR$/build/generated-src/annot/main',
         isTestSource: false,
-        generated: true
+        generated   : true
     ])
     contentRoot.appendNode('sourceFolder', [
-        url: 'file://$MODULE_DIR$/build/generated-src/annot/test',
+        url         : 'file://$MODULE_DIR$/build/generated-src/annot/test',
         isTestSource: true,
-        generated: true
+        generated   : true
     ])
 }

@@ -8,8 +8,7 @@ if [[ ${#} -eq 0 ]]; then
   exit 1
 fi
 
-DIRECTORY="$(dirname $(realpath $0))"
-cd ${DIRECTORY}/..
+source "$(dirname $0)/vars.sh"
 
 # Set default timing method
 if hash perf 2>/dev/null; then
@@ -70,7 +69,7 @@ if [ ${#} -eq 0 ]; then
 fi
 shift
 
-if [ ${#} -eq 1 ] && TOOL_EXEC_LINES=$(python3 "${DIRECTORY}/tools.py" "$1"); then
+if [ ${#} -eq 1 ] && TOOL_EXEC_LINES=$(python3 "${SCRIPT_FOLDER}/tools.py" "$1"); then
     TOOL_NAME="$1"
     echo "Known tool $TOOL_NAME specified"
     for ARG in ${TOOL_EXEC_LINES}; do
@@ -95,7 +94,7 @@ fi
 if [ "$UPDATE" = "1" ]; then
   echo "Updating binaries"
   (
-    cd ${DIRECTORY}/..
+    cd ${PROJECT_FOLDER}
     if ! OUTPUT="$(./gradlew distTar 2>&1)"; then
       echo "Gradle failed, output:"
       echo ${OUTPUT}
@@ -109,7 +108,7 @@ if [ "$UPDATE" = "1" ]; then
   )
 fi
 
-if [ -n "$REPEATS" ] && [ "$METHOD" != "perf" ]; then
+if [ "$REPEATS" -gt 0 ] && [ "$METHOD" != "perf" ]; then
   echo "Specifying repeats only supported together with using perf"
   exit 1
 fi

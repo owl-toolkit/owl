@@ -5,26 +5,26 @@ The following constructs are supported:
 
 ## Propositional Logic
 
-* True: `tt`, `true`, `1`
-* False: `ff`, `false`, `0`
-* Literal: `[a-zA-Z_][a-zA-Z_0-9]*`
-* Negation: `!`, `NOT`
-* Implication: `->`, `=>`, `IMP`
-* Bi-implication: `<->`, `<=>`, `BIIMP`
-* Exclusive Disjunction: `^`, `XOR`
-* Conjunction: `&&`, `&`, `AND`
-* Disjunction: `||`, `|`, `OR`
-* Parenthesis: `(`, `)`
+ * True: `tt`, `true`, `1`
+ * False: `ff`, `false`, `0`
+ * Literal: `[a-zA-Z_][a-zA-Z_0-9]*`
+ * Negation: `!`, `NOT`
+ * Implication: `->`, `=>`, `IMP`
+ * Bi-implication: `<->`, `<=>`, `BIIMP`
+ * Exclusive Disjunction: `^`, `XOR`
+ * Conjunction: `&&`, `&`, `AND`
+ * Disjunction: `||`, `|`, `OR`
+ * Parenthesis: `(`, `)`
 
 ##  Modal Logic
 
-* Finally: `F`
-* Globally: `G`
-* Next: `X`
-* (Strong) Until: `U`
-* Weak Until: `W`
-* (Weak) Release: `R`
-* Strong Release: `M`
+ * Finally: `F`
+ * Globally: `G`
+ * Next: `X`
+ * (Strong) Until: `U`
+ * Weak Until: `W`
+ * (Weak) Release: `R`
+ * Strong Release: `M`
 
 ## Precedence Rules
 
