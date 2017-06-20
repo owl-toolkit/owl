@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import json
-
-import os.path as path
 import sys
 
+from . import defaults
 
-def get_tool(tool_description):
+
+class Tool(object):
+    def __init__(self, name, execution):
+        self.name = name
+        self.execution = execution
+
+    def get_name(self):
+        return self.name
+
+    def get_execution(self):
+        return self.execution
+
+
+def get_tool(tools_json, tool_description):
     # Tool description <name>(#(-?(flag|opt),)+)?
-    script_dir = path.dirname(path.realpath(__file__))
 
-    with open(path.join(script_dir, "tool-configurations.json"), 'r') as f:
-        config = json.load(f)
-
-    if tool_description in config.get("aliases", {}):
-        tool_spec = config["aliases"][tool_description]
+    if tool_description in tools_json.get("aliases", {}):
+        tool_spec = tools_json["aliases"][tool_description]
     else:
         tool_spec = tool_description
 
@@ -30,11 +37,10 @@ def get_tool(tool_description):
         tool_name = tool_spec
         tool_modifier = []
 
-    if tool_name not in config["tools"]:
-        print("Unknown tool {}".format(tool_name), file=sys.stderr)
-        return None
+    if tool_name not in tools_json["tools"]:
+        raise KeyError("Unknown tool {}".format(tool_name))
 
-    tool_json = config["tools"][tool_name]
+    tool_json = tools_json["tools"][tool_name]
     modifiers = set()
     if "defaults" in tool_json:
         for modifier in tool_json["defaults"]:
@@ -85,18 +91,4 @@ def get_tool(tool_description):
     if optimisations:
         tool_execution.append("--optimisations=" + ",".join(optimisations))
 
-    return {"name": tool_name, "exec": tool_execution}
-
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        sys.exit(1)
-
-    tool = get_tool(sys.argv[1])
-    if tool is None:
-        sys.exit(1)
-
-    for tool_exec in tool["exec"]:
-        print(tool_exec)
-
-    sys.exit(0)
+    return Tool(tool_name, tool_execution)

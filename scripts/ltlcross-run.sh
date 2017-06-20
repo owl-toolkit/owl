@@ -3,7 +3,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-echo "Running test with args " $@
+echo "Running test with args" $@
 
 source "$(dirname $0)/vars.sh"
 RESULTS_FOLDER="$PROJECT_FOLDER/build/results"
@@ -14,7 +14,6 @@ ANY_ERROR=0
 # This tool will be the "trusted" one - we assume that this is always correct
 REFERENCE_TOOL_NAME="$1"
 REFERENCE_TOOL_INVOCATION="$2"
-echo "Using reference tool: $REFERENCE_TOOL_NAME - $REFERENCE_TOOL_INVOCATION"
 shift 2
 
 declare -a TOOL_NAMES
@@ -70,34 +69,17 @@ while [ ${#} -gt 0 ]; do
 
   DATASET_ERROR="0"
   echo -n "Invocation: "
-  if [ "$DATASET" = "random" ]; then
-    echo "randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf |" \
-      "ltlcross --stop-on-error --strength --csv=\"${CSV_FILE}\" ${ADDITIONAL_ARGS}" \
-      "--grind=\"$GRIND_FILE\" --timeout=\"$TIMEOUT_SEC\"" \
-      "\"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\"" \
-      ${TOOLS_INVOCATION[@]}
-    echo ""
-
-    if ! randltl --seed=12345 -n 19 a b c d e f --tree-size=5..25 | ltlfilt --nnf | \
-      ltlcross --stop-on-error --strength --csv="$CSV_FILE" ${ADDITIONAL_ARGS} \
-      --grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" \
-      "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
-      ${TOOLS_INVOCATION[@]} 2> >(tee "$LTLCROSS_OUTPUT_FILE"); then
-      DATASET_ERROR="1"
-    fi
-  else
-    echo "ltlcross --stop-on-error --strength --csv=\"$CSV_FILE\" ${ADDITIONAL_ARGS}" \
-      "--grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" -F$(realpath ${DATASET})" \
-      "\"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\"" \
-      ${TOOLS_INVOCATION[@]}
-    echo ""
-
-    if ! ltlcross --stop-on-error --strength --csv="$CSV_FILE" ${ADDITIONAL_ARGS} \
-      --grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" -F$(realpath ${DATASET}) \
-      "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
-      ${TOOLS_INVOCATION[@]} 2> >(tee "$LTLCROSS_OUTPUT_FILE"); then
-      DATASET_ERROR="1"
-    fi
+  echo "python3 scripts/util.py formula ${DATASET} |" \
+    "ltlcross --stop-on-error --strength --csv=\"${CSV_FILE}\" ${ADDITIONAL_ARGS}" \
+    "--grind=\"$GRIND_FILE\" --timeout=\"$TIMEOUT_SEC\"" \
+    "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
+    ${TOOLS_INVOCATION[@]}
+  echo ""
+  if ! python3 scripts/util.py formula ${DATASET} | ltlcross --stop-on-error --strength \
+    --csv="$CSV_FILE" ${ADDITIONAL_ARGS} --grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" \
+    "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
+    ${TOOLS_INVOCATION[@]} 2> >(tee "$LTLCROSS_OUTPUT_FILE"); then
+    DATASET_ERROR="1"
   fi
 
   if [ ${DATASET_ERROR} = "0" ]; then

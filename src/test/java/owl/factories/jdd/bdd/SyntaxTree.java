@@ -12,7 +12,7 @@ import java.util.Objects;
 import owl.factories.jdd.bdd.SyntaxTree.SyntaxTreeBinaryOperation.BinaryType;
 
 /**
- * Utility class used to represent propositional formulae.
+ * Utility class used to represent propositional formulas.
  */
 @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject", "unused",
                     "WeakerAccess", "PMD.GodClass", "checkstyle:javadoc"})

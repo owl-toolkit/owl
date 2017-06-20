@@ -28,7 +28,7 @@ public class GMonitorVisitorTest {
   }
 
   @Test
-  public void testGSubformulae() {
+  public void testGSubformulas() {
     Formula f1 = new Literal(0, false);
     Formula f2 = new FOperator(new GOperator(f1));
 

@@ -8,6 +8,7 @@ stages:
   - test
   - test-optimizations
   - test-parallel-translation
+  - bench
 
 build:
   stage:
@@ -23,12 +24,24 @@ build:
 .ltlcross: &ltlcross_template
   script:
     - ./gradlew --no-daemon buildBin
-    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/tests.py $TEST_NAME
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/util.py test $TEST_NAME
   artifacts:
     paths:
     - build/results/
     when: always
     expire_in: 1 week
+  dependencies: []
+
+.benchmark: &benchmark_template
+  stage: bench
+  script:
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/util.py bench $BENCH_NAME | tee benchmark.txt
+  artifacts:
+    paths:
+    - benchmark.txt
+    when: always
+    expire_in: 1 week
+  when: manual
   dependencies: []
 
 # LTL to LDBA Translations
@@ -164,3 +177,35 @@ delag Fallback:
   variables:
     TEST_NAME: "delag-fallback"
   <<: *ltlcross_template
+
+# Benchmarks
+
+bench ltl2ldba:
+  variables:
+    BENCH_NAME: "ltl2ldba"
+  <<: *benchmark_template
+
+bench delag:
+  variables:
+    BENCH_NAME: "delag"
+  <<: *benchmark_template
+
+bench ltl2dpa:
+  variables:
+    BENCH_NAME: "ltl2dpa"
+  <<: *benchmark_template
+
+bench ltl2da:
+  variables:
+    BENCH_NAME: "ltl2da"
+  <<: *benchmark_template
+
+bench ltl2dpa Parallel:
+  variables:
+    BENCH_NAME: "ltl2dpa-parallel"
+  <<: *benchmark_template
+
+bench ltl2da Parallel:
+  variables:
+    BENCH_NAME: "ltl2da-parallel"
+  <<: *benchmark_template
