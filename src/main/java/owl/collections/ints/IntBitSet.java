@@ -1,10 +1,9 @@
 package owl.collections.ints;
 
-import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntIterable;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
-import java.util.function.IntConsumer;
 
-public interface IntBitSet extends IntSortedSet, IntSet2 {
+public interface IntBitSet extends IntSortedSet {
   @Override
   IntBitSet subSet(int fromElement, int toElement);
 
@@ -22,7 +21,5 @@ public interface IntBitSet extends IntSortedSet, IntSet2 {
 
   void clear(int from, int to);
 
-  boolean containsAny(IntCollection o);
-
-  void forEach(IntConsumer consumer);
+  boolean containsAny(IntIterable o);
 }

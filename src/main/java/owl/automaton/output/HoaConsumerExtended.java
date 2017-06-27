@@ -20,6 +20,7 @@ package owl.automaton.output;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import java.util.ArrayList;
@@ -46,7 +47,6 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.ValuationSet;
-import owl.collections.ints.BitSets;
 
 public final class HoaConsumerExtended<S> {
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
@@ -139,7 +139,7 @@ public final class HoaConsumerExtended<S> {
       return;
     }
 
-    addEdgeBackend(label.toExpression(), end, BitSets.toList(accSets));
+    addEdgeBackend(label.toExpression(), end, new IntArrayList(accSets));
   }
 
   public void addEdge(LabelledEdge<? extends S> labelledEdge) {
@@ -148,7 +148,7 @@ public final class HoaConsumerExtended<S> {
 
   public void addEdge(Edge<? extends S> edge, BitSet label) {
     addEdgeBackend(toLabel(label), edge.getSuccessor(),
-      BitSets.toList(edge.acceptanceSetIterator()));
+      new IntArrayList(edge.acceptanceSetIterator()));
   }
 
   public void addEdge(Edge<? extends S> edge, ValuationSet label) {
@@ -213,7 +213,7 @@ public final class HoaConsumerExtended<S> {
     }
   }
 
-  BooleanExpression<AtomLabel> toLabel(BitSet label) {
+  private BooleanExpression<AtomLabel> toLabel(BitSet label) {
     List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
 
     for (int i = 0; i < alphabetSize; i++) {

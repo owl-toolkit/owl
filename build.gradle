@@ -46,7 +46,7 @@ dependencies {
 
     compile 'com.google.guava:guava:22.0'
     compile 'com.google.code.findbugs:jsr305:3.0.1'
-    compile 'it.unimi.dsi:fastutil:7.2.1'
+    compile 'it.unimi.dsi:fastutil:8.1.0'
     compile 'org.antlr:antlr4-runtime:4.7'
     compile 'de.tum.in:jbdd:0.1.1'
     compile files('lib/jhoafparser-1.1.1.jar')

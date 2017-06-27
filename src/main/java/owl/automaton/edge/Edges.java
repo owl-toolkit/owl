@@ -1,10 +1,8 @@
 package owl.automaton.edge;
 
 import com.google.common.collect.Iterables;
-import it.unimi.dsi.fastutil.ints.IntIterator;
 import java.util.BitSet;
 import java.util.PrimitiveIterator;
-import java.util.PrimitiveIterator.OfInt;
 import javax.annotation.Nonnegative;
 import owl.collections.ints.UnmodifiableBitSet;
 
@@ -108,29 +106,7 @@ public final class Edges {
     return new EdgeGeneric<>(successor, UnmodifiableBitSet.copyOf(acceptanceSet));
   }
 
-  public static <S> Edge<S> create(S successor, IntIterator acceptance) {
-    return create(successor, new PrimitiveCompatibility(acceptance));
-  }
-
   public static <S> Iterable<S> toSuccessors(Iterable<Edge<S>> edges) {
     return Iterables.transform(edges, Edge::getSuccessor);
-  }
-
-  private static final class PrimitiveCompatibility implements OfInt {
-    private final IntIterator delegate;
-
-    PrimitiveCompatibility(IntIterator delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
-
-    @Override
-    public int nextInt() {
-      return delegate.nextInt();
-    }
   }
 }

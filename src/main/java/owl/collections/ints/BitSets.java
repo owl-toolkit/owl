@@ -17,12 +17,8 @@
 
 package owl.collections.ints;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
-import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntLists;
 import java.util.AbstractSet;
 import java.util.BitSet;
 import java.util.Collection;
@@ -40,34 +36,43 @@ public final class BitSets {
   private BitSets() {
   }
 
-  public static BitSet collect(IntIterator iterator) {
-    BitSet bitSet = new BitSet();
-    iterator.forEachRemaining(bitSet::set);
-    return bitSet;
-  }
-
-  public static BitSet collect(PrimitiveIterator.OfInt iterator) {
+  public static BitSet createBitSet(PrimitiveIterator.OfInt iterator) {
     BitSet bitSet = new BitSet();
     iterator.forEachRemaining((IntConsumer) bitSet::set);
     return bitSet;
   }
 
-  public static IntBitSet createBitSet(IntCollection collection) {
-    BitSet backingSet = new BitSet();
-    IntIterator iterator = collection.iterator();
-
-    while (iterator.hasNext()) {
-      backingSet.set(iterator.nextInt());
+  public static BitSet createBitSet(boolean... indices) {
+    BitSet bitSet = new BitSet(indices.length);
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i]) {
+        bitSet.set(i);
+      }
     }
-
-    return new IntBitSetImpl(backingSet);
+    return bitSet;
   }
 
-  public static IntBitSet createBitSet() {
+  public static BitSet createBitSet(Collection<Integer> indices) {
+    return createBitSet(IntIterators.asIntIterator(indices.iterator()));
+  }
+
+  public static BitSet createBitSet(IntCollection indices) {
+    return createBitSet(indices.iterator());
+  }
+
+  public static BitSet createBitSet(int... indices) {
+    return createBitSet(IntIterators.wrap(indices));
+  }
+
+  public static IntBitSet createIntBitSet(IntCollection collection) {
+    return new IntBitSetImpl(createBitSet(collection.iterator()));
+  }
+
+  public static IntBitSet createIntBitSet() {
     return new IntBitSetImpl(new BitSet());
   }
 
-  public static IntBitSet createBitSet(int size) {
+  public static IntBitSet createIntBitSet(int size) {
     return new IntBitSetImpl(new BitSet(size));
   }
 
@@ -98,37 +103,6 @@ public final class BitSets {
     BitSet bs = new BitSet(i);
     bs.set(0, i);
     return powerSet(bs);
-  }
-
-  public static IntList toList(PrimitiveIterator.OfInt bs) {
-    if (!bs.hasNext()) {
-      return IntLists.EMPTY_LIST;
-    }
-    IntList list = new IntArrayList();
-    bs.forEachRemaining((IntConsumer) list::add);
-    return list;
-  }
-
-  public static BitSet toSet(boolean... indices) {
-    BitSet bitSet = new BitSet(indices.length);
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i]) {
-        bitSet.set(i);
-      }
-    }
-    return bitSet;
-  }
-
-  public static BitSet toSet(Collection<Integer> indices) {
-    return collect(IntIterators.asIntIterator(indices.iterator()));
-  }
-
-  public static BitSet toSet(IntCollection indices) {
-    return collect(indices.iterator());
-  }
-
-  public static BitSet toSet(int... indices) {
-    return collect(IntIterators.wrap(indices));
   }
 
   private static final class PowerBitSet extends AbstractSet<BitSet> {
