@@ -66,7 +66,7 @@ public class IntBitSetTest {
 
   public IntBitSetTest(List<Integer> input, @Nullable SubsetRange range) {
     baseReference = new IntAVLTreeSet(input);
-    baseSet = new IntBitSetImpl(BitSets.toSet(input));
+    baseSet = new IntBitSetImpl(BitSets.createBitSet(input));
     this.range = range;
 
     if (range == null) {
@@ -134,7 +134,7 @@ public class IntBitSetTest {
 
   @Test
   public void testAddAllOptimized() {
-    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createIntBitSet(valuesInRange);
 
     assertThat(set.addAll(testSet), is(reference.addAll(valuesInRange)));
     assertThat(set, equalTo(reference));
@@ -144,7 +144,7 @@ public class IntBitSetTest {
   public void testAddAllOptimizedOutOfBounds() {
     assumeThat(range, notNullValue());
 
-    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createIntBitSet(valuesInRange);
     testSet.add(range.high);
 
     set.addAll(testSet);
@@ -191,7 +191,7 @@ public class IntBitSetTest {
   public void testClearRange() {
     IntSet rangeSet = new IntArraySet();
     IntIterators.fromTo(valuesInRange.firstInt(), valuesInRange.lastInt())
-      .forEachRemaining(rangeSet::add);
+      .forEachRemaining((IntConsumer) rangeSet::add);
 
     reference.removeAll(rangeSet);
     set.clear(valuesInRange.firstInt(), valuesInRange.lastInt());
@@ -229,7 +229,7 @@ public class IntBitSetTest {
     //noinspection CollectionAddedToSelf
     assertThat(set.containsAll(set), is(true));
 
-    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createIntBitSet(valuesInRange);
 
     assertThat(set.containsAll(testSet), is(reference.containsAll(valuesInRange)));
   }
@@ -247,7 +247,7 @@ public class IntBitSetTest {
     //noinspection CollectionAddedToSelf
     assertThat(set.containsAny(set), is(not(reference.isEmpty())));
 
-    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createIntBitSet(valuesInRange);
 
     boolean referenceContainsAny = reference.stream().anyMatch(valuesInRange::contains);
     assertThat(set.containsAny(testSet), is(referenceContainsAny));
@@ -274,7 +274,7 @@ public class IntBitSetTest {
 
   @Test
   public void testEqualsOptimized() {
-    IntBitSet testSet = BitSets.createBitSet(reference);
+    IntBitSet testSet = BitSets.createIntBitSet(reference);
 
     assertThat(set, equalTo(testSet));
   }
@@ -299,7 +299,7 @@ public class IntBitSetTest {
     set.forEach((IntConsumer) test::add);
 
     IntArraySet testReference = new IntArraySet();
-    reference.forEach(testReference::add);
+    reference.forEach((IntConsumer) testReference::add);
 
     assertThat(test, is(testReference));
   }
@@ -405,7 +405,7 @@ public class IntBitSetTest {
 
   @Test
   public void testRemoveAllOptimized() {
-    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createIntBitSet(valuesInRange);
 
     assertThat(set.removeAll(testSet), is(reference.removeAll(valuesInRange)));
     assertThat(set, equalTo(reference));
@@ -438,7 +438,7 @@ public class IntBitSetTest {
 
   @Test
   public void testRetainAllOptimized() {
-    IntBitSet testSet = BitSets.createBitSet(valuesInRange);
+    IntBitSet testSet = BitSets.createIntBitSet(valuesInRange);
 
     assertThat(set.retainAll(testSet), is(reference.retainAll(valuesInRange)));
     assertThat(set, equalTo(reference));
@@ -464,7 +464,7 @@ public class IntBitSetTest {
   public void testSetRange() {
     IntSet rangeSet = new IntArraySet();
     IntIterators.fromTo(valuesInRange.firstInt(), valuesInRange.lastInt())
-      .forEachRemaining(rangeSet::add);
+      .forEachRemaining((IntConsumer) rangeSet::add);
 
     reference.addAll(rangeSet);
     set.set(valuesInRange.firstInt(), valuesInRange.lastInt());

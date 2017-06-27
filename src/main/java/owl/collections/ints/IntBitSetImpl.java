@@ -17,16 +17,15 @@
 
 package owl.collections.ints;
 
-import it.unimi.dsi.fastutil.ints.AbstractIntBidirectionalIterator;
 import it.unimi.dsi.fastutil.ints.AbstractIntSortedSet;
 import it.unimi.dsi.fastutil.ints.IntBidirectionalIterator;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.ints.IntIterable;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import java.util.BitSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.PrimitiveIterator;
 import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -183,7 +182,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   }
 
   @Override
-  public boolean containsAny(IntCollection o) {
+  public boolean containsAny(IntIterable o) {
     if (o instanceof IntBitSetImpl) {
       IntBitSetImpl other = (IntBitSetImpl) o;
       BitSet otherBitSet = other.bitSet;
@@ -294,7 +293,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   }
 
   @Override
-  public IntBidirectionalIterator2 iterator() {
+  public IntBidirectionalIterator iterator() {
     return new BitSetIterator();
   }
 
@@ -314,7 +313,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
   }
 
   @Override
-  public boolean rem(int k) {
+  public boolean remove(int k) {
     if (!isValidValue(k)) {
       return false;
     }
@@ -416,8 +415,7 @@ class IntBitSetImpl extends AbstractIntSortedSet implements IntBitSet {
 
   }
 
-  private final class BitSetIterator extends AbstractIntBidirectionalIterator
-    implements PrimitiveIterator.OfInt, IntBidirectionalIterator2 {
+  private final class BitSetIterator implements IntBidirectionalIterator {
     private int last = -1;
     private int next;
     private int previous;

@@ -110,7 +110,7 @@ public class IntBitSetTheories {
 
     DataPointHolder(List<Integer> input, @Nullable SubsetRange range) {
       baseReference = new IntAVLTreeSet(input);
-      baseSet = new IntBitSetImpl(BitSets.toSet(input));
+      baseSet = new IntBitSetImpl(BitSets.createBitSet(input));
 
       if (range == null) {
         this.reference = baseReference;
