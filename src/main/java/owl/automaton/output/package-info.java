@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.automaton.output;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

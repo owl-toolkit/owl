@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.factories.jdd;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

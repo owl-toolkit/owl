@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.translations.tlsf2arena;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.ltl.tlsf;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

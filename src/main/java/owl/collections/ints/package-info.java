@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.collections.ints;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

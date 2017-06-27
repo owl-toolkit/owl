@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.translations.nba2ldba;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

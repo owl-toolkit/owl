@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.factories.sylvan;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

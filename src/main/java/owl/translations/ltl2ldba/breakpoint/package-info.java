@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.translations.ltl2ldba.breakpoint;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;

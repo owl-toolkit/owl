@@ -18,4 +18,4 @@
 @EverythingIsNonnullByDefault
 package owl.ltl.tools;
 
-import owl.util.EverythingIsNonnullByDefault;
+import owl.util.annotation.EverythingIsNonnullByDefault;
