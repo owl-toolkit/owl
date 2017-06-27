@@ -19,6 +19,8 @@ package owl.factories.jdd;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import de.tum.in.jbdd.Bdd;
+import de.tum.in.jbdd.BddFactory;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Arrays;
@@ -35,8 +37,6 @@ import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
 import owl.factories.PropositionVisitor;
-import owl.factories.jdd.bdd.Bdd;
-import owl.factories.jdd.bdd.BddFactory;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
