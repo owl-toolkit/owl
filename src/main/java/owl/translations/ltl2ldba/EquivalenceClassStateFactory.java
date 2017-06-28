@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2ldba;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
@@ -68,38 +67,12 @@ public class EquivalenceClassStateFactory {
   }
 
   public EquivalenceClass getInitial(EquivalenceClass clazz, EquivalenceClass... environmentArray) {
-    EquivalenceClass initial;
-
-    if (eagerUnfold) {
-      initial = clazz.unfold();
-    } else {
-      initial = clazz.duplicate();
-    }
-
-    if (removeRedundantObligations && environmentArray.length > 0) {
-      EquivalenceClass environment = and(Arrays.asList(environmentArray));
-
-      if (environment.implies(initial)) {
-        initial.free();
-        initial = factory.getTrue();
-      }
-
-      environment.free();
-    }
-
-    return initial;
+    EquivalenceClass initial = eagerUnfold ? clazz.unfold() : clazz.duplicate();
+    return removeRedundantObligations(initial, environmentArray);
   }
 
   public EquivalenceClass getNondetSuccessor(EquivalenceClass clazz, BitSet valuation) {
-    EquivalenceClass successor;
-
-    if (eagerUnfold) {
-      successor = clazz.temporalStep(valuation);
-    } else {
-      successor = clazz.unfoldTemporalStep(valuation);
-    }
-
-    return successor;
+    return eagerUnfold ? clazz.temporalStep(valuation) : clazz.unfoldTemporalStep(valuation);
   }
 
   public BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
@@ -115,29 +88,12 @@ public class EquivalenceClassStateFactory {
 
   public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation,
     EquivalenceClass... environmentArray) {
-    EquivalenceClass successor;
-
-    if (eagerUnfold) {
-      successor = clazz.temporalStepUnfold(valuation);
-    } else {
-      successor = clazz.unfoldTemporalStep(valuation);
-    }
-
-    if (removeRedundantObligations && environmentArray.length > 0) {
-      EquivalenceClass environment = and(Arrays.asList(environmentArray));
-
-      if (environment.implies(successor)) {
-        successor.free();
-        successor = factory.getTrue();
-      }
-
-      environment.free();
-    }
-
-    return successor;
+    EquivalenceClass successor = eagerUnfold
+      ? clazz.temporalStepUnfold(valuation)
+      : clazz.unfoldTemporalStep(valuation);
+    return removeRedundantObligations(successor, environmentArray);
   }
 
-  @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
   @Nullable
   public EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation,
     @Nullable EquivalenceClass environment) {
@@ -155,12 +111,29 @@ public class EquivalenceClassStateFactory {
     return successors;
   }
 
+  private EquivalenceClass removeRedundantObligations(EquivalenceClass state,
+    EquivalenceClass... environmentArray) {
+    if (removeRedundantObligations && environmentArray.length > 0) {
+      EquivalenceClass environment = and(Arrays.asList(environmentArray));
+
+      if (environment.implies(state)) {
+        state.free();
+        return factory.getTrue();
+      }
+
+      environment.free();
+    }
+    return state;
+  }
+
   public List<EquivalenceClass> splitEquivalenceClass(EquivalenceClass clazz) {
+    assert clazz.getRepresentative() != null;
     List<EquivalenceClass> successors = DisjunctiveNormalFormVisitor
       .normaliseStatic(clazz.getRepresentative()).stream()
       .map(this::getInitial).collect(Collectors.toCollection(LinkedList::new));
 
     if (removeRedundantObligations) {
+      //noinspection ObjectEquality
       successors.removeIf(x -> successors.stream().anyMatch(y -> x != y && x.implies(y)));
     }
 

@@ -19,33 +19,38 @@ package owl.automaton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Streams;
+import de.tum.in.naturals.bitset.BitSets;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import jhoafparser.consumer.HOAConsumerPrint;
+import owl.algorithms.SccAnalyser;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.ValuationSet;
-import owl.collections.ints.BitSets;
 
 public final class AutomatonUtil {
 
-  private AutomatonUtil() {
-  }
+  private AutomatonUtil() {}
 
   /**
    * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
@@ -222,6 +227,37 @@ public final class AutomatonUtil {
     explore(automaton, states, embed(explorationFunction), sensitiveAlphabetOracle, sizeCounter);
   }
 
+  public static <S> Set<S> exploreWithLabelledEdge(MutableAutomaton<S, ?> automaton,
+    Iterable<S> states, Function<S, Iterable<LabelledEdge<S>>> successorOracle) {
+    Set<S> exploredStates = Sets.newHashSet(states);
+    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.poll();
+      Iterable<LabelledEdge<S>> labelledEdges = successorOracle.apply(state);
+
+      for (LabelledEdge<S> labelledEdge : labelledEdges) {
+        automaton.addEdge(state, labelledEdge.valuations, labelledEdge.edge);
+        S successorState = labelledEdge.edge.getSuccessor();
+        if (exploredStates.add(successorState)) {
+          workQueue.add(successorState);
+        }
+      }
+    }
+
+    return exploredStates;
+  }
+
+  public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
+    BiConsumer<S, Edge<S>> action) {
+    List<Set<S>> sccs = SccAnalyser.computeSccs(automaton.getInitialStates(),
+      automaton::getSuccessors, false);
+
+    for (Set<S> scc : sccs) {
+      TransitionUtil.forEachEdgeInSet(automaton::getEdges, scc, action);
+    }
+  }
+
   /**
    * Returns the set of infinitely often seen transitions when reading the word {@code word}. If the
    * automaton is non-deterministic, there are multiple possibilities, hence a set of sets is
@@ -334,22 +370,10 @@ public final class AutomatonUtil {
     return true;
   }
 
-  public static <S> boolean isScc(Set<S> states,
-    Function<S, Iterable<Edge<S>>> successorFunction) {
-    if (states.size() == 1) {
-      return true;
-    }
-    Function<S, Iterable<S>> successorFun =
-      successorFunction.andThen(iter -> Iterables.transform(iter, Edge::getSuccessor));
-    return isSccHelper(states, successorFun);
-  }
-
-  private static <S> boolean isSccHelper(Set<S> states,
-    Function<S, Iterable<S>> successorFunction) {
-    return states.parallelStream()
-      .map(successorFunction)
-      .map(Streams::stream)
-      .allMatch(successors -> successors
-        .anyMatch(states::contains));
+  public static String toHoa(Automaton<?, ?> automaton) {
+    ByteArrayOutputStream writer = new ByteArrayOutputStream();
+    HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
+    automaton.toHoa(hoa, EnumSet.of(Option.ANNOTATIONS));
+    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 }

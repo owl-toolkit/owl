@@ -34,7 +34,7 @@ import owl.automaton.output.HoaPrintable;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 
 public final class NBA2DPA extends AbstractCommandLineTool<Automaton<HoaState,
-GeneralizedBuchiAcceptance>> {
+  GeneralizedBuchiAcceptance>> {
   public static void main(String... args) {
     new NBA2DPA().execute(new ArrayDeque<>(Arrays.asList(args)));
   }
@@ -42,16 +42,15 @@ GeneralizedBuchiAcceptance>> {
   @Override
   protected Function<Automaton<HoaState, GeneralizedBuchiAcceptance>, ? extends HoaPrintable>
   getTranslation(EnumSet<Optimisation> optimisations) {
-    return new NBA2DPAFunction<HoaState>();
+    return new NBA2DPAFunction<>();
   }
 
   @Override
   protected Collection<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>>
-  parseInput(
-    InputStream stream) throws ParseException {
-    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream, null);
-    List<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>> inputs 
-    = new ArrayList<>();
+  parseInput(InputStream stream) throws ParseException {
+    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream);
+    List<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>> inputs =
+      new ArrayList<>();
 
     for (Automaton<HoaState, ?> automaton : automata) {
       //noinspection unchecked

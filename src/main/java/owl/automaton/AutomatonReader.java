@@ -19,10 +19,12 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerStore;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.HOAFParser;
+import jhoafparser.parser.HOAFParserSettings;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.storage.StoredAutomaton;
 import jhoafparser.storage.StoredEdgeImplicit;
@@ -60,35 +62,38 @@ public final class AutomatonReader {
   public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoa(InputStream stream,
     @Nullable ValuationSetFactory factory, Class<A> acceptanceClass) throws ParseException {
     List<Automaton<HoaState, A>> automata = new ArrayList<>();
-
     Consumer<Automaton<HoaState, ?>> automatonConsumer = automaton -> {
       checkArgument(acceptanceClass.isInstance(automaton.getAcceptance()));
       // noinspection unchecked
       automata.add((Automaton<HoaState, A>) automaton);
     };
 
-    HOAFParser.parseHOA(stream, () ->
-      new HOAIntermediateCheckValidity(
-      new ToTransitionAcceptance(
-      new HoaConsumerAutomaton(automatonConsumer, factory))));
-
+    readHoa(stream, automatonConsumer, factory, false);
     return Iterables.getOnlyElement(automata);
   }
 
-  public static List<Automaton<HoaState, ?>> readHoaCollection(String input) throws ParseException {
-    return readHoaCollection(toStream(input), null);
+  public static void readHoa(InputStream stream, Consumer<Automaton<HoaState, ?>> consumer,
+    @Nullable ValuationSetFactory factory, boolean lenient) throws ParseException {
+    HOAFParserSettings settings = new HOAFParserSettings();
+    // We just try to somehow make sense of the input
+    settings.setFlagValidate(lenient);
+
+    HOAFParser.parseHOA(stream, () -> {
+      HOAConsumer hoaConsumer =
+        new ToTransitionAcceptance(new HoaConsumerAutomaton(consumer, factory));
+      return lenient ? hoaConsumer : new HOAIntermediateCheckValidity(hoaConsumer);
+    }, settings);
   }
 
-  public static List<Automaton<HoaState, ?>> readHoaCollection(InputStream stream,
-    @Nullable ValuationSetFactory factory) throws ParseException {
+  public static List<Automaton<HoaState, ?>> readHoaCollection(InputStream input)
+    throws ParseException {
     List<Automaton<HoaState, ?>> automatonList = new ArrayList<>();
-
-    HOAFParser.parseHOA(stream, () ->
-      new HOAIntermediateCheckValidity(
-      new ToTransitionAcceptance(
-      new HoaConsumerAutomaton(automatonList::add, factory))));
-
+    readHoa(input, automatonList::add, null, false);
     return automatonList;
+  }
+
+  public static List<Automaton<HoaState, ?>> readHoaCollection(String input) throws ParseException {
+    return readHoaCollection(toStream(input));
   }
 
   private static InputStream toStream(String string) {
@@ -311,7 +316,7 @@ public final class AutomatonReader {
 
     private HoaState getSuccessor(List<Integer> successors) throws HOAConsumerException {
       check(successors.size() == 1, "Universal edges not supported");
-      return states.get(Iterables.getOnlyElement(successors));
+      return states.get(Iterables.getOnlyElement(successors).intValue());
     }
 
     MutableAutomaton<HoaState, ?> transform() throws HOAConsumerException {
@@ -370,7 +375,7 @@ public final class AutomatonReader {
       Collection<HoaState> initialStates = new ArrayList<>(startStates.size());
       for (List<Integer> startState : startStates) {
         check(startState.size() == 1, "Universal initial states not supported");
-        initialStates.add(states.get(Iterables.getOnlyElement(startState)));
+        initialStates.add(states.get(Iterables.getOnlyElement(startState).intValue()));
       }
       automaton.setInitialStates(initialStates);
       return automaton;

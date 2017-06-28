@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.Iterators;
+import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -45,7 +46,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
-import owl.collections.ints.BitSets;
 
 final class Any2BitArena<S> {
 
@@ -149,7 +149,7 @@ final class Any2BitArena<S> {
            new BufferedOutputStream(new FileOutputStream(edgeFile)))) {
 
       nodeStream.writeInt(0);
-      nodeStream.writeInt(ids.get(automaton.getInitialState()));
+      nodeStream.writeInt(ids.getInt(automaton.getInitialState()));
       nodeStream.writeInt(firstPlayer.ordinal());
 
       // Write empty header.
@@ -226,7 +226,7 @@ final class Any2BitArena<S> {
 
       for (Map.Entry<S, Int2ObjectMap<ValuationSet>> entry : intermediateStates.entrySet()) {
         for (Int2ObjectMap.Entry<ValuationSet> entry2 : entry.getValue().int2ObjectEntrySet()) {
-          edgeStream.writeInt(ids.get(entry.getKey()));
+          edgeStream.writeInt(ids.getInt(entry.getKey()));
           edgeStream.writeInt(entry2.getIntKey());
           edges++;
 
@@ -240,7 +240,7 @@ final class Any2BitArena<S> {
       }
     }
 
-    nodeStream.writeInt(ids.get(state));
+    nodeStream.writeInt(ids.getInt(state));
     nodeStream.writeInt(edges);
 
     for (int i = beforeSecondaryNodes + 1; i <= secondaryNodes; i++) {

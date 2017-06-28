@@ -18,24 +18,27 @@
 package owl.util;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.Registry;
+import owl.factories.ValuationSetFactory;
 import owl.ltl.Formula;
 
 public class ExternalTranslator implements Function<Formula, Automaton<HoaState, OmegaAcceptance>> {
-
-  private ProcessBuilder builder;
+  private static final Pattern splitPattern = Pattern.compile("\\s+");
+  private final ProcessBuilder builder;
 
   public ExternalTranslator(String tool) {
-    this(tool.split("\\s+"));
+    this(splitPattern.split(tool));
   }
 
   private ExternalTranslator(String[] tool) {
@@ -44,24 +47,26 @@ public class ExternalTranslator implements Function<Formula, Automaton<HoaState,
 
   @Override
   public Automaton<HoaState, OmegaAcceptance> apply(Formula formula) {
+    Process process = null;
     try {
-      Process process = builder.start();
+      process = builder.start();
 
-      BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream());
-      BufferedOutputStream outputStream = new BufferedOutputStream(process.getOutputStream());
+      try (OutputStreamWriter outputStream =
+             new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
+        outputStream.write(formula.toString(Collections.emptyList(), true));
+        outputStream.write('\n');
+      }
 
-      outputStream.write(formula.toString(Collections.emptyList(), true).getBytes("UTF-8"));
-      outputStream.write('\n');
-      outputStream.close();
-
-      Automaton<HoaState, OmegaAcceptance> automaton = AutomatonReader.readHoa(inputStream,
-        Registry.getFactories(formula).valuationSetFactory, OmegaAcceptance.class);
-      process.destroy();
-
-      return automaton;
+      ValuationSetFactory vsFactory = Registry.getFactories(formula).valuationSetFactory;
+      try (BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream())) {
+        return AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
+      }
     } catch (IOException | ParseException e) {
-      e.printStackTrace();
-      throw new IllegalStateException("Failed to use external translator. Reason: " + e);
+      throw new IllegalStateException("Failed to use external translator.", e);
+    } finally {
+      if (process != null && process.isAlive()) {
+        process.destroy();
+      }
     }
   }
 }

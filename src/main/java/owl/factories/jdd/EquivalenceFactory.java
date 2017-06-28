@@ -433,28 +433,33 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     public String toString() {
       String representativeString;
 
-      if (factory.isVariableOrNegated(bdd)) {
+      if (factory.isVariable(bdd)) {
         representativeString = reverseMapping[factory.getVariable(bdd)]
           .toString(atomMapping, false);
+      } else if (factory.isVariableNegated(bdd)) {
+        representativeString = String.format("!%s", reverseMapping[factory.getVariable(bdd)]
+          .toString(atomMapping, false));
       } else if (representative == null) {
-        representativeString = "?";
+        return String.format("(%d)", bdd);
       } else {
         representativeString = representative.toString(atomMapping, false);
       }
 
-      return String.format("%s (%d)", representativeString, bdd);
+      return representativeString;
     }
 
     @Override
     public EquivalenceClass unfold() {
-      @Nullable Formula successorRepresentative =
+      @Nullable
+      Formula successorRepresentative =
         representative == null ? null : representative.unfold();
       return createEquivalenceClass(successorRepresentative, factory.reference(unfoldBdd(bdd)));
     }
 
     @Override
     public EquivalenceClass unfoldTemporalStep(BitSet valuation) {
-      @Nullable Formula successorRepresentative =
+      @Nullable
+      Formula successorRepresentative =
         representative == null ? null : representative.unfoldTemporalStep(valuation);
       return createEquivalenceClass(successorRepresentative,
         factory.reference(temporalStepBdd(unfoldBdd(bdd), valuation)));

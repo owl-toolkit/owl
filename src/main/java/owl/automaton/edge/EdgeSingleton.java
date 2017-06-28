@@ -80,6 +80,11 @@ final class EdgeSingleton<S> implements Edge<S> {
   }
 
   @Override
+  public boolean hasAcceptanceSets() {
+    return acceptance != EMPTY_ACCEPTANCE;
+  }
+
+  @Override
   public int hashCode() {
     // Not using Objects.hash to avoid var-ags array instantiation
     return 31 * (31 + successor.hashCode()) + acceptance;
@@ -89,6 +94,11 @@ final class EdgeSingleton<S> implements Edge<S> {
   public boolean inSet(@Nonnegative int i) {
     assert i >= 0;
     return i == acceptance;
+  }
+
+  @Override
+  public int largestAcceptanceSet() {
+    return hasAcceptanceSets() ? acceptance : -1;
   }
 
   @Override

@@ -186,6 +186,14 @@ delag Fallback:
     TEST_NAME: "delag-fallback"
   <<: *ltlcross_template
 
+# rabinizer
+
+rabinizer:
+  stage: test
+  variables:
+    TEST_NAME: "rabinizer"
+  <<: *ltlcross_template
+
 # Benchmarks
 
 bench ltl2ldba:

@@ -26,8 +26,8 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
-import owl.collections.ints.BitSets;
 import owl.factories.ValuationSetFactory;
+import owl.util.BitSets;
 
 public class AutomatonReaderTest {
 

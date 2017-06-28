@@ -27,7 +27,7 @@ public interface EquivalenceClassFactory {
   EquivalenceClass createEquivalenceClass(Formula formula);
 
   default EquivalenceClass createEquivalenceClass(Iterable<? extends Formula> formulas) {
-    return createEquivalenceClass(new Conjunction(formulas));
+    return createEquivalenceClass(Conjunction.create(formulas));
   }
 
   default EquivalenceClass getFalse() {

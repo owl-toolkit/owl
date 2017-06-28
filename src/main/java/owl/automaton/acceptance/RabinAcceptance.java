@@ -17,12 +17,12 @@
 
 package owl.automaton.acceptance;
 
-import static owl.automaton.acceptance.AcceptanceHelper.filterSuccessorFunction;
-
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Set;
@@ -32,7 +32,7 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomAcceptance.Type;
 import jhoafparser.ast.BooleanExpression;
 import owl.algorithms.SccAnalyser;
-import owl.automaton.AutomatonUtil;
+import owl.automaton.TransitionUtil;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
@@ -45,18 +45,39 @@ import owl.automaton.output.HoaConsumerExtended;
  * acceptance without any pairs rejects every word.
  */
 public final class RabinAcceptance implements OmegaAcceptance {
+  private static final int NOT_ALLOCATED = -1;
   private final List<RabinPair> pairs;
+  private final BitSet allocatedIndices = new BitSet();
 
-  public RabinAcceptance() {
-    pairs = new ArrayList<>();
+  public static boolean checkWellformed(BooleanExpression<AtomAcceptance> acceptanceExpression) {
+    if (acceptanceExpression.isAtom() || acceptanceExpression.isNOT()) {
+      return false;
+    }
+    if (acceptanceExpression.isAND()) {
+      if (acceptanceExpression.getLeft().isAtom() && acceptanceExpression.getRight().isAtom()) {
+        return acceptanceExpression.getLeft().getAtom().getType() == Type.TEMPORAL_FIN
+          && acceptanceExpression.getRight().getAtom().getType() == Type.TEMPORAL_INF;
+      } else {
+        return false;
+      }
+    }
+    if (acceptanceExpression.isOR()) {
+      return checkWellformed(acceptanceExpression.getLeft())
+        && checkWellformed(acceptanceExpression.getRight());
+    }
+    return false;
   }
 
   public static RabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
     RabinAcceptance acceptance = new RabinAcceptance();
+    if (expression.getType() == BooleanExpression.Type.EXP_FALSE) {
+      // Empty rabin acceptance
+      return acceptance;
+    }
 
     for (BooleanExpression<AtomAcceptance> pair : BooleanExpressions.getDisjuncts(expression)) {
-      int fin = -1;
-      int inf = -1;
+      int fin = NOT_ALLOCATED;
+      int inf = NOT_ALLOCATED;
 
       for (BooleanExpression<AtomAcceptance> element : BooleanExpressions.getConjuncts(pair)) {
         AtomAcceptance atom = element.getAtom();
@@ -65,11 +86,9 @@ public final class RabinAcceptance implements OmegaAcceptance {
           case TEMPORAL_FIN:
             fin = atom.getAcceptanceSet();
             break;
-
           case TEMPORAL_INF:
             inf = atom.getAcceptanceSet();
             break;
-
           default:
             assert false;
             break;
@@ -82,11 +101,13 @@ public final class RabinAcceptance implements OmegaAcceptance {
     return acceptance;
   }
 
+  public RabinAcceptance() {
+    pairs = new ArrayList<>();
+  }
+
   @Override
   public <S> boolean containsAcceptingRun(Set<S> scc,
-      Function<S, Iterable<Edge<S>>> successorFunction) {
-    assert AutomatonUtil.isScc(scc, successorFunction);
-
+    Function<S, Iterable<Edge<S>>> successorFunction) {
     IntSet noFinitePairs = new IntArraySet();
     List<RabinPair> finitePairs = new ArrayList<>();
     for (RabinPair rabinPair : pairs) {
@@ -99,7 +120,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
 
     if (!noFinitePairs.isEmpty()) {
       Function<S, Iterable<Edge<S>>> filteredSuccessorFunction =
-        filterSuccessorFunction(successorFunction, scc);
+        TransitionUtil.filterEdges(successorFunction, scc);
 
       // Check if there is any edge containing the infinite index of some pair with no finite index
       Predicate<Iterable<Edge<S>>> predicate = iter -> {
@@ -125,7 +146,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
     return !finitePairs.isEmpty() && finitePairs.parallelStream().anyMatch(finitePair -> {
       // Compute all SCCs after removing the finite edges of the current finite pair
       Function<S, Iterable<Edge<S>>> filteredSuccessorFunction =
-        filterSuccessorFunction(successorFunction,
+        TransitionUtil.filterEdges(successorFunction,
           edge -> scc.contains(edge.getSuccessor()) && !finitePair.containsFinite(edge));
 
       return SccAnalyser.computeSccsWithEdges(scc, filteredSuccessorFunction)
@@ -151,13 +172,25 @@ public final class RabinAcceptance implements OmegaAcceptance {
 
   private RabinPair createPair(int fin, int inf) {
     RabinPair pair = new RabinPair(fin, inf);
+    if (fin != NOT_ALLOCATED) {
+      allocatedIndices.set(fin);
+    }
+    if (inf != NOT_ALLOCATED) {
+      allocatedIndices.set(inf);
+    }
     pairs.add(pair);
     return pair;
   }
 
+  public RabinPair createPair() {
+    int fin = allocatedIndices.nextClearBit(0);
+    int inf = allocatedIndices.nextClearBit(fin + 1);
+    return createPair(fin, inf);
+  }
+
   @Override
   public int getAcceptanceSets() {
-    return 2 * pairs.size();
+    return allocatedIndices.cardinality();
   }
 
   @Override
@@ -191,6 +224,18 @@ public final class RabinAcceptance implements OmegaAcceptance {
     return ImmutableList.of(pairs.size());
   }
 
+  public int getNumberOfPairs() {
+    return pairs.size();
+  }
+
+  public RabinPair getPair(int index) {
+    return pairs.get(index);
+  }
+
+  public List<RabinPair> getPairs() {
+    return Collections.unmodifiableList(pairs);
+  }
+
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
     return edge.acceptanceSetStream().allMatch(index -> index < 2 * pairs.size());
@@ -204,26 +249,6 @@ public final class RabinAcceptance implements OmegaAcceptance {
       builder.append(pair);
     }
     return builder.toString();
-  }
-
-  public static boolean checkWellformednes(
-      BooleanExpression<AtomAcceptance> acceptanceExpression) {
-    if (acceptanceExpression.isAtom() || acceptanceExpression.isNOT()) {
-      return false;
-    }
-    if (acceptanceExpression.isAND()) {
-      if (acceptanceExpression.getLeft().isAtom() && acceptanceExpression.getRight().isAtom()) {
-        return acceptanceExpression.getLeft().getAtom().getType() == Type.TEMPORAL_FIN
-            && acceptanceExpression.getRight().getAtom().getType() == Type.TEMPORAL_INF;
-      } else {
-        return false;
-      }
-    }
-    if (acceptanceExpression.isOR()) {
-      return checkWellformednes(acceptanceExpression.getLeft())
-          && checkWellformednes(acceptanceExpression.getRight());
-    }
-    return false;
   }
 
   public static final class RabinPair {
@@ -265,20 +290,22 @@ public final class RabinAcceptance implements OmegaAcceptance {
 
     private BooleanExpression<AtomAcceptance> getBooleanExpression() {
       assert !isEmpty();
-      if (finiteIndex == -1) {
+      if (finiteIndex == NOT_ALLOCATED) {
         return HoaConsumerExtended.mkInf(infiniteIndex);
       }
-      if (infiniteIndex == -1) {
+      if (infiniteIndex == NOT_ALLOCATED) {
         return HoaConsumerExtended.mkFin(finiteIndex);
       }
       return HoaConsumerExtended.mkFin(finiteIndex).and(HoaConsumerExtended.mkInf(infiniteIndex));
     }
 
     public int getFiniteIndex() {
+      assert hasFinite();
       return finiteIndex;
     }
 
     public int getInfiniteIndex() {
+      assert hasInfinite();
       return infiniteIndex;
     }
 
@@ -286,21 +313,21 @@ public final class RabinAcceptance implements OmegaAcceptance {
      * Checks if the <b>Fin</b> set of this pair is already used.
      */
     public boolean hasFinite() {
-      return finiteIndex != -1;
+      return finiteIndex != NOT_ALLOCATED;
     }
 
     /**
      * Checks if the <b>Inf</b> set of this pair is already used.
      */
     public boolean hasInfinite() {
-      return infiniteIndex != -1;
+      return infiniteIndex != NOT_ALLOCATED;
     }
 
     /**
      * Checks if the <b>Fin</b> or <b>Inf</b> set of this pair are allocated.
      */
     public boolean isEmpty() {
-      return finiteIndex == -1 && infiniteIndex == -1;
+      return finiteIndex == NOT_ALLOCATED && infiniteIndex == NOT_ALLOCATED;
     }
 
     /**
@@ -308,7 +335,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
      * pair.
      */
     public boolean isFinite(int index) {
-      return finiteIndex != -1 && index == finiteIndex;
+      return finiteIndex != NOT_ALLOCATED && index == finiteIndex;
     }
 
     /**
@@ -316,7 +343,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
      * pair.
      */
     public boolean isInfinite(int index) {
-      return infiniteIndex != -1 && index == infiniteIndex;
+      return infiniteIndex != NOT_ALLOCATED && index == infiniteIndex;
     }
 
     @Override
@@ -327,13 +354,13 @@ public final class RabinAcceptance implements OmegaAcceptance {
 
       StringBuilder builder = new StringBuilder(10);
       builder.append('(');
-      if (finiteIndex == -1) {
+      if (finiteIndex == NOT_ALLOCATED) {
         builder.append('#');
       } else {
         builder.append(finiteIndex);
       }
       builder.append('|');
-      if (infiniteIndex == -1) {
+      if (infiniteIndex == NOT_ALLOCATED) {
         builder.append('#');
       } else {
         builder.append(infiniteIndex);

@@ -41,7 +41,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.transformations.AutomatonMinimization;
+import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.ValuationSet;
 import owl.translations.Optimisation;
 
@@ -142,7 +142,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     epsilonJumps.values().removeIf(filterAndCollect);
     valuationSetJumps.values().removeIf(filterAndCollectSet);
 
-    AutomatonMinimization.removeDeadStates(acceptingComponent,
+    MinimizationUtil.removeDeadStates(acceptingComponent,
       Sets.union(initialStates, jumpTargets),
       x -> {
         epsilonJumps.values().remove(x);
@@ -176,9 +176,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
         });
       }
 
-      AutomatonMinimization.removeDeadStates(initialComponent,
+      MinimizationUtil.removeDeadStates(initialComponent,
         Sets.union(initialComponent.getInitialStates(), valuationSetJumps.rowKeySet()));
-      AutomatonMinimization.removeDeadStates(acceptingComponent, reachableStates,
+      MinimizationUtil.removeDeadStates(acceptingComponent, reachableStates,
         initialStates::remove);
       assert acceptingComponent.containsStates(initialStates);
       epsilonJumps.clear();
@@ -188,7 +188,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
       protectedStates.addAll(epsilonJumps.keySet());
       protectedStates.addAll(valuationSetJumps.rowKeySet());
       protectedStates.addAll(initialComponent.getInitialStates());
-      AutomatonMinimization.removeDeadStates(initialComponent, protectedStates);
+      MinimizationUtil.removeDeadStates(initialComponent, protectedStates);
     }
 
     acceptingComponent.setInitialStates(initialStates);

@@ -17,6 +17,7 @@
 
 package owl.factories;
 
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Deque;
@@ -24,7 +25,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.collections.ints.BitSets;
 import owl.ltl.EquivalenceClass;
 
 public final class EquivalenceClassUtil {

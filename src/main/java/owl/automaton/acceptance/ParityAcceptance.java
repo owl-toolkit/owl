@@ -33,7 +33,7 @@ import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.algorithms.SccAnalyser;
-import owl.automaton.AutomatonUtil;
+import owl.automaton.TransitionUtil;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.output.HoaConsumerExtended;
@@ -59,7 +59,6 @@ public final class ParityAcceptance implements OmegaAcceptance {
   @Override
   public <S> boolean containsAcceptingRun(Set<S> scc,
     Function<S, Iterable<Edge<S>>> successorFunction) {
-    assert AutomatonUtil.isScc(scc, successorFunction);
     assert scc.parallelStream()
       .map(successorFunction).flatMap(Streams::stream)
       .map(Edge::acceptanceSetIterator)
@@ -133,7 +132,6 @@ public final class ParityAcceptance implements OmegaAcceptance {
   public boolean isWellFormedEdge(Edge<?> edge) {
     PrimitiveIterator.OfInt iterator = edge.acceptanceSetIterator();
     if (!iterator.hasNext()) {
-      // TODO Is this true?
       return true;
     }
     int firstIndex = iterator.nextInt();
@@ -221,7 +219,7 @@ public final class ParityAcceptance implements OmegaAcceptance {
           // terminated before adding this sub-SCC.
 
           Function<S, Iterable<Edge<S>>> filteredSuccessorFunction =
-            AcceptanceHelper.filterSuccessorFunction(successorFunction, edge -> {
+            TransitionUtil.filterEdges(successorFunction, edge -> {
               if (!scc.contains(edge.getSuccessor())) {
                 return false;
               }

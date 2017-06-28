@@ -18,11 +18,14 @@
 package owl.factories.jdd;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.BitSet;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
+import owl.collections.ValuationSet;
 
 public class BddValuationSetFactoryTest {
   private Set<String> alphabet;
@@ -30,8 +33,8 @@ public class BddValuationSetFactoryTest {
 
   @Before
   public void setUp() {
-    alphabet = ImmutableSet.of("a", "b");
-    factory = new ValuationFactory(2);
+    alphabet = ImmutableSet.of("a", "b", "c", "d", "e");
+    factory = new ValuationFactory(alphabet.size());
   }
 
   @Test
@@ -40,7 +43,21 @@ public class BddValuationSetFactoryTest {
   }
 
   @Test
+  public void testCreateUniverseValuationSet() {
+    ValuationSet universe = factory.createUniverseValuationSet();
+    ValuationSet empty = factory.createEmptyValuationSet();
+    BitSet alphabet = new BitSet(this.alphabet.size());
+    alphabet.set(0, this.alphabet.size());
+    for (BitSet element : de.tum.in.naturals.bitset.BitSets.powerSet(alphabet)) {
+      assertTrue(universe.contains(element));
+      empty.add(element);
+    }
+    assertEquals(empty, universe);
+  }
+
+  @Test
   public void testGetAlphabet() {
     assertEquals(alphabet.size(), factory.getSize());
   }
 }
+

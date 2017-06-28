@@ -15,24 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections.ints;
+package owl.util;
 
-final class SubsetRange {
-  public final int high;
-  public final int low;
+import java.util.BitSet;
 
-  public SubsetRange(int low, int high) {
-    assert low <= high;
-    this.low = low;
-    this.high = high;
+public final class BitSets {
+  private BitSets() {
   }
 
-  public boolean contains(SubsetRange other) {
-    return low <= other.low && other.high <= high;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("[%d, %d)", low, high);
+  public static BitSet createBitSet(boolean... indices) {
+    BitSet bitSet = new BitSet(indices.length);
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i]) {
+        bitSet.set(i);
+      }
+    }
+    return bitSet;
   }
 }

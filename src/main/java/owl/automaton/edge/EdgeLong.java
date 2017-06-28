@@ -17,9 +17,13 @@ final class EdgeLong<S> implements Edge<S> {
 
   EdgeLong(S successor, BitSet bitSet) {
     assert bitSet.length() <= Long.SIZE && bitSet.cardinality() > 1;
-    long[] bitSetLongs = bitSet.toLongArray();
-    assert bitSetLongs.length == 1;
-    this.store = bitSetLongs[0];
+    long store = 0L;
+    for (int i = 0; i < Long.SIZE; i++) {
+      if (bitSet.get(i)) {
+        store |= 1L << i;
+      }
+    }
+    this.store = store;
     this.successor = successor;
   }
 
@@ -51,20 +55,32 @@ final class EdgeLong<S> implements Edge<S> {
   }
 
   @Override
+  public S getSuccessor() {
+    return successor;
+  }
+
+  @Override
+  public boolean hasAcceptanceSets() {
+    assert store != 0;
+
+    return true;
+  }
+
+  @Override
   public int hashCode() {
     // Not using Objects.hash to avoid var-ags array instantiation
     return 31 * (int) (store ^ (store >>> 32)) + successor.hashCode();
   }
 
   @Override
-  public S getSuccessor() {
-    return successor;
-  }
-
-  @Override
   public boolean inSet(@Nonnegative int i) {
     assert i >= 0;
     return i < Long.SIZE && BitUtil.isSet(store, i);
+  }
+
+  @Override
+  public int largestAcceptanceSet() {
+    return Long.SIZE - Long.numberOfLeadingZeros(store);
   }
 
   @Override

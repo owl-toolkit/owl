@@ -24,6 +24,7 @@ import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class Any2BitArenaTest {
   private static final LTL2DPAFunction translation = new LTL2DPAFunction();
 

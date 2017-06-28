@@ -18,6 +18,7 @@
 package owl.automaton.transformations;
 
 import com.google.common.collect.ImmutableSet;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -30,7 +31,6 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
-import owl.collections.ints.BitSets;
 import owl.factories.ValuationSetFactory;
 
 public class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {

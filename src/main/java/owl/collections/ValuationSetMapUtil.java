@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.LabelledEdge;
 
 public final class ValuationSetMapUtil {
 
@@ -35,6 +36,11 @@ public final class ValuationSetMapUtil {
 
   public static <K> void add(Map<K, ValuationSet> map, K key, ValuationSet valuations) {
     map.merge(key, valuations, ValuationSet::union);
+  }
+
+  public static <K> void add(Map<K, ValuationSet> map, LabelledEdge<K> labelledEdge) {
+    map.merge(labelledEdge.getEdge().getSuccessor(), labelledEdge.getValuations(),
+      ValuationSet::union);
   }
 
   public static <K> void add(Map<K, ValuationSet> map, Map<K, ValuationSet> secondMap) {

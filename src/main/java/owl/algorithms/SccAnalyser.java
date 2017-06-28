@@ -17,115 +17,317 @@
 
 package owl.algorithms;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.collections.TarjanStack;
 
+/**
+ * Finds the SCCs of a given graph / transition system using Tarjan's algorithm.
+ */
 public final class SccAnalyser<S> {
-  private final Object2IntMap<S> id = new Object2IntOpenHashMap<>();
-  private final Object2IntMap<S> lowLink = new Object2IntOpenHashMap<>();
-  private final List<Set<S>> result = new ArrayList<>();
-  private final Deque<S> stack = new TarjanStack<>();
-  private final Function<S, Iterable<S>> successorFunction;
-  private int num = 0;
+  // TODO Parallel tarjan?
 
-  private SccAnalyser(Function<S, Iterable<S>> successorFunction) {
+  // Initial value for the low link - since we update the low-link whenever we find a link to a
+  // state we can use this to detect trivial SCCs. MAX_VALUE is important.
+  private static final int NO_LINK = Integer.MAX_VALUE;
+  private final Deque<S> explorationStack = new ArrayDeque<>();
+  private final boolean includeTransient;
+  private final Deque<TarjanState<S>> path = new ArrayDeque<>();
+  private final Set<S> processedNodes = new HashSet<>();
+  private final List<Set<S>> sccs = new ArrayList<>();
+  private final Map<S, TarjanState<S>> stateMap = new HashMap<>();
+  private final Function<S, Iterable<S>> successorFunction;
+  private int index = 0;
+
+  private SccAnalyser(Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
     this.successorFunction = successorFunction;
-    id.defaultReturnValue(Integer.MAX_VALUE);
-    lowLink.defaultReturnValue(Integer.MAX_VALUE);
+    this.includeTransient = includeTransient;
   }
 
   /**
-   * This method computes the SCCs of the state-/transition-graph of the
-   * automaton. It is based on Tarjan's strongly connected component
-   * algorithm. It runs in linear time, assuming the Map-operation get and put
-   * and containsKey (and the onStack set-operations) take constant time,
-   * which is acc. to java Documentation the case if the hash-function is good
-   * enough, also the checks for forbiddenEdges and allowedState need to be
-   * constant for the function to run in linear time.
+   * This method computes the SCCs of the state-/transition-graph of the automaton. It is based on
+   * Tarjan's strongly connected component algorithm. It runs in linear time, assuming the
+   * Map-operation get, put and containsKey (and the onStack set-operations) take constant time.
    *
-   * @param automaton:
+   * <p>The returned list of SCCs is ordered according to the topological ordering in the
+   * "condensation graph", aka the graph where the SCCs are vertices, ordered such that for each
+   * transition a->b in the condensation graph, a is in the list before b</p>
+   *
+   * @param automaton
    *     Automaton, for which the class is analysed
    *
-   * @return list of set of states, where each set corresponds to a (maximal) SCC.. The list is
-   * ordered according to the topological ordering in the "condensation graph", aka the graph where
-   * the SCCs are vertices, ordered such that for each transition a->b in the condensation graph, a
-   * is in the list before b
+   * @return A list of set of states, where each set corresponds to an SCC, in topological order
    */
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton) {
-    return computeSccs(automaton.getInitialStates(), automaton::getSuccessors);
+    return computeSccs(automaton, true);
+  }
+
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, boolean includeTransient) {
+    return computeSccs(automaton.getInitialStates(), automaton::getSuccessors, includeTransient);
+  }
+
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> states,
+    boolean includeTransient) {
+    return computeSccs(states, automaton::getSuccessors, includeTransient);
   }
 
   public static <S> List<Set<S>> computeSccs(Set<S> states,
     Function<S, Iterable<S>> successorFunction) {
-    SccAnalyser<S> analyser = new SccAnalyser<>(successorFunction);
-    List<Set<S>> sccList = new ArrayList<>();
+    return computeSccs(states, successorFunction, true);
+  }
 
-    for (S state : states) {
-      analyser.stack.push(state);
-      analyser.computeSccs();
-      sccList.addAll(analyser.result);
-      // TODO Do we need to clear here?
-      analyser.result.clear();
+  public static <S> List<Set<S>> computeSccs(Set<S> states,
+    Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
+    if (states.isEmpty()) {
+      // No need to initialize all the data-structures
+      return ImmutableList.of();
     }
 
-    return sccList;
+    SccAnalyser<S> analyser = new SccAnalyser<>(successorFunction, includeTransient);
+    for (S state : states) {
+      if (analyser.stateMap.containsKey(state) || analyser.processedNodes.contains(state)) {
+        continue;
+      }
+      analyser.run(state);
+    }
+
+    assert includeTransient || analyser.sccs.stream()
+      .noneMatch(scc -> isTransient(successorFunction, scc));
+
+    return analyser.sccs;
   }
 
   public static <S> List<Set<S>> computeSccsWithEdges(Set<S> states,
     Function<S, Iterable<Edge<S>>> successorFunction) {
-    return computeSccs(states, successorFunction.andThen(Edges::toSuccessors));
+    return computeSccsWithEdges(states, successorFunction, true);
   }
 
-  private void computeSccs() {
-    S node = stack.peek();
-    lowLink.put(node, num);
-    id.put(node, num);
-    int nodeIndex = num;
-    num++;
+  public static <S> List<Set<S>> computeSccsWithEdges(Set<S> states,
+    Function<S, Iterable<Edge<S>>> successorFunction, boolean includeTransient) {
+    return computeSccs(states, successorFunction.andThen(Edges::toSuccessors), includeTransient);
+  }
 
-    successorFunction.apply(node).forEach((successor) -> {
-      int successorId = id.getInt(successor);
-      if (successorId == id.defaultReturnValue()) {
-        // Successor was not processed
-        assert !id.containsKey(successor);
+  /**
+   * Determines whether the given set of states is a BSCC in the given automaton <strong>assuming
+   * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
+   *
+   * @see #isBscc(Set, Function)
+   */
+  public static <S> boolean isBscc(Automaton<S, ?> automaton, Set<S> states) {
+    for (S state : states) {
+      if (!states.containsAll(automaton.getSuccessors(state))) {
+        return false;
+      }
+    }
 
-        // Add successor to work stack
-        stack.push(successor);
-        // Recurse
-        computeSccs();
+    return true;
+  }
 
-        // Set the low-link of the node to the min of it and the successor's low-link
-        int successorLink = lowLink.getInt(successor);
-        if (successorLink < lowLink.getInt(node)) {
-          lowLink.put(node, successorLink);
+  /**
+   * Determines whether the given set of states is a BSCC under the given successor function
+   * <strong>assuming that it is an SCC</strong>. If not, the behaviour is undefined.
+   *
+   * @see #isBscc(Automaton, Set)
+   */
+  public static <S> boolean isBscc(Set<S> scc,
+    Function<S, ? extends Iterable<S>> successorFunction) {
+    for (S state : scc) {
+      for (S successor : successorFunction.apply(state)) {
+        if (!scc.contains(successor)) {
+          return false;
         }
-      } else if (successorId < nodeIndex && stack.contains(successor)
-        && successorId < lowLink.getInt(node)) {
-        // The successor belongs to some earlier component, set the low-link of the node to the min
-        // of it and the successor's id.
-        lowLink.put(node, successorId);
       }
-    });
+    }
+    return true;
+  }
 
-    if (lowLink.getInt(node) == nodeIndex) {
-      Set<S> set = new HashSet<>();
+  public static <S> boolean isTransient(Function<S, ? extends Iterable<S>> successorFunction,
+    Set<S> scc) {
+    if (scc.size() > 1) {
+      return false;
+    }
+    S state = Iterables.getOnlyElement(scc);
+    return !Iterables.contains(successorFunction.apply(state), state);
+  }
 
-      while (!stack.isEmpty() && id.getInt(stack.peek()) >= nodeIndex) {
-        S otherNode = stack.pop();
-        set.add(otherNode);
+  private TarjanState<S> create(S node) {
+    assert !stateMap.containsKey(node) && !processedNodes.contains(node)
+      : String.format("Node %s already processed", node);
+
+    int nodeIndex = index;
+    index += 1;
+
+    Iterator<S> successorIterator = successorFunction.apply(node).iterator();
+    TarjanState<S> state = new TarjanState<>(node, nodeIndex, successorIterator);
+
+    explorationStack.push(node);
+    stateMap.put(node, state);
+    return state;
+  }
+
+  @SuppressWarnings("ObjectEquality")
+  private void run(S initial) {
+    assert path.isEmpty();
+    TarjanState<S> state = create(initial);
+
+    //noinspection LabeledStatement - Without the label this method gets ugly
+    outer:
+    while (true) {
+      S node = state.node;
+      int nodeIndex = state.nodeIndex;
+
+      Iterator<S> successorIterator = state.successorIterator;
+      while (successorIterator.hasNext()) {
+        S successor = successorIterator.next();
+
+        if (Objects.equals(node, successor)) {
+          if (state.lowLink == NO_LINK) {
+            state.lowLink = nodeIndex;
+          }
+          // No need to process self-loops
+          continue;
+        }
+
+        if (processedNodes.contains(successor)) {
+          continue;
+        }
+
+        TarjanState<S> successorState = stateMap.get(successor);
+        assert successorState != state; // NOPMD
+
+        if (successorState == null) {
+          // Successor was not processed, do that now
+          path.push(state);
+          state = create(successor);
+          continue outer;
+        }
+
+        // Successor is not fully explored and we found a link to it, hence the low-link of this
+        // state is less than or equal to the successors link.
+        int successorIndex = successorState.nodeIndex;
+        if (successorIndex > nodeIndex) {
+          // This only happens if the successor iterator returns duplicates.
+          continue;
+        }
+        assert successorIndex < nodeIndex;
+
+        int successorLowLink = successorState.lowLink;
+
+        if (successorLowLink == NO_LINK) {
+          // Special case: We haven't found a true low-link from the successor yet.
+          if (state.lowLink == NO_LINK) {
+            // We also didn't find a link to the current state. Since the successor is an
+            // ancestor to the current state, this is our best guess for a low-link now.
+            state.lowLink = successorIndex;
+            continue;
+          }
+
+          // We will only update the current state's low-link, since we will back-propagate this
+          // information in the pop-phase.
+          successorLowLink = successorIndex;
+        }
+
+        if (successorLowLink < state.lowLink) {
+          // This includes the case of state.lowLink == NO_LINK
+          state.lowLink = successorLowLink;
+        }
+
+        assert state.lowLink < state.nodeIndex;
       }
 
-      result.add(set);
+      // Finished handling this state by identifying whether it is a root of an SCC and
+      // backtracking information if not. There are three possible cases:
+      // 1) No link to this state has been found at all (-> transient SCC)
+      // 2) This state is its own low-link (-> root of true SCC)
+      // 3) State has true low link (-> non-root element of SCC)
+
+      int lowLink = state.lowLink;
+      if (lowLink == NO_LINK) {
+        // This state has no back-link at all - transient state
+        assert Objects.equals(explorationStack.peek(), node);
+        if (this.includeTransient) {
+          sccs.add(ImmutableSet.of(node));
+        }
+        explorationStack.pop();
+        processedNodes.add(node);
+      } else if (lowLink == nodeIndex) {
+        // This node can't reach anything younger than itself, thus by invariant it is the root of
+        // an SCC. We now build the SCC and remove all now superfluous information (to keep the used
+        // data-structures as small as possible)
+        assert !explorationStack.isEmpty();
+
+        // Gather all states in this SCC by popping the stack until we find the back-link
+        ImmutableSet<S> scc;
+        S stackNode = explorationStack.pop();
+        if (stackNode == node) { // NOPMD
+          // Singleton SCC
+          scc = ImmutableSet.of(node);
+        } else {
+          ImmutableSet.Builder<S> builder = ImmutableSet.builder();
+          builder.add(stackNode);
+          do {
+            // Pop the stack until we find our node
+            stackNode = explorationStack.pop();
+            builder.add(stackNode);
+          }
+          while (stackNode != node); // NOPMD
+          scc = builder.build();
+        }
+        sccs.add(scc);
+
+        // Remove all information about the popped states - retain the indices information since
+        // we need to know which states have been processed.
+        stateMap.keySet().removeAll(scc);
+        processedNodes.addAll(scc);
+      } else {
+        // If this state is not a root, update the predecessor (which has to exist)
+        assert !path.isEmpty() && lowLink < nodeIndex;
+
+        TarjanState<S> predecessorState = path.peek();
+        // Since the current state has a "true" low-link, it is a possible low-link for the
+        // predecessor, too. By invariant, it points to a non-finished state, i.e. a state in some
+        // not yet found SCC. Hence, it has to point to a node at least as old as the predecessor.
+        assert lowLink <= predecessorState.nodeIndex;
+        if (predecessorState.lowLink == NO_LINK || lowLink < predecessorState.lowLink) {
+          predecessorState.lowLink = lowLink;
+        }
+      }
+
+      // Backtrack on the work-stack
+      if (path.isEmpty()) {
+        break;
+      }
+      state = path.pop();
+    }
+
+    assert path.isEmpty();
+  }
+
+  private static final class TarjanState<S> {
+    final S node;
+    final int nodeIndex;
+    final Iterator<S> successorIterator;
+    int lowLink;
+
+    TarjanState(S node, int nodeIndex, Iterator<S> successorIterator) {
+      this.node = node;
+      this.nodeIndex = nodeIndex;
+      this.successorIterator = successorIterator;
+      lowLink = NO_LINK;
     }
   }
 }

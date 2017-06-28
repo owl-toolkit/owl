@@ -19,7 +19,6 @@ package owl.automaton.transformations;
 
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -29,9 +28,7 @@ import java.util.function.Predicate;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 
 public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   B extends OmegaAcceptance> extends ForwardingAutomaton<S, A, B, MutableAutomaton<S, B>>
@@ -42,28 +39,28 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public void addEdge(S source, BitSet valuation, Edge<S> edge) {
+  public void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
     automaton.addEdge(source, valuation, edge);
   }
 
   @Override
-  public void addEdge(S source, ValuationSet valuations, Edge<S> edge) {
+  public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
     automaton.addEdge(source, valuations, edge);
   }
 
   @Override
-  public void addInitialStates(Collection<S> states) {
+  public void addInitialStates(Collection<? extends S> states) {
     automaton.addInitialStates(states);
   }
 
   @Override
-  public void addStates(Collection<S> states) {
+  public void addStates(Collection<? extends S> states) {
     automaton.addStates(states);
   }
 
   @Override
-  public ValuationSetFactory getFactory() {
-    return automaton.getFactory();
+  public void free() {
+    automaton.free();
   }
 
   @Override
@@ -72,38 +69,28 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public Set<S> getInitialStates() {
-    return automaton.getInitialStates();
-  }
-
-  @Override
-  public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-    return automaton.getLabelledEdges(state);
-  }
-
-  @Override
-  public Set<S> getReachableStates(Collection<S> start) {
-    return automaton.getReachableStates(start);
-  }
-
-  @Override
   public Set<S> getStates() {
     return automaton.getStates();
   }
 
   @Override
-  public List<String> getVariables() {
-    return automaton.getVariables();
-  }
-
-  @Override
-  public void remapAcceptance(Set<S> states, IntUnaryOperator transformer) {
+  public void remapAcceptance(Set<? extends S> states, IntUnaryOperator transformer) {
     throw new UnsupportedOperationException("Not supported");
   }
 
   @Override
   public void remapAcceptance(BiFunction<S, Edge<S>, BitSet> f) {
     throw new UnsupportedOperationException("Not supported");
+  }
+
+  @Override
+  public void remapAcceptance(Set<? extends S> states, BiFunction<S, Edge<S>, BitSet> f) {
+    throw new UnsupportedOperationException("Not supported");
+  }
+
+  @Override
+  public void remapEdges(Set<? extends S> states, BiFunction<S, Edge<S>, Edge<S>> f) {
+    automaton.remapEdges(states, f);
   }
 
   @Override
@@ -122,7 +109,7 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public boolean removeStates(Collection<S> states) {
+  public boolean removeStates(Collection<? extends S> states) {
     return automaton.removeStates(states);
   }
 
@@ -132,17 +119,13 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public void removeUnreachableStates(Collection<S> start, Consumer<S> removedStatesConsumer) {
+  public void removeUnreachableStates(Collection<? extends S> start,
+    Consumer<S> removedStatesConsumer) {
     automaton.removeUnreachableStates(start, removedStatesConsumer);
   }
 
   @Override
-  public void setInitialStates(Collection<S> states) {
+  public void setInitialStates(Collection<? extends S> states) {
     automaton.setInitialStates(states);
-  }
-
-  @Override
-  public void setVariables(List<String> variables) {
-    automaton.setVariables(variables);
   }
 }

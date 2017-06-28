@@ -8,7 +8,7 @@
     <!-- Suppress everything for generated files -->
     <suppress files="owl[\\/]grammar[\\/]" checks=".*"/>
 
-    <suppress files="LTL2.*|NBA2.*|FG.*" checks="AbbreviationAsWordInName"/>
+    <suppress files="FG.*|.+2.+" checks="AbbreviationAsWordInName"/>
 
     <suppress files="JSylvan.java" checks=".*"/>
     <!-- Soon we will doc everything ... -->

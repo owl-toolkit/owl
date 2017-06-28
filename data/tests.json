@@ -11,6 +11,7 @@
             },
             "fgx",
             "check",
+            "big",
             "random"
         ],
         "small": [
@@ -95,6 +96,7 @@
         "delag-strict": {
             "tools": "delag#strict",
             "data": "fgx"
-        }
+        },
+        "rabinizer": "rabinizer"
     }
 }

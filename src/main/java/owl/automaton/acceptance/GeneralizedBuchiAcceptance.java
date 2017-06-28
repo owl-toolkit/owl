@@ -26,7 +26,6 @@ import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
@@ -42,7 +41,6 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
   @Override
   public <S> boolean containsAcceptingRun(Set<S> scc,
     Function<S, Iterable<Edge<S>>> successorFunction) {
-    assert AutomatonUtil.isScc(scc, successorFunction);
     BitSet remaining = new BitSet(size);
     remaining.set(0, size);
 
