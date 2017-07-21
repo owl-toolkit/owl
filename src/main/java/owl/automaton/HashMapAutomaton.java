@@ -232,12 +232,12 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     assert containsStates(start) :
       String.format("Some of the states %s are not in the automaton", start);
 
-    Set<S> reachedStates = Sets.newHashSet(start);
+    Set<S> reachedStates = Sets.newHashSet(Collections2.transform(start, this::makeUnique));
     Queue<S> workQueue = new ArrayDeque<>(reachedStates);
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(state));
+      Map<Edge<S>, ValuationSet> edges = transitions.get(state);
       assert edges != null : String.format("State %s not in automaton", state);
 
       ValuationSetMapUtil.viewSuccessors(edges).forEach(successor -> {
