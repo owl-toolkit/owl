@@ -17,18 +17,18 @@
 
 package owl.automaton;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -36,11 +36,14 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
+import owl.collections.Sets2;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 /**
  * Note: Every implementation should support concurrent read-access.
+ * Note: Default implementation should only call methods from one layer below:
+ *  Successors -> Edges -> LabelledEdges
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   /**
@@ -103,8 +106,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The set of edges originating from {@code state}
    */
-  default Collection<Edge<S>> getEdges(S state) {
-    return Collections2.transform(getLabelledEdges(state), LabelledEdge::getEdge);
+  default Set<Edge<S>> getEdges(S state) {
+    return Sets2.newHashSet(getLabelledEdges(state), x -> x.edge);
   }
 
   /**
@@ -117,11 +120,9 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The successor edges, possibly empty.
    */
-  default Collection<Edge<S>> getEdges(S state, BitSet valuation) {
-    //noinspection ConstantConditions
-    return Collections2.transform(Collections2.filter(getLabelledEdges(state),
-      labelledEdge -> labelledEdge.valuations.contains(valuation)),
-      LabelledEdge::getEdge);
+  default Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    return Sets2.newHashSet(getLabelledEdges(state),
+      x -> x.valuations.contains(valuation) ? x.edge : null);
   }
 
   ValuationSetFactory getFactory();
@@ -184,7 +185,20 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @param start
    *     Starting states for the reachable states search.
    */
-  Set<S> getReachableStates(Collection<S> start);
+  default Set<S> getReachableStates(Collection<S> start) {
+    Set<S> exploredStates = Sets.newHashSet(start);
+    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    while (!workQueue.isEmpty()) {
+      getSuccessors(workQueue.poll()).forEach(successor -> {
+        if (exploredStates.add(successor)) {
+          workQueue.add(successor);
+        }
+      });
+    }
+
+    return exploredStates;
+  }
 
   /**
    * Returns all states in this automaton.
@@ -195,23 +209,15 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   @Nullable
   default S getSuccessor(S state, BitSet valuation) {
-    Edge<S> edge = getEdge(state, valuation);
-
-    if (edge == null) {
-      return null;
-    }
-
-    return edge.getSuccessor();
+    return Iterables.getOnlyElement(getSuccessors(state, valuation), null);
   }
 
   default Set<S> getSuccessors(S state) {
-    //noinspection StaticPseudoFunctionalStyleMethod,ConstantConditions
-    return Sets.newHashSet(Iterables.transform(getLabelledEdges(state),
-      labelledEdge -> labelledEdge.edge.getSuccessor()));
+    return Sets2.newHashSet(getEdges(state), Edge::getSuccessor);
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {
-    return getEdges(state, valuation).stream().map(Edge::getSuccessor).collect(Collectors.toSet());
+    return Sets2.newHashSet(getEdges(state, valuation), Edge::getSuccessor);
   }
 
   List<String> getVariables();
@@ -257,11 +263,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic());
 
-    for (S state : getStates()) {
+    getStates().forEach(state -> {
       hoa.addState(state);
       getLabelledEdges(state).forEach(hoa::addEdge);
       hoa.notifyEndOfState();
-    }
+    });
 
     hoa.notifyEnd();
   }

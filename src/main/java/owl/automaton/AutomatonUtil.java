@@ -74,7 +74,7 @@ public final class AutomatonUtil {
 
     S sinkState = sinkSupplier.get();
     Edge<S> sinkEdge = Edges.create(sinkState, rejectingAcceptanceSupplier.get());
-    automaton.addEdge(sinkState, sinkEdge);
+    automaton.addEdge(sinkState, automaton.getFactory().createUniverseValuationSet(), sinkEdge);
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
     incompleteStates.values().forEach(ValuationSet::free);
 

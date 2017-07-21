@@ -33,16 +33,6 @@ import owl.collections.ValuationSet;
 public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automaton<S, A> {
 
   /**
-   * Adds a transition from {@code source} to {@code edge} under all valuations.
-   *
-   * @param source
-   *     The source state. If is not already present, it gets added to the transition table.
-   * @param edge
-   *     The respective edge, containing destination and acceptance information.
-   */
-  void addEdge(S source, Edge<S> edge);
-
-  /**
    * Adds a transition from the {@code source} state under {@code valuation}.
    *
    * @param source

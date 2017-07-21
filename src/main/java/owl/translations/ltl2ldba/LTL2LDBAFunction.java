@@ -25,8 +25,10 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import owl.automaton.ExploreBuilder;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.factories.Factories;
@@ -141,10 +143,19 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C> 
 
     LimitDeterministicAutomaton<EquivalenceClass, S, B, C> ldba = builder.build();
 
-    // Post-process: Remap acceptance to generalized Büchi size.
+    // HACK:
+    //
+    // Since we have some states in the initial component that are accepting but adding jumps
+    // increases the size of the automaton, we just remap this acceptance. This needs to be solved
+    // more cleanly!
+
     BitSet bitSet = new BitSet();
     bitSet.set(0, ldba.getAcceptingComponent().getAcceptance().size);
-    ldba.getInitialComponent().remapAcceptance((state, x) -> {
+
+    MutableAutomaton<EquivalenceClass, NoneAcceptance> initialComponent =
+      (MutableAutomaton<EquivalenceClass, NoneAcceptance>) ldba.getInitialComponent();
+
+    initialComponent.remapAcceptance((state, x) -> {
       assert !state.isFalse();
 
       if (state.testSupport(Fragments::isSafety)) {

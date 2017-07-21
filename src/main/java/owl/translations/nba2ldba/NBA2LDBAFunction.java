@@ -52,7 +52,7 @@ public final class NBA2LDBAFunction<S>
 
       for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(state)) {
         if (labelledEdge.edge.inSet(0)) {
-          jumps.put(labelledEdge.getValuations(), labelledEdge.edge.getSuccessor());
+          jumps.put(labelledEdge.valuations, labelledEdge.edge.getSuccessor());
         }
       }
 

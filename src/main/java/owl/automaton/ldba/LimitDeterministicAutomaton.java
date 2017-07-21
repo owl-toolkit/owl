@@ -17,128 +17,82 @@
 
 package owl.automaton.ldba;
 
-import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Table;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
-import owl.automaton.MutableAutomaton;
+import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
 import owl.collections.ValuationSet;
 
-public final class LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
-  implements HoaPrintable {
+public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
+  extends HoaPrintable {
+  Automaton<T, U> getAcceptingComponent();
 
-  private final MutableAutomaton<T, U> acceptingComponent;
-  private final Set<T> acceptingComponentInitialStates;
-  private final Function<T, V> componentAnnotation;
-  private final Set<V> components;
-  private final SetMultimap<S, T> epsilonJumps;
-  private final MutableAutomaton<S, NoneAcceptance> initialComponent;
-  private final Table<S, ValuationSet, Set<T>> valuationSetJumps;
+  V getAnnotation(T key);
 
-  LimitDeterministicAutomaton(MutableAutomaton<S, NoneAcceptance> initialComponent,
-    MutableAutomaton<T, U> acceptingComponent,
-    SetMultimap<S, T> epsilonJumps,
-    Table<S, ValuationSet, Set<T>> valuationSetJumps,
-    Set<T> acceptingComponentInitialStates,
-    Set<V> component,
-    Function<T, V> componentAnnotation) {
-    this.initialComponent = initialComponent;
-    this.acceptingComponent = acceptingComponent;
-    this.epsilonJumps = epsilonJumps;
-    this.valuationSetJumps = valuationSetJumps;
-    this.acceptingComponentInitialStates = acceptingComponentInitialStates;
-    components = component;
-    this.componentAnnotation = componentAnnotation;
-  }
+  Set<V> getComponents();
 
-  public MutableAutomaton<T, U> getAcceptingComponent() {
-    return acceptingComponent;
-  }
+  Set<T> getEpsilonJumps(S state);
 
-  public V getAnnotation(T key) {
-    return componentAnnotation.apply(key);
-  }
+  Automaton<S, NoneAcceptance> getInitialComponent();
 
-  public Set<V> getComponents() {
-    return components;
-  }
+  Map<ValuationSet, Set<T>> getValuationSetJumps(S state);
 
-  public Set<T> getEpsilonJumps(S state) {
-    return Collections.unmodifiableSet(epsilonJumps.get(state));
-  }
-
-  public MutableAutomaton<S, NoneAcceptance> getInitialComponent() {
-    return initialComponent;
-  }
-
-  public Map<ValuationSet, Set<T>> getValuationSetJumps(S state) {
-    return Collections.unmodifiableMap(valuationSetJumps.row(state));
-  }
-
-  public boolean isDeterministic() {
-    return initialComponent.stateCount() == 0;
+  default boolean isDeterministic() {
+    return getInitialComponent().stateCount() == 0
+      && getAcceptingComponent().getInitialStates().size() <= 1;
   }
 
   @Override
-  public void setVariables(List<String> variables) {
-    acceptingComponent.setVariables(variables);
-  }
+  void setVariables(List<String> variables);
 
-  public int size() {
-    return initialComponent.stateCount() + acceptingComponent.stateCount();
+  default int size() {
+    return getInitialComponent().stateCount() + getAcceptingComponent().stateCount();
   }
 
   @Override
-  public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+  default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
-      acceptingComponent.getVariables(),
-      acceptingComponent.getAcceptance(),
-      Sets.union(initialComponent.getInitialStates(), acceptingComponentInitialStates),
+      getAcceptingComponent().getVariables(),
+      getAcceptingComponent().getAcceptance(),
+      Sets.union(getInitialComponent().getInitialStates(),
+        getAcceptingComponent().getInitialStates()),
       size(), options, false);
 
-    for (S state : initialComponent.getStates()) {
+    for (S state : getInitialComponent().getStates()) {
       consumerExt.addState(state);
-      initialComponent.getLabelledEdges(state).forEach(consumerExt::addEdge);
-      epsilonJumps.get(state).forEach(consumerExt::addEpsilonEdge);
-      valuationSetJumps.row(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
+      getInitialComponent().getLabelledEdges(state).forEach(consumerExt::addEdge);
+      getEpsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
+      getValuationSetJumps(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
       consumerExt.notifyEndOfState();
     }
 
-    for (T state : acceptingComponent.getStates()) {
+    for (T state : getAcceptingComponent().getStates()) {
       consumerExt.addState(state);
-      acceptingComponent.getLabelledEdges(state).forEach(consumerExt::addEdge);
+      getAcceptingComponent().getLabelledEdges(state).forEach(consumerExt::addEdge);
       consumerExt.notifyEndOfState();
     }
 
     consumerExt.notifyEnd();
   }
 
-  @Override
-  public String toString() {
-    try {
-      return toString(EnumSet.allOf(Option.class));
-    } catch (IOException ex) {
-      throw new IllegalStateException(ex.toString(), ex);
-    }
-  }
-
-  public String toString(EnumSet<Option> options) throws IOException {
+  default String toString(EnumSet<Option> options) throws IOException {
     try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
       toHoa(new HOAConsumerPrint(stream), options);
       return stream.toString("UTF8");
     }
+  }
+
+  default CutDeterministicAutomaton<S, T, U, V> asCutDeterministicAutomaton() {
+    return new CutDeterministicAutomaton<>(this);
   }
 }

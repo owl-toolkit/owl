@@ -21,21 +21,35 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public final class Sets2 {
 
   private Sets2() {
   }
 
-  public static <E> Set<E> union(Collection<? extends Collection<E>> elements) {
-    Set<E> union = new HashSet<>(elements.size());
-    elements.forEach(union::addAll);
-    return union;
+  public static <F, T> Set<T> newHashSet(Collection<F> collection, Function<F, T> transformer) {
+    Set<T> set = new HashSet<>(collection.size());
+
+    collection.forEach(x -> {
+      T element = transformer.apply(x);
+      if (element != null) {
+        set.add(element);
+      }
+    });
+
+    return set;
   }
 
   public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {
     Set<E> union = ConcurrentHashMap.newKeySet(elements.size());
     elements.parallelStream().forEach(union::addAll);
+    return union;
+  }
+
+  public static <E> Set<E> union(Collection<? extends Collection<E>> elements) {
+    Set<E> union = new HashSet<>(elements.size());
+    elements.forEach(union::addAll);
     return union;
   }
 }
