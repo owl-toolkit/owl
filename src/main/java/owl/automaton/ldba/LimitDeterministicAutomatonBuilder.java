@@ -210,7 +210,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     }
 
     acceptingComponent.setInitialStates(initialStates);
-    return new LimitDeterministicAutomatonImplementation<>(initialComponent, acceptingComponent,
+    return new LimitDeterministicAutomatonImpl<>(initialComponent, acceptingComponent,
       epsilonJumps, valuationSetJumps, components, getComponent);
   }
 

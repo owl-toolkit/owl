@@ -32,8 +32,8 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.collections.ValuationSet;
 
-public final class LimitDeterministicAutomatonImplementation<S, T,
-  U extends GeneralizedBuchiAcceptance, V> implements LimitDeterministicAutomaton<S, T, U, V> {
+public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBuchiAcceptance, V>
+  implements LimitDeterministicAutomaton<S, T, U, V> {
 
   private final MutableAutomaton<T, U> acceptingComponent;
   private final Function<T, V> componentAnnotation;
@@ -42,7 +42,7 @@ public final class LimitDeterministicAutomatonImplementation<S, T,
   private final MutableAutomaton<S, NoneAcceptance> initialComponent;
   private final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
-  LimitDeterministicAutomatonImplementation(MutableAutomaton<S, NoneAcceptance> initialComponent,
+  LimitDeterministicAutomatonImpl(MutableAutomaton<S, NoneAcceptance> initialComponent,
     MutableAutomaton<T, U> acceptingComponent,
     SetMultimap<S, T> epsilonJumps,
     Table<S, ValuationSet, Set<T>> valuationSetJumps,
