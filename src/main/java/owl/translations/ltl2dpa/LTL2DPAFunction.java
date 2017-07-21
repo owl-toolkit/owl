@@ -133,7 +133,8 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
 
     if (ldba.isDeterministic()) {
       return new ComplementableAutomaton<>(ParityAutomatonUtil.changeAcceptance(
-        ldba.getAcceptingComponent()), DegeneralizedBreakpointState::createSink);
+        (MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance>)
+          ldba.getAcceptingComponent()), DegeneralizedBreakpointState::createSink);
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;

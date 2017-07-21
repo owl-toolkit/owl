@@ -42,11 +42,6 @@ public abstract class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public void addEdge(S source, Edge<S> edge) {
-    automaton.addEdge(source, edge);
-  }
-
-  @Override
   public void addEdge(S source, BitSet valuation, Edge<S> edge) {
     automaton.addEdge(source, valuation, edge);
   }

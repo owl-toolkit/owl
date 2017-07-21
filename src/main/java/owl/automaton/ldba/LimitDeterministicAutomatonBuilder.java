@@ -210,8 +210,8 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     }
 
     acceptingComponent.setInitialStates(initialStates);
-    return new LimitDeterministicAutomaton<>(initialComponent, acceptingComponent, epsilonJumps,
-      valuationSetJumps, initialStates, components, getComponent);
+    return new LimitDeterministicAutomatonImplementation<>(initialComponent, acceptingComponent,
+      epsilonJumps, valuationSetJumps, components, getComponent);
   }
 
   private void generateJumps(Automaton<S, NoneAcceptance> initialComponent,

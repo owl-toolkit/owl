@@ -100,11 +100,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public void addEdge(S source, Edge<S> edge) {
-    addEdge(source, valuationSetFactory.createUniverseValuationSet(), edge);
-  }
-
-  @Override
   public void addEdge(S source, BitSet valuation, Edge<S> edge) {
     addEdge(source, valuationSetFactory.createValuationSet(valuation), edge);
   }

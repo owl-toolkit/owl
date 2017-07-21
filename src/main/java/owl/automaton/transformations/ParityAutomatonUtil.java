@@ -105,11 +105,6 @@ public final class ParityAutomatonUtil {
     }
 
     @Override
-    public void addEdge(S source, Edge<S> edge) {
-      super.addEdge(source, convertParityToBuchi(edge));
-    }
-
-    @Override
     public void addEdge(S source, BitSet valuation, Edge<S> edge) {
       super.addEdge(source, valuation, convertParityToBuchi(edge));
     }
