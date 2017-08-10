@@ -17,24 +17,12 @@
 
 package owl.factories;
 
-import java.io.IOException;
 import owl.factories.jdd.ValuationFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.util.NativeLibraryLoader;
 
 public final class Registry {
-  // TODO: Provide methods to only construct one of the two factories (see e.g. automaton reader)
-
   private static final Backend DEFAULT_BACKEND = Backend.JDD;
-
-  static {
-    try {
-      NativeLibraryLoader.loadLibrary("sylvan");
-    } catch (@SuppressWarnings("ErrorNotRethrown") UnsatisfiedLinkError | IOException error) {
-      // Logger.getGlobal().log(Level.FINEST, "Failed to load the jSylvan native BDD library.");
-    }
-  }
 
   private Registry() {
   }
@@ -56,19 +44,15 @@ public final class Registry {
   }
 
   public static Factories getFactories(Formula formula, int alphabetSize, Backend backend) {
-    switch (backend) {
-      case SYLVAN:
-        return new Factories(owl.factories.sylvan.EquivalenceFactory.create(formula, alphabetSize),
-          new owl.factories.sylvan.ValuationFactory(alphabetSize));
-      case JDD:
-        return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),
-          new ValuationFactory(alphabetSize));
-      default:
-        throw new AssertionError("Fallthrough");
+    if (backend == Backend.JDD) {
+      return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),
+        new ValuationFactory(alphabetSize));
+    } else {
+      throw new AssertionError("Fallthrough");
     }
   }
 
   public enum Backend {
-    JDD, SYLVAN
+    JDD
   }
 }
