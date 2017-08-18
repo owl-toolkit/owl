@@ -172,7 +172,7 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
         ldba.getInitialComponent().getInitialState().getFactory());
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointState, GObligations,
       EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
-      oracle, this::hasSafetyCore);
+      oracle, this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }
@@ -192,7 +192,7 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
 
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
       Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
-      new BooleanLattice<>(), this::hasSafetyCore);
+      new BooleanLattice<>(), this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }

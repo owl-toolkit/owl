@@ -11,8 +11,9 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
+import owl.translations.nba2ldba.Safety;
 
-public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
+public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety> {
 
   private final Language<Set<S>> bottom;
   private final Language<Set<S>> top;
@@ -41,13 +42,13 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
   }
 
   @Override
-  public boolean isLivenessLanguage(Void annotation) {
-    return false;
+  public boolean isLivenessLanguage(Safety annotation) {
+    return Safety.CO_SAFETY == annotation;
   }
 
   @Override
-  public boolean isSafetyLanguage(Void annotation) {
-    return false;
+  public boolean isSafetyLanguage(Safety annotation) {
+    return Safety.SAFETY == annotation;
   }
 
   private class SetLanguage implements Language<Set<S>> {
@@ -91,4 +92,5 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
       return new SetLanguage(Sets.union(set, language.getT()));
     }
   }
+
 }

@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -37,6 +38,7 @@ import owl.translations.ldba2dpa.RankingAutomatonBuilder;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.NBA2LDBAFunction;
+import owl.translations.nba2ldba.Safety;
 
 public final class NBA2DPAFunction<S>
   implements Function<Automaton<S, GeneralizedBuchiAcceptance>, HoaPrintable> {
@@ -46,28 +48,37 @@ public final class NBA2DPAFunction<S>
   public NBA2DPAFunction() {
     this.optimisations = EnumSet.noneOf(Optimisation.class);
   }
+  
+  public NBA2DPAFunction(EnumSet<Optimisation> optimisations) {
+    this.optimisations = optimisations;
+  }
 
   @Override
   public MutableAutomaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
   apply(Automaton<S, GeneralizedBuchiAcceptance> nba) {
-    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(EnumSet.noneOf(Optimisation.class));
 
-    LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> ldba =
+    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(optimisations);
+    
+    LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> ldba =
       nba2ldba.apply(nba);
 
-    LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Void>
+    LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Safety>
     ldbaCutDet = ldba.asCutDeterministicAutomaton();
-
+        
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<S>, BuchiAcceptance>) ldbaCutDet
       .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
 
-    LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Void> oracle =
+    LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Safety> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
     Predicate<Set<S>> clearRanking = s -> false;
-    RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Void, Set<BreakpointState<S>>> builder =
+    RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Safety, Set<BreakpointState<S>>> builder =
       new RankingAutomatonBuilder<>(ldbaCutDet, new AtomicInteger(), optimisations, oracle,
-        clearRanking);
+        clearRanking, false);
     builder.add(ldbaCutDet.getInitialComponent().getInitialState());
-    return builder.build();
+    
+    MutableAutomaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance> dpa
+    = builder.build();
+    
+    return dpa;
   }
 }
