@@ -24,18 +24,16 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import owl.collections.Trie;
-import owl.ltl.EquivalenceClass;
-import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.util.ImmutableObject;
 
 @Immutable
-public final class RankingState extends ImmutableObject {
+public final class RankingState<S, T> extends ImmutableObject {
 
-  final ImmutableList<DegeneralizedBreakpointState> ranking;
-  final EquivalenceClass state;
+  final ImmutableList<T> ranking;
+  final S state;
   final int volatileIndex;
 
-  private RankingState(EquivalenceClass state, ImmutableList<DegeneralizedBreakpointState> ranking,
+  private RankingState(S state, ImmutableList<T> ranking,
     int volatileIndex) {
 
     this.volatileIndex = volatileIndex;
@@ -43,27 +41,28 @@ public final class RankingState extends ImmutableObject {
     this.ranking = ranking;
   }
 
-  static RankingState createSink() {
+  static <S, T> RankingState<S, T> createSink() {
     return create(null);
   }
 
-  static RankingState create(EquivalenceClass initialComponentState) {
+  static <S, T> RankingState<S, T> create(S initialComponentState) {
     return create(initialComponentState, ImmutableList.of(), 0, null);
   }
 
-  static RankingState create(EquivalenceClass initialComponentState,
-    List<DegeneralizedBreakpointState> ranking, int volatileIndex,
-    @Nullable Map<EquivalenceClass, Trie<DegeneralizedBreakpointState>> trieMap) {
+  static <S, T> RankingState<S, T> create(S initialComponentState,
+    List<T> ranking, int volatileIndex,
+    @Nullable Map<S, Trie<T>> trieMap) {
     if (trieMap != null) {
       trieMap.computeIfAbsent(initialComponentState, x -> new Trie<>()).add(ranking);
     }
 
-    return new RankingState(initialComponentState, ImmutableList.copyOf(ranking), volatileIndex);
+    return new RankingState<S, T>(initialComponentState, ImmutableList.copyOf(ranking),
+        volatileIndex);
   }
 
   @Override
   protected boolean equals2(ImmutableObject o) {
-    RankingState that = (RankingState) o;
+    RankingState<S, T> that = (RankingState<S, T>) o;
     return that.volatileIndex == this.volatileIndex && Objects.equals(state, that.state) && Objects
       .equals(ranking, that.ranking);
   }

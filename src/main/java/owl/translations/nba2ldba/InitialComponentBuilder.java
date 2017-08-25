@@ -23,19 +23,19 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
 
 final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, NoneAcceptance> {
 
-  private final Automaton<S, BuchiAcceptance> nba;
+  private final Automaton<S, GeneralizedBuchiAcceptance> nba;
 
-  private InitialComponentBuilder(Automaton<S, BuchiAcceptance> nba) {
+  private InitialComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     this.nba = nba;
   }
 
-  static <S> InitialComponentBuilder<S> create(Automaton<S, BuchiAcceptance> nba) {
+  static <S> InitialComponentBuilder<S> create(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     return new InitialComponentBuilder<>(nba);
   }
 

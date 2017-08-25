@@ -29,32 +29,34 @@ import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
-import owl.translations.nba2ldba.NBA2LDBAFunction;
+import owl.translations.nba2dpa.NBA2DPAFunction;
 
-public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
-  ? extends OmegaAcceptance>> {
+public final class NBA2DPA extends AbstractCommandLineTool<Automaton<HoaState,
+GeneralizedBuchiAcceptance>> {
   public static void main(String... args) {
-    new NBA2LDBA().execute(new ArrayDeque<>(Arrays.asList(args)));
+    new NBA2DPA().execute(new ArrayDeque<>(Arrays.asList(args)));
   }
 
   @Override
-  protected Function<Automaton<HoaState, ? extends OmegaAcceptance>, ? extends HoaPrintable>
+  protected Function<Automaton<HoaState, GeneralizedBuchiAcceptance>, ? extends HoaPrintable>
   getTranslation(EnumSet<Optimisation> optimisations) {
-    return new NBA2LDBAFunction<>(EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
+    return new NBA2DPAFunction<HoaState>();
   }
 
   @Override
-  protected Collection<CommandLineInput<Automaton<HoaState, ? extends OmegaAcceptance>>>
+  protected Collection<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>>
   parseInput(
     InputStream stream) throws ParseException {
     List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream, null);
-    List<CommandLineInput<Automaton<HoaState, ? extends OmegaAcceptance>>> inputs =
-      new ArrayList<>();
+    List<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>> inputs 
+    = new ArrayList<>();
 
     for (Automaton<HoaState, ?> automaton : automata) {
-      inputs.add(new CommandLineInput<>(automaton, automaton.getVariables()));
+      //noinspection unchecked
+      inputs.add(new CommandLineInput<>((Automaton<HoaState, GeneralizedBuchiAcceptance>) automaton,
+        automaton.getVariables()));
     }
 
     return inputs;

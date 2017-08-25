@@ -35,7 +35,8 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
 public final class DegeneralizedAcceptingComponentBuilder extends
-  AbstractAcceptingComponentBuilder<DegeneralizedBreakpointState, BuchiAcceptance, GObligations> {
+  AbstractAcceptingComponentBuilder<DegeneralizedBreakpointState, 
+  BuchiAcceptance, GObligations> {
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
     EnumSet<Optimisation> optimisations) {

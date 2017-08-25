@@ -129,6 +129,14 @@ nba2ldba:
   variables:
     TEST_NAME: "nba2ldba"
   <<: *ltlcross_template
+  
+# NBA to LDBA translations
+
+nba2dpa:
+  stage: test
+  variables:
+    TEST_NAME: "nba2dpa"
+  <<: *ltlcross_template
 
 # LTL to DPA translations
 

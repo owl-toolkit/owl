@@ -17,52 +17,55 @@
 
 package owl.translations.nba2ldba;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder.SetMultimapBuilder;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
+
 import owl.automaton.Automaton;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.edge.LabelledEdge;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
-import owl.automaton.output.HoaPrintable;
-import owl.collections.ValuationSet;
 import owl.translations.Optimisation;
 
-public final class NBA2LDBAFunction<S>
-  implements Function<Automaton<S, BuchiAcceptance>, HoaPrintable> {
+public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extends OmegaAcceptance>,
+  LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
 
   private final EnumSet<Optimisation> optimisations;
 
-  public NBA2LDBAFunction() {
-    this.optimisations = EnumSet.noneOf(Optimisation.class);
+  public NBA2LDBAFunction(EnumSet<Optimisation> optimisations) {
+    this.optimisations = optimisations;
   }
 
   @Override
-  public HoaPrintable apply(Automaton<S, BuchiAcceptance> nba) {
-    if (nba.isDeterministic()) {
-      return nba;
+  public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> apply(
+    Automaton<S, ? extends OmegaAcceptance> nba) {
+    Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
+
+    if (nba.getAcceptance() instanceof AllAcceptance) {
+      nbaGBA = GeneralizedBuchiAcceptanceTransformer
+        .create((Automaton<S, AllAcceptance>) nba).build();
+    } else if (nba.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
+      nbaGBA = (Automaton<S, GeneralizedBuchiAcceptance>) nba;
+    } else {
+      throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
     }
 
-    InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
-    AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder.create(nba);
+    InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
+    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder;
 
-    Function<S, Multimap<ValuationSet, S>> jump2 = (state) -> {
-      Multimap<ValuationSet, S> jumps = SetMultimapBuilder.hashKeys().hashSetValues().build();
-
-      for (LabelledEdge<S> labelledEdge : nba.getLabelledEdges(state)) {
-        if (labelledEdge.edge.inSet(0)) {
-          jumps.put(labelledEdge.valuations, labelledEdge.edge.getSuccessor());
-        }
-      }
-
+    AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder
+        .create(nbaGBA);
+    Function<S, Iterable<S>> epsilonJumpGenerator = (state) -> {
+      Set<S> jumps = new HashSet<>();
+      jumps.add(state);
       return jumps;
     };
-
-    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void>
-      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder, (x) -> null, (x) -> null, optimisations, (x) -> true, jump2);
-
+    builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+        acceptingComponentBuilder, epsilonJumpGenerator, (x) -> null, optimisations);
     return builder.build();
   }
 }

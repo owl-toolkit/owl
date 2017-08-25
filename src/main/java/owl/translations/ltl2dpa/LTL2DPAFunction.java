@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -34,6 +35,7 @@ import owl.automaton.transformations.ParityAutomatonUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.EquivalenceClassLanguageOracle;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
@@ -128,8 +130,8 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
   }
 
   private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
-    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-      GObligations> ldba = translator.apply(formula);
+    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState,
+    BuchiAcceptance, GObligations> ldba = translator.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new ComplementableAutomaton<>(ParityAutomatonUtil.changeAcceptance(
@@ -140,8 +142,13 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    RankingAutomatonBuilder builder = RankingAutomatonBuilder
-      .create(ldba, sizeCounter, optimisations, ldba.getAcceptingComponent().getFactory());
+    LanguageOracle<EquivalenceClass, DegeneralizedBreakpointState, GObligations> oracle =
+        new EquivalenceClassLanguageOracle(
+          ldba.getInitialComponent().getInitialState().getFactory());
+
+    RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointState, GObligations,
+    EquivalenceClass> builder = RankingAutomatonBuilder.create(ldba , sizeCounter,
+        optimisations, ldba.getAcceptingComponent().getFactory(), oracle);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }

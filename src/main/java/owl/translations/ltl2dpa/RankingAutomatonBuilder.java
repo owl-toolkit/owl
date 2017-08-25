@@ -26,10 +26,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.Nullable;
+
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -44,42 +47,37 @@ import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.collections.Trie;
 import owl.factories.ValuationSetFactory;
-import owl.ltl.EquivalenceClass;
-import owl.ltl.Formula;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
-import owl.translations.ltl2ldba.breakpoint.GObligations;
 
-final class RankingAutomatonBuilder
-  implements ExploreBuilder<EquivalenceClass, RankingState, ParityAcceptance> {
+public final class RankingAutomatonBuilder<S, T, U, V>
+  implements ExploreBuilder<S, RankingState<S, T>, ParityAcceptance> {
 
   private final ParityAcceptance acceptance;
-  private final Automaton<DegeneralizedBreakpointState, BuchiAcceptance> acceptingComponent;
+  private final Automaton<T, BuchiAcceptance> acceptingComponent;
   private final ValuationSetFactory factory;
-  private final Automaton<EquivalenceClass, NoneAcceptance> initialComponent;
-  private final List<RankingState> initialStates;
-  private final LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointState, BuchiAcceptance, GObligations> ldba;
+  private final Automaton<S, NoneAcceptance> initialComponent;
+  private final List<RankingState<S, T>> initialStates;
+  private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba;
   private final AtomicInteger sizeCounter;
   @Nullable
-  private final Map<EquivalenceClass, Trie<DegeneralizedBreakpointState>> trie;
-  private final Map<GObligations, Integer> volatileComponents;
+  private final Map<S, Trie<T>> trie;
+  private final Map<U, Integer> volatileComponents;
   private final int volatileMaxIndex;
+  private final LanguageOracle<V, T, U> oracle;
 
-  private RankingAutomatonBuilder(
-    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-      GObligations> ldba,
-    AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory) {
+  private RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
+    AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory,
+    LanguageOracle<V, T, U> oracle) {
     acceptingComponent = ldba.getAcceptingComponent();
     initialComponent = ldba.getInitialComponent();
     this.ldba = ldba;
 
     volatileComponents = new HashMap<>();
 
-    for (GObligations value : ldba.getComponents()) {
+    for (U value : ldba.getComponents()) {
       assert !volatileComponents.containsKey(value);
 
-      if (value.isPureSafety()) {
+      if (oracle.isPureSafety(value)) {
         volatileComponents.put(value, volatileComponents.size());
       }
     }
@@ -97,41 +95,42 @@ final class RankingAutomatonBuilder
     acceptance = new ParityAcceptance(2, Priority.ODD);
     initialStates = new ArrayList<>();
     this.sizeCounter = sizeCounter;
+    this.oracle = oracle;
   }
 
-  public static RankingAutomatonBuilder create(
-    LimitDeterministicAutomaton<EquivalenceClass,
-      DegeneralizedBreakpointState, BuchiAcceptance, GObligations> ldba,
-    AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory) {
-    return new RankingAutomatonBuilder(ldba, sizeCounter, optimisations, factory);
+  public static <S, T, U, V> RankingAutomatonBuilder<S, T, U, V> create(
+    LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
+    AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory,
+    LanguageOracle<V, T, U> oracle) {
+    return new RankingAutomatonBuilder<>(ldba, sizeCounter, optimisations, factory, oracle);
   }
 
   @Override
-  public RankingState add(EquivalenceClass stateKey) {
-    List<DegeneralizedBreakpointState> ranking = new ArrayList<>();
+  public RankingState<S, T> add(S stateKey) {
+    List<T> ranking = new ArrayList<>();
     int index = appendJumps(stateKey, ranking);
-    RankingState initialState = RankingState.create(stateKey, ranking, index, trie);
+    RankingState<S, T> initialState = RankingState.create(stateKey, ranking, index, trie);
     initialStates.add(initialState);
     return initialState;
   }
 
-  private int appendJumps(EquivalenceClass state, List<DegeneralizedBreakpointState> ranking) {
+  private int appendJumps(S state, List<T> ranking) {
     return appendJumps(state, ranking, Collections.emptyMap(), -1);
   }
 
-  private int appendJumps(EquivalenceClass state, List<DegeneralizedBreakpointState> ranking,
-    Map<GObligations, EquivalenceClass> existingClasses, int currentVolatileIndex) {
-    List<DegeneralizedBreakpointState> pureEventual = new ArrayList<>();
-    List<DegeneralizedBreakpointState> mixed = new ArrayList<>();
-    DegeneralizedBreakpointState nextVolatileState = null;
+  private int appendJumps(S state, List<T> ranking,
+    Map<U, Language<V>> existingClasses, int currentVolatileIndex) {
+    List<T> pureEventual = new ArrayList<>();
+    List<T> mixed = new ArrayList<>();
+    T nextVolatileState = null;
     int nextVolatileStateIndex = -1;
 
-    for (DegeneralizedBreakpointState accState : ldba.getEpsilonJumps(state)) {
-      GObligations obligations = ldba.getAnnotation(accState);
+    for (T accState : ldba.getEpsilonJumps(state)) {
+      U obligations = ldba.getAnnotation(accState);
       Integer candidateIndex = volatileComponents.get(obligations);
 
       // It is a volatile state
-      if (candidateIndex != null && accState.getCurrent().isTrue()) {
+      if (candidateIndex != null && oracle.getLanguage(accState, true).isUniverse()) {
         // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning.
         // This state should be suppressed.";
 
@@ -142,9 +141,9 @@ final class RankingAutomatonBuilder
           continue;
         }
 
-        EquivalenceClass existingClass = existingClasses.get(obligations);
+        Language<V> existingClass = existingClasses.get(obligations);
 
-        if (existingClass == null || !accState.getLabel().implies(existingClass)) {
+        if (existingClass == null || !existingClass.contains(oracle.getLanguage(accState, false))) {
           nextVolatileStateIndex = candidateIndex;
           nextVolatileState = accState;
           continue;
@@ -153,22 +152,22 @@ final class RankingAutomatonBuilder
         continue;
       }
 
-      EquivalenceClass existingClass = existingClasses.get(obligations);
-      EquivalenceClass stateClass = accState.getLabel();
+      Language<V> existingClass = existingClasses.get(obligations);
+      Language<V> stateClass = oracle.getLanguage(accState, false);
 
-      if (existingClass != null && stateClass.implies(existingClass)) {
+      if (existingClass != null && existingClass.contains(stateClass)) {
         continue;
       }
 
-      if (obligations.isPureLiveness() && (accState.getCurrent()
-        .testSupport(Formula::isPureEventual))) {
+      if (oracle.isPureLiveness(obligations) && oracle.getLanguage(accState, true)
+          .isCosafetyLanguage()) {
         pureEventual.add(accState);
       } else {
         mixed.add(accState);
       }
     }
 
-    Set<DegeneralizedBreakpointState> suffixes = new HashSet<>(mixed);
+    Set<T> suffixes = new HashSet<>(mixed);
     suffixes.addAll(pureEventual);
 
     if (nextVolatileState != null) {
@@ -176,7 +175,7 @@ final class RankingAutomatonBuilder
     }
 
     //noinspection OptionalContainsCollection
-    Optional<List<DegeneralizedBreakpointState>> append;
+    Optional<List<T>> append;
 
     if (trie == null) {
       append = Optional.empty();
@@ -190,8 +189,8 @@ final class RankingAutomatonBuilder
       ranking.addAll(append.get());
     } else {
       // Impose stable but arbitrary order.
-      pureEventual.sort(Comparator.comparingInt(o -> ldba.getAnnotation(o).hashCode()));
-      mixed.sort(Comparator.comparingInt(o -> ldba.getAnnotation(o).hashCode()));
+      pureEventual.sort(Comparator.comparingInt(o -> Objects.hashCode(ldba.getAnnotation(o))));
+      mixed.sort(Comparator.comparingInt(o -> Objects.hashCode(ldba.getAnnotation(o))));
 
       assert Collections.disjoint(ranking, pureEventual) :
         "State already present in ranking: " + pureEventual;
@@ -214,8 +213,8 @@ final class RankingAutomatonBuilder
   }
 
   @Override
-  public MutableAutomaton<RankingState, ParityAcceptance> build() {
-    MutableAutomaton<RankingState, ParityAcceptance> automaton = AutomatonFactory
+  public MutableAutomaton<RankingState<S, T>, ParityAcceptance> build() {
+    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory
       .createMutableAutomaton(acceptance, factory);
     // TODO: add getSensitiveAlphabet Method
     AutomatonUtil.exploreDeterministic(automaton, initialStates, this::getSuccessor, sizeCounter);
@@ -241,11 +240,11 @@ final class RankingAutomatonBuilder
    * - if a monitor couldn't be reached from a jump, delete it.
    */
   @Nullable
-  private Edge<RankingState> getSuccessor(RankingState state, BitSet valuation) {
-    EquivalenceClass successor;
+  private Edge<RankingState<S, T>> getSuccessor(RankingState<S, T> state, BitSet valuation) {
+    S successor;
 
     { // We obtain the successor of the state in the initial component.
-      Edge<EquivalenceClass> edge = initialComponent.getEdge(state.state, valuation);
+      Edge<S> edge = initialComponent.getEdge(state.state, valuation);
 
       // The initial component moved to a rejecting sink. Thus all runs die.
       if (edge == null) {
@@ -261,70 +260,77 @@ final class RankingAutomatonBuilder
     }
 
     // We compute the relevant accepting components, which we can jump to.
-    Map<GObligations, EquivalenceClass> existingClasses = new HashMap<>();
-    EquivalenceClass falseClass = successor.getFactory().getFalse();
+    Map<U, Language<V>> existingLanguages = new HashMap<>();
+    Language<V> emptyLanguage = oracle.getEmpty();
 
-    for (DegeneralizedBreakpointState jumpTarget : ldba.getEpsilonJumps(successor)) {
-      existingClasses.put(ldba.getAnnotation(jumpTarget), falseClass);
+    for (T jumpTarget : ldba.getEpsilonJumps(successor)) {
+      existingLanguages.put(ldba.getAnnotation(jumpTarget), emptyLanguage);
     }
 
     // Default rejecting color.
     int edgeColor = 2 * state.ranking.size();
-    List<DegeneralizedBreakpointState> ranking = new ArrayList<>(state.ranking.size());
+    List<T> ranking = new ArrayList<>(state.ranking.size());
     boolean activeVolatileComponent = false;
     int nextVolatileIndex = 0;
     int index = -1;
 
-    for (DegeneralizedBreakpointState current : state.ranking) {
+    for (T current : state.ranking) {
       index++;
-      Edge<DegeneralizedBreakpointState> edge = acceptingComponent.getEdge(current, valuation);
+      Edge<T> edge = acceptingComponent.getEdge(current, valuation);
 
       if (edge == null) {
         edgeColor = Math.min(2 * index, edgeColor);
         continue;
       }
 
-      DegeneralizedBreakpointState rankingSuccessor = edge.getSuccessor();
-      GObligations obligations = ldba.getAnnotation(rankingSuccessor);
-      EquivalenceClass existingClass = existingClasses.get(obligations);
+      T rankingSuccessor = edge.getSuccessor();
+      @Nullable
+      U annotation = ldba.getAnnotation(rankingSuccessor);
+      Language<V> existingLanguage = existingLanguages.get(annotation);
 
-      if (existingClass == null || rankingSuccessor.getLabel().implies(existingClass)) {
+      if (existingLanguage == null
+        || existingLanguage.contains(oracle.getLanguage(rankingSuccessor, false))) {
         edgeColor = Math.min(2 * index, edgeColor);
         continue;
       }
 
-      existingClasses.replace(obligations, existingClass.orWith(rankingSuccessor.getCurrent()));
+      existingLanguages.replace(annotation,
+        existingLanguage.union(oracle.getLanguage(rankingSuccessor, true)));
       assert !ranking.contains(rankingSuccessor) :
         "State already present in ranking: " + rankingSuccessor;
       ranking.add(rankingSuccessor);
 
       if (isVolatileState(rankingSuccessor)) {
         activeVolatileComponent = true;
-        nextVolatileIndex = volatileComponents.get(obligations);
+        nextVolatileIndex = volatileComponents.get(annotation);
       }
 
       if (edge.inSet(0)) {
         edgeColor = Math.min(2 * index + 1, edgeColor);
-        existingClasses.replace(obligations, successor.getFactory().getTrue());
+
+        if (annotation != null) {
+          existingLanguages.replace(annotation, oracle.getUniverse());
+        }
       }
     }
 
     if (!activeVolatileComponent) {
-      nextVolatileIndex = appendJumps(successor, ranking, existingClasses, state.volatileIndex);
+      nextVolatileIndex = appendJumps(successor, ranking, existingLanguages, state.volatileIndex);
     }
 
     if (edgeColor >= acceptance.getAcceptanceSets()) {
       acceptance.setAcceptanceSets(edgeColor + 1);
     }
 
-    existingClasses.forEach((x, y) -> y.free());
+    existingLanguages.forEach((x, y) -> y.free());
 
     return Edges
       .create(RankingState.create(successor, ranking, nextVolatileIndex, trie), edgeColor);
   }
 
-  private boolean isVolatileState(DegeneralizedBreakpointState state) {
-    return volatileComponents.containsKey(ldba.getAnnotation(state)) && state.getCurrent().isTrue();
+  private boolean isVolatileState(T state) {
+    return volatileComponents.containsKey(ldba.getAnnotation(state)) && oracle.getLanguage(state,
+        true).isUniverse();
   }
 }
 

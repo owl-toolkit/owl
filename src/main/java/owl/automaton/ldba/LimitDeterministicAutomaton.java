@@ -18,6 +18,7 @@
 package owl.automaton.ldba;
 
 import com.google.common.collect.Sets;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;

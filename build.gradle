@@ -167,6 +167,7 @@ def scripts = [
     'ltl2ldba': 'owl.translations.LTL2LDBA',
     'nba2ldba': 'owl.translations.NBA2LDBA',
     'delag'   : 'owl.translations.Delag',
+    'nba2dpa' : 'owl.translations.NBA2DPA'
 ]
 scripts.each() { scriptName, className ->
     def t = tasks.create(name: scriptName + 'StartScript', type: CreateStartScripts) {
