@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import owl.automaton.Automaton;
@@ -38,6 +39,7 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
   extends HoaPrintable {
   Automaton<T, U> getAcceptingComponent();
 
+  @Nullable
   V getAnnotation(T key);
 
   Set<V> getComponents();

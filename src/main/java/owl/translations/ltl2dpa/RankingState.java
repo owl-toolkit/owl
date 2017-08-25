@@ -33,12 +33,10 @@ public final class RankingState<S, T> extends ImmutableObject {
   final S state;
   final int volatileIndex;
 
-  private RankingState(S state, ImmutableList<T> ranking,
-    int volatileIndex) {
-
-    this.volatileIndex = volatileIndex;
+  private RankingState(S state, ImmutableList<T> ranking, int volatileIndex) {
     this.state = state;
     this.ranking = ranking;
+    this.volatileIndex = volatileIndex;
   }
 
   static <S, T> RankingState<S, T> createSink() {
@@ -49,15 +47,13 @@ public final class RankingState<S, T> extends ImmutableObject {
     return create(initialComponentState, ImmutableList.of(), 0, null);
   }
 
-  static <S, T> RankingState<S, T> create(S initialComponentState,
-    List<T> ranking, int volatileIndex,
-    @Nullable Map<S, Trie<T>> trieMap) {
+  static <S, T> RankingState<S, T> create(S initialComponentState, List<T> ranking,
+    int volatileIndex, @Nullable Map<S, Trie<T>> trieMap) {
     if (trieMap != null) {
       trieMap.computeIfAbsent(initialComponentState, x -> new Trie<>()).add(ranking);
     }
 
-    return new RankingState<S, T>(initialComponentState, ImmutableList.copyOf(ranking),
-        volatileIndex);
+    return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), volatileIndex);
   }
 
   @Override
