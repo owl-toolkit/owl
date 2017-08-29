@@ -21,7 +21,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;

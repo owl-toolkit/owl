@@ -26,6 +26,9 @@
             "executable": "build/bin/ltl2dpa",
             "optimisations": {
                 "no-eps": "REMOVE_EPSILON_TRANSITIONS"
+            },
+            "flags": {
+                "breakpoint-free": "--breakpoint-free"
             }
         },
         "ltl2da": {

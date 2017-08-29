@@ -15,16 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+@EverythingIsNonnullByDefault
+package owl.translations.ldba2dpa;
 
-import java.util.Set;
-import owl.ltl.EquivalenceClass;
-
-public interface JumpSelector<T> {
-
-  default Set<T> select(EquivalenceClass clazz) {
-    return select(clazz, false);
-  }
-
-  Set<T> select(EquivalenceClass clazz, boolean isInitialState);
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

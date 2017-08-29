@@ -62,11 +62,11 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
       .equals(obligations, that.obligations);
   }
 
-  public EquivalenceClass getCurrent() {
+  EquivalenceClass getCurrent() {
     return index < 0 ? current.getFactory().getTrue() : current;
   }
 
-  public EquivalenceClass getLabel() {
+  EquivalenceClass getLabel() {
     if (label == null) {
       label = safety.and(current);
 

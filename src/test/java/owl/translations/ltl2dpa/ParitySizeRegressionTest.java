@@ -19,20 +19,20 @@ package owl.translations.ltl2dpa;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import owl.automaton.Automaton;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.translations.AbstractSizeRegressionTest;
 
 @RunWith(Parameterized.class)
 public class ParitySizeRegressionTest
-  extends AbstractSizeRegressionTest<Automaton<?, ParityAcceptance>> {
+  extends AbstractSizeRegressionTest<MutableAutomaton<?, ParityAcceptance>> {
 
   public ParitySizeRegressionTest(FormulaGroup selectedClass) {
     super(selectedClass, new LTL2DPAFunction());
   }
 
   @Override
-  protected int getAccSize(Automaton<?, ParityAcceptance> automaton) {
+  protected int getAccSize(MutableAutomaton<?, ParityAcceptance> automaton) {
     return automaton.getAcceptance().getAcceptanceSets();
   }
 
@@ -43,7 +43,7 @@ public class ParitySizeRegressionTest
         return new int[] {2, 2, 2, 2};
 
       case ROUND_ROBIN:
-        return new int[] {2, 2, 2, 2, 2, 2};
+        return new int[] {2, 2, 2, 2, 2, 3};
 
       case REACH:
       case DISJUNCTION:
@@ -59,7 +59,7 @@ public class ParitySizeRegressionTest
         return new int[] {4, 4, 4, 4, 4, 5};
 
       case MIXED:
-        return new int[] {4, 3, 2, 2, 4, 2, 2, 2, 2, 7};
+        return new int[] {4, 3, 2, 2, 4, 3, 2, 3, 3, 7};
 
       case FG_UNSTABLE:
         return new int[] {3, 4, 2, 4, 4, 5};
@@ -68,7 +68,7 @@ public class ParitySizeRegressionTest
         return new int[] {2, 2};
 
       case G_DISJUNCTION:
-        return new int[] {2, 2, 7};
+        return new int[] {3, 2, 7};
 
       default:
         return new int[0];
@@ -82,7 +82,7 @@ public class ParitySizeRegressionTest
         return new int[] {1, 2, 2, 4, 2, 2, 2, 2};
 
       case VOLATILE:
-        return new int[] {2, 1, 4, 3};
+        return new int[] {2, 1, 4, 1};
 
       case ROUND_ROBIN:
         return new int[] {1, 2, 3, 4, 5, 9};
@@ -102,14 +102,14 @@ public class ParitySizeRegressionTest
       case MIXED:
         return new int[] {2, 4, 4, 4, 5, 4, 3, 2, 6, 19};
 
-      case FG_UNSTABLE:
-        return new int[] {2, 2, 4, 4, 2, 2, 2, 2};
+      case FG_UNSTABLE: // The order of the rankings is unstable...
+        return new int[] {3, 2, 3, 4, 2, 2, 2, 2};
 
       case ORDERINGS:
         return new int[] {3, 1};
 
       case G_DISJUNCTION:
-        return new int[] {212, 44, 346};
+        return new int[] {212, 18, 346};
 
       default:
         return new int[0];
@@ -117,7 +117,7 @@ public class ParitySizeRegressionTest
   }
 
   @Override
-  protected int getSize(Automaton<?, ParityAcceptance> automaton) {
+  protected int getSize(MutableAutomaton<?, ParityAcceptance> automaton) {
     return automaton.stateCount();
   }
 }

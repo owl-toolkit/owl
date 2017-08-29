@@ -1,7 +1,6 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.Collections2;
-
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;

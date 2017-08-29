@@ -25,7 +25,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
-import java.util.PrimitiveIterator.OfInt;
+import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -67,12 +67,18 @@ public final class ParityUtil {
     AutomatonUtil.complete(automaton, sinkSupplier, () -> rejectingAcceptance);
   }
 
-  public static <S> void minimizePriorities(MutableAutomaton<S, ParityAcceptance> automaton) {
-    minimizePriorities(automaton, SccAnalyser.computeSccs(automaton));
+  public static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
+    MutableAutomaton<S, ParityAcceptance> automaton) {
+    return minimizePriorities(automaton, SccAnalyser.computeSccs(automaton));
   }
 
-  public static <S> void minimizePriorities(MutableAutomaton<S, ParityAcceptance> automaton,
+  public static <S> MutableAutomaton<S, ParityAcceptance>
+  minimizePriorities(MutableAutomaton<S, ParityAcceptance> automaton,
     List<Set<S>> sccs) {
+    if (automaton instanceof ForwardingAutomaton) {
+      return automaton;
+    }
+
     /* This optimization simply determines all priorities used in each SCC and then tries to
      * eliminate "gaps". For example, when [0, 2, 4, 5] are used, we actually only need to consider
      * [0, 1]. Furthermore, edges between SCCs are set to an arbitrary priority. */
@@ -87,6 +93,8 @@ public final class ParityUtil {
     reductionMapping.defaultReturnValue(-1);
     // Priorities used in each SCC
     BitSet usedPriorities = new BitSet(acceptanceSets);
+    int usedAcceptanceSets = 0;
+
     for (Set<S> scc : sccs) {
       reductionMapping.clear();
       usedPriorities.clear();
@@ -95,7 +103,7 @@ public final class ParityUtil {
       for (S state : scc) {
         for (Edge<S> edge : automaton.getEdges(state)) {
           if (scc.contains(edge.getSuccessor())) {
-            OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
+            PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
             if (acceptanceSetIterator.hasNext()) {
               usedPriorities.set(acceptanceSetIterator.nextInt());
             }
@@ -104,6 +112,8 @@ public final class ParityUtil {
       }
 
       if (usedPriorities.cardinality() == acceptanceSets) {
+        usedAcceptanceSets = Math.max(usedAcceptanceSets, acceptanceSets);
+
         // All priorities are used, can't collapse any
         continue;
       }
@@ -116,8 +126,10 @@ public final class ParityUtil {
         if (currentTarget % 2 != currentPriority % 2) {
           currentTarget += 1;
         }
+
         reductionMapping.put(currentPriority, currentTarget);
         globallyUsedPriorities.set(currentTarget);
+        usedAcceptanceSets = Math.max(usedAcceptanceSets, currentTarget + 1);
         currentPriority = usedPriorities.nextSetBit(currentPriority + 1);
       }
 
@@ -125,6 +137,9 @@ public final class ParityUtil {
       // Since these are only taken finitely often by any run, their value does not matter.
       automaton.remapAcceptance(scc, reductionMapping);
     }
+
+    automaton.getAcceptance().setAcceptanceSets(usedAcceptanceSets);
+    return automaton;
   }
 
   public static <S> MutableAutomaton<S, ParityAcceptance> viewAsParity(

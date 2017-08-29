@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2dpa;
+package owl.translations.ldba2dpa;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -39,7 +39,11 @@ public final class RankingState<S, T> extends ImmutableObject {
     this.volatileIndex = volatileIndex;
   }
 
-  static <S, T> RankingState<S, T> create(@Nullable S initialComponentState) {
+  public static <S, T> RankingState<S, T> createSink() {
+    return create(null);
+  }
+
+  static <S, T> RankingState<S, T> create(S initialComponentState) {
     return create(initialComponentState, ImmutableList.of(), 0, null);
   }
 
@@ -50,10 +54,6 @@ public final class RankingState<S, T> extends ImmutableObject {
     }
 
     return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), volatileIndex);
-  }
-
-  static <S, T> RankingState<S, T> createSink() {
-    return create(null);
   }
 
   @Override

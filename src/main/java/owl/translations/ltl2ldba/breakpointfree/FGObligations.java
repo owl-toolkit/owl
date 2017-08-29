@@ -17,6 +17,8 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import owl.collections.Sets2;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
 import owl.ltl.BooleanConstant;
@@ -33,11 +36,13 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.translations.ltl2ldba.RecurringObligation;
 
-public final class FGObligations {
+public final class FGObligations implements RecurringObligation {
 
   private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
@@ -45,41 +50,51 @@ public final class FGObligations {
   final ImmutableSet<GOperator> goperators;
   final EquivalenceClass[] liveness;
   final EquivalenceClass safety;
+  final ImmutableSet<UnaryModalOperator> rewrittenOperators;
 
-  private FGObligations(ImmutableSet<FOperator> foperators,
-    ImmutableSet<GOperator> goperators, EquivalenceClass safety, EquivalenceClass[] liveness) {
+  private FGObligations(ImmutableSet<FOperator> foperators, ImmutableSet<GOperator> goperators,
+    EquivalenceClass safety, EquivalenceClass[] liveness,
+    ImmutableSet<UnaryModalOperator> rewrittenOperators) {
     this.safety = safety;
     this.liveness = liveness;
     this.goperators = goperators;
     this.foperators = foperators;
+    this.rewrittenOperators = rewrittenOperators;
   }
 
   @Nullable
-  static FGObligations constructRecurringObligations(Set<FOperator> fOperators1,
-    Set<GOperator> gOperators1, EquivalenceClassFactory factory) {
+  static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
+    EquivalenceClassFactory factory) {
 
     ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(fOperators1);
     ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(gOperators1);
+    ImmutableSet.Builder<UnaryModalOperator> builder = ImmutableSet.builder();
 
     // TODO: prune gOper/fOperatos (Gset, Fset)
 
     EquivalenceClass safety = factory.getTrue();
 
     for (GOperator gOperator : gOperators) {
-      Formula formula = FGObligationsEvaluator.replaceFOperators(fOperators, gOperator);
+      Formula formula = FGObligationsSelector.replaceFOperators(fOperators, gOperators, gOperator);
       EquivalenceClass safety2 = factory.createEquivalenceClass(formula);
       safety = safety.andWith(safety2);
       safety2.free();
 
-      if (safety.isFalse()) {
+      if (safety.unfold().isFalse()) {
         return null;
+      }
+
+      if (formula instanceof GOperator) {
+        builder.add((GOperator) formula);
+      } else {
+        builder.add(new GOperator(formula));
       }
     }
 
     List<EquivalenceClass> livenessList = new ArrayList<>(fOperators.size());
 
     for (FOperator fOperator : fOperators) {
-      Formula formula = FGObligationsEvaluator.replaceGOperators(gOperators, fOperator);
+      Formula formula = FGObligationsSelector.replaceGOperators(gOperators, fOperators, fOperator);
       formula = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
       formula = RewriterFactory.apply(RewriterEnum.PULLUP_X, formula);
 
@@ -96,15 +111,24 @@ public final class FGObligations {
 
       if (formula == BooleanConstant.TRUE) {
         Logger.getGlobal().log(Level.FINER, "Found true obligation.");
+        continue;
       }
 
       // Wrap into F.
       formula = FOperator.create(formula);
+
+      if (formula instanceof FOperator) {
+        builder.add((FOperator) formula);
+      } else {
+        builder.add(new FOperator(formula));
+      }
+
       EquivalenceClass liveness = factory.createEquivalenceClass(formula);
       livenessList.add(liveness);
     }
 
-    return new FGObligations(fOperators, gOperators, safety, livenessList.toArray(EMPTY));
+    return new FGObligations(fOperators, gOperators, safety, livenessList.toArray(EMPTY),
+      builder.build());
   }
 
   @Override
@@ -124,7 +148,28 @@ public final class FGObligations {
       && Arrays.equals(liveness, that.liveness);
   }
 
-  public EquivalenceClass getObligation() {
+  @Override
+  public EquivalenceClass getLanguage() {
+    return safety.getFactory().createEquivalenceClass(
+      Sets2.newHashSet(rewrittenOperators, GOperator::create));
+  }
+
+  @Override
+  public boolean containsLanguageOf(RecurringObligation other) {
+    checkArgument(other instanceof FGObligations);
+
+    if (Sets2.isSubset(rewrittenOperators, ((FGObligations) other).rewrittenOperators)) {
+      return true;
+    }
+
+    EquivalenceClass thisObligation = getObligation();
+    EquivalenceClass thatObligation = ((FGObligations) other).getObligation();
+    boolean implies = thatObligation.implies(thisObligation);
+    EquivalenceClassUtil.free(thisObligation, thatObligation);
+    return implies;
+  }
+
+  EquivalenceClass getObligation() {
     EquivalenceClass obligation = safety.duplicate();
 
     for (EquivalenceClass clazz : liveness) {
@@ -139,19 +184,11 @@ public final class FGObligations {
     return Objects.hash(foperators, goperators, safety, liveness);
   }
 
-  boolean implies(FGObligations that) {
-    EquivalenceClass thisObligation = getObligation();
-    EquivalenceClass thatObligation = getObligation();
-    boolean implies = thisObligation.implies(thatObligation);
-    EquivalenceClassUtil.free(thisObligation, thatObligation);
-    return implies;
-  }
-
-  public boolean isPureLiveness() {
+  boolean isPureLiveness() {
     return safety.isTrue();
   }
 
-  public boolean isPureSafety() {
+  boolean isPureSafety() {
     return liveness.length == 0;
   }
 

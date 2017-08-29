@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2dpa;
+package owl.translations.ldba2dpa;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -30,9 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.annotation.Nullable;
-
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -63,11 +61,11 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private final Map<S, Trie<T>> trie;
   private final Map<U, Integer> volatileComponents;
   private final int volatileMaxIndex;
-  private final LanguageOracle<V, T, U> oracle;
+  private final LanguageLattice<V, T, U> oracle;
 
   private RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory,
-    LanguageOracle<V, T, U> oracle) {
+    LanguageLattice<V, T, U> oracle) {
     acceptingComponent = ldba.getAcceptingComponent();
     initialComponent = ldba.getInitialComponent();
     this.ldba = ldba;
@@ -77,7 +75,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     for (U value : ldba.getComponents()) {
       assert !volatileComponents.containsKey(value);
 
-      if (oracle.isPureSafety(value)) {
+      if (oracle.isSafetyLanguage(value)) {
         volatileComponents.put(value, volatileComponents.size());
       }
     }
@@ -101,7 +99,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   public static <S, T, U, V> RankingAutomatonBuilder<S, T, U, V> create(
     LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations, ValuationSetFactory factory,
-    LanguageOracle<V, T, U> oracle) {
+    LanguageLattice<V, T, U> oracle) {
     return new RankingAutomatonBuilder<>(ldba, sizeCounter, optimisations, factory, oracle);
   }
 
@@ -118,8 +116,8 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     return appendJumps(state, ranking, Collections.emptyMap(), -1);
   }
 
-  private int appendJumps(S state, List<T> ranking,
-    Map<U, Language<V>> existingClasses, int currentVolatileIndex) {
+  private int appendJumps(S state, List<T> ranking, Map<U, Language<V>> existingLanguages,
+    int currentVolatileIndex) {
     List<T> pureEventual = new ArrayList<>();
     List<T> mixed = new ArrayList<>();
     T nextVolatileState = null;
@@ -130,7 +128,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
       Integer candidateIndex = volatileComponents.get(obligations);
 
       // It is a volatile state
-      if (candidateIndex != null && oracle.getLanguage(accState, true).isUniverse()) {
+      if (candidateIndex != null && oracle.getLanguage(accState, true).isTop()) {
         // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning.
         // This state should be suppressed.";
 
@@ -141,9 +139,10 @@ public final class RankingAutomatonBuilder<S, T, U, V>
           continue;
         }
 
-        Language<V> existingClass = existingClasses.get(obligations);
+        Language<V> existingLanguage = existingLanguages.get(obligations);
 
-        if (existingClass == null || !existingClass.contains(oracle.getLanguage(accState, false))) {
+        if (existingLanguage == null
+          || !existingLanguage.greaterOrEqual(oracle.getLanguage(accState, false))) {
           nextVolatileStateIndex = candidateIndex;
           nextVolatileState = accState;
           continue;
@@ -152,15 +151,14 @@ public final class RankingAutomatonBuilder<S, T, U, V>
         continue;
       }
 
-      Language<V> existingClass = existingClasses.get(obligations);
+      Language<V> existingClass = existingLanguages.get(obligations);
       Language<V> stateClass = oracle.getLanguage(accState, false);
 
-      if (existingClass != null && existingClass.contains(stateClass)) {
+      if (existingClass != null && existingClass.greaterOrEqual(stateClass)) {
         continue;
       }
 
-      if (oracle.isPureLiveness(obligations) && oracle.getLanguage(accState, true)
-          .isCosafetyLanguage()) {
+      if (oracle.isLivenessLanguage(obligations)) {
         pureEventual.add(accState);
       } else {
         mixed.add(accState);
@@ -261,7 +259,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     // We compute the relevant accepting components, which we can jump to.
     Map<U, Language<V>> existingLanguages = new HashMap<>();
-    Language<V> emptyLanguage = oracle.getEmpty();
+    Language<V> emptyLanguage = oracle.getBottom();
 
     for (T jumpTarget : ldba.getEpsilonJumps(successor)) {
       existingLanguages.put(ldba.getAnnotation(jumpTarget), emptyLanguage);
@@ -289,13 +287,13 @@ public final class RankingAutomatonBuilder<S, T, U, V>
       Language<V> existingLanguage = existingLanguages.get(annotation);
 
       if (existingLanguage == null
-        || existingLanguage.contains(oracle.getLanguage(rankingSuccessor, false))) {
+        || existingLanguage.greaterOrEqual(oracle.getLanguage(rankingSuccessor, false))) {
         edgeColor = Math.min(2 * index, edgeColor);
         continue;
       }
 
       existingLanguages.replace(annotation,
-        existingLanguage.union(oracle.getLanguage(rankingSuccessor, true)));
+        existingLanguage.join(oracle.getLanguage(rankingSuccessor, true)));
       assert !ranking.contains(rankingSuccessor) :
         "State already present in ranking: " + rankingSuccessor;
       ranking.add(rankingSuccessor);
@@ -309,7 +307,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
         edgeColor = Math.min(2 * index + 1, edgeColor);
 
         if (annotation != null) {
-          existingLanguages.replace(annotation, oracle.getUniverse());
+          existingLanguages.replace(annotation, oracle.getTop());
         }
       }
     }
@@ -330,7 +328,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
   private boolean isVolatileState(T state) {
     return volatileComponents.containsKey(ldba.getAnnotation(state)) && oracle.getLanguage(state,
-        true).isUniverse();
+        true).isTop();
   }
 }
 

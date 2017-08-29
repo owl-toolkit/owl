@@ -17,10 +17,21 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
+import static owl.translations.ltl2ldba.LTL2LDBAFunction.LOGGER;
+
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -28,6 +39,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
@@ -38,22 +50,103 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Visitor;
-import owl.translations.ltl2ldba.JumpEvaluator;
+import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.AbstractJumpFactory;
+import owl.translations.ltl2ldba.Jump;
 
-public class GObligationsEvaluator implements JumpEvaluator<GObligations> {
+public class GObligationsJumpFactory extends AbstractJumpFactory<GObligations> {
+  private final ImmutableSet<GObligations> obligations;
 
-  private final EquivalenceClassFactory factory;
+  private GObligationsJumpFactory(EquivalenceClassFactory factory,
+    EnumSet<Optimisation> optimisations, ImmutableSet<GObligations> obligations) {
+    super(ImmutableSet.copyOf(optimisations), factory);
+    this.obligations = obligations;
+    LOGGER.log(Level.WARNING, () ->  "The automaton has the following jumps: " + obligations);
+  }
 
-  GObligationsEvaluator(EquivalenceClassFactory factory) {
-    this.factory = factory;
+  private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {
+    return Sets.powerSet(Collector.collectTransformedGOperators(state.getSupport())).stream();
+  }
+
+  public static GObligationsJumpFactory build(EquivalenceClass initialState,
+    EnumSet<Optimisation> optimisations) {
+
+    if (initialState.testSupport(Fragments::isCoSafety) || initialState
+      .testSupport(Fragments::isSafety)) {
+      return new GObligationsJumpFactory(initialState.getFactory(), optimisations,
+        ImmutableSet.of());
+    }
+
+    // Compute resulting GObligations. -> Same GObligations; Different Associated Sets; what to do?
+    ImmutableSet<GObligations> jumps = createDisjunctionStream(initialState,
+      GObligationsJumpFactory::createGSetStream)
+      .map(Gs -> GObligations.build(Gs, initialState.getFactory(), optimisations))
+      .filter(Objects::nonNull)
+      .collect(ImmutableSet.toImmutableSet());
+
+    return new GObligationsJumpFactory(initialState.getFactory(), optimisations, jumps);
+  }
+
+  private static boolean containsAllPropostions(Collection<? extends Formula> set1,
+    Collection<Formula> set2) {
+    return set1.parallelStream().allMatch(x -> set2.stream()
+      .anyMatch(y -> y.anyMatch(z -> x.equals(Collector.transformToGOperator(z)))));
   }
 
   @Override
-  public EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
+  protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
+    EquivalenceClass state2 = optimisations.contains(Optimisation.EAGER_UNFOLD)
+                              ? state.duplicate()
+                              : state.unfold();
+    Set<Formula> support = state2.getSupport();
+    Set<GObligations> availableObligations = obligations
+      .stream().filter(x -> containsAllPropostions(x.goperators, support))
+      .collect(Collectors.toSet());
+    state2.free();
+
+    Set<Jump<GObligations>> jumps = new HashSet<>();
+
+    for (GObligations obligation : availableObligations) {
+      EquivalenceClass remainder = evaluate(state, obligation);
+
+      if (remainder.isFalse()) {
+        continue;
+      }
+
+      if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)
+        && dependsOnExternalAtoms(remainder, obligation)) {
+        continue;
+      }
+
+      jumps.add(buildJump(remainder, obligation));
+    }
+
+    return jumps;
+  }
+
+  private boolean dependsOnExternalAtoms(EquivalenceClass remainder, GObligations obligation) {
+    BitSet externalAtoms = Collector.collectAtoms(remainder.getSupport());
+    BitSet internalAtoms = new BitSet();
+    obligation.forEach(x -> internalAtoms.or(Collector.collectAtoms(x.getSupport())));
+
+    // Check if external atoms are non-empty and disjoint.
+    if (!externalAtoms.isEmpty()) {
+      externalAtoms.and(internalAtoms);
+
+      if (externalAtoms.isEmpty()) {
+        remainder.free();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
     Formula formula = clazz.getRepresentative();
-    EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.associatedGs, factory,
-      keys.getObligation());
+    EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.goperators, keys.getObligation());
     Formula subst = formula.accept(evaluateVisitor);
     Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
     EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
@@ -66,24 +159,11 @@ public class GObligationsEvaluator implements JumpEvaluator<GObligations> {
     private final EquivalenceClass environment;
     private final EquivalenceClassFactory factory;
 
-    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory factory,
-      @Nullable EquivalenceClass label) {
-      this.factory = factory;
-      if (label == null) {
-        environment = factory.createEquivalenceClass(
-          Iterables.concat(gMonitors,
-            StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
-              .collect(Collectors.toList())));
-      } else {
-        environment = label.and(factory.createEquivalenceClass(
-          Iterables.concat(gMonitors,
-            StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
-              .collect(Collectors.toList()))));
-      }
-    }
-
-    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClassFactory factory) {
-      this(gMonitors, factory, null);
+    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClass label) {
+      this.factory = label.getFactory();
+      this.environment = label.and(factory.createEquivalenceClass(Iterables.concat(gMonitors,
+        StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
+          .collect(Collectors.toList()))));
     }
 
     private Formula defaultAction(Formula formula) {

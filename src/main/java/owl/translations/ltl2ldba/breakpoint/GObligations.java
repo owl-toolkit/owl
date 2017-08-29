@@ -17,6 +17,8 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,8 +29,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.collections.Sets2;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
@@ -37,14 +41,17 @@ import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.RankingComparator;
+import owl.translations.ltl2ldba.RecurringObligation;
 import owl.util.ImmutableObject;
 
-public final class GObligations extends ImmutableObject {
+public final class GObligations extends ImmutableObject implements RecurringObligation {
 
   private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
   private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
-  final ImmutableSet<GOperator> associatedGs;
+  final ImmutableSet<GOperator> goperators;
+  final ImmutableSet<GOperator> rewrittenGOperators;
+
   // G(liveness[]) is a liveness language.
   final EquivalenceClass[] liveness;
 
@@ -54,11 +61,13 @@ public final class GObligations extends ImmutableObject {
   final EquivalenceClass safety;
 
   private GObligations(EquivalenceClass safety, List<EquivalenceClass> liveness,
-    List<EquivalenceClass> obligations, ImmutableSet<GOperator> es) {
+    List<EquivalenceClass> obligations, ImmutableSet<GOperator> es,
+    ImmutableSet<GOperator> build) {
     this.safety = safety;
     this.obligations = obligations.toArray(EMPTY);
     this.liveness = liveness.toArray(EMPTY);
-    this.associatedGs = es;
+    this.goperators = es;
+    rewrittenGOperators = build;
   }
 
   /**
@@ -70,7 +79,7 @@ public final class GObligations extends ImmutableObject {
    * @return This methods returns null, if the Gset is inconsistent.
    */
   @Nullable
-  static GObligations constructRecurringObligations(Set<GOperator> gOperatorsSet,
+  static GObligations build(Set<GOperator> gOperatorsSet,
     EquivalenceClassFactory factory, EnumSet<Optimisation> optimisations) {
     // Fields for GObligations
     EquivalenceClass safety = factory.getTrue();
@@ -79,17 +88,23 @@ public final class GObligations extends ImmutableObject {
 
     List<GOperator> gOperators = gOperatorsSet.stream().sorted(rankingComparator)
       .collect(Collectors.toList());
+    ImmutableSet.Builder<GOperator> builder = ImmutableSet.builder();
 
     for (int i = 0; i < gOperators.size(); i++) {
       GOperator gOperator = gOperators.get(i);
 
       // We only propagate information from already constructed G-monitors.
-      GObligationsEvaluator.EvaluateVisitor evaluateVisitor =
-        new GObligationsEvaluator.EvaluateVisitor(gOperators.subList(0, i), factory);
+      GObligationsJumpFactory.EvaluateVisitor evaluateVisitor =
+        new GObligationsJumpFactory.EvaluateVisitor(gOperators.subList(0, i), factory.getTrue());
 
       Formula formula = RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, RewriterFactory
         .apply(RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor))
       );
+
+      if (!(formula instanceof BooleanConstant) && !(formula instanceof GOperator)) {
+        builder.add(new GOperator(formula));
+      }
+
       EquivalenceClass clazz = factory.createEquivalenceClass(formula);
 
       evaluateVisitor.free();
@@ -124,7 +139,8 @@ public final class GObligations extends ImmutableObject {
       return null;
     }
 
-    return new GObligations(safety, liveness, obligations, ImmutableSet.copyOf(gOperators));
+    return new GObligations(safety, liveness, obligations, ImmutableSet.copyOf(gOperators),
+      builder.build());
   }
 
   @Override
@@ -146,6 +162,23 @@ public final class GObligations extends ImmutableObject {
     }
   }
 
+  @Override
+  public EquivalenceClass getLanguage() {
+    return safety.getFactory().createEquivalenceClass(rewrittenGOperators);
+  }
+
+  @Override
+  public boolean containsLanguageOf(RecurringObligation other) {
+    checkArgument(other instanceof GObligations);
+
+    if (Sets2.isSubset(rewrittenGOperators, ((GObligations) other).rewrittenGOperators)) {
+      return true;
+    }
+
+    // TODO: fix memory leak.
+    return ((GObligations) other).getObligation().implies(getObligation());
+  }
+
   EquivalenceClass getObligation() {
     EquivalenceClass obligation = safety.duplicate();
 
@@ -164,11 +197,6 @@ public final class GObligations extends ImmutableObject {
   protected int hashCodeOnce() {
     // TODO: fix memory leak.
     return getObligation().hashCode();
-  }
-
-  boolean implies(GObligations other) {
-    // TODO: fix memory leak.
-    return getObligation().implies(other.getObligation());
   }
 
   public boolean isEmpty() {

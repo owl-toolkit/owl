@@ -28,6 +28,10 @@ public final class Sets2 {
   private Sets2() {
   }
 
+  public static <E> boolean isSubset(Collection<E> subset, Collection<E> set) {
+    return set.containsAll(subset);
+  }
+
   public static <F, T> Set<T> newHashSet(Collection<F> collection, Function<F, T> transformer) {
     Set<T> set = new HashSet<>(collection.size());
 

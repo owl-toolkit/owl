@@ -152,6 +152,18 @@ ltl2dpa Vanilla:
     TEST_NAME: "ltl2dpa-vanilla"
   <<: *ltlcross_template
 
+ltl2dpa Breakpoint-Free:
+  stage: test-optimizations
+  variables:
+    TEST_NAME: "ltl2dpa-bpfree"
+  <<: *ltlcross_template
+
+ltl2dpa Breakpoint-Free Vanilla:
+  stage: test
+  variables:
+    TEST_NAME: "ltl2dpa-bpfree-vanilla"
+  <<: *ltlcross_template
+
 ltl2dpa Parallel:
   stage: test-parallel-translation
   variables:

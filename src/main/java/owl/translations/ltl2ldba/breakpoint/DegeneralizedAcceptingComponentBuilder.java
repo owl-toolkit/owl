@@ -17,8 +17,8 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
-import java.util.EnumSet;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,14 +34,12 @@ import owl.ltl.Fragments;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 
-public final class DegeneralizedAcceptingComponentBuilder extends
-  AbstractAcceptingComponentBuilder<DegeneralizedBreakpointState, 
-  BuchiAcceptance, GObligations> {
+public final class DegeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
+  <DegeneralizedBreakpointState, BuchiAcceptance, GObligations> {
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
-    EnumSet<Optimisation> optimisations) {
-    super(optimisations, factories,
-      new GObligationsEvaluator(factories.equivalenceClassFactory));
+    ImmutableSet<Optimisation> optimisations) {
+    super(optimisations, factories);
   }
 
   private EquivalenceClass and(EquivalenceClass[] classes) {
@@ -63,6 +61,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends
   @Override
   public DegeneralizedBreakpointState createState(EquivalenceClass remainder,
     GObligations obligations) {
+    assert remainder.testSupport(Fragments::isCoSafety);
+
     final int length = obligations.obligations.length + obligations.liveness.length;
 
     // TODO: field for extra data.

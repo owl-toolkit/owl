@@ -17,16 +17,21 @@
 
 package owl.translations.ltl2ldba;
 
+import static owl.translations.ltl2ldba.LTL2LDBAFunction.LOGGER;
+
 import java.util.Objects;
+import java.util.logging.Level;
 import owl.ltl.EquivalenceClass;
 
-class Jump<U> {
+public class Jump<U extends RecurringObligation> {
   final U obligations;
   final EquivalenceClass remainder;
+  private final EquivalenceClass language;
 
   Jump(EquivalenceClass remainder, U obligations) {
     this.remainder = remainder;
     this.obligations = obligations;
+    this.language = remainder.and(obligations.getLanguage());
   }
 
   @Override
@@ -47,5 +52,26 @@ class Jump<U> {
   @Override
   public int hashCode() {
     return Objects.hash(remainder, obligations);
+  }
+
+  boolean containsLanguageOf(Jump<U> jump) {
+    boolean contains = jump.remainder.implies(remainder)
+      && obligations.containsLanguageOf(jump.obligations);
+
+    if (contains) {
+      LOGGER.log(Level.FINER, () -> this + " contains the language of " + jump);
+    }
+
+    return contains;
+  }
+
+  EquivalenceClass getLanguage() {
+    return language.duplicate();
+  }
+
+  @Override
+  public String toString() {
+    return "Jump{" + "obligations=" + obligations + ", remainder=" + remainder + ", language="
+      + language + '}';
   }
 }
