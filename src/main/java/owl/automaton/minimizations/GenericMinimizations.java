@@ -22,7 +22,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edges;
-import owl.collections.Lists2;
+import owl.collections.Collections3;
 
 public final class GenericMinimizations {
   private GenericMinimizations() {
@@ -32,7 +32,7 @@ public final class GenericMinimizations {
     Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.stateCount());
     stateToSccMap.defaultReturnValue(-1);
 
-    Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
+    Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
       (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
     automaton.remapEdges((state, edge) -> {

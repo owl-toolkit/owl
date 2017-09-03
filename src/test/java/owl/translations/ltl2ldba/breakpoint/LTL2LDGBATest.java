@@ -136,8 +136,8 @@ public class LTL2LDGBATest {
   @Test
   public void testEx() throws Exception {
     String ltl2 = "X G (a | F b)";
-    testOutput(ltl2, 4);
-    testOutput(ltl2, EnumSet.of(Optimisation.DETERMINISTIC_INITIAL_COMPONENT), 10);
+    testOutput(ltl2, 3);
+    testOutput(ltl2, EnumSet.of(Optimisation.DETERMINISTIC_INITIAL_COMPONENT), 7);
   }
 
   @Test
@@ -146,7 +146,7 @@ public class LTL2LDGBATest {
     testOutput(ltl, 2);
   }
 
-  // @Test TODO renable to test X-removal in GObligations.
+  @Test
   public void testFoo() throws Exception {
     String ltl = "G((p) U (X(G(p))))";
     testOutput(ltl, 3);
@@ -185,7 +185,7 @@ public class LTL2LDGBATest {
   @Test
   public void testOptimisations3() throws Exception {
     String ltl = "G((a & !X a) | (X (a U (a & !b & (X(a & b & (a U (a & !b & (X(a & b))))))))))";
-    testOutput(ltl, 8);
+    testOutput(ltl, 19);
   }
 
   @Test
@@ -250,7 +250,7 @@ public class LTL2LDGBATest {
   @Test
   public void testToHoa() throws Exception {
     String ltl = "((F G (a U c)) & G X b) | (F G X (f U d)) & X X e";
-    testOutput(ltl, 11);
+    testOutput(ltl, 9);
   }
 
   @Test

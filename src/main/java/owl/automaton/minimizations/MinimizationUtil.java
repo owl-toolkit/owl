@@ -85,8 +85,8 @@ public final class MinimizationUtil {
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
-    Predicate<S> isProtected,
-    Consumer<S> removedStatesConsumer) {
+    Predicate<? super S> isProtected,
+    Consumer<? super S> removedStatesConsumer) {
     removeDeadStates(automaton, automaton.getInitialStates(), isProtected, removedStatesConsumer);
   }
 
@@ -106,7 +106,9 @@ public final class MinimizationUtil {
    *     order.
    */
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
-    Set<S> initialStates, Predicate<S> isProtected, Consumer<S> removedStatesConsumer) {
+    Set<S> initialStates,
+    Predicate<? super S> isProtected,
+    Consumer<? super S> removedStatesConsumer) {
     assert automaton.containsStates(initialStates) :
       String.format("States %s not part of the automaton",
         Sets.filter(initialStates, state -> !automaton.containsState(state)));

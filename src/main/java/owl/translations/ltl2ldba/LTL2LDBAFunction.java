@@ -96,7 +96,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
   createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
+    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
       x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
       x -> new DegeneralizedAcceptingComponentBuilder(x, ImmutableSet.copyOf(optimisations)),
       optimisations,
@@ -121,7 +121,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
   createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
+    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
       x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
       x -> new GeneralizedAcceptingComponentBuilder(x, EnumSet.copyOf(optimisations)),
       optimisations,
@@ -131,10 +131,6 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
 
   private static Formula preProcess(Formula formula) {
     return RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-  }
-
-  private static Formula preProcessPushX(Formula formula) {
-    return RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, preProcess(formula));
   }
 
   @Override

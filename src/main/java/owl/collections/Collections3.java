@@ -19,18 +19,47 @@ package owl.collections;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
-public final class Sets2 {
-  private Sets2() {}
+public final class Collections3 {
+  private Collections3() {}
 
-  public static <E> boolean isSubset(Collection<E> subset, Collection<E> set) {
-    return set.containsAll(subset);
+  public static <T> boolean addAllDistinct(List<T> list, Collection<T> elements) {
+    boolean changed = false;
+
+    for (T element : elements) {
+      changed |= addDistinct(list, element);
+    }
+
+    return changed;
+  }
+
+  public static <T> boolean addDistinct(List<T> list, T element) {
+    if (list.contains(element)) {
+      return false;
+    }
+
+    list.add(element);
+    return true;
+  }
+
+  public static <T> void forEachIndexed(List<T> list, IndexedConsumer<T> action) {
+    ListIterator<T> iterator = list.listIterator();
+    while (iterator.hasNext()) {
+      action.accept(iterator.nextIndex(), iterator.next());
+    }
+  }
+
+  public static <E> boolean isDistinct(Collection<E> collection) {
+    return collection.size() == Sets.newHashSet(collection).size();
   }
 
   public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {
@@ -45,6 +74,7 @@ public final class Sets2 {
     }
 
     int size = collection.size();
+
     if (size == 1) {
       @Nullable
       T element = transformer.apply(Iterables.getOnlyElement(collection));
@@ -66,5 +96,10 @@ public final class Sets2 {
     Set<E> union = new HashSet<>(elements.size());
     elements.forEach(union::addAll);
     return union;
+  }
+
+  @FunctionalInterface
+  public interface IndexedConsumer<T> {
+    void accept(int index, T element);
   }
 }

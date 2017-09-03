@@ -1,11 +1,13 @@
 package owl.automaton.minimization;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.EnumSet;
 import java.util.Set;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.junit.Assert;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
@@ -99,8 +101,8 @@ public class TestHasAcceptingRun {
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
     result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    Assert.assertEquals(EmptinessCheck.isEmpty(result), !hasAcceptingRun);
+    assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!hasAcceptingRun));
     ParityUtil.complement(result, RankingState::createSink);
-    Assert.assertEquals(EmptinessCheck.isEmpty(result), !complementHasAcceptingRun);
+    assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!complementHasAcceptingRun));
   }
 }

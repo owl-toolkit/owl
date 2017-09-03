@@ -108,7 +108,7 @@
                     ]
                 }
             ],
-            "data": "large"
+            "data": "small"
         },
         "delag": "delag",
         "delag-fallback": "delag#fallback",
