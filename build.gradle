@@ -53,7 +53,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
-project.version = '18.06'
+project.version = '4'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
@@ -102,7 +102,7 @@ dependencies {
 jar {
     manifest {
         attributes(
-            "Implementation-Title": "owl",
+            "Implementation-Title": "Rabinizer",
             "Main-Class": project.mainClassName,
             "Implementation-Version": project.version)
     }
@@ -110,7 +110,7 @@ jar {
 
 def shadedJar = task shadedJar(name: "shadedJar", type: proguard.gradle.ProGuardTask) {
     configuration 'config/proguard.txt'
-    
+
     libraryjars "${System.getProperty('java.home')}/jmods"
     libraryjars "${System.getProperty('java.home')}/lib"
 
@@ -126,7 +126,7 @@ def shadedJar = task shadedJar(name: "shadedJar", type: proguard.gradle.ProGuard
 
 def rabinizerJar = task rabinizerJar(name: "rabinizerJar", type: proguard.gradle.ProGuardTask) {
     configuration 'config/proguard.txt'
-    
+
     libraryjars "${System.getProperty('java.home')}/jmods"
     libraryjars "${System.getProperty('java.home')}/lib"
 
@@ -151,18 +151,18 @@ def scripts = [
     // LTL -> DRA
     'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
-    
+
     // LTL -> DPA
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
     'fgx2dpa'   : 'owl.translations.fgx2dpa.FGX2DPA',
-    
+
     // LTL -> DELA
     'delag'     : 'owl.translations.delag.DelagBuilder',
-    
+
     // LTL -> D*A
     // TODO: Deprecate and replace by delag!
     'ltl2da'    : 'owl.translations.LTL2DAModule',
-    
+
     // Miscellaneous
     'synth'     : 'owl.translations.Synthesis',
     'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
@@ -179,12 +179,15 @@ def rabinizerScripts = [
     // LTL -> DRA
     'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
-    
+
     // LTL -> DPA
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
 
     // DRA -> DPA
-    'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder'
+    'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',
+
+    // fLTL -> DGRMA
+    'fltl2dgmra': 'owl.translations.frequency.RabinizerFrequencyMain'
 ]
 
 ext.createStartScriptTasks = { name, cp, map ->
@@ -208,8 +211,8 @@ allStartScripts.each() {
 }
 
 def shadedJarStartScripts = createStartScriptTasks("ProGuard", shadedJar.outputs.files, scripts + ['owl': mainClassName])
-shadedJarStartScripts.each() { 
-    it.dependsOn(shadedJar) 
+shadedJarStartScripts.each() {
+    it.dependsOn(shadedJar)
 }
 
 def rabinizerStartScripts = createStartScriptTasks("Rabinizer", rabinizerJar.outputs.files, rabinizerScripts)
@@ -226,7 +229,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
     args = ["$project.docsDir/markdown"]
 }.onlyIf {
     buildNatives
-} 
+}
 
 javadoc {
     options.addBooleanOption('html5', true)
@@ -239,7 +242,7 @@ javadoc {
 
 // ---------------- Distributions ----------------
 
-// Configure the distribution to include basic documentation. 
+// Configure the distribution to include basic documentation.
 // Javadoc is excluded and can be built from source release,
 // that is generated from the release tag.
 
@@ -256,7 +259,7 @@ distributions {
                 from allStartScripts
 
                 if (buildNatives) {
-                    from 'build/exe/owlClient/owl-client' 
+                    from 'build/exe/owlClient/owl-client'
                 }
 
                 fileMode = 0755
@@ -270,7 +273,7 @@ distributions {
 
     minimized {
         baseName = 'owl-minimized'
-        
+
         contents {
             from "AUTHORS"
             from "LICENSE"
@@ -279,7 +282,7 @@ distributions {
                 from shadedJarStartScripts
 
                 if (buildNatives) {
-                    from 'build/exe/owlClient/owl-client' 
+                    from 'build/exe/owlClient/owl-client'
                 }
 
                 fileMode = 0755
