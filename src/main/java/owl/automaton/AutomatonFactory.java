@@ -61,9 +61,8 @@ public final class AutomatonFactory {
     return new EmptyAutomaton<>(factory);
   }
 
-  public static <S> Automaton<S, AllAcceptance> universe(S singletonState,
-    ValuationSetFactory factory) {
-    return new AllAutomaton<>(singletonState, factory);
+  public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
+    return new AllAutomaton<>(state, factory);
   }
 
   private AutomatonFactory() {}

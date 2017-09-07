@@ -68,7 +68,7 @@ final class MasterStatePartition {
     if (!transientStates.isEmpty()) {
       builder.append("\n  Transient: ").append(transientStates);
     }
-    Lists2.forAllIndexed(partition, (index, element) ->
+    Lists2.forEachIndexed(partition, (index, element) ->
       builder.append("\n  ").append(index).append(": ").append(element));
     return builder.toString();
   }

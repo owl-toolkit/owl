@@ -151,7 +151,7 @@ public final class Lists2 {
     };
   }
 
-  public static <T> void forAllIndexed(List<T> list, IndexedConsumer<T> action) {
+  public static <T> void forEachIndexed(List<T> list, IndexedConsumer<T> action) {
     ListIterator<T> iterator = list.listIterator();
     while (iterator.hasNext()) {
       action.accept(iterator.nextIndex(), iterator.next());

@@ -228,13 +228,13 @@ public final class AutomatonUtil {
   }
 
   public static <S> Set<S> exploreWithLabelledEdge(MutableAutomaton<S, ?> automaton,
-    Iterable<S> states, Function<S, Iterable<LabelledEdge<S>>> successorOracle) {
+    Iterable<S> states, Function<S, Iterable<LabelledEdge<S>>> successorFunction) {
     Set<S> exploredStates = Sets.newHashSet(states);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Iterable<LabelledEdge<S>> labelledEdges = successorOracle.apply(state);
+      Iterable<LabelledEdge<S>> labelledEdges = successorFunction.apply(state);
 
       for (LabelledEdge<S> labelledEdge : labelledEdges) {
         automaton.addEdge(state, labelledEdge.valuations, labelledEdge.edge);
