@@ -47,9 +47,8 @@ public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
 
   @Override
   protected Collection<CommandLineInput<Automaton<HoaState, ? extends OmegaAcceptance>>>
-  parseInput(
-    InputStream stream) throws ParseException {
-    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream, null);
+  parseInput(InputStream stream) throws ParseException {
+    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream);
     List<CommandLineInput<Automaton<HoaState, ? extends OmegaAcceptance>>> inputs =
       new ArrayList<>();
 

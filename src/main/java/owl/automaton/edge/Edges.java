@@ -1,14 +1,17 @@
 package owl.automaton.edge;
 
 import com.google.common.collect.Iterables;
+import de.tum.in.naturals.NaturalsTransformer;
+import de.tum.in.naturals.bitset.ImmutableBitSet;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import java.util.BitSet;
 import java.util.PrimitiveIterator;
+import java.util.PrimitiveIterator.OfInt;
+import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
-import owl.collections.ints.UnmodifiableBitSet;
 
 public final class Edges {
-  private Edges() {
-  }
+  private Edges() {}
 
   /**
    * Creates an edge which belongs to the specified delegate sets.
@@ -35,7 +38,7 @@ public final class Edges {
       return new EdgeLong<>(successor, acceptance);
     }
 
-    return new EdgeGeneric<>(successor, UnmodifiableBitSet.copyOf(acceptance));
+    return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptance));
   }
 
   /**
@@ -99,11 +102,22 @@ public final class Edges {
       acceptanceSet.set(acceptance.nextInt());
     }
 
+    if (acceptanceSet.cardinality() == 1) {
+      // Could happen if acceptance returns duplicates
+      return new EdgeSingleton<>(successor, first);
+    }
+
     if (acceptanceSet.length() <= Long.SIZE) {
       return new EdgeLong<>(successor, acceptanceSet);
     }
 
-    return new EdgeGeneric<>(successor, UnmodifiableBitSet.copyOf(acceptanceSet));
+    return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptanceSet));
+  }
+
+  public static <S> Edge<S> transformAcceptance(Edge<S> original, IntUnaryOperator transformer) {
+    OfInt originalAcceptance = original.acceptanceSetIterator();
+    IntIterator newAcceptance = new NaturalsTransformer(originalAcceptance, transformer);
+    return create(original.getSuccessor(), newAcceptance);
   }
 
   public static <S> Iterable<S> toSuccessors(Iterable<Edge<S>> edges) {

@@ -16,6 +16,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.collections.ints;
+package owl.automaton.minimizations;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

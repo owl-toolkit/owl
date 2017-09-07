@@ -38,6 +38,9 @@
                 "fallback": "--fallback='ltl2tgba -H --deterministic --generic'"
             }
         },
+        "rabinizer": {
+            "executable": "build/bin/rabinizer"
+        },
         "ltl2tgba": {
             "executable": "ltl2tgba",
             "defaults": [

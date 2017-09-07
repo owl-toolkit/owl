@@ -20,13 +20,13 @@ package owl.factories.jdd;
 import com.google.common.collect.Sets;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Iterator;
 import javax.annotation.Nonnull;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
-import owl.collections.ints.BitSets;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.Literal;
 

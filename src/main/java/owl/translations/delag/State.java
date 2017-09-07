@@ -26,7 +26,7 @@ public class State<T> {
 
   State() {
     past = new History();
-    productState = (ProductState<T>) ProductState.builder().build();
+    productState = ProductState.<T>builder().build();
   }
 
   State(ProductState<T> state, History past) {
@@ -44,7 +44,7 @@ public class State<T> {
       return false;
     }
 
-    final State<?> state = (State<?>) o;
+    State<?> state = (State<?>) o;
     return Objects.equals(productState, state.productState)
       && Objects.equals(past, state.past);
   }

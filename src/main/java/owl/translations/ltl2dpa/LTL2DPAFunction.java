@@ -31,7 +31,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.automaton.transformations.ParityAutomatonUtil;
+import owl.automaton.transformations.ParityUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.translations.Optimisation;
@@ -134,7 +134,7 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
     BuchiAcceptance, GObligations> ldba = translator.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return new ComplementableAutomaton<>(ParityAutomatonUtil.changeAcceptance(
+      return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
         (MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance>)
           ldba.getAcceptingComponent()), DegeneralizedBreakpointState::createSink);
     }
@@ -164,7 +164,7 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
     }
 
     void complement() {
-      ParityAutomatonUtil.complement(automaton, sinkSupplier);
+      ParityUtil.complement(automaton, sinkSupplier);
     }
   }
 }

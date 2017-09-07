@@ -24,11 +24,14 @@ import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -43,7 +46,7 @@ import owl.factories.ValuationSetFactory;
 /**
  * Note: Every implementation should support concurrent read-access.
  * Note: Default implementation should only call methods from one layer below:
- *  Successors -> Edges -> LabelledEdges
+ * Successors -> Edges -> LabelledEdges
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   /**
@@ -66,8 +69,30 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return Whether all of the states are in the automaton.
    */
-  default boolean containsStates(Collection<S> states) {
+  default boolean containsStates(Collection<? extends S> states) {
     return getStates().containsAll(states);
+  }
+
+  default void forEachEdge(BiConsumer<S, Edge<S>> action) {
+    forEachState(state -> getEdges(state).forEach(edge -> action.accept(state, edge)));
+  }
+
+  default void forEachLabelledEdge(BiConsumer<S, LabelledEdge<S>> action) {
+    forEachState(state -> getLabelledEdges(state).forEach(labelledEdge ->
+      action.accept(state, labelledEdge)));
+  }
+
+  default void forEachState(Consumer<S> action) {
+    getStates().forEach(action);
+  }
+
+  default void forEachSuccessor(S state, BiConsumer<Edge<S>, ValuationSet> action) {
+    getLabelledEdges(state).forEach(labelledEdge -> action.accept(labelledEdge.edge,
+      labelledEdge.valuations));
+  }
+
+  default void free() {
+    // Only override if needed
   }
 
   /**
@@ -133,7 +158,24 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The set of incomplete states and the missing valuations.
    */
-  Map<S, ValuationSet> getIncompleteStates();
+  default Map<S, ValuationSet> getIncompleteStates() {
+    Map<S, ValuationSet> incompleteStates = new HashMap<>();
+    ValuationSetFactory vsFactory = getFactory();
+
+    forEachState(state -> {
+      ValuationSet unionSet = vsFactory.createEmptyValuationSet();
+      getLabelledEdges(state).forEach(labelledEdge -> unionSet.addAll(labelledEdge.valuations));
+
+      // State is incomplete; complement() creates a new, referenced node.
+      if (!unionSet.isUniverse()) {
+        incompleteStates.put(state, unionSet.complement());
+      }
+
+      unionSet.free();
+    });
+
+    return incompleteStates;
+  }
 
   /**
    * Returns the initial state. Throws an {@link IllegalStateException} if there a no or multiple
@@ -185,7 +227,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @param start
    *     Starting states for the reachable states search.
    */
-  default Set<S> getReachableStates(Collection<S> start) {
+  default Set<S> getReachableStates(Collection<? extends S> start) {
     Set<S> exploredStates = Sets.newHashSet(start);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
@@ -213,7 +255,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Set<S> getSuccessors(S state) {
-    return Sets2.newHashSet(getEdges(state), Edge::getSuccessor);
+    return Sets2.newHashSet(getLabelledEdges(state), l -> l.edge.getSuccessor());
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {
@@ -261,11 +303,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic());
+      getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic(), getName());
 
     getStates().forEach(state -> {
       hoa.addState(state);
-      getLabelledEdges(state).forEach(hoa::addEdge);
+      forEachSuccessor(state, hoa::addEdge);
       hoa.notifyEndOfState();
     });
 

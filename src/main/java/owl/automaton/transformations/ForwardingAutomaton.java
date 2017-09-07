@@ -2,12 +2,10 @@ package owl.automaton.transformations;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.LabelledEdge;
-import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ForwardingAutomaton<S, A extends OmegaAcceptance,
@@ -24,11 +22,6 @@ public abstract class ForwardingAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public Map<S, ValuationSet> getIncompleteStates() {
-    return automaton.getIncompleteStates();
-  }
-
-  @Override
   public Set<S> getInitialStates() {
     return automaton.getInitialStates();
   }
@@ -39,11 +32,6 @@ public abstract class ForwardingAutomaton<S, A extends OmegaAcceptance,
   }
 
   @Override
-  public Set<S> getReachableStates(Collection<S> start) {
-    return automaton.getReachableStates(start);
-  }
-
-  @Override
   public Set<S> getStates() {
     return automaton.getStates();
   }
@@ -51,5 +39,10 @@ public abstract class ForwardingAutomaton<S, A extends OmegaAcceptance,
   @Override
   public List<String> getVariables() {
     return automaton.getVariables();
+  }
+
+  @Override
+  public void setVariables(List<String> variables) {
+    automaton.setVariables(variables);
   }
 }

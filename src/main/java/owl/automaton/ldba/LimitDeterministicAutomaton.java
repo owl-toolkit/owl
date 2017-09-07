@@ -69,7 +69,7 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
       getAcceptingComponent().getAcceptance(),
       Sets.union(getInitialComponent().getInitialStates(),
         getAcceptingComponent().getInitialStates()),
-      size(), options, false);
+      size(), options, false, getName());
 
     for (S state : getInitialComponent().getStates()) {
       consumerExt.addState(state);

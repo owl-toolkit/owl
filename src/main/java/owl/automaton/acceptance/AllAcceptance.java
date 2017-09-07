@@ -23,14 +23,12 @@ import java.util.Set;
 import java.util.function.Function;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.edge.Edge;
 
 public final class AllAcceptance implements OmegaAcceptance {
   @Override
   public <S> boolean containsAcceptingRun(Set<S> scc,
     Function<S, Iterable<Edge<S>>> successorFunction) {
-    assert AutomatonUtil.isScc(scc, successorFunction);
     return true;
   }
 

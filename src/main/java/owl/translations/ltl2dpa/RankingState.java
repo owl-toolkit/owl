@@ -28,26 +28,22 @@ import owl.util.ImmutableObject;
 
 @Immutable
 public final class RankingState<S, T> extends ImmutableObject {
-
   final ImmutableList<T> ranking;
+  @Nullable
   final S state;
   final int volatileIndex;
 
-  private RankingState(S state, ImmutableList<T> ranking, int volatileIndex) {
+  private RankingState(@Nullable S state, ImmutableList<T> ranking, int volatileIndex) {
     this.state = state;
     this.ranking = ranking;
     this.volatileIndex = volatileIndex;
   }
 
-  static <S, T> RankingState<S, T> createSink() {
-    return create(null);
-  }
-
-  static <S, T> RankingState<S, T> create(S initialComponentState) {
+  static <S, T> RankingState<S, T> create(@Nullable S initialComponentState) {
     return create(initialComponentState, ImmutableList.of(), 0, null);
   }
 
-  static <S, T> RankingState<S, T> create(S initialComponentState, List<T> ranking,
+  static <S, T> RankingState<S, T> create(@Nullable S initialComponentState, List<T> ranking,
     int volatileIndex, @Nullable Map<S, Trie<T>> trieMap) {
     if (trieMap != null) {
       trieMap.computeIfAbsent(initialComponentState, x -> new Trie<>()).add(ranking);
@@ -56,11 +52,16 @@ public final class RankingState<S, T> extends ImmutableObject {
     return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), volatileIndex);
   }
 
+  static <S, T> RankingState<S, T> createSink() {
+    return create(null);
+  }
+
   @Override
   protected boolean equals2(ImmutableObject o) {
-    RankingState<S, T> that = (RankingState<S, T>) o;
-    return that.volatileIndex == this.volatileIndex && Objects.equals(state, that.state) && Objects
-      .equals(ranking, that.ranking);
+    RankingState<?, ?> that = (RankingState<?, ?>) o;
+    return that.volatileIndex == this.volatileIndex
+      && Objects.equals(state, that.state)
+      && Objects.equals(ranking, that.ranking);
   }
 
   @Override
@@ -70,6 +71,6 @@ public final class RankingState<S, T> extends ImmutableObject {
 
   @Override
   public String toString() {
-    return "|" + state + " :: " + ranking + " :: " + volatileIndex + '|';
+    return String.format("|%s :: %s :: %d|", state, ranking, volatileIndex);
   }
 }

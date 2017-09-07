@@ -84,7 +84,9 @@ if __name__ == "__main__":
             variance = (sum((value - average) ** 2 for value in sorted_values) / value_count)
             deviation = variance ** 0.5
 
-            if value_count % 2:  # uneven
+            if value_count == 1:
+                median = sorted_values[0]
+            elif value_count % 2:  # uneven
                 median = sorted_values[mid + 1]
             else:
                 median = (sorted_values[mid] + sorted_values[mid + 1]) / 2

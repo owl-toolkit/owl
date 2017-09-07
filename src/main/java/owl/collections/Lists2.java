@@ -23,12 +23,17 @@ import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 public final class Lists2 {
+  @FunctionalInterface
+  public interface IndexedConsumer<T> {
+    void accept(int index, T element);
+  }
 
   private Lists2() {
   }
@@ -144,5 +149,12 @@ public final class Lists2 {
         return list.size() + 1;
       }
     };
+  }
+
+  public static <T> void forAllIndexed(List<T> list, IndexedConsumer<T> action) {
+    ListIterator<T> iterator = list.listIterator();
+    while (iterator.hasNext()) {
+      action.accept(iterator.nextIndex(), iterator.next());
+    }
   }
 }

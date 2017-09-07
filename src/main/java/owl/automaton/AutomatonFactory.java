@@ -20,9 +20,6 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class AutomatonFactory {
-  private AutomatonFactory() {
-  }
-
   /**
    * Creates an empty automaton with given acceptance condition. The {@code valuationSetFactory} is
    * used as transition backend.
@@ -61,107 +58,127 @@ public final class AutomatonFactory {
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
-    return new Automaton<S, NoneAcceptance>() {
-      private List<String> variables = ImmutableList.of();
-
-      @Override
-      public NoneAcceptance getAcceptance() {
-        return new NoneAcceptance();
-      }
-
-      @Override
-      public ValuationSetFactory getFactory() {
-        return factory;
-      }
-
-      @Override
-      public Map<S, ValuationSet> getIncompleteStates() {
-        return Collections.emptyMap();
-      }
-
-      @Override
-      public Set<S> getInitialStates() {
-        return Collections.emptySet();
-      }
-
-      @Override
-      public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-        return Collections.emptySet();
-      }
-
-      @Override
-      public Set<S> getReachableStates(Collection<S> start) {
-        return Collections.emptySet();
-      }
-
-      @Override
-      public Set<S> getStates() {
-        return Collections.emptySet();
-      }
-
-      @Override
-      public List<String> getVariables() {
-        return variables;
-      }
-
-      @Override
-      public void setVariables(List<String> variables) {
-        this.variables = ImmutableList.copyOf(variables);
-      }
-    };
+    return new EmptyAutomaton<>(factory);
   }
 
   public static <S> Automaton<S, AllAcceptance> universe(S singletonState,
     ValuationSetFactory factory) {
-    return new Automaton<S, AllAcceptance>() {
-      private LabelledEdge<S> loop = new LabelledEdge<>(Edges.create(singletonState),
-        factory.createUniverseValuationSet());
-      private List<String> variables = ImmutableList.of();
+    return new AllAutomaton<>(singletonState, factory);
+  }
 
-      @Override
-      public AllAcceptance getAcceptance() {
-        return new AllAcceptance();
-      }
+  private AutomatonFactory() {}
 
-      @Override
-      public ValuationSetFactory getFactory() {
-        return factory;
-      }
+  private static final class AllAutomaton<S> implements Automaton<S, AllAcceptance> {
+    private final ValuationSetFactory factory;
+    private final LabelledEdge<S> loop;
+    private final S singletonState;
+    private List<String> variables;
 
-      @Override
-      public Map<S, ValuationSet> getIncompleteStates() {
-        return Collections.emptyMap();
-      }
+    AllAutomaton(S singletonState, ValuationSetFactory factory) {
+      this.singletonState = singletonState;
+      this.factory = factory;
+      loop = new LabelledEdge<>(Edges.create(singletonState), factory.createUniverseValuationSet());
+      variables = ImmutableList.of();
+    }
 
-      @Override
-      public Set<S> getInitialStates() {
-        return Collections.singleton(singletonState);
-      }
+    @Override
+    public AllAcceptance getAcceptance() {
+      return new AllAcceptance();
+    }
 
-      @Override
-      public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-        return Collections.singleton(loop);
-      }
+    @Override
+    public ValuationSetFactory getFactory() {
+      return factory;
+    }
 
-      @Override
-      public Set<S> getReachableStates(Collection<S> start) {
-        return getStates();
-      }
+    @Override
+    public Map<S, ValuationSet> getIncompleteStates() {
+      return Collections.emptyMap();
+    }
 
-      @Override
-      public Set<S> getStates() {
-        return Collections.singleton(singletonState);
-      }
+    @Override
+    public Set<S> getInitialStates() {
+      return Collections.singleton(singletonState);
+    }
 
-      @Override
-      public List<String> getVariables() {
-        return variables;
-      }
+    @Override
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      return Collections.singleton(loop);
+    }
 
-      @Override
-      public void setVariables(List<String> variables) {
-        this.variables = ImmutableList.copyOf(variables);
-      }
-    };
+    @Override
+    public Set<S> getReachableStates(Collection<? extends S> start) {
+      return start.contains(singletonState) ? getStates() : Collections.emptySet();
+    }
+
+    @Override
+    public Set<S> getStates() {
+      return Collections.singleton(singletonState);
+    }
+
+    @Override
+    public List<String> getVariables() {
+      return variables;
+    }
+
+    @Override
+    public void setVariables(List<String> variables) {
+      this.variables = ImmutableList.copyOf(variables);
+    }
+  }
+
+  private static final class EmptyAutomaton<S> implements Automaton<S, NoneAcceptance> {
+    private final ValuationSetFactory factory;
+    private List<String> variables;
+
+    EmptyAutomaton(ValuationSetFactory factory) {
+      this.factory = factory;
+      variables = ImmutableList.of();
+    }
+
+    @Override
+    public NoneAcceptance getAcceptance() {
+      return new NoneAcceptance();
+    }
+
+    @Override
+    public ValuationSetFactory getFactory() {
+      return factory;
+    }
+
+    @Override
+    public Map<S, ValuationSet> getIncompleteStates() {
+      return Collections.emptyMap();
+    }
+
+    @Override
+    public Set<S> getInitialStates() {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public Set<S> getReachableStates(Collection<? extends S> start) {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public Set<S> getStates() {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public List<String> getVariables() {
+      return variables;
+    }
+
+    @Override
+    public void setVariables(List<String> variables) {
+      this.variables = ImmutableList.copyOf(variables);
+    }
   }
 }

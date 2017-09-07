@@ -18,12 +18,12 @@ public final class SubstitutionVisitor extends DefaultVisitor<Formula> {
   }
 
   @Override
-  public Formula visit(final Conjunction conjunction) {
+  public Formula visit(Conjunction conjunction) {
     return Conjunction.create(conjunction.children.stream().map(x -> x.accept(this)));
   }
 
   @Override
-  public Formula visit(final Disjunction disjunction) {
+  public Formula visit(Disjunction disjunction) {
     return Disjunction.create(disjunction.children.stream().map(x -> x.accept(this)));
   }
 }

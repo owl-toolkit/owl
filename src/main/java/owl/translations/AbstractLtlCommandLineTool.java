@@ -34,6 +34,7 @@ public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool
     try (BufferedReader reader =
            new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
       return reader.lines()
+        .filter(line -> !line.isEmpty())
         .map(LtlParser::parse)
         .map(parser -> new CommandLineInput<>(parser.getFormula(), parser.getVariableMapping()))
         .collect(Collectors.toList());

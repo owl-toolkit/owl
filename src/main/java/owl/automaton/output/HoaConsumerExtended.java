@@ -59,8 +59,8 @@ public final class HoaConsumerExtended<S> {
   private S currentState = null;
 
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
-    Set<? extends S> initialStates, int size, EnumSet<HoaPrintable.Option> options,
-    boolean isDeterministic) {
+    Set<? extends S> initialStates, int size, EnumSet<Option> options,
+    boolean isDeterministic, @Nullable String name) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
     stateNumbers = new HashMap<>();
@@ -71,7 +71,11 @@ public final class HoaConsumerExtended<S> {
       consumer.setTool("Owl", "* *"); // Owl in a cave.
 
       if (options.contains(HoaPrintable.Option.ANNOTATIONS)) {
-        consumer.setName("Automaton for " + initialStates);
+        if (name != null) {
+          consumer.setName(name);
+        } else {
+          consumer.setName("Automaton for " + initialStates);
+        }
       }
 
       if (size >= 0) {

@@ -20,6 +20,7 @@ package owl.automaton;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
@@ -40,7 +41,6 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
-import owl.collections.ints.BitSets;
 import owl.factories.ValuationSetFactory;
 
 class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
@@ -62,7 +62,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     this.variables = ImmutableList.of();
   }
 
-  private Set<S> exploreReachableStates(Collection<S> start,
+  private Set<S> exploreReachableStates(Collection<? extends S> start,
     @Nullable Consumer<S> enterStateCallback,
     @Nullable Consumer<S> exitStateCallback,
     @Nullable BiConsumer<Edge<S>, BitSet> visitEdge) {
@@ -148,7 +148,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   }
 
   @Override
-  public Set<S> getReachableStates(Collection<S> start) {
+  public Set<S> getReachableStates(Collection<? extends S> start) {
     return exploreReachableStates(start, null, null, null);
   }
 
@@ -170,8 +170,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      acceptance, initialStates, -1, options, true);
-
+      acceptance, initialStates, -1, options, true, getName());
     exploreReachableStates(initialStates, hoa::addState, (x) -> hoa.notifyEndOfState(),
       hoa::addEdge);
 

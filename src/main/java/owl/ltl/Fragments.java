@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 
 public final class Fragments {
 
-  private static final Predicate<Formula> COSAFETY = x -> x instanceof FOperator
+  private static final Predicate<Formula> CO_SAFETY = x -> x instanceof FOperator
     || x instanceof UOperator || x instanceof MOperator;
   private static final Predicate<Formula> FG = x -> x instanceof FOperator
     || x instanceof GOperator;
@@ -34,7 +34,7 @@ public final class Fragments {
   }
 
   public static boolean isCoSafety(Formula formula) {
-    return formula.allMatch(FINITE.or(COSAFETY));
+    return formula.allMatch(FINITE.or(CO_SAFETY));
   }
 
   public static boolean isFgx(Formula formula) {

@@ -8,11 +8,15 @@
     <rule ref="rulesets/java/strings.xml">
         <!-- We often use logging, building log messages sometimes involves duplicate literals -->
         <exclude name="AvoidDuplicateLiterals"/>
+        <!-- These rules are buggy in certain situations -->
+        <exclude name="InsufficientStringBufferDeclaration"/>
+        <exclude name="ConsecutiveLiteralAppends"/>
     </rule>
     <rule ref="rulesets/java/design.xml">
         <exclude name="UseVarargs"/>
         <exclude name="ConfusingTernary"/>
         <exclude name="GodClass"/>
+        <exclude name="AccessorMethodGeneration"/>
     </rule>
     <rule ref="rulesets/java/unusedcode.xml"/>
     <rule ref="rulesets/java/finalizers.xml"/>

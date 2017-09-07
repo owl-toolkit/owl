@@ -156,7 +156,7 @@ public class GObligationsSelector implements JumpSelector<GObligations> {
           if (!externalAtoms.isEmpty()) {
             externalAtoms.and(internalAtoms);
 
-            if (externalAtoms.isEmpty()) { // NOPMD
+            if (externalAtoms.isEmpty()) { // NOPMD Deeply nested if statements
               return true;
             }
           }
