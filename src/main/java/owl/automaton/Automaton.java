@@ -164,7 +164,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
     forEachState(state -> {
       ValuationSet unionSet = vsFactory.createEmptyValuationSet();
-      getLabelledEdges(state).forEach(labelledEdge -> unionSet.addAll(labelledEdge.valuations));
+      forEachSuccessor(state, (edge, valuations) -> unionSet.addAll(valuations));
 
       // State is incomplete; complement() creates a new, referenced node.
       if (!unionSet.isUniverse()) {
@@ -255,7 +255,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Set<S> getSuccessors(S state) {
-    return Sets2.newHashSet(getLabelledEdges(state), l -> l.edge.getSuccessor());
+    return Sets2.newHashSet(getEdges(state), Edge::getSuccessor);
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {

@@ -18,7 +18,6 @@
 package owl.automaton.edge;
 
 import java.util.PrimitiveIterator;
-import java.util.PrimitiveIterator.OfInt;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 
@@ -75,9 +74,7 @@ public interface Edge<S> {
   /**
    * Returns whether this edge has any acceptance set.
    */
-  default boolean hasAcceptanceSets() {
-    return acceptanceSetIterator().hasNext();
-  }
+  boolean hasAcceptanceSets();
 
   /**
    * Test membership of this edge for a specific acceptance set.
@@ -87,29 +84,10 @@ public interface Edge<S> {
    *
    * @return True if this edge is a member, false otherwise.
    */
-  default boolean inSet(@Nonnegative int i) {
-    OfInt iterator = acceptanceSetIterator();
-    while (iterator.hasNext()) {
-      if (iterator.nextInt() == i) {
-        return true;
-      }
-    }
-    return false;
-  }
+  boolean inSet(@Nonnegative int i);
 
   /**
    * Returns the largest acceptance set this edge is a member of, or {@code -1} if none.
    */
-  default int largestAcceptanceSet() {
-    int largest = -1;
-
-    OfInt iterator = acceptanceSetIterator();
-    while (iterator.hasNext()) {
-      int next = iterator.nextInt();
-      if (largest < next) {
-        largest = next;
-      }
-    }
-    return largest;
-  }
+  int largestAcceptanceSet();
 }

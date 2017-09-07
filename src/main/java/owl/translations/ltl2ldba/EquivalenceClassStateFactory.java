@@ -118,11 +118,13 @@ public class EquivalenceClassStateFactory {
 
       if (environment.implies(state)) {
         state.free();
+        environment.free();
         return factory.getTrue();
       }
 
       environment.free();
     }
+
     return state;
   }
 

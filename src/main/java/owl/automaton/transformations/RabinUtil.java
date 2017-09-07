@@ -117,7 +117,7 @@ public final class RabinUtil {
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) activeIndices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
-      Lists2.forAllIndexed(trackedPairs, (pairIndex, pair) -> {
+      Lists2.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfinite();
         if (IntIterators.all(pair.infiniteIndexIterator(), activeIndices::contains)) {
           sccTrackedPairs.add(pairIndex);
@@ -200,7 +200,7 @@ public final class RabinUtil {
             }
 
             // Deal with sets which have no Fin set separately
-            Lists2.forAllIndexed(noInfPairs, (noInfIndex, pair) -> {
+            Lists2.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
               int currentPairIndex = trackedPairsCount + noInfIndex;
               RabinPair currentPair = rabinPairs[currentPairIndex];
 

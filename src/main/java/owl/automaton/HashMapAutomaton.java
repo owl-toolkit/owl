@@ -244,9 +244,11 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   private Edge<S> makeUnique(Edge<? extends S> edge) {
     S successor = edge.getSuccessor();
     S uniqueSuccessor = makeUnique(successor);
+
     if (successor == uniqueSuccessor) { // NOPMD We use identity maps!
       return (Edge<S>) edge;
     }
+
     return Edges.create(uniqueSuccessor, edge.acceptanceSetIterator());
   }
 

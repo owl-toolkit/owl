@@ -10,8 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.minimizations.GeneralMinimization;
-import owl.automaton.minimizations.GeneralizedRabinMinimization;
+import owl.automaton.minimizations.GeneralizedRabinMinimizations;
+import owl.automaton.minimizations.GenericMinimizations;
 import owl.automaton.minimizations.MinimizationUtil;
 import owl.automaton.output.HoaPrintable;
 import owl.factories.Factories;
@@ -55,21 +55,21 @@ public final class Rabinizer extends AbstractLtlCommandLineTool {
           .factories(factories)
           .build());
       MinimizationUtil.applyMinimization(automaton, ImmutableList.of(
-        GeneralizedRabinMinimization.minimizeOverlap(),
-        GeneralizedRabinMinimization.minimizeMergePairs(),
-        GeneralMinimization.removeTransientAcceptance(),
-        GeneralizedRabinMinimization.minimizeComplementaryInf(),
-        GeneralizedRabinMinimization.minimizeGloballyIrrelevant(),
-        GeneralizedRabinMinimization.minimizeEdgeImplications(),
-        GeneralizedRabinMinimization.minimizeSccIrrelevant(),
-        GeneralizedRabinMinimization.minimizeTrivial(),
-        GeneralizedRabinMinimization.minimizePairImplications(),
-        GeneralizedRabinMinimization.minimizeMergePairs(),
-        GeneralizedRabinMinimization.minimizeComplementaryInf(),
-        GeneralizedRabinMinimization.minimizePairImplications(),
-        GeneralizedRabinMinimization.minimizeEdgeImplications(),
-        GeneralizedRabinMinimization.minimizeSccIrrelevant(),
-        GeneralizedRabinMinimization.minimizeGloballyIrrelevant()
+        GeneralizedRabinMinimizations.minimizeOverlap(),
+        GeneralizedRabinMinimizations.minimizeMergePairs(),
+        GenericMinimizations.removeTransientAcceptance(),
+        GeneralizedRabinMinimizations.minimizeComplementaryInf(),
+        GeneralizedRabinMinimizations.minimizeGloballyIrrelevant(),
+        GeneralizedRabinMinimizations.minimizeEdgeImplications(),
+        GeneralizedRabinMinimizations.minimizeSccIrrelevant(),
+        GeneralizedRabinMinimizations.minimizeTrivial(),
+        GeneralizedRabinMinimizations.minimizePairImplications(),
+        GeneralizedRabinMinimizations.minimizeMergePairs(),
+        GeneralizedRabinMinimizations.minimizeComplementaryInf(),
+        GeneralizedRabinMinimizations.minimizePairImplications(),
+        GeneralizedRabinMinimizations.minimizeEdgeImplications(),
+        GeneralizedRabinMinimizations.minimizeSccIrrelevant(),
+        GeneralizedRabinMinimizations.minimizeGloballyIrrelevant()
       ));
       return automaton;
       // return RabinUtil.fromGeneralizedRabin(automaton);
