@@ -45,6 +45,10 @@ public final class ROperator extends BinaryModalOperator {
       return GOperator.create(right);
     }
 
+    if (right instanceof GOperator) {
+      return right;
+    }
+
     return new ROperator(left, right);
   }
 

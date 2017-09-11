@@ -173,7 +173,7 @@ public final class Collector {
       this(function, false);
     }
 
-    protected CollectorVisitor(Function<Formula, T> function, boolean onlyTopmost) {
+    CollectorVisitor(Function<Formula, T> function, boolean onlyTopmost) {
       collectFunction = function;
       collection = new HashSet<>();
       this.onlyTopmost = onlyTopmost;

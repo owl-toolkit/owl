@@ -75,7 +75,8 @@ public final class FGObligations implements RecurringObligation {
     EquivalenceClass safety = factory.getTrue();
 
     for (GOperator gOperator : gOperators) {
-      Formula formula = FGObligationsSelector.replaceFOperators(fOperators, gOperators, gOperator);
+      Formula formula = FGObligationsJumpManager
+        .replaceFOperators(fOperators, gOperators, gOperator);
       EquivalenceClass safety2 = factory.createEquivalenceClass(formula);
       safety = safety.andWith(safety2);
       safety2.free();
@@ -94,7 +95,8 @@ public final class FGObligations implements RecurringObligation {
     List<EquivalenceClass> livenessList = new ArrayList<>(fOperators.size());
 
     for (FOperator fOperator : fOperators) {
-      Formula formula = FGObligationsSelector.replaceGOperators(gOperators, fOperators, fOperator);
+      Formula formula = FGObligationsJumpManager
+        .replaceGOperators(gOperators, fOperators, fOperator);
       formula = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
       formula = RewriterFactory.apply(RewriterEnum.PULLUP_X, formula);
 

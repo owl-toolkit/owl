@@ -19,9 +19,9 @@ import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.visitors.Collector;
-import owl.translations.ltl2ldba.breakpointfree.FGObligationsSelector.FScopedSelectVisitor;
-import owl.translations.ltl2ldba.breakpointfree.FGObligationsSelector.GScopedSelectVisitor;
-import owl.translations.ltl2ldba.breakpointfree.FGObligationsSelector.ToplevelSelectVisitor;
+import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.FScopedSelectVisitor;
+import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.GScopedSelectVisitor;
+import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.ToplevelSelectVisitor;
 
 public class SelectVisitorTest {
 

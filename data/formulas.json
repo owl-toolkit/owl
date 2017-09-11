@@ -7,6 +7,10 @@
         "type": "file",
         "path": "data/formulas/regressions.ltl"
     },
+    "size": {
+        "type": "file",
+        "path": "data/formulas/size.ltl"
+    },
     "fgx": {
         "type": "file",
         "path": "data/formulas/fgx.ltl"

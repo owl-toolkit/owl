@@ -16,16 +16,16 @@ import owl.ltl.Fragments;
 import owl.ltl.Literal;
 import owl.translations.Optimisation;
 
-public abstract class AbstractJumpFactory<X extends RecurringObligation> implements JumpFactory<X> {
+public abstract class AbstractJumpManager<X extends RecurringObligation> {
+
+  private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(ImmutableSet.of());
 
   protected final EquivalenceClassFactory factory;
   protected final ImmutableSet<Optimisation> optimisations;
-  private final JumpAnalysisResult<X> trivial;
 
-  public AbstractJumpFactory(Set<Optimisation> optimisations, EquivalenceClassFactory factory) {
+  public AbstractJumpManager(Set<Optimisation> optimisations, EquivalenceClassFactory factory) {
     this.optimisations = ImmutableSet.copyOf(optimisations);
     this.factory = factory;
-    this.trivial = JumpAnalysisResult.buildTrivial();
   }
 
   protected static <X> Stream<X> createDisjunctionStream(EquivalenceClass state,
@@ -54,12 +54,12 @@ public abstract class AbstractJumpFactory<X extends RecurringObligation> impleme
   }
 
   @Nullable
-  private JumpAnalysisResult<X> checkTrivial(EquivalenceClass state) {
+  private AnalysisResult<X> checkTrivial(EquivalenceClass state) {
     // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
     // infinite behaviour and simply build the left-derivative of the formula.
     if (state.testSupport(Fragments::isCoSafety) || state.testSupport(Fragments::isSafety)) {
       LOGGER.log(Level.FINE, () -> state + " is (co)safety. Suppressing jump.");
-      return trivial;
+      return (AnalysisResult<X>) EMPTY;
     }
 
     /* This violates the LDBA-property, but can be integrated into LTL2DPA using a heuristics
@@ -72,7 +72,7 @@ public abstract class AbstractJumpFactory<X extends RecurringObligation> impleme
      *   safetyCore.free();
      *
      *   if (existsSafetyCore) {
-     *     return trivial;
+     *     return EMPTY;
      *   }
      * }
      */
@@ -96,7 +96,7 @@ public abstract class AbstractJumpFactory<X extends RecurringObligation> impleme
 
       if (existsExternalCondition) {
         LOGGER.log(Level.FINE, state + " has independent cosafety property. Suppressing jump.");
-        return trivial;
+        return (AnalysisResult<X>) EMPTY;
       }
     }
 
@@ -105,9 +105,8 @@ public abstract class AbstractJumpFactory<X extends RecurringObligation> impleme
 
   protected abstract Set<Jump<X>> computeJumps(EquivalenceClass state);
 
-  @Override
-  public JumpAnalysisResult<X> getAvailableJumps(EquivalenceClass state) {
-    JumpAnalysisResult<X> result = checkTrivial(state);
+  AnalysisResult<X> analyse(EquivalenceClass state) {
+    AnalysisResult<X> result = checkTrivial(state);
 
     if (result != null) {
       return result;
@@ -134,12 +133,12 @@ public abstract class AbstractJumpFactory<X extends RecurringObligation> impleme
         jumpLanguage.free();
 
         if (stateLanguageIsContained) {
-          return JumpAnalysisResult.buildMust(jump);
+          return AnalysisResult.buildMust(jump);
         }
       }
     }
 
-    return JumpAnalysisResult.buildMay(jumps);
+    return AnalysisResult.buildMay(jumps);
   }
 
   protected Jump<X> buildJump(EquivalenceClass remainder, X obligations) {

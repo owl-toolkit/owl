@@ -63,23 +63,22 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.AbstractJumpFactory;
+import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
 
-public final class FGObligationsSelector extends AbstractJumpFactory<FGObligations> {
+public final class FGObligationsJumpManager extends AbstractJumpManager<FGObligations> {
 
   private final Table<ImmutableSet<FOperator>, ImmutableSet<GOperator>, FGObligations> cache;
 
-  private FGObligationsSelector(EquivalenceClassFactory factories,
+  private FGObligationsJumpManager(EquivalenceClassFactory factories,
     EnumSet<Optimisation> optimisations) {
     super(optimisations, factories);
     cache = HashBasedTable.create();
-
   }
 
-  public static FGObligationsSelector build(EquivalenceClass initialState,
+  public static FGObligationsJumpManager build(EquivalenceClass initialState,
     EnumSet<Optimisation> optimisations) {
-    return new FGObligationsSelector(initialState.getFactory(), optimisations);
+    return new FGObligationsJumpManager(initialState.getFactory(), optimisations);
   }
 
   private static Stream<Map.Entry<Set<FOperator>, Set<GOperator>>> createFGSetStream(
@@ -386,7 +385,7 @@ public final class FGObligationsSelector extends AbstractJumpFactory<FGObligatio
   protected Set<Jump<FGObligations>> computeJumps(EquivalenceClass state) {
     Set<Jump<FGObligations>> fgObligations = new HashSet<>();
 
-    createDisjunctionStream(state, FGObligationsSelector::createFGSetStream).forEach(entry -> {
+    createDisjunctionStream(state, FGObligationsJumpManager::createFGSetStream).forEach(entry -> {
       ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(entry.getKey());
       ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(entry.getValue());
 

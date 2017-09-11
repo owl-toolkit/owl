@@ -39,6 +39,7 @@ import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 
 public class InitialComponentBuilder<K extends RecurringObligation>
   implements ExploreBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
@@ -49,10 +50,10 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   private final EquivalenceClassStateFactory factory;
   private final SetMultimap<EquivalenceClass, Jump<K>> jumps;
   private final Set<EquivalenceClass> patientStates;
-  private final JumpFactory<K> jumpFactory;
+  private final AbstractJumpManager<K> jumpFactory;
 
   InitialComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations,
-    JumpFactory<K> jumpFactory) {
+    AbstractJumpManager<K> jumpFactory) {
     this.factories = factories;
     this.jumpFactory = jumpFactory;
 
@@ -82,12 +83,11 @@ public class InitialComponentBuilder<K extends RecurringObligation>
       AutomatonFactory.createMutableAutomaton(new NoneAcceptance(), factories.valuationSetFactory);
 
     if (constructDeterministic) {
-      AutomatonUtil
-        .exploreDeterministic(automaton, constructionQueue, this::getDeterministicSuccessor,
-          factory::getSensitiveAlphabet);
+      AutomatonUtil.exploreDeterministic(automaton, constructionQueue,
+        this::getDeterministicSuccessor, factory::getSensitiveAlphabet);
     } else {
       AutomatonUtil.explore(automaton, constructionQueue, this::getNondeterministicSuccessors,
-          factory::getSensitiveAlphabet);
+        factory::getSensitiveAlphabet);
     }
 
     automaton.setInitialStates(constructionQueue);
@@ -100,21 +100,11 @@ public class InitialComponentBuilder<K extends RecurringObligation>
       return;
     }
 
-    JumpAnalysisResult<K> result = jumpFactory.getAvailableJumps(state);
+    AnalysisResult<K> result = jumpFactory.analyse(state);
+    jumps.putAll(state, result.jumps);
 
-    switch (result.type) {
-      case TRIVIAL:
-      case MAY:
-        jumps.putAll(state, result.jumps);
-        patientStates.add(state);
-        break;
-
-      case MUST:
-        jumps.putAll(state, result.jumps);
-        break;
-
-      default:
-        throw new AssertionError();
+    if (result.type == TYPE.MAY) {
+      patientStates.add(state);
     }
   }
 

@@ -53,40 +53,40 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Visitor;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.AbstractJumpFactory;
+import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
 
-public class GObligationsJumpFactory extends AbstractJumpFactory<GObligations> {
+public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
   private final ImmutableSet<GObligations> obligations;
 
-  private GObligationsJumpFactory(EquivalenceClassFactory factory,
+  private GObligationsJumpManager(EquivalenceClassFactory factory,
     EnumSet<Optimisation> optimisations, ImmutableSet<GObligations> obligations) {
     super(ImmutableSet.copyOf(optimisations), factory);
     this.obligations = obligations;
-    LOGGER.log(Level.WARNING, () ->  "The automaton has the following jumps: " + obligations);
+    LOGGER.log(Level.FINE, () ->  "The automaton has the following jumps: " + obligations);
   }
 
   private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {
     return Sets.powerSet(Collector.collectTransformedGOperators(state.getSupport())).stream();
   }
 
-  public static GObligationsJumpFactory build(EquivalenceClass initialState,
+  public static GObligationsJumpManager build(EquivalenceClass initialState,
     EnumSet<Optimisation> optimisations) {
 
     if (initialState.testSupport(Fragments::isCoSafety) || initialState
       .testSupport(Fragments::isSafety)) {
-      return new GObligationsJumpFactory(initialState.getFactory(), optimisations,
+      return new GObligationsJumpManager(initialState.getFactory(), optimisations,
         ImmutableSet.of());
     }
 
     // Compute resulting GObligations. -> Same GObligations; Different Associated Sets; what to do?
     ImmutableSet<GObligations> jumps = createDisjunctionStream(initialState,
-      GObligationsJumpFactory::createGSetStream)
+      GObligationsJumpManager::createGSetStream)
       .map(Gs -> GObligations.build(Gs, initialState.getFactory(), optimisations))
       .filter(Objects::nonNull)
       .collect(ImmutableSet.toImmutableSet());
 
-    return new GObligationsJumpFactory(initialState.getFactory(), optimisations, jumps);
+    return new GObligationsJumpManager(initialState.getFactory(), optimisations, jumps);
   }
 
   private static boolean containsAllPropostions(Collection<? extends Formula> set1,
