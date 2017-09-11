@@ -18,7 +18,6 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnegative;

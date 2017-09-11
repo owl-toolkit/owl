@@ -37,8 +37,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
     EnumSet<Optimisation> optimisations) {
-    super(optimisations, factories,
-      new FGObligationsEvaluator(factories.equivalenceClassFactory));
+    super(optimisations, factories);
   }
 
   @Override

@@ -25,8 +25,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -35,32 +33,50 @@ import owl.automaton.transformations.ParityUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.EquivalenceClassLanguageOracle;
+import owl.translations.ldba2dpa.LanguageLattice;
+import owl.translations.ldba2dpa.RankingAutomatonBuilder;
+import owl.translations.ldba2dpa.RankingState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
+import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
+import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
+import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
-public final class LTL2DPAFunction implements Function<Formula, Automaton<?, ParityAcceptance>> {
+public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, ParityAcceptance>> {
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
   private final EnumSet<Optimisation> optimisations;
   private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translator;
+    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
+  private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+    DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
+
+  private final boolean breakpointFree;
 
   public LTL2DPAFunction() {
     this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
   }
 
   public LTL2DPAFunction(EnumSet<Optimisation> optimisations) {
+    this(optimisations, false);
+  }
+
+  public LTL2DPAFunction(EnumSet<Optimisation> optimisations, boolean breakpointFree) {
     this.optimisations = EnumSet.copyOf(optimisations);
     this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     this.optimisations.remove(Optimisation.FORCE_JUMPS);
-    translator = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(this.optimisations);
+    translatorBreakpointFree = LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(
+      this.optimisations);
+    translatorBreakpoint = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(
+      this.optimisations);
+    this.breakpointFree = breakpointFree;
   }
 
   @Override
-  public Automaton<?, ParityAcceptance> apply(Formula formula) {
+  public MutableAutomaton<?, ParityAcceptance> apply(Formula formula) {
     if (!optimisations.contains(Optimisation.PARALLEL)) {
       // TODO Instead, one should use a direct executor here
       return apply(formula, new AtomicInteger()).automaton;
@@ -129,9 +145,29 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
     }
   }
 
-  private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
+  private ComplementableAutomaton<?> applyBreakpointFree(Formula formula, AtomicInteger counter) {
+    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
+    BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
+
+    if (ldba.isDeterministic()) {
+      return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
+        (MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance>)
+          ldba.getAcceptingComponent()), DegeneralizedBreakpointFreeState::createSink);
+    }
+
+    assert ldba.getInitialComponent().getInitialStates().size() == 1;
+    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
+
+    RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
+        Void> builder = RankingAutomatonBuilder.create(ldba , counter,
+        optimisations, ldba.getAcceptingComponent().getFactory(), new BooleanLattice<>());
+    builder.add(ldba.getInitialComponent().getInitialState());
+    return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+  }
+
+  private ComplementableAutomaton<?> applyBreakpoint(Formula formula, AtomicInteger counter) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState,
-    BuchiAcceptance, GObligations> ldba = translator.apply(formula);
+      BuchiAcceptance, GObligations> ldba = translatorBreakpoint.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
@@ -142,15 +178,20 @@ public final class LTL2DPAFunction implements Function<Formula, Automaton<?, Par
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    LanguageOracle<EquivalenceClass, DegeneralizedBreakpointState, GObligations> oracle =
-        new EquivalenceClassLanguageOracle(
-          ldba.getInitialComponent().getInitialState().getFactory());
-
+    LanguageLattice<EquivalenceClass, DegeneralizedBreakpointState, GObligations> oracle =
+      new EquivalenceClassLanguageLattice(
+        ldba.getInitialComponent().getInitialState().getFactory());
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointState, GObligations,
-    EquivalenceClass> builder = RankingAutomatonBuilder.create(ldba , sizeCounter,
-        optimisations, ldba.getAcceptingComponent().getFactory(), oracle);
+      EquivalenceClass> builder = RankingAutomatonBuilder.create(ldba , counter,
+      optimisations, ldba.getAcceptingComponent().getFactory(), oracle);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+  }
+
+  private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
+    return breakpointFree
+           ? applyBreakpointFree(formula, sizeCounter)
+           : applyBreakpoint(formula, sizeCounter);
   }
 
   static final class ComplementableAutomaton<T> {

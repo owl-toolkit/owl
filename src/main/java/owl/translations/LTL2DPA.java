@@ -22,20 +22,25 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
+import owl.automaton.MutableAutomaton;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
+import owl.automaton.transformations.ParityUtil;
 import owl.ltl.Formula;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2DPA extends AbstractLtlCommandLineTool {
   private final boolean parallel;
+  private final boolean breakpointFree;
 
-  private LTL2DPA(boolean parallel) {
+  private LTL2DPA(boolean parallel, boolean breakpointFree) {
     this.parallel = parallel;
+    this.breakpointFree = breakpointFree;
   }
 
   public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
-    new LTL2DPA(args.remove("--parallel")).execute(args);
+    new LTL2DPA(args.remove("--parallel"), args.remove("--breakpoint-free")).execute(args);
   }
 
   @Override
@@ -49,6 +54,9 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
       optimisations.remove(Optimisation.PARALLEL);
     }
 
-    return new LTL2DPAFunction(optimisations);
+    Function<Formula, MutableAutomaton<?, ParityAcceptance>> translation =
+      new LTL2DPAFunction(optimisations, breakpointFree);
+
+    return (formula) -> ParityUtil.minimizePriorities(translation.apply(formula));
   }
 }

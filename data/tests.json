@@ -56,6 +56,11 @@
             "tools": "ltl2dpa#no-eps",
             "data": "small"
         },
+        "ltl2dpa-bpfree": "ltl2dpa#breakpoint-free",
+        "ltl2dpa-bpfree-vanilla": {
+            "tools": "ltl2dpa#breakpoint-free,no-eps",
+            "data": "small"
+        },
         "ltl2dpa-parallel": "ltl2dpa#parallel",
         "ltl2da-parallel": "ltl2da#parallel",
         "nba2ldba": {

@@ -18,8 +18,8 @@
 package owl.translations.ltl2ldba;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -27,32 +27,28 @@ import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 
-public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAcceptance, U>
-  implements ExploreBuilder<Jump<U>, S, T> {
+public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAcceptance,
+  U extends RecurringObligation> implements ExploreBuilder<Jump<U>, S, T> {
 
   protected final List<S> anchors = new ArrayList<>();
-  private final JumpEvaluator<U> evaluator;
   protected final Factories factories;
   protected final EquivalenceClassStateFactory factory;
 
-  protected AbstractAcceptingComponentBuilder(EnumSet<Optimisation> optimisations,
-    Factories factories, JumpEvaluator<U> evaluator) {
+  protected AbstractAcceptingComponentBuilder(Set<Optimisation> optimisations,
+    Factories factories) {
     this.factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory,
       optimisations);
     this.factories = factories;
-    this.evaluator = evaluator;
   }
 
   @Nullable
   @Override
-  public S add(Jump<U> jump) {
-    EquivalenceClass remainingGoal = evaluator.evaluate(jump);
-
-    if (remainingGoal.isFalse()) {
+  public S add(@Nullable Jump<U> jump) {
+    if (jump == null) {
       return null;
     }
 
-    S state = createState(remainingGoal, jump.obligations);
+    S state = createState(jump.remainder, jump.obligations);
 
     if (state == null) {
       return null;

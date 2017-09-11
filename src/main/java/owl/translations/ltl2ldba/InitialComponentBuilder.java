@@ -40,7 +40,7 @@ import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 
-public class InitialComponentBuilder<K>
+public class InitialComponentBuilder<K extends RecurringObligation>
   implements ExploreBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
 
   private final boolean constructDeterministic;
@@ -49,12 +49,12 @@ public class InitialComponentBuilder<K>
   private final EquivalenceClassStateFactory factory;
   private final SetMultimap<EquivalenceClass, Jump<K>> jumps;
   private final Set<EquivalenceClass> patientStates;
-  private final JumpSelector<K> selector;
+  private final JumpFactory<K> jumpFactory;
 
   InitialComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations,
-    JumpSelector<K> selector) {
+    JumpFactory<K> jumpFactory) {
     this.factories = factories;
-    this.selector = selector;
+    this.jumpFactory = jumpFactory;
 
     factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory, optimisations);
     constructionQueue = new ArrayDeque<>();
@@ -86,8 +86,7 @@ public class InitialComponentBuilder<K>
         .exploreDeterministic(automaton, constructionQueue, this::getDeterministicSuccessor,
           factory::getSensitiveAlphabet);
     } else {
-      AutomatonUtil
-        .explore(automaton, constructionQueue, this::getNondeterministicSuccessors,
+      AutomatonUtil.explore(automaton, constructionQueue, this::getNondeterministicSuccessors,
           factory::getSensitiveAlphabet);
     }
 
@@ -101,13 +100,22 @@ public class InitialComponentBuilder<K>
       return;
     }
 
-    selector.select(state).forEach(obligation -> {
-      if (obligation == null) {
+    JumpAnalysisResult<K> result = jumpFactory.getAvailableJumps(state);
+
+    switch (result.type) {
+      case TRIVIAL:
+      case MAY:
+        jumps.putAll(state, result.jumps);
         patientStates.add(state);
-      } else {
-        jumps.put(state, new Jump<>(state, obligation));
-      }
-    });
+        break;
+
+      case MUST:
+        jumps.putAll(state, result.jumps);
+        break;
+
+      default:
+        throw new AssertionError();
+    }
   }
 
   @Nullable

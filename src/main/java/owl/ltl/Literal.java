@@ -23,7 +23,6 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
-
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;

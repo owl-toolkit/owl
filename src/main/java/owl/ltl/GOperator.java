@@ -41,6 +41,10 @@ public class GOperator extends UnaryModalOperator {
       return operand;
     }
 
+    if (operand instanceof FOperator && ((FOperator) operand).operand instanceof GOperator) {
+      return operand;
+    }
+
     if (operand instanceof ROperator) {
       return create(((ROperator) operand).right);
     }

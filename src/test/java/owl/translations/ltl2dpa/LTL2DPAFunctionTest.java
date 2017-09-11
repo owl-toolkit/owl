@@ -18,6 +18,7 @@
 package owl.translations.ltl2dpa;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.io.OutputStream;
 import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -47,7 +49,8 @@ public class LTL2DPAFunctionTest {
       HOAConsumer consumer = new HOAConsumerPrint(stream);
       automaton.toHoa(consumer, EnumSet.allOf(HoaPrintable.Option.class));
       assertEquals(stream.toString(), size, automaton.stateCount());
-      assertEquals(stream.toString(), accSize, automaton.getAcceptance().getAcceptanceSets());
+      assertThat(stream.toString(), automaton.getAcceptance().getAcceptanceSets(),
+        Matchers.lessThanOrEqualTo(accSize));
     } catch (IOException ex) {
       throw new IllegalStateException(ex.toString(), ex);
     }
@@ -56,14 +59,14 @@ public class LTL2DPAFunctionTest {
   @Test
   public void testRegression1() {
     String ltl = "G (F (a & (a U b)))";
-    testOutput(ltl, 2, 2);
+    testOutput(ltl, 2, 3);
     testOutput("! " + ltl, 2, 4);
   }
 
   @Test
   public void testRegression2() {
     String ltl = "G (F (a & X (F b)))";
-    testOutput(ltl, 2, 2);
+    testOutput(ltl, 2, 3);
     testOutput("! " + ltl, 2, 2);
   }
 

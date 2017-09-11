@@ -19,9 +19,9 @@ package owl.translations.ltl2ldba;
 
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
@@ -38,7 +38,7 @@ public class EquivalenceClassStateFactory {
   private final boolean removeRedundantObligations;
 
   public EquivalenceClassStateFactory(EquivalenceClassFactory factory,
-    EnumSet<Optimisation> optimisations) {
+    Set<Optimisation> optimisations) {
     this.factory = factory;
     this.eagerUnfold = optimisations.contains(Optimisation.EAGER_UNFOLD);
     this.removeRedundantObligations = optimisations

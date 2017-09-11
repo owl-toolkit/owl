@@ -170,7 +170,7 @@ public abstract class AbstractSizeRegressionTest<T extends HoaPrintable> {
 
     for (int i = 0; i < formulas.length; i++) {
       T automaton = translator.apply(LtlParser.formula(formulas[i]));
-      assertThat("States for " + formulas[i] + " (index " + i + ')' + automaton,
+      assertThat("States for " + formulas[i] + " (index " + i + ')' + automaton.toString(),
         getSize(automaton),
         Matchers.lessThanOrEqualTo(size[i]));
     }

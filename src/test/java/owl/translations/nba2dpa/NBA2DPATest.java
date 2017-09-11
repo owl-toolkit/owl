@@ -37,7 +37,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.translations.Optimisation;
-import owl.translations.ltl2dpa.RankingState;
+import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
 
 public class NBA2DPATest {
@@ -86,7 +86,7 @@ public class NBA2DPATest {
       + "[0 & 1] 1 {0}\n"
       + "[!0 & 1] 2 {0}\n"
       + "--END--" ;
-  
+
   private static final String INPUT4 = "HOA: v1\n"
       + "States: 2\n"
       + "Start: 0\n"
@@ -101,50 +101,50 @@ public class NBA2DPATest {
       + "State: 1\n"
       + "[t] 1 {0}\n"
       + "--END--";
-  
+
   private static final String INPUT5 = "HOA: v1\n"
-      + "States: 2\n" 
+      + "States: 2\n"
       + "Start: 0\n"
       + "acc-name: Buchi\n"
       + "Acceptance: 1 Inf(0)\n"
       + "properties: trans-acc trans-label \n"
       + "AP: 1 \"a\"\n"
-      + "--BODY--\n" 
-      + "State: 1 \"0\"\n" 
+      + "--BODY--\n"
+      + "State: 1 \"0\"\n"
       + "[0] 1 {0}\n"
       + "State: 0 \"1\"\n"
       + "[0] 1\n"
       + "[t] 0\n"
       + "--END--";
-  
+
   private static final String INPUT6 = "HOA: v1\n"
-      + "States: 1\n" 
+      + "States: 1\n"
       + "Start: 0\n"
       + "acc-name: Buchi\n"
       + "Acceptance: 1 Inf(0)\n"
       + "properties: trans-acc trans-label \n"
       + "AP: 1 \"a\"\n"
-      + "--BODY--\n" 
-      + "State: 0 \n" 
+      + "--BODY--\n"
+      + "State: 0 \n"
       + "[0] 0\n"
       + "[!0] 0 {0}\n"
       + "--END--";
-  
+
   private static final String INPUT7 = "HOA: v1\n"
-      + "States: 2\n" 
+      + "States: 2\n"
       + "Start: 0\n"
       + "acc-name: Buchi\n"
       + "Acceptance: 1 Inf(0)\n"
       + "properties: trans-acc trans-label \n"
       + "AP: 2 \"a\" \"b\"\n"
-      + "--BODY--\n" 
-      + "State: 0 \n" 
+      + "--BODY--\n"
+      + "State: 0 \n"
       + "[t] 1\n"
       + "State: 1\n"
       + "[!1] 1 {0}\n"
       + "[!0 & 1] 1"
       + "--END--";
-  
+
   private static final String INPUT8 = "HOA: v1\n"
       + "States: 1\n"
       + "Start: 0\n"
@@ -164,7 +164,7 @@ public class NBA2DPATest {
       + "[0 & !1 & !2] 0 {1 2}\n"
       + "[!0 & !1 & !2] 0 {0 1 2}\n"
       + "--END--";
-              
+
 
   private static final List<String> MAPPING = ImmutableList.of("a");
 
@@ -182,42 +182,42 @@ public class NBA2DPATest {
   public void testApply3() throws ParseException {
     runTest(INPUT3, 9);
   }
-  
+
   @Test
   public void testApply4() throws ParseException {
     runTest(INPUT4, 3);
   }
-  
+
   @Test
   public void testApply5() throws ParseException {
     runTest(INPUT5, 4);
   }
-  
+
   @Test
   public void testApply6() throws ParseException {
     runTest(INPUT6, 2);
   }
-  
+
   @Test
   public void testApply7() throws ParseException {
     runTest(INPUT7, 4);
   }
-  
+
   @Test
   public void testApply8() throws ParseException {
     runTest(INPUT8, 60);
   }
-  
+
   private void runTest(String input, int size) throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
-    
+
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton =
         AutomatonReader.readHoa(input, GeneralizedBuchiAcceptance.class);
-    
+
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance> 
+    MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
     result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     result.setVariables(MAPPING);

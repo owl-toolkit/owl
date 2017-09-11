@@ -31,8 +31,7 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
   final EquivalenceClass safety;
 
   DegeneralizedBreakpointFreeState(@Nonnegative int index, EquivalenceClass safety,
-    EquivalenceClass liveness,
-    FGObligations obligations) {
+    EquivalenceClass liveness, FGObligations obligations) {
     assert 0 == index || (0 < index && index < obligations.liveness.length);
 
     this.index = index;
@@ -46,6 +45,10 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
     DegeneralizedBreakpointFreeState that = (DegeneralizedBreakpointFreeState) o;
     return index == that.index && Objects.equals(safety, that.safety) && Objects
       .equals(liveness, that.liveness) && Objects.equals(obligations, that.obligations);
+  }
+
+  public static DegeneralizedBreakpointFreeState createSink() {
+    return new DegeneralizedBreakpointFreeState(0, null, null, null);
   }
 
   public FGObligations getObligations() {

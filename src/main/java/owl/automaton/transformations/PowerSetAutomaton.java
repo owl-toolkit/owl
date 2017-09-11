@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
@@ -79,6 +80,7 @@ public class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {
   }
 
   @Override
+  @Nonnull
   public Set<S> getSuccessor(Set<S> state, BitSet valuation) {
     ImmutableSet.Builder<S> builder = ImmutableSet.builder();
     state.forEach(s -> builder.addAll(automaton.getSuccessors(s, valuation)));
