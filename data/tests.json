@@ -9,6 +9,7 @@
                 "name": "regressions",
                 "determinize": true
             },
+            "size",
             "fgx",
             "check",
             "big",

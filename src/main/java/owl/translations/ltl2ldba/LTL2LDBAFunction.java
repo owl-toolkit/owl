@@ -39,16 +39,16 @@ import owl.ltl.Fragments;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.Optimisation;
-import owl.translations.ltl2ldba.JumpAnalysisResult.TYPE;
+import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
-import owl.translations.ltl2ldba.breakpoint.GObligationsJumpFactory;
+import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
-import owl.translations.ltl2ldba.breakpointfree.FGObligationsSelector;
+import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager;
 import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 
 public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends
@@ -62,11 +62,11 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   private final Function<S, C> getAnnotation;
   private final EnumSet<Optimisation> optimisations;
   private final boolean deterministicInitialComponent;
-  private final Function<EquivalenceClass, JumpFactory<C>> selectorConstructor;
+  private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
 
   private LTL2LDBAFunction(
     Function<Formula, Formula> formulaPreprocessor,
-    Function<EquivalenceClass, JumpFactory<C>> selectorConstructor,
+    Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor,
     EnumSet<Optimisation> optimisations, Function<S, C> getAnnotation) {
     this.formulaPreprocessor = formulaPreprocessor;
@@ -82,7 +82,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
   createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
-    x -> FGObligationsSelector.build(x, optimisations),
+    x -> FGObligationsJumpManager.build(x, optimisations),
     x -> new owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder(x,
         optimisations),
       optimisations,
@@ -93,7 +93,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
   createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
-    x -> GObligationsJumpFactory.build(x, EnumSet.copyOf(optimisations)),
+    x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
     x -> new DegeneralizedAcceptingComponentBuilder(x, ImmutableSet.copyOf(optimisations)),
       optimisations,
       DegeneralizedBreakpointState::getObligations);
@@ -103,7 +103,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
   createGeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
-    x -> FGObligationsSelector.build(x, optimisations),
+    x -> FGObligationsJumpManager.build(x, optimisations),
     x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
         optimisations),
       optimisations,
@@ -114,7 +114,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
   createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
-    x -> GObligationsJumpFactory.build(x, EnumSet.copyOf(optimisations)),
+    x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
     x -> new GeneralizedAcceptingComponentBuilder(x, EnumSet.copyOf(optimisations)),
       optimisations,
       GeneralizedBreakpointState::getObligations);
@@ -133,14 +133,14 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     Formula processedFormula = formulaPreprocessor.apply(formula);
     Factories factories = Registry.getFactories(processedFormula);
 
-    JumpFactory<C> factory = selectorConstructor.apply(factories.equivalenceClassFactory
+    AbstractJumpManager<C> factory = selectorConstructor.apply(factories.equivalenceClassFactory
       .createEquivalenceClass(processedFormula));
 
     LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
       builder = createBuilder(factories, factory);
 
     for (EquivalenceClass initialClass : createInitialClasses(factories, processedFormula)) {
-      JumpAnalysisResult<C> obligations = factory.getAvailableJumps(initialClass);
+      AnalysisResult<C> obligations = factory.analyse(initialClass);
 
       if (obligations.type == TYPE.MUST) {
         builder.addAccepting(Iterables.getOnlyElement(obligations.jumps));
@@ -172,7 +172,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   }
 
   private LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
-  createBuilder(Factories factories, JumpFactory<C> selector) {
+  createBuilder(Factories factories, AbstractJumpManager<C> selector) {
     ExploreBuilder<Jump<C>, S, B> acceptingComponentBuilder = builderConstructor.apply(factories);
     InitialComponentBuilder<C> initialComponentBuilder = new InitialComponentBuilder<>(factories,
       EnumSet.copyOf(optimisations), selector);

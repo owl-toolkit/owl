@@ -42,6 +42,7 @@ import owl.automaton.edge.Edge;
 
 public final class MinimizationUtil {
   private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
+  private static final Consumer<?> EMPTY_CONSUMER = (x) -> { };
 
   private MinimizationUtil() {}
 
@@ -105,8 +106,7 @@ public final class MinimizationUtil {
    * @see #removeDeadStates(MutableAutomaton, Set, Consumer)
    */
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton, Set<S> initialStates) {
-    removeDeadStates(automaton, initialStates, s -> {
-    });
+    removeDeadStates(automaton, initialStates, (Consumer<S>) EMPTY_CONSUMER);
   }
 
   /**
@@ -119,8 +119,7 @@ public final class MinimizationUtil {
    * @see #removeDeadStates(MutableAutomaton, Set, Consumer)
    */
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
-    removeDeadStates(automaton, automaton.getInitialStates(), s -> {
-    });
+    removeDeadStates(automaton, automaton.getInitialStates(), (Consumer<S>) EMPTY_CONSUMER);
   }
 
   /**

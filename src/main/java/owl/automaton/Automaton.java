@@ -73,7 +73,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return getStates().containsAll(states);
   }
 
-  default void forEachEdge(BiConsumer<S, Edge<S>> action) {
+  default void forEachEdge(BiConsumer<? super S, Edge<? super S>> action) {
     forEachState(state -> getEdges(state).forEach(edge -> action.accept(state, edge)));
   }
 
@@ -82,7 +82,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       action.accept(state, labelledEdge)));
   }
 
-  default void forEachState(Consumer<S> action) {
+  default void forEachState(Consumer<? super S> action) {
     getStates().forEach(action);
   }
 

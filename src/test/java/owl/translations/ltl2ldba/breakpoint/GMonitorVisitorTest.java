@@ -21,8 +21,8 @@ public class GMonitorVisitorTest {
     GOperator operator = (GOperator) LtlParser.formula("G(p2)");
     Formula formula = LtlParser.formula("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
     Factories factories = Registry.getFactories(formula);
-    GObligationsJumpFactory.EvaluateVisitor visitor =
-      new GObligationsJumpFactory.EvaluateVisitor(Collections.singleton(operator),
+    GObligationsJumpManager.EvaluateVisitor visitor =
+      new GObligationsJumpManager.EvaluateVisitor(Collections.singleton(operator),
         factories.equivalenceClassFactory.getTrue());
     assertEquals(BooleanConstant.FALSE, formula.accept(visitor));
   }

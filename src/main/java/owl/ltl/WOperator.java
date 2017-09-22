@@ -49,6 +49,10 @@ public final class WOperator extends BinaryModalOperator {
       return GOperator.create(left);
     }
 
+    if (left instanceof GOperator) {
+      return Disjunction.create(left, right);
+    }
+
     return new WOperator(left, right);
   }
 

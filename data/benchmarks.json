@@ -3,6 +3,7 @@
         "full": [
             "base",
             "regressions",
+            "size",
             "fgx",
             "check"
         ],

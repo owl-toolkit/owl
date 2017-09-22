@@ -37,7 +37,7 @@ public final class Delag extends AbstractLtlCommandLineTool {
   private final boolean strict;
   private final Function<Formula, Automaton<?, OmegaAcceptance>> fallback;
 
-  private Delag(boolean strict, Function<Formula, Automaton<?, OmegaAcceptance>> fallback) {
+  public Delag(boolean strict, Function<Formula, Automaton<?, OmegaAcceptance>> fallback) {
     this.strict = strict;
     this.fallback = fallback;
   }
@@ -60,7 +60,7 @@ public final class Delag extends AbstractLtlCommandLineTool {
     new Delag(args.remove("--strict"), fallback).execute(args);
   }
 
-  private HoaPrintable translateWithFallback(Formula formula) {
+  public Automaton<?,?> translateWithFallback(Formula formula) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
     return new Builder(fallback).apply(rewritten);
   }
