@@ -18,6 +18,7 @@
 package owl.translations.ltl2dpa;
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,12 +31,15 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Fragments;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
 import owl.translations.ldba2dpa.RankingState;
+import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
@@ -145,6 +149,31 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
     }
   }
 
+  private boolean hasSafetyCore(EquivalenceClass state) {
+    // Check if the state has an independent safety core.
+    if (optimisations.contains(Optimisation.SAFETY_CORE)) {
+      Set<Formula> notSafety = state.getSupport(x -> !Fragments.isSafety(x));
+
+      EquivalenceClass safetyCore = state.substitute(x -> {
+        for (Formula formula : notSafety) {
+          if (formula.anyMatch(z -> AbstractJumpManager.equalsInSupport(x, z))) {
+            return x;
+          }
+        }
+
+        return BooleanConstant.TRUE;
+      });
+
+      if (safetyCore.isTrue()) {
+        return true;
+      }
+
+      safetyCore.free();
+    }
+
+    return false;
+  }
+
   private ComplementableAutomaton<?> applyBreakpointFree(Formula formula, AtomicInteger counter) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
     BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
@@ -159,8 +188,8 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
-        Void> builder = RankingAutomatonBuilder.create(ldba , counter,
-        optimisations, ldba.getAcceptingComponent().getFactory(), new BooleanLattice<>());
+        Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
+      new BooleanLattice<>(), this::hasSafetyCore);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }
@@ -182,8 +211,8 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
       new EquivalenceClassLanguageLattice(
         ldba.getInitialComponent().getInitialState().getFactory());
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointState, GObligations,
-      EquivalenceClass> builder = RankingAutomatonBuilder.create(ldba , counter,
-      optimisations, ldba.getAcceptingComponent().getFactory(), oracle);
+      EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
+      oracle, this::hasSafetyCore);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }

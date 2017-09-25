@@ -48,7 +48,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   }
 
   /* Literals are differently encoded in support */
-  private static boolean equalsInSupport(Formula formula1, Formula formula2) {
+  public static boolean equalsInSupport(Formula formula1, Formula formula2) {
     return formula1.equals(formula2) || formula1 instanceof Literal && formula2 instanceof Literal
       && ((Literal) formula1).getAtom() == ((Literal) formula2).getAtom();
   }

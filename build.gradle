@@ -15,10 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+plugins {
+  id "com.github.spotbugs" version "1.4"
+}
+
 apply plugin: 'java'
 apply plugin: 'antlr'
 
-apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 
@@ -28,8 +31,8 @@ apply plugin: 'application'
 project.group = 'de.tum.in'
 project.version = '1.2.0-SNAPSHOT'
 
-project.sourceCompatibility = '1.8'
-project.targetCompatibility = '1.8'
+project.sourceCompatibility = '1.9'
+project.targetCompatibility = '1.9'
 project.archivesBaseName = 'owl'
 
 def defaultEncoding = 'UTF-8'
@@ -41,11 +44,10 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'com.google.code.findbugs:annotations:3.0.1'
-    compileOnly 'org.immutables:value:2.5.3'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.0-RC6'
+    compileOnly 'org.immutables:value:2.5.5'
 
-    compile 'com.google.guava:guava:22.0'
-    compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'com.google.guava:guava:23.0'
     compile 'it.unimi.dsi:fastutil:8.1.0'
     compile 'org.antlr:antlr4-runtime:4.7'
     compile 'de.tum.in:jbdd:0.1.1'
@@ -53,7 +55,6 @@ dependencies {
 
     compile files('lib/jhoafparser-1.1.1.jar')
 
-    testCompile 'com.google.code.findbugs:jsr305:3.0.1'
     testCompile 'junit:junit:4+'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'org.hamcrest:hamcrest-library:1.3'
@@ -102,20 +103,20 @@ generateGrammarSource {
     }
 }
 
-// Findbugs
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
-findbugs {
-    reportsDir = file("$project.buildDir/reports/findbugs")
+// Spotbugs
+// https://plugins.gradle.org/plugin/com.github.spotbugs
+spotbugs {
+    reportsDir = file("$project.buildDir/reports/spotbugs")
     effort = "max"
     reportLevel = "low"
-    excludeFilter = file("$project.projectDir/config/findbugs-exclude.xml")
+    excludeFilter = file("$project.projectDir/config/spotbugs-exclude.xml")
     ignoreFailures = false
 }
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+  reports {
+    xml.enabled = false
+    html.enabled = true
+  }
 }
 
 // PMD

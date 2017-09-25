@@ -175,7 +175,7 @@ public class NBA2DPATest {
 
   @Test
   public void testApply2() throws ParseException {
-    runTest(INPUT2, 2);
+    runTest(INPUT2, 1);
   }
 
   @Test
@@ -221,6 +221,6 @@ public class NBA2DPATest {
     result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     result.setVariables(MAPPING);
-    Assert.assertTrue(size == result.getStates().size());
+    Assert.assertEquals(size, result.getStates().size());
   }
 }

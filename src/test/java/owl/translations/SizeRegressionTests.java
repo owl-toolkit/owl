@@ -108,6 +108,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
         && actualStateCount < expectedStateCount) {
         // Do nothing; unstable translation.
         System.err.println("Warning: Unstable DPA translation.");
+        System.err.println(String.format("Formula %s: Expected %s states. "
+            + "Actual number of states: %s", formula, expectedStateCount, actualStateCount));
       } else {
         errorMessages.add(
           String.format("Formula %s: Expected %s states. Actual number of states: %s",
@@ -133,8 +135,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     List<String> errorMessages = Collections.synchronizedList(new ArrayList<>());
 
     try (BufferedReader formulasFile = new BufferedReader(new FileReader(selectedClass.getFile()));
-         BufferedReader sizesFile = new BufferedReader(
-           new FileReader(selectedClass.getSizes(tool)))) {
+      BufferedReader sizesFile = new BufferedReader(new FileReader(selectedClass.getSizes(tool)))) {
 
       Streams.forEachPair(formulasFile.lines(), sizesFile.lines(), (formulaString, sizeString) -> {
         if (formulaString.trim().isEmpty()) {
@@ -150,15 +151,13 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       });
     }
 
-    assertThat(selectedClass.toString() + ":\n" + errorMessages.toString(),
-      errorMessages, Matchers.emptyCollectionOf(String.class));
+    assertThat(selectedClass.toString(), errorMessages, Matchers.emptyCollectionOf(String.class));
   }
 
   // @Test
   public void train() throws IOException {
     try (BufferedReader formulasFile = new BufferedReader(new FileReader(selectedClass.getFile()));
-         BufferedWriter sizesFile = new BufferedWriter(
-           new FileWriter(selectedClass.getSizes(tool)))) {
+      BufferedWriter sizesFile = new BufferedWriter(new FileWriter(selectedClass.getSizes(tool)))) {
 
       formulasFile.lines().forEach((formulaString) -> {
         try {
@@ -198,6 +197,13 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
   public abstract static class DPA extends SizeRegressionTests<MutableAutomaton<?, ?>> {
 
+    private static final EnumSet<Optimisation> DPA_ALL;
+
+    static {
+      DPA_ALL = EnumSet.allOf(Optimisation.class);
+      DPA_ALL.remove(Optimisation.PARALLEL);
+    }
+
     DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
       super(selectedClass, translator, Automaton::stateCount,
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2dpa." + configuration);
@@ -206,14 +212,14 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class Breakpoint extends DPA {
       public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(ALL, false), "breakpoint");
+        super(selectedClass, new LTL2DPAFunction(DPA_ALL, false), "breakpoint");
       }
     }
 
     @RunWith(Parameterized.class)
     public static class BreakpointFree extends DPA {
       public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(ALL, true), "breakpointfree");
+        super(selectedClass, new LTL2DPAFunction(DPA_ALL, true), "breakpointfree");
       }
     }
   }
@@ -223,7 +229,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
     public Delag(FormulaSet selectedClass) {
       super(selectedClass, new owl.translations.Delag(false,
-          (Function) new LTL2DPAFunction(EnumSet.allOf(Optimisation.class)))::translateWithFallback,
+        (Function) new LTL2DPAFunction(ALL))::translateWithFallback,
         Automaton::stateCount,
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }
