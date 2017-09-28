@@ -199,15 +199,11 @@ public final class GObligations extends ImmutableObject implements RecurringObli
     return getObligation().hashCode();
   }
 
-  public boolean isEmpty() {
-    return safety.isTrue() && obligations.length == 0 && liveness.length == 0;
-  }
-
-  public boolean isPureLiveness() {
+  boolean isPureLiveness() {
     return obligations.length == 0 && safety.isTrue();
   }
 
-  public boolean isPureSafety() {
+  boolean isPureSafety() {
     return obligations.length == 0 && liveness.length == 0;
   }
 

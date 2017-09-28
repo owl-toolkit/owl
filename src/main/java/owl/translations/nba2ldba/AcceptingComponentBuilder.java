@@ -56,8 +56,7 @@ final class AcceptingComponentBuilder<S>
     for (S state : nba.getStates()) {
       for (Edge<S> edge : nba.getEdges(state)) {
         OfInt it = edge.acceptanceSetIterator();
-        it.forEachRemaining((int x) -> {
-          finEdges.get(x).add(edge); });
+        it.forEachRemaining((int x) -> finEdges.get(x).add(edge));
       }
     }
 

@@ -116,7 +116,7 @@ public final class Lists2 {
   }
 
   public static <T> List<T> cons(T element, List<T> list) {
-    return new AbstractList<T>() {
+    return new AbstractList<>() {
       @Override
       public T get(int index) {
         if (index == 0) {
@@ -134,7 +134,7 @@ public final class Lists2 {
   }
 
   public static <T> List<T> append(List<T> list, T element) {
-    return new AbstractList<T>() {
+    return new AbstractList<>() {
       @Override
       public T get(int index) {
         if (index == list.size()) {
