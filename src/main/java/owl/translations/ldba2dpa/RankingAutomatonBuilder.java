@@ -57,20 +57,19 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
   private final ParityAcceptance acceptance;
   private final Automaton<T, BuchiAcceptance> acceptingComponent;
+  private final Predicate<S> clearRanking;
   private final ValuationSetFactory factory;
   private final Automaton<S, NoneAcceptance> initialComponent;
+  @Nullable
+  private final List<Set<S>> initialComponentSccs;
   private final List<RankingState<S, T>> initialStates;
+  private final LanguageLattice<V, T, U> lattice;
   private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba;
   private final AtomicInteger sizeCounter;
   @Nullable
   private final Map<S, Trie<T>> trie;
   private final Map<U, Integer> volatileComponents;
   private final int volatileMaxIndex;
-  private final LanguageLattice<V, T, U> lattice;
-
-  @Nullable
-  private final List<Set<S>> initialComponentSccs;
-  private final Predicate<S> clearRanking;
 
   public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations,
@@ -242,6 +241,16 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     return automaton;
   }
 
+  private boolean detectSccSwitch(S state, S successor) {
+    if (initialComponentSccs == null) {
+      return false;
+    }
+
+    Set<S> scc = initialComponentSccs.stream()
+      .filter(x -> x.contains(state)).findAny().orElse(Collections.emptySet());
+    return !scc.contains(successor);
+  }
+
   private int distance(int base, int index) {
     int distanceIndex = index;
 
@@ -364,19 +373,9 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     return Edges.create(successorState, edgeColor);
   }
 
-  private boolean detectSccSwitch(S state, S successor) {
-    if (initialComponentSccs == null) {
-      return false;
-    }
-
-    Set<S> scc = initialComponentSccs.stream()
-      .filter(x -> x.contains(state)).findAny().orElse(Collections.emptySet());
-    return !scc.contains(successor);
-  }
-
   private boolean isVolatileState(T state) {
     return volatileComponents.containsKey(ldba.getAnnotation(state)) && lattice.getLanguage(state,
-        true).isTop();
+      true).isTop();
   }
 }
 

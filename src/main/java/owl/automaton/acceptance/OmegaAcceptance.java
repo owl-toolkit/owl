@@ -34,7 +34,7 @@ public interface OmegaAcceptance {
   int getAcceptanceSets();
 
   /**
-   * Canonical Representation as Boolean Expression
+   * Canonical Representation as Boolean Expression.
    *
    * @return the canonical rep.
    */

@@ -104,6 +104,25 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     return multimap.entries().stream();
   }
 
+  // TODO: also use GOps Information
+  static Formula replaceFOperators(ImmutableSet<FOperator> trueFOperators,
+    ImmutableSet<GOperator> trueGOperators, GOperator formula) {
+    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(trueFOperators, trueGOperators);
+    return GOperator.create(formula.operand.accept(visitor));
+  }
+
+  private static Formula replaceFOperators(FGObligations obligations, Formula formula) {
+    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligations.foperators,
+      obligations.goperators);
+    return formula.accept(visitor);
+  }
+
+  static Formula replaceGOperators(ImmutableSet<GOperator> trueGOperators,
+    ImmutableSet<FOperator> trueFOperators, Formula formula) {
+    ReplaceGOperatorsVisitor visitor = new ReplaceGOperatorsVisitor(trueGOperators, trueFOperators);
+    return formula.accept(visitor);
+  }
+
   static Multimap<Set<FOperator>, Set<GOperator>> selectReducedMonitors(
     EquivalenceClass state) {
     SetMultimap<Set<FOperator>, Set<GOperator>> multimap = MultimapBuilder
@@ -138,11 +157,74 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     return multimap;
   }
 
-  // TODO: also use GOps Information
-  static Formula replaceFOperators(ImmutableSet<FOperator> trueFOperators,
-    ImmutableSet<GOperator> trueGOperators, GOperator formula) {
-    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(trueFOperators, trueGOperators);
-    return GOperator.create(formula.operand.accept(visitor));
+  @Override
+  protected Set<Jump<FGObligations>> computeJumps(EquivalenceClass state) {
+    Set<Jump<FGObligations>> fgObligations = new HashSet<>();
+
+    createDisjunctionStream(state, FGObligationsJumpManager::createFGSetStream).forEach(entry -> {
+      ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(entry.getKey());
+      ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(entry.getValue());
+
+      FGObligations obligations = cache.get(fOperators, gOperators);
+
+      if (obligations == null) {
+        obligations = FGObligations.build(fOperators, gOperators, factory);
+
+        if (obligations != null) {
+          cache.put(fOperators, gOperators, obligations);
+        }
+      }
+
+      if (obligations == null) {
+        Logger.getGlobal().log(Level.FINER, () -> "Did not create FGObligations for " + entry);
+        return;
+      }
+
+      EquivalenceClass remainder = evaluate(state, obligations);
+
+      if (!remainder.isFalse()) {
+        fgObligations.add(buildJump(remainder, obligations));
+      }
+    });
+
+    return fgObligations;
+  }
+
+  private EquivalenceClass evaluate(EquivalenceClass clazz, FGObligations obligation) {
+    // TODO: use substitute
+    Formula formula = clazz.getRepresentative();
+    Formula fFreeFormula = replaceFOperators(obligation, formula);
+    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, fFreeFormula);
+    Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated
+      + " using " + obligation);
+    return factory.createEquivalenceClass(evaluated);
+  }
+
+  abstract static class AbstractReplaceOperatorsVisitor extends DefaultVisitor<Formula> {
+    @Override
+    public Formula visit(BooleanConstant booleanConstant) {
+      return booleanConstant;
+    }
+
+    @Override
+    public Formula visit(Conjunction conjunction) {
+      return Conjunction.create(conjunction.map(x -> x.accept(this)));
+    }
+
+    @Override
+    public Formula visit(Disjunction disjunction) {
+      return Disjunction.create(disjunction.map(x -> x.accept(this)));
+    }
+
+    @Override
+    public Formula visit(Literal literal) {
+      return literal;
+    }
+
+    @Override
+    public Formula visit(XOperator xOperator) {
+      return XOperator.create(xOperator.operand.accept(this));
+    }
   }
 
   @VisibleForTesting
@@ -195,8 +277,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     @Override
     public List<Set<UnaryModalOperator>> visit(BooleanConstant booleanConstant) {
       return booleanConstant.value
-             ? Collections.singletonList(new HashSet<>())
-             : Collections.emptyList();
+        ? Collections.singletonList(new HashSet<>())
+        : Collections.emptyList();
     }
 
     @Override
@@ -287,22 +369,6 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   @VisibleForTesting
-  static class ToplevelSelectVisitor extends AbstractSelectVisitor {
-
-    static final ToplevelSelectVisitor INSTANCE = new ToplevelSelectVisitor();
-
-    @Override
-    protected List<Set<UnaryModalOperator>> defaultAction(Formula formula) {
-      return formula.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(Disjunction disjunction) {
-      return or(Collections2.transform(disjunction.children, x -> x.accept(this)), false);
-    }
-  }
-
-  @VisibleForTesting
   static class GScopedSelectVisitor extends AbstractSelectVisitor {
 
     static final GScopedSelectVisitor INSTANCE = new GScopedSelectVisitor();
@@ -369,88 +435,6 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     }
   }
 
-  private static Formula replaceFOperators(FGObligations obligations, Formula formula) {
-    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligations.foperators,
-      obligations.goperators);
-    return formula.accept(visitor);
-  }
-
-  static Formula replaceGOperators(ImmutableSet<GOperator> trueGOperators,
-    ImmutableSet<FOperator> trueFOperators, Formula formula) {
-    ReplaceGOperatorsVisitor visitor = new ReplaceGOperatorsVisitor(trueGOperators, trueFOperators);
-    return formula.accept(visitor);
-  }
-
-  @Override
-  protected Set<Jump<FGObligations>> computeJumps(EquivalenceClass state) {
-    Set<Jump<FGObligations>> fgObligations = new HashSet<>();
-
-    createDisjunctionStream(state, FGObligationsJumpManager::createFGSetStream).forEach(entry -> {
-      ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(entry.getKey());
-      ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(entry.getValue());
-
-      FGObligations obligations = cache.get(fOperators, gOperators);
-
-      if (obligations == null) {
-        obligations = FGObligations.build(fOperators, gOperators, factory);
-
-        if (obligations != null) {
-          cache.put(fOperators, gOperators, obligations);
-        }
-      }
-
-      if (obligations == null) {
-        Logger.getGlobal().log(Level.FINER, () -> "Did not create FGObligations for " + entry);
-        return;
-      }
-
-      EquivalenceClass remainder = evaluate(state, obligations);
-
-      if (!remainder.isFalse()) {
-        fgObligations.add(buildJump(remainder, obligations));
-      }
-    });
-
-    return fgObligations;
-  }
-
-  private EquivalenceClass evaluate(EquivalenceClass clazz, FGObligations obligation) {
-    // TODO: use substitute
-    Formula formula = clazz.getRepresentative();
-    Formula fFreeFormula = replaceFOperators(obligation, formula);
-    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, fFreeFormula);
-    Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated
-      + " using " + obligation);
-    return factory.createEquivalenceClass(evaluated);
-  }
-
-  abstract static class AbstractReplaceOperatorsVisitor extends DefaultVisitor<Formula> {
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-      return booleanConstant;
-    }
-
-    @Override
-    public Formula visit(Conjunction conjunction) {
-      return Conjunction.create(conjunction.map(x -> x.accept(this)));
-    }
-
-    @Override
-    public Formula visit(Disjunction disjunction) {
-      return Disjunction.create(disjunction.map(x -> x.accept(this)));
-    }
-
-    @Override
-    public Formula visit(Literal literal) {
-      return literal;
-    }
-
-    @Override
-    public Formula visit(XOperator xOperator) {
-      return XOperator.create(xOperator.operand.accept(this));
-    }
-  }
-
   static class ReplaceFOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
     private final ImmutableSet<FOperator> foperators;
     private final ImmutableSet<GOperator> goperators;
@@ -459,7 +443,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       ImmutableSet<GOperator> goperators) {
       this.foperators = foperators;
       this.goperators = ImmutableSet.copyOf(Iterables.concat(goperators,
-          Collections2.transform(foperators, GOperator::new)));
+        Collections2.transform(foperators, GOperator::new)));
     }
 
     private boolean isTrueFOperator(FOperator fOperator) {
@@ -511,8 +495,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   static class ReplaceGOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
-    private final ImmutableSet<GOperator> goperators;
     private final ImmutableSet<FOperator> foperators;
+    private final ImmutableSet<GOperator> goperators;
 
     ReplaceGOperatorsVisitor(ImmutableSet<GOperator> goperators,
       ImmutableSet<FOperator> foperators) {
@@ -571,6 +555,22 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       }
 
       return UOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
+    }
+  }
+
+  @VisibleForTesting
+  static class ToplevelSelectVisitor extends AbstractSelectVisitor {
+
+    static final ToplevelSelectVisitor INSTANCE = new ToplevelSelectVisitor();
+
+    @Override
+    protected List<Set<UnaryModalOperator>> defaultAction(Formula formula) {
+      return formula.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(Disjunction disjunction) {
+      return or(Collections2.transform(disjunction.children, x -> x.accept(this)), false);
     }
   }
 }

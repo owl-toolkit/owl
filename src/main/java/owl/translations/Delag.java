@@ -34,8 +34,8 @@ import owl.util.ExternalTranslator;
 
 public final class Delag extends AbstractLtlCommandLineTool {
 
-  private final boolean strict;
   private final Function<Formula, Automaton<?, OmegaAcceptance>> fallback;
+  private final boolean strict;
 
   public Delag(boolean strict, Function<Formula, Automaton<?, OmegaAcceptance>> fallback) {
     this.strict = strict;
@@ -60,7 +60,16 @@ public final class Delag extends AbstractLtlCommandLineTool {
     new Delag(args.remove("--strict"), fallback).execute(args);
   }
 
-  public Automaton<?,?> translateWithFallback(Formula formula) {
+  @Override
+  protected Function<Formula, HoaPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
+    if (strict) {
+      return this::translateWithoutFallback;
+    } else {
+      return this::translateWithFallback;
+    }
+  }
+
+  public Automaton<?, ?> translateWithFallback(Formula formula) {
     Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
     return new Builder(fallback).apply(rewritten);
   }
@@ -70,14 +79,5 @@ public final class Delag extends AbstractLtlCommandLineTool {
     return new Builder<>((x) -> {
       throw new UnsupportedOperationException("Outside of supported fragment." + rewritten);
     }).apply(rewritten);
-  }
-
-  @Override
-  protected Function<Formula, HoaPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
-    if (strict) {
-      return this::translateWithoutFallback;
-    } else {
-      return this::translateWithFallback;
-    }
   }
 }

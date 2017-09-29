@@ -58,10 +58,10 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   public static Logger LOGGER = Logger.getLogger("ltl2ldba");
 
   private final Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor;
+  private final boolean deterministicInitialComponent;
   private final Function<Formula, Formula> formulaPreprocessor;
   private final Function<S, C> getAnnotation;
   private final EnumSet<Optimisation> optimisations;
-  private final boolean deterministicInitialComponent;
   private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
 
   private LTL2LDBAFunction(
@@ -78,54 +78,62 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
       .contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
   }
 
+  // CSOFF: Indentation
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
   createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
-    x -> FGObligationsJumpManager.build(x, optimisations),
-    x -> new owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder(x,
+      x -> FGObligationsJumpManager.build(x, optimisations),
+      x -> new owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder(x,
         optimisations),
       optimisations,
       DegeneralizedBreakpointFreeState::getObligations);
   }
+  // CSON: Indentation
 
+  // CSOFF: Indentation
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
   createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
-    x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
-    x -> new DegeneralizedAcceptingComponentBuilder(x, ImmutableSet.copyOf(optimisations)),
+      x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
+      x -> new DegeneralizedAcceptingComponentBuilder(x, ImmutableSet.copyOf(optimisations)),
       optimisations,
       DegeneralizedBreakpointState::getObligations);
   }
+  // CSON: Indentation
 
+  // CSOFF: Indentation
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
   createGeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
-    x -> FGObligationsJumpManager.build(x, optimisations),
-    x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
+      x -> FGObligationsJumpManager.build(x, optimisations),
+      x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
         optimisations),
       optimisations,
       GeneralizedBreakpointFreeState::getObligations);
   }
+  // CSON: Indentation
 
+  // CSOFF: Indentation
   public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
   createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcessPushX,
-    x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
-    x -> new GeneralizedAcceptingComponentBuilder(x, EnumSet.copyOf(optimisations)),
+      x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
+      x -> new GeneralizedAcceptingComponentBuilder(x, EnumSet.copyOf(optimisations)),
       optimisations,
       GeneralizedBreakpointState::getObligations);
+  }
+  // CSON: Indentation
+
+  private static Formula preProcess(Formula formula) {
+    return RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
   }
 
   private static Formula preProcessPushX(Formula formula) {
     return RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, preProcess(formula));
-  }
-
-  private static Formula preProcess(Formula formula) {
-    return RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
   }
 
   @Override

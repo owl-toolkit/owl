@@ -46,8 +46,12 @@ import owl.automaton.output.HoaConsumerExtended;
  */
 public final class RabinAcceptance implements OmegaAcceptance {
   private static final int NOT_ALLOCATED = -1;
-  private final List<RabinPair> pairs;
   private final BitSet allocatedIndices = new BitSet();
+  private final List<RabinPair> pairs;
+
+  public RabinAcceptance() {
+    pairs = new ArrayList<>();
+  }
 
   public static boolean checkWellformed(BooleanExpression<AtomAcceptance> acceptanceExpression) {
     if (acceptanceExpression.isAtom() || acceptanceExpression.isNOT()) {
@@ -99,10 +103,6 @@ public final class RabinAcceptance implements OmegaAcceptance {
     }
 
     return acceptance;
-  }
-
-  public RabinAcceptance() {
-    pairs = new ArrayList<>();
   }
 
   @Override

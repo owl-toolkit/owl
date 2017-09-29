@@ -165,8 +165,8 @@ public final class Collector {
 
   static class CollectorVisitor<T> implements IntVisitor {
 
-    private final Function<Formula, T> collectFunction;
     protected final Set<T> collection;
+    private final Function<Formula, T> collectFunction;
     private final boolean onlyTopmost;
 
     CollectorVisitor(Function<Formula, T> function) {

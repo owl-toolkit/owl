@@ -63,11 +63,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     EnumSet<Optimisation> optimisations, ImmutableSet<GObligations> obligations) {
     super(ImmutableSet.copyOf(optimisations), factory);
     this.obligations = obligations;
-    LOGGER.log(Level.FINE, () ->  "The automaton has the following jumps: " + obligations);
-  }
-
-  private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {
-    return Sets.powerSet(Collector.collectTransformedGOperators(state.getSupport())).stream();
+    LOGGER.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
   }
 
   public static GObligationsJumpManager build(EquivalenceClass initialState,
@@ -95,11 +91,15 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
       .anyMatch(y -> y.anyMatch(z -> x.equals(Collector.transformToGOperator(z)))));
   }
 
+  private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {
+    return Sets.powerSet(Collector.collectTransformedGOperators(state.getSupport())).stream();
+  }
+
   @Override
   protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
     EquivalenceClass state2 = optimisations.contains(Optimisation.EAGER_UNFOLD)
-                              ? state.duplicate()
-                              : state.unfold();
+      ? state.duplicate()
+      : state.unfold();
     Set<Formula> support = state2.getSupport();
     Set<GObligations> availableObligations = obligations
       .stream().filter(x -> containsAllPropostions(x.goperators, support))

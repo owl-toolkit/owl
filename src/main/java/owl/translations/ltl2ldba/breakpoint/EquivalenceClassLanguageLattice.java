@@ -15,18 +15,18 @@ public class EquivalenceClassLanguageLattice implements LanguageLattice<Equivale
   }
 
   @Override
+  public Language<EquivalenceClass> getBottom() {
+    return new EquivalenceClassLanguage(eqFactory.getFalse());
+  }
+
+  @Override
   public Language<EquivalenceClass> getLanguage(DegeneralizedBreakpointState state,
-      boolean current) {
+    boolean current) {
     if (current) {
       return new EquivalenceClassLanguage(state.getCurrent());
     } else {
       return new EquivalenceClassLanguage(state.getLabel());
     }
-  }
-
-  @Override
-  public Language<EquivalenceClass> getBottom() {
-    return new EquivalenceClassLanguage(eqFactory.getFalse());
   }
 
   @Override
@@ -52,8 +52,13 @@ public class EquivalenceClassLanguageLattice implements LanguageLattice<Equivale
     }
 
     @Override
-    public Language<EquivalenceClass> join(Language<EquivalenceClass> language) {
-      return new EquivalenceClassLanguage(eq.orWith(language.getT()));
+    public void free() {
+      eq.free();
+    }
+
+    @Override
+    public EquivalenceClass getT() {
+      return eq;
     }
 
     @Override
@@ -62,23 +67,18 @@ public class EquivalenceClassLanguageLattice implements LanguageLattice<Equivale
     }
 
     @Override
-    public boolean isTop() {
-      return eq.isTrue();
-    }
-
-    @Override
     public boolean isBottom() {
       return eq.isFalse();
     }
 
     @Override
-    public void free() {
-      eq.free();
+    public boolean isTop() {
+      return eq.isTrue();
     }
 
     @Override
-    public EquivalenceClass getT() {
-      return eq;
+    public Language<EquivalenceClass> join(Language<EquivalenceClass> language) {
+      return new EquivalenceClassLanguage(eq.orWith(language.getT()));
     }
   }
 }

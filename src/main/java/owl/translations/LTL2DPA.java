@@ -30,8 +30,8 @@ import owl.ltl.Formula;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2DPA extends AbstractLtlCommandLineTool {
-  private final boolean parallel;
   private final boolean breakpointFree;
+  private final boolean parallel;
 
   private LTL2DPA(boolean parallel, boolean breakpointFree) {
     this.parallel = parallel;

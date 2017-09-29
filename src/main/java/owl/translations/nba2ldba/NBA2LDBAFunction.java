@@ -57,14 +57,14 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder;
 
     AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder
-        .create(nbaGBA);
+      .create(nbaGBA);
     Function<S, Iterable<S>> epsilonJumpGenerator = (state) -> {
       Set<S> jumps = new HashSet<>();
       jumps.add(state);
       return jumps;
     };
     builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-        acceptingComponentBuilder, epsilonJumpGenerator, (x) -> null, optimisations);
+      acceptingComponentBuilder, epsilonJumpGenerator, (x) -> null, optimisations);
     return builder.build();
   }
 }

@@ -114,13 +114,13 @@ public final class Edges {
     return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptanceSet));
   }
 
+  public static <S> Iterable<S> toSuccessors(Iterable<Edge<S>> edges) {
+    return Iterables.transform(edges, Edge::getSuccessor);
+  }
+
   public static <S> Edge<S> transformAcceptance(Edge<S> original, IntUnaryOperator transformer) {
     OfInt originalAcceptance = original.acceptanceSetIterator();
     IntIterator newAcceptance = new NaturalsTransformer(originalAcceptance, transformer);
     return create(original.getSuccessor(), newAcceptance);
-  }
-
-  public static <S> Iterable<S> toSuccessors(Iterable<Edge<S>> edges) {
-    return Iterables.transform(edges, Edge::getSuccessor);
   }
 }

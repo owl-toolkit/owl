@@ -50,11 +50,11 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
 
   private final ExploreBuilder<KeyT, T, B> acceptingComponentBuilder;
   private final Set<C> components;
+  private final Function<S, Iterable<KeyT>> epsilonJumpGenerator;
   private final Function<T, C> getComponent;
   private final ExploreBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder;
   private final Set<T> initialStates;
   private final Predicate<S> isProtected;
-  private final Function<S, Iterable<KeyT>> epsilonJumpGenerator;
   private final EnumSet<Optimisation> optimisations;
 
   private LimitDeterministicAutomatonBuilder(
@@ -80,7 +80,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Function<T, X3> annot,
     EnumSet<Optimisation> optimisations) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-    acceptingComponentBuilder, jumpGenerator, annot, optimisations, x -> true);
+      acceptingComponentBuilder, jumpGenerator, annot, optimisations, x -> true);
   }
 
   public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
@@ -92,7 +92,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     EnumSet<Optimisation> optimisations,
     Predicate<S> isProtected) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-    acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected);
+      acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected);
   }
 
   @Nullable
@@ -200,8 +200,8 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Multimap<S, T> epsilonJumps) {
     // Decompose into SCCs
     List<Set<S>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS)
-                        ? SccAnalyser.computeSccs(initialComponent)
-                        : Collections.singletonList(initialComponent.getStates());
+      ? SccAnalyser.computeSccs(initialComponent)
+      : Collections.singletonList(initialComponent.getStates());
 
     for (Set<S> scc : sccs) {
       // Skip transient SCCs

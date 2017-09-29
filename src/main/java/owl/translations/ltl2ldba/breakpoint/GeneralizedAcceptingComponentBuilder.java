@@ -194,8 +194,8 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     }
 
     return Edges.create(
-        new GeneralizedBreakpointState(state.obligations, nextSafety, currentSuccessors,
-          nextSuccessors), bs);
+      new GeneralizedBreakpointState(state.obligations, nextSafety, currentSuccessors,
+        nextSuccessors), bs);
   }
 
   @Nullable
@@ -217,7 +217,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     }
 
     return Edges.create(new GeneralizedBreakpointState(state.obligations, nextSafety,
-      EquivalenceClassUtil.EMPTY, EquivalenceClassUtil.EMPTY),
+        EquivalenceClassUtil.EMPTY, EquivalenceClassUtil.EMPTY),
       IntStream.range(0, acceptanceSets).iterator());
   }
 }

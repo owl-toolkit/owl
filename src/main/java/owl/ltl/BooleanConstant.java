@@ -55,6 +55,16 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   }
 
   @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
+
+  @Override
   protected boolean equals2(ImmutableObject o) {
     BooleanConstant that = (BooleanConstant) o;
     return value == that.value;
@@ -114,15 +124,5 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
     return this;
-  }
-
-  @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
   }
 }

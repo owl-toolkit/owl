@@ -49,8 +49,8 @@ public final class FGObligations implements RecurringObligation {
   final ImmutableSet<FOperator> foperators;
   final ImmutableSet<GOperator> goperators;
   final EquivalenceClass[] liveness;
-  final EquivalenceClass safety;
   final ImmutableSet<UnaryModalOperator> rewrittenOperators;
+  final EquivalenceClass safety;
 
   private FGObligations(ImmutableSet<FOperator> foperators, ImmutableSet<GOperator> goperators,
     EquivalenceClass safety, EquivalenceClass[] liveness,
@@ -134,6 +134,21 @@ public final class FGObligations implements RecurringObligation {
   }
 
   @Override
+  public boolean containsLanguageOf(RecurringObligation other) {
+    checkArgument(other instanceof FGObligations);
+
+    if (Sets2.isSubset(rewrittenOperators, ((FGObligations) other).rewrittenOperators)) {
+      return true;
+    }
+
+    EquivalenceClass thisObligation = getObligation();
+    EquivalenceClass thatObligation = ((FGObligations) other).getObligation();
+    boolean implies = thatObligation.implies(thisObligation);
+    EquivalenceClassUtil.free(thisObligation, thatObligation);
+    return implies;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -154,21 +169,6 @@ public final class FGObligations implements RecurringObligation {
   public EquivalenceClass getLanguage() {
     return safety.getFactory().createEquivalenceClass(
       Sets2.newHashSet(rewrittenOperators, GOperator::create));
-  }
-
-  @Override
-  public boolean containsLanguageOf(RecurringObligation other) {
-    checkArgument(other instanceof FGObligations);
-
-    if (Sets2.isSubset(rewrittenOperators, ((FGObligations) other).rewrittenOperators)) {
-      return true;
-    }
-
-    EquivalenceClass thisObligation = getObligation();
-    EquivalenceClass thatObligation = ((FGObligations) other).getObligation();
-    boolean implies = thatObligation.implies(thisObligation);
-    EquivalenceClassUtil.free(thisObligation, thatObligation);
-    return implies;
   }
 
   EquivalenceClass getObligation() {

@@ -70,20 +70,16 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     return false;
   }
 
-  public <T> Stream<T> map(Function<Formula, T> mapper) {
-    return children.stream().map(mapper);
-  }
-
-  public void forEach(Consumer<Formula> consumer) {
-    children.forEach(consumer);
-  }
-
   @Override
   public boolean equals2(ImmutableObject o) {
     assert o instanceof PropositionalFormula;
     // If equals2 is called, classes are equal
     PropositionalFormula that = (PropositionalFormula) o;
     return Objects.equals(children, that.children);
+  }
+
+  public void forEach(Consumer<Formula> consumer) {
+    children.forEach(consumer);
   }
 
   protected abstract char getOperator();
@@ -101,6 +97,10 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   @Override
   public boolean isSuspendable() {
     return children.stream().allMatch(Formula::isSuspendable);
+  }
+
+  public <T> Stream<T> map(Function<Formula, T> mapper) {
+    return children.stream().map(mapper);
   }
 
   @Override

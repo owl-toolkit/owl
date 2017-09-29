@@ -82,8 +82,8 @@ public class NBA2LDBATest {
       + "State: 2\n"
       + "[0 & 1] 1 {0}\n"
       + "[!0 & 1] 2 {0}\n"
-      + "--END--" ;
-  
+      + "--END--";
+
   private static final List<String> MAPPING = ImmutableList.of("a");
 
   @Test
@@ -100,7 +100,7 @@ public class NBA2LDBATest {
   public void testApply3() throws ParseException {
     runTest(INPUT3);
   }
-  
+
   private void runTest(String input) throws ParseException {
     NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(
         EnumSet.noneOf(Optimisation.class));

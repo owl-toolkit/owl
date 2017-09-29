@@ -35,14 +35,6 @@ public final class LabelledEdge<S> {
     this.valuations = entry.getValue();
   }
 
-  public Edge<S> getEdge() {
-    return edge;
-  }
-
-  public ValuationSet getValuations() {
-    return valuations;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -54,6 +46,14 @@ public final class LabelledEdge<S> {
     LabelledEdge<?> that = (LabelledEdge<?>) o;
     return Objects.equals(edge, that.edge)
       && Objects.equals(valuations, that.valuations);
+  }
+
+  public Edge<S> getEdge() {
+    return edge;
+  }
+
+  public ValuationSet getValuations() {
+    return valuations;
   }
 
   @Override

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import groovy.io.FileType
+
 plugins {
   id "com.github.spotbugs" version "1.4"
 }
 
 apply plugin: 'java'
 apply plugin: 'antlr'
+
+spotbugs {
+    toolVersion = '3.1.0-RC6'
+}
 
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -46,6 +52,7 @@ repositories {
 dependencies {
     compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.0-RC6'
     compileOnly 'org.immutables:value:2.5.5'
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.1'
 
     compile 'com.google.guava:guava:23.0'
     compile 'it.unimi.dsi:fastutil:8.1.0'
@@ -79,7 +86,6 @@ tasks.withType(Test) {
 }
 
 // Antlr
-import groovy.io.FileType
 generateGrammarSource {
     arguments += ["-visitor", "-long-messages", "-lib", "src/main/antlr"]
     // http://stackoverflow.com/questions/30642144/generating-antlr4-grammar-files-with-package-declaration-in-gradle
@@ -105,6 +111,7 @@ generateGrammarSource {
 
 // Spotbugs
 // https://plugins.gradle.org/plugin/com.github.spotbugs
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
 spotbugs {
     reportsDir = file("$project.buildDir/reports/spotbugs")
     effort = "max"
@@ -112,16 +119,18 @@ spotbugs {
     excludeFilter = file("$project.projectDir/config/spotbugs-exclude.xml")
     ignoreFailures = false
 }
+
 tasks.withType(com.github.spotbugs.SpotBugsTask) {
-  reports {
-    xml.enabled = false
-    html.enabled = true
-  }
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
 }
 
 // PMD
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
 pmd {
+    toolVersion = "5.8.1"
     reportsDir = file("$project.buildDir/reports/pmd")
     ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
     ruleSets = [] // We specify all rules in rules.xml
@@ -138,9 +147,10 @@ tasks.withType(Pmd) {
 // Checkstyle
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
 checkstyle {
-    toolVersion = "7.8.1"
+    toolVersion = "8.2"
     configFile = file("$project.rootDir/config/checkstyle.xml")
     ignoreFailures = false
+    maxWarnings = 0
     showViolations = false // Don't litter console
     checkstyleMain {
         configProperties = ['suppression-file':
@@ -149,17 +159,6 @@ checkstyle {
     checkstyleTest {
         configProperties = ['suppression-file':
                                 "$project.rootDir/config/checkstyle-test-suppression.xml"]
-    }
-}
-// See https://github.com/gradle/gradle/issues/881
-tasks.withType(Checkstyle).each { checkstyleTask ->
-    checkstyleTask.doLast {
-        reports.all { report ->
-            def outputFile = report.destination
-            if (outputFile.exists() && outputFile.text.contains("<error ")) {
-                throw new GradleException("There were checkstyle warnings! See $outputFile")
-            }
-        }
     }
 }
 
@@ -211,16 +210,16 @@ distributions.main {
 }
 
 // Task to create a minimal running jar
-tasks.create(name : "buildBin", type : Copy) {
+tasks.create(name: "buildBin", type: Copy) {
     destinationDir = project.buildDir
-    into ('bin') {
+    into('bin') {
         // Copy all start-scripts and make them executable
-        from (startScripts) {
+        from(startScripts) {
             exclude "*.bat"
         }
         fileMode = 0755
     }
-    into ('lib') {
+    into('lib') {
         from(jar) // Copy the jar itself
         from([project.configurations.runtime]) // Copy the dependencies
     }
@@ -321,8 +320,10 @@ static customizeEncoding(project) {
         encoding.@defaultCharsetForPropertiesFiles = 'UTF-8'
     } else {
         // Create new node with default values.
-        project.appendNode 'Encoding', [useUTFGuessing                  : true, native2AsciiForPropertiesFiles: true,
-                                        defaultCharsetForPropertiesFiles: 'UTF-8']
+        project.appendNode 'Encoding',
+            [useUTFGuessing                  : true,
+             native2AsciiForPropertiesFiles  : true,
+             defaultCharsetForPropertiesFiles: 'UTF-8']
     }
 }
 

@@ -22,7 +22,7 @@ import java.util.function.UnaryOperator;
 
 public final class UnaryOperators {
 
-  private UnaryOperators(){
+  private UnaryOperators() {
   }
 
   public static <T> UnaryOperator<T> chain(ImmutableList<UnaryOperator<T>> operators) {

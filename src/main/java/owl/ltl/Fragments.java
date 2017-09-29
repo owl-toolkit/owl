@@ -33,6 +33,10 @@ public final class Fragments {
   private Fragments() {
   }
 
+  public static boolean isAlmostAll(Formula formula) {
+    return formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator;
+  }
+
   public static boolean isCoSafety(Formula formula) {
     return formula.allMatch(FINITE.or(CO_SAFETY));
   }
@@ -41,19 +45,15 @@ public final class Fragments {
     return formula.allMatch(FINITE.or(FG));
   }
 
+  public static boolean isInfinitelyOften(Formula formula) {
+    return formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator;
+  }
+
   public static boolean isSafety(Formula formula) {
     return formula.allMatch(FINITE.or(SAFETY));
   }
 
   public static boolean isX(Formula formula) {
     return formula.allMatch(FINITE);
-  }
-
-  public static boolean isAlmostAll(Formula formula) {
-    return formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator;
-  }
-
-  public static boolean isInfinitelyOften(Formula formula) {
-    return formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator;
   }
 }

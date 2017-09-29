@@ -41,8 +41,8 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 
 public final class MinimizationUtil {
-  private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
   private static final Consumer<?> EMPTY_CONSUMER = (x) -> { };
+  private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
 
   private MinimizationUtil() {}
 

@@ -90,6 +90,20 @@ abstract class DependencyTree<T> {
     return new Or<>(children);
   }
 
+  static long[] unionTail(long[] history1, long[] history2) {
+    if (history1.length < history2.length) {
+      return unionTail(history2, history1);
+    }
+
+    int offset = history1.length - history2.length;
+
+    for (int i = history2.length - 1; 0 <= i; i--) {
+      history1[offset + i] |= history2[i];
+    }
+
+    return history1;
+  }
+
   static Formula unwrap(Formula formula) {
     return ((UnaryModalOperator) ((UnaryModalOperator) formula).operand).operand;
   }
@@ -401,8 +415,8 @@ abstract class DependencyTree<T> {
     @Override
     BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean parentAcceptance) {
       Boolean acceptance = parentAcceptance != null
-                           ? parentAcceptance
-                           : state.productState.finished.get(this);
+        ? parentAcceptance
+        : state.productState.finished.get(this);
 
       BitSet set = new BitSet();
       BitSet fairnessSet = new BitSet();
@@ -483,19 +497,5 @@ abstract class DependencyTree<T> {
       return productState.safety.containsKey(leaf.formula)
         && (Fragments.isX(leaf.formula) || leaf.type == Type.SAFETY);
     }
-  }
-
-  static long[] unionTail(long[] history1, long[] history2) {
-    if (history1.length < history2.length) {
-      return unionTail(history2, history1);
-    }
-
-    int offset = history1.length - history2.length;
-
-    for (int i = history2.length - 1; 0 <= i; i--) {
-      history1[offset + i] |= history2[i];
-    }
-
-    return history1;
   }
 }

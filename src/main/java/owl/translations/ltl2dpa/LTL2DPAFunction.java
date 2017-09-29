@@ -52,13 +52,12 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
+  private final boolean breakpointFree;
   private final EnumSet<Optimisation> optimisations;
   private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
-  private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
-
-  private final boolean breakpointFree;
+  private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
   public LTL2DPAFunction() {
     this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
@@ -112,11 +111,11 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
           }
 
           int size = automaton == null
-                     ? automatonCounter.get()
-                     : automaton.automaton.stateCount();
+            ? automatonCounter.get()
+            : automaton.automaton.stateCount();
           int complementSize = complement == null
-                               ? complementCounter.get()
-                               : complement.automaton.stateCount();
+            ? complementCounter.get()
+            : complement.automaton.stateCount();
 
           if (automaton != null && size <= complementSize) {
             complementFuture.cancel(true);
@@ -149,49 +148,10 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
     }
   }
 
-  private boolean hasSafetyCore(EquivalenceClass state) {
-    // Check if the state has an independent safety core.
-    if (optimisations.contains(Optimisation.SAFETY_CORE)) {
-      Set<Formula> notSafety = state.getSupport(x -> !Fragments.isSafety(x));
-
-      EquivalenceClass safetyCore = state.substitute(x -> {
-        for (Formula formula : notSafety) {
-          if (formula.anyMatch(z -> AbstractJumpManager.equalsInSupport(x, z))) {
-            return x;
-          }
-        }
-
-        return BooleanConstant.TRUE;
-      });
-
-      if (safetyCore.isTrue()) {
-        return true;
-      }
-
-      safetyCore.free();
-    }
-
-    return false;
-  }
-
-  private ComplementableAutomaton<?> applyBreakpointFree(Formula formula, AtomicInteger counter) {
-    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
-    BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
-
-    if (ldba.isDeterministic()) {
-      return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
-        (MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance>)
-          ldba.getAcceptingComponent()), DegeneralizedBreakpointFreeState::createSink);
-    }
-
-    assert ldba.getInitialComponent().getInitialStates().size() == 1;
-    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
-
-    RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
-        Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
-      new BooleanLattice<>(), this::hasSafetyCore);
-    builder.add(ldba.getInitialComponent().getInitialState());
-    return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+  private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
+    return breakpointFree
+      ? applyBreakpointFree(formula, sizeCounter)
+      : applyBreakpoint(formula, sizeCounter);
   }
 
   private ComplementableAutomaton<?> applyBreakpoint(Formula formula, AtomicInteger counter) {
@@ -217,10 +177,49 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }
 
-  private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
-    return breakpointFree
-           ? applyBreakpointFree(formula, sizeCounter)
-           : applyBreakpoint(formula, sizeCounter);
+  private ComplementableAutomaton<?> applyBreakpointFree(Formula formula, AtomicInteger counter) {
+    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
+      BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
+
+    if (ldba.isDeterministic()) {
+      return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
+        (MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance>)
+          ldba.getAcceptingComponent()), DegeneralizedBreakpointFreeState::createSink);
+    }
+
+    assert ldba.getInitialComponent().getInitialStates().size() == 1;
+    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
+
+    RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
+      Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
+      new BooleanLattice<>(), this::hasSafetyCore);
+    builder.add(ldba.getInitialComponent().getInitialState());
+    return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+  }
+
+  private boolean hasSafetyCore(EquivalenceClass state) {
+    // Check if the state has an independent safety core.
+    if (optimisations.contains(Optimisation.SAFETY_CORE)) {
+      Set<Formula> notSafety = state.getSupport(x -> !Fragments.isSafety(x));
+
+      EquivalenceClass safetyCore = state.substitute(x -> {
+        for (Formula formula : notSafety) {
+          if (formula.anyMatch(z -> AbstractJumpManager.equalsInSupport(x, z))) {
+            return x;
+          }
+        }
+
+        return BooleanConstant.TRUE;
+      });
+
+      if (safetyCore.isTrue()) {
+        return true;
+      }
+
+      safetyCore.free();
+    }
+
+    return false;
   }
 
   static final class ComplementableAutomaton<T> {

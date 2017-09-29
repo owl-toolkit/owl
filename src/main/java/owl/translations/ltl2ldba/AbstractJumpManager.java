@@ -53,6 +53,50 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       && ((Literal) formula1).getAtom() == ((Literal) formula2).getAtom();
   }
 
+  AnalysisResult<X> analyse(EquivalenceClass state) {
+    AnalysisResult<X> result = checkTrivial(state);
+
+    if (result != null) {
+      return result;
+    }
+
+    Set<Jump<X>> jumps = computeJumps(state);
+
+    LOGGER.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
+
+    if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+      jumps.removeIf(jump -> jumps.stream().anyMatch(
+        otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
+    }
+
+    if (optimisations.contains(Optimisation.FORCE_JUMPS)) {
+      for (Jump<X> jump : jumps) {
+        EquivalenceClass jumpLanguage = jump.getLanguage();
+
+        if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
+          jumpLanguage = jumpLanguage.unfold();
+        }
+
+        boolean stateLanguageIsContained = state.implies(jumpLanguage);
+        jumpLanguage.free();
+
+        if (stateLanguageIsContained) {
+          return AnalysisResult.buildMust(jump);
+        }
+      }
+    }
+
+    return AnalysisResult.buildMay(jumps);
+  }
+
+  protected Jump<X> buildJump(EquivalenceClass remainder, X obligations) {
+    if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
+      return new Jump<>(remainder.unfold(), obligations);
+    }
+
+    return new Jump<>(remainder, obligations);
+  }
+
   @Nullable
   private AnalysisResult<X> checkTrivial(EquivalenceClass state) {
     // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
@@ -104,48 +148,4 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   }
 
   protected abstract Set<Jump<X>> computeJumps(EquivalenceClass state);
-
-  AnalysisResult<X> analyse(EquivalenceClass state) {
-    AnalysisResult<X> result = checkTrivial(state);
-
-    if (result != null) {
-      return result;
-    }
-
-    Set<Jump<X>> jumps = computeJumps(state);
-
-    LOGGER.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
-
-    if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-      jumps.removeIf(jump -> jumps.stream().anyMatch(
-        otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
-    }
-
-    if (optimisations.contains(Optimisation.FORCE_JUMPS)) {
-      for (Jump<X> jump : jumps) {
-        EquivalenceClass jumpLanguage = jump.getLanguage();
-
-        if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
-          jumpLanguage = jumpLanguage.unfold();
-        }
-
-        boolean stateLanguageIsContained = state.implies(jumpLanguage);
-        jumpLanguage.free();
-
-        if (stateLanguageIsContained) {
-          return AnalysisResult.buildMust(jump);
-        }
-      }
-    }
-
-    return AnalysisResult.buildMay(jumps);
-  }
-
-  protected Jump<X> buildJump(EquivalenceClass remainder, X obligations) {
-    if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
-      return new Jump<>(remainder.unfold(), obligations);
-    }
-
-    return new Jump<>(remainder, obligations);
-  }
 }

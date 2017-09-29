@@ -283,8 +283,7 @@ public final class SccAnalyser<S> {
             // Pop the stack until we find our node
             stackNode = explorationStack.pop();
             builder.add(stackNode);
-          }
-          while (stackNode != node); // NOPMD
+          } while (stackNode != node); // NOPMD
           scc = builder.build();
         }
         sccs.add(scc);
