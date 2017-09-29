@@ -79,7 +79,7 @@ final class SccIARBuilder<R> {
   }
 
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,
-    Set<R> initialStates,Set<R> restriction, Set<RabinPair> trackedPairs) {
+    Set<R> initialStates, Set<R> restriction, Set<RabinPair> trackedPairs) {
     return new SccIARBuilder<>(rabinAutomaton, ImmutableSet.copyOf(initialStates),
       ImmutableSet.copyOf(restriction), ImmutableSet.copyOf(trackedPairs));
   }

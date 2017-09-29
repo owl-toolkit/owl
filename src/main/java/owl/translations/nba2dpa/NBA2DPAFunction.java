@@ -37,7 +37,7 @@ import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.NBA2LDBAFunction;
 
 public final class NBA2DPAFunction<S>
-    implements Function<Automaton<S, GeneralizedBuchiAcceptance>, HoaPrintable> {
+  implements Function<Automaton<S, GeneralizedBuchiAcceptance>, HoaPrintable> {
 
   private final EnumSet<Optimisation> optimisations;
 
@@ -49,15 +49,15 @@ public final class NBA2DPAFunction<S>
   public MutableAutomaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
   apply(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(
-        EnumSet.noneOf(Optimisation.class));
+      EnumSet.noneOf(Optimisation.class));
     LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> ldba =
-        nba2ldba.apply(nba);
+      nba2ldba.apply(nba);
 
     LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Void>
-    ldbaCutDet = ldba.asCutDeterministicAutomaton();
+      ldbaCutDet = ldba.asCutDeterministicAutomaton();
 
     LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Void> oracle
-    = new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent().getStates());
+      = new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent().getStates());
 
     Predicate<Set<S>> clearRanking = s -> false;
     RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Void, Set<BreakpointState<S>>> builder =

@@ -59,9 +59,9 @@ class RequiredHistory {
   }
 
   private static class Extractor extends DefaultIntVisitor {
+    private final long[] past;
     @Nonnegative
     private int index;
-    private final long[] past;
 
     Extractor(int xDepth) {
       this.past = new long[xDepth];

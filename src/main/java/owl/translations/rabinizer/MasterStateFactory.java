@@ -11,6 +11,10 @@ final class MasterStateFactory extends RabinizerStateFactory {
     super(eager);
   }
 
+  public EquivalenceClass getInitialState(EquivalenceClass formula) {
+    return eager ? formula.unfold() : formula;
+  }
+
   @Nullable
   Edge<EquivalenceClass> getMasterSuccessor(EquivalenceClass state, BitSet valuation) {
     EquivalenceClass successor = eager
@@ -19,9 +23,5 @@ final class MasterStateFactory extends RabinizerStateFactory {
     // If the master moves into false, there is no way of accepting, since the finite prefix
     // of the word already violates the formula. Hence, we refrain from creating this state.
     return successor.isFalse() ? null : Edges.create(successor);
-  }
-
-  public EquivalenceClass getInitialState(EquivalenceClass formula) {
-    return eager ? formula.unfold() : formula;
   }
 }

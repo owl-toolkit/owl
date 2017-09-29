@@ -35,6 +35,16 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
   }
 
   @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this) && left.allMatch(predicate) && right.allMatch(predicate);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this) || left.anyMatch(predicate) || right.anyMatch(predicate);
+  }
+
+  @Override
   protected boolean equals2(ImmutableObject o) {
     assert o instanceof BinaryModalOperator;
     BinaryModalOperator that = (BinaryModalOperator) o;
@@ -61,16 +71,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
   @Override
   public String toString(List<String> variables, boolean fullyParenthesized) {
     return "(" + left.toString(variables, fullyParenthesized) + ")" + getOperator() + "("
-        + right.toString(variables, fullyParenthesized) + ")";
-  }
-
-  @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) && left.allMatch(predicate) && right.allMatch(predicate);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) || left.anyMatch(predicate) || right.anyMatch(predicate);
+      + right.toString(variables, fullyParenthesized) + ")";
   }
 }

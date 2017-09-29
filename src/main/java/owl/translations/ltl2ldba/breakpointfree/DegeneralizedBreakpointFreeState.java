@@ -40,15 +40,15 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
     this.safety = safety;
   }
 
+  public static DegeneralizedBreakpointFreeState createSink() {
+    return new DegeneralizedBreakpointFreeState(0, null, null, null);
+  }
+
   @Override
   protected boolean equals2(ImmutableObject o) {
     DegeneralizedBreakpointFreeState that = (DegeneralizedBreakpointFreeState) o;
     return index == that.index && Objects.equals(safety, that.safety) && Objects
       .equals(liveness, that.liveness) && Objects.equals(obligations, that.obligations);
-  }
-
-  public static DegeneralizedBreakpointFreeState createSink() {
-    return new DegeneralizedBreakpointFreeState(0, null, null, null);
   }
 
   public FGObligations getObligations() {

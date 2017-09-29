@@ -311,8 +311,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * Removes all states which are not reachable from the specified {@code start} set and returns all
    * removed states.
    *
-   * @return All unreachable, removed states. The returned set is modifiable and belongs to the
-   * caller.
+   * @return All unreachable, removed states. The returned set is modifiable.
    *
    * @see #removeUnreachableStates(Collection, Consumer)
    */

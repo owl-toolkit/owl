@@ -71,7 +71,7 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
   public Map<ValuationSet, Set<T>> getValuationSetJumps(Set<S> state) {
     Map<ValuationSet, Set<T>> jumps = new HashMap<>();
     state.forEach(s -> ldba.getValuationSetJumps(s)
-      .forEach((k,v) -> jumps.merge(k, v, Sets::union)));
+      .forEach((k, v) -> jumps.merge(k, v, Sets::union)));
     return jumps;
   }
 

@@ -39,6 +39,7 @@ import owl.ltl.visitors.DefaultIntVisitor;
  */
 public class RankingComparator implements Comparator<GOperator>, Serializable {
 
+  private static final RankVisitor VISITOR = new RankVisitor();
   private static final LoadingCache<GOperator, Integer> LOADING_CACHE = CacheBuilder.newBuilder()
     .maximumSize(1000L).build(
       new CacheLoader<GOperator, Integer>() {
@@ -47,8 +48,6 @@ public class RankingComparator implements Comparator<GOperator>, Serializable {
           return key.accept(VISITOR);
         }
       });
-
-  private static final RankVisitor VISITOR = new RankVisitor();
 
   @Override
   public int compare(GOperator o1, GOperator o2) {

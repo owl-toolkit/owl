@@ -26,26 +26,6 @@ public final class BooleanExpressions {
   private BooleanExpressions() {
   }
 
-  public static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
-    if (!exp.isAND()) {
-      return Lists.newArrayList(exp);
-    }
-
-    List<BooleanExpression<T>> conjuncts = getConjuncts(exp.getLeft());
-    conjuncts.addAll(getConjuncts(exp.getRight()));
-    return conjuncts;
-  }
-
-  public static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
-    if (!exp.isOR()) {
-      return Lists.newArrayList(exp);
-    }
-
-    List<BooleanExpression<T>> disjuncts = getDisjuncts(exp.getLeft());
-    disjuncts.addAll(getDisjuncts(exp.getRight()));
-    return disjuncts;
-  }
-
   public static <T extends Atom> BooleanExpression<T> createConjunction(
     Iterable<BooleanExpression<T>> conjuncts) {
 
@@ -84,5 +64,25 @@ public final class BooleanExpressions {
     }
 
     return disjunction;
+  }
+
+  public static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
+    if (!exp.isAND()) {
+      return Lists.newArrayList(exp);
+    }
+
+    List<BooleanExpression<T>> conjuncts = getConjuncts(exp.getLeft());
+    conjuncts.addAll(getConjuncts(exp.getRight()));
+    return conjuncts;
+  }
+
+  public static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
+    if (!exp.isOR()) {
+      return Lists.newArrayList(exp);
+    }
+
+    List<BooleanExpression<T>> disjuncts = getDisjuncts(exp.getLeft());
+    disjuncts.addAll(getDisjuncts(exp.getRight()));
+    return disjuncts;
   }
 }

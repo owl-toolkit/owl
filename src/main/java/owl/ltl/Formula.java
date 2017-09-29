@@ -32,6 +32,10 @@ public interface Formula {
 
   <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter);
 
+  boolean allMatch(Predicate<Formula> predicate);
+
+  boolean anyMatch(Predicate<Formula> predicate);
+
   // Temporal Properties of an LTL Formula
   boolean isPureEventual();
 
@@ -65,8 +69,4 @@ public interface Formula {
    * Short-cut operation to avoid intermediate construction of formula ASTs.
    */
   Formula unfoldTemporalStep(BitSet valuation);
-
-  boolean allMatch(Predicate<Formula> predicate);
-
-  boolean anyMatch(Predicate<Formula> predicate);
 }

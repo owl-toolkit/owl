@@ -11,7 +11,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edges;
 
 public final class GeneralizedBuchiAcceptanceTransformer<S>
-    implements ExploreBuilder<S, S, GeneralizedBuchiAcceptance> {
+  implements ExploreBuilder<S, S, GeneralizedBuchiAcceptance> {
 
   private final Automaton<S, AllAcceptance> nba;
 

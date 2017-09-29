@@ -49,25 +49,6 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public S getSuccessor() {
-    return successor;
-  }
-
-  @Override
-  public boolean hasAcceptanceSets() {
-    assert !acceptance.isEmpty();
-
-    return true;
-  }
-
-  @Override
-  public int largestAcceptanceSet() {
-    assert !acceptance.isEmpty();
-
-    return acceptance.length();
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -83,6 +64,18 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
+  public S getSuccessor() {
+    return successor;
+  }
+
+  @Override
+  public boolean hasAcceptanceSets() {
+    assert !acceptance.isEmpty();
+
+    return true;
+  }
+
+  @Override
   public int hashCode() {
     // Not using Objects.hash to avoid var-ags array instantiation
     return 31 * acceptance.hashCode() + successor.hashCode();
@@ -92,6 +85,13 @@ final class EdgeGeneric<S> implements Edge<S> {
   public boolean inSet(@Nonnegative int i) {
     assert i >= 0;
     return acceptance.get(i);
+  }
+
+  @Override
+  public int largestAcceptanceSet() {
+    assert !acceptance.isEmpty();
+
+    return acceptance.length();
   }
 
   @Override

@@ -34,7 +34,7 @@ class SatisfactionRelation {
   }
 
   /**
-   * @param past
+   * Returns whether the past entails the formula with the given present.
    *
    * @param formula
    *     the formula

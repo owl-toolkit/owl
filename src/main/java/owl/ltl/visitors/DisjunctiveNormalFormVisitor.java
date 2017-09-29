@@ -58,8 +58,8 @@ public final class DisjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
   @Override
   public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
     return booleanConstant.value
-           ? Collections.singletonList(new HashSet<Formula>())
-           : Collections.emptyList();
+      ? Collections.singletonList(new HashSet<Formula>())
+      : Collections.emptyList();
   }
 
   @Override

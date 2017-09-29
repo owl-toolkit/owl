@@ -15,8 +15,8 @@ import owl.ltl.XOperator;
 
 public class XDepthVisitor extends DefaultIntVisitor {
 
-  private static final XDepthVisitor INSTANCE = new XDepthVisitor();
   private static final Object2IntMap<Formula> CACHE = new Object2IntOpenHashMap<>();
+  private static final XDepthVisitor INSTANCE = new XDepthVisitor();
 
   @Nonnegative
   public static int getDepth(Formula formula) {

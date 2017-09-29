@@ -36,11 +36,6 @@ public class BreakpointState<S> {
   }
 
   @Override
-  public String toString() {
-    return "(" + ix + ", " + this.mx + ", " + this.nx + ")";
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -52,8 +47,8 @@ public class BreakpointState<S> {
 
     final BreakpointState<?> that = (BreakpointState<?>) o;
     return ix == that.ix
-        && Objects.equals(mx, that.mx)
-        && Objects.equals(nx, that.nx);
+      && Objects.equals(mx, that.mx)
+      && Objects.equals(nx, that.nx);
   }
 
   @Override
@@ -65,5 +60,10 @@ public class BreakpointState<S> {
     }
 
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "(" + ix + ", " + this.mx + ", " + this.nx + ")";
   }
 }

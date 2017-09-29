@@ -48,9 +48,9 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   private final Deque<EquivalenceClass> constructionQueue;
   private final Factories factories;
   private final EquivalenceClassStateFactory factory;
+  private final AbstractJumpManager<K> jumpFactory;
   private final SetMultimap<EquivalenceClass, Jump<K>> jumps;
   private final Set<EquivalenceClass> patientStates;
-  private final AbstractJumpManager<K> jumpFactory;
 
   InitialComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations,
     AbstractJumpManager<K> jumpFactory) {

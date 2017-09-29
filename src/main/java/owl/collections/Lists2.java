@@ -30,12 +30,17 @@ import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 public final class Lists2 {
-  @FunctionalInterface
-  public interface IndexedConsumer<T> {
-    void accept(int index, T element);
+  private Lists2() {
   }
 
-  private Lists2() {
+  public static <T> boolean addAllDistinct(List<T> list, Collection<T> elements) {
+    boolean changed = false;
+
+    for (T element : elements) {
+      changed |= addDistinct(list, element);
+    }
+
+    return changed;
   }
 
   public static <T> boolean addDistinct(List<T> list, T element) {
@@ -47,14 +52,47 @@ public final class Lists2 {
     return true;
   }
 
-  public static <T> boolean addAllDistinct(List<T> list, Collection<T> elements) {
-    boolean changed = false;
+  public static <T> List<T> append(List<T> list, T element) {
+    return new AbstractList<T>() {
+      @Override
+      public T get(int index) {
+        if (index == list.size()) {
+          return element;
+        }
 
-    for (T element : elements) {
-      changed |= addDistinct(list, element);
+        return list.get(index);
+      }
+
+      @Override
+      public int size() {
+        return list.size() + 1;
+      }
+    };
+  }
+
+  public static <T> List<T> cons(T element, List<T> list) {
+    return new AbstractList<T>() {
+      @Override
+      public T get(int index) {
+        if (index == 0) {
+          return element;
+        }
+
+        return list.get(index - 1);
+      }
+
+      @Override
+      public int size() {
+        return list.size() + 1;
+      }
+    };
+  }
+
+  public static <T> void forEachIndexed(List<T> list, IndexedConsumer<T> action) {
+    ListIterator<T> iterator = list.listIterator();
+    while (iterator.hasNext()) {
+      action.accept(iterator.nextIndex(), iterator.next());
     }
-
-    return changed;
   }
 
   public static <T> List<T> shift(List<T> list, T element) {
@@ -115,46 +153,8 @@ public final class Lists2 {
     return false;
   }
 
-  public static <T> List<T> cons(T element, List<T> list) {
-    return new AbstractList<>() {
-      @Override
-      public T get(int index) {
-        if (index == 0) {
-          return element;
-        }
-
-        return list.get(index - 1);
-      }
-
-      @Override
-      public int size() {
-        return list.size() + 1;
-      }
-    };
-  }
-
-  public static <T> List<T> append(List<T> list, T element) {
-    return new AbstractList<>() {
-      @Override
-      public T get(int index) {
-        if (index == list.size()) {
-          return element;
-        }
-
-        return list.get(index);
-      }
-
-      @Override
-      public int size() {
-        return list.size() + 1;
-      }
-    };
-  }
-
-  public static <T> void forEachIndexed(List<T> list, IndexedConsumer<T> action) {
-    ListIterator<T> iterator = list.listIterator();
-    while (iterator.hasNext()) {
-      action.accept(iterator.nextIndex(), iterator.next());
-    }
+  @FunctionalInterface
+  public interface IndexedConsumer<T> {
+    void accept(int index, T element);
   }
 }

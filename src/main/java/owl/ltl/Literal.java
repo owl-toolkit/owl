@@ -56,6 +56,16 @@ public final class Literal extends ImmutableObject implements Formula {
   }
 
   @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this);
+  }
+
+  @Override
   protected boolean equals2(ImmutableObject o) {
     assert o instanceof Literal;
     Literal literal = (Literal) o;
@@ -127,15 +137,5 @@ public final class Literal extends ImmutableObject implements Formula {
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
     return temporalStep(valuation);
-  }
-
-  @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
   }
 }

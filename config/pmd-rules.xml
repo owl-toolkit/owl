@@ -3,7 +3,7 @@
          name="Custom ruleset"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
-    <rule ref="rulesets/java/basic.xml"/>
+    <rule ref="rulesets/java/basic.xml" />
     <rule ref="rulesets/java/braces.xml"/>
     <rule ref="rulesets/java/strings.xml">
         <!-- We often use logging, building log messages sometimes involves duplicate literals -->
@@ -65,4 +65,5 @@
     </rule>
     -->
     <exclude-pattern>.*/owl/grammar/.*</exclude-pattern>
+    <description>RuleSet for owl</description>
 </ruleset>

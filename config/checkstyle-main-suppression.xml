@@ -10,7 +10,6 @@
 
     <suppress files="FG.*|.+2.+" checks="AbbreviationAsWordInName"/>
 
-    <suppress files="JSylvan.java" checks=".*"/>
     <!-- Soon we will doc everything ... -->
     <suppress checks="JavadocMethod" files=".*"/>
     <!-- We avoid final modifier -->

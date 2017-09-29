@@ -85,7 +85,7 @@ public class NBA2DPATest {
       + "State: 2\n"
       + "[0 & 1] 1 {0}\n"
       + "[!0 & 1] 2 {0}\n"
-      + "--END--" ;
+      + "--END--";
 
   private static final String INPUT4 = "HOA: v1\n"
       + "States: 2\n"

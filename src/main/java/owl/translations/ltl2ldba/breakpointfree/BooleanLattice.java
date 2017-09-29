@@ -9,13 +9,13 @@ public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations
   private static final Language<Void> TOP = new TopLanguage();
 
   @Override
-  public Language<Void> getLanguage(T state, boolean current) {
-    return TOP;
+  public Language<Void> getBottom() {
+    return BOTTOM;
   }
 
   @Override
-  public Language<Void> getBottom() {
-    return BOTTOM;
+  public Language<Void> getLanguage(T state, boolean current) {
+    return TOP;
   }
 
   @Override
@@ -35,8 +35,8 @@ public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations
 
   private static class BottomLanguage implements Language<Void> {
     @Override
-    public Language<Void> join(Language<Void> language) {
-      return language;
+    public Void getT() {
+      return null;
     }
 
     @Override
@@ -45,25 +45,25 @@ public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations
     }
 
     @Override
-    public boolean isTop() {
-      return false;
-    }
-
-    @Override
     public boolean isBottom() {
       return true;
     }
 
     @Override
-    public Void getT() {
-      return null;
+    public boolean isTop() {
+      return false;
+    }
+
+    @Override
+    public Language<Void> join(Language<Void> language) {
+      return language;
     }
   }
 
   private static class TopLanguage implements Language<Void> {
     @Override
-    public Language<Void> join(Language<Void> language) {
-      return this;
+    public Void getT() {
+      return null;
     }
 
     @Override
@@ -72,18 +72,18 @@ public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations
     }
 
     @Override
-    public boolean isTop() {
-      return true;
-    }
-
-    @Override
     public boolean isBottom() {
       return false;
     }
 
     @Override
-    public Void getT() {
-      return null;
+    public boolean isTop() {
+      return true;
+    }
+
+    @Override
+    public Language<Void> join(Language<Void> language) {
+      return this;
     }
   }
 }

@@ -39,10 +39,6 @@ public final class RankingState<S, T> extends ImmutableObject {
     this.volatileIndex = volatileIndex;
   }
 
-  public static <S, T> RankingState<S, T> createSink() {
-    return create(null);
-  }
-
   static <S, T> RankingState<S, T> create(S initialComponentState) {
     return create(initialComponentState, ImmutableList.of(), 0, null);
   }
@@ -54,6 +50,10 @@ public final class RankingState<S, T> extends ImmutableObject {
     }
 
     return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), volatileIndex);
+  }
+
+  public static <S, T> RankingState<S, T> createSink() {
+    return create(null);
   }
 
   @Override

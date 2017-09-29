@@ -20,6 +20,8 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class AutomatonFactory {
+  private AutomatonFactory() {}
+
   /**
    * Creates an empty automaton with given acceptance condition. The {@code valuationSetFactory} is
    * used as transition backend.
@@ -64,8 +66,6 @@ public final class AutomatonFactory {
   public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
     return new AllAutomaton<>(state, factory);
   }
-
-  private AutomatonFactory() {}
 
   private static final class AllAutomaton<S> implements Automaton<S, AllAcceptance> {
     private final ValuationSetFactory factory;

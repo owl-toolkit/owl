@@ -50,13 +50,11 @@ public final class GObligations extends ImmutableObject implements RecurringObli
   private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
   final ImmutableSet<GOperator> goperators;
-  final ImmutableSet<GOperator> rewrittenGOperators;
-
   // G(liveness[]) is a liveness language.
   final EquivalenceClass[] liveness;
-
   // obligations[] are co-safety languages.
   final EquivalenceClass[] obligations;
+  final ImmutableSet<GOperator> rewrittenGOperators;
   // G(safety) is a safety language.
   final EquivalenceClass safety;
 
@@ -144,6 +142,18 @@ public final class GObligations extends ImmutableObject implements RecurringObli
   }
 
   @Override
+  public boolean containsLanguageOf(RecurringObligation other) {
+    checkArgument(other instanceof GObligations);
+
+    if (Sets2.isSubset(rewrittenGOperators, ((GObligations) other).rewrittenGOperators)) {
+      return true;
+    }
+
+    // TODO: fix memory leak.
+    return ((GObligations) other).getObligation().implies(getObligation());
+  }
+
+  @Override
   protected boolean equals2(ImmutableObject o) {
     GObligations that = (GObligations) o;
     // TODO: fix memory leak.
@@ -165,18 +175,6 @@ public final class GObligations extends ImmutableObject implements RecurringObli
   @Override
   public EquivalenceClass getLanguage() {
     return safety.getFactory().createEquivalenceClass(rewrittenGOperators);
-  }
-
-  @Override
-  public boolean containsLanguageOf(RecurringObligation other) {
-    checkArgument(other instanceof GObligations);
-
-    if (Sets2.isSubset(rewrittenGOperators, ((GObligations) other).rewrittenGOperators)) {
-      return true;
-    }
-
-    // TODO: fix memory leak.
-    return ((GObligations) other).getObligation().implies(getObligation());
   }
 
   EquivalenceClass getObligation() {

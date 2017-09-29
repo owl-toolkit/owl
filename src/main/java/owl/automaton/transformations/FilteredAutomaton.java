@@ -11,8 +11,8 @@ import owl.automaton.edge.LabelledEdge;
 public class FilteredAutomaton<S, A extends OmegaAcceptance>
   extends ForwardingAutomaton<S, A, A, Automaton<S, A>> {
 
-  private final Predicate<S> filter;
   private final Predicate<LabelledEdge<S>> edgeFilter;
+  private final Predicate<S> filter;
 
   public FilteredAutomaton(Automaton<S, A> automaton, Predicate<S> filter) {
     super(automaton);

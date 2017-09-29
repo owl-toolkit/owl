@@ -16,11 +16,6 @@ final class MonitorState {
   }
 
   @Override
-  public String toString() {
-    return Arrays.toString(formulaRanking);
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -37,5 +32,10 @@ final class MonitorState {
   public int hashCode() {
     assert hashCode == Arrays.hashCode(formulaRanking);
     return hashCode;
+  }
+
+  @Override
+  public String toString() {
+    return Arrays.toString(formulaRanking);
   }
 }

@@ -12,6 +12,8 @@ import owl.automaton.acceptance.RabinAcceptance;
 public final class IARFactory {
   private static final Logger logger = Logger.getLogger(IARFactory.class.getName());
 
+  private IARFactory() {}
+
   public static <R> Function<Automaton<R, RabinAcceptance>,
     Automaton<IARState<R>, ParityAcceptance>> translator() {
     return rabinAutomaton -> {
@@ -25,6 +27,4 @@ public final class IARFactory {
       }
     };
   }
-
-  private IARFactory() {}
 }

@@ -61,8 +61,8 @@ public final class LtlParser {
 
     // Convert the AST into a proper object
     LtlParseTreeVisitor treeVisitor = literals.isEmpty()
-                                      ? new LtlParseTreeVisitor()
-                                      : new LtlParseTreeVisitor(literals);
+      ? new LtlParseTreeVisitor()
+      : new LtlParseTreeVisitor(literals);
     Formula formula = treeVisitor.visit(parser.formula());
     return new LtlParseResult(formula, treeVisitor.variables());
   }

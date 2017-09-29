@@ -36,6 +36,10 @@ import owl.collections.ValuationSet;
 
 public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
   extends HoaPrintable {
+  default CutDeterministicAutomaton<S, T, U, V> asCutDeterministicAutomaton() {
+    return new CutDeterministicAutomaton<>(this);
+  }
+
   Automaton<T, U> getAcceptingComponent();
 
   @Nullable
@@ -92,9 +96,5 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
       toHoa(new HOAConsumerPrint(stream), options);
       return stream.toString("UTF8");
     }
-  }
-
-  default CutDeterministicAutomaton<S, T, U, V> asCutDeterministicAutomaton() {
-    return new CutDeterministicAutomaton<>(this);
   }
 }

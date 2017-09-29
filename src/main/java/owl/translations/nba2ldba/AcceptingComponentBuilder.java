@@ -38,10 +38,10 @@ import owl.automaton.edge.Edges;
 final class AcceptingComponentBuilder<S>
   implements ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> {
 
-  private final List<BreakpointState<S>> initialStates;
-  private final Automaton<S, GeneralizedBuchiAcceptance> nba;
   private final List<Set<Edge<S>>> finEdges;
+  private final List<BreakpointState<S>> initialStates;
   private final int max;
+  private final Automaton<S, GeneralizedBuchiAcceptance> nba;
 
   private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     this.nba = nba;
@@ -104,7 +104,7 @@ final class AcceptingComponentBuilder<S>
     if (outEdgesM.equals(outEdgesN)) {
       i1 = (ldbaState.ix + 1) % max;
       Set<Edge<S>> intersection2 = outEdgesM.stream()
-          .filter(x -> finEdges.get(i1).contains(x)).collect(Collectors.toSet());
+        .filter(x -> finEdges.get(i1).contains(x)).collect(Collectors.toSet());
       n1 = intersection2.stream().map(Edge::getSuccessor).collect(Collectors.toSet());
     } else {
       n1 = outEdgesN.stream().map(Edge::getSuccessor).collect(Collectors.toSet());

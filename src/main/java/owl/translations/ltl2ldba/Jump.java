@@ -34,6 +34,17 @@ public class Jump<U extends RecurringObligation> {
     this.language = remainder.and(obligations.getLanguage());
   }
 
+  boolean containsLanguageOf(Jump<U> jump) {
+    boolean contains = jump.remainder.implies(remainder)
+      && obligations.containsLanguageOf(jump.obligations);
+
+    if (contains) {
+      LOGGER.log(Level.FINER, () -> this + " contains the language of " + jump);
+    }
+
+    return contains;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -49,24 +60,13 @@ public class Jump<U extends RecurringObligation> {
       && Objects.equals(obligations, jump.obligations);
   }
 
+  EquivalenceClass getLanguage() {
+    return language.duplicate();
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(remainder, obligations);
-  }
-
-  boolean containsLanguageOf(Jump<U> jump) {
-    boolean contains = jump.remainder.implies(remainder)
-      && obligations.containsLanguageOf(jump.obligations);
-
-    if (contains) {
-      LOGGER.log(Level.FINER, () -> this + " contains the language of " + jump);
-    }
-
-    return contains;
-  }
-
-  EquivalenceClass getLanguage() {
-    return language.duplicate();
   }
 
   @Override

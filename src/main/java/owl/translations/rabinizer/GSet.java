@@ -20,7 +20,7 @@ final class GSet extends AbstractSet<GOperator> {
 
   GSet(Iterable<GOperator> elements, EquivalenceClassFactory factory) {
     this.elements = ImmutableSet.copyOf(elements);
-    this.conjunction =  factory.createEquivalenceClass(elements);
+    this.conjunction = factory.createEquivalenceClass(elements);
     hashCode = this.elements.hashCode();
   }
 

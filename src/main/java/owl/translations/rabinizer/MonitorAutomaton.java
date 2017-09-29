@@ -40,6 +40,11 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   }
 
   @Override
+  public void free() {
+    anyAutomaton.free();
+  }
+
+  @Override
   public NoneAcceptance getAcceptance() {
     return new NoneAcceptance();
   }
@@ -54,11 +59,6 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
     assert result != null :
       String.format("No automaton found for gSet %s with base %s", gSet, base);
     return result;
-  }
-
-  @Override
-  public void free() {
-    anyAutomaton.free();
   }
 
   @Override

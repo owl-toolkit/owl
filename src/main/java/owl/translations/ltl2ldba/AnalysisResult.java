@@ -3,10 +3,6 @@ package owl.translations.ltl2ldba;
 import com.google.common.collect.ImmutableSet;
 
 final class AnalysisResult<U extends RecurringObligation> {
-  enum TYPE {
-    MAY, MUST
-  }
-
   final ImmutableSet<Jump<U>> jumps;
   final TYPE type;
 
@@ -21,5 +17,9 @@ final class AnalysisResult<U extends RecurringObligation> {
 
   static <U extends RecurringObligation> AnalysisResult<U> buildMust(Jump<U> jump) {
     return new AnalysisResult<>(TYPE.MUST, ImmutableSet.of(jump));
+  }
+
+  enum TYPE {
+    MAY, MUST
   }
 }

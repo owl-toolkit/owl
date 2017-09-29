@@ -13,17 +13,17 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
 
   SetLanguageLattice(Set<S> allStates) {
     bottom = new SetLanguage(ImmutableSet.of());
-    top =  new SetLanguage(ImmutableSet.copyOf(allStates));
-  }
-
-  @Override
-  public Language<Set<S>> getLanguage(S state, boolean current) {
-    return new SetLanguage(ImmutableSet.of(state));
+    top = new SetLanguage(ImmutableSet.copyOf(allStates));
   }
 
   @Override
   public Language<Set<S>> getBottom() {
     return bottom;
+  }
+
+  @Override
+  public Language<Set<S>> getLanguage(S state, boolean current) {
+    return new SetLanguage(ImmutableSet.of(state));
   }
 
   @Override
@@ -50,8 +50,8 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
     }
 
     @Override
-    public Language<Set<S>> join(Language<Set<S>> language) {
-      return new SetLanguage(Sets.union(set, language.getT()));
+    public Set<S> getT() {
+      return set;
     }
 
     @Override
@@ -60,18 +60,18 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
     }
 
     @Override
-    public boolean isTop() {
-      return set.equals(top.getT());
-    }
-
-    @Override
     public boolean isBottom() {
       return set.isEmpty();
     }
 
     @Override
-    public Set<S> getT() {
-      return set;
+    public boolean isTop() {
+      return set.equals(top.getT());
+    }
+
+    @Override
+    public Language<Set<S>> join(Language<Set<S>> language) {
+      return new SetLanguage(Sets.union(set, language.getT()));
     }
   }
 }

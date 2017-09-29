@@ -23,19 +23,19 @@ import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 
 public interface HoaPrintable {
-  void setVariables(List<String> variables);
+  @Nullable
+  default String getName() {
+    return null;
+  }
 
-  void toHoa(HOAConsumer consumer, EnumSet<Option> options);
+  void setVariables(List<String> variables);
 
   // rename feedTo...
   default void toHoa(HOAConsumer consumer) {
     toHoa(consumer, EnumSet.noneOf(Option.class));
   }
 
-  @Nullable
-  default String getName() {
-    return null;
-  }
+  void toHoa(HOAConsumer consumer, EnumSet<Option> options);
 
   enum Option {
     ANNOTATIONS

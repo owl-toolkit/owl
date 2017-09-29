@@ -32,6 +32,16 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
   }
 
   @Override
+  public boolean allMatch(Predicate<Formula> predicate) {
+    return predicate.test(this) && operand.allMatch(predicate);
+  }
+
+  @Override
+  public boolean anyMatch(Predicate<Formula> predicate) {
+    return predicate.test(this) || operand.anyMatch(predicate);
+  }
+
+  @Override
   protected boolean equals2(ImmutableObject o) {
     assert o instanceof UnaryModalOperator;
     // If equals2 is called, classes are equal
@@ -63,15 +73,5 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
     } else {
       return getOperator() + operand.toString(variables, fullyParenthesized);
     }
-  }
-
-  @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) && operand.allMatch(predicate);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) || operand.anyMatch(predicate);
   }
 }
