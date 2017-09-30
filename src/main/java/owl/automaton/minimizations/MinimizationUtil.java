@@ -19,7 +19,6 @@ package owl.automaton.minimizations;
 
 import static owl.automaton.AutomatonUtil.toHoa;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -27,6 +26,7 @@ import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -37,7 +37,13 @@ import javax.annotation.Nullable;
 import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.acceptance.RabinAcceptance;
+import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.edge.Edge;
 
 public final class MinimizationUtil {
@@ -109,6 +115,7 @@ public final class MinimizationUtil {
     removeDeadStates(automaton, initialStates, (Consumer<S>) EMPTY_CONSUMER);
   }
 
+
   /**
    * Remove states from the automaton which are unreachable from the set of initial states or
    * that cannot belong to an infinite accepting path.
@@ -147,8 +154,7 @@ public final class MinimizationUtil {
     automaton.removeUnreachableStates(initialStates, removedStatesConsumer);
 
     // We start from the bottom of the condensation graph.
-    List<Set<S>> sccs =
-      Lists.reverse(SccAnalyser.computeSccs(initialStates, automaton::getSuccessors));
+    List<Set<S>> sccs = SccAnalyser.computeSccs(initialStates, automaton::getSuccessors);
 
     for (Set<S> scc : sccs) {
       if (!Collections.disjoint(scc, initialStates)) {
@@ -198,5 +204,126 @@ public final class MinimizationUtil {
       return newAcceptance;
     };
   }
+  
+  public static <S> boolean hasAcceptingRunScc(Automaton<S, ?> automaton, S initialState) {
+    List<Set<S>> sccs = SccAnalyser.computeSccs(automaton.getReachableStates(initialState), 
+      x -> automaton.getSuccessors(x));
+    for (Set<S> scc : sccs) {
+      if (((OmegaAcceptance) automaton.getAcceptance())
+          .containsAcceptingRun(scc, x -> automaton.getEdges(x))) {
+        return true;
+      }
+      if (automaton.getAcceptance() instanceof NoneAcceptance
+          && new BuchiAcceptance().containsAcceptingRun(scc, x -> automaton.getEdges(x))) {
+        return true;
+      }
+    }
+    return false;
+  }
 
+  public static <S> boolean hasAcceptingRun(Automaton<S, ?> automaton, S initialState) {
+    if (automaton.getAcceptance() instanceof RabinAcceptance) {
+      for (RabinPair pair : ((RabinAcceptance) automaton.getAcceptance()).getPairs()) {
+        if (hasAcceptingRunRabin(automaton, initialState, pair.getInfiniteIndex(),
+            pair.getFiniteIndex(), false)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (automaton.getAcceptance() instanceof BuchiAcceptance) {
+      return hasAcceptingRunRabin(automaton, initialState, 0, -1, false);
+    }
+    if (automaton.getAcceptance() instanceof ParityAcceptance
+        && ((ParityAcceptance) automaton.getAcceptance()).getPriority() == Priority.ODD) {
+      int sets = automaton.getAcceptance().getAcceptanceSets();
+      for (int i = 0; i < sets; i = i + 2) {
+        int fin = -1;
+        int inf = -1;
+        if (sets - i >= 2) {
+          inf = i + 1;
+        }
+        fin = i;
+        if (hasAcceptingRunRabin(automaton, initialState, inf, fin, true)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return hasAcceptingRunScc(automaton, initialState);
+  }
+  
+  public static <S> boolean hasAcceptingRunRabin(Automaton<S, ?> automaton, S initialState,
+      int infIndex, int finIndex, boolean allFinIndicesBelow) {
+    Set<S> visitedStates = new HashSet<>();
+    Set<S> visitedAcceptingStates = new HashSet<>();
+    for (Edge<S> edge : automaton.getEdges(initialState)) {
+      S successor = edge.getSuccessor();
+      if ((infIndex == -1 || edge.inSet(infIndex)) && !inSet(edge, finIndex, allFinIndicesBelow)) {
+        if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
+            visitedStates, visitedAcceptingStates, infIndex, finIndex, true,
+            allFinIndicesBelow)) {
+          return true;
+        }
+      } else if (!visitedStates.contains(successor) && dfs1(automaton, successor, visitedStates,
+          visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  private static <S> boolean inSet(Edge<S> edge, int index, boolean allFinIndicesBelow) {
+    if (!allFinIndicesBelow) {
+      return edge.inSet(index);
+    }
+    if (edge.acceptanceSetIterator().hasNext()) {
+      return edge.acceptanceSetIterator().next() <= index;
+    }
+    return false;
+  }
+
+  private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
+      Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
+      boolean allFinIndicesBelow) {
+    if (acceptingState) {
+      visitedAcceptingStates.add(q);
+    } else {
+      visitedStates.add(q);
+    }
+    for (Edge<S> edge : automaton.getEdges(q)) {
+      S successor = edge.getSuccessor();
+      if ((edge.inSet(infIndex) || infIndex == -1) && !inSet(edge, finIndex, allFinIndicesBelow)) {
+        if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
+            visitedStates, visitedAcceptingStates, infIndex,
+            finIndex, true, allFinIndicesBelow)) {
+          return true;
+        }
+      } else if (!visitedStates.contains(successor) && dfs1(automaton, successor, visitedStates,
+          visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
+        return true;
+      }
+    }
+    return acceptingState && dfs2(automaton, q, new HashSet<>(), infIndex, finIndex, q,
+        allFinIndicesBelow);
+  }
+
+  private static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
+      int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
+    visitedStatesLasso.add(q);
+    for (Edge<S> edge : automaton.getEdges(q)) {
+      if ((edge.inSet(infIndex) || infIndex == -1) && !inSet(edge, finIndex, allFinIndicesBelow)
+          && edge.getSuccessor().equals(seed)) {
+        return true;
+      }
+      if (!visitedStatesLasso.contains(edge.getSuccessor()) && !inSet(edge, finIndex,
+          allFinIndicesBelow) && dfs2(automaton, edge.getSuccessor(), visitedStatesLasso,
+              infIndex, finIndex, seed, allFinIndicesBelow)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
 }
+

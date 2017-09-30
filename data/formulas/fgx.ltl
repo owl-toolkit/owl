@@ -12,6 +12,8 @@ F G b & G F a
 G (F b & F a)
 (G F a) & (G F !a)
 ! F G (a <-> (F b))
+(c | GFa) & F(c | GFc)
+GFb & F(Gc | GFd)
 F(Ga | GFb)
 F(Ga | GFb) & F(Gc | GFd)
 F(Ga | GFb) & F(Gc | GFd) & F(Gh | GFk)

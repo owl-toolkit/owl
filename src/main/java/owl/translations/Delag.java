@@ -44,9 +44,12 @@ public final class Delag extends AbstractLtlCommandLineTool {
 
   public static void main(String... argsArray) {
     Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
+    
+    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+    optimisations.remove(Optimisation.REMOVE_NON_ACCEPTING_COMPONENTS);
 
     Function<Formula, Automaton<?, OmegaAcceptance>> fallback =
-      (Function) new LTL2DPAFunction(EnumSet.allOf(Optimisation.class));
+      (Function) new LTL2DPAFunction(optimisations);
 
     for (String arg : args) {
       if (arg.startsWith("--fallback")) {

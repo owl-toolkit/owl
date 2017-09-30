@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -240,6 +241,10 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     }
 
     return exploredStates;
+  }
+  
+  default Set<S> getReachableStates(S start) {
+    return Collections.singleton(start);
   }
 
   /**

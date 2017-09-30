@@ -71,6 +71,13 @@ public final class RabinAcceptance implements OmegaAcceptance {
     }
     return false;
   }
+  
+  public RabinAcceptance(int pairNr) {
+    pairs = new ArrayList<>();
+    for (int i = 0; i < pairNr; i++) {
+      createPair(2 * i, 2 * i + 1);
+    }
+  }
 
   public static RabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
     RabinAcceptance acceptance = new RabinAcceptance();
@@ -135,7 +142,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
         return false;
       };
 
-      boolean anyNoFinitePairAccepts = scc.parallelStream()
+      boolean anyNoFinitePairAccepts = scc.stream()
         .map(filteredSuccessorFunction)
         .anyMatch(predicate);
       if (anyNoFinitePairAccepts) {
@@ -143,7 +150,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
       }
     }
 
-    return !finitePairs.isEmpty() && finitePairs.parallelStream().anyMatch(finitePair -> {
+    return !finitePairs.isEmpty() && finitePairs.stream().anyMatch(finitePair -> {
       // Compute all SCCs after removing the finite edges of the current finite pair
       Function<S, Iterable<Edge<S>>> filteredSuccessorFunction =
         TransitionUtil.filterEdges(successorFunction,

@@ -21,7 +21,9 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+
 import owl.automaton.Automaton;
+import owl.automaton.ExploreBuilder;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -52,12 +54,12 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     } else {
       throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
     }
-
+    
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
     LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder;
 
-    AcceptingComponentBuilder<S> acceptingComponentBuilder = AcceptingComponentBuilder
-      .create(nbaGBA);
+    ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder;
+    acceptingComponentBuilder = AcceptingComponentBuilder.createScc(nbaGBA);
     Function<S, Iterable<S>> epsilonJumpGenerator = (state) -> {
       Set<S> jumps = new HashSet<>();
       jumps.add(state);
