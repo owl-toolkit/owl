@@ -28,11 +28,7 @@ public final class Registry {
   }
 
   public static Factories getFactories(int alphabetSize) {
-    return getFactories(alphabetSize, DEFAULT_BACKEND);
-  }
-
-  public static Factories getFactories(int alphabetSize, Backend backend) {
-    return getFactories(BooleanConstant.TRUE, alphabetSize, backend);
+    return getFactories(BooleanConstant.TRUE, alphabetSize, DEFAULT_BACKEND);
   }
 
   public static Factories getFactories(Formula formula) {
@@ -44,12 +40,8 @@ public final class Registry {
   }
 
   public static Factories getFactories(Formula formula, int alphabetSize, Backend backend) {
-    if (backend == Backend.JDD) {
-      return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),
-        new ValuationFactory(alphabetSize));
-    } else {
-      throw new AssertionError("Fallthrough");
-    }
+    return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),
+      new ValuationFactory(alphabetSize));
   }
 
   public enum Backend {

@@ -19,7 +19,6 @@ package owl.automaton.minimizations;
 
 import static owl.automaton.AutomatonUtil.toHoa;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -147,8 +146,7 @@ public final class MinimizationUtil {
     automaton.removeUnreachableStates(initialStates, removedStatesConsumer);
 
     // We start from the bottom of the condensation graph.
-    List<Set<S>> sccs =
-      Lists.reverse(SccAnalyser.computeSccs(initialStates, automaton::getSuccessors));
+    List<Set<S>> sccs = SccAnalyser.computeSccs(initialStates, automaton::getSuccessors);
 
     for (Set<S> scc : sccs) {
       if (!Collections.disjoint(scc, initialStates)) {

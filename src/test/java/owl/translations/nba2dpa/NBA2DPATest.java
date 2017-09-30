@@ -180,7 +180,7 @@ public class NBA2DPATest {
 
   @Test
   public void testApply3() throws ParseException {
-    runTest(INPUT3, 9);
+    runTest(INPUT3, 8);
   }
 
   @Test
