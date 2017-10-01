@@ -204,9 +204,9 @@ public final class MinimizationUtil {
       return newAcceptance;
     };
   }
-  
+
   public static <S> boolean hasAcceptingRunScc(Automaton<S, ?> automaton, S initialState) {
-    List<Set<S>> sccs = SccAnalyser.computeSccs(automaton.getReachableStates(initialState), 
+    List<Set<S>> sccs = SccAnalyser.computeSccs(Collections.singleton(initialState),
       x -> automaton.getSuccessors(x));
     for (Set<S> scc : sccs) {
       if (((OmegaAcceptance) automaton.getAcceptance())
@@ -252,7 +252,7 @@ public final class MinimizationUtil {
     }
     return hasAcceptingRunScc(automaton, initialState);
   }
-  
+
   public static <S> boolean hasAcceptingRunRabin(Automaton<S, ?> automaton, S initialState,
       int infIndex, int finIndex, boolean allFinIndicesBelow) {
     Set<S> visitedStates = new HashSet<>();
@@ -272,7 +272,7 @@ public final class MinimizationUtil {
     }
     return false;
   }
-  
+
   private static <S> boolean inSet(Edge<S> edge, int index, boolean allFinIndicesBelow) {
     if (!allFinIndicesBelow) {
       return edge.inSet(index);
@@ -324,6 +324,6 @@ public final class MinimizationUtil {
     }
     return false;
   }
-  
+
 }
 
