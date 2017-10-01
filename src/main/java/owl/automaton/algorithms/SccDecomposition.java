@@ -15,13 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.algorithms;
+package owl.automaton.algorithms;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,13 +33,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
-import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 
 /**
  * Finds the SCCs of a given graph / transition system using Tarjan's algorithm.
  */
-public final class SccAnalyser<S> {
+public final class SccDecomposition<S> {
   // TODO Parallel tarjan?
 
   // Initial value for the low link - since we update the low-link whenever we find a link to a
@@ -53,7 +52,7 @@ public final class SccAnalyser<S> {
   private final Function<S, Iterable<S>> successorFunction;
   private int index = 0;
 
-  private SccAnalyser(Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
+  private SccDecomposition(Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
     this.successorFunction = successorFunction;
     this.includeTransient = includeTransient;
   }
@@ -62,7 +61,6 @@ public final class SccAnalyser<S> {
    * This method computes the SCCs of the state-/transition-graph of the automaton. It is based on
    * Tarjan's strongly connected component algorithm. It runs in linear time, assuming the
    * Map-operation get, put and containsKey (and the onStack set-operations) take constant time.
-   *
    * <p>The returned list of SCCs is ordered according to the topological ordering in the
    * "condensation graph", aka the graph where the SCCs are vertices, ordered such that for each
    * transition a->b in the condensation graph, a is in the list before b</p>
@@ -76,8 +74,16 @@ public final class SccAnalyser<S> {
     return computeSccs(automaton, true);
   }
 
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState) {
+    return computeSccs(Collections.singleton(initialState), automaton::getSuccessors, true);
+  }
+
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, boolean includeTransient) {
     return computeSccs(automaton.getInitialStates(), automaton::getSuccessors, includeTransient);
+  }
+
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> initialStates) {
+    return computeSccs(automaton, initialStates, true);
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> states,
@@ -85,19 +91,16 @@ public final class SccAnalyser<S> {
     return computeSccs(states, automaton::getSuccessors, includeTransient);
   }
 
-  public static <S> List<Set<S>> computeSccs(Set<S> states,
-    Function<S, Iterable<S>> successorFunction) {
-    return computeSccs(states, successorFunction, true);
-  }
-
-  public static <S> List<Set<S>> computeSccs(Set<S> states,
+  // Return Condensation Graph?
+  private static <S> List<Set<S>> computeSccs(Set<S> states,
     Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
     if (states.isEmpty()) {
       // No need to initialize all the data-structures
       return ImmutableList.of();
     }
 
-    SccAnalyser<S> analyser = new SccAnalyser<>(successorFunction, includeTransient);
+    SccDecomposition<S> analyser = new SccDecomposition<>(successorFunction, includeTransient);
+
     for (S state : states) {
       if (analyser.stateMap.containsKey(state) || analyser.processedNodes.contains(state)) {
         continue;
@@ -111,50 +114,6 @@ public final class SccAnalyser<S> {
     return analyser.sccs;
   }
 
-  public static <S> List<Set<S>> computeSccsWithEdges(Set<S> states,
-    Function<S, Iterable<Edge<S>>> successorFunction) {
-    return computeSccsWithEdges(states, successorFunction, true);
-  }
-
-  public static <S> List<Set<S>> computeSccsWithEdges(Set<S> states,
-    Function<S, Iterable<Edge<S>>> successorFunction, boolean includeTransient) {
-    return computeSccs(states, successorFunction.andThen(Edges::toSuccessors), includeTransient);
-  }
-
-  /**
-   * Determines whether the given set of states is a BSCC in the given automaton <strong>assuming
-   * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
-   *
-   * @see #isBscc(Set, Function)
-   */
-  public static <S> boolean isBscc(Automaton<S, ?> automaton, Set<S> states) {
-    for (S state : states) {
-      if (!states.containsAll(automaton.getSuccessors(state))) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Determines whether the given set of states is a BSCC under the given successor function
-   * <strong>assuming that it is an SCC</strong>. If not, the behaviour is undefined.
-   *
-   * @see #isBscc(Automaton, Set)
-   */
-  public static <S> boolean isBscc(Set<S> scc,
-    Function<S, ? extends Iterable<S>> successorFunction) {
-    for (S state : scc) {
-      for (S successor : successorFunction.apply(state)) {
-        if (!scc.contains(successor)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   public static <S> boolean isTransient(Function<S, ? extends Iterable<S>> successorFunction,
     Set<S> scc) {
     if (scc.size() > 1) {
@@ -162,6 +121,15 @@ public final class SccAnalyser<S> {
     }
     S state = Iterables.getOnlyElement(scc);
     return !Iterables.contains(successorFunction.apply(state), state);
+  }
+
+  /**
+   * Determines whether the given set of states is a BSCC in the given automaton <strong>assuming
+   * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
+   */
+  public static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
+    assert automaton.getStates().containsAll(trap);
+    return trap.stream().allMatch(s -> trap.containsAll(automaton.getSuccessors(s)));
   }
 
   private TarjanState<S> create(S node) {
@@ -300,7 +268,8 @@ public final class SccAnalyser<S> {
         // Since the current state has a "true" low-link, it is a possible low-link for the
         // predecessor, too. By invariant, it points to a non-finished state, i.e. a state in some
         // not yet found SCC. Hence, it has to point to a node at least as old as the predecessor.
-        assert lowLink <= predecessorState.nodeIndex;
+        assert lowLink <= predecessorState.nodeIndex : String.format(
+          "lowLink: %s, predecessorState.nodeIndex: %s", lowLink, predecessorState.nodeIndex);
         if (predecessorState.lowLink == NO_LINK || lowLink < predecessorState.lowLink) {
           predecessorState.lowLink = lowLink;
         }

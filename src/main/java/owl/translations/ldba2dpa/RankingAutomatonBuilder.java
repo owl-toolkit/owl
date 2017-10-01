@@ -35,16 +35,16 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
@@ -101,7 +101,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
 
     if (optimisations.contains(Optimisation.RESET_AFTER_SCC_SWITCH)) {
-      initialComponentSccs = SccAnalyser.computeSccs(initialComponent);
+      initialComponentSccs = SccDecomposition.computeSccs(initialComponent);
     } else {
       initialComponentSccs = null;
     }
@@ -223,12 +223,12 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
   @Override
   public MutableAutomaton<RankingState<S, T>, ParityAcceptance> build() {
-    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory
+    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton = MutableAutomatonFactory
       .createMutableAutomaton(acceptance, factory);
     // TODO: add getSensitiveAlphabet Method
     AutomatonUtil.exploreDeterministic(automaton, initialStates, this::getSuccessor, sizeCounter);
     automaton.setInitialStates(initialStates);
-    List<Set<RankingState<S, T>>> sccs = SccAnalyser.computeSccs(automaton);
+    List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton);
     S initialState = Iterables.getOnlyElement(initialStates).state;
 
     for (Set<RankingState<S, T>> scc : Lists.reverse(sccs)) {

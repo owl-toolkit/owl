@@ -18,7 +18,9 @@
 package owl.automaton.acceptance;
 
 import com.google.common.collect.Lists;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
 import jhoafparser.ast.BooleanExpression;
 
@@ -28,19 +30,25 @@ public final class BooleanExpressions {
 
   public static <T extends Atom> BooleanExpression<T> createConjunction(
     Iterable<BooleanExpression<T>> conjuncts) {
+    return createConjunction(conjuncts.iterator());
+  }
 
-    BooleanExpression<T> conjunction = null;
+  public static <T extends Atom> BooleanExpression<T> createConjunction(
+    Stream<BooleanExpression<T>> conjuncts) {
+    return createConjunction(conjuncts.iterator());
+  }
 
-    for (BooleanExpression<T> conjunct : conjuncts) {
-      if (conjunction == null) {
-        conjunction = conjunct;
-      } else {
-        conjunction = conjunction.and(conjunct);
-      }
+  public static <T extends Atom> BooleanExpression<T> createConjunction(
+    Iterator<BooleanExpression<T>> conjuncts) {
+
+    if (!conjuncts.hasNext()) {
+      return new BooleanExpression<>(true);
     }
 
-    if (conjunction == null) {
-      return new BooleanExpression<>(true);
+    BooleanExpression<T> conjunction = conjuncts.next();
+
+    while (conjuncts.hasNext()) {
+      conjunction = conjunction.and(conjuncts.next());
     }
 
     return conjunction;
@@ -48,25 +56,31 @@ public final class BooleanExpressions {
 
   public static <T extends Atom> BooleanExpression<T> createDisjunction(
     Iterable<BooleanExpression<T>> disjuncts) {
+    return createDisjunction(disjuncts.iterator());
+  }
 
-    BooleanExpression<T> disjunction = null;
+  public static <T extends Atom> BooleanExpression<T> createDisjunction(
+    Stream<BooleanExpression<T>> disjuncts) {
+    return createDisjunction(disjuncts.iterator());
+  }
 
-    for (BooleanExpression<T> disjunct : disjuncts) {
-      if (disjunction == null) {
-        disjunction = disjunct;
-      } else {
-        disjunction = disjunction.or(disjunct);
-      }
+  public static <T extends Atom> BooleanExpression<T> createDisjunction(
+    Iterator<BooleanExpression<T>> disjuncts) {
+
+    if (!disjuncts.hasNext()) {
+      return new BooleanExpression<>(false);
     }
 
-    if (disjunction == null) {
-      return new BooleanExpression<>(false);
+    BooleanExpression<T> disjunction = disjuncts.next();
+
+    while (disjuncts.hasNext()) {
+      disjunction = disjunction.or(disjuncts.next());
     }
 
     return disjunction;
   }
 
-  public static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
+  static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
     if (!exp.isAND()) {
       return Lists.newArrayList(exp);
     }
@@ -76,7 +90,7 @@ public final class BooleanExpressions {
     return conjuncts;
   }
 
-  public static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
+  static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
     if (!exp.isOR()) {
       return Lists.newArrayList(exp);
     }

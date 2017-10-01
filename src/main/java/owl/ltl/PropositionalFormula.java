@@ -42,6 +42,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     children = ImmutableSet.copyOf(formulaStream.iterator());
   }
 
+  @Override
   public boolean allMatch(Predicate<Formula> p) {
     return p.test(this) && allMatchChildren(p);
   }
@@ -56,6 +57,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
     return true;
   }
 
+  @Override
   public boolean anyMatch(Predicate<Formula> p) {
     return p.test(this) || anyMatchChildren(p);
   }

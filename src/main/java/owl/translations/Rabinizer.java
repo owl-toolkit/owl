@@ -57,8 +57,8 @@ public final class Rabinizer extends AbstractLtlCommandLineTool {
       MinimizationUtil.applyMinimization(automaton, ImmutableList.of(
         GeneralizedRabinMinimizations.minimizeOverlap(),
         GeneralizedRabinMinimizations.minimizeMergePairs(),
-        GenericMinimizations.removeTransientAcceptance(),
         GeneralizedRabinMinimizations.minimizeComplementaryInf(),
+        GenericMinimizations.removeTransientAcceptance(),
         GeneralizedRabinMinimizations.minimizeGloballyIrrelevant(),
         GeneralizedRabinMinimizations.minimizeEdgeImplications(),
         GeneralizedRabinMinimizations.minimizeSccIrrelevant(),

@@ -22,14 +22,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
@@ -75,7 +75,8 @@ final class SccIARBuilder<R> {
     }
 
     this.resultAutomaton =
-      AutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
+      MutableAutomatonFactory
+        .createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
   }
 
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,
@@ -199,7 +200,7 @@ final class SccIARBuilder<R> {
     /* Idea: Pick good initial permutations for the initial states and remove unreachable states */
 
     // Iterate in reverse topological order - the "best" SCCs should be further down the ordering
-    List<Set<IARState<R>>> sccs = Lists.reverse(SccAnalyser.computeSccs(resultAutomaton));
+    List<Set<IARState<R>>> sccs = Lists.reverse(SccDecomposition.computeSccs(resultAutomaton));
     int rabinStateCount = getRelevantStates().size();
 
     // We want to find the "optimal" SCC for each initial state. If we find a maximal SCC, we remove
@@ -215,7 +216,7 @@ final class SccIARBuilder<R> {
     Map<R, IARState<R>> potentialInitialStates = new HashMap<>();
 
     for (Set<IARState<R>> scc : sccs) {
-      if (SccAnalyser.isTransient(resultAutomaton::getSuccessors, scc)) {
+      if (SccDecomposition.isTransient(resultAutomaton::getSuccessors, scc)) {
         continue;
       }
       rabinStatesInScc.clear();
@@ -401,10 +402,12 @@ final class SccIARBuilder<R> {
         R originalSuccessorState = successor.getOriginalState();
         IARState<R> refinedSuccessor =
           refinementTable.get(originalSuccessorState, successor.getRecord());
+
+        // This successor is a top state - don't change the edge
         if (refinedSuccessor == null) {
-          // This successor is a top state - don't change the edge
           return edge;
         }
+
         return Edges.create(refinedSuccessor, edge.acceptanceSetIterator());
       });
 

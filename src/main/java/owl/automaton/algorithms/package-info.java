@@ -16,6 +16,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.algorithms;
+package owl.automaton.algorithms;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

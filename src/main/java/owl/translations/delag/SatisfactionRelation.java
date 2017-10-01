@@ -102,9 +102,8 @@ class SatisfactionRelation {
 
     @Override
     public int visit(XOperator xOperator) {
-      int models;
       offset++;
-      models = xOperator.operand.accept(this);
+      int models = xOperator.operand.accept(this);
       offset--;
       return models;
     }

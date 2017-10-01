@@ -18,7 +18,6 @@ final class RabinizerTransition {
   private final RabinizerState successorState;
   private ValuationSet[] successorAcceptance = EMPTY;
 
-  @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
   RabinizerTransition(RabinizerState successorState) {
     this.successorState = successorState;
   }

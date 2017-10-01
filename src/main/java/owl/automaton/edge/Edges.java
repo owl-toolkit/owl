@@ -1,9 +1,7 @@
 package owl.automaton.edge;
 
-import com.google.common.collect.Iterables;
 import de.tum.in.naturals.NaturalsTransformer;
 import de.tum.in.naturals.bitset.ImmutableBitSet;
-import it.unimi.dsi.fastutil.ints.IntIterator;
 import java.util.BitSet;
 import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
@@ -114,13 +112,8 @@ public final class Edges {
     return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptanceSet));
   }
 
-  public static <S> Iterable<S> toSuccessors(Iterable<Edge<S>> edges) {
-    return Iterables.transform(edges, Edge::getSuccessor);
-  }
-
-  public static <S> Edge<S> transformAcceptance(Edge<S> original, IntUnaryOperator transformer) {
-    OfInt originalAcceptance = original.acceptanceSetIterator();
-    IntIterator newAcceptance = new NaturalsTransformer(originalAcceptance, transformer);
-    return create(original.getSuccessor(), newAcceptance);
+  public static <S> Edge<S> remapAcceptance(Edge<S> edge, IntUnaryOperator transformer) {
+    OfInt originalAcceptance = edge.acceptanceSetIterator();
+    return create(edge.getSuccessor(), new NaturalsTransformer(originalAcceptance, transformer));
   }
 }

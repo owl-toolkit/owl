@@ -45,7 +45,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
@@ -65,7 +64,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   private final A acceptance;
   private final Set<S> initialStates;
   private final Function<S, Map<Edge<S>, ValuationSet>> mapSupplier = x -> new LinkedHashMap<>();
-  private final Map<S, Map<Edge<S>, ValuationSet>> transitions;
+  private final IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
   private final Map<S, S> uniqueStates;
   private final ValuationSetFactory valuationSetFactory;
   @Nullable
@@ -168,6 +167,13 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
+  public Set<Edge<S>> getEdges(S state) {
+    Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(state));
+    checkArgument(edges != null, "State %s not in automaton", state);
+    return Collections.unmodifiableSet(edges.keySet());
+  }
+
+  @Override
   public ValuationSetFactory getFactory() {
     return valuationSetFactory;
   }
@@ -220,7 +226,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public Set<S> getStates() {
-    return Collections.unmodifiableSet(transitions.keySet());
+    return Collections.unmodifiableSet(uniqueStates.keySet());
   }
 
   @Override
@@ -253,59 +259,24 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public void remapAcceptance(Set<? extends S> states, IntUnaryOperator transformer) {
-    // assert instead of checkArgument for performance
-    assert containsStates(states) :
-      String.format("Some of the states %s are not in the automaton", states);
-
-    Function<Edge<S>, Edge<S>> edgeUpdater = edge -> Edges.transformAcceptance(edge, transformer);
-    states.forEach(state -> ValuationSetMapUtil.update(transitions.get(makeUnique(state)),
-      edgeUpdater));
-  }
-
-  @Override
-  public void remapAcceptance(BiFunction<S, Edge<S>, BitSet> f) {
-    transitions.forEach((state, edges) -> ValuationSetMapUtil.update(edges, edge -> {
-      BitSet resultAcceptance = f.apply(state, edge);
-
-      if (resultAcceptance == null) {
-        return edge;
-      }
-
-      return Edges.create(edge.getSuccessor(), resultAcceptance);
-    }));
-  }
-
-  @Override
-  public void remapAcceptance(Set<? extends S> states, BiFunction<S, Edge<S>, BitSet> f) {
-    assert states.stream().allMatch(this::containsState);
-    states.forEach(state -> ValuationSetMapUtil.update(transitions.get(state), (Edge<S> edge) -> {
-      BitSet resultAcceptance = f.apply(state, edge);
-
-      if (resultAcceptance == null) {
-        return edge;
-      }
-
-      return Edges.create(edge.getSuccessor(), resultAcceptance);
-    }));
-  }
-
-  @Override
-  public void remapEdges(Set<? extends S> states, BiFunction<S, Edge<S>, Edge<S>> f) {
+  public void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
     // assert instead of checkArgument for performance
     assert containsStates(states) :
       String.format("Some of the states %s are not in the automaton", states);
 
     for (S state : states) {
-      Map<Edge<S>, ValuationSet> valuationSetMap = transitions.get(makeUnique(state));
-      ValuationSetMapUtil.update(valuationSetMap, edge -> {
+      ValuationSetMapUtil.update(transitions.get(makeUnique(state)), edge -> {
         Edge<S> newEdge = f.apply(state, edge);
+
         if (newEdge == null) {
           return null;
         }
+
         if (newEdge == edge) {
           return edge;
         }
+
+        assert containsState(edge.getSuccessor());
         return makeUnique(newEdge);
       });
     }
@@ -326,13 +297,13 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public boolean removeStates(Predicate<S> filter) {
+  public boolean removeStates(Predicate<? super S> filter) {
     initialStates.removeIf(filter);
     uniqueStates.keySet().removeIf(filter);
     return removeTransitionsIf(filter);
   }
 
-  private boolean removeTransitionsIf(Predicate<S> filter) {
+  private boolean removeTransitionsIf(Predicate<?super S> filter) {
     return transitions.entrySet().removeIf(entry -> {
       boolean removeState = filter.test(entry.getKey());
 
@@ -368,8 +339,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     }
   }
 
-  @Override
-  public boolean retainStates(Collection<? extends S> states) {
+  private boolean retainStates(Collection<? extends S> states) {
     initialStates.retainAll(states);
     uniqueStates.keySet().retainAll(states);
     return removeTransitionsIf(state -> !states.contains(state));
@@ -398,8 +368,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
-    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), ImmutableSet.copyOf(initialStates), stateCount(), options,
+    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, variables,
+      acceptance, ImmutableSet.copyOf(initialStates), stateCount(), options,
       isDeterministic(), getName());
 
     transitions.forEach((state, edges) -> {

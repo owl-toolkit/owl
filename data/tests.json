@@ -25,7 +25,6 @@
                 "determinize": true
             },
             "fgx",
-            "check",
             "random"
         ],
         "small": [

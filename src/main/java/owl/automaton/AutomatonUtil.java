@@ -18,7 +18,6 @@
 package owl.automaton;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.io.ByteArrayOutputStream;
@@ -26,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +37,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import jhoafparser.consumer.HOAConsumerPrint;
-import owl.algorithms.SccAnalyser;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
@@ -248,45 +245,22 @@ public final class AutomatonUtil {
     return exploredStates;
   }
 
-  public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
-    BiConsumer<S, Edge<S>> action) {
-    List<Set<S>> sccs = SccAnalyser.computeSccs(automaton.getInitialStates(),
-      automaton::getSuccessors, false);
-
-    for (Set<S> scc : sccs) {
-      TransitionUtil.forEachEdgeInSet(automaton::getEdges, scc, action);
-    }
+  public static <S> void forEachEdgeInSet(Function<S, Iterable<Edge<S>>> successorFunction,
+    Set<S> states, BiConsumer<S, Edge<S>> action) {
+    states.forEach(state -> successorFunction.apply(state).forEach(edge -> {
+      if (states.contains(edge.getSuccessor())) {
+        action.accept(state, edge);
+      }
+    }));
   }
 
-  /**
-   * Returns the set of infinitely often seen transitions when reading the word {@code word}. If the
-   * automaton is non-deterministic, there are multiple possibilities, hence a set of sets is
-   * returned.
-   *
-   * @param automaton
-   *     The automaton.
-   * @param word
-   *     The word to be read by the automaton.
-   *
-   * @return The set of infinitely often encountered edges.
-   */
-  public static <S> ImmutableSet<ImmutableSet<Edge<S>>> getInfiniteAcceptanceSets(
-    Automaton<S, ?> automaton, OmegaWord word) {
-    // First, run along the prefix.
-    Set<S> currentStates = new HashSet<>(automaton.getInitialStates());
+  public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
+    BiConsumer<S, Edge<S>> action) {
+    List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
 
-    for (BitSet letter : word.prefix) {
-      currentStates = currentStates.parallelStream()
-        .map(state -> new HashSet<>(automaton.getSuccessors(state, letter)))
-        .flatMap(Set::stream)
-        .collect(Collectors.toSet());
+    for (Set<S> scc : sccs) {
+      forEachEdgeInSet(automaton::getEdges, scc, action);
     }
-
-    if (currentStates.isEmpty()) {
-      return ImmutableSet.of();
-    }
-
-    throw new UnsupportedOperationException("");
   }
 
   /**

@@ -22,8 +22,8 @@ import java.util.BitSet;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -54,7 +54,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Override
   public MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance> build() {
-    return AutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
+    return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
       factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
@@ -63,7 +63,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     GObligations obligations) {
     assert remainder.testSupport(Fragments::isCoSafety);
 
-    final int length = obligations.obligations.length + obligations.liveness.length;
+    int length = obligations.obligations.length + obligations.liveness.length;
 
     // TODO: field for extra data.
 
@@ -154,8 +154,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       return null;
     }
 
-    final int obligationsLength = state.obligations.obligations.length;
-    final int livenessLength = state.obligations.liveness.length;
+    int obligationsLength = state.obligations.obligations.length;
+    int livenessLength = state.obligations.liveness.length;
 
     boolean acceptingEdge = false;
     boolean obtainNewGoal = false;
@@ -237,7 +237,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment,
     GObligations obligations) {
     int index = i;
-    final int livenessLength = obligations.liveness.length;
+    int livenessLength = obligations.liveness.length;
 
     while (index < 0) {
       EquivalenceClass successor = factory.getSuccessor(
@@ -257,7 +257,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Nonnegative
   private int scanObligations(@Nonnegative int i, EquivalenceClass[] obligations) {
-    final int obligationsLength = obligations.length;
+    int obligationsLength = obligations.length;
     int index = i;
 
     while (index < obligationsLength && obligations[index].isTrue()) {

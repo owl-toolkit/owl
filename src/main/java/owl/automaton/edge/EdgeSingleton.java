@@ -70,10 +70,6 @@ final class EdgeSingleton<S> implements Edge<S> {
       && Objects.equals(this.successor, other.successor);
   }
 
-  public int getAcceptance() {
-    return acceptance;
-  }
-
   @Override
   public S getSuccessor() {
     return successor;
@@ -99,6 +95,11 @@ final class EdgeSingleton<S> implements Edge<S> {
   @Override
   public int largestAcceptanceSet() {
     return hasAcceptanceSets() ? acceptance : -1;
+  }
+
+  @Override
+  public int smallestAcceptanceSet() {
+    return hasAcceptanceSets() ? acceptance : Integer.MAX_VALUE;
   }
 
   @Override

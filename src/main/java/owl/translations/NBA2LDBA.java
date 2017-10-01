@@ -42,8 +42,7 @@ public final class NBA2LDBA extends AbstractCommandLineTool<Automaton<HoaState,
   @Override
   protected Function<Automaton<HoaState, ? extends OmegaAcceptance>, ? extends HoaPrintable>
   getTranslation(EnumSet<Optimisation> optimisations) {
-    return new NBA2LDBAFunction<>(EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS,
-        Optimisation.REMOVE_NON_ACCEPTING_COMPONENTS));
+    return new NBA2LDBAFunction<>(EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
   }
 
   @Override

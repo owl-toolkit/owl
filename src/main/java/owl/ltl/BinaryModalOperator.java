@@ -65,7 +65,7 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
 
   @Override
   public String toString() {
-    return '(' + left.toString() + getOperator() + right.toString() + ')';
+    return '(' + left.toString() + getOperator() + right + ')';
   }
 
   @Override

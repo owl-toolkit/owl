@@ -29,12 +29,13 @@ import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
@@ -44,12 +45,6 @@ public final class ParityUtil {
   private ParityUtil() {}
 
   public static <S> void complement(MutableAutomaton<S, ParityAcceptance> automaton,
-    Supplier<S> sinkSupplier) {
-    complete(automaton, sinkSupplier);
-    automaton.getAcceptance().complement();
-  }
-
-  public static <S> void complete(MutableAutomaton<S, ParityAcceptance> automaton,
     Supplier<S> sinkSupplier) {
     BitSet rejectingAcceptance = new BitSet();
     ParityAcceptance parityCondition = automaton.getAcceptance();
@@ -65,17 +60,18 @@ public final class ParityUtil {
     }
 
     AutomatonUtil.complete(automaton, sinkSupplier, () -> rejectingAcceptance);
+    automaton.getAcceptance().complement();
   }
 
   public static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
     MutableAutomaton<S, ParityAcceptance> automaton) {
-    return minimizePriorities(automaton, SccAnalyser.computeSccs(automaton));
+    return minimizePriorities(automaton, SccDecomposition.computeSccs(automaton));
   }
 
-  public static <S> MutableAutomaton<S, ParityAcceptance>
+  private static <S> MutableAutomaton<S, ParityAcceptance>
   minimizePriorities(MutableAutomaton<S, ParityAcceptance> automaton,
     List<Set<S>> sccs) {
-    if (automaton instanceof ForwardingAutomaton) {
+    if (automaton instanceof MutableAutomatonFactory.ForwardingMutableAutomaton) {
       return automaton;
     }
 
@@ -111,10 +107,9 @@ public final class ParityUtil {
         }
       }
 
+      // All priorities are used, can't collapse any
       if (usedPriorities.cardinality() == acceptanceSets) {
         usedAcceptanceSets = Math.max(usedAcceptanceSets, acceptanceSets);
-
-        // All priorities are used, can't collapse any
         continue;
       }
 
@@ -135,7 +130,7 @@ public final class ParityUtil {
 
       // This remaps _all_ outgoing edges of the states in the SCC - including transient edges.
       // Since these are only taken finitely often by any run, their value does not matter.
-      automaton.remapAcceptance(scc, reductionMapping);
+      automaton.remapEdges(scc, (state, edge) -> Edges.remapAcceptance(edge, reductionMapping));
     }
 
     automaton.getAcceptance().setAcceptanceSets(usedAcceptanceSets);
@@ -150,7 +145,8 @@ public final class ParityUtil {
   // TODO Complementing these automata feels a bit iffy right now: The priority type of the
   // acceptance is changed without notifying this automaton of it.
   private static final class WrappedBuchiAutomaton<S>
-    extends ForwardingMutableAutomaton<S, ParityAcceptance, BuchiAcceptance> {
+    extends
+    MutableAutomatonFactory.ForwardingMutableAutomaton<S, ParityAcceptance, BuchiAcceptance> {
     private final ParityAcceptance acceptance;
 
     WrappedBuchiAutomaton(MutableAutomaton<S, BuchiAcceptance> backingAutomaton) {

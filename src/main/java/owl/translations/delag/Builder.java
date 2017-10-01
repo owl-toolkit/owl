@@ -62,8 +62,6 @@ public class Builder<T>
       return AutomatonFactory.universe(new State<>(), factories.valuationSetFactory);
     }
 
-    State<T> initialState;
-
     DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories,
       fallback);
     DependencyTree<T> tree = formula.accept(treeConverter);
@@ -79,7 +77,8 @@ public class Builder<T>
       });
 
     ProductState<T> initialProduct = treeConverter.buildInitialState();
-    initialState = new State<>(initialProduct, getHistory(null, new BitSet(), initialProduct));
+    State<T> initialState = new State<>(initialProduct,
+      getHistory(null, new BitSet(), initialProduct));
 
     GenericAcceptance acceptance = new GenericAcceptance(sets, expression);
     return AutomatonFactory.createStreamingAutomaton(acceptance, initialState,

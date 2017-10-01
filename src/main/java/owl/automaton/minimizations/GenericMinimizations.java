@@ -19,37 +19,35 @@ package owl.automaton.minimizations;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edges;
+import owl.collections.Lists2;
 
 public final class GenericMinimizations {
   private GenericMinimizations() {}
 
   public static <S, A extends OmegaAcceptance> Minimization<S, A> removeTransientAcceptance() {
     return automaton -> {
-      List<Set<S>> sccs = SccAnalyser.computeSccs(automaton);
       Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.stateCount());
       stateToSccMap.defaultReturnValue(-1);
-      ListIterator<Set<S>> sccIterator = sccs.listIterator();
-      while (sccIterator.hasNext()) {
-        int sccIndex = sccIterator.nextIndex();
-        sccIterator.next().forEach(state -> stateToSccMap.put(state, sccIndex));
-      }
+
+      Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton),
+        (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
       automaton.remapEdges((state, edge) -> {
         int sccIndex = stateToSccMap.getInt(state);
-        assert sccIndex != -1;
         S successor = edge.getSuccessor();
         int successorSccIndex = stateToSccMap.getInt(successor);
+
+        assert sccIndex != -1;
         assert successorSccIndex != -1;
-        if (sccIndex != successorSccIndex) {
-          return Edges.create(successor);
+
+        if (sccIndex == successorSccIndex) {
+          return edge;
         }
-        return edge;
+
+        return Edges.create(successor);
       });
     };
   }
