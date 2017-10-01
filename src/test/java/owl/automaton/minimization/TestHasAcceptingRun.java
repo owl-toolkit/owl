@@ -14,6 +14,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.transformations.ParityUtil;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2dpa.NBA2DPAFunction;
@@ -72,20 +73,21 @@ public class TestHasAcceptingRun {
 
   @Test
   public void testHasAcceptingRun() throws ParseException {
-    testHasAcceptingRun(INPUT1, true);
+    testHasAcceptingRun(INPUT1, true, true);
   }
 
   @Test
   public void testHasAcceptingRun2() throws ParseException {
-    testHasAcceptingRun(INPUT2, true);
+    testHasAcceptingRun(INPUT2, true, true);
   }
 
   @Test
   public void testHasAcceptingRun3() throws ParseException {
-    testHasAcceptingRun(INPUT3, false);
+    testHasAcceptingRun(INPUT3, false, true);
   }
 
-  private void testHasAcceptingRun(String input, boolean hasAcceptingRun) throws ParseException {
+  private void testHasAcceptingRun(String input, boolean hasAcceptingRun,
+      boolean complementHasAcceptingRun) throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
@@ -98,5 +100,7 @@ public class TestHasAcceptingRun {
     result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     Assert.assertEquals(EmptinessCheck.isEmpty(result), !hasAcceptingRun);
+    ParityUtil.complement(result, RankingState::createSink);
+    Assert.assertEquals(EmptinessCheck.isEmpty(result), !complementHasAcceptingRun);
   }
 }
