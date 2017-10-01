@@ -4,13 +4,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
 import java.util.AbstractMap;
 import java.util.Map.Entry;
 import java.util.Set;
-
+import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
@@ -19,14 +17,14 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
   private final Language<Set<S>> bottom;
   private final Language<Set<S>> top;
   private final LoadingCache<Entry<Set<S>, S>, Boolean> cache;
-  
-  SetLanguageLattice(LimitDeterministicAutomaton<?, S, BuchiAcceptance, ?> ldba) {
+
+  SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton) {
     bottom = new SetLanguage(ImmutableSet.of());
-    top = new SetLanguage(ImmutableSet.copyOf(ldba.getAcceptingComponent().getStates()));
+    top = new SetLanguage(ImmutableSet.copyOf(automaton.getStates()));
     cache = CacheBuilder.newBuilder().maximumSize(25000)
-      .build(new InclusionCheckCacheLoader<>(ldba));
+      .build(new InclusionCheckCacheLoader<>(automaton));
   }
-  
+
   @Override
   public Language<Set<S>> getBottom() {
     return bottom;
@@ -73,7 +71,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
       for (S q : language.getT()) {
         if (cache.getUnchecked(new AbstractMap.SimpleEntry<>(set, q))) {
           return false;
-        };
+        }
       }
       return true;
     }
