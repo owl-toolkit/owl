@@ -120,7 +120,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     generateJumps(initialComponent, epsilonJumps);
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
     acceptingComponent.setInitialStates(Collections.emptySet());
-
+    
     // Remove dead states in the accepting component. Note that the .values() collection is backed
     // by the internal map of the epsilonJumps, hence removal is forwarded.
     Set<T> jumpTargets = new HashSet<>();
@@ -153,7 +153,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
       });
 
     assert acceptingComponent.containsStates(epsilonJumps.values());
-
+    
     if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
       Set<T> reachableStates = new HashSet<>(initialStates);
 
@@ -175,15 +175,16 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
           });
         });
       }
-
-      MinimizationUtil.removeDeadStates(initialComponent,
-        Sets.union(initialComponent.getInitialStates(), valuationSetJumps.rowKeySet()));
+      Set<S> protectedStates = new HashSet<>(); 
+      protectedStates.addAll(initialComponent.getInitialStates());
+      protectedStates.addAll(valuationSetJumps.rowKeySet());
+      MinimizationUtil.removeDeadStates(initialComponent, protectedStates);
       MinimizationUtil.removeDeadStates(acceptingComponent, reachableStates,
         initialStates::remove);
       assert acceptingComponent.containsStates(initialStates);
       epsilonJumps.clear();
     } else {
-      Set<S> protectedStates = new HashSet<>();
+      Set<S> protectedStates = new HashSet<>(); 
       initialComponent.getStates().stream().filter(isProtected).forEach(protectedStates::add);
       protectedStates.addAll(epsilonJumps.keySet());
       protectedStates.addAll(valuationSetJumps.rowKeySet());

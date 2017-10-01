@@ -18,6 +18,7 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnegative;
@@ -33,6 +34,10 @@ public class BreakpointState<S> {
     this.ix = i;
     this.mx = ImmutableSet.copyOf(m);
     this.nx = ImmutableSet.copyOf(n);
+  }
+  
+  public static <S> BreakpointState<S> getSink() {
+    return new BreakpointState<>(-1, new HashSet<>(), new HashSet<>());
   }
 
   @Override

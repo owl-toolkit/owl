@@ -51,6 +51,13 @@ public final class AutomatonFactory {
     automaton.setInitialStates(initialStates);
     return automaton;
   }
+  
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
+      Automaton<S, A> automaton) {
+    return AutomatonFactory.createMutableAutomaton(automaton.getAcceptance(),
+      automaton.getFactory(), automaton.getInitialStates(), automaton::getEdge,
+      (x) -> null);
+  }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> createStreamingAutomaton(
     A acceptance, S initialState, ValuationSetFactory factory,

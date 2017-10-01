@@ -144,7 +144,7 @@ public class NBA2DPATest {
       + "[!1] 1 {0}\n"
       + "[!0 & 1] 1"
       + "--END--";
-
+  
   private static final String INPUT8 = "HOA: v1\n"
       + "States: 1\n"
       + "Start: 0\n"
@@ -165,17 +165,198 @@ public class NBA2DPATest {
       + "[!0 & !1 & !2] 0 {0 1 2}\n"
       + "--END--";
 
-
+  private static final String INPUT9 = "HOA: v1\n"
+      + "States: 2\n" 
+      + "Start: 0\n"
+      + "acc-name: Buchi\n"
+      + "Acceptance: 1 Inf(0)\n"
+      + "properties: trans-acc trans-label \n"
+      + "AP: 2 \"a\" \"b\"\n"
+      + "--BODY--\n" 
+      + "State: 0 \n" 
+      + "[t] 0\n"
+      + "[!0] 1 {0}"
+      + "State: 1\n"
+      + "[!1] 0 \n"
+      + "[!0 & !1] 1 {0}"
+      + "--END--";
+  
+  private static final String INPUT10 = "HOA: v1\n"
+      + "States: 4\n"
+      + "Start: 0\n"
+      + "acc-name: Buchi\n"
+      + "Acceptance: 1 Inf(0)\n"
+      + "properties: trans-acc trans-label \n"
+      + "AP: 2 \"a\" \"b\"\n"
+      + "--BODY--\n"
+      + "State: 0 \n"
+      + "[t] 1 {0}\n"
+      + "[0] 2 {0}\n"
+      + "State: 2 \n"
+      + "[0] 2 {0}\n"
+      + "State: 3 \n"
+      + "[t] 3 {0}\n"
+      + "State: 1 \n"
+      + "[1] 3 {0}\n"
+      + "--END--";
+  
+  private static final String INPUT11 = "HOA: v1\n"
+      + "tool: \"Owl\" \"* *\"\n"
+      + "name: \"Automaton for [0]\"\n"
+      + "States: 5\n"
+      + "Start: 0\n"
+      + "acc-name: generalized-Buchi 2\n"
+      + "Acceptance: 2 Inf(0) & Inf(1)\n"
+      + "properties: trans-acc trans-label \n"
+      + "AP: 2 \"c\" \"a\"\n"
+      + "--BODY--\n"
+      + "State: 0 \"0\"\n"
+      + "[0] 1\n"
+      + "[!0 & 1] 2\n"
+      + "[!0] 3\n"
+      + "State: 1 \"1\"\n"
+      + "[t] 1 {0 1}\n"
+      + "State: 4 \"4\"\n"
+      + "[1] 4 {0 1}\n"
+      + "[!1] 4 {1}\n"
+      + "State: 2 \"2\"\n"
+      + "[0 & 1] 2 {0 1}\n"
+      + "[!0 & !1] 2\n"
+      + "[!0 & 1] 2 {0}\n"
+      + "[0 & !1] 2 {1}\n"
+      + "State: 3 \"3\"\n"
+      + "[!0 & 1] 2\n"
+      + "[!0] 3\n"
+      + "[0] 4\n"
+      + "--END--";
+  
+  private static final String INPUT12 = "HOA: v1\n"
+      + "tool: \"Owl\" \"* *\"\n"
+      + "name: \"Automaton for [0]\"\n"
+      + "States: 6\n"
+      + "Start: 0\n"
+      + "acc-name: generalized-Buchi 3\n"
+      + "Acceptance: 3 Inf(0) & Inf(1) & Inf(2)\n"
+      + "properties: trans-acc trans-label \n"
+      + "AP: 4 \"a1\" \"b1\" \"a2\" \"b2\"\n"
+      + "--BODY--\n"
+      + "State: 1 \"4\"\n"
+      + "[0 & (1 & 3 | !1 & 2 & 3)] 0 {0 1 2}\n"
+      + "[0 & (1 & !3 | !1 & 2 & !3)] 2 {0 2}\n"
+      + "[!0 & (1 & 3 | !1 & 2 & 3)] 3 {0 1}\n"
+      + "[0 & !1 & !2 & 3] 4 {1 2}\n"
+      + "[!0 & (1 & !3 | !1 & 2 & !3)] 1 {0}\n"
+      + "[0 & !1 & !2 & !3] 5 {2}\n"
+      + "State: 4 \"3\"\n"
+      + "[0 & 1 | !0 & 1 & 2 & 3] 0 {0 1 2}\n"
+      + "[!0 & 1 & 2 & !3] 2 {0 2}\n"
+      + "[!0 & 1 & (2 & !3 | !2)] 3 {0 1}\n"
+      + "[0 & !1 | !0 & !1 & 2 & 3] 4 {1 2}\n"
+      + "[!0 & !1 & 2 & !3] 5 {2}\n"
+      + "State: 3 \"2\"\n"
+      + "[0 & (1 | !1 & 2 & 3)] 0 {0 1 2}\n"
+      + "[0 & !1 & 2 & !3] 2 {0 2}\n"
+      + "[!0 & (1 | !1 & 2 & 3)] 3 {0 1}\n"
+      + "[0 & !1 & (2 & !3 | !2)] 4 {1 2}\n"
+      + "[!0 & !1 & 2 & !3] 1 {0}\n"
+      + "State: 5 \"5\"\n"
+      + "[0 & 1 & 3 | !0 & 1 & 2 & 3] 0 {0 1 2}\n"
+      + "[0 & 1 & !3 | !0 & 1 & 2 & !3] 2 {0 2}\n"
+      + "[!0 & 1 & !2 & 3] 3 {0 1}\n"
+      + "[0 & !1 & 3 | !0 & !1 & 2 & 3] 4 {1 2}\n"
+      + "[!0 & 1 & !2 & !3] 1 {0}\n"
+      + "[0 & !1 & !3 | !0 & !1 & 2 & !3] 5 {2}\n"
+      + "State: 0 \"0\"\n"
+      + "[0 & (1 | !1 & 2 & 3) | !0 & 2 & 3] 0 {0 1 2}\n"
+      + "[0 & !1 & 2 & !3 | !0 & 2 & !3] 2 {0 2}\n"
+      + "[!0 & 1 & (2 & !3 | !2)] 3 {0 1}\n"
+      + "[0 & !1 & (2 & !3 | !2)] 4 {1 2}\n"
+      + "State: 2 \"1\"\n"
+      + "[0 & (1 & 3 | !1 & 2 & 3) | !0 & 2 & 3] 0 {0 1 2}\n"
+      + "[0 & (1 & !3 | !1 & 2 & !3) | !0 & 2 & !3] 2 {0 2}\n"
+      + "[!0 & 1 & !2 & 3] 3 {0 1}\n"
+      + "[0 & !1 & !2 & 3] 4 {1 2}\n"
+      + "[!0 & 1 & !2 & !3] 1 {0}\n"
+      + "[0 & !1 & !2 & !3] 5 {2}\n"
+      + "--END--\n";
+  
+  private static final String INPUT13 = "HOA: v1\n"
+      + "tool: \"Owl\" \"* *\"\n"
+      + "name: \"Automaton for [0]\"\n"
+      + "States: 11\n"
+      + "Start: 0\n"
+      + "acc-name: generalized-Buchi 2\n"
+      + "Acceptance: 2 Inf(0) & Inf(1)\n"
+      + "properties: trans-acc trans-label \n"
+      + "AP: 4 \"a\" \"b\" \"c\" \"d\"\n"
+      + "--BODY--\n"
+      + "State: 0 \"0\"\n"
+      + "[0 & 3] 1\n"
+      + "[!0 & 1] 2\n"
+      + "[1 & !2] 3\n"
+      + "[0] 4\n"
+      + "[2] 5\n"
+      + "[0 & (1 | !1 & 2) | !0 & 2] 6\n"
+      + "[2 & 3] 7\n"
+      + "[0 & 3] 8\n"
+      + "[0 & 2] 9\n"
+      + "[0] 10\n"
+      + "State: 6 \"6\"\n"
+      + "[1 & 2] 6 {0 1}\n"
+      + "[1 & !2] 6 {0}\n"
+      + "[!1 & !2] 6\n"
+      + "[!1 & 2] 6 {1}\n"
+      + "State: 1 \"1\"\n"
+      + "[0 & 3] 1 {0 1}\n"
+      + "State: 10 \"10\"\n"
+      + "[0 & 2] 10 {0 1}\n"
+      + "[0 & !2] 10 {0}\n"
+      + "State: 4 \"4\"\n"
+      + "[0 & 3] 1\n"
+      + "[t] 4\n"
+      + "[1 | !1 & 2] 6\n"
+      + "[3] 8\n"
+      + "[0] 10\n"
+      + "State: 9 \"9\"\n"
+      + "[0 & 1] 9 {0 1}\n"
+      + "[0 & !1] 9 {1}\n"
+      + "State: 5 \"5\"\n"
+      + "[0 & 3] 1\n"
+      + "[t] 5\n"
+      + "[3] 7\n"
+      + "[0] 9\n"
+      + "State: 3 \"3\"\n"
+      + "[0 & 2 & 3] 1\n"
+      + "[1 & !2] 3\n"
+      + "[2] 5\n"
+      + "[2] 6\n"
+      + "[2 & 3] 7\n"
+      + "[0 & 2] 9\n"
+      + "State: 2 \"2\"\n"
+      + "[0 & 3] 1\n"
+      + "[!0 & 1] 2\n"
+      + "[0] 4\n"
+      + "[0 & (1 | !1 & 2)] 6\n"
+      + "[0 & 3] 8\n"
+      + "[0] 10\n"
+      + "State: 7 \"7\"\n"
+      + "[2 & 3] 7 {0 1}\n"
+      + "[!2 & 3] 7 {0}\n"
+      + "State: 8 \"8\"\n"
+      + "[1 & 3] 8 {0 1}\n"
+      + "[!1 & 3] 8 {1}\n"
+      + "--END--";
+  
   private static final List<String> MAPPING = ImmutableList.of("a");
 
   @Test
   public void testApply() throws ParseException {
     runTest(INPUT, 6);
   }
-
+  
   @Test
   public void testApply2() throws ParseException {
-    runTest(INPUT2, 1);
+    runTest(INPUT2, 2);
   }
 
   @Test
@@ -185,7 +366,7 @@ public class NBA2DPATest {
 
   @Test
   public void testApply4() throws ParseException {
-    runTest(INPUT4, 3);
+    runTest(INPUT4, 4);
   }
 
   @Test
@@ -195,20 +376,41 @@ public class NBA2DPATest {
 
   @Test
   public void testApply6() throws ParseException {
-    runTest(INPUT6, 2);
+    runTest(INPUT6, 3);
   }
 
   @Test
   public void testApply7() throws ParseException {
-    runTest(INPUT7, 4);
+    runTest(INPUT7, 6);
   }
-
+  
   @Test
   public void testApply8() throws ParseException {
-    runTest(INPUT8, 60);
+    runTest(INPUT8, 7);
   }
-
+  
+  @Test
+  public void testApply9() throws ParseException {
+    runTest(INPUT9, 3);
+  }
+  
+  @Test
+  public void testApply10() throws ParseException {
+    runTest(INPUT10, 9);
+  }
+  
+  @Test
+  public void testApply12() throws ParseException {
+    runTest(INPUT12, 125);
+  }
+  
+  @Test
+  public void testApply13() throws ParseException {
+    runTest(INPUT13, 2697);
+  }
+  
   private void runTest(String input, int size) throws ParseException {
+    long startTime = System.currentTimeMillis();
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
@@ -221,6 +423,6 @@ public class NBA2DPATest {
     result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     result.setVariables(MAPPING);
-    Assert.assertEquals(size, result.getStates().size());
+    Assert.assertTrue(size >= result.getStates().size());
   }
 }

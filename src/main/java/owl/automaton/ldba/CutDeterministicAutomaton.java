@@ -17,15 +17,16 @@
 
 package owl.automaton.ldba;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.transformations.PowerSetAutomaton;
@@ -57,14 +58,15 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
 
   @Override
   public Set<T> getEpsilonJumps(Set<S> state) {
-    ImmutableSet.Builder<T> builder = ImmutableSet.builder();
-    state.forEach(s -> builder.addAll(ldba.getEpsilonJumps(s)));
-    return builder.build();
+    Set<T> set = new HashSet<>();
+    state.forEach(s -> set.addAll(ldba.getEpsilonJumps(s)));
+    return set;
   }
 
   @Override
   public Automaton<Set<S>, NoneAcceptance> getInitialComponent() {
-    return new PowerSetAutomaton<>(ldba.getInitialComponent());
+    return AutomatonFactory.createMutableAutomaton(new PowerSetAutomaton<>(
+        ldba.getInitialComponent()));
   }
 
   @Override

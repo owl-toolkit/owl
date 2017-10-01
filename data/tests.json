@@ -15,6 +15,19 @@
             "big",
             "random"
         ],
+        "large": [
+            {
+                "name": "base",
+                "determinize": true
+            },
+            {
+                "name": "regressions",
+                "determinize": true
+            },
+            "fgx",
+            "check",
+            "random"
+        ],
         "small": [
             {
                 "name": "base",
@@ -84,7 +97,7 @@
         "nba2dpa": {
             "tools": [
                 {
-                    "name": "nba2ldba",
+                    "name": "nba2dpa",
                     "exec": [
                         "ltl2tgba",
                         "-H",
@@ -95,7 +108,7 @@
                     ]
                 }
             ],
-            "data": "small"
+            "data": "large"
         },
         "delag": "delag",
         "delag-fallback": "delag#fallback",

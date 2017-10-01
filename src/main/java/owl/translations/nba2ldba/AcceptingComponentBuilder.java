@@ -21,11 +21,14 @@ import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+
+import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.ExploreBuilder;
@@ -42,8 +45,11 @@ final class AcceptingComponentBuilder<S>
   private final List<BreakpointState<S>> initialStates;
   private final int max;
   private final Automaton<S, GeneralizedBuchiAcceptance> nba;
-
-  private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba) {
+  private final List<Set<S>> sccs;
+  private final boolean traverseOnlySccs;
+      
+  private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba,
+      boolean traverseOnlySccs) {
     this.nba = nba;
     initialStates = new ArrayList<>();
     max = Math.max(nba.getAcceptance().getAcceptanceSets(), 1);
@@ -61,10 +67,20 @@ final class AcceptingComponentBuilder<S>
     }
 
     assert finEdges.get(0) != null;
+    this.traverseOnlySccs = traverseOnlySccs;
+    if (traverseOnlySccs) {
+      sccs = SccAnalyser.computeSccs(nba);
+    } else {
+      sccs = new LinkedList<>();
+    }
   }
 
   static <S> AcceptingComponentBuilder<S> create(Automaton<S, GeneralizedBuchiAcceptance> nba) {
-    return new AcceptingComponentBuilder<>(nba);
+    return new AcceptingComponentBuilder<>(nba, false);
+  }
+  
+  static <S> AcceptingComponentBuilder<S> createScc(Automaton<S, GeneralizedBuchiAcceptance> nba) {
+    return new AcceptingComponentBuilder<>(nba, true);
   }
 
   @Override
@@ -83,14 +99,17 @@ final class AcceptingComponentBuilder<S>
 
   @Nullable
   private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
-    Set<Edge<S>> outEdgesM = ldbaState.mx.stream().flatMap(x -> nba.getEdges(x, valuation).stream())
+    final Set<S> scc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx)).findAny().get();
+    Set<Edge<S>> outEdgesM = ldbaState.mx.stream().flatMap(x -> nba.getEdges(x, valuation)
+      .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.getSuccessor()))
       .collect(Collectors.toSet());
 
     if (outEdgesM.isEmpty()) {
       return null;
     }
 
-    Set<Edge<S>> outEdgesN = ldbaState.nx.stream().flatMap(x -> nba.getEdges(x, valuation).stream())
+    Set<Edge<S>> outEdgesN = ldbaState.nx.stream().flatMap(x -> nba.getEdges(x, valuation)
+      .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.getSuccessor()))
       .collect(Collectors.toSet());
 
     Set<Edge<S>> intersection = outEdgesM.stream()
