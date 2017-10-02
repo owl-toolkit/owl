@@ -57,6 +57,7 @@ import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
+import owl.util.TriConsumer;
 
 // TODO: use Cofoja to ensure invariants.
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
@@ -144,8 +145,14 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public void forEachSuccessor(S state, BiConsumer<Edge<S>, ValuationSet> action) {
+  public void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
     transitions.get(makeUnique(state)).forEach(action);
+  }
+
+  @Override
+  public void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
+    transitions.forEach((state, map) ->
+      map.forEach((edge, valuationSet) -> action.accept(state, edge, valuationSet)));
   }
 
   @Override

@@ -30,10 +30,9 @@ import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
 
 public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automaton<S, A> {
-  default void addAll(Automaton<? extends S, ?> automaton) {
+  default void addAll(Automaton<S, ?> automaton) {
     addStates(automaton.getStates());
-    automaton.forEachLabelledEdge((state, labelledEdge) ->
-      addEdge(state, labelledEdge.valuations.copy(), labelledEdge.edge));
+    automaton.forEachLabelledEdge((x, y, z) -> addEdge(x, z.copy(), y));
   }
 
   /**

@@ -253,6 +253,11 @@ public final class AutomatonFactory {
     }
 
     @Override
+    public Map<S, ValuationSet> getIncompleteStates() {
+      return automaton.getIncompleteStates();
+    }
+
+    @Override
     public Set<S> getStates() {
       return automaton.getStates();
     }

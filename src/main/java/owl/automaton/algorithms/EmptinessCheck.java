@@ -220,8 +220,8 @@ public final class EmptinessCheck {
   }
 
   private static final class Parity {
-    private static <S> boolean containsAcceptingLasso(
-      Automaton<S, ParityAcceptance> automaton, S initialState) {
+    private static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
+      S initialState) {
       int sets = automaton.getAcceptance().getAcceptanceSets();
 
       for (int i = 0; i < sets; i = i + 2) {

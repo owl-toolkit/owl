@@ -27,6 +27,7 @@ import static org.junit.Assume.assumeThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.BitSet;
@@ -147,6 +148,28 @@ public class EdgeTest {
   public void testSuccessor(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       assertEquals(edge.getSuccessor(), testCase.getSuccessor());
+    }
+  }
+
+  @Theory
+  public void testLargestAcceptanceSet(TestCase testCase) {
+    for (Edge<?> edge : testCase.getEdges()) {
+      if (testCase.acceptance.isEmpty()) {
+        assertEquals(edge.largestAcceptanceSet(), -1);
+      } else {
+        assertEquals(edge.largestAcceptanceSet(), (long) Lists.reverse(testCase.acceptance).get(0));
+      }
+    }
+  }
+
+  @Theory
+  public void testSmallestAcceptanceSet(TestCase testCase) {
+    for (Edge<?> edge : testCase.getEdges()) {
+      if (testCase.acceptance.isEmpty()) {
+        assertEquals(edge.smallestAcceptanceSet(), Integer.MAX_VALUE);
+      } else {
+        assertEquals(edge.smallestAcceptanceSet(), testCase.acceptance.getInt(0));
+      }
     }
   }
 

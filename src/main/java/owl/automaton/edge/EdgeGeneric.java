@@ -90,7 +90,7 @@ final class EdgeGeneric<S> implements Edge<S> {
   @Override
   public int largestAcceptanceSet() {
     assert !acceptance.isEmpty();
-    return acceptance.length();
+    return acceptance.length() - 1;
   }
 
   @Override

@@ -19,7 +19,6 @@ package owl.automaton;
 
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -105,16 +104,6 @@ public final class MutableAutomatonFactory {
     }
 
     @Override
-    public Map<S, ValuationSet> getIncompleteStates() {
-      return automaton.getIncompleteStates();
-    }
-
-    @Override
-    public Set<S> getStates() {
-      return automaton.getStates();
-    }
-
-    @Override
     public void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
       automaton.remapEdges(states, f);
     }
@@ -132,11 +121,6 @@ public final class MutableAutomatonFactory {
     @Override
     public void removeEdges(S source, S destination) {
       automaton.removeEdges(source, destination);
-    }
-
-    @Override
-    public boolean removeStates(Collection<? extends S> states) {
-      return automaton.removeStates(states);
     }
 
     @Override
