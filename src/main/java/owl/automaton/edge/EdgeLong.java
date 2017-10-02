@@ -84,6 +84,11 @@ final class EdgeLong<S> implements Edge<S> {
   }
 
   @Override
+  public int smallestAcceptanceSet() {
+    return Long.numberOfTrailingZeros(store);
+  }
+
+  @Override
   public String toString() {
     return Edge.toString(this);
   }

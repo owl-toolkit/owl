@@ -35,7 +35,7 @@ public class BreakpointState<S> {
     this.mx = ImmutableSet.copyOf(m);
     this.nx = ImmutableSet.copyOf(n);
   }
-  
+
   public static <S> BreakpointState<S> getSink() {
     return new BreakpointState<>(-1, new HashSet<>(), new HashSet<>());
   }
@@ -50,7 +50,7 @@ public class BreakpointState<S> {
       return false;
     }
 
-    final BreakpointState<?> that = (BreakpointState<?>) o;
+    BreakpointState<?> that = (BreakpointState<?>) o;
     return ix == that.ix
       && Objects.equals(mx, that.mx)
       && Objects.equals(nx, that.nx);

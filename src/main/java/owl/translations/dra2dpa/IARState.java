@@ -52,8 +52,8 @@ public final class IARState<R> {
   @Override
   public String toString() {
     if (record.size() == 0) {
-      return String.format("{%s}", getOriginalState());
+      return String.format("{%s}", originalState);
     }
-    return String.format("{%s|%s}", getOriginalState(), record);
+    return String.format("{%s|%s}", originalState, record);
   }
 }

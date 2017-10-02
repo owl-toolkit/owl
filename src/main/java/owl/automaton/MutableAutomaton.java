@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -125,84 +124,35 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   void addStates(Collection<? extends S> states);
 
   /**
-   * Remaps the acceptance sets of each outgoing edge of the specified {@code states} according to
-   * {@code transformer}.
-   * <p>
-   * The transformer is allowed to return {@code -1} which indicates that this particular acceptance
-   * index should be removed from the edge. Requires all {@code states} to be present in the
-   * automaton.</p>
-   *
-   * @param states
-   *     The states whose outgoing edges are to be remapped.
-   * @param transformer
-   *     The remapping function.
-   *
-   * @throws IllegalArgumentException
-   *     If any state specified is not present in the automaton.
-   */
-  void remapAcceptance(Set<? extends S> states, IntUnaryOperator transformer);
-
-  /**
-   * Remaps the acceptance sets of each edge in the automaton as specified by {@code f}.
-   * <p>
-   * The function is allowed to return {@code null} which indicates that the acceptance of this
-   * particular edge should not be changed.</p>
-   *
-   * @param f
-   *     The remapping function.
-   */
-  default void remapAcceptance(BiFunction<S, Edge<S>, BitSet> f) {
-    remapAcceptance(getStates(), f);
-  }
-
-  /**
-   * Remaps the acceptance sets of each outgoing edge of the specified {@code states} according to
-   * {@code f}.
-   * <p>
-   * The function is allowed to return {@code null} which indicates that the acceptance of this
-   * particular edge should not be changed. Requires all {@code states} to be present in the
-   * automaton.</p>
-   *
-   * @param states
-   *     The states whose outgoing edges are to be remapped.
-   * @param f
-   *     The remapping function.
-   *
-   * @throws IllegalArgumentException
-   *     If any state specified is not present in the automaton.
-   */
-  void remapAcceptance(Set<? extends S> states, BiFunction<S, Edge<S>, BitSet> f);
-
-  /**
-   * Remaps each edge of the automaton according to {@code f}.
+   * Remaps each edge of the automaton according to {@code updater}.
    * <p>
    * The function is allowed to return {@code null} which indicates that the edge should be
    * removed.</p>
    *
-   * @param f
+   * @param updater
    *     The remapping function.
    *
    * @see #remapEdges(Set, BiFunction)
    */
-  default void remapEdges(BiFunction<S, Edge<S>, Edge<S>> f) {
-    remapEdges(getStates(), f);
+  default void remapEdges(BiFunction<? super S, Edge<S>, Edge<S>> updater) {
+    remapEdges(getStates(), updater);
   }
 
   /**
-   * Remaps each outgoing edge of the specified {@code states} according to {@code f}.
+   * Remaps each outgoing edge of the specified {@code states} according to {@code updater}.
    * <p>
    * The function is allowed to return {@code null} which indicates that the edge should be
    * removed. Requires all {@code states} to be present in the automaton.</p>
    *
    * @param states
    *     The states whose outgoing edges are to be remapped.
-   * @param f
+   * @param updater
    *     The remapping function.
    *
    * @throws IllegalArgumentException
    *     If any state specified is not present in the automaton.
    */
-  void remapEdges(Set<? extends S> states, BiFunction<S, Edge<S>, Edge<S>> f);
+  void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> updater);
 
   /**
    * Removes all transition from {@code source} under {@code valuation} to {@code destination}.
@@ -282,7 +232,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param states
    *     The states to be removed.
    */
-  boolean removeStates(Predicate<S> states);
+  boolean removeStates(Predicate<? super S> states);
 
   /**
    * Removes all states which are not reachable from the initial states and returns all removed
@@ -294,17 +244,6 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    */
   default Set<S> removeUnreachableStates() {
     return removeUnreachableStates(getInitialStates());
-  }
-
-  /**
-   * Removes all states which are not reachable from the initial states, passing each removed state
-   * to {@code removedStatesConsumer}, used for e.g. freeing of BDD nodes or collecting them in a
-   * set.
-   *
-   * @see #removeUnreachableStates(Collection, Consumer)
-   */
-  default void removeUnreachableStates(Consumer<S> removedStatesConsumer) {
-    removeUnreachableStates(getInitialStates(), removedStatesConsumer);
   }
 
   /**
@@ -329,10 +268,6 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @see #removeUnreachableStates(Collection)
    */
   void removeUnreachableStates(Collection<? extends S> start, Consumer<S> removedStatesConsumer);
-
-  default boolean retainStates(Collection<? extends S> states) {
-    return removeStates(state -> !states.contains(state));
-  }
 
   /**
    * Set the initial state of the automaton. Requires the specified state to be present.

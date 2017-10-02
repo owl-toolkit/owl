@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import java.util.BitSet;
 import java.util.Objects;
+import java.util.function.IntUnaryOperator;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edges;
@@ -35,16 +36,16 @@ import owl.factories.ValuationSetFactory;
 import owl.factories.jdd.ValuationFactory;
 
 public class HashMapAutomatonTest {
-  private static final ValuationSetFactory valuationSetFactory;
+  private static final ValuationSetFactory FACTORY;
 
   static {
-    valuationSetFactory = new ValuationFactory(1);
+    FACTORY = new ValuationFactory(1);
   }
 
   @Test
   public void testEmptyAutomaton() {
     HashMapAutomaton<?, ?> automaton =
-      new HashMapAutomaton<>(valuationSetFactory, new AllAcceptance());
+      new HashMapAutomaton<>(FACTORY, new AllAcceptance());
     assertThat(automaton.isComplete(), is(true));
     assertThat(automaton.isDeterministic(), is(false));
     assertThat(automaton.getIncompleteStates().keySet(), empty());
@@ -57,24 +58,31 @@ public class HashMapAutomatonTest {
   public void testRemapAcceptanceDuplicate() {
     // Test that edges which are equal after a remapAcceptance call get merged.
 
-    HashMapAutomaton<String, ?> automaton =
-      new HashMapAutomaton<>(valuationSetFactory, new AllAcceptance());
+    MutableAutomaton<String, ?> automaton = new HashMapAutomaton<>(FACTORY, new AllAcceptance());
+
     automaton.addState("1");
     automaton.addState("2");
 
     BitSet other = new BitSet();
     other.set(0);
-    automaton.addEdge("1", new BitSet(), Edges.create("2"));
+    automaton.addEdge("1", new BitSet(), Edges.create("1", 1));
     automaton.addEdge("1", other, Edges.create("2"));
     automaton.addEdge("1", new BitSet(), Edges.create("2", 1));
-    automaton.remapAcceptance((state, edge) -> {
-      if (!Objects.equals(state, "1")) {
+
+    automaton.remapEdges((state, edge) -> {
+      if (edge.getSuccessor().equals("2")) {
+        return Edges.create(edge.getSuccessor());
+      }
+
+      if (edge.getSuccessor().equals("1")) {
         return null;
       }
-      return new BitSet();
+
+      return edge;
     });
+
     assertThat(automaton.getLabelledEdges("1"), containsInAnyOrder(
-      new LabelledEdge<>(Edges.create("2"), valuationSetFactory.createUniverseValuationSet())));
+      new LabelledEdge<>(Edges.create("2"), FACTORY.createUniverseValuationSet())));
   }
 
   @SuppressWarnings("unchecked")
@@ -83,7 +91,7 @@ public class HashMapAutomatonTest {
     // Test various parts of the implementation on a simple, two-state automaton
 
     MutableAutomaton<String, ?> automaton =
-      new HashMapAutomaton<>(valuationSetFactory, new AllAcceptance());
+      new HashMapAutomaton<>(FACTORY, new AllAcceptance());
     automaton.addState("1");
     automaton.addState("2");
 
@@ -96,19 +104,19 @@ public class HashMapAutomatonTest {
     assertThat(automaton.getReachableStates(), containsInAnyOrder("1"));
 
     // Add edge
-    automaton.addEdge("1", valuationSetFactory.createUniverseValuationSet(),
+    automaton.addEdge("1", FACTORY.createUniverseValuationSet(),
       Edges.create("2"));
     assertThat(automaton.getEdge("1", new BitSet()), is(Edges.create("2")));
     assertThat(automaton.getEdges("1", new BitSet()), containsInAnyOrder(Edges.create("2")));
     assertThat(automaton.getLabelledEdges("1"), containsInAnyOrder(
-      new LabelledEdge<>(Edges.create("2"), valuationSetFactory.createUniverseValuationSet())));
+      new LabelledEdge<>(Edges.create("2"), FACTORY.createUniverseValuationSet())));
     assertThat(automaton.getEdge("1", new BitSet()), is(Edges.create("2")));
 
     assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
     assertThat(automaton.isDeterministic(), is(true));
 
     // Add duplicate edge
-    automaton.addEdge("1", valuationSetFactory.createValuationSet(new BitSet()),
+    automaton.addEdge("1", FACTORY.createValuationSet(new BitSet()),
       Edges.create("2"));
     assertThat(Iterators.size(automaton.getLabelledEdges("1").iterator()), is(1));
     assertThat(automaton.getEdge("1", new BitSet()), is(Edges.create("2")));
@@ -116,7 +124,7 @@ public class HashMapAutomatonTest {
     assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
 
     // Add edge with different acceptance
-    automaton.addEdge("1", valuationSetFactory.createValuationSet(new BitSet()),
+    automaton.addEdge("1", FACTORY.createValuationSet(new BitSet()),
       Edges.create("2", 1));
     assertThat(automaton.getEdges("1", new BitSet()),
       containsInAnyOrder(Edges.create("2"), Edges.create("2", 1)));
@@ -124,7 +132,7 @@ public class HashMapAutomatonTest {
 
     assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
 
-    automaton.addEdge("1", valuationSetFactory.createUniverseValuationSet(),
+    automaton.addEdge("1", FACTORY.createUniverseValuationSet(),
       Edges.create("1"));
     assertThat(automaton.getEdges("1", new BitSet()),
       containsInAnyOrder(Edges.create("1"), Edges.create("2"), Edges.create("2", 1)));
@@ -137,20 +145,16 @@ public class HashMapAutomatonTest {
 
     assertThat(automaton.getIncompleteStates().keySet(), containsInAnyOrder("2"));
 
-    automaton.remapAcceptance(automaton.getStates(), key -> 2);
+    IntUnaryOperator transformer = key -> 2;
+    automaton
+      .remapEdges(automaton.getStates(), (state, edge) -> Edges.remapAcceptance(edge, transformer));
     assertThat(automaton.getEdges("1", new BitSet()),
       containsInAnyOrder(Edges.create("1"), Edges.create("2"), Edges.create("2", 2)));
     assertThat(automaton.getEdges("2", new BitSet()), empty());
 
-    automaton.remapAcceptance((state, edge) -> {
-      BitSet result = new BitSet();
-      if (Objects.equals(state, "1")) {
-        result.set(0);
-        return result;
-      }
-      result.set(1);
-      return result;
-    });
+    automaton.remapEdges((state, edge) -> Objects.equals(state, "1")
+                                          ? Edges.create(edge.getSuccessor(), 0)
+                                          : Edges.create(edge.getSuccessor(), 1));
 
     for (LabelledEdge<String> successorEdge : automaton.getLabelledEdges("1")) {
       assertThat(ImmutableList.copyOf(successorEdge.edge.acceptanceSetIterator()),

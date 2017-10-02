@@ -50,7 +50,7 @@ class ProductState<T> {
       return false;
     }
 
-    final ProductState<?> that = (ProductState<?>) o;
+    ProductState<?> that = (ProductState<?>) o;
     return Objects.equals(fallback, that.fallback)
       && Objects.equals(safety, that.safety)
       && Objects.equals(finished, that.finished);

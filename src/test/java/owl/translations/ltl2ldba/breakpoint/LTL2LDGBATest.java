@@ -115,11 +115,11 @@ public class LTL2LDGBATest {
     String ltl2 = "((G F p0)|(F G p1)) & ((G F (! p1))|(F G p2))";
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-    testOutput(ltl2, opts, 5);
+    testOutput(ltl2, opts, 4);
 
     String ltl3 =
       "(G p0 |(G p1)|(G p2))&((F G p3)|(G F p4)|(G F p5))&((F G !p4)|(G F !p3)|(G F p5))";
-    testOutput(ltl3, opts, 22);
+    testOutput(ltl3, opts, 16);
   }
 
   @Test
@@ -217,7 +217,7 @@ public class LTL2LDGBATest {
   public void testSanityCheckFailed() throws Exception {
     String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U "
       + "((b) | (G(c))))))";
-    testOutput(ltl, 5);
+    testOutput(ltl, 3);
   }
 
   @Test

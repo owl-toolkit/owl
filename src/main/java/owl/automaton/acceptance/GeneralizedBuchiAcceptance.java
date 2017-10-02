@@ -17,12 +17,11 @@
 
 package owl.automaton.acceptance;
 
-import java.util.BitSet;
+import static owl.automaton.acceptance.BooleanExpressions.createConjunction;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.IntConsumer;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -39,44 +38,13 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
   }
 
   @Override
-  public <S> boolean containsAcceptingRun(Set<S> scc,
-    Function<S, Iterable<Edge<S>>> successorFunction) {
-    BitSet remaining = new BitSet(size);
-    remaining.set(0, size);
-
-    for (S state : scc) {
-      Iterable<Edge<S>> successors = successorFunction.apply(state);
-
-      for (Edge<S> successorEdge : successors) {
-        if (!scc.contains(successorEdge.getSuccessor())) {
-          continue;
-        }
-
-        successorEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) remaining::clear);
-
-        if (remaining.isEmpty()) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  @Override
   public final int getAcceptanceSets() {
     return size;
   }
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    BooleanExpression<AtomAcceptance> conjunction = HoaConsumerExtended.mkInf(0);
-
-    for (int i = 1; i < size; i++) {
-      conjunction = conjunction.and(HoaConsumerExtended.mkInf(i));
-    }
-
-    return conjunction;
+    return createConjunction(IntStream.range(0, size).mapToObj(HoaConsumerExtended::mkInf));
   }
 
   @Override

@@ -17,26 +17,13 @@
 
 package owl.automaton.acceptance;
 
-import com.google.common.collect.Streams;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import owl.automaton.edge.Edge;
 
 public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
 
   public BuchiAcceptance() {
     super(1);
-  }
-
-  @Override
-  public <S> boolean containsAcceptingRun(Set<S> scc,
-    Function<S, Iterable<Edge<S>>> successorFunction) {
-    return scc.parallelStream()
-      .map(successorFunction)
-      .flatMap(Streams::stream)
-      .anyMatch(edge -> scc.contains(edge.getSuccessor()) && edge.inSet(0));
   }
 
   @Override

@@ -1,7 +1,5 @@
 package owl.automaton.transformations;
 
-import static owl.algorithms.SccAnalyser.computeSccs;
-
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -25,16 +23,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.Immutable;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.TransitionUtil;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
@@ -88,12 +86,12 @@ public final class RabinUtil {
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
-      AutomatonFactory.createMutableAutomaton(degeneralizedAcceptance, automaton.getFactory());
+      MutableAutomatonFactory
+        .createMutableAutomaton(degeneralizedAcceptance, automaton.getFactory());
 
     // Build the transition structure for each SCC separately
-    List<Set<S>> sccs = computeSccs(automaton, true);
-    for (Set<S> scc : sccs) {
-      if (SccAnalyser.isTransient(automaton::getSuccessors, scc)) {
+    for (Set<S> scc : SccDecomposition.computeSccs(automaton, true)) {
+      if (SccDecomposition.isTransient(automaton::getSuccessors, scc)) {
         // Transient SCCs never accept - ignore potential acceptance
         S state = Iterables.getOnlyElement(scc);
         assert !stateMap.containsKey(state);
@@ -113,7 +111,8 @@ public final class RabinUtil {
       // Determine the pairs which can accept in this SCC (i.e. those which have all their Inf in
       // this SCC)
       IntSet activeIndices = new IntAVLTreeSet();
-      TransitionUtil.forEachEdgeInSet(automaton::getEdges, scc, (state, edge) ->
+
+      AutomatonFactory.filterStates(automaton, scc::contains).forEachEdge((state, edge) ->
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) activeIndices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
@@ -217,11 +216,11 @@ public final class RabinUtil {
           return successors;
         });
 
-      List<Set<DegeneralizedRabinState<S>>> resultSccs = computeSccs(
-        new FilteredAutomaton<>((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
+      List<Set<DegeneralizedRabinState<S>>> resultSccs = SccDecomposition.computeSccs(
+        AutomatonFactory.filterStates((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
           exploredStates::contains), exploredStates, false);
       Set<DegeneralizedRabinState<S>> resultBscc = resultSccs.stream()
-        .filter(resultScc -> SccAnalyser.isBscc(resultAutomaton, resultScc))
+        .filter(resultScc -> SccDecomposition.isTrap(resultAutomaton, resultScc))
         .findAny().orElseThrow(AssertionError::new);
 
       resultAutomaton.removeStates(state ->

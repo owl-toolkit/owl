@@ -19,12 +19,11 @@ package owl.ltl;
 
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Registry;
-import owl.factories.Registry.Backend;
 
 public class BddEquivalenceClassTest extends EquivalenceClassTest {
 
   @Override
   public EquivalenceClassFactory setUpFactory(Formula domain) {
-    return Registry.getFactories(domain, Backend.JDD).equivalenceClassFactory;
+    return Registry.getFactories(domain).equivalenceClassFactory;
   }
 }

@@ -32,6 +32,7 @@ import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
+import owl.ltl.PropositionalFormula;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultVisitor;
 
@@ -145,7 +146,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
           xFragment.add(child);
         } else {
           assert child instanceof Conjunction;
-          conjuncts.add(((Conjunction) child).children);
+          conjuncts.add(((PropositionalFormula) child).children);
         }
       });
 
@@ -213,7 +214,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
           xFragment.add(child);
         } else {
           assert child instanceof Disjunction;
-          disjuncts.add(((Disjunction) child).children);
+          disjuncts.add(((PropositionalFormula) child).children);
         }
       });
 

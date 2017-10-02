@@ -67,7 +67,7 @@ public final class ValuationSetMapUtil {
     remove(map, (Predicate<S>) state::equals);
   }
 
-  public static <S> void remove(Map<Edge<S>, ValuationSet> map, Predicate<S> predicate) {
+  public static <S> void remove(Map<Edge<S>, ValuationSet> map, Predicate<? super S> predicate) {
     map.entrySet().removeIf(entry -> {
       if (!predicate.test(entry.getKey().getSuccessor())) {
         return false;

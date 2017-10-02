@@ -19,10 +19,10 @@ package owl.translations.nba2ldba;
 
 import com.google.common.collect.Collections2;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
@@ -46,7 +46,7 @@ final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, NoneAccep
 
   @Override
   public MutableAutomaton<S, NoneAcceptance> build() {
-    MutableAutomaton<S, NoneAcceptance> automaton = AutomatonFactory
+    MutableAutomaton<S, NoneAcceptance> automaton = MutableAutomatonFactory
       .createMutableAutomaton(new NoneAcceptance(), nba.getFactory());
 
     AutomatonUtil.explore(automaton, nba.getInitialStates(), (state, valuation) ->

@@ -22,8 +22,8 @@ import java.util.EnumSet;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -42,7 +42,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Override
   public MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance> build() {
-    return AutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
+    return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
       factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 

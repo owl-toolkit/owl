@@ -50,8 +50,7 @@ public final class NBA2DPAFunction<S>
   @Override
   public MutableAutomaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
   apply(Automaton<S, GeneralizedBuchiAcceptance> nba) {
-    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(
-      EnumSet.of(Optimisation.REMOVE_NON_ACCEPTING_COMPONENTS));
+    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(EnumSet.noneOf(Optimisation.class));
 
     LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> ldba =
       nba2ldba.apply(nba);

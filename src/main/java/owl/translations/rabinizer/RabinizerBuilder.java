@@ -35,8 +35,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
@@ -190,7 +190,7 @@ public class RabinizerBuilder {
     EquivalenceClass initialClass = masterStateFactory.getInitialState(formula);
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
-      AutomatonFactory.createMutableAutomaton(new AllAcceptance(), vsFactory,
+      MutableAutomatonFactory.createMutableAutomaton(new AllAcceptance(), vsFactory,
         ImmutableSet.of(initialClass), masterStateFactory::getMasterSuccessor, state -> null);
     logger.log(Level.FINEST, () -> String.format("Master automaton for %s:%n%s", initialClass,
       toHoa(masterAutomaton)));
@@ -264,7 +264,7 @@ public class RabinizerBuilder {
     }
 
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      AutomatonFactory.createMutableAutomaton(acceptance, vsFactory);
+      MutableAutomatonFactory.createMutableAutomaton(acceptance, vsFactory);
     rabinizerAutomaton.setName(String.format("Automaton for %s", initialClass));
 
     // Process each subset separately
@@ -425,7 +425,7 @@ public class RabinizerBuilder {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.getSuccessors(trueState)),
         trueState);
 
-      GeneralizedRabinPair truePair = acceptance.createPair(true, 1);
+      GeneralizedRabinPair truePair = acceptance.createPair(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
       Edge<RabinizerState> edge = Edges.create(trueState, truePair.getInfiniteIndex(0));
       rabinizerAutomaton.addEdge(trueState, vsFactory.createUniverseValuationSet(), edge);
@@ -649,7 +649,7 @@ public class RabinizerBuilder {
       // Allocate the acceptance caches
       Set<int[]> rankings = new NatCartesianProductSet(maximalRanks);
       GeneralizedRabinPair[] rankingPairs = new GeneralizedRabinPair[rankings.size()];
-      Arrays.setAll(rankingPairs, i -> acceptance.createPair(true, subset.size()));
+      Arrays.setAll(rankingPairs, i -> acceptance.createPair(subset.size()));
 
       return new ActiveSet(subset, rankings, rankingPairs);
     }

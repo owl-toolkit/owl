@@ -8,8 +8,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import java.util.List;
 import java.util.Set;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.collections.Lists2;
 import owl.collections.ValuationSet;
@@ -31,7 +31,7 @@ final class MasterStatePartition {
 
   public static MasterStatePartition create(Automaton<EquivalenceClass, ?> masterAutomaton) {
     // Determine the SCC decomposition and build the sub-automata separately
-    List<Set<EquivalenceClass>> masterSccs = SccAnalyser.computeSccs(masterAutomaton);
+    List<Set<EquivalenceClass>> masterSccs = SccDecomposition.computeSccs(masterAutomaton);
 
     ImmutableTable.Builder<EquivalenceClass, EquivalenceClass, ValuationSet>
       partitionOutgoingTransitionsBuilder = ImmutableTable.builder();
@@ -46,7 +46,7 @@ final class MasterStatePartition {
           partitionOutgoingTransitionsBuilder.put(state, edge.getSuccessor(), valuations);
         }
       }));
-      if (SccAnalyser.isTransient(masterAutomaton::getSuccessors, scc)) {
+      if (SccDecomposition.isTransient(masterAutomaton::getSuccessors, scc)) {
         transientStatesBuilder.add(Iterables.getOnlyElement(scc));
       } else {
         partitionBuilder.add(ImmutableSet.copyOf(scc));

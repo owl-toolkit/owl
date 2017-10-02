@@ -18,18 +18,13 @@
 package owl.automaton.acceptance;
 
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 
 public interface OmegaAcceptance {
-  default <S> boolean containsAcceptingRun(Set<S> scc,
-    Function<S, Iterable<Edge<S>>> successorFunction) {
-    throw new UnsupportedOperationException("");
-  }
 
   int getAcceptanceSets();
 
@@ -56,4 +51,9 @@ public interface OmegaAcceptance {
    * @return Whether the edge acceptance is well defined.
    */
   boolean isWellFormedEdge(Edge<?> edge);
+
+  default <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
+    return automaton.getStates().stream()
+      .allMatch(x -> automaton.getEdges(x).stream().allMatch(this::isWellFormedEdge));
+  }
 }

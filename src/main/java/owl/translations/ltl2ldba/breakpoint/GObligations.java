@@ -62,8 +62,8 @@ public final class GObligations extends ImmutableObject implements RecurringObli
     List<EquivalenceClass> obligations, ImmutableSet<GOperator> es,
     ImmutableSet<GOperator> build) {
     this.safety = safety;
-    this.obligations = obligations.toArray(EMPTY);
-    this.liveness = liveness.toArray(EMPTY);
+    this.obligations = obligations.toArray(new EquivalenceClass[obligations.size()]);
+    this.liveness = liveness.toArray(new EquivalenceClass[liveness.size()]);
     this.goperators = es;
     rewrittenGOperators = build;
   }

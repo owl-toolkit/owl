@@ -63,7 +63,7 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
 
   @Override
   public String toString() {
-    return getOperator() + operand.toString();
+    return getOperator() + operand;
   }
 
   @Override

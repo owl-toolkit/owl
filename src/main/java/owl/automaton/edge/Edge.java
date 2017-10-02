@@ -90,4 +90,10 @@ public interface Edge<S> {
    * Returns the largest acceptance set this edge is a member of, or {@code -1} if none.
    */
   int largestAcceptanceSet();
+
+  /**
+   * Returns the largest acceptance set this edge is a member of, or {@code Integer.MAX_VALUE} if
+   * none.
+   */
+  int smallestAcceptanceSet();
 }

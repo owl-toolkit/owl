@@ -17,7 +17,6 @@
 
 package owl.ltl;
 
-import java.util.BitSet;
 import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.Visitor;
@@ -86,13 +85,8 @@ public class FrequencyG extends GOperator {
   }
 
   @Override
-  public Formula temporalStep(BitSet valuation) {
-    return this;
-  }
-
-  @Override
   public String toString() {
-    return "G {" + limes.toString() + cmp.toString() + bound + "} " + operand.toString();
+    return "G {" + limes + cmp + bound + "} " + operand;
   }
 
   @Override

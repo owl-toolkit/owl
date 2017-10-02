@@ -18,12 +18,13 @@
 package owl.automaton.acceptance;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
+import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
+import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
 
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
-import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,11 +60,11 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   public static GeneralizedRabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
     GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
 
-    for (BooleanExpression<AtomAcceptance> dis : BooleanExpressions.getDisjuncts(expression)) {
+    for (BooleanExpression<AtomAcceptance> dis : getDisjuncts(expression)) {
       int fin = NOT_ALLOCATED;
       IntSortedSet inf = new IntAVLTreeSet();
 
-      for (BooleanExpression<AtomAcceptance> element : BooleanExpressions.getConjuncts(dis)) {
+      for (BooleanExpression<AtomAcceptance> element : getConjuncts(dis)) {
         AtomAcceptance atom = element.getAtom();
 
         switch (atom.getType()) {
@@ -79,26 +80,21 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
         }
       }
 
+      checkArgument(fin != NOT_ALLOCATED);
       checkArgument(inf.isEmpty() || inf.lastInt() - inf.firstInt() == inf.size() - 1);
-      checkArgument(fin == NOT_ALLOCATED || inf.isEmpty() || fin == inf.firstInt() - 1);
-      acceptance.createPair(fin != NOT_ALLOCATED, inf.size());
+      checkArgument(inf.isEmpty() || fin == inf.firstInt() - 1);
+      acceptance.createPair(inf.size());
     }
 
     return acceptance;
   }
 
-  public GeneralizedRabinPair createPair(boolean fin, int infCount) {
+  public GeneralizedRabinPair createPair(int infCount) {
     synchronized (mutex) {
-      int finIndex;
-      if (fin) {
-        finIndex = setCount;
-        setCount += 1;
-      } else {
-        finIndex = NOT_ALLOCATED;
-      }
+      int finIndex = setCount;
+      setCount += 1;
 
-      GeneralizedRabinPair pair =
-        new GeneralizedRabinPair(pairList.size(), finIndex, setCount, setCount + infCount);
+      GeneralizedRabinPair pair = new GeneralizedRabinPair(finIndex, setCount, setCount + infCount);
       setCount += infCount;
       pairList.add(pair);
       return pair;
@@ -112,29 +108,8 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    // GRA is EXISTS pair. (finitely often Fin set AND FORALL infSet. infinitely often inf set)
-    if (pairList.isEmpty()) {
-      // Empty EXISTS is false
-      return new BooleanExpression<>(false);
-    }
-
-    BooleanExpression<AtomAcceptance> expression = null;
-
-    for (GeneralizedRabinPair pair : pairList) {
-      if (pair.isEmpty()) {
-        continue;
-      }
-      BooleanExpression<AtomAcceptance> pairExpression = pair.getBooleanExpression();
-      if (expression == null) {
-        expression = pairExpression;
-      } else {
-        expression = expression.or(pairExpression);
-      }
-    }
-    if (expression == null) {
-      return new BooleanExpression<>(false);
-    }
-    return expression;
+    return createDisjunction(pairList.stream().filter(x -> !x.isEmpty())
+      .map(GeneralizedRabinPair::getBooleanExpression));
   }
 
   @Override
@@ -145,7 +120,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   @Override
   public List<Object> getNameExtra() {
     // <pair_count> <inf_pairs_of_1> <inf_pairs_of_2> <...>
-    List<Object> extra = new ArrayList<>(getPairCount() + 1);
+    List<Object> extra = new ArrayList<>(pairList.size() + 1);
     extra.add(0); // Will be replaced by count of non-empty pairs.
 
     int nonEmptyPairs = 0;
@@ -159,14 +134,6 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     extra.set(0, nonEmptyPairs);
 
     return extra;
-  }
-
-  public GeneralizedRabinAcceptance.GeneralizedRabinPair getPairByNumber(int pairNumber) {
-    return pairList.get(pairNumber);
-  }
-
-  public int getPairCount() {
-    return pairList.size();
   }
 
   /**
@@ -208,21 +175,16 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   }
 
   public static final class GeneralizedRabinPair {
-    private final int pairNumber;
+
     private int finiteIndex;
     private int infiniteIndicesFrom;
     private int infiniteIndicesTo;
 
-    GeneralizedRabinPair(int pairNumber, int finiteIndex, int infiniteIndicesFrom,
-      int infiniteIndicesTo) {
-      this.pairNumber = pairNumber;
+    GeneralizedRabinPair(int finiteIndex, int infiniteIndicesFrom, int infiniteIndicesTo) {
+      assert finiteIndex >= 0;
       this.finiteIndex = finiteIndex;
       this.infiniteIndicesFrom = infiniteIndicesFrom;
       this.infiniteIndicesTo = infiniteIndicesTo;
-    }
-
-    public boolean contains(int index) {
-      return isFinite(index) || isInfinite(index);
     }
 
     public boolean contains(Edge<?> edge) {
@@ -299,7 +261,6 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     }
 
     public int getFiniteIndex() {
-      assert hasFinite();
       return finiteIndex;
     }
 
@@ -310,10 +271,6 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
 
     public int getInfiniteIndexCount() {
       return infiniteIndicesTo - infiniteIndicesFrom;
-    }
-
-    public int getPairNumber() {
-      return pairNumber;
     }
 
     public boolean hasFinite() {
@@ -328,32 +285,8 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       return IntIterators.fromTo(infiniteIndicesFrom, infiniteIndicesTo);
     }
 
-    /**
-     * Returns the indices of all <b>Inf</b> contained in this edge.
-     *
-     * @param edge
-     *     The edge to be tested.
-     *
-     * @return All indices of <b>Inf</b> sets contained in this edge.
-     *
-     * @see Edge#inSet(int)
-     */
-    public IntSet infiniteSetsOfEdge(Edge<?> edge) {
-      IntSet set = new IntArraySet(getInfiniteIndexCount());
-      forEachInfiniteIndex(index -> {
-        if (edge.inSet(index)) {
-          set.add(index);
-        }
-      });
-      return set;
-    }
-
     public boolean isEmpty() {
       return !(hasFinite() || hasInfinite());
-    }
-
-    public boolean isFinite(int index) {
-      return hasFinite() && finiteIndex == index;
     }
 
     public boolean isInfinite(int index) {
@@ -391,7 +324,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder((getInfiniteIndexCount() + 1) * 3);
-      builder.append('(').append(pairNumber).append(':');
+      builder.append('(');
       if (hasFinite()) {
         builder.append(finiteIndex);
       } else {

@@ -55,7 +55,7 @@ public class Jump<U extends RecurringObligation> {
       return false;
     }
 
-    final Jump<?> jump = (Jump<?>) o;
+    Jump<?> jump = (Jump<?>) o;
     return Objects.equals(remainder, jump.remainder)
       && Objects.equals(obligations, jump.obligations);
   }

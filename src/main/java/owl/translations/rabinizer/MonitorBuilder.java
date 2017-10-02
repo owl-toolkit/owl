@@ -18,11 +18,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
@@ -88,7 +88,7 @@ final class MonitorBuilder {
     MonitorState initialState = new MonitorState(new EquivalenceClass[] {initialClass});
 
     for (int i = 0; i < monitorAutomata.length; i++) {
-      MutableAutomaton<MonitorState, ParityAcceptance> monitor = AutomatonFactory
+      MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
         .createMutableAutomaton(new ParityAcceptance(0), vsFactory);
       monitor.setName(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addState(initialState);
@@ -370,7 +370,7 @@ final class MonitorBuilder {
     // Since the monitors handle "F G <psi>", we can skip non-repeating prefixes
     logger.log(Level.FINER, "Optimizing initial state");
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
-    List<Set<MonitorState>> sccs = SccAnalyser.computeSccs(anyMonitor, false);
+    List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
     MonitorState initialState = anyMonitor.getInitialState();
 
     BitSet emptyBitSet = new BitSet(0);

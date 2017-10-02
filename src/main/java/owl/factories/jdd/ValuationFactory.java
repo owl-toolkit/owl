@@ -28,7 +28,6 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.ltl.Literal;
 
 public final class ValuationFactory implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
@@ -117,21 +116,6 @@ public final class ValuationFactory implements ValuationSetFactory {
   @Override
   public ValuationSet createUniverseValuationSet() {
     return new BddValuationSet(factory.getTrueNode());
-  }
-
-  @Override
-  public ValuationSet createValuationSet(Literal literal) {
-    int bdd;
-
-    if (literal.isNegated()) {
-      // This is fine, since "not vars[i]" is a saturated variable.
-      bdd = factory.not(factory.getVariableNode(literal.getAtom()));
-    } else {
-      // Variables are saturated.
-      bdd = factory.getVariableNode(literal.getAtom());
-    }
-
-    return new BddValuationSet(bdd);
   }
 
   @Override

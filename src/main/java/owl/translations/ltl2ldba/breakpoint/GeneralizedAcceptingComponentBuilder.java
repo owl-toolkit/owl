@@ -24,8 +24,8 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -50,7 +50,8 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
   @Override
   public MutableAutomaton<GeneralizedBreakpointState, GeneralizedBuchiAcceptance> build() {
-    return AutomatonFactory.createMutableAutomaton(new GeneralizedBuchiAcceptance(acceptanceSets),
+    return MutableAutomatonFactory
+      .createMutableAutomaton(new GeneralizedBuchiAcceptance(acceptanceSets),
       factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
@@ -58,7 +59,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public GeneralizedBreakpointState createState(EquivalenceClass remainder,
     GObligations obligations) {
     EquivalenceClass theRemainder = remainder;
-    final int length = obligations.obligations.length + obligations.liveness.length;
+    int length = obligations.obligations.length + obligations.liveness.length;
 
     // If it is necessary, increase the number of acceptance conditions.
     if (length > acceptanceSets) {
@@ -134,7 +135,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       return getSuccessorPureSafety(state, nextSafety, valuation);
     }
 
-    final int length = state.current.length;
+    int length = state.current.length;
     EquivalenceClass[] currentSuccessors = new EquivalenceClass[length];
     EquivalenceClass[] nextSuccessors = new EquivalenceClass[state.next.length];
 

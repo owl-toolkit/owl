@@ -29,10 +29,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -80,7 +80,8 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   @Override
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
     MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
-      AutomatonFactory.createMutableAutomaton(new NoneAcceptance(), factories.valuationSetFactory);
+      MutableAutomatonFactory
+        .createMutableAutomaton(new NoneAcceptance(), factories.valuationSetFactory);
 
     if (constructDeterministic) {
       AutomatonUtil.exploreDeterministic(automaton, constructionQueue,

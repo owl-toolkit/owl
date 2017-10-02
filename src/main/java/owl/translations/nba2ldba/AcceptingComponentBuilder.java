@@ -27,14 +27,13 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 
@@ -47,7 +46,7 @@ final class AcceptingComponentBuilder<S>
   private final Automaton<S, GeneralizedBuchiAcceptance> nba;
   private final List<Set<S>> sccs;
   private final boolean traverseOnlySccs;
-      
+
   private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba,
       boolean traverseOnlySccs) {
     this.nba = nba;
@@ -69,7 +68,7 @@ final class AcceptingComponentBuilder<S>
     assert finEdges.get(0) != null;
     this.traverseOnlySccs = traverseOnlySccs;
     if (traverseOnlySccs) {
-      sccs = SccAnalyser.computeSccs(nba);
+      sccs = SccDecomposition.computeSccs(nba);
     } else {
       sccs = new LinkedList<>();
     }
@@ -78,7 +77,7 @@ final class AcceptingComponentBuilder<S>
   static <S> AcceptingComponentBuilder<S> create(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     return new AcceptingComponentBuilder<>(nba, false);
   }
-  
+
   static <S> AcceptingComponentBuilder<S> createScc(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     return new AcceptingComponentBuilder<>(nba, true);
   }
@@ -93,13 +92,13 @@ final class AcceptingComponentBuilder<S>
 
   @Override
   public MutableAutomaton<BreakpointState<S>, BuchiAcceptance> build() {
-    return AutomatonFactory.createMutableAutomaton(new BuchiAcceptance(), nba.getFactory(),
+    return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(), nba.getFactory(),
       initialStates, this::explore, (x) -> null);
   }
 
   @Nullable
   private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
-    final Set<S> scc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx)).findAny().get();
+    Set<S> scc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx)).findAny().get();
     Set<Edge<S>> outEdgesM = ldbaState.mx.stream().flatMap(x -> nba.getEdges(x, valuation)
       .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.getSuccessor()))
       .collect(Collectors.toSet());

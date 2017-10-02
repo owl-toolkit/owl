@@ -129,7 +129,8 @@ public final class FGObligations implements RecurringObligation {
       livenessList.add(liveness);
     }
 
-    return new FGObligations(fOperators, gOperators, safety, livenessList.toArray(EMPTY),
+    return new FGObligations(fOperators, gOperators, safety,
+      livenessList.toArray(new EquivalenceClass[livenessList.size()]),
       builder.build());
   }
 

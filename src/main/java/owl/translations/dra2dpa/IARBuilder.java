@@ -3,7 +3,6 @@ package owl.translations.dra2dpa;
 import static com.google.common.base.Preconditions.checkState;
 import static owl.automaton.AutomatonUtil.toHoa;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -17,7 +16,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,13 +23,13 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import owl.algorithms.SccAnalyser;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
@@ -42,10 +40,11 @@ final class IARBuilder<R> {
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
 
-  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
+  IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
     this.rabinAutomaton = rabinAutomaton;
     resultAutomaton =
-      AutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
+      MutableAutomatonFactory
+        .createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
   }
 
   private ImmutableMultimap<R, LabelledEdge<R>> addSccsToResult(
@@ -70,7 +69,7 @@ final class IARBuilder<R> {
     Set<RabinPair> rabinPairs = ImmutableSet.copyOf(rabinAutomaton.getAcceptance().getPairs());
 
     // Start analysis
-    List<Set<R>> rabinSccs = SccAnalyser.computeSccs(rabinAutomaton);
+    List<Set<R>> rabinSccs = SccDecomposition.computeSccs(rabinAutomaton);
     logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
 
     // Start possibly parallel execution
@@ -122,31 +121,27 @@ final class IARBuilder<R> {
     // Connect all SCCs back together
     for (IARState<R> iarState : resultAutomaton.getStates()) {
       R rabinState = iarState.getOriginalState();
-      ImmutableCollection<LabelledEdge<R>> labelledEdges = interSccConnections.get(rabinState);
 
-      if (labelledEdges.isEmpty()) {
-        // This state has no "outgoing" transitions
-        continue;
-      }
-      for (LabelledEdge<R> labelledEdge : labelledEdges) {
+      for (LabelledEdge<R> labelledEdge : interSccConnections.get(rabinState)) {
         R successorState = labelledEdge.edge.getSuccessor();
         assert rabinToIarStateMap.containsKey(successorState) :
           String.format("No successor present for %s", successorState);
-        IARState<R> iarSuccessor = rabinToIarStateMap.get(successorState);
         // TODO instead of 0 we should use any which is actually used
-        Edge<IARState<R>> iarEdge = Edges.create(iarSuccessor, 0);
+        Edge<IARState<R>> iarEdge = Edges.create(rabinToIarStateMap.get(successorState), 0);
         resultAutomaton.addEdge(iarState, labelledEdge.valuations, iarEdge);
       }
     }
 
     ImmutableSet.Builder<IARState<R>> initialStateBuilder = ImmutableSet.builder();
+
     for (R initialRabinState : rabinAutomaton.getInitialStates()) {
       initialStateBuilder.add(rabinToIarStateMap.get(initialRabinState));
     }
+
     resultAutomaton.setInitialStates(initialStateBuilder.build());
     resultAutomaton.getAcceptance().setAcceptanceSets(maximalSubAutomatonPriority + 1);
 
-    assert rabinSccs.size() == SccAnalyser.computeSccs(resultAutomaton).size();
+    assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
 
     executorService.shutdown();
     return resultAutomaton;
@@ -168,7 +163,8 @@ final class IARBuilder<R> {
     simpleScc.forEach(rabinState -> mapping.put(rabinState, IARState.trivial(rabinState)));
 
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
-      AutomatonFactory.createMutableAutomaton(new ParityAcceptance(1), rabinAutomaton.getFactory());
+      MutableAutomatonFactory
+        .createMutableAutomaton(new ParityAcceptance(1), rabinAutomaton.getFactory());
 
     for (Map.Entry<R, IARState<R>> iarStateEntry : mapping.entrySet()) {
       R rabinState = iarStateEntry.getKey();
@@ -213,15 +209,7 @@ final class IARBuilder<R> {
             continue;
           }
           // Check which of the Inf sets is active here
-          Iterator<RabinPair> iterator = remainingPairsToCheck.iterator();
-          while (iterator.hasNext()) {
-            RabinPair pair = iterator.next();
-            if (pair.containsInfinite(edge)) {
-              // There is some Inf set active, remove it from the awaited list
-              iterator.remove();
-              seenAnyInfSet = true;
-            }
-          }
+          seenAnyInfSet = remainingPairsToCheck.removeIf(pair -> pair.containsInfinite(edge));
           // When remaining is create, have seen all sets
           seenAllInfSets = remainingPairsToCheck.isEmpty();
         } else {
@@ -238,7 +226,7 @@ final class IARBuilder<R> {
       R transientSccState = scc.iterator().next();
       IARState<R> iarState = IARState.trivial(transientSccState);
       // TODO Single-state automaton class
-      MutableAutomaton<IARState<R>, ParityAcceptance> subAutomaton = AutomatonFactory
+      MutableAutomaton<IARState<R>, ParityAcceptance> subAutomaton = MutableAutomatonFactory
         .createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
       subAutomaton.addState(iarState);
       subAutomaton.setInitialState(iarState);
@@ -252,14 +240,15 @@ final class IARBuilder<R> {
     }
 
     Set<RabinPair> activeRabinPairs;
+
     if (seenAllInfSets) {
       activeRabinPairs = ImmutableSet.copyOf(rabinPairs);
     } else {
       activeRabinPairs = ImmutableSet.copyOf(Sets.difference(rabinPairs, remainingPairsToCheck));
     }
-    R initialState = scc.iterator().next();
+
     Automaton<IARState<R>, ParityAcceptance> subAutomaton = SccIARBuilder.from(rabinAutomaton,
-      ImmutableSet.of(initialState), scc, activeRabinPairs).build();
+      ImmutableSet.of(scc.iterator().next()), scc, activeRabinPairs).build();
     return new SccProcessingResult<>(interSccConnections, subAutomaton);
   }
 

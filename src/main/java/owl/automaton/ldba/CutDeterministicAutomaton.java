@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
-import owl.automaton.transformations.PowerSetAutomaton;
 import owl.collections.ValuationSet;
 
 public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
@@ -65,7 +65,7 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
 
   @Override
   public Automaton<Set<S>, NoneAcceptance> getInitialComponent() {
-    return AutomatonFactory.createMutableAutomaton(new PowerSetAutomaton<>(
+    return MutableAutomatonFactory.createMutableAutomaton(AutomatonFactory.createPowerSetAutomaton(
         ldba.getInitialComponent()));
   }
 

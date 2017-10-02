@@ -22,29 +22,19 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 
 public final class Registry {
-  private static final Backend DEFAULT_BACKEND = Backend.JDD;
-
   private Registry() {
   }
 
   public static Factories getFactories(int alphabetSize) {
-    return getFactories(BooleanConstant.TRUE, alphabetSize, DEFAULT_BACKEND);
+    return getFactories(BooleanConstant.TRUE, alphabetSize);
   }
 
   public static Factories getFactories(Formula formula) {
-    return getFactories(formula, AlphabetVisitor.extractAlphabet(formula), DEFAULT_BACKEND);
+    return getFactories(formula, AlphabetVisitor.extractAlphabet(formula));
   }
 
-  public static Factories getFactories(Formula formula, Backend backend) {
-    return getFactories(formula, AlphabetVisitor.extractAlphabet(formula), backend);
-  }
-
-  public static Factories getFactories(Formula formula, int alphabetSize, Backend backend) {
+  public static Factories getFactories(Formula formula, int alphabetSize) {
     return new Factories(owl.factories.jdd.EquivalenceFactory.create(formula, alphabetSize),
       new ValuationFactory(alphabetSize));
-  }
-
-  public enum Backend {
-    JDD
   }
 }

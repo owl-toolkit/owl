@@ -40,7 +40,7 @@ import owl.translations.delag.ProductState.Builder;
 
 abstract class DependencyTree<T> {
 
-  private static long[] EMPTY = new long[0];
+  private static final long[] EMPTY = new long[0];
 
   static <T> DependencyTree<T> createAnd(List<DependencyTree<T>> children) {
     if (children.size() == 1) {
