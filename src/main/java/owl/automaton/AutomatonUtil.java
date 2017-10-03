@@ -201,11 +201,6 @@ public final class AutomatonUtil {
   }
 
   public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, Edge<S>> explorationFunction) {
-    exploreDeterministic(automaton, states, explorationFunction, new AtomicInteger());
-  }
-
-  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
     BiFunction<S, BitSet, Edge<S>> explorationFunction, AtomicInteger sizeCounter) {
     exploreDeterministic(automaton, states, explorationFunction, s -> null, sizeCounter);
   }
@@ -245,21 +240,13 @@ public final class AutomatonUtil {
     return exploredStates;
   }
 
-  public static <S> void forEachEdgeInSet(Function<S, Iterable<Edge<S>>> successorFunction,
-    Set<S> states, BiConsumer<S, Edge<S>> action) {
-    states.forEach(state -> successorFunction.apply(state).forEach(edge -> {
-      if (states.contains(edge.getSuccessor())) {
-        action.accept(state, edge);
-      }
-    }));
-  }
-
   public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
     BiConsumer<S, Edge<S>> action) {
     List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
 
     for (Set<S> scc : sccs) {
-      forEachEdgeInSet(automaton::getEdges, scc, action);
+      Automaton<S, ?> filteredAutomaton = AutomatonFactory.filterStates(automaton, scc::contains);
+      filteredAutomaton.forEachLabelledEdge((x, y, z) -> action.accept(x, y));
     }
   }
 

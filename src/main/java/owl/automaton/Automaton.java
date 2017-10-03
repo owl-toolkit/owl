@@ -31,7 +31,6 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -42,6 +41,7 @@ import owl.automaton.output.HoaPrintable;
 import owl.collections.Sets2;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
+import owl.util.TriConsumer;
 
 /**
  * Note: Every implementation should support concurrent read-access.
@@ -73,22 +73,13 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return getStates().containsAll(states);
   }
 
-  default void forEachEdge(BiConsumer<? super S, Edge<? super S>> action) {
-    forEachState(state -> getEdges(state).forEach(edge -> action.accept(state, edge)));
+  default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
+    getLabelledEdges(state).forEach(y -> action.accept(y.edge, y.valuations));
   }
 
-  default void forEachLabelledEdge(BiConsumer<S, LabelledEdge<S>> action) {
-    forEachState(state -> getLabelledEdges(state).forEach(labelledEdge ->
-      action.accept(state, labelledEdge)));
-  }
-
-  default void forEachState(Consumer<? super S> action) {
-    getStates().forEach(action);
-  }
-
-  default void forEachSuccessor(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    getLabelledEdges(state).forEach(labelledEdge -> action.accept(labelledEdge.edge,
-      labelledEdge.valuations));
+  default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
+    getStates().forEach(x ->
+      getLabelledEdges(x).forEach(y -> action.accept(x, y.edge, y.valuations)));
   }
 
   default void free() {
@@ -162,9 +153,9 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
     ValuationSetFactory vsFactory = getFactory();
 
-    forEachState(state -> {
+    getStates().forEach(state -> {
       ValuationSet unionSet = vsFactory.createEmptyValuationSet();
-      forEachSuccessor(state, (edge, valuations) -> unionSet.addAll(valuations));
+      forEachLabelledEdge(state, (edge, valuations) -> unionSet.addAll(valuations));
 
       // State is incomplete; complement() creates a new, referenced node.
       if (!unionSet.isUniverse()) {
@@ -307,7 +298,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
     getStates().forEach(state -> {
       hoa.addState(state);
-      forEachSuccessor(state, hoa::addEdge);
+      forEachLabelledEdge(state, hoa::addEdge);
       hoa.notifyEndOfState();
     });
 

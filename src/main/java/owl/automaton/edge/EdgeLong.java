@@ -80,7 +80,7 @@ final class EdgeLong<S> implements Edge<S> {
 
   @Override
   public int largestAcceptanceSet() {
-    return Long.SIZE - Long.numberOfLeadingZeros(store);
+    return (Long.SIZE - 1) - Long.numberOfLeadingZeros(store);
   }
 
   @Override

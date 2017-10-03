@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -110,15 +109,15 @@ public final class RabinUtil {
 
       // Determine the pairs which can accept in this SCC (i.e. those which have all their Inf in
       // this SCC)
-      IntSet activeIndices = new IntAVLTreeSet();
+      IntSet indices = new IntAVLTreeSet();
 
-      AutomatonFactory.filterStates(automaton, scc::contains).forEachEdge((state, edge) ->
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) activeIndices::add));
+      Automaton<S, ?> filtered = AutomatonFactory.filterStates(automaton, scc::contains);
+      filtered.forEachLabelledEdge((x, y, z) -> y.acceptanceSetStream().forEach(indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
       Lists2.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfinite();
-        if (IntIterators.all(pair.infiniteIndexIterator(), activeIndices::contains)) {
+        if (IntIterators.all(pair.infiniteIndexIterator(), indices::contains)) {
           sccTrackedPairs.add(pairIndex);
         }
       });
