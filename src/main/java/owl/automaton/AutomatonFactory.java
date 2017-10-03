@@ -17,8 +17,12 @@
 
 package owl.automaton;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -30,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
@@ -66,14 +69,14 @@ public final class AutomatonFactory {
     return new EmptyAutomaton<>(factory);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filterEdges(
-    Automaton<S, A> automaton, Predicate<Edge<S>> filter) {
-    return new FilteredAutomaton<>(automaton, x -> true, x -> filter.test(x.edge));
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
+    Set<S> states) {
+    return new FilteredAutomaton<>(automaton, states, x -> true);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filterStates(
-    Automaton<S, A> automaton, Predicate<S> filter) {
-    return new FilteredAutomaton<>(automaton, filter, x -> filter.test(x.edge.getSuccessor()));
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
+    Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    return new FilteredAutomaton<>(automaton, states, edgeFilter);
   }
 
   public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
@@ -197,14 +200,14 @@ public final class AutomatonFactory {
   private static final class FilteredAutomaton<S, A extends OmegaAcceptance>
     extends ForwardingAutomaton<S, A, A, Automaton<S, A>> {
 
+    private final ImmutableSet<S> states;
     private final Predicate<LabelledEdge<S>> edgeFilter;
-    private final Predicate<S> filter;
 
-    private FilteredAutomaton(Automaton<S, A> automaton, Predicate<S> filter,
-      Predicate<LabelledEdge<S>> edgeFilter) {
+    private FilteredAutomaton(Automaton<S, A> automaton, Set<S> states,
+      Predicate<Edge<S>> edgeFilter) {
       super(automaton);
-      this.filter = filter;
-      this.edgeFilter = edgeFilter;
+      this.states = ImmutableSet.copyOf(states);
+      this.edgeFilter = x -> states.contains(x.edge.getSuccessor()) && edgeFilter.test(x.edge);
     }
 
     @Override
@@ -214,18 +217,18 @@ public final class AutomatonFactory {
 
     @Override
     public Set<S> getInitialStates() {
-      return automaton.getInitialStates().stream().filter(filter).collect(Collectors.toSet());
+      return Sets.intersection(automaton.getInitialStates(), states);
     }
 
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return automaton.getLabelledEdges(state).stream().filter(edgeFilter)
-        .collect(Collectors.toList());
+      checkArgument(getStates().contains(state), "State %s not in automaton", state);
+      return Collections2.filter(automaton.getLabelledEdges(state), edgeFilter::test);
     }
 
     @Override
     public Set<S> getStates() {
-      return automaton.getStates().stream().filter(filter).collect(Collectors.toSet());
+      return Sets.intersection(states, automaton.getStates());
     }
   }
 

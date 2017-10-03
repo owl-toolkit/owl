@@ -19,36 +19,35 @@ package owl.automaton.minimizations;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edges;
 import owl.collections.Lists2;
 
 public final class GenericMinimizations {
-  private GenericMinimizations() {}
+  private GenericMinimizations() {
+  }
 
-  public static <S, A extends OmegaAcceptance> Minimization<S, A> removeTransientAcceptance() {
-    return automaton -> {
-      Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.stateCount());
-      stateToSccMap.defaultReturnValue(-1);
+  public static <S> void removeTransientAcceptance(MutableAutomaton<S, ?> automaton) {
+    Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.stateCount());
+    stateToSccMap.defaultReturnValue(-1);
 
-      Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton),
-        (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
+    Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton),
+      (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
-      automaton.remapEdges((state, edge) -> {
-        int sccIndex = stateToSccMap.getInt(state);
-        S successor = edge.getSuccessor();
-        int successorSccIndex = stateToSccMap.getInt(successor);
+    automaton.remapEdges((state, edge) -> {
+      int sccIndex = stateToSccMap.getInt(state);
+      S successor = edge.getSuccessor();
+      int successorSccIndex = stateToSccMap.getInt(successor);
 
-        assert sccIndex != -1;
-        assert successorSccIndex != -1;
+      assert sccIndex != -1;
+      assert successorSccIndex != -1;
 
-        if (sccIndex == successorSccIndex) {
-          return edge;
-        }
+      if (sccIndex == successorSccIndex) {
+        return edge;
+      }
 
-        return Edges.create(successor);
-      });
-    };
+      return Edges.create(successor);
+    });
   }
 }
