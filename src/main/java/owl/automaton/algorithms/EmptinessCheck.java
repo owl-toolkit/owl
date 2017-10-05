@@ -129,7 +129,7 @@ public final class EmptinessCheck {
   }
 
   public static <S> boolean isAcceptingScc(Automaton<S, ?> automaton, Set<S> scc) {
-    Automaton<S, ?> filteredAutomaton = AutomatonFactory.filterStates(automaton, scc::contains);
+    Automaton<S, ?> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
     assert SccDecomposition.isTrap(filteredAutomaton, scc);
     return isEmpty(filteredAutomaton, scc.iterator().next());
   }
@@ -161,15 +161,9 @@ public final class EmptinessCheck {
     if (acceptance instanceof ParityAcceptance) {
       Automaton<S, ParityAcceptance> casted = (Automaton<S, ParityAcceptance>) automaton;
 
-      if (casted.getAcceptance().getPriority() == Priority.ODD) {
-        assert Parity.containsAcceptingLasso(casted, initialState, true)
-          == Parity.containsAcceptingScc(casted, initialState);
-        return !Parity.containsAcceptingLasso(casted, initialState, true);
-      } else {
-        assert Parity.containsAcceptingLasso(casted, initialState, false)
+      assert Parity.containsAcceptingLasso(casted, initialState)
         == Parity.containsAcceptingScc(casted, initialState);
-        return !Parity.containsAcceptingLasso(casted, initialState, false);
-      }
+      return !Parity.containsAcceptingLasso(casted, initialState);
     }
 
     if (acceptance instanceof RabinAcceptance) {
@@ -223,39 +217,36 @@ public final class EmptinessCheck {
 
   private static final class Parity {
     private static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
-      S initialState, boolean odd) {
-      if (odd) {
-        int sets = automaton.getAcceptance().getAcceptanceSets();
-  
-        for (int i = 0; i < sets; i = i + 2) {
+      S initialState) {
+      int sets = automaton.getAcceptance().getAcceptanceSets();
+
+      if (automaton.getAcceptance().getPriority() == Priority.ODD) {
+        for (int fin = 0; fin < sets; fin = fin + 2) {
           int inf = -1;
-  
-          if (sets - i >= 2) {
-            inf = i + 1;
+
+          if (sets - fin >= 2) {
+            inf = fin + 1;
           }
-  
-          int fin = i;
-  
+
           if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
             return true;
           }
         }
-  
-        return false;
       } else {
-        int sets = automaton.getAcceptance().getAcceptanceSets();
-        for (int i = 0; i < sets; i = i + 2) {
-          int inf = i;
+        for (int inf = 0; inf < sets; inf = inf + 2) {
           int fin = inf - 1;
+
           if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
             return true;
           }
-          if (sets - i == 2 && hasAcceptingLasso(automaton, initialState, -1, fin + 2, true)) {
+
+          if (sets - inf == 2 && hasAcceptingLasso(automaton, initialState, -1, fin + 2, true)) {
             return true;
           }
         }
-        return false;
       }
+
+      return false;
     }
 
     private static <S> boolean containsAcceptingScc(Automaton<S, ParityAcceptance> automaton,
@@ -280,9 +271,8 @@ public final class EmptinessCheck {
           // with priority less than minimalPriorityInScc, since otherwise the search would have
           // terminated before adding this sub-SCC.
 
-          Automaton<S, ParityAcceptance> filteredAutomaton = AutomatonFactory.filterEdges(
-            automaton, edge -> result.scc.contains(edge.getSuccessor())
-              && edge.smallestAcceptanceSet() > result.minimalPriority);
+          Automaton<S, ParityAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton,
+            result.scc, edge -> edge.smallestAcceptanceSet() > result.minimalPriority);
           subSccs = SccDecomposition.computeSccs(filteredAutomaton, result.scc, false);
         }
 
@@ -375,8 +365,7 @@ public final class EmptinessCheck {
         }
 
         if (!noFinitePairs.isEmpty()) {
-          Automaton<S, RabinAcceptance> filteredAutomaton = AutomatonFactory
-            .filterStates(automaton, scc::contains);
+          Automaton<S, RabinAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
 
           // Check if there is any edge containing the infinite index of a pair with no finite index
           boolean anyNoFinitePairAccepts = scc.stream()
@@ -400,9 +389,8 @@ public final class EmptinessCheck {
 
         for (RabinPair pair : finitePairs) {
           // Compute all SCCs after removing the finite edges of the current finite pair
-          Automaton<S, RabinAcceptance> filteredAutomaton = AutomatonFactory
-            .filterEdges(automaton,
-              edge -> scc.contains(edge.getSuccessor()) && !pair.containsFinite(edge));
+          Automaton<S, RabinAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc,
+            edge -> !pair.containsFinite(edge));
 
           if (SccDecomposition.computeSccs(filteredAutomaton, scc)
             .stream().anyMatch(subScc -> {

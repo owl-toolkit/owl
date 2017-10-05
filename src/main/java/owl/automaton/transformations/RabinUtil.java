@@ -111,7 +111,7 @@ public final class RabinUtil {
       // this SCC)
       IntSet indices = new IntAVLTreeSet();
 
-      Automaton<S, ?> filtered = AutomatonFactory.filterStates(automaton, scc::contains);
+      Automaton<S, ?> filtered = AutomatonFactory.filter(automaton, scc);
       filtered.forEachLabelledEdge((x, y, z) -> y.acceptanceSetStream().forEach(indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
@@ -216,8 +216,8 @@ public final class RabinUtil {
         });
 
       List<Set<DegeneralizedRabinState<S>>> resultSccs = SccDecomposition.computeSccs(
-        AutomatonFactory.filterStates((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
-          exploredStates::contains), exploredStates, false);
+        AutomatonFactory.filter((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
+          exploredStates), exploredStates, false);
       Set<DegeneralizedRabinState<S>> resultBscc = resultSccs.stream()
         .filter(resultScc -> SccDecomposition.isTrap(resultAutomaton, resultScc))
         .findAny().orElseThrow(AssertionError::new);

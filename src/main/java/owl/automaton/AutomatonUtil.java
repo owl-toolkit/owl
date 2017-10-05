@@ -245,7 +245,7 @@ public final class AutomatonUtil {
     List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
 
     for (Set<S> scc : sccs) {
-      Automaton<S, ?> filteredAutomaton = AutomatonFactory.filterStates(automaton, scc::contains);
+      Automaton<S, ?> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
       filteredAutomaton.forEachLabelledEdge((x, y, z) -> action.accept(x, y));
     }
   }

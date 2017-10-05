@@ -55,21 +55,21 @@ public final class Rabinizer extends AbstractLtlCommandLineTool {
           .factories(factories)
           .build());
       MinimizationUtil.applyMinimization(automaton, ImmutableList.of(
-        GeneralizedRabinMinimizations.minimizeOverlap(),
-        GeneralizedRabinMinimizations.minimizeMergePairs(),
-        GeneralizedRabinMinimizations.minimizeComplementaryInf(),
-        GenericMinimizations.removeTransientAcceptance(),
-        GeneralizedRabinMinimizations.minimizeGloballyIrrelevant(),
-        GeneralizedRabinMinimizations.minimizeEdgeImplications(),
-        GeneralizedRabinMinimizations.minimizeSccIrrelevant(),
-        GeneralizedRabinMinimizations.minimizeTrivial(),
-        GeneralizedRabinMinimizations.minimizePairImplications(),
-        GeneralizedRabinMinimizations.minimizeMergePairs(),
-        GeneralizedRabinMinimizations.minimizeComplementaryInf(),
-        GeneralizedRabinMinimizations.minimizePairImplications(),
-        GeneralizedRabinMinimizations.minimizeEdgeImplications(),
-        GeneralizedRabinMinimizations.minimizeSccIrrelevant(),
-        GeneralizedRabinMinimizations.minimizeGloballyIrrelevant()
+        GeneralizedRabinMinimizations::minimizeOverlap,
+        GeneralizedRabinMinimizations::minimizeMergePairs,
+        GeneralizedRabinMinimizations::minimizeComplementaryInf,
+        GenericMinimizations::removeTransientAcceptance,
+        GeneralizedRabinMinimizations::minimizeGloballyIrrelevant,
+        GeneralizedRabinMinimizations::minimizeEdgeImplications,
+        GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+        GeneralizedRabinMinimizations::minimizeTrivial,
+        GeneralizedRabinMinimizations::minimizePairImplications,
+        GeneralizedRabinMinimizations::minimizeMergePairs,
+        GeneralizedRabinMinimizations::minimizeComplementaryInf,
+        GeneralizedRabinMinimizations::minimizePairImplications,
+        GeneralizedRabinMinimizations::minimizeEdgeImplications,
+        GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+        GeneralizedRabinMinimizations::minimizeGloballyIrrelevant
       ));
       return automaton;
       // return RabinUtil.fromGeneralizedRabin(automaton);
