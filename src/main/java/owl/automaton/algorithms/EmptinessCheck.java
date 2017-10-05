@@ -162,12 +162,14 @@ public final class EmptinessCheck {
       Automaton<S, ParityAcceptance> casted = (Automaton<S, ParityAcceptance>) automaton;
 
       if (casted.getAcceptance().getPriority() == Priority.ODD) {
-        assert Parity.containsAcceptingLasso(casted, initialState)
+        assert Parity.containsAcceptingLasso(casted, initialState, true)
           == Parity.containsAcceptingScc(casted, initialState);
-        return !Parity.containsAcceptingLasso(casted, initialState);
+        return !Parity.containsAcceptingLasso(casted, initialState, true);
+      } else {
+        assert Parity.containsAcceptingLasso(casted, initialState, false)
+        == Parity.containsAcceptingScc(casted, initialState);
+        return !Parity.containsAcceptingLasso(casted, initialState, false);
       }
-
-      return !Parity.containsAcceptingScc(casted, initialState);
     }
 
     if (acceptance instanceof RabinAcceptance) {
@@ -221,24 +223,39 @@ public final class EmptinessCheck {
 
   private static final class Parity {
     private static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
-      S initialState) {
-      int sets = automaton.getAcceptance().getAcceptanceSets();
-
-      for (int i = 0; i < sets; i = i + 2) {
-        int inf = -1;
-
-        if (sets - i >= 2) {
-          inf = i + 1;
+      S initialState, boolean odd) {
+      if (odd) {
+        int sets = automaton.getAcceptance().getAcceptanceSets();
+  
+        for (int i = 0; i < sets; i = i + 2) {
+          int inf = -1;
+  
+          if (sets - i >= 2) {
+            inf = i + 1;
+          }
+  
+          int fin = i;
+  
+          if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
+            return true;
+          }
         }
-
-        int fin = i;
-
-        if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
-          return true;
+  
+        return false;
+      } else {
+        int sets = automaton.getAcceptance().getAcceptanceSets();
+        for (int i = 0; i < sets; i = i + 2) {
+          int inf = i;
+          int fin = inf - 1;
+          if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
+            return true;
+          }
+          if (sets - i == 2 && hasAcceptingLasso(automaton, initialState, -1, fin + 2, true)) {
+            return true;
+          }
         }
+        return false;
       }
-
-      return false;
     }
 
     private static <S> boolean containsAcceptingScc(Automaton<S, ParityAcceptance> automaton,
