@@ -86,9 +86,15 @@ public final class SccDecomposition<S> {
     return computeSccs(automaton, initialStates, true);
   }
 
-  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> states,
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState,
     boolean includeTransient) {
-    return computeSccs(states, automaton::getSuccessors, includeTransient);
+    return computeSccs(Collections.singleton(initialState), automaton::getSuccessors,
+      includeTransient);
+  }
+
+  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> initialStates,
+    boolean includeTransient) {
+    return computeSccs(initialStates, automaton::getSuccessors, includeTransient);
   }
 
   // Return Condensation Graph?
@@ -119,6 +125,7 @@ public final class SccDecomposition<S> {
     if (scc.size() > 1) {
       return false;
     }
+
     S state = Iterables.getOnlyElement(scc);
     return !Iterables.contains(successorFunction.apply(state), state);
   }

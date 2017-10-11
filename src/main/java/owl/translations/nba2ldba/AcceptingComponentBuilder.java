@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ final class AcceptingComponentBuilder<S>
     assert finEdges.get(0) != null;
     this.traverseOnlySccs = traverseOnlySccs;
     if (traverseOnlySccs) {
-      sccs = SccDecomposition.computeSccs(nba);
+      sccs = SccDecomposition.computeSccs(nba, false);
     } else {
       sccs = new LinkedList<>();
     }
@@ -98,7 +99,13 @@ final class AcceptingComponentBuilder<S>
 
   @Nullable
   private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
-    Set<S> scc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx)).findAny().get();
+    Optional<Set<S>> optionalScc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx)).findAny();
+
+    if (!optionalScc.isPresent()) {
+      return null;
+    }
+
+    Set<S> scc = optionalScc.get();
     Set<Edge<S>> outEdgesM = ldbaState.mx.stream().flatMap(x -> nba.getEdges(x, valuation)
       .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.getSuccessor()))
       .collect(Collectors.toSet());

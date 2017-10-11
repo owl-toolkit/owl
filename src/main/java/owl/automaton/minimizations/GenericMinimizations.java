@@ -32,7 +32,7 @@ public final class GenericMinimizations {
     Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.stateCount());
     stateToSccMap.defaultReturnValue(-1);
 
-    Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton),
+    Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
       (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
     automaton.remapEdges((state, edge) -> {

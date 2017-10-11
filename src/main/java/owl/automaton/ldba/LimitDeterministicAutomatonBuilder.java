@@ -180,8 +180,8 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   private void generateJumps(Automaton<S, NoneAcceptance> initialComponent,
     Multimap<S, T> epsilonJumps) {
     // Decompose into SCCs
-    List<Set<S>> sccs = optimisations.contains(Optimisation.SCC_ANALYSIS)
-                        ? SccDecomposition.computeSccs(initialComponent)
+    List<Set<S>> sccs = optimisations.contains(Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES)
+                        ? SccDecomposition.computeSccs(initialComponent, true)
                         : Collections.singletonList(initialComponent.getStates());
 
     for (Set<S> scc : sccs) {

@@ -37,7 +37,8 @@ public class CutDeterministicAutomatonTest {
 
   @Before
   public void setUp() throws Exception {
-    EnumSet<Optimisation> optimisations = EnumSet.of(Optimisation.SCC_ANALYSIS,
+    EnumSet<Optimisation> optimisations = EnumSet.of(
+      Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES,
       Optimisation.EAGER_UNFOLD, Optimisation.REMOVE_REDUNDANT_OBLIGATIONS,
       Optimisation.FORCE_JUMPS, Optimisation.MINIMIZE_JUMPS,
       Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS);

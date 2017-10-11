@@ -51,7 +51,6 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.collections.Trie;
 import owl.factories.ValuationSetFactory;
 import owl.translations.Optimisation;
-import owl.translations.nba2ldba.Safety;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
   implements ExploreBuilder<S, RankingState<S, T>, ParityAcceptance> {
@@ -75,7 +74,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
   public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations,
-    LanguageLattice<V, T, U> lattice, Predicate<S> clearRanking, 
+    LanguageLattice<V, T, U> lattice, Predicate<S> clearRanking,
     boolean clearRankingAnnotation) {
     acceptingComponent = ldba.getAcceptingComponent();
     initialComponent = ldba.getInitialComponent();
@@ -232,7 +231,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     // TODO: add getSensitiveAlphabet Method
     AutomatonUtil.exploreDeterministic(automaton, initialStates, this::getSuccessor, sizeCounter);
     automaton.setInitialStates(initialStates);
-    List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton);
+    List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton, false);
     S initialState = Iterables.getOnlyElement(initialStates).state;
 
     for (Set<RankingState<S, T>> scc : Lists.reverse(sccs)) {
