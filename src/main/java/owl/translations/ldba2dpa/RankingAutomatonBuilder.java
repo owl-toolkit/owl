@@ -51,6 +51,7 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.collections.Trie;
 import owl.factories.ValuationSetFactory;
 import owl.translations.Optimisation;
+import owl.translations.nba2ldba.Safety;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
   implements ExploreBuilder<S, RankingState<S, T>, ParityAcceptance> {
@@ -70,10 +71,12 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private final Map<S, Trie<T>> trie;
   private final Map<U, Integer> volatileComponents;
   private final int volatileMaxIndex;
+  private final boolean clearRankingAnnotation;
 
   public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations,
-    LanguageLattice<V, T, U> lattice, Predicate<S> clearRanking) {
+    LanguageLattice<V, T, U> lattice, Predicate<S> clearRanking, 
+    boolean clearRankingAnnotation) {
     acceptingComponent = ldba.getAcceptingComponent();
     initialComponent = ldba.getInitialComponent();
     this.ldba = ldba;
@@ -110,6 +113,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     initialStates = new ArrayList<>();
     this.sizeCounter = sizeCounter;
     this.lattice = lattice;
+    this.clearRankingAnnotation = clearRankingAnnotation;
   }
 
   @Override
@@ -340,7 +344,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
         if (edge.inSet(0)) {
           edgeColor = Math.min(2 * index + 1, edgeColor);
 
-          if (annotation != null) {
+          if (annotation != null && clearRankingAnnotation) {
             existingLanguages.replace(annotation, lattice.getTop());
           }
         }

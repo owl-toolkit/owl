@@ -18,10 +18,15 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.Sets;
+
+import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -31,7 +36,7 @@ import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.translations.Optimisation;
 
 public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extends OmegaAcceptance>,
-  LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
+  LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety>> {
 
   private final EnumSet<Optimisation> optimisations;
 
@@ -40,7 +45,7 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
   }
 
   @Override
-  public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> apply(
+  public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> apply(
     Automaton<S, ? extends OmegaAcceptance> nba) {
     Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
 
@@ -54,11 +59,38 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     }
 
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
-    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Void> builder;
-    ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder;
-    acceptingComponentBuilder = AcceptingComponentBuilder.createScc(nbaGBA);
-    builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder, Sets::newHashSet, (x) -> null, optimisations);
+    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Safety>
+    builder;
+
+    ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
+    = acceptingComponentBuilder = AcceptingComponentBuilder.createScc(nbaGBA);
+    
+    if (optimisations.contains(Optimisation.CALC_SAFETY)) {
+      BiFunction<BreakpointState<S>, Automaton<BreakpointState<S>, BuchiAcceptance>, Safety>
+      getSafeties = (state, automaton) -> {
+        if (SafetyUtil.isSafetyLanguage(state, automaton)) {
+          return Safety.SAFETY;
+        }
+        if (SafetyUtil.isCosafetyLanguage(state, automaton)) {
+          return Safety.CO_SAFETY;
+        }
+        return Safety.NEITHER;
+      };
+      ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder2
+      = acceptingComponentBuilder = AcceptingComponentBuilder.createScc(nbaGBA);
+      for (S state : nba.getStates()) {
+        BreakpointState<S> target = acceptingComponentBuilder2.add(state);
+      }
+      Automaton<BreakpointState<S>, BuchiAcceptance> acceptingComponent
+      = acceptingComponentBuilder2.build();
+      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+          acceptingComponentBuilder, Sets::newHashSet, x -> getSafeties.apply(x,
+              acceptingComponent), optimisations);
+    } else {
+      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+          acceptingComponentBuilder, Sets::newHashSet, (x) -> null, optimisations);
+    }
+    
     return builder.build();
   }
 }
