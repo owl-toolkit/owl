@@ -39,6 +39,7 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.minimizations.GenericMinimizations;
 import owl.collections.ValuationSet;
 
 public final class ParityUtil {
@@ -65,6 +66,7 @@ public final class ParityUtil {
 
   public static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
     MutableAutomaton<S, ParityAcceptance> automaton) {
+    GenericMinimizations.removeTransientAcceptance(automaton);
     return minimizePriorities(automaton, SccDecomposition.computeSccs(automaton, false));
   }
 
