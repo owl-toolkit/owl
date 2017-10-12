@@ -1,0 +1,9 @@
+"formula","tool","exit_status","exit_code","time","states","edges","transitions","acc","scc","nondet_states","nondet_aut","complete_aut","product_states","product_transitions","product_scc"
+"G(F(p1))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.487872,2,4,4,3,1,0,0,1,400,8272,1
+"(G(F(p1))) & (G(F(p2)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.534424,4,10,16,3,1,0,0,1,800,16576,1
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.65526,6,15,48,3,1,0,0,1,1200,25002,1
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.814856,8,20,128,3,1,0,0,1,1600,33880,1
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.24728,10,25,320,3,1,0,0,1,1999,42674,1
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.86415,12,30,768,3,1,0,0,1,2400,50628,1
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6))) & (G(F(p7)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,3.927,14,35,1792,3,1,0,0,1,2800,58674,1
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6))) & (G(F(p7))) & (G(F(p8)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,15.5838,16,40,4096,3,1,0,0,1,3200,66160,1

@@ -8,7 +8,7 @@ echo "Running test with args" $@
 source "$(dirname $0)/vars.sh"
 RESULTS_FOLDER="$PROJECT_FOLDER/build/results"
 EVALUATION_SCRIPT="$SCRIPT_FOLDER/ltlcross-eval.py"
-TIMEOUT_SEC="300"
+TIMEOUT_SEC="60"
 ANY_ERROR=0
 
 # This tool will be the "trusted" one - we assume that this is always correct

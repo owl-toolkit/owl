@@ -1,0 +1,19 @@
+"formula","tool","exit_status","exit_code","time","states","edges","transitions","acc","scc","nondet_states","nondet_aut","complete_aut","product_states","product_transitions","product_scc"
+"G(F(p1))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.920467,2,4,4,3,1,0,0,1,400,8272,1
+"!(G(F(p1)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.01638,3,6,6,2,1,0,0,1,800,18573,3
+"(G(F(p1))) | (G(F(p2)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.16337,2,4,8,3,1,0,0,1,398,8245,1
+"!((G(F(p1))) | (G(F(p2))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.22425,3,6,12,2,1,0,0,1,794,15460,3
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.06111,2,4,16,3,1,0,0,1,389,8110,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.12786,3,6,24,2,1,0,0,1,765,13447,24
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.3867,2,4,32,3,1,0,0,1,348,7404,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.04445,3,6,48,2,1,0,0,1,592,10553,120
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.87653,2,4,64,3,1,0,0,1,302,6479,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.24582,3,6,96,2,1,0,0,1,410,7811,55
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.29659,2,4,128,3,1,0,0,1,255,5392,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.40229,3,6,192,2,1,0,0,1,289,5768,18
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))) | (G(F(p7)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,2.52728,2,4,256,3,1,0,0,1,228,4729,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))) | (G(F(p7))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.83584,3,6,384,2,1,0,0,1,238,4829,6
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))) | (G(F(p7))) | (G(F(p8)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,3.42856,2,4,512,3,1,0,0,1,215,4406,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))) | (G(F(p7))) | (G(F(p8))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,4.15089,3,6,768,2,1,0,0,1,215,4406,1
+"(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))) | (G(F(p7))) | (G(F(p8))) | (G(F(p9)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,8.57782,2,4,1024,3,1,0,0,1,209,4343,1
+"!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))) | (G(F(p7))) | (G(F(p8))) | (G(F(p9))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,10.6464,3,6,1536,2,1,0,0,1,209,4343,1

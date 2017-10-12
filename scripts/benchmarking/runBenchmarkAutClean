@@ -1,0 +1,9 @@
+#NBA -> LDBA -> DPA
+#NBA -> (via ltl2tgba) DPA
+#NBA -> LDBA -> (via ltl2tgba) DPA    
+autcross --language-preserved "cat %H | build/bin/nba2dpa >%O" --file=data/automatons/genaut.hoa --csv="benchmarking-results/nba2dpa-clean.csv"
+autcross --language-preserved "cat %H | build/bin/nba2dpa >%O" --file=data/automatons/randaut.hoa --csv=">>benchmarking-results/nba2dpa-clean.csv"
+autcross --language-preserved "autfilt --file=%H --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" --file=data/automatons/genaut.hoa --csv="benchmarking-results/nba2dpa-spot-clean.csv"
+autcross --language-preserved "autfilt --file=%H --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" --file=data/automatons/randaut.hoa --csv=">>benchmarking-results/nba2dpa-spot-clean.csv"
+autcross --language-preserved "cat %H | build/bin/nba2ldba | autfilt --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" --file=data/automatons/genaut.hoa --csv="benchmarking-results/nba2ldba2dpa-spot-clean.csv"
+autcross --language-preserved "cat %H | build/bin/nba2ldba | autfilt --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" --file=data/automatons/randaut.hoa --csv=">>benchmarking-results/nba2ldba2dpa-spot-clean.csv"

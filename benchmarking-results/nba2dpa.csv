@@ -1,0 +1,125 @@
+"input.source","input.name","input.ap","input.states","input.edges","input.transitions","input.acc_sets","input.scc","input.nondetstates","input.nondeterministic","input.alternating","tool","exit_status","exit_code","time","output.ap","output.states","output.edges","output.transitions","output.acc_sets","output.scc","output.nondetstates","output.nondeterministic","output.alternating"
+"data/automatons/genaut.hoa:1.1-20.7",,2,4,7,9,1,1,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.839401,2,6,18,24,3,2,0,0,0
+"data/automatons/genaut.hoa:1.1-20.7",,2,4,7,9,1,1,1,1,0,"autfilt","ok",0,0.0303209,2,4,7,9,1,1,1,1,0
+"data/automatons/genaut.hoa:21.1-48.7",,2,7,12,16,1,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.76193,2,100,357,400,13,3,0,0,0
+"data/automatons/genaut.hoa:21.1-48.7",,2,7,12,16,1,1,3,1,0,"autfilt","ok",0,0.00510403,2,7,12,16,1,1,3,1,0
+"data/automatons/randaut.hoa:1.1-127.7",,3,45,73,73,0,4,2,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.18438,3,56,142,448,2,14,0,0,0
+"data/automatons/randaut.hoa:1.1-127.7",,3,45,73,73,0,4,2,1,0,"autfilt","ok",0,0.00519717,3,45,73,73,0,4,2,1,0
+"data/automatons/randaut.hoa:128.1-201.7",,1,26,39,39,0,3,7,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.03844,1,36,71,72,2,6,0,0,0
+"data/automatons/randaut.hoa:128.1-201.7",,1,26,39,39,0,3,7,1,0,"autfilt","ok",0,0.00572215,1,26,39,39,0,3,7,1,0
+"data/automatons/randaut.hoa:202.1-339.7",,2,52,77,77,0,2,4,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.29607,2,58,144,232,2,4,0,0,0
+"data/automatons/randaut.hoa:202.1-339.7",,2,52,77,77,0,2,4,1,0,"autfilt","ok",0,0.00519752,2,52,77,77,0,2,4,1,0
+"data/automatons/randaut.hoa:340.1-458.7",,3,44,66,66,0,4,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.84121,3,47,116,376,2,6,0,0,0
+"data/automatons/randaut.hoa:340.1-458.7",,3,44,66,66,0,4,3,1,0,"autfilt","ok",0,0.00516749,3,44,66,66,0,4,3,1,0
+"data/automatons/randaut.hoa:459.1-573.7",,3,42,64,64,0,1,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.07771,3,45,114,360,2,3,0,0,0
+"data/automatons/randaut.hoa:459.1-573.7",,3,42,64,64,0,1,1,1,0,"autfilt","ok",0,0.0051286,3,42,64,64,0,1,1,1,0
+"data/automatons/randaut.hoa:574.1-748.7",,1,63,103,103,0,6,21,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,6.69371,1,264,527,528,2,15,0,0,0
+"data/automatons/randaut.hoa:574.1-748.7",,1,63,103,103,0,6,21,1,0,"autfilt","ok",0,0.00513809,1,63,103,103,0,6,21,1,0
+"data/automatons/randaut.hoa:749.1-890.7",,3,51,82,82,0,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.5105,3,53,137,424,2,3,0,0,0
+"data/automatons/randaut.hoa:749.1-890.7",,3,51,82,82,0,1,3,1,0,"autfilt","ok",0,0.00669745,3,51,82,82,0,1,3,1,0
+"data/automatons/randaut.hoa:891.1-1068.7",,2,60,109,109,0,1,11,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.77039,2,99,290,396,2,3,0,0,0
+"data/automatons/randaut.hoa:891.1-1068.7",,2,60,109,109,0,1,11,1,0,"autfilt","ok",0,0.00750386,2,60,109,109,0,1,11,1,0
+"data/automatons/randaut.hoa:1069.1-1244.7",,4,59,108,108,0,2,4,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,10.8357,4,63,183,1008,2,4,0,0,0
+"data/automatons/randaut.hoa:1069.1-1244.7",,4,59,108,108,0,2,4,1,0,"autfilt","ok",0,0.00464593,4,59,108,108,0,2,4,1,0
+"data/automatons/randaut.hoa:1245.1-1285.7",,3,15,17,17,0,5,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.83133,3,18,37,144,2,8,0,0,0
+"data/automatons/randaut.hoa:1245.1-1285.7",,3,15,17,17,0,5,0,0,0,"autfilt","ok",0,0.00569196,3,15,17,17,0,5,0,0,0
+"data/automatons/randaut.hoa:1286.1-1395.7",,3,36,65,65,0,2,4,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.62855,3,41,114,328,2,5,0,0,0
+"data/automatons/randaut.hoa:1286.1-1395.7",,3,36,65,65,0,2,4,1,0,"autfilt","ok",0,0.0049705,3,36,65,65,0,2,4,1,0
+"data/automatons/randaut.hoa:1396.1-1565.7",,4,51,110,110,0,1,4,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,7.87074,4,55,179,880,2,3,0,0,0
+"data/automatons/randaut.hoa:1396.1-1565.7",,4,51,110,110,0,1,4,1,0,"autfilt","ok",0,0.00710229,4,51,110,110,0,1,4,1,0
+"data/automatons/randaut.hoa:1566.1-1658.7",,1,30,54,54,0,4,11,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,160.242,1,2160,4319,4320,2,287,0,0,0
+"data/automatons/randaut.hoa:1566.1-1658.7",,1,30,54,54,0,4,11,1,0,"autfilt","ok",0,0.00635253,1,30,54,54,0,4,11,1,0
+"data/automatons/randaut.hoa:1659.1-1744.7",,1,28,49,49,0,1,14,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,5.41176,1,130,259,260,2,5,0,0,0
+"data/automatons/randaut.hoa:1659.1-1744.7",,1,28,49,49,0,1,14,1,0,"autfilt","ok",0,0.00424352,1,28,49,49,0,1,14,1,0
+"data/automatons/randaut.hoa:1745.1-1835.7",,1,29,53,53,0,2,11,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.9478,1,109,217,218,2,6,0,0,0
+"data/automatons/randaut.hoa:1745.1-1835.7",,1,29,53,53,0,2,11,1,0,"autfilt","ok",0,0.00598836,1,29,53,53,0,2,11,1,0
+"data/automatons/randaut.hoa:1836.1-2051.7",,3,59,148,148,0,1,13,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,10.944,3,126,538,1008,2,3,0,0,0
+"data/automatons/randaut.hoa:1836.1-2051.7",,3,59,148,148,0,1,13,1,0,"autfilt","ok",0,0.00625891,3,59,148,148,0,1,13,1,0
+"data/automatons/randaut.hoa:2052.1-2224.7",,3,51,113,113,0,1,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,4.10302,3,65,215,520,2,3,0,0,0
+"data/automatons/randaut.hoa:2052.1-2224.7",,3,51,113,113,0,1,9,1,0,"autfilt","ok",0,0.00606993,3,51,113,113,0,1,9,1,0
+"data/automatons/randaut.hoa:2225.1-2420.7",,3,58,129,129,0,1,14,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,4.42159,3,74,246,592,2,3,0,0,0
+"data/automatons/randaut.hoa:2225.1-2420.7",,3,58,129,129,0,1,14,1,0,"autfilt","ok",0,0.00617393,3,58,129,129,0,1,14,1,0
+"data/automatons/randaut.hoa:2421.1-2607.7",,4,53,125,125,0,1,10,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,13.9991,4,64,241,1024,2,3,0,0,0
+"data/automatons/randaut.hoa:2421.1-2607.7",,4,53,125,125,0,1,10,1,0,"autfilt","ok",0,0.008544,4,53,125,125,0,1,10,1,0
+"data/automatons/randaut.hoa:2608.1-2683.7",,3,24,43,43,0,1,2,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.93638,3,29,84,232,2,4,0,0,0
+"data/automatons/randaut.hoa:2608.1-2683.7",,3,24,43,43,0,1,2,1,0,"autfilt","ok",0,0.00601776,3,24,43,43,0,1,2,1,0
+"data/automatons/randaut.hoa:2684.1-2760.7",,3,24,44,44,0,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.71474,3,27,74,216,2,3,0,0,0
+"data/automatons/randaut.hoa:2684.1-2760.7",,3,24,44,44,0,1,3,1,0,"autfilt","ok",0,0.00456112,3,24,44,44,0,1,3,1,0
+"data/automatons/randaut.hoa:2761.1-2863.7",,2,29,65,65,0,1,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,8.4539,2,156,543,624,2,3,0,0,0
+"data/automatons/randaut.hoa:2761.1-2863.7",,2,29,65,65,0,1,9,1,0,"autfilt","ok",0,0.00593256,2,29,65,65,0,1,9,1,0
+"data/automatons/randaut.hoa:2864.1-2984.7",,4,36,76,76,0,1,4,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,6.22218,4,41,126,656,2,3,0,0,0
+"data/automatons/randaut.hoa:2864.1-2984.7",,4,36,76,76,0,1,4,1,0,"autfilt","ok",0,0.00613621,4,36,76,76,0,1,4,1,0
+"data/automatons/randaut.hoa:2985.1-3028.7",,4,15,20,20,0,6,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.60676,4,20,45,320,2,11,0,0,0
+"data/automatons/randaut.hoa:2985.1-3028.7",,4,15,20,20,0,6,0,0,0,"autfilt","ok",0,0.00595974,4,15,20,20,0,6,0,0,0
+"data/automatons/randaut.hoa:3029.1-3048.7",,3,5,6,6,0,2,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.665333,3,7,14,56,2,4,0,0,0
+"data/automatons/randaut.hoa:3029.1-3048.7",,3,5,6,6,0,2,0,0,0,"autfilt","ok",0,0.00677894,3,5,6,6,0,2,0,0,0
+"data/automatons/randaut.hoa:3049.1-3175.7",,2,36,82,82,0,1,13,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,11.0673,2,200,740,800,2,3,0,0,0
+"data/automatons/randaut.hoa:3049.1-3175.7",,2,36,82,82,0,1,13,1,0,"autfilt","ok",0,0.0043202,2,36,82,82,0,1,13,1,0
+"data/automatons/randaut.hoa:3176.1-3203.7",,2,9,10,10,0,2,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.561778,2,11,22,44,2,4,0,0,0
+"data/automatons/randaut.hoa:3176.1-3203.7",,2,9,10,10,0,2,0,0,0,"autfilt","ok",0,0.00444513,2,9,10,10,0,2,0,0,0
+"data/automatons/randaut.hoa:3204.1-3218.7",,2,3,3,3,0,3,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.481007,2,5,9,20,2,5,0,0,0
+"data/automatons/randaut.hoa:3204.1-3218.7",,2,3,3,3,0,3,0,0,0,"autfilt","ok",0,0.00625151,2,3,3,3,0,3,0,0,0
+"data/automatons/randaut.hoa:3219.1-3308.7",,3,27,54,54,0,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.51615,3,36,112,288,2,4,0,0,0
+"data/automatons/randaut.hoa:3219.1-3308.7",,3,27,54,54,0,1,3,1,0,"autfilt","ok",0,0.00605125,3,27,54,54,0,1,3,1,0
+"data/automatons/randaut.hoa:3309.1-3442.7",,2,38,87,87,0,2,15,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,11.2496,2,186,684,744,2,4,0,0,0
+"data/automatons/randaut.hoa:3309.1-3442.7",,2,38,87,87,0,2,15,1,0,"autfilt","ok",0,0.00591786,2,38,87,87,0,2,15,1,0
+"data/automatons/randaut.hoa:3443.1-3495.7",,2,15,29,29,0,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.20618,2,21,61,84,2,3,0,0,0
+"data/automatons/randaut.hoa:3443.1-3495.7",,2,15,29,29,0,1,3,1,0,"autfilt","ok",0,0.00776337,2,15,29,29,0,1,3,1,0
+"data/automatons/randaut.hoa:3496.1-3575.7",,3,24,47,47,0,3,2,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.76594,3,37,107,296,2,12,0,0,0
+"data/automatons/randaut.hoa:3496.1-3575.7",,3,24,47,47,0,3,2,1,0,"autfilt","ok",0,0.00598457,3,24,47,47,0,3,2,1,0
+"data/automatons/randaut.hoa:3576.1-3608.7",,3,10,14,14,0,2,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.927068,3,11,25,88,2,4,0,0,0
+"data/automatons/randaut.hoa:3576.1-3608.7",,3,10,14,14,0,2,1,1,0,"autfilt","ok",0,0.00633871,3,10,14,14,0,2,1,1,0
+"data/automatons/randaut.hoa:3609.1-3691.7",,2,25,49,49,0,1,5,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.48467,2,38,113,152,2,3,0,0,0
+"data/automatons/randaut.hoa:3609.1-3691.7",,2,25,49,49,0,1,5,1,0,"autfilt","ok",0,0.00585311,2,25,49,49,0,1,5,1,0
+"data/automatons/randaut.hoa:3692.1-3775.7",,1,25,50,50,0,1,13,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,10.5036,1,212,423,424,2,3,0,0,0
+"data/automatons/randaut.hoa:3692.1-3775.7",,1,25,50,50,0,1,13,1,0,"autfilt","ok",0,0.00420768,1,25,50,50,0,1,13,1,0
+"data/automatons/randaut.hoa:3776.1-3818.7",,1,13,21,21,0,5,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.611902,1,19,37,38,2,7,0,0,0
+"data/automatons/randaut.hoa:3776.1-3818.7",,1,13,21,21,0,5,3,1,0,"autfilt","ok",0,0.00429977,1,13,21,21,0,5,3,1,0
+"data/automatons/randaut.hoa:3819.1-3884.7",,1,20,37,37,0,4,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,67.1713,1,1016,2031,2032,2,95,0,0,0
+"data/automatons/randaut.hoa:3819.1-3884.7",,1,20,37,37,0,4,9,1,0,"autfilt","ok",0,0.00601215,1,20,37,37,0,4,9,1,0
+"data/automatons/randaut.hoa:3885.1-3976.7",,2,25,58,58,0,1,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,3.88789,2,85,304,340,2,3,0,0,0
+"data/automatons/randaut.hoa:3885.1-3976.7",,2,25,58,58,0,1,9,1,0,"autfilt","ok",0,0.00590423,2,25,58,58,0,1,9,1,0
+"data/automatons/randaut.hoa:3977.1-4026.7",,2,14,27,27,0,1,2,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.24828,2,24,73,96,2,3,0,0,0
+"data/automatons/randaut.hoa:3977.1-4026.7",,2,14,27,27,0,1,2,1,0,"autfilt","ok",0,0.00610634,2,14,27,27,0,1,2,1,0
+"data/automatons/randaut.hoa:4027.1-4101.7",,1,23,43,43,0,2,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,13.6297,1,235,469,470,2,4,0,0,0
+"data/automatons/randaut.hoa:4027.1-4101.7",,1,23,43,43,0,2,9,1,0,"autfilt","ok",0,0.00459395,1,23,43,43,0,2,9,1,0
+"data/automatons/randaut.hoa:4102.1-4154.7",,2,15,29,29,0,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.819067,2,21,61,84,2,3,0,0,0
+"data/automatons/randaut.hoa:4102.1-4154.7",,2,15,29,29,0,1,3,1,0,"autfilt","ok",0,0.0045887,2,15,29,29,0,1,3,1,0
+"data/automatons/randaut.hoa:4155.1-4242.7",,3,24,55,55,0,1,6,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.22635,3,34,122,272,2,3,0,0,0
+"data/automatons/randaut.hoa:4155.1-4242.7",,3,24,55,55,0,1,6,1,0,"autfilt","ok",0,0.00604686,3,24,55,55,0,1,6,1,0
+"data/automatons/randaut.hoa:4243.1-4330.7",,2,24,55,55,0,1,8,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,3.42569,2,73,255,292,2,3,0,0,0
+"data/automatons/randaut.hoa:4243.1-4330.7",,2,24,55,55,0,1,8,1,0,"autfilt","ok",0,0.00592796,2,24,55,55,0,1,8,1,0
+"data/automatons/randaut.hoa:4331.1-4354.7",,2,6,9,9,0,2,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.794517,2,12,28,48,2,5,0,0,0
+"data/automatons/randaut.hoa:4331.1-4354.7",,2,6,9,9,0,2,1,1,0,"autfilt","ok",0,0.00600115,2,6,9,9,0,2,1,1,0
+"data/automatons/randaut.hoa:4355.1-4388.7",,1,10,15,15,0,1,3,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.44485,1,31,61,62,2,3,0,0,0
+"data/automatons/randaut.hoa:4355.1-4388.7",,1,10,15,15,0,1,3,1,0,"autfilt","ok",0,0.00591984,1,10,15,15,0,1,3,1,0
+"data/automatons/randaut.hoa:4389.1-4406.7",,1,4,5,5,0,1,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.782404,1,6,11,12,2,3,0,0,0
+"data/automatons/randaut.hoa:4389.1-4406.7",,1,4,5,5,0,1,1,1,0,"autfilt","ok",0,0.00616154,1,4,5,5,0,1,1,1,0
+"data/automatons/randaut.hoa:4407.1-4472.7",,2,19,38,38,0,1,6,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,1.48472,2,31,101,124,2,3,0,0,0
+"data/automatons/randaut.hoa:4407.1-4472.7",,2,19,38,38,0,1,6,1,0,"autfilt","ok",0,0.00589225,2,19,38,38,0,1,6,1,0
+"data/automatons/randaut.hoa:4473.1-4491.7",,1,4,6,6,0,2,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.695336,1,8,15,16,2,4,0,0,0
+"data/automatons/randaut.hoa:4473.1-4491.7",,1,4,6,6,0,2,1,1,0,"autfilt","ok",0,0.00606376,1,4,6,6,0,2,1,1,0
+"data/automatons/randaut.hoa:4492.1-4521.7",,1,9,12,12,0,1,1,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.757066,1,10,19,20,2,3,0,0,0
+"data/automatons/randaut.hoa:4492.1-4521.7",,1,9,12,12,0,1,1,1,0,"autfilt","ok",0,0.00576393,1,9,12,12,0,1,1,1,0
+"data/automatons/randaut.hoa:4522.1-4575.7",,1,15,30,30,0,1,5,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,3.28114,1,75,149,150,2,4,0,0,0
+"data/automatons/randaut.hoa:4522.1-4575.7",,1,15,30,30,0,1,5,1,0,"autfilt","ok",0,0.00574267,1,15,30,30,0,1,5,1,0
+"data/automatons/randaut.hoa:4576.1-4627.7",,2,12,31,31,0,1,5,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,2.95874,2,58,214,232,2,3,0,0,0
+"data/automatons/randaut.hoa:4576.1-4627.7",,2,12,31,31,0,1,5,1,0,"autfilt","ok",0,0.0058898,2,12,31,31,0,1,5,1,0
+"data/automatons/randaut.hoa:4628.1-4649.7",,2,5,8,8,0,3,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.717155,2,8,19,32,2,6,0,0,0
+"data/automatons/randaut.hoa:4628.1-4649.7",,2,5,8,8,0,3,0,0,0,"autfilt","ok",0,0.00771692,2,5,8,8,0,3,0,0,0
+"data/automatons/randaut.hoa:4650.1-4740.7",,1,20,62,62,0,1,16,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,12.826,1,217,433,434,2,193,0,0,0
+"data/automatons/randaut.hoa:4650.1-4740.7",,1,20,62,62,0,1,16,1,0,"autfilt","ok",0,0.00589419,1,20,62,62,0,1,16,1,0
+"data/automatons/randaut.hoa:4741.1-4831.7",,2,20,62,62,0,1,11,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,26.8609,2,234,912,936,2,5,0,0,0
+"data/automatons/randaut.hoa:4741.1-4831.7",,2,20,62,62,0,1,11,1,0,"autfilt","ok",0,0.00586788,2,20,62,62,0,1,11,1,0
+"data/automatons/randaut.hoa:4832.1-4905.7",,2,17,48,48,0,2,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,164.442,2,1289,5113,5156,2,34,0,0,0
+"data/automatons/randaut.hoa:4832.1-4905.7",,2,17,48,48,0,2,9,1,0,"autfilt","ok",0,0.0045345,2,17,48,48,0,2,9,1,0
+"data/automatons/randaut.hoa:4906.1-4929.7",,3,6,9,9,0,3,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.858676,3,9,21,72,2,6,0,0,0
+"data/automatons/randaut.hoa:4906.1-4929.7",,3,6,9,9,0,3,0,0,0,"autfilt","ok",0,0.00718121,3,6,9,9,0,3,0,0,0
+"data/automatons/randaut.hoa:4930.1-4987.7",,1,13,36,36,0,1,9,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,4.695,1,89,177,178,2,7,0,0,0
+"data/automatons/randaut.hoa:4930.1-4987.7",,1,13,36,36,0,1,9,1,0,"autfilt","ok",0,0.00697399,1,13,36,36,0,1,9,1,0
+"data/automatons/randaut.hoa:4988.1-4998.7",,3,1,1,1,0,1,0,0,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.791711,3,3,5,24,2,3,0,0,0
+"data/automatons/randaut.hoa:4988.1-4998.7",,3,1,1,1,0,1,0,0,0,"autfilt","ok",0,0.00592668,3,1,1,1,0,1,0,0,0
+"data/automatons/randaut.hoa:4999.1-5031.7",,2,8,16,16,0,3,4,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,0.938682,2,12,31,48,2,6,0,0,0
+"data/automatons/randaut.hoa:4999.1-5031.7",,2,8,16,16,0,3,4,1,0,"autfilt","ok",0,0.00585773,2,8,16,16,0,3,4,1,0
+"data/automatons/randaut.hoa:5032.1-5098.7",,1,16,42,42,0,1,13,1,0,"cat %H | build/bin/nba2dpa >%O","ok",0,9.98888,1,150,299,300,2,3,0,0,0
+"data/automatons/randaut.hoa:5032.1-5098.7",,1,16,42,42,0,1,13,1,0,"autfilt","ok",0,0.00455721,1,16,42,42,0,1,13,1,0

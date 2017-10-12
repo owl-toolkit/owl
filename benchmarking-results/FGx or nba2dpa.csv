@@ -1,0 +1,13 @@
+"formula","tool","exit_status","exit_code","time","states","edges","transitions","acc","scc","nondet_states","nondet_aut","complete_aut","product_states","product_transitions","product_scc"
+"F(G(p1))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.437901,3,6,6,2,1,0,0,1,800,16570,2
+"!(F(G(p1)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.483821,2,4,4,3,1,0,0,1,400,8272,1
+"(F(G(p1))) | (F(G(p2)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.504318,10,40,40,2,1,0,0,1,3165,67243,3
+"!((F(G(p1))) | (F(G(p2))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.570814,4,10,16,3,1,0,0,1,800,16576,1
+"(F(G(p1))) | (F(G(p2))) | (F(G(p3)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.668935,38,304,304,2,1,0,0,1,12577,251242,4
+"!((F(G(p1))) | (F(G(p2))) | (F(G(p3))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.634508,6,15,48,3,1,0,0,1,1200,25002,1
+"(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.16981,168,2688,2688,2,1,0,0,1,42390,842877,5
+"!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.944188,8,20,128,3,1,0,0,1,1600,33880,1
+"(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,3.00773,872,27904,27904,2,1,0,0,1,125819,2.55314e+06,123
+"!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.11028,10,25,320,3,1,0,0,1,1999,42674,1
+"(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,17.5026,5296,338944,338944,2,1,0,0,1,295410,5.87289e+06,17
+"!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6))))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,2.30913,12,30,768,3,1,0,0,1,2400,50628,1

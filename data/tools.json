@@ -199,6 +199,9 @@
                 "nosafety": "--nosafety"
             }
         },
+        "dra2dpa": {
+            "executable": "build/bin/dra2dpa"
+        },
         "ltl2tgba": {
             "type": "spot",
             "executable": "ltl2tgba",

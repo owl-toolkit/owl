@@ -29,5 +29,18 @@
     },
     "random": {
         "type": "random"
+    },
+    "genltl": {
+        "type": "file",
+        "path": "data/formulas/genltl.ltl"
+    },
+    "randltl": {
+        "type": "file",
+        "path": "data/formulas/randltl.ltl"
+    },
+    "syntcomp": {
+        "type": "file",
+        "path": "data/formulas/syntcomp2017.ltl"
     }
+
 }

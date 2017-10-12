@@ -1,0 +1,168 @@
+{
+    "dataset": {
+        "benchmark": [
+            "randltl",
+            "genltl",
+            "syntcomp"
+        ],
+        "syntcomp": [
+            "syntcomp"
+        ]
+    },
+    "defaults": {
+        "reference": {
+            "name": "ltl2tgba",
+            "exec": [
+                "ltl2tgba",
+                "-H",
+                "-f",
+                "%f"
+            ]
+        },
+        "data": "syntcomp"
+    },
+    "tests": {
+        "ltl2ldba": "ltl2ldba",
+        "ltl2ldba-nondet": "ltl2ldba#nondet-init",
+        "ltl2ldba-vanilla": "ltl2ldba#no-eps",
+        "ltl2ldba-bpfree": "ltl2ldba#breakpoint-free",
+        "ltl2ldba-bpfree-nondet": "ltl2ldba#breakpoint-free,nondet-init",
+        "ltl2ldba-bpfree-vanilla": "ltl2ldba#breakpoint-free,no-eps",
+        "ltl2ldba-genb": "ltl2ldba#gen-buchi",
+        "ltl2ldba-genb-vanilla": "ltl2ldba#gen-buchi,no-eps",
+        "ltl2ldba-genb-nondet": "ltl2ldba#gen-buchi,nondet-init",
+        "ltl2ldba-genb-bpfree": "ltl2ldba#gen-buchi,breakpoint-free",
+        "ltl2ldba-genb-bpfree-nondet": "ltl2ldba#gen-buchi,breakpoint-free,nondet-init",
+        "ltl2ldba-genb-bpfree-vanilla": "ltl2ldba#gen-buchi,breakpoint-free,no-eps",
+        "ltl2dpa": "ltl2dpa",
+        "ltl2dpa-vanilla": {
+            "tools": "ltl2dpa#no-eps",
+            "data": "small"
+        },
+        "ltl2dpa-bpfree": "ltl2dpa#breakpoint-free",
+        "ltl2dpa-bpfree-vanilla": {
+            "tools": "ltl2dpa#breakpoint-free,no-eps",
+            "data": "small"
+        },
+        "ltl2dpa-parallel": "ltl2dpa#parallel",
+        "ltl2da-parallel": "ltl2da#parallel",
+        "nba2ldba": {
+            "tools": [
+                {
+                    "name": "nba2ldba",
+                    "exec": [
+                        "ltl2tgba",
+                        "-H",
+                        "-f",
+                        "%f",
+                        "|",
+                        "build/bin/nba2ldba",
+                        "--optimisations=REMOVE_EPSILON_TRANSITIONS"
+                    ]
+                }
+            ]
+        },
+        "nba2dpa": {
+            "tools": [
+                {
+                    "name": "nba2dpa",
+                    "exec": [
+                        "ltl2tgba",
+                        "-H",
+                        "-f",
+                        "%f",
+                        "|",
+                        "build/bin/nba2dpa"
+                    ]
+                }
+            ]
+        },
+        "ltl2dra2dpa": {
+            "tools": [
+                {
+                    "name": "ltl2dra2dpa",
+                    "exec": [
+                        "build/bin/rabinizer | build/bin/dra2dpa"
+                    ]
+                }
+            ]
+        },
+
+        "delag": "delag",
+        "delag-fallback": "delag#fallback",
+        "delag-strict": {
+            "tools": "delag#strict",
+            "data": "fgx"
+        },
+        "rabinizer": "rabinizer",
+        "ltl2dra2dpa": {
+            "tools": [
+                {
+                    "name": "ltl2dra2dpa",
+                    "exec": [
+                        "echo",
+                        "%f",
+                        "| owl_rabin/build/bin/ltl2dra",
+                        "| owl_rabin/build/bin/dra2dpa"
+                    ]
+                }
+            ]
+        },
+        "ltl2dpa-spot": {
+            "tools": [
+                {
+                    "name": "ltl2dpa-spot",
+                    "exec": [
+                        "ltl2tgba",
+                        "-H",
+                        "-B",
+                        "-f",
+                        "%f",
+                        "|",
+                        "autfilt --deterministic --generic --tgba",
+                        "|",
+                        "sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g | sed s/'Rabin 1'/'parity min odd 2'/g"
+                    ]
+                }
+            ]
+        },
+        "ltl2ldba2dpa-spot": {
+            "tools": [
+                {
+                    "name": "ltl2ldba2dpa-spot",
+                    "exec": [
+                        "build/bin/ltl2ldba",
+                        "%f",
+                        "|",
+                        "autfilt -B",
+                        "|",
+                        "autfilt --deterministic --generic --tgba",
+                        "|",
+                        "sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g | sed s/'Rabin 1'/'parity min odd 2'/g"
+                    ]
+                }
+            ]
+        },
+        "ltl2ldba2dpa-spot-breakpointfree": {
+            "tools": [
+                {
+                    "name": "ltl2ldba2dpa-spot",
+                    "exec": [
+                        "build/bin/ltl2ldba",
+                        "--breakpoint-free",
+                        "%f",
+                        "|",
+                        "autfilt -B",
+                        "|",
+                        "autfilt",
+                        "--deterministic",
+                        "--generic",
+                        "--tgba",
+                        "|",
+                        "sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g | sed s/'Rabin 1'/'parity min odd 2'/g"
+                    ]
+                }
+            ]
+        }
+    }
+}

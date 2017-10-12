@@ -1,0 +1,13 @@
+"formula","tool","exit_status","exit_code","time","states","edges","transitions","acc","scc","nondet_states","nondet_aut","complete_aut","product_states","product_transitions","product_scc"
+"G(F(p1))","build/bin/ltl2dpa %f >%O","ok",0,0.565556,1,2,2,3,1,0,0,1,200,4136,1
+"!(G(F(p1)))","build/bin/ltl2dpa %f >%O","ok",0,0.58051,1,2,2,2,1,0,0,1,400,8246,3
+"(G(F(p1))) & (G(F(p2)))","build/bin/ltl2dpa %f >%O","ok",0,0.591653,2,5,8,3,1,0,0,1,400,8288,1
+"!((G(F(p1))) & (G(F(p2))))","build/bin/ltl2dpa %f >%O","ok",0,0.598221,2,4,8,2,1,0,0,1,800,16740,3
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3)))","build/bin/ltl2dpa %f >%O","ok",0,0.624007,3,10,24,3,1,0,0,1,600,12501,1
+"!((G(F(p1))) & (G(F(p2))) & (G(F(p3))))","build/bin/ltl2dpa %f >%O","ok",0,0.622436,3,6,24,2,1,0,0,1,1200,24797,4
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))","build/bin/ltl2dpa %f >%O","ok",0,0.674966,4,17,64,3,1,0,0,1,800,16940,1
+"!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))))","build/bin/ltl2dpa %f >%O","ok",0,0.640824,4,8,64,2,1,0,0,1,1600,33806,5
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))","build/bin/ltl2dpa %f >%O","ok",0,0.738298,5,26,160,3,1,0,0,1,999,21329,1
+"!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))))","build/bin/ltl2dpa %f >%O","ok",0,0.702861,5,10,160,2,1,0,0,1,1999,42617,6
+"(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))","build/bin/ltl2dpa %f >%O","ok",0,0.947535,6,37,384,3,1,0,0,1,1200,25314,1
+"!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6))))","build/bin/ltl2dpa %f >%O","ok",0,0.810345,6,12,384,2,1,0,0,1,2400,50648,7

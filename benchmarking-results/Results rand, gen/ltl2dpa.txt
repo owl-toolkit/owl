@@ -1,0 +1,2091 @@
+Running test with args ltl2tgba ltl2tgba -H -f %f -t ltl2dpa build/bin/ltl2dpa %f randltl genltl
+Testing tool ltl2dpa - build/bin/ltl2dpa %f
+Evaluating dataset randltl
+Invocation: python3 scripts/util.py formula randltl | ltlcross --strength --csv="/home/florian/owl/build/results/data-randltl.csv"  --grind="/home/florian/owl/build/results/debug-randltl.ltl" --timeout="600" {ltl2tgba} ltl2tgba -H -f %f >%O {ltl2dpa} build/bin/ltl2dpa %f >%O
+
+-:1: (X(G(p2))) R (((p3) U (F(p3))) M (p2))
+Running [P0]: ltl2tgba -H -f '(X(G(p2))) R (((p3) U (F(p3))) M (p2))' >'lcr-o0-nMlbtQ'
+Running [P1]: build/bin/ltl2dpa '(X(G(p2))) R (((p3) U (F(p3))) M (p2))' >'lcr-o1-Vuy8Iq'
+Running [N0]: ltl2tgba -H -f '!((X(G(p2))) R (((p3) U (F(p3))) M (p2)))' >'lcr-o0-HxE0C3'
+Running [N1]: build/bin/ltl2dpa '!((X(G(p2))) R (((p3) U (F(p3))) M (p2)))' >'lcr-o1-JfKWxG'
+Performing sanity checks and gathering statistics...
+
+-:2: ((p3) W (p0)) xor (!(X(G(((p0) R (p1)) M (p0)))))
+Running [P0]: ltl2tgba -H -f '((p3) W (p0)) xor (!(X(G(((p0) R (p1)) M (p0)))))' >'lcr-o0-S3LxVl'
+Running [P1]: build/bin/ltl2dpa '((p3) W (p0)) xor (!(X(G(((p0) R (p1)) M (p0)))))' >'lcr-o1-voOxk1'
+Running [N0]: ltl2tgba -H -f '!(((p3) W (p0)) xor (!(X(G(((p0) R (p1)) M (p0))))))' >'lcr-o0-52htpJ'
+Running [N1]: build/bin/ltl2dpa '!(((p3) W (p0)) xor (!(X(G(((p0) R (p1)) M (p0))))))' >'lcr-o1-DAvWvr'
+Performing sanity checks and gathering statistics...
+
+-:3: 0
+Running [P0]: ltl2tgba -H -f '0' >'lcr-o0-N4UZCc'
+Running [P1]: build/bin/ltl2dpa '0' >'lcr-o1-srGNKX'
+Running [N0]: ltl2tgba -H -f '1' >'lcr-o0-Qqjs4J'
+Running [N1]: build/bin/ltl2dpa '1' >'lcr-o1-luu1ow'
+Performing sanity checks and gathering statistics...
+
+-:4: 1
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:5: (((1) U ((p1) -> (X(p1)))) W (F(X(F((p2) R (G(p2))))))) U (((((p2) W (p1)) -> ((p1) U (p0))) M (((p2) | ((p2) U (p3))) -> (p1))) -> (p1))
+Running [P0]: ltl2tgba -H -f '(((1) U ((p1) -> (X(p1)))) W (F(X(F((p2) R (G(p2))))))) U (((((p2) W (p1)) -> ((p1) U (p0))) M (((p2) | ((p2) U (p3))) -> (p1))) -> (p1))' >'lcr-o0-usiKYj'
+Running [P1]: build/bin/ltl2dpa '(((1) U ((p1) -> (X(p1)))) W (F(X(F((p2) R (G(p2))))))) U (((((p2) W (p1)) -> ((p1) U (p0))) M (((p2) | ((p2) U (p3))) -> (p1))) -> (p1))' >'lcr-o1-LRAOz7'
+Running [N0]: ltl2tgba -H -f '!((((1) U ((p1) -> (X(p1)))) W (F(X(F((p2) R (G(p2))))))) U (((((p2) W (p1)) -> ((p1) U (p0))) M (((p2) | ((p2) U (p3))) -> (p1))) -> (p1)))' >'lcr-o0-lTZCSX'
+Running [N1]: build/bin/ltl2dpa '!((((1) U ((p1) -> (X(p1)))) W (F(X(F((p2) R (G(p2))))))) U (((((p2) W (p1)) -> ((p1) U (p0))) M (((p2) | ((p2) U (p3))) -> (p1))) -> (p1)))' >'lcr-o1-5cH3cO'
+Performing sanity checks and gathering statistics...
+
+-:6: ((p1) & (G(!(p3)))) M ((!(p3)) W (F(X(p2))))
+Running [P0]: ltl2tgba -H -f '((p1) & (G(!(p3)))) M ((!(p3)) W (F(X(p2))))' >'lcr-o0-K5vssH'
+Running [P1]: build/bin/ltl2dpa '((p1) & (G(!(p3)))) M ((!(p3)) W (F(X(p2))))' >'lcr-o1-SHHXIA'
+Running [N0]: ltl2tgba -H -f '!(((p1) & (G(!(p3)))) M ((!(p3)) W (F(X(p2)))))' >'lcr-o0-PPNDkw'
+Running [N1]: build/bin/ltl2dpa '!(((p1) & (G(!(p3)))) M ((!(p3)) W (F(X(p2)))))' >'lcr-o1-KXwhYr'
+Performing sanity checks and gathering statistics...
+
+-:7: !(((p2) <-> (p3)) | ((p3) <-> (G(!(X(p3))))))
+Running [P0]: ltl2tgba -H -f '!(((p2) <-> (p3)) | ((p3) <-> (G(!(X(p3))))))' >'lcr-o0-kfr63p'
+Running [P1]: build/bin/ltl2dpa '!(((p2) <-> (p3)) | ((p3) <-> (G(!(X(p3))))))' >'lcr-o1-6pcXbo'
+Running [N0]: ltl2tgba -H -f '((p2) <-> (p3)) | ((p3) <-> (G(!(X(p3)))))' >'lcr-o0-CijOvo'
+Running [N1]: build/bin/ltl2dpa '((p2) <-> (p3)) | ((p3) <-> (G(!(X(p3)))))' >'lcr-o1-BzrKQo'
+Performing sanity checks and gathering statistics...
+
+-:8: (((p3) -> (!(p0))) W (p2)) W (!((p0) xor (X(p2))))
+Running [P0]: ltl2tgba -H -f '(((p3) -> (!(p0))) W (p2)) W (!((p0) xor (X(p2))))' >'lcr-o0-NOkdSq'
+Running [P1]: build/bin/ltl2dpa '(((p3) -> (!(p0))) W (p2)) W (!((p0) xor (X(p2))))' >'lcr-o1-nN4bVs'
+Running [N0]: ltl2tgba -H -f '!((((p3) -> (!(p0))) W (p2)) W (!((p0) xor (X(p2)))))' >'lcr-o0-mZhY5w'
+Running [N1]: build/bin/ltl2dpa '!((((p3) -> (!(p0))) W (p2)) W (!((p0) xor (X(p2)))))' >'lcr-o1-AO0TiB'
+Performing sanity checks and gathering statistics...
+
+-:9: (!((X(p0)) W (p2))) W ((p2) xor (X(F((G(p3)) -> (!(X(p2)))))))
+Running [P0]: ltl2tgba -H -f '(!((X(p0)) W (p2))) W ((p2) xor (X(F((G(p3)) -> (!(X(p2)))))))' >'lcr-o0-bsbQoI'
+Running [P1]: build/bin/ltl2dpa '(!((X(p0)) W (p2))) W ((p2) xor (X(F((G(p3)) -> (!(X(p2)))))))' >'lcr-o1-05f1wP'
+Running [N0]: ltl2tgba -H -f '!((!((X(p0)) W (p2))) W ((p2) xor (X(F((G(p3)) -> (!(X(p2))))))))' >'lcr-o0-HaCGP0'
+Running [N1]: build/bin/ltl2dpa '!((!((X(p0)) W (p2))) W ((p2) xor (X(F((G(p3)) -> (!(X(p2))))))))' >'lcr-o1-fGswcc'
+Performing sanity checks and gathering statistics...
+
+-:10: (F((F(G((p1) | ((!(X(p3))) -> (p3))))) -> (X(!(p2))))) M (((p1) M (1)) U (X(p2)))
+Running [P0]: ltl2tgba -H -f '(F((F(G((p1) | ((!(X(p3))) -> (p3))))) -> (X(!(p2))))) M (((p1) M (1)) U (X(p2)))' >'lcr-o0-0uGYJq'
+Running [P1]: build/bin/ltl2dpa '(F((F(G((p1) | ((!(X(p3))) -> (p3))))) -> (X(!(p2))))) M (((p1) M (1)) U (X(p2)))' >'lcr-o1-qgwJjF'
+Running [N0]: ltl2tgba -H -f '!((F((F(G((p1) | ((!(X(p3))) -> (p3))))) -> (X(!(p2))))) M (((p1) M (1)) U (X(p2))))' >'lcr-o0-NPsnlW'
+Running [N1]: build/bin/ltl2dpa '!((F((F(G((p1) | ((!(X(p3))) -> (p3))))) -> (X(!(p2))))) M (((p1) M (1)) U (X(p2))))' >'lcr-o1-fdV4od'
+Performing sanity checks and gathering statistics...
+
+-:11: (!(((p3) xor (((p2) <-> (X(p0))) -> ((p2) xor (X(p1))))) xor ((!(p3)) U (G(F(p2)))))) M ((p1) <-> (F(p2)))
+Running [P0]: ltl2tgba -H -f '(!(((p3) xor (((p2) <-> (X(p0))) -> ((p2) xor (X(p1))))) xor ((!(p3)) U (G(F(p2)))))) M ((p1) <-> (F(p2)))' >'lcr-o0-HDrH0x'
+Running [P1]: build/bin/ltl2dpa '(!(((p3) xor (((p2) <-> (X(p0))) -> ((p2) xor (X(p1))))) xor ((!(p3)) U (G(F(p2)))))) M ((p1) <-> (F(p2)))' >'lcr-o1-Eb1uIS'
+Running [N0]: ltl2tgba -H -f '!((!(((p3) xor (((p2) <-> (X(p0))) -> ((p2) xor (X(p1))))) xor ((!(p3)) U (G(F(p2)))))) M ((p1) <-> (F(p2))))' >'lcr-o0-hdf1Kh'
+Running [N1]: build/bin/ltl2dpa '!((!(((p3) xor (((p2) <-> (X(p0))) -> ((p2) xor (X(p1))))) xor ((!(p3)) U (G(F(p2)))))) M ((p1) <-> (F(p2))))' >'lcr-o1-QL3KSG'
+Performing sanity checks and gathering statistics...
+
+-:12: F(G((((p1) U (p0)) M (p2)) M ((p0) | ((!(p1)) W (F(p1))))))
+Running [P0]: ltl2tgba -H -f 'F(G((((p1) U (p0)) M (p2)) M ((p0) | ((!(p1)) W (F(p1))))))' >'lcr-o0-tagj09'
+Running [P1]: build/bin/ltl2dpa 'F(G((((p1) U (p0)) M (p2)) M ((p0) | ((!(p1)) W (F(p1))))))' >'lcr-o1-jTRX8C'
+Running [N0]: ltl2tgba -H -f '!(F(G((((p1) U (p0)) M (p2)) M ((p0) | ((!(p1)) W (F(p1)))))))' >'lcr-o0-bj6yB8'
+Running [N1]: build/bin/ltl2dpa '!(F(G((((p1) U (p0)) M (p2)) M ((p0) | ((!(p1)) W (F(p1)))))))' >'lcr-o1-W1Kz5D'
+Performing sanity checks and gathering statistics...
+
+-:13: (X(p2)) | (G(F((p3) & (F(!(X(p0)))))))
+Running [P0]: ltl2tgba -H -f '(X(p2)) | (G(F((p3) & (F(!(X(p0)))))))' >'lcr-o0-FbrIic'
+Running [P1]: build/bin/ltl2dpa '(X(p2)) | (G(F((p3) & (F(!(X(p0)))))))' >'lcr-o1-vj48wK'
+Running [N0]: ltl2tgba -H -f '!((X(p2)) | (G(F((p3) & (F(!(X(p0))))))))' >'lcr-o0-bgevGl'
+Running [N1]: build/bin/ltl2dpa '!((X(p2)) | (G(F((p3) & (F(!(X(p0))))))))' >'lcr-o1-wByZRW'
+Performing sanity checks and gathering statistics...
+
+-:14: ((p0) | (G(p0)) | (F(G(p1)))) W (((p3) W (p2)) <-> (G(!((p2) M (X(p1))))))
+Running [P0]: ltl2tgba -H -f '((p0) | (G(p0)) | (F(G(p1)))) W (((p3) W (p2)) <-> (G(!((p2) M (X(p1))))))' >'lcr-o0-4Mnw2B'
+Running [P1]: build/bin/ltl2dpa '((p0) | (G(p0)) | (F(G(p1)))) W (((p3) W (p2)) <-> (G(!((p2) M (X(p1))))))' >'lcr-o1-onctgh'
+Running [N0]: ltl2tgba -H -f '!(((p0) | (G(p0)) | (F(G(p1)))) W (((p3) W (p2)) <-> (G(!((p2) M (X(p1)))))))' >'lcr-o0-yuxSk2'
+Running [N1]: build/bin/ltl2dpa '!(((p0) | (G(p0)) | (F(G(p1)))) W (((p3) W (p2)) <-> (G(!((p2) M (X(p1)))))))' >'lcr-o1-ouCpsN'
+Performing sanity checks and gathering statistics...
+
+-:15: G((X((p1) U (p2))) M ((X(p0)) M ((p3) U (p0))))
+Running [P0]: ltl2tgba -H -f 'G((X((p1) U (p2))) M ((X(p0)) M ((p3) U (p0))))' >'lcr-o0-tuC0PD'
+Running [P1]: build/bin/ltl2dpa 'G((X((p1) U (p2))) M ((X(p0)) M ((p3) U (p0))))' >'lcr-o1-Mau4fu'
+Running [N0]: ltl2tgba -H -f '!(G((X((p1) U (p2))) M ((X(p0)) M ((p3) U (p0)))))' >'lcr-o0-6I5wuo'
+Running [N1]: build/bin/ltl2dpa '!(G((X((p1) U (p2))) M ((X(p0)) M ((p3) U (p0)))))' >'lcr-o1-Es4RKi'
+Performing sanity checks and gathering statistics...
+
+-:16: ((F(p1)) & ((p2) W (p3))) -> (!((p0) <-> ((G(!(p3))) W (((p0) & (p3)) -> (p3)))))
+Running [P0]: ltl2tgba -H -f '((F(p1)) & ((p2) W (p3))) -> (!((p0) <-> ((G(!(p3))) W (((p0) & (p3)) -> (p3)))))' >'lcr-o0-H9SH2f'
+Running [P1]: build/bin/ltl2dpa '((F(p1)) & ((p2) W (p3))) -> (!((p0) <-> ((G(!(p3))) W (((p0) & (p3)) -> (p3)))))' >'lcr-o1-6d3gmd'
+Running [N0]: ltl2tgba -H -f '!(((F(p1)) & ((p2) W (p3))) -> (!((p0) <-> ((G(!(p3))) W (((p0) & (p3)) -> (p3))))))' >'lcr-o0-s2KP1d'
+Running [N1]: build/bin/ltl2dpa '!(((F(p1)) & ((p2) W (p3))) -> (!((p0) <-> ((G(!(p3))) W (((p0) & (p3)) -> (p3))))))' >'lcr-o1-8Gw0Ie'
+Performing sanity checks and gathering statistics...
+
+-:17: X(X((G(p2)) & (G((1) U ((X(p3)) & (!(G(p3))))))))
+Running [P0]: ltl2tgba -H -f 'X(X((G(p2)) & (G((1) U ((X(p3)) & (!(G(p3))))))))' >'lcr-o0-fIivJi'
+Running [P1]: build/bin/ltl2dpa 'X(X((G(p2)) & (G((1) U ((X(p3)) & (!(G(p3))))))))' >'lcr-o1-mEnELm'
+Running [N0]: ltl2tgba -H -f '!(X(X((G(p2)) & (G((1) U ((X(p3)) & (!(G(p3)))))))))' >'lcr-o0-OXQaCt'
+Running [N1]: build/bin/ltl2dpa '!(X(X((G(p2)) & (G((1) U ((X(p3)) & (!(G(p3)))))))))' >'lcr-o1-qxPluA'
+Performing sanity checks and gathering statistics...
+
+-:18: ((p0) <-> (p3)) W ((F(!((p0) | (p3)))) <-> (((p2) -> (p3)) R ((F(p1)) -> (p3))))
+Running [P0]: ltl2tgba -H -f '((p0) <-> (p3)) W ((F(!((p0) | (p3)))) <-> (((p2) -> (p3)) R ((F(p1)) -> (p3))))' >'lcr-o0-RKHPhK'
+Running [P1]: build/bin/ltl2dpa '((p0) <-> (p3)) W ((F(!((p0) | (p3)))) <-> (((p2) -> (p3)) R ((F(p1)) -> (p3))))' >'lcr-o1-YDzM7T'
+Running [N0]: ltl2tgba -H -f '!(((p0) <-> (p3)) W ((F(!((p0) | (p3)))) <-> (((p2) -> (p3)) R ((F(p1)) -> (p3)))))' >'lcr-o0-ANdfk8'
+Running [N1]: build/bin/ltl2dpa '!(((p0) <-> (p3)) W ((F(!((p0) | (p3)))) <-> (((p2) -> (p3)) R ((F(p1)) -> (p3)))))' >'lcr-o1-sbSQym'
+Performing sanity checks and gathering statistics...
+
+-:19: G(p1)
+Running [P0]: ltl2tgba -H -f 'G(p1)' >'lcr-o0-1xCVdF'
+Running [P1]: build/bin/ltl2dpa 'G(p1)' >'lcr-o1-yJjcUX'
+Running [N0]: ltl2tgba -H -f '!(G(p1))' >'lcr-o0-UMhpti'
+Running [N1]: build/bin/ltl2dpa '!(G(p1))' >'lcr-o1-peVq4C'
+Performing sanity checks and gathering statistics...
+
+-:20: !((((G(p2)) <-> (X(p1))) | ((p1) & (F(((p2) U (p3)) -> (p3))))) M (!(p1)))
+Running [P0]: ltl2tgba -H -f '!((((G(p2)) <-> (X(p1))) | ((p1) & (F(((p2) U (p3)) -> (p3))))) M (!(p1)))' >'lcr-o0-LMf9YZ'
+Running [P1]: build/bin/ltl2dpa '!((((G(p2)) <-> (X(p1))) | ((p1) & (F(((p2) U (p3)) -> (p3))))) M (!(p1)))' >'lcr-o1-ef1sWm'
+Running [N0]: ltl2tgba -H -f '(((G(p2)) <-> (X(p1))) | ((p1) & (F(((p2) U (p3)) -> (p3))))) M (!(p1))' >'lcr-o0-qEgn1M'
+Running [N1]: build/bin/ltl2dpa '(((G(p2)) <-> (X(p1))) | ((p1) & (F(((p2) U (p3)) -> (p3))))) M (!(p1))' >'lcr-o1-uO869c'
+Performing sanity checks and gathering statistics...
+
+-:21: ((p0) M (X(p3))) | (F(G((X(p2)) <-> (X(X(p1))))))
+Running [P0]: ltl2tgba -H -f '((p0) M (X(p3))) | (F(G((X(p2)) <-> (X(X(p1))))))' >'lcr-o0-AeMkIG'
+Running [P1]: build/bin/ltl2dpa '((p0) M (X(p3))) | (F(G((X(p2)) <-> (X(X(p1))))))' >'lcr-o1-07ZFja'
+Running [N0]: ltl2tgba -H -f '!(((p0) M (X(p3))) | (F(G((X(p2)) <-> (X(X(p1)))))))' >'lcr-o0-SS6wGH'
+Running [N1]: build/bin/ltl2dpa '!(((p0) M (X(p3))) | (F(G((X(p2)) <-> (X(X(p1)))))))' >'lcr-o1-P29Unf'
+Performing sanity checks and gathering statistics...
+
+-:22: X(!((p1) -> ((p2) xor (!(p2)))))
+Running [P0]: ltl2tgba -H -f 'X(!((p1) -> ((p2) xor (!(p2)))))' >'lcr-o0-85VRpQ'
+Running [P1]: build/bin/ltl2dpa 'X(!((p1) -> ((p2) xor (!(p2)))))' >'lcr-o1-o1SrLr'
+Running [N0]: ltl2tgba -H -f '!(X(!((p1) -> ((p2) xor (!(p2))))))' >'lcr-o0-gsLfJ4'
+Running [N1]: build/bin/ltl2dpa '!(X(!((p1) -> ((p2) xor (!(p2))))))' >'lcr-o1-8QWZIH'
+Performing sanity checks and gathering statistics...
+
+-:23: !(X(F((F(p2)) -> (G(X(p0))))))
+Running [P0]: ltl2tgba -H -f '!(X(F((F(p2)) -> (G(X(p0))))))' >'lcr-o0-YKMKPm'
+Running [P1]: build/bin/ltl2dpa '!(X(F((F(p2)) -> (G(X(p0))))))' >'lcr-o1-i8zX92'
+Running [N0]: ltl2tgba -H -f 'X(F((F(p2)) -> (G(X(p0)))))' >'lcr-o0-Px5tvO'
+Running [N1]: build/bin/ltl2dpa 'X(F((F(p2)) -> (G(X(p0)))))' >'lcr-o1-Ay6McA'
+Performing sanity checks and gathering statistics...
+
+-:24: X((((!(p2)) -> (p1)) U ((p3) W (p1))) -> (X(!(F(p0)))))
+Running [P0]: ltl2tgba -H -f 'X((((!(p2)) -> (p1)) U ((p3) W (p1))) -> (X(!(F(p0)))))' >'lcr-o0-kytTRn'
+Running [P1]: build/bin/ltl2dpa 'X((((!(p2)) -> (p1)) U ((p3) W (p1))) -> (X(!(F(p0)))))' >'lcr-o1-gRumzb'
+Running [N0]: ltl2tgba -H -f '!(X((((!(p2)) -> (p1)) U ((p3) W (p1))) -> (X(!(F(p0))))))' >'lcr-o0-MXPFE1'
+Running [N1]: build/bin/ltl2dpa '!(X((((!(p2)) -> (p1)) U ((p3) W (p1))) -> (X(!(F(p0))))))' >'lcr-o1-uqTv4R'
+Performing sanity checks and gathering statistics...
+
+-:25: F(!((p3) xor (!(G(X(p3))))))
+Running [P0]: ltl2tgba -H -f 'F(!((p3) xor (!(G(X(p3))))))' >'lcr-o0-Jt6VwM'
+Running [P1]: build/bin/ltl2dpa 'F(!((p3) xor (!(G(X(p3))))))' >'lcr-o1-L5HdiH'
+Running [N0]: ltl2tgba -H -f '!(F(!((p3) xor (!(G(X(p3)))))))' >'lcr-o0-1g6ciH'
+Running [N1]: build/bin/ltl2dpa '!(F(!((p3) xor (!(G(X(p3)))))))' >'lcr-o1-ujLzfK'
+Performing sanity checks and gathering statistics...
+
+-:26: !(G(X(F((p2) xor (X(G(!(F(!(p0))))))))))
+Running [P0]: ltl2tgba -H -f '!(G(X(F((p2) xor (X(G(!(F(!(p0))))))))))' >'lcr-o0-mCzN3P'
+Running [P1]: build/bin/ltl2dpa '!(G(X(F((p2) xor (X(G(!(F(!(p0))))))))))' >'lcr-o1-0LM2gW'
+Running [N0]: ltl2tgba -H -f 'G(X(F((p2) xor (X(G(!(F(!(p0)))))))))' >'lcr-o0-H8uko7'
+Running [N1]: build/bin/ltl2dpa 'G(X(F((p2) xor (X(G(!(F(!(p0)))))))))' >'lcr-o1-EZKZBj'
+Performing sanity checks and gathering statistics...
+
+-:27: !((F(p1)) U ((p1) R (F(p2))))
+Running [P0]: ltl2tgba -H -f '!((F(p1)) U ((p1) R (F(p2))))' >'lcr-o0-mj3h6y'
+Running [P1]: build/bin/ltl2dpa '!((F(p1)) U ((p1) R (F(p2))))' >'lcr-o1-b8iuzP'
+Running [N0]: ltl2tgba -H -f '(F(p1)) U ((p1) R (F(p2)))' >'lcr-o0-9pJ2fh'
+Running [N1]: build/bin/ltl2dpa '(F(p1)) U ((p1) R (F(p2)))' >'lcr-o1-ieUnLJ'
+Performing sanity checks and gathering statistics...
+
+-:28: !((p2) W (p0))
+Running [P0]: ltl2tgba -H -f '!((p2) W (p0))' >'lcr-o0-4k8w7g'
+Running [P1]: build/bin/ltl2dpa '!((p2) W (p0))' >'lcr-o1-kNestR'
+Running [N0]: ltl2tgba -H -f '(p2) W (p0)' >'lcr-o0-OBx36u'
+Running [N1]: build/bin/ltl2dpa '(p2) W (p0)' >'lcr-o1-FZbmMb'
+Performing sanity checks and gathering statistics...
+
+-:29: (G(p2)) <-> (!(F(X((p1) | (p3)))))
+Running [P0]: ltl2tgba -H -f '(G(p2)) <-> (!(F(X((p1) | (p3)))))' >'lcr-o0-UjRGSV'
+Running [P1]: build/bin/ltl2dpa '(G(p2)) <-> (!(F(X((p1) | (p3)))))' >'lcr-o1-u4TYVI'
+Running [N0]: ltl2tgba -H -f '!((G(p2)) <-> (!(F(X((p1) | (p3))))))' >'lcr-o0-I1rYmz'
+Running [N1]: build/bin/ltl2dpa '!((G(p2)) <-> (!(F(X((p1) | (p3))))))' >'lcr-o1-I9g0vt'
+Performing sanity checks and gathering statistics...
+
+-:30: (G(F(p2))) & ((X(p1)) R (((G(p1)) R (p2)) W (p3))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & ((X(p1)) R (((G(p1)) R (p2)) W (p3))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o0-pXRbjr'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & ((X(p1)) R (((G(p1)) R (p2)) W (p3))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o1-DKGTnp'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & ((X(p1)) R (((G(p1)) R (p2)) W (p3))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o0-sfk34q'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & ((X(p1)) R (((G(p1)) R (p2)) W (p3))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o1-Mp48Os'
+Performing sanity checks and gathering statistics...
+
+-:31: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((p2) U (!(F(!(G(p2)))))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((p2) U (!(F(!(G(p2)))))))' >'lcr-o0-mLeHny'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((p2) U (!(F(!(G(p2)))))))' >'lcr-o1-ebPKXD'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((p2) U (!(F(!(G(p2))))))))' >'lcr-o0-g8GlIM'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((p2) U (!(F(!(G(p2))))))))' >'lcr-o1-yUZxvV'
+Performing sanity checks and gathering statistics...
+
+-:32: 0
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:33: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) <-> (!(F(p3)))) R ((!(p3)) & ((F(p3)) U (G(p0)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) <-> (!(F(p3)))) R ((!(p3)) & ((F(p3)) U (G(p0)))))' >'lcr-o0-KJvoQ7'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) <-> (!(F(p3)))) R ((!(p3)) & ((F(p3)) U (G(p0)))))' >'lcr-o1-XNP7ck'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) <-> (!(F(p3)))) R ((!(p3)) & ((F(p3)) U (G(p0))))))' >'lcr-o0-ZD4ftA'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) <-> (!(F(p3)))) R ((!(p3)) & ((F(p3)) U (G(p0))))))' >'lcr-o1-6X4KLQ'
+Performing sanity checks and gathering statistics...
+
+-:34: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) U (((p2) R (F(p1))) | (G((p0) <-> (p3)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) U (((p2) R (F(p1))) | (G((p0) <-> (p3)))))' >'lcr-o0-V82HVa'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) U (((p2) R (F(p1))) | (G((p0) <-> (p3)))))' >'lcr-o1-oFyl8u'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) U (((p2) R (F(p1))) | (G((p0) <-> (p3))))))' >'lcr-o0-QYNWlT'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) U (((p2) R (F(p1))) | (G((p0) <-> (p3))))))' >'lcr-o1-oTSpCh'
+Performing sanity checks and gathering statistics...
+
+-:35: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o0-gklpBJ'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o1-jKXmCb'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o0-P1ijqG'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o1-E0P3gb'
+Performing sanity checks and gathering statistics...
+
+-:36: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (G((X((p1) <-> ((1) U (p2)))) W (((p3) xor (G(p3))) R (p2))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (G((X((p1) <-> ((1) U (p2)))) W (((p3) xor (G(p3))) R (p2))))' >'lcr-o0-60ywPI'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (G((X((p1) <-> ((1) U (p2)))) W (((p3) xor (G(p3))) R (p2))))' >'lcr-o1-M3NUsg'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (G((X((p1) <-> ((1) U (p2)))) W (((p3) xor (G(p3))) R (p2)))))' >'lcr-o0-KyMiCU'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (G((X((p1) <-> ((1) U (p2)))) W (((p3) xor (G(p3))) R (p2)))))' >'lcr-o1-1BU6Py'
+Performing sanity checks and gathering statistics...
+
+-:37: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) | ((p0) U (F(p2)))) xor ((!(p1)) U (X(!(p3)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) | ((p0) U (F(p2)))) xor ((!(p1)) U (X(!(p3)))))' >'lcr-o0-4Ateii'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) | ((p0) U (F(p2)))) xor ((!(p1)) U (X(!(p3)))))' >'lcr-o1-KdgoM1'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) | ((p0) U (F(p2)))) xor ((!(p1)) U (X(!(p3))))))' >'lcr-o0-yhvi4O'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((F(p2)) | ((p0) U (F(p2)))) xor ((!(p1)) U (X(!(p3))))))' >'lcr-o1-S718pC'
+Performing sanity checks and gathering statistics...
+
+-:38: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!(F((!(p2)) & (F((p0) M (1))))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!(F((!(p2)) & (F((p0) M (1))))))' >'lcr-o0-u2gy4s'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!(F((!(p2)) & (F((p0) M (1))))))' >'lcr-o1-jH2lKj'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!(F((!(p2)) & (F((p0) M (1)))))))' >'lcr-o0-j0c9ed'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!(F((!(p2)) & (F((p0) M (1)))))))' >'lcr-o1-PZYjM6'
+Performing sanity checks and gathering statistics...
+
+-:39: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) -> (!(p3)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) -> (!(p3)))' >'lcr-o0-74HiT3'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) -> (!(p3)))' >'lcr-o1-quEV20'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) -> (!(p3))))' >'lcr-o0-VDfkS0'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) -> (!(p3))))' >'lcr-o1-phWZK0'
+Performing sanity checks and gathering statistics...
+
+-:40: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) U (((p2) | (p3)) R (p3))) M (G(((p0) | (p2)) & (X(p2)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) U (((p2) | (p3)) R (p3))) M (G(((p0) | (p2)) & (X(p2)))))' >'lcr-o0-5JBga4'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) U (((p2) | (p3)) R (p3))) M (G(((p0) | (p2)) & (X(p2)))))' >'lcr-o1-pntQB7'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) U (((p2) | (p3)) R (p3))) M (G(((p0) | (p2)) & (X(p2))))))' >'lcr-o0-j6XDZe'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) U (((p2) | (p3)) R (p3))) M (G(((p0) | (p2)) & (X(p2))))))' >'lcr-o1-KkF2pm'
+Performing sanity checks and gathering statistics...
+
+-:41: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) | ((p1) U (!(p0)))) R (G(p1)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) | ((p1) U (!(p0)))) R (G(p1)))' >'lcr-o0-gG3spx'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) | ((p1) U (!(p0)))) R (G(p1)))' >'lcr-o1-dw7VqI'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) | ((p1) U (!(p0)))) R (G(p1))))' >'lcr-o0-Jn2OrW'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p3) | ((p1) U (!(p0)))) R (G(p1))))' >'lcr-o1-Vib3ua'
+Performing sanity checks and gathering statistics...
+
+-:42: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p0) & (p3)) U ((p2) R ((p0) & (F(p2)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p0) & (p3)) U ((p2) R ((p0) & (F(p2)))))' >'lcr-o0-ih0t6r'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p0) & (p3)) U ((p2) R ((p0) & (F(p2)))))' >'lcr-o1-A6Q3JJ'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p0) & (p3)) U ((p2) R ((p0) & (F(p2))))))' >'lcr-o0-PLkmx4'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((p0) & (p3)) U ((p2) R ((p0) & (F(p2))))))' >'lcr-o1-6NWqmp'
+Performing sanity checks and gathering statistics...
+
+-:43: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (p2)) U (p2))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (p2)) U (p2))' >'lcr-o0-R8U41M'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (p2)) U (p2))' >'lcr-o1-143YJa'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (p2)) U (p2)))' >'lcr-o0-MFiajB'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (p2)) U (p2)))' >'lcr-o1-vwPuU1'
+Performing sanity checks and gathering statistics...
+
+-:44: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((X((1) U (!(p2)))) W ((!(p1)) W (p3))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((X((1) U (!(p2)))) W ((!(p1)) W (p3))))' >'lcr-o0-Nx9B7v'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((X((1) U (!(p2)))) W ((!(p1)) W (p3))))' >'lcr-o1-v2rzn0'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((X((1) U (!(p2)))) W ((!(p1)) W (p3)))))' >'lcr-o0-pjKIjy'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F((X((1) U (!(p2)))) W ((!(p1)) W (p3)))))' >'lcr-o1-LgNMi6'
+Performing sanity checks and gathering statistics...
+
+-:45: ((p0) -> (p3)) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(((p0) xor (G(p1))) M (1))) U (!(X(p3))))
+Running [P0]: ltl2tgba -H -f '((p0) -> (p3)) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(((p0) xor (G(p1))) M (1))) U (!(X(p3))))' >'lcr-o0-fafLQH'
+Running [P1]: build/bin/ltl2dpa '((p0) -> (p3)) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(((p0) xor (G(p1))) M (1))) U (!(X(p3))))' >'lcr-o1-fxv4vj'
+Running [N0]: ltl2tgba -H -f '!(((p0) -> (p3)) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(((p0) xor (G(p1))) M (1))) U (!(X(p3)))))' >'lcr-o0-XGpyCZ'
+Running [N1]: build/bin/ltl2dpa '!(((p0) -> (p3)) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(((p0) xor (G(p1))) M (1))) U (!(X(p3)))))' >'lcr-o1-kWyKPF'
+Performing sanity checks and gathering statistics...
+
+-:46: ((!(p1)) | (!(p3))) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))
+Running [P0]: ltl2tgba -H -f '((!(p1)) | (!(p3))) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o0-2mWLzr'
+Running [P1]: build/bin/ltl2dpa '((!(p1)) | (!(p3))) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o1-DTMVld'
+Running [N0]: ltl2tgba -H -f '!(((!(p1)) | (!(p3))) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o0-J0W5F1'
+Running [N1]: build/bin/ltl2dpa '!(((!(p1)) | (!(p3))) & (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o1-uuDl2P'
+Performing sanity checks and gathering statistics...
+
+-:47: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(X(F(p2)))) <-> (!(X(F(p3)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(X(F(p2)))) <-> (!(X(F(p3)))))' >'lcr-o0-wVUjIG'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(X(F(p2)))) <-> (!(X(F(p3)))))' >'lcr-o1-ndcwpx'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(X(F(p2)))) <-> (!(X(F(p3))))))' >'lcr-o0-Yw5Mpq'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((F(X(F(p2)))) <-> (!(X(F(p3))))))' >'lcr-o1-CW3esj'
+Performing sanity checks and gathering statistics...
+
+-:48: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F(!(p2)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F(!(p2)))' >'lcr-o0-0Kjk3f'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F(!(p2)))' >'lcr-o1-yhuHGc'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F(!(p2))))' >'lcr-o0-NMyc5b'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (F(!(p2))))' >'lcr-o1-ATdiwb'
+Performing sanity checks and gathering statistics...
+
+-:49: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((X(((p0) -> (p2)) xor ((G(p2)) M (G(p0))))) W (!(p2))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((X(((p0) -> (p2)) xor ((G(p2)) M (G(p0))))) W (!(p2))))' >'lcr-o0-KWdnqe'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((X(((p0) -> (p2)) xor ((G(p2)) M (G(p0))))) W (!(p2))))' >'lcr-o1-6SDAph'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((X(((p0) -> (p2)) xor ((G(p2)) M (G(p0))))) W (!(p2)))))' >'lcr-o0-48wdmp'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((X(((p0) -> (p2)) xor ((G(p2)) M (G(p0))))) W (!(p2)))))' >'lcr-o1-kOpJnx'
+Performing sanity checks and gathering statistics...
+
+-:50: (G(F(p2))) & (F(!(X(p0)))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (F(!(X(p0)))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o0-4TTx0K'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (F(!(X(p0)))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3)))' >'lcr-o1-jVejGY'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (F(!(X(p0)))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o0-tKiA4e'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (F(!(X(p0)))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))))' >'lcr-o1-iG24wv'
+Performing sanity checks and gathering statistics...
+
+-:51: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((X(p2)) <-> ((p0) W (0)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((X(p2)) <-> ((p0) W (0)))' >'lcr-o0-4psw7O'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((X(p2)) <-> ((p0) W (0)))' >'lcr-o1-J5qG48'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((X(p2)) <-> ((p0) W (0))))' >'lcr-o0-rP90lw'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((X(p2)) <-> ((p0) W (0))))' >'lcr-o1-ijcI2T'
+Performing sanity checks and gathering statistics...
+
+-:52: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) | (((F(p3)) <-> (!(G(p3)))) <-> ((p1) U ((p1) R (p3)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) | (((F(p3)) <-> (!(G(p3)))) <-> ((p1) U ((p1) R (p3)))))' >'lcr-o0-r3j5kn'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) | (((F(p3)) <-> (!(G(p3)))) <-> ((p1) U ((p1) R (p3)))))' >'lcr-o1-RagV9T'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) | (((F(p3)) <-> (!(G(p3)))) <-> ((p1) U ((p1) R (p3))))))' >'lcr-o0-RqFnPx'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p0)) | (((F(p3)) <-> (!(G(p3)))) <-> ((p1) U ((p1) R (p3))))))' >'lcr-o1-HM7zLe'
+Performing sanity checks and gathering statistics...
+
+-:53: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((p3) xor ((X(p0)) xor ((p1) U ((0) R (p1)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((p3) xor ((X(p0)) xor ((p1) U ((0) R (p1)))))' >'lcr-o0-mV7c7Y'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((p3) xor ((X(p0)) xor ((p1) U ((0) R (p1)))))' >'lcr-o1-U0atwJ'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((p3) xor ((X(p0)) xor ((p1) U ((0) R (p1))))))' >'lcr-o0-owMx6w'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((p3) xor ((X(p0)) xor ((p1) U ((0) R (p1))))))' >'lcr-o1-2mg01k'
+Performing sanity checks and gathering statistics...
+
+-:54: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (F(p2))) -> (G((!(F(p0))) M ((p0) M (p3)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (F(p2))) -> (G((!(F(p0))) M ((p0) M (p3)))))' >'lcr-o0-4YZgVc'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (F(p2))) -> (G((!(F(p0))) M ((p0) M (p3)))))' >'lcr-o1-oI7YQ4'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (F(p2))) -> (G((!(F(p0))) M ((p0) M (p3))))))' >'lcr-o0-mgEuLZ'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (((1) U (F(p2))) -> (G((!(F(p0))) M ((p0) M (p3))))))' >'lcr-o1-QJBQHU'
+Performing sanity checks and gathering statistics...
+
+-:55: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p3)) M (1))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p3)) M (1))' >'lcr-o0-vibPgS'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p3)) M (1))' >'lcr-o1-KtXuRP'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p3)) M (1)))' >'lcr-o0-mSRnzP'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((!(p3)) M (1)))' >'lcr-o1-aYRYlP'
+Performing sanity checks and gathering statistics...
+
+-:56: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(F(!(p1)))) & ((G(p2)) U ((p0) M (!(F(p3)))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(F(!(p1)))) & ((G(p2)) U ((p0) M (!(F(p3)))))' >'lcr-o0-lquwJR'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(F(!(p1)))) & ((G(p2)) U ((p0) M (!(F(p3)))))' >'lcr-o1-78GK8T'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(F(!(p1)))) & ((G(p2)) U ((p0) M (!(F(p3))))))' >'lcr-o0-bk9gzZ'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(F(!(p1)))) & ((G(p2)) U ((p0) M (!(F(p3))))))' >'lcr-o1-zw0P14'
+Performing sanity checks and gathering statistics...
+
+-:57: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) | ((p3) W (G(p3)))) & (!((!(p2)) R (p1)))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) | ((p3) W (G(p3)))) & (!((!(p2)) R (p1)))' >'lcr-o0-9k84le'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) | ((p3) W (G(p3)))) & (!((!(p2)) R (p1)))' >'lcr-o1-lmelJn'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) | ((p3) W (G(p3)))) & (!((!(p2)) R (p1))))' >'lcr-o0-XMAO9A'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & ((G(p2)) | ((p3) W (G(p3)))) & (!((!(p2)) R (p1))))' >'lcr-o1-mSCXDO'
+Performing sanity checks and gathering statistics...
+
+-:58: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(!(G(p3))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(!(G(p3))))' >'lcr-o0-v4nCQ5'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(!(G(p3))))' >'lcr-o1-YPiM5m'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(!(G(p3)))))' >'lcr-o0-I1Nz2G'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (X(!(G(p3)))))' >'lcr-o1-aQGl20'
+Performing sanity checks and gathering statistics...
+
+-:59: (G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((!((p1) U (p0))) U (G(p1))))
+Running [P0]: ltl2tgba -H -f '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((!((p1) U (p0))) U (G(p1))))' >'lcr-o0-mBH9Bo'
+Running [P1]: build/bin/ltl2dpa '(G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((!((p1) U (p0))) U (G(p1))))' >'lcr-o1-NMXseM'
+Running [N0]: ltl2tgba -H -f '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((!((p1) U (p0))) U (G(p1)))))' >'lcr-o0-fUR2Kd'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p2))) & (G(F(p0))) & (G(F(p1))) & (G(F(p3))) & (!((!((p1) U (p0))) U (G(p1)))))' >'lcr-o1-xQZukF'
+Performing sanity checks and gathering statistics...
+
+No problem detected.
+
+Stats for dataset randltl
+        tool:      ltl2dpa       |      ltl2tgba      
+        time:      1.20±0.43 (1) |      0.01±0.01 (0) 
+      states:    10.86±15.04 (6) |      5.24±3.80 (5) 
+       edges:  51.17±125.79 (16) |   15.81±13.97 (13) 
+ transitions: 145.25±218.85 (67) |   66.89±68.29 (44) 
+         acc:      2.54±1.19 (2) |      1.64±1.29 (1) 
+         scc:      5.82±6.21 (4) |      4.91±3.52 (4) 
+  nonacc_scc:      2.69±3.50 (2) |      2.46±2.31 (2) 
+  strong_scc:      1.11±1.20 (1) |      0.52±0.79 (0) 
+    weak_scc:      1.55±3.15 (0) |      1.48±1.85 (1) 
+terminal_scc:      0.46±0.52 (0) |      0.45±0.50 (0) 
+
+Evaluating dataset genltl
+Invocation: python3 scripts/util.py formula genltl | ltlcross --strength --csv="/home/florian/owl/build/results/data-genltl.csv"  --grind="/home/florian/owl/build/results/debug-genltl.ltl" --timeout="600" {ltl2tgba} ltl2tgba -H -f %f >%O {ltl2dpa} build/bin/ltl2dpa %f >%O
+
+-:1: F(p1)
+Running [P0]: ltl2tgba -H -f 'F(p1)' >'lcr-o0-KKjucC'
+Running [P1]: build/bin/ltl2dpa 'F(p1)' >'lcr-o1-hhFK47'
+Running [N0]: ltl2tgba -H -f '!(F(p1))' >'lcr-o0-zQHMSF'
+Running [N1]: build/bin/ltl2dpa '!(F(p1))' >'lcr-o1-SMo6Hd'
+Performing sanity checks and gathering statistics...
+
+-:2: (F(p1)) & (F(p2))
+Running [P0]: ltl2tgba -H -f '(F(p1)) & (F(p2))' >'lcr-o0-VKKAWO'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) & (F(p2))' >'lcr-o1-ny4jPs'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) & (F(p2)))' >'lcr-o0-syi7z8'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) & (F(p2)))' >'lcr-o1-LmD3FO'
+Performing sanity checks and gathering statistics...
+
+-:3: (F(p1)) & (F(p2)) & (F(p3))
+Running [P0]: ltl2tgba -H -f '(F(p1)) & (F(p2)) & (F(p3))' >'lcr-o0-PylLsw'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) & (F(p2)) & (F(p3))' >'lcr-o1-8jl6ge'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) & (F(p2)) & (F(p3)))' >'lcr-o0-YkG3NX'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) & (F(p2)) & (F(p3)))' >'lcr-o1-OzOIpH'
+Performing sanity checks and gathering statistics...
+
+-:4: (F(p1)) & (F(p2)) & (F(p3)) & (F(p4))
+Running [P0]: ltl2tgba -H -f '(F(p1)) & (F(p2)) & (F(p3)) & (F(p4))' >'lcr-o0-RfmfFs'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) & (F(p2)) & (F(p3)) & (F(p4))' >'lcr-o1-vSSwee'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)))' >'lcr-o0-9lL2K1'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)))' >'lcr-o1-ZUwWBP'
+Performing sanity checks and gathering statistics...
+
+-:5: (F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5))
+Running [P0]: ltl2tgba -H -f '(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5))' >'lcr-o0-1z90tH'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5))' >'lcr-o1-BAMTnA'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)))' >'lcr-o0-Mq5VQw'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)))' >'lcr-o1-VWFkDt'
+Performing sanity checks and gathering statistics...
+
+-:6: (F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6))
+Running [P0]: ltl2tgba -H -f '(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6))' >'lcr-o0-2bbSYs'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6))' >'lcr-o1-FES0Js'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)))' >'lcr-o0-R4c7cv'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)))' >'lcr-o1-LUNCJx'
+Performing sanity checks and gathering statistics...
+
+-:7: F(G(p1))
+Running [P0]: ltl2tgba -H -f 'F(G(p1))' >'lcr-o0-zcEvHD'
+Running [P1]: build/bin/ltl2dpa 'F(G(p1))' >'lcr-o1-MbQS6K'
+Running [N0]: ltl2tgba -H -f '!(F(G(p1)))' >'lcr-o0-6h0zaV'
+Running [N1]: build/bin/ltl2dpa '!(F(G(p1)))' >'lcr-o1-YboDs6'
+Performing sanity checks and gathering statistics...
+
+-:8: (F(G(p1))) & (F(G(p2)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) & (F(G(p2)))' >'lcr-o0-O0wOpo'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) & (F(G(p2)))' >'lcr-o1-LRf8DI'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) & (F(G(p2))))' >'lcr-o0-DXKuG7'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) & (F(G(p2))))' >'lcr-o1-HNEhxx'
+Performing sanity checks and gathering statistics...
+
+-:9: (F(G(p1))) & (F(G(p2))) & (F(G(p3)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) & (F(G(p2))) & (F(G(p3)))' >'lcr-o0-538g10'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) & (F(G(p2))) & (F(G(p3)))' >'lcr-o1-QctQBx'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))))' >'lcr-o0-8XuHA7'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))))' >'lcr-o1-EmEIAI'
+Performing sanity checks and gathering statistics...
+
+-:10: (F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4)))' >'lcr-o0-0E2iMl'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4)))' >'lcr-o1-I4UnR0'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))))' >'lcr-o0-9aUzZH'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))))' >'lcr-o1-t54Xsp'
+Performing sanity checks and gathering statistics...
+
+-:11: (F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5)))' >'lcr-o0-vzlFab'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5)))' >'lcr-o1-X1UjDY'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))))' >'lcr-o0-gxfj4O'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))))' >'lcr-o1-KoMWsG'
+Performing sanity checks and gathering statistics...
+
+-:12: (F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))) & (F(G(p6)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))) & (F(G(p6)))' >'lcr-o0-KM5ebF'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))) & (F(G(p6)))' >'lcr-o1-v9ak1D'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))) & (F(G(p6))))' >'lcr-o0-oye2iF'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) & (F(G(p2))) & (F(G(p3))) & (F(G(p4))) & (F(G(p5))) & (F(G(p6))))' >'lcr-o1-tPojHG'
+Performing sanity checks and gathering statistics...
+
+-:13: G(F(p1))
+Running [P0]: ltl2tgba -H -f 'G(F(p1))' >'lcr-o0-YOesGK'
+Running [P1]: build/bin/ltl2dpa 'G(F(p1))' >'lcr-o1-I3pvHO'
+Running [N0]: ltl2tgba -H -f '!(G(F(p1)))' >'lcr-o0-DBFggV'
+Running [N1]: build/bin/ltl2dpa '!(G(F(p1)))' >'lcr-o1-kKO381'
+Performing sanity checks and gathering statistics...
+
+-:14: (G(F(p1))) & (G(F(p2)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) & (G(F(p2)))' >'lcr-o0-Mq0Nac'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) & (G(F(p2)))' >'lcr-o1-DyeQtm'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) & (G(F(p2))))' >'lcr-o0-A8KveB'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) & (G(F(p2))))' >'lcr-o1-efIolQ'
+Performing sanity checks and gathering statistics...
+
+-:15: (G(F(p1))) & (G(F(p2))) & (G(F(p3)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) & (G(F(p2))) & (G(F(p3)))' >'lcr-o0-KrBjk7'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) & (G(F(p2))) & (G(F(p3)))' >'lcr-o1-NUftEo'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))))' >'lcr-o0-Uov1KH'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))))' >'lcr-o1-46Pqc1'
+Performing sanity checks and gathering statistics...
+
+-:16: (G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))' >'lcr-o0-84gqAm'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))' >'lcr-o1-qceR0H'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))))' >'lcr-o0-dB7AR5'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))))' >'lcr-o1-b4Mn4t'
+Performing sanity checks and gathering statistics...
+
+-:17: (G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))' >'lcr-o0-DzcnmU'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))' >'lcr-o1-t0Ip0k'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))))' >'lcr-o0-rCEyjO'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))))' >'lcr-o1-euHPYh'
+Performing sanity checks and gathering statistics...
+
+-:18: (G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))' >'lcr-o0-YjGGNN'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))' >'lcr-o1-wd1PZj'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6))))' >'lcr-o0-pdRTWS'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6))))' >'lcr-o1-glAAhs'
+Performing sanity checks and gathering statistics...
+
+-:19: (F(p1)) & (F(q1))
+Running [P0]: ltl2tgba -H -f '(F(p1)) & (F(q1))' >'lcr-o0-iUmNl5'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) & (F(q1))' >'lcr-o1-D1R5JI'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) & (F(q1)))' >'lcr-o0-bGSE6n'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) & (F(q1)))' >'lcr-o1-voVCL3'
+Performing sanity checks and gathering statistics...
+
+-:20: (F((p1) & (F(p2)))) & (F((q1) & (F(q2))))
+Running [P0]: ltl2tgba -H -f '(F((p1) & (F(p2)))) & (F((q1) & (F(q2))))' >'lcr-o0-mIEKLM'
+Running [P1]: build/bin/ltl2dpa '(F((p1) & (F(p2)))) & (F((q1) & (F(q2))))' >'lcr-o1-5uivNv'
+Running [N0]: ltl2tgba -H -f '!((F((p1) & (F(p2)))) & (F((q1) & (F(q2)))))' >'lcr-o0-17vJLg'
+Running [N1]: build/bin/ltl2dpa '!((F((p1) & (F(p2)))) & (F((q1) & (F(q2)))))' >'lcr-o1-m2t331'
+Performing sanity checks and gathering statistics...
+
+-:21: (F((p1) & (F((p2) & (F(p3)))))) & (F((q1) & (F((q2) & (F(q3))))))
+Running [P0]: ltl2tgba -H -f '(F((p1) & (F((p2) & (F(p3)))))) & (F((q1) & (F((q2) & (F(q3))))))' >'lcr-o0-2pP9lP'
+Running [P1]: build/bin/ltl2dpa '(F((p1) & (F((p2) & (F(p3)))))) & (F((q1) & (F((q2) & (F(q3))))))' >'lcr-o1-PwCtHC'
+Running [N0]: ltl2tgba -H -f '!((F((p1) & (F((p2) & (F(p3)))))) & (F((q1) & (F((q2) & (F(q3)))))))' >'lcr-o0-XzG1Gs'
+Running [N1]: build/bin/ltl2dpa '!((F((p1) & (F((p2) & (F(p3)))))) & (F((q1) & (F((q2) & (F(q3)))))))' >'lcr-o1-0X9j1i'
+Performing sanity checks and gathering statistics...
+
+-:22: (F(p)) & (F(q))
+Running [P0]: ltl2tgba -H -f '(F(p)) & (F(q))' >'lcr-o0-qWOdud'
+Running [P1]: build/bin/ltl2dpa '(F(p)) & (F(q))' >'lcr-o1-URk9Y7'
+Running [N0]: ltl2tgba -H -f '!((F(p)) & (F(q)))' >'lcr-o0-AvHBU3'
+Running [N1]: build/bin/ltl2dpa '!((F(p)) & (F(q)))' >'lcr-o1-zoZMSZ'
+Performing sanity checks and gathering statistics...
+
+-:23: (F((p) & (X(p)))) & (F((q) & (X(q))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X(p)))) & (F((q) & (X(q))))' >'lcr-o0-QTNfJX'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X(p)))) & (F((q) & (X(q))))' >'lcr-o1-0e4CCV'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X(p)))) & (F((q) & (X(q)))))' >'lcr-o0-hzppiV'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X(p)))) & (F((q) & (X(q)))))' >'lcr-o1-pXhTnV'
+Performing sanity checks and gathering statistics...
+
+-:24: (F((p) & (X((p) & (X(p)))))) & (F((q) & (X((q) & (X(q))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X((p) & (X(p)))))) & (F((q) & (X((q) & (X(q))))))' >'lcr-o0-joKJKX'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X((p) & (X(p)))))) & (F((q) & (X((q) & (X(q))))))' >'lcr-o1-3PkUb0'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X((p) & (X(p)))))) & (F((q) & (X((q) & (X(q)))))))' >'lcr-o0-oDXsp4'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X((p) & (X(p)))))) & (F((q) & (X((q) & (X(q)))))))' >'lcr-o1-aGcOX8'
+Performing sanity checks and gathering statistics...
+
+-:25: (F((p) & (X((p) & (X((p) & (X(p)))))))) & (F((q) & (X((q) & (X((q) & (X(q))))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X((p) & (X((p) & (X(p)))))))) & (F((q) & (X((q) & (X((q) & (X(q))))))))' >'lcr-o0-bSjOMf'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X((p) & (X((p) & (X(p)))))))) & (F((q) & (X((q) & (X((q) & (X(q))))))))' >'lcr-o1-MugtDm'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X((p) & (X((p) & (X(p)))))))) & (F((q) & (X((q) & (X((q) & (X(q)))))))))' >'lcr-o0-D924aw'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X((p) & (X((p) & (X(p)))))))) & (F((q) & (X((q) & (X((q) & (X(q)))))))))' >'lcr-o1-Wp1nKF'
+Performing sanity checks and gathering statistics...
+
+-:26: (F((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))' >'lcr-o0-OkvdoT'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))' >'lcr-o1-GFi646'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))' >'lcr-o0-q1tpMo'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))' >'lcr-o1-sPolwG'
+Performing sanity checks and gathering statistics...
+
+-:27: (F((p) & (X((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))))' >'lcr-o0-C6uiX1'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))))' >'lcr-o1-ULlgsn'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))))' >'lcr-o0-FMa7wM'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X((p) & (X((p) & (X((p) & (X((p) & (X(p)))))))))))) & (F((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))))' >'lcr-o1-HNAYDb'
+Performing sanity checks and gathering statistics...
+
+-:28: (F(p)) & (F(q))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:29: (F((p) & (X(p)))) & (F((q) & (X(q))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:30: (F((p) & (X(p)) & (X(X(p))))) & (F((q) & (X(q)) & (X(X(q)))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X(p)) & (X(X(p))))) & (F((q) & (X(q)) & (X(X(q)))))' >'lcr-o0-dzDBBE'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X(p)) & (X(X(p))))) & (F((q) & (X(q)) & (X(X(q)))))' >'lcr-o1-ttahB7'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X(p)) & (X(X(p))))) & (F((q) & (X(q)) & (X(X(q))))))' >'lcr-o0-RWZgCC'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X(p)) & (X(X(p))))) & (F((q) & (X(q)) & (X(X(q))))))' >'lcr-o1-aFoSE7'
+Performing sanity checks and gathering statistics...
+
+-:31: (F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q))))))' >'lcr-o0-dvTxZE'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q))))))' >'lcr-o1-T8yZlc'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))))))' >'lcr-o0-PACi8L'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))))))' >'lcr-o1-nyO1Vl'
+Performing sanity checks and gathering statistics...
+
+-:32: (F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q)))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q)))))))' >'lcr-o0-ZAb0RY'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q)))))))' >'lcr-o1-ZsScRB'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))))))' >'lcr-o0-ApTE1h'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))))))' >'lcr-o1-AanueY'
+Performing sanity checks and gathering statistics...
+
+-:33: (F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))) & (X(X(X(X(X(p)))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q))))))))
+Running [P0]: ltl2tgba -H -f '(F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))) & (X(X(X(X(X(p)))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q))))))))' >'lcr-o0-hz9OVH'
+Running [P1]: build/bin/ltl2dpa '(F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))) & (X(X(X(X(X(p)))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q))))))))' >'lcr-o1-KDmWHr'
+Running [N0]: ltl2tgba -H -f '!((F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))) & (X(X(X(X(X(p)))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q)))))))))' >'lcr-o0-Htxdce'
+Running [N1]: build/bin/ltl2dpa '!((F((p) & (X(p)) & (X(X(p))) & (X(X(X(p)))) & (X(X(X(X(p))))) & (X(X(X(X(X(p)))))))) & (F((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q)))))))))' >'lcr-o1-vBjiI0'
+Performing sanity checks and gathering statistics...
+
+-:34: G(!(p0))
+Running [P0]: ltl2tgba -H -f 'G(!(p0))' >'lcr-o0-LfjdTP'
+Running [P1]: build/bin/ltl2dpa 'G(!(p0))' >'lcr-o1-8Q9W4E'
+Running [N0]: ltl2tgba -H -f '!(G(!(p0)))' >'lcr-o0-IGNDaw'
+Running [N1]: build/bin/ltl2dpa '!(G(!(p0)))' >'lcr-o1-SVHiin'
+Performing sanity checks and gathering statistics...
+
+-:35: (F(p0)) -> ((!(p1)) U (p0))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((!(p1)) U (p0))' >'lcr-o0-8u8Zmg'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((!(p1)) U (p0))' >'lcr-o1-dNfkt9'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((!(p1)) U (p0)))' >'lcr-o0-m2k4Q4'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((!(p1)) U (p0)))' >'lcr-o1-0vABg0'
+Performing sanity checks and gathering statistics...
+
+-:36: G((p0) -> (G(!(p1))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (G(!(p1))))' >'lcr-o0-j9aHgY'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (G(!(p1))))' >'lcr-o1-cbv8hW'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (G(!(p1)))))' >'lcr-o0-bfkbpW'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (G(!(p1)))))' >'lcr-o1-fOMzxW'
+Performing sanity checks and gathering statistics...
+
+-:37: G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U (p1)))' >'lcr-o0-JbPkaZ'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U (p1)))' >'lcr-o1-PkjIO1'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U (p1))))' >'lcr-o0-b5KOP7'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U (p1))))' >'lcr-o1-v6kDSd'
+Performing sanity checks and gathering statistics...
+
+-:38: G(((p0) & (!(p1))) -> ((!(p2)) W (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1))) -> ((!(p2)) W (p1)))' >'lcr-o0-vwA8nn'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1))) -> ((!(p2)) W (p1)))' >'lcr-o1-HPNUUw'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1))) -> ((!(p2)) W (p1))))' >'lcr-o0-PeluZI'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1))) -> ((!(p2)) W (p1))))' >'lcr-o1-blp95U'
+Performing sanity checks and gathering statistics...
+
+-:39: F(p0)
+Running [P0]: ltl2tgba -H -f 'F(p0)' >'lcr-o0-E8D049'
+Running [P1]: build/bin/ltl2dpa 'F(p0)' >'lcr-o1-oKeb5o'
+Running [N0]: ltl2tgba -H -f '!(F(p0))' >'lcr-o0-A6TtKF'
+Running [N1]: build/bin/ltl2dpa '!(F(p0))' >'lcr-o1-IamRrW'
+Performing sanity checks and gathering statistics...
+
+-:40: (!(p0)) W ((!(p0)) & (p1))
+Running [P0]: ltl2tgba -H -f '(!(p0)) W ((!(p0)) & (p1))' >'lcr-o0-uklnxe'
+Running [P1]: build/bin/ltl2dpa '(!(p0)) W ((!(p0)) & (p1))' >'lcr-o1-meTODw'
+Running [N0]: ltl2tgba -H -f '!((!(p0)) W ((!(p0)) & (p1)))' >'lcr-o0-6HIBhQ'
+Running [N1]: build/bin/ltl2dpa '!((!(p0)) W ((!(p0)) & (p1)))' >'lcr-o1-vACxX9'
+Performing sanity checks and gathering statistics...
+
+-:41: (G(!(p0))) | (F((p0) & (F(p1))))
+Running [P0]: ltl2tgba -H -f '(G(!(p0))) | (F((p0) & (F(p1))))' >'lcr-o0-lWnAyv'
+Running [P1]: build/bin/ltl2dpa '(G(!(p0))) | (F((p0) & (F(p1))))' >'lcr-o1-Zg6NbR'
+Running [N0]: ltl2tgba -H -f '!((G(!(p0))) | (F((p0) & (F(p1)))))' >'lcr-o0-TN4J8e'
+Running [N1]: build/bin/ltl2dpa '!((G(!(p0))) | (F((p0) & (F(p1)))))' >'lcr-o1-28Do7C'
+Performing sanity checks and gathering statistics...
+
+-:42: G(((p0) & (!(p1))) -> ((!(p1)) W ((!(p1)) & (p2))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1))) -> ((!(p1)) W ((!(p1)) & (p2))))' >'lcr-o0-im0cc4'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1))) -> ((!(p1)) W ((!(p1)) & (p2))))' >'lcr-o1-HQUoiv'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1))) -> ((!(p1)) W ((!(p1)) & (p2)))))' >'lcr-o0-Bn5v3Y'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1))) -> ((!(p1)) W ((!(p1)) & (p2)))))' >'lcr-o1-pvOEQs'
+Performing sanity checks and gathering statistics...
+
+-:43: G(((p0) & (!(p1))) -> ((!(p1)) U ((!(p1)) & (p2))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1))) -> ((!(p1)) U ((!(p1)) & (p2))))' >'lcr-o0-Vt53pZ'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1))) -> ((!(p1)) U ((!(p1)) & (p2))))' >'lcr-o1-UrY00v'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1))) -> ((!(p1)) U ((!(p1)) & (p2)))))' >'lcr-o0-NwxLK5'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1))) -> ((!(p1)) U ((!(p1)) & (p2)))))' >'lcr-o1-zlgVvF'
+Performing sanity checks and gathering statistics...
+
+-:44: (!(p0)) W ((p0) W ((!(p0)) W ((p0) W (G(!(p0))))))
+Running [P0]: ltl2tgba -H -f '(!(p0)) W ((p0) W ((!(p0)) W ((p0) W (G(!(p0))))))' >'lcr-o0-clOsKi'
+Running [P1]: build/bin/ltl2dpa '(!(p0)) W ((p0) W ((!(p0)) W ((p0) W (G(!(p0))))))' >'lcr-o1-m4Rf0V'
+Running [N0]: ltl2tgba -H -f '!((!(p0)) W ((p0) W ((!(p0)) W ((p0) W (G(!(p0)))))))' >'lcr-o0-pg17VB'
+Running [N1]: build/bin/ltl2dpa '!((!(p0)) W ((p0) W ((!(p0)) W ((p0) W (G(!(p0)))))))' >'lcr-o1-bTVKTh'
+Performing sanity checks and gathering statistics...
+
+-:45: (F(p0)) -> (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | ((!(p1)) U (p0))))))))))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | ((!(p1)) U (p0))))))))))' >'lcr-o0-WEydE0'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | ((!(p1)) U (p0))))))))))' >'lcr-o1-vQ9xqJ'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | ((!(p1)) U (p0)))))))))))' >'lcr-o0-koFFev'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | (((!(p0)) & (!(p1))) U ((p0) | (((!(p0)) & (p1)) U ((p0) | ((!(p1)) U (p0)))))))))))' >'lcr-o1-qcpP3g'
+Performing sanity checks and gathering statistics...
+
+-:46: (F(p0)) -> ((!(p0)) U ((p0) & ((!(p1)) W ((p1) W ((!(p1)) W ((p1) W (G(!(p1)))))))))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((!(p0)) U ((p0) & ((!(p1)) W ((p1) W ((!(p1)) W ((p1) W (G(!(p1)))))))))' >'lcr-o0-K7bLn5'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((!(p0)) U ((p0) & ((!(p1)) W ((p1) W ((!(p1)) W ((p1) W (G(!(p1)))))))))' >'lcr-o1-HUU5IT'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((!(p0)) U ((p0) & ((!(p1)) W ((p1) W ((!(p1)) W ((p1) W (G(!(p1))))))))))' >'lcr-o0-ulsolK'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((!(p0)) U ((p0) & ((!(p1)) W ((p1) W ((!(p1)) W ((p1) W (G(!(p1))))))))))' >'lcr-o1-5Db1ZA'
+Performing sanity checks and gathering statistics...
+
+-:47: G(((p0) & (F(p1))) -> (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | ((!(p2)) U (p1)))))))))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (F(p1))) -> (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | ((!(p2)) U (p1)))))))))))' >'lcr-o0-M7VOlu'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (F(p1))) -> (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | ((!(p2)) U (p1)))))))))))' >'lcr-o1-w0HMJn'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (F(p1))) -> (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | ((!(p2)) U (p1))))))))))))' >'lcr-o0-3SMOIk'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (F(p1))) -> (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | (((!(p1)) & (!(p2))) U ((p1) | (((!(p1)) & (p2)) U ((p1) | ((!(p2)) U (p1))))))))))))' >'lcr-o1-SYV2Jh'
+Performing sanity checks and gathering statistics...
+
+-:48: G((p0) -> (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (G(p1)) | ((!(p1)) W (p2)))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (G(p1)) | ((!(p1)) W (p2)))))))))))' >'lcr-o0-RKbeyi'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (G(p1)) | ((!(p1)) W (p2)))))))))))' >'lcr-o1-yWQjoj'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (G(p1)) | ((!(p1)) W (p2))))))))))))' >'lcr-o0-EItTdn'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (((!(p1)) & (!(p2))) U ((p2) | (((p1) & (!(p2))) U ((p2) | (G(p1)) | ((!(p1)) W (p2))))))))))))' >'lcr-o1-n0ty5q'
+Performing sanity checks and gathering statistics...
+
+-:49: G(p0)
+Running [P0]: ltl2tgba -H -f 'G(p0)' >'lcr-o0-R3IIKy'
+Running [P1]: build/bin/ltl2dpa 'G(p0)' >'lcr-o1-rKo2qG'
+Running [N0]: ltl2tgba -H -f '!(G(p0))' >'lcr-o0-IOZZWP'
+Running [N1]: build/bin/ltl2dpa '!(G(p0))' >'lcr-o1-eYXUuZ'
+Performing sanity checks and gathering statistics...
+
+-:50: (F(p0)) -> ((p1) U (p0))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((p1) U (p0))' >'lcr-o0-H09p4a'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((p1) U (p0))' >'lcr-o1-MSvcFm'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((p1) U (p0)))' >'lcr-o0-qUpAvA'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((p1) U (p0)))' >'lcr-o1-wLW8mO'
+Performing sanity checks and gathering statistics...
+
+-:51: G((p0) -> (G(p1)))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (G(p1)))' >'lcr-o0-u4j4s4'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (G(p1)))' >'lcr-o1-OoDnAk'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (G(p1))))' >'lcr-o0-nxB2LC'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (G(p1))))' >'lcr-o1-XFaSZU'
+Performing sanity checks and gathering statistics...
+
+-:52: G(((p0) & (!(p1)) & (F(p1))) -> ((p2) U (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1)) & (F(p1))) -> ((p2) U (p1)))' >'lcr-o0-fTUZIf'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1)) & (F(p1))) -> ((p2) U (p1)))' >'lcr-o1-RTtDtA'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1)) & (F(p1))) -> ((p2) U (p1))))' >'lcr-o0-UoiBVY'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1)) & (F(p1))) -> ((p2) U (p1))))' >'lcr-o1-oxWcqn'
+Performing sanity checks and gathering statistics...
+
+-:53: G(((p0) & (!(p1))) -> ((p2) W (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1))) -> ((p2) W (p1)))' >'lcr-o0-4mFV8O'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1))) -> ((p2) W (p1)))' >'lcr-o1-ylbVSg'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1))) -> ((p2) W (p1))))' >'lcr-o0-SzIl9K'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1))) -> ((p2) W (p1))))' >'lcr-o1-wMeOrf'
+Performing sanity checks and gathering statistics...
+
+-:54: (!(p0)) W (p1)
+Running [P0]: ltl2tgba -H -f '(!(p0)) W (p1)' >'lcr-o0-6QfHCM'
+Running [P1]: build/bin/ltl2dpa '(!(p0)) W (p1)' >'lcr-o1-GkYROj'
+Running [N0]: ltl2tgba -H -f '!((!(p0)) W (p1))' >'lcr-o0-EQKR2S'
+Running [N1]: build/bin/ltl2dpa '!((!(p0)) W (p1))' >'lcr-o1-mwykis'
+Performing sanity checks and gathering statistics...
+
+-:55: (F(p0)) -> ((!(p1)) U ((p0) | (p2)))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((!(p1)) U ((p0) | (p2)))' >'lcr-o0-Wmcov3'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((!(p1)) U ((p0) | (p2)))' >'lcr-o1-2QiqJE'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((!(p1)) U ((p0) | (p2))))' >'lcr-o0-T6CCFh'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((!(p1)) U ((p0) | (p2))))' >'lcr-o1-PNsMDU'
+Performing sanity checks and gathering statistics...
+
+-:56: (G(!(p0))) | (F((p0) & ((!(p1)) W (p2))))
+Running [P0]: ltl2tgba -H -f '(G(!(p0))) | (F((p0) & ((!(p1)) W (p2))))' >'lcr-o0-vu8fXz'
+Running [P1]: build/bin/ltl2dpa '(G(!(p0))) | (F((p0) & ((!(p1)) W (p2))))' >'lcr-o1-H7GYhf'
+Running [N0]: ltl2tgba -H -f '!((G(!(p0))) | (F((p0) & ((!(p1)) W (p2)))))' >'lcr-o0-X2AIXX'
+Running [N1]: build/bin/ltl2dpa '!((G(!(p0))) | (F((p0) & ((!(p1)) W (p2)))))' >'lcr-o1-OKGaFG'
+Performing sanity checks and gathering statistics...
+
+-:57: G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U ((p1) | (p3))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U ((p1) | (p3))))' >'lcr-o0-4XkHVr'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U ((p1) | (p3))))' >'lcr-o1-iOEsdd'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U ((p1) | (p3)))))' >'lcr-o0-wNKRS0'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1)) & (F(p1))) -> ((!(p2)) U ((p1) | (p3)))))' >'lcr-o1-d2msAO'
+Performing sanity checks and gathering statistics...
+
+-:58: G(((p0) & (!(p1))) -> ((!(p2)) W ((p1) | (p3))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1))) -> ((!(p2)) W ((p1) | (p3))))' >'lcr-o0-PqXWpF'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1))) -> ((!(p2)) W ((p1) | (p3))))' >'lcr-o1-BRHbhw'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1))) -> ((!(p2)) W ((p1) | (p3)))))' >'lcr-o0-rWxIYp'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1))) -> ((!(p2)) W ((p1) | (p3)))))' >'lcr-o1-pX7iIj'
+Performing sanity checks and gathering statistics...
+
+-:59: G((p0) -> (F(p1)))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (F(p1)))' >'lcr-o0-OpFeog'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (F(p1)))' >'lcr-o1-3Axp5c'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (F(p1))))' >'lcr-o0-FGg47b'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (F(p1))))' >'lcr-o1-v1Vwdb'
+Performing sanity checks and gathering statistics...
+
+-:60: G((p0) -> (G((p1) -> (F(p2)))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (G((p1) -> (F(p2)))))' >'lcr-o0-sW3iAc'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (G((p1) -> (F(p2)))))' >'lcr-o1-xXdCYd'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (G((p1) -> (F(p2))))))' >'lcr-o0-4cJKhi'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (G((p1) -> (F(p2))))))' >'lcr-o1-XdTRCm'
+Performing sanity checks and gathering statistics...
+
+-:61: G(((p0) & (!(p1)) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) U (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1)) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) U (p1)))' >'lcr-o0-9ht0lu'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1)) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) U (p1)))' >'lcr-o1-QTyH7B'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1)) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) U (p1))))' >'lcr-o0-Uhl6SR'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1)) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) U (p1))))' >'lcr-o1-6WVOH7'
+Performing sanity checks and gathering statistics...
+
+-:62: G(((p0) & (!(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) W (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (!(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) W (p1)))' >'lcr-o0-WGQ45p'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (!(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) W (p1)))' >'lcr-o1-xv2zvI'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (!(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) W (p1))))' >'lcr-o0-DwQtC3'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (!(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3)))) W (p1))))' >'lcr-o1-2Qv1Ko'
+Performing sanity checks and gathering statistics...
+
+-:63: (F(p0)) -> ((!(p0)) U ((!(p0)) & (p1) & (X((!(p0)) U (p2)))))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((!(p0)) U ((!(p0)) & (p1) & (X((!(p0)) U (p2)))))' >'lcr-o0-Zra1AM'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((!(p0)) U ((!(p0)) & (p1) & (X((!(p0)) U (p2)))))' >'lcr-o1-3JnKsa'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((!(p0)) U ((!(p0)) & (p1) & (X((!(p0)) U (p2))))))' >'lcr-o0-nheC5B'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((!(p0)) U ((!(p0)) & (p1) & (X((!(p0)) U (p2))))))' >'lcr-o1-03KYJ3'
+Performing sanity checks and gathering statistics...
+
+-:64: (F(p0)) -> ((!(p1)) U ((p0) | ((!(p1)) & (p2) & (X((!(p1)) U (p3))))))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((!(p1)) U ((p0) | ((!(p1)) & (p2) & (X((!(p1)) U (p3))))))' >'lcr-o0-kRnPdz'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((!(p1)) U ((p0) | ((!(p1)) & (p2) & (X((!(p1)) U (p3))))))' >'lcr-o1-yeGsJ4'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((!(p1)) U ((p0) | ((!(p1)) & (p2) & (X((!(p1)) U (p3)))))))' >'lcr-o0-cRiJhE'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((!(p1)) U ((p0) | ((!(p1)) & (p2) & (X((!(p1)) U (p3)))))))' >'lcr-o1-jKU4Rd'
+Performing sanity checks and gathering statistics...
+
+-:65: (G(!(p0))) | ((!(p0)) U (((p0) & (F(p1))) -> ((!(p1)) U ((!(p1)) & (p2) & (X((!(p1)) U (p3)))))))
+Running [P0]: ltl2tgba -H -f '(G(!(p0))) | ((!(p0)) U (((p0) & (F(p1))) -> ((!(p1)) U ((!(p1)) & (p2) & (X((!(p1)) U (p3)))))))' >'lcr-o0-EMSvTQ'
+Running [P1]: build/bin/ltl2dpa '(G(!(p0))) | ((!(p0)) U (((p0) & (F(p1))) -> ((!(p1)) U ((!(p1)) & (p2) & (X((!(p1)) U (p3)))))))' >'lcr-o1-US9MWt'
+Running [N0]: ltl2tgba -H -f '!((G(!(p0))) | ((!(p0)) U (((p0) & (F(p1))) -> ((!(p1)) U ((!(p1)) & (p2) & (X((!(p1)) U (p3))))))))' >'lcr-o0-6eT2ga'
+Running [N1]: build/bin/ltl2dpa '!((G(!(p0))) | ((!(p0)) U (((p0) & (F(p1))) -> ((!(p1)) U ((!(p1)) & (p2) & (X((!(p1)) U (p3))))))))' >'lcr-o1-paz6CQ'
+Performing sanity checks and gathering statistics...
+
+-:66: G(((p0) & (F(p1))) -> ((!(p2)) U ((p1) | ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (F(p1))) -> ((!(p2)) U ((p1) | ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))))' >'lcr-o0-oxgezA'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (F(p1))) -> ((!(p2)) U ((p1) | ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))))' >'lcr-o1-r1Dxxk'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (F(p1))) -> ((!(p2)) U ((p1) | ((!(p2)) & (p3) & (X((!(p2)) U (p4))))))))' >'lcr-o0-1cIpy8'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (F(p1))) -> ((!(p2)) U ((p1) | ((!(p2)) & (p3) & (X((!(p2)) U (p4))))))))' >'lcr-o1-SvvIBW'
+Performing sanity checks and gathering statistics...
+
+-:67: G((p0) -> ((F(p1)) -> ((!(p1)) U ((p2) | ((!(p1)) & (p3) & (X((!(p1)) U (p4))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> ((F(p1)) -> ((!(p1)) U ((p2) | ((!(p1)) & (p3) & (X((!(p1)) U (p4))))))))' >'lcr-o0-NwhjwO'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> ((F(p1)) -> ((!(p1)) U ((p2) | ((!(p1)) & (p3) & (X((!(p1)) U (p4))))))))' >'lcr-o1-TQuvtG'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> ((F(p1)) -> ((!(p1)) U ((p2) | ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))))))' >'lcr-o0-ItXfiC'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> ((F(p1)) -> ((!(p1)) U ((p2) | ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))))))' >'lcr-o1-YwSU8x'
+Performing sanity checks and gathering statistics...
+
+-:68: (F((p0) & (X(F(p1))))) -> ((!(p0)) U (p2))
+Running [P0]: ltl2tgba -H -f '(F((p0) & (X(F(p1))))) -> ((!(p0)) U (p2))' >'lcr-o0-FMFzNx'
+Running [P1]: build/bin/ltl2dpa '(F((p0) & (X(F(p1))))) -> ((!(p0)) U (p2))' >'lcr-o1-3YsRtx'
+Running [N0]: ltl2tgba -H -f '!((F((p0) & (X(F(p1))))) -> ((!(p0)) U (p2)))' >'lcr-o0-mznsZz'
+Running [N1]: build/bin/ltl2dpa '!((F((p0) & (X(F(p1))))) -> ((!(p0)) U (p2)))' >'lcr-o1-VxTVwC'
+Performing sanity checks and gathering statistics...
+
+-:69: (F(p0)) -> ((!((!(p0)) & (p1) & (X((!(p0)) U ((!(p0)) & (p2)))))) U ((p0) | (p3)))
+Running [P0]: ltl2tgba -H -f '(F(p0)) -> ((!((!(p0)) & (p1) & (X((!(p0)) U ((!(p0)) & (p2)))))) U ((p0) | (p3)))' >'lcr-o0-ohZZfH'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) -> ((!((!(p0)) & (p1) & (X((!(p0)) U ((!(p0)) & (p2)))))) U ((p0) | (p3)))' >'lcr-o1-ZDPt0L'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) -> ((!((!(p0)) & (p1) & (X((!(p0)) U ((!(p0)) & (p2)))))) U ((p0) | (p3))))' >'lcr-o0-yGpTPT'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) -> ((!((!(p0)) & (p1) & (X((!(p0)) U ((!(p0)) & (p2)))))) U ((p0) | (p3))))' >'lcr-o1-M4v0G1'
+Performing sanity checks and gathering statistics...
+
+-:70: (G(!(p0))) | ((!(p0)) U ((p0) & ((F((p1) & (X(F(p2))))) -> ((!(p1)) U (p3)))))
+Running [P0]: ltl2tgba -H -f '(G(!(p0))) | ((!(p0)) U ((p0) & ((F((p1) & (X(F(p2))))) -> ((!(p1)) U (p3)))))' >'lcr-o0-WB36Zc'
+Running [P1]: build/bin/ltl2dpa '(G(!(p0))) | ((!(p0)) U ((p0) & ((F((p1) & (X(F(p2))))) -> ((!(p1)) U (p3)))))' >'lcr-o1-UkBYko'
+Running [N0]: ltl2tgba -H -f '!((G(!(p0))) | ((!(p0)) U ((p0) & ((F((p1) & (X(F(p2))))) -> ((!(p1)) U (p3))))))' >'lcr-o0-wNOl1C'
+Running [N1]: build/bin/ltl2dpa '!((G(!(p0))) | ((!(p0)) U ((p0) & ((F((p1) & (X(F(p2))))) -> ((!(p1)) U (p3))))))' >'lcr-o1-astnJR'
+Performing sanity checks and gathering statistics...
+
+-:71: G(((p0) & (F(p1))) -> ((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (F(p1))) -> ((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))))' >'lcr-o0-FWMoV9'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (F(p1))) -> ((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))))' >'lcr-o1-3vES9r'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (F(p1))) -> ((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4)))))' >'lcr-o0-ZUQcIO'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (F(p1))) -> ((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4)))))' >'lcr-o1-3xLiib'
+Performing sanity checks and gathering statistics...
+
+-:72: G((p0) -> (((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))) | (G(!((p2) & (X(F(p3))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))) | (G(!((p2) & (X(F(p3))))))))' >'lcr-o0-2AJbuB'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))) | (G(!((p2) & (X(F(p3))))))))' >'lcr-o1-AdwvI1'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))) | (G(!((p2) & (X(F(p3)))))))))' >'lcr-o0-w0Wl2w'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (((!((!(p1)) & (p2) & (X((!(p1)) U ((!(p1)) & (p3)))))) U ((p1) | (p4))) | (G(!((p2) & (X(F(p3)))))))))' >'lcr-o1-ioNOx3'
+Performing sanity checks and gathering statistics...
+
+-:73: G(((p0) & (X(F(p1)))) -> (X(F((p1) & (F(p2))))))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (X(F(p1)))) -> (X(F((p1) & (F(p2))))))' >'lcr-o0-Z6QeyE'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (X(F(p1)))) -> (X(F((p1) & (F(p2))))))' >'lcr-o1-Rc9BWf'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (X(F(p1)))) -> (X(F((p1) & (F(p2)))))))' >'lcr-o0-a3wUbV'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (X(F(p1)))) -> (X(F((p1) & (F(p2)))))))' >'lcr-o1-y5KZsA'
+Performing sanity checks and gathering statistics...
+
+-:74: G((p0) -> (G(((p1) & (X(F(p2)))) -> (X((!(p2)) U ((p2) & (F(p3))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (G(((p1) & (X(F(p2)))) -> (X((!(p2)) U ((p2) & (F(p3))))))))' >'lcr-o0-aLDHqj'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (G(((p1) & (X(F(p2)))) -> (X((!(p2)) U ((p2) & (F(p3))))))))' >'lcr-o1-idb9p2'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (G(((p1) & (X(F(p2)))) -> (X((!(p2)) U ((p2) & (F(p3)))))))))' >'lcr-o0-3b7tHP'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (G(((p1) & (X(F(p2)))) -> (X((!(p2)) U ((p2) & (F(p3)))))))))' >'lcr-o1-vMXw0C'
+Performing sanity checks and gathering statistics...
+
+-:75: G(((p0) & (F(p1))) -> ((((p2) & (X((!(p1)) U (p3)))) -> (X((!(p1)) U ((p3) & (F(p4)))))) U (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (F(p1))) -> ((((p2) & (X((!(p1)) U (p3)))) -> (X((!(p1)) U ((p3) & (F(p4)))))) U (p1)))' >'lcr-o0-zRdJTu'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (F(p1))) -> ((((p2) & (X((!(p1)) U (p3)))) -> (X((!(p1)) U ((p3) & (F(p4)))))) U (p1)))' >'lcr-o1-WTBHRm'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (F(p1))) -> ((((p2) & (X((!(p1)) U (p3)))) -> (X((!(p1)) U ((p3) & (F(p4)))))) U (p1))))' >'lcr-o0-MuRQ6k'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (F(p1))) -> ((((p2) & (X((!(p1)) U (p3)))) -> (X((!(p1)) U ((p3) & (F(p4)))))) U (p1))))' >'lcr-o1-jVzGDj'
+Performing sanity checks and gathering statistics...
+
+-:76: G((p0) -> ((((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))) U ((p2) | (G(((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> ((((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))) U ((p2) | (G(((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4))))))))))' >'lcr-o0-DHbiOn'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> ((((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))) U ((p2) | (G(((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4))))))))))' >'lcr-o1-t0cKis'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> ((((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))) U ((p2) | (G(((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))))))))' >'lcr-o0-mUI5cL'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> ((((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))) U ((p2) | (G(((p1) & (X((!(p2)) U (p3)))) -> (X((!(p2)) U ((p3) & (F(p4)))))))))))' >'lcr-o1-2NuYv4'
+Performing sanity checks and gathering statistics...
+
+-:77: G((p0) -> (F((p1) & (X(F(p2))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (F((p1) & (X(F(p2))))))' >'lcr-o0-o0idnZ'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (F((p1) & (X(F(p2))))))' >'lcr-o1-SxfyfU'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (F((p1) & (X(F(p2)))))))' >'lcr-o0-5S6RlR'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (F((p1) & (X(F(p2)))))))' >'lcr-o1-kT35tO'
+Performing sanity checks and gathering statistics...
+
+-:78: G((p0) -> (G((p1) -> ((p2) & (X(F(p3)))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (G((p1) -> ((p2) & (X(F(p3)))))))' >'lcr-o0-bkpT2N'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (G((p1) -> ((p2) & (X(F(p3)))))))' >'lcr-o1-dKWWCN'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (G((p1) -> ((p2) & (X(F(p3))))))))' >'lcr-o0-mzSWCQ'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (G((p1) -> ((p2) & (X(F(p3))))))))' >'lcr-o1-JRaxET'
+Performing sanity checks and gathering statistics...
+
+-:79: G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))) U (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))) U (p1)))' >'lcr-o0-hYDQUZ'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))) U (p1)))' >'lcr-o1-3Mkyd6'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))) U (p1))))' >'lcr-o0-qGZCsg'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (X((!(p1)) U (p4)))))) U (p1))))' >'lcr-o1-yKZQJq'
+Performing sanity checks and gathering statistics...
+
+-:80: G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))) U ((p2) | (G((p1) -> ((p3) & (X(F(p4)))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))) U ((p2) | (G((p1) -> ((p3) & (X(F(p4)))))))))' >'lcr-o0-uw7qbF'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))) U ((p2) | (G((p1) -> ((p3) & (X(F(p4)))))))))' >'lcr-o1-mGgXFT'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))) U ((p2) | (G((p1) -> ((p3) & (X(F(p4))))))))))' >'lcr-o0-sh4kzd'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (X((!(p2)) U (p4)))))) U ((p2) | (G((p1) -> ((p3) & (X(F(p4))))))))))' >'lcr-o1-Q4R0vx'
+Performing sanity checks and gathering statistics...
+
+-:81: G((p0) -> (F((p1) & (!(p2)) & (X((!(p2)) U (p3))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (F((p1) & (!(p2)) & (X((!(p2)) U (p3))))))' >'lcr-o0-iBimAX'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (F((p1) & (!(p2)) & (X((!(p2)) U (p3))))))' >'lcr-o1-QgYlGn'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (F((p1) & (!(p2)) & (X((!(p2)) U (p3)))))))' >'lcr-o0-w4U7hR'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (F((p1) & (!(p2)) & (X((!(p2)) U (p3)))))))' >'lcr-o1-jsxzVk'
+Performing sanity checks and gathering statistics...
+
+-:82: G((p0) -> (G((p1) -> ((p2) & (!(p3)) & (X((!(p3)) U (p4)))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (G((p1) -> ((p2) & (!(p3)) & (X((!(p3)) U (p4)))))))' >'lcr-o0-psvKeS'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (G((p1) -> ((p2) & (!(p3)) & (X((!(p3)) U (p4)))))))' >'lcr-o1-gIjFzp'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (G((p1) -> ((p2) & (!(p3)) & (X((!(p3)) U (p4))))))))' >'lcr-o0-EZu2A0'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (G((p1) -> ((p2) & (!(p3)) & (X((!(p3)) U (p4))))))))' >'lcr-o1-PeAqEB'
+Performing sanity checks and gathering statistics...
+
+-:83: G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (!(p4)) & (X(((!(p1)) & (!(p4))) U (p5)))))) U (p1)))
+Running [P0]: ltl2tgba -H -f 'G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (!(p4)) & (X(((!(p1)) & (!(p4))) U (p5)))))) U (p1)))' >'lcr-o0-zeM1gg'
+Running [P1]: build/bin/ltl2dpa 'G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (!(p4)) & (X(((!(p1)) & (!(p4))) U (p5)))))) U (p1)))' >'lcr-o1-t80vWU'
+Running [N0]: ltl2tgba -H -f '!(G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (!(p4)) & (X(((!(p1)) & (!(p4))) U (p5)))))) U (p1))))' >'lcr-o0-ZPj8CD'
+Running [N1]: build/bin/ltl2dpa '!(G(((p0) & (F(p1))) -> (((p2) -> ((!(p1)) U ((!(p1)) & (p3) & (!(p4)) & (X(((!(p1)) & (!(p4))) U (p5)))))) U (p1))))' >'lcr-o1-Jjuhmm'
+Performing sanity checks and gathering statistics...
+
+-:84: G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (!(p4)) & (X(((!(p2)) & (!(p4))) U (p5)))))) U ((p2) | (G((p1) -> ((p3) & (!(p4)) & (X((!(p4)) U (p5)))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (!(p4)) & (X(((!(p2)) & (!(p4))) U (p5)))))) U ((p2) | (G((p1) -> ((p3) & (!(p4)) & (X((!(p4)) U (p5)))))))))' >'lcr-o0-6SMye9'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (!(p4)) & (X(((!(p2)) & (!(p4))) U (p5)))))) U ((p2) | (G((p1) -> ((p3) & (!(p4)) & (X((!(p4)) U (p5)))))))))' >'lcr-o1-T8GkaW'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (!(p4)) & (X(((!(p2)) & (!(p4))) U (p5)))))) U ((p2) | (G((p1) -> ((p3) & (!(p4)) & (X((!(p4)) U (p5))))))))))' >'lcr-o0-A6eWdP'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> (((p1) -> ((!(p2)) U ((!(p2)) & (p3) & (!(p4)) & (X(((!(p2)) & (!(p4))) U (p5)))))) U ((p2) | (G((p1) -> ((p3) & (!(p4)) & (X((!(p4)) U (p5))))))))))' >'lcr-o1-Wqf6lI'
+Performing sanity checks and gathering statistics...
+
+-:85: (p0) U ((p1) & (G(p2)))
+Running [P0]: ltl2tgba -H -f '(p0) U ((p1) & (G(p2)))' >'lcr-o0-5radRL'
+Running [P1]: build/bin/ltl2dpa '(p0) U ((p1) & (G(p2)))' >'lcr-o1-4KwLoP'
+Running [N0]: ltl2tgba -H -f '!((p0) U ((p1) & (G(p2))))' >'lcr-o0-OEbQpV'
+Running [N1]: build/bin/ltl2dpa '!((p0) U ((p1) & (G(p2))))' >'lcr-o1-uOGls1'
+Performing sanity checks and gathering statistics...
+
+-:86: (p0) U ((p1) & (X((p2) U (p3))))
+Running [P0]: ltl2tgba -H -f '(p0) U ((p1) & (X((p2) U (p3))))' >'lcr-o0-yDybS9'
+Running [P1]: build/bin/ltl2dpa '(p0) U ((p1) & (X((p2) U (p3))))' >'lcr-o1-B2yeji'
+Running [N0]: ltl2tgba -H -f '!((p0) U ((p1) & (X((p2) U (p3)))))' >'lcr-o0-l9DPos'
+Running [N1]: build/bin/ltl2dpa '!((p0) U ((p1) & (X((p2) U (p3)))))' >'lcr-o1-ThJAwC'
+Performing sanity checks and gathering statistics...
+
+-:87: (p0) U ((p1) & (X((p2) & (F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6))))))))))))))
+Running [P0]: ltl2tgba -H -f '(p0) U ((p1) & (X((p2) & (F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6))))))))))))))' >'lcr-o0-dklLDO'
+Running [P1]: build/bin/ltl2dpa '(p0) U ((p1) & (X((p2) & (F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6))))))))))))))' >'lcr-o1-KZGDM0'
+Running [N0]: ltl2tgba -H -f '!((p0) U ((p1) & (X((p2) & (F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6)))))))))))))))' >'lcr-o0-mwurqh'
+Running [N1]: build/bin/ltl2dpa '!((p0) U ((p1) & (X((p2) & (F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6)))))))))))))))' >'lcr-o1-TKeH6x'
+Performing sanity checks and gathering statistics...
+
+-:88: F((p0) & (X(G(p1))))
+Running [P0]: ltl2tgba -H -f 'F((p0) & (X(G(p1))))' >'lcr-o0-S6OKDT'
+Running [P1]: build/bin/ltl2dpa 'F((p0) & (X(G(p1))))' >'lcr-o1-Sx56bf'
+Running [N0]: ltl2tgba -H -f '!(F((p0) & (X(G(p1)))))' >'lcr-o0-Lhl4SC'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) & (X(G(p1)))))' >'lcr-o1-zi3jB0'
+Performing sanity checks and gathering statistics...
+
+-:89: F((p0) & (X((p1) & (X(F(p2))))))
+Running [P0]: ltl2tgba -H -f 'F((p0) & (X((p1) & (X(F(p2))))))' >'lcr-o0-oOc4ar'
+Running [P1]: build/bin/ltl2dpa 'F((p0) & (X((p1) & (X(F(p2))))))' >'lcr-o1-M0XmMR'
+Running [N0]: ltl2tgba -H -f '!(F((p0) & (X((p1) & (X(F(p2)))))))' >'lcr-o0-sMhKUk'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) & (X((p1) & (X(F(p2)))))))' >'lcr-o1-sGdV4N'
+Performing sanity checks and gathering statistics...
+
+-:90: F((p0) & (X((p1) U (p2))))
+Running [P0]: ltl2tgba -H -f 'F((p0) & (X((p1) U (p2))))' >'lcr-o0-4vbSrj'
+Running [P1]: build/bin/ltl2dpa 'F((p0) & (X((p1) U (p2))))' >'lcr-o1-6w0rTO'
+Running [N0]: ltl2tgba -H -f '!(F((p0) & (X((p1) U (p2)))))' >'lcr-o0-vObOZl'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) & (X((p1) U (p2)))))' >'lcr-o1-tSu56S'
+Performing sanity checks and gathering statistics...
+
+-:91: (G(F(p1))) | (F(G(p0)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) | (F(G(p0)))' >'lcr-o0-5EEFts'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) | (F(G(p0)))' >'lcr-o1-bUTfR1'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) | (F(G(p0))))' >'lcr-o0-RvC35C'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) | (F(G(p0))))' >'lcr-o1-VIzWle'
+Performing sanity checks and gathering statistics...
+
+-:92: G((p0) -> ((p1) U (p2)))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> ((p1) U (p2)))' >'lcr-o0-MHz00R'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> ((p1) U (p2)))' >'lcr-o1-Pe4kHv'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> ((p1) U (p2))))' >'lcr-o0-bfwybb'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> ((p1) U (p2))))' >'lcr-o1-DC3RGQ'
+Performing sanity checks and gathering statistics...
+
+-:93: G((p0) & (X(F((p1) & (X(F((p2) & (X(F(p3))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F(p3))))))))))' >'lcr-o0-Dwzloy'
+Running [P1]: build/bin/ltl2dpa 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F(p3))))))))))' >'lcr-o1-AT9L7f'
+Running [N0]: ltl2tgba -H -f '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F(p3)))))))))))' >'lcr-o0-eosBc1'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F(p3)))))))))))' >'lcr-o1-xLE2jM'
+Performing sanity checks and gathering statistics...
+
+-:94: (G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p0)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p0)))' >'lcr-o0-87qqaB'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p0)))' >'lcr-o1-FKqI3p'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p0))))' >'lcr-o0-hveUwh'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p0))))' >'lcr-o1-sNi918'
+Performing sanity checks and gathering statistics...
+
+-:95: ((p0) U ((p1) U (p2))) | ((p1) U ((p2) U (p0))) | ((p2) U ((p0) U (p1)))
+Running [P0]: ltl2tgba -H -f '((p0) U ((p1) U (p2))) | ((p1) U ((p2) U (p0))) | ((p2) U ((p0) U (p1)))' >'lcr-o0-yJMsJ2'
+Running [P1]: build/bin/ltl2dpa '((p0) U ((p1) U (p2))) | ((p1) U ((p2) U (p0))) | ((p2) U ((p0) U (p1)))' >'lcr-o1-U4X8rW'
+Running [N0]: ltl2tgba -H -f '!(((p0) U ((p1) U (p2))) | ((p1) U ((p2) U (p0))) | ((p2) U ((p0) U (p1))))' >'lcr-o0-zkKCqT'
+Running [N1]: build/bin/ltl2dpa '!(((p0) U ((p1) U (p2))) | ((p1) U ((p2) U (p0))) | ((p2) U ((p0) U (p1))))' >'lcr-o1-rAl4rQ'
+Performing sanity checks and gathering statistics...
+
+-:96: G((p0) -> ((p1) U ((G(p2)) | (G(p3)))))
+Running [P0]: ltl2tgba -H -f 'G((p0) -> ((p1) U ((G(p2)) | (G(p3)))))' >'lcr-o0-hPPPaQ'
+Running [P1]: build/bin/ltl2dpa 'G((p0) -> ((p1) U ((G(p2)) | (G(p3)))))' >'lcr-o1-BIHIeQ'
+Running [N0]: ltl2tgba -H -f '!(G((p0) -> ((p1) U ((G(p2)) | (G(p3))))))' >'lcr-o0-sHf3uU'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) -> ((p1) U ((G(p2)) | (G(p3))))))' >'lcr-o1-j6h2bZ'
+Performing sanity checks and gathering statistics...
+
+-:97: F((p0) | (X(G(p1))))
+Running [P0]: ltl2tgba -H -f 'F((p0) | (X(G(p1))))' >'lcr-o0-zN5l49'
+Running [P1]: build/bin/ltl2dpa 'F((p0) | (X(G(p1))))' >'lcr-o1-oMorYk'
+Running [N0]: ltl2tgba -H -f '!(F((p0) | (X(G(p1)))))' >'lcr-o0-e8wrYB'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) | (X(G(p1)))))' >'lcr-o1-xZBAXV'
+Performing sanity checks and gathering statistics...
+
+-:98: F((p0) | (X(G((p1) | (X(G(p2)))))))
+Running [P0]: ltl2tgba -H -f 'F((p0) | (X(G((p1) | (X(G(p2)))))))' >'lcr-o0-xWLKzj'
+Running [P1]: build/bin/ltl2dpa 'F((p0) | (X(G((p1) | (X(G(p2)))))))' >'lcr-o1-dBEjYJ'
+Running [N0]: ltl2tgba -H -f '!(F((p0) | (X(G((p1) | (X(G(p2))))))))' >'lcr-o0-rACTle'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) | (X(G((p1) | (X(G(p2))))))))' >'lcr-o1-G0vj2J'
+Performing sanity checks and gathering statistics...
+
+-:99: F((p0) | (X(G((p1) | (X(G((p2) | (X(G(p3))))))))))
+Running [P0]: ltl2tgba -H -f 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G(p3))))))))))' >'lcr-o0-miyrOi'
+Running [P1]: build/bin/ltl2dpa 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G(p3))))))))))' >'lcr-o1-eF9MCR'
+Running [N0]: ltl2tgba -H -f '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G(p3)))))))))))' >'lcr-o0-ylbu0t'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G(p3)))))))))))' >'lcr-o1-EASGH6'
+Performing sanity checks and gathering statistics...
+
+-:100: F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G(p4)))))))))))))
+Running [P0]: ltl2tgba -H -f 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G(p4)))))))))))))' >'lcr-o0-hcIVFM'
+Running [P1]: build/bin/ltl2dpa 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G(p4)))))))))))))' >'lcr-o1-poPuGs'
+Running [N0]: ltl2tgba -H -f '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G(p4))))))))))))))' >'lcr-o0-BVIcWc'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G(p4))))))))))))))' >'lcr-o1-z1yZfX'
+Performing sanity checks and gathering statistics...
+
+-:101: F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G(p5))))))))))))))))
+Running [P0]: ltl2tgba -H -f 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G(p5))))))))))))))))' >'lcr-o0-nc16JL'
+Running [P1]: build/bin/ltl2dpa 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G(p5))))))))))))))))' >'lcr-o1-ohNvkA'
+Running [N0]: ltl2tgba -H -f '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G(p5)))))))))))))))))' >'lcr-o0-uPKT4s'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G(p5)))))))))))))))))' >'lcr-o1-LWWrTl'
+Performing sanity checks and gathering statistics...
+
+-:102: F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G((p5) | (X(G(p6)))))))))))))))))))
+Running [P0]: ltl2tgba -H -f 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G((p5) | (X(G(p6)))))))))))))))))))' >'lcr-o0-Ige5Oj'
+Running [P1]: build/bin/ltl2dpa 'F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G((p5) | (X(G(p6)))))))))))))))))))' >'lcr-o1-8X2XWh'
+Running [N0]: ltl2tgba -H -f '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G((p5) | (X(G(p6))))))))))))))))))))' >'lcr-o0-LOo2Tl'
+Running [N1]: build/bin/ltl2dpa '!(F((p0) | (X(G((p1) | (X(G((p2) | (X(G((p3) | (X(G((p4) | (X(G((p5) | (X(G(p6))))))))))))))))))))' >'lcr-o1-z8WKZp'
+Performing sanity checks and gathering statistics...
+
+-:103: (F(p1)) | (G(p2))
+Running [P0]: ltl2tgba -H -f '(F(p1)) | (G(p2))' >'lcr-o0-8Ue9Fz'
+Running [P1]: build/bin/ltl2dpa '(F(p1)) | (G(p2))' >'lcr-o1-QfiooJ'
+Running [N0]: ltl2tgba -H -f '!((F(p1)) | (G(p2)))' >'lcr-o0-hgTjiV'
+Running [N1]: build/bin/ltl2dpa '!((F(p1)) | (G(p2)))' >'lcr-o1-tkBje7'
+Performing sanity checks and gathering statistics...
+
+-:104: ((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3)))
+Running [P0]: ltl2tgba -H -f '((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3)))' >'lcr-o0-nOk4kl'
+Running [P1]: build/bin/ltl2dpa '((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3)))' >'lcr-o1-1rmxtz'
+Running [N0]: ltl2tgba -H -f '!(((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))))' >'lcr-o0-RW4v4P'
+Running [N1]: build/bin/ltl2dpa '!(((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))))' >'lcr-o1-GWNZG6'
+Performing sanity checks and gathering statistics...
+
+-:105: ((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4)))
+Running [P0]: ltl2tgba -H -f '((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4)))' >'lcr-o0-wJ3SIq'
+Running [P1]: build/bin/ltl2dpa '((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4)))' >'lcr-o1-6KrwNK'
+Running [N0]: ltl2tgba -H -f '!(((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))))' >'lcr-o0-onlkI7'
+Running [N1]: build/bin/ltl2dpa '!(((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))))' >'lcr-o1-TNv5Eu'
+Performing sanity checks and gathering statistics...
+
+-:106: ((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))) & ((F(p4)) | (G(p5)))
+Running [P0]: ltl2tgba -H -f '((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))) & ((F(p4)) | (G(p5)))' >'lcr-o0-hNkCyV'
+Running [P1]: build/bin/ltl2dpa '((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))) & ((F(p4)) | (G(p5)))' >'lcr-o1-s3b0wm'
+Running [N0]: ltl2tgba -H -f '!(((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))) & ((F(p4)) | (G(p5))))' >'lcr-o0-a2NKYQ'
+Running [N1]: build/bin/ltl2dpa '!(((F(p1)) | (G(p2))) & ((F(p2)) | (G(p3))) & ((F(p3)) | (G(p4))) & ((F(p4)) | (G(p5))))' >'lcr-o1-2OTrtl'
+Performing sanity checks and gathering statistics...
+
+-:107: (F(G(p2))) | (G(F(p1)))
+Running [P0]: ltl2tgba -H -f '(F(G(p2))) | (G(F(p1)))' >'lcr-o0-0AHuyV'
+Running [P1]: build/bin/ltl2dpa '(F(G(p2))) | (G(F(p1)))' >'lcr-o1-GcqdFv'
+Running [N0]: ltl2tgba -H -f '!((F(G(p2))) | (G(F(p1))))' >'lcr-o0-rgelm8'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p2))) | (G(F(p1))))' >'lcr-o1-lIYA5K'
+Performing sanity checks and gathering statistics...
+
+-:108: ((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2))))
+Running [P0]: ltl2tgba -H -f '((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2))))' >'lcr-o0-IVixwq'
+Running [P1]: build/bin/ltl2dpa '((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2))))' >'lcr-o1-MlE5Z5'
+Running [N0]: ltl2tgba -H -f '!(((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))))' >'lcr-o0-wkwFNN'
+Running [N1]: build/bin/ltl2dpa '!(((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))))' >'lcr-o1-U9G2Cv'
+Performing sanity checks and gathering statistics...
+
+-:109: ((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3))))
+Running [P0]: ltl2tgba -H -f '((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3))))' >'lcr-o0-SSCUzg'
+Running [P1]: build/bin/ltl2dpa '((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3))))' >'lcr-o1-q8eeB1'
+Running [N0]: ltl2tgba -H -f '!(((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))))' >'lcr-o0-mXoLnQ'
+Running [N1]: build/bin/ltl2dpa '!(((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))))' >'lcr-o1-oi0udF'
+Performing sanity checks and gathering statistics...
+
+-:110: ((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))) & ((F(G(p5))) | (G(F(p4))))
+Running [P0]: ltl2tgba -H -f '((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))) & ((F(G(p5))) | (G(F(p4))))' >'lcr-o0-ClIZYy'
+Running [P1]: build/bin/ltl2dpa '((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))) & ((F(G(p5))) | (G(F(p4))))' >'lcr-o1-4W7Ybt'
+Running [N0]: ltl2tgba -H -f '!(((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))) & ((F(G(p5))) | (G(F(p4)))))' >'lcr-o0-abPv1A'
+Running [N1]: build/bin/ltl2dpa '!(((F(G(p2))) | (G(F(p1)))) & ((F(G(p3))) | (G(F(p2)))) & ((F(G(p4))) | (G(F(p3)))) & ((F(G(p5))) | (G(F(p4)))))' >'lcr-o1-fMDl3I'
+Performing sanity checks and gathering statistics...
+
+-:111: !((G(F(p1))) -> (G((q) -> (F(r)))))
+Running [P0]: ltl2tgba -H -f '!((G(F(p1))) -> (G((q) -> (F(r)))))' >'lcr-o0-k5wGkm'
+Running [P1]: build/bin/ltl2dpa '!((G(F(p1))) -> (G((q) -> (F(r)))))' >'lcr-o1-eO5KGZ'
+Running [N0]: ltl2tgba -H -f '(G(F(p1))) -> (G((q) -> (F(r))))' >'lcr-o0-ndaiGG'
+Running [N1]: build/bin/ltl2dpa '(G(F(p1))) -> (G((q) -> (F(r))))' >'lcr-o1-LyxTHn'
+Performing sanity checks and gathering statistics...
+
+-:112: !(((G(F(p1))) & (G(F(p2)))) -> (G((q) -> (F(r)))))
+Running [P0]: ltl2tgba -H -f '!(((G(F(p1))) & (G(F(p2)))) -> (G((q) -> (F(r)))))' >'lcr-o0-bSdNR7'
+Running [P1]: build/bin/ltl2dpa '!(((G(F(p1))) & (G(F(p2)))) -> (G((q) -> (F(r)))))' >'lcr-o1-7AH7jS'
+Running [N0]: ltl2tgba -H -f '((G(F(p1))) & (G(F(p2)))) -> (G((q) -> (F(r))))' >'lcr-o0-7eZw1G'
+Running [N1]: build/bin/ltl2dpa '((G(F(p1))) & (G(F(p2)))) -> (G((q) -> (F(r))))' >'lcr-o1-25L0Lv'
+Performing sanity checks and gathering statistics...
+
+-:113: !(((G(F(p1))) & (G(F(p2))) & (G(F(p3)))) -> (G((q) -> (F(r)))))
+Running [P0]: ltl2tgba -H -f '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3)))) -> (G((q) -> (F(r)))))' >'lcr-o0-78Zxxo'
+Running [P1]: build/bin/ltl2dpa '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3)))) -> (G((q) -> (F(r)))))' >'lcr-o1-6xgdlh'
+Running [N0]: ltl2tgba -H -f '((G(F(p1))) & (G(F(p2))) & (G(F(p3)))) -> (G((q) -> (F(r))))' >'lcr-o0-cdYZef'
+Running [N1]: build/bin/ltl2dpa '((G(F(p1))) & (G(F(p2))) & (G(F(p3)))) -> (G((q) -> (F(r))))' >'lcr-o1-AirTdd'
+Performing sanity checks and gathering statistics...
+
+-:114: !(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))) -> (G((q) -> (F(r)))))
+Running [P0]: ltl2tgba -H -f '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))) -> (G((q) -> (F(r)))))' >'lcr-o0-eHmbBf'
+Running [P1]: build/bin/ltl2dpa '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))) -> (G((q) -> (F(r)))))' >'lcr-o1-J0fv1h'
+Running [N0]: ltl2tgba -H -f '((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))) -> (G((q) -> (F(r))))' >'lcr-o0-ZsDUFp'
+Running [N1]: build/bin/ltl2dpa '((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4)))) -> (G((q) -> (F(r))))' >'lcr-o1-9DggDx'
+Performing sanity checks and gathering statistics...
+
+-:115: !(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))) -> (G((q) -> (F(r)))))
+Running [P0]: ltl2tgba -H -f '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))) -> (G((q) -> (F(r)))))' >'lcr-o0-plep1K'
+Running [P1]: build/bin/ltl2dpa '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))) -> (G((q) -> (F(r)))))' >'lcr-o1-v6KJIY'
+Running [N0]: ltl2tgba -H -f '((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))) -> (G((q) -> (F(r))))' >'lcr-o0-V4mxJj'
+Running [N1]: build/bin/ltl2dpa '((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5)))) -> (G((q) -> (F(r))))' >'lcr-o1-wfG5YE'
+Performing sanity checks and gathering statistics...
+
+-:116: !(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))) -> (G((q) -> (F(r)))))
+Running [P0]: ltl2tgba -H -f '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))) -> (G((q) -> (F(r)))))' >'lcr-o0-vuKIL8'
+Running [P1]: build/bin/ltl2dpa '!(((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))) -> (G((q) -> (F(r)))))' >'lcr-o1-8TCTLC'
+Running [N0]: ltl2tgba -H -f '((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))) -> (G((q) -> (F(r))))' >'lcr-o0-6UHGTk'
+Running [N1]: build/bin/ltl2dpa '((G(F(p1))) & (G(F(p2))) & (G(F(p3))) & (G(F(p4))) & (G(F(p5))) & (G(F(p6)))) -> (G((q) -> (F(r))))' >'lcr-o1-WmxRo3'
+Performing sanity checks and gathering statistics...
+
+-:117: G((p0) & (X(F(p1))))
+Running [P0]: ltl2tgba -H -f 'G((p0) & (X(F(p1))))' >'lcr-o0-nB4x1Y'
+Running [P1]: build/bin/ltl2dpa 'G((p0) & (X(F(p1))))' >'lcr-o1-PVTYpX'
+Running [N0]: ltl2tgba -H -f '!(G((p0) & (X(F(p1)))))' >'lcr-o0-5RohUX'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) & (X(F(p1)))))' >'lcr-o1-AauCpY'
+Performing sanity checks and gathering statistics...
+
+-:118: G((p0) & (X(F((p1) & (X(F(p2)))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) & (X(F((p1) & (X(F(p2)))))))' >'lcr-o0-iyH440'
+Running [P1]: build/bin/ltl2dpa 'G((p0) & (X(F((p1) & (X(F(p2)))))))' >'lcr-o1-iA1FL3'
+Running [N0]: ltl2tgba -H -f '!(G((p0) & (X(F((p1) & (X(F(p2))))))))' >'lcr-o0-Pgvig9'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) & (X(F((p1) & (X(F(p2))))))))' >'lcr-o1-Qd0hUe'
+Performing sanity checks and gathering statistics...
+
+-:119: G((p0) & (X(F((p1) & (X(F((p2) & (X(F(p3))))))))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:120: G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F(p4)))))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F(p4)))))))))))))' >'lcr-o0-PCxEgp'
+Running [P1]: build/bin/ltl2dpa 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F(p4)))))))))))))' >'lcr-o1-OUWftA'
+Running [N0]: ltl2tgba -H -f '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F(p4))))))))))))))' >'lcr-o0-JqxPTR'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F(p4))))))))))))))' >'lcr-o1-WKZJo9'
+Performing sanity checks and gathering statistics...
+
+-:121: G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F(p5))))))))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F(p5))))))))))))))))' >'lcr-o0-0vQJSw'
+Running [P1]: build/bin/ltl2dpa 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F(p5))))))))))))))))' >'lcr-o1-A9IwrU'
+Running [N0]: ltl2tgba -H -f '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F(p5)))))))))))))))))' >'lcr-o0-Ohyh0n'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F(p5)))))))))))))))))' >'lcr-o1-Li6rUR'
+Performing sanity checks and gathering statistics...
+
+-:122: G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6)))))))))))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6)))))))))))))))))))' >'lcr-o0-SKHR4p'
+Running [P1]: build/bin/ltl2dpa 'G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6)))))))))))))))))))' >'lcr-o1-WdIbzY'
+Running [N0]: ltl2tgba -H -f '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6))))))))))))))))))))' >'lcr-o0-CnLL6A'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) & (X(F((p1) & (X(F((p2) & (X(F((p3) & (X(F((p4) & (X(F((p5) & (X(F(p6))))))))))))))))))))' >'lcr-o1-eAypTd'
+Performing sanity checks and gathering statistics...
+
+-:123: F(G(p1))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:124: (F(G(p1))) | (F(G(p2)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) | (F(G(p2)))' >'lcr-o0-E3xcVU'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) | (F(G(p2)))' >'lcr-o1-gD3zYB'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) | (F(G(p2))))' >'lcr-o0-IS8pdl'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) | (F(G(p2))))' >'lcr-o1-bVZZB4'
+Performing sanity checks and gathering statistics...
+
+-:125: (F(G(p1))) | (F(G(p2))) | (F(G(p3)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) | (F(G(p2))) | (F(G(p3)))' >'lcr-o0-XNyB8Q'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) | (F(G(p2))) | (F(G(p3)))' >'lcr-o1-irIvND'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))))' >'lcr-o0-CNX2pt'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))))' >'lcr-o1-w1VP4i'
+Performing sanity checks and gathering statistics...
+
+-:126: (F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4)))' >'lcr-o0-cDcTnc'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4)))' >'lcr-o1-gKksT5'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))))' >'lcr-o0-1G7uh3'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))))' >'lcr-o1-mjEJJ0'
+Performing sanity checks and gathering statistics...
+
+-:127: (F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5)))' >'lcr-o0-f4swR2'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5)))' >'lcr-o1-vwno54'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))))' >'lcr-o0-rTCGoc'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))))' >'lcr-o1-dwahvk'
+Performing sanity checks and gathering statistics...
+
+-:128: (F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6)))
+Running [P0]: ltl2tgba -H -f '(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6)))' >'lcr-o0-LQ2hiv'
+Running [P1]: build/bin/ltl2dpa '(F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6)))' >'lcr-o1-VmNQpG'
+Running [N0]: ltl2tgba -H -f '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6))))' >'lcr-o0-X7DkSV'
+Running [N1]: build/bin/ltl2dpa '!((F(G(p1))) | (F(G(p2))) | (F(G(p3))) | (F(G(p4))) | (F(G(p5))) | (F(G(p6))))' >'lcr-o1-I2c0ec'
+Performing sanity checks and gathering statistics...
+
+-:129: G(p1)
+Running [P0]: ltl2tgba -H -f 'G(p1)' >'lcr-o0-AaKaOw'
+Running [P1]: build/bin/ltl2dpa 'G(p1)' >'lcr-o1-5OIiuR'
+Running [N0]: ltl2tgba -H -f '!(G(p1))' >'lcr-o0-btPf5d'
+Running [N1]: build/bin/ltl2dpa '!(G(p1))' >'lcr-o1-HVWhHA'
+Performing sanity checks and gathering statistics...
+
+-:130: (G(p1)) | (G(p2))
+Running [P0]: ltl2tgba -H -f '(G(p1)) | (G(p2))' >'lcr-o0-PbZUDZ'
+Running [P1]: build/bin/ltl2dpa '(G(p1)) | (G(p2))' >'lcr-o1-41PRBo'
+Running [N0]: ltl2tgba -H -f '!((G(p1)) | (G(p2)))' >'lcr-o0-b4zyYP'
+Running [N1]: build/bin/ltl2dpa '!((G(p1)) | (G(p2)))' >'lcr-o1-Slsrmh'
+Performing sanity checks and gathering statistics...
+
+-:131: (G(p1)) | (G(p2)) | (G(p3))
+Running [P0]: ltl2tgba -H -f '(G(p1)) | (G(p2)) | (G(p3))' >'lcr-o0-W0BjTL'
+Running [P1]: build/bin/ltl2dpa '(G(p1)) | (G(p2)) | (G(p3))' >'lcr-o1-QYOisg'
+Running [N0]: ltl2tgba -H -f '!((G(p1)) | (G(p2)) | (G(p3)))' >'lcr-o0-zTNInN'
+Running [N1]: build/bin/ltl2dpa '!((G(p1)) | (G(p2)) | (G(p3)))' >'lcr-o1-tAAFkk'
+Performing sanity checks and gathering statistics...
+
+-:132: (G(p1)) | (G(p2)) | (G(p3)) | (G(p4))
+Running [P0]: ltl2tgba -H -f '(G(p1)) | (G(p2)) | (G(p3)) | (G(p4))' >'lcr-o0-4WYUmU'
+Running [P1]: build/bin/ltl2dpa '(G(p1)) | (G(p2)) | (G(p3)) | (G(p4))' >'lcr-o1-J0B2qu'
+Running [N0]: ltl2tgba -H -f '!((G(p1)) | (G(p2)) | (G(p3)) | (G(p4)))' >'lcr-o0-Wzb6k7'
+Running [N1]: build/bin/ltl2dpa '!((G(p1)) | (G(p2)) | (G(p3)) | (G(p4)))' >'lcr-o1-UZI5hK'
+Performing sanity checks and gathering statistics...
+
+-:133: (G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5))
+Running [P0]: ltl2tgba -H -f '(G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5))' >'lcr-o0-MdbAeq'
+Running [P1]: build/bin/ltl2dpa '(G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5))' >'lcr-o1-fZYrd6'
+Running [N0]: ltl2tgba -H -f '!((G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)))' >'lcr-o0-76tEfP'
+Running [N1]: build/bin/ltl2dpa '!((G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)))' >'lcr-o1-eK9Tky'
+Performing sanity checks and gathering statistics...
+
+-:134: (G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)) | (G(p6))
+Running [P0]: ltl2tgba -H -f '(G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)) | (G(p6))' >'lcr-o0-kXdz5k'
+Running [P1]: build/bin/ltl2dpa '(G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)) | (G(p6))' >'lcr-o1-AzmpU7'
+Running [N0]: ltl2tgba -H -f '!((G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)) | (G(p6)))' >'lcr-o0-03IqlY'
+Running [N1]: build/bin/ltl2dpa '!((G(p1)) | (G(p2)) | (G(p3)) | (G(p4)) | (G(p5)) | (G(p6)))' >'lcr-o1-W3HkTO'
+Performing sanity checks and gathering statistics...
+
+-:135: G(F(p1))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:136: (G(F(p1))) | (G(F(p2)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) | (G(F(p2)))' >'lcr-o0-AmnHrK'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) | (G(F(p2)))' >'lcr-o1-WA7y1F'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) | (G(F(p2))))' >'lcr-o0-aVl1aE'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) | (G(F(p2))))' >'lcr-o1-ulK4lC'
+Performing sanity checks and gathering statistics...
+
+-:137: (G(F(p1))) | (G(F(p2))) | (G(F(p3)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) | (G(F(p2))) | (G(F(p3)))' >'lcr-o0-zP6VgD'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) | (G(F(p2))) | (G(F(p3)))' >'lcr-o1-j2SwdE'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))))' >'lcr-o0-Z80PBH'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))))' >'lcr-o1-goQ11K'
+Performing sanity checks and gathering statistics...
+
+-:138: (G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4)))' >'lcr-o0-ohCwaR'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4)))' >'lcr-o1-V1DylX'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))))' >'lcr-o0-6fEw85'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))))' >'lcr-o1-xd5JXe'
+Performing sanity checks and gathering statistics...
+
+-:139: (G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5)))' >'lcr-o0-aZ9wBq'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5)))' >'lcr-o1-wXDhjC'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))))' >'lcr-o0-mmE7IQ'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))))' >'lcr-o1-X42Fc5'
+Performing sanity checks and gathering statistics...
+
+-:140: (G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6)))
+Running [P0]: ltl2tgba -H -f '(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6)))' >'lcr-o0-hvM2Om'
+Running [P1]: build/bin/ltl2dpa '(G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6)))' >'lcr-o1-SP6hAE'
+Running [N0]: ltl2tgba -H -f '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))))' >'lcr-o0-EqodcZ'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p1))) | (G(F(p2))) | (G(F(p3))) | (G(F(p4))) | (G(F(p5))) | (G(F(p6))))' >'lcr-o1-FhZvXj'
+Performing sanity checks and gathering statistics...
+
+-:141: p1
+Running [P0]: ltl2tgba -H -f 'p1' >'lcr-o0-STKLTH'
+Running [P1]: build/bin/ltl2dpa 'p1' >'lcr-o1-9H4yR5'
+Running [N0]: ltl2tgba -H -f '!(p1)' >'lcr-o0-RxUbGv'
+Running [N1]: build/bin/ltl2dpa '!(p1)' >'lcr-o1-WZdYyV'
+Performing sanity checks and gathering statistics...
+
+-:142: (p1) R (p2)
+Running [P0]: ltl2tgba -H -f '(p1) R (p2)' >'lcr-o0-nKmZin'
+Running [P1]: build/bin/ltl2dpa '(p1) R (p2)' >'lcr-o1-Nkip4O'
+Running [N0]: ltl2tgba -H -f '!((p1) R (p2))' >'lcr-o0-VwDi6i'
+Running [N1]: build/bin/ltl2dpa '!((p1) R (p2))' >'lcr-o1-7kL89M'
+Performing sanity checks and gathering statistics...
+
+-:143: ((p1) R (p2)) R (p3)
+Running [P0]: ltl2tgba -H -f '((p1) R (p2)) R (p3)' >'lcr-o0-myuiKj'
+Running [P1]: build/bin/ltl2dpa '((p1) R (p2)) R (p3)' >'lcr-o1-z0SqmQ'
+Running [N0]: ltl2tgba -H -f '!(((p1) R (p2)) R (p3))' >'lcr-o0-TTJajp'
+Running [N1]: build/bin/ltl2dpa '!(((p1) R (p2)) R (p3))' >'lcr-o1-bBZYhY'
+Performing sanity checks and gathering statistics...
+
+-:144: (((p1) R (p2)) R (p3)) R (p4)
+Running [P0]: ltl2tgba -H -f '(((p1) R (p2)) R (p3)) R (p4)' >'lcr-o0-WUcfDz'
+Running [P1]: build/bin/ltl2dpa '(((p1) R (p2)) R (p3)) R (p4)' >'lcr-o1-Mr1I0a'
+Running [N0]: ltl2tgba -H -f '!((((p1) R (p2)) R (p3)) R (p4))' >'lcr-o0-8LsiBO'
+Running [N1]: build/bin/ltl2dpa '!((((p1) R (p2)) R (p3)) R (p4))' >'lcr-o1-2oZVds'
+Performing sanity checks and gathering statistics...
+
+-:145: ((((p1) R (p2)) R (p3)) R (p4)) R (p5)
+Running [P0]: ltl2tgba -H -f '((((p1) R (p2)) R (p3)) R (p4)) R (p5)' >'lcr-o0-zYjX98'
+Running [P1]: build/bin/ltl2dpa '((((p1) R (p2)) R (p3)) R (p4)) R (p5)' >'lcr-o1-mNWd8P'
+Running [N0]: ltl2tgba -H -f '!(((((p1) R (p2)) R (p3)) R (p4)) R (p5))' >'lcr-o0-uKfy1z'
+Running [N1]: build/bin/ltl2dpa '!(((((p1) R (p2)) R (p3)) R (p4)) R (p5))' >'lcr-o1-ttgPXj'
+Performing sanity checks and gathering statistics...
+
+-:146: (((((p1) R (p2)) R (p3)) R (p4)) R (p5)) R (p6)
+Running [P0]: ltl2tgba -H -f '(((((p1) R (p2)) R (p3)) R (p4)) R (p5)) R (p6)' >'lcr-o0-TiIY47'
+Running [P1]: build/bin/ltl2dpa '(((((p1) R (p2)) R (p3)) R (p4)) R (p5)) R (p6)' >'lcr-o1-eUS8eW'
+Running [N0]: ltl2tgba -H -f '!((((((p1) R (p2)) R (p3)) R (p4)) R (p5)) R (p6))' >'lcr-o0-uHEkRN'
+Running [N1]: build/bin/ltl2dpa '!((((((p1) R (p2)) R (p3)) R (p4)) R (p5)) R (p6))' >'lcr-o1-JFtqyF'
+Performing sanity checks and gathering statistics...
+
+-:147: p1
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:148: (p1) R (p2)
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:149: (p1) R ((p2) R (p3))
+Running [P0]: ltl2tgba -H -f '(p1) R ((p2) R (p3))' >'lcr-o0-0M8yRC'
+Running [P1]: build/bin/ltl2dpa '(p1) R ((p2) R (p3))' >'lcr-o1-NfX6bA'
+Running [N0]: ltl2tgba -H -f '!((p1) R ((p2) R (p3)))' >'lcr-o0-CEIFGz'
+Running [N1]: build/bin/ltl2dpa '!((p1) R ((p2) R (p3)))' >'lcr-o1-JdyScz'
+Performing sanity checks and gathering statistics...
+
+-:150: (p1) R ((p2) R ((p3) R (p4)))
+Running [P0]: ltl2tgba -H -f '(p1) R ((p2) R ((p3) R (p4)))' >'lcr-o0-jtfzgB'
+Running [P1]: build/bin/ltl2dpa '(p1) R ((p2) R ((p3) R (p4)))' >'lcr-o1-fmfXlD'
+Running [N0]: ltl2tgba -H -f '!((p1) R ((p2) R ((p3) R (p4))))' >'lcr-o0-roLCKH'
+Running [N1]: build/bin/ltl2dpa '!((p1) R ((p2) R ((p3) R (p4))))' >'lcr-o1-JQTqbM'
+Performing sanity checks and gathering statistics...
+
+-:151: (p1) R ((p2) R ((p3) R ((p4) R (p5))))
+Running [P0]: ltl2tgba -H -f '(p1) R ((p2) R ((p3) R ((p4) R (p5))))' >'lcr-o0-bAOc5S'
+Running [P1]: build/bin/ltl2dpa '(p1) R ((p2) R ((p3) R ((p4) R (p5))))' >'lcr-o1-JImR0Z'
+Running [N0]: ltl2tgba -H -f '!((p1) R ((p2) R ((p3) R ((p4) R (p5)))))' >'lcr-o0-XrCGw9'
+Running [N1]: build/bin/ltl2dpa '!((p1) R ((p2) R ((p3) R ((p4) R (p5)))))' >'lcr-o1-2LF44i'
+Performing sanity checks and gathering statistics...
+
+-:152: (p1) R ((p2) R ((p3) R ((p4) R ((p5) R (p6)))))
+Running [P0]: ltl2tgba -H -f '(p1) R ((p2) R ((p3) R ((p4) R ((p5) R (p6)))))' >'lcr-o0-Y0HRQv'
+Running [P1]: build/bin/ltl2dpa '(p1) R ((p2) R ((p3) R ((p4) R ((p5) R (p6)))))' >'lcr-o1-UrjXEI'
+Running [N0]: ltl2tgba -H -f '!((p1) R ((p2) R ((p3) R ((p4) R ((p5) R (p6))))))' >'lcr-o0-SK6VEY'
+Running [N1]: build/bin/ltl2dpa '!((p1) R ((p2) R ((p3) R ((p4) R ((p5) R (p6))))))' >'lcr-o1-KPzLHe'
+Performing sanity checks and gathering statistics...
+
+-:153: (!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> ((X(!(b))) & (X(((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> ((X(!(b))) & (X(((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m))))))))))' >'lcr-o0-oDw5zz'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> ((X(!(b))) & (X(((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m))))))))))' >'lcr-o1-nAtmvU'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> ((X(!(b))) & (X(((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))))))))' >'lcr-o0-s4PSXk'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> ((X(!(b))) & (X(((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X(b)) & (X(((!(m)) & ((b) <-> (X(b)))) U (m)))))))))))' >'lcr-o1-oaFouL'
+Performing sanity checks and gathering statistics...
+
+-:154: (!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(!(b)))) & (X(((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(!(b)))) & (X(((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m))))))))))' >'lcr-o0-ZUzW8g'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(!(b)))) & (X(((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m))))))))))' >'lcr-o1-JoXDRM'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(!(b)))) & (X(((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))))))))' >'lcr-o0-PyJIqn'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(!(b)))) & (X(((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X(X(b))) & (X(((!(m)) & ((b) <-> (X(X(b))))) U (m)))))))))))' >'lcr-o1-DQcU3X'
+Performing sanity checks and gathering statistics...
+
+-:155: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(!(b))))) & (X(((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(!(b))))) & (X(((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m))))))))))' >'lcr-o0-K7OHkD'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(!(b))))) & (X(((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m))))))))))' >'lcr-o1-rIvzGi'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(!(b))))) & (X(((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))))))))' >'lcr-o0-yXmv62'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(!(b))))) & (X(((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(b)))) & (X(((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))))))))' >'lcr-o1-ZXeDCN'
+Performing sanity checks and gathering statistics...
+
+-:156: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(!(b)))))) & (X(((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(!(b)))))) & (X(((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m))))))))))' >'lcr-o0-PLlBGD'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(!(b)))))) & (X(((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m))))))))))' >'lcr-o1-KIWgTt'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(!(b)))))) & (X(((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))))))))' >'lcr-o0-CdVKPq'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(!(b)))))) & (X(((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(b))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))))))))' >'lcr-o1-GyooXn'
+Performing sanity checks and gathering statistics...
+
+-:157: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(!(b))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(!(b))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m))))))))))' >'lcr-o0-oqcDBq'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(!(b))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m))))))))))' >'lcr-o1-kF4Xtt'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(!(b))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))))))))' >'lcr-o0-flq3dE'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(!(b))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(b)))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))))))))' >'lcr-o1-QIrjfP'
+Performing sanity checks and gathering statistics...
+
+-:158: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m))))))))))' >'lcr-o0-5xocz7'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m))))))))))' >'lcr-o1-t29Aqq'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))))))))' >'lcr-o0-SxxGSV'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X(X(X(X(X(X(b))))))) & (X(((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))))))))' >'lcr-o1-OC8VSr'
+Performing sanity checks and gathering statistics...
+
+-:159: (!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(b))))))) & (G((c) -> (((X(!(b))) -> ((X(X(b))) & (X(!(c))))) & ((X(b)) -> ((X(X(!(b)))) & (X(c)))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(b))))))) & (G((c) -> (((X(!(b))) -> ((X(X(b))) & (X(!(c))))) & ((X(b)) -> ((X(X(!(b)))) & (X(c)))))))' >'lcr-o0-DdAWwb'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(b))))))) & (G((c) -> (((X(!(b))) -> ((X(X(b))) & (X(!(c))))) & ((X(b)) -> ((X(X(!(b)))) & (X(c)))))))' >'lcr-o1-nEEieV'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(b))))))) & (G((c) -> (((X(!(b))) -> ((X(X(b))) & (X(!(c))))) & ((X(b)) -> ((X(X(!(b)))) & (X(c))))))))' >'lcr-o0-5eZqTJ'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(b))))))) & (G((c) -> (((X(!(b))) -> ((X(X(b))) & (X(!(c))))) & ((X(b)) -> ((X(X(!(b)))) & (X(c))))))))' >'lcr-o1-3SE2Dy'
+Performing sanity checks and gathering statistics...
+
+-:160: (!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(b)))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(b)))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(!(b))))) & (X(c)))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(b)))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(b)))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(!(b))))) & (X(c)))))))' >'lcr-o0-9nC5Ms'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(b)))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(b)))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(!(b))))) & (X(c)))))))' >'lcr-o1-fUSC0m'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(b)))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(b)))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(!(b))))) & (X(c))))))))' >'lcr-o0-Cnzckn'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (G((m) -> ((X(!(m))) & (X(X(m)))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(b)))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(b)))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(!(b))))) & (X(c))))))))' >'lcr-o1-ni2jJn'
+Performing sanity checks and gathering statistics...
+
+-:161: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(b))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(b))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(!(b)))))) & (X(c)))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(b))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(b))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(!(b)))))) & (X(c)))))))' >'lcr-o0-f3Qehu'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(b))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(b))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(!(b)))))) & (X(c)))))))' >'lcr-o1-5Oyc0A'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(b))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(b))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(!(b)))))) & (X(c))))))))' >'lcr-o0-RHX6aN'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(m))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(b))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(b))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(!(b)))))) & (X(c))))))))' >'lcr-o1-3O7AuZ'
+Performing sanity checks and gathering statistics...
+
+-:162: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(b)))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(b)))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(!(b))))))) & (X(c)))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(b)))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(b)))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(!(b))))))) & (X(c)))))))' >'lcr-o0-EQqocg'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(b)))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(b)))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(!(b))))))) & (X(c)))))))' >'lcr-o1-g3rr2w'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(b)))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(b)))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(!(b))))))) & (X(c))))))))' >'lcr-o0-2dWfiS'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(m)))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(b)))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(b)))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(!(b))))))) & (X(c))))))))' >'lcr-o1-QRaJHd'
+Performing sanity checks and gathering statistics...
+
+-:163: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(b))))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(X(b))))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(c)))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(b))))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(X(b))))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(c)))))))' >'lcr-o0-7D6UcE'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(b))))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(X(b))))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(c)))))))' >'lcr-o1-iKuKW4'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(b))))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(X(b))))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(c))))))))' >'lcr-o0-fcrcrA'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(m))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(b))))))))))) & (G((c) -> (((X(!(b))) -> ((X(X(X(X(X(X(b))))))) & (X(!(c))))) & ((X(b)) -> ((X(X(X(X(X(X(!(b)))))))) & (X(c))))))))' >'lcr-o1-MIICe6'
+Performing sanity checks and gathering statistics...
+
+-:164: (!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(X(b)))))))))))) & (G((c) -> (((X(!(b))) -> ((X(!(c))) & (X(X(X(X(X(X(X(b)))))))))) & ((X(b)) -> ((X(c)) & (X(X(X(X(X(X(X(!(b))))))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(X(b)))))))))))) & (G((c) -> (((X(!(b))) -> ((X(!(c))) & (X(X(X(X(X(X(X(b)))))))))) & ((X(b)) -> ((X(c)) & (X(X(X(X(X(X(X(!(b))))))))))))))' >'lcr-o0-MIDb1H'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(X(b)))))))))))) & (G((c) -> (((X(!(b))) -> ((X(!(c))) & (X(X(X(X(X(X(X(b)))))))))) & ((X(b)) -> ((X(c)) & (X(X(X(X(X(X(X(!(b))))))))))))))' >'lcr-o1-dyC7qk'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(X(b)))))))))))) & (G((c) -> (((X(!(b))) -> ((X(!(c))) & (X(X(X(X(X(X(X(b)))))))))) & ((X(b)) -> ((X(c)) & (X(X(X(X(X(X(X(!(b)))))))))))))))' >'lcr-o0-Aak4E5'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (X(X(!(b)))) & (X(X(X(!(b))))) & (X(X(X(X(!(b)))))) & (X(X(X(X(X(!(b))))))) & (G((m) -> ((X(!(m))) & (X(X(!(m)))) & (X(X(X(!(m))))) & (X(X(X(X(!(m)))))) & (X(X(X(X(X(!(m))))))) & (X(X(X(X(X(X(m)))))))))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> ((X(!(c))) & ((X(b)) <-> (X(X(X(X(X(X(X(b)))))))))))) & (G((c) -> (((X(!(b))) -> ((X(!(c))) & (X(X(X(X(X(X(X(b)))))))))) & ((X(b)) -> ((X(c)) & (X(X(X(X(X(X(X(!(b)))))))))))))))' >'lcr-o1-9hl6JR'
+Performing sanity checks and gathering statistics...
+
+-:165: (!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(b))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(b)))) & ((b) -> ((c) & (X(!(b)))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(b))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(b)))) & ((b) -> ((c) & (X(!(b)))))))))' >'lcr-o0-FsyxqP'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(b))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(b)))) & ((b) -> ((c) & (X(!(b)))))))))' >'lcr-o1-Yi319M'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(b))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(b)))) & ((b) -> ((c) & (X(!(b))))))))))' >'lcr-o0-LyY8ZN'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(b))))) & (G(((b) & (m)) -> ((c) & (X(!(b)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(b))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(b)))) & ((b) -> ((c) & (X(!(b))))))))))' >'lcr-o1-SOEQTO'
+Performing sanity checks and gathering statistics...
+
+-:166: (!(b)) & (m) & (X(!(b))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(b)))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(b))))) & ((b) -> ((c) & (X(X(!(b))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(b)))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(b))))) & ((b) -> ((c) & (X(X(!(b))))))))))' >'lcr-o0-npKm9T'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(b)))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(b))))) & ((b) -> ((c) & (X(X(!(b))))))))))' >'lcr-o1-3OPDuZ'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(b)))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(b))))) & ((b) -> ((c) & (X(X(!(b)))))))))))' >'lcr-o0-KbNaT7'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(b)))))) & (G(((b) & (m)) -> ((c) & (X(X(!(b))))))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(b)))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(b))))) & ((b) -> ((c) & (X(X(!(b)))))))))))' >'lcr-o1-8DLElg'
+Performing sanity checks and gathering statistics...
+
+-:167: (!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(b))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(b)))))) & ((b) -> ((c) & (X(X(X(!(b)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(b))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(b)))))) & ((b) -> ((c) & (X(X(X(!(b)))))))))))' >'lcr-o0-CxvDrr'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(b))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(b)))))) & ((b) -> ((c) & (X(X(X(!(b)))))))))))' >'lcr-o1-JeplBC'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(b))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(b)))))) & ((b) -> ((c) & (X(X(X(!(b))))))))))))' >'lcr-o0-jqTreQ'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(b))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(!(b)))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(b))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(b)))))) & ((b) -> ((c) & (X(X(X(!(b))))))))))))' >'lcr-o1-Iq7KV3'
+Performing sanity checks and gathering statistics...
+
+-:168: (!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(b)))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(b))))))) & ((b) -> ((c) & (X(X(X(X(!(b))))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(b)))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(b))))))) & ((b) -> ((c) & (X(X(X(X(!(b))))))))))))' >'lcr-o0-xpndll'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(b)))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(b))))))) & ((b) -> ((c) & (X(X(X(X(!(b))))))))))))' >'lcr-o1-lwfZRC'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(b)))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(b))))))) & ((b) -> ((c) & (X(X(X(X(!(b)))))))))))))' >'lcr-o0-BWCocY'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(b)))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(!(b))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(b)))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(b))))))) & ((b) -> ((c) & (X(X(X(X(!(b)))))))))))))' >'lcr-o1-rIAjFj'
+Performing sanity checks and gathering statistics...
+
+-:169: (!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(b))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(b)))))))) & ((b) -> ((c) & (X(X(X(X(X(!(b)))))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(b))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(b)))))))) & ((b) -> ((c) & (X(X(X(X(X(!(b)))))))))))))' >'lcr-o0-qjeqZK'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(b))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(b)))))))) & ((b) -> ((c) & (X(X(X(X(X(!(b)))))))))))))' >'lcr-o1-N6EKyc'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(b))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(b)))))))) & ((b) -> ((c) & (X(X(X(X(X(!(b))))))))))))))' >'lcr-o0-HWXmuK'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(b))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(!(b)))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(b))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(b)))))))) & ((b) -> ((c) & (X(X(X(X(X(!(b))))))))))))))' >'lcr-o1-i1NDHi'
+Performing sanity checks and gathering statistics...
+
+-:170: (!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(X(b)))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(X(b))))))))) & ((b) -> ((c) & (X(X(X(X(X(X(!(b))))))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(X(b)))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(X(b))))))))) & ((b) -> ((c) & (X(X(X(X(X(X(!(b))))))))))))))' >'lcr-o0-V7tX3X'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(X(b)))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(X(b))))))))) & ((b) -> ((c) & (X(X(X(X(X(X(!(b))))))))))))))' >'lcr-o1-iSeVUD'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(X(b)))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(X(b))))))))) & ((b) -> ((c) & (X(X(X(X(X(X(!(b)))))))))))))))' >'lcr-o0-3xr7eq'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G(((!(b)) & (m)) -> ((!(c)) & (X(X(X(X(X(X(b)))))))))) & (G(((b) & (m)) -> ((c) & (X(X(X(X(X(X(!(b))))))))))) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(c)) & (X(!(m)))) -> (X((!(c)) & ((b) <-> (X(X(X(X(X(X(b)))))))))))) & (G((c) -> (X(((!(b)) -> ((!(c)) & (X(X(X(X(X(X(b))))))))) & ((b) -> ((c) & (X(X(X(X(X(X(!(b)))))))))))))))' >'lcr-o1-ZiNb8c'
+Performing sanity checks and gathering statistics...
+
+-:171: (!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> (X((!(b)) & (((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> (X((!(b)) & (((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))))))))' >'lcr-o0-RSlxZa'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> (X((!(b)) & (((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))))))))' >'lcr-o1-YQiMT8'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> (X((!(b)) & (((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m))))))))))))' >'lcr-o0-7FKKqc'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X(m)))) & (G(((!(b)) & (m)) -> (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m)))))) & (G(((b) & (m)) -> (X((!(b)) & (((b) & (!(m)) & (X(!(b)))) U ((m) | ((!(b)) & (!(m)) & (X((b) & (((!(m)) & ((b) <-> (X(b)))) U (m))))))))))))' >'lcr-o1-3cSX0f'
+Performing sanity checks and gathering statistics...
+
+-:172: (!(b)) & (m) & (X(!(b))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(b)) & (m)) -> (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> (X((X(!(b))) & (((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (X(!(b))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(b)) & (m)) -> (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> (X((X(!(b))) & (((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))))))))' >'lcr-o0-HjCJln'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (X(!(b))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(b)) & (m)) -> (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> (X((X(!(b))) & (((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))))))))' >'lcr-o1-halEMu'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (X(!(b))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(b)) & (m)) -> (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> (X((X(!(b))) & (((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m))))))))))))' >'lcr-o0-5L82yG'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (X(!(b))) & (G((m) -> (X((!(m)) & (X(m)))))) & (G(((!(b)) & (m)) -> (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m)))))) & (G(((b) & (m)) -> (X((X(!(b))) & (((b) & (!(m)) & (X(X(!(b))))) U ((m) | ((!(b)) & (!(m)) & (X((X(b)) & (((!(m)) & ((b) <-> (X(X(b))))) U (m))))))))))))' >'lcr-o1-0dkGpS'
+Performing sanity checks and gathering statistics...
+
+-:173: (!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(b)) & (m)) -> (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(!(b)))) & (((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(b)) & (m)) -> (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(!(b)))) & (((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))))))))' >'lcr-o0-lt5k47'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(b)) & (m)) -> (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(!(b)))) & (((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))))))))' >'lcr-o1-T0ViOn'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(b)) & (m)) -> (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(!(b)))) & (((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m))))))))))))' >'lcr-o0-rLFfNK'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X(m)))))))) & (X((!(b)) & (X(!(b))))) & (G(((!(b)) & (m)) -> (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(!(b)))) & (((b) & (!(m)) & (X(X(X(!(b)))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(b))) & (((!(m)) & ((b) <-> (X(X(X(b)))))) U (m))))))))))))' >'lcr-o1-D7pm77'
+Performing sanity checks and gathering statistics...
+
+-:174: (!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(!(b))))) & (((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(!(b))))) & (((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))))))))' >'lcr-o0-RpBNxC'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(!(b))))) & (((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))))))))' >'lcr-o1-DdSO56'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(!(b))))) & (((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m))))))))))))' >'lcr-o0-BvvqnI'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))) & (X((!(b)) & (X((!(b)) & (X(!(b))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(!(b))))) & (((b) & (!(m)) & (X(X(X(X(!(b))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(b)))) & (((!(m)) & ((b) <-> (X(X(X(X(b))))))) U (m))))))))))))' >'lcr-o1-pigwPj'
+Performing sanity checks and gathering statistics...
+
+-:175: (!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(!(b)))))) & (((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(!(b)))))) & (((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))))))))' >'lcr-o0-rTYFO2'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(!(b)))))) & (((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))))))))' >'lcr-o1-doK9fM'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(!(b)))))) & (((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m))))))))))))' >'lcr-o0-0oXhpG'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(!(b)))))) & (((b) & (!(m)) & (X(X(X(X(X(!(b)))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(b))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(b)))))))) U (m))))))))))))' >'lcr-o1-cX3lPA'
+Performing sanity checks and gathering statistics...
+
+-:176: (!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(X(!(b))))))) & (((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))))))))
+Running [P0]: ltl2tgba -H -f '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(X(!(b))))))) & (((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))))))))' >'lcr-o0-Zgoq7E'
+Running [P1]: build/bin/ltl2dpa '(!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(X(!(b))))))) & (((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))))))))' >'lcr-o1-xnMHSJ'
+Running [N0]: ltl2tgba -H -f '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(X(!(b))))))) & (((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m))))))))))))' >'lcr-o0-kFCoy1'
+Running [N1]: build/bin/ltl2dpa '!((!(b)) & (m) & (G((m) -> (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X((!(m)) & (X(m)))))))))))))) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X((!(b)) & (X(!(b))))))))))) & (G(((!(b)) & (m)) -> (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m)))))) & (G(((b) & (m)) -> (X((X(X(X(X(X(!(b))))))) & (((b) & (!(m)) & (X(X(X(X(X(X(!(b))))))))) U ((m) | ((!(b)) & (!(m)) & (X((X(X(X(X(X(b)))))) & (((!(m)) & ((b) <-> (X(X(X(X(X(X(b))))))))) U (m))))))))))))' >'lcr-o1-smYBCj'
+Performing sanity checks and gathering statistics...
+
+-:177: (p0) U (p1)
+Running [P0]: ltl2tgba -H -f '(p0) U (p1)' >'lcr-o0-sOX3DM'
+Running [P1]: build/bin/ltl2dpa '(p0) U (p1)' >'lcr-o1-e0aIGf'
+Running [N0]: ltl2tgba -H -f '!((p0) U (p1))' >'lcr-o0-KBSTNK'
+Running [N1]: build/bin/ltl2dpa '!((p0) U (p1))' >'lcr-o1-ah17Yf'
+Performing sanity checks and gathering statistics...
+
+-:178: (p0) U ((p1) U (p2))
+Running [P0]: ltl2tgba -H -f '(p0) U ((p1) U (p2))' >'lcr-o0-WD4IxN'
+Running [P1]: build/bin/ltl2dpa '(p0) U ((p1) U (p2))' >'lcr-o1-21G37k'
+Running [N0]: ltl2tgba -H -f '!((p0) U ((p1) U (p2)))' >'lcr-o0-LeyCOU'
+Running [N1]: build/bin/ltl2dpa '!((p0) U ((p1) U (p2)))' >'lcr-o1-KbPRwu'
+Performing sanity checks and gathering statistics...
+
+-:179: !((p0) U ((p1) U (p2)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:180: (G(F(p0))) -> (G(F(p1)))
+Running [P0]: ltl2tgba -H -f '(G(F(p0))) -> (G(F(p1)))' >'lcr-o0-LCosy6'
+Running [P1]: build/bin/ltl2dpa '(G(F(p0))) -> (G(F(p1)))' >'lcr-o1-vL9YCI'
+Running [N0]: ltl2tgba -H -f '!((G(F(p0))) -> (G(F(p1))))' >'lcr-o0-z41Zun'
+Running [N1]: build/bin/ltl2dpa '!((G(F(p0))) -> (G(F(p1))))' >'lcr-o1-J300p2'
+Performing sanity checks and gathering statistics...
+
+-:181: (F(p0)) U (G(p1))
+Running [P0]: ltl2tgba -H -f '(F(p0)) U (G(p1))' >'lcr-o0-eRnyOK'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) U (G(p1))' >'lcr-o1-bgLwet'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) U (G(p1)))' >'lcr-o0-bVD5Ce'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) U (G(p1)))' >'lcr-o1-rWrok0'
+Performing sanity checks and gathering statistics...
+
+-:182: (G(p0)) U (p1)
+Running [P0]: ltl2tgba -H -f '(G(p0)) U (p1)' >'lcr-o0-heiLTP'
+Running [P1]: build/bin/ltl2dpa '(G(p0)) U (p1)' >'lcr-o1-80V7vF'
+Running [N0]: ltl2tgba -H -f '!((G(p0)) U (p1))' >'lcr-o0-qjKuby'
+Running [N1]: build/bin/ltl2dpa '!((G(p0)) U (p1))' >'lcr-o1-2jx9Rq'
+Performing sanity checks and gathering statistics...
+
+-:183: !((F(p1)) <-> (F(p0)))
+Running [P0]: ltl2tgba -H -f '!((F(p1)) <-> (F(p0)))' >'lcr-o0-4PSDKn'
+Running [P1]: build/bin/ltl2dpa '!((F(p1)) <-> (F(p0)))' >'lcr-o1-IpZkTk'
+Running [N0]: ltl2tgba -H -f '(F(p1)) <-> (F(p0))' >'lcr-o0-ln54jm'
+Running [N1]: build/bin/ltl2dpa '(F(p1)) <-> (F(p0))' >'lcr-o1-BliDNn'
+Performing sanity checks and gathering statistics...
+
+-:184: !((G(F(p0))) -> (G(F(p1))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:185: !((G(F(p1))) <-> (G(F(p0))))
+Running [P0]: ltl2tgba -H -f '!((G(F(p1))) <-> (G(F(p0))))' >'lcr-o0-tsdP7s'
+Running [P1]: build/bin/ltl2dpa '!((G(F(p1))) <-> (G(F(p0))))' >'lcr-o1-CrStuy'
+Running [N0]: ltl2tgba -H -f '(G(F(p1))) <-> (G(F(p0)))' >'lcr-o0-AS7HMH'
+Running [N1]: build/bin/ltl2dpa '(G(F(p1))) <-> (G(F(p0)))' >'lcr-o1-aQ4V7Q'
+Performing sanity checks and gathering statistics...
+
+-:186: (p0) R ((p0) | (p1))
+Running [P0]: ltl2tgba -H -f '(p0) R ((p0) | (p1))' >'lcr-o0-0Or3Y3'
+Running [P1]: build/bin/ltl2dpa '(p0) R ((p0) | (p1))' >'lcr-o1-xokLRg'
+Running [N0]: ltl2tgba -H -f '!((p0) R ((p0) | (p1)))' >'lcr-o0-5FyUEw'
+Running [N1]: build/bin/ltl2dpa '!((p0) R ((p0) | (p1)))' >'lcr-o1-IJ8exM'
+Performing sanity checks and gathering statistics...
+
+-:187: ((X(p0)) U (X(p1))) | (!(X((p0) U (p1))))
+Running [P0]: ltl2tgba -H -f '((X(p0)) U (X(p1))) | (!(X((p0) U (p1))))' >'lcr-o0-IM3gD5'
+Running [P1]: build/bin/ltl2dpa '((X(p0)) U (X(p1))) | (!(X((p0) U (p1))))' >'lcr-o1-JgYIKo'
+Running [N0]: ltl2tgba -H -f '!(((X(p0)) U (X(p1))) | (!(X((p0) U (p1)))))' >'lcr-o0-7nZp8K'
+Running [N1]: build/bin/ltl2dpa '!(((X(p0)) U (X(p1))) | (!(X((p0) U (p1)))))' >'lcr-o1-59DFx7'
+Performing sanity checks and gathering statistics...
+
+-:188: ((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1)))))
+Running [P0]: ltl2tgba -H -f '((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1)))))' >'lcr-o0-TuIr0v'
+Running [P1]: build/bin/ltl2dpa '((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1)))))' >'lcr-o1-RhqvuU'
+Running [N0]: ltl2tgba -H -f '!(((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1))))))' >'lcr-o0-L5VvWl'
+Running [N1]: build/bin/ltl2dpa '!(((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1))))))' >'lcr-o1-tiU6pN'
+Performing sanity checks and gathering statistics...
+
+-:189: (G((p0) -> (F(p1)))) & (((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1))))))
+Running [P0]: ltl2tgba -H -f '(G((p0) -> (F(p1)))) & (((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1))))))' >'lcr-o0-ZN3yWh'
+Running [P1]: build/bin/ltl2dpa '(G((p0) -> (F(p1)))) & (((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1))))))' >'lcr-o1-NS9quM'
+Running [N0]: ltl2tgba -H -f '!((G((p0) -> (F(p1)))) & (((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1)))))))' >'lcr-o0-7US1Jk'
+Running [N1]: build/bin/ltl2dpa '!((G((p0) -> (F(p1)))) & (((X(p0)) U (p1)) | (!(X((p0) U ((p0) & (p1)))))))' >'lcr-o1-974e1S'
+Performing sanity checks and gathering statistics...
+
+-:190: (G((p0) -> (F(p1)))) & (((X(p0)) U (X(p1))) | (!(X((p0) U (p1)))))
+Running [P0]: ltl2tgba -H -f '(G((p0) -> (F(p1)))) & (((X(p0)) U (X(p1))) | (!(X((p0) U (p1)))))' >'lcr-o0-6UMsmv'
+Running [P1]: build/bin/ltl2dpa '(G((p0) -> (F(p1)))) & (((X(p0)) U (X(p1))) | (!(X((p0) U (p1)))))' >'lcr-o1-y5ExJ7'
+Running [N0]: ltl2tgba -H -f '!((G((p0) -> (F(p1)))) & (((X(p0)) U (X(p1))) | (!(X((p0) U (p1))))))' >'lcr-o0-euKObO'
+Running [N1]: build/bin/ltl2dpa '!((G((p0) -> (F(p1)))) & (((X(p0)) U (X(p1))) | (!(X((p0) U (p1))))))' >'lcr-o1-ewvxFu'
+Performing sanity checks and gathering statistics...
+
+-:191: G((p0) -> (F(p1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:192: !(G((p0) -> (X((p1) R (p2)))))
+Running [P0]: ltl2tgba -H -f '!(G((p0) -> (X((p1) R (p2)))))' >'lcr-o0-SlXphf'
+Running [P1]: build/bin/ltl2dpa '!(G((p0) -> (X((p1) R (p2)))))' >'lcr-o1-71hxXZ'
+Running [N0]: ltl2tgba -H -f 'G((p0) -> (X((p1) R (p2))))' >'lcr-o0-XXaZgO'
+Running [N1]: build/bin/ltl2dpa 'G((p0) -> (X((p1) R (p2))))' >'lcr-o1-TWhaVC'
+Performing sanity checks and gathering statistics...
+
+-:193: !((F(G(p1))) | (F(G(p0))))
+Running [P0]: ltl2tgba -H -f '!((F(G(p1))) | (F(G(p0))))' >'lcr-o0-3qZvfv'
+Running [P1]: build/bin/ltl2dpa '!((F(G(p1))) | (F(G(p0))))' >'lcr-o1-GweJBn'
+Running [N0]: ltl2tgba -H -f '(F(G(p1))) | (F(G(p0)))' >'lcr-o0-8ds2rk'
+Running [N1]: build/bin/ltl2dpa '(F(G(p1))) | (F(G(p0)))' >'lcr-o1-Gffzmh'
+Performing sanity checks and gathering statistics...
+
+-:194: G((F(p1)) & (F(p0)))
+Running [P0]: ltl2tgba -H -f 'G((F(p1)) & (F(p0)))' >'lcr-o0-kWZ4ni'
+Running [P1]: build/bin/ltl2dpa 'G((F(p1)) & (F(p0)))' >'lcr-o1-2mBqrj'
+Running [N0]: ltl2tgba -H -f '!(G((F(p1)) & (F(p0))))' >'lcr-o0-6wt5so'
+Running [N1]: build/bin/ltl2dpa '!(G((F(p1)) & (F(p0))))' >'lcr-o1-U8qEwt'
+Performing sanity checks and gathering statistics...
+
+-:195: (F(p0)) & (F(!(p0)))
+Running [P0]: ltl2tgba -H -f '(F(p0)) & (F(!(p0)))' >'lcr-o0-gmpJMD'
+Running [P1]: build/bin/ltl2dpa '(F(p0)) & (F(!(p0)))' >'lcr-o1-zJUK4N'
+Running [N0]: ltl2tgba -H -f '!((F(p0)) & (F(!(p0))))' >'lcr-o0-zwIYP1'
+Running [N1]: build/bin/ltl2dpa '!((F(p0)) & (F(!(p0))))' >'lcr-o1-Q7P0Cf'
+Performing sanity checks and gathering statistics...
+
+-:196: ((p0) & (X(p1))) R (X((((p2) U (p3)) R (p0)) U ((p2) R (p0))))
+Running [P0]: ltl2tgba -H -f '((p0) & (X(p1))) R (X((((p2) U (p3)) R (p0)) U ((p2) R (p0))))' >'lcr-o0-c2yhuw'
+Running [P1]: build/bin/ltl2dpa '((p0) & (X(p1))) R (X((((p2) U (p3)) R (p0)) U ((p2) R (p0))))' >'lcr-o1-gUNhnN'
+Running [N0]: ltl2tgba -H -f '!(((p0) & (X(p1))) R (X((((p2) U (p3)) R (p0)) U ((p2) R (p0)))))' >'lcr-o0-E2LWba'
+Running [N1]: build/bin/ltl2dpa '!(((p0) & (X(p1))) R (X((((p2) U (p3)) R (p0)) U ((p2) R (p0)))))' >'lcr-o1-6ogw2w'
+Performing sanity checks and gathering statistics...
+
+-:197: (G(p2)) | (G(p0)) | ((G((p0) | (G(F(p1))))) & (G((p2) | (G(F(!(p1)))))))
+Running [P0]: ltl2tgba -H -f '(G(p2)) | (G(p0)) | ((G((p0) | (G(F(p1))))) & (G((p2) | (G(F(!(p1)))))))' >'lcr-o0-u86QnY'
+Running [P1]: build/bin/ltl2dpa '(G(p2)) | (G(p0)) | ((G((p0) | (G(F(p1))))) & (G((p2) | (G(F(!(p1)))))))' >'lcr-o1-ggtCLp'
+Running [N0]: ltl2tgba -H -f '!((G(p2)) | (G(p0)) | ((G((p0) | (G(F(p1))))) & (G((p2) | (G(F(!(p1))))))))' >'lcr-o0-PvHjkV'
+Running [N1]: build/bin/ltl2dpa '!((G(p2)) | (G(p0)) | ((G((p0) | (G(F(p1))))) & (G((p2) | (G(F(!(p1))))))))' >'lcr-o1-lqFwVq'
+Performing sanity checks and gathering statistics...
+
+-:198: (G(p2)) | (G(p0)) | ((G((p0) | (F(G(p1))))) & (G((p2) | (F(G(!(p1)))))))
+Running [P0]: ltl2tgba -H -f '(G(p2)) | (G(p0)) | ((G((p0) | (F(G(p1))))) & (G((p2) | (F(G(!(p1)))))))' >'lcr-o0-GvWmH0'
+Running [P1]: build/bin/ltl2dpa '(G(p2)) | (G(p0)) | ((G((p0) | (F(G(p1))))) & (G((p2) | (F(G(!(p1)))))))' >'lcr-o1-OdBCvA'
+Running [N0]: ltl2tgba -H -f '!((G(p2)) | (G(p0)) | ((G((p0) | (F(G(p1))))) & (G((p2) | (F(G(!(p1))))))))' >'lcr-o0-NctGWd'
+Running [N1]: build/bin/ltl2dpa '!((G(p2)) | (G(p0)) | ((G((p0) | (F(G(p1))))) & (G((p2) | (F(G(!(p1))))))))' >'lcr-o1-hbbYpR'
+Performing sanity checks and gathering statistics...
+
+-:199: !((G(p2)) | (G(p0)) | ((G((p0) | (G(F(p1))))) & (G((p2) | (G(F(!(p1))))))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:200: !((G(p2)) | (G(p0)) | ((G((p0) | (F(G(p1))))) & (G((p2) | (F(G(!(p1))))))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:201: (G((p0) | (X(G(p1))))) & (G((p2) | (X(G(!(p1))))))
+Running [P0]: ltl2tgba -H -f '(G((p0) | (X(G(p1))))) & (G((p2) | (X(G(!(p1))))))' >'lcr-o0-WrL3ry'
+Running [P1]: build/bin/ltl2dpa '(G((p0) | (X(G(p1))))) & (G((p2) | (X(G(!(p1))))))' >'lcr-o1-3P8zvf'
+Running [N0]: ltl2tgba -H -f '!((G((p0) | (X(G(p1))))) & (G((p2) | (X(G(!(p1)))))))' >'lcr-o0-RJRqyZ'
+Running [N1]: build/bin/ltl2dpa '!((G((p0) | (X(G(p1))))) & (G((p2) | (X(G(!(p1)))))))' >'lcr-o1-oof1CJ'
+Performing sanity checks and gathering statistics...
+
+-:202: G((p0) | ((X(p1)) & (X(!(p1)))))
+Running [P0]: ltl2tgba -H -f 'G((p0) | ((X(p1)) & (X(!(p1)))))' >'lcr-o0-rWMMzw'
+Running [P1]: build/bin/ltl2dpa 'G((p0) | ((X(p1)) & (X(!(p1)))))' >'lcr-o1-lnGLxj'
+Running [N0]: ltl2tgba -H -f '!(G((p0) | ((X(p1)) & (X(!(p1))))))' >'lcr-o0-HRkYU8'
+Running [N1]: build/bin/ltl2dpa '!(G((p0) | ((X(p1)) & (X(!(p1))))))' >'lcr-o1-T6wAjY'
+Performing sanity checks and gathering statistics...
+
+-:203: (p0) | ((p1) U (p0))
+Running [P0]: ltl2tgba -H -f '(p0) | ((p1) U (p0))' >'lcr-o0-Z6ifAQ'
+Running [P1]: build/bin/ltl2dpa '(p0) | ((p1) U (p0))' >'lcr-o1-FnP6RI'
+Running [N0]: ltl2tgba -H -f '!((p0) | ((p1) U (p0)))' >'lcr-o0-sERq9C'
+Running [N1]: build/bin/ltl2dpa '!((p0) | ((p1) U (p0)))' >'lcr-o1-bBvAsx'
+Performing sanity checks and gathering statistics...
+
+-:204: G((p) -> (q))
+Running [P0]: ltl2tgba -H -f 'G((p) -> (q))' >'lcr-o0-ZZcbYt'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> (q))' >'lcr-o1-Kqxevq'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> (q)))' >'lcr-o0-CblvXo'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> (q)))' >'lcr-o1-XuMxrn'
+Performing sanity checks and gathering statistics...
+
+-:205: G((p) -> ((q) | (X(q))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X(q))))' >'lcr-o0-H4Bz2n'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X(q))))' >'lcr-o1-ImsKFo'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X(q)))))' >'lcr-o0-zaAWhr'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X(q)))))' >'lcr-o1-mrUZVt'
+Performing sanity checks and gathering statistics...
+
+-:206: G((p) -> ((q) | (X(q)) | (X(X(q)))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X(q)) | (X(X(q)))))' >'lcr-o0-K4x8pz'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X(q)) | (X(X(q)))))' >'lcr-o1-2cUNVE'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X(q)) | (X(X(q))))))' >'lcr-o0-Z4EjVM'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X(q)) | (X(X(q))))))' >'lcr-o1-GqZQWU'
+Performing sanity checks and gathering statistics...
+
+-:207: G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q))))))' >'lcr-o0-UzhcM5'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q))))))' >'lcr-o1-wCz7Cg'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))))))' >'lcr-o0-jnuPhu'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))))))' >'lcr-o1-riWeYH'
+Performing sanity checks and gathering statistics...
+
+-:208: G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q)))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q)))))))' >'lcr-o0-zTKwsY'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q)))))))' >'lcr-o1-H6lCYe'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))))))' >'lcr-o0-N58Uhy'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))))))' >'lcr-o1-PS50CR'
+Performing sanity checks and gathering statistics...
+
+-:209: G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))) | (X(X(X(X(X(q))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))) | (X(X(X(X(X(q))))))))' >'lcr-o0-8ugnWd'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))) | (X(X(X(X(X(q))))))))' >'lcr-o1-Yb1IhA'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))) | (X(X(X(X(X(q)))))))))' >'lcr-o0-EJ1wwZ'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X(q)) | (X(X(q))) | (X(X(X(q)))) | (X(X(X(X(q))))) | (X(X(X(X(X(q)))))))))' >'lcr-o1-gQLeNo'
+Performing sanity checks and gathering statistics...
+
+-:210: G((p) -> (q))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:211: G((p) -> ((q) | (X(q))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:212: G((p) -> ((q) | (X((q) | (X(q))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X((q) | (X(q))))))' >'lcr-o0-ztBS6Q'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X((q) | (X(q))))))' >'lcr-o1-dw8Vrj'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X((q) | (X(q)))))))' >'lcr-o0-FxySuO'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X((q) | (X(q)))))))' >'lcr-o1-9qzazj'
+Performing sanity checks and gathering statistics...
+
+-:213: G((p) -> ((q) | (X((q) | (X((q) | (X(q))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X((q) | (X((q) | (X(q))))))))' >'lcr-o0-Ztq8XR'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X((q) | (X((q) | (X(q))))))))' >'lcr-o1-jCu8oq'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X((q) | (X((q) | (X(q)))))))))' >'lcr-o0-3WNQM1'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X((q) | (X((q) | (X(q)))))))))' >'lcr-o1-XZ2YbD'
+Performing sanity checks and gathering statistics...
+
+-:214: G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X(q))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X(q))))))))))' >'lcr-o0-XZGeMh'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X(q))))))))))' >'lcr-o1-jNmboW'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X(q)))))))))))' >'lcr-o0-3C3z1D'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X(q)))))))))))' >'lcr-o1-n8FcHl'
+Performing sanity checks and gathering statistics...
+
+-:215: G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X((q) | (X(q))))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X((q) | (X(q))))))))))))' >'lcr-o0-qFgz26'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X((q) | (X(q))))))))))))' >'lcr-o1-kY1FpS'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X((q) | (X(q)))))))))))))' >'lcr-o0-QJbNHG'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) | (X((q) | (X((q) | (X((q) | (X((q) | (X(q)))))))))))))' >'lcr-o1-MZRu1u'
+Performing sanity checks and gathering statistics...
+
+-:216: G((p) -> (q))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:217: G((p) -> ((q) & (X(q))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X(q))))' >'lcr-o0-XBczOm'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X(q))))' >'lcr-o1-rBNVCe'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X(q)))))' >'lcr-o0-Tkvvt8'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X(q)))))' >'lcr-o1-ZHXtl2'
+Performing sanity checks and gathering statistics...
+
+-:218: G((p) -> ((q) & (X(q)) & (X(X(q)))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X(q)) & (X(X(q)))))' >'lcr-o0-Br8fuZ'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X(q)) & (X(X(q)))))' >'lcr-o1-5P0LEW'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X(q)) & (X(X(q))))))' >'lcr-o0-1cDMHW'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X(q)) & (X(X(q))))))' >'lcr-o1-TEDgMW'
+Performing sanity checks and gathering statistics...
+
+-:219: G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q))))))' >'lcr-o0-fwNcWZ'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q))))))' >'lcr-o1-2AwE72'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))))))' >'lcr-o0-82GAY8'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))))))' >'lcr-o1-x6nlRe'
+Performing sanity checks and gathering statistics...
+
+-:220: G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q)))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q)))))))' >'lcr-o0-4nnvMn'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q)))))))' >'lcr-o1-Q3wkJw'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))))))' >'lcr-o0-BwkovI'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))))))' >'lcr-o1-hZoejU'
+Performing sanity checks and gathering statistics...
+
+-:221: G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q))))))))' >'lcr-o0-Btpst9'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q))))))))' >'lcr-o1-7wiVFo'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q)))))))))' >'lcr-o0-byaOOG'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X(q)) & (X(X(q))) & (X(X(X(q)))) & (X(X(X(X(q))))) & (X(X(X(X(X(q)))))))))' >'lcr-o1-5UuVZY'
+Performing sanity checks and gathering statistics...
+
+-:222: G((p) -> (q))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:223: G((p) -> ((q) & (X(q))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:224: G((p) -> ((q) & (X((q) & (X(q))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X((q) & (X(q))))))' >'lcr-o0-vemkek'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X((q) & (X(q))))))' >'lcr-o1-z4hjuF'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X((q) & (X(q)))))))' >'lcr-o0-NwxYS3'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X((q) & (X(q)))))))' >'lcr-o1-B6aLns'
+Performing sanity checks and gathering statistics...
+
+-:225: G((p) -> ((q) & (X((q) & (X((q) & (X(q))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X((q) & (X((q) & (X(q))))))))' >'lcr-o0-lBesmV'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X((q) & (X((q) & (X(q))))))))' >'lcr-o1-sv9Euo'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X((q) & (X((q) & (X(q)))))))))' >'lcr-o0-AaOZCX'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X((q) & (X((q) & (X(q)))))))))' >'lcr-o1-tzwmOw'
+Performing sanity checks and gathering statistics...
+
+-:226: G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))' >'lcr-o0-MppCmb'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))' >'lcr-o1-RMjJYP'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))' >'lcr-o0-yHVIrA'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))' >'lcr-o1-RBHlWk'
+Performing sanity checks and gathering statistics...
+
+-:227: G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))))
+Running [P0]: ltl2tgba -H -f 'G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))))' >'lcr-o0-5mgBjb'
+Running [P1]: build/bin/ltl2dpa 'G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q))))))))))))' >'lcr-o1-h2bcR1'
+Running [N0]: ltl2tgba -H -f '!(G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))))' >'lcr-o0-Jeu5dX'
+Running [N1]: build/bin/ltl2dpa '!(G((p) -> ((q) & (X((q) & (X((q) & (X((q) & (X((q) & (X(q)))))))))))))' >'lcr-o1-FOEpFS'
+Performing sanity checks and gathering statistics...
+
+-:228: G((p1) -> ((p1) U (p2)))
+Running [P0]: ltl2tgba -H -f 'G((p1) -> ((p1) U (p2)))' >'lcr-o0-NFawdT'
+Running [P1]: build/bin/ltl2dpa 'G((p1) -> ((p1) U (p2)))' >'lcr-o1-FkEIOT'
+Running [N0]: ltl2tgba -H -f '!(G((p1) -> ((p1) U (p2))))' >'lcr-o0-hrAOiX'
+Running [N1]: build/bin/ltl2dpa '!(G((p1) -> ((p1) U (p2))))' >'lcr-o1-pHl1O0'
+Performing sanity checks and gathering statistics...
+
+-:229: G((p1) -> ((p1) U ((p2) & ((p2) U (p3)))))
+Running [P0]: ltl2tgba -H -f 'G((p1) -> ((p1) U ((p2) & ((p2) U (p3)))))' >'lcr-o0-0edSb7'
+Running [P1]: build/bin/ltl2dpa 'G((p1) -> ((p1) U ((p2) & ((p2) U (p3)))))' >'lcr-o1-hDCsAd'
+Running [N0]: ltl2tgba -H -f '!(G((p1) -> ((p1) U ((p2) & ((p2) U (p3))))))' >'lcr-o0-Dhseon'
+Running [N1]: build/bin/ltl2dpa '!(G((p1) -> ((p1) U ((p2) & ((p2) U (p3))))))' >'lcr-o1-xMcNdx'
+Performing sanity checks and gathering statistics...
+
+-:230: G((p1) -> ((p1) U ((p2) & ((p2) U ((p3) & ((p3) U (p4)))))))
+Running [P0]: ltl2tgba -H -f 'G((p1) -> ((p1) U ((p2) & ((p2) U ((p3) & ((p3) U (p4)))))))' >'lcr-o0-6Fn8GK'
+Running [P1]: build/bin/ltl2dpa 'G((p1) -> ((p1) U ((p2) & ((p2) U ((p3) & ((p3) U (p4)))))))' >'lcr-o1-N34ScY'
+Running [N0]: ltl2tgba -H -f '!(G((p1) -> ((p1) U ((p2) & ((p2) U ((p3) & ((p3) U (p4))))))))' >'lcr-o0-9N5lff'
+Running [N1]: build/bin/ltl2dpa '!(G((p1) -> ((p1) U ((p2) & ((p2) U ((p3) & ((p3) U (p4))))))))' >'lcr-o1-w1JYjw'
+Performing sanity checks and gathering statistics...
+
+-:231: p1
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:232: (p1) U (p2)
+Running [P0]: ltl2tgba -H -f '(p1) U (p2)' >'lcr-o0-UUps8S'
+Running [P1]: build/bin/ltl2dpa '(p1) U (p2)' >'lcr-o1-H96qYf'
+Running [N0]: ltl2tgba -H -f '!((p1) U (p2))' >'lcr-o0-xOXSOE'
+Running [N1]: build/bin/ltl2dpa '!((p1) U (p2))' >'lcr-o1-J7g7K3'
+Performing sanity checks and gathering statistics...
+
+-:233: ((p1) U (p2)) U (p3)
+Running [P0]: ltl2tgba -H -f '((p1) U (p2)) U (p3)' >'lcr-o0-t5A1Fu'
+Running [P1]: build/bin/ltl2dpa '((p1) U (p2)) U (p3)' >'lcr-o1-G9ffDV'
+Running [N0]: ltl2tgba -H -f '!(((p1) U (p2)) U (p3))' >'lcr-o0-aYlrFo'
+Running [N1]: build/bin/ltl2dpa '!(((p1) U (p2)) U (p3))' >'lcr-o1-z5TsJR'
+Performing sanity checks and gathering statistics...
+
+-:234: (((p1) U (p2)) U (p3)) U (p4)
+Running [P0]: ltl2tgba -H -f '(((p1) U (p2)) U (p3)) U (p4)' >'lcr-o0-Rt56Sm'
+Running [P1]: build/bin/ltl2dpa '(((p1) U (p2)) U (p3)) U (p4)' >'lcr-o1-gSdK4R'
+Running [N0]: ltl2tgba -H -f '!((((p1) U (p2)) U (p3)) U (p4))' >'lcr-o0-WMTgup'
+Running [N1]: build/bin/ltl2dpa '!((((p1) U (p2)) U (p3)) U (p4))' >'lcr-o1-RVBQVW'
+Performing sanity checks and gathering statistics...
+
+-:235: ((((p1) U (p2)) U (p3)) U (p4)) U (p5)
+Running [P0]: ltl2tgba -H -f '((((p1) U (p2)) U (p3)) U (p4)) U (p5)' >'lcr-o0-VkMIHw'
+Running [P1]: build/bin/ltl2dpa '((((p1) U (p2)) U (p3)) U (p4)) U (p5)' >'lcr-o1-Ze6mw6'
+Running [N0]: ltl2tgba -H -f '!(((((p1) U (p2)) U (p3)) U (p4)) U (p5))' >'lcr-o0-kJZccJ'
+Running [N1]: build/bin/ltl2dpa '!(((((p1) U (p2)) U (p3)) U (p4)) U (p5))' >'lcr-o1-G8QbUl'
+Performing sanity checks and gathering statistics...
+
+-:236: (((((p1) U (p2)) U (p3)) U (p4)) U (p5)) U (p6)
+Running [P0]: ltl2tgba -H -f '(((((p1) U (p2)) U (p3)) U (p4)) U (p5)) U (p6)' >'lcr-o0-cHTLs2'
+Running [P1]: build/bin/ltl2dpa '(((((p1) U (p2)) U (p3)) U (p4)) U (p5)) U (p6)' >'lcr-o1-DcAG6I'
+Running [N0]: ltl2tgba -H -f '!((((((p1) U (p2)) U (p3)) U (p4)) U (p5)) U (p6))' >'lcr-o0-AxQmlt'
+Running [N1]: build/bin/ltl2dpa '!((((((p1) U (p2)) U (p3)) U (p4)) U (p5)) U (p6))' >'lcr-o1-sul7Cd'
+Performing sanity checks and gathering statistics...
+
+-:237: p1
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:238: (p1) U (p2)
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+-:239: (p1) U ((p2) U (p3))
+Running [P0]: ltl2tgba -H -f '(p1) U ((p2) U (p3))' >'lcr-o0-U0PO92'
+Running [P1]: build/bin/ltl2dpa '(p1) U ((p2) U (p3))' >'lcr-o1-Nz73HS'
+Running [N0]: ltl2tgba -H -f '!((p1) U ((p2) U (p3)))' >'lcr-o0-pgu4mK'
+Running [N1]: build/bin/ltl2dpa '!((p1) U ((p2) U (p3)))' >'lcr-o1-LVuN9B'
+Performing sanity checks and gathering statistics...
+
+-:240: (p1) U ((p2) U ((p3) U (p4)))
+Running [P0]: ltl2tgba -H -f '(p1) U ((p2) U ((p3) U (p4)))' >'lcr-o0-Jwiabw'
+Running [P1]: build/bin/ltl2dpa '(p1) U ((p2) U ((p3) U (p4)))' >'lcr-o1-9Htleq'
+Running [N0]: ltl2tgba -H -f '!((p1) U ((p2) U ((p3) U (p4))))' >'lcr-o0-lekpqm'
+Running [N1]: build/bin/ltl2dpa '!((p1) U ((p2) U ((p3) U (p4))))' >'lcr-o1-G0BdEi'
+Performing sanity checks and gathering statistics...
+
+-:241: (p1) U ((p2) U ((p3) U ((p4) U (p5))))
+Running [P0]: ltl2tgba -H -f '(p1) U ((p2) U ((p3) U ((p4) U (p5))))' >'lcr-o0-r4yp1g'
+Running [P1]: build/bin/ltl2dpa '(p1) U ((p2) U ((p3) U ((p4) U (p5))))' >'lcr-o1-ngdJqf'
+Running [N0]: ltl2tgba -H -f '!((p1) U ((p2) U ((p3) U ((p4) U (p5)))))' >'lcr-o0-tpIY2f'
+Running [N1]: build/bin/ltl2dpa '!((p1) U ((p2) U ((p3) U ((p4) U (p5)))))' >'lcr-o1-0pl3Gg'
+Performing sanity checks and gathering statistics...
+
+-:242: (p1) U ((p2) U ((p3) U ((p4) U ((p5) U (p6)))))
+Running [P0]: ltl2tgba -H -f '(p1) U ((p2) U ((p3) U ((p4) U ((p5) U (p6)))))' >'lcr-o0-QNUHEj'
+Running [P1]: build/bin/ltl2dpa '(p1) U ((p2) U ((p3) U ((p4) U ((p5) U (p6)))))' >'lcr-o1-M765Em'
+Running [N0]: ltl2tgba -H -f '!((p1) U ((p2) U ((p3) U ((p4) U ((p5) U (p6))))))' >'lcr-o0-Qftxfs'
+Running [N1]: build/bin/ltl2dpa '!((p1) U ((p2) U ((p3) U ((p4) U ((p5) U (p6))))))' >'lcr-o1-hXXfSx'
+Performing sanity checks and gathering statistics...
+
+No problem detected.
+
+Stats for dataset genltl
+        tool:       ltl2dpa       |      ltl2tgba       
+        time:       1.27±0.65 (1) |       0.02±0.03 (0) 
+      states:     22.12±68.67 (4) |     11.38±39.55 (4) 
+       edges:  114.76±863.32 (10) |     26.61±71.62 (9) 
+ transitions: 323.40±1439.93 (32) |  119.23±374.94 (28) 
+         acc:       2.46±1.26 (2) |       1.16±0.87 (1) 
+         scc:       3.94±7.38 (2) |       4.16±6.43 (2) 
+  nonacc_scc:       1.70±5.35 (0) |       2.31±6.25 (1) 
+  strong_scc:       0.40±0.59 (0) |       0.25±0.61 (0) 
+    weak_scc:       1.37±5.27 (0) |       1.13±1.49 (1) 
+terminal_scc:       0.48±0.50 (0) |       0.48±0.50 (0) 
+
+Overall stats
+        tool:       ltl2dpa       |      ltl2tgba       
+        time:       1.26±0.61 (1) |       0.02±0.03 (0) 
+      states:     19.89±61.90 (5) |     10.16±35.46 (4) 
+       edges:  102.13±773.99 (12) |     24.49±64.45 (9) 
+ transitions: 288.02±1292.46 (40) |  108.92±337.08 (28) 
+         acc:       2.48±1.25 (2) |       1.26±0.99 (1) 
+         scc:       4.33±7.21 (2) |       4.33±5.97 (3) 
+  nonacc_scc:       1.90±5.05 (1) |       2.35±5.68 (1) 
+  strong_scc:       0.55±0.81 (0) |       0.30±0.66 (0) 
+    weak_scc:       1.41±4.92 (0) |       1.20±1.58 (1) 
+terminal_scc:       0.47±0.50 (0) |       0.47±0.50 (0) 

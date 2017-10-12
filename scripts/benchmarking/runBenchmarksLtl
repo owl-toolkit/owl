@@ -1,0 +1,16 @@
+#LTL -> LDBA (Breakpoint) -> DPA
+#LTL -> LDBA (Breakpointfree) -> DPA
+#LTL -> NBA (via ltl2tgba) -> LDBA -> DPA
+#LTL -> DRA -> DPA
+#LTL -> (via LTL2TGBA) DPA
+#LTL -> LDBA (Breakpoint) -> (via ltl2tgba) DPA
+#LTL -> LDBA (Breakpointfree) -> (via ltl2tgba) DPA  
+python3 scripts/util.py "test" "data/tests_benchmark.json" "ltl2dpa" | tee "benchmarking-results/ltl2dpa.txt"
+python3 scripts/util.py "test" "data/tests_benchmark.json" "ltl2dpa-bpfree" | tee "benchmarking-results/ltl2dpa-breakpointfree.txt"
+python3 scripts/util.py "test" "data/tests_benchmark.json" "nba2dpa" | tee "benchmarking-results/nba2dpa.txt"
+python3 scripts/util.py "test" "data/tests_benchmark.json" "ltl2dra2dpa" | tee "benchmarking-results/ltl2dra2dpa.txt"
+#python3 scripts/util.py "test" "data/tests_benchmark.json" "ltl2dpa-spot" | tee "benchmarking-results/ltl2dpa-spot.txt"
+python3 scripts/util.py "test" "data/tests_benchmark.json" "ltl2ldba2dpa-spot" | tee "benchmarking-results/ltl2ldba2dpa-spot.txt"
+python3 scripts/util.py "test" "data/tests_benchmark.json" "ltl2ldba2dpa-spot-breakpointfree" | tee "benchmarking-results/ltl2ldba2dpa-spot-breakpointfree.txt"
+
+

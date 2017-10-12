@@ -1,0 +1,739 @@
+Running test with args ltl2tgba ltl2tgba -H -f %f -t ltl2dpa build/bin/ltl2dpa %f syntcomp
+Testing tool ltl2dpa - build/bin/ltl2dpa %f
+Evaluating dataset syntcomp
+Invocation: python3 scripts/util.py formula syntcomp | ltlcross --strength --csv="/home/florian/owl/build/results/data-syntcomp.csv"  --grind="/home/florian/owl/build/results/debug-syntcomp.ltl" --timeout="60" {ltl2tgba} ltl2tgba -H -f %f >%O {ltl2dpa} build/bin/ltl2dpa %f >%O
+
+-:1: ((!(decide)) & (G((F(hready)) & ((!(ready3)) -> (X(!(decide))))))) -> ((ready3) & (G((decide) -> ((X(X(((locked) & (single)) -> ((((!(locked)) | (!(single))) -> (ready3)) & ((!(ready3)) U ((hready) & (!(ready3)) & (X(ready3)))))))) & (((ready3) & (X(!(decide)))) -> (X(ready3))) & (((ready3) & (X(decide))) -> (X((!(ready3)) & (X(!(ready3))))))))))
+Running [P0]: ltl2tgba -H -f '((!(decide)) & (G((F(hready)) & ((!(ready3)) -> (X(!(decide))))))) -> ((ready3) & (G((decide) -> ((X(X(((locked) & (single)) -> ((((!(locked)) | (!(single))) -> (ready3)) & ((!(ready3)) U ((hready) & (!(ready3)) & (X(ready3)))))))) & (((ready3) & (X(!(decide)))) -> (X(ready3))) & (((ready3) & (X(decide))) -> (X((!(ready3)) & (X(!(ready3))))))))))' >'lcr-o0-wFwpEu'
+Running [P1]: build/bin/ltl2dpa '((!(decide)) & (G((F(hready)) & ((!(ready3)) -> (X(!(decide))))))) -> ((ready3) & (G((decide) -> ((X(X(((locked) & (single)) -> ((((!(locked)) | (!(single))) -> (ready3)) & ((!(ready3)) U ((hready) & (!(ready3)) & (X(ready3)))))))) & (((ready3) & (X(!(decide)))) -> (X(ready3))) & (((ready3) & (X(decide))) -> (X((!(ready3)) & (X(!(ready3))))))))))' >'lcr-o1-690MUP'
+Running [N0]: ltl2tgba -H -f '!(((!(decide)) & (G((F(hready)) & ((!(ready3)) -> (X(!(decide))))))) -> ((ready3) & (G((decide) -> ((X(X(((locked) & (single)) -> ((((!(locked)) | (!(single))) -> (ready3)) & ((!(ready3)) U ((hready) & (!(ready3)) & (X(ready3)))))))) & (((ready3) & (X(!(decide)))) -> (X(ready3))) & (((ready3) & (X(decide))) -> (X((!(ready3)) & (X(!(ready3)))))))))))' >'lcr-o0-PT5WPk'
+Running [N1]: build/bin/ltl2dpa '!(((!(decide)) & (G((F(hready)) & ((!(ready3)) -> (X(!(decide))))))) -> ((ready3) & (G((decide) -> ((X(X(((locked) & (single)) -> ((((!(locked)) | (!(single))) -> (ready3)) & ((!(ready3)) U ((hready) & (!(ready3)) & (X(ready3)))))))) & (((ready3) & (X(!(decide)))) -> (X(ready3))) & (((ready3) & (X(decide))) -> (X((!(ready3)) & (X(!(ready3)))))))))))' >'lcr-o1-e5lONP'
+Performing sanity checks and gathering statistics...
+
+-:2: ((!(decide)) & (G((F(hready)) & (F(!(busreq))) & ((!(ready1)) -> (X(!(decide))))))) -> ((ready1) & (G((decide) -> ((X(X(((incr) & (locked)) -> ((((!(incr)) | (!(locked))) -> (ready1)) & (((!(ready1)) U ((!(busreq)) & (hready))) | (G(!(ready1)))))))) & (((ready1) & (X(!(decide)))) -> (X(ready1))) & (((ready1) & (X(decide))) -> (X((!(ready1)) & (X(!(ready1))))))))))
+Running [P0]: ltl2tgba -H -f '((!(decide)) & (G((F(hready)) & (F(!(busreq))) & ((!(ready1)) -> (X(!(decide))))))) -> ((ready1) & (G((decide) -> ((X(X(((incr) & (locked)) -> ((((!(incr)) | (!(locked))) -> (ready1)) & (((!(ready1)) U ((!(busreq)) & (hready))) | (G(!(ready1)))))))) & (((ready1) & (X(!(decide)))) -> (X(ready1))) & (((ready1) & (X(decide))) -> (X((!(ready1)) & (X(!(ready1))))))))))' >'lcr-o0-Kkrqpo'
+Running [P1]: build/bin/ltl2dpa '((!(decide)) & (G((F(hready)) & (F(!(busreq))) & ((!(ready1)) -> (X(!(decide))))))) -> ((ready1) & (G((decide) -> ((X(X(((incr) & (locked)) -> ((((!(incr)) | (!(locked))) -> (ready1)) & (((!(ready1)) U ((!(busreq)) & (hready))) | (G(!(ready1)))))))) & (((ready1) & (X(!(decide)))) -> (X(ready1))) & (((ready1) & (X(decide))) -> (X((!(ready1)) & (X(!(ready1))))))))))' >'lcr-o1-fqI45W'
+Running [N0]: ltl2tgba -H -f '!(((!(decide)) & (G((F(hready)) & (F(!(busreq))) & ((!(ready1)) -> (X(!(decide))))))) -> ((ready1) & (G((decide) -> ((X(X(((incr) & (locked)) -> ((((!(incr)) | (!(locked))) -> (ready1)) & (((!(ready1)) U ((!(busreq)) & (hready))) | (G(!(ready1)))))))) & (((ready1) & (X(!(decide)))) -> (X(ready1))) & (((ready1) & (X(decide))) -> (X((!(ready1)) & (X(!(ready1)))))))))))' >'lcr-o0-6z2UhB'
+Running [N1]: build/bin/ltl2dpa '!(((!(decide)) & (G((F(hready)) & (F(!(busreq))) & ((!(ready1)) -> (X(!(decide))))))) -> ((ready1) & (G((decide) -> ((X(X(((incr) & (locked)) -> ((((!(incr)) | (!(locked))) -> (ready1)) & (((!(ready1)) U ((!(busreq)) & (hready))) | (G(!(ready1)))))))) & (((ready1) & (X(!(decide)))) -> (X(ready1))) & (((ready1) & (X(decide))) -> (X((!(ready1)) & (X(!(ready1)))))))))))' >'lcr-o1-hOcWwf'
+Performing sanity checks and gathering statistics...
+
+-:3: ((!(decide)) & (G((F(hready)) & ((!(ready2)) -> (X(!(decide))))))) -> ((ready2) & (G((decide) -> ((X(X(((burst4) & (locked)) -> ((((!(burst4)) | (!(locked))) -> (ready2)) & ((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X(ready2))))))))))))))))) & (((ready2) & (X(!(decide)))) -> (X(ready2))) & (((ready2) & (X(decide))) -> (X((!(ready2)) & (X(!(ready2))))))))))
+Running [P0]: ltl2tgba -H -f '((!(decide)) & (G((F(hready)) & ((!(ready2)) -> (X(!(decide))))))) -> ((ready2) & (G((decide) -> ((X(X(((burst4) & (locked)) -> ((((!(burst4)) | (!(locked))) -> (ready2)) & ((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X(ready2))))))))))))))))) & (((ready2) & (X(!(decide)))) -> (X(ready2))) & (((ready2) & (X(decide))) -> (X((!(ready2)) & (X(!(ready2))))))))))' >'lcr-o0-23TF3Y'
+Running [P1]: build/bin/ltl2dpa '((!(decide)) & (G((F(hready)) & ((!(ready2)) -> (X(!(decide))))))) -> ((ready2) & (G((decide) -> ((X(X(((burst4) & (locked)) -> ((((!(burst4)) | (!(locked))) -> (ready2)) & ((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X(ready2))))))))))))))))) & (((ready2) & (X(!(decide)))) -> (X(ready2))) & (((ready2) & (X(decide))) -> (X((!(ready2)) & (X(!(ready2))))))))))' >'lcr-o1-EfzfKI'
+Running [N0]: ltl2tgba -H -f '!(((!(decide)) & (G((F(hready)) & ((!(ready2)) -> (X(!(decide))))))) -> ((ready2) & (G((decide) -> ((X(X(((burst4) & (locked)) -> ((((!(burst4)) | (!(locked))) -> (ready2)) & ((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X(ready2))))))))))))))))) & (((ready2) & (X(!(decide)))) -> (X(ready2))) & (((ready2) & (X(decide))) -> (X((!(ready2)) & (X(!(ready2)))))))))))' >'lcr-o0-rsT6oy'
+Running [N1]: build/bin/ltl2dpa '!(((!(decide)) & (G((F(hready)) & ((!(ready2)) -> (X(!(decide))))))) -> ((ready2) & (G((decide) -> ((X(X(((burst4) & (locked)) -> ((((!(burst4)) | (!(locked))) -> (ready2)) & ((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X((!(ready2)) U ((hready) & (!(ready2)) & (X(ready2))))))))))))))))) & (((ready2) & (X(!(decide)))) -> (X(ready2))) & (((ready2) & (X(decide))) -> (X((!(ready2)) & (X(!(ready2)))))))))))' >'lcr-o1-W19Lao'
+Performing sanity checks and gathering statistics...
+
+-:4: G((hready) -> (((locked) <-> (X(hmastlock))) & ((!(hready)) -> ((hmastlock) <-> (X(hmastlock))))))
+Running [P0]: ltl2tgba -H -f 'G((hready) -> (((locked) <-> (X(hmastlock))) & ((!(hready)) -> ((hmastlock) <-> (X(hmastlock))))))' >'lcr-o0-xcwzOm'
+Running [P1]: build/bin/ltl2dpa 'G((hready) -> (((locked) <-> (X(hmastlock))) & ((!(hready)) -> ((hmastlock) <-> (X(hmastlock))))))' >'lcr-o1-Udkntl'
+Running [N0]: ltl2tgba -H -f '!(G((hready) -> (((locked) <-> (X(hmastlock))) & ((!(hready)) -> ((hmastlock) <-> (X(hmastlock)))))))' >'lcr-o0-zqbl9l'
+Running [N1]: build/bin/ltl2dpa '!(G((hready) -> (((locked) <-> (X(hmastlock))) & ((!(hready)) -> ((hmastlock) <-> (X(hmastlock)))))))' >'lcr-o1-k7NFQm'
+Performing sanity checks and gathering statistics...
+
+-:5: (G((!(hgrant_0)) | ((!(hgrant_1)) & ((hgrant_0) | (hgrant_1))))) -> (G(((decide) & (X(hgrant_0))) -> (((X(locked)) <-> (X(hlock_0))) & (((decide) & (X(hgrant_1))) -> ((X(locked)) <-> (X(hlock_1)))) & ((!(decide)) -> ((locked) <-> (X(locked)))))))
+Running [P0]: ltl2tgba -H -f '(G((!(hgrant_0)) | ((!(hgrant_1)) & ((hgrant_0) | (hgrant_1))))) -> (G(((decide) & (X(hgrant_0))) -> (((X(locked)) <-> (X(hlock_0))) & (((decide) & (X(hgrant_1))) -> ((X(locked)) <-> (X(hlock_1)))) & ((!(decide)) -> ((locked) <-> (X(locked)))))))' >'lcr-o0-zqzlzp'
+Running [P1]: build/bin/ltl2dpa '(G((!(hgrant_0)) | ((!(hgrant_1)) & ((hgrant_0) | (hgrant_1))))) -> (G(((decide) & (X(hgrant_0))) -> (((X(locked)) <-> (X(hlock_0))) & (((decide) & (X(hgrant_1))) -> ((X(locked)) <-> (X(hlock_1)))) & ((!(decide)) -> ((locked) <-> (X(locked)))))))' >'lcr-o1-bUkZjs'
+Running [N0]: ltl2tgba -H -f '!((G((!(hgrant_0)) | ((!(hgrant_1)) & ((hgrant_0) | (hgrant_1))))) -> (G(((decide) & (X(hgrant_0))) -> (((X(locked)) <-> (X(hlock_0))) & (((decide) & (X(hgrant_1))) -> ((X(locked)) <-> (X(hlock_1)))) & ((!(decide)) -> ((locked) <-> (X(locked))))))))' >'lcr-o0-p7FhBx'
+Running [N1]: build/bin/ltl2dpa '!((G((!(hgrant_0)) | ((!(hgrant_1)) & ((hgrant_0) | (hgrant_1))))) -> (G(((decide) & (X(hgrant_0))) -> (((X(locked)) <-> (X(hlock_0))) & (((decide) & (X(hgrant_1))) -> ((X(locked)) <-> (X(hlock_1)))) & ((!(decide)) -> ((locked) <-> (X(locked))))))))' >'lcr-o1-kBqsUC'
+Performing sanity checks and gathering statistics...
+
+-:6: (G(((!(hgrant_0)) & (!(hgrant_1))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2))))) -> (G((hready) -> (((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1))))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((hready) -> ((hgrant_2) <-> (X((!(hmaster_0)) & (hmaster_1))))) & ((!(hready)) -> ((X(hmaster_0)) <-> ((hmaster_0) & ((hmaster_1) <-> (X(hmaster_1)))))))))
+Running [P0]: ltl2tgba -H -f '(G(((!(hgrant_0)) & (!(hgrant_1))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2))))) -> (G((hready) -> (((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1))))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((hready) -> ((hgrant_2) <-> (X((!(hmaster_0)) & (hmaster_1))))) & ((!(hready)) -> ((X(hmaster_0)) <-> ((hmaster_0) & ((hmaster_1) <-> (X(hmaster_1)))))))))' >'lcr-o0-vLA6MK'
+Running [P1]: build/bin/ltl2dpa '(G(((!(hgrant_0)) & (!(hgrant_1))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2))))) -> (G((hready) -> (((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1))))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((hready) -> ((hgrant_2) <-> (X((!(hmaster_0)) & (hmaster_1))))) & ((!(hready)) -> ((X(hmaster_0)) <-> ((hmaster_0) & ((hmaster_1) <-> (X(hmaster_1)))))))))' >'lcr-o1-2HTqIS'
+Running [N0]: ltl2tgba -H -f '!((G(((!(hgrant_0)) & (!(hgrant_1))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2))))) -> (G((hready) -> (((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1))))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((hready) -> ((hgrant_2) <-> (X((!(hmaster_0)) & (hmaster_1))))) & ((!(hready)) -> ((X(hmaster_0)) <-> ((hmaster_0) & ((hmaster_1) <-> (X(hmaster_1))))))))))' >'lcr-o0-nVBXP3'
+Running [N1]: build/bin/ltl2dpa '!((G(((!(hgrant_0)) & (!(hgrant_1))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2))))) -> (G((hready) -> (((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1))))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((hready) -> ((hgrant_2) <-> (X((!(hmaster_0)) & (hmaster_1))))) & ((!(hready)) -> ((X(hmaster_0)) <-> ((hmaster_0) & ((hmaster_1) <-> (X(hmaster_1))))))))))' >'lcr-o1-ZmDo0e'
+Performing sanity checks and gathering statistics...
+
+-:7: G(((!(hburst_0)) & (!(hburst_1))) -> ((single) & (((hburst_0) & (!(hburst_1))) -> (burst4)) & (((!(hburst_0)) & (hburst_1)) -> (incr)) & ((!(single)) | ((!(burst4)) & (!(incr)))) & ((!(burst4)) | (!(incr)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(hburst_0)) & (!(hburst_1))) -> ((single) & (((hburst_0) & (!(hburst_1))) -> (burst4)) & (((!(hburst_0)) & (hburst_1)) -> (incr)) & ((!(single)) | ((!(burst4)) & (!(incr)))) & ((!(burst4)) | (!(incr)))))' >'lcr-o0-xrgkVt'
+Running [P1]: build/bin/ltl2dpa 'G(((!(hburst_0)) & (!(hburst_1))) -> ((single) & (((hburst_0) & (!(hburst_1))) -> (burst4)) & (((!(hburst_0)) & (hburst_1)) -> (incr)) & ((!(single)) | ((!(burst4)) & (!(incr)))) & ((!(burst4)) | (!(incr)))))' >'lcr-o1-yjgqRI'
+Running [N0]: ltl2tgba -H -f '!(G(((!(hburst_0)) & (!(hburst_1))) -> ((single) & (((hburst_0) & (!(hburst_1))) -> (burst4)) & (((!(hburst_0)) & (hburst_1)) -> (incr)) & ((!(single)) | ((!(burst4)) & (!(incr)))) & ((!(burst4)) | (!(incr))))))' >'lcr-o0-xS4Na1'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(hburst_0)) & (!(hburst_1))) -> ((single) & (((hburst_0) & (!(hburst_1))) -> (burst4)) & (((!(hburst_0)) & (hburst_1)) -> (incr)) & ((!(single)) | ((!(burst4)) & (!(incr)))) & ((!(burst4)) | (!(incr))))))' >'lcr-o1-jLkqvj'
+Performing sanity checks and gathering statistics...
+
+-:8: ((allready) & (G(F(allready)))) -> ((!(decide)) & (hgrant_0) & (G(((!(hgrant_0)) & (!(hgrant_1)) & ((!(hgrant_2)) | (!(hgrant_3)))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)) & (!(hgrant_3)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2) | (hgrant_3)) & ((hgrant_0) -> ((busreq) <-> (hbusreq_0))) & ((hgrant_1) -> ((busreq) <-> (hbusreq_1))) & ((hgrant_2) -> ((busreq) <-> (hbusreq_2))) & ((hgrant_3) -> ((busreq) <-> (hbusreq_3))) & ((!(allready)) -> (!(decide))) & ((!(allready)) -> ((hgrant_0) <-> (X(hgrant_0)))) & ((!(allready)) -> ((hgrant_1) <-> (X(hgrant_1)))) & ((!(allready)) -> ((hgrant_2) <-> (X(hgrant_2)))) & ((!(allready)) -> ((hgrant_3) <-> (X(hgrant_3)))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | (hgrant_0)))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | (hgrant_1)))) & ((hbusreq_2) -> (F((!(hbusreq_2)) | (hgrant_2)))) & ((hbusreq_3) -> (F((!(hbusreq_3)) | (hgrant_3)))) & ((decide) <-> ((X(hgrant_0)) <-> ((!(hgrant_0)) | ((!(hgrant_1)) <-> (X(hgrant_1))) | ((!(hgrant_2)) <-> (X(hgrant_2))) | ((!(hgrant_3)) <-> (X(hgrant_3)))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1)) & (!(hbusreq_2)) & (!(hbusreq_3))) -> (X(hgrant_0)))))))
+Running [P0]: ltl2tgba -H -f '((allready) & (G(F(allready)))) -> ((!(decide)) & (hgrant_0) & (G(((!(hgrant_0)) & (!(hgrant_1)) & ((!(hgrant_2)) | (!(hgrant_3)))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)) & (!(hgrant_3)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2) | (hgrant_3)) & ((hgrant_0) -> ((busreq) <-> (hbusreq_0))) & ((hgrant_1) -> ((busreq) <-> (hbusreq_1))) & ((hgrant_2) -> ((busreq) <-> (hbusreq_2))) & ((hgrant_3) -> ((busreq) <-> (hbusreq_3))) & ((!(allready)) -> (!(decide))) & ((!(allready)) -> ((hgrant_0) <-> (X(hgrant_0)))) & ((!(allready)) -> ((hgrant_1) <-> (X(hgrant_1)))) & ((!(allready)) -> ((hgrant_2) <-> (X(hgrant_2)))) & ((!(allready)) -> ((hgrant_3) <-> (X(hgrant_3)))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | (hgrant_0)))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | (hgrant_1)))) & ((hbusreq_2) -> (F((!(hbusreq_2)) | (hgrant_2)))) & ((hbusreq_3) -> (F((!(hbusreq_3)) | (hgrant_3)))) & ((decide) <-> ((X(hgrant_0)) <-> ((!(hgrant_0)) | ((!(hgrant_1)) <-> (X(hgrant_1))) | ((!(hgrant_2)) <-> (X(hgrant_2))) | ((!(hgrant_3)) <-> (X(hgrant_3)))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1)) & (!(hbusreq_2)) & (!(hbusreq_3))) -> (X(hgrant_0)))))))' >'lcr-o0-cgJk8D'
+Running [P1]: build/bin/ltl2dpa '((allready) & (G(F(allready)))) -> ((!(decide)) & (hgrant_0) & (G(((!(hgrant_0)) & (!(hgrant_1)) & ((!(hgrant_2)) | (!(hgrant_3)))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)) & (!(hgrant_3)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2) | (hgrant_3)) & ((hgrant_0) -> ((busreq) <-> (hbusreq_0))) & ((hgrant_1) -> ((busreq) <-> (hbusreq_1))) & ((hgrant_2) -> ((busreq) <-> (hbusreq_2))) & ((hgrant_3) -> ((busreq) <-> (hbusreq_3))) & ((!(allready)) -> (!(decide))) & ((!(allready)) -> ((hgrant_0) <-> (X(hgrant_0)))) & ((!(allready)) -> ((hgrant_1) <-> (X(hgrant_1)))) & ((!(allready)) -> ((hgrant_2) <-> (X(hgrant_2)))) & ((!(allready)) -> ((hgrant_3) <-> (X(hgrant_3)))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | (hgrant_0)))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | (hgrant_1)))) & ((hbusreq_2) -> (F((!(hbusreq_2)) | (hgrant_2)))) & ((hbusreq_3) -> (F((!(hbusreq_3)) | (hgrant_3)))) & ((decide) <-> ((X(hgrant_0)) <-> ((!(hgrant_0)) | ((!(hgrant_1)) <-> (X(hgrant_1))) | ((!(hgrant_2)) <-> (X(hgrant_2))) | ((!(hgrant_3)) <-> (X(hgrant_3)))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1)) & (!(hbusreq_2)) & (!(hbusreq_3))) -> (X(hgrant_0)))))))' >'lcr-o1-Z9jMT1'
+warning: timeout during execution of command
+Running [N0]: ltl2tgba -H -f '!(((allready) & (G(F(allready)))) -> ((!(decide)) & (hgrant_0) & (G(((!(hgrant_0)) & (!(hgrant_1)) & ((!(hgrant_2)) | (!(hgrant_3)))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)) & (!(hgrant_3)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2) | (hgrant_3)) & ((hgrant_0) -> ((busreq) <-> (hbusreq_0))) & ((hgrant_1) -> ((busreq) <-> (hbusreq_1))) & ((hgrant_2) -> ((busreq) <-> (hbusreq_2))) & ((hgrant_3) -> ((busreq) <-> (hbusreq_3))) & ((!(allready)) -> (!(decide))) & ((!(allready)) -> ((hgrant_0) <-> (X(hgrant_0)))) & ((!(allready)) -> ((hgrant_1) <-> (X(hgrant_1)))) & ((!(allready)) -> ((hgrant_2) <-> (X(hgrant_2)))) & ((!(allready)) -> ((hgrant_3) <-> (X(hgrant_3)))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | (hgrant_0)))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | (hgrant_1)))) & ((hbusreq_2) -> (F((!(hbusreq_2)) | (hgrant_2)))) & ((hbusreq_3) -> (F((!(hbusreq_3)) | (hgrant_3)))) & ((decide) <-> ((X(hgrant_0)) <-> ((!(hgrant_0)) | ((!(hgrant_1)) <-> (X(hgrant_1))) | ((!(hgrant_2)) <-> (X(hgrant_2))) | ((!(hgrant_3)) <-> (X(hgrant_3)))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1)) & (!(hbusreq_2)) & (!(hbusreq_3))) -> (X(hgrant_0))))))))' >'lcr-o0-5hdjD9'
+Running [N1]: build/bin/ltl2dpa '!(((allready) & (G(F(allready)))) -> ((!(decide)) & (hgrant_0) & (G(((!(hgrant_0)) & (!(hgrant_1)) & ((!(hgrant_2)) | (!(hgrant_3)))) | (((!(hgrant_0)) | ((!(hgrant_1)) & (!(hgrant_2)) & (!(hgrant_3)))) & ((hgrant_0) | (hgrant_1) | (hgrant_2) | (hgrant_3)) & ((hgrant_0) -> ((busreq) <-> (hbusreq_0))) & ((hgrant_1) -> ((busreq) <-> (hbusreq_1))) & ((hgrant_2) -> ((busreq) <-> (hbusreq_2))) & ((hgrant_3) -> ((busreq) <-> (hbusreq_3))) & ((!(allready)) -> (!(decide))) & ((!(allready)) -> ((hgrant_0) <-> (X(hgrant_0)))) & ((!(allready)) -> ((hgrant_1) <-> (X(hgrant_1)))) & ((!(allready)) -> ((hgrant_2) <-> (X(hgrant_2)))) & ((!(allready)) -> ((hgrant_3) <-> (X(hgrant_3)))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | (hgrant_0)))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | (hgrant_1)))) & ((hbusreq_2) -> (F((!(hbusreq_2)) | (hgrant_2)))) & ((hbusreq_3) -> (F((!(hbusreq_3)) | (hgrant_3)))) & ((decide) <-> ((X(hgrant_0)) <-> ((!(hgrant_0)) | ((!(hgrant_1)) <-> (X(hgrant_1))) | ((!(hgrant_2)) <-> (X(hgrant_2))) | ((!(hgrant_3)) <-> (X(hgrant_3)))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1)) & (!(hbusreq_2)) & (!(hbusreq_3))) -> (X(hgrant_0))))))))' >'lcr-o1-uiruck'
+warning: timeout during execution of command
+Performing sanity checks and gathering statistics...
+
+-:9: G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_2) -> (F((g_2) & (X(g_2)))))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_2) -> (F((g_2) & (X(g_2)))))))' >'lcr-o0-uTKRGe'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_2) -> (F((g_2) & (X(g_2)))))))' >'lcr-o1-uYLXN9'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_2) -> (F((g_2) & (X(g_2))))))))' >'lcr-o0-9YdUgf'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_2) -> (F((g_2) & (X(g_2))))))))' >'lcr-o1-tu5hcl'
+warning: timeout during execution of command
+Performing sanity checks and gathering statistics...
+
+-:10: G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-0MMUff'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-VWIxs9'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-U2uHsn'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & (((r_0) & (X(r_2))) -> (F((g_0) & (g_2)))) & (((r_1) & (X(r_2))) -> (F((g_1) & (g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-AdBIDB'
+Performing sanity checks and gathering statistics...
+
+-:11: G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_1))) -> (X(X(X((g_0) & (g_1)))))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_1))) -> (X(X(X((g_0) & (g_1)))))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o0-WTWjoe'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_1))) -> (X(X(X((g_0) & (g_1)))))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o1-RiWkfR'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_1))) -> (X(X(X((g_0) & (g_1)))))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o0-TEJUwJ'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_1))) -> (X(X(X((g_0) & (g_1)))))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o1-KMSV0B'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       !g_0 & g_1 & g_2 & !r_0 & r_1; !g_0 & g_1 & g_2 & !r_0 & !r_1 & r_2; g_0 & !g_1 & !g_2 & !r_0 & !r_1; !g_0 & g_1 & g_2 & r_0 & !r_1; !g_0 & !g_1 & g_2 & !r_1 & !r_2; g_0 & !g_1 & !g_2 & !r_0 & r_1 & r_2; !g_0 & !g_1 & !g_2 & !r_2; !g_0 & g_1 & !g_2 & r_0 & !r_1 & r_2; cycle{!g_0 & !g_1 & !g_2 & !r_1 & !r_2; g_0 & !g_1 & !g_2 & !r_0 & r_1; !g_0 & g_1 & !g_2 & r_0 & !r_1 & !r_2}
+
+Trying to find a bogus mutation of [] (! g_0 && ! g_1 || (! g_0 || ! g_1 && ! g_2) && (r_0 && X r_1 -> X (X (X (g_0 && g_1)))) && (r_0 && X r_2 -> X (X (X (g_0 && g_2)))) && (r_1 && X r_2 -> X (X (X (g_1 && g_2)))) && (r_0 -> <> g_0) && (r_1 -> <> g_1) && (r_2 -> <> g_2))...
+Mutation 1/90: G((!(g_0)) & (!(g_1)))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) & (!(g_1)))' >'lcr-o0-GYZvXN'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) & (!(g_1)))' >'lcr-o1-NffWUZ'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) & (!(g_1))))' >'lcr-o0-BM4Hfd'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) & (!(g_1))))' >'lcr-o1-gl8aCq'
+Performing sanity checks and gathering statistics...
+
+Mutation 2/90: G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o0-dgMwLF'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o1-abgg0U'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o0-k1MIBm'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_0) & (X(r_2))) -> (X(X(X((g_0) & (g_2)))))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o1-DT5tpO'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       !g_0 & g_1 & g_2 & !r_0 & r_1; !g_0 & g_1 & g_2 & !r_0 & r_1 & r_2; g_0 & !g_1 & !g_2 & !r_0 & !r_1 & !r_2; !g_0 & g_1 & g_2 & r_0 & !r_1; !g_0 & !g_1 & g_2 & !r_2; g_0 & !g_1 & !g_2 & !r_0 & r_1 & r_2; !g_0 & !g_1 & !g_2 & !r_2; !g_0 & g_1 & !g_2 & r_0 & !r_1 & r_2; cycle{g_0 & !g_1 & !g_2 & !r_0 & r_1 & !r_2; !g_0 & g_1 & !g_2 & r_0 & !r_1 & !r_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | ((!g_0 | (!g_1 & !g_2)) & (r_0 -> Fg_0) & (r_1 -> Fg_1) & (r_2 -> Fg_2) & ((r_0 & Xr_2) -> XXX(g_0 & g_2)) & ((r_1 & Xr_2) -> XXX(g_1 & g_2))))...
+Mutation 1/80: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/80: G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o0-6fIypz'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o1-uAezsk'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o0-PYCl1a'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o1-nOACE1'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       !g_0 & g_1 & g_2 & !r_0 & r_1; !g_0 & g_1 & g_2 & !r_0 & !r_1 & r_2; g_0 & !g_1 & !g_2 & !r_1; !g_0 & g_1 & g_2 & r_0 & !r_1; !g_0 & !g_1 & g_2; cycle{g_0 & !g_1 & !g_2 & r_1 & r_2; !g_0 & g_1 & !g_2 & r_0 & !r_1 & !r_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | ((!g_0 | (!g_1 & !g_2)) & (r_0 -> Fg_0) & (r_1 -> Fg_1) & (r_2 -> Fg_2) & ((r_1 & Xr_2) -> XXX(g_1 & g_2))))...
+Mutation 1/70: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/70: G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-rZfhJ4'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-rBotP7'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-Y0qT2d'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((!(g_0)) | ((!(g_1)) & (!(g_2)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-SSWWhk'
+Performing sanity checks and gathering statistics...
+
+Mutation 3/70: G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o0-1vxwSu'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2))))))))' >'lcr-o1-6eOkyF'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o0-VbUUDZ'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & (((r_1) & (X(r_2))) -> (X(X(X((g_1) & (g_2)))))))))' >'lcr-o1-IaF0Nj'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       !g_0 & g_1 & !g_2 & r_0 & !r_1 & r_2; cycle{g_0 & !g_1 & !g_2 & r_1 & r_2; !g_0 & g_1 & !g_2 & r_0 & !r_1 & !r_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | ((r_0 -> Fg_0) & (r_1 -> Fg_1) & (r_2 -> Fg_2) & ((r_1 & Xr_2) -> XXX(g_1 & g_2))))...
+Mutation 1/62: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/62: G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-bRUyoO'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-FzkH0i'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-rPsSMQ'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-UVJpDo'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       cycle{!g_0 & g_1 & !g_2 & r_0 & r_2; g_0 & !g_1 & !g_2 & r_1 & r_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | ((r_0 -> Fg_0) & (r_1 -> Fg_1) & (r_2 -> Fg_2)))...
+Mutation 1/52: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/52: G(((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))' >'lcr-o0-dFJ9D1'
+Running [P1]: build/bin/ltl2dpa 'G(((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))' >'lcr-o1-GkGjHE'
+Running [N0]: ltl2tgba -H -f '!(G(((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-YWk4sl'
+Running [N1]: build/bin/ltl2dpa '!(G(((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-3H8ih2'
+Performing sanity checks and gathering statistics...
+
+Mutation 3/52: G(((!(g_0)) & (!(g_1))) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-MldXgN'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-5UTCiy'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-TeYAPm'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-TxHpob'
+Performing sanity checks and gathering statistics...
+
+Mutation 4/52: G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-3u9JR2'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-SnNkmU'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-nO8ItO'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-Axm1CI'
+Performing sanity checks and gathering statistics...
+
+Mutation 5/52: G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))' >'lcr-o0-PpjZtG'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))' >'lcr-o1-u2hvmE'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))' >'lcr-o0-JGEmoF'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))' >'lcr-o1-Rz0UrG'
+Performing sanity checks and gathering statistics...
+
+Mutation 6/52: G((!(g_1)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-vMwYmK'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-2p9pjO'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-XpL97U'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-2FJVY1'
+Performing sanity checks and gathering statistics...
+
+Mutation 7/52: G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-hydbic'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-U9woDm'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-DBIagA'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-PHfyVN'
+Performing sanity checks and gathering statistics...
+
+Mutation 8/52: G(((!(g_0)) & (!(g_1))) | ((r_0) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((r_0) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-M5e5C4'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((r_0) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-D01xml'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((r_0) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-5NU7ZF'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((r_0) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-e22UF0'
+Performing sanity checks and gathering statistics...
+
+Mutation 9/52: G(((!(g_0)) & (!(g_1))) | ((r_1) & ((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((r_1) & ((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-3AQlnp'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((r_1) & ((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-c8fM6N'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((r_1) & ((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-xmsFug'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((r_1) & ((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-jXBTUI'
+Performing sanity checks and gathering statistics...
+
+Mutation 10/52: G(((!(g_0)) & (!(g_1))) | ((r_2) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((r_2) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))' >'lcr-o0-D2r3gf'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((r_2) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))' >'lcr-o1-yMoVEL'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((r_2) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))' >'lcr-o0-683WJk'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((r_2) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))' >'lcr-o1-iqKjQT'
+Performing sanity checks and gathering statistics...
+
+Mutation 11/52: G((!(g_1)) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & ((r_0) -> (F(g_1)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & ((r_0) -> (F(g_1)))))' >'lcr-o0-38VTpv'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & ((r_0) -> (F(g_1)))))' >'lcr-o1-geDM06'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & ((r_0) -> (F(g_1))))))' >'lcr-o0-9OUkCL'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))) & ((r_0) -> (F(g_1))))))' >'lcr-o1-IpUJfq'
+Performing sanity checks and gathering statistics...
+
+Mutation 12/52: G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0)))))' >'lcr-o0-bIRpA7'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0)))))' >'lcr-o1-8eMjWO'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0))))))' >'lcr-o0-o6obNy'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | (((r_0) -> (F(g_0))) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0))))))' >'lcr-o1-9icAGi'
+Performing sanity checks and gathering statistics...
+
+Mutation 13/52: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-EQN6Y4'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-sY9ejR'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-rLMyeH'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-VUz7bx'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       !g_0 & g_1 & !g_2 & r_2; cycle{!g_0 & g_1 & !g_2; g_0 & !g_1 & !g_2 & r_1 & r_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | (Fg_0 & (r_1 -> Fg_1) & (r_2 -> Fg_2)))...
+Mutation 1/39: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/39: G((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))' >'lcr-o0-hjeLbs'
+Running [P1]: build/bin/ltl2dpa 'G((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))' >'lcr-o1-OsMzdn'
+Running [N0]: ltl2tgba -H -f '!(G((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-EBdyGl'
+Running [N1]: build/bin/ltl2dpa '!(G((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-L37Cbk'
+Performing sanity checks and gathering statistics...
+
+Mutation 3/39: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-fdZMkm'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-ySbHvo'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-TCjAfu'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-jOtu1z'
+Performing sanity checks and gathering statistics...
+
+Mutation 4/39: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1)))))' >'lcr-o0-pP9h5J'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1)))))' >'lcr-o1-IBLxaU'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))))))' >'lcr-o0-tVgJH6'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_1) -> (F(g_1))))))' >'lcr-o1-mzKmgj'
+Performing sanity checks and gathering statistics...
+
+Mutation 5/39: G(((!(g_0)) & (!(g_1))) | (((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 6/39: G((!(g_1)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-Huw23x'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-wk4bTM'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-aXfiI4'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-FmLpzm'
+Performing sanity checks and gathering statistics...
+
+Mutation 7/39: G((!(g_0)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-P9JcPH'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-QTAS62'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-RJ3QGr'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | ((F(g_0)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-i3A2iQ'
+Performing sanity checks and gathering statistics...
+
+Mutation 8/39: G(((!(g_0)) & (!(g_1))) | ((r_1) & (F(g_0)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((r_1) & (F(g_0)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-ceV7ei'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((r_1) & (F(g_0)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-cax3cK'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((r_1) & (F(g_0)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-xaUhyf'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((r_1) & (F(g_0)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-oXggWK'
+Performing sanity checks and gathering statistics...
+
+Mutation 9/39: G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & ((r_1) -> (F(g_1)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & ((r_1) -> (F(g_1)))))' >'lcr-o0-aYqvkj'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & ((r_1) -> (F(g_1)))))' >'lcr-o1-uSVTJR'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & ((r_1) -> (F(g_1))))))' >'lcr-o0-9dIezs'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & ((r_1) -> (F(g_1))))))' >'lcr-o1-60BEq3'
+Performing sanity checks and gathering statistics...
+
+Mutation 10/39: G((!(g_1)) | ((F(g_1)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | ((F(g_1)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o0-he2svH'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | ((F(g_1)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2)))))' >'lcr-o1-rJLKBl'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | ((F(g_1)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o0-s7J5h2'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | ((F(g_1)) & ((r_1) -> (F(g_1))) & ((r_2) -> (F(g_2))))))' >'lcr-o1-WZcg0I'
+Performing sanity checks and gathering statistics...
+
+Mutation 11/39: G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0)))))' >'lcr-o0-c2oyMr'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0)))))' >'lcr-o1-NV4Uza'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0))))))' >'lcr-o0-S0o4NV'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))) & ((r_1) -> (F(g_0))))))' >'lcr-o1-Dq0T3G'
+Performing sanity checks and gathering statistics...
+
+Mutation 12/39: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-X9DI8u'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-Tuitfj'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-WNcIWa'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-g8cXF2'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       cycle{!g_0 & g_1 & !g_2 & r_2; g_0 & !g_1 & !g_2 & r_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | (Fg_0 & Fg_1 & (r_2 -> Fg_2)))...
+Mutation 1/28: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/28: G((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))' >'lcr-o0-O9JeuX'
+Running [P1]: build/bin/ltl2dpa 'G((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))' >'lcr-o1-Db14jS'
+Running [N0]: ltl2tgba -H -f '!(G((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-q9uTkP'
+Running [N1]: build/bin/ltl2dpa '!(G((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-cWrDnM'
+Performing sanity checks and gathering statistics...
+
+Mutation 3/28: G((!(g_1)) | ((F(g_1)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | ((F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-b56dFM'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | ((F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-MSxgYM'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | ((F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-zh81XP'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | ((F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-0agEZS'
+Performing sanity checks and gathering statistics...
+
+Mutation 4/28: G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-d0CAJY'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-pddev4'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-G7Xm3c'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | ((F(g_0)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-KYcEDl'
+Performing sanity checks and gathering statistics...
+
+Mutation 5/28: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1))))' >'lcr-o0-ljAPJw'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1))))' >'lcr-o1-3Ui1QH'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)))))' >'lcr-o0-I4ZuUU'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)))))' >'lcr-o1-PWiuZ7'
+Performing sanity checks and gathering statistics...
+
+Mutation 6/28: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & ((r_2) -> (F(g_2)))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 7/28: G((!(g_1)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-wWtNwn'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-vkfR5C'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-9iJuRV'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-gvAMFe'
+Performing sanity checks and gathering statistics...
+
+Mutation 8/28: G((!(g_0)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-mZwjLA'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-TTnySW'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-7vgAKl'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | ((F(g_0)) & (F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-8GdtEK'
+Performing sanity checks and gathering statistics...
+
+Mutation 9/28: G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & ((r_2) -> (F(g_2)))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o0-TjpxIb'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & ((r_2) -> (F(g_2)))))' >'lcr-o1-BBRRNC'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o0-5FqJR6'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & ((r_2) -> (F(g_2))))))' >'lcr-o1-FvshXA'
+Performing sanity checks and gathering statistics...
+
+Mutation 10/28: G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & (F(g_1))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & (F(g_1))))' >'lcr-o0-ScLpq8'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & (F(g_1))))' >'lcr-o1-suHYUF'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & (F(g_1)))))' >'lcr-o0-xhKzog'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((r_2) & (F(g_0)) & (F(g_1)))))' >'lcr-o1-hsINTQ'
+Performing sanity checks and gathering statistics...
+
+Mutation 11/28: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-PmJYgu'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-XwPNF7'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-vKA2VN'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-DDEgeu'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       cycle{g_0 & !g_1 & !g_2; !g_0 & g_1 & !g_2}
+
+Trying to find a bogus mutation of G((!g_0 & !g_1) | (Fg_0 & Fg_1 & Fg_2))...
+Mutation 1/17: G((!(g_0)) & (!(g_1)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 2/17: G((F(g_0)) & (F(g_1)) & (F(g_2)))
+Running [P0]: ltl2tgba -H -f 'G((F(g_0)) & (F(g_1)) & (F(g_2)))' >'lcr-o0-m4Lldd'
+Running [P1]: build/bin/ltl2dpa 'G((F(g_0)) & (F(g_1)) & (F(g_2)))' >'lcr-o1-YhjOdW'
+Running [N0]: ltl2tgba -H -f '!(G((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-zj9RvH'
+Running [N1]: build/bin/ltl2dpa '!(G((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-wJT4Ps'
+Performing sanity checks and gathering statistics...
+
+Mutation 3/17: G((!(g_1)) | ((F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | ((F(g_1)) & (F(g_2))))' >'lcr-o0-X5ZrQg'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | ((F(g_1)) & (F(g_2))))' >'lcr-o1-uTR6R4'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | ((F(g_1)) & (F(g_2)))))' >'lcr-o0-uzIYlV'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | ((F(g_1)) & (F(g_2)))))' >'lcr-o1-iPtfRL'
+Performing sanity checks and gathering statistics...
+
+Mutation 4/17: G((!(g_0)) | ((F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | ((F(g_0)) & (F(g_2))))' >'lcr-o0-xmeNlF'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | ((F(g_0)) & (F(g_2))))' >'lcr-o1-3ZhNRy'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | ((F(g_0)) & (F(g_2)))))' >'lcr-o0-xAft3u'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | ((F(g_0)) & (F(g_2)))))' >'lcr-o1-snW5gr'
+Performing sanity checks and gathering statistics...
+
+Mutation 5/17: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 6/17: G((!(g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-mxszrq'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-DkWyDp'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-m1Jh3q'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-PRzFus'
+Performing sanity checks and gathering statistics...
+
+Mutation 7/17: G((!(g_0)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((!(g_0)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-zw7Baw'
+Running [P1]: build/bin/ltl2dpa 'G((!(g_0)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-qbzERz'
+Running [N0]: ltl2tgba -H -f '!(G((!(g_0)) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-ef4eoF'
+Running [N1]: build/bin/ltl2dpa '!(G((!(g_0)) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-JAFYWK'
+Performing sanity checks and gathering statistics...
+
+Mutation 8/17: G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & (F(g_2))))' >'lcr-o0-tnONQS'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & (F(g_2))))' >'lcr-o1-42lJL0'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o0-3gfxgb'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o1-2TPdNl'
+Performing sanity checks and gathering statistics...
+
+Mutation 9/17: G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_2))))' >'lcr-o0-PBHWCz'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_2))))' >'lcr-o1-qnO5tN'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o0-tocdg4'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o1-HEde4k'
+Performing sanity checks and gathering statistics...
+
+Mutation 10/17: G(((!(g_1)) & (!(g_2))) | ((F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_1)) & (!(g_2))) | ((F(g_1)) & (F(g_2))))' >'lcr-o0-l8HmaF'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_1)) & (!(g_2))) | ((F(g_1)) & (F(g_2))))' >'lcr-o1-bmnThZ'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_1)) & (!(g_2))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o0-ySz9Vl'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_1)) & (!(g_2))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o1-sY11BI'
+Performing sanity checks and gathering statistics...
+
+Mutation 11/17: G(((!(g_0)) & (!(g_2))) | ((F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_0)) & (!(g_2))) | ((F(g_0)) & (F(g_2))))' >'lcr-o0-DjYHj8'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_0)) & (!(g_2))) | ((F(g_0)) & (F(g_2))))' >'lcr-o1-fBrK2x'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_0)) & (!(g_2))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o0-CksYj0'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_0)) & (!(g_2))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o1-pRTSDs'
+Performing sanity checks and gathering statistics...
+
+Mutation 12/17: ((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))
+Running [P0]: ltl2tgba -H -f '((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))' >'lcr-o0-tRmAWX'
+Running [P1]: build/bin/ltl2dpa '((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))' >'lcr-o1-l0MPgt'
+Running [N0]: ltl2tgba -H -f '!(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-E7cIF0'
+Running [N1]: build/bin/ltl2dpa '!(((!(g_0)) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-i7Wj6x'
+Performing sanity checks and gathering statistics...
+
+Mutation 13/17: G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-eBQxd8'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-Z0yvmI'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-hz2IMl'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-xdUDfZ'
+Performing sanity checks and gathering statistics...
+error: Comp(N1)*Comp(P1) is nonempty; both automata accept the infinite word:
+       cycle{!g_0 & !g_1 & !g_2; g_0 & !g_1 & !g_2; g_0 & g_1 & !g_2}
+
+Trying to find a bogus mutation of G((g_0 & !g_1) | (Fg_0 & Fg_1 & Fg_2))...
+Mutation 1/16: G((g_0) & (!(g_1)))
+Running [P0]: ltl2tgba -H -f 'G((g_0) & (!(g_1)))' >'lcr-o0-krHIwF'
+Running [P1]: build/bin/ltl2dpa 'G((g_0) & (!(g_1)))' >'lcr-o1-XdDJXl'
+Running [N0]: ltl2tgba -H -f '!(G((g_0) & (!(g_1))))' >'lcr-o0-h6xyR3'
+Running [N1]: build/bin/ltl2dpa '!(G((g_0) & (!(g_1))))' >'lcr-o1-IrxHML'
+Performing sanity checks and gathering statistics...
+
+Mutation 2/16: G((F(g_0)) & (F(g_1)) & (F(g_2)))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 3/16: G((g_0) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G((g_0) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-tDvNrv'
+Running [P1]: build/bin/ltl2dpa 'G((g_0) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-NFqt8e'
+Running [N0]: ltl2tgba -H -f '!(G((g_0) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-nm5CB1'
+Running [N1]: build/bin/ltl2dpa '!(G((g_0) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-x5qt7N'
+Performing sanity checks and gathering statistics...
+
+Mutation 4/16: G(((g_0) & (!(g_1))) | ((F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((F(g_1)) & (F(g_2))))' >'lcr-o0-Rg86eD'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((F(g_1)) & (F(g_2))))' >'lcr-o1-3T7Ins'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o0-tN2qCj'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o1-v8ySSa'
+Performing sanity checks and gathering statistics...
+
+Mutation 5/16: G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_2))))' >'lcr-o0-GwKhd5'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_2))))' >'lcr-o1-NUU9yZ'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o0-kM1ilW'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o1-Lsj18S'
+Performing sanity checks and gathering statistics...
+
+Mutation 6/16: G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1))))' >'lcr-o0-TucxLS'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1))))' >'lcr-o1-8c5opS'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)))))' >'lcr-o0-uZlnKU'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)))))' >'lcr-o1-LyL96W'
+Performing sanity checks and gathering statistics...
+
+Mutation 7/16: G(((g_1) & (!(g_1))) | ((F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_1) & (!(g_1))) | ((F(g_1)) & (F(g_2))))' >'lcr-o0-2Vdvu2'
+Running [P1]: build/bin/ltl2dpa 'G(((g_1) & (!(g_1))) | ((F(g_1)) & (F(g_2))))' >'lcr-o1-wgtaT7'
+Running [N0]: ltl2tgba -H -f '!(G(((g_1) & (!(g_1))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o0-mZOOYf'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_1) & (!(g_1))) | ((F(g_1)) & (F(g_2)))))' >'lcr-o1-k0xr6n'
+Performing sanity checks and gathering statistics...
+
+Mutation 8/16: G(((!(g_1)) & (g_2)) | ((F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((!(g_1)) & (g_2)) | ((F(g_1)) & (F(g_2))))' >'lcr-o0-VWh5ty'
+Running [P1]: build/bin/ltl2dpa 'G(((!(g_1)) & (g_2)) | ((F(g_1)) & (F(g_2))))' >'lcr-o1-OfXJSI'
+Running [N0]: ltl2tgba -H -f '!(G(((!(g_1)) & (g_2)) | ((F(g_1)) & (F(g_2)))))' >'lcr-o0-jvMFCV'
+Running [N1]: build/bin/ltl2dpa '!(G(((!(g_1)) & (g_2)) | ((F(g_1)) & (F(g_2)))))' >'lcr-o1-5yYio8'
+Performing sanity checks and gathering statistics...
+
+Mutation 9/16: G(((g_0) & (!(g_0))) | ((F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_0))) | ((F(g_0)) & (F(g_2))))' >'lcr-o0-8Rj2On'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_0))) | ((F(g_0)) & (F(g_2))))' >'lcr-o1-dyg4gD'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_0))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o0-LQ0TrV'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_0))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o1-09b9Dd'
+Performing sanity checks and gathering statistics...
+
+Mutation 10/16: G(((g_0) & (!(g_2))) | ((F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_2))) | ((F(g_0)) & (F(g_2))))' >'lcr-o0-XJXbAy'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_2))) | ((F(g_0)) & (F(g_2))))' >'lcr-o1-PYUFxT'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_2))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o0-sBbMgh'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_2))) | ((F(g_0)) & (F(g_2)))))' >'lcr-o1-bPlB2E'
+Performing sanity checks and gathering statistics...
+
+Mutation 11/16: G((!(g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+warning: This formula or its negation has already been checked.
+         Use --allow-dups if it should not be ignored.
+
+Mutation 12/16: ((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))
+Running [P0]: ltl2tgba -H -f '((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))' >'lcr-o0-kTMbR5'
+Running [P1]: build/bin/ltl2dpa '((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2)))' >'lcr-o1-jyJ4Hw'
+Running [N0]: ltl2tgba -H -f '!(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-WwM9AZ'
+Running [N1]: build/bin/ltl2dpa '!(((g_0) & (!(g_1))) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-vRy8vs'
+Performing sanity checks and gathering statistics...
+
+Mutation 13/16: G(((g_0) & (g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o0-McFrPX'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2))))' >'lcr-o1-DOlkat'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-SLchi1'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (g_1)) | ((F(g_0)) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-7Xk5rz'
+Performing sanity checks and gathering statistics...
+
+Mutation 14/16: G(((g_0) & (!(g_1))) | ((g_0) & (F(g_1)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((g_0) & (F(g_1)) & (F(g_2))))' >'lcr-o0-V6hjNa'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((g_0) & (F(g_1)) & (F(g_2))))' >'lcr-o1-uUuU9L'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((g_0) & (F(g_1)) & (F(g_2)))))' >'lcr-o0-PPyQaq'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((g_0) & (F(g_1)) & (F(g_2)))))' >'lcr-o1-ZIOxd4'
+Performing sanity checks and gathering statistics...
+
+Mutation 15/16: G(((g_0) & (!(g_1))) | ((g_1) & (F(g_0)) & (F(g_2))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((g_1) & (F(g_0)) & (F(g_2))))' >'lcr-o0-VNsI7K'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((g_1) & (F(g_0)) & (F(g_2))))' >'lcr-o1-3kVk3r'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((g_1) & (F(g_0)) & (F(g_2)))))' >'lcr-o0-3WXXIb'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((g_1) & (F(g_0)) & (F(g_2)))))' >'lcr-o1-E4arqV'
+Performing sanity checks and gathering statistics...
+
+Mutation 16/16: G(((g_0) & (!(g_1))) | ((g_2) & (F(g_0)) & (F(g_1))))
+Running [P0]: ltl2tgba -H -f 'G(((g_0) & (!(g_1))) | ((g_2) & (F(g_0)) & (F(g_1))))' >'lcr-o0-fn6BdI'
+Running [P1]: build/bin/ltl2dpa 'G(((g_0) & (!(g_1))) | ((g_2) & (F(g_0)) & (F(g_1))))' >'lcr-o1-44se2u'
+Running [N0]: ltl2tgba -H -f '!(G(((g_0) & (!(g_1))) | ((g_2) & (F(g_0)) & (F(g_1)))))' >'lcr-o0-k1TfBk'
+Running [N1]: build/bin/ltl2dpa '!(G(((g_0) & (!(g_1))) | ((g_2) & (F(g_0)) & (F(g_1)))))' >'lcr-o1-fwnQba'
+Performing sanity checks and gathering statistics...
+
+Smallest bogus mutation found for [] (! g_0 && ! g_1 || (! g_0 || ! g_1 && ! g_2) && (r_0 && X r_1 -> X (X (X (g_0 && g_1)))) && (r_0 && X r_2 -> X (X (X (g_0 && g_2)))) && (r_1 && X r_2 -> X (X (X (g_1 && g_2)))) && (r_0 -> <> g_0) && (r_1 -> <> g_1) && (r_2 -> <> g_2)) is G((g_0 & !g_1) | (Fg_0 & Fg_1 & Fg_2)).
+
+-:12: (G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))))))
+Running [P0]: ltl2tgba -H -f '(G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))))))' >'lcr-o0-9lzKM2'
+Running [P1]: build/bin/ltl2dpa '(G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))))))' >'lcr-o1-kTlIrV'
+Running [N0]: ltl2tgba -H -f '!((G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1)))))))))' >'lcr-o0-NPa9j0'
+Running [N1]: build/bin/ltl2dpa '!((G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1)))))))))' >'lcr-o1-AMLrg5'
+Performing sanity checks and gathering statistics...
+
+-:13: (G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))
+Running [P0]: ltl2tgba -H -f '(G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))' >'lcr-o0-emFtdt'
+Running [P1]: build/bin/ltl2dpa '(G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))))))' >'lcr-o1-gE4YcR'
+Running [N0]: ltl2tgba -H -f '!((G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))))' >'lcr-o0-vTWrml'
+Running [N1]: build/bin/ltl2dpa '!((G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1)))))))' >'lcr-o1-QmjZzP'
+Performing sanity checks and gathering statistics...
+
+-:14: (G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))))))
+Running [P0]: ltl2tgba -H -f '(G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))))))' >'lcr-o0-Zw62fr'
+Running [P1]: build/bin/ltl2dpa '(G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))))))' >'lcr-o1-mRdzZ2'
+Running [N0]: ltl2tgba -H -f '!((G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1)))))))))' >'lcr-o0-qFqVyJ'
+Running [N1]: build/bin/ltl2dpa '!((G(((!(g_0)) & (r_0)) -> ((X(r_0)) & (((g_0) & (!(r_0))) -> (X(!(r_0)))) & (F((!(g_0)) | (!(r_0)))) & (((!(g_1)) & (r_1)) -> (X(r_1))) & (((g_1) & (!(r_1))) -> (X(!(r_1)))) & (F((!(g_1)) | (!(r_1))))))) -> (G((!(g_0)) | ((!(g_1)) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1)))))))))' >'lcr-o1-DrQ4aq'
+Performing sanity checks and gathering statistics...
+
+-:15: (G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))
+Running [P0]: ltl2tgba -H -f '(G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))' >'lcr-o0-itGKlc'
+Running [P1]: build/bin/ltl2dpa '(G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))' >'lcr-o1-h5zKAY'
+Running [N0]: ltl2tgba -H -f '!((G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m))))))))' >'lcr-o0-QWv6zQ'
+Running [N1]: build/bin/ltl2dpa '!((G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m))))))))' >'lcr-o1-hckUCI'
+Performing sanity checks and gathering statistics...
+
+-:16: (G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))
+Running [P0]: ltl2tgba -H -f '(G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))' >'lcr-o0-AaUAPP'
+Running [P1]: build/bin/ltl2dpa '(G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))' >'lcr-o1-pdq14W'
+Running [N0]: ltl2tgba -H -f '!((G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m))))))))' >'lcr-o0-cUG617'
+Running [N1]: build/bin/ltl2dpa '!((G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m))))))))' >'lcr-o1-Qhzt2i'
+Performing sanity checks and gathering statistics...
+
+-:17: (G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))
+Running [P0]: ltl2tgba -H -f '(G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))' >'lcr-o0-umZHNz'
+Running [P1]: build/bin/ltl2dpa '(G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m)))))))' >'lcr-o1-JDUZCQ'
+Running [N0]: ltl2tgba -H -f '!((G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m))))))))' >'lcr-o0-jpkFhc'
+Running [N1]: build/bin/ltl2dpa '!((G(F(!(r_m)))) -> (G((!(g_0)) | ((!(g_1)) & ((!(g_0)) | (!(g_m))) & ((!(g_1)) | (!(g_m))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & ((r_m) -> (X(((!(g_0)) & (!(g_1))) U (g_m))))))))' >'lcr-o1-W0qd0x'
+Performing sanity checks and gathering statistics...
+
+-:18: (G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (((request_0) & (X(request_1))) -> (F((grant_0) & (grant_1)))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))))))
+Running [P0]: ltl2tgba -H -f '(G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (((request_0) & (X(request_1))) -> (F((grant_0) & (grant_1)))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))))))' >'lcr-o0-5aFtzY'
+Running [P1]: build/bin/ltl2dpa '(G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (((request_0) & (X(request_1))) -> (F((grant_0) & (grant_1)))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))))))' >'lcr-o1-RWfpgp'
+Running [N0]: ltl2tgba -H -f '!((G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (((request_0) & (X(request_1))) -> (F((grant_0) & (grant_1)))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1))))))))' >'lcr-o0-c4r6WU'
+Running [N1]: build/bin/ltl2dpa '!((G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (((request_0) & (X(request_1))) -> (F((grant_0) & (grant_1)))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1))))))))' >'lcr-o1-JvbZKq'
+Performing sanity checks and gathering statistics...
+
+-:19: (G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))) & (((request_0) & (X(request_1))) -> (X(X((grant_0) & (grant_1))))))))
+Running [P0]: ltl2tgba -H -f '(G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))) & (((request_0) & (X(request_1))) -> (X(X((grant_0) & (grant_1))))))))' >'lcr-o0-yMv8i4'
+Running [P1]: build/bin/ltl2dpa '(G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))) & (((request_0) & (X(request_1))) -> (X(X((grant_0) & (grant_1))))))))' >'lcr-o1-dPoeVH'
+Running [N0]: ltl2tgba -H -f '!((G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))) & (((request_0) & (X(request_1))) -> (X(X((grant_0) & (grant_1)))))))))' >'lcr-o0-eELgRp'
+Running [N1]: build/bin/ltl2dpa '!((G((F(idle)) & (((idle) & (X((!(grant_0)) & (!(grant_1))))) -> (X(idle))) & (X((!(grant_0)) | (((!(idle)) & (!(request_0))) U ((idle) & (!(request_0)))))))) -> (G((X(grant_0)) -> ((request_0) & ((request_0) -> (grant_1)) & ((X(grant_1)) -> (request_1)) & ((!(idle)) -> (X((!(grant_0)) & (!(grant_1))))) & (F((!(request_0)) | (X(grant_0)))) & (F((!(request_1)) | (X(grant_1)))) & (X((!(grant_0)) | (!(grant_1)))) & (((request_0) & (X(request_1))) -> (X(X((grant_0) & (grant_1)))))))))' >'lcr-o1-norFR7'
+Performing sanity checks and gathering statistics...
+
+-:20: ((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (F((b2r_req_0) & (b2r_req_1))))))
+Running [P0]: ltl2tgba -H -f '((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (F((b2r_req_0) & (b2r_req_1))))))' >'lcr-o0-TFZrBV'
+warning: timeout during execution of command
+Running [P1]: build/bin/ltl2dpa '((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (F((b2r_req_0) & (b2r_req_1))))))' >'lcr-o1-kriZdt'
+warning: timeout during execution of command
+Running [N0]: ltl2tgba -H -f '!(((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (F((b2r_req_0) & (b2r_req_1)))))))' >'lcr-o0-S595KK'
+warning: timeout during execution of command
+Running [N1]: build/bin/ltl2dpa '!(((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (F((b2r_req_0) & (b2r_req_1)))))))' >'lcr-o1-R0t5aM'
+warning: timeout during execution of command
+Performing sanity checks and gathering statistics...
+
+-:21: ((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (X(X((b2r_req_0) & (b2r_req_1)))))))
+Running [P0]: ltl2tgba -H -f '((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (X(X((b2r_req_0) & (b2r_req_1)))))))' >'lcr-o0-ZQYAvx'
+warning: timeout during execution of command
+Running [P1]: build/bin/ltl2dpa '((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (X(X((b2r_req_0) & (b2r_req_1)))))))' >'lcr-o1-nuw0L2'
+warning: timeout during execution of command
+Running [N0]: ltl2tgba -H -f '!(((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (X(X((b2r_req_0) & (b2r_req_1))))))))' >'lcr-o0-T7IeZh'
+warning: timeout during execution of command
+Running [N1]: build/bin/ltl2dpa '!(((!(s2b_req_0)) & (G(((!(b2s_ack_0)) & (s2b_req_0)) -> ((X(s2b_req_0)) & ((b2s_ack_0) -> (X(!(s2b_req_0)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_0)) & (X(s2b_req_0))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_0)) & (X(F(b2s_ack_0))))) & (((!(b2s_ack_0)) & (X(!(s2b_req_0)))) -> (X(!(b2s_ack_0))))))) & (((!(s2b_req_1)) & (G(((!(b2s_ack_1)) & (s2b_req_1)) -> ((X(s2b_req_1)) & ((b2s_ack_1) -> (X(!(s2b_req_1)))))))) -> ((!(b2s_ack_0)) & (G(((!(s2b_req_1)) & (X(s2b_req_1))) -> (((!(b2s_ack_0)) | (!(b2s_ack_1))) & (X((!(b2s_ack_1)) & (X(F(b2s_ack_1))))) & (((!(b2s_ack_1)) & (X(!(s2b_req_1)))) -> (X(!(b2s_ack_1))))))))) & (((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) -> ((!(b2r_req_0)) & (G((r2b_ack_0) -> ((X(!(b2r_req_0))) & (((b2r_req_0) & (!(r2b_ack_0))) -> (X(b2r_req_0))) & (((b2r_req_0) & (X(!(b2r_req_0)))) -> (X((!(b2r_req_0)) U ((!(b2r_req_0)) & (b2r_req_1)))))))))) & (((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1)))))))) -> ((!(b2r_req_1)) & (G((r2b_ack_1) -> ((X(!(b2r_req_1))) & (((b2r_req_1) & (!(r2b_ack_1))) -> (X(b2r_req_1))) & (((b2r_req_1) & (X(!(b2r_req_1)))) -> (X((!(b2r_req_1)) U ((b2r_req_0) & (!(b2r_req_1))))))))))) & ((((!(r2b_ack_0)) & (G((!(b2r_req_0)) -> ((X(!(r2b_ack_0))) & ((b2r_req_0) -> (X(F(r2b_ack_0)))))))) | ((!(r2b_ack_1)) & (G((!(b2r_req_1)) -> ((X(!(r2b_ack_1))) & ((b2r_req_1) -> (X(F(r2b_ack_1))))))))) -> (G(((s2b_req_0) | (s2b_req_1)) -> (((!(b2r_req_0)) | (!(b2r_req_1))) & (X(F((b2r_req_0) | (b2r_req_1)))))))) & (G(((r2b_ack_0) & (X(r2b_ack_1))) -> (X(X((b2r_req_0) & (b2r_req_1))))))))' >'lcr-o1-ayrY6g'
+warning: timeout during execution of command
+Performing sanity checks and gathering statistics...
+
+-:22: ((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))
+Running [P0]: ltl2tgba -H -f '((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))' >'lcr-o0-JtYva0'
+Running [P1]: build/bin/ltl2dpa '((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))' >'lcr-o1-c8iGjJ'
+Running [N0]: ltl2tgba -H -f '!(((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1)))))))))' >'lcr-o0-9ITA5w'
+Running [N1]: build/bin/ltl2dpa '!(((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F((g_0) & (X(g_0))))) & ((r_1) -> (F((g_1) & (X(g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1)))))))))' >'lcr-o1-cJemWk'
+Performing sanity checks and gathering statistics...
+
+-:23: ((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))
+Running [P0]: ltl2tgba -H -f '((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))' >'lcr-o0-vZZG8h'
+Running [P1]: build/bin/ltl2dpa '((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))' >'lcr-o1-UFXbtf'
+Running [N0]: ltl2tgba -H -f '!(((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1)))))))))' >'lcr-o0-L1HNqh'
+Running [N1]: build/bin/ltl2dpa '!(((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & (((r_0) & (X(r_1))) -> (F((g_0) & (g_1)))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1)))))))))' >'lcr-o1-oQ45sj'
+Performing sanity checks and gathering statistics...
+
+-:24: ((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))
+Running [P0]: ltl2tgba -H -f '((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))' >'lcr-o0-cyzYBr'
+Running [P1]: build/bin/ltl2dpa '((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1))))))))' >'lcr-o1-hevWPz'
+Running [N0]: ltl2tgba -H -f '!(((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1)))))))))' >'lcr-o0-YMQerL'
+Running [N1]: build/bin/ltl2dpa '!(((r_0) R (!(g_0))) & ((r_1) R (!(g_1))) & (G(((g_0) & (G(!(r_0)))) -> (((!(g_0)) | (!(g_1))) & ((r_0) -> (F(g_0))) & ((r_1) -> (F(g_1))) & (((r_0) & (X(r_1))) -> (X(X((g_0) & (g_1))))) & (F(!(g_0))) & (((g_0) & (X((!(g_0)) & (!(r_0))))) -> (X((r_0) R (!(g_0))))) & (((g_1) & (G(!(r_1)))) -> (F(!(g_1)))) & (((g_1) & (X((!(g_1)) & (!(r_1))))) -> (X((r_1) R (!(g_1)))))))))' >'lcr-o1-PEcF5W'
+Performing sanity checks and gathering statistics...
+
+-:25: (G((F(r_0)) & (F(r_1)))) <-> ((G(F(g))) & (G(((r_0) & (r_1)) -> (G(!(g))))))
+Running [P0]: ltl2tgba -H -f '(G((F(r_0)) & (F(r_1)))) <-> ((G(F(g))) & (G(((r_0) & (r_1)) -> (G(!(g))))))' >'lcr-o0-2EqgTd'
+Running [P1]: build/bin/ltl2dpa '(G((F(r_0)) & (F(r_1)))) <-> ((G(F(g))) & (G(((r_0) & (r_1)) -> (G(!(g))))))' >'lcr-o1-LYQOJu'
+Running [N0]: ltl2tgba -H -f '!((G((F(r_0)) & (F(r_1)))) <-> ((G(F(g))) & (G(((r_0) & (r_1)) -> (G(!(g)))))))' >'lcr-o0-jK3JqP'
+Running [N1]: build/bin/ltl2dpa '!((G((F(r_0)) & (F(r_1)))) <-> ((G(F(g))) & (G(((r_0) & (r_1)) -> (G(!(g)))))))' >'lcr-o1-V7mfba'
+Performing sanity checks and gathering statistics...
+
+-:26: ((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (F((hgrant_0) & (hgrant_1))))))))
+Running [P0]: ltl2tgba -H -f '((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (F((hgrant_0) & (hgrant_1))))))))' >'lcr-o0-C8KGrz'
+warning: timeout during execution of command
+Running [P1]: build/bin/ltl2dpa '((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (F((hgrant_0) & (hgrant_1))))))))' >'lcr-o1-bXKuBI'
+warning: timeout during execution of command
+Running [N0]: ltl2tgba -H -f '!(((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (F((hgrant_0) & (hgrant_1)))))))))' >'lcr-o0-HrRVFB'
+warning: timeout during execution of command
+Running [N1]: build/bin/ltl2dpa '!(((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (F((hgrant_0) & (hgrant_1)))))))))' >'lcr-o1-2g6rDe'
+warning: timeout during execution of command
+Performing sanity checks and gathering statistics...
+
+-:27: ((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (X(X((hgrant_0) & (hgrant_1)))))))))
+Running [P0]: ltl2tgba -H -f '((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (X(X((hgrant_0) & (hgrant_1)))))))))' >'lcr-o0-D0kWwB'
+warning: timeout during execution of command
+Running [P1]: build/bin/ltl2dpa '((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (X(X((hgrant_0) & (hgrant_1)))))))))' >'lcr-o1-glepjI'
+warning: timeout during execution of command
+Running [N0]: ltl2tgba -H -f '!(((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (X(X((hgrant_0) & (hgrant_1))))))))))' >'lcr-o0-BxLr0y'
+warning: timeout during execution of command
+Running [N1]: build/bin/ltl2dpa '!(((!(hbusreq_0)) & (!(hbusreq_1)) & (!(hlock_0)) & (!(hlock_1)) & (!(hready)) & (G((!(hburst_0)) | ((!(hburst_1)) & ((hlock_0) -> (hbusreq_0)) & ((hlock_1) -> (hbusreq_1)) & (F(hready)) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock)) -> (X(F(!(busreq))))))))) -> ((decide) & (hgrant_0) & (!(hgrant_1)) & (!(hmaster_0)) & (!(hmaster_1)) & (!(hmastlock)) & (start) & (G(((!(hmaster_0)) & (!(hmaster_1))) -> (((busreq) <-> (hbusreq_0)) & (((hmaster_0) & (!(hmaster_1))) -> ((busreq) <-> (hbusreq_1))) & ((!(decide)) -> ((locked) <-> (X(locked)))) & ((hready) -> ((hgrant_1) <-> (X((hmaster_0) & (!(hmaster_1)))))) & ((!(hready)) -> (X(!(start)))) & (((!(hburst_0)) & (!(hburst_1)) & (hmastlock) & (start)) -> (X(((!(start)) U ((!(busreq)) & (!(start)))) | (G(!(start)))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (hready) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))) & (((hburst_0) & (!(hburst_1)) & (hmastlock) & (!(hready)) & (start)) -> (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start)) & (X((G(!(start))) | ((!(start)) U ((hready) & (!(start))))))))))))))))))) & ((hready) -> ((hgrant_0) <-> (X((!(hmaster_0)) & (!(hmaster_1)))))) & ((hready) -> ((locked) <-> (X(hmastlock)))) & ((X(!(start))) -> (((!(hmaster_0)) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((!(hmaster_0)) & (!(hmaster_1))))))) & ((X(!(start))) -> (((hmaster_0) & (!(hmaster_1))) <-> (((hmastlock) <-> (X(hmastlock))) & (X((hmaster_0) & (!(hmaster_1))))))) & (((decide) & (X(hgrant_0))) -> ((hlock_0) <-> (X(locked)))) & (((decide) & (X(hgrant_1))) -> ((hlock_1) <-> (X(locked)))) & ((!(decide)) -> ((hgrant_0) <-> ((X(hgrant_0)) & ((hgrant_1) <-> (X(hgrant_1)))))) & ((hbusreq_0) -> (F((!(hbusreq_0)) | ((!(hmaster_0)) & (!(hmaster_1)))))) & ((hbusreq_1) -> (F((!(hbusreq_1)) | ((hmaster_0) & (!(hmaster_1)))))) & ((!(hgrant_1)) -> (((!(hgrant_1)) U (hbusreq_1)) | (G(!(hgrant_1))))) & (((decide) & (!(hbusreq_0)) & (!(hbusreq_1))) -> (X(hgrant_0))) & (((hbusreq_0) & (X(hbusreq_1))) -> (X(X((hgrant_0) & (hgrant_1))))))))))' >'lcr-o1-SRnnA9'
+warning: timeout during execution of command
+Performing sanity checks and gathering statistics...
+
+error: some error was detected during the above runs,
+       please search for 'error:' messages in the above trace.
+Additionally, 19 timeouts occurred.
+Generating automaton image for G((g_0 & !g_1) | (Fg_0 & Fg_1 & Fg_2))
+        tool:        ltl2dpa        |       ltl2tgba        
+        time:         1.51±2.10 (1) |         0.03±0.11 (0) 
+      states:      58.23±166.46 (8) |        7.35±10.22 (4) 
+       edges:   580.93±1962.88 (38) |      46.48±169.47 (9) 
+ transitions: 1932.92±6054.05 (144) |   370.03±1996.79 (60) 
+         acc:         3.72±1.99 (3) |         1.54±0.81 (1) 
+         scc:        5.04±12.27 (1) |         3.36±2.96 (3) 
+  nonacc_scc:        2.60±10.16 (0) |         1.41±2.16 (1) 
+  strong_scc:         1.34±1.49 (1) |         0.66±0.85 (1) 
+    weak_scc:         0.89±3.81 (0) |         1.08±1.25 (1) 
+terminal_scc:         0.20±0.40 (0) |         0.21±0.41 (0) 

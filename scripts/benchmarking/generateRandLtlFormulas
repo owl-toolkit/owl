@@ -1,0 +1,3 @@
+randltl -n30 4 --tree-size=10..40
+randltl -n30 4 --weak-fairness
+

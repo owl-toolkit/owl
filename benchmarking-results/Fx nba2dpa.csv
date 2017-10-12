@@ -1,0 +1,17 @@
+"formula","tool","exit_status","exit_code","time","states","edges","transitions","acc","scc","nondet_states","nondet_aut","complete_aut","product_states","product_transitions","product_scc"
+"F(p1)","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.423355,3,4,6,2,3,0,0,1,600,12408,203
+"!(F(p1))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.473782,2,3,4,2,2,0,0,1,400,8272,3
+"(F(p1)) & (F(p2))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.449258,5,10,20,2,5,0,0,1,998,20677,205
+"!((F(p1)) & (F(p2)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.498224,6,13,24,2,6,0,0,1,1196,24780,403
+"(F(p1)) & (F(p2)) & (F(p3))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.534075,9,28,72,2,9,0,0,1,1787,37235,234
+"!((F(p1)) & (F(p2)) & (F(p3)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.561236,16,61,128,2,16,0,0,1,1601,33356,48
+"(F(p1)) & (F(p2)) & (F(p3)) & (F(p4))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.596473,17,82,272,2,17,0,0,1,2927,62021,274
+"!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.768341,32,177,512,2,32,0,0,1,2746,58169,93
+"(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,0.932282,33,244,1056,2,33,0,0,1,5530,118337,550
+"!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.17263,64,517,2048,2,64,0,0,1,5355,114609,375
+"(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,1.67121,65,730,4160,2,65,0,0,1,9141,192847,1004
+"!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,2.75864,128,1521,8192,2,128,0,0,1,8956,188951,819
+"(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)) & (F(p7))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,6.91658,129,2188,16512,2,129,0,0,1,14366,300752,1841
+"!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)) & (F(p7)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,10.6392,256,4501,32768,2,256,0,0,1,14181,296860,1656
+"(F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)) & (F(p7)) & (F(p8))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,80.2901,257,6562,65792,2,257,0,0,1,16264,335866,2176
+"!((F(p1)) & (F(p2)) & (F(p3)) & (F(p4)) & (F(p5)) & (F(p6)) & (F(p7)) & (F(p8)))","ltl2tgba %f | build/bin/nba2dpa >%O","ok",0,122.112,512,13377,131072,2,512,0,0,1,16072,331878,1984

@@ -1,0 +1,9 @@
+#NBA -> LDBA -> DPA
+#NBA -> (via ltl2tgba) DPA
+#NBA -> LDBA -> (via ltl2tgba) DPA    
+autcross "cat %H | build/bin/nba2dpa >%O" "autfilt" --file=data/automatons/genaut.hoa --csv="benchmarking-results/nba2dpa.csv"
+autcross "cat %H | build/bin/nba2dpa >%O" "autfilt" --file=data/automatons/randaut.hoa --csv=">>benchmarking-results/nba2dpa.csv"
+autcross "autfilt --file=%H --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" "autfilt" --file=data/automatons/genaut.hoa --csv="benchmarking-results/nba2dpa-spot.csv"
+autcross "autfilt --file=%H --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" "autfilt" --file=data/automatons/randaut.hoa --csv=">>benchmarking-results/nba2dpa-spot.csv"
+autcross "cat %H | build/bin/nba2ldba | autfilt --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" "autfilt" --file=data/automatons/genaut.hoa --csv="benchmarking-results/nba2ldba2dpa-spot.csv"
+autcross "cat %H | build/bin/nba2ldba | autfilt --deterministic --generic --small | sed s/Buchi/'parity min even 1'/g | sed s/all/'parity min even 0'/g > %O" "autfilt" --file=data/automatons/randaut.hoa --csv=">>benchmarking-results/nba2ldba2dpa-spot.csv"

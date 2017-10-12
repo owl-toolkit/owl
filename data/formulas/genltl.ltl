@@ -1,0 +1,242 @@
+Fp1
+Fp1 & Fp2
+Fp1 & Fp2 & Fp3
+Fp1 & Fp2 & Fp3 & Fp4
+Fp1 & Fp2 & Fp3 & Fp4 & Fp5
+Fp1 & Fp2 & Fp3 & Fp4 & Fp5 & Fp6
+FGp1
+FGp1 & FGp2
+FGp1 & FGp2 & FGp3
+FGp1 & FGp2 & FGp3 & FGp4
+FGp1 & FGp2 & FGp3 & FGp4 & FGp5
+FGp1 & FGp2 & FGp3 & FGp4 & FGp5 & FGp6
+GFp1
+GFp1 & GFp2
+GFp1 & GFp2 & GFp3
+GFp1 & GFp2 & GFp3 & GFp4
+GFp1 & GFp2 & GFp3 & GFp4 & GFp5
+GFp1 & GFp2 & GFp3 & GFp4 & GFp5 & GFp6
+Fp1 & Fq1
+F(p1 & Fp2) & F(q1 & Fq2)
+F(p1 & F(p2 & Fp3)) & F(q1 & F(q2 & Fq3))
+Fp & Fq
+F(p & Xp) & F(q & Xq)
+F(p & X(p & Xp)) & F(q & X(q & Xq))
+F(p & X(p & X(p & Xp))) & F(q & X(q & X(q & Xq)))
+F(p & X(p & X(p & X(p & Xp)))) & F(q & X(q & X(q & X(q & Xq))))
+F(p & X(p & X(p & X(p & X(p & Xp))))) & F(q & X(q & X(q & X(q & X(q & Xq)))))
+Fp & Fq
+F(p & Xp) & F(q & Xq)
+F(p & Xp & XXp) & F(q & Xq & XXq)
+F(p & Xp & XXp & XXXp) & F(q & Xq & XXq & XXXq)
+F(p & Xp & XXp & XXXp & XXXXp) & F(q & Xq & XXq & XXXq & XXXXq)
+F(p & Xp & XXp & XXXp & XXXXp & XXXXXp) & F(q & Xq & XXq & XXXq & XXXXq & XXXXXq)
+G!p0
+Fp0 -> (!p1 U p0)
+G(p0 -> G!p1)
+G((p0 & !p1 & Fp1) -> (!p2 U p1))
+G((p0 & !p1) -> (!p2 W p1))
+Fp0
+!p0 W (!p0 & p1)
+G!p0 | F(p0 & Fp1)
+G((p0 & !p1) -> (!p1 W (!p1 & p2)))
+G((p0 & !p1) -> (!p1 U (!p1 & p2)))
+!p0 W (p0 W (!p0 W (p0 W G!p0)))
+Fp0 -> ((!p0 & !p1) U (p0 | ((!p0 & p1) U (p0 | ((!p0 & !p1) U (p0 | ((!p0 & p1) U (p0 | (!p1 U p0)))))))))
+Fp0 -> (!p0 U (p0 & (!p1 W (p1 W (!p1 W (p1 W G!p1))))))
+G((p0 & Fp1) -> ((!p1 & !p2) U (p1 | ((!p1 & p2) U (p1 | ((!p1 & !p2) U (p1 | ((!p1 & p2) U (p1 | (!p2 U p1))))))))))
+G(p0 -> ((!p1 & !p2) U (p2 | ((p1 & !p2) U (p2 | ((!p1 & !p2) U (p2 | ((p1 & !p2) U (p2 | (!p1 W p2) | Gp1)))))))))
+Gp0
+Fp0 -> (p1 U p0)
+G(p0 -> Gp1)
+G((p0 & !p1 & Fp1) -> (p2 U p1))
+G((p0 & !p1) -> (p2 W p1))
+!p0 W p1
+Fp0 -> (!p1 U (p0 | p2))
+G!p0 | F(p0 & (!p1 W p2))
+G((p0 & !p1 & Fp1) -> (!p2 U (p1 | p3)))
+G((p0 & !p1) -> (!p2 W (p1 | p3)))
+G(p0 -> Fp1)
+G(p0 -> G(p1 -> Fp2))
+G((p0 & !p1 & Fp1) -> ((p2 -> (!p1 U (!p1 & p3))) U p1))
+G((p0 & !p1) -> ((p2 -> (!p1 U (!p1 & p3))) W p1))
+Fp0 -> (!p0 U (!p0 & p1 & X(!p0 U p2)))
+Fp0 -> (!p1 U (p0 | (!p1 & p2 & X(!p1 U p3))))
+G!p0 | (!p0 U ((p0 & Fp1) -> (!p1 U (!p1 & p2 & X(!p1 U p3)))))
+G((p0 & Fp1) -> (!p2 U (p1 | (!p2 & p3 & X(!p2 U p4)))))
+G(p0 -> (Fp1 -> (!p1 U (p2 | (!p1 & p3 & X(!p1 U p4))))))
+F(p0 & XFp1) -> (!p0 U p2)
+Fp0 -> (!(!p0 & p1 & X(!p0 U (!p0 & p2))) U (p0 | p3))
+G!p0 | (!p0 U (p0 & (F(p1 & XFp2) -> (!p1 U p3))))
+G((p0 & Fp1) -> (!(!p1 & p2 & X(!p1 U (!p1 & p3))) U (p1 | p4)))
+G(p0 -> ((!(!p1 & p2 & X(!p1 U (!p1 & p3))) U (p1 | p4)) | G!(p2 & XFp3)))
+G((p0 & XFp1) -> XF(p1 & Fp2))
+G(p0 -> G((p1 & XFp2) -> X(!p2 U (p2 & Fp3))))
+G((p0 & Fp1) -> (((p2 & X(!p1 U p3)) -> X(!p1 U (p3 & Fp4))) U p1))
+G(p0 -> (((p1 & X(!p2 U p3)) -> X(!p2 U (p3 & Fp4))) U (p2 | G((p1 & X(!p2 U p3)) -> X(!p2 U (p3 & Fp4))))))
+G(p0 -> F(p1 & XFp2))
+G(p0 -> G(p1 -> (p2 & XFp3)))
+G((p0 & Fp1) -> ((p2 -> (!p1 U (!p1 & p3 & X(!p1 U p4)))) U p1))
+G(p0 -> ((p1 -> (!p2 U (!p2 & p3 & X(!p2 U p4)))) U (p2 | G(p1 -> (p3 & XFp4)))))
+G(p0 -> F(p1 & !p2 & X(!p2 U p3)))
+G(p0 -> G(p1 -> (p2 & !p3 & X(!p3 U p4))))
+G((p0 & Fp1) -> ((p2 -> (!p1 U (!p1 & p3 & !p4 & X((!p1 & !p4) U p5)))) U p1))
+G(p0 -> ((p1 -> (!p2 U (!p2 & p3 & !p4 & X((!p2 & !p4) U p5)))) U (p2 | G(p1 -> (p3 & !p4 & X(!p4 U p5))))))
+p0 U (p1 & Gp2)
+p0 U (p1 & X(p2 U p3))
+p0 U (p1 & X(p2 & F(p3 & XF(p4 & XF(p5 & XFp6)))))
+F(p0 & XGp1)
+F(p0 & X(p1 & XFp2))
+F(p0 & X(p1 U p2))
+FGp0 | GFp1
+G(p0 -> (p1 U p2))
+G(p0 & XF(p1 & XF(p2 & XFp3)))
+GFp0 & GFp1 & GFp2 & GFp3 & GFp4
+(p0 U (p1 U p2)) | (p1 U (p2 U p0)) | (p2 U (p0 U p1))
+G(p0 -> (p1 U (Gp2 | Gp3)))
+F(p0 | XGp1)
+F(p0 | XG(p1 | XGp2))
+F(p0 | XG(p1 | XG(p2 | XGp3)))
+F(p0 | XG(p1 | XG(p2 | XG(p3 | XGp4))))
+F(p0 | XG(p1 | XG(p2 | XG(p3 | XG(p4 | XGp5)))))
+F(p0 | XG(p1 | XG(p2 | XG(p3 | XG(p4 | XG(p5 | XGp6))))))
+Fp1 | Gp2
+(Fp1 | Gp2) & (Fp2 | Gp3)
+(Fp1 | Gp2) & (Fp2 | Gp3) & (Fp3 | Gp4)
+(Fp1 | Gp2) & (Fp2 | Gp3) & (Fp3 | Gp4) & (Fp4 | Gp5)
+GFp1 | FGp2
+(GFp1 | FGp2) & (GFp2 | FGp3)
+(GFp1 | FGp2) & (GFp2 | FGp3) & (GFp3 | FGp4)
+(GFp1 | FGp2) & (GFp2 | FGp3) & (GFp3 | FGp4) & (GFp4 | FGp5)
+!(GFp1 -> G(q -> Fr))
+!((GFp1 & GFp2) -> G(q -> Fr))
+!((GFp1 & GFp2 & GFp3) -> G(q -> Fr))
+!((GFp1 & GFp2 & GFp3 & GFp4) -> G(q -> Fr))
+!((GFp1 & GFp2 & GFp3 & GFp4 & GFp5) -> G(q -> Fr))
+!((GFp1 & GFp2 & GFp3 & GFp4 & GFp5 & GFp6) -> G(q -> Fr))
+G(p0 & XFp1)
+G(p0 & XF(p1 & XFp2))
+G(p0 & XF(p1 & XF(p2 & XFp3)))
+G(p0 & XF(p1 & XF(p2 & XF(p3 & XFp4))))
+G(p0 & XF(p1 & XF(p2 & XF(p3 & XF(p4 & XFp5)))))
+G(p0 & XF(p1 & XF(p2 & XF(p3 & XF(p4 & XF(p5 & XFp6))))))
+FGp1
+FGp1 | FGp2
+FGp1 | FGp2 | FGp3
+FGp1 | FGp2 | FGp3 | FGp4
+FGp1 | FGp2 | FGp3 | FGp4 | FGp5
+FGp1 | FGp2 | FGp3 | FGp4 | FGp5 | FGp6
+Gp1
+Gp1 | Gp2
+Gp1 | Gp2 | Gp3
+Gp1 | Gp2 | Gp3 | Gp4
+Gp1 | Gp2 | Gp3 | Gp4 | Gp5
+Gp1 | Gp2 | Gp3 | Gp4 | Gp5 | Gp6
+GFp1
+GFp1 | GFp2
+GFp1 | GFp2 | GFp3
+GFp1 | GFp2 | GFp3 | GFp4
+GFp1 | GFp2 | GFp3 | GFp4 | GFp5
+GFp1 | GFp2 | GFp3 | GFp4 | GFp5 | GFp6
+p1
+p1 R p2
+(p1 R p2) R p3
+((p1 R p2) R p3) R p4
+(((p1 R p2) R p3) R p4) R p5
+((((p1 R p2) R p3) R p4) R p5) R p6
+p1
+p1 R p2
+p1 R (p2 R p3)
+p1 R (p2 R (p3 R p4))
+p1 R (p2 R (p3 R (p4 R p5)))
+p1 R (p2 R (p3 R (p4 R (p5 R p6))))
+!b & m & G(m -> Xm) & G((!b & m) -> (Xb & X((!m & (b <-> Xb)) U m))) & G((b & m) -> (X!b & X((b & !m & X!b) U (m | (!b & !m & Xb & X((!m & (b <-> Xb)) U m))))))
+!b & m & G(m -> (X!m & XXm)) & X!b & G((!b & m) -> (XXb & X((!m & (b <-> XXb)) U m))) & G((b & m) -> (XX!b & X((b & !m & XX!b) U (m | (!b & !m & XXb & X((!m & (b <-> XXb)) U m))))))
+!b & m & G(m -> (X!m & XX!m & XXXm)) & X!b & XX!b & G((!b & m) -> (XXXb & X((!m & (b <-> XXXb)) U m))) & G((b & m) -> (XXX!b & X((b & !m & XXX!b) U (m | (!b & !m & XXXb & X((!m & (b <-> XXXb)) U m))))))
+!b & m & G(m -> (X!m & XX!m & XXX!m & XXXXm)) & X!b & XX!b & XXX!b & G((!b & m) -> (XXXXb & X((!m & (b <-> XXXXb)) U m))) & G((b & m) -> (XXXX!b & X((b & !m & XXXX!b) U (m | (!b & !m & XXXXb & X((!m & (b <-> XXXXb)) U m))))))
+!b & m & G(m -> (X!m & XX!m & XXX!m & XXXX!m & XXXXXm)) & X!b & XX!b & XXX!b & XXXX!b & G((!b & m) -> (XXXXXb & X((!m & (b <-> XXXXXb)) U m))) & G((b & m) -> (XXXXX!b & X((b & !m & XXXXX!b) U (m | (!b & !m & XXXXXb & X((!m & (b <-> XXXXXb)) U m))))))
+!b & m & G(m -> (X!m & XX!m & XXX!m & XXXX!m & XXXXX!m & XXXXXXm)) & X!b & XX!b & XXX!b & XXXX!b & XXXXX!b & G((!b & m) -> (XXXXXXb & X((!m & (b <-> XXXXXXb)) U m))) & G((b & m) -> (XXXXXX!b & X((b & !m & XXXXXX!b) U (m | (!b & !m & XXXXXXb & X((!m & (b <-> XXXXXXb)) U m))))))
+!b & m & G(m -> Xm) & G((!b & m) -> (!c & Xb)) & G((b & m) -> (c & X!b)) & G((!c & X!m) -> (X!c & (Xb <-> XXb))) & G(c -> ((X!b -> (X!c & XXb)) & (Xb -> (Xc & XX!b))))
+!b & m & G(m -> (X!m & XXm)) & X!b & G((!b & m) -> (!c & XXb)) & G((b & m) -> (c & XX!b)) & G((!c & X!m) -> (X!c & (Xb <-> XXXb))) & G(c -> ((X!b -> (X!c & XXXb)) & (Xb -> (Xc & XXX!b))))
+!b & m & G(m -> (X!m & XX!m & XXXm)) & X!b & XX!b & G((!b & m) -> (!c & XXXb)) & G((b & m) -> (c & XXX!b)) & G((!c & X!m) -> (X!c & (Xb <-> XXXXb))) & G(c -> ((X!b -> (X!c & XXXXb)) & (Xb -> (Xc & XXXX!b))))
+!b & m & G(m -> (X!m & XX!m & XXX!m & XXXXm)) & X!b & XX!b & XXX!b & G((!b & m) -> (!c & XXXXb)) & G((b & m) -> (c & XXXX!b)) & G((!c & X!m) -> (X!c & (Xb <-> XXXXXb))) & G(c -> ((X!b -> (X!c & XXXXXb)) & (Xb -> (Xc & XXXXX!b))))
+!b & m & G(m -> (X!m & XX!m & XXX!m & XXXX!m & XXXXXm)) & X!b & XX!b & XXX!b & XXXX!b & G((!b & m) -> (!c & XXXXXb)) & G((b & m) -> (c & XXXXX!b)) & G((!c & X!m) -> (X!c & (Xb <-> XXXXXXb))) & G(c -> ((X!b -> (X!c & XXXXXXb)) & (Xb -> (Xc & XXXXXX!b))))
+!b & m & G(m -> (X!m & XX!m & XXX!m & XXXX!m & XXXXX!m & XXXXXXm)) & X!b & XX!b & XXX!b & XXXX!b & XXXXX!b & G((!b & m) -> (!c & XXXXXXb)) & G((b & m) -> (c & XXXXXX!b)) & G((!c & X!m) -> (X!c & (Xb <-> XXXXXXXb))) & G(c -> ((X!b -> (X!c & XXXXXXXb)) & (Xb -> (Xc & XXXXXXX!b))))
+!b & m & G(m -> Xm) & G((!b & m) -> (!c & Xb)) & G((b & m) -> (c & X!b)) & G((!c & X!m) -> X(!c & (b <-> Xb))) & G(c -> X((!b -> (!c & Xb)) & (b -> (c & X!b))))
+!b & m & G(m -> X(!m & Xm)) & X!b & G((!b & m) -> (!c & XXb)) & G((b & m) -> (c & XX!b)) & G((!c & X!m) -> X(!c & (b <-> XXb))) & G(c -> X((!b -> (!c & XXb)) & (b -> (c & XX!b))))
+!b & m & G(m -> X(!m & X(!m & Xm))) & X(!b & X!b) & G((!b & m) -> (!c & XXXb)) & G((b & m) -> (c & XXX!b)) & G((!c & X!m) -> X(!c & (b <-> XXXb))) & G(c -> X((!b -> (!c & XXXb)) & (b -> (c & XXX!b))))
+!b & m & G(m -> X(!m & X(!m & X(!m & Xm)))) & X(!b & X(!b & X!b)) & G((!b & m) -> (!c & XXXXb)) & G((b & m) -> (c & XXXX!b)) & G((!c & X!m) -> X(!c & (b <-> XXXXb))) & G(c -> X((!b -> (!c & XXXXb)) & (b -> (c & XXXX!b))))
+!b & m & G(m -> X(!m & X(!m & X(!m & X(!m & Xm))))) & X(!b & X(!b & X(!b & X!b))) & G((!b & m) -> (!c & XXXXXb)) & G((b & m) -> (c & XXXXX!b)) & G((!c & X!m) -> X(!c & (b <-> XXXXXb))) & G(c -> X((!b -> (!c & XXXXXb)) & (b -> (c & XXXXX!b))))
+!b & m & G(m -> X(!m & X(!m & X(!m & X(!m & X(!m & Xm)))))) & X(!b & X(!b & X(!b & X(!b & X!b)))) & G((!b & m) -> (!c & XXXXXXb)) & G((b & m) -> (c & XXXXXX!b)) & G((!c & X!m) -> X(!c & (b <-> XXXXXXb))) & G(c -> X((!b -> (!c & XXXXXXb)) & (b -> (c & XXXXXX!b))))
+!b & m & G(m -> Xm) & G((!b & m) -> X(b & ((!m & (b <-> Xb)) U m))) & G((b & m) -> X(!b & ((b & !m & X!b) U (m | (!b & !m & X(b & ((!m & (b <-> Xb)) U m)))))))
+!b & m & G(m -> X(!m & Xm)) & X!b & G((!b & m) -> X(Xb & ((!m & (b <-> XXb)) U m))) & G((b & m) -> X(X!b & ((b & !m & XX!b) U (m | (!b & !m & X(Xb & ((!m & (b <-> XXb)) U m)))))))
+!b & m & G(m -> X(!m & X(!m & Xm))) & X(!b & X!b) & G((!b & m) -> X(XXb & ((!m & (b <-> XXXb)) U m))) & G((b & m) -> X(XX!b & ((b & !m & XXX!b) U (m | (!b & !m & X(XXb & ((!m & (b <-> XXXb)) U m)))))))
+!b & m & G(m -> X(!m & X(!m & X(!m & Xm)))) & X(!b & X(!b & X!b)) & G((!b & m) -> X(XXXb & ((!m & (b <-> XXXXb)) U m))) & G((b & m) -> X(XXX!b & ((b & !m & XXXX!b) U (m | (!b & !m & X(XXXb & ((!m & (b <-> XXXXb)) U m)))))))
+!b & m & G(m -> X(!m & X(!m & X(!m & X(!m & Xm))))) & X(!b & X(!b & X(!b & X!b))) & G((!b & m) -> X(XXXXb & ((!m & (b <-> XXXXXb)) U m))) & G((b & m) -> X(XXXX!b & ((b & !m & XXXXX!b) U (m | (!b & !m & X(XXXXb & ((!m & (b <-> XXXXXb)) U m)))))))
+!b & m & G(m -> X(!m & X(!m & X(!m & X(!m & X(!m & Xm)))))) & X(!b & X(!b & X(!b & X(!b & X!b)))) & G((!b & m) -> X(XXXXXb & ((!m & (b <-> XXXXXXb)) U m))) & G((b & m) -> X(XXXXX!b & ((b & !m & XXXXXX!b) U (m | (!b & !m & X(XXXXXb & ((!m & (b <-> XXXXXXb)) U m)))))))
+p0 U p1
+p0 U (p1 U p2)
+!(p0 U (p1 U p2))
+GFp0 -> GFp1
+Fp0 U Gp1
+Gp0 U p1
+!(Fp0 <-> Fp1)
+!(GFp0 -> GFp1)
+!(GFp0 <-> GFp1)
+p0 R (p0 | p1)
+(Xp0 U Xp1) | !X(p0 U p1)
+(Xp0 U p1) | !X(p0 U (p0 & p1))
+G(p0 -> Fp1) & ((Xp0 U p1) | !X(p0 U (p0 & p1)))
+G(p0 -> Fp1) & ((Xp0 U Xp1) | !X(p0 U p1))
+G(p0 -> Fp1)
+!G(p0 -> X(p1 R p2))
+!(FGp0 | FGp1)
+G(Fp0 & Fp1)
+Fp0 & F!p0
+(p0 & Xp1) R X(((p2 U p3) R p0) U (p2 R p0))
+Gp2 | (G(p0 | GFp1) & G(p2 | GF!p1)) | Gp0
+Gp0 | Gp2 | (G(p0 | FGp1) & G(p2 | FG!p1))
+!(Gp2 | (G(p0 | GFp1) & G(p2 | GF!p1)) | Gp0)
+!(Gp0 | Gp2 | (G(p0 | FGp1) & G(p2 | FG!p1)))
+G(p0 | XGp1) & G(p2 | XG!p1)
+G(p0 | (Xp1 & X!p1))
+p0 | (p1 U p0)
+G(p -> q)
+G(p -> (q | Xq))
+G(p -> (q | Xq | XXq))
+G(p -> (q | Xq | XXq | XXXq))
+G(p -> (q | Xq | XXq | XXXq | XXXXq))
+G(p -> (q | Xq | XXq | XXXq | XXXXq | XXXXXq))
+G(p -> q)
+G(p -> (q | Xq))
+G(p -> (q | X(q | Xq)))
+G(p -> (q | X(q | X(q | Xq))))
+G(p -> (q | X(q | X(q | X(q | Xq)))))
+G(p -> (q | X(q | X(q | X(q | X(q | Xq))))))
+G(p -> q)
+G(p -> (q & Xq))
+G(p -> (q & Xq & XXq))
+G(p -> (q & Xq & XXq & XXXq))
+G(p -> (q & Xq & XXq & XXXq & XXXXq))
+G(p -> (q & Xq & XXq & XXXq & XXXXq & XXXXXq))
+G(p -> q)
+G(p -> (q & Xq))
+G(p -> (q & X(q & Xq)))
+G(p -> (q & X(q & X(q & Xq))))
+G(p -> (q & X(q & X(q & X(q & Xq)))))
+G(p -> (q & X(q & X(q & X(q & X(q & Xq))))))
+G(p1 -> (p1 U p2))
+G(p1 -> (p1 U (p2 & (p2 U p3))))
+G(p1 -> (p1 U (p2 & (p2 U (p3 & (p3 U p4))))))
+p1
+p1 U p2
+(p1 U p2) U p3
+((p1 U p2) U p3) U p4
+(((p1 U p2) U p3) U p4) U p5
+((((p1 U p2) U p3) U p4) U p5) U p6
+p1
+p1 U p2
+p1 U (p2 U p3)
+p1 U (p2 U (p3 U p4))
+p1 U (p2 U (p3 U (p4 U p5)))
+p1 U (p2 U (p3 U (p4 U (p5 U p6))))

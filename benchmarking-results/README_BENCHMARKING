@@ -1,0 +1,34 @@
+For benchmarking purposes several scripts have been created in scripts/benchmarking that can generate ltl formulas as well NBAs and run the benchmarks.
+The generated ltl formulas and automatons have been put into the corresponding folders in data.
+The benchmarking result are saved in the folder benchmarking-results.
+
+The following translations are supported.
+LTL -> LDBA (Breakpoint) -> DPA
+LTL -> LDBA (Breakpointfree) -> DPA
+LTL -> NBA (via ltl2tgba) -> LDBA -> DPA
+LTL -> DRA -> DPA
+LTL -> (via ltl2tgba) DPA
+LTL -> LDBA (Breakpoint) -> (via autfilt) DPA
+LTL -> LDBA (Breakpointfree) -> (via autfilt) DPA
+
+NBA -> LDBA -> DPA
+NBA -> (via autfilt) DPA
+NBA -> LDBA -> (via autfilt) DPA
+
+Currently ltl formulas are available from randltl, genltl and syntcomp.
+NBAs can are available from tandaut and genaut.
+
+Example usage:
+Generate Ltl formulas from genltl:
+./scripts/benchmarking/generateGenLtlFormulas > data/formulas/genltl.ltl
+
+Running benchmarks for ltl formulas:
+./scripts/benchmarking/runBenchmarksLtl
+
+
+
+Sources:
+Spot: https://spot.lrde.epita.fr/
+Syntcomp: http://www.syntcomp.org/
+
+

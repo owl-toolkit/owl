@@ -1,0 +1,4 @@
+genaut --l-nba=1..2
+#genaut --l-nba=30..40
+#genaut --l-nba=60..70
+#genaut --l-nba=90..100

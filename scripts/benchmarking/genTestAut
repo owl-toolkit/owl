@@ -1,0 +1,6 @@
+randaut -Q5 4 -e0.1 -n10
+randaut -Q10 4 -e0.1 -n10
+randaut -Q15 4 -e0.1 -n10
+randaut -Q20 4 -e0.1 -n10
+randaut -Q25 4 -e0.1 -n10
+randaut -Q30 4 -e0.1 -n10
