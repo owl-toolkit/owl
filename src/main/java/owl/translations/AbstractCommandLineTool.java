@@ -17,6 +17,7 @@
 
 package owl.translations;
 
+import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +34,8 @@ import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.transformations.ToStateAcceptance;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import owl.automaton.ArenaFactory;
+import owl.automaton.Automaton;
 import owl.automaton.output.HoaPrintable;
 
 public abstract class AbstractCommandLineTool<T> {
@@ -46,6 +49,7 @@ public abstract class AbstractCommandLineTool<T> {
     EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
     Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
     boolean stateAcceptance = args.remove("--state-acceptance");
+    boolean arena = args.remove("--arena");
     boolean readStdIn = args.isEmpty();
     Collection<T> inputs;
 
@@ -70,6 +74,17 @@ public abstract class AbstractCommandLineTool<T> {
       // Apply translation.
       HoaPrintable result = translation.apply(input);
       // Write output.
+
+      if (arena) {
+        if (!(result instanceof Automaton)) {
+          System.err.println("Only objects of type automaton can be translated to an arena ");
+          return;
+        }
+
+        Automaton<?, ?> automaton = (Automaton) result;
+        result = ArenaFactory.transform(automaton, ImmutableList.of("i"));
+      }
+
       HOAConsumer consumer = new HOAConsumerPrint(System.out);
 
       if (stateAcceptance) {

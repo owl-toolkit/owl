@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -211,6 +212,18 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return All successors of the state.
    */
   Collection<LabelledEdge<S>> getLabelledEdges(S state);
+
+  default Set<S> getPredecessors(S state) {
+    Set<S> predecessors = new HashSet<>();
+
+    forEachLabelledEdge((predecessor, edge, valuationSet) -> {
+      if (state.equals(edge.getSuccessor())) {
+        predecessors.add(predecessor);
+      }
+    });
+
+    return predecessors;
+  }
 
   /**
    * Returns all states reachable from the initial states.

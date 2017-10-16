@@ -172,7 +172,6 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
       acceptance, initialStates, -1, options, true, getName());
     exploreReachableStates(initialStates, hoa::addState, (x) -> hoa.notifyEndOfState(),
       hoa::addEdge);
-
     hoa.notifyEnd();
   }
 }
