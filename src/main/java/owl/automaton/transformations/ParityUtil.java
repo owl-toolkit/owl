@@ -70,9 +70,8 @@ public final class ParityUtil {
     return minimizePriorities(automaton, SccDecomposition.computeSccs(automaton, false));
   }
 
-  private static <S> MutableAutomaton<S, ParityAcceptance>
-  minimizePriorities(MutableAutomaton<S, ParityAcceptance> automaton,
-    List<Set<S>> sccs) {
+  private static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
+    MutableAutomaton<S, ParityAcceptance> automaton, List<Set<S>> sccs) {
     if (automaton instanceof MutableAutomatonFactory.ForwardingMutableAutomaton) {
       return automaton;
     }

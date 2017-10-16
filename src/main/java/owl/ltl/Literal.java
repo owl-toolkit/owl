@@ -29,7 +29,12 @@ import owl.ltl.visitors.Visitor;
 import owl.util.ImmutableObject;
 
 public final class Literal extends ImmutableObject implements Formula {
+
   private final int atom;
+
+  public static Literal create(int letter, boolean negate) {
+    return new Literal(letter, negate);
+  }
 
   public Literal(@Nonnegative int letter) {
     this(letter, false);

@@ -41,6 +41,10 @@ public final class Disjunction extends PropositionalFormula {
     super(formulaStream);
   }
 
+  public static Formula create(Formula left, Formula right) {
+    return create(Stream.of(left, right));
+  }
+
   public static Formula create(Formula... formulas) {
     return create(Arrays.asList(formulas));
   }
