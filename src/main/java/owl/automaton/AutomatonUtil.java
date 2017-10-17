@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
@@ -358,6 +359,13 @@ public final class AutomatonUtil {
     ByteArrayOutputStream writer = new ByteArrayOutputStream();
     HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
     printable.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS));
+    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
+  }
+
+  public static <S> String toHoa(Automaton<S, ?> automaton, Object2IntMap<S> mapping) {
+    ByteArrayOutputStream writer = new ByteArrayOutputStream();
+    HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
+    automaton.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS), mapping);
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 }

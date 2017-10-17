@@ -1,6 +1,5 @@
 package owl.ltl.rewriter;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
@@ -50,12 +49,8 @@ public class RewriterTransformer {
 
   private final List<RewriterEnum> rewrites;
 
-  public RewriterTransformer(RewriterEnum... rewrites) {
-    this.rewrites = ImmutableList.copyOf(rewrites);
-  }
-
-  public RewriterTransformer(List<RewriterEnum> rewrites) {
-    this.rewrites = ImmutableList.copyOf(rewrites);
+  private RewriterTransformer(List<RewriterEnum> rewrites) {
+    this.rewrites = rewrites;
   }
 
   private static Options options() {

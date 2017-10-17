@@ -44,6 +44,10 @@ public final class RewriterFactory {
     return result;
   }
 
+  public static Formula apply(Formula formula) {
+    return RewriterEnum.MODAL_ITERATIVE.getRewriter().apply(formula);
+  }
+
   public enum RewriterEnum {
     MODAL(new ModalSimplifier()),
     PULLUP_X(PullupXVisitor.INSTANCE),

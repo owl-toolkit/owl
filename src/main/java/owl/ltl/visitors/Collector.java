@@ -74,7 +74,7 @@ public final class Collector {
   }
 
   public static BitSet collectAtoms(Formula formula) {
-    return collectAtoms(List.of(formula));
+    return collectAtoms(Set.of(formula));
   }
 
   public static BitSet collectAtoms(Iterable<? extends Formula> formulas) {
@@ -83,6 +83,29 @@ public final class Collector {
     collect((Predicate<Formula>) (x) -> {
       if (x instanceof Literal) {
         atoms.set(((Literal) x).getAtom());
+      }
+      return false;
+    }, formulas);
+
+    return atoms;
+  }
+
+  public static BitSet collectAtoms(Formula formula, boolean negated) {
+    return collectAtoms(Set.of(formula), negated);
+  }
+
+  public static BitSet collectAtoms(Iterable<? extends Formula> formulas, boolean negated) {
+    BitSet atoms = new BitSet();
+
+    collect((Predicate<Formula>) (x) -> {
+      if (x instanceof Literal) {
+        Literal literal = (Literal) x;
+
+        if (negated && literal.isNegated()) {
+          atoms.set(literal.getAtom());
+        } else if (!negated && !literal.isNegated()) {
+          atoms.set(literal.getAtom());
+        }
       }
       return false;
     }, formulas);

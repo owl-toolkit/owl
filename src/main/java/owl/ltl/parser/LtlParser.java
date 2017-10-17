@@ -1,7 +1,5 @@
 package owl.ltl.parser;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,11 +40,23 @@ public final class LtlParser {
     return create(input).parse();
   }
 
+  public static Formula syntax(String input, List<String> literals) {
+    return create(input).parse(literals).formula;
+  }
+
+  public static LabelledFormula parse(String input, List<String> literals) {
+    return create(input).parse(literals);
+  }
+
   public static LabelledFormula parse(InputStream input) throws IOException {
     return create(input).parse();
   }
 
-  private LabelledFormula doParse(List<String> literals) {
+  public LabelledFormula parse() {
+    return parse(ImmutableList.of());
+  }
+
+  public LabelledFormula parse(List<String> literals) {
     // Tokenize the stream
     LTLLexer lexer = new LTLLexer(input);
     // Don't print long error messages on the console
@@ -67,17 +77,8 @@ public final class LtlParser {
     return LabelledFormula.create(treeVisitor.visit(parser.formula()), treeVisitor.variables());
   }
 
-  public LabelledFormula parse() {
-    return doParse(List.of());
-  }
-
-  public LabelledFormula parse(List<String> literals) {
-    checkArgument(!literals.isEmpty(), "Supplied literal list is empty");
-    return doParse(literals);
-  }
-
   public LabelledFormula parse(String... literals) {
-    return parse(ImmutableList.copyOf(literals));
+    return parse(List.of(literals));
   }
 
   private static final class TokenErrorListener extends BaseErrorListener {

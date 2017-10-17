@@ -20,6 +20,7 @@ package owl.automaton;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
@@ -332,6 +333,20 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic(), getName());
+
+    getStates().forEach(state -> {
+      hoa.addState(state);
+      forEachLabelledEdge(state, hoa::addEdge);
+      hoa.notifyEndOfState();
+    });
+
+    hoa.notifyEnd();
+  }
+
+  default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options, Object2IntMap<S> mapping) {
+    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
+      getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic(), getName(),
+      mapping);
 
     getStates().forEach(state -> {
       hoa.addState(state);

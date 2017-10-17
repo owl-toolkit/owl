@@ -62,9 +62,22 @@ public final class HoaConsumerExtended<S> {
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
     Set<? extends S> initialStates, int size, EnumSet<HoaOption> options,
     boolean isDeterministic, @Nullable String name) {
+    this(consumer, aliases, acceptance, initialStates, size, options, isDeterministic, name, null);
+  }
+
+  public HoaConsumerExtended(
+    HOAConsumer consumer,
+    List<String> aliases,
+    OmegaAcceptance acceptance,
+    Set<? extends S> initialStates,
+    int size,
+    EnumSet<HoaOption> options,
+    boolean isDeterministic,
+    @Nullable String name,
+    @Nullable Object2IntMap<S> stateNumbers) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
-    stateNumbers = new Object2IntOpenHashMap<>();
+    this.stateNumbers = stateNumbers == null ? new Object2IntOpenHashMap<>() : stateNumbers;
     alphabetSize = aliases.size();
 
     try {

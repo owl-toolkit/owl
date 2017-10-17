@@ -78,9 +78,7 @@ public final class ArenaFactory {
     }
   };
 
-
-  private ArenaFactory() {
-  }
+  private ArenaFactory() {}
 
   public static <S, A extends OmegaAcceptance> Arena<S, A> copyOf(Arena<S, A> arena) {
     assert arena.isComplete() : "Only defined for complete arena.";
