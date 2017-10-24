@@ -40,7 +40,7 @@ public interface ValuationSet extends Iterable<BitSet> {
 
   void add(BitSet valuation);
 
-  void addAll(ValuationSet newVs);
+  void addAll(ValuationSet other);
 
   /**
    * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.

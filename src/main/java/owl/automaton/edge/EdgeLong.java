@@ -15,6 +15,11 @@ final class EdgeLong<S> implements Edge<S> {
   private final long store;
   private final S successor;
 
+  EdgeLong(S successor, long store) {
+    this.store = store;
+    this.successor = successor;
+  }
+
   EdgeLong(S successor, BitSet bitSet) {
     assert bitSet.length() <= Long.SIZE && bitSet.cardinality() > 1;
     long store = 0L;
@@ -25,6 +30,11 @@ final class EdgeLong<S> implements Edge<S> {
     }
     this.store = store;
     this.successor = successor;
+  }
+
+  @Override
+  public int acceptanceSetCount() {
+    return Long.bitCount(store);
   }
 
   @Override
@@ -62,7 +72,6 @@ final class EdgeLong<S> implements Edge<S> {
   @Override
   public boolean hasAcceptanceSets() {
     assert store != 0;
-
     return true;
   }
 
@@ -93,7 +102,11 @@ final class EdgeLong<S> implements Edge<S> {
     return Edge.toString(this);
   }
 
-  // Inspired by java.util.BitSet#stream()
+  @Override
+  public EdgeLong<S> withSuccessor(S successor) {
+    return new EdgeLong<>(successor, store);
+  }
+
   private static final class LongBitIterator implements PrimitiveIterator.OfInt {
     private final long store;
     private int next;

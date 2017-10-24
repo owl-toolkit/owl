@@ -46,7 +46,7 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
 
   @Override
   public NoneAcceptance getAcceptance() {
-    return new NoneAcceptance();
+    return NoneAcceptance.INSTANCE;
   }
 
   ImmutableMap<GSet, Automaton<MonitorState, ParityAcceptance>> getAutomata() {

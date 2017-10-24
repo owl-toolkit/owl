@@ -81,7 +81,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
     MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
       MutableAutomatonFactory
-        .createMutableAutomaton(new NoneAcceptance(), factories.valuationSetFactory);
+        .createMutableAutomaton(NoneAcceptance.INSTANCE, factories.valuationSetFactory);
 
     if (constructDeterministic) {
       AutomatonUtil.exploreDeterministic(automaton, constructionQueue,

@@ -24,6 +24,9 @@ import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
 public final class AllAcceptance implements OmegaAcceptance {
+  public static final AllAcceptance INSTANCE = new AllAcceptance();
+
+  private AllAcceptance() {}
 
   @Override
   public int getAcceptanceSets() {

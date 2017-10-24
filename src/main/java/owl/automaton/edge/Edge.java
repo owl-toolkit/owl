@@ -36,7 +36,7 @@ public interface Edge<S> {
     builder.append("-> ").append(edge.getSuccessor());
     PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
     if (acceptanceSetIterator.hasNext()) {
-      builder.append('{');
+      builder.append(" {");
       while (true) {
         builder.append(acceptanceSetIterator.nextInt());
         if (acceptanceSetIterator.hasNext()) {
@@ -49,6 +49,11 @@ public interface Edge<S> {
     }
     return builder.toString();
   }
+
+  /**
+   * Returns the number of acceptances sets this edge is a member of.
+   */
+  int acceptanceSetCount();
 
   /**
    * An iterator containing all acceptance sets this edge is a member of in ascending order.
@@ -96,4 +101,9 @@ public interface Edge<S> {
    * none.
    */
   int smallestAcceptanceSet();
+
+  /**
+   * Returns an edge which has the same acceptance but the given state as successor.
+   */
+  Edge<S> withSuccessor(S successor);
 }

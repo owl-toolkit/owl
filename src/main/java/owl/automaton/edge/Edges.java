@@ -12,34 +12,6 @@ public final class Edges {
   private Edges() {}
 
   /**
-   * Creates an edge which belongs to the specified delegate sets.
-   *
-   * @param successor
-   *     Successor of this edge.
-   * @param <S>
-   *     Type of the successor.
-   * @param acceptance
-   *     The delegate sets this edge should belong to.
-   *
-   * @return An edge leading to {@code successor} with given delegate.
-   */
-  public static <S> Edge<S> create(S successor, BitSet acceptance) {
-    if (acceptance.isEmpty()) {
-      return new EdgeSingleton<>(successor);
-    }
-
-    if (acceptance.cardinality() == 1) {
-      return new EdgeSingleton<>(successor, acceptance.nextSetBit(0));
-    }
-
-    if (acceptance.length() <= Long.SIZE) {
-      return new EdgeLong<>(successor, acceptance);
-    }
-
-    return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptance));
-  }
-
-  /**
    * Creates an edge which belongs to no delegate set.
    *
    * @param successor
@@ -110,6 +82,34 @@ public final class Edges {
     }
 
     return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptanceSet));
+  }
+
+  /**
+   * Creates an edge which belongs to the specified delegate sets.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   * @param acceptance
+   *     The delegate sets this edge should belong to.
+   *
+   * @return An edge leading to {@code successor} with given delegate.
+   */
+  public static <S> Edge<S> create(S successor, BitSet acceptance) {
+    if (acceptance.isEmpty()) {
+      return new EdgeSingleton<>(successor);
+    }
+
+    if (acceptance.cardinality() == 1) {
+      return new EdgeSingleton<>(successor, acceptance.nextSetBit(0));
+    }
+
+    if (acceptance.length() <= Long.SIZE) {
+      return new EdgeLong<>(successor, acceptance);
+    }
+
+    return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptance));
   }
 
   public static <S> Edge<S> remapAcceptance(Edge<S> edge, IntUnaryOperator transformer) {

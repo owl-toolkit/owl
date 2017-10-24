@@ -17,24 +17,41 @@
 
 package owl.collections;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 public final class Sets2 {
-
-  private Sets2() {
-  }
+  private Sets2() {}
 
   public static <E> boolean isSubset(Collection<E> subset, Collection<E> set) {
     return set.containsAll(subset);
   }
 
-  public static <F, T> Set<T> newHashSet(Collection<F> collection, Function<F, T> transformer) {
-    Set<T> set = new HashSet<>(collection.size());
+  public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {
+    Set<E> union = ConcurrentHashMap.newKeySet(elements.size());
+    elements.parallelStream().forEach(union::addAll);
+    return union;
+  }
 
+  public static <F, T> Set<T> transform(Collection<F> collection, Function<F, T> transformer) {
+    if (collection.isEmpty()) {
+      return ImmutableSet.of();
+    }
+
+    int size = collection.size();
+    if (size == 1) {
+      @Nullable
+      T element = transformer.apply(Iterables.getOnlyElement(collection));
+      return element == null ? ImmutableSet.of() : ImmutableSet.of(element);
+    }
+
+    Set<T> set = new HashSet<>(size);
     collection.forEach(x -> {
       T element = transformer.apply(x);
       if (element != null) {
@@ -43,12 +60,6 @@ public final class Sets2 {
     });
 
     return set;
-  }
-
-  public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {
-    Set<E> union = ConcurrentHashMap.newKeySet(elements.size());
-    elements.parallelStream().forEach(union::addAll);
-    return union;
   }
 
   public static <E> Set<E> union(Collection<? extends Collection<E>> elements) {

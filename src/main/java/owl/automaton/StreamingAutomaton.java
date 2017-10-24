@@ -26,6 +26,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +42,11 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 
 class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
+  // TODO Efficient implementation of containsState
 
   private final A acceptance;
   private final BiFunction<S, BitSet, Edge<S>> computeDeterministicSuccessors;
@@ -51,9 +54,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   private final ImmutableSet<S> initialStates;
   private ImmutableList<String> variables;
 
-  StreamingAutomaton(A acceptance,
-    ValuationSetFactory factory,
-    Collection<S> initialStates,
+  StreamingAutomaton(A acceptance, ValuationSetFactory factory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> computeDeterministicSuccessors) {
     this.acceptance = acceptance;
     this.factory = factory;
@@ -76,7 +77,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
         enterStateCallback.accept(state);
       }
 
-      getLabelledEdges(state, (valuation, edge) -> {
+      computeEdges(state, (valuation, edge) -> {
         S successorState = edge.getSuccessor();
 
         if (exploredStates.add(successorState)) {
@@ -107,6 +108,18 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     return edge != null ? Collections.singleton(edge) : Collections.emptySet();
   }
 
+  private void computeEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
+    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
+      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+
+      if (edge == null) {
+        continue;
+      }
+
+      consumer.accept(valuation, edge);
+    }
+  }
+
   @Override
   public ValuationSetFactory getFactory() {
     return factory;
@@ -122,27 +135,27 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     return initialStates;
   }
 
-  private void getLabelledEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
-    BitSet alphabet = new BitSet();
-    alphabet.set(0, factory.getSize());
-
-    for (BitSet valuation : BitSets.powerSet(alphabet)) {
+  private void computeLabelledEdges(S state, BiConsumer<Edge<S>, ValuationSet> consumer) {
+    Map<Edge<S>, ValuationSet> valuations = new HashMap<>();
+    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
       Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
 
       if (edge == null) {
         continue;
       }
 
-      consumer.accept(valuation, edge);
+      ValuationSetMapUtil.add(valuations, edge, factory.createValuationSet(valuation));
     }
+    valuations.forEach(consumer);
+    ValuationSetMapUtil.clear(valuations);
   }
 
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
     Set<LabelledEdge<S>> edges = new HashSet<>();
 
-    getLabelledEdges(state, (valuation, edge) ->
-      edges.add(new LabelledEdge<>(edge, factory.createValuationSet(valuation))));
+    computeLabelledEdges(state, (edge, valuation) ->
+      edges.add(new LabelledEdge<>(edge, valuation.copy())));
 
     return edges;
   }

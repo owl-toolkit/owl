@@ -17,12 +17,16 @@
 
 package owl.collections;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.Collections2;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -52,6 +56,16 @@ public final class ValuationSetMapUtil {
     map.clear();
   }
 
+  public static <K> Set<K> findAll(Map<K, ValuationSet> map, BitSet valuation) {
+    Set<K> edges = new HashSet<>(map.size());
+    map.forEach((key, valuations) -> {
+      if (valuations.contains(valuation)) {
+        edges.add(key);
+      }
+    });
+    return edges;
+  }
+
   @Nullable
   public static <K> K findFirst(Map<K, ValuationSet> map, BitSet valuation) {
     for (Map.Entry<K, ValuationSet> entry : map.entrySet()) {
@@ -61,6 +75,22 @@ public final class ValuationSetMapUtil {
     }
 
     return null;
+  }
+
+  @Nullable
+  public static <K> K findOnly(Map<K, ValuationSet> map, BitSet valuation) {
+    @Nullable
+    K key = null;
+
+    for (Map.Entry<K, ValuationSet> entry : map.entrySet()) {
+      if (entry.getValue().contains(valuation)) {
+        checkArgument(key == null, "Multiple entries found for valuation %s: %s and %s",
+          valuation, key, entry.getKey());
+        key = entry.getKey();
+      }
+    }
+
+    return key;
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state) {

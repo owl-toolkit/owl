@@ -30,6 +30,8 @@ public interface HoaPrintable {
 
   void setVariables(List<String> variables);
 
+  List<String> getVariables();
+
   // rename feedTo...
   default void toHoa(HOAConsumer consumer) {
     toHoa(consumer, EnumSet.noneOf(Option.class));
@@ -38,6 +40,14 @@ public interface HoaPrintable {
   void toHoa(HOAConsumer consumer, EnumSet<Option> options);
 
   enum Option {
-    ANNOTATIONS
+    /**
+     * Print annotations, e.g. state labels, if available
+     */
+    ANNOTATIONS,
+    /**
+     * Create one transition for each element of the AP-power-set instead of complex expressions
+     * (which are not supported by all parsers).
+     */
+    SIMPLE_TRANSITION_LABELS
   }
 }

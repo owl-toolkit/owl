@@ -92,6 +92,11 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
   }
 
   @Override
+  public List<String> getVariables() {
+    return acceptingComponent.getVariables();
+  }
+
+  @Override
   public String toString() {
     try {
       return toString(EnumSet.allOf(Option.class));

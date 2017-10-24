@@ -45,7 +45,7 @@ public class HashMapAutomatonTest {
   @Test
   public void testEmptyAutomaton() {
     HashMapAutomaton<?, ?> automaton =
-      new HashMapAutomaton<>(FACTORY, new AllAcceptance());
+      new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
     assertThat(automaton.isComplete(), is(true));
     assertThat(automaton.isDeterministic(), is(true));
     assertThat(automaton.getIncompleteStates().keySet(), empty());
@@ -58,7 +58,7 @@ public class HashMapAutomatonTest {
   public void testRemapAcceptanceDuplicate() {
     // Test that edges which are equal after a remapAcceptance call get merged.
 
-    MutableAutomaton<String, ?> automaton = new HashMapAutomaton<>(FACTORY, new AllAcceptance());
+    MutableAutomaton<String, ?> automaton = new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
 
     automaton.addState("1");
     automaton.addState("2");
@@ -91,7 +91,7 @@ public class HashMapAutomatonTest {
     // Test various parts of the implementation on a simple, two-state automaton
 
     MutableAutomaton<String, ?> automaton =
-      new HashMapAutomaton<>(FACTORY, new AllAcceptance());
+      new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
     automaton.addState("1");
     automaton.addState("2");
 

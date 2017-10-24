@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
+import it.unimi.dsi.fastutil.ints.IntIterable;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import owl.automaton.acceptance.AllAcceptance;
@@ -61,8 +64,8 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> createStreamingAutomaton(
     A acceptance, S initialState, ValuationSetFactory factory,
     BiFunction<S, BitSet, Edge<S>> transitions) {
-    return new StreamingAutomaton<>(acceptance, factory,
-      ImmutableSet.of(initialState), transitions);
+    return new StreamingAutomaton<>(acceptance, factory, ImmutableSet.of(initialState),
+      transitions);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
@@ -79,67 +82,15 @@ public final class AutomatonFactory {
     return new FilteredAutomaton<>(automaton, states, edgeFilter);
   }
 
-  public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
-    return new AllAutomaton<>(state, factory);
+  public static <S> Automaton<S, NoneAcceptance> singleton(S state, ValuationSetFactory factory) {
+    return new SingletonAutomaton<>(state, factory, Collections.emptyMap(),
+      NoneAcceptance.INSTANCE);
   }
 
-  private static final class AllAutomaton<S> implements Automaton<S, AllAcceptance> {
-    private final ValuationSetFactory factory;
-    private final LabelledEdge<S> loop;
-    private final S singletonState;
-    private List<String> variables;
-
-    AllAutomaton(S singletonState, ValuationSetFactory factory) {
-      this.singletonState = singletonState;
-      this.factory = factory;
-      loop = new LabelledEdge<>(Edges.create(singletonState), factory.createUniverseValuationSet());
-      variables = ImmutableList.of();
-    }
-
-    @Override
-    public AllAcceptance getAcceptance() {
-      return new AllAcceptance();
-    }
-
-    @Override
-    public ValuationSetFactory getFactory() {
-      return factory;
-    }
-
-    @Override
-    public Map<S, ValuationSet> getIncompleteStates() {
-      return Collections.emptyMap();
-    }
-
-    @Override
-    public Set<S> getInitialStates() {
-      return Collections.singleton(singletonState);
-    }
-
-    @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return Collections.singleton(loop);
-    }
-
-    @Override
-    public Set<S> getReachableStates(Collection<? extends S> start) {
-      return start.contains(singletonState) ? getStates() : Collections.emptySet();
-    }
-
-    @Override
-    public Set<S> getStates() {
-      return Collections.singleton(singletonState);
-    }
-
-    @Override
-    public List<String> getVariables() {
-      return variables;
-    }
-
-    @Override
-    public void setVariables(List<String> variables) {
-      this.variables = ImmutableList.copyOf(variables);
-    }
+  public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
+    Map<IntIterable, ValuationSet> selfLoop = Collections.singletonMap(IntLists.EMPTY_LIST,
+      factory.createUniverseValuationSet());
+    return new SingletonAutomaton<>(state, factory, selfLoop, AllAcceptance.INSTANCE);
   }
 
   private static final class EmptyAutomaton<S> implements Automaton<S, NoneAcceptance> {
@@ -153,7 +104,7 @@ public final class AutomatonFactory {
 
     @Override
     public NoneAcceptance getAcceptance() {
-      return new NoneAcceptance();
+      return NoneAcceptance.INSTANCE;
     }
 
     @Override
@@ -203,7 +154,7 @@ public final class AutomatonFactory {
     private final ImmutableSet<S> states;
     private final Predicate<LabelledEdge<S>> edgeFilter;
 
-    private FilteredAutomaton(Automaton<S, A> automaton, Set<S> states,
+    FilteredAutomaton(Automaton<S, A> automaton, Set<S> states,
       Predicate<Edge<S>> edgeFilter) {
       super(automaton);
       this.states = ImmutableSet.copyOf(states);
@@ -222,13 +173,13 @@ public final class AutomatonFactory {
 
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      checkArgument(states.contains(state), "State %s not in restriction", state);
+      checkArgument(states.contains(state), "State %s not in set", state);
       return Collections2.filter(automaton.getLabelledEdges(state), edgeFilter::test);
     }
 
     @Override
     public Set<S> getStates() {
-      return Sets.intersection(states, automaton.getStates());
+      return Sets.filter(states, automaton::containsState);
     }
   }
 
@@ -277,10 +228,9 @@ public final class AutomatonFactory {
   }
 
   private static final class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {
-
     private final Automaton<S, NoneAcceptance> automaton;
 
-    private PowerSetAutomaton(Automaton<S, NoneAcceptance> automaton) {
+    PowerSetAutomaton(Automaton<S, NoneAcceptance> automaton) {
       this.automaton = automaton;
     }
 
@@ -369,18 +319,110 @@ public final class AutomatonFactory {
 
       while (it.hasNext()) {
         S next = it.next();
+        // TODO Non-determinism?
         Edge<S> edge = automaton.getEdge(next, valuation);
+        if (edge == null) {
+          continue;
+        }
 
         if (it.hasNext()) {
-          edge.acceptanceSetStream().forEach(acceptance::set);
+          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptance::set);
         } else {
-          edge.acceptanceSetStream().forEach(x -> acceptance.set(x + 1));
+          edge.acceptanceSetIterator().forEachRemaining((int x) -> acceptance.set(x + 1));
         }
 
         successor.add(edge.getSuccessor());
       }
 
       return Edges.create(successor, acceptance);
+    }
+  }
+
+  private static final class SingletonAutomaton<S, A extends OmegaAcceptance>
+    implements Automaton<S, A> {
+    private final A acceptance;
+    private final ValuationSetFactory factory;
+    private final Collection<LabelledEdge<S>> selfLoopEdges;
+    private final ValuationSet selfLoopValuations;
+    private final S singletonState;
+    private List<String> variables;
+
+    SingletonAutomaton(S singletonState, ValuationSetFactory factory,
+      Map<IntIterable, ValuationSet> acceptances, A acceptance) {
+      this.singletonState = singletonState;
+      this.factory = factory;
+      this.acceptance = acceptance;
+      variables = ImmutableList.of();
+
+      if (acceptances.isEmpty()) {
+        selfLoopValuations = factory.createEmptyValuationSet();
+        selfLoopEdges = Collections.emptyList();
+      } else {
+        this.selfLoopValuations = factory.createEmptyValuationSet();
+        ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
+
+        acceptances.forEach((edgeAcceptance, valuations) -> {
+          Edge<S> edge = Edges.create(singletonState, edgeAcceptance.iterator());
+          builder.add(new LabelledEdge<>(edge, valuations));
+          selfLoopValuations.addAll(valuations);
+        });
+
+        selfLoopEdges = builder.build();
+      }
+    }
+
+    @Override
+    public void free() {
+      selfLoopValuations.free();
+      selfLoopEdges.forEach(LabelledEdge::free);
+    }
+
+    @Override
+    public A getAcceptance() {
+      return acceptance;
+    }
+
+    @Override
+    public ValuationSetFactory getFactory() {
+      return factory;
+    }
+
+    @Override
+    public Map<S, ValuationSet> getIncompleteStates() {
+      if (selfLoopValuations.isUniverse()) {
+        return Collections.emptyMap();
+      }
+      return Collections.singletonMap(singletonState, selfLoopValuations.complement());
+    }
+
+    @Override
+    public Set<S> getInitialStates() {
+      return Collections.singleton(singletonState);
+    }
+
+    @Override
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      return selfLoopEdges;
+    }
+
+    @Override
+    public Set<S> getReachableStates(Collection<? extends S> start) {
+      return Collections.singleton(singletonState);
+    }
+
+    @Override
+    public Set<S> getStates() {
+      return Collections.singleton(singletonState);
+    }
+
+    @Override
+    public List<String> getVariables() {
+      return variables;
+    }
+
+    @Override
+    public void setVariables(List<String> variables) {
+      this.variables = ImmutableList.copyOf(variables);
     }
   }
 }

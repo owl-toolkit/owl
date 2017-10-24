@@ -25,6 +25,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
@@ -51,7 +52,6 @@ import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
@@ -146,7 +146,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    transitions.get(makeUnique(state)).forEach(action);
+    getEdgeMap(state).forEach(action);
   }
 
   @Override
@@ -167,17 +167,30 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Nullable
   @Override
+  public Edge<S> getAnyEdge(S state, BitSet valuation) {
+    return ValuationSetMapUtil.findFirst(getEdgeMap(state), valuation);
+  }
+
+  @Nullable
+  @Override
   public Edge<S> getEdge(S state, BitSet valuation) {
-    Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(state));
-    checkArgument(edges != null, "State %s not in automaton", state);
-    return ValuationSetMapUtil.findFirst(edges, valuation);
+    return ValuationSetMapUtil.findOnly(getEdgeMap(state), valuation);
+  }
+
+  private Map<Edge<S>, ValuationSet> getEdgeMap(S state) {
+    Map<Edge<S>, ValuationSet> successors = transitions.get(makeUnique(state));
+    checkArgument(successors != null, "State %s not in automaton", state);
+    return successors;
   }
 
   @Override
   public Set<Edge<S>> getEdges(S state) {
-    Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(state));
-    checkArgument(edges != null, "State %s not in automaton", state);
-    return Collections.unmodifiableSet(edges.keySet());
+    return Collections.unmodifiableSet(getEdgeMap(state).keySet());
+  }
+
+  @Override
+  public Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    return ValuationSetMapUtil.findAll(getEdgeMap(state), valuation);
   }
 
   @Override
@@ -192,34 +205,28 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-    Map<Edge<S>, ValuationSet> transitionMap = transitions.get(makeUnique(state));
-    checkArgument(transitionMap != null, "State %s not in automaton", state);
+    Map<Edge<S>, ValuationSet> transitionMap = getEdgeMap(state);
 
-    return Collections2.transform(Collections.unmodifiableCollection(transitionMap.entrySet()),
-      LabelledEdge::new);
+    return Collections.unmodifiableCollection(Collections2.transform(
+      Maps.transformValues(transitionMap, ValuationSet::copy).entrySet(), LabelledEdge::new));
   }
 
   @Override
   public String getName() {
-    if (name == null) {
-      return String.format("Automaton for %s", getInitialStates());
-    }
-
-    return name;
+    return name == null ? String.format("Automaton for %s", getInitialStates()) : name;
   }
 
   @Override
   public Set<S> getReachableStates(Collection<? extends S> start) {
-    assert containsStates(start) :
-      String.format("Some of the states %s are not in the automaton", start);
+    checkArgument(containsStates(start), "Some of the states %s are not in the automaton", start);
 
-    Set<S> reachedStates = Sets.newHashSet(Collections2.transform(start, this::makeUnique));
+    Set<S> reachedStates = Sets.newIdentityHashSet();
+    start.forEach(state -> reachedStates.add(makeUnique(state)));
     Queue<S> workQueue = new ArrayDeque<>(reachedStates);
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
       Map<Edge<S>, ValuationSet> edges = transitions.get(state);
-      assert edges != null : String.format("State %s not in automaton", state);
 
       ValuationSetMapUtil.viewSuccessors(edges).forEach(successor -> {
         if (reachedStates.add(successor)) {
@@ -237,11 +244,21 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
+  public Map<S, ValuationSet> getSuccessorMap(S state) {
+    Map<Edge<S>, ValuationSet> edges = getEdgeMap(state);
+    Map<S, ValuationSet> successorMap = new IdentityHashMap<>();
+    edges.forEach((edge, valuations) -> ValuationSetMapUtil.add(successorMap, edge.getSuccessor(),
+      valuations.copy()));
+    return successorMap;
+  }
+
+  @Override
   public ImmutableList<String> getVariables() {
     return variables;
   }
 
   private S makeUnique(S state) {
+    // TODO Maybe we shouldn't always put?
     S uniqueState = uniqueStates.putIfAbsent(state, state);
     if (uniqueState == null) {
       // This state was added to the mapping
@@ -258,21 +275,18 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     S successor = edge.getSuccessor();
     S uniqueSuccessor = makeUnique(successor);
 
-    if (successor == uniqueSuccessor) { // NOPMD We use identity maps!
-      return (Edge<S>) edge;
-    }
-
-    return Edges.create(uniqueSuccessor, edge.acceptanceSetIterator());
+    Edge<S> castedEdge = (Edge<S>) edge;
+    return successor == uniqueSuccessor // NOPMD
+      ? castedEdge
+      : castedEdge.withSuccessor(uniqueSuccessor);
   }
 
   @Override
   public void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
-    // assert instead of checkArgument for performance
-    assert containsStates(states) :
-      String.format("Some of the states %s are not in the automaton", states);
+    assert containsStates(states);
 
     for (S state : states) {
-      ValuationSetMapUtil.update(transitions.get(makeUnique(state)), edge -> {
+      ValuationSetMapUtil.update(getEdgeMap(state), edge -> {
         Edge<S> newEdge = f.apply(state, edge);
 
         if (newEdge == null) {
@@ -298,9 +312,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void removeEdge(S source, ValuationSet valuations, S destination) {
-    Map<Edge<S>, ValuationSet> edges = transitions.get(makeUnique(source));
-    checkArgument(edges != null, "State %s not in automaton", source);
-    ValuationSetMapUtil.remove(edges, destination, valuations);
+    ValuationSetMapUtil.remove(getEdgeMap(source), destination, valuations);
   }
 
   @Override
@@ -310,7 +322,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     return removeTransitionsIf(filter);
   }
 
-  private boolean removeTransitionsIf(Predicate<?super S> filter) {
+  private boolean removeTransitionsIf(Predicate<? super S> filter) {
     return transitions.entrySet().removeIf(entry -> {
       boolean removeState = filter.test(entry.getKey());
 
@@ -329,9 +341,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public void removeUnreachableStates(Collection<? extends S> start,
     Consumer<S> removedStatesConsumer) {
-    assert containsStates(start) :
-      String.format("Some of the states %s are not in the automaton", start);
-
     Set<S> reachableStates = getReachableStates(start);
     assert containsStates(reachableStates) : "Internal inconsistency";
 
@@ -375,7 +384,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
-    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, variables,
+    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       acceptance, ImmutableSet.copyOf(initialStates), stateCount(), options,
       isDeterministic(), getName());
 
@@ -386,6 +395,11 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     });
 
     hoa.notifyEnd();
+  }
+
+  @Override
+  public String toString() {
+    return name == null ? super.toString() : name;
   }
 }
 

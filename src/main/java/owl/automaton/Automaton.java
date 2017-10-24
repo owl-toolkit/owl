@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -40,13 +41,14 @@ import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
 import owl.collections.Sets2;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 import owl.util.TriConsumer;
 
 /**
  * Note: Every implementation should support concurrent read-access.
  * Note: Default implementation should only call methods from one layer below:
- * Successors -> Edges -> LabelledEdges
+ * Successors -&gt; Edges -&gt; LabelledEdges
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   /**
@@ -94,6 +96,16 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   A getAcceptance();
 
   /**
+   * Returns any successor edge of the specified {@code state} under the given {@code valuation}.
+   * This is a faster replacement for {@link #getEdge(Object, BitSet)} if the automaton is known
+   * to be deterministic.
+   */
+  @Nullable
+  default Edge<S> getAnyEdge(S state, BitSet valuation) {
+    return getEdges(state, valuation).iterator().next();
+  }
+
+  /**
    * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
    * Throws an {@link IllegalArgumentException} if there is a non-deterministic choice in this state
    * for the specified valuation.
@@ -103,11 +115,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @param valuation
    *     The valuation.
    *
-   * @return The unique successor edge.
+   * @return The unique successor edge or {@code null} if none.
    *
    * @throws IllegalArgumentException
    *     If the edge has multiple successor edges.
-   * @see #getLabelledEdges(S)
+   * @see #getLabelledEdges(Object)
    */
   @Nullable
   default Edge<S> getEdge(S state, BitSet valuation) {
@@ -123,7 +135,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The set of edges originating from {@code state}
    */
   default Set<Edge<S>> getEdges(S state) {
-    return Sets2.newHashSet(getLabelledEdges(state), x -> x.edge);
+    return Sets2.transform(getLabelledEdges(state), x -> x.edge);
   }
 
   /**
@@ -137,7 +149,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The successor edges, possibly empty.
    */
   default Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    return Sets2.newHashSet(getLabelledEdges(state),
+    return Sets2.transform(getLabelledEdges(state),
       x -> x.valuations.contains(valuation) ? x.edge : null);
   }
 
@@ -245,14 +257,24 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return Iterables.getOnlyElement(getSuccessors(state, valuation), null);
   }
 
+  default Map<S, ValuationSet> getSuccessorMap(S state) {
+    Collection<LabelledEdge<S>> labelledEdges = getLabelledEdges(state);
+    Map<S, ValuationSet> successors = new HashMap<>(labelledEdges.size());
+    for (LabelledEdge<S> edge : labelledEdges) {
+      ValuationSetMapUtil.add(successors, edge);
+    }
+    return Collections.unmodifiableMap(successors);
+  }
+
   default Set<S> getSuccessors(S state) {
-    return Sets2.newHashSet(getEdges(state), Edge::getSuccessor);
+    return Sets2.transform(getEdges(state), Edge::getSuccessor);
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {
-    return Sets2.newHashSet(getEdges(state, valuation), Edge::getSuccessor);
+    return Sets2.transform(getEdges(state, valuation), Edge::getSuccessor);
   }
 
+  @Override
   List<String> getVariables();
 
   /**

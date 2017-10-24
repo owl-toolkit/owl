@@ -237,10 +237,10 @@ public final class AutomatonReader {
 
       switch (acceptanceDescription.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
-          return new AllAcceptance();
+          return AllAcceptance.INSTANCE;
 
         case "none":
-          return new NoneAcceptance();
+          return NoneAcceptance.INSTANCE;
 
         case "buchi":
           return new BuchiAcceptance();
