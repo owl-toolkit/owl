@@ -87,16 +87,16 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
   public Formula apply(Formula formula) {
     assert isApplicable(formula);
 
-    Formula unwrapped = getAlmostAllOperand(formula);
+    Formula almostAll = getAlmostAllOperand(formula);
 
-    if (unwrapped != null) {
-      return unwrapped.accept(ALMOST_ALL_VISITOR);
+    if (almostAll != null) {
+      return almostAll.accept(ALMOST_ALL_VISITOR);
     }
 
-    unwrapped = getInfinitelyOftenOperand(formula);
+    Formula infinitelyOften = getInfinitelyOftenOperand(formula);
 
-    if (unwrapped != null) {
-      return unwrapped.accept(INFINITELY_OFTEN_VISITOR);
+    if (infinitelyOften != null) {
+      return infinitelyOften.accept(INFINITELY_OFTEN_VISITOR);
     }
 
     throw new IllegalStateException("Unreachable");

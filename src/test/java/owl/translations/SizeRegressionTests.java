@@ -40,10 +40,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
@@ -55,9 +54,9 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   private final ToIntFunction<T> getStateCount;
   private final FormulaSet selectedClass;
   private final String tool;
-  private final Function<Formula, ? extends T> translator;
+  private final Function<LabelledFormula, ? extends T> translator;
 
-  SizeRegressionTests(FormulaSet selectedClass, Function<Formula, ? extends T> translator,
+  SizeRegressionTests(FormulaSet selectedClass, Function<LabelledFormula, ? extends T> translator,
     ToIntFunction<T> getStateCount, ToIntFunction<T> getAcceptanceSets, String tool) {
     this.selectedClass = selectedClass;
     this.translator = translator;
@@ -94,7 +93,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     return String.format("%s (%s); %s (%s)", posStateCount, posAccSize, negStateCount, negAccSize);
   }
 
-  private void assertSizes(Formula formula, T automaton, int expectedStateCount,
+  private void assertSizes(LabelledFormula formula, T automaton, int expectedStateCount,
     int expectedAcceptanceSets, List<String> errorMessages) {
     int actualStateCount = getStateCount.applyAsInt(automaton);
     int actualAcceptanceSets = getAcceptanceSets.applyAsInt(automaton);
@@ -143,7 +142,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
           return;
         }
 
-        Formula formula = LtlParser.formula(formulaString);
+        LabelledFormula formula = LtlParser.parse(formulaString);
         int[] sizes = readSpecification(sizeString);
         assertSizes(formula, translator.apply(formula), sizes[0], sizes[1], errorMessages);
         formula = formula.not();
@@ -166,7 +165,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
             return;
           }
 
-          Formula formula = LtlParser.formula(formulaString);
+          LabelledFormula formula = LtlParser.parse(formulaString);
           T posAutomaton = translator.apply(formula);
           T notAutomaton = translator.apply(formula.not());
           sizesFile.write(writeSpecification(
@@ -195,7 +194,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     }
   }
 
-  public abstract static class DPA extends SizeRegressionTests<MutableAutomaton<?, ?>> {
+  public abstract static class DPA extends SizeRegressionTests<Automaton<?, ?>> {
 
     private static final EnumSet<Optimisation> DPA_ALL;
 

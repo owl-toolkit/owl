@@ -17,7 +17,10 @@
 
 package owl.automaton;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.io.ByteArrayOutputStream;
@@ -38,6 +41,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import jhoafparser.consumer.HOAConsumerPrint;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -50,15 +54,34 @@ public final class AutomatonUtil {
 
   private AutomatonUtil() {}
 
+  @SuppressWarnings("unchecked")
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> castAutomaton(Object automaton,
+    Class<S> stateClass, Class<A> acceptanceClass) {
+    checkArgument(automaton instanceof Automaton<?, ?>, "Expected automaton, got %s",
+      automaton.getClass().getName());
+    Automaton<?, ?> castedAutomaton = (Automaton<?, ?>) automaton;
+
+    if (acceptanceClass != OmegaAcceptance.class) {
+      Object acceptance = castedAutomaton.getAcceptance();
+      checkArgument(acceptanceClass.isInstance(acceptance), "Expected acceptance type %s, got %s",
+        acceptanceClass.getName(), acceptance.getClass());
+    }
+
+    // Very costly to check, so only asserted
+    assert stateClass == Object.class
+      || Iterables.all(castedAutomaton.getStates(), stateClass::isInstance)
+      : "Expected states of class " + stateClass.getName();
+
+    return (Automaton<S, A>) castedAutomaton;
+  }
+
   /**
    * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
-   * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once,
-   * if and only if a sink is added. This state will be returned wrapped in an {@link Optional},
-   * if instead no state was added {@link Optional#empty()} is returned. After adding the sink
-   * state, the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop.
-   * <p>
-   * Note: The completion process considers unreachable states.
-   * </p>
+   * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once, if
+   * and only if a sink is added. This state will be returned wrapped in an {@link Optional}, if
+   * instead no state was added {@link Optional#empty()} is returned. After adding the sink state,
+   * the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop. <p> Note:
+   * The completion process considers unreachable states. </p>
    *
    * @param sinkSupplier
    *     Supplier of a sink state. Will be called once iff a sink needs to be added.
@@ -97,12 +120,10 @@ public final class AutomatonUtil {
 
   /**
    * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton.
-   * <p>
-   * Note that if some reachable state is already present, the specified transitions still get
-   * added, potentially introducing non-determinism. If two states of the given {@code states} can
-   * reach a particular state, the resulting transitions only get added once.
-   * </p>
+   * to the automaton. <p> Note that if some reachable state is already present, the specified
+   * transitions still get added, potentially introducing non-determinism. If two states of the
+   * given {@code states} can reach a particular state, the resulting transitions only get added
+   * once. </p>
    *
    * @param states
    *     The starting states of the exploration.
@@ -118,15 +139,12 @@ public final class AutomatonUtil {
 
   /**
    * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
-   * alphabet of a particular state, which reduces the number of calls to the exploration function.
-   * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
-   * can be obtained.
-   * <p>
-   * Note that if some reachable state is already present, the specified transitions still get
-   * added, potentially introducing non-determinism. If two states of the given {@code states} can
-   * reach a particular state, the resulting transitions only get added once.
-   * </p>
+   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive alphabet
+   * of a particular state, which reduces the number of calls to the exploration function. The
+   * oracle is allowed to return {@code null} values, indicating that no alphabet restriction can be
+   * obtained. <p> Note that if some reachable state is already present, the specified transitions
+   * still get added, potentially introducing non-determinism. If two states of the given {@code
+   * states} can reach a particular state, the resulting transitions only get added once. </p>
    *
    * @param states
    *     The starting states of the exploration.
@@ -141,15 +159,12 @@ public final class AutomatonUtil {
 
   /**
    * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive
-   * alphabet of a particular state, which reduces the number of calls to the exploration function.
-   * The oracle is allowed to return {@code null} values, indicating that no alphabet restriction
-   * can be obtained.
-   * <p>
-   * Note that if some reachable state is already present, the specified transitions still get
-   * added, potentially introducing non-determinism. If two states of the given {@code states} can
-   * reach a particular state, the resulting transitions only get added once.
-   * </p>
+   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive alphabet
+   * of a particular state, which reduces the number of calls to the exploration function. The
+   * oracle is allowed to return {@code null} values, indicating that no alphabet restriction can be
+   * obtained. <p> Note that if some reachable state is already present, the specified transitions
+   * still get added, potentially introducing non-determinism. If two states of the given {@code
+   * states} can reach a particular state, the resulting transitions only get added once. </p>
    *
    * @param states
    *     The starting states of the exploration.
@@ -273,8 +288,8 @@ public final class AutomatonUtil {
   }
 
   /**
-   * Determines if this successor set is deterministic, i.e. there is at most one transition in
-   * this set for each valuation.
+   * Determines if this successor set is deterministic, i.e. there is at most one transition in this
+   * set for each valuation.
    *
    * @return Whether this successor set is deterministic.
    *
@@ -305,8 +320,8 @@ public final class AutomatonUtil {
   }
 
   /**
-   * Determines if this successor set is deterministic for the specified valuation, i.e. there is
-   * at most one transition under the given valuation.
+   * Determines if this successor set is deterministic for the specified valuation, i.e. there is at
+   * most one transition under the given valuation.
    *
    * @param valuation
    *     The valuation to check.

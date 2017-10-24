@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -22,15 +23,14 @@ import owl.grammar.TLSFParser.SpecificationContext;
 import owl.grammar.TLSFParser.TargetContext;
 import owl.grammar.TLSFParser.TlsfContext;
 import owl.ltl.Conjunction;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.tlsf.ImmutableTlsf;
 import owl.ltl.tlsf.ImmutableTlsf.Builder;
 import owl.ltl.tlsf.Tlsf;
 import owl.ltl.tlsf.Tlsf.Semantics;
 
 public final class TlsfParser {
-  private TlsfParser() {
-  }
+  private TlsfParser() {}
 
   public static Tlsf parse(String input) {
     return parse(CharStreams.fromString(input));
@@ -44,8 +44,7 @@ public final class TlsfParser {
     TLSFParser parser = new TLSFParser(tokens);
     parser.setErrorHandler(new BailErrorStrategy());
 
-    TlsfContext tree;
-    tree = parser.tlsf();
+    TlsfContext tree = parser.tlsf();
 
     Builder builder = ImmutableTlsf.builder();
 
@@ -93,12 +92,12 @@ public final class TlsfParser {
     builder.mapping(variables);
 
     // Specifications
-    Collection<Formula> initial = new ArrayList<>();
-    Collection<Formula> preset = new ArrayList<>();
-    Collection<Formula> require = new ArrayList<>();
-    Collection<Formula> assert_ = new ArrayList<>();
-    Collection<Formula> assume = new ArrayList<>();
-    Collection<Formula> guarantee = new ArrayList<>();
+    Collection<LabelledFormula> initial = new ArrayList<>();
+    Collection<LabelledFormula> preset = new ArrayList<>();
+    Collection<LabelledFormula> require = new ArrayList<>();
+    Collection<LabelledFormula> assert_ = new ArrayList<>();
+    Collection<LabelledFormula> assume = new ArrayList<>();
+    Collection<LabelledFormula> guarantee = new ArrayList<>();
     for (SpecificationContext specificationContext : tree.specification()) {
       String formulaString = specificationContext.formula.getText();
       assert !formulaString.isEmpty();
@@ -106,7 +105,7 @@ public final class TlsfParser {
       String sanitizedFormula = formulaString
         .substring(0, formulaString.length() - 1)
         .trim();
-      Formula formula = LtlParser.parse(sanitizedFormula).getFormula();
+      LabelledFormula formula = LtlParser.parse(sanitizedFormula);
 
       if (specificationContext.INITIALLY() != null) {
         initial.add(formula);
@@ -126,33 +125,33 @@ public final class TlsfParser {
     }
     if (!initial.isEmpty()) {
       //noinspection ConstantConditions
-      builder.initially(Conjunction.create(initial.stream()));
+      builder.initially(Conjunction.create(initial.stream().map(LabelledFormula::getFormula)));
     }
     if (!preset.isEmpty()) {
       //noinspection ConstantConditions
-      builder.preset(Conjunction.create(preset.stream()));
+      builder.preset(Conjunction.create(preset.stream().map(LabelledFormula::getFormula)));
     }
     if (!require.isEmpty()) {
       //noinspection ConstantConditions
-      builder.preset(Conjunction.create(require.stream()));
+      builder.preset(Conjunction.create(require.stream().map(LabelledFormula::getFormula)));
     }
     if (!assert_.isEmpty()) {
       //noinspection ConstantConditions
-      builder.assert_(Conjunction.create(assert_.stream()));
+      builder.assert_(Conjunction.create(assert_.stream().map(LabelledFormula::getFormula)));
     }
     if (!assume.isEmpty()) {
       //noinspection ConstantConditions
-      builder.assume(Conjunction.create(assume.stream()));
+      builder.assume(Conjunction.create(assume.stream().map(LabelledFormula::getFormula)));
     }
     if (!guarantee.isEmpty()) {
       //noinspection ConstantConditions
-      builder.guarantee(Conjunction.create(guarantee.stream()));
+      builder.guarantee(Conjunction.create(guarantee.stream().map(LabelledFormula::getFormula)));
     }
 
     return builder.build();
   }
 
-  public static Tlsf parse(InputStream input) throws IOException {
-    return parse(CharStreams.fromStream(input));
+  public static Tlsf parse(InputStream input, Charset charset) throws IOException {
+    return parse(CharStreams.fromStream(input, charset));
   }
 }

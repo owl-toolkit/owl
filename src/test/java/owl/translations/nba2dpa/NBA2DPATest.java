@@ -18,6 +18,7 @@
 package owl.translations.nba2dpa;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
 import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;
@@ -26,7 +27,6 @@ import java.util.Set;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
@@ -34,6 +34,7 @@ import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.factories.jbdd.JBddSupplier;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
@@ -536,7 +537,7 @@ public class NBA2DPATest {
 
   @Test
   public void testApply14() throws ParseException {
-    runTest(INPUT14, 120);
+    runTest(INPUT14, 126);
   }
 
   @Test
@@ -556,7 +557,7 @@ public class NBA2DPATest {
 
   private void runTest(String input, int size) throws ParseException {
     Automaton<HoaState, GeneralizedBuchiAcceptance> nba =
-        AutomatonReader.readHoa(input, GeneralizedBuchiAcceptance.class);
+        AutomatonReader.readHoa(input, JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
     nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     EnumSet<Optimisation> optimisations = EnumSet.noneOf(Optimisation.class);
@@ -565,7 +566,6 @@ public class NBA2DPATest {
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
     dpa = translation.apply(nba);
     dpa.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    dpa.setVariables(MAPPING);
-    assertThat(dpa.getStates().size(), Matchers.lessThanOrEqualTo(size));
+    assertThat(dpa.stateCount(), lessThanOrEqualTo(size));
   }
 }

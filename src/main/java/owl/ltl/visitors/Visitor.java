@@ -31,7 +31,6 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
 public interface Visitor<R> {
-
   R visit(BooleanConstant booleanConstant);
 
   R visit(Conjunction conjunction);
@@ -55,5 +54,4 @@ public interface Visitor<R> {
   R visit(WOperator wOperator);
 
   R visit(XOperator xOperator);
-
 }

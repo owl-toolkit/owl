@@ -23,13 +23,13 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.logging.Level;
@@ -49,12 +49,14 @@ import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.ValuationSet;
 
 public final class HoaConsumerExtended<S> {
+  // TODO If --annotations is there, try to print the complex edge expressions in toHOA
+
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
 
   private final int alphabetSize;
   private final HOAConsumer consumer;
   private final EnumSet<HoaPrintable.Option> options;
-  private final Map<S, Integer> stateNumbers;
+  private final Object2IntMap<S> stateNumbers;
   @Nullable
   private S currentState = null;
 
@@ -63,7 +65,7 @@ public final class HoaConsumerExtended<S> {
     boolean isDeterministic, @Nullable String name) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
-    stateNumbers = new HashMap<>();
+    stateNumbers = new Object2IntOpenHashMap<>();
     alphabetSize = aliases.size();
 
     try {
@@ -100,16 +102,18 @@ public final class HoaConsumerExtended<S> {
 
         consumer.setAcceptanceCondition(acceptance.getAcceptanceSets(),
           acceptance.getBooleanExpression());
+
+        // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
+        // states deterministic, the serializer will throw an exception.
+        if (isDeterministic) {
+          consumer.addProperties(ImmutableList.of("deterministic"));
+        }
       }
 
       // TODO: fix this.
       consumer.addProperties(ImmutableList.of("trans-acc", "trans-label"));
-
-      if (isDeterministic) {
-        consumer.addProperties(ImmutableList.of("deterministic"));
-      }
-
       consumer.setAPs(aliases);
+
       consumer.notifyBodyStart();
 
       if (initialStates.isEmpty() || size == 0) {
@@ -195,7 +199,7 @@ public final class HoaConsumerExtended<S> {
   }
 
   private int getStateId(S state) {
-    return stateNumbers.computeIfAbsent(state, k -> stateNumbers.size());
+    return stateNumbers.computeIntIfAbsent(state, k -> stateNumbers.size());
   }
 
   public void notifyEnd() {

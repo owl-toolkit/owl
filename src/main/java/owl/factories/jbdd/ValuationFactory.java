@@ -15,29 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jdd;
+package owl.factories.jbdd;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
 import de.tum.in.jbdd.Bdd;
-import de.tum.in.jbdd.BddFactory;
 import de.tum.in.naturals.bitset.BitSets;
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
-import java.util.Iterator;
-import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.function.Consumer;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
-public final class ValuationFactory implements ValuationSetFactory {
+final class ValuationFactory implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
+  private final ImmutableList<String> alphabet;
   private final Bdd factory;
 
-  public ValuationFactory(int alphabet) {
-    factory = BddFactory.buildBdd((1024 * alphabet * alphabet) + 256);
+  ValuationFactory(Bdd factory, List<String> alphabet) {
+    this.factory = factory;
+    this.alphabet = ImmutableList.copyOf(alphabet);
 
-    for (int i = 0; i < alphabet; i++) {
+    for (int i = 0; i < alphabet.size(); i++) {
       factory.createVariable();
     }
   }
@@ -129,6 +131,11 @@ public final class ValuationFactory implements ValuationSetFactory {
   }
 
   @Override
+  public ImmutableList<String> getAlphabet() {
+    return alphabet;
+  }
+
+  @Override
   public int getSize() {
     return factory.numberOfVariables();
   }
@@ -189,6 +196,45 @@ public final class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
+    public void forEach(Consumer<? super BitSet> action) {
+      int variables = factory.numberOfVariables();
+
+      factory.forEachMinimalSolution(bdd, (solution, solutionSupport) -> {
+        solutionSupport.flip(0, variables);
+        BitSets.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
+          nonRelevantValuation.or(solution);
+          action.accept(nonRelevantValuation);
+          nonRelevantValuation.and(solutionSupport);
+        });
+        solutionSupport.flip(0, variables);
+      });
+    }
+
+    @SuppressWarnings("UseOfClone")
+    @Override
+    public void forEach(BitSet restriction, Consumer<? super BitSet> action) {
+      // TODO Make this native to the factory?
+      int variables = factory.numberOfVariables();
+
+      BitSet restrictedVariables = (BitSet) restriction.clone();
+      restrictedVariables.flip(0, variables);
+      int restrict = factory.reference(factory.restrict(bdd, restrictedVariables, new BitSet(0)));
+
+      factory.forEachMinimalSolution(restrict, (solution, solutionSupport) -> {
+        assert !solution.intersects(restrictedVariables);
+        solutionSupport.xor(restriction);
+        BitSets.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
+          solution.or(nonRelevantValuation);
+          action.accept(solution);
+          solution.andNot(nonRelevantValuation);
+        });
+        solutionSupport.xor(restriction);
+      });
+
+      factory.dereference(restrict);
+    }
+
+    @Override
     public void free() {
       //if (factory.isNodeRoot(bdd)) {
       //  factory.dereference(bdd);
@@ -197,8 +243,13 @@ public final class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
+    public BitSet getSupport() {
+      return factory.support(bdd);
+    }
+
+    @Override
     public int hashCode() {
-      return bdd;
+      return HashCommon.mix(bdd);
     }
 
     @Override
@@ -221,13 +272,6 @@ public final class ValuationFactory implements ValuationSetFactory {
     @Override
     public boolean isUniverse() {
       return bdd == factory.getTrueNode();
-    }
-
-    @Override
-    @Nonnull
-    public Iterator<BitSet> iterator() {
-      return BitSets.powerSet(factory.numberOfVariables()).stream()
-        .filter(this::contains).iterator();
     }
 
     @Override
@@ -260,7 +304,15 @@ public final class ValuationFactory implements ValuationSetFactory {
 
     @Override
     public String toString() {
-      return Sets.newHashSet(iterator()).toString();
+      if (isEmpty()) {
+        return "[]";
+      }
+      StringBuilder builder = new StringBuilder(factory.numberOfVariables() * 10 + 10);
+      builder.append('[');
+      forEach(bitSet -> builder.append(bitSet).append(", "));
+      builder.setLength(builder.length() - 2);
+      builder.append(']');
+      return builder.toString();
     }
   }
 }

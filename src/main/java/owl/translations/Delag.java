@@ -26,8 +26,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.Formula;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.LabelledFormula;
 import owl.translations.delag.Builder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.util.ExternalTranslator;
@@ -63,7 +62,8 @@ public final class Delag extends AbstractLtlCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, HoaPrintable> getTranslation(EnumSet<Optimisation> optimisations) {
+  protected Function<LabelledFormula, HoaPrintable>
+  getTranslation(EnumSet<Optimisation> optimisations) {
     if (strict) {
       return this::translateWithoutFallback;
     } else {
@@ -71,15 +71,13 @@ public final class Delag extends AbstractLtlCommandLineTool {
     }
   }
 
-  public Automaton<?, ?> translateWithFallback(Formula formula) {
-    Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    return new Builder(fallback).apply(rewritten);
+  public Automaton<?, ?> translateWithFallback(LabelledFormula formula) {
+    return new Builder(fallback).apply(formula);
   }
 
-  private HoaPrintable translateWithoutFallback(Formula formula) {
-    Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
+  private HoaPrintable translateWithoutFallback(LabelledFormula formula) {
     return new Builder<>((x) -> {
-      throw new UnsupportedOperationException("Outside of supported fragment." + rewritten);
-    }).apply(rewritten);
+      throw new UnsupportedOperationException("Outside of supported fragment." + formula);
+    }).apply(formula);
   }
 }

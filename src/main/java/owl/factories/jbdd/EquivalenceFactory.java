@@ -15,21 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jdd;
+package owl.factories.jbdd;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import de.tum.in.jbdd.Bdd;
-import de.tum.in.jbdd.BddFactory;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -48,34 +47,37 @@ import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultIntVisitor;
+import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 
-public final class EquivalenceFactory implements EquivalenceClassFactory {
+final class EquivalenceFactory implements EquivalenceClassFactory {
+  // TODO We should be able to treat "true" formulas and atoms completely separate
+  // Then, the literals won't litter the mappings etc.
+  // TODO Make the bdd reusable, i.e. don't assume that reverseMapping.length == bdd.variableCount()
+
+  private final ImmutableList<String> alphabet;
   private final int alphabetSize;
   private final Bdd factory;
   private final BddEquivalenceClass falseClass;
   private final Object2IntMap<Formula> mapping;
   private final BddEquivalenceClass trueClass;
   private final BddVisitor visitor;
-  private ImmutableList<String> atomMapping;
   private Formula[] reverseMapping;
   private int[] temporalStepSubstitution;
   private int[] unfoldSubstitution;
 
-  private EquivalenceFactory(Formula formula, int alphabetSize, List<String> atomMapping) {
-    this.alphabetSize = alphabetSize;
-    this.atomMapping = ImmutableList.copyOf(atomMapping);
+  public EquivalenceFactory(Bdd factory, List<String> alphabet) {
+    this.alphabetSize = alphabet.size();
+    this.alphabet = ImmutableList.copyOf(alphabet);
+    this.factory = factory;
 
-    Deque<Formula> queuedFormulas = PropositionVisitor.extractPropositions(formula);
     mapping = new Object2IntOpenHashMap<>();
     mapping.defaultReturnValue(0);
-    int size = alphabetSize + queuedFormulas.size();
-    factory = BddFactory.buildBdd(1024 * (size + 1));
     visitor = new BddVisitor();
 
-    unfoldSubstitution = new int[size];
-    temporalStepSubstitution = new int[size];
-    reverseMapping = new Formula[size];
+    unfoldSubstitution = new int[alphabetSize];
+    temporalStepSubstitution = new int[alphabetSize];
+    reverseMapping = new Formula[alphabetSize];
 
     for (int i = 0; i < alphabetSize; i++) {
       Literal literal = new Literal(i);
@@ -91,20 +93,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
       unfoldSubstitution[i] = -1;
     }
 
-    int finalSize = register(queuedFormulas, alphabetSize);
-    resize(finalSize);
-
     trueClass = new BddEquivalenceClass(BooleanConstant.TRUE, factory.getTrueNode());
     falseClass = new BddEquivalenceClass(BooleanConstant.FALSE, factory.getFalseNode());
-  }
-
-  public static EquivalenceFactory create(Formula formula, int alphabetSize) {
-    return create(formula, alphabetSize, ImmutableList.of());
-  }
-
-  public static EquivalenceFactory create(Formula formula, int alphabetSize,
-    List<String> atomMapping) {
-    return new EquivalenceFactory(formula, alphabetSize, atomMapping);
   }
 
   @Override
@@ -135,7 +125,8 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
   }
 
   private int getVariable(Formula formula) {
-    assert formula instanceof Literal || formula instanceof UnaryModalOperator
+    assert formula instanceof Literal
+      || formula instanceof UnaryModalOperator
       || formula instanceof BinaryModalOperator;
 
     int value = mapping.getInt(formula);
@@ -162,6 +153,11 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     assert factory.isVariableOrNegated(result);
     return result;
+  }
+
+  @Override
+  public ImmutableList<String> getVariables() {
+    return alphabet;
   }
 
   private void register(Formula proposition, int i) {
@@ -204,11 +200,6 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     reverseMapping = Arrays.copyOf(reverseMapping, size);
     unfoldSubstitution = Arrays.copyOf(unfoldSubstitution, size);
     temporalStepSubstitution = Arrays.copyOf(temporalStepSubstitution, size);
-  }
-
-  @Override
-  public void setVariables(List<String> variables) {
-    atomMapping = ImmutableList.copyOf(variables);
   }
 
   private int temporalStepBdd(int bdd, BitSet valuation) {
@@ -300,6 +291,15 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
+    public void forEachSatisfyingAssignment(BiConsumer<BitSet, BitSet> action) {
+      if (alphabetSize == 0) {
+        action.accept(new BitSet(0), new BitSet(0));
+      } else {
+        factory.forEachNonEmptyPath(bdd, alphabetSize - 1, action);
+      }
+    }
+
+    @Override
     public void free() {
       Preconditions.checkState(bdd != INVALID_BDD, "Double free");
 
@@ -380,7 +380,11 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     @Override
     public ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support) {
       BitSet supportBitSet = toBitSet(support);
-      Iterator<BitSet> minimalSolutions = factory.getMinimalSolutions(bdd);
+      Set<BitSet> minimalSolutions = new HashSet<>();
+      //noinspection UseOfClone
+      factory.forEachMinimalSolution(bdd, solution ->
+        minimalSolutions.add((BitSet) solution.clone()));
+
       Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(supportBitSet, minimalSolutions);
       return closure.stream().map(EquivalenceFactory.this::toSet)
         .collect(ImmutableList.toImmutableList());
@@ -443,21 +447,14 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public String toString() {
-      String representativeString;
-
-      if (factory.isVariable(bdd)) {
-        representativeString = reverseMapping[factory.getVariable(bdd)]
-          .toString(atomMapping, false);
-      } else if (factory.isVariableNegated(bdd)) {
-        representativeString = String.format("!%s", reverseMapping[factory.getVariable(bdd)]
-          .toString(atomMapping, false));
-      } else if (representative == null) {
-        return String.format("(%d)", bdd);
-      } else {
-        representativeString = representative.toString(atomMapping, false);
+      if (factory.isVariableOrNegated(bdd)) {
+        return PrintVisitor.toString(reverseMapping[factory.getVariable(bdd)], alphabet, false);
       }
-
-      return representativeString;
+      if (representative == null) {
+        return String.format("(%d)", bdd);
+      }
+      // Maybe apply simplifier here
+      return PrintVisitor.toString(representative, alphabet, false);
     }
 
     @Override

@@ -17,17 +17,22 @@
 
 package owl.collections;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import owl.factories.ValuationSetFactory;
@@ -40,7 +45,7 @@ public abstract class ValuationSetTest {
 
   @Before
   public void setUp() {
-    BiMap<String, Integer> aliases = ImmutableBiMap.of("a", 0, "b", 1, "c", 2, "d", 3);
+    List<String> aliases = ImmutableList.of("a", "b", "c", "d");
     ValuationSetFactory factory = setUpFactory(aliases);
 
     empty = factory.createEmptyValuationSet();
@@ -55,7 +60,7 @@ public abstract class ValuationSetTest {
     containsA = factory.createValuationSet(bs, bs);
   }
 
-  public abstract ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases);
+  public abstract ValuationSetFactory setUpFactory(List<String> aliases);
 
   @Test
   public void testComplement() {
@@ -63,6 +68,43 @@ public abstract class ValuationSetTest {
     assertEquals(empty.complement(), universe);
     assertEquals(abcd.complement().complement(), abcd);
     assertNotEquals(abcd.complement(), containsA);
+  }
+
+  @SuppressWarnings("UseOfClone")
+  @Test
+  public void testForEach() {
+    for (ValuationSet set : ImmutableSet.of(abcd, containsA, empty, universe)) {
+      Set<BitSet> forEach = new HashSet<>();
+      set.forEach(solution -> forEach.add((BitSet) solution.clone()));
+
+      Set<BitSet> collect = BitSets.powerSet(4).stream()
+        .filter(set::contains)
+        .map(BitSet::clone).map(BitSet.class::cast)
+        .collect(Collectors.toSet());
+
+      assertThat(forEach, is(collect));
+    }
+  }
+
+  @SuppressWarnings("UseOfClone")
+  @Test
+  public void testForEachRestrict() {
+    BitSet restriction = new BitSet();
+    restriction.set(1);
+    restriction.set(3);
+
+    for (ValuationSet set : ImmutableSet.of(abcd, containsA, empty, universe)) {
+      Set<BitSet> forEach = new HashSet<>();
+      set.forEach(restriction, solution -> forEach.add((BitSet) solution.clone()));
+
+      Set<BitSet> collect = BitSets.powerSet(restriction).stream()
+        .filter(set::contains)
+        .map(BitSet::clone)
+        .map(BitSet.class::cast)
+        .collect(Collectors.toSet());
+
+      assertThat(forEach, is(collect));
+    }
   }
 
   @Test
@@ -78,24 +120,20 @@ public abstract class ValuationSetTest {
   @Test
   public void testIterator() {
     Set<BitSet> seen = new HashSet<>();
-    for (BitSet valuation : universe) {
+    universe.forEach(valuation -> {
       assertTrue(valuation.cardinality() <= 4);
       assertTrue(seen.add(valuation));
-    }
+    });
 
-    for (BitSet valuation : containsA) {
-      assertTrue(valuation.get(0));
-    }
+    containsA.forEach(valuation -> assertTrue(valuation.get(0)));
 
-    for (BitSet valuation : abcd) {
+    abcd.forEach(valuation ->  {
       assertTrue(valuation.get(0));
       assertTrue(valuation.get(1));
       assertTrue(valuation.get(2));
       assertTrue(valuation.get(3));
-    }
+    });
 
-    for (BitSet valuation : empty) {
-      fail("empty should be empty, but it contains " + valuation);
-    }
+    empty.forEach(valuation -> fail("empty should be empty, but it contains " + valuation));
   }
 }

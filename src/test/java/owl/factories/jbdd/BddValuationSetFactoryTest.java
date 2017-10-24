@@ -15,26 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jdd;
+package owl.factories.jbdd;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
+import de.tum.in.jbdd.BddFactory;
 import java.util.BitSet;
-import java.util.Set;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import owl.collections.ValuationSet;
 
 public class BddValuationSetFactoryTest {
-  private Set<String> alphabet;
+  private List<String> alphabet;
   private ValuationFactory factory;
 
   @Before
   public void setUp() {
-    alphabet = ImmutableSet.of("a", "b", "c", "d", "e");
-    factory = new ValuationFactory(alphabet.size());
+    alphabet = ImmutableList.of("a", "b", "c", "d", "e");
+    factory = new ValuationFactory(BddFactory.buildBdd(1024), alphabet);
   }
 
   @Test

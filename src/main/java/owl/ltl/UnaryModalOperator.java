@@ -18,13 +18,11 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import owl.util.ImmutableObject;
 
 public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
-
   public final Formula operand;
 
   UnaryModalOperator(Formula operand) {
@@ -43,10 +41,12 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
 
   @Override
   protected boolean equals2(ImmutableObject o) {
-    assert o instanceof UnaryModalOperator;
-    // If equals2 is called, classes are equal
     UnaryModalOperator that = (UnaryModalOperator) o;
     return Objects.equals(operand, that.operand);
+  }
+
+  public Formula getOperand() {
+    return operand;
   }
 
   public abstract String getOperator();
@@ -64,14 +64,5 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
   @Override
   public String toString() {
     return getOperator() + operand;
-  }
-
-  @Override
-  public String toString(List<String> variables, boolean fullyParenthesized) {
-    if (fullyParenthesized) {
-      return getOperator() + "(" + operand.toString(variables, fullyParenthesized) + ")";
-    } else {
-      return getOperator() + operand.toString(variables, fullyParenthesized);
-    }
   }
 }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -111,15 +110,5 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   @Override
   public Set<MonitorState> getSuccessors(MonitorState state) {
     return anyAutomaton.getSuccessors(state);
-  }
-
-  @Override
-  public List<String> getVariables() {
-    return anyAutomaton.getVariables();
-  }
-
-  @Override
-  public void setVariables(List<String> variables) {
-    throw new UnsupportedOperationException();
   }
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
+
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class RewriterFactoryTest {
@@ -52,16 +53,16 @@ public class RewriterFactoryTest {
   @Test
   public void testModal() {
     for (int i = 0; i < INPUT.length; i++) {
-      Formula input = LtlParser.create(INPUT[i]).parse(literals).getFormula();
-      Formula output = LtlParser.create(OUTPUT[i]).parse(literals).getFormula();
+      Formula input = LtlParser.create(INPUT[i]).parse(literals).formula;
+      Formula output = LtlParser.create(OUTPUT[i]).parse(literals).formula;
       assertEquals(output, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, input));
     }
   }
 
   @Test
   public void testPullupX() {
-    Formula f1 = LtlParser.formula("G (F (X b))");
-    Formula f2 = LtlParser.formula("X(G(F(b)))");
+    Formula f1 = LtlParser.syntax("G (F (X b))");
+    Formula f2 = LtlParser.syntax("X(G(F(b)))");
     assertEquals(RewriterFactory.apply(RewriterEnum.PULLUP_X, f1), f2);
   }
 }

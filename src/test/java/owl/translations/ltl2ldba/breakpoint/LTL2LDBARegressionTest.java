@@ -24,7 +24,7 @@ import org.junit.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.parser.LtlParseResult;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
@@ -33,11 +33,10 @@ public class LTL2LDBARegressionTest {
 
   static void testOutput(String ltl, int size) {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-    LtlParseResult parseResult = LtlParser.parse(ltl);
+    LabelledFormula parseResult = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState, BuchiAcceptance,
-    GObligations> automaton = LTL2LDBAFunction
-      .createDegeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
-    automaton.setVariables(parseResult.getVariableMapping());
+    GObligations> automaton =
+      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(opts).apply(parseResult);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
   }

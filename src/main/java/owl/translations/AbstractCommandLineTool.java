@@ -47,7 +47,7 @@ public abstract class AbstractCommandLineTool<T> {
     Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
     boolean stateAcceptance = args.remove("--state-acceptance");
     boolean readStdIn = args.isEmpty();
-    Collection<CommandLineInput<T>> inputs;
+    Collection<T> inputs;
 
     try {
       if (readStdIn) {
@@ -66,12 +66,10 @@ public abstract class AbstractCommandLineTool<T> {
       return;
     }
 
-    for (CommandLineInput<T> input : inputs) {
+    for (T input : inputs) {
       // Apply translation.
-      HoaPrintable result = translation.apply(input.input);
+      HoaPrintable result = translation.apply(input);
       // Write output.
-      result.setVariables(input.variables);
-
       HOAConsumer consumer = new HOAConsumerPrint(System.out);
 
       if (stateAcceptance) {
@@ -93,7 +91,7 @@ public abstract class AbstractCommandLineTool<T> {
     }
   }
 
-  protected abstract Collection<CommandLineInput<T>> parseInput(InputStream stream)
+  protected abstract Collection<T> parseInput(InputStream stream)
     throws IOException, ParseException;
 
   private EnumSet<Optimisation> parseOptimisationOptions(Deque<String> args) {

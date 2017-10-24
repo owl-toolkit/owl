@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.Recognizer;
 import owl.grammar.LTLLexer;
 import owl.grammar.LTLParser;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 
 public final class LtlParser {
   private final CharStream input;
@@ -33,19 +34,19 @@ public final class LtlParser {
     return new LtlParser(CharStreams.fromStream(input));
   }
 
-  public static Formula formula(String input) {
-    return parse(input).getFormula();
+  public static Formula syntax(String input) {
+    return create(input).parse().formula;
   }
 
-  public static LtlParseResult parse(String input) {
+  public static LabelledFormula parse(String input) {
     return create(input).parse();
   }
 
-  public static LtlParseResult parse(InputStream input) throws IOException {
+  public static LabelledFormula parse(InputStream input) throws IOException {
     return create(input).parse();
   }
 
-  private LtlParseResult doParse(List<String> literals) {
+  private LabelledFormula doParse(List<String> literals) {
     // Tokenize the stream
     LTLLexer lexer = new LTLLexer(input);
     // Don't print long error messages on the console
@@ -63,24 +64,19 @@ public final class LtlParser {
     LtlParseTreeVisitor treeVisitor = literals.isEmpty()
       ? new LtlParseTreeVisitor()
       : new LtlParseTreeVisitor(literals);
-    Formula formula = treeVisitor.visit(parser.formula());
-    return new LtlParseResult(formula, treeVisitor.variables());
+    return LabelledFormula.create(treeVisitor.visit(parser.formula()), treeVisitor.variables());
   }
 
-  public Formula formula() {
-    return parse().getFormula();
-  }
-
-  public LtlParseResult parse() {
+  public LabelledFormula parse() {
     return doParse(ImmutableList.of());
   }
 
-  public LtlParseResult parse(List<String> literals) {
+  public LabelledFormula parse(List<String> literals) {
     checkArgument(!literals.isEmpty(), "Supplied literal list is empty");
     return doParse(literals);
   }
 
-  public LtlParseResult parse(String... literals) {
+  public LabelledFormula parse(String... literals) {
     return parse(ImmutableList.copyOf(literals));
   }
 

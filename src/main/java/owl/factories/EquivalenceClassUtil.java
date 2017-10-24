@@ -21,8 +21,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
@@ -73,12 +71,8 @@ public final class EquivalenceClassUtil {
     free(iterable2);
   }
 
-  public static Set<BitSet> upwardClosure(BitSet support, Iterator<BitSet> minimalPaths) {
+  public static Set<BitSet> upwardClosure(BitSet support, Set<BitSet> paths) {
     // Build restricted upward closure
-    Set<BitSet> paths = new HashSet<>();
-
-    //noinspection UseOfClone
-    minimalPaths.forEachRemaining(bitSet -> paths.add((BitSet) bitSet.clone()));
     Deque<BitSet> candidates = new ArrayDeque<>(paths);
 
     // Loop over all minimal solutions and all additional candidates

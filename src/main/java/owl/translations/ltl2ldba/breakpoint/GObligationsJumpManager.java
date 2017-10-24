@@ -49,12 +49,12 @@ import owl.ltl.XOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.Visitor;
+import owl.ltl.visitors.DefaultConverter;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
 
-public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
+public final class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
   private final ImmutableSet<GObligations> obligations;
 
   private GObligationsJumpManager(EquivalenceClassFactory factory,
@@ -94,6 +94,34 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     return Sets.powerSet(Collector.collectTransformedGOperators(state.getSupport())).stream();
   }
 
+  private static boolean dependsOnExternalAtoms(EquivalenceClass remainder,
+    GObligations obligation) {
+    BitSet externalAtoms = Collector.collectAtoms(remainder.getSupport());
+    BitSet internalAtoms = new BitSet();
+    obligation.forEach(x -> internalAtoms.or(Collector.collectAtoms(x.getSupport())));
+
+    // Check if external atoms are non-empty and disjoint.
+    if (!externalAtoms.isEmpty()) {
+      externalAtoms.and(internalAtoms);
+
+      if (externalAtoms.isEmpty()) {
+        remainder.free();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static Formula evaluate(Formula formula, GObligations keys) {
+    EvaluateVisitor evaluateVisitor =
+      new EvaluateVisitor(keys.gOperators, keys.getObligation());
+    Formula subst = formula.accept(evaluateVisitor);
+    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
+    evaluateVisitor.free();
+    return evaluated;
+  }
+
   @Override
   protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
     EquivalenceClass state2 = optimisations.contains(Optimisation.EAGER_UNFOLD)
@@ -103,7 +131,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     Set<GObligations> availableObligations = new HashSet<>();
 
     for (GObligations x : obligations) {
-      if (containsAllPropositions(x.goperators, support)) {
+      if (containsAllPropositions(x.gOperators, support)) {
         availableObligations.add(x);
       }
     }
@@ -130,32 +158,6 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     return jumps;
   }
 
-  private boolean dependsOnExternalAtoms(EquivalenceClass remainder, GObligations obligation) {
-    BitSet externalAtoms = Collector.collectAtoms(remainder.getSupport());
-    BitSet internalAtoms = new BitSet();
-    obligation.forEach(x -> internalAtoms.or(Collector.collectAtoms(x.getSupport())));
-
-    // Check if external atoms are non-empty and disjoint.
-    if (!externalAtoms.isEmpty()) {
-      externalAtoms.and(internalAtoms);
-
-      if (externalAtoms.isEmpty()) {
-        remainder.free();
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private Formula evaluate(Formula formula, GObligations keys) {
-    EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.goperators, keys.getObligation());
-    Formula subst = formula.accept(evaluateVisitor);
-    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
-    evaluateVisitor.free();
-    return evaluated;
-  }
-
   private EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
     Formula formula = clazz.getRepresentative();
 
@@ -166,8 +168,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     return clazz.substitute(x -> evaluate(x, keys));
   }
 
-  static class EvaluateVisitor implements Visitor<Formula> {
-
+  static final class EvaluateVisitor extends DefaultConverter {
     private final EquivalenceClass environment;
     private final EquivalenceClassFactory factory;
 
@@ -186,11 +187,6 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
       boolean isTrue = environment.implies(clazz);
       clazz.free();
       return isTrue;
-    }
-
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-      return booleanConstant;
     }
 
     @Override

@@ -19,8 +19,8 @@ package owl.ltl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
-import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
@@ -29,20 +29,23 @@ import owl.ltl.visitors.Visitor;
 import owl.util.ImmutableObject;
 
 public final class Literal extends ImmutableObject implements Formula {
+  private final int index;
+  private final Literal negation;
 
-  private final int atom;
-
-  public static Literal create(int letter, boolean negate) {
-    return new Literal(letter, negate);
+  private Literal(Literal other) {
+    this.negation = other;
+    this.index = -other.index;
+    assert getAtom() == other.getAtom() && isNegated() ^ other.isNegated();
   }
 
-  public Literal(@Nonnegative int letter) {
-    this(letter, false);
+  public Literal(@Nonnegative int index) {
+    this(index, false);
   }
 
-  public Literal(@Nonnegative int letter, boolean negate) {
-    checkArgument(letter >= 0);
-    this.atom = negate ? -(letter + 1) : letter + 1;
+  public Literal(@Nonnegative int index, boolean negate) {
+    checkArgument(index >= 0);
+    this.index = negate ? -(index + 1) : index + 1;
+    this.negation = new Literal(this);
   }
 
   @Override
@@ -72,22 +75,21 @@ public final class Literal extends ImmutableObject implements Formula {
 
   @Override
   protected boolean equals2(ImmutableObject o) {
-    assert o instanceof Literal;
     Literal literal = (Literal) o;
-    return atom == literal.atom;
+    return index == literal.index;
   }
 
   public int getAtom() {
-    return Math.abs(atom) - 1;
+    return Math.abs(index) - 1;
   }
 
   @Override
   protected int hashCodeOnce() {
-    return 17 * atom + 5;
+    return HashCommon.mix(index);
   }
 
   public boolean isNegated() {
-    return atom < 0;
+    return index < 0;
   }
 
   @Override
@@ -107,7 +109,7 @@ public final class Literal extends ImmutableObject implements Formula {
 
   @Override
   public Literal not() {
-    return new Literal(getAtom(), !isNegated());
+    return negation;
   }
 
   @Override
@@ -122,16 +124,7 @@ public final class Literal extends ImmutableObject implements Formula {
 
   @Override
   public String toString() {
-    return (isNegated() ? "!p" : "p") + getAtom();
-  }
-
-  @Override
-  public String toString(List<String> atomMapping, boolean fullyParenthesized) {
-    if (atomMapping.size() > getAtom()) {
-      return (isNegated() ? "!" : "") + atomMapping.get(getAtom());
-    }
-
-    return toString();
+    return isNegated() ? "!p" + (-index - 1) : "p" + (index - 1);
   }
 
   @Override

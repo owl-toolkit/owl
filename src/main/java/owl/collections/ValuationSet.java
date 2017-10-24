@@ -18,6 +18,7 @@
 package owl.collections;
 
 import java.util.BitSet;
+import java.util.function.Consumer;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 
@@ -26,7 +27,10 @@ import jhoafparser.ast.BooleanExpression;
  * several standard contracts on purpose, such as returning a boolean, if the operation changes the
  * underlying data-structure. This information is never used and it is costly to support this.
  */
-public interface ValuationSet extends Iterable<BitSet> {
+public interface ValuationSet {
+  // TODO Move all operations to the factory (less objects and easier synchronization)
+  // TODO Remove iterators, replace with forEach()-type calls
+
   static ValuationSet intersection(ValuationSet vs1, ValuationSet vs2) {
     vs1.retainAll(vs2);
     vs2.free();
@@ -43,10 +47,12 @@ public interface ValuationSet extends Iterable<BitSet> {
   void addAll(ValuationSet other);
 
   /**
-   * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.
+   * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@code other}.
    *
    * @param other
    *     the other valuation set.
+   *
+   * @see #addAll(ValuationSet)
    */
   default void addAllWith(ValuationSet other) {
     addAll(other);
@@ -61,7 +67,13 @@ public interface ValuationSet extends Iterable<BitSet> {
 
   ValuationSet copy();
 
+  void forEach(Consumer<? super BitSet> action);
+
+  void forEach(BitSet restriction, Consumer<? super BitSet> action);
+
   void free();
+
+  BitSet getSupport();
 
   ValuationSet intersect(ValuationSet v2);
 

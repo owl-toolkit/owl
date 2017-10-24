@@ -49,29 +49,29 @@ public class FormulaTest {
   static {
     // TODO: Provide central Formula Database.
     FORMULAS = ImmutableList.of(
-      LtlParser.formula("true"),
-      LtlParser.formula("false"),
-      LtlParser.formula("a"),
+      LtlParser.syntax("true"),
+      LtlParser.syntax("false"),
+      LtlParser.syntax("a"),
 
-      LtlParser.formula("! a"),
-      LtlParser.formula("a & b"),
-      LtlParser.formula("a | b"),
-      LtlParser.formula("a -> b"),
-      LtlParser.formula("a xor b"),
+      LtlParser.syntax("! a"),
+      LtlParser.syntax("a & b"),
+      LtlParser.syntax("a | b"),
+      LtlParser.syntax("a -> b"),
+      LtlParser.syntax("a xor b"),
 
-      LtlParser.formula("F a"),
-      LtlParser.formula("G a"),
-      LtlParser.formula("X a"),
+      LtlParser.syntax("F a"),
+      LtlParser.syntax("G a"),
+      LtlParser.syntax("X a"),
 
-      LtlParser.formula("a U b"),
-      LtlParser.formula("a R b"),
-      LtlParser.formula("a W b"),
-      LtlParser.formula("a M b"),
+      LtlParser.syntax("a U b"),
+      LtlParser.syntax("a R b"),
+      LtlParser.syntax("a W b"),
+      LtlParser.syntax("a M b"),
 
-      LtlParser.formula("F ((a W b) & c)"),
-      LtlParser.formula("F ((a R b) & c)"),
-      LtlParser.formula("G ((a M b) | c)"),
-      LtlParser.formula("G ((a U b) | c)"));
+      LtlParser.syntax("F ((a W b) & c)"),
+      LtlParser.syntax("F ((a R b) & c)"),
+      LtlParser.syntax("G ((a M b) | c)"),
+      LtlParser.syntax("G ((a U b) | c)"));
   }
 
   static {

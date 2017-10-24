@@ -15,15 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jdd;
+@EverythingIsNonnullByDefault
+package owl.factories.jbdd;
 
-import com.google.common.collect.BiMap;
-import owl.collections.ValuationSetTest;
-import owl.factories.ValuationSetFactory;
-
-public class BddValuationSetTest extends ValuationSetTest {
-  @Override
-  public ValuationSetFactory setUpFactory(BiMap<String, Integer> aliases) {
-    return new ValuationFactory(aliases.size());
-  }
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

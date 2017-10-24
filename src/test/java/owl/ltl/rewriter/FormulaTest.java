@@ -104,7 +104,7 @@ public class FormulaTest {
     Formula f3 = f2.not();
     f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
-    assertEquals(f3, LtlParser.formula("((F G !a) | F (!a & !b))"));
+    assertEquals(f3, LtlParser.syntax("((F G !a) | F (!a & !b))"));
   }
 
   @Test
@@ -151,7 +151,7 @@ public class FormulaTest {
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(0, false);
     Formula f3 = Disjunction.create(f1, f2);
-    assertEquals(f3, f2);
+    assertEquals(f2, f3);
   }
 
   @Test
@@ -168,7 +168,7 @@ public class FormulaTest {
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(0, false);
     Formula f3 = Conjunction.create(f1, f2);
-    assertEquals(f3, f2);
+    assertEquals(f2, f3);
   }
 
   @Test
@@ -199,7 +199,7 @@ public class FormulaTest {
     Formula f1 = new Literal(0, false);
     Formula f2 = new XOperator(f1);
     Formula f3 = new FOperator(f2);
-    assertNotEquals(f3.toString(), "XFp1");
+    assertNotEquals("XFp1", f3.toString());
   }
 
   @Test
@@ -217,7 +217,7 @@ public class FormulaTest {
     Formula f2 = new FOperator(BooleanConstant.get(true));
     Formula f3 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f1, f2));
 
-    assertEquals(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f3), f1);
+    assertEquals(f1, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f3));
   }
 
   @Test
@@ -225,7 +225,7 @@ public class FormulaTest {
     Formula f1 = new Literal(1, false);
     Formula f2 = new UOperator(f1, f1);
 
-    assertEquals(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f2), f1);
+    assertEquals(f1, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f2));
   }
 
   @Test
@@ -254,8 +254,8 @@ public class FormulaTest {
 
   @Test
   public void testSimplifyModal() {
-    Formula f1 = LtlParser.formula("true U G(F(a))");
-    Formula f2 = LtlParser.formula("G F a");
+    Formula f1 = LtlParser.syntax("true U G(F(a))");
+    Formula f2 = LtlParser.syntax("G F a");
     assertEquals(f2, RewriterFactory.apply(RewriterEnum.MODAL, f1));
   }
 

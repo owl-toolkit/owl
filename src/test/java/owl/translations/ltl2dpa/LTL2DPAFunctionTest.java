@@ -31,7 +31,7 @@ import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.parser.LtlParseResult;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
 
@@ -40,10 +40,9 @@ public class LTL2DPAFunctionTest {
   private static void testOutput(String ltl, int size, int accSize) {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.PARALLEL);
-    LtlParseResult parseResult = LtlParser.parse(ltl);
+    LabelledFormula parseResult = LtlParser.parse(ltl);
     LTL2DPAFunction translation = new LTL2DPAFunction(opts);
-    Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult.getFormula());
-    automaton.setVariables(parseResult.getVariableMapping());
+    Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
 
     try (OutputStream stream = new ByteArrayOutputStream()) {
       HOAConsumer consumer = new HOAConsumerPrint(stream);

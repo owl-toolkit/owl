@@ -18,7 +18,9 @@
 package owl.ltl.tlsf;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
+import java.util.OptionalInt;
 import org.immutables.value.Value;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -26,6 +28,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
@@ -93,7 +96,7 @@ public abstract class Tlsf {
   public abstract String title();
 
   @Value.Derived
-  public Formula toFormula() {
+  public LabelledFormula toFormula() {
     Formula formula = Disjunction.create(FOperator.create(require().not()), assume().not(),
       Conjunction.create(GOperator.create(assert_()), guarantee()));
 
@@ -104,7 +107,20 @@ public abstract class Tlsf {
       formula = Conjunction.create(preset(), formula);
     }
 
-    return convert(Disjunction.create(initially().not(), formula));
+    Formula result = convert(Disjunction.create(initially().not(), formula));
+    BiMap<Integer, String> mapping = mapping().inverse();
+    OptionalInt maximalIndex = mapping.keySet().stream().mapToInt(Integer::intValue).max();
+    if (!maximalIndex.isPresent()) {
+      return LabelledFormula.create(result, ImmutableList.of());
+    }
+    String[] variables = new String[maximalIndex.getAsInt() + 1];
+    mapping.forEach((index, name) -> variables[index] = name);
+    for (int i = 0; i < variables.length; i++) {
+      if (variables[i] == null) {
+        variables[i] = "p" + i;
+      }
+    }
+    return LabelledFormula.create(result, ImmutableList.copyOf(variables));
   }
 
   public enum Semantics {

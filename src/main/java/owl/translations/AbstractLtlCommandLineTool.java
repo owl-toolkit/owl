@@ -24,19 +24,18 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.stream.Collectors;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
-public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool<Formula> {
+public abstract class AbstractLtlCommandLineTool extends AbstractCommandLineTool<LabelledFormula> {
   @Override
-  protected Collection<CommandLineInput<Formula>> parseInput(InputStream stream)
+  protected Collection<LabelledFormula> parseInput(InputStream stream)
     throws IOException {
     try (BufferedReader reader =
            new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
       return reader.lines()
         .filter(line -> !line.isEmpty())
         .map(LtlParser::parse)
-        .map(parser -> new CommandLineInput<>(parser.getFormula(), parser.getVariableMapping()))
         .collect(Collectors.toList());
     }
   }

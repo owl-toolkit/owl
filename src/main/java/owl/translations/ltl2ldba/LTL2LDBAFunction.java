@@ -33,10 +33,11 @@ import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.factories.Factories;
-import owl.factories.Registry;
+import owl.factories.jbdd.JBddSupplier;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
+import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.Optimisation;
@@ -53,20 +54,20 @@ import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager;
 import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 
 public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends
-  RecurringObligation> implements Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
-  S, B, C>> {
+  RecurringObligation> implements Function<LabelledFormula,
+  LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
 
   public static Logger logger = Logger.getLogger("ltl2ldba");
 
   private final Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor;
   private final boolean deterministicInitialComponent;
-  private final Function<Formula, Formula> formulaPreprocessor;
+  private final Function<LabelledFormula, LabelledFormula> formulaPreprocessor;
   private final Function<S, C> getAnnotation;
   private final EnumSet<Optimisation> optimisations;
   private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
 
   private LTL2LDBAFunction(
-    Function<Formula, Formula> formulaPreprocessor,
+    Function<LabelledFormula, LabelledFormula> formulaPreprocessor,
     Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor,
     EnumSet<Optimisation> optimisations, Function<S, C> getAnnotation) {
@@ -80,7 +81,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   }
 
   // CSOFF: Indentation
-  public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+  public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
   createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
@@ -93,7 +94,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   // CSON: Indentation
 
   // CSOFF: Indentation
-  public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+  public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
   createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
@@ -105,7 +106,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   // CSON: Indentation
 
   // CSOFF: Indentation
-  public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+  public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
   createGeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
@@ -118,7 +119,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   // CSON: Indentation
 
   // CSOFF: Indentation
-  public static Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+  public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
   createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
@@ -129,15 +130,16 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   }
   // CSON: Indentation
 
-  private static Formula preProcess(Formula formula) {
+  private static LabelledFormula preProcess(LabelledFormula formula) {
     return RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
   }
 
   @Override
-  public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(Formula formula) {
-    Formula processedFormula = formulaPreprocessor.apply(formula);
-    Factories factories = Registry.getFactories(processedFormula);
+  public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
+    LabelledFormula rewritten = formulaPreprocessor.apply(formula);
+    Factories factories = JBddSupplier.async().getFactories(rewritten);
 
+    Formula processedFormula = rewritten.formula;
     AbstractJumpManager<C> factory = selectorConstructor.apply(factories.equivalenceClassFactory
       .createEquivalenceClass(processedFormula));
 

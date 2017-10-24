@@ -17,6 +17,7 @@
 
 package owl.ltl.visitors;
 
+import java.util.function.Function;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -31,7 +32,11 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-public abstract class DefaultConverter implements Visitor<Formula> {
+public abstract class DefaultConverter implements Visitor<Formula>, Function<Formula, Formula> {
+  @Override
+  public Formula apply(Formula formula) {
+    return formula.accept(this);
+  }
 
   @Override
   public Formula visit(BooleanConstant booleanConstant) {

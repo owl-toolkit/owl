@@ -135,7 +135,7 @@ public class ParserTest {
   @Test
   public void formula() {
     for (int i = 0; i < INPUT.length; i++) {
-      Formula formula = LtlParser.formula(INPUT[i]);
+      Formula formula = LtlParser.syntax(INPUT[i]);
       assertEquals(INPUT[i], FORMULAS[i], formula);
     }
   }

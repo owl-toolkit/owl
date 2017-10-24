@@ -18,8 +18,7 @@
 package owl.ltl;
 
 import com.google.common.collect.ImmutableSet;
-import java.util.Iterator;
-import java.util.List;
+import com.google.common.collect.Iterables;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -74,8 +73,6 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   @Override
   public boolean equals2(ImmutableObject o) {
-    assert o instanceof PropositionalFormula;
-    // If equals2 is called, classes are equal
     PropositionalFormula that = (PropositionalFormula) o;
     return Objects.equals(children, that.children);
   }
@@ -88,17 +85,17 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   @Override
   public boolean isPureEventual() {
-    return children.stream().allMatch(Formula::isPureEventual);
+    return Iterables.all(children, Formula::isPureEventual);
   }
 
   @Override
   public boolean isPureUniversal() {
-    return children.stream().allMatch(Formula::isPureUniversal);
+    return Iterables.all(children, Formula::isPureUniversal);
   }
 
   @Override
   public boolean isSuspendable() {
-    return children.stream().allMatch(Formula::isSuspendable);
+    return Iterables.all(children, Formula::isSuspendable);
   }
 
   public <T> Stream<T> map(Function<Formula, T> mapper) {
@@ -107,47 +104,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   @Override
   public String toString() {
-    StringBuilder s = new StringBuilder(3 * children.size());
-
-    s.append('(');
-
-    Iterator<Formula> iter = children.iterator();
-
-    while (iter.hasNext()) {
-      s.append(iter.next());
-
-      if (iter.hasNext()) {
-        s.append(getOperator());
-      }
-    }
-
-    s.append(')');
-
-    return s.toString();
-  }
-
-  @Override
-  public String toString(List<String> variables, boolean fullyParenthesized) {
-    StringBuilder s = new StringBuilder(3 * children.size());
-
-    s.append('(');
-
-    Iterator<Formula> iter = children.iterator();
-
-    while (iter.hasNext()) {
-      if (fullyParenthesized) {
-        s.append("(" + iter.next().toString(variables, fullyParenthesized) + ")");
-      } else {
-        s.append(iter.next().toString(variables, fullyParenthesized));
-      }
-
-      if (iter.hasNext()) {
-        s.append(getOperator());
-      }
-    }
-
-    s.append(')');
-
-    return s.toString();
+    String delimiter = String.valueOf(getOperator());
+    return '(' + String.join(delimiter, Iterables.transform(children, Object::toString)) + ')';
   }
 }

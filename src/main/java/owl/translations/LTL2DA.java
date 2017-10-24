@@ -25,7 +25,7 @@ import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
@@ -41,7 +41,8 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
     new LTL2DA(args.remove("--parallel")).execute(args);
   }
 
-  private static HoaPrintable translate(Formula formula, EnumSet<Optimisation> optimisations) {
+  private static HoaPrintable translate(LabelledFormula formula,
+    EnumSet<Optimisation> optimisations) {
     LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(optimisations);
     LimitDeterministicAutomaton<?, ?, ?, ?> ldba = LTL2LDBAFunction
       .createGeneralizedBreakpointLDBABuilder(optimisations).apply(formula);
@@ -56,8 +57,8 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, ? extends HoaPrintable> getTranslation(
-    EnumSet<Optimisation> optimisations) {
+  protected Function<LabelledFormula, ? extends HoaPrintable>
+  getTranslation(EnumSet<Optimisation> optimisations) {
 
     if (parallel) {
       optimisations.add(Optimisation.PARALLEL);
