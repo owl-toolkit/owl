@@ -144,8 +144,8 @@ public final class EmptinessCheck {
 
     if (automaton.getAcceptance() instanceof BuchiAcceptance) {
       Automaton<S, BuchiAcceptance> casted = (Automaton<S, BuchiAcceptance>) automaton;
-      assert Buchi.containsAcceptingLasso(casted, initialState)
-        == Buchi.containsAcceptingScc(casted, initialState);
+      /* assert Buchi.containsAcceptingLasso(casted, initialState)
+        == Buchi.containsAcceptingScc(casted, initialState); */
       return !Buchi.containsAcceptingLasso(casted, initialState);
     }
 
@@ -161,15 +161,15 @@ public final class EmptinessCheck {
     if (acceptance instanceof ParityAcceptance) {
       Automaton<S, ParityAcceptance> casted = (Automaton<S, ParityAcceptance>) automaton;
 
-      assert Parity.containsAcceptingLasso(casted, initialState)
-        == Parity.containsAcceptingScc(casted, initialState);
+      /* assert Parity.containsAcceptingLasso(casted, initialState)
+        == Parity.containsAcceptingScc(casted, initialState); */
       return !Parity.containsAcceptingLasso(casted, initialState);
     }
 
     if (acceptance instanceof RabinAcceptance) {
       Automaton<S, RabinAcceptance> casted = (Automaton<S, RabinAcceptance>) automaton;
-      //assert Rabin.containsAcceptingLasso(casted, initialState)
-      //  == Rabin.containsAcceptingScc(casted, initialState);
+      /* assert Rabin.containsAcceptingLasso(casted, initialState)
+        == Rabin.containsAcceptingScc(casted, initialState); */
       return !Rabin.containsAcceptingLasso(casted, initialState);
     }
 
