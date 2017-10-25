@@ -222,7 +222,7 @@ public final class AutomatonFactory {
 
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      checkArgument(getStates().contains(state), "State %s not in automaton", state);
+      checkArgument(states.contains(state), "State %s not in restriction", state);
       return Collections2.filter(automaton.getLabelledEdges(state), edgeFilter::test);
     }
 

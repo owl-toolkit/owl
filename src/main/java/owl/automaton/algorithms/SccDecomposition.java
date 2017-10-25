@@ -41,8 +41,9 @@ public final class SccDecomposition<S> {
   // TODO Parallel tarjan?
 
   // Initial value for the low link - since we update the low-link whenever we find a link to a
-  // state we can use this to detect trivial SCCs. MAX_VALUE is important.
+  // state we can use this to detect trivial SCCs. MAX_VALUE is important for "<" comparisons
   private static final int NO_LINK = Integer.MAX_VALUE;
+
   private final Deque<S> explorationStack = new ArrayDeque<>();
   private final boolean includeTransient;
   private final Deque<TarjanState<S>> path = new ArrayDeque<>();
@@ -105,19 +106,20 @@ public final class SccDecomposition<S> {
       return ImmutableList.of();
     }
 
-    SccDecomposition<S> analyser = new SccDecomposition<>(successorFunction, includeTransient);
+    SccDecomposition<S> decomposition = new SccDecomposition<>(successorFunction, includeTransient);
 
     for (S state : states) {
-      if (analyser.stateMap.containsKey(state) || analyser.processedNodes.contains(state)) {
+      if (decomposition.stateMap.containsKey(state)
+        || decomposition.processedNodes.contains(state)) {
         continue;
       }
-      analyser.run(state);
+      decomposition.run(state);
     }
 
-    assert includeTransient || analyser.sccs.stream()
+    assert includeTransient || decomposition.sccs.stream()
       .noneMatch(scc -> isTransient(successorFunction, scc));
 
-    return analyser.sccs;
+    return decomposition.sccs;
   }
 
   public static <S> boolean isTransient(Function<S, ? extends Iterable<S>> successorFunction,
@@ -194,34 +196,14 @@ public final class SccDecomposition<S> {
         // Successor is not fully explored and we found a link to it, hence the low-link of this
         // state is less than or equal to the successors link.
         int successorIndex = successorState.nodeIndex;
-        if (successorIndex > nodeIndex) {
-          // This only happens if the successor iterator returns duplicates.
-          continue;
-        }
-        assert successorIndex < nodeIndex;
+        assert successorIndex != nodeIndex;
 
-        int successorLowLink = successorState.lowLink;
-
-        if (successorLowLink == NO_LINK) {
-          // Special case: We haven't found a true low-link from the successor yet.
-          if (state.lowLink == NO_LINK) {
-            // We also didn't find a link to the current state. Since the successor is an
-            // ancestor to the current state, this is our best guess for a low-link now.
-            state.lowLink = successorIndex;
-            continue;
-          }
-
-          // We will only update the current state's low-link, since we will back-propagate this
-          // information in the pop-phase.
-          successorLowLink = successorIndex;
-        }
-
+        int successorLowLink = successorState.getLowLink();
         if (successorLowLink < state.lowLink) {
-          // This includes the case of state.lowLink == NO_LINK
           state.lowLink = successorLowLink;
         }
 
-        assert state.lowLink < state.nodeIndex;
+        assert state.lowLink <= nodeIndex;
       }
 
       // Finished handling this state by identifying whether it is a root of an SCC and
@@ -250,6 +232,7 @@ public final class SccDecomposition<S> {
         S stackNode = explorationStack.pop();
         if (stackNode == node) { // NOPMD
           // Singleton SCC
+          assert Iterables.contains(successorFunction.apply(stackNode), stackNode);
           scc = ImmutableSet.of(node);
         } else {
           ImmutableSet.Builder<S> builder = ImmutableSet.builder();
@@ -274,10 +257,12 @@ public final class SccDecomposition<S> {
         TarjanState<S> predecessorState = path.peek();
         // Since the current state has a "true" low-link, it is a possible low-link for the
         // predecessor, too. By invariant, it points to a non-finished state, i.e. a state in some
-        // not yet found SCC. Hence, it has to point to a node at least as old as the predecessor.
-        assert lowLink <= predecessorState.nodeIndex : String.format(
-          "lowLink: %s, predecessorState.nodeIndex: %s", lowLink, predecessorState.nodeIndex);
-        if (predecessorState.lowLink == NO_LINK || lowLink < predecessorState.lowLink) {
+        // not yet found SCC.
+        int predecessorLowLink = predecessorState.lowLink;
+
+        if (lowLink < predecessorLowLink) {
+          // Also happens if predecessor's low-link is NO_LINK - we may have found a back-edge to
+          // the predecessor
           predecessorState.lowLink = lowLink;
         }
       }
@@ -303,6 +288,16 @@ public final class SccDecomposition<S> {
       this.nodeIndex = nodeIndex;
       this.successorIterator = successorIterator;
       lowLink = NO_LINK;
+    }
+
+    int getLowLink() {
+      // In standard Tarjan, all "NO_LINK"-states would have their own index as low-link.
+      return lowLink == NO_LINK ? nodeIndex : lowLink;
+    }
+
+    @Override
+    public String toString() {
+      return nodeIndex + "(" + (lowLink == NO_LINK ? "X" : lowLink) + ") " + node;
     }
   }
 }

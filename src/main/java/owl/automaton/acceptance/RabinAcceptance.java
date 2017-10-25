@@ -122,7 +122,7 @@ public final class RabinAcceptance implements OmegaAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
-    return List.of(pairs.size());
+    return Collections.singletonList(pairs.size());
   }
 
   public List<RabinPair> getPairs() {
