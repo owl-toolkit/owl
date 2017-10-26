@@ -47,7 +47,7 @@ public class HashMapAutomatonTest {
     HashMapAutomaton<?, ?> automaton =
       new HashMapAutomaton<>(FACTORY, new AllAcceptance());
     assertThat(automaton.isComplete(), is(true));
-    assertThat(automaton.isDeterministic(), is(false));
+    assertThat(automaton.isDeterministic(), is(true));
     assertThat(automaton.getIncompleteStates().keySet(), empty());
     assertThat(automaton.getInitialStates(), empty());
     assertThat(automaton.getStates(), empty());

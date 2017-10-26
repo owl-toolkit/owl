@@ -17,6 +17,7 @@
 
 package owl.translations.delag;
 
+import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -72,7 +73,13 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
       assert piggyback == null;
       FallbackLeaf<T> fallbackLeaf = (FallbackLeaf<T>) leaf;
       setNumber += fallbackLeaf.automaton.getAcceptance().getAcceptanceSets();
-      builder.fallback.put(formula, fallbackLeaf.automaton.getInitialState());
+      T initialState = Iterables.getOnlyElement(fallbackLeaf.automaton.getInitialStates(), null);
+
+      if (initialState != null) {
+        builder.fallback.put(formula, initialState);
+      } else {
+        builder.finished.put(fallbackLeaf, Boolean.FALSE);
+      }
     } else if (piggyback == null) {
       setNumber++;
     }
