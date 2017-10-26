@@ -268,7 +268,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   /**
-   * Determines whether the automaton is deterministic, i.e. there is exactly one initial state and
+   * Determines whether the automaton is deterministic, i.e. there is at most one initial state and
    * every state has at most one successor under each valuation.
    *
    * @return Whether the automaton is deterministic.
@@ -276,7 +276,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @see AutomatonUtil#isDeterministic(Iterable)
    */
   default boolean isDeterministic() {
-    return getInitialStates().size() == 1
+    return getInitialStates().size() <= 1
       && getStates().stream().allMatch(s -> AutomatonUtil.isDeterministic(getLabelledEdges(s)));
   }
 
