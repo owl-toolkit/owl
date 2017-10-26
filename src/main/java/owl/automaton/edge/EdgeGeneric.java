@@ -17,10 +17,9 @@
 
 package owl.automaton.edge;
 
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
-import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
@@ -39,8 +38,13 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
+  public int acceptanceSetCount() {
+    return acceptance.cardinality();
+  }
+
+  @Override
   public OfInt acceptanceSetIterator() {
-    return new BitSetIterator(acceptance);
+    return BitSets.iterator(acceptance);
   }
 
   @Override
@@ -71,7 +75,6 @@ final class EdgeGeneric<S> implements Edge<S> {
   @Override
   public boolean hasAcceptanceSets() {
     assert !acceptance.isEmpty();
-
     return true;
   }
 
@@ -100,34 +103,12 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public String toString() {
-    return Edge.toString(this);
+  public EdgeGeneric<S> withSuccessor(S successor) {
+    return new EdgeGeneric<>(successor, acceptance);
   }
 
-  // Copied from java.util.BitSet#stream()
-  private static final class BitSetIterator implements PrimitiveIterator.OfInt {
-    private final BitSet bitSet;
-    private int next;
-
-    BitSetIterator(BitSet bitSet) {
-      this.bitSet = bitSet;
-      next = bitSet.nextSetBit(0);
-    }
-
-    @Override
-    public boolean hasNext() {
-      return next != -1;
-    }
-
-    @Override
-    public int nextInt() {
-      if (next == -1) {
-        throw new NoSuchElementException();
-      }
-
-      int current = next;
-      next = bitSet.nextSetBit(next + 1);
-      return current;
-    }
+  @Override
+  public String toString() {
+    return Edge.toString(this);
   }
 }

@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -57,9 +56,6 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
     return getInitialComponent().stateCount() == 0
       && getAcceptingComponent().getInitialStates().size() <= 1;
   }
-
-  @Override
-  void setVariables(List<String> variables);
 
   default int size() {
     return getInitialComponent().stateCount() + getAcceptingComponent().stateCount();

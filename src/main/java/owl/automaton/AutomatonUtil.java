@@ -42,6 +42,7 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.Option;
 import owl.collections.ValuationSet;
 
@@ -158,19 +159,20 @@ public final class AutomatonUtil {
   public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
     BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
     Function<S, BitSet> sensitiveAlphabetOracle, AtomicInteger sizeCounter) {
-    int alphabetSize = automaton.getFactory().getSize();
-    BitSet alphabet = new BitSet(alphabetSize);
-    alphabet.set(0, alphabetSize);
 
+    int alphabetSize = automaton.getFactory().getSize();
     Set<S> exploredStates = Sets.newHashSet(states);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+    sizeCounter.lazySet(exploredStates.size());
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
       BitSet sensitiveAlphabet = sensitiveAlphabetOracle.apply(state);
-      BitSet powerSetBase = sensitiveAlphabet == null ? alphabet : sensitiveAlphabet;
+      Set<BitSet> bitSets = sensitiveAlphabet == null
+        ? BitSets.powerSet(alphabetSize)
+        : BitSets.powerSet(sensitiveAlphabet);
 
-      for (BitSet valuation : BitSets.powerSet(powerSetBase)) {
+      for (BitSet valuation : bitSets) {
         for (Edge<S> edge : explorationFunction.apply(state, valuation)) {
           ValuationSet valuationSet;
 
@@ -190,13 +192,12 @@ public final class AutomatonUtil {
         }
       }
 
-      sizeCounter.lazySet(exploredStates.size());
-
       // Generating the automaton is a long-running task. If the thread gets interrupted, we
       // just cancel everything. Warning: All data structures are now inconsistent!
       if (Thread.interrupted()) {
         throw new CancellationException();
       }
+      sizeCounter.lazySet(exploredStates.size());
     }
   }
 
@@ -331,10 +332,10 @@ public final class AutomatonUtil {
     return true;
   }
 
-  public static String toHoa(Automaton<?, ?> automaton) {
+  public static String toHoa(HoaPrintable printable) {
     ByteArrayOutputStream writer = new ByteArrayOutputStream();
     HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
-    automaton.toHoa(hoa, EnumSet.of(Option.ANNOTATIONS));
+    printable.toHoa(hoa, EnumSet.of(Option.ANNOTATIONS));
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 }

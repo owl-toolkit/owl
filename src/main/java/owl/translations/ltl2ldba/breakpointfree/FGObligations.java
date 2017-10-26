@@ -169,7 +169,7 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public EquivalenceClass getLanguage() {
     return safety.getFactory().createEquivalenceClass(
-      Sets2.newHashSet(rewrittenOperators, GOperator::create));
+      Sets2.transform(rewrittenOperators, GOperator::create));
   }
 
   EquivalenceClass getObligation() {

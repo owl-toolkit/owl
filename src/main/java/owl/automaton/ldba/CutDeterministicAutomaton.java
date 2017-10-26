@@ -66,7 +66,7 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
   @Override
   public Automaton<Set<S>, NoneAcceptance> getInitialComponent() {
     return MutableAutomatonFactory.createMutableAutomaton(AutomatonFactory.createPowerSetAutomaton(
-        ldba.getInitialComponent()));
+      ldba.getInitialComponent()));
   }
 
   @Override
@@ -75,6 +75,11 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
     state.forEach(s -> ldba.getValuationSetJumps(s)
       .forEach((k, v) -> jumps.merge(k, v, Sets::union)));
     return jumps;
+  }
+
+  @Override
+  public List<String> getVariables() {
+    return ldba.getVariables();
   }
 
   @Override

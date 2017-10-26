@@ -24,7 +24,9 @@ import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
 public final class NoneAcceptance implements OmegaAcceptance {
+  public static final NoneAcceptance INSTANCE = new NoneAcceptance();
 
+  private NoneAcceptance() {}
 
   @Override
   public int getAcceptanceSets() {
@@ -45,6 +47,7 @@ public final class NoneAcceptance implements OmegaAcceptance {
   public List<Object> getNameExtra() {
     return Collections.emptyList();
   }
+
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {

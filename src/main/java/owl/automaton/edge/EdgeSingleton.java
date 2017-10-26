@@ -17,6 +17,7 @@
 
 package owl.automaton.edge;
 
+import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
@@ -41,17 +42,20 @@ final class EdgeSingleton<S> implements Edge<S> {
   }
 
   @Override
+  public int acceptanceSetCount() {
+    return hasAcceptanceSets() ? 1 : 0;
+  }
+
+  @Override
   public PrimitiveIterator.OfInt acceptanceSetIterator() {
-    return new SingletonIterator(acceptance);
+    return hasAcceptanceSets()
+      ? IntIterators.singleton(acceptance)
+      : IntIterators.EMPTY_ITERATOR;
   }
 
   @Override
   public IntStream acceptanceSetStream() {
-    if (acceptance == EMPTY_ACCEPTANCE) {
-      return IntStream.empty();
-    }
-
-    return IntStream.of(acceptance);
+    return hasAcceptanceSets() ? IntStream.of(acceptance) : IntStream.empty();
   }
 
   @Override
@@ -107,23 +111,10 @@ final class EdgeSingleton<S> implements Edge<S> {
     return Edge.toString(this);
   }
 
-  private static final class SingletonIterator implements PrimitiveIterator.OfInt {
-    private int value;
-
-    SingletonIterator(int value) {
-      this.value = value;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return value != EMPTY_ACCEPTANCE;
-    }
-
-    @Override
-    public int nextInt() {
-      int value = this.value;
-      this.value = EMPTY_ACCEPTANCE;
-      return value;
-    }
+  @Override
+  public EdgeSingleton<S> withSuccessor(S successor) {
+    return hasAcceptanceSets()
+      ? new EdgeSingleton<>(successor, acceptance)
+      : new EdgeSingleton<>(successor);
   }
 }

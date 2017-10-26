@@ -190,7 +190,7 @@ public class RabinizerBuilder {
     EquivalenceClass initialClass = masterStateFactory.getInitialState(formula);
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
-      MutableAutomatonFactory.createMutableAutomaton(new AllAcceptance(), vsFactory,
+      MutableAutomatonFactory.createMutableAutomaton(AllAcceptance.INSTANCE, vsFactory,
         ImmutableSet.of(initialClass), masterStateFactory::getMasterSuccessor, state -> null);
     logger.log(Level.FINEST, () -> String.format("Master automaton for %s:%n%s", initialClass,
       toHoa(masterAutomaton)));

@@ -134,6 +134,7 @@ public final class EmptinessCheck {
     return isEmpty(filteredAutomaton, scc.iterator().next());
   }
 
+  @SuppressWarnings("unchecked")
   private static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
     OmegaAcceptance acceptance = automaton.getAcceptance();
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";

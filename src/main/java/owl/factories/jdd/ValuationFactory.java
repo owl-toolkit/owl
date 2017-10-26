@@ -148,9 +148,9 @@ public final class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void addAll(ValuationSet newVs) {
-      assert newVs instanceof BddValuationSet;
-      BddValuationSet otherSet = (BddValuationSet) newVs;
+    public void addAll(ValuationSet other) {
+      assert other instanceof BddValuationSet;
+      BddValuationSet otherSet = (BddValuationSet) other;
       bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
     }
 

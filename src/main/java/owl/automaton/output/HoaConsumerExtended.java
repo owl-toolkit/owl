@@ -83,7 +83,7 @@ public final class HoaConsumerExtended<S> {
       }
 
       if (initialStates.isEmpty()) {
-        OmegaAcceptance noneAcceptance = new NoneAcceptance();
+        OmegaAcceptance noneAcceptance = NoneAcceptance.INSTANCE;
         consumer.provideAcceptanceName(noneAcceptance.getName(), noneAcceptance.getNameExtra());
         consumer.setAcceptanceCondition(noneAcceptance.getAcceptanceSets(),
           noneAcceptance.getBooleanExpression());
