@@ -18,6 +18,7 @@
 package owl.translations.delag;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
@@ -62,26 +63,24 @@ class ProductState<T> {
   }
 
   static class Builder<T> {
-    final ImmutableMap.Builder<Formula, T> fallback;
-    final ImmutableMap.Builder<DependencyTree<T>, Boolean> finished;
-    final ImmutableMap.Builder<Formula, EquivalenceClass> safety;
+    final Map<Formula, T> fallback;
+    final Map<DependencyTree<T>, Boolean> finished;
+    final Map<Formula, EquivalenceClass> safety;
 
     Builder() {
-      fallback = ImmutableMap.builder();
-      finished = ImmutableMap.builder();
-      safety = ImmutableMap.builder();
+      fallback = new HashMap<>();
+      finished = new HashMap<>();
+      safety = new HashMap<>();
     }
 
     ProductState<T> build() {
-      return new ProductState<>(fallback.build(),
-        finished.build(),
-        safety.build());
+      return new ProductState<>(fallback, finished, safety);
     }
 
     void putAll(Builder<T> other) {
-      fallback.putAll(other.fallback.build());
-      finished.putAll(other.finished.build());
-      safety.putAll(other.safety.build());
+      fallback.putAll(other.fallback);
+      finished.putAll(other.finished);
+      safety.putAll(other.safety);
     }
   }
 }
