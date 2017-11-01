@@ -132,7 +132,8 @@ public final class MinimizationUtil {
       }
 
       // There are no accepting runs.
-      if (EmptinessCheck.isAcceptingScc(automaton, scc)) {
+      if (EmptinessCheck.isRejectingScc(automaton, scc)) {
+        logger.log(Level.FINER, "Removing scc {0}", scc);
         automaton.removeStates(scc);
         scc.forEach(removedStatesConsumer);
       }

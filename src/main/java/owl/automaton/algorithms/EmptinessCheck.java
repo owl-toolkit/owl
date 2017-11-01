@@ -128,7 +128,7 @@ public final class EmptinessCheck {
     return index >= 0 && edge.inSet(index);
   }
 
-  public static <S> boolean isAcceptingScc(Automaton<S, ?> automaton, Set<S> scc) {
+  public static <S> boolean isRejectingScc(Automaton<S, ?> automaton, Set<S> scc) {
     Automaton<S, ?> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
     assert SccDecomposition.isTrap(filteredAutomaton, scc);
     return isEmpty(filteredAutomaton, scc.iterator().next());

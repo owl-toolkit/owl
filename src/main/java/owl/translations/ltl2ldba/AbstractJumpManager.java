@@ -1,6 +1,6 @@
 package owl.translations.ltl2ldba;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.LOGGER;
+import static owl.translations.ltl2ldba.LTL2LDBAFunction.logger;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
@@ -62,14 +62,14 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     Set<Jump<X>> jumps = computeJumps(state);
 
-    LOGGER.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
+    logger.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
 
     if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
       jumps.removeIf(jump -> jumps.stream().anyMatch(
         otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
     }
 
-    LOGGER.log(Level.FINE, () ->
+    logger.log(Level.FINE, () ->
       state + " has the following jumps (after language inclusion check): " + jumps);
 
     if (optimisations.contains(Optimisation.FORCE_JUMPS)) {
@@ -105,7 +105,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
     // infinite behaviour and simply build the left-derivative of the formula.
     if (state.testSupport(Fragments::isCoSafety) || state.testSupport(Fragments::isSafety)) {
-      LOGGER.log(Level.FINE, () -> state + " is (co)safety. Suppressing jump.");
+      logger.log(Level.FINE, () -> state + " is (co)safety. Suppressing jump.");
       return (AnalysisResult<X>) EMPTY;
     }
 
@@ -142,7 +142,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       coSafety.free();
 
       if (existsExternalCondition) {
-        LOGGER.log(Level.FINE, state + " has independent cosafety property. Suppressing jump.");
+        logger.log(Level.FINE, state + " has independent cosafety property. Suppressing jump.");
         return (AnalysisResult<X>) EMPTY;
       }
     }
