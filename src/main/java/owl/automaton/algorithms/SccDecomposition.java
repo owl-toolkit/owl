@@ -98,7 +98,8 @@ public final class SccDecomposition<S> {
 
   // Return Condensation Graph?
   private static <S> List<Set<S>> computeSccs(Set<S> states,
-    Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
+    Function<S, Iterable<S>> successorFunction,
+    boolean includeTransient) {
 
     // No need to initialize all the data-structures
     if (states.isEmpty()) {
@@ -108,12 +109,10 @@ public final class SccDecomposition<S> {
     SccDecomposition<S> decomposition = new SccDecomposition<>(successorFunction, includeTransient);
 
     for (S state : states) {
-      if (decomposition.stateMap.containsKey(state)
-        || decomposition.processedNodes.contains(state)) {
-        continue;
+      if (!decomposition.stateMap.containsKey(state)
+          && !decomposition.processedNodes.contains(state)) {
+        decomposition.run(state);
       }
-
-      decomposition.run(state);
     }
 
     assert includeTransient || decomposition.sccs.stream()

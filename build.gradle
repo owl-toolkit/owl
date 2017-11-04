@@ -246,6 +246,7 @@ checkstyle {
 mainClassName = "owl.run.DefaultCli"
 // Create startup scripts for each tool
 def scripts = [
+    'synth'      : 'owl.translations.Synthesis',
     'ltl2da'     : 'owl.translations.LTL2DA',
     'ltl2dpa'    : 'owl.translations.LTL2DPA',
     'ltl2ldba'   : 'owl.translations.ltl2ldba.LTL2LDBAModule',
@@ -255,7 +256,7 @@ def scripts = [
     'ltl2dgra'   : 'owl.translations.rabinizer.RabinizerMain',
     'ltl2dra'    : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'nba2dpa'    : 'owl.translations.nba2dpa.NBA2DPAModule',
-    'owl-server' : 'owl.run.coordinator.ServerCoordinator' 
+    'owl-server' : 'owl.run.coordinator.ServerCoordinator'
 ]
 
 scripts.each() { scriptName, className ->

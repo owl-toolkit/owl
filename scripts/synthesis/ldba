@@ -1,0 +1,17 @@
+#!/bin/bash
+# expects $1 = input tlsf file
+DIR=`dirname $0`/
+SYFCO="${DIR}../syfco/syfco"
+OWL_BIN="${DIR}distro/bin/"
+
+# call syfco
+formulas=$(${SYFCO} -f ltlxba-decomp -m fully "$1")
+
+# syfco will return a list of formulas
+# we will feed them into owl one by one
+IFS=';' read -ra FMLS <<< "${formulas}"
+for f in "${FMLS[@]}"; do
+  echo "Constructing automaton for formula ${f}"
+  # call owl
+  echo "${f}" | ${OWL_BIN}/ltl2ldba --deterministic
+done

@@ -1,0 +1,21 @@
+#!/bin/bash
+# expects $1 = input tlsf file
+DIR=`dirname $0`/
+SYFCO="${DIR}../syfco/syfco"
+OWL_BIN="${DIR}distro/bin/"
+
+# call syfco
+base=$(basename $1)
+temp="${DIR}"
+formulas=$(${SYFCO} -f ltlxba "$1" -m fully -pf "${temp}${base}.part")
+
+# syfco will return a list of formulas separated by
+# ; and we will feed them all to owl.synth
+while IFS= read -r line
+do
+    uncontrollable="${line}"
+    break
+done < "${temp}${base}.part"
+prefix=".inputs "
+uncontrollable=${uncontrollable#$prefix}
+echo "${formulas}" | sed "s/;/\\`echo -e '\n\r'`/g" | ${OWL_BIN}/synth -u ${uncontrollable}
