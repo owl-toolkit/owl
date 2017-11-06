@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import owl.collections.Sets2;
+import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
 import owl.ltl.BooleanConstant;
@@ -43,8 +43,6 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.ltl2ldba.RecurringObligation;
 
 public final class FGObligations implements RecurringObligation {
-
-  private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
 
   final ImmutableSet<FOperator> foperators;
   final ImmutableSet<GOperator> goperators;
@@ -138,7 +136,7 @@ public final class FGObligations implements RecurringObligation {
   public boolean containsLanguageOf(RecurringObligation other) {
     checkArgument(other instanceof FGObligations);
 
-    if (Sets2.isSubset(rewrittenOperators, ((FGObligations) other).rewrittenOperators)) {
+    if (((FGObligations) other).rewrittenOperators.containsAll(rewrittenOperators)) {
       return true;
     }
 
@@ -169,7 +167,7 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public EquivalenceClass getLanguage() {
     return safety.getFactory().createEquivalenceClass(
-      Sets2.transform(rewrittenOperators, GOperator::create));
+      Collections3.transform(rewrittenOperators, GOperator::create));
   }
 
   EquivalenceClass getObligation() {

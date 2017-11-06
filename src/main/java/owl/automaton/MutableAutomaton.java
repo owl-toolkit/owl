@@ -266,7 +266,8 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *
    * @see #removeUnreachableStates(Collection)
    */
-  void removeUnreachableStates(Collection<? extends S> start, Consumer<S> removedStatesConsumer);
+  void removeUnreachableStates(Collection<? extends S> start,
+    Consumer<? super S> removedStatesConsumer);
 
   /**
    * Set the initial state of the automaton. Requires the specified state to be present.

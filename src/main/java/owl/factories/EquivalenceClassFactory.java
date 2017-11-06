@@ -18,6 +18,7 @@
 package owl.factories;
 
 import java.util.List;
+import java.util.stream.Stream;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
@@ -27,6 +28,10 @@ public interface EquivalenceClassFactory {
   EquivalenceClass createEquivalenceClass(Formula formula);
 
   default EquivalenceClass createEquivalenceClass(Iterable<? extends Formula> formulas) {
+    return createEquivalenceClass(Conjunction.create(formulas));
+  }
+
+  default EquivalenceClass createEquivalenceClass(Stream<? extends Formula> formulas) {
     return createEquivalenceClass(Conjunction.create(formulas));
   }
 

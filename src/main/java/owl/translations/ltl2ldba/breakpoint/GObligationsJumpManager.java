@@ -20,7 +20,6 @@ package owl.translations.ltl2ldba.breakpoint;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.LOGGER;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
@@ -31,7 +30,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -85,7 +83,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     return new GObligationsJumpManager(initialState.getFactory(), optimisations, jumps);
   }
 
-  private static boolean containsAllPropostions(Collection<? extends Formula> set1,
+  private static boolean containsAllPropositions(Collection<? extends Formula> set1,
     Collection<Formula> set2) {
     return set1.parallelStream().allMatch(x -> set2.stream()
       .anyMatch(y -> y.anyMatch(z -> x.equals(Collector.transformToGOperator(z)))));
@@ -102,7 +100,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
       : state.unfold();
     Set<Formula> support = state2.getSupport();
     Set<GObligations> availableObligations = obligations
-      .stream().filter(x -> containsAllPropostions(x.goperators, support))
+      .stream().filter(x -> containsAllPropositions(x.goperators, support))
       .collect(Collectors.toSet());
     state2.free();
 
@@ -144,14 +142,22 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     return false;
   }
 
-  private EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
-    Formula formula = clazz.getRepresentative();
+  private Formula evaluate(Formula formula, GObligations keys) {
     EvaluateVisitor evaluateVisitor = new EvaluateVisitor(keys.goperators, keys.getObligation());
     Formula subst = formula.accept(evaluateVisitor);
     Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
-    EquivalenceClass goal = factory.createEquivalenceClass(evaluated);
     evaluateVisitor.free();
-    return goal;
+    return evaluated;
+  }
+
+  private EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
+    Formula formula = clazz.getRepresentative();
+
+    if (formula != null) {
+      return factory.createEquivalenceClass(evaluate(formula, keys));
+    }
+
+    return clazz.substitute(x -> evaluate(x, keys));
   }
 
   static class EvaluateVisitor implements Visitor<Formula> {
@@ -159,22 +165,21 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     private final EquivalenceClass environment;
     private final EquivalenceClassFactory factory;
 
-    EvaluateVisitor(Iterable<GOperator> gMonitors, EquivalenceClass label) {
+    EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
       this.factory = label.getFactory();
-      this.environment = label.and(factory.createEquivalenceClass(Iterables.concat(gMonitors,
-        StreamSupport.stream(gMonitors.spliterator(), false).map(x -> x.operand)
-          .collect(Collectors.toList()))));
-    }
-
-    private Formula defaultAction(Formula formula) {
-      EquivalenceClass clazz = factory.createEquivalenceClass(formula);
-      boolean isTrue = environment.implies(clazz);
-      clazz.free();
-      return isTrue ? BooleanConstant.TRUE : formula;
+      this.environment = label.and(factory.createEquivalenceClass(
+        Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand))));
     }
 
     void free() {
       environment.free();
+    }
+
+    private boolean isImplied(Formula formula) {
+      EquivalenceClass clazz = factory.createEquivalenceClass(formula);
+      boolean isTrue = environment.implies(clazz);
+      clazz.free();
+      return isTrue;
     }
 
     @Override
@@ -184,21 +189,14 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      Formula defaultAction = defaultAction(conjunction);
-
-      if (defaultAction instanceof BooleanConstant) {
-        return defaultAction;
-      }
-
+      // Implication check not necessary for conjunctions.
       return Conjunction.create(conjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      Formula defaultAction = defaultAction(disjunction);
-
-      if (defaultAction instanceof BooleanConstant) {
-        return defaultAction;
+      if (isImplied(disjunction)) {
+        return BooleanConstant.TRUE;
       }
 
       return Disjunction.create(disjunction.children.stream().map(e -> e.accept(this)));
@@ -206,10 +204,8 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
 
     @Override
     public Formula visit(FOperator fOperator) {
-      Formula defaultAction = defaultAction(fOperator);
-
-      if (defaultAction instanceof BooleanConstant) {
-        return defaultAction;
+      if (isImplied(fOperator)) {
+        return BooleanConstant.TRUE;
       }
 
       return FOperator.create(fOperator.operand.accept(this));
@@ -222,47 +218,33 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
 
     @Override
     public Formula visit(GOperator gOperator) {
+      if (isImplied(gOperator)) {
+        return BooleanConstant.TRUE;
+      }
+
       return BooleanConstant.get(gOperator.operand.accept(this) == BooleanConstant.TRUE);
     }
 
     @Override
     public Formula visit(Literal literal) {
-      return defaultAction(literal);
+      return isImplied(literal) ? BooleanConstant.TRUE : literal;
     }
 
     @Override
     public Formula visit(MOperator mOperator) {
-      Formula defaultAction = defaultAction(mOperator);
-
-      if (defaultAction instanceof BooleanConstant) {
-        return defaultAction;
+      if (isImplied(mOperator)) {
+        return BooleanConstant.TRUE;
       }
 
       return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
     }
 
     @Override
-    public Formula visit(UOperator uOperator) {
-      Formula defaultAction = defaultAction(uOperator);
-
-      if (defaultAction instanceof BooleanConstant) {
-        return defaultAction;
-      }
-
-      return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
-    }
-
-    @Override
-    public Formula visit(WOperator wOperator) {
-      if (wOperator.left.accept(this) == BooleanConstant.TRUE) {
+    public Formula visit(ROperator rOperator) {
+      if (isImplied(rOperator)) {
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.create(wOperator.left, wOperator.right).accept(this);
-    }
-
-    @Override
-    public Formula visit(ROperator rOperator) {
       if (rOperator.right.accept(this) == BooleanConstant.TRUE) {
         return BooleanConstant.TRUE;
       }
@@ -271,11 +253,31 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     }
 
     @Override
-    public Formula visit(XOperator xOperator) {
-      Formula defaultAction = defaultAction(xOperator);
+    public Formula visit(UOperator uOperator) {
+      if (isImplied(uOperator)) {
+        return BooleanConstant.TRUE;
+      }
 
-      if (defaultAction instanceof BooleanConstant) {
-        return defaultAction;
+      return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+    }
+
+    @Override
+    public Formula visit(WOperator wOperator) {
+      if (isImplied(wOperator)) {
+        return BooleanConstant.TRUE;
+      }
+
+      if (wOperator.left.accept(this) == BooleanConstant.TRUE) {
+        return BooleanConstant.TRUE;
+      }
+
+      return UOperator.create(wOperator.left, wOperator.right).accept(this);
+    }
+
+    @Override
+    public Formula visit(XOperator xOperator) {
+      if (isImplied(xOperator)) {
+        return BooleanConstant.TRUE;
       }
 
       return XOperator.create(xOperator.operand.accept(this));

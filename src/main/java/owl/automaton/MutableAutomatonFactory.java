@@ -130,7 +130,7 @@ public final class MutableAutomatonFactory {
 
     @Override
     public void removeUnreachableStates(Collection<? extends S> start,
-      Consumer<S> removedStatesConsumer) {
+      Consumer<? super S> removedStatesConsumer) {
       automaton.removeUnreachableStates(start, removedStatesConsumer);
     }
 

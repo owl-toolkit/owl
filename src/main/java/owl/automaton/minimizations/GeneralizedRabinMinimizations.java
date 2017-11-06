@@ -56,7 +56,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.collections.Lists2;
+import owl.collections.Collections3;
 
 public final class GeneralizedRabinMinimizations {
   private static final Logger logger = Logger.getLogger(GeneralizedRabinAcceptance.class.getName());
@@ -260,7 +260,7 @@ public final class GeneralizedRabinMinimizations {
 
     Map<GeneralizedRabinPair, IntSet> pairActiveSccs = new HashMap<>();
 
-    Lists2.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
+    Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
       Set<GeneralizedRabinPair> pairsInScc = new HashSet<>();
       AutomatonFactory.filter(automaton, scc)
         .forEachLabelledEdge((x, y, z) -> pairs.forEach(pair -> {

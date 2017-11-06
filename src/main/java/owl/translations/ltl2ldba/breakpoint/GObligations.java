@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.collections.Sets2;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
 import owl.ltl.BooleanConstant;
@@ -145,7 +144,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
   public boolean containsLanguageOf(RecurringObligation other) {
     checkArgument(other instanceof GObligations);
 
-    if (Sets2.isSubset(rewrittenGOperators, ((GObligations) other).rewrittenGOperators)) {
+    if (((GObligations) other).rewrittenGOperators.containsAll(rewrittenGOperators)) {
       return true;
     }
 

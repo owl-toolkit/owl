@@ -39,7 +39,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
-import owl.collections.Sets2;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
@@ -135,7 +135,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The set of edges originating from {@code state}
    */
   default Set<Edge<S>> getEdges(S state) {
-    return Sets2.transform(getLabelledEdges(state), x -> x.edge);
+    return Collections3.transform(getLabelledEdges(state), x -> x.edge);
   }
 
   /**
@@ -149,7 +149,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The successor edges, possibly empty.
    */
   default Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    return Sets2.transform(getLabelledEdges(state),
+    return Collections3.transform(getLabelledEdges(state),
       x -> x.valuations.contains(valuation) ? x.edge : null);
   }
 
@@ -267,11 +267,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Set<S> getSuccessors(S state) {
-    return Sets2.transform(getEdges(state), Edge::getSuccessor);
+    return Collections3.transform(getEdges(state), Edge::getSuccessor);
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {
-    return Sets2.transform(getEdges(state, valuation), Edge::getSuccessor);
+    return Collections3.transform(getEdges(state, valuation), Edge::getSuccessor);
   }
 
   @Override

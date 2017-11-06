@@ -22,7 +22,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
   SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton) {
     bottom = new SetLanguage(ImmutableSet.of());
     top = new SetLanguage(ImmutableSet.copyOf(automaton.getStates()));
-    cache = CacheBuilder.newBuilder().maximumSize(25000)
+    cache = CacheBuilder.newBuilder().maximumSize(30000)
       .build(new InclusionCheckCacheLoader<>(automaton));
   }
 
@@ -69,11 +69,13 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
       if (set.containsAll(language.getT())) {
         return true;
       }
+
       for (S q : language.getT()) {
         if (cache.getUnchecked(new AbstractMap.SimpleEntry<>(set, q))) {
           return false;
         }
       }
+
       return true;
     }
 
@@ -89,7 +91,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
 
     @Override
     public Language<Set<S>> join(Language<Set<S>> language) {
-      return new SetLanguage(Sets.union(set, language.getT()));
+      return new SetLanguage(Sets.union(set, language.getT()).immutableCopy());
     }
   }
 

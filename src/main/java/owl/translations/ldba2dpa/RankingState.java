@@ -19,11 +19,10 @@ package owl.translations.ldba2dpa;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import owl.collections.Trie;
+import owl.collections.Collections3;
 import owl.util.ImmutableObject;
 
 @Immutable
@@ -31,25 +30,22 @@ public final class RankingState<S, T> extends ImmutableObject {
   final ImmutableList<T> ranking;
   @Nullable
   final S state;
-  final int volatileIndex;
+  final int safetyProgress;
 
-  private RankingState(@Nullable S state, ImmutableList<T> ranking, int volatileIndex) {
+  private RankingState(@Nullable S state, ImmutableList<T> ranking, int safetyProgress) {
+    assert Collections3.isDistinct(ranking);
     this.state = state;
     this.ranking = ranking;
-    this.volatileIndex = volatileIndex;
+    this.safetyProgress = safetyProgress;
   }
 
-  static <S, T> RankingState<S, T> create(S initialComponentState) {
-    return create(initialComponentState, ImmutableList.of(), 0, null);
+  static <S, T> RankingState<S, T> create(@Nullable S initialComponentState) {
+    return create(initialComponentState, ImmutableList.of(), -1);
   }
 
   static <S, T> RankingState<S, T> create(@Nullable S initialComponentState, List<T> ranking,
-    int volatileIndex, @Nullable Map<S, Trie<T>> trieMap) {
-    if (trieMap != null) {
-      trieMap.computeIfAbsent(initialComponentState, x -> new Trie<>()).add(ranking);
-    }
-
-    return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), volatileIndex);
+    int safetyProgress) {
+    return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), safetyProgress);
   }
 
   public static <S, T> RankingState<S, T> createSink() {
@@ -59,18 +55,18 @@ public final class RankingState<S, T> extends ImmutableObject {
   @Override
   protected boolean equals2(ImmutableObject o) {
     RankingState<?, ?> that = (RankingState<?, ?>) o;
-    return that.volatileIndex == this.volatileIndex
+    return safetyProgress == that.safetyProgress
       && Objects.equals(state, that.state)
       && Objects.equals(ranking, that.ranking);
   }
 
   @Override
   protected int hashCodeOnce() {
-    return Objects.hash(state, ranking, volatileIndex);
+    return Objects.hash(state, ranking, safetyProgress);
   }
 
   @Override
   public String toString() {
-    return String.format("|%s :: %s :: %d|", state, ranking, volatileIndex);
+    return String.format("|%s :: %s :: %s|", state, ranking, safetyProgress);
   }
 }

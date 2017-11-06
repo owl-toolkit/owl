@@ -153,11 +153,13 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     // We don't need to increment the reference-counter, since all variables are saturated.
     int result;
+
     if (value > 0) {
       result = factory.getVariableNode(value - 1);
     } else {
       result = factory.not(factory.getVariableNode(-(value + 1)));
     }
+
     assert factory.isVariableOrNegated(result);
     return result;
   }
@@ -247,11 +249,6 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     @Nullable
     private Formula representative;
 
-    BddEquivalenceClass(int bdd) {
-      this.representative = null;
-      this.bdd = bdd;
-    }
-
     BddEquivalenceClass(@Nullable Formula representative, int bdd) {
       this.representative = representative;
       this.bdd = bdd;
@@ -306,7 +303,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     public void free() {
       Preconditions.checkState(bdd != INVALID_BDD, "Double free");
 
-      // TODO If this check is removed, tests fail
+      // Only remove BDD nodes for unsaturated nodes.
       if (!factory.isVariableOrNegated(bdd) && !factory.isNodeRoot(bdd)) {
         factory.dereference(bdd);
         bdd = INVALID_BDD;
@@ -381,8 +378,7 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public ImmutableList<Set<Formula>> satisfyingAssignments(
-      Iterable<? extends Formula> support) {
+    public ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support) {
       BitSet supportBitSet = toBitSet(support);
       Iterator<BitSet> minimalSolutions = factory.getMinimalSolutions(bdd);
       Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(supportBitSet, minimalSolutions);
@@ -399,28 +395,44 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
       }
 
       int substitutedBdd = factory.reference(factory.compose(bdd, substitutionMap));
-      if (representative == null) {
-        return new BddEquivalenceClass(substitutedBdd);
+
+      if (bdd == substitutedBdd) {
+        return createEquivalenceClass(representative, bdd);
       }
+
+      @Nullable
       Formula substitutionRepresentative =
-        representative.accept(new SubstitutionVisitor(substitution));
-      return new BddEquivalenceClass(substitutionRepresentative, substitutedBdd);
+        representative == null ? null
+                               : representative.accept(new SubstitutionVisitor(substitution));
+      return createEquivalenceClass(substitutionRepresentative, substitutedBdd);
     }
 
     @Override
     public EquivalenceClass temporalStep(BitSet valuation) {
-      @Nullable Formula successorRepresentative =
+      int newBdd = factory.reference(temporalStepBdd(bdd, valuation));
+
+      if (bdd == newBdd) {
+        return createEquivalenceClass(representative, bdd);
+      }
+
+      @Nullable
+      Formula newRepresentative =
         representative == null ? null : representative.temporalStep(valuation);
-      return createEquivalenceClass(successorRepresentative,
-        factory.reference(temporalStepBdd(bdd, valuation)));
+      return createEquivalenceClass(newRepresentative, newBdd);
     }
 
     @Override
     public EquivalenceClass temporalStepUnfold(BitSet valuation) {
-      @Nullable Formula successorRepresentative =
+      int newBdd = factory.reference(unfoldBdd(temporalStepBdd(bdd, valuation)));
+
+      if (bdd == newBdd) {
+        return createEquivalenceClass(representative, bdd);
+      }
+
+      @Nullable
+      Formula newRepresentative =
         representative == null ? null : representative.temporalStepUnfold(valuation);
-      return createEquivalenceClass(successorRepresentative,
-        factory.reference(unfoldBdd(temporalStepBdd(bdd, valuation))));
+      return createEquivalenceClass(newRepresentative, newBdd);
     }
 
     @Override
@@ -450,19 +462,29 @@ public final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public EquivalenceClass unfold() {
+      int newBdd = factory.reference(unfoldBdd(bdd));
+
+      if (bdd == newBdd) {
+        return createEquivalenceClass(representative, bdd);
+      }
+
       @Nullable
-      Formula successorRepresentative =
-        representative == null ? null : representative.unfold();
-      return createEquivalenceClass(successorRepresentative, factory.reference(unfoldBdd(bdd)));
+      Formula newRepresentative = representative == null ? null : representative.unfold();
+      return createEquivalenceClass(newRepresentative, newBdd);
     }
 
     @Override
     public EquivalenceClass unfoldTemporalStep(BitSet valuation) {
+      int newBdd = factory.reference(temporalStepBdd(unfoldBdd(bdd), valuation));
+
+      if (bdd == newBdd) {
+        return createEquivalenceClass(representative, bdd);
+      }
+
       @Nullable
-      Formula successorRepresentative =
+      Formula newRepresentative =
         representative == null ? null : representative.unfoldTemporalStep(valuation);
-      return createEquivalenceClass(successorRepresentative,
-        factory.reference(temporalStepBdd(unfoldBdd(bdd), valuation)));
+      return createEquivalenceClass(newRepresentative, newBdd);
     }
   }
 

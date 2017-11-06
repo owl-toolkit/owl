@@ -41,8 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import owl.collections.Lists2;
-import owl.collections.Sets2;
+import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -239,7 +238,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       List<Set<T>> intersection = new ArrayList<>();
 
       for (List<Set<T>> sets : Lists.cartesianProduct(ImmutableList.copyOf(conjuncts))) {
-        Lists2.addDistinct(intersection, Sets2.parallelUnion(sets));
+        Collections3.addDistinct(intersection, Collections3.parallelUnion(sets));
       }
 
       return intersection;
@@ -249,7 +248,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       List<Set<T>> union = new ArrayList<>();
 
       if (!upwardClosure) {
-        disjuncts.forEach(x -> Lists2.addAllDistinct(union, x));
+        disjuncts.forEach(x -> Collections3.addAllDistinct(union, x));
         return union;
       }
 
@@ -262,7 +261,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
           for (Set<T> x : Sets.powerSet(otherSetsUnion)) {
             Set<T> upwardClosedSet = Sets.newHashSet(Iterables.concat(activeSet, x));
-            Lists2.addDistinct(union, upwardClosedSet);
+            Collections3.addDistinct(union, upwardClosedSet);
           }
         }
       }

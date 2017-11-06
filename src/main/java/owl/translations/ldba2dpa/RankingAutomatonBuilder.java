@@ -18,7 +18,7 @@
 package owl.translations.ldba2dpa;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -26,257 +26,297 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.collections.Trie;
-import owl.factories.ValuationSetFactory;
+import owl.collections.Collections3;
 import owl.translations.Optimisation;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
   implements ExploreBuilder<S, RankingState<S, T>, ParityAcceptance> {
 
+  private static Logger logger = Logger.getLogger("ldba2dpa");
+
   private final ParityAcceptance acceptance;
-  private final Automaton<T, BuchiAcceptance> acceptingComponent;
-  private final Predicate<S> clearRanking;
-  private final ValuationSetFactory factory;
-  private final Automaton<S, NoneAcceptance> initialComponent;
   @Nullable
   private final List<Set<S>> initialComponentSccs;
-  private final List<RankingState<S, T>> initialStates;
+  private final Predicate<S> isAcceptingState;
+  private final List<U> sortingOrder;
   private final LanguageLattice<V, T, U> lattice;
   private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba;
+  private final List<U> livenessComponents;
+  private final boolean resetRanking;
+  private final List<U> safetyComponents;
   private final AtomicInteger sizeCounter;
   @Nullable
-  private final Map<S, Trie<T>> trie;
-  private final Map<U, Integer> volatileComponents;
-  private final int volatileMaxIndex;
-  private final boolean clearRankingAnnotation;
+  private RankingState<S, T> initialState;
 
   public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations,
-    LanguageLattice<V, T, U> lattice, Predicate<S> clearRanking,
-    boolean clearRankingAnnotation) {
-    acceptingComponent = ldba.getAcceptingComponent();
-    initialComponent = ldba.getInitialComponent();
+    LanguageLattice<V, T, U> lattice, Predicate<S> isAcceptingState,
+    boolean resetRanking) {
     this.ldba = ldba;
 
-    volatileComponents = new HashMap<>();
+    sortingOrder = ImmutableList.copyOf(ldba.getComponents());
 
-    for (U value : ldba.getComponents()) {
-      assert !volatileComponents.containsKey(value);
+    {
+      // Identify liveness and safety components.
+      ImmutableList.Builder<U> livenessBuilder = ImmutableList.builder();
+      ImmutableList.Builder<U> safetyBuilder = ImmutableList.builder();
 
-      if (lattice.isSafetyLanguage(value)) {
-        volatileComponents.put(value, volatileComponents.size());
+      for (U value : sortingOrder) {
+        if (lattice.isSafetyLanguage(value)) {
+          safetyBuilder.add(value);
+        } else if (lattice.isLivenessLanguage(value)) {
+          livenessBuilder.add(value);
+        }
       }
+
+      livenessComponents = livenessBuilder.build();
+      safetyComponents = safetyBuilder.build();
+
+      logger.log(Level.FINER, "Liveness Components: {0}", livenessComponents);
+      logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
+
+      assert Collections3.isDistinct(livenessComponents);
+      assert Collections3.isDistinct(safetyComponents);
+      assert Collections.disjoint(livenessComponents, safetyComponents);
     }
 
-    volatileMaxIndex = volatileComponents.size();
-
-    if (optimisations.contains(Optimisation.PERMUTATION_SHARING)) {
-      trie = new HashMap<>();
-    } else {
-      trie = null;
-    }
-
-    this.factory = ldba.getAcceptingComponent().getFactory();
-    this.clearRanking = clearRanking;
-
+    this.isAcceptingState = isAcceptingState;
 
     if (optimisations.contains(Optimisation.RESET_AFTER_SCC_SWITCH)) {
-      initialComponentSccs = SccDecomposition.computeSccs(initialComponent);
+      initialComponentSccs = SccDecomposition.computeSccs(this.ldba.getInitialComponent());
     } else {
       initialComponentSccs = null;
     }
 
     acceptance = new ParityAcceptance(2, Priority.ODD);
-    initialStates = new ArrayList<>();
+
     this.sizeCounter = sizeCounter;
     this.lattice = lattice;
-    this.clearRankingAnnotation = clearRankingAnnotation;
+    this.resetRanking = resetRanking;
+  }
+
+  private boolean acceptsLivenessLanguage(T state) {
+    U annotation = ldba.getAnnotation(state);
+    return annotation != null && lattice.isLivenessLanguage(annotation);
+  }
+
+  private boolean acceptsSafetyLanguage(T state) {
+    U annotation = ldba.getAnnotation(state);
+    return annotation != null && lattice.isSafetyLanguage(annotation) && lattice.getLanguage(state,
+      true).isTop();
   }
 
   @Override
-  public RankingState<S, T> add(S stateKey) {
-    Preconditions.checkState(initialStates.isEmpty(), "At most one initial state is supported.");
-
-    List<T> ranking = new ArrayList<>();
-    int index = clearRanking.test(stateKey) ? 0 : appendJumps(stateKey, ranking);
-    RankingState<S, T> initialState = RankingState.create(stateKey, ranking, index, trie);
-    initialStates.add(initialState);
-    return initialState;
-  }
-
-  private int appendJumps(S state, List<T> ranking) {
-    return appendJumps(state, ranking, Collections.emptyMap(), -1);
-  }
-
-  private int appendJumps(S state, List<T> ranking, Map<U, Language<V>> existingLanguages,
-    int currentVolatileIndex) {
-    List<T> pureEventual = new ArrayList<>();
-    List<T> mixed = new ArrayList<>();
-    T nextVolatileState = null;
-    int nextVolatileStateIndex = -1;
-
-    for (T accState : ldba.getEpsilonJumps(state)) {
-      U obligations = ldba.getAnnotation(accState);
-      Integer candidateIndex = volatileComponents.get(obligations);
-
-      // It is a volatile state
-      if (candidateIndex != null && lattice.getLanguage(accState, true).isTop()) {
-        // assert accState.getCurrent().isTrue() : "LTL2LDBA translation is malfunctioning.
-        // This state should be suppressed.";
-
-        // The distance is too large...
-        if (nextVolatileState != null
-          && distance(currentVolatileIndex, candidateIndex) >= distance(currentVolatileIndex,
-          nextVolatileStateIndex)) {
-          continue;
-        }
-
-        Language<V> existingLanguage = existingLanguages.get(obligations);
-
-        if (existingLanguage == null
-          || !existingLanguage.greaterOrEqual(lattice.getLanguage(accState, false))) {
-          nextVolatileStateIndex = candidateIndex;
-          nextVolatileState = accState;
-          continue;
-        }
-
-        continue;
-      }
-
-      Language<V> existingClass = existingLanguages.get(obligations);
-      Language<V> stateClass = lattice.getLanguage(accState, false);
-
-      if (existingClass != null && existingClass.greaterOrEqual(stateClass)) {
-        continue;
-      }
-
-      if (lattice.isLivenessLanguage(obligations)) {
-        pureEventual.add(accState);
-      } else {
-        mixed.add(accState);
-      }
-    }
-
-    Set<T> suffixes = new HashSet<>(mixed);
-    suffixes.addAll(pureEventual);
-
-    if (nextVolatileState != null) {
-      suffixes.add(nextVolatileState);
-    }
-
-    //noinspection OptionalContainsCollection
-    Optional<List<T>> append;
-
-    if (trie == null) {
-      append = Optional.empty();
-    } else {
-      append = trie.computeIfAbsent(state, x -> new Trie<>()).suffix(ranking, suffixes);
-    }
-
-    if (append.isPresent()) {
-      assert Collections.disjoint(ranking, append.get()) :
-        "State already present in ranking: " + append.get();
-      ranking.addAll(append.get());
-    } else {
-      // Impose stable but arbitrary order.
-      pureEventual.sort(Comparator.comparingInt(o -> Objects.hashCode(ldba.getAnnotation(o))));
-      mixed.sort(Comparator.comparingInt(o -> Objects.hashCode(ldba.getAnnotation(o))));
-
-      assert Collections.disjoint(ranking, pureEventual) :
-        "State already present in ranking: " + pureEventual;
-      ranking.addAll(pureEventual);
-      assert Collections.disjoint(ranking, mixed) : "State already present in ranking: " + mixed;
-      ranking.addAll(mixed);
-
-      if (nextVolatileState != null) {
-        assert !ranking.contains(nextVolatileState) :
-          "State already present in ranking: " + nextVolatileState;
-        ranking.add(nextVolatileState);
-      }
-    }
-
-    if (nextVolatileStateIndex >= 0) {
-      return nextVolatileStateIndex;
-    }
-
-    return 0;
+  public RankingState<S, T> add(S state) {
+    Preconditions.checkState(initialState == null, "At most one initial state is supported.");
+    return initialState = buildEdge(state, Collections.emptyList(), -1, null)
+      .getSuccessor();
   }
 
   @Override
   public MutableAutomaton<RankingState<S, T>, ParityAcceptance> build() {
     MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton = MutableAutomatonFactory
-      .createMutableAutomaton(acceptance, factory);
+      .createMutableAutomaton(acceptance, ldba.getAcceptingComponent().getFactory());
+
+    if (initialState == null) {
+      return automaton;
+    }
+
     // TODO: add getSensitiveAlphabet Method
-    AutomatonUtil.exploreDeterministic(automaton, initialStates, this::getSuccessor, sizeCounter);
-    automaton.setInitialStates(initialStates);
+    AutomatonUtil.exploreDeterministic(automaton, Collections.singletonList(initialState),
+      this::getSuccessor, sizeCounter);
+    automaton.setInitialState(initialState);
     List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton, false);
-    S initialState = Iterables.getOnlyElement(initialStates).state;
 
     for (Set<RankingState<S, T>> scc : Lists.reverse(sccs)) {
       scc.stream().filter(x -> x.state.equals(initialState))
         .findAny().ifPresent(automaton::setInitialState);
     }
 
-    //automaton.setInitialStates(initialStates);
     automaton.removeUnreachableStates();
     return automaton;
   }
 
-  private boolean detectSccSwitch(S state, S successor) {
-    if (initialComponentSccs == null) {
-      return false;
+  private Edge<RankingState<S, T>> buildEdge(S state, List<T> previousRanking,
+    int previousSafetyProgress, @Nullable BitSet valuation) {
+    if (isAcceptingState.test(state)) {
+      return Edges.create(RankingState.create(state), 1);
     }
 
-    Set<S> scc = initialComponentSccs.stream()
-      .filter(x -> x.contains(state)).findAny().orElse(Collections.emptySet());
-    return !scc.contains(successor);
-  }
+    // We compute the relevant accepting components, which we can jump to.
+    Map<U, Language<V>> existingLanguages = new HashMap<>();
+    List<T> safetyTargets = new ArrayList<>();
+    List<T> livenessTargets = new ArrayList<>();
+    List<T> mixedTargets = new ArrayList<>();
+    Language<V> emptyLanguage = lattice.getBottom();
 
-  private int distance(int base, int index) {
-    int distanceIndex = index;
+    List<T> epsilonJumps = new ArrayList<>(ldba.getEpsilonJumps(state));
+    epsilonJumps.sort(Comparator.comparingInt(x -> sortingOrder.indexOf(ldba.getAnnotation(x))));
 
-    if (base >= distanceIndex) {
-      distanceIndex += volatileMaxIndex + 1;
+    for (T jumpTarget : epsilonJumps) {
+      existingLanguages.put(ldba.getAnnotation(jumpTarget), emptyLanguage);
+
+      if (acceptsSafetyLanguage(jumpTarget)) {
+        safetyTargets.add(jumpTarget);
+      } else if (acceptsLivenessLanguage(jumpTarget)) {
+        livenessTargets.add(jumpTarget);
+      } else {
+        mixedTargets.add(jumpTarget);
+      }
     }
 
-    return distanceIndex - base;
+    // Default rejecting color.
+    int edgeColor = 2 * previousRanking.size();
+    List<T> ranking = new ArrayList<>(previousRanking.size());
+    int safetyProgress = previousSafetyProgress;
+
+    boolean extendRanking = true;
+
+    { // Compute ranking successor
+      int i = -1;
+
+      for (T previousState : previousRanking) {
+        assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
+        Edge<T> edge = ldba.getAcceptingComponent().getEdge(previousState, valuation);
+        i++;
+
+        if (edge == null) {
+          edgeColor = Math.min(2 * i, edgeColor);
+          continue;
+        }
+
+        T rankingState = edge.getSuccessor();
+        @Nullable
+        U annotation = ldba.getAnnotation(rankingState);
+        Language<V> existingLanguage = existingLanguages.get(annotation);
+
+        if (existingLanguage == null
+          || existingLanguage.greaterOrEqual(lattice.getLanguage(rankingState, false))) {
+          edgeColor = Math.min(2 * i, edgeColor);
+          continue;
+        }
+
+        existingLanguages.replace(annotation,
+          existingLanguage.join(lattice.getLanguage(rankingState, false)));
+        ranking.add(rankingState);
+
+        if (acceptsSafetyLanguage(rankingState)) {
+          int safetyIndex = safetyComponents.indexOf(annotation);
+          edgeColor = Math.min(2 * i + 1, edgeColor);
+
+          logger.log(Level.FINER, "Found safety language {0} with safety index {1}.",
+            new Object[]{rankingState, safetyIndex});
+
+          if (safetyProgress == safetyIndex) {
+            extendRanking = false;
+            break;
+          }
+        }
+
+        if (edge.inSet(0)) {
+          edgeColor = Math.min(2 * i + 1, edgeColor);
+
+          if (resetRanking) {
+            existingLanguages.replace(annotation, lattice.getTop());
+          }
+        }
+      }
+    }
+
+    logger.log(Level.FINER, "Ranking before extension: {0}.", ranking);
+
+    // Extend the ranking
+    if (extendRanking) {
+      for (T accState : livenessTargets) {
+        if (insertableToRanking(accState, existingLanguages)) {
+          ranking.add(accState);
+        }
+      }
+
+      for (T accState : mixedTargets) {
+        if (insertableToRanking(accState, existingLanguages)) {
+          ranking.add(accState);
+        }
+      }
+
+      T safety = findNextSafety(safetyTargets, safetyProgress + 1);
+
+      // Wrap around; restart search.
+      if (safety == null) {
+        safety = findNextSafety(safetyTargets, 0);
+      }
+
+      if (safety != null && insertableToRanking(safety, existingLanguages)) {
+        ranking.add(safety);
+        safetyProgress = safetyComponents.indexOf(ldba.getAnnotation(safety));
+      } else {
+        safetyProgress = -1;
+      }
+    }
+
+    logger.log(Level.FINER, "Ranking after extension: {0}.", ranking);
+
+    existingLanguages.forEach((x, y) -> y.free());
+    return Edges.create(RankingState.create(state, ranking, safetyProgress), edgeColor);
   }
 
-  /* IDEAS:
-   * - suppress jump if the current goal only contains literals and X.
-   * - filter in the initial state, when jumps are done.
-   * - detect if initial component is true -> move to according state.
-   * - move "volatile" formulas to the back. select "infinity" formulas to stay upfront.
-   * - if a monitor couldn't be reached from a jump, delete it.
-   */
+  private boolean insertableToRanking(T state, Map<U, Language<V>> existingLanguages) {
+    Language<V> existingClass = existingLanguages.get(ldba.getAnnotation(state));
+    Language<V> stateClass = lattice.getLanguage(state, false);
+    return existingClass == null || !existingClass.greaterOrEqual(stateClass);
+  }
+
+  @Nullable
+  private T findNextSafety(List<T> availableJumps, int i) {
+    for (U annotation : safetyComponents.subList(i, safetyComponents.size())) {
+      for (T state : availableJumps) {
+        assert acceptsSafetyLanguage(state);
+
+        U stateAnnotation = ldba.getAnnotation(state);
+
+        if (annotation.equals(stateAnnotation)) {
+          return state;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private boolean sccSwitchOccurred(S state, S successor) {
+    return initialComponentSccs != null && initialComponentSccs.stream()
+      .anyMatch(x -> x.contains(state) && !x.contains(successor));
+  }
+
   @Nullable
   private Edge<RankingState<S, T>> getSuccessor(RankingState<S, T> state, BitSet valuation) {
     S successor;
 
+    if (state.state == null) {
+      return null;
+    }
+
     { // We obtain the successor of the state in the initial component.
-      Edge<S> edge = initialComponent.getEdge(state.state, valuation);
+      Edge<S> edge = ldba.getInitialComponent().getEdge(state.state, valuation);
 
       // The initial component moved to a rejecting sink. Thus all runs die.
       if (edge == null) {
@@ -284,101 +324,22 @@ public final class RankingAutomatonBuilder<S, T, U, V>
       }
 
       successor = edge.getSuccessor();
-
-      // If we reached the state "true" or something that is a safety condition, we drop all jumps.
-      if (edge.inSet(0)) {
-        return Edges.create(RankingState.create(successor), 1);
-      }
     }
 
-    // We compute the relevant accepting components, which we can jump to.
-    Map<U, Language<V>> existingLanguages = new HashMap<>();
-    Language<V> emptyLanguage = lattice.getBottom();
-    boolean sccSwitch = detectSccSwitch(state.state, successor);
-    boolean dropRanking = clearRanking.test(successor);
-
-    for (T jumpTarget : ldba.getEpsilonJumps(successor)) {
-      existingLanguages.put(ldba.getAnnotation(jumpTarget), emptyLanguage);
+    // If a SCC switch occurs, the ranking and the safety progress is reset.
+    if (resetRanking && sccSwitchOccurred(state.state, successor)) {
+      return Edges.create(buildEdge(successor, Collections.emptyList(), -1,
+        valuation).getSuccessor());
     }
 
-    // Default rejecting color.
-    int edgeColor = 2 * state.ranking.size();
-    List<T> ranking = new ArrayList<>(state.ranking.size());
-    boolean activeVolatileComponent = false;
-    int nextVolatileIndex = 0;
-    int index = -1;
+    Edge<RankingState<S, T>> edge = buildEdge(successor, state.ranking, state.safetyProgress,
+      valuation);
 
-    if (!sccSwitch && !dropRanking) {
-      for (T current : state.ranking) {
-        index++;
-        Edge<T> edge = acceptingComponent.getEdge(current, valuation);
-
-        if (edge == null) {
-          edgeColor = Math.min(2 * index, edgeColor);
-          continue;
-        }
-
-        T rankingSuccessor = edge.getSuccessor();
-        @Nullable
-        U annotation = ldba.getAnnotation(rankingSuccessor);
-        Language<V> existingLanguage = existingLanguages.get(annotation);
-
-        if (existingLanguage == null
-          || existingLanguage.greaterOrEqual(lattice.getLanguage(rankingSuccessor, false))) {
-          edgeColor = Math.min(2 * index, edgeColor);
-          continue;
-        }
-
-        existingLanguages.replace(annotation,
-          existingLanguage.join(lattice.getLanguage(rankingSuccessor, true)));
-        assert !ranking.contains(rankingSuccessor) :
-          "State already present in ranking: " + rankingSuccessor;
-        ranking.add(rankingSuccessor);
-
-        if (isVolatileState(rankingSuccessor)) {
-          activeVolatileComponent = true;
-          nextVolatileIndex = volatileComponents.get(annotation);
-        }
-
-        if (edge.inSet(0)) {
-          edgeColor = Math.min(2 * index + 1, edgeColor);
-
-          if (annotation != null && clearRankingAnnotation) {
-            existingLanguages.replace(annotation, lattice.getTop());
-          }
-        }
-      }
+    if (edge.largestAcceptanceSet() >= acceptance.getAcceptanceSets()) {
+      acceptance.setAcceptanceSets(edge.largestAcceptanceSet() + 1);
     }
 
-
-    if (!activeVolatileComponent && !dropRanking) {
-      nextVolatileIndex = appendJumps(successor, ranking, existingLanguages,
-        sccSwitch ? -1 : state.volatileIndex);
-    }
-
-    if (edgeColor >= acceptance.getAcceptanceSets()) {
-      acceptance.setAcceptanceSets(edgeColor + 1);
-    }
-
-    existingLanguages.forEach((x, y) -> y.free());
-
-    RankingState<S, T> successorState = RankingState
-      .create(successor, ranking, nextVolatileIndex, trie);
-
-    if (dropRanking) {
-      return Edges.create(successorState, 1);
-    }
-
-    if (sccSwitch) {
-      return Edges.create(successorState);
-    }
-
-    return Edges.create(successorState, edgeColor);
-  }
-
-  private boolean isVolatileState(T state) {
-    return volatileComponents.containsKey(ldba.getAnnotation(state)) && lattice.getLanguage(state,
-      true).isTop();
+    return edge;
   }
 }
 

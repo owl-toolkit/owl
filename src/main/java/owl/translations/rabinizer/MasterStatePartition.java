@@ -11,7 +11,7 @@ import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.collections.Lists2;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.ltl.EquivalenceClass;
 
@@ -68,7 +68,7 @@ final class MasterStatePartition {
     if (!transientStates.isEmpty()) {
       builder.append("\n  Transient: ").append(transientStates);
     }
-    Lists2.forEachIndexed(partition, (index, element) ->
+    Collections3.forEachIndexed(partition, (index, element) ->
       builder.append("\n  ").append(index).append(": ").append(element));
     return builder.toString();
   }

@@ -198,8 +198,12 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {
+    if (state.testSupport(Fragments::isSafety)) {
+      return true;
+    }
+
     // Check if the state has an independent safety core.
-    if (optimisations.contains(Optimisation.SAFETY_CORE)) {
+    if (optimisations.contains(Optimisation.EXISTS_SAFETY_CORE)) {
       Set<Formula> notSafety = state.getSupport(x -> !Fragments.isSafety(x));
 
       EquivalenceClass safetyCore = state.substitute(x -> {

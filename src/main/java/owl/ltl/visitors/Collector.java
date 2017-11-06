@@ -94,7 +94,9 @@ public final class Collector {
   }
 
   public static Set<FOperator> collectTransformedFOperators(Formula formula) {
-    return collectTransformedFOperators(formula, false);
+    TransformedFVisitor visitor = new TransformedFVisitor(false);
+    formula.accept(visitor);
+    return visitor.collection;
   }
 
   public static Set<FOperator> collectTransformedFOperators(Iterable<? extends Formula> formulas) {
@@ -103,25 +105,15 @@ public final class Collector {
     return visitor.collection;
   }
 
-  public static Set<FOperator> collectTransformedFOperators(Formula formula, boolean onlyTopmost) {
-    TransformedFVisitor visitor = new TransformedFVisitor(onlyTopmost);
+  public static Set<GOperator> collectTransformedGOperators(Formula formula) {
+    TransformedGVisitor visitor = new TransformedGVisitor(false);
     formula.accept(visitor);
     return visitor.collection;
-  }
-
-  public static Set<GOperator> collectTransformedGOperators(Formula formula) {
-    return collectTransformedGOperators(formula, false);
   }
 
   public static Set<GOperator> collectTransformedGOperators(Iterable<? extends Formula> formulas) {
     TransformedGVisitor visitor = new TransformedGVisitor(false);
     formulas.forEach(x -> x.accept(visitor));
-    return visitor.collection;
-  }
-
-  public static Set<GOperator> collectTransformedGOperators(Formula formula, boolean onlyTopmost) {
-    TransformedGVisitor visitor = new TransformedGVisitor(onlyTopmost);
-    formula.accept(visitor);
     return visitor.collection;
   }
 

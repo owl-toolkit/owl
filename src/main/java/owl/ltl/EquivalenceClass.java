@@ -100,10 +100,6 @@ public interface EquivalenceClass {
     return or;
   }
 
-  default ImmutableList<Set<Formula>> satisfyingAssignments() {
-    return satisfyingAssignments(getSupport());
-  }
-
   ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support);
 
   EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution);

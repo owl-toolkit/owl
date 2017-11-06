@@ -36,7 +36,6 @@ import java.util.function.ToIntFunction;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -210,7 +209,6 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2dpa." + configuration);
     }
 
-    @Ignore("nananan")
     @RunWith(Parameterized.class)
     public static class Breakpoint extends DPA {
       public Breakpoint(FormulaSet selectedClass) {

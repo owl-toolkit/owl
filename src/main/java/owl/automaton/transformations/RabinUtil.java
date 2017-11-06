@@ -35,7 +35,7 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
-import owl.collections.Lists2;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 
@@ -115,7 +115,7 @@ public final class RabinUtil {
       filtered.forEachLabelledEdge((x, y, z) -> y.acceptanceSetStream().forEach(indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
-      Lists2.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
+      Collections3.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfinite();
         if (IntIterators.all(pair.infiniteIndexIterator(), indices::contains)) {
           sccTrackedPairs.add(pairIndex);
@@ -198,7 +198,7 @@ public final class RabinUtil {
             }
 
             // Deal with sets which have no Fin set separately
-            Lists2.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
+            Collections3.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
               int currentPairIndex = trackedPairsCount + noInfIndex;
               RabinPair currentPair = rabinPairs[currentPairIndex];
 

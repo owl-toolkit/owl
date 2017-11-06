@@ -340,7 +340,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void removeUnreachableStates(Collection<? extends S> start,
-    Consumer<S> removedStatesConsumer) {
+    Consumer<? super S> removedStatesConsumer) {
     Set<S> reachableStates = getReachableStates(start);
     assert containsStates(reachableStates) : "Internal inconsistency";
 

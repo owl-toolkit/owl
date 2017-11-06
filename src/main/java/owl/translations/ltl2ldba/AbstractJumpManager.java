@@ -69,6 +69,9 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
         otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
     }
 
+    LOGGER.log(Level.FINE, () ->
+      state + " has the following jumps (after language inclusion check): " + jumps);
+
     if (optimisations.contains(Optimisation.FORCE_JUMPS)) {
       for (Jump<X> jump : jumps) {
         EquivalenceClass jumpLanguage = jump.getLanguage();

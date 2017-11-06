@@ -104,7 +104,12 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     }
 
     initialStates.add(state);
-    components.add(getComponent.apply(state));
+    C component = getComponent.apply(state);
+
+    if (component != null) {
+      components.add(component);
+    }
+
     return state;
   }
 
@@ -208,7 +213,12 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
           T target = acceptingComponentBuilder.add(key);
 
           if (target != null) {
-            components.add(getComponent.apply(target));
+            C component = getComponent.apply(target);
+
+            if (component != null) {
+              components.add(component);
+            }
+
             epsilonJumps.put(state, target);
           }
         }

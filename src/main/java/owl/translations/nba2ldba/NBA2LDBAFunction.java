@@ -18,15 +18,11 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.Sets;
-
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.ExploreBuilder;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -59,12 +55,11 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     }
 
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
+    ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
+      = AcceptingComponentBuilder.createScc(nbaGBA);
     LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Safety>
     builder;
 
-    ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
-    = acceptingComponentBuilder = AcceptingComponentBuilder.createScc(nbaGBA);
-    
     if (optimisations.contains(Optimisation.CALC_SAFETY)) {
       BiFunction<BreakpointState<S>, Automaton<BreakpointState<S>, BuchiAcceptance>, Safety>
       getSafeties = (state, automaton) -> {
@@ -76,13 +71,11 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
         }
         return Safety.NEITHER;
       };
-      ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder2
-      = acceptingComponentBuilder = AcceptingComponentBuilder.createScc(nbaGBA);
-      for (S state : nba.getStates()) {
-        BreakpointState<S> target = acceptingComponentBuilder2.add(state);
-      }
+
+      nba.getStates().forEach(acceptingComponentBuilder::add);
+
       Automaton<BreakpointState<S>, BuchiAcceptance> acceptingComponent
-      = acceptingComponentBuilder2.build();
+      = acceptingComponentBuilder.build();
       builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
           acceptingComponentBuilder, Sets::newHashSet, x -> getSafeties.apply(x,
               acceptingComponent), optimisations);
@@ -90,7 +83,7 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
       builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
           acceptingComponentBuilder, Sets::newHashSet, (x) -> null, optimisations);
     }
-    
+
     return builder.build();
   }
 }
