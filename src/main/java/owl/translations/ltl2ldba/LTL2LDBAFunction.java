@@ -56,7 +56,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   RecurringObligation> implements Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
   S, B, C>> {
 
-  public static Logger LOGGER = Logger.getLogger("ltl2ldba");
+  public static Logger logger = Logger.getLogger("ltl2ldba");
 
   private final Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor;
   private final boolean deterministicInitialComponent;

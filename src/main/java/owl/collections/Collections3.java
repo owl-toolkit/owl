@@ -20,6 +20,7 @@ package owl.collections;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +61,11 @@ public final class Collections3 {
 
   public static <E> boolean isDistinct(Collection<E> collection) {
     return collection.size() == Sets.newHashSet(collection).size();
+  }
+
+  public static boolean isSubset(BitSet set1, BitSet set2) {
+    set1.andNot(set2);
+    return set1.isEmpty();
   }
 
   public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {

@@ -17,7 +17,7 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.LOGGER;
+import static owl.translations.ltl2ldba.LTL2LDBAFunction.logger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -28,8 +28,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -61,7 +61,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     EnumSet<Optimisation> optimisations, ImmutableSet<GObligations> obligations) {
     super(ImmutableSet.copyOf(optimisations), factory);
     this.obligations = obligations;
-    LOGGER.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
+    logger.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
   }
 
   public static GObligationsJumpManager build(EquivalenceClass initialState,
@@ -84,9 +84,10 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
   }
 
   private static boolean containsAllPropositions(Collection<? extends Formula> set1,
-    Collection<Formula> set2) {
-    return set1.parallelStream().allMatch(x -> set2.stream()
-      .anyMatch(y -> y.anyMatch(z -> x.equals(Collector.transformToGOperator(z)))));
+    Collection<? extends Formula> set2) {
+    BitSet obligationAtoms = Collector.collectAtoms(set1);
+    BitSet supportAtoms = Collector.collectAtoms(set2);
+    return Collections3.isSubset(obligationAtoms, supportAtoms);
   }
 
   private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {
@@ -99,9 +100,14 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
       ? state.duplicate()
       : state.unfold();
     Set<Formula> support = state2.getSupport();
-    Set<GObligations> availableObligations = obligations
-      .stream().filter(x -> containsAllPropositions(x.goperators, support))
-      .collect(Collectors.toSet());
+    Set<GObligations> availableObligations = new HashSet<>();
+
+    for (GObligations x : obligations) {
+      if (containsAllPropositions(x.goperators, support)) {
+        availableObligations.add(x);
+      }
+    }
+
     state2.free();
 
     Set<Jump<GObligations>> jumps = new HashSet<>();

@@ -72,7 +72,7 @@ public final class Collector {
     return collect(toFunction(predicate), formulas);
   }
 
-  public static BitSet collectAtoms(Iterable<Formula> formulas) {
+  public static BitSet collectAtoms(Iterable<? extends Formula> formulas) {
     BitSet atoms = new BitSet();
 
     collect((Predicate<Formula>) (x) -> {

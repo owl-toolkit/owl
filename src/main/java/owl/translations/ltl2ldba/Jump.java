@@ -17,7 +17,7 @@
 
 package owl.translations.ltl2ldba;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.LOGGER;
+import static owl.translations.ltl2ldba.LTL2LDBAFunction.logger;
 
 import java.util.Objects;
 import java.util.logging.Level;
@@ -39,7 +39,7 @@ public class Jump<U extends RecurringObligation> {
       && obligations.containsLanguageOf(jump.obligations);
 
     if (contains) {
-      LOGGER.log(Level.FINER, () -> this + " contains the language of " + jump);
+      logger.log(Level.FINER, () -> this + " contains the language of " + jump);
     }
 
     return contains;
