@@ -490,7 +490,7 @@ public class RabinizerBuilder {
       RabinizerState rabinizerSuccessor = cache.getRabinizerSuccessor();
       ValuationSet[] acceptanceCache = cache.getSuccessorAcceptance();
 
-      for (BitSet valuation : valuations) {
+      valuations.forEach(valuation -> {
         int acceptanceIndices = acceptanceCache.length;
         BitSet edgeAcceptanceSet = new BitSet(acceptanceIndices);
 
@@ -511,7 +511,7 @@ public class RabinizerBuilder {
         ValuationSet edgeValuation = vsFactory.createValuationSet(valuation, sensitiveAlphabet);
         // Add edge to result
         rabinizerAutomaton.addEdge(state, edgeValuation, rabinizerEdge);
-      }
+      });
 
       for (ValuationSet cachedValuations : acceptanceCache) {
         if (cachedValuations != null) {

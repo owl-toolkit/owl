@@ -41,14 +41,13 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.RankingComparator;
 import owl.translations.ltl2ldba.RecurringObligation;
+import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisitor;
 import owl.util.ImmutableObject;
 
 public final class GObligations extends ImmutableObject implements RecurringObligation {
-
-  private static final EquivalenceClass[] EMPTY = new EquivalenceClass[0];
   private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
-  final ImmutableSet<GOperator> goperators;
+  final ImmutableSet<GOperator> gOperators;
   // G(liveness[]) is a liveness language.
   final EquivalenceClass[] liveness;
   // obligations[] are co-safety languages.
@@ -63,7 +62,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
     this.safety = safety;
     this.obligations = obligations.toArray(new EquivalenceClass[obligations.size()]);
     this.liveness = liveness.toArray(new EquivalenceClass[liveness.size()]);
-    this.goperators = es;
+    this.gOperators = es;
     rewrittenGOperators = build;
   }
 
@@ -91,8 +90,8 @@ public final class GObligations extends ImmutableObject implements RecurringObli
       GOperator gOperator = gOperators.get(i);
 
       // We only propagate information from already constructed G-monitors.
-      GObligationsJumpManager.EvaluateVisitor evaluateVisitor =
-        new GObligationsJumpManager.EvaluateVisitor(gOperators.subList(0, i), factory.getTrue());
+      EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i),
+          factory.getTrue());
 
       Formula formula = RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, RewriterFactory
         .apply(RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor))

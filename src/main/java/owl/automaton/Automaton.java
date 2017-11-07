@@ -46,9 +46,8 @@ import owl.factories.ValuationSetFactory;
 import owl.util.TriConsumer;
 
 /**
- * Note: Every implementation should support concurrent read-access.
- * Note: Default implementation should only call methods from one layer below:
- * Successors -&gt; Edges -&gt; LabelledEdges
+ * Note: Every implementation should support concurrent read-access. Note: Default implementation
+ * should only call methods from one layer below: Successors -&gt; Edges -&gt; LabelledEdges
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   /**
@@ -97,8 +96,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   /**
    * Returns any successor edge of the specified {@code state} under the given {@code valuation}.
-   * This is a faster replacement for {@link #getEdge(Object, BitSet)} if the automaton is known
-   * to be deterministic.
+   * This is a faster replacement for {@link #getEdge(Object, BitSet)} if the automaton is known to
+   * be deterministic.
    */
   @Nullable
   default Edge<S> getAnyEdge(S state, BitSet valuation) {
@@ -275,7 +274,9 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   @Override
-  List<String> getVariables();
+  default List<String> getVariables() {
+    return getFactory().getAlphabet();
+  }
 
   /**
    * Determines whether the automaton is complete, i.e. every state has at least one successor for
@@ -286,7 +287,9 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @see AutomatonUtil#isComplete(Iterable)
    */
   default boolean isComplete() {
-    return getStates().stream().allMatch(s -> AutomatonUtil.isComplete(getLabelledEdges(s)));
+    Set<S> states = getStates();
+    return !states.isEmpty()
+      && states.stream().allMatch(s -> AutomatonUtil.isComplete(getLabelledEdges(s)));
   }
 
   /**

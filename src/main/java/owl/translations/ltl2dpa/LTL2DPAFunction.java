@@ -35,6 +35,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
+import owl.ltl.LabelledFormula;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
@@ -48,15 +49,16 @@ import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
-public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, ParityAcceptance>> {
+public class LTL2DPAFunction
+  implements Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> {
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
   private final boolean breakpointFree;
   private final EnumSet<Optimisation> optimisations;
-  private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
-  private final Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
   public LTL2DPAFunction() {
@@ -79,7 +81,7 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
   }
 
   @Override
-  public MutableAutomaton<?, ParityAcceptance> apply(Formula formula) {
+  public MutableAutomaton<?, ParityAcceptance> apply(LabelledFormula formula) {
     if (!optimisations.contains(Optimisation.PARALLEL)) {
       // TODO Instead, one should use a direct executor here
       return apply(formula, new AtomicInteger()).automaton;
@@ -148,13 +150,14 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
     }
   }
 
-  private ComplementableAutomaton<?> apply(Formula formula, AtomicInteger sizeCounter) {
+  private ComplementableAutomaton<?> apply(LabelledFormula formula, AtomicInteger sizeCounter) {
     return breakpointFree
       ? applyBreakpointFree(formula, sizeCounter)
       : applyBreakpoint(formula, sizeCounter);
   }
 
-  private ComplementableAutomaton<?> applyBreakpoint(Formula formula, AtomicInteger counter) {
+  private ComplementableAutomaton<?>
+  applyBreakpoint(LabelledFormula formula, AtomicInteger counter) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState,
       BuchiAcceptance, GObligations> ldba = translatorBreakpoint.apply(formula);
 
@@ -177,14 +180,15 @@ public class LTL2DPAFunction implements Function<Formula, MutableAutomaton<?, Pa
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }
 
-  private ComplementableAutomaton<?> applyBreakpointFree(Formula formula, AtomicInteger counter) {
+  private ComplementableAutomaton<?>
+  applyBreakpointFree(LabelledFormula formula, AtomicInteger counter) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
       BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
-        (MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance>)
-          ldba.getAcceptingComponent()), DegeneralizedBreakpointFreeState::createSink);
+        (MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance>) ldba
+          .getAcceptingComponent()), DegeneralizedBreakpointFreeState::createSink);
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;

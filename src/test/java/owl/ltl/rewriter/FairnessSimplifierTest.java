@@ -20,8 +20,8 @@ public class FairnessSimplifierTest {
   @Test
   public void apply() {
     for (int i = 0; i < INPUT.length; i++) {
-      Formula input = LtlParser.formula(INPUT[i]);
-      Formula output = LtlParser.formula(OUTPUT[i]);
+      Formula input = LtlParser.syntax(INPUT[i]);
+      Formula output = LtlParser.syntax(OUTPUT[i]);
       assertEquals(output, RewriterFactory.apply(RewriterEnum.FAIRNESS, input));
     }
   }

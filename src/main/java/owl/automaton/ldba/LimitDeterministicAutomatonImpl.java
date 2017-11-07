@@ -87,11 +87,6 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
   }
 
   @Override
-  public void setVariables(List<String> variables) {
-    acceptingComponent.setVariables(variables);
-  }
-
-  @Override
   public List<String> getVariables() {
     return acceptingComponent.getVariables();
   }

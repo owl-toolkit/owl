@@ -18,6 +18,7 @@
 package owl.ltl.visitors;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import java.util.Set;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -29,11 +30,15 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 
 public class UnabbreviateVisitor extends DefaultConverter {
-
+  // TODO Support for more operators
   private final Set<Class<? extends Formula>> classes;
 
   @SafeVarargs
   public UnabbreviateVisitor(Class<? extends Formula>... classes) {
+    this.classes = ImmutableSet.copyOf(classes);
+  }
+
+  public UnabbreviateVisitor(List<Class<? extends Formula>> classes) {
     this.classes = ImmutableSet.copyOf(classes);
   }
 

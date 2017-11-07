@@ -18,7 +18,7 @@
 package owl.util;
 
 import org.junit.Test;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
 public class ExternalTranslatorTest {
@@ -38,7 +38,7 @@ public class ExternalTranslatorTest {
   @Test
   public void testApply() {
     for (int i = 0; i < FORMULA.length; i++) {
-      Formula formula = LtlParser.formula(FORMULA[i]);
+      LabelledFormula formula = LtlParser.parse(FORMULA[i]);
       ExternalTranslator tool = new ExternalTranslator(TOOL[i]);
       tool.apply(formula);
     }

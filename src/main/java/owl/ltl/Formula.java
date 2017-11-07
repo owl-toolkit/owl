@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.function.Predicate;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -60,8 +59,6 @@ public interface Formula {
    * Short-cut operation to avoid intermediate construction of formula ASTs.
    */
   Formula temporalStepUnfold(BitSet valuation);
-
-  String toString(List<String> atomMapping, boolean fullyParenthesized);
 
   Formula unfold();
 

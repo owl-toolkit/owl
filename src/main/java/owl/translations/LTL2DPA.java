@@ -26,7 +26,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.transformations.ParityUtil;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2DPA extends AbstractLtlCommandLineTool {
@@ -44,7 +44,7 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, ? extends HoaPrintable> getTranslation(
+  protected Function<LabelledFormula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
     optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
 
@@ -54,7 +54,7 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
       optimisations.remove(Optimisation.PARALLEL);
     }
 
-    Function<Formula, MutableAutomaton<?, ParityAcceptance>> translation =
+    Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> translation =
       new LTL2DPAFunction(optimisations, breakpointFree);
 
     return (formula) -> ParityUtil.minimizePriorities(translation.apply(formula));

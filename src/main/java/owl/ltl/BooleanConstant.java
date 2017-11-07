@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
@@ -109,11 +108,6 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   @Override
   public String toString() {
     return value ? "true" : "false";
-  }
-
-  @Override
-  public String toString(List<String> variables, boolean fullyParenthesized) {
-    return toString();
   }
 
   @Override

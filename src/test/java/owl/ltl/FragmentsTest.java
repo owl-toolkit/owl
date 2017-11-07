@@ -16,15 +16,15 @@ public class FragmentsTest {
 
   static {
     FORMULAS = ImmutableList.of(
-      LtlParser.formula("true"),
-      LtlParser.formula("false"),
-      LtlParser.formula("a"),
-      LtlParser.formula("F a"),
-      LtlParser.formula("G a"),
-      LtlParser.formula("X a"),
-      LtlParser.formula("a U b"),
-      LtlParser.formula("a R b"),
-      LtlParser.formula("a & X F b")
+      LtlParser.syntax("true"),
+      LtlParser.syntax("false"),
+      LtlParser.syntax("a"),
+      LtlParser.syntax("F a"),
+      LtlParser.syntax("G a"),
+      LtlParser.syntax("X a"),
+      LtlParser.syntax("a U b"),
+      LtlParser.syntax("a R b"),
+      LtlParser.syntax("a & X F b")
     );
   }
 

@@ -19,13 +19,11 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import owl.util.ImmutableObject;
 
 public abstract class BinaryModalOperator extends ImmutableObject implements Formula {
-
   public final Formula left;
   public final Formula right;
 
@@ -46,7 +44,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
 
   @Override
   protected boolean equals2(ImmutableObject o) {
-    assert o instanceof BinaryModalOperator;
     BinaryModalOperator that = (BinaryModalOperator) o;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
   }
@@ -65,12 +62,6 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
 
   @Override
   public String toString() {
-    return '(' + left.toString() + getOperator() + right + ')';
-  }
-
-  @Override
-  public String toString(List<String> variables, boolean fullyParenthesized) {
-    return "(" + left.toString(variables, fullyParenthesized) + ")" + getOperator() + "("
-      + right.toString(variables, fullyParenthesized) + ")";
+    return String.format("(%s%s%s)", left, getOperator(), right);
   }
 }

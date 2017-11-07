@@ -83,11 +83,6 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
   }
 
   @Override
-  public void setVariables(List<String> variables) {
-    ldba.setVariables(variables);
-  }
-
-  @Override
   public String toString() {
     try {
       return toString(EnumSet.allOf(Option.class));

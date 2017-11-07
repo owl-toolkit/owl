@@ -33,6 +33,7 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.output.HoaPrintable;
+import owl.factories.jbdd.JBddSupplier;
 import owl.translations.dra2dpa.IARFactory;
 
 public final class DRA2DPA extends AbstractCommandLineTool<Automaton<HoaState, RabinAcceptance>> {
@@ -49,16 +50,16 @@ public final class DRA2DPA extends AbstractCommandLineTool<Automaton<HoaState, R
   }
 
   @Override
-  protected Collection<CommandLineInput<Automaton<HoaState, RabinAcceptance>>>
+  protected Collection<Automaton<HoaState, RabinAcceptance>>
   parseInput(InputStream stream) throws ParseException {
-    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream);
-    List<CommandLineInput<Automaton<HoaState, RabinAcceptance>>> inputs = new ArrayList<>();
+    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream,
+      JBddSupplier.async());
+    List<Automaton<HoaState, RabinAcceptance>> inputs = new ArrayList<>();
 
     for (Automaton<HoaState, ?> automaton : automata) {
       checkArgument(automaton.getAcceptance() instanceof RabinAcceptance);
       //noinspection unchecked
-      inputs.add(new CommandLineInput<>((Automaton<HoaState, RabinAcceptance>) automaton,
-        automaton.getVariables()));
+      inputs.add((Automaton<HoaState, RabinAcceptance>) automaton);
     }
 
     return inputs;

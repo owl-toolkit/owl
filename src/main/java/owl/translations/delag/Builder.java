@@ -32,49 +32,46 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
-import owl.factories.Registry;
+import owl.factories.jbdd.JBddSupplier;
 import owl.ltl.BooleanConstant;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class Builder<T>
-  implements Function<Formula, Automaton<State<T>, ? extends OmegaAcceptance>> {
+  implements Function<LabelledFormula, Automaton<State<T>, ? extends OmegaAcceptance>> {
 
-  private final Function<Formula, Automaton<T, OmegaAcceptance>> fallback;
+  private final Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
+    fallback;
   @Nullable
-  private LoadingCache<ProductState<T>, History> requiredHistoryCache;
+  private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 
-  public Builder(Function<Formula, Automaton<T, OmegaAcceptance>> fallback) {
+  public Builder(Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
+    fallback) {
     this.fallback = fallback;
   }
 
   @Override
-  public Automaton<State<T>, ? extends OmegaAcceptance> apply(Formula formula) {
-    Formula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    Factories factories = Registry.getFactories(rewritten);
+  public Automaton<State<T>, ? extends OmegaAcceptance> apply(LabelledFormula formula) {
+    LabelledFormula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
+    Factories factories = JBddSupplier.async().getFactories(rewritten);
 
-    if (rewritten == BooleanConstant.FALSE) {
+    if (rewritten.formula.equals(BooleanConstant.FALSE)) {
       return AutomatonFactory.empty(factories.valuationSetFactory);
     }
 
-    if (rewritten == BooleanConstant.TRUE) {
+    if (rewritten.formula.equals(BooleanConstant.TRUE)) {
       return AutomatonFactory.universe(new State<>(), factories.valuationSetFactory);
     }
 
-    DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories,
-      fallback);
-    DependencyTree<T> tree = formula.accept(treeConverter);
+    DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories, fallback);
+    DependencyTree<T> tree = rewritten.accept(treeConverter);
     BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 
+    //noinspection ConstantConditions
     requiredHistoryCache = CacheBuilder.newBuilder().maximumSize(1024L).build(
-      new CacheLoader<ProductState<T>, History>() {
-        @Override
-        public History load(ProductState<T> key) {
-          return History.create(tree.getRequiredHistory(key));
-        }
-      });
+      CacheLoader.from(key -> History.create(tree.getRequiredHistory(key))));
 
     ProductState<T> initialProduct = treeConverter.buildInitialState();
     State<T> initialState = new State<>(initialProduct,
@@ -85,7 +82,8 @@ public class Builder<T>
       factories.valuationSetFactory, (x, y) -> this.getSuccessor(tree, x, y));
   }
 
-  private History getHistory(History past, BitSet present, ProductState<T> state) {
+  private History getHistory(@Nullable History past, BitSet present, ProductState<T> state) {
+    assert requiredHistoryCache != null;
     History requiredHistory = requiredHistoryCache.getUnchecked(state);
     return History.stepHistory(past, present, requiredHistory);
   }

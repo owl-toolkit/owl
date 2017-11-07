@@ -17,21 +17,17 @@
 
 package owl.translations.nba2ldba;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.EnumSet;
-import java.util.List;
-
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
-
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
+import owl.factories.jbdd.JBddSupplier;
 import owl.translations.Optimisation;
 
 public class NBA2LDBATest {
@@ -83,7 +79,7 @@ public class NBA2LDBATest {
       + "[0 & 1] 1 {0}\n"
       + "[!0 & 1] 2 {0}\n"
       + "--END--";
-  
+
   private static final String INPUT4 =  "HOA: v1\n"
       + "States: 1\n"
       + "Start: 0\n"
@@ -94,8 +90,6 @@ public class NBA2LDBATest {
       + "--BODY--\n"
       + "State: 0\n"
       + "--END--";
-  
-  private static final List<String> MAPPING = ImmutableList.of("a");
 
   @Test
   public void testApply() throws ParseException {
@@ -111,22 +105,21 @@ public class NBA2LDBATest {
   public void testApply3() throws ParseException {
     runTest(INPUT3);
   }
-  
+
   @Test
   public void testApply4() throws ParseException {
     runTest(INPUT4);
   }
-  
+
   private void runTest(String input) throws ParseException {
     NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(
         EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
 
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton =
-      AutomatonReader.readHoa(input, GeneralizedBuchiAcceptance.class);
+      AutomatonReader.readHoa(input, JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrintable result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    result.setVariables(MAPPING);
   }
 }

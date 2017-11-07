@@ -20,15 +20,18 @@ package owl.ltl.rewriter;
 import com.google.common.collect.ImmutableList;
 import java.util.function.Function;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.util.UnaryOperators;
 
 public final class RewriterFactory {
-
-  private RewriterFactory() {
-  }
+  private RewriterFactory() {}
 
   public static Formula apply(RewriterEnum rewriter, Formula formula) {
     return rewriter.getRewriter().apply(formula);
+  }
+
+  public static LabelledFormula apply(RewriterEnum rewriter, LabelledFormula formula) {
+    return LabelledFormula.create(rewriter.getRewriter().apply(formula.formula), formula.variables);
   }
 
   public enum RewriterEnum {

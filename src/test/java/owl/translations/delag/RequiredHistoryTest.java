@@ -23,6 +23,7 @@ import java.util.BitSet;
 import org.junit.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
@@ -40,11 +41,11 @@ public class RequiredHistoryTest {
 
   @Test
   public void getRequiredHistoryLarge() {
-    Formula formula = LtlParser.formula("X (a | (X (b & X c)))");
+    LabelledFormula formula = LtlParser.parse("X (a | (X (b & X c)))");
 
     History past = new History(new long[]{0, 1L, 3L});
 
-    assertEquals(past, new History(RequiredHistory.getRequiredHistory(formula)));
+    assertEquals(past, new History(RequiredHistory.getRequiredHistory(formula.formula)));
   }
 
   @Test
@@ -55,13 +56,13 @@ public class RequiredHistoryTest {
 
   @Test
   public void getRequiredHistorySmall() {
-    Formula formula = LtlParser.formula("a | (X b)");
+    LabelledFormula formula = LtlParser.parse("a | (X b)");
 
     BitSet set = new BitSet();
     set.set(0);
 
     History expected = new History(new long[]{1L});
-    assertEquals(expected, new History(RequiredHistory.getRequiredHistory(formula)));
+    assertEquals(expected, new History(RequiredHistory.getRequiredHistory(formula.formula)));
   }
 
   @Test

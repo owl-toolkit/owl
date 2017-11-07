@@ -15,8 +15,9 @@ import owl.automaton.minimizations.GenericMinimizations;
 import owl.automaton.minimizations.MinimizationUtil;
 import owl.automaton.output.HoaPrintable;
 import owl.factories.Factories;
-import owl.factories.Registry;
+import owl.factories.jbdd.JBddSupplier;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.ROperator;
 import owl.ltl.WOperator;
 import owl.ltl.rewriter.RewriterFactory;
@@ -38,19 +39,19 @@ public final class Rabinizer extends AbstractLtlCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, ? extends HoaPrintable> getTranslation(
+  protected Function<LabelledFormula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
 
     return f -> {
-      Formula formula = f;
+      LabelledFormula formula = f;
       // TODO Not sure which rewrites should happen here - document which are essential and why
-      formula = formula.accept(expandVisitor);
+      formula = f.wrap(formula.accept(expandVisitor));
       formula = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
       formula = RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, formula);
-      Factories factories = Registry.getFactories(formula);
+      Factories factories = JBddSupplier.async().getFactories(formula);
       logger.log(Level.FINE, "Got formula {0}, rewritten to {1}", new Object[] {f, formula});
       MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> automaton =
-        RabinizerBuilder.rabinize(formula, ImmutableRabinizerConfiguration.builder()
+        RabinizerBuilder.rabinize(formula.formula, ImmutableRabinizerConfiguration.builder()
           .removeFormulaRepresentative(false)
           .factories(factories)
           .build());

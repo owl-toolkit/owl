@@ -17,10 +17,13 @@
 
 package owl.factories;
 
+import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
 import owl.collections.ValuationSet;
 
 public interface ValuationSetFactory {
+  ImmutableList<String> getAlphabet();
+
   ValuationSet createEmptyValuationSet();
 
   ValuationSet createUniverseValuationSet();

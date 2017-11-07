@@ -17,14 +17,11 @@
 
 package owl.factories;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 public final class Factories {
   public final EquivalenceClassFactory equivalenceClassFactory;
   public final ValuationSetFactory valuationSetFactory;
 
-  Factories(EquivalenceClassFactory equivalenceClassFactory,
+  public Factories(EquivalenceClassFactory equivalenceClassFactory,
     ValuationSetFactory valuationSetFactory) {
     this.equivalenceClassFactory = equivalenceClassFactory;
     this.valuationSetFactory = valuationSetFactory;

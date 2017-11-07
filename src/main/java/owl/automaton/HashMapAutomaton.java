@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -37,7 +36,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -47,7 +45,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -70,7 +67,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   private final ValuationSetFactory valuationSetFactory;
   @Nullable
   private String name = null;
-  private ImmutableList<String> variables;
 
   HashMapAutomaton(ValuationSetFactory valuationSetFactory, A acceptance) {
     this.valuationSetFactory = valuationSetFactory;
@@ -80,8 +76,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     transitions = new IdentityHashMap<>();
     uniqueStates = new HashMap<>();
     initialStates = new HashSet<>();
-    variables = IntStream.range(0, valuationSetFactory.getSize()).mapToObj(i -> "p" + i).collect(
-      ImmutableList.toImmutableList());
   }
 
   @Override
@@ -252,11 +246,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     return successorMap;
   }
 
-  @Override
-  public ImmutableList<String> getVariables() {
-    return variables;
-  }
-
   private S makeUnique(S state) {
     // TODO Maybe we shouldn't always put?
     S uniqueState = uniqueStates.putIfAbsent(state, state);
@@ -370,11 +359,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public void setName(String name) {
     this.name = name;
-  }
-
-  @Override
-  public void setVariables(List<String> variables) {
-    this.variables = ImmutableList.copyOf(variables);
   }
 
   @Override

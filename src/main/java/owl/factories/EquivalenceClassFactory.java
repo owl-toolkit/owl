@@ -17,7 +17,7 @@
 
 package owl.factories;
 
-import java.util.List;
+import com.google.common.collect.ImmutableList;
 import java.util.stream.Stream;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -43,5 +43,5 @@ public interface EquivalenceClassFactory {
     return createEquivalenceClass(BooleanConstant.TRUE);
   }
 
-  void setVariables(List<String> variables);
+  ImmutableList<String> getVariables();
 }

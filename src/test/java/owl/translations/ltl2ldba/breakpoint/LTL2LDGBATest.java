@@ -17,7 +17,9 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -27,7 +29,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.parser.LtlParseResult;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
@@ -58,16 +60,15 @@ public class LTL2LDGBATest {
 
   private static void testOutput(String ltl, EnumSet<Optimisation> opts, int size,
     @Nullable String expectedOutput) throws IOException {
-    LtlParseResult parseResult = LtlParser.parse(ltl);
+    LabelledFormula formula = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
       GeneralizedBuchiAcceptance, GObligations> automaton =
-      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(opts).apply(parseResult.getFormula());
-    automaton.getAcceptingComponent().setVariables(parseResult.getVariableMapping());
+      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(opts).apply(formula);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
 
     if (expectedOutput != null) {
-      assertEquals(expectedOutput, automaton.toString(EnumSet.noneOf(HoaPrintable.Option.class)));
+      assertThat(automaton.toString(EnumSet.noneOf(HoaPrintable.Option.class)), is(expectedOutput));
     }
   }
 

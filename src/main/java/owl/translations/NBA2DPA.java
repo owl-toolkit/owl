@@ -19,18 +19,18 @@ package owl.translations;
 
 import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
+import owl.factories.jbdd.JBddSupplier;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 
 public final class NBA2DPA extends AbstractCommandLineTool<Automaton<HoaState,
@@ -45,19 +45,12 @@ public final class NBA2DPA extends AbstractCommandLineTool<Automaton<HoaState,
     return new NBA2DPAFunction<>(EnumSet.of(Optimisation.CALC_SAFETY));
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  protected Collection<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>>
+  protected Collection<Automaton<HoaState, GeneralizedBuchiAcceptance>>
   parseInput(InputStream stream) throws ParseException {
-    List<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(stream);
-    List<CommandLineInput<Automaton<HoaState, GeneralizedBuchiAcceptance>>> inputs =
-      new ArrayList<>();
-
-    for (Automaton<HoaState, ?> automaton : automata) {
-      //noinspection unchecked
-      inputs.add(new CommandLineInput<>((Automaton<HoaState, GeneralizedBuchiAcceptance>) automaton,
-        automaton.getVariables()));
-    }
-
-    return inputs;
+    return AutomatonReader.readHoaCollection(stream, JBddSupplier.async()).stream()
+      .map(automaton -> (Automaton<HoaState, GeneralizedBuchiAcceptance>) automaton)
+      .collect(Collectors.toList());
   }
 }

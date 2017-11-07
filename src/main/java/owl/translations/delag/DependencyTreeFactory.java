@@ -32,6 +32,7 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
+import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.delag.DependencyTree.FallbackLeaf;
 import owl.translations.delag.DependencyTree.Leaf;
@@ -40,12 +41,13 @@ import owl.translations.delag.DependencyTree.Type;
 class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
   private final ProductState.Builder<T> builder;
-  private final Function<Formula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor;
+  private final Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
+    constructor;
   private final EquivalenceClassFactory factory;
   int setNumber;
 
   DependencyTreeFactory(Factories factory,
-    Function<Formula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor) {
+    Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor) {
     this.factory = factory.equivalenceClassFactory;
     setNumber = 0;
     builder = ProductState.builder();
@@ -62,8 +64,9 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
   }
 
   protected DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
-    Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber, () ->
-      constructor.apply(formula), piggyback);
+    Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber,
+      () -> constructor.apply(LabelledFormula.create(formula, factory.getVariables())),
+      piggyback);
 
     if (leaf.type == Type.COSAFETY || leaf.type == Type.SAFETY) {
       builder.safety.put(formula, factory.createEquivalenceClass(formula.unfold()));
@@ -91,7 +94,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
   private AtomAcceptance findPiggybackableLeaf(List<DependencyTree<T>> leafs) {
     for (DependencyTree<T> leaf : leafs) {
       if ((leaf instanceof Leaf)
-        && (((Leaf) leaf).type == Type.LIMIT_GF || ((Leaf) leaf).type == Type.LIMIT_FG)) {
+        && (((Leaf<?>) leaf).type == Type.LIMIT_GF || ((Leaf<?>) leaf).type == Type.LIMIT_FG)) {
         return leaf.getAcceptanceExpression().getAtom();
       }
     }

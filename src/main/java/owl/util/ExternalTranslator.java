@@ -21,7 +21,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import jhoafparser.parser.generated.ParseException;
@@ -29,11 +28,13 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.factories.Registry;
 import owl.factories.ValuationSetFactory;
-import owl.ltl.Formula;
+import owl.factories.jbdd.JBddSupplier;
+import owl.ltl.LabelledFormula;
+import owl.ltl.visitors.PrintVisitor;
 
-public class ExternalTranslator implements Function<Formula, Automaton<HoaState, OmegaAcceptance>> {
+public class ExternalTranslator
+  implements Function<LabelledFormula, Automaton<HoaState, OmegaAcceptance>> {
   private static final Pattern splitPattern = Pattern.compile("\\s+");
   private final ProcessBuilder builder;
 
@@ -46,18 +47,19 @@ public class ExternalTranslator implements Function<Formula, Automaton<HoaState,
   }
 
   @Override
-  public Automaton<HoaState, OmegaAcceptance> apply(Formula formula) {
+  public Automaton<HoaState, OmegaAcceptance> apply(LabelledFormula formula) {
     Process process = null;
     try {
       process = builder.start();
 
       try (OutputStreamWriter outputStream =
              new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) {
-        outputStream.write(formula.toString(Collections.emptyList(), true));
+        outputStream.write(PrintVisitor.toString(formula, true));
         outputStream.write('\n');
       }
 
-      ValuationSetFactory vsFactory = Registry.getFactories(formula).valuationSetFactory;
+      ValuationSetFactory vsFactory = JBddSupplier.async()
+        .getFactories(formula).valuationSetFactory;
       try (BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream())) {
         return AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
       }

@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.ints.IntIterable;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -83,8 +84,19 @@ public final class AutomatonFactory {
   }
 
   public static <S> Automaton<S, NoneAcceptance> singleton(S state, ValuationSetFactory factory) {
-    return new SingletonAutomaton<>(state, factory, Collections.emptyMap(),
-      NoneAcceptance.INSTANCE);
+    return singleton(state, factory, NoneAcceptance.INSTANCE);
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
+    ValuationSetFactory factory, A acceptance) {
+    return new SingletonAutomaton<>(state, factory, Collections.emptyMap(), acceptance);
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
+    ValuationSetFactory factory, A acceptance, IntSet acceptanceSet) {
+    Map<IntIterable, ValuationSet> loopAcceptanceSets = Collections
+      .singletonMap(acceptanceSet, factory.createUniverseValuationSet());
+    return new SingletonAutomaton<>(state, factory, loopAcceptanceSets, acceptance);
   }
 
   public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
@@ -95,11 +107,9 @@ public final class AutomatonFactory {
 
   private static final class EmptyAutomaton<S> implements Automaton<S, NoneAcceptance> {
     private final ValuationSetFactory factory;
-    private List<String> variables;
 
     EmptyAutomaton(ValuationSetFactory factory) {
       this.factory = factory;
-      variables = ImmutableList.of();
     }
 
     @Override
@@ -135,16 +145,6 @@ public final class AutomatonFactory {
     @Override
     public Set<S> getStates() {
       return Collections.emptySet();
-    }
-
-    @Override
-    public List<String> getVariables() {
-      return variables;
-    }
-
-    @Override
-    public void setVariables(List<String> variables) {
-      this.variables = ImmutableList.copyOf(variables);
     }
   }
 
@@ -220,11 +220,6 @@ public final class AutomatonFactory {
     public List<String> getVariables() {
       return automaton.getVariables();
     }
-
-    @Override
-    public void setVariables(List<String> variables) {
-      automaton.setVariables(variables);
-    }
   }
 
   private static final class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {
@@ -299,11 +294,6 @@ public final class AutomatonFactory {
     public List<String> getVariables() {
       return automaton.getVariables();
     }
-
-    @Override
-    public void setVariables(List<String> variables) {
-      automaton.setVariables(variables);
-    }
   }
 
   private static final class ProductAutomaton {
@@ -345,14 +335,12 @@ public final class AutomatonFactory {
     private final Collection<LabelledEdge<S>> selfLoopEdges;
     private final ValuationSet selfLoopValuations;
     private final S singletonState;
-    private List<String> variables;
 
     SingletonAutomaton(S singletonState, ValuationSetFactory factory,
       Map<IntIterable, ValuationSet> acceptances, A acceptance) {
       this.singletonState = singletonState;
       this.factory = factory;
       this.acceptance = acceptance;
-      variables = ImmutableList.of();
 
       if (acceptances.isEmpty()) {
         selfLoopValuations = factory.createEmptyValuationSet();
@@ -413,16 +401,6 @@ public final class AutomatonFactory {
     @Override
     public Set<S> getStates() {
       return Collections.singleton(singletonState);
-    }
-
-    @Override
-    public List<String> getVariables() {
-      return variables;
-    }
-
-    @Override
-    public void setVariables(List<String> variables) {
-      this.variables = ImmutableList.copyOf(variables);
     }
   }
 }

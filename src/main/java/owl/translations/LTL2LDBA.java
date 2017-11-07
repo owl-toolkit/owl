@@ -23,11 +23,11 @@ import java.util.Deque;
 import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.output.HoaPrintable;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public final class LTL2LDBA extends AbstractLtlCommandLineTool {
-  private final Function<EnumSet<Optimisation>, Function<Formula, ? extends HoaPrintable>>
+  private final Function<EnumSet<Optimisation>, Function<LabelledFormula, ? extends HoaPrintable>>
     constructor;
   private final boolean nondet;
 
@@ -77,7 +77,7 @@ public final class LTL2LDBA extends AbstractLtlCommandLineTool {
   }
 
   @Override
-  protected Function<Formula, ? extends HoaPrintable> getTranslation(
+  protected Function<LabelledFormula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
 
     if (nondet) {

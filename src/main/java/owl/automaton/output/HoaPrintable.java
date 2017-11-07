@@ -28,8 +28,6 @@ public interface HoaPrintable {
     return null;
   }
 
-  void setVariables(List<String> variables);
-
   List<String> getVariables();
 
   // rename feedTo...

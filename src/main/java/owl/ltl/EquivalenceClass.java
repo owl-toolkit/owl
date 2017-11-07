@@ -20,6 +20,7 @@ package owl.ltl;
 import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -27,10 +28,8 @@ import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 
 /**
- * EquivalenceClass interface.
- * The general contract of this interface is: If two implementing objects were
- * created from different factories, implies and equals have to return
- * {@code false}.
+ * EquivalenceClass interface. The general contract of this interface is: If two implementing
+ * objects were created from different factories, implies and equals have to return {@code false}.
  */
 public interface EquivalenceClass {
 
@@ -38,7 +37,7 @@ public interface EquivalenceClass {
 
   /**
    * Performs the same operation as {@link EquivalenceClass#and}, but also calls free() on the
-   * instance {@link this}.
+   * instance.
    */
   default EquivalenceClass andWith(EquivalenceClass equivalenceClass) {
     EquivalenceClass and = and(equivalenceClass);
@@ -49,6 +48,8 @@ public interface EquivalenceClass {
   EquivalenceClass duplicate();
 
   EquivalenceClass exists(Predicate<Formula> predicate);
+
+  void forEachSatisfyingAssignment(BiConsumer<BitSet, BitSet> action);
 
   void free();
 
@@ -92,7 +93,7 @@ public interface EquivalenceClass {
 
   /**
    * Performs the same operation as {@link EquivalenceClass#or}, but also calls free() on the
-   * instance {@link this}.
+   * instance.
    */
   default EquivalenceClass orWith(EquivalenceClass equivalenceClass) {
     EquivalenceClass or = or(equivalenceClass);

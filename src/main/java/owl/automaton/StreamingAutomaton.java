@@ -17,7 +17,6 @@
 
 package owl.automaton;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
@@ -28,7 +27,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -52,7 +50,6 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   private final BiFunction<S, BitSet, Edge<S>> computeDeterministicSuccessors;
   private final ValuationSetFactory factory;
   private final ImmutableSet<S> initialStates;
-  private ImmutableList<String> variables;
 
   StreamingAutomaton(A acceptance, ValuationSetFactory factory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> computeDeterministicSuccessors) {
@@ -60,7 +57,33 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     this.factory = factory;
     this.initialStates = ImmutableSet.copyOf(initialStates);
     this.computeDeterministicSuccessors = computeDeterministicSuccessors;
-    this.variables = ImmutableList.of();
+  }
+
+  private void computeEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
+    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
+      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+
+      if (edge == null) {
+        continue;
+      }
+
+      consumer.accept(valuation, edge);
+    }
+  }
+
+  private void computeLabelledEdges(S state, BiConsumer<Edge<S>, ValuationSet> consumer) {
+    Map<Edge<S>, ValuationSet> valuations = new HashMap<>();
+    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
+      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+
+      if (edge == null) {
+        continue;
+      }
+
+      ValuationSetMapUtil.add(valuations, edge, factory.createValuationSet(valuation));
+    }
+    valuations.forEach(consumer);
+    ValuationSetMapUtil.clear(valuations);
   }
 
   private Set<S> exploreReachableStates(Collection<? extends S> start,
@@ -108,18 +131,6 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     return edge != null ? Collections.singleton(edge) : Collections.emptySet();
   }
 
-  private void computeEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
-    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
-      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
-
-      if (edge == null) {
-        continue;
-      }
-
-      consumer.accept(valuation, edge);
-    }
-  }
-
   @Override
   public ValuationSetFactory getFactory() {
     return factory;
@@ -133,21 +144,6 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   @Override
   public Set<S> getInitialStates() {
     return initialStates;
-  }
-
-  private void computeLabelledEdges(S state, BiConsumer<Edge<S>, ValuationSet> consumer) {
-    Map<Edge<S>, ValuationSet> valuations = new HashMap<>();
-    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
-      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
-
-      if (edge == null) {
-        continue;
-      }
-
-      ValuationSetMapUtil.add(valuations, edge, factory.createValuationSet(valuation));
-    }
-    valuations.forEach(consumer);
-    ValuationSetMapUtil.clear(valuations);
   }
 
   @Override
@@ -168,16 +164,6 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   @Override
   public Set<S> getStates() {
     return getReachableStates(initialStates);
-  }
-
-  @Override
-  public List<String> getVariables() {
-    return variables;
-  }
-
-  @Override
-  public void setVariables(List<String> variables) {
-    this.variables = ImmutableList.copyOf(variables);
   }
 
   @Override

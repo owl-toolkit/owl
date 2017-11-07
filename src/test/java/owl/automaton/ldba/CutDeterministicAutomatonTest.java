@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
@@ -43,10 +43,10 @@ public class CutDeterministicAutomatonTest {
       Optimisation.FORCE_JUMPS, Optimisation.MINIMIZE_JUMPS,
       Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS);
 
-    Function<Formula, LimitDeterministicAutomaton<EquivalenceClass,
+    Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
       GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>> function =
       LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(optimisations);
-    ldba = function.apply(LtlParser.formula("a | F b | G c | G d"));
+    ldba = function.apply(LtlParser.parse("a | F b | G c | G d"));
   }
 
   @Test
