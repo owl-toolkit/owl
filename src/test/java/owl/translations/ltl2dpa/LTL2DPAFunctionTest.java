@@ -34,6 +34,7 @@ import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
+import owl.util.TestEnvironment;
 
 public class LTL2DPAFunctionTest {
 
@@ -41,7 +42,7 @@ public class LTL2DPAFunctionTest {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.COMPLETE);
     LabelledFormula parseResult = LtlParser.parse(ltl);
-    LTL2DPAFunction translation = new LTL2DPAFunction(opts);
+    LTL2DPAFunction translation = new LTL2DPAFunction(TestEnvironment.get(), opts);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
 
     try (OutputStream stream = new ByteArrayOutputStream()) {

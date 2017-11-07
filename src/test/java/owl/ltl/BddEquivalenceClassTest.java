@@ -18,11 +18,11 @@
 package owl.ltl;
 
 import owl.factories.EquivalenceClassFactory;
-import owl.factories.jbdd.JBddSupplier;
+import owl.util.TestEnvironment;
 
 public class BddEquivalenceClassTest extends EquivalenceClassTest {
   @Override
   public EquivalenceClassFactory setUpFactory(LabelledFormula domain) {
-    return JBddSupplier.async().getEquivalenceClassFactory(domain);
+    return TestEnvironment.get().factorySupplier().getEquivalenceClassFactory(domain);
   }
 }

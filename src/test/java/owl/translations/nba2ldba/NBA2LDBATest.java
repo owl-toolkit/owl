@@ -27,8 +27,8 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.output.HoaPrintable;
-import owl.factories.jbdd.JBddSupplier;
 import owl.translations.Optimisation;
+import owl.util.TestEnvironment;
 
 public class NBA2LDBATest {
 
@@ -116,7 +116,7 @@ public class NBA2LDBATest {
       EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
 
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
-      JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
+      TestEnvironment.get().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrintable result = translation.apply(automaton);

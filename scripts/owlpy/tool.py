@@ -3,23 +3,111 @@
 
 import sys
 
-from . import defaults
-
 
 class Tool(object):
-    def __init__(self, name, execution):
+    def __init__(self, name):
         self.name = name
-        self.execution = execution
 
     def get_name(self):
         return self.name
 
-    def get_execution(self):
-        return self.execution
+
+class SpotTool(Tool):
+    def __init__(self, name, execution):
+        super().__init__(name)
+        self.execution = execution
+
+    def get_file_execution(self, file):
+        tool_execution = list(self.execution)
+        tool_execution.extend(["-F", file])
+        return tool_execution
+
+    def get_input_execution(self, static_input):
+        tool_execution = list(self.execution)
+        tool_execution.extend(["-f", static_input])
+        print(str(tool_execution))
+        return tool_execution
+
+
+class OwlTool(Tool):
+    def __init__(self, name, tool, flags, input_type, output_type, parallel=False, pre=None,
+                 post=None):
+        super().__init__(name)
+        if post is None:
+            post = []
+        if pre is None:
+            pre = []
+        self.pre = pre
+        self.tool = tool
+        self.flags = flags
+        self.post = post
+        self.input_type = input_type
+        self.output_type = output_type
+        self.parallel = parallel
+
+    def get_pipeline(self):
+        pipeline = []
+        # Input
+        if self.input_type == "ltl":
+            pipeline.append("ltl")
+        else:
+            raise KeyError("Unknown input type {} for {}".format(self.input_type, self.name))
+        pipeline.append("---")
+
+        # Pre-processing
+        for pre_command in self.pre:
+            pipeline.extend(pre_command)
+            pipeline.append("---")
+
+        # Tool execution
+        pipeline.append(self.tool)
+        pipeline.extend(set(self.flags.values()))
+        pipeline.append("---")
+
+        # Post-processing
+        for post_command in self.post:
+            pipeline.extend(post_command)
+            pipeline.append("---")
+
+        # Output
+        if self.output_type == "hoa":
+            pipeline.append("hoa")
+        else:
+            raise KeyError("Unknown input type {} for {}".format(self.input_type, self.name))
+        return pipeline
+
+    def get_base_executable(self):
+        tool_execution = ["build/bin/owl"]
+        if self.parallel:
+            tool_execution.append("--parallel")
+        tool_execution.append("---")
+        return tool_execution
+
+    def get_server_execution(self, port=None):
+        tool_execution = self.get_base_executable()
+        tool_execution.extend(["server", "--address", "localhost"])
+        if port is not None:
+            tool_execution.extend(["--port", str(port)])
+        tool_execution.append("---")
+
+        tool_execution.extend(self.get_pipeline())
+        return tool_execution
+
+    def get_file_execution(self, file):
+        tool_execution = self.get_base_executable()
+        tool_execution.extend(["stream", "-I", file, "--worker", "0", "---"])
+        tool_execution.extend(self.get_pipeline())
+        return tool_execution
+
+    def get_input_execution(self, static_input):
+        tool_execution = self.get_base_executable()
+        tool_execution.extend(["stream", "-i", static_input, "--worker", "0", "---"])
+        tool_execution.extend(self.get_pipeline())
+        return tool_execution
 
 
 def get_tool(tools_json, tool_description):
-    # Tool description <name>(#(-?(flag|opt),)+)?
+    # Tool description <name>(#(-?(flag),)+)?
 
     if tool_description in tools_json.get("aliases", {}):
         tool_spec = tools_json["aliases"][tool_description]
@@ -45,6 +133,12 @@ def get_tool(tools_json, tool_description):
     if "defaults" in tool_json:
         for modifier in tool_json["defaults"]:
             modifiers.add(modifier)
+
+    if "type" not in tool_json:
+        raise KeyError("No type specified for {}".format(tool_name))
+
+    tool_type = tool_json["type"]
+
     for modifier in tool_modifier:
         if not modifier:
             continue
@@ -65,30 +159,44 @@ def get_tool(tools_json, tool_description):
                 if other_flag != exclusive_flag:
                     exclusion_set.add(other_flag)
 
+    parallel = False
     flags = dict()
-    optimisations = set()
     for modifier in modifiers:
         if modifier in tool_json.get("flags", {}):
             if modifier in exclusive_flags:
                 for excluded_flag in exclusive_flags.get(modifier):
                     flags.pop(excluded_flag, None)
             flags[modifier] = tool_json["flags"][modifier]
-        elif modifier in tool_json.get("optimisations", {}):
-            optimisations.add(tool_json["optimisations"][modifier])
         elif modifier == "parallel":
-            flags["parallel"] = "--parallel"
-        elif modifier == "no-opt":
-            optimisations.add("none")
+            parallel = True
         else:
-            print("Unknown modifier {}. Known flags for tool {} are: {} and optimisations: {}"
-                  .format(modifier, tool_name, ",".join(tool_json.get("flags", {}).keys()),
-                          ",".join(tool_json.get("optimisations", {}).keys())), file=sys.stderr)
-            sys.exit(1)
+            raise KeyError("Unknown modifier {}. Known flags for {} are: {}".format(
+                modifier, tool_name, ",".join(tool_json.get("flags", {}).keys())))
 
-    tool_execution = [tool_json["executable"]]
-    for flag in set(flags.values()):
-        tool_execution.append(flag)
-    if optimisations:
-        tool_execution.append("--optimisations=" + ",".join(optimisations))
+    if tool_type == "owl":
+        if "input" not in tool_json:
+            raise KeyError("No input type specified for {}".format(tool_name))
+        input_type = tool_json["input"]
+        pre = tool_json.get("pre", [])
 
-    return Tool(tool_name, tool_execution)
+        if "name" not in tool_json:
+            raise KeyError("No name specified for {}".format(tool_name))
+        tool = tool_json["name"]
+        post = tool_json.get("post", [])
+
+        if "output" not in tool_json:
+            raise KeyError("No output type specified for {}".format(tool_name))
+        output_type = tool_json["output"]
+
+        tool = OwlTool(tool_name, tool, flags, input_type, output_type, parallel, pre, post)
+    elif tool_type == "spot":
+        if parallel:
+            raise KeyError("Can't specify parallel for external tools")
+        tool_execution = [tool_json["executable"]]
+        for flag in set(flags.values()):
+            tool_execution.append(flag)
+        tool = SpotTool(tool_name, tool_execution)
+    else:
+        raise KeyError("Unknown tool type {}".format(tool_type))
+
+    return tool

@@ -46,8 +46,12 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.util.TestEnvironment;
 
 @SuppressWarnings("PMD.UseUtilityClass")
 public abstract class SizeRegressionTests<T extends HoaPrintable> {
@@ -205,7 +209,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class Breakpoint extends DPA {
       public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(DPA_ALL, false), "breakpoint");
+        super(selectedClass, new LTL2DPAFunction(TestEnvironment.get(), DPA_ALL, false),
+          "breakpoint");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")
@@ -217,7 +222,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class BreakpointFree extends DPA {
       public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(DPA_ALL, true), "breakpointfree");
+        super(selectedClass, new LTL2DPAFunction(TestEnvironment.get(), DPA_ALL, true),
+          "breakpointfree");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")
@@ -236,9 +242,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       DELAG_DPA_ALL.remove(Optimisation.COMPLETE);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Delag(FormulaSet selectedClass) {
-      super(selectedClass, new owl.translations.Delag(false,
-          (Function) new LTL2DPAFunction(DELAG_DPA_ALL))::translateWithFallback,
+      super(selectedClass, formula -> new DelagBuilder(TestEnvironment.get(),
+          new LTL2DPAFunction(TestEnvironment.get(), DELAG_DPA_ALL))
+          .apply(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula)),
         Automaton::stateCount,
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }
@@ -261,7 +269,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class Breakpoint extends LDBA {
       public Breakpoint(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-          .createDegeneralizedBreakpointLDBABuilder(ALL), "breakpoint");
+          .createDegeneralizedBreakpointLDBABuilder(TestEnvironment.get(), ALL), "breakpoint");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")
@@ -274,7 +282,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class BreakpointFree extends LDBA {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-          .createDegeneralizedBreakpointFreeLDBABuilder(ALL), "breakpointfree");
+            .createDegeneralizedBreakpointFreeLDBABuilder(TestEnvironment.get(), ALL),
+          "breakpointfree");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")
@@ -295,9 +304,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class Breakpoint extends LDGBA {
       public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass,
-          (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(ALL),
-          "breakpoint");
+        super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
+          .createGeneralizedBreakpointLDBABuilder(TestEnvironment.get(), ALL), "breakpoint");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")
@@ -310,7 +318,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class BreakpointFree extends LDGBA {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-          .createGeneralizedBreakpointFreeLDBABuilder(ALL), "breakpointfree");
+            .createGeneralizedBreakpointFreeLDBABuilder(TestEnvironment.get(), ALL),
+          "breakpointfree");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")

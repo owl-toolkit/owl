@@ -27,8 +27,8 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.factories.jbdd.JBddSupplier;
 import owl.util.BitSets;
+import owl.util.TestEnvironment;
 
 public class AutomatonReaderTest {
 
@@ -178,7 +178,7 @@ public class AutomatonReaderTest {
   @Test
   public void readAutomatonBuchi() throws ParseException {
     Automaton<HoaState, BuchiAcceptance> automaton = AutomatonReader.readHoa(HOA_BUCHI,
-      JBddSupplier.async(), BuchiAcceptance.class);
+      TestEnvironment.get().factorySupplier(), BuchiAcceptance.class);
     assertThat(automaton.getStates().size(), is(2));
     Int2ObjectMap<HoaState> states = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.getFactory();
@@ -196,19 +196,19 @@ public class AutomatonReaderTest {
 
   @Test(expected = ParseException.class)
   public void readAutomatonInvalid() throws ParseException {
-    AutomatonReader.readHoaCollection(HOA_INVALID, JBddSupplier.async());
+    AutomatonReader.readHoaCollection(HOA_INVALID, TestEnvironment.get().factorySupplier());
   }
 
   @Test(expected = ParseException.class)
   public void readAutomatonMissingAccName() throws ParseException {
     AutomatonReader.readHoaCollection(HOA_MISSING_ACC_NAME,
-      JBddSupplier.async());
+      TestEnvironment.get().factorySupplier());
   }
 
   @Test
   public void readAutomatonParity() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(HOA_PARITY,
-      JBddSupplier.async());
+      TestEnvironment.get().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.getAcceptance(), instanceOf(ParityAcceptance.class));
@@ -237,7 +237,7 @@ public class AutomatonReaderTest {
   @Test
   public void readAutomatonSimple() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(HOA_SIMPLE,
-      JBddSupplier.async());
+      TestEnvironment.get().factorySupplier());
     assertThat(automata.size(), is(1));
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
     assertThat(automaton.getStates().size(), is(2));
@@ -258,7 +258,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceGeneralizedBuchi() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERALIZED_BUCHI, JBddSupplier.async());
+      HOA_GENERALIZED_BUCHI, TestEnvironment.get().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 1);
@@ -270,7 +270,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceGeneralizedRabin() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERALIZED_RABIN, JBddSupplier.async());
+      HOA_GENERALIZED_RABIN, TestEnvironment.get().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 2);
@@ -282,7 +282,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceGeneric() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERIC, JBddSupplier.async());
+      HOA_GENERIC, TestEnvironment.get().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 3);
@@ -294,7 +294,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceRabin() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_RABIN, JBddSupplier.async());
+      HOA_RABIN, TestEnvironment.get().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 3);

@@ -17,11 +17,11 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.transformations.ParityUtil;
-import owl.factories.jbdd.JBddSupplier;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 import owl.translations.nba2ldba.BreakpointState;
+import owl.util.TestEnvironment;
 
 public class TestHasAcceptingRun {
 
@@ -95,8 +95,8 @@ public class TestHasAcceptingRun {
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
 
-    Automaton<HoaState, GeneralizedBuchiAcceptance> automaton =
-        AutomatonReader.readHoa(input, JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
+    Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
+      TestEnvironment.get().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>

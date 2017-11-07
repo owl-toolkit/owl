@@ -32,10 +32,10 @@ import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.factories.jbdd.JBddSupplier;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
+import owl.util.TestEnvironment;
 
 public class NBA2DPATest {
 
@@ -522,8 +522,8 @@ public class NBA2DPATest {
   }
 
   private void runTest(String input, int size) throws ParseException {
-    Automaton<HoaState, GeneralizedBuchiAcceptance> nba =
-        AutomatonReader.readHoa(input, JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
+    Automaton<HoaState, GeneralizedBuchiAcceptance> nba = AutomatonReader.readHoa(input,
+      TestEnvironment.get().factorySupplier(), GeneralizedBuchiAcceptance.class);
     nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     EnumSet<Optimisation> optimisations = EnumSet.noneOf(Optimisation.class);

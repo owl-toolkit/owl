@@ -28,7 +28,8 @@ class FileFormulaSet(FormulaSet):
         if self._formulas is None:
             with open(self.path, 'r') as f:
                 formulas = f.read().splitlines()
-            formulas = list(filter(lambda s: len(s) > 0, map(str.strip, formulas)))
+            formulas = list(filter(lambda s: len(s) > 0 and not s.startswith('#'),
+                                   map(str.strip, formulas)))
             self._formulas = formulas
         return self._formulas
 

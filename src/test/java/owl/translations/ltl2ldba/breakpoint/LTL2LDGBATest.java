@@ -33,6 +33,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.util.TestEnvironment;
 
 public class LTL2LDGBATest {
 
@@ -63,7 +64,8 @@ public class LTL2LDGBATest {
     LabelledFormula formula = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointState,
       GeneralizedBuchiAcceptance, GObligations> automaton =
-      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(opts).apply(formula);
+      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(TestEnvironment.get(), opts)
+        .apply(formula);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
 

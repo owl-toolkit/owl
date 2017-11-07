@@ -1,50 +1,206 @@
 {
     "tools": {
         "ltl2ldba": {
-            "executable": "build/bin/ltl2ldba",
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2ldba",
+            "flags": {
+                "gen-buchi": "-gen",
+                "deterministic": "-det",
+                "breakpoint": "-bp",
+                "no-eps": "-ne"
+            },
             "defaults": [
-                "buchi"
+                "no-eps"
             ],
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ]
+            ]
+        },
+        "ltl2dpa": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dpa",
+            "flags": {
+                "breakpoint": "-bp",
+                "complement": "--complement"
+            },
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ]
+            ]
+        },
+        "ltl2da": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2da",
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ]
+            ]
+        },
+        "delag": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "delag",
+            "flags": {
+                "strict": "--fallback=none",
+                "fallback-spot": "--fallback=ltl2tgba -H --deterministic --generic"
+            },
             "exclusive-flags": [
                 [
-                    "buchi",
-                    "gen-buchi"
+                    "strict",
+                    "fallback-spot"
+                ]
+            ],
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ]
+            ]
+        },
+        "rabinizer": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dgra",
+            "flags": {
+                "nosuspend": "--nosuspend",
+                "noeager": "--noeager"
+            },
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "pullup,modal-iter,fairness"
+                ],
+                [
+                    "unabbreviate",
+                    "--release",
+                    "--weak-until"
+                ]
+            ],
+            "post": [
+                [
+                    "minimize-aut"
+                ]
+            ]
+        },
+        "rabinizer-degen": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dgra",
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "pullup,modal-iter,fairness"
+                ],
+                [
+                    "unabbreviate",
+                    "--release",
+                    "--weak-until"
+                ]
+            ],
+            "post": [
+                [
+                    "minimize-aut"
+                ],
+                [
+                    "dgra2dra"
+                ]
+            ]
+        },
+        "rabinizer-iar": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "dra2dpa",
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "pullup,modal-iter,fairness"
+                ],
+                [
+                    "unabbreviate",
+                    "--release",
+                    "--weak-until"
+                ],
+                [
+                    "ltl2dgra"
+                ],
+                [
+                    "minimize-aut"
+                ],
+                [
+                    "dgra2dra"
+                ]
+            ],
+            "post": [
+                [
+                    "minimize-aut"
+                ]
+            ]
+        },
+        "spot-nba2ldba": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "nba2ldba",
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ],
+                [
+                    "ltl2aut-ext",
+                    "-t",
+                    "ltl2tgba -H"
+                ]
+            ]
+        },
+        "spot-nba2dpa": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "nba2dpa",
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ],
+                [
+                    "ltl2aut-ext",
+                    "-t",
+                    "ltl2tgba -H"
                 ]
             ],
             "flags": {
-                "gen-buchi": "--generalised-Buchi",
-                "buchi": "--Buchi",
-                "guess-f": "--guess-F",
-                "nondet-init": "--nondeterministic-initial-component",
-                "breakpoint-free": "--breakpoint-free"
-            },
-            "optimisations": {
-                "no-eps": "REMOVE_EPSILON_TRANSITIONS"
+                "nosafety": "--nosafety"
             }
-        },
-        "ltl2dpa": {
-            "executable": "build/bin/ltl2dpa",
-            "optimisations": {
-                "no-eps": "REMOVE_EPSILON_TRANSITIONS"
-            },
-            "flags": {
-                "breakpoint-free": "--breakpoint-free"
-            }
-        },
-        "ltl2da": {
-            "executable": "build/bin/ltl2da"
-        },
-        "delag": {
-            "executable": "build/bin/delag",
-            "flags": {
-                "strict": "--strict",
-                "fallback": "--fallback='ltl2tgba -H --deterministic --generic'"
-            }
-        },
-        "rabinizer": {
-            "executable": "build/bin/rabinizer"
         },
         "ltl2tgba": {
+            "type": "spot",
             "executable": "ltl2tgba",
             "defaults": [
                 "hoaf"

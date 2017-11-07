@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,20 +33,57 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.minimizations.ImplicitMinimizeTransformer;
+import owl.cli.ImmutableTransformerSettings;
+import owl.cli.ModuleSettings.TransformerSettings;
+import owl.cli.parser.ImmutableSingleModuleConfiguration;
+import owl.cli.parser.SimpleModuleParser;
 import owl.factories.ValuationSetFactory;
+import owl.run.PipelineExecutionException;
+import owl.run.env.Environment;
+import owl.run.input.HoaInput;
+import owl.run.meta.ToHoa;
+import owl.run.transformer.Transformer;
 
-final class IARBuilder<R> {
+public final class IARBuilder<R> {
+  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
+    .key("dra2dpa")
+    .description("Applies (optimized) IAR construction to the input DRA")
+    .transformerSettingsParser(settings -> IARBuilder.FACTORY)
+    .build();
+
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
+  public static final Transformer.Factory FACTORY = environment -> (input, context) -> {
+    Automaton<Object, RabinAcceptance> automaton =
+      AutomatonUtil.cast(input, Object.class, RabinAcceptance.class);
 
+    try {
+      return new IARBuilder<>(automaton, environment).build();
+    } catch (ExecutionException e) {
+      throw PipelineExecutionException.wrap(e);
+    }
+  };
+
+  private final Environment environment;
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final ValuationSetFactory vsFactory;
 
-  IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
+  IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
     resultAutomaton =
       MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), vsFactory);
+    this.environment = environment;
+  }
+
+  public static void main(String... args) {
+    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
+      .inputParser(new HoaInput())
+      .transformer(settings)
+      .addPostProcessors(environment -> new ImplicitMinimizeTransformer())
+      .outputWriter(new ToHoa())
+      .build());
   }
 
   public Automaton<IARState<R>, ParityAcceptance> build() throws ExecutionException {
@@ -61,7 +97,7 @@ final class IARBuilder<R> {
     logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
 
     CompletionService<SccProcessingResult<R>> completionService =
-      new ExecutorCompletionService<>(MoreExecutors.newDirectExecutorService());
+      new ExecutorCompletionService<>(environment.getExecutor());
 
     // Start possibly parallel execution
     for (Set<R> rabinScc : rabinSccs) {
@@ -93,6 +129,7 @@ final class IARBuilder<R> {
         subAutomaton.free();
         completedSccs += 1;
       } catch (InterruptedException e) {
+        // TODO Stop if environment.isStopped()
         logger.log(Level.FINE, "Interrupted", e);
       }
     }

@@ -6,8 +6,6 @@ before_script:
 stages:
   - build
   - test
-  - test-optimizations
-  - test-parallel-translation
   - bench
 
 build:
@@ -23,8 +21,8 @@ build:
 
 .ltlcross: &ltlcross_template
   script:
-    - ./gradlew --no-daemon buildBin
-    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/util.py test $TEST_NAME
+    - ./gradlew --no-daemon buildBin ltl2autExecutable
+    - python3 scripts/util.py test $TEST_NAME
   artifacts:
     paths:
     - build/results/
@@ -35,7 +33,7 @@ build:
 .benchmark: &benchmark_template
   stage: bench
   script:
-    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/src/main/resources python3 scripts/util.py bench $BENCH_NAME | tee benchmark.txt
+    - python3 scripts/util.py bench $BENCH_NAME | tee benchmark.txt
   artifacts:
     paths:
     - benchmark.txt
@@ -46,80 +44,16 @@ build:
 
 # LTL to LDBA Translations
 
-## Breakpoint
-
-ltl2ldba Büchi:
-  stage: test-optimizations
+ltl2ldba:
+  stage: test
   variables:
     TEST_NAME: "ltl2ldba"
   <<: *ltlcross_template
 
-ltl2ldba Büchi Non-Det:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-nondet"
-  <<: *ltlcross_template
-
-ltl2ldba Büchi Vanilla:
+ltl2ldbga:
   stage: test
   variables:
-    TEST_NAME: "ltl2ldba-vanilla"
-  <<: *ltlcross_template
-
-ltl2ldba generalised-Büchi:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-genb"
-  <<: *ltlcross_template
-
-ltl2ldba generalised-Büchi Non-Det:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-genb-nondet"
-  <<: *ltlcross_template
-
-ltl2ldba generalised-Büchi Vanilla:
-  stage: test
-  variables:
-    TEST_NAME: "ltl2ldba-genb-vanilla"
-  <<: *ltlcross_template
-
-## Breakpoint-Free
-
-ltl2ldba Büchi Breakpoint-Free:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-bpfree"
-  <<: *ltlcross_template
-
-ltl2ldba Büchi Breakpoint-Free Non-Det:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-bpfree-nondet"
-  <<: *ltlcross_template
-
-ltl2ldba Büchi Breakpoint-Free Vanilla:
-  stage: test
-  variables:
-    TEST_NAME: "ltl2ldba-bpfree-vanilla"
-  <<: *ltlcross_template
-
-ltl2ldba generalised-Büchi Breakpoint-Free:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-genb-bpfree"
-  <<: *ltlcross_template
-
-ltl2ldba generalised-Büchi Breakpoint-Free Non-Det:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2ldba-genb-bpfree-nondet"
-  <<: *ltlcross_template
-
-ltl2ldba generalised-Büchi Breakpoint-Free Vanilla:
-  stage: test
-  variables:
-    TEST_NAME: "ltl2ldba-genb-bpfree-vanilla"
+    TEST_NAME: "ltl2ldbga"
   <<: *ltlcross_template
 
 # NBA to LDBA translations
@@ -129,7 +63,7 @@ nba2ldba:
   variables:
     TEST_NAME: "nba2ldba"
   <<: *ltlcross_template
-  
+
 # NBA to LDBA translations
 
 nba2dpa:
@@ -141,41 +75,23 @@ nba2dpa:
 # LTL to DPA translations
 
 ltl2dpa:
-  stage: test-optimizations
+  stage: test
   variables:
     TEST_NAME: "ltl2dpa"
   <<: *ltlcross_template
 
-ltl2dpa Vanilla:
+ltl2dpa Breakpoint:
   stage: test
   variables:
-    TEST_NAME: "ltl2dpa-vanilla"
-  <<: *ltlcross_template
-
-ltl2dpa Breakpoint-Free:
-  stage: test-optimizations
-  variables:
-    TEST_NAME: "ltl2dpa-bpfree"
-  <<: *ltlcross_template
-
-ltl2dpa Breakpoint-Free Vanilla:
-  stage: test
-  variables:
-    TEST_NAME: "ltl2dpa-bpfree-vanilla"
-  <<: *ltlcross_template
-
-ltl2dpa Parallel:
-  stage: test-parallel-translation
-  variables:
-    TEST_NAME: "ltl2dpa-parallel"
+    TEST_NAME: "ltl2dpa-bp"
   <<: *ltlcross_template
 
 # LTL to D*A translations
 
-ltl2da Parallel:
-  stage: test-parallel-translation
+ltl2da:
+  stage: test
   variables:
-    TEST_NAME: "ltl2da-parallel"
+    TEST_NAME: "ltl2da"
   <<: *ltlcross_template
 
 # LTL to DELA translations
@@ -190,12 +106,6 @@ delag:
   stage: test
   variables:
     TEST_NAME: "delag"
-  <<: *ltlcross_template
-
-delag Fallback:
-  stage: test
-  variables:
-    TEST_NAME: "delag-fallback"
   <<: *ltlcross_template
 
 # rabinizer

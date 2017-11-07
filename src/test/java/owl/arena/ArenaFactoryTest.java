@@ -22,6 +22,7 @@ import owl.ltl.parser.LtlParser;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.util.TestEnvironment;
 
 public class ArenaFactoryTest {
   private static final LTL2DPAFunction TRANSLATION;
@@ -29,7 +30,7 @@ public class ArenaFactoryTest {
   static {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
-    TRANSLATION = new LTL2DPAFunction(optimisations, false);
+    TRANSLATION = new LTL2DPAFunction(TestEnvironment.get(), optimisations, false);
   }
 
   @Test

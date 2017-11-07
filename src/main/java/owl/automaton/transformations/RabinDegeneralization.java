@@ -1,5 +1,7 @@
 package owl.automaton.transformations;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -36,14 +38,21 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.cli.ImmutableTransformerSettings;
+import owl.cli.ModuleSettings.TransformerSettings;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
+import owl.run.PipelineExecutionContext;
+import owl.run.transformer.Transformer;
 
-public final class RabinDegeneralization {
+public final class RabinDegeneralization implements Transformer {
+  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
+    .key("dgra2dra")
+    .description("Converts a generalized rabin automaton into a regular one")
+    .transformerSettingsParser(settings -> environment -> new RabinDegeneralization())
+    .build();
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
-
-  private RabinDegeneralization() {}
 
   public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
     Automaton<S, GeneralizedRabinAcceptance> automaton) {
@@ -244,6 +253,15 @@ public final class RabinDegeneralization {
     resultAutomaton.setInitialStates(initialStates);
 
     return resultAutomaton;
+  }
+
+  @Override
+  public Object transform(Object object, PipelineExecutionContext context) {
+    checkArgument(object instanceof Automaton<?, ?>);
+    Automaton<?, ?> automaton = (Automaton<?, ?>) object;
+    checkArgument(automaton.getAcceptance() instanceof GeneralizedRabinAcceptance);
+    //noinspection unchecked
+    return degeneralize((Automaton<Object, GeneralizedRabinAcceptance>) automaton);
   }
 
   @Immutable

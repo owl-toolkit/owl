@@ -32,6 +32,7 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
+import owl.util.TestEnvironment;
 
 public class CutDeterministicAutomatonTest {
   @Nullable
@@ -47,7 +48,7 @@ public class CutDeterministicAutomatonTest {
 
     Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
       GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>> function =
-      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(optimisations);
+      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(TestEnvironment.get(), optimisations);
     ldba = function.apply(LtlParser.parse("a | F b | G c | G d"));
   }
 

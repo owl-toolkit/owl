@@ -3,12 +3,11 @@
 
 import os
 import os.path as path
-import subprocess
-import sys
-
 import owlpy.defaults as owl_defaults
 import owlpy.formula as owl_formula
 import owlpy.tool as owl_tool
+import subprocess
+import sys
 
 
 def _test(args):
@@ -59,18 +58,31 @@ def _test(args):
         if type(tool_description) is str:
             tool_database = owl_defaults.load_json(owl_defaults.get_tool_path())
             loaded_tools.append(owl_tool.get_tool(tool_database, tool_description))
-        elif type(tool_description) is dict:
-            loaded_tools.append(owl_tool.Tool(tool_description["name"], tool_description["exec"]))
         else:
-            raise TypeError("Unknown tool type {0!s}".format(type(tool_description)))
+            raise TypeError("Unknown tool description type {0!s}".format(type(tool_description)))
 
+    enable_server = True
+    port = 6060
+    servers = []
     for loaded_tool in loaded_tools:
         test_arguments.append("-t")
-        test_arguments.append(loaded_tool.get_name())
-        execution = loaded_tool.get_execution()
-        if "%f" not in execution:
-            execution.append("%f")
-        test_arguments.append(" ".join(execution))
+        if type(loaded_tool) is owl_tool.OwlTool:
+            name = loaded_tool.get_name()
+            if loaded_tool.flags and len(loaded_tools) > 1:
+                name = name + "#" + ",".join(loaded_tool.flags.keys())
+            test_arguments.append(name)
+            if enable_server:
+                servers.append(loaded_tool.get_server_execution(port))
+                test_arguments.append("\"build/exe/ltl2aut/ltl2aut\""
+                                      + " localhost " + str(port) + " %f")
+                port += 1
+            else:
+                test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
+        elif type(loaded_tool) is owl_tool.SpotTool:
+            test_arguments.append(loaded_tool.get_name())
+            test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
+        else:
+            raise TypeError("Unknown tool type {0!s}".format(type(loaded_tool)))
 
     formulas_json = owl_defaults.load_json(owl_defaults.get_formula_path())
     formula_sets = owl_formula.read_formula_sets(formulas_json)
@@ -95,7 +107,37 @@ def _test(args):
 
     sub_env = os.environ.copy()
     sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
+
+    server_processes = []
+
+    if servers:
+        print("Servers:")
+        for server in servers:
+            print(" ".join(server))
+        print()
+        sys.stdout.flush()
+
+        for server in servers:
+            server_process = subprocess.Popen(server, stdin=subprocess.DEVNULL,
+                                              stdout=subprocess.DEVNULL,
+                                              stderr=None, env=sub_env)
+            server_processes.append(server_process)
+
+    if servers:
+        # TODO Rather check that all sockets are open
+        import time
+        time.sleep(1 + len(servers) * 0.5)
+
     process = subprocess.run(test_arguments, env=sub_env)
+
+    for server_process in server_processes:
+        server_process.terminate()
+    for server_process in server_processes:
+        try:
+            server_process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            server_process.kill()
+
     sys.exit(process.returncode)
 
 
@@ -179,10 +221,8 @@ def _benchmark(args):
     if type(tool_description) is str:
         tool_database = owl_defaults.load_json(owl_defaults.get_tool_path())
         tool = owl_tool.get_tool(tool_database, tool_description)
-    elif type(tool_description) is dict:
-        tool = owl_tool.Tool(tool_description["name"], tool_description["exec"])
     else:
-        raise TypeError("Unknown tool type {0!s}".format(type(tool_description)))
+        raise TypeError("Unknown tool description type {0!s}".format(type(tool_description)))
 
     benchmark_script = [owl_defaults.get_script_path("benchmark.sh"), "--stdin",
                         "--repeat", str(repeat)]
@@ -193,7 +233,7 @@ def _benchmark(args):
     elif perf is not None:
         benchmark_script += ["--time"]
 
-    benchmark_script += ["--"] + tool.get_execution()
+    benchmark_script += ["--"] + tool.get_file_execution("%F")
 
     formulas = owl_formula.read_formula_sets(
         owl_defaults.load_json(owl_defaults.get_formula_path()))

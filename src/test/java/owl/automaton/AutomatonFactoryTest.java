@@ -15,13 +15,13 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.factories.jbdd.JBddSupplier;
+import owl.util.TestEnvironment;
 
 public class AutomatonFactoryTest {
 
   @Test
   public void testSingleton() {
-    ValuationSetFactory factory = JBddSupplier.async()
+    ValuationSetFactory factory = TestEnvironment.get().factorySupplier()
       .getValuationSetFactory(ImmutableList.of("a"));
     Object singletonState = new Object();
     Automaton<Object, NoneAcceptance> singleton =
@@ -40,7 +40,7 @@ public class AutomatonFactoryTest {
 
   @Test
   public void testUniverse() {
-    ValuationSetFactory factory = JBddSupplier.async()
+    ValuationSetFactory factory = TestEnvironment.get().factorySupplier()
       .getValuationSetFactory(ImmutableList.of("a"));
     Object singletonState = new Object();
     Automaton<Object, AllAcceptance> singleton =

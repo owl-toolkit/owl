@@ -44,6 +44,7 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     Automaton<S, ? extends OmegaAcceptance> nba) {
     Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
 
+    // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (nba.getAcceptance() instanceof AllAcceptance) {
       nbaGBA = GeneralizedBuchiAcceptanceTransformer
         .create((Automaton<S, AllAcceptance>) nba).build();
