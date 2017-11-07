@@ -87,7 +87,7 @@ public class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
     Collection<? extends Formula> set2) {
     BitSet obligationAtoms = Collector.collectAtoms(set1);
     BitSet supportAtoms = Collector.collectAtoms(set2);
-    return Collections3.isSubset(obligationAtoms, supportAtoms);
+    return Collections3.isSubsetConsuming(obligationAtoms, supportAtoms);
   }
 
   private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {

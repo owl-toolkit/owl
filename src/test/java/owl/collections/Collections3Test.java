@@ -15,7 +15,7 @@ public class Collections3Test {
     set1.set(1);
     set2.set(1, 3);
 
-    assertTrue(Collections3.isSubset(set1, set2));
+    assertTrue(Collections3.isSubsetConsuming(set1, set2));
 
     set1.clear();
     set2.clear();
@@ -23,6 +23,6 @@ public class Collections3Test {
     set1.set(1);
     set2.set(0);
 
-    assertFalse(Collections3.isSubset(set1, set2));
+    assertFalse(Collections3.isSubsetConsuming(set1, set2));
   }
 }
