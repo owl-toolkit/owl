@@ -63,7 +63,7 @@ public final class Collections3 {
     return collection.size() == Sets.newHashSet(collection).size();
   }
 
-  public static boolean isSubset(BitSet set1, BitSet set2) {
+  public static boolean isSubsetConsuming(BitSet set1, BitSet set2) {
     set1.andNot(set2);
     return set1.isEmpty();
   }
