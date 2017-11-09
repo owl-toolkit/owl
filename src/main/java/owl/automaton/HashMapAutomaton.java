@@ -240,7 +240,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public Map<S, ValuationSet> getSuccessorMap(S state) {
     Map<Edge<S>, ValuationSet> edges = getEdgeMap(state);
-    Map<S, ValuationSet> successorMap = new IdentityHashMap<>();
+    Map<S, ValuationSet> successorMap = new HashMap<>();
     edges.forEach((edge, valuations) -> ValuationSetMapUtil.add(successorMap, edge.getSuccessor(),
       valuations.copy()));
     return successorMap;

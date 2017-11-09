@@ -236,10 +236,10 @@ final class ValuationFactory implements ValuationSetFactory {
 
     @Override
     public void free() {
-      //if (factory.isNodeRoot(bdd)) {
+      // if (bdd > factory.getTrueNode()) {
       //  factory.dereference(bdd);
       //  bdd = INVALID_BDD;
-      //}
+      // }
     }
 
     @Override
