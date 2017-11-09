@@ -392,10 +392,15 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution) {
-      // TODO: Only construct map for elements in support.
+      BitSet support = factory.support(bdd);
+
       int[] substitutionMap = new int[reverseMapping.length];
       for (int i = 0; i < substitutionMap.length; i++) {
-        substitutionMap[i] = substitution.apply(reverseMapping[i]).accept(visitor);
+        if (support.get(i)) {
+          substitutionMap[i] = substitution.apply(reverseMapping[i]).accept(visitor);
+        } else {
+          substitutionMap[i] = -1;
+        }
       }
 
       int substitutedBdd = factory.reference(factory.compose(bdd, substitutionMap));

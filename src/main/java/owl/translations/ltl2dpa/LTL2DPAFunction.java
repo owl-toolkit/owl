@@ -17,8 +17,8 @@
 
 package owl.translations.ltl2dpa;
 
+import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,14 +33,13 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
+import owl.ltl.visitors.Collector;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
 import owl.translations.ldba2dpa.RankingState;
-import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
@@ -208,23 +207,24 @@ public class LTL2DPAFunction
 
     // Check if the state has an independent safety core.
     if (optimisations.contains(Optimisation.EXISTS_SAFETY_CORE)) {
-      Set<Formula> notSafety = state.getSupport(x -> !Fragments.isSafety(x));
+      BitSet nonSafetyAP = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
 
-      EquivalenceClass safetyCore = state.substitute(x -> {
-        for (Formula formula : notSafety) {
-          if (formula.anyMatch(z -> AbstractJumpManager.equalsInSupport(x, z))) {
-            return x;
-          }
+      EquivalenceClass core = state.substitute(x -> {
+        if (!Fragments.isSafety(x)) {
+          return BooleanConstant.FALSE;
         }
 
-        return BooleanConstant.TRUE;
+        BitSet ap = Collector.collectAtoms(x);
+        assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
+        ap.and(nonSafetyAP);
+        return ap.isEmpty() ? BooleanConstant.TRUE : x;
       });
 
-      if (safetyCore.isTrue()) {
+      if (core.isTrue()) {
         return true;
       }
 
-      safetyCore.free();
+      core.free();
     }
 
     return false;
