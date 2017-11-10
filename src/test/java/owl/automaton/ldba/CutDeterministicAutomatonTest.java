@@ -39,9 +39,9 @@ public class CutDeterministicAutomatonTest {
   public void setUp() throws Exception {
     EnumSet<Optimisation> optimisations = EnumSet.of(
       Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES,
-      Optimisation.EAGER_UNFOLD, Optimisation.REMOVE_REDUNDANT_OBLIGATIONS,
-      Optimisation.FORCE_JUMPS, Optimisation.MINIMIZE_JUMPS,
-      Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS);
+      Optimisation.EAGER_UNFOLD,
+      Optimisation.FORCE_JUMPS, Optimisation.SUPPRESS_JUMPS,
+      Optimisation.OPTIMISED_STATE_STRUCTURE);
 
     Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
       GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>> function =

@@ -42,7 +42,7 @@ public final class NBA2DPA extends AbstractCommandLineTool<Automaton<HoaState,
   @Override
   protected Function<Automaton<HoaState, GeneralizedBuchiAcceptance>, ? extends HoaPrintable>
   getTranslation(EnumSet<Optimisation> optimisations) {
-    return new NBA2DPAFunction<>(EnumSet.of(Optimisation.CALC_SAFETY));
+    return new NBA2DPAFunction<>();
   }
 
   @SuppressWarnings("unchecked")

@@ -48,7 +48,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   }
 
   /* Literals are differently encoded in support */
-  public static boolean equalsInSupport(Formula formula1, Formula formula2) {
+  private static boolean equalsInSupport(Formula formula1, Formula formula2) {
     return formula1.equals(formula2) || formula1 instanceof Literal && formula2 instanceof Literal
       && ((Literal) formula1).getAtom() == ((Literal) formula2).getAtom();
   }
@@ -64,7 +64,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     logger.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
 
-    if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+    if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)) {
       jumps.removeIf(jump -> jumps.stream().anyMatch(
         otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
     }
@@ -109,23 +109,8 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       return (AnalysisResult<X>) EMPTY;
     }
 
-    /* This violates the LDBA-property, but can be integrated into LTL2DPA using a heuristics
-     * interface.
-     *
-     * if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
-     *   EquivalenceClass safetyCore = state.substitue(
-     *     (x) -> Fragements.isSafety(x) ? BooleanConstant.True : x);
-     *   boolean existsSafetyCore = safety.isTrue();
-     *   safetyCore.free();
-     *
-     *   if (existsSafetyCore) {
-     *     return EMPTY;
-     *   }
-     * }
-     */
-
     // Check if the state depends on an independent cosafety property.
-    if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)) {
+    if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)) {
       Set<Formula> notCoSafety = state.getSupport(x -> !Fragments.isCoSafety(x));
 
       EquivalenceClass coSafety = state.exists(x -> {

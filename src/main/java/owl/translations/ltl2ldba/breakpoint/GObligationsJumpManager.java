@@ -147,7 +147,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         continue;
       }
 
-      if (optimisations.contains(Optimisation.MINIMIZE_JUMPS)
+      if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)
         && dependsOnExternalAtoms(remainder, obligation)) {
         continue;
       }

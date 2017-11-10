@@ -452,9 +452,15 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public String toString() {
-      if (factory.isVariableOrNegated(bdd)) {
+      if (factory.isVariable(bdd)) {
         return PrintVisitor.toString(reverseMapping[factory.getVariable(bdd)], alphabet, false);
       }
+
+      if (factory.isVariableNegated(bdd)) {
+        return PrintVisitor.toString(reverseMapping[factory.getVariable(bdd)].not(),
+          alphabet, false);
+      }
+
       if (representative == null) {
         return String.format("(%d)", bdd);
       }

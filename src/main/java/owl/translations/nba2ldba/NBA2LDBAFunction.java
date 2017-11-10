@@ -60,7 +60,7 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Safety>
     builder;
 
-    if (optimisations.contains(Optimisation.CALC_SAFETY)) {
+    if (optimisations.contains(Optimisation.COMPUTE_SAFETY_PROPERTY)) {
       BiFunction<BreakpointState<S>, Automaton<BreakpointState<S>, BuchiAcceptance>, Safety>
       getSafeties = (state, automaton) -> {
         if (SafetyUtil.isSafetyLanguage(state, automaton)) {
