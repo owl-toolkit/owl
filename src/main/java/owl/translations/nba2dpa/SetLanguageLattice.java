@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import java.util.AbstractMap;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.translations.ldba2dpa.Language;
@@ -14,16 +15,27 @@ import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.nba2ldba.Safety;
 
 public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety> {
+  @Override
+  public boolean acceptsSafetyLanguage(S state) {
+    return isSafetyAnnotation(getAnnotation.apply(state));
+  }
+
+  @Override
+  public boolean acceptsLivenessLanguage(S state) {
+    return isLivenessLanguage(getAnnotation.apply(state));
+  }
 
   private final Language<Set<S>> bottom;
   private final Language<Set<S>> top;
   private final LoadingCache<Entry<Set<S>, S>, Boolean> cache;
+  private final Function<S, Safety> getAnnotation;
 
-  SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton) {
+  SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton, Function<S, Safety> getAnnotation) {
     bottom = new SetLanguage(ImmutableSet.of());
     top = new SetLanguage(ImmutableSet.copyOf(automaton.getStates()));
     cache = CacheBuilder.newBuilder().maximumSize(30000)
       .build(new InclusionCheckCacheLoader<>(automaton));
+    this.getAnnotation = getAnnotation;
   }
 
   @Override
@@ -32,7 +44,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
   }
 
   @Override
-  public Language<Set<S>> getLanguage(S state, boolean current) {
+  public Language<Set<S>> getLanguage(S state) {
     return new SetLanguage(ImmutableSet.of(state));
   }
 
@@ -47,7 +59,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
   }
 
   @Override
-  public boolean isSafetyLanguage(Safety annotation) {
+  public boolean isSafetyAnnotation(Safety annotation) {
     return Safety.SAFETY == annotation;
   }
 

@@ -42,7 +42,7 @@ public class EquivalenceClassStateFactory {
     this.factory = factory;
     this.eagerUnfold = optimisations.contains(Optimisation.EAGER_UNFOLD);
     this.removeRedundantObligations = optimisations
-      .contains(Optimisation.REMOVE_REDUNDANT_OBLIGATIONS);
+      .contains(Optimisation.OPTIMISED_STATE_STRUCTURE);
   }
 
   private EquivalenceClass and(Iterable<EquivalenceClass> equivalenceClasses) {

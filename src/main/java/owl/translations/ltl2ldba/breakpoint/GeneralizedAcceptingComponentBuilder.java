@@ -131,7 +131,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       return null;
     }
 
-    if (state.obligations.isPureSafety()) {
+    if (state.obligations.obligations.length == 0 && state.obligations.liveness.length == 0) {
       return getSuccessorPureSafety(state, nextSafety, valuation);
     }
 

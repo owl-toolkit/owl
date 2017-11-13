@@ -26,7 +26,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,7 +47,6 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.collections.Collections3;
 import owl.translations.Optimisation;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
@@ -60,7 +61,6 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private final List<U> sortingOrder;
   private final LanguageLattice<V, T, U> lattice;
   private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba;
-  private final List<U> livenessComponents;
   private final boolean resetRanking;
   private final List<U> safetyComponents;
   private final AtomicInteger sizeCounter;
@@ -75,28 +75,17 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     sortingOrder = ImmutableList.copyOf(ldba.getComponents());
 
-    {
-      // Identify liveness and safety components.
-      ImmutableList.Builder<U> livenessBuilder = ImmutableList.builder();
+    { // Identify safety components.
       ImmutableList.Builder<U> safetyBuilder = ImmutableList.builder();
 
       for (U value : sortingOrder) {
-        if (lattice.isSafetyLanguage(value)) {
+        if (lattice.isSafetyAnnotation(value)) {
           safetyBuilder.add(value);
-        } else if (lattice.isLivenessLanguage(value)) {
-          livenessBuilder.add(value);
         }
       }
 
-      livenessComponents = livenessBuilder.build();
       safetyComponents = safetyBuilder.build();
-
-      logger.log(Level.FINER, "Liveness Components: {0}", livenessComponents);
       logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
-
-      assert Collections3.isDistinct(livenessComponents);
-      assert Collections3.isDistinct(safetyComponents);
-      assert Collections.disjoint(livenessComponents, safetyComponents);
     }
 
     this.isAcceptingState = isAcceptingState;
@@ -114,15 +103,10 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     this.resetRanking = resetRanking;
   }
 
-  private boolean acceptsLivenessLanguage(T state) {
-    U annotation = ldba.getAnnotation(state);
-    return annotation != null && lattice.isLivenessLanguage(annotation);
-  }
-
-  private boolean acceptsSafetyLanguage(T state) {
-    U annotation = ldba.getAnnotation(state);
-    return annotation != null && lattice.isSafetyLanguage(annotation) && lattice.getLanguage(state,
-      true).isTop();
+  private Set<U> getAnnotations(S state) {
+    Set<U> annotations = new HashSet<>();
+    ldba.getEpsilonJumps(state).forEach(x -> annotations.add(ldba.getAnnotation(x)));
+    return annotations;
   }
 
   @Override
@@ -175,9 +159,9 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     for (T jumpTarget : epsilonJumps) {
       existingLanguages.put(ldba.getAnnotation(jumpTarget), emptyLanguage);
 
-      if (acceptsSafetyLanguage(jumpTarget)) {
+      if (lattice.acceptsSafetyLanguage(jumpTarget)) {
         safetyTargets.add(jumpTarget);
-      } else if (acceptsLivenessLanguage(jumpTarget)) {
+      } else if (lattice.acceptsLivenessLanguage(jumpTarget)) {
         livenessTargets.add(jumpTarget);
       } else {
         mixedTargets.add(jumpTarget);
@@ -187,20 +171,21 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     // Default rejecting color.
     int edgeColor = 2 * previousRanking.size();
     List<T> ranking = new ArrayList<>(previousRanking.size());
-    int safetyProgress = previousSafetyProgress;
+    int safetyProgress = -1;
 
     boolean extendRanking = true;
 
     { // Compute ranking successor
-      int i = -1;
+      ListIterator<T> iterator = previousRanking.listIterator();
 
-      for (T previousState : previousRanking) {
+      for (T previousState; iterator.hasNext(); ) {
+
         assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
+        previousState = iterator.next();
         Edge<T> edge = ldba.getAcceptingComponent().getEdge(previousState, valuation);
-        i++;
 
         if (edge == null) {
-          edgeColor = Math.min(2 * i, edgeColor);
+          edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
           continue;
         }
 
@@ -210,30 +195,33 @@ public final class RankingAutomatonBuilder<S, T, U, V>
         Language<V> existingLanguage = existingLanguages.get(annotation);
 
         if (existingLanguage == null
-          || existingLanguage.greaterOrEqual(lattice.getLanguage(rankingState, false))) {
-          edgeColor = Math.min(2 * i, edgeColor);
+          || existingLanguage.greaterOrEqual(lattice.getLanguage(rankingState))) {
+          edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
           continue;
         }
 
         existingLanguages.replace(annotation,
-          existingLanguage.join(lattice.getLanguage(rankingState, false)));
+          existingLanguage.join(lattice.getLanguage(rankingState)));
         ranking.add(rankingState);
 
-        if (acceptsSafetyLanguage(rankingState)) {
+        if (lattice.acceptsSafetyLanguage(rankingState) && !iterator.hasNext()) {
           int safetyIndex = safetyComponents.indexOf(annotation);
-          edgeColor = Math.min(2 * i + 1, edgeColor);
+          edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
 
           logger.log(Level.FINER, "Found safety language {0} with safety index {1}.",
             new Object[]{rankingState, safetyIndex});
 
-          if (safetyProgress == safetyIndex) {
+          if (resetRanking) {
+            existingLanguages.replace(annotation, lattice.getTop());
+          }
+
+          if (previousSafetyProgress == safetyIndex) {
+            safetyProgress = previousSafetyProgress;
             extendRanking = false;
             break;
           }
-        }
-
-        if (edge.inSet(0)) {
-          edgeColor = Math.min(2 * i + 1, edgeColor);
+        } else if (edge.inSet(0)) {
+          edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
 
           if (resetRanking) {
             existingLanguages.replace(annotation, lattice.getTop());
@@ -258,18 +246,19 @@ public final class RankingAutomatonBuilder<S, T, U, V>
         }
       }
 
-      T safety = findNextSafety(safetyTargets, safetyProgress + 1);
+      T safety = findNextSafety(safetyTargets, previousSafetyProgress + 1);
 
       // Wrap around; restart search.
       if (safety == null) {
         safety = findNextSafety(safetyTargets, 0);
       }
 
-      if (safety != null && insertableToRanking(safety, existingLanguages)) {
-        ranking.add(safety);
+      if (safety != null) {
         safetyProgress = safetyComponents.indexOf(ldba.getAnnotation(safety));
-      } else {
-        safetyProgress = -1;
+
+        if (insertableToRanking(safety, existingLanguages)) {
+          ranking.add(safety);
+        }
       }
     }
 
@@ -281,7 +270,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
   private boolean insertableToRanking(T state, Map<U, Language<V>> existingLanguages) {
     Language<V> existingClass = existingLanguages.get(ldba.getAnnotation(state));
-    Language<V> stateClass = lattice.getLanguage(state, false);
+    Language<V> stateClass = lattice.getLanguage(state);
     return existingClass == null || !existingClass.greaterOrEqual(stateClass);
   }
 
@@ -289,7 +278,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private T findNextSafety(List<T> availableJumps, int i) {
     for (U annotation : safetyComponents.subList(i, safetyComponents.size())) {
       for (T state : availableJumps) {
-        assert acceptsSafetyLanguage(state);
+        assert lattice.acceptsSafetyLanguage(state);
 
         U stateAnnotation = ldba.getAnnotation(state);
 

@@ -110,7 +110,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
         return null;
       }
 
-      if (optimisations.contains(Optimisation.OPTIMISED_CONSTRUCTION_FOR_FRAGMENTS)) {
+      if (optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE)) {
         if (clazz.testSupport(Fragments::isX)) {
           safety = safety.andWith(clazz);
           clazz.free();
@@ -193,14 +193,6 @@ public final class GObligations extends ImmutableObject implements RecurringObli
   protected int hashCodeOnce() {
     // TODO: fix memory leak.
     return getObligation().hashCode();
-  }
-
-  boolean isPureLiveness() {
-    return obligations.length == 0 && safety.isTrue();
-  }
-
-  boolean isPureSafety() {
-    return obligations.length == 0 && liveness.length == 0;
   }
 
   @Override

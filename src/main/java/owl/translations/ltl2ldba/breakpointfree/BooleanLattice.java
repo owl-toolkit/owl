@@ -3,7 +3,8 @@ package owl.translations.ltl2ldba.breakpointfree;
 import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
-public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations> {
+public class BooleanLattice
+  implements LanguageLattice<Void, DegeneralizedBreakpointFreeState, FGObligations> {
 
   private static final Language<Void> BOTTOM = new BottomLanguage();
   private static final Language<Void> TOP = new TopLanguage();
@@ -14,7 +15,7 @@ public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations
   }
 
   @Override
-  public Language<Void> getLanguage(T state, boolean current) {
+  public Language<Void> getLanguage(DegeneralizedBreakpointFreeState state) {
     return TOP;
   }
 
@@ -29,7 +30,17 @@ public class BooleanLattice<T> implements LanguageLattice<Void, T, FGObligations
   }
 
   @Override
-  public boolean isSafetyLanguage(FGObligations annotation) {
+  public boolean acceptsSafetyLanguage(DegeneralizedBreakpointFreeState state) {
+    return isSafetyAnnotation(state.obligations) && state.liveness.isTrue();
+  }
+
+  @Override
+  public boolean acceptsLivenessLanguage(DegeneralizedBreakpointFreeState state) {
+    return isLivenessLanguage(state.obligations) && state.safety.isTrue();
+  }
+
+  @Override
+  public boolean isSafetyAnnotation(FGObligations annotation) {
     return annotation.isPureSafety();
   }
 

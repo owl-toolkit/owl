@@ -60,22 +60,27 @@ public class LTL2DPAFunction
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
-  public LTL2DPAFunction() {
-    this(EnumSet.complementOf(EnumSet.of(Optimisation.PARALLEL)));
-  }
-
   public LTL2DPAFunction(EnumSet<Optimisation> optimisations) {
     this(optimisations, false);
   }
 
   public LTL2DPAFunction(EnumSet<Optimisation> optimisations, boolean breakpointFree) {
     this.optimisations = EnumSet.copyOf(optimisations);
-    this.optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
-    this.optimisations.remove(Optimisation.FORCE_JUMPS);
+
+    EnumSet<Optimisation> ldbaOptimisations = EnumSet.of(
+      Optimisation.DETERMINISTIC_INITIAL_COMPONENT,
+      Optimisation.EAGER_UNFOLD,
+      Optimisation.SUPPRESS_JUMPS,
+      Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES);
+
+    if (optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE)) {
+      ldbaOptimisations.add(Optimisation.OPTIMISED_STATE_STRUCTURE);
+    }
+
     translatorBreakpointFree = LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(
-      this.optimisations);
+      ldbaOptimisations);
     translatorBreakpoint = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(
-      this.optimisations);
+      ldbaOptimisations);
     this.breakpointFree = breakpointFree;
   }
 
@@ -195,7 +200,7 @@ public class LTL2DPAFunction
 
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
       Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
-      new BooleanLattice<>(), this::hasSafetyCore, true);
+      new BooleanLattice(), this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
   }
