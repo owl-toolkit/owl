@@ -47,6 +47,7 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
   protected Function<LabelledFormula, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations) {
     optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+    optimisations.remove(Optimisation.COMPLETE);
 
     if (parallel) {
       optimisations.add(Optimisation.PARALLEL);

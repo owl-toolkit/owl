@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -87,8 +88,13 @@ public class LTL2DPAFunction
   @Override
   public MutableAutomaton<?, ParityAcceptance> apply(LabelledFormula formula) {
     if (!optimisations.contains(Optimisation.PARALLEL)) {
-      // TODO Instead, one should use a direct executor here
-      return apply(formula, new AtomicInteger()).automaton;
+      ComplementableAutomaton<?> automaton = apply(formula, new AtomicInteger());
+
+      if (optimisations.contains(Optimisation.COMPLETE)) {
+        automaton.complete();
+      }
+
+      return automaton.automaton;
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -125,6 +131,11 @@ public class LTL2DPAFunction
 
           if (automaton != null && size <= complementSize) {
             complementFuture.cancel(true);
+
+            if (optimisations.contains(Optimisation.COMPLETE)) {
+              automaton.complete();
+            }
+
             return automaton.automaton;
           }
 
@@ -243,6 +254,12 @@ public class LTL2DPAFunction
       Supplier<T> sinkSupplier) {
       this.automaton = automaton;
       this.sinkSupplier = sinkSupplier;
+    }
+
+    void complete() {
+      BitSet reject = new BitSet();
+      reject.set(0);
+      AutomatonUtil.complete(automaton, sinkSupplier, () -> reject);
     }
 
     void complement() {

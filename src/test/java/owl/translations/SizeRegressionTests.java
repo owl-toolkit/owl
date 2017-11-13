@@ -196,11 +196,12 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
   public abstract static class DPA extends SizeRegressionTests<Automaton<?, ?>> {
 
-    private static final EnumSet<Optimisation> DPA_ALL;
+    static final EnumSet<Optimisation> DPA_ALL;
 
     static {
       DPA_ALL = EnumSet.allOf(Optimisation.class);
       DPA_ALL.remove(Optimisation.PARALLEL);
+      DPA_ALL.remove(Optimisation.COMPLETE);
     }
 
     DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
@@ -226,9 +227,16 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   @RunWith(Parameterized.class)
   public static class Delag extends SizeRegressionTests<Automaton<?, ?>> {
 
+    static final EnumSet<Optimisation> DPA_ALL;
+
+    static {
+      DPA_ALL = EnumSet.allOf(Optimisation.class);
+      DPA_ALL.remove(Optimisation.COMPLETE);
+    }
+
     public Delag(FormulaSet selectedClass) {
       super(selectedClass, new owl.translations.Delag(false,
-        (Function) new LTL2DPAFunction(ALL))::translateWithFallback,
+        (Function) new LTL2DPAFunction(DPA_ALL))::translateWithFallback,
         Automaton::stateCount,
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }

@@ -15,22 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations;
+@EverythingIsNonnullByDefault
+package owl.arena;
 
-public enum Optimisation {
-  /* LDBA Constructions */
-  SUPPRESS_JUMPS_FOR_TRANSIENT_STATES, REMOVE_EPSILON_TRANSITIONS,
-
-  /* ltl2ldba */
-  DETERMINISTIC_INITIAL_COMPONENT, EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE,
-  SUPPRESS_JUMPS,
-
-  /* nba2ldba */
-  COMPUTE_SAFETY_PROPERTY,
-
-  /* ldba2dpa */
-  RESET_AFTER_SCC_SWITCH,
-
-  /* ltl2dpa */
-  EXISTS_SAFETY_CORE, PARALLEL, COMPLETE
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

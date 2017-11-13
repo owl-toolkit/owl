@@ -43,6 +43,7 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
 
   private static HoaPrintable translate(LabelledFormula formula,
     EnumSet<Optimisation> optimisations) {
+    optimisations.remove(Optimisation.COMPLETE);
     LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(optimisations);
     LimitDeterministicAutomaton<?, ?, ?, ?> ldba = LTL2LDBAFunction
       .createGeneralizedBreakpointLDBABuilder(optimisations).apply(formula);

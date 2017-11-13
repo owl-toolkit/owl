@@ -27,10 +27,10 @@ import owl.util.ImmutableObject;
 
 @Immutable
 public final class RankingState<S, T> extends ImmutableObject {
-  final ImmutableList<T> ranking;
+  public final ImmutableList<T> ranking;
   @Nullable
-  final S state;
-  final int safetyProgress;
+  public final S state;
+  public final int safetyProgress;
 
   private RankingState(@Nullable S state, ImmutableList<T> ranking, int safetyProgress) {
     assert Collections3.isDistinct(ranking);

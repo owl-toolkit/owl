@@ -34,7 +34,7 @@ import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.transformations.ToStateAcceptance;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import owl.automaton.ArenaFactory;
+import owl.arena.ArenaFactory;
 import owl.automaton.Automaton;
 import owl.automaton.output.HoaPrintable;
 
@@ -82,7 +82,7 @@ public abstract class AbstractCommandLineTool<T> {
         }
 
         Automaton<?, ?> automaton = (Automaton) result;
-        result = ArenaFactory.transform(automaton, ImmutableList.of("i"));
+        result = ArenaFactory.split(automaton, ImmutableList.of("i"));
       }
 
       HOAConsumer consumer = new HOAConsumerPrint(System.out);
