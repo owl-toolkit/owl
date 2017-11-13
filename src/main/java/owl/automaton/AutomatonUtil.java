@@ -55,7 +55,7 @@ public final class AutomatonUtil {
   private AutomatonUtil() {}
 
   @SuppressWarnings("unchecked")
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> castAutomaton(Object automaton,
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> cast(Object automaton,
     Class<S> stateClass, Class<A> acceptanceClass) {
     checkArgument(automaton instanceof Automaton<?, ?>, "Expected automaton, got %s",
       automaton.getClass().getName());

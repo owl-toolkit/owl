@@ -40,6 +40,7 @@ public class LTL2DPAFunctionTest {
   private static void testOutput(String ltl, int size, int accSize) {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.PARALLEL);
+    opts.remove(Optimisation.COMPLETE);
     LabelledFormula parseResult = LtlParser.parse(ltl);
     LTL2DPAFunction translation = new LTL2DPAFunction(opts);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);

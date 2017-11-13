@@ -95,7 +95,7 @@ public final class AutomatonReader {
     FactorySupplier factorySupplier, Class<A> acceptanceClass) throws ParseException {
     List<Automaton<HoaState, A>> automata = new ArrayList<>();
     Consumer<Automaton<HoaState, ?>> automatonConsumer = automaton ->
-      automata.add(AutomatonUtil.castAutomaton(automaton, HoaState.class, acceptanceClass));
+      automata.add(AutomatonUtil.cast(automaton, HoaState.class, acceptanceClass));
     readHoa(stream, automatonConsumer, factorySupplier);
     return Iterables.getOnlyElement(automata);
   }
@@ -104,7 +104,7 @@ public final class AutomatonReader {
     ValuationSetFactory vsFactory, Class<A> acceptanceClass) throws ParseException {
     List<Automaton<HoaState, A>> automata = new ArrayList<>();
     Consumer<Automaton<HoaState, ?>> automatonConsumer = automaton ->
-      automata.add(AutomatonUtil.castAutomaton(automaton, HoaState.class, acceptanceClass));
+      automata.add(AutomatonUtil.cast(automaton, HoaState.class, acceptanceClass));
     readHoa(stream, automatonConsumer, vsFactory);
     return Iterables.getOnlyElement(automata);
   }
