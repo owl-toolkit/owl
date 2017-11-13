@@ -85,6 +85,7 @@ final class MonitorBuilder {
 
   private MonitorAutomaton build() {
     // We start with the (q0, bot, bot, ...) ranking
+    // TODO We don't need to put the initial class into the ranking if it is at the tail
     MonitorState initialState = new MonitorState(new EquivalenceClass[] {initialClass});
 
     for (int i = 0; i < monitorAutomata.length; i++) {
@@ -124,14 +125,6 @@ final class MonitorBuilder {
     while (!workQueue.isEmpty()) {
       MonitorState currentState = workQueue.poll();
       stateFactory.addSensitiveAlphabet(sensitiveAlphabet, currentState);
-      EquivalenceClass[] currentRanking = currentState.formulaRanking;
-      int currentRankingSize = currentRanking.length;
-
-      // TODO Maybe only re-allocate if too small
-      boolean[] classIsInitial = new boolean[currentRankingSize];
-      for (int i = 0; i < currentRankingSize; i++) {
-        classIsInitial[i] = currentRanking[i].equals(initialClass);
-      }
 
       for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
         MonitorState successorState;
@@ -141,8 +134,7 @@ final class MonitorBuilder {
         } else {
           // Reset loop data structures
           Arrays.fill(priorities, Integer.MAX_VALUE);
-          successorState =
-            getSuccessor(currentState, valuation, priorities, classIsInitial, initialAccepting);
+          successorState = getSuccessor(currentState, valuation, priorities, initialAccepting);
         }
 
         if (exploredStates.add(successorState)) {
@@ -190,7 +182,7 @@ final class MonitorBuilder {
   }
 
   private MonitorState getSuccessor(MonitorState currentState, BitSet valuation, int[] priorities,
-    boolean[] classIsInitial, boolean[] initialAccepting) {
+    boolean[] initialAccepting) {
     EquivalenceClass[] currentRanking = currentState.formulaRanking;
     int currentRankingSize = currentRanking.length;
     int numberOfRelevantSets = relevantSets.length;
@@ -198,133 +190,180 @@ final class MonitorBuilder {
     /*
      * We compute all transitions of the current ranking and ignore all sinks. We also delete
      * those entries which are duplicates (only keep the seniors). Simultaneously we compute
-     * acceptance information - fail, succeed(i) and merge(i) - for each gSet.
+     * acceptance information - fail, succeed(i) and merge(i) - for each gSet. For this computation,
+     * there essentially are five different conditions.
      *
-     * fail: We moved to a non-accepting sink.
-     * succeed(i): qi was not accepting and moved to an accepting state OR q0 is accepting and has
-     *   rank i in the source ranking.
-     * merge(i): There exist q, q1 and q2 (with rank(q1) < i and succ(q2) != null)) such that
-     *   succ(q1) == q == succ(q2) and q is not accepting OR q0 is not accepting and there exists
-     *   q with succ(q) = q0 and sr(q) < i.
+     * fail:
+     *   1) We moved to a non-accepting sink.
+     * succeed(i):
+     *   2) qi was not accepting and moved to an accepting state.
+     *   3) q0 is accepting and has rank i in the source ranking.
+     * merge(i):
+     *   4) There exist q, q1 and q2 (with rank(q1) < i and succ(q2) != null)) such that
+     *      succ(q1) == q == succ(q2) and q is not accepting.
+     *   5) q0 is not accepting and there exists q with succ(q) = q0 and sr(q) < i.
      *
      * Note that since this is an appearance-record type construction, we only need to compute the
      * smallest event index - if the transition is failed, we don't need to compute anything else.
+     * This is subtle for merge(i): We might only detect merge(i) when computing the successor of
+     * some rank large than i! Also, since the requirement is sr(q) < i, we actually have to assign
+     * merge(rank(q1) + 1) if we find any merge into q.
      */
+
+    // Check for case 3)
+    for (int contextIndex = 0; contextIndex < numberOfRelevantSets; contextIndex++) {
+      // Final states are closed under successor - if the initial state is accepting, any other
+      // state is, too, and we have a trivial succeed in any case.
+      if (initialAccepting[contextIndex]) {
+        priorities[contextIndex] = succeed(0);
+      }
+    }
 
     // Construct the successor ranking. At most one new class can be introduced (if the initial
     // formula is not ranked, it is re-created as youngest). If there are less, the array is shrunk
     // afterwards.
     EquivalenceClass[] successorRanking = new EquivalenceClass[currentRankingSize + 1];
+    int[] successorSources = new int[currentRankingSize];
 
     int successorRankingSize = 0;
     boolean successorContainsInitial = false;
 
-    for (int rank = 0; rank < currentRankingSize; rank++) {
-      assert successorRankingSize <= rank;
+    for (int currentRank = 0; currentRank < currentRankingSize; currentRank++) {
+      assert successorRankingSize <= currentRank;
 
       // Perform one step of "af_G(currentClass)" - we unfold all temporal operators except G
-      EquivalenceClass currentClass = currentRanking[rank];
-      EquivalenceClass successorClass =
-        stateFactory.getRankSuccessor(currentClass, valuation);
-
-      for (int contextIndex = 0; contextIndex < numberOfRelevantSets; contextIndex++) {
-        // Final states are closed under successor - if the initial state is accepting, any other
-        // state is, too, and we have a trivial succeed in any case
-        if (initialAccepting[contextIndex]) {
-          assert isAccepting(successorClass, relevantSets[contextIndex]);
-          priorities[contextIndex] = succeed(0);
-        }
-      }
+      EquivalenceClass currentClass = currentRanking[currentRank];
+      EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentClass, valuation);
 
       if (successorClass.isFalse()) {
         // This class is a non-accepting sink for any context, hence this transition fails.
-        assert isSink(successorClass) && Arrays.stream(relevantSets).noneMatch(
-          set -> isAccepting(successorClass, set));
+        assert isSink(successorClass)
+          && Arrays.stream(relevantSets).noneMatch(set -> isAccepting(successorClass, set));
         Arrays.fill(priorities, fail());
         continue;
       }
 
-      // TODO Smartly cache isAccepting(successorClass) and isAccepting(currentClass)
+      // TODO Smartly cache isAccepting(successorClass) and isAccepting(currentClass) - Boolean[]?
 
-      // Now, check if we already have this successor class
-      boolean merged = false;
-      for (int j = 0; j < successorRankingSize; j++) {
-        // Iterate over all previous (older) classes and check for equality - in that case a merge
-        // happened
-        EquivalenceClass olderSuccessorClass = successorRanking[j];
-        assert olderSuccessorClass != null && !isSink(olderSuccessorClass);
+      if (successorClass.equals(initialClass)) {
+        // Special cases when the successor actually is the initial class
+        if (successorContainsInitial) {
+          // No need to do anything, since all states already got some priority:
+          // - If the initial class is accepting, all priorities are succeed(0).
+          // - If not, the code below already was executed, setting each non-initialized value to
+          //   some merge(i).
+          assert Arrays.stream(priorities)
+            .allMatch(contextPriority -> contextPriority < Integer.MAX_VALUE);
+          continue;
+        } else {
+          // First time we see the initial class being produced from some rank under this valuation.
+          successorContainsInitial = true;
 
-        if (successorClass.equals(olderSuccessorClass)) {
-          // This class merges into the older one - determine merge(i)
           for (int contextIndex = 0; contextIndex < numberOfRelevantSets; contextIndex++) {
             if (priorities[contextIndex] < Integer.MAX_VALUE) {
-              // Some event occurred earlier for this context - no need to check for merge(i)
               continue;
             }
-            // Condition for merge(i) is that the successor is not accepting - otherwise it is a
-            // succeed.
-            if (isAccepting(successorClass, relevantSets[contextIndex])) {
-              priorities[contextIndex] = succeed(rank);
-            } else {
-              assert !isAccepting(currentClass, relevantSets[contextIndex]);
-              priorities[contextIndex] = merge(rank);
-            }
-          }
-          merged = true;
-          break;
-        }
-      }
-      if (merged) {
-        // No need to further investigate this class - already did this for the older one
-        continue;
-      }
-
-      // Check if this state is a sink (and thus maybe the whole transition is failing)
-      if (isSink(successorClass)) {
-        // If we move to a non-accepting sink, the transition is a fail transition, if instead we
-        // move from a non-accepting state to an accepting sink, it is succeed(i). Also, as a
-        // special case, we also succeed(i) if q0 is accepting, is at rank i and the sink is
-        // non-rejecting.
-        for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
-          if (!isAccepting(successorClass, relevantSets[contextIndex])) {
-            priorities[contextIndex] = fail();
-          } else if (priorities[contextIndex] == Integer.MAX_VALUE) {
-            // Successor is accepting and we had no event previously
-            //noinspection IfStatementWithIdenticalBranches
-            if (initialAccepting[contextIndex] && classIsInitial[rank]) {
-              // q0 is accepting and at rank(i)
-              priorities[contextIndex] = succeed(rank);
-            } else if (!isAccepting(currentClass, relevantSets[contextIndex])) {
-              // We move from non-accepting to accepting
-              priorities[contextIndex] = succeed(rank);
-            }
+            // We covered the case that q0 is accepting (under some context) already, hence we only
+            // have to handle the merge.
+            assert !initialAccepting[contextIndex];
+            priorities[contextIndex] = merge(currentRank + 1);
           }
         }
+      } else {
+        // Now, check if we already have this successor class to detect merges.
+        boolean merged = false;
+        for (int olderIndex = 0; olderIndex < successorRankingSize; olderIndex++) {
+          // Iterate over all previous (older) classes and check for equality
+          EquivalenceClass olderSuccessorClass = successorRanking[olderIndex];
+          assert olderSuccessorClass != null && !isSink(olderSuccessorClass);
 
-        // If we move to a sink, we don't add the class to the ranking
-        continue;
-      }
+          if (successorClass.equals(olderSuccessorClass)) {
+            // This class merges into the older one - determine merge(i)
+            merged = true;
+            assert !isSink(olderSuccessorClass);
 
-      // No merge occurred and the successor is not a sink - check for succeed(i)
-      for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
-        if (priorities[contextIndex] < Integer.MAX_VALUE) {
-          // Some event occurred earlier for this context - no need to check for succeed(i)
+            // For merge(i), the index of the "older" source (q1) is relevant
+            int olderSource = successorSources[olderIndex];
+            int mergePriority = merge(olderSource + 1);
+
+            for (int contextIndex = 0; contextIndex < numberOfRelevantSets; contextIndex++) {
+              if (priorities[contextIndex] <= mergePriority) {
+                // Some event occurred earlier for this context - no need to check for merge(i)
+                continue;
+              }
+              if (isAccepting(currentClass, relevantSets[contextIndex])) {
+                // The current class is accepting, hence the successor also is accepting and nothing
+                // happens.
+                continue;
+              }
+
+              // The current class is not accepting. There are three cases to distinguish:
+              //  1) The older source (q1) is accepting, and thus the successor is accepting.
+              //     Here, we have a succeed(i)
+              //  2) q1 is non-accepting, but the successor q is. Then we had a succeed at the
+              //     rank of q1 and we "continued" above (checked by the assert)
+              //  3) Neither of the two is accepting, then this is a merge(rank(q1) + 1).
+
+              if (isAccepting(olderSuccessorClass, relevantSets[contextIndex])) {
+                assert isAccepting(currentRanking[olderSource], relevantSets[contextIndex]);
+                if (priorities[contextIndex] == Integer.MAX_VALUE) {
+                  // Don't overwrite a "stronger" succeed. It might be the case that, e.g., both
+                  // rank 2 and 3 merge into the succeeding rank 1. Then, rank 3 would set the
+                  // priority to succeed(3), whereas this actually is a succeed(2).
+                  priorities[contextIndex] = succeed(currentRank);
+                }
+              } else {
+                priorities[contextIndex] = mergePriority;
+              }
+            }
+            break; // Stop the search for merges
+          }
+        }
+        if (merged) {
+          // No need to further investigate this class - already did this for the older one
           continue;
         }
-        // For succeed(i) we have to either move into an accepting initial state at rank i
-        // or move from non-accepting rank i to some accepting state
-        if (initialAccepting[contextIndex] && classIsInitial[rank]
-          || !isAccepting(currentClass, relevantSets[contextIndex])
-          && isAccepting(successorClass, relevantSets[contextIndex])) {
-          // First case: q0 is accepting and at rank(i)
-          // Second case: We move from non-accepting to accepting
-          priorities[contextIndex] = succeed(rank);
+
+        // Check if this state is a sink (and thus maybe the whole transition is failing)
+        if (isSink(successorClass)) {
+          // If we move to a non-accepting sink, the transition is a fail transition. If instead we
+          // move from a non-accepting state to an accepting sink, it is succeed(i). Also, as a
+          // special case, we succeed(i) if q0 is accepting, is at rank i and the sink is
+          // non-rejecting.
+          for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
+            if (!isAccepting(successorClass, relevantSets[contextIndex])) {
+              priorities[contextIndex] = fail();
+            } else if (priorities[contextIndex] == Integer.MAX_VALUE) {
+              // Successor is accepting and we had no event previously. We handled the case of
+              // accepting initial state already. Thus, we only check whether we move from a
+              // non-accepting to an accepting state.
+              if (!isAccepting(currentClass, relevantSets[contextIndex])) {
+                priorities[contextIndex] = succeed(currentRank);
+              }
+            }
+          }
+
+          // If we move to a sink, we don't add the class to the ranking
+          continue;
+        }
+
+        // No merge occurred and the successor is not a sink - check for succeed(i)
+        for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
+          if (priorities[contextIndex] < Integer.MAX_VALUE) {
+            // Some event occurred earlier for this context - no need to check for succeed(i)
+            continue;
+          }
+          // For succeed(i) we have to move from non-accepting rank i to some accepting state
+          if (!isAccepting(currentClass, relevantSets[contextIndex])
+            && isAccepting(successorClass, relevantSets[contextIndex])) {
+            priorities[contextIndex] = succeed(currentRank);
+          }
         }
       }
 
       // This is a genuine successor - add it to the ranking
-      successorContainsInitial |= initialClass.equals(successorClass);
       successorRanking[successorRankingSize] = successorClass;
+      successorSources[successorRankingSize] = currentRank;
       successorRankingSize += 1;
     }
 
@@ -343,6 +382,11 @@ final class MonitorBuilder {
       successorRankingSize < successorRanking.length
         ? Arrays.copyOf(successorRanking, successorRankingSize)
         : successorRanking;
+
+    assert Arrays.stream(trimmedSuccessorRanking).noneMatch(MonitorStateFactory::isSink);
+    assert Arrays.stream(trimmedSuccessorRanking)
+      .filter(state -> state.equals(initialClass))
+      .count() == 1;
 
     return new MonitorState(trimmedSuccessorRanking);
   }
@@ -368,7 +412,6 @@ final class MonitorBuilder {
 
   private void optimizeInitialState() {
     // Since the monitors handle "F G <psi>", we can skip non-repeating prefixes
-    logger.log(Level.FINER, "Optimizing initial state");
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
     MonitorState initialState = anyMonitor.getInitialState();
@@ -384,6 +427,8 @@ final class MonitorBuilder {
 
     assert optimizedInitialState != null;
     if (!Objects.equals(optimizedInitialState, initialState)) {
+      logger.log(Level.FINER, "Updating initial state from {0} to {1}",
+        new Object[] {initialState, optimizedInitialState});
       anyMonitor.setInitialState(optimizedInitialState);
       Set<MonitorState> unreachableStates = anyMonitor.removeUnreachableStates();
       for (int index = 1; index < monitorAutomata.length; index++) {
@@ -391,6 +436,8 @@ final class MonitorBuilder {
         monitor.setInitialState(optimizedInitialState);
         monitor.removeStates(unreachableStates);
       }
+    } else {
+      logger.log(Level.FINER, "No better initial state found");
     }
   }
 }

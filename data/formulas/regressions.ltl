@@ -29,6 +29,7 @@ G (G a | (F b & G (b | c)))
 F (G !a | G a | (!a & X G b))
 ((F G a) & F b) | G b | G F a
 G (b | F a) U (a & G (b | F a))
+G (a | (F a & F b & (c -> F d)))
 G ((a & b) | (F a & F !b & F c))
 (G a & F (F b & G a)) | (F b & G a)
 G ((a M (G b)) | ((c W d) & (a W c)))

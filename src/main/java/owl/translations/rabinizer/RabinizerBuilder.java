@@ -739,7 +739,7 @@ public class RabinizerBuilder {
           continue;
         }
         if (priority == 0) {
-          // This edge is fail or merge(0) - definitely Fin
+          // This edge is fail - definitely Fin
           return IntSets.singleton(pair.getFiniteIndex());
         }
         int succeedPriority = 2 * ranking[activeIndex] + 1;
