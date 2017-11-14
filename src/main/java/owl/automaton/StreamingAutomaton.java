@@ -167,7 +167,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   }
 
   @Override
-  public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+  public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       acceptance, initialStates, -1, options, true, getName());
     exploreReachableStates(initialStates, hoa::addState, (x) -> hoa.notifyEndOfState(),

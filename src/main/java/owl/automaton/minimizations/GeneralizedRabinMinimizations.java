@@ -109,7 +109,7 @@ public final class GeneralizedRabinMinimizations {
       return;
     }
 
-    logger.log(Level.FINE, "Removing complementary indices {0}", indicesToRemove);
+    logger.log(Level.FINER, "Removing complementary indices {0}", indicesToRemove);
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
     acceptance.removeIndices(indicesToRemove::contains);
@@ -705,4 +705,5 @@ public final class GeneralizedRabinMinimizations {
       return true;
     }
   }
+
 }

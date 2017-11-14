@@ -31,7 +31,7 @@ public class SatisfactionRelationTest {
 
   @Test
   public void modelsConjunction() {
-    Formula formula = LtlParser.parse("a | (X b)").formula;
+    Formula formula = LtlParser.syntax("a | (X b)");
     BitSet now = new BitSet();
     long[] pastArray = new long[1];
     History past = new History(pastArray);
@@ -77,7 +77,7 @@ public class SatisfactionRelationTest {
 
   /* @Test
   public void modelsRequiredHistoryCompatible() {
-    Formula formula = LtlParser.formula("X (a | (X (b & X c)))");
+    Formula formula = LtlParser("X (a | (X (b & X c)))");
 
     List<BitSet> allValuations = Lists.newArrayList(BitSets.powerSet(3));
 

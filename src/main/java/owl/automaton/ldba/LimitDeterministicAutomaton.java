@@ -62,7 +62,7 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
   }
 
   @Override
-  default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+  default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
       getAcceptingComponent().getVariables(),
       getAcceptingComponent().getAcceptance(),
@@ -87,7 +87,7 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
     consumerExt.notifyEnd();
   }
 
-  default String toString(EnumSet<Option> options) throws IOException {
+  default String toString(EnumSet<HoaOption> options) throws IOException {
     try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
       toHoa(new HOAConsumerPrint(stream), options);
       return stream.toString("UTF8");

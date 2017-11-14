@@ -113,10 +113,10 @@ public class NBA2LDBATest {
 
   private void runTest(String input) throws ParseException {
     NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(
-        EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
+      EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
 
-    Automaton<HoaState, GeneralizedBuchiAcceptance> automaton =
-      AutomatonReader.readHoa(input, JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
+    Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
+      JBddSupplier.async(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrintable result = translation.apply(automaton);

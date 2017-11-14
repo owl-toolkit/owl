@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.util.ImmutableObject;
 
-class ProductState<T> {
-
+class ProductState<T> extends ImmutableObject {
   final ImmutableMap<Formula, T> fallback;
   final ImmutableMap<DependencyTree<T>, Boolean> finished;
   final ImmutableMap<Formula, EquivalenceClass> safety;
@@ -42,15 +42,7 @@ class ProductState<T> {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
+  protected boolean equals2(ImmutableObject o) {
     ProductState<?> that = (ProductState<?>) o;
     return Objects.equals(fallback, that.fallback)
       && Objects.equals(safety, that.safety)
@@ -58,7 +50,7 @@ class ProductState<T> {
   }
 
   @Override
-  public int hashCode() {
+  protected int hashCodeOnce() {
     return Objects.hash(fallback, safety, finished);
   }
 

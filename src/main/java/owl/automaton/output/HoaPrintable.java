@@ -32,12 +32,12 @@ public interface HoaPrintable {
 
   // rename feedTo...
   default void toHoa(HOAConsumer consumer) {
-    toHoa(consumer, EnumSet.noneOf(Option.class));
+    toHoa(consumer, EnumSet.noneOf(HoaOption.class));
   }
 
-  void toHoa(HOAConsumer consumer, EnumSet<Option> options);
+  void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options);
 
-  enum Option {
+  enum HoaOption {
     /**
      * Print annotations, e.g. state labels, if available
      */

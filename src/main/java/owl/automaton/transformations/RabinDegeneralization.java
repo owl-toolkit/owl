@@ -6,6 +6,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -39,16 +40,15 @@ import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 
-public final class RabinUtil {
-  public static final int[] EMPTY_INTS = new int[0];
-  private static final Logger logger = Logger.getLogger(RabinUtil.class.getName());
+public final class RabinDegeneralization {
+  private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
 
-  private RabinUtil() {}
+  private RabinDegeneralization() {}
 
-  public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance>
-  fromGeneralizedRabin(Automaton<S, GeneralizedRabinAcceptance> automaton) {
-    logger.log(Level.FINER, "De-generalising automaton with {0} states",
-      automaton.stateCount());
+  public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
+    Automaton<S, GeneralizedRabinAcceptance> automaton) {
+    // TODO parallel
+    logger.log(Level.FINER, "De-generalising automaton with {0} states", automaton.stateCount());
 
     // Generalized Rabin pair condition is Fin & /\ Inf(i), if the big AND is empty, it's true.
     // This means the condition translates to "don't visit the Fin set". Hence, as long as a
@@ -96,7 +96,7 @@ public final class RabinUtil {
         assert !stateMap.containsKey(state);
 
         DegeneralizedRabinState<S> degeneralizedState =
-          new DegeneralizedRabinState<>(state, EMPTY_INTS);
+          new DegeneralizedRabinState<>(state, IntArrays.EMPTY_ARRAY);
         // This catches corner cases, where there are transient states with no successors
         resultAutomaton.addState(degeneralizedState);
         stateMap.put(state, degeneralizedState);
@@ -256,7 +256,7 @@ public final class RabinUtil {
     DegeneralizedRabinState(S generalizedState, int[] awaitedSets) {
       this.generalizedState = generalizedState;
       this.awaitedSets = awaitedSets;
-      hashCode = Arrays.hashCode(awaitedSets) + generalizedState.hashCode() * 31;
+      hashCode = Arrays.hashCode(awaitedSets) ^ generalizedState.hashCode();
     }
 
     int awaitedInfSet(int generalizedPairIndex) {
@@ -288,10 +288,9 @@ public final class RabinUtil {
 
     @Override
     public String toString() {
-      if (awaitedSets.length == 0) {
-        return String.format("{%s}", generalizedState);
-      }
-      return String.format("{%s|%s}", generalizedState, Arrays.toString(awaitedSets));
+      return awaitedSets.length == 0
+        ? String.format("{%s}", generalizedState)
+        : String.format("{%s|%s}", generalizedState, Arrays.toString(awaitedSets));
     }
   }
 }

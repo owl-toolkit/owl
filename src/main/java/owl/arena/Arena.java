@@ -26,16 +26,13 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 
 public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
-
   // Does not contain the states itself.
   default Set<S> getAttractor(Set<S> states, Owner owner) {
     Set<S> attractor = new HashSet<>();
 
     // Add states that owner controls;
     for (S predecessor : getPredecessors(states)) {
-      if (owner == getOwner(predecessor)) {
-        attractor.add(predecessor);
-      } else if (states.containsAll(getSuccessors(predecessor))) {
+      if (owner == getOwner(predecessor) || states.containsAll(getSuccessors(predecessor))) {
         attractor.add(predecessor);
       }
     }
@@ -98,11 +95,7 @@ public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
     PLAYER_1, PLAYER_2;
 
     Owner flip() {
-      if (this == PLAYER_1) {
-        return PLAYER_2;
-      } else {
-        return PLAYER_1;
-      }
+      return this == PLAYER_1 ? PLAYER_2 : PLAYER_1;
     }
   }
 }

@@ -20,8 +20,7 @@ package owl.util;
 import javax.annotation.Nonnegative;
 
 public final class BitUtil {
-  private BitUtil() {
-  }
+  private BitUtil() {}
 
   public static boolean isSet(long store, @Nonnegative int pos) {
     assert 0 <= pos && pos < Long.SIZE;
@@ -29,6 +28,7 @@ public final class BitUtil {
   }
 
   public static int nextSetBit(long store, @Nonnegative int position) {
+    // TODO Use mask + Long.numberOfTrailingZeros()
     for (int pos = position; pos < Long.SIZE; pos++) {
       if (isSet(store, pos)) {
         return pos;

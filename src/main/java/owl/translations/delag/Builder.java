@@ -57,11 +57,11 @@ public class Builder<T>
     Factories factories = JBddSupplier.async().getFactories(rewritten);
 
     if (rewritten.formula.equals(BooleanConstant.FALSE)) {
-      return AutomatonFactory.empty(factories.valuationSetFactory);
+      return AutomatonFactory.empty(factories.vsFactory);
     }
 
     if (rewritten.formula.equals(BooleanConstant.TRUE)) {
-      return AutomatonFactory.universe(new State<>(), factories.valuationSetFactory);
+      return AutomatonFactory.universe(new State<>(), factories.vsFactory);
     }
 
     DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories, fallback);
@@ -79,7 +79,7 @@ public class Builder<T>
 
     GenericAcceptance acceptance = new GenericAcceptance(sets, expression);
     return AutomatonFactory.createStreamingAutomaton(acceptance, initialState,
-      factories.valuationSetFactory, (x, y) -> this.getSuccessor(tree, x, y));
+      factories.vsFactory, (x, y) -> this.getSuccessor(tree, x, y));
   }
 
   private History getHistory(@Nullable History past, BitSet present, ProductState<T> state) {

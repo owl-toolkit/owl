@@ -37,7 +37,7 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction;
 public class LTL2LDGBATest {
 
   private static final String TRIVIAL_FALSE = "HOA: v1\n"
-    + "tool: \"Owl\" \"* *\"\n"
+    + "tool: \"owl\" \"* *\"\n"
     + "States: 0\n"
     + "acc-name: none\n"
     + "Acceptance: 0 f\n"
@@ -46,7 +46,7 @@ public class LTL2LDGBATest {
     + "--BODY--\n"
     + "--END--\n";
   private static final String TRIVIAL_TRUE = "HOA: v1\n"
-    + "tool: \"Owl\" \"* *\"\n"
+    + "tool: \"owl\" \"* *\"\n"
     + "States: 1\n"
     + "Start: 0\n"
     + "acc-name: generalized-Buchi 1\n"
@@ -68,7 +68,8 @@ public class LTL2LDGBATest {
     assertEquals(hoaString, size, automaton.size());
 
     if (expectedOutput != null) {
-      assertThat(automaton.toString(EnumSet.noneOf(HoaPrintable.Option.class)), is(expectedOutput));
+      assertThat(expectedOutput,
+        is(automaton.toString(EnumSet.noneOf(HoaPrintable.HoaOption.class))));
     }
   }
 
@@ -113,9 +114,9 @@ public class LTL2LDGBATest {
     String ltl1 = "(G F p1) & (F G ((p1) U (p3)))";
     testOutput(ltl1, 2);
 
-    String ltl2 = "((G F p0)|(F G p1)) & ((G F (! p1))|(F G p2))";
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
     opts.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
+    String ltl2 = "((G F p0)|(F G p1)) & ((G F (! p1))|(F G p2))";
     testOutput(ltl2, opts, 4);
 
     String ltl3 =

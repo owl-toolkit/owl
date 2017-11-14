@@ -31,6 +31,8 @@ import java.util.PrimitiveIterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.IntConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
@@ -45,6 +47,7 @@ import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.edge.Edge;
 
 public final class EmptinessCheck {
+  private static final Logger logger = Logger.getLogger(EmptinessCheck.class.getName());
 
   private EmptinessCheck() {
   }
@@ -174,8 +177,8 @@ public final class EmptinessCheck {
       return !Rabin.containsAcceptingLasso(casted, initialState);
     }
 
-    throw new UnsupportedOperationException(
-      "Emptiness check for " + acceptance + " not yet implemented.");
+    logger.log(Level.FINE, "Emptiness check for {0} not yet implemented.", acceptance.getClass());
+    return false;
   }
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton) {

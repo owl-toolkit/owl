@@ -87,7 +87,8 @@ public class LTL2DPAFunction
 
   @Override
   public MutableAutomaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    if (!optimisations.contains(Optimisation.PARALLEL)) {
+    if (!optimisations.contains(Optimisation.COMPLEMENT_CONSTRUCTION)) {
+      // TODO Instead, one should use a direct executor here
       ComplementableAutomaton<?> automaton = apply(formula, new AtomicInteger());
 
       if (optimisations.contains(Optimisation.COMPLETE)) {
@@ -97,15 +98,17 @@ public class LTL2DPAFunction
       return automaton.automaton;
     }
 
+    // TODO Use CompletionService
+    // TODO Use environment pool?
     ExecutorService executor = Executors.newFixedThreadPool(2);
 
     AtomicInteger automatonCounter = new AtomicInteger(-1);
     AtomicInteger complementCounter = new AtomicInteger(-1);
 
-    Future<ComplementableAutomaton<?>> automatonFuture = executor
-      .submit(() -> apply(formula, automatonCounter));
-    Future<ComplementableAutomaton<?>> complementFuture = executor
-      .submit(() -> apply(formula.not(), complementCounter));
+    Future<ComplementableAutomaton<?>> automatonFuture =
+      executor.submit(() -> apply(formula, automatonCounter));
+    Future<ComplementableAutomaton<?>> complementFuture =
+      executor.submit(() -> apply(formula.not(), complementCounter));
 
     try {
       ComplementableAutomaton<?> complement = null;
@@ -171,8 +174,8 @@ public class LTL2DPAFunction
       : applyBreakpoint(formula, sizeCounter);
   }
 
-  private ComplementableAutomaton<?>
-  applyBreakpoint(LabelledFormula formula, AtomicInteger counter) {
+  private ComplementableAutomaton<?> applyBreakpoint(LabelledFormula formula,
+    AtomicInteger counter) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState,
       BuchiAcceptance, GObligations> ldba = translatorBreakpoint.apply(formula);
 

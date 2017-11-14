@@ -20,9 +20,7 @@ package owl.translations.nba2dpa;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
-import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
@@ -197,36 +195,6 @@ public class NBA2DPATest {
       + "[t] 3 {0}\n"
       + "State: 1 \n"
       + "[1] 3 {0}\n"
-      + "--END--";
-
-  private static final String INPUT11 = "HOA: v1\n"
-      + "tool: \"Owl\" \"* *\"\n"
-      + "name: \"Automaton for [0]\"\n"
-      + "States: 5\n"
-      + "Start: 0\n"
-      + "acc-name: generalized-Buchi 2\n"
-      + "Acceptance: 2 Inf(0) & Inf(1)\n"
-      + "properties: trans-acc trans-label \n"
-      + "AP: 2 \"c\" \"a\"\n"
-      + "--BODY--\n"
-      + "State: 0 \"0\"\n"
-      + "[0] 1\n"
-      + "[!0 & 1] 2\n"
-      + "[!0] 3\n"
-      + "State: 1 \"1\"\n"
-      + "[t] 1 {0 1}\n"
-      + "State: 4 \"4\"\n"
-      + "[1] 4 {0 1}\n"
-      + "[!1] 4 {1}\n"
-      + "State: 2 \"2\"\n"
-      + "[0 & 1] 2 {0 1}\n"
-      + "[!0 & !1] 2\n"
-      + "[!0 & 1] 2 {0}\n"
-      + "[0 & !1] 2 {1}\n"
-      + "State: 3 \"3\"\n"
-      + "[!0 & 1] 2\n"
-      + "[!0] 3\n"
-      + "[0] 4\n"
       + "--END--";
 
   private static final String INPUT12 = "HOA: v1\n"
@@ -473,8 +441,6 @@ public class NBA2DPATest {
       + "[0 & 1] 1\n"
       + "--END--";
 
-  private static final List<String> MAPPING = ImmutableList.of("a");
-
   @Test
   public void testApply() throws ParseException {
     runTest(INPUT, 6);
@@ -566,6 +532,6 @@ public class NBA2DPATest {
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
     dpa = translation.apply(nba);
     dpa.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertThat(dpa.stateCount(), lessThanOrEqualTo(size));
+    assertThat(dpa.getStates().size(), lessThanOrEqualTo(size));
   }
 }

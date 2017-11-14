@@ -43,7 +43,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   }
 
   private EquivalenceClass and(EquivalenceClass[] classes) {
-    EquivalenceClass conjunction = factories.equivalenceClassFactory.getTrue();
+    EquivalenceClass conjunction = factories.eqFactory.getTrue();
 
     for (EquivalenceClass clazz : classes) {
       conjunction = conjunction.andWith(clazz);
@@ -55,7 +55,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   public MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance> build() {
     return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
-      factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+      factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override
@@ -72,7 +72,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     if (remainder.testSupport(Fragments::isX)) {
       safety = current.andWith(safety);
-      current = factories.equivalenceClassFactory.getTrue();
+      current = factories.eqFactory.getTrue();
     }
 
     EquivalenceClass environment = safety.and(and(obligations.liveness));
@@ -187,7 +187,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
         currentSuccessor = nextSuccessor
           .and(factory.getInitial(state.obligations.obligations[i], assumptions));
         assumptions = assumptions.and(currentSuccessor);
-        nextSuccessors[i] = factories.equivalenceClassFactory.getTrue();
+        nextSuccessors[i] = factories.eqFactory.getTrue();
       } else {
         nextSuccessors[i] = nextSuccessor
           .and(factory.getInitial(state.obligations.obligations[i], assumptions));

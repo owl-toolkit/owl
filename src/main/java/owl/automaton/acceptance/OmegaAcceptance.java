@@ -29,9 +29,7 @@ public interface OmegaAcceptance {
   int getAcceptanceSets();
 
   /**
-   * Canonical Representation as Boolean Expression.
-   *
-   * @return the canonical rep.
+   * Canonical representation as {@link BooleanExpression}.
    */
   BooleanExpression<AtomAcceptance> getBooleanExpression();
 

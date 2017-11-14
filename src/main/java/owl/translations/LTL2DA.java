@@ -62,9 +62,9 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
   getTranslation(EnumSet<Optimisation> optimisations) {
 
     if (parallel) {
-      optimisations.add(Optimisation.PARALLEL);
+      optimisations.add(Optimisation.COMPLEMENT_CONSTRUCTION);
     } else {
-      optimisations.remove(Optimisation.PARALLEL);
+      optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
     }
 
     return x -> translate(x, optimisations);

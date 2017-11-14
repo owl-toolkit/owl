@@ -111,8 +111,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   private static Formula replaceFOperators(FGObligations obligations, Formula formula) {
-    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligations.foperators,
-      obligations.goperators);
+    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligations.fOperators,
+      obligations.gOperators);
     return formula.accept(visitor);
   }
 

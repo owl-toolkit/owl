@@ -17,8 +17,10 @@
 
 package owl.translations.delag;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.primitives.ImmutableLongArray;
+import it.unimi.dsi.fastutil.longs.LongArrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +34,7 @@ final class History {
   private final ImmutableLongArray longs;
 
   History() {
-    this.longs = makeUnique(new long[0]);
+    this.longs = makeUnique(LongArrays.EMPTY_ARRAY);
   }
 
   History(long[] longs) {
@@ -56,7 +58,7 @@ final class History {
   }
 
   static History stepHistory(@Nullable History past, BitSet present, History mask) {
-    Preconditions.checkArgument(present.nextSetBit(65) < 0);
+    checkArgument(present.nextSetBit(65) < 0);
 
     long[] pastLongs = new long[mask.longs.length()];
     long[] presentLongs = present.toLongArray();
@@ -91,7 +93,7 @@ final class History {
   }
 
   boolean get(int time, Literal literal) {
-    Preconditions.checkArgument(literal.getAtom() < 64);
+    checkArgument(literal.getAtom() < 64);
     return (((longs.get(time) >> literal.getAtom()) & 1L) == 1L) ^ literal.isNegated();
   }
 

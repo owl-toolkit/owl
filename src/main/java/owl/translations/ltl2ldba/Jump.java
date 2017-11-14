@@ -17,13 +17,14 @@
 
 package owl.translations.ltl2ldba;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.logger;
-
 import java.util.Objects;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import owl.ltl.EquivalenceClass;
 
 public class Jump<U extends RecurringObligation> {
+  private static final Logger logger = Logger.getLogger(Jump.class.getName());
+
   final U obligations;
   final EquivalenceClass remainder;
   private final EquivalenceClass language;

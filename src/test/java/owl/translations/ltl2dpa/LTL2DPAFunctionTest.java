@@ -39,7 +39,6 @@ public class LTL2DPAFunctionTest {
 
   private static void testOutput(String ltl, int size, int accSize) {
     EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-    opts.remove(Optimisation.PARALLEL);
     opts.remove(Optimisation.COMPLETE);
     LabelledFormula parseResult = LtlParser.parse(ltl);
     LTL2DPAFunction translation = new LTL2DPAFunction(opts);
@@ -47,7 +46,7 @@ public class LTL2DPAFunctionTest {
 
     try (OutputStream stream = new ByteArrayOutputStream()) {
       HOAConsumer consumer = new HOAConsumerPrint(stream);
-      automaton.toHoa(consumer, EnumSet.allOf(HoaPrintable.Option.class));
+      automaton.toHoa(consumer, EnumSet.allOf(HoaPrintable.HoaOption.class));
       assertEquals(stream.toString(), size, automaton.stateCount());
       assertThat(stream.toString(), automaton.getAcceptance().getAcceptanceSets(),
         Matchers.lessThanOrEqualTo(accSize));

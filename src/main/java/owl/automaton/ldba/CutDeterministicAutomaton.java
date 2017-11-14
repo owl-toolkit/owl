@@ -85,7 +85,7 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
   @Override
   public String toString() {
     try {
-      return toString(EnumSet.allOf(Option.class));
+      return toString(EnumSet.allOf(HoaOption.class));
     } catch (IOException ex) {
       throw new IllegalStateException(ex.toString(), ex);
     }

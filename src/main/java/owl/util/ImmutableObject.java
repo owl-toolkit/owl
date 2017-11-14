@@ -17,20 +17,28 @@
 
 package owl.util;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public abstract class ImmutableObject {
   private int cachedHashCode = 0;
 
+  @SuppressWarnings("NonFinalFieldReferenceInEquals")
   @Override
   public final boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-
-    if (o == null || getClass() != o.getClass() || hashCode() != o.hashCode()) {
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+    ImmutableObject other = (ImmutableObject) o;
+    if (cachedHashCode != 0 && other.cachedHashCode != 0
+      && other.cachedHashCode != cachedHashCode) {
       return false;
     }
 
-    return equals2((ImmutableObject) o);
+    return equals2(other);
   }
 
   protected abstract boolean equals2(ImmutableObject o);

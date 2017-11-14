@@ -19,7 +19,7 @@ public final class GeneralizedBuchiAcceptanceTransformer<S>
     this.nba = nba;
   }
 
-  static <S> GeneralizedBuchiAcceptanceTransformer<S> create(
+  public static <S> GeneralizedBuchiAcceptanceTransformer<S> create(
     Automaton<S, AllAcceptance> nba) {
     return new GeneralizedBuchiAcceptanceTransformer<>(nba);
   }

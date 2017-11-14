@@ -19,7 +19,6 @@ package owl.translations.nba2ldba;
 
 import com.google.common.collect.Sets;
 import java.util.EnumSet;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.ExploreBuilder;
@@ -33,13 +32,13 @@ import owl.translations.Optimisation;
 
 public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extends OmegaAcceptance>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety>> {
-
   private final EnumSet<Optimisation> optimisations;
 
   public NBA2LDBAFunction(EnumSet<Optimisation> optimisations) {
     this.optimisations = optimisations;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> apply(
     Automaton<S, ? extends OmegaAcceptance> nba) {
@@ -57,33 +56,28 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
     ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
       = AcceptingComponentBuilder.createScc(nbaGBA);
-    LimitDeterministicAutomatonBuilder<S, S, S, BreakpointState<S>, BuchiAcceptance, Safety>
-    builder;
+
+    Function<BreakpointState<S>, Safety> stateSafety;
 
     if (optimisations.contains(Optimisation.COMPUTE_SAFETY_PROPERTY)) {
-      BiFunction<BreakpointState<S>, Automaton<BreakpointState<S>, BuchiAcceptance>, Safety>
-      getSafeties = (state, automaton) -> {
-        if (SafetyUtil.isSafetyLanguage(state, automaton)) {
+      nba.getStates().forEach(acceptingComponentBuilder::add);
+      Automaton<BreakpointState<S>, BuchiAcceptance> acceptingComponent
+        = acceptingComponentBuilder.build();
+
+      stateSafety = state -> {
+        if (SafetyUtil.isSafetyLanguage(state, acceptingComponent)) {
           return Safety.SAFETY;
         }
-        if (SafetyUtil.isCosafetyLanguage(state, automaton)) {
+        if (SafetyUtil.isCosafetyLanguage(state, acceptingComponent)) {
           return Safety.CO_SAFETY;
         }
         return Safety.NEITHER;
       };
-
-      nba.getStates().forEach(acceptingComponentBuilder::add);
-
-      Automaton<BreakpointState<S>, BuchiAcceptance> acceptingComponent
-      = acceptingComponentBuilder.build();
-      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-          acceptingComponentBuilder, Sets::newHashSet, x -> getSafeties.apply(x,
-              acceptingComponent), optimisations);
     } else {
-      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-          acceptingComponentBuilder, Sets::newHashSet, (x) -> null, optimisations);
+      stateSafety = x -> null;
     }
 
-    return builder.build();
+    return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+      acceptingComponentBuilder, Sets::newHashSet, stateSafety, optimisations).build();
   }
 }

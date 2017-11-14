@@ -28,12 +28,11 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultIntVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 
-class RequiredHistory {
+final class RequiredHistory {
 
   private static final long[] EMPTY = new long[0];
 
-  private RequiredHistory() {
-  }
+  private RequiredHistory() {}
 
   @SuppressWarnings("PMD.AvoidArrayLoops")
   static long[] getRequiredHistory(Formula formula) {

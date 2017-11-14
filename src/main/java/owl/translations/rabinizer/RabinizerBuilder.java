@@ -105,8 +105,8 @@ public class RabinizerBuilder {
     boolean fairnessFragment = initialClass.testSupport(support ->
       Fragments.isInfinitelyOften(support) || Fragments.isAlmostAll(support));
 
-    vsFactory = factories.valuationSetFactory;
-    eqFactory = factories.equivalenceClassFactory;
+    vsFactory = factories.vsFactory;
+    eqFactory = factories.eqFactory;
     masterStateFactory = new MasterStateFactory(
       configuration.eager(),
       configuration.completeAutomaton(),

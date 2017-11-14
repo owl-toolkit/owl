@@ -51,10 +51,10 @@ public final class Rabinizer extends AbstractLtlCommandLineTool {
       Factories factories = JBddSupplier.async().getFactories(formula);
       logger.log(Level.FINE, "Got formula {0}, rewritten to {1}", new Object[] {f, formula});
       MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> automaton =
-        RabinizerBuilder.rabinize(formula.formula, ImmutableRabinizerConfiguration.builder()
-          .removeFormulaRepresentative(false)
-          .factories(factories)
-          .build());
+        RabinizerBuilder.rabinize(formula.formula, factories,
+          ImmutableRabinizerConfiguration.builder()
+            .removeFormulaRepresentative(false)
+            .build());
       MinimizationUtil.applyMinimization(automaton, ImmutableList.of(
         GeneralizedRabinMinimizations::minimizeOverlap,
         GeneralizedRabinMinimizations::minimizeMergePairs,

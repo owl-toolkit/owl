@@ -18,12 +18,12 @@
 package owl.factories;
 
 public final class Factories {
-  public final EquivalenceClassFactory equivalenceClassFactory;
-  public final ValuationSetFactory valuationSetFactory;
+  public final EquivalenceClassFactory eqFactory;
+  public final ValuationSetFactory vsFactory;
 
-  public Factories(EquivalenceClassFactory equivalenceClassFactory,
-    ValuationSetFactory valuationSetFactory) {
-    this.equivalenceClassFactory = equivalenceClassFactory;
-    this.valuationSetFactory = valuationSetFactory;
+  public Factories(EquivalenceClassFactory eqFactory,
+    ValuationSetFactory vsFactory) {
+    this.eqFactory = eqFactory;
+    this.vsFactory = vsFactory;
   }
 }

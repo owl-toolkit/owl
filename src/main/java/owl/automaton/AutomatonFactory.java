@@ -215,11 +215,6 @@ public final class AutomatonFactory {
     public Set<S> getStates() {
       return automaton.getStates();
     }
-
-    @Override
-    public List<String> getVariables() {
-      return automaton.getVariables();
-    }
   }
 
   private static final class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {
@@ -289,11 +284,6 @@ public final class AutomatonFactory {
 
       return builder.build();
     }
-
-    @Override
-    public List<String> getVariables() {
-      return automaton.getVariables();
-    }
   }
 
   private static final class ProductAutomaton {
@@ -311,6 +301,7 @@ public final class AutomatonFactory {
         S next = it.next();
         // TODO Non-determinism?
         Edge<S> edge = automaton.getEdge(next, valuation);
+
         if (edge == null) {
           continue;
         }

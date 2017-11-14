@@ -57,7 +57,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
     this.factories = factories;
     this.jumpFactory = jumpFactory;
 
-    factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory, optimisations);
+    factory = new EquivalenceClassStateFactory(factories.eqFactory, optimisations);
     constructionQueue = new ArrayDeque<>();
     constructDeterministic = optimisations.contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
 
@@ -81,7 +81,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
     MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
       MutableAutomatonFactory
-        .createMutableAutomaton(NoneAcceptance.INSTANCE, factories.valuationSetFactory);
+        .createMutableAutomaton(NoneAcceptance.INSTANCE, factories.vsFactory);
 
     if (constructDeterministic) {
       AutomatonUtil.exploreDeterministic(automaton, constructionQueue,

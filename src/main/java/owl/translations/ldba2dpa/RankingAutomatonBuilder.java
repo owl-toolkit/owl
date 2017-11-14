@@ -26,10 +26,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -51,21 +51,20 @@ import owl.translations.Optimisation;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
   implements ExploreBuilder<S, RankingState<S, T>, ParityAcceptance> {
-
-  private static Logger logger = Logger.getLogger("ldba2dpa");
+  private static final Logger logger = Logger.getLogger(RankingAutomatonBuilder.class.getName());
 
   private final ParityAcceptance acceptance;
   @Nullable
   private final List<Set<S>> initialComponentSccs;
   private final Predicate<S> isAcceptingState;
-  private final List<U> sortingOrder;
   private final LanguageLattice<V, T, U> lattice;
   private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba;
   private final boolean resetRanking;
   private final List<U> safetyComponents;
   private final AtomicInteger sizeCounter;
+  private final List<U> sortingOrder;
   @Nullable
-  private RankingState<S, T> initialState;
+  private RankingState<S, T> initialState = null;
 
   public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
     AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations,
@@ -75,18 +74,17 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     sortingOrder = ImmutableList.copyOf(ldba.getComponents());
 
-    { // Identify safety components.
-      ImmutableList.Builder<U> safetyBuilder = ImmutableList.builder();
+    // Identify  safety components.
+    ImmutableList.Builder<U> safetyBuilder = ImmutableList.builder();
 
-      for (U value : sortingOrder) {
-        if (lattice.isSafetyAnnotation(value)) {
-          safetyBuilder.add(value);
-        }
+    for (U value : sortingOrder) {
+      if (lattice.isSafetyAnnotation(value)) {
+        safetyBuilder.add(value);
       }
-
-      safetyComponents = safetyBuilder.build();
-      logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
     }
+
+    safetyComponents = safetyBuilder.build();
+    logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
 
     this.isAcceptingState = isAcceptingState;
 
@@ -103,23 +101,18 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     this.resetRanking = resetRanking;
   }
 
-  private Set<U> getAnnotations(S state) {
-    Set<U> annotations = new HashSet<>();
-    ldba.getEpsilonJumps(state).forEach(x -> annotations.add(ldba.getAnnotation(x)));
-    return annotations;
-  }
-
   @Override
   public RankingState<S, T> add(S state) {
     Preconditions.checkState(initialState == null, "At most one initial state is supported.");
-    return initialState = buildEdge(state, Collections.emptyList(), -1, null)
-      .getSuccessor();
+    initialState = buildEdge(state, Collections.emptyList(), -1, null).getSuccessor();
+    return initialState;
   }
 
   @Override
   public MutableAutomaton<RankingState<S, T>, ParityAcceptance> build() {
-    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton = MutableAutomatonFactory
-      .createMutableAutomaton(acceptance, ldba.getAcceptingComponent().getFactory());
+    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton =
+      MutableAutomatonFactory.createMutableAutomaton(acceptance,
+        ldba.getAcceptingComponent().getFactory());
 
     if (initialState == null) {
       return automaton;
@@ -132,7 +125,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton, false);
 
     for (Set<RankingState<S, T>> scc : Lists.reverse(sccs)) {
-      scc.stream().filter(x -> x.state.equals(initialState))
+      scc.stream().filter(x -> Objects.equals(x.state, initialState))
         .findAny().ifPresent(automaton::setInitialState);
     }
 
@@ -268,12 +261,6 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     return Edges.create(RankingState.create(state, ranking, safetyProgress), edgeColor);
   }
 
-  private boolean insertableToRanking(T state, Map<U, Language<V>> existingLanguages) {
-    Language<V> existingClass = existingLanguages.get(ldba.getAnnotation(state));
-    Language<V> stateClass = lattice.getLanguage(state);
-    return existingClass == null || !existingClass.greaterOrEqual(stateClass);
-  }
-
   @Nullable
   private T findNextSafety(List<T> availableJumps, int i) {
     for (U annotation : safetyComponents.subList(i, safetyComponents.size())) {
@@ -291,18 +278,13 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     return null;
   }
 
-  private boolean sccSwitchOccurred(S state, S successor) {
-    return initialComponentSccs != null && initialComponentSccs.stream()
-      .anyMatch(x -> x.contains(state) && !x.contains(successor));
-  }
-
   @Nullable
   private Edge<RankingState<S, T>> getSuccessor(RankingState<S, T> state, BitSet valuation) {
-    S successor;
-
     if (state.state == null) {
       return null;
     }
+
+    S successor;
 
     { // We obtain the successor of the state in the initial component.
       Edge<S> edge = ldba.getInitialComponent().getEdge(state.state, valuation);
@@ -329,6 +311,17 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     }
 
     return edge;
+  }
+
+  private boolean insertableToRanking(T state, Map<U, Language<V>> existingLanguages) {
+    Language<V> existingClass = existingLanguages.get(ldba.getAnnotation(state));
+    Language<V> stateClass = lattice.getLanguage(state);
+    return existingClass == null || !existingClass.greaterOrEqual(stateClass);
+  }
+
+  private boolean sccSwitchOccurred(S state, S successor) {
+    return initialComponentSccs != null && initialComponentSccs.stream()
+      .anyMatch(x -> x.contains(state) && !x.contains(successor));
   }
 }
 
