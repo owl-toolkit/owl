@@ -1,5 +1,7 @@
 package owl.translations.rabinizer;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -32,10 +34,8 @@ final class GSet extends AbstractSet<GOperator> {
     hashCode = this.elements.hashCode();
   }
 
-  public EquivalenceClass conjunction() {
-    if (conjunction == null) {
-      throw new IllegalStateException();
-    }
+  EquivalenceClass conjunction() {
+    checkState(conjunction != null);
     return conjunction;
   }
 
