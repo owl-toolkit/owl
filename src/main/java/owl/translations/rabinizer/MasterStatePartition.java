@@ -1,7 +1,6 @@
 package owl.translations.rabinizer;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
@@ -16,17 +15,17 @@ import owl.collections.ValuationSet;
 import owl.ltl.EquivalenceClass;
 
 final class MasterStatePartition {
-  final ImmutableList<Set<EquivalenceClass>> partition;
+  final ImmutableList<Set<EquivalenceClass>> sccs;
   final ImmutableTable<EquivalenceClass, EquivalenceClass, ValuationSet>
-    partitionOutgoingTransitions;
+    outgoingTransitions;
   final ImmutableSet<EquivalenceClass> transientStates;
 
-  private MasterStatePartition(List<Set<EquivalenceClass>> partition,
+  private MasterStatePartition(List<Set<EquivalenceClass>> sccs,
     Set<EquivalenceClass> transientStates,
-    Table<EquivalenceClass, EquivalenceClass, ValuationSet> partitionOutgoingTransitions) {
-    this.partition = ImmutableList.copyOf(partition);
+    Table<EquivalenceClass, EquivalenceClass, ValuationSet> outgoingTransitions) {
+    this.sccs = ImmutableList.copyOf(sccs);
     this.transientStates = ImmutableSet.copyOf(transientStates);
-    this.partitionOutgoingTransitions = ImmutableTable.copyOf(partitionOutgoingTransitions);
+    this.outgoingTransitions = ImmutableTable.copyOf(outgoingTransitions);
   }
 
   public static MasterStatePartition create(Automaton<EquivalenceClass, ?> masterAutomaton) {
@@ -34,8 +33,8 @@ final class MasterStatePartition {
     List<Set<EquivalenceClass>> masterSccs = SccDecomposition.computeSccs(masterAutomaton);
 
     ImmutableTable.Builder<EquivalenceClass, EquivalenceClass, ValuationSet>
-      partitionOutgoingTransitionsBuilder = ImmutableTable.builder();
-    Builder<Set<EquivalenceClass>> partitionBuilder = ImmutableList.builder();
+      outgoingTransitionsBuilder = ImmutableTable.builder();
+    ImmutableList.Builder<Set<EquivalenceClass>> sccListBuilder = ImmutableList.builder();
     ImmutableSet.Builder<EquivalenceClass> transientStatesBuilder = ImmutableSet.builder();
     for (Set<EquivalenceClass> scc : masterSccs) {
       // Compute all outgoing transitions
@@ -43,32 +42,32 @@ final class MasterStatePartition {
         Edge<EquivalenceClass> edge = labelledEdge.getEdge();
         if (!scc.contains(edge.getSuccessor())) {
           ValuationSet valuations = labelledEdge.getValuations();
-          partitionOutgoingTransitionsBuilder.put(state, edge.getSuccessor(), valuations);
+          outgoingTransitionsBuilder.put(state, edge.getSuccessor(), valuations);
         }
       }));
       if (SccDecomposition.isTransient(masterAutomaton::getSuccessors, scc)) {
         transientStatesBuilder.add(Iterables.getOnlyElement(scc));
       } else {
-        partitionBuilder.add(ImmutableSet.copyOf(scc));
+        sccListBuilder.add(ImmutableSet.copyOf(scc));
       }
     }
-    return new MasterStatePartition(partitionBuilder.build(), transientStatesBuilder.build(),
-      partitionOutgoingTransitionsBuilder.build());
+    return new MasterStatePartition(sccListBuilder.build(), transientStatesBuilder.build(),
+      outgoingTransitionsBuilder.build());
   }
 
   int partitionSize() {
-    return partition.size();
+    return sccs.size();
   }
 
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder(32 + (40 * transientStates.size())
-      + 100 * partition.size());
+      + 100 * sccs.size());
     builder.append("Master state partitioning:");
     if (!transientStates.isEmpty()) {
       builder.append("\n  Transient: ").append(transientStates);
     }
-    Collections3.forEachIndexed(partition, (index, element) ->
+    Collections3.forEachIndexed(sccs, (index, element) ->
       builder.append("\n  ").append(index).append(": ").append(element));
     return builder.toString();
   }

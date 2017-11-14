@@ -3,6 +3,7 @@ package owl.translations.rabinizer;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import java.util.AbstractSet;
@@ -19,10 +20,14 @@ final class GSet extends AbstractSet<GOperator> {
   private final EquivalenceClass conjunction;
   private final Set<GOperator> elements;
   private final int hashCode;
+  @Nullable
+  private final EquivalenceClass operatorConjunction;
 
   GSet(Iterable<GOperator> elements, EquivalenceClassFactory factory) {
     this.elements = ImmutableSet.copyOf(elements);
     this.conjunction = factory.createEquivalenceClass(elements);
+    this.operatorConjunction = factory.createEquivalenceClass(
+      Iterables.transform(elements, GOperator::getOperand));
     hashCode = this.elements.hashCode();
   }
 
@@ -30,6 +35,7 @@ final class GSet extends AbstractSet<GOperator> {
   GSet(Set<GOperator> elements) {
     // Special constructor for intersections
     this.elements = elements;
+    this.operatorConjunction = null;
     this.conjunction = null;
     hashCode = this.elements.hashCode();
   }
@@ -61,6 +67,9 @@ final class GSet extends AbstractSet<GOperator> {
   }
 
   public void free() {
+    if (operatorConjunction != null) {
+      operatorConjunction.free();
+    }
     if (conjunction != null) {
       conjunction.free();
     }
@@ -87,6 +96,13 @@ final class GSet extends AbstractSet<GOperator> {
       return elements.iterator();
     }
     return Iterators.unmodifiableIterator(elements.iterator());
+  }
+
+  public EquivalenceClass operatorConjunction() {
+    if (operatorConjunction == null) {
+      throw new IllegalStateException();
+    }
+    return operatorConjunction;
   }
 
   @Override

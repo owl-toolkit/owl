@@ -19,9 +19,10 @@
  * A translation from LTL to tDGRA.
  *
  * <p>Rabinizer is a construction to translate LTL formulas to deterministic (generalized) Rabin
- * automata, additionally providing semantic information for all states, compared to LTL->NBA->DRA
- * approaches using Safra trees, which lose any reasonable state space information in the
- * determinization process. It is the conceptual father to most other LTL translations in owl.</p>
+ * automata, additionally providing semantic information for all states, compared to
+ * {@code LTL->NBA->DRA} approaches using Safra trees, which lose any reasonable state space
+ * information in the determinization process. It is the conceptual father to most other LTL
+ * translations in owl.</p>
  *
  * <p>The basic idea of Rabinizer is as follows. The resulting automaton consists of two different
  * building blocks, the "master automaton" and the "monitors", which then are connected by a

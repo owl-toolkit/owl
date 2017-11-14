@@ -12,18 +12,19 @@ import owl.collections.ValuationSet;
  * a particular edge. This way of "looping" is cheaper, since there is some information that can be
  * cached globally.
  */
-final class RabinizerTransition {
+final class RabinizerProductEdge {
   private static final ValuationSet[] EMPTY = new ValuationSet[0];
 
   private final RabinizerState successorState;
   private ValuationSet[] successorAcceptance = EMPTY;
 
-  RabinizerTransition(RabinizerState successorState) {
+  RabinizerProductEdge(RabinizerState successorState) {
     this.successorState = successorState;
   }
 
   void addAcceptance(ValuationSet valuations, int acceptance) {
     if (successorAcceptance.length <= acceptance) {
+      // TODO Maybe we don't want to do this?
       successorAcceptance = Arrays.copyOf(successorAcceptance, acceptance + 1);
     }
     ValuationSet old = successorAcceptance[acceptance];
@@ -43,11 +44,11 @@ final class RabinizerTransition {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof RabinizerTransition)) {
+    if (!(o instanceof RabinizerProductEdge)) {
       return false;
     }
 
-    RabinizerTransition cache = (RabinizerTransition) o;
+    RabinizerProductEdge cache = (RabinizerProductEdge) o;
     return successorState.equals(cache.successorState);
   }
 

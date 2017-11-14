@@ -1,5 +1,8 @@
 package owl.translations.rabinizer;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import owl.factories.EquivalenceClassFactory;
@@ -16,29 +19,16 @@ final class RabinizerUtil {
 
   private RabinizerUtil() {}
 
-  public static void forEachSubFormula(EquivalenceClass equivalenceClass,
+  private static void findSupportingSubFormulas(EquivalenceClass equivalenceClass,
     Consumer<GOperator> action) {
-    Formula representative = equivalenceClass.getRepresentative();
-    if (representative == null) {
-      for (Formula formula : equivalenceClass.getSupport()) {
-        Collector.collectGOperators(formula).forEach(action);
-      }
-    } else {
-      Collector.collectGOperators(representative).forEach(action);
-    }
-  }
-
-  public static void forEachSupportingSubFormula(EquivalenceClass equivalenceClass,
-    Consumer<GOperator> action) {
-    // TODO Can we optimize for eager? The stuff below does not work for G(a | (a M Gb))
-    // equivalenceClass.getSupport(GOperator.class).forEach(action);
-
     // Due to the BDD representation, we have to do a somewhat weird construction. The problem is
     // that we can't simply do a class.getSupport(G) to determine the relevant G operators in the
     // formula. For example, to the BDD "X G a" and "G a" have no relation, hence the G-support
     // of "X G a" is empty, although "G a" certainly is important for the formula. So, instead,
     // we determine all relevant temporal operators in the support and for all of those collect the
     // G operators.
+
+    // TODO Can we optimize for eager?
 
     for (Formula temporalOperator : equivalenceClass.getSupport(modalOperators)) {
       if (temporalOperator instanceof GOperator) {
@@ -58,31 +48,53 @@ final class RabinizerUtil {
 
           EquivalenceClassFactory eqFactory = equivalenceClass.getFactory();
           EquivalenceClass leftClass = eqFactory.createEquivalenceClass(binaryOperator.left);
-          forEachSupportingSubFormula(leftClass, action);
+          findSupportingSubFormulas(leftClass, action);
           leftClass.free();
 
           EquivalenceClass rightClass = eqFactory.createEquivalenceClass(binaryOperator.right);
-          forEachSupportingSubFormula(rightClass, action);
+          findSupportingSubFormulas(rightClass, action);
           rightClass.free();
         } else {
           EquivalenceClass unwrappedClass =
             equivalenceClass.getFactory().createEquivalenceClass(unwrapped);
-          forEachSupportingSubFormula(unwrappedClass, action);
+          findSupportingSubFormulas(unwrappedClass, action);
+          unwrappedClass.free();
         }
       }
     }
   }
 
-  static String printRanking(int[] ranking) {
-    StringBuilder builder = new StringBuilder(ranking.length * 3 + 2);
-    builder.append('[');
-    boolean first = true;
-    for (int rank : ranking) {
-      if (!first) {
-        builder.append(',');
+  public static Set<GOperator> getRelevantSubFormulas(EquivalenceClass equivalenceClass) {
+    Formula representative = equivalenceClass.getRepresentative();
+    Set<GOperator> operators;
+    if (representative == null) {
+      operators = new HashSet<>();
+      for (Formula formula : equivalenceClass.getSupport()) {
+        operators.addAll(Collector.collectGOperators(formula));
       }
-      first = false;
-      builder.append(rank);
+    } else {
+      operators = Collector.collectGOperators(representative);
+    }
+    return operators;
+  }
+
+  public static Set<GOperator> getSupportSubFormulas(EquivalenceClass equivalenceClass) {
+    if (equivalenceClass.isTrue() || equivalenceClass.isFalse()) {
+      return ImmutableSet.of();
+    }
+    Set<GOperator> operators = new HashSet<>();
+    findSupportingSubFormulas(equivalenceClass, operators::add);
+    return operators;
+  }
+
+  static String printRanking(int[] ranking) {
+    if (ranking.length == 0) {
+      return "[]";
+    }
+    StringBuilder builder = new StringBuilder(ranking.length * 3 + 2);
+    builder.append('[').append(ranking[0]);
+    for (int i = 1; i < ranking.length; i++) {
+      builder.append(',').append(ranking[i]);
     }
     builder.append(']');
     return builder.toString();
