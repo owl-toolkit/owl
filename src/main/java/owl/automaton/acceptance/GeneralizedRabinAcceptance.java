@@ -22,6 +22,8 @@ import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
 import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
 import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
 
+import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
@@ -35,7 +37,9 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import owl.automaton.output.HoaConsumerExtended;
 
 /**
@@ -69,6 +73,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
 
         switch (atom.getType()) {
           case TEMPORAL_FIN:
+            checkArgument(fin == NOT_ALLOCATED);
             fin = atom.getAcceptanceSet();
             break;
           case TEMPORAL_INF:
@@ -87,6 +92,38 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
     }
 
     return acceptance;
+  }
+
+  public static void normalize(MutableAutomaton<?, GeneralizedRabinAcceptance> automaton) {
+    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
+
+    acceptance.pairList.removeIf(GeneralizedRabinPair::isEmpty);
+    Int2IntMap edgeRemapping = new Int2IntLinkedOpenHashMap();
+
+    int currentIndex = 0;
+    int currentShift = 0;
+    for (int i = 0; i < acceptance.pairList.size(); i++) {
+      GeneralizedRabinPair pair = acceptance.pairList.get(i);
+
+      if (pair.hasFinite()) {
+        int finalCurrentShift = currentShift;
+        pair.forEachIndex(index -> edgeRemapping.put(index, index + finalCurrentShift));
+
+        pair.shiftIndices(currentShift);
+        currentIndex += 1 + pair.getInfiniteIndexCount();
+      } else {
+        currentShift += 1;
+        int finalCurrentShift = currentShift;
+        pair.forEachInfiniteIndex(index -> edgeRemapping.put(index, index + finalCurrentShift));
+
+        pair.shiftIndices(currentShift);
+        pair.setFiniteIndex(currentIndex);
+        currentIndex += pair.getInfiniteIndexCount();
+      }
+    }
+    if (!edgeRemapping.isEmpty()) {
+      automaton.remapEdges((state, edge) -> Edges.remapAcceptance(edge, edgeRemapping));
+    }
   }
 
   public GeneralizedRabinPair createPair(int infCount) {
@@ -309,6 +346,10 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
         infiniteIndicesTo -= 1;
       }
       return removedIndices;
+    }
+
+    void setFiniteIndex(int finiteIndex) {
+      this.finiteIndex = finiteIndex;
     }
 
     void shiftIndices(int amount) {
