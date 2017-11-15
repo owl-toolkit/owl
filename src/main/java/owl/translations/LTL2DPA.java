@@ -50,9 +50,9 @@ public final class LTL2DPA extends AbstractLtlCommandLineTool {
     optimisations.remove(Optimisation.COMPLETE);
 
     if (parallel) {
-      optimisations.add(Optimisation.PARALLEL);
+      optimisations.add(Optimisation.COMPLEMENT_CONSTRUCTION);
     } else {
-      optimisations.remove(Optimisation.PARALLEL);
+      optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
     }
 
     Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> translation =

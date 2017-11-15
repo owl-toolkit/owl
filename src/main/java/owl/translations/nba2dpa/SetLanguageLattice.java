@@ -15,16 +15,6 @@ import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.nba2ldba.Safety;
 
 public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety> {
-  @Override
-  public boolean acceptsSafetyLanguage(S state) {
-    return isSafetyAnnotation(getAnnotation.apply(state));
-  }
-
-  @Override
-  public boolean acceptsLivenessLanguage(S state) {
-    return isLivenessLanguage(getAnnotation.apply(state));
-  }
-
   private final Language<Set<S>> bottom;
   private final Language<Set<S>> top;
   private final LoadingCache<Entry<Set<S>, S>, Boolean> cache;
@@ -36,6 +26,16 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
     cache = CacheBuilder.newBuilder().maximumSize(30000)
       .build(new InclusionCheckCacheLoader<>(automaton));
     this.getAnnotation = getAnnotation;
+  }
+
+  @Override
+  public boolean acceptsSafetyLanguage(S state) {
+    return isSafetyAnnotation(getAnnotation.apply(state));
+  }
+
+  @Override
+  public boolean acceptsLivenessLanguage(S state) {
+    return isLivenessLanguage(getAnnotation.apply(state));
   }
 
   @Override
@@ -106,5 +106,4 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
       return new SetLanguage(Sets.union(set, language.getT()).immutableCopy());
     }
   }
-
 }

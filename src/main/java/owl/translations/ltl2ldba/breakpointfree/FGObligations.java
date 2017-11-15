@@ -43,20 +43,19 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.ltl2ldba.RecurringObligation;
 
 public final class FGObligations implements RecurringObligation {
-
-  final ImmutableSet<FOperator> foperators;
-  final ImmutableSet<GOperator> goperators;
+  final ImmutableSet<FOperator> fOperators;
+  final ImmutableSet<GOperator> gOperators;
   final EquivalenceClass[] liveness;
   final ImmutableSet<UnaryModalOperator> rewrittenOperators;
   final EquivalenceClass safety;
 
-  private FGObligations(ImmutableSet<FOperator> foperators, ImmutableSet<GOperator> goperators,
+  private FGObligations(ImmutableSet<FOperator> fOperators, ImmutableSet<GOperator> gOperators,
     EquivalenceClass safety, EquivalenceClass[] liveness,
     ImmutableSet<UnaryModalOperator> rewrittenOperators) {
     this.safety = safety;
     this.liveness = liveness;
-    this.goperators = goperators;
-    this.foperators = foperators;
+    this.gOperators = gOperators;
+    this.fOperators = fOperators;
     this.rewrittenOperators = rewrittenOperators;
   }
 
@@ -158,8 +157,8 @@ public final class FGObligations implements RecurringObligation {
     }
 
     FGObligations that = (FGObligations) o;
-    return Objects.equals(foperators, that.foperators)
-      && Objects.equals(goperators, that.goperators)
+    return Objects.equals(fOperators, that.fOperators)
+      && Objects.equals(gOperators, that.gOperators)
       && Objects.equals(safety, that.safety)
       && Arrays.equals(liveness, that.liveness);
   }
@@ -182,7 +181,7 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public int hashCode() {
-    return Objects.hash(foperators, goperators, safety, liveness);
+    return Objects.hash(fOperators, gOperators, safety, liveness);
   }
 
   boolean isPureLiveness() {
@@ -195,7 +194,7 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public String toString() {
-    return "FGObligations{" + foperators + ", " + goperators + ", safety=" + safety + ", liveness="
+    return "FGObligations{" + fOperators + ", " + gOperators + ", safety=" + safety + ", liveness="
       + Arrays.toString(liveness) + '}';
   }
 }

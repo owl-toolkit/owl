@@ -1,17 +1,12 @@
 package owl.translations.dra2dpa;
 
 import static com.google.common.base.Preconditions.checkState;
-import static owl.automaton.AutomatonUtil.toHoa;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,12 +15,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
@@ -33,38 +34,25 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.factories.ValuationSetFactory;
 
 final class IARBuilder<R> {
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
 
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
+  private final ValuationSetFactory vsFactory;
 
   IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
     this.rabinAutomaton = rabinAutomaton;
+    vsFactory = rabinAutomaton.getFactory();
     resultAutomaton =
-      MutableAutomatonFactory
-        .createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
-  }
-
-  private ImmutableMultimap<R, LabelledEdge<R>> addSccsToResult(
-    List<SccProcessingResult<R>> processingResults) {
-    ImmutableMultimap.Builder<R, LabelledEdge<R>> interSccConnectionsBuilder =
-      ImmutableMultimap.builder();
-    for (SccProcessingResult<R> result : processingResults) {
-      interSccConnectionsBuilder.putAll(result.getInterSccConnections());
-      Automaton<IARState<R>, ParityAcceptance> subAutomaton = result.getSubAutomaton();
-      resultAutomaton.addAll(subAutomaton);
-      subAutomaton.free();
-    }
-    return interSccConnectionsBuilder.build();
+      MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), vsFactory);
   }
 
   public Automaton<IARState<R>, ParityAcceptance> build() throws ExecutionException {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
-
-    // TODO Support parallelism here
-    ListeningExecutorService executorService = MoreExecutors.newDirectExecutorService();
+    logger.log(Level.FINEST, () -> "Input automaton is\n" + AutomatonUtil.toHoa(rabinAutomaton));
 
     Set<RabinPair> rabinPairs = ImmutableSet.copyOf(rabinAutomaton.getAcceptance().getPairs());
 
@@ -72,42 +60,44 @@ final class IARBuilder<R> {
     List<Set<R>> rabinSccs = SccDecomposition.computeSccs(rabinAutomaton);
     logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
 
+    CompletionService<SccProcessingResult<R>> completionService =
+      new ExecutorCompletionService<>(MoreExecutors.newDirectExecutorService());
+
     // Start possibly parallel execution
-    Collection<ListenableFuture<SccProcessingResult<R>>> processingFutures =
-      Lists.newArrayListWithExpectedSize(rabinSccs.size());
     for (Set<R> rabinScc : rabinSccs) {
-      processingFutures.add(executorService.submit(() -> processScc(rabinScc, rabinPairs)));
+      completionService.submit(() -> processScc(rabinScc, rabinPairs));
     }
 
     // Wait till all executions are finished
 
-    // TODO Start to put the results into the result automaton when any finishes instead of waiting
-    // for all
-    List<SccProcessingResult<R>> processingResults = null;
-    ListenableFuture<List<SccProcessingResult<R>>> processingFuture
-      = Futures.allAsList(processingFutures);
-    while (processingResults == null) {
+    ImmutableMultimap.Builder<R, LabelledEdge<R>> interSccConnectionsBuilder =
+      ImmutableMultimap.builder();
+    int completedSccs = 0;
+    int maximalSubAutomatonPriority = 0;
+    while (completedSccs < rabinSccs.size()) {
       try {
-        processingResults = processingFuture.get();
+        logger.log(Level.FINE, "Waiting for completion");
+        Future<SccProcessingResult<R>> currentResultFuture = completionService.take();
+        assert currentResultFuture.isDone();
+
+        SccProcessingResult<R> result = currentResultFuture.get();
+
+        Automaton<IARState<R>, ?> subAutomaton = result.getSubAutomaton();
+        OmegaAcceptance subAutomatonAcceptance = subAutomaton.getAcceptance();
+        if (subAutomatonAcceptance instanceof ParityAcceptance) {
+          maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
+            subAutomatonAcceptance.getAcceptanceSets() - 1);
+        }
+        interSccConnectionsBuilder.putAll(result.getInterSccConnections());
+        resultAutomaton.addAll(subAutomaton);
+        subAutomaton.free();
+        completedSccs += 1;
       } catch (InterruptedException e) {
         logger.log(Level.FINE, "Interrupted", e);
-      } catch (ExecutionException e) {
-        executorService.shutdownNow();
-        throw e;
       }
     }
 
-    int maximalSubAutomatonPriority = getMaximalSubAutomatonPriority(processingResults);
-
-    // Log results
-    logger.log(Level.FINE, "Built all {0} sub-automata with maximal priority {1}",
-      new Object[] {processingResults.size(), maximalSubAutomatonPriority});
-    if (logger.isLoggable(Level.FINEST)) {
-      processingResults.forEach(result ->
-        logger.log(Level.FINEST, "{0}", toHoa(result.getSubAutomaton())));
-    }
-
-    ImmutableMultimap<R, LabelledEdge<R>> interSccConnections = addSccsToResult(processingResults);
+    ImmutableMultimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();
 
     // Arbitrary correspondence map
     Map<R, IARState<R>> rabinToIarStateMap =
@@ -140,21 +130,9 @@ final class IARBuilder<R> {
 
     resultAutomaton.setInitialStates(initialStateBuilder.build());
     resultAutomaton.getAcceptance().setAcceptanceSets(maximalSubAutomatonPriority + 1);
-
     assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
 
-    executorService.shutdown();
     return resultAutomaton;
-  }
-
-  private int getMaximalSubAutomatonPriority(List<SccProcessingResult<R>> processingResults) {
-    int maximalSubAutomatonPriority = 0;
-    for (SccProcessingResult<R> result : processingResults) {
-      Automaton<IARState<R>, ParityAcceptance> subAutomaton = result.getSubAutomaton();
-      maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
-        subAutomaton.getAcceptance().getAcceptanceSets() - 1);
-    }
-    return maximalSubAutomatonPriority;
   }
 
   private SccProcessingResult<R> getTrivialSccResult(Set<R> simpleScc,
@@ -163,14 +141,12 @@ final class IARBuilder<R> {
     simpleScc.forEach(rabinState -> mapping.put(rabinState, IARState.trivial(rabinState)));
 
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
-      MutableAutomatonFactory
-        .createMutableAutomaton(new ParityAcceptance(1), rabinAutomaton.getFactory());
+      MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(1), vsFactory);
 
     for (Map.Entry<R, IARState<R>> iarStateEntry : mapping.entrySet()) {
       R rabinState = iarStateEntry.getKey();
       IARState<R> iarState = iarStateEntry.getValue();
       Collection<LabelledEdge<R>> successors = rabinAutomaton.getLabelledEdges(rabinState);
-
       for (LabelledEdge<R> labelledEdge : successors) {
         R successor = labelledEdge.edge.getSuccessor();
         IARState<R> successorIARState = mapping.get(successor);
@@ -209,7 +185,8 @@ final class IARBuilder<R> {
             continue;
           }
           // Check which of the Inf sets is active here
-          seenAnyInfSet = remainingPairsToCheck.removeIf(pair -> pair.containsInfinite(edge));
+          // N.B. |= does not short-circuit
+          seenAnyInfSet |= remainingPairsToCheck.removeIf(pair -> pair.containsInfinite(edge));
           // When remaining is create, have seen all sets
           seenAllInfSets = remainingPairsToCheck.isEmpty();
         } else {
@@ -225,17 +202,12 @@ final class IARBuilder<R> {
       checkState(scc.size() == 1);
       R transientSccState = scc.iterator().next();
       IARState<R> iarState = IARState.trivial(transientSccState);
-      // TODO Single-state automaton class
-      MutableAutomaton<IARState<R>, ParityAcceptance> subAutomaton = MutableAutomatonFactory
-        .createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
-      subAutomaton.addState(iarState);
-      subAutomaton.setInitialState(iarState);
-      return new SccProcessingResult<>(interSccConnections, subAutomaton);
+      return new SccProcessingResult<>(interSccConnections,
+        AutomatonFactory.singleton(iarState, vsFactory));
     }
 
     if (!seenAnyInfSet) {
-      // The SCC has some internal structure, but no transitions are relevant for
-      // acceptance
+      // The SCC has some internal structure, but no transitions are relevant for acceptance
       return getTrivialSccResult(scc, interSccConnections);
     }
 
@@ -247,6 +219,9 @@ final class IARBuilder<R> {
       activeRabinPairs = ImmutableSet.copyOf(Sets.difference(rabinPairs, remainingPairsToCheck));
     }
 
+    // TODO This might access the factory in parallel... Maybe we can return a lazy-explore type
+    // of automaton that can be evaluated by the main thread?
+    // TODO Filtered automaton?
     Automaton<IARState<R>, ParityAcceptance> subAutomaton = SccIARBuilder.from(rabinAutomaton,
       ImmutableSet.of(scc.iterator().next()), scc, activeRabinPairs).build();
     return new SccProcessingResult<>(interSccConnections, subAutomaton);
@@ -254,10 +229,10 @@ final class IARBuilder<R> {
 
   private static final class SccProcessingResult<R> {
     private final Multimap<R, LabelledEdge<R>> interSccConnections;
-    private final Automaton<IARState<R>, ParityAcceptance> subAutomaton;
+    private final Automaton<IARState<R>, ?> subAutomaton;
 
     SccProcessingResult(Multimap<R, LabelledEdge<R>> interSccConnections,
-      Automaton<IARState<R>, ParityAcceptance> subAutomaton) {
+      Automaton<IARState<R>, ?> subAutomaton) {
       this.interSccConnections = interSccConnections;
       this.subAutomaton = subAutomaton;
     }
@@ -266,7 +241,7 @@ final class IARBuilder<R> {
       return interSccConnections;
     }
 
-    private Automaton<IARState<R>, ParityAcceptance> getSubAutomaton() {
+    private Automaton<IARState<R>, ?> getSubAutomaton() {
       return subAutomaton;
     }
   }

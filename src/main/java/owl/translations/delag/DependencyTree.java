@@ -19,6 +19,7 @@ package owl.translations.delag;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import it.unimi.dsi.fastutil.longs.LongArrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
@@ -35,13 +36,11 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.UnaryModalOperator;
+import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 import owl.translations.delag.ProductState.Builder;
 
 abstract class DependencyTree<T> {
-
-  private static final long[] EMPTY = new long[0];
-
   static <T> DependencyTree<T> createAnd(List<DependencyTree<T>> children) {
     if (children.size() == 1) {
       return Iterables.getOnlyElement(children);
@@ -51,13 +50,13 @@ abstract class DependencyTree<T> {
   }
 
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
-    Supplier<Automaton<T, ? extends OmegaAcceptance>> fallback,
+    Supplier<? extends Automaton<T, ? extends OmegaAcceptance>> fallback,
     @Nullable AtomAcceptance piggyback) {
     if (Fragments.isCoSafety(formula)) {
       if (piggyback == null) {
-        return new Leaf<>(formula, Type.COSAFETY, acceptanceSet);
+        return new Leaf<>(formula, Type.CO_SAFETY, acceptanceSet);
       } else {
-        return new Leaf<>(formula, Type.COSAFETY, piggyback);
+        return new Leaf<>(formula, Type.CO_SAFETY, piggyback);
       }
     }
 
@@ -118,7 +117,7 @@ abstract class DependencyTree<T> {
   abstract long[] getRequiredHistory(ProductState<T> successor);
 
   enum Type {
-    SAFETY, COSAFETY, LIMIT_FG, LIMIT_GF, FALLBACK
+    SAFETY, CO_SAFETY, LIMIT_FG, LIMIT_GF, FALLBACK
   }
 
   static class And<T> extends Node<T> {
@@ -140,7 +139,16 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety.containsKey(leaf.formula)
-        && (Fragments.isX(leaf.formula) || leaf.type == Type.COSAFETY);
+        && (Fragments.isX(leaf.formula) || leaf.type == Type.CO_SAFETY);
+    }
+
+    @Override
+    public String toString() {
+      if (children.isEmpty()) {
+        return "tt";
+      }
+      return String.join(" & ",
+        () -> children.stream().map(child -> (CharSequence) child.toString()).iterator());
     }
   }
 
@@ -208,7 +216,7 @@ abstract class DependencyTree<T> {
 
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
-      return EMPTY;
+      return LongArrays.EMPTY_ARRAY;
     }
 
     private BooleanExpression<AtomAcceptance> shift(BooleanExpression<AtomAcceptance> expression) {
@@ -238,6 +246,12 @@ abstract class DependencyTree<T> {
       return new AtomAcceptance(atom.getType(), atom.getAcceptanceSet() + acceptanceSet,
         atom.isNegated());
     }
+
+    @Override
+    public String toString() {
+      return String.format("Fallback{%s, %s %d}",
+        PrintVisitor.toString(formula, automaton.getVariables()), acceptance, acceptanceSet);
+    }
   }
 
   static class Leaf<T> extends DependencyTree<T> {
@@ -257,7 +271,7 @@ abstract class DependencyTree<T> {
     }
 
     Leaf(Formula formula, Type type, AtomAcceptance piggyback) {
-      assert type == Type.COSAFETY || type == Type.SAFETY;
+      assert type == Type.CO_SAFETY || type == Type.SAFETY;
       this.formula = formula;
       this.type = type;
       this.acceptance = piggyback;
@@ -272,7 +286,7 @@ abstract class DependencyTree<T> {
         return value;
       }
 
-      if (type == Type.SAFETY || type == Type.COSAFETY) {
+      if (type == Type.SAFETY || type == Type.CO_SAFETY) {
         EquivalenceClass successor = state.productState.safety.get(formula)
           .temporalStepUnfold(valuation);
 
@@ -301,7 +315,7 @@ abstract class DependencyTree<T> {
       Boolean value;
 
       switch (type) {
-        case COSAFETY:
+        case CO_SAFETY:
           // We use a FIN acceptance condition. If it is INF, we piggybacked on another leaf.
           // The other leaf is waiting for us. Thus we don't need to anything.
           if (acceptance.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
@@ -359,8 +373,8 @@ abstract class DependencyTree<T> {
 
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
-      if (type == Type.COSAFETY || type == Type.SAFETY || XDepthVisitor.getDepth(formula) == 0) {
-        return EMPTY;
+      if (type == Type.CO_SAFETY || type == Type.SAFETY || XDepthVisitor.getDepth(formula) == 0) {
+        return LongArrays.EMPTY_ARRAY;
       }
 
       return RequiredHistory.getRequiredHistory(unwrap(formula));
@@ -397,7 +411,7 @@ abstract class DependencyTree<T> {
         } else if (consensus == null) {
           consensus = Optional.of(result);
         } else if (consensus.isPresent()) {
-          consensus = (consensus.get() == result) ? consensus : Optional.empty();
+          consensus = consensus.get().equals(result) ? consensus : Optional.empty();
         }
       }
 
@@ -419,6 +433,7 @@ abstract class DependencyTree<T> {
         : state.productState.finished.get(this);
 
       BitSet set = new BitSet();
+      @Nullable
       BitSet fairnessSet = new BitSet();
 
       for (DependencyTree<T> child : children) {
@@ -427,13 +442,13 @@ abstract class DependencyTree<T> {
             fairnessSet = null;
           }
 
-          if (fairnessSet != null
-            && (((Leaf) child).type == Type.LIMIT_FG || ((Leaf) child).type == Type.LIMIT_GF)) {
+          if (fairnessSet != null && (((Leaf<?>) child).type == Type.LIMIT_FG
+            || ((Leaf<?>) child).type == Type.LIMIT_GF)) {
             fairnessSet.or(child.getAcceptance(state, valuation, acceptance));
           }
 
-          if ((((Leaf) child).type == Type.SAFETY || ((Leaf) child).type == Type.COSAFETY
-            || ((Leaf) child).type == Type.FALLBACK)) {
+          if ((((Leaf<?>) child).type == Type.SAFETY || ((Leaf<?>) child).type == Type.CO_SAFETY
+            || ((Leaf<?>) child).type == Type.FALLBACK)) {
             set.or(child.getAcceptance(state, valuation, acceptance));
           }
         } else {
@@ -454,7 +469,7 @@ abstract class DependencyTree<T> {
 
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
-      long[] requiredHistory = EMPTY;
+      long[] requiredHistory = LongArrays.EMPTY_ARRAY;
 
       if (successor.finished.containsKey(this)) {
         return requiredHistory;
@@ -462,7 +477,7 @@ abstract class DependencyTree<T> {
 
       for (DependencyTree<T> child : children) {
         if (child instanceof Leaf && suspend(successor, (Leaf<T>) child)) {
-          return EMPTY;
+          return LongArrays.EMPTY_ARRAY;
         }
 
         requiredHistory = unionTail(requiredHistory, child.getRequiredHistory(successor));
@@ -496,6 +511,15 @@ abstract class DependencyTree<T> {
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety.containsKey(leaf.formula)
         && (Fragments.isX(leaf.formula) || leaf.type == Type.SAFETY);
+    }
+
+    @Override
+    public String toString() {
+      if (children.isEmpty()) {
+        return "ff";
+      }
+      return String.join(" | ",
+        () -> children.stream().map(child -> (CharSequence) child.toString()).iterator());
     }
   }
 }

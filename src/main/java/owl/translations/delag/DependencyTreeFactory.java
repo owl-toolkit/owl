@@ -48,7 +48,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
   DependencyTreeFactory(Factories factory,
     Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor) {
-    this.factory = factory.equivalenceClassFactory;
+    this.factory = factory.eqFactory;
     setNumber = 0;
     builder = ProductState.builder();
     this.constructor = constructor;
@@ -68,7 +68,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
       () -> constructor.apply(LabelledFormula.create(formula, factory.getVariables())),
       piggyback);
 
-    if (leaf.type == Type.COSAFETY || leaf.type == Type.SAFETY) {
+    if (leaf.type == Type.CO_SAFETY || leaf.type == Type.SAFETY) {
       builder.safety.put(formula, factory.createEquivalenceClass(formula.unfold()));
     }
 

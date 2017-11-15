@@ -23,7 +23,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.function.Function;
-import java.util.logging.Logger;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -42,23 +41,20 @@ import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
-import owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
 import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
+import owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager;
 import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 
-public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends
-  RecurringObligation> implements Function<LabelledFormula,
-  LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
-
-  public static Logger logger = Logger.getLogger("ltl2ldba");
-
+public final class
+LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObligation>
+  implements Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
   private final Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor;
   private final boolean deterministicInitialComponent;
   private final Function<LabelledFormula, LabelledFormula> formulaPreprocessor;
@@ -76,8 +72,8 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     this.builderConstructor = builderConstructor;
     this.optimisations = EnumSet.copyOf(optimisations);
     this.getAnnotation = getAnnotation;
-    this.deterministicInitialComponent = optimisations
-      .contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+    this.deterministicInitialComponent =
+      optimisations.contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
   }
 
   // CSOFF: Indentation
@@ -86,10 +82,8 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
       x -> FGObligationsJumpManager.build(x, optimisations),
-      x -> new owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder(x,
-        optimisations),
-      optimisations,
-      DegeneralizedBreakpointFreeState::getObligations);
+      x -> new DegeneralizedAcceptingComponentBuilder(x, optimisations),
+      optimisations, DegeneralizedBreakpointFreeState::getObligations);
   }
   // CSON: Indentation
 
@@ -99,7 +93,8 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
   createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
     return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
       x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
-      x -> new DegeneralizedAcceptingComponentBuilder(x, ImmutableSet.copyOf(optimisations)),
+      x -> new owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder(x,
+        ImmutableSet.copyOf(optimisations)),
       optimisations,
       DegeneralizedBreakpointState::getObligations);
   }
@@ -140,7 +135,7 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
     Factories factories = JBddSupplier.async().getFactories(rewritten);
 
     Formula processedFormula = rewritten.formula;
-    AbstractJumpManager<C> factory = selectorConstructor.apply(factories.equivalenceClassFactory
+    AbstractJumpManager<C> factory = selectorConstructor.apply(factories.eqFactory
       .createEquivalenceClass(processedFormula));
 
     LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
@@ -174,7 +169,6 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
       assert !state.isFalse();
       return state.testSupport(Fragments::isSafety) ? Edges.create(x.getSuccessor(), bitSet) : x;
     });
-
     return ldba;
   }
 
@@ -194,13 +188,13 @@ public final class LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C e
 
   private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
     EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(
-      factories.equivalenceClassFactory, EnumSet.copyOf(optimisations));
+      factories.eqFactory, EnumSet.copyOf(optimisations));
 
     if (deterministicInitialComponent) {
       return Collections.singleton(factory.getInitial(formula));
     }
 
-    EquivalenceClass clazz = factories.equivalenceClassFactory.createEquivalenceClass(formula);
+    EquivalenceClass clazz = factories.eqFactory.createEquivalenceClass(formula);
     return factory.splitEquivalenceClass(clazz);
   }
 }

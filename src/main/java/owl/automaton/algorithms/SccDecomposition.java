@@ -64,7 +64,7 @@ public final class SccDecomposition<S> {
    * Map-operation get, put and containsKey (and the onStack set-operations) take constant time.
    * <p>The returned list of SCCs is ordered according to the topological ordering in the
    * "condensation graph", aka the graph where the SCCs are vertices, ordered such that for each
-   * transition a->b in the condensation graph, a is in the list before b</p>
+   * transition {@code a->b} in the condensation graph, a is in the list before b</p>
    *
    * @param automaton
    *     Automaton, for which the class is analysed
@@ -216,6 +216,8 @@ public final class SccDecomposition<S> {
       if (lowLink == NO_LINK) {
         // This state has no back-link at all - transient state
         assert Objects.equals(explorationStack.peek(), node);
+        assert isTransient(successorFunction, Collections.singleton(node));
+
         if (this.includeTransient) {
           sccs.add(ImmutableSet.of(node));
         }
@@ -232,8 +234,8 @@ public final class SccDecomposition<S> {
         S stackNode = explorationStack.pop();
         if (stackNode == node) { // NOPMD
           // Singleton SCC
-          assert Iterables.contains(successorFunction.apply(stackNode), stackNode);
           scc = ImmutableSet.of(node);
+          assert !isTransient(successorFunction, scc);
         } else {
           ImmutableSet.Builder<S> builder = ImmutableSet.builder();
           builder.add(stackNode);

@@ -367,7 +367,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+  public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       acceptance, ImmutableSet.copyOf(initialStates), stateCount(), options,
       isDeterministic(), getName());

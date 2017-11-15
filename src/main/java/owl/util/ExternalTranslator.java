@@ -59,7 +59,7 @@ public class ExternalTranslator
       }
 
       ValuationSetFactory vsFactory = JBddSupplier.async()
-        .getFactories(formula).valuationSetFactory;
+        .getFactories(formula).vsFactory;
       try (BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream())) {
         return AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
       }

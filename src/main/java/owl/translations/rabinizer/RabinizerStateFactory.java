@@ -10,13 +10,13 @@ class RabinizerStateFactory {
     this.eager = eager;
   }
 
-  void addClassSensitiveAlphabet(BitSet alphabet, EquivalenceClass equivalenceClass) {
+  BitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
     if (eager) {
-      alphabet.or(equivalenceClass.getAtoms());
-    } else {
-      EquivalenceClass unfold = equivalenceClass.unfold();
-      alphabet.or(unfold.getAtoms());
-      unfold.free();
+      return equivalenceClass.getAtoms();
     }
+    EquivalenceClass unfold = equivalenceClass.unfold();
+    BitSet atoms = unfold.getAtoms();
+    unfold.free();
+    return atoms;
   }
 }

@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
@@ -287,7 +286,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   @Override
-  default List<String> getVariables() {
+  default ImmutableList<String> getVariables() {
     return getFactory().getAlphabet();
   }
 
@@ -330,7 +329,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   @Override
-  default void toHoa(HOAConsumer consumer, EnumSet<Option> options) {
+  default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic(), getName());
 

@@ -1,5 +1,6 @@
 package owl.translations.rabinizer;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
@@ -23,14 +24,16 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
   private final ImmutableMap<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;
+  private final GOperator formula;
 
   @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-  MonitorAutomaton(Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
+  MonitorAutomaton(GOperator formula,
+    Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
     this.automata = ImmutableMap.copyOf(automata);
+    this.formula = formula;
 
     ImmutableSet.Builder<GOperator> baseBuilder = ImmutableSet.builder();
     for (GSet relevantSet : this.automata.keySet()) {
-      // TODO This could be wrong, but unlikely ...
       baseBuilder.addAll(relevantSet);
     }
     this.base = new GSet(baseBuilder.build());
@@ -90,10 +93,14 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
     return strippedEdges;
   }
 
+  public GOperator getMonitoredG() {
+    return formula;
+  }
+
   @Nullable
   @Override
   public String getName() {
-    return String.format("Monitor for base %s", base);
+    return "Monitor for " + formula + " with base " + base;
   }
 
   @Override
@@ -110,5 +117,10 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   @Override
   public Set<MonitorState> getSuccessors(MonitorState state) {
     return anyAutomaton.getSuccessors(state);
+  }
+
+  @Override
+  public ImmutableList<String> getVariables() {
+    return anyAutomaton.getVariables();
   }
 }

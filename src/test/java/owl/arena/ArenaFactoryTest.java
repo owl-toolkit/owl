@@ -1,13 +1,15 @@
 package owl.arena;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.not;
 
 import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.arena.Arena.Owner;
 import owl.arena.ArenaFactory.Node;
@@ -26,7 +28,7 @@ public class ArenaFactoryTest {
 
   static {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-    optimisations.remove(Optimisation.PARALLEL);
+    optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
     TRANSLATION = new LTL2DPAFunction(optimisations, false);
   }
 
@@ -36,15 +38,15 @@ public class ArenaFactoryTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
     Arena<Node<Object>, ParityAcceptance> arena =
-      ArenaFactory.copyOf(ArenaFactory.split(automaton, ImmutableList.of("a","c")));
+      ArenaFactory.copyOf(ArenaFactory.split(automaton, ImmutableList.of("a", "c")));
 
     for (Node<Object> state : arena.getStates()) {
       for (Node<Object> predecessor : arena.getPredecessors(state)) {
-        assertThat(state, Matchers.isIn(arena.getSuccessors(predecessor)));
+        assertThat(state, isIn(arena.getSuccessors(predecessor)));
       }
 
       for (Node<Object> successors : arena.getSuccessors(state)) {
-        assertThat(state, Matchers.isIn(arena.getPredecessors(successors)));
+        assertThat(state, isIn(arena.getPredecessors(successors)));
       }
     }
   }
@@ -58,19 +60,20 @@ public class ArenaFactoryTest {
     Arena<Node<Object>, ParityAcceptance> arena =
       ArenaFactory.copyOf(ArenaFactory.split(automaton, ImmutableList.of("a")));
 
-    Stream<Node<Object>> trueSinks = arena.getStates().stream().filter(x -> {
-      RankingState<EquivalenceClass, ?> state = (RankingState<EquivalenceClass, ?>) x.state;
-      return state.state != null && state.state.isTrue();
-    });
-
-    Set<Node<Object>> winningStates = trueSinks.collect(Collectors.toSet());
+    Set<Node<Object>> winningStates = arena.getStates().stream()
+      .filter(x -> {
+        @SuppressWarnings("unchecked")
+        RankingState<EquivalenceClass, ?> state = (RankingState<EquivalenceClass, ?>) x.state;
+        return state.state != null && state.state.isTrue();
+      }).collect(Collectors.toSet());
+    assertThat(winningStates, not(empty()));
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
-    assertThat(arena.getInitialState(),
-      Matchers.isIn(arena.getAttractorFixpoint(winningStates, Owner.PLAYER_2)));
+    assertThat(arena.getAttractorFixpoint(winningStates, Owner.PLAYER_2),
+      hasItem(arena.getInitialState()));
 
     // Player 1 can never win...
-    assertThat(arena.getInitialState(),
-      Matchers.not(Matchers.isIn(arena.getAttractorFixpoint(winningStates, Owner.PLAYER_1))));
+    assertThat(arena.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
+      not(hasItem(arena.getInitialState())));
   }
 }

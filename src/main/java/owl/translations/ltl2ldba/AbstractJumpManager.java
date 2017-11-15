@@ -1,11 +1,10 @@
 package owl.translations.ltl2ldba;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.logger;
-
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
@@ -17,6 +16,7 @@ import owl.ltl.Literal;
 import owl.translations.Optimisation;
 
 public abstract class AbstractJumpManager<X extends RecurringObligation> {
+  private static final Logger logger = Logger.getLogger(AbstractJumpManager.class.getName());
 
   private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(ImmutableSet.of());
 
@@ -100,6 +100,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     return new Jump<>(remainder, obligations);
   }
 
+  @SuppressWarnings("unchecked")
   @Nullable
   private AnalysisResult<X> checkTrivial(EquivalenceClass state) {
     // The state is a simple safety or cosafety condition. We don't need to use reasoning about the

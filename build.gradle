@@ -37,8 +37,8 @@ apply plugin: 'application'
 project.group = 'de.tum.in'
 project.version = '1.2.0-SNAPSHOT'
 
-project.sourceCompatibility = '1.9'
-project.targetCompatibility = '1.9'
+project.sourceCompatibility = '1.8'
+project.targetCompatibility = '1.8'
 project.archivesBaseName = 'owl'
 
 def defaultEncoding = 'UTF-8'

@@ -45,7 +45,7 @@ public abstract class AbstractCommandLineTool<T> {
   @SuppressWarnings("PMD.PrematureDeclaration")
   void execute(Deque<String> args) {
     // Read input.
-    EnumSet<HoaPrintable.Option> options = parseHoaOutputOptions(args);
+    EnumSet<HoaPrintable.HoaOption> options = parseHoaOutputOptions(args);
     EnumSet<Optimisation> optimisations = parseOptimisationOptions(args);
     Function<T, ? extends HoaPrintable> translation = getTranslation(optimisations);
     boolean stateAcceptance = args.remove("--state-acceptance");
@@ -98,11 +98,11 @@ public abstract class AbstractCommandLineTool<T> {
   protected abstract Function<T, ? extends HoaPrintable> getTranslation(
     EnumSet<Optimisation> optimisations);
 
-  private EnumSet<HoaPrintable.Option> parseHoaOutputOptions(Deque<String> args) {
+  private EnumSet<HoaPrintable.HoaOption> parseHoaOutputOptions(Deque<String> args) {
     if (args.remove(ANNOTATIONS)) {
-      return EnumSet.of(HoaPrintable.Option.ANNOTATIONS);
+      return EnumSet.of(HoaPrintable.HoaOption.ANNOTATIONS);
     } else {
-      return EnumSet.noneOf(HoaPrintable.Option.class);
+      return EnumSet.noneOf(HoaPrintable.HoaOption.class);
     }
   }
 

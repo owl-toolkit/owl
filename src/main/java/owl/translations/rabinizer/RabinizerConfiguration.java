@@ -1,10 +1,14 @@
 package owl.translations.rabinizer;
 
 import org.immutables.value.Value;
-import owl.factories.Factories;
 
 @Value.Immutable
-public abstract class RabinizerConfiguration {
+public class RabinizerConfiguration { // NOPMD
+  @Value.Default
+  public boolean completeAutomaton() {
+    return false;
+  }
+
   @Value.Default
   public boolean computeAcceptance() {
     return true;
@@ -15,15 +19,18 @@ public abstract class RabinizerConfiguration {
     return true;
   }
 
-  public abstract Factories factories();
-
   @Value.Default
-  public boolean removeFormulaRepresentative() {
+  public boolean supportBasedRelevantFormulaAnalysis() {
     return true;
   }
 
   @Value.Default
-  public boolean supportBasedRelevantFormulaAnalysis() {
+  public boolean suspendableFormulaDetection() {
     return true;
+  }
+
+  @Value.Default
+  public boolean removeFormulaRepresentative() {
+    return false;
   }
 }

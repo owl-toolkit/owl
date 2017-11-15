@@ -94,7 +94,7 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
   @Override
   public String toString() {
     try {
-      return toString(EnumSet.allOf(Option.class));
+      return toString(EnumSet.allOf(HoaOption.class));
     } catch (IOException ex) {
       throw new IllegalStateException(ex.toString(), ex);
     }

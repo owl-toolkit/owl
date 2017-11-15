@@ -47,7 +47,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrintable;
-import owl.automaton.output.HoaPrintable.Option;
+import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.collections.ValuationSet;
 
 public final class AutomatonUtil {
@@ -73,6 +73,14 @@ public final class AutomatonUtil {
       : "Expected states of class " + stateClass.getName();
 
     return (Automaton<S, A>) castedAutomaton;
+  }
+
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A>
+  castMutable(Object automaton, Class<S> stateClass, Class<A> acceptanceClass) {
+    Automaton<S, A> castedAutomaton = cast(automaton, stateClass, acceptanceClass);
+    checkArgument(automaton instanceof MutableAutomaton<?, ?>, "Expected automaton, got %s",
+      automaton.getClass().getName());
+    return (MutableAutomaton<S, A>) castedAutomaton;
   }
 
   /**
@@ -350,7 +358,7 @@ public final class AutomatonUtil {
   public static String toHoa(HoaPrintable printable) {
     ByteArrayOutputStream writer = new ByteArrayOutputStream();
     HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
-    printable.toHoa(hoa, EnumSet.of(Option.ANNOTATIONS));
+    printable.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS));
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 }

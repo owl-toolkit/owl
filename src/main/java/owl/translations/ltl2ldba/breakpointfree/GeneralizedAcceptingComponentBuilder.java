@@ -48,7 +48,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public MutableAutomaton<GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance> build() {
     return MutableAutomatonFactory
       .createMutableAutomaton(new GeneralizedBuchiAcceptance(acceptanceSets),
-      factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+        factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override

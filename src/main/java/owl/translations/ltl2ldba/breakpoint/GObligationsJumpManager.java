@@ -17,8 +17,6 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.logger;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
@@ -28,6 +26,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
@@ -55,6 +54,7 @@ import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
 
 public final class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
+  private static final Logger logger = Logger.getLogger(GObligationsJumpManager.class.getName());
   private final ImmutableSet<GObligations> obligations;
 
   private GObligationsJumpManager(EquivalenceClassFactory factory,
@@ -105,7 +105,6 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
       externalAtoms.and(internalAtoms);
 
       if (externalAtoms.isEmpty()) {
-        remainder.free();
         return true;
       }
     }
@@ -135,7 +134,6 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         availableObligations.add(x);
       }
     }
-
     state2.free();
 
     Set<Jump<GObligations>> jumps = new HashSet<>();
@@ -149,6 +147,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
 
       if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)
         && dependsOnExternalAtoms(remainder, obligation)) {
+        remainder.free();
         continue;
       }
 

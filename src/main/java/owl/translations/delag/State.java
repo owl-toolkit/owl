@@ -20,7 +20,6 @@ package owl.translations.delag;
 import java.util.Objects;
 
 public class State<T> {
-
   final History past;
   final ProductState<T> productState;
 

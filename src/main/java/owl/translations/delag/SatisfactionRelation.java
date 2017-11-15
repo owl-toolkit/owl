@@ -28,13 +28,13 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultIntVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 
-class SatisfactionRelation {
+final class SatisfactionRelation {
 
   private SatisfactionRelation() {
   }
 
   /**
-   * Returns whether the past entails the formula with the given present.
+   * Determines if the {@code past} is a model for the {@code formula}.
    *
    * @param formula
    *     the formula

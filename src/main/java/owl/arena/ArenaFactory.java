@@ -42,6 +42,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class ArenaFactory {
+  private ArenaFactory() {}
 
   public static <S, A extends OmegaAcceptance> Arena<S, A> copyOf(Arena<S, A> arena) {
     assert arena.isComplete() : "Only defined for complete arena.";
@@ -166,7 +167,7 @@ public final class ArenaFactory {
     }
 
     @Override
-    public List<String> getVariables() {
+    public ImmutableList<String> getVariables() {
       return automaton.getVariables();
     }
 
@@ -326,7 +327,7 @@ public final class ArenaFactory {
         return false;
       }
 
-      final Node<?> node = (Node<?>) o;
+      Node<?> node = (Node<?>) o;
       return Objects.equals(state, node.state) && Objects.equals(choice, node.choice);
     }
 

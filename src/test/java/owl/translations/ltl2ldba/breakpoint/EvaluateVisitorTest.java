@@ -20,7 +20,7 @@ public class EvaluateVisitorTest {
     LabelledFormula formula = LtlParser.parse("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
     Factories factories = JBddSupplier.async().getFactories(formula);
     EvaluateVisitor visitor = new EvaluateVisitor(Collections.singleton(operator),
-      factories.equivalenceClassFactory.getTrue());
+      factories.eqFactory.getTrue());
     assertThat(formula.accept(visitor), is(BooleanConstant.FALSE));
   }
 }

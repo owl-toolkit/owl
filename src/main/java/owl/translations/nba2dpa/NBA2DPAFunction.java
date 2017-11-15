@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -67,10 +68,13 @@ public final class NBA2DPAFunction<S>
 
     LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Safety> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent(), ldba::getAnnotation);
+    Predicate<Set<S>> isAccepting = s -> false;
+
     RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Safety, Set<BreakpointState<S>>> builder =
       new RankingAutomatonBuilder<>(ldbaCutDet, new AtomicInteger(), optimisations, oracle,
-      s -> false, false);
+        isAccepting, false);
     builder.add(ldbaCutDet.getInitialComponent().getInitialState());
+
     return builder.build();
   }
 }

@@ -18,6 +18,7 @@
 package owl.automaton.output;
 
 import static com.google.common.base.Preconditions.checkState;
+import static owl.automaton.output.HoaPrintable.HoaOption.SIMPLE_TRANSITION_LABELS;
 
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -45,7 +46,7 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.output.HoaPrintable.Option;
+import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.collections.ValuationSet;
 
 public final class HoaConsumerExtended<S> {
@@ -55,13 +56,13 @@ public final class HoaConsumerExtended<S> {
 
   private final int alphabetSize;
   private final HOAConsumer consumer;
-  private final EnumSet<HoaPrintable.Option> options;
+  private final EnumSet<HoaOption> options;
   private final Object2IntMap<S> stateNumbers;
   @Nullable
   private S currentState = null;
 
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
-    Set<? extends S> initialStates, int size, EnumSet<Option> options,
+    Set<? extends S> initialStates, int size, EnumSet<HoaOption> options,
     boolean isDeterministic, @Nullable String name) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
@@ -70,9 +71,9 @@ public final class HoaConsumerExtended<S> {
 
     try {
       consumer.notifyHeaderStart("v1");
-      consumer.setTool("Owl", "* *"); // Owl in a cave.
+      consumer.setTool("owl", "* *"); // Owl in a cave.
 
-      if (options.contains(HoaPrintable.Option.ANNOTATIONS)) {
+      if (options.contains(HoaOption.ANNOTATIONS)) {
         if (name != null) {
           consumer.setName(name);
         } else {
@@ -147,7 +148,12 @@ public final class HoaConsumerExtended<S> {
       return;
     }
 
-    addEdgeBackend(label.toExpression(), end, new IntArrayList(accSets));
+    IntArrayList acceptanceSets = new IntArrayList(accSets);
+    if (options.contains(SIMPLE_TRANSITION_LABELS)) {
+      label.forEach(bitSet -> addEdgeBackend(toLabel(bitSet), end, acceptanceSets));
+    } else {
+      addEdgeBackend(label.toExpression(), end, acceptanceSets);
+    }
   }
 
   public void addEdge(LabelledEdge<? extends S> labelledEdge) {
@@ -191,7 +197,7 @@ public final class HoaConsumerExtended<S> {
     try {
       currentState = state;
       @Nullable
-      String label = options.contains(Option.ANNOTATIONS) ? state.toString() : null;
+      String label = options.contains(HoaOption.ANNOTATIONS) ? state.toString() : null;
       consumer.addState(getStateId(state), label, null, null);
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);

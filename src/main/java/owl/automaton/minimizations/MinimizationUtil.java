@@ -19,10 +19,12 @@ package owl.automaton.minimizations;
 
 import static owl.automaton.AutomatonUtil.toHoa;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -31,15 +33,59 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edges;
+import owl.automaton.transformations.ParityUtil;
 
 public final class MinimizationUtil {
   private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
+  private static final List<Minimization<Object, GeneralizedRabinAcceptance>>
+    generalizedRabinDefaultLightList = ImmutableList.of(
+    GeneralizedRabinMinimizations::minimizeOverlap,
+    GenericMinimizations::removeTransientAcceptance,
+    // MinimizationUtil::removeDeadStates,
+    GeneralizedRabinMinimizations::minimizeComplementaryInf,
+    GeneralizedRabinMinimizations::minimizeGloballyIrrelevant,
+    GeneralizedRabinMinimizations::minimizeEdgeImplications,
+    GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+    GeneralizedRabinMinimizations::minimizeTrivial
+  );
+  private static final List<Minimization<Object, GeneralizedRabinAcceptance>>
+    generalizedRabinDefaultAllList = ImmutableList.of(
+    GeneralizedRabinMinimizations::minimizeOverlap,
+    GeneralizedRabinMinimizations::minimizeMergePairs,
+    GenericMinimizations::removeTransientAcceptance,
+    // MinimizationUtil::removeDeadStates,
+    GeneralizedRabinMinimizations::minimizeComplementaryInf,
+    GeneralizedRabinMinimizations::minimizeGloballyIrrelevant,
+    GeneralizedRabinMinimizations::minimizeEdgeImplications,
+    GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+    GeneralizedRabinMinimizations::minimizeTrivial,
+    GeneralizedRabinMinimizations::minimizePairImplications,
+    GeneralizedRabinMinimizations::minimizeMergePairs,
+    GeneralizedRabinMinimizations::minimizeComplementaryInf,
+    GeneralizedRabinMinimizations::minimizePairImplications,
+    GeneralizedRabinMinimizations::minimizeEdgeImplications,
+    GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+    GeneralizedRabinMinimizations::minimizeGloballyIrrelevant
+  );
+  private static final List<Minimization<Object, ParityAcceptance>>
+    parityDefaultList = ImmutableList.of(
+    GenericMinimizations::removeTransientAcceptance,
+    // MinimizationUtil::removeDeadStates,
+    ParityUtil::minimizePriorities
+  );
 
   private MinimizationUtil() {}
+
+  public static <S, A extends OmegaAcceptance> void applyMinimization(
+    MutableAutomaton<S, A> automaton, Minimization<S, A>... minimizationList) {
+    applyMinimization(automaton, Arrays.asList(minimizationList));
+  }
 
   public static <S, A extends OmegaAcceptance> void applyMinimization(
     MutableAutomaton<S, A> automaton, List<Minimization<S, A>> minimizationList) {
@@ -56,6 +102,30 @@ public final class MinimizationUtil {
 
     logger.log(Level.FINEST, () -> String.format("Automaton after optimization:%n%s",
       toHoa(automaton)));
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <S, A extends OmegaAcceptance> void minimizeDefault(
+    MutableAutomaton<S, A> automaton, MinimizationLevel level) {
+    OmegaAcceptance acceptance = automaton.getAcceptance();
+
+    // TODO More
+    if (acceptance instanceof GeneralizedRabinAcceptance) {
+      MutableAutomaton<Object, GeneralizedRabinAcceptance> dgra =
+        (MutableAutomaton<Object, GeneralizedRabinAcceptance>) automaton;
+      if (level == MinimizationLevel.ALL) {
+        applyMinimization(dgra, generalizedRabinDefaultAllList);
+      } else {
+        applyMinimization(dgra, generalizedRabinDefaultLightList);
+      }
+    } else if (acceptance instanceof ParityAcceptance) {
+      MutableAutomaton<Object, ParityAcceptance> dpa =
+        (MutableAutomaton<Object, ParityAcceptance>) automaton;
+      applyMinimization(dpa, parityDefaultList);
+    } else {
+      // removeDeadStates(automaton);
+      logger.log(Level.FINE, "Received unsupported acceptance type {0}", acceptance.getClass());
+    }
   }
 
   public static <S> void removeAndRemapIndices(MutableAutomaton<S, ?> automaton,
@@ -82,6 +152,11 @@ public final class MinimizationUtil {
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
     automaton
       .remapEdges(automaton.getStates(), (state, edge) -> Edges.remapAcceptance(edge, remapping));
+  }
+
+  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
+    removeDeadStates(automaton, automaton.getInitialStates(), s -> false, s -> {
+    });
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
@@ -149,6 +224,10 @@ public final class MinimizationUtil {
     logger.log(Level.FINER, "Removing acceptance indices {0} on subset", indicesToRemove);
     IntUnaryOperator transformer = index -> indicesToRemove.contains(index) ? -1 : index;
     automaton.remapEdges(states, (state, edge) -> Edges.remapAcceptance(edge, transformer));
+  }
+
+  public enum MinimizationLevel {
+    LIGHT, MEDIUM, ALL
   }
 }
 

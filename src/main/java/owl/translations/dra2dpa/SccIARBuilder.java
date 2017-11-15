@@ -74,9 +74,8 @@ final class SccIARBuilder<R> {
       pairIndex += 1;
     }
 
-    this.resultAutomaton =
-      MutableAutomatonFactory
-        .createMutableAutomaton(new ParityAcceptance(0), rabinAutomaton.getFactory());
+    this.resultAutomaton = MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0),
+      rabinAutomaton.getFactory());
   }
 
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,

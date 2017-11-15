@@ -5,6 +5,7 @@ import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
 import com.google.common.collect.ImmutableMap;
 import de.tum.in.naturals.bitset.BitSets;
+import it.unimi.dsi.fastutil.booleans.BooleanArrays;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -28,32 +29,41 @@ import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
-import owl.ltl.visitors.Collector;
+import owl.ltl.GOperator;
 
 final class MonitorBuilder {
-  private static final Predicate<Formula> NO_SUB_FORMULA = formula ->
-    Collector.collectGOperators(formula).isEmpty();
+  private static final Predicate<Formula> NO_G_SUB_FORMULA = formula ->
+    formula.allMatch(sub -> !(sub instanceof GOperator));
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
   private final EquivalenceClass initialClass;
-  private final boolean isSafety;
+  private final Fragment fragment;
   private final MutableAutomaton<MonitorState, ParityAcceptance>[] monitorAutomata;
   private final GSet[] relevantSets;
   private final MonitorStateFactory stateFactory;
+  private final GOperator gOperator;
   private final ValuationSetFactory vsFactory;
 
-  private MonitorBuilder(EquivalenceClass formula, Collection<GSet> relevantSets,
-    ValuationSetFactory vsFactory, boolean eager) {
+  private MonitorBuilder(GOperator gOperator, EquivalenceClass operand,
+    Collection<GSet> relevantSets, ValuationSetFactory vsFactory, boolean eager) {
+    this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    isSafety = formula.testSupport(Fragments::isX);
-    boolean noSubFormula = isSafety || formula.testSupport(NO_SUB_FORMULA);
-    assert !isSafety || formula.testSupport(NO_SUB_FORMULA);
+    boolean noSubFormula = operand.testSupport(NO_G_SUB_FORMULA);
+    if (noSubFormula && gOperator.operand instanceof FOperator) {
+      // TODO breaks for GF(a1 & !(a2 U b2)) if "noSubFormula" test is removed
+      fragment = Fragment.EVENTUAL;
+    } else if (operand.testSupport(Fragments::isX)) {
+      fragment = Fragment.FINITE;
+    } else {
+      fragment = Fragment.FULL;
+    }
 
     logger.log(Level.FINE, "Creating builder for formula {0} and relevant sets {1}; "
-        + "safety: {2}, no G-sub: {3}",
-      new Object[] {formula, relevantSets, isSafety, noSubFormula});
+        + "fragment: {2}, no G-sub: {3}",
+      new Object[] {operand, relevantSets, fragment, noSubFormula});
 
     this.stateFactory = new MonitorStateFactory(eager, noSubFormula);
 
@@ -62,13 +72,12 @@ final class MonitorBuilder {
 
     //noinspection unchecked,rawtypes
     this.monitorAutomata = new MutableAutomaton[this.relevantSets.length];
-    initialClass = stateFactory.getInitialState(formula);
+    initialClass = stateFactory.getInitialState(operand);
   }
 
-
-  static MonitorAutomaton create(EquivalenceClass formula, Collection<GSet> relevantSets,
-    ValuationSetFactory vsFactory, boolean eager) {
-    return new MonitorBuilder(formula, relevantSets, vsFactory, eager).build();
+  static MonitorAutomaton create(GOperator gOperator, EquivalenceClass operand,
+    Collection<GSet> relevantSets, ValuationSetFactory vsFactory, boolean eager) {
+    return new MonitorBuilder(gOperator, operand, relevantSets, vsFactory, eager).build();
   }
 
   private static int fail() {
@@ -81,6 +90,10 @@ final class MonitorBuilder {
 
   private static int succeed(int i) {
     return 2 * i + 1;
+  }
+
+  private static int none() {
+    return Integer.MAX_VALUE;
   }
 
   private MonitorAutomaton build() {
@@ -98,15 +111,18 @@ final class MonitorBuilder {
     }
 
     // Initialize some cached values
-    int alphabetSize = vsFactory.getSize();
-    BitSet sensitiveAlphabet = new BitSet(alphabetSize);
-
     int numberOfRelevantSets = relevantSets.length;
     // Cache if q0 is accepting under some context
-    boolean[] initialAccepting = new boolean[numberOfRelevantSets];
-    for (int gIndex = 0; gIndex < relevantSets.length; gIndex++) {
-      initialAccepting[gIndex] = isAccepting(initialClass, relevantSets[gIndex]);
+    boolean[] initialAccepting;
+    if (fragment == Fragment.FULL) {
+      initialAccepting = new boolean[numberOfRelevantSets];
+      for (int gIndex = 0; gIndex < relevantSets.length; gIndex++) {
+        initialAccepting[gIndex] = isAccepting(initialClass, relevantSets[gIndex]);
+      }
+    } else {
+      initialAccepting = BooleanArrays.EMPTY_ARRAY;
     }
+
     // Tracks the maximal priority used by each relevant set
     int[] maximalPriority = new int[numberOfRelevantSets];
     Arrays.fill(maximalPriority, -1);
@@ -124,16 +140,18 @@ final class MonitorBuilder {
 
     while (!workQueue.isEmpty()) {
       MonitorState currentState = workQueue.poll();
-      stateFactory.addSensitiveAlphabet(sensitiveAlphabet, currentState);
+      BitSet sensitiveAlphabet = stateFactory.getSensitiveAlphabet(currentState);
 
       for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
         MonitorState successorState;
 
-        if (isSafety) {
-          successorState = getSuccessorSafety(currentState, valuation, priorities);
+        if (fragment == Fragment.FINITE) {
+          successorState = getSuccessorFiniteFragment(currentState, valuation, priorities);
+        } else if (fragment == Fragment.EVENTUAL) {
+          successorState = getSuccessorEventualFragment(currentState, valuation, priorities);
         } else {
           // Reset loop data structures
-          Arrays.fill(priorities, Integer.MAX_VALUE);
+          Arrays.fill(priorities, none());
           successorState = getSuccessor(currentState, valuation, priorities, initialAccepting);
         }
 
@@ -146,7 +164,7 @@ final class MonitorBuilder {
         for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
           int priority = priorities[contextIndex];
           Edge<MonitorState> edge;
-          if (priority == Integer.MAX_VALUE) {
+          if (priority == none()) {
             // No event occurred
             edge = Edges.create(successorState);
           } else {
@@ -163,7 +181,7 @@ final class MonitorBuilder {
       sensitiveAlphabet.clear();
     }
 
-    if (!isSafety) {
+    if (fragment == Fragment.FULL) {
       optimizeInitialState();
     }
 
@@ -178,7 +196,7 @@ final class MonitorBuilder {
         relevantSets[contextIndex], initialClass);
     }
 
-    return new MonitorAutomaton(builder.build());
+    return new MonitorAutomaton(gOperator, builder.build());
   }
 
   private MonitorState getSuccessor(MonitorState currentState, BitSet valuation, int[] priorities,
@@ -306,7 +324,7 @@ final class MonitorBuilder {
 
               if (isAccepting(olderSuccessorClass, relevantSets[contextIndex])) {
                 assert isAccepting(currentRanking[olderSource], relevantSets[contextIndex]);
-                if (priorities[contextIndex] == Integer.MAX_VALUE) {
+                if (priorities[contextIndex] == none()) {
                   // Don't overwrite a "stronger" succeed. It might be the case that, e.g., both
                   // rank 2 and 3 merge into the succeeding rank 1. Then, rank 3 would set the
                   // priority to succeed(3), whereas this actually is a succeed(2).
@@ -333,13 +351,12 @@ final class MonitorBuilder {
           for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
             if (!isAccepting(successorClass, relevantSets[contextIndex])) {
               priorities[contextIndex] = fail();
-            } else if (priorities[contextIndex] == Integer.MAX_VALUE) {
+            } else if (priorities[contextIndex] == none()
+              && !isAccepting(currentClass, relevantSets[contextIndex])) {
               // Successor is accepting and we had no event previously. We handled the case of
               // accepting initial state already. Thus, we only check whether we move from a
               // non-accepting to an accepting state.
-              if (!isAccepting(currentClass, relevantSets[contextIndex])) {
-                priorities[contextIndex] = succeed(currentRank);
-              }
+              priorities[contextIndex] = succeed(currentRank);
             }
           }
 
@@ -349,7 +366,7 @@ final class MonitorBuilder {
 
         // No merge occurred and the successor is not a sink - check for succeed(i)
         for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
-          if (priorities[contextIndex] < Integer.MAX_VALUE) {
+          if (priorities[contextIndex] != none()) {
             // Some event occurred earlier for this context - no need to check for succeed(i)
             continue;
           }
@@ -378,10 +395,9 @@ final class MonitorBuilder {
     }
 
     // If there were some removed classes, compact the array, otherwise take it as is
-    EquivalenceClass[] trimmedSuccessorRanking =
-      successorRankingSize < successorRanking.length
-        ? Arrays.copyOf(successorRanking, successorRankingSize)
-        : successorRanking;
+    EquivalenceClass[] trimmedSuccessorRanking = successorRankingSize < successorRanking.length
+      ? Arrays.copyOf(successorRanking, successorRankingSize)
+      : successorRanking;
 
     assert Arrays.stream(trimmedSuccessorRanking).noneMatch(MonitorStateFactory::isSink);
     assert Arrays.stream(trimmedSuccessorRanking)
@@ -391,10 +407,10 @@ final class MonitorBuilder {
     return new MonitorState(trimmedSuccessorRanking);
   }
 
-  private MonitorState getSuccessorSafety(MonitorState currentState, BitSet valuation,
+  private MonitorState getSuccessorFiniteFragment(MonitorState currentState, BitSet valuation,
     int[] priorities) {
     EquivalenceClass[] currentRanking = currentState.formulaRanking;
-    assert currentRanking.length == 1 && priorities.length == 1;
+    assert currentRanking.length == 1;
 
     EquivalenceClass successorClass =
       stateFactory.getRankSuccessor(currentRanking[0], valuation);
@@ -404,7 +420,27 @@ final class MonitorBuilder {
       successorRanking[0] = initialClass;
     } else {
       priorities[0] = succeed(0);
-      successorRanking[0] = successorClass.and(initialClass);
+      successorRanking[0] = successorClass.andWith(initialClass);
+    }
+
+    return new MonitorState(successorRanking);
+  }
+
+  private MonitorState getSuccessorEventualFragment(MonitorState currentState, BitSet valuation,
+    int[] priorities) {
+    EquivalenceClass[] currentRanking = currentState.formulaRanking;
+    assert currentRanking.length == 1;
+
+    EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentRanking[0], valuation);
+    EquivalenceClass[] successorRanking = new EquivalenceClass[1];
+    for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
+      if (isAccepting(successorClass, relevantSets[contextIndex])) {
+        priorities[contextIndex] = succeed(0);
+        successorRanking[0] = initialClass;
+      } else {
+        priorities[contextIndex] = none();
+        successorRanking[0] = successorClass;
+      }
     }
 
     return new MonitorState(successorRanking);
@@ -412,6 +448,7 @@ final class MonitorBuilder {
 
   private void optimizeInitialState() {
     // Since the monitors handle "F G <psi>", we can skip non-repeating prefixes
+    // TODO We actually can use this to only compute the successors until we reach a BSCC
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
     MonitorState initialState = anyMonitor.getInitialState();
@@ -439,5 +476,9 @@ final class MonitorBuilder {
     } else {
       logger.log(Level.FINER, "No better initial state found");
     }
+  }
+
+  private enum Fragment {
+    EVENTUAL, FINITE, FULL
   }
 }

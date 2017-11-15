@@ -52,7 +52,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public MutableAutomaton<GeneralizedBreakpointState, GeneralizedBuchiAcceptance> build() {
     return MutableAutomatonFactory
       .createMutableAutomaton(new GeneralizedBuchiAcceptance(acceptanceSets),
-      factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+        factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override
@@ -70,7 +70,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     if (theRemainder.testSupport(Fragments::isX)) {
       safety = theRemainder.andWith(safety);
-      theRemainder = factories.equivalenceClassFactory.getTrue();
+      theRemainder = factories.eqFactory.getTrue();
     }
 
     if (length == 0) {
@@ -100,7 +100,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     }
 
     EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.length];
-    Arrays.fill(next, factories.equivalenceClassFactory.getTrue());
+    Arrays.fill(next, factories.eqFactory.getTrue());
 
     return new GeneralizedBreakpointState(obligations, safety, currentBuilder, next);
   }
@@ -168,7 +168,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       if (currentSuccessor.isTrue()) {
         bs.set(i);
         currentSuccessors[i] = nextSuccessor;
-        nextSuccessors[i] = factories.equivalenceClassFactory.getTrue();
+        nextSuccessors[i] = factories.eqFactory.getTrue();
       } else {
         currentSuccessors[i] = currentSuccessor;
         nextSuccessors[i] = nextSuccessor;

@@ -8,7 +8,7 @@ import org.junit.Test;
 
 public class Collections3Test {
   @Test
-  public void isSubset() throws Exception {
+  public void isSubset() {
     BitSet set1 = new BitSet();
     BitSet set2 = new BitSet();
 

@@ -19,6 +19,7 @@ package owl.automaton.ldba;
 
 import java.util.EnumSet;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import org.junit.Before;
@@ -33,7 +34,8 @@ import owl.translations.ltl2ldba.breakpoint.GObligations;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
 
 public class CutDeterministicAutomatonTest {
-  private LimitDeterministicAutomaton<EquivalenceClass, ?, ?, ?> ldba;
+  @Nullable
+  private LimitDeterministicAutomaton<EquivalenceClass, ?, ?, ?> ldba = null;
 
   @Before
   public void setUp() throws Exception {
@@ -51,7 +53,8 @@ public class CutDeterministicAutomatonTest {
 
   @Test
   public void test() {
-    ldba.asCutDeterministicAutomaton().toHoa(
-      new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    assert ldba != null;
+    ldba.asCutDeterministicAutomaton().toHoa(new HOAIntermediateCheckValidity(
+      new HOAConsumerNull()));
   }
 }

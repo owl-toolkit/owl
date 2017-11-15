@@ -8,12 +8,13 @@ class ProductStateFactory extends RabinizerStateFactory {
     super(eager);
   }
 
-  public void addSensitiveAlphabet(BitSet sensitiveAlphabet, RabinizerState state) {
-    addClassSensitiveAlphabet(sensitiveAlphabet, state.masterState);
+  public BitSet getSensitiveAlphabet(RabinizerState state) {
+    BitSet sensitiveAlphabet = getClassSensitiveAlphabet(state.masterState);
     for (MonitorState monitorState : state.monitorStates) {
       for (EquivalenceClass rankedFormula : monitorState.formulaRanking) {
-        addClassSensitiveAlphabet(sensitiveAlphabet, rankedFormula);
+        sensitiveAlphabet.or(getClassSensitiveAlphabet(rankedFormula));
       }
     }
+    return sensitiveAlphabet;
   }
 }

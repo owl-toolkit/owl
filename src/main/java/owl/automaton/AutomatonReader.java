@@ -109,8 +109,8 @@ public final class AutomatonReader {
     return Iterables.getOnlyElement(automata);
   }
 
-  public static List<Automaton<HoaState, ? extends OmegaAcceptance>>
-  readHoaCollection(InputStream input, FactorySupplier factorySupplier) throws ParseException {
+  public static List<Automaton<HoaState, ? extends OmegaAcceptance>> readHoaCollection(
+    InputStream input, FactorySupplier factorySupplier) throws ParseException {
     List<Automaton<HoaState, ?>> automatonList = new ArrayList<>();
     readHoa(input, automatonList::add, factorySupplier);
     return automatonList;

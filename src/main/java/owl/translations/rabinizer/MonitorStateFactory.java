@@ -39,12 +39,6 @@ final class MonitorStateFactory extends RabinizerStateFactory {
     return equivalenceClass.testSupport(GOperator.class::isInstance);
   }
 
-  void addSensitiveAlphabet(BitSet sensitiveAlphabet, MonitorState currentState) {
-    for (EquivalenceClass rankedFormula : currentState.formulaRanking) {
-      addClassSensitiveAlphabet(sensitiveAlphabet, rankedFormula);
-    }
-  }
-
   EquivalenceClass getInitialState(EquivalenceClass formula) {
     return eager ? formula.substitute(unfolding) : formula;
   }
@@ -59,6 +53,18 @@ final class MonitorStateFactory extends RabinizerStateFactory {
     return eager
       ? equivalenceClass.temporalStep(valuation).substitute(unfolding)
       : equivalenceClass.substitute(unfolding).temporalStep(valuation);
+  }
+
+  public BitSet getSensitiveAlphabet(MonitorState state) {
+    EquivalenceClass[] ranking = state.formulaRanking;
+    if (ranking.length == 0) {
+      return new BitSet(0);
+    }
+    BitSet sensitiveAlphabet = getClassSensitiveAlphabet(ranking[0]);
+    for (int i = 1; i < ranking.length; i++) {
+      sensitiveAlphabet.or(getClassSensitiveAlphabet(ranking[i]));
+    }
+    return sensitiveAlphabet;
   }
 
   private static final class MonitorUnfoldVisitor extends DefaultConverter {

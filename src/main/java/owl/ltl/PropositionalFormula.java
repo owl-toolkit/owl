@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 import owl.util.ImmutableObject;
 
 public abstract class PropositionalFormula extends ImmutableObject implements Formula {
+  // TODO This is a source of nondeterminism. Replace by a list / linked set.
   public final ImmutableSet<Formula> children;
 
   PropositionalFormula(Iterable<? extends Formula> children) {

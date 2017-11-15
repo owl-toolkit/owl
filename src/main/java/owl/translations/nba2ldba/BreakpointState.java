@@ -18,6 +18,7 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -58,13 +59,7 @@ public class BreakpointState<S> {
 
   @Override
   public int hashCode() {
-    int result = ix;
-
-    for (Object element : new Object[] {mx, nx}) {
-      result = 31 * result + element.hashCode();
-    }
-
-    return result;
+    return mx.hashCode() ^ nx.hashCode() ^ HashCommon.mix(ix);
   }
 
   @Override

@@ -21,18 +21,20 @@ import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.Streams;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
+import java.util.regex.Pattern;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import org.hamcrest.Matchers;
@@ -47,15 +49,18 @@ import owl.ltl.parser.LtlParser;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
+@SuppressWarnings("PMD.UseUtilityClass")
 public abstract class SizeRegressionTests<T extends HoaPrintable> {
   private static final EnumSet<Optimisation> ALL = EnumSet.allOf(Optimisation.class);
-  private static final String BASE_PATH = "data/formulas/";
+  private static final String BASE_PATH = "data/formulas";
+  private static final Pattern DATA_SPLIT_PATTERN = Pattern.compile("[();]");
   private final ToIntFunction<T> getAcceptanceSets;
   private final ToIntFunction<T> getStateCount;
   private final FormulaSet selectedClass;
   private final String tool;
   private final Function<LabelledFormula, ? extends T> translator;
 
+  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   SizeRegressionTests(FormulaSet selectedClass, Function<LabelledFormula, ? extends T> translator,
     ToIntFunction<T> getStateCount, ToIntFunction<T> getAcceptanceSets, String tool) {
     this.selectedClass = selectedClass;
@@ -65,22 +70,22 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     this.tool = tool;
   }
 
-  @Parameterized.Parameters(name = "Group: {0}")
-  public static Iterable<?> data() {
-    return EnumSet.allOf(FormulaSet.class);
-  }
-
-  static int getAcceptanceSetsSize(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
-    return getAcceptanceSetsSize(automaton.getAcceptingComponent());
+  private static String formatSpecification(int posStateCount, int posAccSize, int negStateCount,
+    int negAccSize) {
+    return String.format("%s (%s); %s (%s)", posStateCount, posAccSize, negStateCount, negAccSize);
   }
 
   static int getAcceptanceSetsSize(Automaton<?, ?> automaton) {
     return automaton.getAcceptance().getAcceptanceSets();
   }
 
+  static int getAcceptanceSetsSize(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
+    return getAcceptanceSetsSize(automaton.getAcceptingComponent());
+  }
+
   private static int[] readSpecification(String specificationString) {
     int[] specification = new int[4];
-    String[] split = specificationString.split("[();]");
+    String[] split = DATA_SPLIT_PATTERN.split(specificationString);
     specification[0] = Integer.parseInt(split[0].trim());
     specification[1] = Integer.parseInt(split[1].trim());
     specification[2] = Integer.parseInt(split[3].trim());
@@ -88,44 +93,27 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     return specification;
   }
 
-  private static String writeSpecification(int posStateCount, int posAccSize, int negStateCount,
-    int negAccSize) {
-    return String.format("%s (%s); %s (%s)", posStateCount, posAccSize, negStateCount, negAccSize);
-  }
-
   private void assertSizes(LabelledFormula formula, T automaton, int expectedStateCount,
-    int expectedAcceptanceSets, List<String> errorMessages) {
+    int expectedAcceptanceSets, int index, List<String> errorMessages) {
     int actualStateCount = getStateCount.applyAsInt(automaton);
     int actualAcceptanceSets = getAcceptanceSets.applyAsInt(automaton);
 
-    // Check wellformedness
+    // Check well-formed
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     // Check size of the state space
     if (actualStateCount != expectedStateCount) {
-      if (selectedClass == FormulaSet.SIZE && this instanceof DPA
-        && actualStateCount < expectedStateCount) {
-        // Do nothing; unstable translation.
-        System.err.println("Warning: Unstable DPA translation.");
-        System.err.println(String.format("Formula %s: Expected %s states. "
-            + "Actual number of states: %s", formula, expectedStateCount, actualStateCount));
-      } else {
-        errorMessages.add(
-          String.format("Formula %s: Expected %s states. Actual number of states: %s",
-            formula, expectedStateCount, actualStateCount));
-      }
+      String errorMessage = String.format("Formula %d: Expected %d states, got %d (%s)",
+        index, expectedStateCount, actualStateCount, formula);
+      System.err.println("Error: " + errorMessage);
+      errorMessages.add(errorMessage);
     }
 
     if (actualAcceptanceSets != expectedAcceptanceSets) {
-      if (selectedClass == FormulaSet.SIZE && this instanceof DPA
-        && actualAcceptanceSets < expectedAcceptanceSets) {
-        // Do nothing; unstable translation.
-        System.err.println("Warning: Unstable DPA translation.");
-      } else {
-        errorMessages.add(
-          String.format("Formula %s: Expected %s acceptance sets. Actual number of sets: %s",
-            formula, expectedAcceptanceSets, actualAcceptanceSets));
-      }
+      String errorMessage = String.format("Formula %d: Expected %d acceptance sets, got %d (%s)",
+        index, expectedAcceptanceSets, actualAcceptanceSets, formula);
+      System.err.println("Error: " + errorMessage);
+      errorMessages.add(errorMessage);
     }
   }
 
@@ -133,10 +121,13 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   public void test() throws IOException {
     List<String> errorMessages = Collections.synchronizedList(new ArrayList<>());
 
-    try (BufferedReader formulasFile = new BufferedReader(new FileReader(selectedClass.getFile()));
-      BufferedReader sizesFile = new BufferedReader(new FileReader(selectedClass.getSizes(tool)))) {
+    try (BufferedReader formulasFile = Files.newBufferedReader(selectedClass.getFile());
+         BufferedReader sizesFile = Files.newBufferedReader(selectedClass.getSizes(tool))) {
+
+      AtomicInteger lineIndex = new AtomicInteger(0);
 
       Streams.forEachPair(formulasFile.lines(), sizesFile.lines(), (formulaString, sizeString) -> {
+        int index = lineIndex.incrementAndGet();
         if (formulaString.trim().isEmpty()) {
           assertThat(sizeString.trim(), Matchers.isEmptyString());
           return;
@@ -144,63 +135,65 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
         LabelledFormula formula = LtlParser.parse(formulaString);
         int[] sizes = readSpecification(sizeString);
-        assertSizes(formula, translator.apply(formula), sizes[0], sizes[1], errorMessages);
+        assertSizes(formula, translator.apply(formula), sizes[0], sizes[1], index, errorMessages);
         formula = formula.not();
-        assertSizes(formula, translator.apply(formula), sizes[2], sizes[3], errorMessages);
+        assertSizes(formula, translator.apply(formula), sizes[2], sizes[3], index, errorMessages);
       });
     }
 
-    assertThat(selectedClass.toString(), errorMessages, Matchers.emptyCollectionOf(String.class));
+    assertThat(getClass().getSimpleName() + ' ' + selectedClass, errorMessages,
+      Matchers.emptyCollectionOf(String.class));
   }
 
   // @Test
   public void train() throws IOException {
-    try (BufferedReader formulasFile = new BufferedReader(new FileReader(selectedClass.getFile()));
-      BufferedWriter sizesFile = new BufferedWriter(new FileWriter(selectedClass.getSizes(tool)))) {
-
+    List<String> lines = new ArrayList<>();
+    try (BufferedReader formulasFile = Files.newBufferedReader(selectedClass.getFile())) {
       formulasFile.lines().forEach((formulaString) -> {
-        try {
-          if (formulaString.trim().isEmpty()) {
-            sizesFile.newLine();
-            return;
-          }
-
-          LabelledFormula formula = LtlParser.parse(formulaString);
-          T posAutomaton = translator.apply(formula);
-          T notAutomaton = translator.apply(formula.not());
-          sizesFile.write(writeSpecification(
-            getStateCount.applyAsInt(posAutomaton),
-            getAcceptanceSets.applyAsInt(posAutomaton),
-            getStateCount.applyAsInt(notAutomaton),
-            getAcceptanceSets.applyAsInt(notAutomaton)));
-          sizesFile.newLine();
-        } catch (IOException ex) {
-          throw new RuntimeException(ex); // NOPMD
+        String trimmedString = formulaString.trim();
+        if (trimmedString.isEmpty()) {
+          lines.add("");
+          return;
         }
+
+        LabelledFormula formula = LtlParser.parse(trimmedString);
+        T posAutomaton = translator.apply(formula);
+        T notAutomaton = translator.apply(formula.not());
+        lines.add(formatSpecification(
+          getStateCount.applyAsInt(posAutomaton),
+          getAcceptanceSets.applyAsInt(posAutomaton),
+          getStateCount.applyAsInt(notAutomaton),
+          getAcceptanceSets.applyAsInt(notAutomaton)));
       });
+    }
+    Path sizeFile = selectedClass.getSizes(tool);
+    try (PrintWriter sizeWriter = new PrintWriter(Files.newBufferedWriter(sizeFile))) {
+      lines.forEach(sizeWriter::println);
     }
   }
 
   protected enum FormulaSet {
-    BASE, SIZE;
+    BASE("base"), SIZE("size"), SIZE_FGGF("size-fggf");
+    private final String name;
 
-    File getFile() {
-      return new File(BASE_PATH + this.toString().toLowerCase(Locale.UK) + ".ltl");
+    FormulaSet(String name) {
+      this.name = name;
     }
 
-    public File getSizes(String tool) {
-      return new File(
-        BASE_PATH + "sizes/" + this.toString().toLowerCase(Locale.UK) + "." + tool + ".sizes");
+    Path getFile() {
+      return Paths.get(String.format("%s/%s.ltl", BASE_PATH, name));
+    }
+
+    public Path getSizes(String tool) {
+      return Paths.get(String.format("%s/sizes/%s.%s.sizes", BASE_PATH, name, tool));
     }
   }
 
   public abstract static class DPA extends SizeRegressionTests<Automaton<?, ?>> {
-
     static final EnumSet<Optimisation> DPA_ALL;
 
     static {
-      DPA_ALL = EnumSet.allOf(Optimisation.class);
-      DPA_ALL.remove(Optimisation.PARALLEL);
+      DPA_ALL = EnumSet.complementOf(EnumSet.of(Optimisation.COMPLEMENT_CONSTRUCTION));
       DPA_ALL.remove(Optimisation.COMPLETE);
     }
 
@@ -214,6 +207,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       public Breakpoint(FormulaSet selectedClass) {
         super(selectedClass, new LTL2DPAFunction(DPA_ALL, false), "breakpoint");
       }
+
+      @Parameterized.Parameters(name = "Group: {0}")
+      public static Collection<FormulaSet> data() {
+        return EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE);
+      }
     }
 
     @RunWith(Parameterized.class)
@@ -221,24 +219,33 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, new LTL2DPAFunction(DPA_ALL, true), "breakpointfree");
       }
+
+      @Parameterized.Parameters(name = "Group: {0}")
+      public static Collection<FormulaSet> data() {
+        return EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE);
+      }
     }
   }
 
   @RunWith(Parameterized.class)
   public static class Delag extends SizeRegressionTests<Automaton<?, ?>> {
-
-    static final EnumSet<Optimisation> DPA_ALL;
+    static final EnumSet<Optimisation> DELAG_DPA_ALL;
 
     static {
-      DPA_ALL = EnumSet.allOf(Optimisation.class);
-      DPA_ALL.remove(Optimisation.COMPLETE);
+      DELAG_DPA_ALL = EnumSet.allOf(Optimisation.class);
+      DELAG_DPA_ALL.remove(Optimisation.COMPLETE);
     }
 
     public Delag(FormulaSet selectedClass) {
       super(selectedClass, new owl.translations.Delag(false,
-        (Function) new LTL2DPAFunction(DPA_ALL))::translateWithFallback,
+          (Function) new LTL2DPAFunction(DELAG_DPA_ALL))::translateWithFallback,
         Automaton::stateCount,
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
+    }
+
+    @Parameterized.Parameters(name = "Group: {0}")
+    public static Collection<FormulaSet> data() {
+      return EnumSet.allOf(FormulaSet.class);
     }
   }
 
@@ -256,6 +263,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
           .createDegeneralizedBreakpointLDBABuilder(ALL), "breakpoint");
       }
+
+      @Parameterized.Parameters(name = "Group: {0}")
+      public static Collection<FormulaSet> data() {
+        return EnumSet.allOf(FormulaSet.class);
+      }
     }
 
     @RunWith(Parameterized.class)
@@ -263,6 +275,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
           .createDegeneralizedBreakpointFreeLDBABuilder(ALL), "breakpointfree");
+      }
+
+      @Parameterized.Parameters(name = "Group: {0}")
+      public static Collection<FormulaSet> data() {
+        return EnumSet.allOf(FormulaSet.class);
       }
     }
   }
@@ -282,6 +299,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
           (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(ALL),
           "breakpoint");
       }
+
+      @Parameterized.Parameters(name = "Group: {0}")
+      public static Collection<FormulaSet> data() {
+        return EnumSet.allOf(FormulaSet.class);
+      }
     }
 
     @RunWith(Parameterized.class)
@@ -289,6 +311,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
           .createGeneralizedBreakpointFreeLDBABuilder(ALL), "breakpointfree");
+      }
+
+      @Parameterized.Parameters(name = "Group: {0}")
+      public static Collection<FormulaSet> data() {
+        return EnumSet.allOf(FormulaSet.class);
       }
     }
   }

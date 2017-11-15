@@ -43,7 +43,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   public MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance> build() {
     return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
-      factories.valuationSetFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+      factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override
@@ -61,7 +61,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     if (obligations.liveness.length > 0) {
       liveness = factory.getInitial(obligations.liveness[0]);
     } else {
-      liveness = factories.equivalenceClassFactory.getTrue();
+      liveness = factories.eqFactory.getTrue();
     }
 
     return new DegeneralizedBreakpointFreeState(0, factory.getInitial(safety, liveness),

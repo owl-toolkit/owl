@@ -36,7 +36,7 @@ public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAccept
 
   protected AbstractAcceptingComponentBuilder(Set<Optimisation> optimisations,
     Factories factories) {
-    this.factory = new EquivalenceClassStateFactory(factories.equivalenceClassFactory,
+    this.factory = new EquivalenceClassStateFactory(factories.eqFactory,
       optimisations);
     this.factories = factories;
   }
