@@ -37,10 +37,12 @@ import owl.automaton.transformations.ParityUtil;
 
 /**
  * Constructs the IAR parity automaton from the given Rabin automaton SCC.
+ *
  * <p>The appearance record tracks the relative age of interesting events - in our case the
  * occurring Fin sets of the Rabin condition. Since there might be multiple events happening at
  * once, the ordering is not encoded as a permutation (of {@code {1,..,n}}) but rather as total
  * pre-orders of {@code {1,..n}}.</p>
+ *
  * <p>The corresponding equivalence classes can be interpreted as "age classes" of events: An
  * element of the first class are of indistinguishable age, but all of them are younger than each
  * element of the next class and so on.</p>

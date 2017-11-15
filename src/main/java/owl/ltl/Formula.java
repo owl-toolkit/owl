@@ -50,8 +50,8 @@ public interface Formula {
   Formula not();
 
   /**
-   * Do a single temporal step. This means that one layer of X-operators is
-   * removed and literals are replaced by their valuations.
+   * Do a single temporal step. This means that one layer of X-operators is removed and literals are
+   * replaced by their valuations.
    */
   Formula temporalStep(BitSet valuation);
 

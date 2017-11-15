@@ -153,7 +153,6 @@ abstract class DependencyTree<T> {
   }
 
   static class FallbackLeaf<T> extends Leaf<T> {
-
     final int acceptanceSet;
     final Automaton<T, ? extends OmegaAcceptance> automaton;
 

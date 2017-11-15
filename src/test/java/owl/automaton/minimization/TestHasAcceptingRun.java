@@ -26,53 +26,53 @@ import owl.translations.nba2ldba.BreakpointState;
 public class TestHasAcceptingRun {
 
   private static final String INPUT1 = "HOA: v1\n"
-      + "States: 2\n"
-      + "Start: 0\n"
-      + "acc-name: Buchi\n"
-      + "Acceptance: 1 Inf(0)\n"
-      + "properties: trans-acc trans-label \n"
-      + "AP: 2 \"a\" \"b\"\n"
-      + "--BODY--\n"
-      + "State: 0 \n"
-      + "[t] 0\n"
-      + "[!0] 1 {0}"
-      + "State: 1\n"
-      + "[!1] 0 \n"
-      + "[!0 & !1] 1 {0}"
-      + "--END--";
+    + "States: 2\n"
+    + "Start: 0\n"
+    + "acc-name: Buchi\n"
+    + "Acceptance: 1 Inf(0)\n"
+    + "properties: trans-acc trans-label \n"
+    + "AP: 2 \"a\" \"b\"\n"
+    + "--BODY--\n"
+    + "State: 0 \n"
+    + "[t] 0\n"
+    + "[!0] 1 {0}"
+    + "State: 1\n"
+    + "[!1] 0 \n"
+    + "[!0 & !1] 1 {0}"
+    + "--END--";
 
   private static final String INPUT2 = "HOA: v1\n"
-      + "States: 4\n"
-      + "Start: 0\n"
-      + "acc-name: Buchi\n"
-      + "Acceptance: 1 Inf(0)\n"
-      + "properties: trans-acc trans-label \n"
-      + "AP: 2 \"a\" \"b\"\n"
-      + "--BODY--\n"
-      + "State: 0 \n"
-      + "[t] 1 {0}\n"
-      + "[0] 2 {0}\n"
-      + "State: 2 \n"
-      + "[0] 2 {0}\n"
-      + "State: 3 \n"
-      + "[t] 3 {0}\n"
-      + "State: 1 \n"
-      + "[1] 3 {0}\n"
-      + "--END--";
+    + "States: 4\n"
+    + "Start: 0\n"
+    + "acc-name: Buchi\n"
+    + "Acceptance: 1 Inf(0)\n"
+    + "properties: trans-acc trans-label \n"
+    + "AP: 2 \"a\" \"b\"\n"
+    + "--BODY--\n"
+    + "State: 0 \n"
+    + "[t] 1 {0}\n"
+    + "[0] 2 {0}\n"
+    + "State: 2 \n"
+    + "[0] 2 {0}\n"
+    + "State: 3 \n"
+    + "[t] 3 {0}\n"
+    + "State: 1 \n"
+    + "[1] 3 {0}\n"
+    + "--END--";
 
   private static final String INPUT3 = "HOA: v1\n"
-      + "States: 2\n"
-      + "Start: 0\n"
-      + "acc-name: Buchi\n"
-      + "Acceptance: 1 Inf(0)\n"
-      + "properties: trans-acc trans-label \n"
-      + "AP: 1 \"a\" \n"
-      + "--BODY--\n"
-      + "State: 0 \n"
-      + "[t] 1 \n"
-      + "State: 1 \n"
-      + "[t] 0 \n"
-      + "--END--";
+    + "States: 2\n"
+    + "Start: 0\n"
+    + "acc-name: Buchi\n"
+    + "Acceptance: 1 Inf(0)\n"
+    + "properties: trans-acc trans-label \n"
+    + "AP: 1 \"a\" \n"
+    + "--BODY--\n"
+    + "State: 0 \n"
+    + "[t] 1 \n"
+    + "State: 1 \n"
+    + "[t] 0 \n"
+    + "--END--";
 
   @Test
   public void testHasAcceptingRun() throws ParseException {
@@ -90,7 +90,7 @@ public class TestHasAcceptingRun {
   }
 
   private void testHasAcceptingRun(String input, boolean hasAcceptingRun,
-      boolean complementHasAcceptingRun) throws ParseException {
+    boolean complementHasAcceptingRun) throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
@@ -100,7 +100,7 @@ public class TestHasAcceptingRun {
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-    result = translation.apply(automaton);
+      result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!hasAcceptingRun));
     ParityUtil.complement(result, RankingState::createSink);

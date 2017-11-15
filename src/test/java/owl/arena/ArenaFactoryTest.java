@@ -57,6 +57,7 @@ public class ArenaFactoryTest {
 
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
+
     Arena<Node<Object>, ParityAcceptance> arena =
       ArenaFactory.copyOf(ArenaFactory.split(automaton, ImmutableList.of("a")));
 

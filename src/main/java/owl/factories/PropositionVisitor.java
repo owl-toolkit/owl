@@ -38,12 +38,10 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.IntVisitor;
 
 /**
- * For the propositional view on LTL modal operators (F, G, U, X) and
- * literals (a, !a) are treated as propositions.
- * TODO: Extract alphabet.
+ * For the propositional view on LTL modal operators (F, G, U, X) and literals (a, !a) are treated
+ * as propositions.
  */
 public final class PropositionVisitor implements IntVisitor {
-
   private final Deque<Formula> mapping;
 
   private PropositionVisitor() {

@@ -186,8 +186,8 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Multimap<S, T> epsilonJumps) {
     // Decompose into SCCs
     List<Set<S>> sccs = optimisations.contains(Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES)
-                        ? SccDecomposition.computeSccs(initialComponent, true)
-                        : Collections.singletonList(initialComponent.getStates());
+      ? SccDecomposition.computeSccs(initialComponent, true)
+      : Collections.singletonList(initialComponent.getStates());
 
     for (Set<S> scc : sccs) {
       // Skip transient SCCs

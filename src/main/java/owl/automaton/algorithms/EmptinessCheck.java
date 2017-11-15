@@ -53,8 +53,8 @@ public final class EmptinessCheck {
   }
 
   private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
-      Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
-      boolean allFinIndicesBelow) {
+    Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
+    boolean allFinIndicesBelow) {
     if (acceptingState) {
       visitedAcceptingStates.add(q);
     } else {
@@ -65,22 +65,22 @@ public final class EmptinessCheck {
       S successor = edge.getSuccessor();
       if ((edge.inSet(infIndex) || infIndex == -1) && !inSet(edge, finIndex, allFinIndicesBelow)) {
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
-            visitedStates, visitedAcceptingStates, infIndex,
-            finIndex, true, allFinIndicesBelow)) {
+          visitedStates, visitedAcceptingStates, infIndex,
+          finIndex, true, allFinIndicesBelow)) {
           return true;
         }
       } else if (!visitedStates.contains(successor) && dfs1(automaton, successor, visitedStates,
-          visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
+        visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
         return true;
       }
     }
 
     return acceptingState && dfs2(automaton, q, new HashSet<>(), infIndex, finIndex, q,
-        allFinIndicesBelow);
+      allFinIndicesBelow);
   }
 
   private static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
-      int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
+    int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
     visitedStatesLasso.add(q);
 
     for (Edge<S> edge : automaton.getEdges(q)) {

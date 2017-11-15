@@ -27,6 +27,7 @@ public class AutomatonFactoryTest {
     Automaton<Object, NoneAcceptance> singleton =
       AutomatonFactory.singleton(singletonState, factory);
 
+
     assertThat(singleton.getStates(), contains(singletonState));
     assertThat(singleton.getAcceptance(), is(NoneAcceptance.INSTANCE));
     assertThat(singleton.getEdges(singletonState), empty());

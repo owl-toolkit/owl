@@ -91,7 +91,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
 
       // We only propagate information from already constructed G-monitors.
       EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i),
-          factory.getTrue());
+        factory.getTrue());
 
       Formula formula = RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, RewriterFactory
         .apply(RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor))

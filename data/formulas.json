@@ -19,10 +19,6 @@
         "type": "file",
         "path": "data/formulas/check.ltl"
     },
-    "big": {
-        "type": "file",
-        "path": "data/formulas/big.ltl"
-    },
     "random": {
         "type": "random"
     }

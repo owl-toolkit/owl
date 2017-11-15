@@ -127,7 +127,7 @@ public abstract class ValuationSetTest {
 
     containsA.forEach(valuation -> assertTrue(valuation.get(0)));
 
-    abcd.forEach(valuation ->  {
+    abcd.forEach(valuation -> {
       assertTrue(valuation.get(0));
       assertTrue(valuation.get(1));
       assertTrue(valuation.get(2));

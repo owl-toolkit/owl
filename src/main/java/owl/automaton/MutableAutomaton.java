@@ -124,8 +124,8 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
 
   /**
    * Remaps each edge of the automaton according to {@code updater}.
-   * <p>
-   * The function is allowed to return {@code null} which indicates that the edge should be
+   *
+   * <p>The function is allowed to return {@code null} which indicates that the edge should be
    * removed.</p>
    *
    * @param updater
@@ -139,8 +139,8 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
 
   /**
    * Remaps each outgoing edge of the specified {@code states} according to {@code updater}.
-   * <p>
-   * The function is allowed to return {@code null} which indicates that the edge should be
+   *
+   * <p> The function is allowed to return {@code null} which indicates that the edge should be
    * removed. Requires all {@code states} to be present in the automaton.</p>
    *
    * @param states

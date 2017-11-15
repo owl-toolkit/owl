@@ -38,6 +38,7 @@ final class MonitorBuilder {
   private static final Predicate<Formula> NO_G_SUB_FORMULA = formula ->
     formula.allMatch(sub -> !(sub instanceof GOperator));
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
+
   private final EquivalenceClass initialClass;
   private final Fragment fragment;
   private final MutableAutomaton<MonitorState, ParityAcceptance>[] monitorAutomata;

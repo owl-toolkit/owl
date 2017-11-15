@@ -14,19 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 import groovy.io.FileType
 
 plugins {
-  id "com.github.spotbugs" version "1.4"
+    id 'com.github.spotbugs' version '1.4'
 }
 
 apply plugin: 'java'
 apply plugin: 'antlr'
-
-spotbugs {
-    toolVersion = '3.1.0-RC6'
-}
 
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -58,10 +53,11 @@ dependencies {
     compile 'it.unimi.dsi:fastutil:8.1.0'
     compile 'org.antlr:antlr4-runtime:4.7'
     compile 'de.tum.in:jbdd:0.2.0'
-    compile 'de.tum.in:naturals-util:0.5.0'
+    compile 'de.tum.in:naturals-util:0.7.0'
 
     compile files('lib/jhoafparser-1.1.1.jar')
 
+    testCompileOnly 'org.immutables:value:2.5.5'
     testCompile 'junit:junit:4+'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'org.hamcrest:hamcrest-library:1.3'
@@ -112,14 +108,15 @@ generateGrammarSource {
 // Spotbugs
 // https://plugins.gradle.org/plugin/com.github.spotbugs
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
+
 spotbugs {
+    toolVersion = '3.1.0-RC6'
     reportsDir = file("$project.buildDir/reports/spotbugs")
     effort = "max"
     reportLevel = "low"
     excludeFilter = file("$project.projectDir/config/spotbugs-exclude.xml")
     ignoreFailures = false
 }
-
 tasks.withType(com.github.spotbugs.SpotBugsTask) {
     reports {
         xml.enabled = false
@@ -147,7 +144,7 @@ tasks.withType(Pmd) {
 // Checkstyle
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
 checkstyle {
-    toolVersion = "8.2"
+    toolVersion = "8.3"
     configFile = file("$project.rootDir/config/checkstyle.xml")
     ignoreFailures = false
     maxWarnings = 0
@@ -173,6 +170,7 @@ def scripts = [
     'rabinizer' : 'owl.translations.Rabinizer',
     'nba2dpa'   : 'owl.translations.NBA2DPA'
 ]
+
 scripts.each() { scriptName, className ->
     def t = tasks.create(name: scriptName + 'StartScript', type: CreateStartScripts) {
         mainClassName = className
@@ -205,6 +203,9 @@ distributions.main {
             from "LICENSE"
             from compileMarkdown
             from javadoc
+        }
+        into("src") {
+            from "src"
         }
     }
 }

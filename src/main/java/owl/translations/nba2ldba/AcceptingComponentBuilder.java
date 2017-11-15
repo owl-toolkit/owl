@@ -49,7 +49,7 @@ final class AcceptingComponentBuilder<S>
   private final boolean traverseOnlySccs;
 
   private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba,
-      boolean traverseOnlySccs) {
+    boolean traverseOnlySccs) {
     this.nba = nba;
     initialStates = new ArrayList<>();
     max = Math.max(nba.getAcceptance().getAcceptanceSets(), 1);
