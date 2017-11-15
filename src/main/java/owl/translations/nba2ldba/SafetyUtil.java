@@ -13,7 +13,7 @@ import owl.automaton.edge.Edge;
 
 public final class SafetyUtil {
 
-  private SafetyUtil(){}
+  private SafetyUtil() {}
 
   public static <S> boolean isSafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
     if (BreakpointState.getSink().equals(state)) {
@@ -21,7 +21,7 @@ public final class SafetyUtil {
     }
 
     List<Set<S>> sccs = Lists.reverse(SccDecomposition.computeSccs(
-        automaton, Collections.singleton(state), false));
+      automaton, Collections.singleton(state), false));
     for (Set<S> s : sccs) {
       Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, s);
 
@@ -43,8 +43,7 @@ public final class SafetyUtil {
       Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
 
       if (isOnlyNonAccepting(filteredAutomaton) && scc.stream()
-          .anyMatch(x -> automaton.getSuccessors(x).stream()
-              .anyMatch(accepting::contains))) {
+        .anyMatch(x -> automaton.getSuccessors(x).stream().anyMatch(accepting::contains))) {
         return false;
       }
     }
@@ -78,7 +77,7 @@ public final class SafetyUtil {
     }
 
     List<Set<S>> sccs = Lists.reverse(SccDecomposition.computeSccs(
-        automaton, state, false));
+      automaton, state, false));
 
     for (Set<S> s : sccs) {
       Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, s);
@@ -102,7 +101,7 @@ public final class SafetyUtil {
 
       if (isOnlyAccepting(filteredAutomaton)
         && scc.stream().anyMatch(x -> automaton.getSuccessors(x)
-          .stream().anyMatch(nonAccepting::contains))) {
+        .stream().anyMatch(nonAccepting::contains))) {
         return false;
       }
     }

@@ -24,7 +24,6 @@ import java.util.List;
 import org.junit.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
-
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class RewriterFactoryTest {

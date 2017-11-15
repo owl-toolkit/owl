@@ -137,6 +137,7 @@ final class IARBuilder<R> {
 
   private SccProcessingResult<R> getTrivialSccResult(Set<R> simpleScc,
     Multimap<R, LabelledEdge<R>> interSccConnections) {
+    // TODO If it is bottom, we can just replace it by single rejecting state
     Map<R, IARState<R>> mapping = new HashMap<>(simpleScc.size());
     simpleScc.forEach(rabinState -> mapping.put(rabinState, IARState.trivial(rabinState)));
 

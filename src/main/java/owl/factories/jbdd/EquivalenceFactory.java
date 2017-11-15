@@ -412,7 +412,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       @Nullable
       Formula substitutionRepresentative =
         representative == null ? null
-                               : representative.accept(new SubstitutionVisitor(substitution));
+          : representative.accept(new SubstitutionVisitor(substitution));
       return createEquivalenceClass(substitutionRepresentative, substitutedBdd);
     }
 

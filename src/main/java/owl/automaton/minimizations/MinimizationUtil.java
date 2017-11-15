@@ -166,8 +166,8 @@ public final class MinimizationUtil {
   }
 
   /**
-   * Remove states from the automaton which are unreachable from the set of initial states or
-   * that cannot belong to an infinite accepting path.
+   * Remove states from the automaton which are unreachable from the set of initial states or that
+   * cannot belong to an infinite accepting path.
    *
    * @param automaton
    *     The automaton considered by the analysis.

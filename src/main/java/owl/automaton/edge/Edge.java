@@ -23,6 +23,7 @@ import javax.annotation.Nonnegative;
 
 /**
  * This interface represents edges of automata including their acceptance membership.
+ *
  * <p>Do not implement this interface when you plan to use the reference implementations given by
  * this package. Their equals and hashCode methods assume that there are no further implementations
  * of this interface to optimise performance.</p>

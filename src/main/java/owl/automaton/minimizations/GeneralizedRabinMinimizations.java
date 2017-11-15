@@ -421,7 +421,7 @@ public final class GeneralizedRabinMinimizations {
       new ArrayList<>(sccs.size());
 
     StringBuilder logBuilder = logger.isLoggable(Level.FINEST)
-                               ? new StringBuilder(200 + sccs.size() * 50) : null;
+      ? new StringBuilder(200 + sccs.size() * 50) : null;
     if (logBuilder != null) {
       logBuilder.append("Implications:");
     }

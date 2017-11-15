@@ -42,7 +42,7 @@ public class RequiredHistoryTest {
   public void getRequiredHistoryLarge() {
     Formula formula = LtlParser.syntax("X (a | (X (b & X c)))");
 
-    History past = new History(new long[]{0, 1L, 3L});
+    History past = new History(new long[] {0, 1L, 3L});
 
     assertEquals(past, new History(RequiredHistory.getRequiredHistory(formula)));
   }
@@ -60,7 +60,7 @@ public class RequiredHistoryTest {
     BitSet set = new BitSet();
     set.set(0);
 
-    History expected = new History(new long[]{1L});
+    History expected = new History(new long[] {1L});
     assertEquals(expected, new History(RequiredHistory.getRequiredHistory(formula)));
   }
 

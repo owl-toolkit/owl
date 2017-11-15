@@ -61,8 +61,7 @@ public final class NBA2DPAFunction<S>
       nba2ldba.apply(nba);
 
     LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Safety>
-    ldbaCutDet = ldba.asCutDeterministicAutomaton();
-
+      ldbaCutDet = ldba.asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<S>, BuchiAcceptance>) ldbaCutDet
       .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
 

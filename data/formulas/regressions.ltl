@@ -9,7 +9,6 @@ G (a | (a U b))
 (a U (G b)) W a
 G (F (a & (F b)))
 G (F (a & (G a)))
-! F G (a <-> (F b))
 G (F (a & (a U b)))
 G (F (a & X (F b)))
 (G b) U (a & G F a)

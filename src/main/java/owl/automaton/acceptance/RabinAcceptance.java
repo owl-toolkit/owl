@@ -29,11 +29,11 @@ import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaConsumerExtended;
 
 /**
- * This class represents a Rabin acceptance. It consists of multiple
- * {@link RabinAcceptance.RabinPair}s, which in turn basically comprise a (potentially lazily
- * allocated) <b>Fin</b> and <b>Inf</b> set. A Rabin pair is accepting, if it's <b>Inf</b> set is
- * seen infinitely often <b>and</b> it's <b>Fin</b> set is seen finitely often. The corresponding
- * Rabin acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
+ * This class represents a Rabin acceptance. It consists of multiple {@link
+ * RabinAcceptance.RabinPair}s, which in turn basically comprise a (potentially lazily allocated)
+ * <b>Fin</b> and <b>Inf</b> set. A Rabin pair is accepting, if it's <b>Inf</b> set is seen
+ * infinitely often <b>and</b> it's <b>Fin</b> set is seen finitely often. The corresponding Rabin
+ * acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
  * acceptance without any pairs rejects every word.
  */
 public final class RabinAcceptance implements OmegaAcceptance {
