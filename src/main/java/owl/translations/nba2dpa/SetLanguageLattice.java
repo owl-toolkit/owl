@@ -21,7 +21,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
   private final Function<S, Safety> getAnnotation;
 
   SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton, Function<S, Safety> getAnnotation) {
-    bottom = new SetLanguage(ImmutableSet.of());
+    bottom = new SetLanguage(Set.of());
     top = new SetLanguage(ImmutableSet.copyOf(automaton.getStates()));
     cache = CacheBuilder.newBuilder().maximumSize(30000)
       .build(new InclusionCheckCacheLoader<>(automaton));
@@ -45,7 +45,7 @@ public class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Safety>
 
   @Override
   public Language<Set<S>> getLanguage(S state) {
-    return new SetLanguage(ImmutableSet.of(state));
+    return new SetLanguage(Set.of(state));
   }
 
   @Override

@@ -7,8 +7,8 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.iterableWithSize;
 
-import com.google.common.collect.ImmutableList;
-import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
@@ -22,7 +22,7 @@ public class AutomatonFactoryTest {
   @Test
   public void testSingleton() {
     ValuationSetFactory factory = TestEnvironment.get().factorySupplier()
-      .getValuationSetFactory(ImmutableList.of("a"));
+      .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, NoneAcceptance> singleton =
       AutomatonFactory.singleton(singletonState, factory);
@@ -32,7 +32,7 @@ public class AutomatonFactoryTest {
     assertThat(singleton.getAcceptance(), is(NoneAcceptance.INSTANCE));
     assertThat(singleton.getEdges(singletonState), empty());
     assertThat(singleton.getIncompleteStates(),
-      is(Collections.singletonMap(singletonState, factory.createUniverseValuationSet())));
+      is(Map.of(singletonState, factory.createUniverseValuationSet())));
     assertThat(singleton.getReachableStates(), contains(singletonState));
     assertThat(singleton.getSuccessorMap(singletonState).entrySet(), empty());
     assertThat(singleton.getLabelledEdges(singletonState), empty());
@@ -41,7 +41,7 @@ public class AutomatonFactoryTest {
   @Test
   public void testUniverse() {
     ValuationSetFactory factory = TestEnvironment.get().factorySupplier()
-      .getValuationSetFactory(ImmutableList.of("a"));
+      .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, AllAcceptance> singleton =
       AutomatonFactory.universe(singletonState, factory);

@@ -17,7 +17,6 @@
 
 package owl.automaton.acceptance;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
@@ -33,6 +32,6 @@ public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
-    return Collections.emptyList();
+    return List.of();
   }
 }

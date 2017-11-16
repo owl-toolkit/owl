@@ -17,7 +17,6 @@
 
 package owl.translations.nba2ldba;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -85,8 +84,7 @@ final class AcceptingComponentBuilder<S>
 
   @Override
   public BreakpointState<S> add(S stateKey) {
-    BreakpointState<S> state = new BreakpointState<>(0, ImmutableSet.of(stateKey),
-      ImmutableSet.of());
+    BreakpointState<S> state = new BreakpointState<>(0, Set.of(stateKey), Set.of());
     initialStates.add(state);
     return state;
   }

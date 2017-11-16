@@ -3,7 +3,6 @@ package owl.automaton.transformations;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
@@ -136,13 +135,11 @@ public final class RabinDegeneralization implements Transformer {
       int[] awaitedIndices = new int[sccTrackedPairsCount];
 
       // Pick an arbitrary starting state for the exploration
-      S sccState = scc.iterator().next();
       DegeneralizedRabinState<S> initialSccState =
-        new DegeneralizedRabinState<>(sccState, awaitedIndices);
+        new DegeneralizedRabinState<>(Iterables.getFirst(scc, null), awaitedIndices);
 
-      ImmutableSet<DegeneralizedRabinState<S>> initialStates = ImmutableSet.of(initialSccState);
       Set<DegeneralizedRabinState<S>> exploredStates =
-        AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, initialStates, state -> {
+        AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, Set.of(initialSccState), state -> {
           S generalizedState = state.getGeneralizedState();
           Collection<LabelledEdge<S>> labelledEdges = automaton.getLabelledEdges(generalizedState);
 

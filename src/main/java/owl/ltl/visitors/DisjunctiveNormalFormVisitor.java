@@ -20,7 +20,6 @@ package owl.ltl.visitors;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,14 +51,12 @@ public final class DisjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
 
   @Override
   protected List<Set<Formula>> defaultAction(Formula formula) {
-    return Collections.singletonList(Sets.newHashSet(formula));
+    return List.of(Sets.newHashSet(formula));
   }
 
   @Override
   public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
-    return booleanConstant.value
-      ? Collections.singletonList(new HashSet<Formula>())
-      : Collections.emptyList();
+    return booleanConstant.value ? List.of(new HashSet<>()) : List.of();
   }
 
   @Override

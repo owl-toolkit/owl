@@ -17,7 +17,6 @@
 
 package owl.automaton;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
@@ -85,7 +84,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @see #addInitialStates(Collection)
    */
   default void addInitialState(S state) {
-    addInitialStates(ImmutableSet.of(state));
+    addInitialStates(Set.of(state));
   }
 
   /**
@@ -110,7 +109,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @see #addStates(Collection)
    */
   default void addState(S state) {
-    addStates(ImmutableSet.of(state));
+    addStates(Set.of(state));
   }
 
   /**
@@ -212,7 +211,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @see #removeStates(Collection)
    */
   default void removeState(S state) {
-    removeStates(ImmutableSet.of(state));
+    removeStates(Set.of(state));
   }
 
   /**
@@ -279,7 +278,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     If the {@code state} is not part of the automaton.
    */
   default void setInitialState(S state) {
-    setInitialStates(ImmutableSet.of(state));
+    setInitialStates(Set.of(state));
   }
 
   /**

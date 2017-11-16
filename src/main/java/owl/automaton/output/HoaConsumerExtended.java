@@ -20,7 +20,6 @@ package owl.automaton.output;
 import static com.google.common.base.Preconditions.checkState;
 import static owl.automaton.output.HoaPrintable.HoaOption.SIMPLE_TRANSITION_LABELS;
 
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
@@ -28,7 +27,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.PrimitiveIterator;
@@ -92,7 +90,7 @@ public final class HoaConsumerExtended<S> {
           noneAcceptance.getBooleanExpression());
       } else {
         for (S state : initialStates) {
-          consumer.addStartStates(Collections.singletonList(getStateId(state)));
+          consumer.addStartStates(List.of(getStateId(state)));
         }
 
         String accName = acceptance.getName();
@@ -107,12 +105,12 @@ public final class HoaConsumerExtended<S> {
         // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
         // states deterministic, the serializer will throw an exception.
         if (isDeterministic) {
-          consumer.addProperties(ImmutableList.of("deterministic"));
+          consumer.addProperties(List.of("deterministic"));
         }
       }
 
       // TODO: fix this.
-      consumer.addProperties(ImmutableList.of("trans-acc", "trans-label"));
+      consumer.addProperties(List.of("trans-acc", "trans-label"));
       consumer.setAPs(aliases);
 
       consumer.notifyBodyStart();
@@ -174,7 +172,7 @@ public final class HoaConsumerExtended<S> {
 
     try {
       consumer.addEdgeWithLabel(getStateId(currentState), label,
-        Collections.singletonList(getStateId(end)), accSets.isEmpty() ? null : accSets);
+        List.of(getStateId(end)), accSets.isEmpty() ? null : accSets);
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
@@ -187,7 +185,7 @@ public final class HoaConsumerExtended<S> {
 
     try {
       consumer.addEdgeWithLabel(getStateId(currentState), null,
-        Collections.singletonList(getStateId(successor)), null);
+        List.of(getStateId(successor)), null);
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }

@@ -18,7 +18,7 @@ import owl.translations.Optimisation;
 public abstract class AbstractJumpManager<X extends RecurringObligation> {
   private static final Logger logger = Logger.getLogger(AbstractJumpManager.class.getName());
 
-  private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(ImmutableSet.of());
+  private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(Set.of());
 
   protected final EquivalenceClassFactory factory;
   protected final ImmutableSet<Optimisation> optimisations;

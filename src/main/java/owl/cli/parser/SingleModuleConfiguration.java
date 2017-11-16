@@ -1,6 +1,5 @@
 package owl.cli.parser;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.immutables.value.Value;
 import owl.cli.ModuleSettings;
@@ -34,12 +33,12 @@ public abstract class SingleModuleConfiguration {
 
   @Value.Default
   public List<Factory> postProcessors() {
-    return ImmutableList.of();
+    return List.of();
   }
 
   @Value.Default
   public List<Factory> preProcessors() {
-    return ImmutableList.of();
+    return List.of();
   }
 
   public abstract ModuleSettings.TransformerSettings transformer();

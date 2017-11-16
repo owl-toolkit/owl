@@ -20,8 +20,8 @@ package owl.translations.ltl2ldba;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
@@ -194,7 +194,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
       factories.eqFactory, EnumSet.copyOf(optimisations));
 
     if (deterministicInitialComponent) {
-      return Collections.singleton(factory.getInitial(formula));
+      return Set.of(factory.getInitial(formula));
     }
 
     EquivalenceClass clazz = factories.eqFactory.createEquivalenceClass(formula);

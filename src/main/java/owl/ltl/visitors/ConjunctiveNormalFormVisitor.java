@@ -53,14 +53,12 @@ public final class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
 
   @Override
   protected List<Set<Formula>> defaultAction(Formula formula) {
-    return Collections.singletonList(Sets.newHashSet(formula));
+    return List.of(Sets.newHashSet(formula));
   }
 
   @Override
   public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
-    return booleanConstant.value
-      ? Collections.emptyList()
-      : Collections.singletonList(new HashSet<Formula>());
+    return booleanConstant.value ? List.of() : List.of(new HashSet<>());
   }
 
   @Override

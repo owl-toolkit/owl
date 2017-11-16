@@ -19,7 +19,6 @@ package owl.ltl.rewriter;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
@@ -150,7 +149,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         }
       });
 
-      conjuncts.add(Collections.singleton(Disjunction.create(xFragment)));
+      conjuncts.add(Set.of(Disjunction.create(xFragment)));
       Formula conjunction = Conjunction.create(Sets.cartesianProduct(conjuncts).stream()
         .map(Disjunction::create));
 
@@ -218,7 +217,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         }
       });
 
-      disjuncts.add(Collections.singleton(Conjunction.create(xFragment)));
+      disjuncts.add(Set.of(Conjunction.create(xFragment)));
       Formula disjunction = Disjunction.create(Sets.cartesianProduct(disjuncts).stream()
         .map(Conjunction::create));
 

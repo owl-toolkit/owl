@@ -23,7 +23,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -128,7 +127,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   @Override
   public Set<Edge<S>> getEdges(S state, BitSet valuation) {
     Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
-    return edge != null ? Collections.singleton(edge) : Collections.emptySet();
+    return edge != null ? Set.of(edge) : Set.of();
   }
 
   @Override

@@ -101,7 +101,7 @@ final class MonitorBuilderNoAcceptance {
 
     BiFunction<MonitorState, BitSet, Edge<MonitorState>> successorFunction =
       isSafety ? this::getSuccessorSafety : this::getSuccessor;
-    AutomatonUtil.exploreDeterministic(monitor, Collections.singleton(initialState),
+    AutomatonUtil.exploreDeterministic(monitor, Set.of(initialState),
       successorFunction, new AtomicInteger(0));
 
     if (!isSafety) {
