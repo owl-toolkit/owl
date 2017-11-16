@@ -4,9 +4,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -42,7 +40,7 @@ public class SelectVisitorTest {
   public void testFScopedSelectorM() {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a M b)").formula;
 
-    Set<UnaryModalOperator> choice = ImmutableSet.of(fOperator);
+    Set<UnaryModalOperator> choice = Set.of(fOperator);
     assertThat(getGScoped(fOperator), containsInAnyOrder(choice));
   }
 
@@ -51,8 +49,8 @@ public class SelectVisitorTest {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a R b)").formula;
     GOperator gOperator = new GOperator(new Literal(1));
 
-    Set<UnaryModalOperator> choice1 = ImmutableSet.of(fOperator);
-    Set<UnaryModalOperator> choice2 = ImmutableSet.of(fOperator, gOperator);
+    Set<UnaryModalOperator> choice1 = Set.of(fOperator);
+    Set<UnaryModalOperator> choice2 = Set.of(fOperator, gOperator);
     assertThat(getGScoped(fOperator), containsInAnyOrder(choice1, choice2));
   }
 
@@ -60,7 +58,7 @@ public class SelectVisitorTest {
   public void testFScopedSelectorU() {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a U b)").formula;
 
-    Set<UnaryModalOperator> choice = ImmutableSet.of(fOperator);
+    Set<UnaryModalOperator> choice = Set.of(fOperator);
     assertThat(getGScoped(fOperator), containsInAnyOrder(choice));
   }
 
@@ -69,8 +67,8 @@ public class SelectVisitorTest {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a W b)").formula;
     GOperator gOperator = (GOperator) LtlParser.syntax("G a");
 
-    Set<UnaryModalOperator> choice1 = ImmutableSet.of(fOperator);
-    Set<UnaryModalOperator> choice2 = ImmutableSet.of(fOperator, gOperator);
+    Set<UnaryModalOperator> choice1 = Set.of(fOperator);
+    Set<UnaryModalOperator> choice2 = Set.of(fOperator, gOperator);
     assertThat(getGScoped(fOperator), containsInAnyOrder(choice1, choice2));
   }
 
@@ -79,7 +77,7 @@ public class SelectVisitorTest {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a M b)").formula;
     FOperator fOperator = (FOperator) LtlParser.syntax("F a");
 
-    Set<UnaryModalOperator> choice = ImmutableSet.of(gOperator, fOperator);
+    Set<UnaryModalOperator> choice = Set.of(gOperator, fOperator);
     assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
   }
 
@@ -87,7 +85,7 @@ public class SelectVisitorTest {
   public void testGScopedSelectorR() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a R b)").formula;
 
-    Set<UnaryModalOperator> choice = ImmutableSet.of(gOperator);
+    Set<UnaryModalOperator> choice = Set.of(gOperator);
     assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
   }
 
@@ -96,7 +94,7 @@ public class SelectVisitorTest {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a U b)").formula;
     FOperator fOperator = new FOperator(new Literal(1));
 
-    Set<UnaryModalOperator> choice = ImmutableSet.of(gOperator, fOperator);
+    Set<UnaryModalOperator> choice = Set.of(gOperator, fOperator);
     assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
   }
 
@@ -104,7 +102,7 @@ public class SelectVisitorTest {
   public void testGScopedSelectorW() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a W b)").formula;
 
-    Set<UnaryModalOperator> choice = ImmutableSet.of(gOperator);
+    Set<UnaryModalOperator> choice = Set.of(gOperator);
     assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
   }
 
@@ -119,9 +117,9 @@ public class SelectVisitorTest {
     FOperator fOperatorB = new FOperator(new Literal(1));
 
     Set<? extends UnaryModalOperator> baseChoiceConj = gOperators;
-    Set<UnaryModalOperator> choiceA = ImmutableSet.of(fOperatorA);
-    Set<UnaryModalOperator> choiceB = ImmutableSet.of(fOperatorB);
-    Set<UnaryModalOperator> choiceAandB = ImmutableSet.of(fOperatorA, fOperatorB);
+    Set<UnaryModalOperator> choiceA = Set.of(fOperatorA);
+    Set<UnaryModalOperator> choiceB = Set.of(fOperatorB);
+    Set<UnaryModalOperator> choiceAandB = Set.of(fOperatorA, fOperatorB);
 
     assertThat(getToplevel(conjunction),
       containsInAnyOrder(baseChoiceConj, Sets.union(baseChoiceConj, choiceA),
@@ -130,7 +128,7 @@ public class SelectVisitorTest {
     assertThat(getToplevel(disjunction),
       containsInAnyOrder(
         Collections2.transform(disjunction.children, (Formula formula) -> Sets.union(
-          Collections.singleton(formula), Collector.collectFOperators(formula))).toArray()));
+          Set.of(formula), Collector.collectFOperators(formula))).toArray()));
   }
 
   @Test
@@ -141,11 +139,11 @@ public class SelectVisitorTest {
     FOperator fOperatorA = new FOperator(new Literal(0));
     FOperator fOperatorB = new FOperator(new Literal(1));
 
-    Set<UnaryModalOperator> baseChoiceConj = ImmutableSet.of(gOperatorConj);
-    Set<UnaryModalOperator> baseChoiceDisj = ImmutableSet.of(gOperatorDisj);
-    Set<UnaryModalOperator> choiceA = ImmutableSet.of(fOperatorA);
-    Set<UnaryModalOperator> choiceB = ImmutableSet.of(fOperatorB);
-    Set<UnaryModalOperator> choiceAandB = ImmutableSet.of(fOperatorA, fOperatorB);
+    Set<UnaryModalOperator> baseChoiceConj = Set.of(gOperatorConj);
+    Set<UnaryModalOperator> baseChoiceDisj = Set.of(gOperatorDisj);
+    Set<UnaryModalOperator> choiceA = Set.of(fOperatorA);
+    Set<UnaryModalOperator> choiceB = Set.of(fOperatorB);
+    Set<UnaryModalOperator> choiceAandB = Set.of(fOperatorA, fOperatorB);
 
     assertThat(getToplevel(gOperatorConj),
       containsInAnyOrder(baseChoiceConj, Sets.union(baseChoiceConj, choiceA),

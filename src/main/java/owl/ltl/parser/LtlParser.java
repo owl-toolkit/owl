@@ -68,7 +68,7 @@ public final class LtlParser {
   }
 
   public LabelledFormula parse() {
-    return doParse(ImmutableList.of());
+    return doParse(List.of());
   }
 
   public LabelledFormula parse(List<String> literals) {

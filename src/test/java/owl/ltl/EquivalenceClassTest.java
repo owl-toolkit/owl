@@ -27,7 +27,6 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -64,7 +63,7 @@ public abstract class EquivalenceClassTest {
   @Test
   public void testEmptyDomain() {
     EquivalenceClassFactory factory = setUpFactory(LabelledFormula.create(BooleanConstant.TRUE,
-      ImmutableList.of()));
+      List.of()));
     assertNotEquals(factory, null);
   }
 
@@ -102,7 +101,7 @@ public abstract class EquivalenceClassTest {
   public void testExistsAndSat() {
     Predicate<Formula> predicate = ((Predicate<Formula>) GOperator.class::isInstance).negate();
 
-    List<String> literals = ImmutableList.of("a", "b");
+    List<String> literals = List.of("a", "b");
     Formula[] formulas = {
       LtlParser.syntax("a"),
       LtlParser.syntax("G a"),
@@ -117,8 +116,8 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass classB = factory.createEquivalenceClass(formulas[1]);
     EquivalenceClass classExistsB = classB.exists(predicate);
     assertEquals(classB, classExistsB);
-    assertEquals(Collections.singleton(Collections.singleton(formulas[1])),
-      Sets.newHashSet(classExistsB.satisfyingAssignments(Collections.singletonList(formulas[1]))));
+    assertEquals(Set.of(Set.of(formulas[1])),
+      Sets.newHashSet(classExistsB.satisfyingAssignments(List.of(formulas[1]))));
 
     EquivalenceClass classC = factory.createEquivalenceClass(formulas[2]);
     EquivalenceClass classExistsC = classC.exists(predicate);
@@ -133,7 +132,7 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass classExistsD = classD.exists(predicate);
     assertEquals(factory.createEquivalenceClass(LtlParser.syntax("G a & G b")),
       classExistsD);
-    assertEquals(Collections.singleton(allGOperators),
+    assertEquals(Set.of(allGOperators),
       Sets.newHashSet(classExistsD.satisfyingAssignments(allGOperators)));
   }
 
@@ -194,7 +193,7 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass clazz = factory.createEquivalenceClass(Conjunction.create(formulas));
 
     assertEquals(Sets.newHashSet(formulas), clazz.getSupport());
-    assertEquals(Collections.singleton(formulas[1]), clazz.getSupport(FOperator.class));
+    assertEquals(Set.of(formulas[1]), clazz.getSupport(FOperator.class));
   }
 
   @Test

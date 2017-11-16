@@ -102,7 +102,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   @Override
   public RankingState<S, T> add(S state) {
     Preconditions.checkState(initialState == null, "At most one initial state is supported.");
-    initialState = buildEdge(state, Collections.emptyList(), -1, null).getSuccessor();
+    initialState = buildEdge(state, List.of(), -1, null).getSuccessor();
     return initialState;
   }
 
@@ -117,7 +117,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     }
 
     // TODO: add getSensitiveAlphabet Method
-    AutomatonUtil.exploreDeterministic(automaton, Collections.singletonList(initialState),
+    AutomatonUtil.exploreDeterministic(automaton, List.of(initialState),
       this::getSuccessor, sizeCounter);
     automaton.setInitialState(initialState);
     List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton, false);
@@ -297,7 +297,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     // If a SCC switch occurs, the ranking and the safety progress is reset.
     if (resetRanking && sccSwitchOccurred(state.state, successor)) {
-      return Edges.create(buildEdge(successor, Collections.emptyList(), -1,
+      return Edges.create(buildEdge(successor, List.of(), -1,
         valuation).getSuccessor());
     }
 

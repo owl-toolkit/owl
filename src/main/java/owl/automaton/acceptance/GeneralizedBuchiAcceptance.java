@@ -19,7 +19,6 @@ package owl.automaton.acceptance;
 
 import static owl.automaton.acceptance.BooleanExpressions.createConjunction;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
@@ -54,7 +53,7 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
-    return Collections.singletonList(size);
+    return List.of(size);
   }
 
   @Override

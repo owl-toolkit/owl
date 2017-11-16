@@ -19,7 +19,6 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
@@ -122,7 +121,7 @@ public final class AutomatonUtil {
   private static <S, T, U> BiFunction<S, T, Iterable<U>> embed(BiFunction<S, T, U> function) {
     return (x, y) -> {
       U z = function.apply(x, y);
-      return z == null ? ImmutableList.of() : ImmutableList.of(z);
+      return z == null ? List.of() : List.of(z);
     };
   }
 

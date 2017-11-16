@@ -59,7 +59,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return Whether the state is in the automaton.
    */
   default boolean containsState(S state) {
-    return containsStates(ImmutableList.of(state));
+    return containsStates(Set.of(state));
   }
 
   /**

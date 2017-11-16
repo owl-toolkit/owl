@@ -65,9 +65,8 @@ public class PipelineRunner {
 
   public static void run(InputStream inputStream, OutputStream outputStream,
     PipelineSpecification execution, int pipelineWorkerCount) {
-    try (InputStream closingInput = inputStream;
-         OutputStream closingOutput = outputStream) {
-      new PipelineRunner(execution, closingInput, closingOutput, pipelineWorkerCount).run();
+    try (inputStream; outputStream) {
+      new PipelineRunner(execution, inputStream, outputStream, pipelineWorkerCount).run();
     } catch (IOException e) {
       throw PipelineExecutionException.wrap(e);
     }
@@ -143,8 +142,7 @@ public class PipelineRunner {
     //noinspection ObjectEquality
     assert Thread.currentThread() == inputThread;
 
-    //noinspection unused - we only want auto-close
-    try (InputStream closingInputStream = inputStream) {
+    try (inputStream) {
       // Run the input supplier with this thread
       inputParser.run();
       inputFinished.set(true);

@@ -40,7 +40,7 @@ public final class RankingState<S, T> extends ImmutableObject {
   }
 
   static <S, T> RankingState<S, T> create(@Nullable S initialComponentState) {
-    return create(initialComponentState, ImmutableList.of(), -1);
+    return create(initialComponentState, List.of(), -1);
   }
 
   static <S, T> RankingState<S, T> create(@Nullable S initialComponentState, List<T> ranking,

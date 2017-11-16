@@ -21,7 +21,7 @@ public final class SafetyUtil {
     }
 
     List<Set<S>> sccs = Lists.reverse(SccDecomposition.computeSccs(
-      automaton, Collections.singleton(state), false));
+      automaton, Set.of(state), false));
     for (Set<S> s : sccs) {
       Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, s);
 

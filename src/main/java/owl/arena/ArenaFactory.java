@@ -148,7 +148,7 @@ public final class ArenaFactory {
     @Override
     public Set<Node<S>> getPredecessors(Node<S> state) {
       if (state.choice != null) {
-        return ImmutableSet.of(new Node<>(state.state));
+        return Set.of(new Node<>(state.state));
       }
 
       Set<Node<S>> predecessors = new HashSet<>();
@@ -172,10 +172,10 @@ public final class ArenaFactory {
     public Set<Node<S>> getPredecessors(Node<S> state, Owner owner) {
       if (state.choice == null) {
         // This state belongs to player 1 and there is strict alternation.
-        return owner == Owner.PLAYER_1 ? ImmutableSet.of() : getPredecessors(state);
+        return owner == Owner.PLAYER_1 ? Set.of() : getPredecessors(state);
       } else {
         // This state belongs to player 2 and there is strict alternation.
-        return owner == Owner.PLAYER_1 ? getPredecessors(state) : ImmutableSet.of();
+        return owner == Owner.PLAYER_1 ? getPredecessors(state) : Set.of();
       }
     }
 

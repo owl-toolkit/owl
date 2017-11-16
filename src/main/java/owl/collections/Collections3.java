@@ -17,7 +17,6 @@
 
 package owl.collections;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
@@ -76,7 +75,7 @@ public final class Collections3 {
 
   public static <F, T> Set<T> transform(Collection<F> collection, Function<F, T> transformer) {
     if (collection.isEmpty()) {
-      return ImmutableSet.of();
+      return Set.of();
     }
 
     int size = collection.size();
@@ -84,7 +83,7 @@ public final class Collections3 {
     if (size == 1) {
       @Nullable
       T element = transformer.apply(Iterables.getOnlyElement(collection));
-      return element == null ? ImmutableSet.of() : ImmutableSet.of(element);
+      return element == null ? Set.of() : Set.of(element);
     }
 
     Set<T> set = new HashSet<>(size);

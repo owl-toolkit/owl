@@ -139,12 +139,12 @@ public class InitialComponentBuilder<K extends RecurringObligation>
     generateJumps(state);
 
     if (successorClass.isTrue()) {
-      return Collections.singleton(Edges.create(successorClass, 0));
+      return Set.of(Edges.create(successorClass, 0));
     }
 
     // Suppress edge, if successor is a non-accepting state or this state is impatient (e.g. G a)
     if (successorClass.isFalse() || !patientStates.contains(state)) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     // Split successor

@@ -19,7 +19,6 @@ package owl.ltl.rewriter;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.junit.Test;
 import owl.ltl.Formula;
@@ -27,7 +26,7 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 
 public class RewriterFactoryTest {
-  private static final List<String> literals = ImmutableList.of("a", "b");
+  private static final List<String> literals = List.of("a", "b");
 
   private static final String[] INPUT = {
     "F (a U b)",

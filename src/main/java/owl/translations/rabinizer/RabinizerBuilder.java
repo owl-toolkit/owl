@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -281,7 +280,7 @@ public class RabinizerBuilder {
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
       MutableAutomatonFactory.createMutableAutomaton(AllAcceptance.INSTANCE, vsFactory,
-        ImmutableSet.of(initialClass), masterStateFactory::getMasterSuccessor,
+        Set.of(initialClass), masterStateFactory::getMasterSuccessor,
         masterStateFactory::getClassSensitiveAlphabet);
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "Master automaton for {0}:\n{1}",
@@ -355,7 +354,7 @@ public class RabinizerBuilder {
     boolean computeAcceptance = configuration.computeAcceptance();
     GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
     Collection<Set<GOperator>> relevantSets = Sets.powerSet(allRelevantGFormulas);
-    assert relevantSets.contains(ImmutableSet.<GOperator>of());
+    assert relevantSets.contains(Set.<GOperator>of());
 
     @Nullable
     ActiveSet[] activeSets;
@@ -671,7 +670,7 @@ public class RabinizerBuilder {
 
     // BFS work list
     Set<RabinizerState> exploredStates =
-      new HashSet<>(Collections.singletonList(initialState));
+      new HashSet<>(List.of(initialState));
     Queue<RabinizerState> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
@@ -682,8 +681,9 @@ public class RabinizerBuilder {
 
       Map<EquivalenceClass, ValuationSet> masterSuccessors =
         masterAutomaton.getSuccessorMap(currentState.masterState);
+
       if (masterSuccessors.isEmpty()) {
-        transitionSystem.put(currentState, Collections.emptyMap());
+        transitionSystem.put(currentState, Map.of());
         continue;
       }
 

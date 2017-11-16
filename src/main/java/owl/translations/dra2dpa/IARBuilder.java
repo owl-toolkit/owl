@@ -261,7 +261,7 @@ public final class IARBuilder<R> {
     // of automaton that can be evaluated by the main thread?
     // TODO Filtered automaton?
     Automaton<IARState<R>, ParityAcceptance> subAutomaton = SccIARBuilder.from(rabinAutomaton,
-      ImmutableSet.of(scc.iterator().next()), scc, activeRabinPairs).build();
+      Set.of(scc.iterator().next()), scc, activeRabinPairs).build();
     return new SccProcessingResult<>(interSccConnections, subAutomaton);
   }
 

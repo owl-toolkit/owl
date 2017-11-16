@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 
-import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class ArenaFactoryTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
     Arena<Node<Object>, ParityAcceptance> arena =
-      ArenaFactory.copyOf(ArenaFactory.split(automaton, ImmutableList.of("a", "c")));
+      ArenaFactory.copyOf(ArenaFactory.split(automaton, List.of("a", "c")));
 
     for (Node<Object> state : arena.getStates()) {
       for (Node<Object> predecessor : arena.getPredecessors(state)) {
@@ -60,7 +60,7 @@ public class ArenaFactoryTest {
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
     Arena<Node<Object>, ParityAcceptance> arena =
-      ArenaFactory.copyOf(ArenaFactory.split(automaton, ImmutableList.of("a")));
+      ArenaFactory.copyOf(ArenaFactory.split(automaton, List.of("a")));
 
     Set<Node<Object>> winningStates = arena.getStates().stream()
       .filter(x -> {

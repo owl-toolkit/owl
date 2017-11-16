@@ -19,12 +19,10 @@ package owl.automaton.minimizations;
 
 import static owl.automaton.AutomatonUtil.toHoa;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -44,7 +42,7 @@ import owl.automaton.transformations.ParityUtil;
 public final class MinimizationUtil {
   private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
   private static final List<Minimization<Object, GeneralizedRabinAcceptance>>
-    generalizedRabinDefaultLightList = ImmutableList.of(
+    generalizedRabinDefaultLightList = List.of(
     GeneralizedRabinMinimizations::minimizeOverlap,
     GenericMinimizations::removeTransientAcceptance,
     // MinimizationUtil::removeDeadStates,
@@ -55,7 +53,7 @@ public final class MinimizationUtil {
     GeneralizedRabinMinimizations::minimizeTrivial
   );
   private static final List<Minimization<Object, GeneralizedRabinAcceptance>>
-    generalizedRabinDefaultAllList = ImmutableList.of(
+    generalizedRabinDefaultAllList = List.of(
     GeneralizedRabinMinimizations::minimizeOverlap,
     GeneralizedRabinMinimizations::minimizeMergePairs,
     GenericMinimizations::removeTransientAcceptance,
@@ -74,18 +72,13 @@ public final class MinimizationUtil {
     GeneralizedRabinMinimizations::minimizeGloballyIrrelevant
   );
   private static final List<Minimization<Object, ParityAcceptance>>
-    parityDefaultList = ImmutableList.of(
+    parityDefaultList = List.of(
     GenericMinimizations::removeTransientAcceptance,
     // MinimizationUtil::removeDeadStates,
     ParityUtil::minimizePriorities
   );
 
   private MinimizationUtil() {}
-
-  public static <S, A extends OmegaAcceptance> void applyMinimization(
-    MutableAutomaton<S, A> automaton, Minimization<S, A>... minimizationList) {
-    applyMinimization(automaton, Arrays.asList(minimizationList));
-  }
 
   public static <S, A extends OmegaAcceptance> void applyMinimization(
     MutableAutomaton<S, A> automaton, List<Minimization<S, A>> minimizationList) {

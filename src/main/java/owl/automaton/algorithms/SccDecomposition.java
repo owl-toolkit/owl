@@ -17,12 +17,10 @@
 
 package owl.automaton.algorithms;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,7 +74,7 @@ public final class SccDecomposition<S> {
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState) {
-    return computeSccs(Collections.singleton(initialState), automaton::getSuccessors, true);
+    return computeSccs(Set.of(initialState), automaton::getSuccessors, true);
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, boolean includeTransient) {
@@ -89,7 +87,7 @@ public final class SccDecomposition<S> {
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState,
     boolean includeTransient) {
-    return computeSccs(Collections.singleton(initialState), automaton::getSuccessors,
+    return computeSccs(Set.of(initialState), automaton::getSuccessors,
       includeTransient);
   }
 
@@ -101,9 +99,10 @@ public final class SccDecomposition<S> {
   // Return Condensation Graph?
   private static <S> List<Set<S>> computeSccs(Set<S> states,
     Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
+
+    // No need to initialize all the data-structures
     if (states.isEmpty()) {
-      // No need to initialize all the data-structures
-      return ImmutableList.of();
+      return List.of();
     }
 
     SccDecomposition<S> decomposition = new SccDecomposition<>(successorFunction, includeTransient);
@@ -113,6 +112,7 @@ public final class SccDecomposition<S> {
         || decomposition.processedNodes.contains(state)) {
         continue;
       }
+
       decomposition.run(state);
     }
 
@@ -216,11 +216,12 @@ public final class SccDecomposition<S> {
       if (lowLink == NO_LINK) {
         // This state has no back-link at all - transient state
         assert Objects.equals(explorationStack.peek(), node);
-        assert isTransient(successorFunction, Collections.singleton(node));
+        assert isTransient(successorFunction, Set.of(node));
 
         if (this.includeTransient) {
-          sccs.add(ImmutableSet.of(node));
+          sccs.add(Set.of(node));
         }
+
         explorationStack.pop();
         processedNodes.add(node);
       } else if (lowLink == nodeIndex) {

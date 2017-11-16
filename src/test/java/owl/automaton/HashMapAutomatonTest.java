@@ -23,10 +23,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
@@ -39,7 +40,7 @@ public class HashMapAutomatonTest {
   private static final ValuationSetFactory FACTORY;
 
   static {
-    FACTORY = JBddSupplier.async().getValuationSetFactory(ImmutableList.of("a"));
+    FACTORY = JBddSupplier.async().getValuationSetFactory(List.of("a"));
   }
 
   @Test
@@ -135,7 +136,7 @@ public class HashMapAutomatonTest {
       containsInAnyOrder(Edges.create("1"), Edges.create("2"), Edges.create("2", 1)));
     assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
 
-    automaton.setInitialStates(ImmutableSet.of("2"));
+    automaton.setInitialStates(Set.of("2"));
     assertThat(automaton.getInitialState(), is("2"));
     assertThat(automaton.getInitialStates(), containsInAnyOrder("2"));
     assertThat(automaton.getReachableStates(), containsInAnyOrder("2"));

@@ -2,7 +2,7 @@ package owl.ltl.visitors;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
+import java.util.Set;
 import org.junit.Test;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
@@ -15,6 +15,6 @@ public class CollectorTest {
     Formula f1 = new Literal(0, false);
     Formula f2 = new FOperator(new GOperator(f1));
 
-    assertEquals(Collections.singleton(new GOperator(f1)), Collector.collectGOperators(f2));
+    assertEquals(Set.of(new GOperator(f1)), Collector.collectGOperators(f2));
   }
 }

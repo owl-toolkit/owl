@@ -1,6 +1,5 @@
 package owl.translations.rabinizer;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -80,8 +79,9 @@ final class RabinizerUtil {
 
   public static Set<GOperator> getSupportSubFormulas(EquivalenceClass equivalenceClass) {
     if (equivalenceClass.isTrue() || equivalenceClass.isFalse()) {
-      return ImmutableSet.of();
+      return Set.of();
     }
+
     Set<GOperator> operators = new HashSet<>();
     findSupportingSubFormulas(equivalenceClass, operators::add);
     return operators;

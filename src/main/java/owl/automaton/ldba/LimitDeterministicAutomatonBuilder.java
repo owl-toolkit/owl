@@ -25,7 +25,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +123,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Table<S, ValuationSet, Set<T>> valuationSetJumps = HashBasedTable.create();
     generateJumps(initialComponent, epsilonJumps);
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
-    acceptingComponent.setInitialStates(Collections.emptySet());
+    acceptingComponent.setInitialStates(Set.of());
 
     // Preprocess:
     // Remove dead states in the accepting component. Note that the .values() collection is backed
@@ -187,7 +186,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     // Decompose into SCCs
     List<Set<S>> sccs = optimisations.contains(Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES)
       ? SccDecomposition.computeSccs(initialComponent, true)
-      : Collections.singletonList(initialComponent.getStates());
+      : List.of(initialComponent.getStates());
 
     for (Set<S> scc : sccs) {
       // Skip transient SCCs

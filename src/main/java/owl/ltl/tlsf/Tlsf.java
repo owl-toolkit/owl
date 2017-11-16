@@ -20,6 +20,7 @@ package owl.ltl.tlsf;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
+import java.util.List;
 import java.util.OptionalInt;
 import org.immutables.value.Value;
 import owl.ltl.BooleanConstant;
@@ -111,7 +112,7 @@ public abstract class Tlsf {
     BiMap<Integer, String> mapping = mapping().inverse();
     OptionalInt maximalIndex = mapping.keySet().stream().mapToInt(Integer::intValue).max();
     if (!maximalIndex.isPresent()) {
-      return LabelledFormula.create(result, ImmutableList.of());
+      return LabelledFormula.create(result, List.of());
     }
     String[] variables = new String[maximalIndex.getAsInt() + 1];
     mapping.forEach((index, name) -> variables[index] = name);

@@ -65,8 +65,7 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> createStreamingAutomaton(
     A acceptance, S initialState, ValuationSetFactory factory,
     BiFunction<S, BitSet, Edge<S>> transitions) {
-    return new StreamingAutomaton<>(acceptance, factory, ImmutableSet.of(initialState),
-      transitions);
+    return new StreamingAutomaton<>(acceptance, factory, Set.of(initialState), transitions);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
@@ -89,7 +88,7 @@ public final class AutomatonFactory {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
     ValuationSetFactory factory, A acceptance) {
-    return new SingletonAutomaton<>(state, factory, Collections.emptyMap(), acceptance);
+    return new SingletonAutomaton<>(state, factory, Map.of(), acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
@@ -100,7 +99,7 @@ public final class AutomatonFactory {
   }
 
   public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
-    Map<IntIterable, ValuationSet> selfLoop = Collections.singletonMap(IntLists.EMPTY_LIST,
+    Map<IntIterable, ValuationSet> selfLoop = Map.of(IntLists.EMPTY_LIST,
       factory.createUniverseValuationSet());
     return new SingletonAutomaton<>(state, factory, selfLoop, AllAcceptance.INSTANCE);
   }
@@ -124,27 +123,27 @@ public final class AutomatonFactory {
 
     @Override
     public Map<S, ValuationSet> getIncompleteStates() {
-      return Collections.emptyMap();
+      return Map.of();
     }
 
     @Override
     public Set<S> getInitialStates() {
-      return Collections.emptySet();
+      return Set.of();
     }
 
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return Collections.emptySet();
+      return Set.of();
     }
 
     @Override
     public Set<S> getReachableStates(Collection<? extends S> start) {
-      return Collections.emptySet();
+      return Set.of();
     }
 
     @Override
     public Set<S> getStates() {
-      return Collections.emptySet();
+      return Set.of();
     }
   }
 
@@ -241,7 +240,7 @@ public final class AutomatonFactory {
 
     @Override
     public Set<Set<S>> getInitialStates() {
-      return Collections.singleton(automaton.getInitialStates());
+      return Set.of(automaton.getInitialStates());
     }
 
     @Override
@@ -271,7 +270,7 @@ public final class AutomatonFactory {
 
     @Override
     public Set<Set<S>> getSuccessors(Set<S> state, BitSet valuation) {
-      return Collections.singleton(getSuccessor(state, valuation));
+      return Set.of(getSuccessor(state, valuation));
     }
 
     @Override
@@ -335,7 +334,7 @@ public final class AutomatonFactory {
 
       if (acceptances.isEmpty()) {
         selfLoopValuations = factory.createEmptyValuationSet();
-        selfLoopEdges = Collections.emptyList();
+        selfLoopEdges = List.of();
       } else {
         this.selfLoopValuations = factory.createEmptyValuationSet();
         ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
@@ -369,14 +368,14 @@ public final class AutomatonFactory {
     @Override
     public Map<S, ValuationSet> getIncompleteStates() {
       if (selfLoopValuations.isUniverse()) {
-        return Collections.emptyMap();
+        return Map.of();
       }
-      return Collections.singletonMap(singletonState, selfLoopValuations.complement());
+      return Map.of(singletonState, selfLoopValuations.complement());
     }
 
     @Override
     public Set<S> getInitialStates() {
-      return Collections.singleton(singletonState);
+      return Set.of(singletonState);
     }
 
     @Override
@@ -386,12 +385,12 @@ public final class AutomatonFactory {
 
     @Override
     public Set<S> getReachableStates(Collection<? extends S> start) {
-      return Collections.singleton(singletonState);
+      return Set.of(singletonState);
     }
 
     @Override
     public Set<S> getStates() {
-      return Collections.singleton(singletonState);
+      return Set.of(singletonState);
     }
   }
 }

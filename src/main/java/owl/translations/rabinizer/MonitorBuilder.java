@@ -131,7 +131,7 @@ final class MonitorBuilder {
     // Now we explore the transition system (with BFS)
     logger.log(Level.FINER, "Exploring monitor transition system");
 
-    Set<MonitorState> exploredStates = new HashSet<>(Collections.singletonList(initialState));
+    Set<MonitorState> exploredStates = new HashSet<>(List.of(initialState));
     Queue<MonitorState> workQueue = new ArrayDeque<>(exploredStates);
 
     // Use one array throughout the loop to store the edge priorities to avoid re-allocation

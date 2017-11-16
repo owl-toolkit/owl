@@ -31,7 +31,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -150,7 +149,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     }
 
     if (delayJump) {
-      multimap.put(ImmutableSet.of(), ImmutableSet.of());
+      multimap.put(Set.of(), Set.of());
     }
 
     return multimap;
@@ -231,7 +230,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     extends DefaultVisitor<List<Set<UnaryModalOperator>>> {
 
     protected static <T> List<Set<T>> and(List<Set<T>> conjunct1, List<Set<T>> conjunct2) {
-      return and(ImmutableList.of(conjunct1, conjunct2));
+      return and(List.of(conjunct1, conjunct2));
     }
 
     private static <T> List<Set<T>> and(Iterable<List<Set<T>>> conjuncts) {
@@ -270,19 +269,17 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     }
 
     protected static <T> List<Set<T>> or(List<Set<T>> disjunct1, List<Set<T>> disjunct2) {
-      return or(ImmutableList.of(disjunct1, disjunct2), true);
+      return or(List.of(disjunct1, disjunct2), true);
     }
 
     @Override
     public List<Set<UnaryModalOperator>> visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value
-        ? Collections.singletonList(new HashSet<>())
-        : Collections.emptyList();
+      return booleanConstant.value ? List.of(new HashSet<>()) : List.of();
     }
 
     @Override
     public List<Set<UnaryModalOperator>> visit(Literal literal) {
-      return Collections.singletonList(new HashSet<>());
+      return List.of(new HashSet<>());
     }
 
     @Override

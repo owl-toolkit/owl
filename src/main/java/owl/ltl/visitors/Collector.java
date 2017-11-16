@@ -19,8 +19,8 @@ package owl.ltl.visitors;
 
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -74,7 +74,7 @@ public final class Collector {
   }
 
   public static BitSet collectAtoms(Formula formula) {
-    return collectAtoms(Collections.singletonList(formula));
+    return collectAtoms(List.of(formula));
   }
 
   public static BitSet collectAtoms(Iterable<? extends Formula> formulas) {

@@ -17,7 +17,6 @@
 
 package owl.arena;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +53,7 @@ public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
   Owner getOwner(S state);
 
   default Set<S> getPredecessors(S state, Owner owner) {
-    return getPredecessors(ImmutableSet.of(state), owner);
+    return getPredecessors(Set.of(state), owner);
   }
 
   default Set<S> getPredecessors(Set<S> states) {
@@ -68,7 +67,7 @@ public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
   }
 
   default Set<S> getSuccessors(S state, Owner owner) {
-    return getSuccessors(ImmutableSet.of(state), owner);
+    return getSuccessors(Set.of(state), owner);
   }
 
   default Set<S> getSuccessors(Set<S> states) {

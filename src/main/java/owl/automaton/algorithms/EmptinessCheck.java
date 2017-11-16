@@ -17,14 +17,12 @@
 
 package owl.automaton.algorithms;
 
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PrimitiveIterator;
@@ -258,7 +256,7 @@ public final class EmptinessCheck {
       Queue<AnalysisResult<S>> queue = new ArrayDeque<>();
 
       int initialPriority = automaton.getAcceptance().getPriority() == Priority.EVEN ? 0 : 1;
-      SccDecomposition.computeSccs(automaton, Collections.singleton(initialState), false)
+      SccDecomposition.computeSccs(automaton, Set.of(initialState), false)
         .forEach(scc -> queue.add(new AnalysisResult<>(scc, initialPriority - 1)));
 
       while (!queue.isEmpty()) {
@@ -269,7 +267,7 @@ public final class EmptinessCheck {
 
         if (result.minimalPriority == -1) {
           // First run with EVEN acceptance - don't need to filter / refine SCC.
-          subSccs = ImmutableList.of(result.scc);
+          subSccs = List.of(result.scc);
         } else {
           // Remove all the edges rejecting at a higher priority - there can't be an accepting one
           // with priority less than minimalPriorityInScc, since otherwise the search would have
