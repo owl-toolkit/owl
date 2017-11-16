@@ -32,13 +32,13 @@ import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.factories.Factories;
-import owl.factories.jbdd.JBddSupplier;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.run.env.Environment;
 import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
@@ -57,16 +57,18 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   implements Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
   private final Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor;
   private final boolean deterministicInitialComponent;
+  private final Environment env;
   private final Function<LabelledFormula, LabelledFormula> formulaPreprocessor;
   private final Function<S, C> getAnnotation;
   private final EnumSet<Optimisation> optimisations;
   private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
 
-  private LTL2LDBAFunction(
+  private LTL2LDBAFunction(Environment env,
     Function<LabelledFormula, LabelledFormula> formulaPreprocessor,
     Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor,
     EnumSet<Optimisation> optimisations, Function<S, C> getAnnotation) {
+    this.env = env;
     this.formulaPreprocessor = formulaPreprocessor;
     this.selectorConstructor = selectorConstructor;
     this.builderConstructor = builderConstructor;
@@ -79,8 +81,9 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
-  createDegeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+  createDegeneralizedBreakpointFreeLDBABuilder(Environment env,
+    EnumSet<Optimisation> optimisations) {
+    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
       x -> FGObligationsJumpManager.build(x, optimisations),
       x -> new DegeneralizedAcceptingComponentBuilder(x, optimisations),
       optimisations, DegeneralizedBreakpointFreeState::getObligations);
@@ -90,8 +93,8 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
-  createDegeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+  createDegeneralizedBreakpointLDBABuilder(Environment env, EnumSet<Optimisation> optimisations) {
+    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
       x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
       x -> new owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder(x,
         ImmutableSet.copyOf(optimisations)),
@@ -103,8 +106,8 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
-  createGeneralizedBreakpointFreeLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+  createGeneralizedBreakpointFreeLDBABuilder(Environment env, EnumSet<Optimisation> optimisations) {
+    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
       x -> FGObligationsJumpManager.build(x, optimisations),
       x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
         optimisations),
@@ -116,8 +119,8 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
-  createGeneralizedBreakpointLDBABuilder(EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(LTL2LDBAFunction::preProcess,
+  createGeneralizedBreakpointLDBABuilder(Environment env, EnumSet<Optimisation> optimisations) {
+    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
       x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
       x -> new GeneralizedAcceptingComponentBuilder(x, EnumSet.copyOf(optimisations)),
       optimisations,
@@ -132,7 +135,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
     LabelledFormula rewritten = formulaPreprocessor.apply(formula);
-    Factories factories = JBddSupplier.async().getFactories(rewritten);
+    Factories factories = env.factorySupplier().getFactories(rewritten);
 
     Formula processedFormula = rewritten.formula;
     AbstractJumpManager<C> factory = selectorConstructor.apply(factories.eqFactory

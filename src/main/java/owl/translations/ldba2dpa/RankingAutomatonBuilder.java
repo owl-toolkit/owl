@@ -88,11 +88,9 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     this.isAcceptingState = isAcceptingState;
 
-    if (optimisations.contains(Optimisation.RESET_AFTER_SCC_SWITCH)) {
-      initialComponentSccs = SccDecomposition.computeSccs(this.ldba.getInitialComponent());
-    } else {
-      initialComponentSccs = null;
-    }
+    initialComponentSccs = optimisations.contains(Optimisation.RESET_AFTER_SCC_SWITCH)
+      ? SccDecomposition.computeSccs(this.ldba.getInitialComponent())
+      : null;
 
     acceptance = new ParityAcceptance(2, Priority.ODD);
 

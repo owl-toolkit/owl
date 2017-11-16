@@ -69,12 +69,15 @@ while [ ${#} -gt 0 ]; do
 
   DATASET_ERROR="0"
   echo -n "Invocation: "
-  echo "python3 scripts/util.py formula ${DATASET} |" \
+  echo -n "python3 scripts/util.py formula ${DATASET} |" \
     "ltlcross --stop-on-error --strength --csv=\"${CSV_FILE}\" ${ADDITIONAL_ARGS}" \
     "--grind=\"$GRIND_FILE\" --timeout=\"$TIMEOUT_SEC\"" \
-    "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
-    ${TOOLS_INVOCATION[@]}
+    "\"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\""
+  for INVOCATION in "${TOOLS_INVOCATION[@]}"; do
+    echo -n " \"$INVOCATION\""
+  done
   echo ""
+
   if ! python3 scripts/util.py formula ${DATASET} | ltlcross --stop-on-error --strength \
     --csv="$CSV_FILE" ${ADDITIONAL_ARGS} --grind="$GRIND_FILE" --timeout="$TIMEOUT_SEC" \
     "{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O" \
@@ -166,7 +169,8 @@ while [ ${#} -gt 0 ]; do
           exit 1
         fi
 
-        FORMULA_INVOCATION="${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"} --annotations"
+        FORMULA_INVOCATION="${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"}"
+        export OWL_ANNOTATIONS=1
         if ! ERR_OUTPUT=$(eval timeout -s KILL -k 1s "${TIMEOUT_SEC}s" \
           ${FORMULA_INVOCATION} 2>&1 >"$DESTINATION_FILE"); then
           rm ${DESTINATION_FILE}

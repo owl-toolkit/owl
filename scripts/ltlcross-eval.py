@@ -77,7 +77,9 @@ if __name__ == "__main__":
         for key in numeric_keys:
             sorted_values = sorted(tool_values[key])
             value_count = len(tool_values[key])
-            mid = value_count // 2
+            if value_count == 0:
+                continue
+            mid = (value_count - 1) // 2
 
             value_sum = sum(sorted_values)
             average = value_sum / value_count

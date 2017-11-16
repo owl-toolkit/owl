@@ -12,19 +12,7 @@
             "size",
             "fgx",
             "check",
-            "random"
-        ],
-        "large": [
-            {
-                "name": "base",
-                "determinize": true
-            },
-            {
-                "name": "regressions",
-                "determinize": true
-            },
-            "fgx",
-            "check",
+            "libe-spec",
             "random"
         ],
         "small": [
@@ -52,69 +40,61 @@
         "data": "full"
     },
     "tests": {
-        "ltl2ldba": "ltl2ldba",
-        "ltl2ldba-nondet": "ltl2ldba#nondet-init",
-        "ltl2ldba-vanilla": "ltl2ldba#no-eps",
-        "ltl2ldba-bpfree": "ltl2ldba#breakpoint-free",
-        "ltl2ldba-bpfree-nondet": "ltl2ldba#breakpoint-free,nondet-init",
-        "ltl2ldba-bpfree-vanilla": "ltl2ldba#breakpoint-free,no-eps",
-        "ltl2ldba-genb": "ltl2ldba#gen-buchi",
-        "ltl2ldba-genb-vanilla": "ltl2ldba#gen-buchi,no-eps",
-        "ltl2ldba-genb-nondet": "ltl2ldba#gen-buchi,nondet-init",
-        "ltl2ldba-genb-bpfree": "ltl2ldba#gen-buchi,breakpoint-free",
-        "ltl2ldba-genb-bpfree-nondet": "ltl2ldba#gen-buchi,breakpoint-free,nondet-init",
-        "ltl2ldba-genb-bpfree-vanilla": "ltl2ldba#gen-buchi,breakpoint-free,no-eps",
-        "ltl2dpa": "ltl2dpa",
-        "ltl2dpa-vanilla": {
-            "tools": "ltl2dpa#no-eps",
-            "data": "small"
-        },
-        "ltl2dpa-bpfree": "ltl2dpa#breakpoint-free",
-        "ltl2dpa-bpfree-vanilla": {
-            "tools": "ltl2dpa#breakpoint-free,no-eps",
-            "data": "small"
-        },
-        "ltl2dpa-parallel": "ltl2dpa#parallel",
-        "ltl2da-parallel": "ltl2da#parallel",
-        "nba2ldba": {
+        "ltl2ldba": {
             "tools": [
-                {
-                    "name": "nba2ldba",
-                    "exec": [
-                        "ltl2tgba",
-                        "-H",
-                        "-f",
-                        "%f",
-                        "|",
-                        "build/bin/nba2ldba",
-                        "--optimisations=REMOVE_EPSILON_TRANSITIONS"
-                    ]
-                }
+                "ltl2ldba",
+                "ltl2ldba#breakpoint",
+                "ltl2ldba#breakpoint,deterministic",
+                "ltl2ldba#deterministic"
+            ]
+        },
+        "ltl2ldbga": {
+            "tools": [
+                "ltl2ldba#gen-buchi",
+                "ltl2ldba#gen-buchi,breakpoint",
+                "ltl2ldba#gen-buchi,deterministic,breakpoint",
+                "ltl2ldba#gen-buchi,deterministic"
+            ]
+        },
+        "ltl2dpa": {
+            "tools": [
+                "ltl2dpa",
+                "ltl2dpa#complement"
+            ]
+        },
+        "ltl2dpa-bp": {
+            "tools": [
+                "ltl2dpa#breakpoint",
+                "ltl2dpa#breakpoint,complement"
+            ],
+            "data": "small"
+        },
+        "ltl2da": "ltl2da",
+        "nba2ldba": "spot-nba2ldba",
+        "nba2dpa": {
+            "tools": [
+                "spot-nba2dpa",
+                "spot-nba2dpa#nosafety"
+            ],
+            "data": "small"
+        },
+        "delag": {
+            "tools": [
+                "delag",
+                "delag#fallback-spot"
             ],
             "data": "full"
         },
-        "nba2dpa": {
-            "tools": [
-                {
-                    "name": "nba2dpa",
-                    "exec": [
-                        "ltl2tgba",
-                        "-H",
-                        "-f",
-                        "%f",
-                        "|",
-                        "build/bin/nba2dpa"
-                    ]
-                }
-            ],
-            "data": "small"
-        },
-        "delag": "delag",
-        "delag-fallback": "delag#fallback",
         "delag-strict": {
             "tools": "delag#strict",
             "data": "fgx"
         },
-        "rabinizer": "rabinizer"
+        "rabinizer": {
+            "tools": [
+                "rabinizer",
+                "rabinizer-iar"
+            ],
+            "data": "small"
+        }
     }
 }

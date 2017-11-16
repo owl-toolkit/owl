@@ -26,17 +26,22 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.apache.commons.cli.Options;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
+import owl.cli.ImmutableTransformerSettings;
+import owl.cli.ModuleSettings.TransformerSettings;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.Collector;
+import owl.run.env.Environment;
+import owl.run.transformer.Transformers;
 import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
@@ -51,6 +56,32 @@ import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
 public class LTL2DPAFunction
   implements Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> {
+  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
+    .key("ltl2dpa")
+    .options(new Options()
+      .addOption("bp", "breakpoint", false,
+        "Use breakpoint construction instead of breakpoint-free one")
+      .addOption("c", "complement", false, "Also compute the automaton for the negation and take "
+        + "the smaller of the two"))
+    .transformerSettingsParser(settings -> {
+      boolean breakpoints = settings.hasOption("breakpoint");
+      boolean complement = settings.hasOption("complement");
+      EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
+      optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+      optimisations.remove(Optimisation.COMPLETE);
+      if (complement) {
+        optimisations.add(Optimisation.COMPLEMENT_CONSTRUCTION);
+      } else {
+        optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
+      }
+
+      return environment -> {
+        Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> translation =
+          new LTL2DPAFunction(environment, optimisations, !breakpoints);
+
+        return Transformers.fromFunction(LabelledFormula.class, translation);
+      };
+    }).build();
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
@@ -61,11 +92,12 @@ public class LTL2DPAFunction
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
-  public LTL2DPAFunction(EnumSet<Optimisation> optimisations) {
-    this(optimisations, false);
+  public LTL2DPAFunction(Environment env, EnumSet<Optimisation> optimisations) {
+    this(env, optimisations, false);
   }
 
-  public LTL2DPAFunction(EnumSet<Optimisation> optimisations, boolean breakpointFree) {
+  public LTL2DPAFunction(Environment env, EnumSet<Optimisation> optimisations,
+    boolean breakpointFree) {
     this.optimisations = EnumSet.copyOf(optimisations);
 
     EnumSet<Optimisation> ldbaOptimisations = EnumSet.of(
@@ -78,10 +110,10 @@ public class LTL2DPAFunction
       ldbaOptimisations.add(Optimisation.OPTIMISED_STATE_STRUCTURE);
     }
 
-    translatorBreakpointFree = LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(
-      ldbaOptimisations);
-    translatorBreakpoint = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(
-      ldbaOptimisations);
+    translatorBreakpointFree =
+      LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaOptimisations);
+    translatorBreakpoint =
+      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, ldbaOptimisations);
     this.breakpointFree = breakpointFree;
   }
 

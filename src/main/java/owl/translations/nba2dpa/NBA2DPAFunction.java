@@ -26,6 +26,7 @@ import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -36,12 +37,12 @@ import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
+import owl.translations.nba2ldba.GeneralizedBuchiAcceptanceTransformer;
 import owl.translations.nba2ldba.NBA2LDBAFunction;
 import owl.translations.nba2ldba.Safety;
 
 public final class NBA2DPAFunction<S>
-  implements Function<Automaton<S, GeneralizedBuchiAcceptance>, HoaPrintable> {
-
+  implements Function<Automaton<S, ?>, HoaPrintable> {
   private final EnumSet<Optimisation> optimisations;
 
   public NBA2DPAFunction() {
@@ -52,13 +53,26 @@ public final class NBA2DPAFunction<S>
     this.optimisations = optimisations;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public MutableAutomaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
-  apply(Automaton<S, GeneralizedBuchiAcceptance> nba) {
-    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(optimisations);
+  apply(Automaton<S, ?> nba) {
+    Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
 
+    // TODO Module! Something like "transform-acc --to generalized-buchi"
+    if (nba.getAcceptance() instanceof AllAcceptance) {
+
+      nbaGBA = GeneralizedBuchiAcceptanceTransformer
+        .create((Automaton<S, AllAcceptance>) nba).build();
+    } else if (nba.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
+      nbaGBA = (Automaton<S, GeneralizedBuchiAcceptance>) nba;
+    } else {
+      throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
+    }
+
+    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(EnumSet.of(Optimisation.EAGER_UNFOLD));
     LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> ldba =
-      nba2ldba.apply(nba);
+      nba2ldba.apply(nbaGBA);
 
     LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Safety>
       ldbaCutDet = ldba.asCutDeterministicAutomaton();

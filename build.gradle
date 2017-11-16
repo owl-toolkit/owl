@@ -21,6 +21,7 @@ plugins {
 }
 
 apply plugin: 'java'
+apply plugin: 'c'
 apply plugin: 'antlr'
 
 apply plugin: 'pmd'
@@ -54,6 +55,7 @@ dependencies {
     compile 'org.antlr:antlr4-runtime:4.7'
     compile 'de.tum.in:jbdd:0.2.0'
     compile 'de.tum.in:naturals-util:0.7.0'
+    compile 'commons-cli:commons-cli:1.4'
 
     compile files('lib/jhoafparser-1.1.1.jar')
 
@@ -101,6 +103,29 @@ generateGrammarSource {
         move.each { s, t ->
             t.parentFile.mkdirs()
             s.renameTo(t.absolutePath)
+        }
+    }
+}
+
+// C
+model {
+    binaries {
+        all {
+            if (toolChain in Gcc) {
+                cppCompiler.args "-O3", "-Wall"
+            }
+        }
+    }
+    components {
+        ltl2aut(NativeExecutableSpec) {
+            sources {
+                c {
+                    source {
+                        srcDir "scripts/owlc"
+                        include "ltl2aut.c"
+                    }
+                }
+            }
         }
     }
 }
@@ -159,16 +184,19 @@ checkstyle {
     }
 }
 
+// Create startup scripts
+mainClassName = "owl.cli.DefaultCli"
 // Create startup scripts for each tool
 def scripts = [
-    'ltl2da'    : 'owl.translations.LTL2DA',
-    'ltl2dpa'   : 'owl.translations.LTL2DPA',
-    'ltl2ldba'  : 'owl.translations.LTL2LDBA',
-    'nba2ldba'  : 'owl.translations.NBA2LDBA',
-    'dra2dpa'   : 'owl.translations.DRA2DPA',
-    'delag'     : 'owl.translations.Delag',
-    'rabinizer' : 'owl.translations.Rabinizer',
-    'nba2dpa'   : 'owl.translations.NBA2DPA'
+    'ltl2da'  : 'owl.translations.LTL2DA',
+    'ltl2dpa' : 'owl.translations.LTL2DPA',
+    'ltl2ldba': 'owl.translations.ltl2ldba.LTL2LDBAModule',
+    'nba2ldba': 'owl.translations.nba2ldba.NBA2LDBAModule',
+    'dra2dpa' : 'owl.translations.dra2dpa.IARBuilder',
+    'delag'   : 'owl.translations.delag.DelagBuilder',
+    'ltl2dgra': 'owl.translations.rabinizer.RabinizerMain',
+    'ltl2dra' : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
+    'nba2dpa' : 'owl.translations.nba2dpa.NBA2DPAModule'
 ]
 
 scripts.each() { scriptName, className ->
@@ -183,8 +211,6 @@ scripts.each() { scriptName, className ->
     t.dependsOn(jar)
     startScripts.dependsOn(t)
 }
-startScripts.enabled = false // Don't generate an "owl" executable
-run.enabled = false
 
 // Compile the markdown files
 tasks.create(name: "compileMarkdown", type: Exec) {

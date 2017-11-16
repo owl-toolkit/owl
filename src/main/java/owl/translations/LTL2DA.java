@@ -1,52 +1,42 @@
-/*
- * Copyright (C) 2016  (See AUTHORS)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package owl.translations;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.EnumSet;
-import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.output.HoaPrintable;
+import owl.cli.ImmutableTransformerSettings;
+import owl.cli.ModuleSettings.TransformerSettings;
+import owl.cli.parser.ImmutableSingleModuleConfiguration;
+import owl.cli.parser.SimpleModuleParser;
 import owl.ltl.LabelledFormula;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.RewriterTransformer;
+import owl.run.env.Environment;
+import owl.run.input.LtlInput;
+import owl.run.meta.ToHoa;
+import owl.run.transformer.Transformers;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
-public final class LTL2DA extends AbstractLtlCommandLineTool {
-  private final boolean parallel;
+public final class LTL2DA {
+  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
+    .key("ltl2da")
+    .transformerSettingsParser(settings -> environment -> {
+      EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
 
-  private LTL2DA(boolean parallel) {
-    this.parallel = parallel;
-  }
+      return Transformers.fromFunction(LabelledFormula.class,
+        formula -> translate(environment, formula, optimisations));
+    }).build();
 
-  public static void main(String... argsArray) {
-    Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
-    new LTL2DA(args.remove("--parallel")).execute(args);
-  }
+  private LTL2DA() {}
 
-  private static HoaPrintable translate(LabelledFormula formula,
+  private static HoaPrintable translate(Environment env, LabelledFormula formula,
     EnumSet<Optimisation> optimisations) {
     optimisations.remove(Optimisation.COMPLETE);
-    LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(optimisations);
+    LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(env, optimisations);
     LimitDeterministicAutomaton<?, ?, ?, ?> ldba = LTL2LDBAFunction
-      .createGeneralizedBreakpointLDBABuilder(optimisations).apply(formula);
+      .createGeneralizedBreakpointLDBABuilder(env, optimisations).apply(formula);
     Automaton<?, ?> automaton = ltl2Dpa.apply(formula);
 
     if (ldba.isDeterministic()
@@ -57,16 +47,13 @@ public final class LTL2DA extends AbstractLtlCommandLineTool {
     return automaton;
   }
 
-  @Override
-  protected Function<LabelledFormula, ? extends HoaPrintable>
-  getTranslation(EnumSet<Optimisation> optimisations) {
-
-    if (parallel) {
-      optimisations.add(Optimisation.COMPLEMENT_CONSTRUCTION);
-    } else {
-      optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
-    }
-
-    return x -> translate(x, optimisations);
+  public static void main(String... args) {
+    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
+      .inputParser(new LtlInput())
+      .addPreProcessors(new RewriterTransformer(RewriterEnum.MODAL_ITERATIVE))
+      .transformer(settings)
+      .addPostProcessors(environment -> new ImplicitMinimizeTransformer())
+      .outputWriter(new ToHoa())
+      .build());
   }
 }

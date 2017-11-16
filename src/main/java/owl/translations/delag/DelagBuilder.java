@@ -21,51 +21,98 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.cli.ImmutableTransformerSettings;
+import owl.cli.ModuleSettings.TransformerSettings;
+import owl.cli.parser.ImmutableSingleModuleConfiguration;
+import owl.cli.parser.SimpleModuleParser;
 import owl.factories.Factories;
-import owl.factories.jbdd.JBddSupplier;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.RewriterTransformer;
+import owl.run.env.Environment;
+import owl.run.input.LtlInput;
+import owl.run.meta.ToHoa;
+import owl.run.transformer.Transformers;
+import owl.translations.ExternalTranslator;
+import owl.translations.Optimisation;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
 
-public class Builder<T>
+public class DelagBuilder<T>
   implements Function<LabelledFormula, Automaton<State<T>, ? extends OmegaAcceptance>> {
+  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
+    .key("delag")
+    .options(new Options().addOption("f", "fallback", true,
+      "Fallback tool for input outside the fragment ('none' for strict mode)"))
+    .transformerSettingsParser(settings -> {
+      @Nullable
+      String fallbackTool = settings.getOptionValue("fallback");
 
+      return environment -> {
+        Function<LabelledFormula, ? extends Automaton<?, ? extends OmegaAcceptance>> fallback;
+        if ("none".equals(fallbackTool)) {
+          fallback = formula -> {
+            throw new IllegalArgumentException("Formula " + formula
+              + " outside of supported fragment");
+          };
+        } else {
+          fallback = fallbackTool == null
+            ? new LTL2DPAFunction(environment, EnumSet.allOf(Optimisation.class))
+            : new ExternalTranslator(environment, fallbackTool);
+        }
+        //noinspection unchecked,rawtypes
+        return Transformers.fromFunction(LabelledFormula.class,
+          new DelagBuilder(environment, fallback));
+      };
+    }).build();
+
+  private final Environment env;
   private final Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
     fallback;
   @Nullable
   private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 
-  public Builder(Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
-    fallback) {
+  public DelagBuilder(Environment env,
+    Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>> fallback) {
+    this.env = env;
     this.fallback = fallback;
+  }
+
+  public static void main(String... args) {
+    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
+      .inputParser(new LtlInput())
+      .addPreProcessors(new RewriterTransformer(RewriterFactory.RewriterEnum.MODAL_ITERATIVE))
+      .transformer(settings)
+      .outputWriter(new ToHoa())
+      .build());
   }
 
   @Override
   public Automaton<State<T>, ? extends OmegaAcceptance> apply(LabelledFormula formula) {
-    LabelledFormula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    Factories factories = JBddSupplier.async().getFactories(rewritten);
+    Factories factories = env.factorySupplier().getFactories(formula);
 
-    if (rewritten.formula.equals(BooleanConstant.FALSE)) {
+    if (formula.formula.equals(BooleanConstant.FALSE)) {
       return AutomatonFactory.empty(factories.vsFactory);
     }
 
-    if (rewritten.formula.equals(BooleanConstant.TRUE)) {
+    if (formula.formula.equals(BooleanConstant.TRUE)) {
       return AutomatonFactory.universe(new State<>(), factories.vsFactory);
     }
 
     DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories, fallback);
-    DependencyTree<T> tree = rewritten.accept(treeConverter);
+    DependencyTree<T> tree = formula.accept(treeConverter);
     BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 

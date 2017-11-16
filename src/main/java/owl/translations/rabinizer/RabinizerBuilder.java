@@ -10,8 +10,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.set.NatCartesianProductIterator;
 import de.tum.in.naturals.set.NatCartesianProductSet;
@@ -73,6 +71,7 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 import owl.ltl.visitors.PrintVisitor;
+import owl.run.env.Environment;
 import owl.util.IntBiConsumer;
 
 /**
@@ -81,25 +80,26 @@ import owl.util.IntBiConsumer;
  * @see owl.translations.rabinizer
  */
 public class RabinizerBuilder {
-
   private static final MonitorAutomaton[] EMPTY_MONITORS = new MonitorAutomaton[0];
   private static final MonitorState[] EMPTY_MONITOR_STATES = new MonitorState[0];
   private static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
 
   private final RabinizerConfiguration configuration;
+  private final Environment env;
   private final EquivalenceClassFactory eqFactory;
   private final EquivalenceClass initialClass;
   private final MasterStateFactory masterStateFactory;
   private final ProductStateFactory productStateFactory;
   private final ValuationSetFactory vsFactory;
 
-  RabinizerBuilder(RabinizerConfiguration configuration, Factories factories,
+  RabinizerBuilder(Environment env, RabinizerConfiguration configuration, Factories factories,
     Formula formula) {
     EquivalenceClass initialClass = factories.eqFactory.createEquivalenceClass(formula);
 
+    this.env = env;
     this.configuration = configuration;
     this.initialClass = initialClass;
-    if (configuration.removeFormulaRepresentative()) {
+    if (!env.annotations()) {
       initialClass.freeRepresentative();
     }
     boolean fairnessFragment = initialClass.testSupport(support ->
@@ -228,14 +228,15 @@ public class RabinizerBuilder {
   }
 
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinize(
-    Formula phi, Factories factories, RabinizerConfiguration configuration) {
+    Formula phi, Factories factories, RabinizerConfiguration configuration,
+    Environment env) {
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
 
     String formulaString = PrintVisitor.toString(phi, factories.eqFactory.getVariables());
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      new RabinizerBuilder(configuration, factories, phi).build();
+      new RabinizerBuilder(env, configuration, factories, phi).build();
     rabinizerAutomaton.setName("Rabinizer automaton for " + formulaString);
     return rabinizerAutomaton;
   }
@@ -330,10 +331,9 @@ public class RabinizerBuilder {
     // TODO We could detect effectively false G operators here (i.e. monitors never accept)
     // But this rarely happens
     List<ListenableFuture<MonitorAutomaton>> monitorFutures = new ArrayList<>(numberOfGFormulas);
-    ListeningExecutorService executorService = MoreExecutors.newDirectExecutorService();
     for (int gIndex = 0; gIndex < numberOfGFormulas; gIndex++) {
       GOperator gFormula = gFormulas[gIndex];
-      monitorFutures.add(executorService.submit(() -> buildMonitor(gFormula)));
+      monitorFutures.add(env.getExecutor().submit(() -> buildMonitor(gFormula)));
     }
     MonitorAutomaton[] monitors = new MonitorAutomaton[numberOfGFormulas];
     Arrays.setAll(monitors, i -> Futures.getUnchecked(monitorFutures.get(i)));
@@ -585,7 +585,7 @@ public class RabinizerBuilder {
     logger.log(Level.FINE, "Building monitor for sub-formula {0}", gOperator);
 
     EquivalenceClass operand = eqFactory.createEquivalenceClass(gOperator.operand);
-    if (configuration.removeFormulaRepresentative()) {
+    if (!env.annotations()) {
       operand.freeRepresentative();
     }
 

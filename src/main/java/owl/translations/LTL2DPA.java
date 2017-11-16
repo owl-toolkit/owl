@@ -1,63 +1,46 @@
-/*
- * Copyright (C) 2016  (See AUTHORS)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package owl.translations;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.function.Function;
-import owl.automaton.MutableAutomaton;
-import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.output.HoaPrintable;
-import owl.automaton.transformations.ParityUtil;
-import owl.ltl.LabelledFormula;
+import com.google.common.collect.ImmutableMap;
+import owl.automaton.minimizations.ImplicitMinimizeTransformer;
+import owl.automaton.transformations.RabinDegeneralization;
+import owl.cli.parser.ImmutableSingleModuleConfiguration;
+import owl.cli.parser.SimpleModuleParser;
+import owl.ltl.ROperator;
+import owl.ltl.WOperator;
+import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.RewriterTransformer;
+import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.UnabbreviateVisitor;
+import owl.run.input.LtlInput;
+import owl.run.meta.ToHoa;
+import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.rabinizer.RabinizerModule;
 
-public final class LTL2DPA extends AbstractLtlCommandLineTool {
-  private final boolean breakpointFree;
-  private final boolean parallel;
+public final class LTL2DPA {
+  private LTL2DPA() {}
 
-  private LTL2DPA(boolean parallel, boolean breakpointFree) {
-    this.parallel = parallel;
-    this.breakpointFree = breakpointFree;
-  }
-
-  public static void main(String... argsArray) {
-    Deque<String> args = new ArrayDeque<>(Arrays.asList(argsArray));
-    new LTL2DPA(args.remove("--parallel"), args.remove("--breakpoint-free")).execute(args);
-  }
-
-  @Override
-  protected Function<LabelledFormula, ? extends HoaPrintable> getTranslation(
-    EnumSet<Optimisation> optimisations) {
-    optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
-    optimisations.remove(Optimisation.COMPLETE);
-
-    if (parallel) {
-      optimisations.add(Optimisation.COMPLEMENT_CONSTRUCTION);
-    } else {
-      optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
-    }
-
-    Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> translation =
-      new LTL2DPAFunction(optimisations, breakpointFree);
-
-    return (formula) -> ParityUtil.minimizePriorities(translation.apply(formula));
+  public static void main(String... args) {
+    ImmutableSingleModuleConfiguration ldba = ImmutableSingleModuleConfiguration.builder()
+      .inputParser(new LtlInput())
+      .addPreProcessors(new RewriterTransformer(RewriterEnum.MODAL_ITERATIVE))
+      .transformer(LTL2DPAFunction.settings)
+      .addPostProcessors(environment -> new ImplicitMinimizeTransformer())
+      .outputWriter(new ToHoa())
+      .build();
+    ImmutableSingleModuleConfiguration rabinizerIar = ImmutableSingleModuleConfiguration.builder()
+      .inputParser(new LtlInput())
+      .addPreProcessors(new RewriterTransformer(RewriterEnum.MODAL_ITERATIVE))
+      .addPreProcessors(env -> {
+        UnabbreviateVisitor visitor = new UnabbreviateVisitor(WOperator.class, ROperator.class);
+        return DefaultConverter.asTransformer(visitor);
+      })
+      .transformer(new RabinizerModule())
+      .addPostProcessors(environment -> new ImplicitMinimizeTransformer())
+      .addPostProcessors(environment -> new RabinDegeneralization())
+      .addPostProcessors(IARBuilder.FACTORY)
+      .outputWriter(new ToHoa())
+      .build();
+    SimpleModuleParser.run(args, ImmutableMap.of("ldba", ldba, "rabinizer", rabinizerIar), ldba);
   }
 }

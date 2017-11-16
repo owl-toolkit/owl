@@ -21,6 +21,7 @@ public final class GeneralizedBuchiAcceptanceTransformer<S>
 
   public static <S> GeneralizedBuchiAcceptanceTransformer<S> create(
     Automaton<S, AllAcceptance> nba) {
+    // TODO Move this to transformation package, create transformer modules from this
     return new GeneralizedBuchiAcceptanceTransformer<>(nba);
   }
 

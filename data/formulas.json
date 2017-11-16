@@ -19,6 +19,14 @@
         "type": "file",
         "path": "data/formulas/check.ltl"
     },
+    "libe-spec": {
+        "type": "file",
+        "path": "data/formulas/libe-spec.ltl"
+    },
+    "fggf": {
+        "type": "file",
+        "path": "data/formulas/fggf.ltl"
+    },
     "random": {
         "type": "random"
     }

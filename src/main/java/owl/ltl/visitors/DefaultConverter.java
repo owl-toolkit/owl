@@ -25,14 +25,22 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.run.transformer.Transformer;
+import owl.run.transformer.Transformers;
 
 public abstract class DefaultConverter implements Visitor<Formula>, Function<Formula, Formula> {
+  public static Transformer asTransformer(Visitor<Formula> converter) {
+    return Transformers.fromFunction(LabelledFormula.class,
+      labelledFormula -> labelledFormula.wrap(labelledFormula.formula.accept(converter)));
+  }
+
   @Override
   public Formula apply(Formula formula) {
     return formula.accept(this);

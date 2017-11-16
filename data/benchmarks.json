@@ -15,6 +15,7 @@
     "defaults": {
         "data": "full",
         "repeat": 3,
+        "perf": false,
         "update": true
     },
     "benchmark": {

@@ -17,9 +17,15 @@
 
 package owl.ltl.visitors;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import owl.cli.ImmutableTransformerSettings;
+import owl.cli.ModuleSettings.TransformerSettings;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
@@ -28,8 +34,21 @@ import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
+import owl.run.transformer.Transformer;
 
 public class UnabbreviateVisitor extends DefaultConverter {
+  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
+    .key("unabbreviate")
+    .options(new Options()
+      .addOption("w", "weak-until", false, "Remove W operator")
+      .addOption("r", "release", false, "Remove R operator")
+      .addOption("m", "strong-release", false, "Remove M operator"))
+    .transformerSettingsParser(settings -> {
+      Transformer transformer = DefaultConverter
+        .asTransformer(new UnabbreviateVisitor(parseClassList(settings)));
+      return environment -> transformer;
+    }).build();
+
   // TODO Support for more operators
   private final Set<Class<? extends Formula>> classes;
 
@@ -40,6 +59,27 @@ public class UnabbreviateVisitor extends DefaultConverter {
 
   public UnabbreviateVisitor(List<Class<? extends Formula>> classes) {
     this.classes = ImmutableSet.copyOf(classes);
+  }
+
+  private static ImmutableList<Class<? extends Formula>> parseClassList(CommandLine settings)
+    throws ParseException {
+    ImmutableList.Builder<Class<? extends Formula>> classes =
+      ImmutableList.builder();
+    if (settings.hasOption("weak-until")) {
+      classes.add(WOperator.class);
+    }
+    if (settings.hasOption("release")) {
+      classes.add(ROperator.class);
+    }
+    if (settings.hasOption("strong-release")) {
+      classes.add(MOperator.class);
+    }
+
+    ImmutableList<Class<? extends Formula>> classList = classes.build();
+    if (classList.isEmpty()) {
+      throw new ParseException("No operation specified");
+    }
+    return classList;
   }
 
   @Override
