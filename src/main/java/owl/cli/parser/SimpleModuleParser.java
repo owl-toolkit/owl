@@ -55,6 +55,7 @@ public final class SimpleModuleParser {
     SingleModuleConfiguration defaultMode) {
     if (args.length == 0) {
       run(args, defaultMode);
+      return;
     }
 
     HelpFormatter formatter = new HelpFormatter();
