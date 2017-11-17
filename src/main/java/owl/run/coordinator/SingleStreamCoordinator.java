@@ -1,5 +1,6 @@
 package owl.run.coordinator;
 
+import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -96,7 +97,8 @@ public class SingleStreamCoordinator implements Coordinator {
     } else if (settings.hasOption("input")) {
       input = () -> getInputStream(Arrays.asList(settings.getOptionValues("input")));
     } else if (!settings.getArgList().isEmpty()) {
-      input = () -> getInputStream(settings.getArgList());
+      List<String> argList = ImmutableList.copyOf(settings.getArgList());
+      input = () -> getInputStream(argList);
       settings.getArgList().clear();
     } else {
       input = () -> System.in;
