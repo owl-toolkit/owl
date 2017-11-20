@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
@@ -43,7 +42,7 @@ import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -291,20 +290,25 @@ public final class AutomatonReader {
 
         case "parity":
           check(acceptanceExtra.size() == 3);
-          String stringComparison = acceptanceExtra.get(0).toString();
 
-          if (!Objects.equals(stringComparison, "min")) {
-            throw new HOAConsumerException("Only min priority is supported");
+          String stringPriority = acceptanceExtra.get(0).toString();
+          boolean max;
+          if ("max".equals(stringPriority)) {
+            max = true;
+          } else if ("min".equals(stringPriority)) {
+            max = false;
+          } else {
+            throw new HOAConsumerException("Unkown priority " + stringPriority);
           }
 
-          String stringPriority = acceptanceExtra.get(1).toString();
-          Priority priority;
-          if (Objects.equals(stringPriority, "even")) {
-            priority = Priority.EVEN;
-          } else if (Objects.equals(stringPriority, "odd")) {
-            priority = Priority.ODD;
+          String stringParity = acceptanceExtra.get(1).toString();
+          boolean even;
+          if ("even".equals(stringParity)) {
+            even = true;
+          } else if ("odd".equals(stringParity)) {
+            even = false;
           } else {
-            throw new HOAConsumerException("Unknown priority " + stringPriority);
+            throw new HOAConsumerException("Unknown parity " + stringParity);
           }
 
           String stringColours = acceptanceExtra.get(2).toString();
@@ -319,7 +323,7 @@ public final class AutomatonReader {
           check(colours == numberOfAcceptanceSets, "Mismatch between colours (%d) and acceptance"
             + " set count (%d)", colours, numberOfAcceptanceSets);
 
-          return new ParityAcceptance(numberOfAcceptanceSets, priority);
+          return new ParityAcceptance(numberOfAcceptanceSets, Parity.of(max, even));
 
         case "co-buchi":
           // acc-name: co-Buchi

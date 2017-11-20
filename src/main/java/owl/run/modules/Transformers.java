@@ -26,7 +26,7 @@ public final class Transformers {
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();
   public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();
   public static final Transformer RABIN_TO_PARITY = environment -> (input, context) ->
-    new IARBuilder<>(AutomatonUtil.cast(input, Object.class, RabinAcceptance.class)).build();
+    new IARBuilder<>(AutomatonUtil.cast(input, RabinAcceptance.class)).build();
 
   private Transformers() {
   }
@@ -42,6 +42,13 @@ public final class Transformers {
       checkArgument(inputClass.isInstance(object), "Expected type %s, got type %s", inputClass,
         object == null ? null : object.getClass());
       return function.apply(inputClass.cast(object));
+    };
+  }
+
+  public static Transformer fromWriter(OutputWriter writer) {
+    return environment -> (input, context) -> {
+      writer.bind(context.getMetaWriter(), environment).write(input);
+      return input;
     };
   }
 

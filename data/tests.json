@@ -129,6 +129,19 @@
                 "rabinizer-iar"
             ],
             "data": "medium"
+        },
+        "ltl2dpa-convert": {
+            "tools": [
+                "ltl2dpa-convert#max",
+                "ltl2dpa-convert#min",
+                "ltl2dpa-convert#even",
+                "ltl2dpa-convert#odd",
+                "ltl2dpa-convert#max,even",
+                "ltl2dpa-convert#max,odd",
+                "ltl2dpa-convert#min,even",
+                "ltl2dpa-convert#min,odd"
+            ],
+            "data": "small"
         }
     }
 }

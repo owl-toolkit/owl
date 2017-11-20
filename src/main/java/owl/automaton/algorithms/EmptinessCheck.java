@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.IntConsumer;
-import java.util.logging.Logger;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
@@ -37,17 +36,13 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.edge.Edge;
 import owl.automaton.transformations.RabinDegeneralization;
 
 public final class EmptinessCheck {
-  private static final Logger logger = Logger.getLogger(EmptinessCheck.class.getName());
-
-  private EmptinessCheck() {
-  }
+  private EmptinessCheck() {}
 
   private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
     Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
@@ -161,7 +156,7 @@ public final class EmptinessCheck {
 
       /* assert Parity.containsAcceptingLasso(casted, initialState)
         == Parity.containsAcceptingScc(casted, initialState); */
-      return !Parity.containsAcceptingLasso(casted, initialState);
+      return !EmptinessCheck.Parity.containsAcceptingLasso(casted, initialState);
     }
 
     if (acceptance instanceof RabinAcceptance) {
@@ -227,10 +222,14 @@ public final class EmptinessCheck {
   private static final class Parity {
     private static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
       S initialState) {
+      if (automaton.getAcceptance().getParity().max()) {
+        throw new UnsupportedOperationException("Only min-{even,odd} conditions supported.");
+      }
+
       int sets = automaton.getAcceptance().getAcceptanceSets();
 
-      if (automaton.getAcceptance().getPriority() == Priority.ODD) {
-        for (int fin = 0; fin < sets; fin = fin + 2) {
+      if (!automaton.getAcceptance().getParity().even()) {
+        for (int fin = 0; fin < sets; fin += 2) {
           int inf = -1;
 
           if (sets - fin >= 2) {
@@ -242,7 +241,7 @@ public final class EmptinessCheck {
           }
         }
       } else {
-        for (int inf = 0; inf < sets; inf = inf + 2) {
+        for (int inf = 0; inf < sets; inf += 2) {
           int fin = inf - 1;
 
           if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
@@ -262,7 +261,7 @@ public final class EmptinessCheck {
       S initialState) {
       Queue<AnalysisResult<S>> queue = new ArrayDeque<>();
 
-      int initialPriority = automaton.getAcceptance().getPriority() == Priority.EVEN ? 0 : 1;
+      int initialPriority = automaton.getAcceptance().getParity().even() ? 0 : 1;
       SccDecomposition.computeSccs(automaton, Set.of(initialState), false)
         .forEach(scc -> queue.add(new AnalysisResult<>(scc, initialPriority - 1)));
 

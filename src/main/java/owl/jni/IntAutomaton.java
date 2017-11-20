@@ -35,7 +35,6 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -100,16 +99,20 @@ public final class IntAutomaton {
     if (acceptance instanceof BuchiAcceptance) {
       return Acceptance.CO_SAFETY;
     }
+    ParityAcceptance parity = (ParityAcceptance) acceptance;
 
-    if (acceptance instanceof ParityAcceptance) {
-      if (((ParityAcceptance) acceptance).getPriority() == Priority.EVEN) {
-        return Acceptance.PARITY_MIN_EVEN;
-      } else {
+    switch (parity.getParity()) {
+      case MAX_EVEN:
+        return Acceptance.PARITY_MAX_EVEN;
+      case MAX_ODD:
+        return Acceptance.PARITY_MAX_ODD;
+      case MIN_ODD:
         return Acceptance.PARITY_MIN_ODD;
-      }
+      case MIN_EVEN:
+        return Acceptance.PARITY_MIN_EVEN;
+      default:
+        throw new AssertionError();
     }
-
-    throw new IllegalStateException();
   }
 
   private static IntAutomaton of(Automaton<?, ?> automaton, Acceptance acceptance, int[] mapping) {

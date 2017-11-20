@@ -37,7 +37,7 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
@@ -82,7 +82,7 @@ public final class RankingAutomaton<S, T, U, V> {
                            ? SccDecomposition.computeSccs(this.ldba.getInitialComponent())
                            : null;
 
-    acceptance = new ParityAcceptance(2, Priority.ODD);
+    acceptance = new ParityAcceptance(2, Parity.MIN_ODD);
 
     this.lattice = lattice;
     this.resetRanking = resetRanking;
@@ -185,10 +185,9 @@ public final class RankingAutomaton<S, T, U, V> {
     { // Compute ranking successor
       ListIterator<T> iterator = previousRanking.listIterator();
 
-      for (T previousState; iterator.hasNext(); ) {
-
+      while (iterator.hasNext()) {
         assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
-        previousState = iterator.next();
+        T previousState = iterator.next();
         Edge<T> edge = ldba.getAcceptingComponent().getEdge(previousState, valuation);
 
         if (edge == null) {

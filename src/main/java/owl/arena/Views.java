@@ -17,8 +17,14 @@
 
 package owl.arena;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.collect.Collections2;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,10 +33,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
@@ -43,28 +51,67 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.run.modules.Transformers;
+import owl.util.ImmutableObject;
 
 public final class Views {
-  public static final TransformerParser CLI_PARSER =
+  private static final Logger logger = Logger.getLogger(Views.class.getName());
+
+  public static final TransformerParser AUTOMATON_TO_ARENA_PARSER =
     ImmutableTransformerParser.builder()
       .key("aut2arena")
       .optionsBuilder(() -> {
-        Option option = new Option("u", "uncontrollable", true,
-          "List of atomic propositions controlled by player one (Environment)");
-        option.setRequired(true);
-        return new Options().addOption(option);
+        Option environmentPropositions = new Option("e", "environment", true,
+          "List of atomic propositions controlled by the environment");
+        Option systemPropositions = new Option("s", "system", true,
+          "List of atomic propositions controlled by the system");
+        Option environmentPrefixes = new Option(null, "envprefix", true,
+          "Prefixes of environment APs (defaults to i)");
+        Option systemPrefixes = new Option(null, "sysprefix", true,
+          "Prefixes of system APs");
+
+        OptionGroup apGroup = new OptionGroup()
+          .addOption(environmentPropositions)
+          .addOption(environmentPrefixes)
+          .addOption(systemPropositions)
+          .addOption(systemPrefixes);
+        apGroup.getOptions().forEach(option -> option.setArgs(Option.UNLIMITED_VALUES));
+
+        return new Options().addOptionGroup(apGroup);
       })
       .parser(settings -> {
-        String[] playerOnePropositions = settings.getOptionValues("uncontrollable");
-        if (playerOnePropositions == null) {
-          throw new ParseException("Player one (environment) propositions required");
+        // At most one of those is non-null
+        String[] environmentPropositions = settings.getOptionValues("environment");
+        String[] systemPropositions = settings.getOptionValues("system");
+        String[] environmentPrefixes = settings.getOptionValues("envprefix");
+        String[] systemPrefixes = settings.getOptionValues("sysprefix");
+
+        Predicate<String> isEnvironmentAp;
+        if (environmentPropositions != null) {
+          List<String> environmentAPs = List.of(environmentPropositions);
+          isEnvironmentAp = environmentAPs::contains;
+        } else if (systemPropositions != null) {
+          List<String> systemAPs = List.of(systemPropositions);
+          isEnvironmentAp = ((Predicate<String>) systemAPs::contains).negate();
+        } else if (environmentPrefixes != null) {
+          isEnvironmentAp = ap -> Arrays.stream(environmentPrefixes).anyMatch(ap::startsWith);
+        } else if (systemPrefixes != null) {
+          isEnvironmentAp = ap -> Arrays.stream(systemPrefixes).noneMatch(ap::startsWith);
+        } else {
+          isEnvironmentAp = ap -> ap.startsWith("i");
         }
 
-        return Transformers.fromFunction(Automaton.class, automaton ->
-          Views.split(AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class),
-            List.of(playerOnePropositions)));
+        return environment -> (input, context) -> {
+          checkArgument(input instanceof Automaton);
+          Automaton<?, ?> automaton = (Automaton<?, ?>) input;
+          List<String> environmentAp = automaton.getVariables().stream()
+            .filter(isEnvironmentAp).collect(toImmutableList());
+          logger.log(Level.FINER, "Splitting automaton into Arena with APs {0}/{1}",
+            new Object[] {environmentAp,
+              Collections2.filter(automaton.getVariables(), x -> !isEnvironmentAp.test(x))});
+          return Views.split(AutomatonUtil.cast(automaton, ParityAcceptance.class), environmentAp);
+        };
       }).build();
+
 
   private Views() {}
 
@@ -79,9 +126,9 @@ public final class Views {
   }
 
   public static <S, A extends OmegaAcceptance> Arena<Node<S>, A> split(Automaton<S, A> automaton,
-    List<String> player1Propositions) {
+    List<String> firstPropositions) {
     assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
-    return new ForwardingArena<>(automaton, player1Propositions);
+    return new ForwardingArena<>(automaton, firstPropositions);
   }
 
   private static final class FilteredArena<S, A extends OmegaAcceptance> implements Arena<S, A> {
@@ -141,17 +188,23 @@ public final class Views {
     }
   }
 
+  /**
+   * An arena based on an automaton and a splitting of its variables. The arena is constructed by
+   * first letting player one choose his part of the variables, then letting the second player
+   * choose the remained of the valuation and finally updating the state based on the combined
+   * valuation, emitting the corresponding acceptance.
+   */
   static final class ForwardingArena<S, A extends OmegaAcceptance> implements Arena<Node<S>, A> {
     private final Automaton<S, A> automaton;
-    private final BitSet player1Propositions;
-    private final BitSet player2Propositions;
+    private final BitSet firstPlayer;
+    private final BitSet secondPlayer;
 
-    ForwardingArena(Automaton<S, A> automaton, List<String> player1) {
+    ForwardingArena(Automaton<S, A> automaton, List<String> firstPlayer) {
       this.automaton = automaton;
-      player1Propositions = new BitSet();
-      player1.forEach(x -> player1Propositions.set(automaton.getVariables().indexOf(x)));
-      player2Propositions = (BitSet) player1Propositions.clone();
-      player2Propositions.flip(0, automaton.getFactory().getSize());
+      this.firstPlayer = new BitSet();
+      firstPlayer.forEach(x -> this.firstPlayer.set(automaton.getVariables().indexOf(x)));
+      secondPlayer = (BitSet) this.firstPlayer.clone();
+      secondPlayer.flip(0, automaton.getFactory().getSize());
     }
 
     @Override
@@ -169,40 +222,39 @@ public final class Views {
       return Collections3.transform(automaton.getInitialStates(), Node::new);
     }
 
-    /*
-     * NOTE: In order to have the arena be complete, we make player 1
-     * transitions be labelled with their choice of player-1 proposition
-     * valuation with all valuations of propositions of player 2. The same is
-     * done for player 2. This is important when trying to recover a strategy
-     * from a subarena.
-     */
     @Override
-    public Collection<LabelledEdge<Node<S>>> getLabelledEdges(Node<S> state) {
+    public Collection<LabelledEdge<Node<S>>> getLabelledEdges(Node<S> node) {
+      /*
+       * In order obtain a complete arena, each players transitions are labeled with his choice
+       * and all valuations of the other players APs. This is important when trying to recover a
+       * strategy from a sub-arena.
+       */
+
       List<LabelledEdge<Node<S>>> edges = new ArrayList<>();
       ValuationSetFactory factory = automaton.getFactory();
 
-      if (state.choice == null) {
-        for (BitSet valuation : BitSets.powerSet(player1Propositions)) {
-          ValuationSet valuationSet = factory.createValuationSet(valuation, player1Propositions);
-          edges.add(LabelledEdge.of(new Node<>(state.state, (BitSet) valuation.clone()),
-            valuationSet));
+      if (node.firstPlayerChoice == null) {
+        // First player chooses his part of the valuation
+
+        for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
+          ValuationSet valuationSet = factory.createValuationSet(valuation, firstPlayer);
+          edges.add(LabelledEdge.of(node.choose((BitSet) valuation.clone()), valuationSet));
         }
       } else {
-        for (BitSet valuation : BitSets.powerSet(player2Propositions)) {
-          ValuationSet valuationSet =
-            factory.createValuationSet(valuation, player2Propositions);
+        // Second player completes the valuation, yielding a transition in the automaton
 
-          // Modified by or() below
+        for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
+          ValuationSet valuationSet = factory.createValuationSet(valuation, secondPlayer);
+
           BitSet joined = (BitSet) valuation.clone();
-          joined.or(state.choice);
-          Edge<S> edge = automaton.getEdge(state.state, joined);
+          joined.or(node.firstPlayerChoice);
+          Edge<S> edge = automaton.getEdge(node.state, joined);
+          checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
+            node.state, joined);
 
-          if (edge == null) {
-            continue;
-          }
-
-          edges.add(LabelledEdge.of(edge.withSuccessor(new Node<>(edge.getSuccessor())),
-            valuationSet));
+          // Lift the automaton edge to the arena
+          Edge<Node<S>> successor = edge.withSuccessor(new Node<>(edge.getSuccessor()));
+          edges.add(LabelledEdge.of(successor, valuationSet));
         }
       }
 
@@ -211,26 +263,27 @@ public final class Views {
 
     @Override
     public Owner getOwner(Node<S> state) {
-      return state.choice == null ? Owner.PLAYER_1 : Owner.PLAYER_2;
+      return state.firstPlayerChoice == null ? Owner.PLAYER_1 : Owner.PLAYER_2;
     }
 
     @Override
-    public Set<Node<S>> getPredecessors(Node<S> state) {
-      if (state.choice != null) {
-        return Set.of(new Node<>(state.state));
+    public Set<Node<S>> getPredecessors(Node<S> node) {
+      if (node.firstPlayerChoice != null) {
+        return Set.of(new Node<>(node.state));
       }
 
       Set<Node<S>> predecessors = new HashSet<>();
 
       automaton.forEachLabelledEdge((predecessor, edge, valuationSet) -> {
-        if (!state.state.equals(edge.getSuccessor())) {
+        if (!node.state.equals(edge.getSuccessor())) {
           return;
         }
 
+        Node<S> predecessorNode = new Node<>(predecessor);
         valuationSet.forEach(set -> {
           BitSet localSet = (BitSet) set.clone();
-          localSet.and(player1Propositions);
-          predecessors.add(new Node<>(predecessor, localSet));
+          localSet.and(firstPlayer);
+          predecessors.add(predecessorNode.choose(localSet));
         });
       });
 
@@ -239,13 +292,8 @@ public final class Views {
 
     @Override
     public Set<Node<S>> getPredecessors(Node<S> state, Owner owner) {
-      if (state.choice == null) {
-        // This state belongs to player 1 and there is strict alternation.
-        return owner == Owner.PLAYER_1 ? Set.of() : getPredecessors(state);
-      } else {
-        // This state belongs to player 2 and there is strict alternation.
-        return owner == Owner.PLAYER_1 ? getPredecessors(state) : Set.of();
-      }
+      // Alternation
+      return owner == getOwner(state) ? Set.of() : getPredecessors(state);
     }
 
     @Override
@@ -253,10 +301,11 @@ public final class Views {
       Set<Node<S>> states = new HashSet<>();
 
       automaton.getStates().forEach(state -> {
-        states.add(new Node<>(state));
+        Node<S> node = new Node<>(state);
+        states.add(node);
 
-        for (BitSet valuation : BitSets.powerSet(player1Propositions)) {
-          states.add(new Node<>(state, (BitSet) valuation.clone()));
+        for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
+          states.add(node.choose((BitSet) valuation.clone()));
         }
       });
 
@@ -268,51 +317,61 @@ public final class Views {
       List<String> variables = new ArrayList<>();
 
       Collections3.forEachIndexed(getVariables(), (i, s) -> {
-        if (owner == Owner.PLAYER_1 ^ !player1Propositions.get(i)) {
+        if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
           variables.add(s);
         }
       });
 
       return variables;
     }
+
+    @Override
+    public String toString() {
+      return "Arena: " + firstPlayer + '/' + secondPlayer + '\n' + automaton;
+    }
   }
 
-  public static final class Node<S> {
+  /**
+   * A state of the split arena.
+   */
+  public static final class Node<S> extends ImmutableObject {
     @Nullable
-    final BitSet choice;
-    final S state;
+    private final BitSet firstPlayerChoice;
+    public final S state;
 
-    Node(S state) {
+    private Node(S state) {
       this(state, null);
     }
 
-    Node(S state, @Nullable BitSet choice) {
+    private Node(S state, @Nullable BitSet firstPlayerChoice) {
       this.state = state;
-      this.choice = choice;
+      this.firstPlayerChoice = firstPlayerChoice;
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
+    protected boolean equals2(ImmutableObject o) {
       Node<?> node = (Node<?>) o;
-      return Objects.equals(state, node.state) && Objects.equals(choice, node.choice);
+      return Objects.equals(state, node.state) && Objects.equals(
+        firstPlayerChoice, node.firstPlayerChoice);
     }
 
     @Override
-    public int hashCode() {
-      return Objects.hash(state, choice);
+    protected int hashCodeOnce() {
+      if (firstPlayerChoice == null) {
+        return state.hashCode();
+      }
+
+      return state.hashCode() ^ firstPlayerChoice.hashCode();
     }
 
     @Override
     public String toString() {
-      return "Node{" + "choice=" + choice + ", state=" + state + '}';
+      return firstPlayerChoice == null ? "1:" + state : "2" + firstPlayerChoice + ':' + state;
+    }
+
+    private Node<S> choose(BitSet valuation) {
+      assert firstPlayerChoice == null;
+      return new Node<>(state, valuation);
     }
   }
 }

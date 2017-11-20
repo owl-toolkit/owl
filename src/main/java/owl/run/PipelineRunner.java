@@ -140,6 +140,7 @@ public class PipelineRunner {
 
     processingQueue.clear();
     transformers.forEach(Transformer.Instance::closeTransformer);
+    outputWriter.close();
     env.shutdown();
 
     if (occurredException != null) {

@@ -26,8 +26,8 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 
 public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
-  // Does not contain the states itself.
   default Set<S> getAttractor(Collection<S> states, Owner owner) {
+    // Does not contain the states itself.
     Set<S> attractor = new HashSet<>();
 
     // Add states that owner controls;
@@ -83,12 +83,16 @@ public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
 
   List<String> getVariables(Owner owner);
 
-  default void toPgSolver() {
-    throw new UnsupportedOperationException("Not yet implemented.");
-  }
-
   enum Owner {
-    PLAYER_1, PLAYER_2;
+    // TODO Should this be switchable?
+    /**
+     * This player wants to dissatisfy the acceptance condition.
+     */
+    PLAYER_1,
+    /**
+     * This player wants to satisfy the acceptance condition.
+     */
+    PLAYER_2;
 
     public Owner flip() {
       return this == PLAYER_1 ? PLAYER_2 : PLAYER_1;

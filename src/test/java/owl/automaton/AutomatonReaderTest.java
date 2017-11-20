@@ -1,11 +1,10 @@
 package owl.automaton;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.Iterables;
@@ -21,7 +20,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -162,7 +161,7 @@ public class AutomatonReaderTest {
     + "[!0] 0\n"
     + "--END--\n";
 
-  private Int2ObjectMap<HoaState> getStates(Automaton<HoaState, ?> automaton) {
+  private static Int2ObjectMap<HoaState> getStates(Automaton<HoaState, ?> automaton) {
     Int2ObjectMap<HoaState> states = new Int2ObjectLinkedOpenHashMap<>(
       automaton.getStates().size());
     for (HoaState state : automaton.getStates()) {
@@ -215,7 +214,7 @@ public class AutomatonReaderTest {
     assertThat(automaton.getAcceptance(), instanceOf(ParityAcceptance.class));
     ParityAcceptance acceptance = (ParityAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(3));
-    assertThat(acceptance.getPriority(), is(Priority.ODD));
+    assertThat(acceptance.getParity(), is(Parity.MIN_ODD));
 
     HoaState initialState = automaton.getInitialState();
     HoaState successor = automaton.getSuccessor(initialState, BitSets.createBitSet(false, false));
@@ -262,10 +261,10 @@ public class AutomatonReaderTest {
       HOA_GENERALIZED_BUCHI, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertEquals(automaton.getStates().size(), 1);
+    assertThat(automaton.getStates().size(), is(1));
     assertThat(automaton.getAcceptance(), instanceOf(GeneralizedBuchiAcceptance.class));
     GeneralizedBuchiAcceptance acceptance = (GeneralizedBuchiAcceptance) automaton.getAcceptance();
-    assertEquals(acceptance.getAcceptanceSets(), 2);
+    assertThat(acceptance.getAcceptanceSets(), is(2));
   }
 
   @Test
@@ -274,10 +273,10 @@ public class AutomatonReaderTest {
       HOA_GENERALIZED_RABIN, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertEquals(automaton.getStates().size(), 2);
+    assertThat(automaton.getStates().size(), is(2));
     assertThat(automaton.getAcceptance(), instanceOf(GeneralizedRabinAcceptance.class));
     GeneralizedRabinAcceptance acceptance = (GeneralizedRabinAcceptance) automaton.getAcceptance();
-    assertEquals(acceptance.getAcceptanceSets(), 5);
+    assertThat(acceptance.getAcceptanceSets(), is(5));
   }
 
   @Test
@@ -286,10 +285,10 @@ public class AutomatonReaderTest {
       HOA_GENERIC, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertEquals(automaton.getStates().size(), 3);
+    assertThat(automaton.getStates().size(), is(3));
     assertThat(automaton.getAcceptance(), instanceOf(GenericAcceptance.class));
     GenericAcceptance acceptance = (GenericAcceptance) automaton.getAcceptance();
-    assertEquals(acceptance.getAcceptanceSets(), 2);
+    assertThat(acceptance.getAcceptanceSets(), is(2));
   }
 
   @Test
@@ -298,9 +297,9 @@ public class AutomatonReaderTest {
       HOA_RABIN, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertEquals(automaton.getStates().size(), 3);
+    assertThat(automaton.getStates().size(), is(3));
     assertThat(automaton.getAcceptance(), instanceOf(RabinAcceptance.class));
     RabinAcceptance acceptance = (RabinAcceptance) automaton.getAcceptance();
-    assertEquals(acceptance.getAcceptanceSets(), 2);
+    assertThat(acceptance.getAcceptanceSets(), is(2));
   }
 }

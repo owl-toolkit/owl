@@ -22,6 +22,8 @@ public interface OutputWriter extends OwlModule {
   interface Binding {
     void write(Object object) throws IOException;
 
-    default void closeWriter() {}
+    default void close() {
+      // No operation
+    }
   }
 }

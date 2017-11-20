@@ -22,6 +22,7 @@ import owl.run.modules.OwlModuleParser;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.modules.OwlModuleRegistry.OwlModuleNotFoundException;
 import owl.run.modules.Transformer;
+import owl.run.modules.Transformers;
 
 /**
  * Utility class used to parse a {@link Pipeline pipeline} description based on a

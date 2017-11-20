@@ -18,7 +18,7 @@ public final class Synthesis {
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
       .addTransformer(LTL2DPACliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
-      .addTransformer(Views.CLI_PARSER)
+      .addTransformer(Views.AUTOMATON_TO_ARENA_PARSER)
       .addTransformer(ParityGameSolver.ZIELONKA_SOLVER)
       .writer(OutputWriters.TO_STRING) // we need an AIG writer here
       .build();

@@ -35,7 +35,7 @@ public final class ParityGameSolver {
   // TODO: should be returning a winning region or strategy
   public static final Transformer ZIELONKA_SOLVER =
     Transformers.fromFunction(Arena.class, x -> {
-      WinningRegions winning = recursiveZielonka(x);
+      WinningRegions<?> winning = recursiveZielonka(x);
 
       if (winning.player2.contains(x.getInitialState())) {
         return "The specification is REALISABLE";
@@ -94,24 +94,24 @@ public final class ParityGameSolver {
 
     // we now compute the attractor of the winning states and get a filtered
     // arena without the attractor states
-    Set<S> losing = Sets.difference(arena.getStates(),
+    Set<S> losingSet = Sets.difference(arena.getStates(),
       arena.getAttractorFixpoint(winningStates, ourHorse));
 
-    Arena<S, ParityAcceptance> subarena = Views.filter(arena, losing, hasMinCol.negate());
-    WinningRegions<S> subWinning = recursiveZielonka(subarena);
+    Arena<S, ParityAcceptance> subArena = Views.filter(arena, losingSet, hasMinCol.negate());
+    WinningRegions<S> subWinning = recursiveZielonka(subArena);
 
     // if in the subgame our horse wins everywhere, then he's the winner
-    if (subWinning.winningRegion(ourHorse).containsAll(subarena.getStates())) {
+    if (subWinning.winningRegion(ourHorse).containsAll(subArena.getStates())) {
       return new WinningRegions<>(arena.getStates(), ourHorse);
     }
 
     // otherwise, we have to test a different subgame
-    Set<S> opponentAttr = arena.getAttractorFixpoint(
-      subWinning.winningRegion(ourHorse.flip()), ourHorse.flip());
+    Set<S> opponentAttractor =
+      arena.getAttractorFixpoint(subWinning.winningRegion(ourHorse.flip()), ourHorse.flip());
 
-    losing = Sets.difference(arena.getStates(), opponentAttr);
-    subWinning = recursiveZielonka(Views.filter(arena, losing));
-    subWinning.addAll(opponentAttr, ourHorse.flip());
+    losingSet = Sets.difference(arena.getStates(), opponentAttractor);
+    subWinning = recursiveZielonka(Views.filter(arena, losingSet));
+    subWinning.addAll(opponentAttractor, ourHorse.flip());
 
     return subWinning;
   }

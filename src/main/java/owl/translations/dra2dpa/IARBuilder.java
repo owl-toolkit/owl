@@ -29,6 +29,7 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
@@ -57,7 +58,8 @@ public final class IARBuilder<R> {
   public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
-    resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0), vsFactory);
+    ParityAcceptance acceptance = new ParityAcceptance(0, Parity.MIN_ODD);
+    resultAutomaton = MutableAutomatonFactory.create(acceptance, vsFactory);
   }
 
   public static void main(String... args) {
@@ -163,7 +165,7 @@ public final class IARBuilder<R> {
     simpleScc.forEach(rabinState -> mapping.put(rabinState, IARState.trivial(rabinState)));
 
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
-      MutableAutomatonFactory.create(new ParityAcceptance(1), vsFactory);
+      MutableAutomatonFactory.create(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
 
     for (Map.Entry<R, IARState<R>> iarStateEntry : mapping.entrySet()) {
       R rabinState = iarStateEntry.getKey();

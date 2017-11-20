@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableValueGraph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -98,6 +99,7 @@ public final class ArenaFactory {
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
       return graph.edges().stream().filter(x -> x.source().equals(state)).map(x -> {
+        //noinspection ConstantConditions
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
 
         if (valueEdge.colour == -1) {
@@ -154,7 +156,7 @@ public final class ArenaFactory {
 
       @Override
       protected int hashCodeOnce() {
-        return Objects.hash(valuationSet, colour);
+        return valuationSet.hashCode() ^ HashCommon.mix(colour);
       }
     }
   }

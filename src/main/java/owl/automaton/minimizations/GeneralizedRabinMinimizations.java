@@ -92,7 +92,7 @@ public final class GeneralizedRabinMinimizations {
 
         IntSet pairComplementary = pairComplementaryInfSets.get(pairIndex);
         assert !pairComplementary.isEmpty();
-        pairComplementary.removeIf(i -> isEdgeFin == edge.inSet(i));
+        pairComplementary.removeIf((int i) -> isEdgeFin == edge.inSet(i));
 
         if (pairComplementary.isEmpty()) {
           iterator.remove();
@@ -193,13 +193,12 @@ public final class GeneralizedRabinMinimizations {
     int pairCount = pairs.size();
 
     IntSet indicesOnEveryEdge = new IntOpenHashSet(acceptanceSets);
-    IntIterators.fromTo(0, acceptanceSets)
-      .forEachRemaining((IntConsumer) indicesOnEveryEdge::add);
+    IntIterators.fromTo(0, acceptanceSets).forEachRemaining((IntConsumer) indicesOnEveryEdge::add);
     IntSet occurringIndices = new IntOpenHashSet();
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> {
       edge.acceptanceSetIterator().forEachRemaining((IntConsumer) occurringIndices::add);
-      indicesOnEveryEdge.removeIf(index -> !edge.inSet(index));
+      indicesOnEveryEdge.removeIf((int index) -> !edge.inSet(index));
     });
 
     Set<GeneralizedRabinPair> impossiblePairs = new HashSet<>(pairCount);
@@ -636,8 +635,8 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeTrivial(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    Collection<GeneralizedRabinPair> pairs = Collections2
-      .filter(automaton.getAcceptance().getPairs(),
+    Collection<GeneralizedRabinPair> pairs =
+      Collections2.filter(automaton.getAcceptance().getPairs(),
         pair -> pair.hasFinite() && !pair.hasInfinite());
 
     if (pairs.isEmpty()) {
