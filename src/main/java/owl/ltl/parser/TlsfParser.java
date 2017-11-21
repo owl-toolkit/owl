@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -153,5 +154,9 @@ public final class TlsfParser {
 
   public static Tlsf parse(InputStream input, Charset charset) throws IOException {
     return parse(CharStreams.fromStream(input, charset));
+  }
+
+  public static Tlsf parse(Reader input) throws IOException {
+    return parse(CharStreams.fromReader(input));
   }
 }

@@ -20,6 +20,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -33,34 +35,38 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.minimizations.ImplicitMinimizeTransformer;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
-import owl.cli.parser.ImmutableSingleModuleConfiguration;
-import owl.cli.parser.SimpleModuleParser;
 import owl.factories.ValuationSetFactory;
+import owl.run.InputReaders;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.OutputWriters;
 import owl.run.PipelineExecutionException;
+import owl.run.Transformer;
+import owl.run.Transformers;
 import owl.run.env.Environment;
-import owl.run.input.HoaInput;
-import owl.run.meta.ToHoa;
-import owl.run.transformer.Transformer;
+import owl.run.parser.ImmutableSingleModuleConfiguration;
+import owl.run.parser.SimpleModuleParser;
 
 public final class IARBuilder<R> {
-  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
-    .key("dra2dpa")
-    .description("Applies (optimized) IAR construction to the input DRA")
-    .transformerSettingsParser(settings -> IARBuilder.FACTORY)
-    .build();
-
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
-  public static final Transformer.Factory FACTORY = environment -> (input, context) -> {
-    Automaton<Object, RabinAcceptance> automaton =
-      AutomatonUtil.cast(input, Object.class, RabinAcceptance.class);
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment)
+      throws ParseException {
+      return (input, context) -> {
+        Automaton<Object, RabinAcceptance> automaton =
+          AutomatonUtil.cast(input, Object.class, RabinAcceptance.class);
 
-    try {
-      return new IARBuilder<>(automaton, environment).build();
-    } catch (ExecutionException e) {
-      throw PipelineExecutionException.wrap(e);
+        try {
+          return new IARBuilder<>(automaton, environment).build();
+        } catch (ExecutionException e) {
+          throw PipelineExecutionException.wrap(e);
+        }
+      };
+    }
+
+    @Override
+    public String getKey() {
+      return "dra2dpa";
     }
   };
 
@@ -69,7 +75,7 @@ public final class IARBuilder<R> {
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final ValuationSetFactory vsFactory;
 
-  IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
+  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
     resultAutomaton =
@@ -79,10 +85,10 @@ public final class IARBuilder<R> {
 
   public static void main(String... args) {
     SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .inputParser(new HoaInput())
+      .readerModule(InputReaders.HOA)
       .transformer(settings)
-      .addPostProcessors(environment -> new ImplicitMinimizeTransformer())
-      .outputWriter(new ToHoa())
+      .addPostProcessors(Transformers.MINIMIZER)
+      .writerModule(OutputWriters.HOA)
       .build());
   }
 

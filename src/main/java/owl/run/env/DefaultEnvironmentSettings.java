@@ -1,23 +1,20 @@
-package owl.cli.env;
+package owl.run.env;
 
 import com.google.common.base.Strings;
-import java.util.function.Supplier;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import owl.run.env.DefaultEnvironment;
-import owl.run.env.Environment;
 
 public class DefaultEnvironmentSettings implements EnvironmentSettings {
   @Override
-  public Supplier<Environment> buildEnvironment(CommandLine settings) {
+  public Environment buildEnvironment(CommandLine settings) {
     String annotationsEnv = System.getenv("OWL_ANNOTATIONS");
     boolean annotationsFromEnv = !Strings.isNullOrEmpty(annotationsEnv)
       && !"0".equals(annotationsEnv);
     boolean annotations = annotationsFromEnv || settings.hasOption("annotations");
     boolean parallel = settings.hasOption("parallel");
     boolean metaInformation = !settings.hasOption("nometa");
-    return () -> DefaultEnvironment.of(annotations, parallel, metaInformation);
+    return DefaultEnvironment.of(annotations, parallel, metaInformation);
   }
 
   @Override

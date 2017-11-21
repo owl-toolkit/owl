@@ -32,8 +32,8 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.run.transformer.Transformer;
-import owl.run.transformer.Transformers;
+import owl.run.Transformer;
+import owl.run.Transformers;
 
 public abstract class DefaultConverter implements Visitor<Formula>, Function<Formula, Formula> {
   public static Transformer asTransformer(Visitor<Formula> converter) {

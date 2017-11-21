@@ -57,7 +57,7 @@ dependencies {
     compile 'de.tum.in:naturals-util:0.7.0'
     compile 'commons-cli:commons-cli:1.4'
 
-    compile files('lib/jhoafparser-1.1.1.jar')
+    compile files('lib/jhoafparser-1.1.1-patched.jar')
 
     testCompileOnly 'org.immutables:value:2.5.5'
     testCompile 'junit:junit:4+'
@@ -185,7 +185,7 @@ checkstyle {
 }
 
 // Create startup scripts
-mainClassName = "owl.cli.DefaultCli"
+mainClassName = "owl.run.DefaultCli"
 // Create startup scripts for each tool
 def scripts = [
     'ltl2da'  : 'owl.translations.LTL2DA',

@@ -1,14 +1,14 @@
-package owl.cli.parser;
+package owl.run.parser;
 
 import java.util.List;
 import org.immutables.value.Value;
-import owl.cli.ModuleSettings;
-import owl.cli.env.DefaultEnvironmentSettings;
-import owl.cli.env.EnvironmentSettings;
+import owl.run.ModuleSettings;
+import owl.run.ModuleSettings.ReaderSettings;
+import owl.run.ModuleSettings.WriterSettings;
+import owl.run.Transformer;
 import owl.run.coordinator.SingleStreamCoordinator;
-import owl.run.input.InputParser;
-import owl.run.output.OutputWriter;
-import owl.run.transformer.Transformer.Factory;
+import owl.run.env.DefaultEnvironmentSettings;
+import owl.run.env.EnvironmentSettings;
 
 @Value.Immutable
 public abstract class SingleModuleConfiguration {
@@ -22,9 +22,9 @@ public abstract class SingleModuleConfiguration {
     return new DefaultEnvironmentSettings();
   }
 
-  public abstract InputParser.Factory inputParser();
+  public abstract ReaderSettings readerModule();
 
-  public abstract OutputWriter.Factory outputWriter();
+  public abstract WriterSettings writerModule();
 
   @Value.Default
   public boolean passNonOptionToCoordinator() {
@@ -32,12 +32,12 @@ public abstract class SingleModuleConfiguration {
   }
 
   @Value.Default
-  public List<Factory> postProcessors() {
+  public List<Transformer> postProcessors() {
     return List.of();
   }
 
   @Value.Default
-  public List<Factory> preProcessors() {
+  public List<Transformer> preProcessors() {
     return List.of();
   }
 

@@ -1,19 +1,18 @@
 package owl.run.coordinator;
 
 import com.google.common.base.Strings;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -21,8 +20,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.cli.ImmutableCoordinatorSettings;
-import owl.cli.ModuleSettings.CoordinatorSettings;
+import owl.run.ImmutableCoordinatorSettings;
+import owl.run.ModuleSettings.CoordinatorSettings;
+import owl.run.PipelineRunner;
 import owl.run.PipelineSpecification;
 
 public class ServerCoordinator implements Coordinator {
@@ -30,7 +30,7 @@ public class ServerCoordinator implements Coordinator {
     .key("server")
     .description("Opens a server and runs an execution for each connection")
     .options(options())
-    .coordinatorSettingsParser(ServerCoordinator::parseSettings)
+    .coordinatorSettingsParser((settings, env) -> parseSettings(settings))
     .build();
 
   private static final Logger logger = Logger.getLogger(ServerCoordinator.class.getName());
@@ -38,15 +38,12 @@ public class ServerCoordinator implements Coordinator {
   // TODO Maybe don't start one coordinator for each connection but share them?
   private final InetAddress address;
   private final PipelineSpecification execution;
-  private final ListeningExecutorService executorService;
   private final int port;
 
-  public ServerCoordinator(PipelineSpecification execution, InetAddress address,
-    int port) {
+  private ServerCoordinator(PipelineSpecification execution, InetAddress address, int port) {
     this.execution = execution;
     this.address = address;
     this.port = port;
-    executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   }
 
   private static Options options() {
@@ -118,24 +115,17 @@ public class ServerCoordinator implements Coordinator {
           //noinspection resource
           Socket connection = socket.accept();
           logger.log(Level.FINE, "New connection from {0}", socket);
-          SingleStreamCoordinator coordinator = new SingleStreamCoordinator(execution,
-            connection::getInputStream, connection::getOutputStream, 2);
-          ListenableFuture<?> execution = executorService.submit(coordinator);
-          Futures.addCallback(execution, new SocketExecutionCallback(connection),
-            MoreExecutors.directExecutor());
+
+          Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+          Writer writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
+
+          Thread runnerThread = new Thread(new Runner(execution, connection, reader, writer));
+          runnerThread.setDaemon(true);
+          runnerThread.start();
         }
       } catch (IOException e) {
         if (socket.isClosed()) {
           logger.log(Level.FINE, "Server socket was closed, awaiting termination", socket);
-          // Okay - we want to wait for termination
-          executorService.shutdown();
-          while (!executorService.isTerminated()) {
-            try {
-              executorService.awaitTermination(1, TimeUnit.SECONDS);
-            } catch (InterruptedException ignored) {
-              // NOPMD
-            }
-          }
         } else {
           logger.log(Level.SEVERE, "Unexpected IO exception while waiting for connections", e);
         }
@@ -145,28 +135,27 @@ public class ServerCoordinator implements Coordinator {
     }
   }
 
-  private static class SocketExecutionCallback implements FutureCallback<Object> {
+  private static class Runner implements Runnable {
     private final Socket socket;
+    private final Reader reader;
+    private final Writer writer;
+    private final PipelineSpecification pipelineSpecification;
 
-    public SocketExecutionCallback(Socket socket) {
+    Runner(PipelineSpecification pipelineSpecification, Socket socket, Reader reader,
+      Writer writer) {
+      this.pipelineSpecification = pipelineSpecification;
       this.socket = socket;
+      this.reader = reader;
+      this.writer = writer;
     }
 
     @Override
-    public void onFailure(Throwable t) {
-      logger.log(Level.FINE, t, () -> "Closing socket " + socket + " due to processing error");
-      try {
-        socket.close();
-      } catch (IOException e) {
-        logger.log(Level.WARNING, e, () -> "Error while closing socket " + socket);
-      }
-    }
-
-    @Override
-    public void onSuccess(@Nullable Object result) {
-      logger.log(Level.FINE, "Closing socket {0} after execution finished", socket);
-      try {
-        socket.close();
+    public void run() {
+      try (socket;
+           reader;
+           writer) {
+        PipelineRunner runner = new PipelineRunner(pipelineSpecification, reader, writer, 2);
+        runner.run();
       } catch (IOException e) {
         logger.log(Level.WARNING, e, () -> "Error while closing socket " + socket);
       }

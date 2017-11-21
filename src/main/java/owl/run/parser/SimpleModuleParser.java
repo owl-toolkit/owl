@@ -1,4 +1,4 @@
-package owl.cli.parser;
+package owl.run.parser;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -6,19 +6,18 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.cli.ModuleSettings;
 import owl.run.ImmutablePipelineSpecification;
+import owl.run.ModuleSettings;
+import owl.run.Transformer;
 import owl.run.coordinator.Coordinator;
 import owl.run.env.Environment;
-import owl.run.transformer.Transformer;
-import owl.util.CloseGuardOutputStream;
+import owl.util.UncloseableWriter;
 
 /**
  * Utility class used to parse a simplified command line (single exposed module with rest of the
@@ -26,7 +25,8 @@ import owl.util.CloseGuardOutputStream;
  * through a special {@code --mode} switch.
  */
 public final class SimpleModuleParser {
-  private SimpleModuleParser() {}
+  private SimpleModuleParser() {
+  }
 
   private static boolean isHelp(String arg) {
     return "help".equals(arg) || "--help".equals(arg) || "-h".equals(arg);
@@ -34,7 +34,7 @@ public final class SimpleModuleParser {
 
   private static void printFailure(String name, String reason, Options options,
     HelpFormatter formatter) {
-    try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+    try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
       formatter.printWrapped(pw, formatter.getWidth(), "Failed to parse " + name
         + " options. Reason: " + reason);
       formatter.printHelp(pw, formatter.getWidth(), "Available options:", null, options, 4, 2,
@@ -61,7 +61,7 @@ public final class SimpleModuleParser {
     HelpFormatter formatter = new HelpFormatter();
     formatter.setSyntaxPrefix("");
     if (args.length == 1 && isHelp(args[0])) {
-      try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
         formatter.printWrapped(pw, formatter.getWidth(), "This is the specialized, multi-mode "
           + "construction. To select a mode, give --mode=<mode> as first argument. Add --help "
           + "after that to obtain specific help for the selected mode. Available modes are: "
@@ -110,7 +110,7 @@ public final class SimpleModuleParser {
     Options transformerOptions = transformerSettings.getOptions();
 
     if (args.length == 1 && isHelp(args[0])) {
-      try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
         formatter.printWrapped(pw, formatter.getWidth(), "This is the specialized construction "
           + transformerSettings.getKey() + ". Options are specified as <global> <coordinator>"
           + " <transformer>. See below for available options.");
@@ -125,7 +125,8 @@ public final class SimpleModuleParser {
     CommandLineParser parser = new DefaultParser();
 
     CommandLine environmentCommandLine;
-    Supplier<? extends Environment> environment;
+    Environment environment;
+
     try {
       environmentCommandLine = parser.parse(environmentOptions, args, true);
       environment = configuration.environmentSettings().buildEnvironment(environmentCommandLine);
@@ -166,11 +167,11 @@ public final class SimpleModuleParser {
     }
 
     CommandLine transformerCommandLine;
-    Transformer.Factory transformerFactory;
+    Transformer transformer;
     try {
       transformerCommandLine = parser.parse(transformerOptions,
         transformerArguments.toArray(new String[transformerArguments.size()]), true);
-      transformerFactory = transformerSettings.parseTransformerSettings(transformerCommandLine);
+      transformer = transformerSettings.create(transformerCommandLine, environment);
     } catch (ParseException e) {
       printFailure(transformerSettings.getKey(), e.getMessage(), coordinatorOptions, formatter);
       System.exit(1);
@@ -179,7 +180,7 @@ public final class SimpleModuleParser {
 
     List<String> unmatchedArguments = transformerCommandLine.getArgList();
     if (!unmatchedArguments.isEmpty()) {
-      try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
         formatter.printWrapped(pw, formatter.getWidth(), "Unmatched argument(s): "
           + String.join(", ", unmatchedArguments));
       }
@@ -187,13 +188,20 @@ public final class SimpleModuleParser {
       return;
     }
 
-    coordinatorFactory.create(ImmutablePipelineSpecification.builder()
-      .environment(environment)
-      .input(configuration.inputParser())
-      .addAllTransformers(configuration.preProcessors())
-      .addTransformers(transformerFactory)
-      .addAllTransformers(configuration.postProcessors())
-      .output(configuration.outputWriter())
-      .build()).run();
+    CommandLine empty = (new CommandLine.Builder()).build();
+
+    try {
+      coordinatorFactory.create(ImmutablePipelineSpecification.builder()
+        .environment(environment)
+        .input(configuration.readerModule().create(empty, environment))
+        .addAllTransformers(configuration.preProcessors())
+        .addTransformers(transformer)
+        .addAllTransformers(configuration.postProcessors())
+        .output(configuration.writerModule().create(empty, environment))
+        .build()).run();
+    } catch (ParseException e) {
+      System.err.println(e.getMessage());
+      System.exit(1);
+    }
   }
 }

@@ -24,8 +24,6 @@ import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
@@ -34,20 +32,32 @@ import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
-import owl.run.transformer.Transformer;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.Transformer;
+import owl.run.env.Environment;
 
 public class UnabbreviateVisitor extends DefaultConverter {
-  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
-    .key("unabbreviate")
-    .options(new Options()
-      .addOption("w", "weak-until", false, "Remove W operator")
-      .addOption("r", "release", false, "Remove R operator")
-      .addOption("m", "strong-release", false, "Remove M operator"))
-    .transformerSettingsParser(settings -> {
-      Transformer transformer = DefaultConverter
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment)
+      throws ParseException {
+      return DefaultConverter
         .asTransformer(new UnabbreviateVisitor(parseClassList(settings)));
-      return environment -> transformer;
-    }).build();
+    }
+
+    @Override
+    public String getKey() {
+      return "unabbreviate";
+    }
+
+    @Override
+    public Options getOptions() {
+      return new Options()
+        .addOption("w", "weak-until", false, "Remove W operator")
+        .addOption("r", "release", false, "Remove R operator")
+        .addOption("m", "strong-release", false, "Remove M operator");
+    }
+  };
 
   // TODO Support for more operators
   private final Set<Class<? extends Formula>> classes;

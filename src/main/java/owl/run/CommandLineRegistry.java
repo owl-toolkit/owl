@@ -1,9 +1,7 @@
-package owl.cli;
+package owl.run;
 
-import static owl.cli.ModuleSettings.CoordinatorSettings;
-import static owl.cli.ModuleSettings.InputSettings;
-import static owl.cli.ModuleSettings.OutputSettings;
-import static owl.cli.ModuleSettings.TransformerSettings;
+import static owl.run.ModuleSettings.CoordinatorSettings;
+import static owl.run.ModuleSettings.TransformerSettings;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -13,37 +11,39 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.cli.env.EnvironmentSettings;
+import owl.run.ModuleSettings.ReaderSettings;
+import owl.run.ModuleSettings.WriterSettings;
+import owl.run.env.EnvironmentSettings;
 
 /**
  * A registry holding all modules used to parse the command line. These can be dynamically
  * registered to allow for flexible parsing of command lines.
  *
- * @see owl.cli.parser.CliParser
+ * @see owl.run.parser.CliParser
  */
 public class CommandLineRegistry {
   private final EnvironmentSettings environmentSettings;
   private final Table<Type, String, ModuleSettings> registeredModules = HashBasedTable.create();
 
-  protected CommandLineRegistry(EnvironmentSettings environmentSettings) {
+  CommandLineRegistry(EnvironmentSettings environmentSettings) {
     this.environmentSettings = environmentSettings;
   }
 
-  public Collection<CoordinatorSettings> getAllCoordinatorSettings() {
+  public Collection<CoordinatorSettings> getCoordinatorSettings() {
     return registeredModules.row(Type.COORDINATOR).values().stream()
       .map(CoordinatorSettings.class::cast)
       .collect(Collectors.toSet());
   }
 
-  public Collection<InputSettings> getAllInputSettings() {
-    return registeredModules.row(Type.INPUT).values().stream()
-      .map(InputSettings.class::cast)
+  public Collection<ReaderSettings> getReaderSettings() {
+    return registeredModules.row(Type.READER).values().stream()
+      .map(ReaderSettings.class::cast)
       .collect(Collectors.toSet());
   }
 
-  public Collection<OutputSettings> getAllOutputSettings() {
-    return registeredModules.row(Type.OUTPUT).values().stream()
-      .map(OutputSettings.class::cast)
+  public Collection<WriterSettings> getWriterSettings() {
+    return registeredModules.row(Type.WRITER).values().stream()
+      .map(WriterSettings.class::cast)
       .collect(Collectors.toSet());
   }
 
@@ -63,13 +63,13 @@ public class CommandLineRegistry {
   }
 
   @Nullable
-  public InputSettings getInputSettings(String name) {
-    return (InputSettings) getType(Type.INPUT, name);
+  public ReaderSettings getReaderSettings(String name) {
+    return (ReaderSettings) getType(Type.READER, name);
   }
 
   @Nullable
-  public OutputSettings getOutputSettings(String name) {
-    return (OutputSettings) getType(Type.OUTPUT, name);
+  public WriterSettings getWriterSettings(String name) {
+    return (WriterSettings) getType(Type.WRITER, name);
   }
 
   @Nullable
@@ -116,7 +116,7 @@ public class CommandLineRegistry {
   }
 
   private enum Type {
-    INPUT(InputSettings.class), OUTPUT(OutputSettings.class),
+    READER(ReaderSettings.class), WRITER(WriterSettings.class),
     TRANSFORMER(TransformerSettings.class), COORDINATOR(CoordinatorSettings.class);
 
     public final Class<?> typeClass;

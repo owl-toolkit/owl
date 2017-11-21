@@ -34,6 +34,16 @@ public final class RewriterFactory {
     return LabelledFormula.create(rewriter.getRewriter().apply(formula.formula), formula.variables);
   }
 
+  public static LabelledFormula apply(LabelledFormula formula, RewriterEnum... rewriters) {
+    LabelledFormula result = formula;
+
+    for (RewriterEnum rewriter : rewriters) {
+      result = apply(rewriter, result);
+    }
+
+    return result;
+  }
+
   public enum RewriterEnum {
     MODAL(new ModalSimplifier()),
     PULLUP_X(PullupXVisitor.INSTANCE),

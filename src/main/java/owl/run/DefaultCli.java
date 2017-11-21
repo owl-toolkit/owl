@@ -1,22 +1,15 @@
-package owl.cli;
+package owl.run;
 
 import owl.arena.ArenaFactory;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.RabinDegeneralization;
-import owl.cli.env.DefaultEnvironmentSettings;
-import owl.cli.parser.CliParser;
 import owl.ltl.rewriter.RewriterTransformer;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.coordinator.Coordinator;
 import owl.run.coordinator.ServerCoordinator;
 import owl.run.coordinator.SingleStreamCoordinator;
-import owl.run.input.HoaInput;
-import owl.run.input.LtlInput;
-import owl.run.input.TlsfInput;
-import owl.run.meta.AutomatonStats;
-import owl.run.meta.ToHoa;
-import owl.run.meta.ToString;
-import owl.run.output.NullOutput;
+import owl.run.env.DefaultEnvironmentSettings;
+import owl.run.parser.CliParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.LTL2DA;
 import owl.translations.delag.DelagBuilder;
@@ -38,19 +31,17 @@ public final class DefaultCli {
     // Coordinators
     defaultRegistry.register(SingleStreamCoordinator.settings, ServerCoordinator.settings);
 
-    // Inputs
-    defaultRegistry.register(LtlInput.settings, HoaInput.settings, TlsfInput.settings);
+    // I/O
+    defaultRegistry.register(InputReaders.LTL, InputReaders.HOA, InputReaders.TLSF,
+      OutputWriters.STRING, OutputWriters.AUTOMATON_STATS, OutputWriters.NULL, OutputWriters.HOA);
 
     // Transformer
     defaultRegistry.register(RewriterTransformer.settings, ImplicitMinimizeTransformer.settings,
       RabinDegeneralization.settings, UnabbreviateVisitor.settings, ArenaFactory.settings);
-
-    // Outputs
-    defaultRegistry.register(ToString.settings, AutomatonStats.settings, NullOutput.settings,
-      ToHoa.settings);
   }
 
-  private DefaultCli() {}
+  private DefaultCli() {
+  }
 
   public static void main(String... args) {
     defaultRegistry.register(new RabinizerModule(), IARBuilder.settings, DelagBuilder.settings,
@@ -61,6 +52,7 @@ public final class DefaultCli {
     if (coordinator == null) {
       return;
     }
+
     coordinator.run();
   }
 }

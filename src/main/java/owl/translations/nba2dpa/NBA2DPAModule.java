@@ -6,35 +6,35 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.cli.ModuleSettings.TransformerSettings;
-import owl.cli.parser.ImmutableSingleModuleConfiguration;
-import owl.cli.parser.SimpleModuleParser;
-import owl.run.input.HoaInput;
-import owl.run.meta.ToHoa;
-import owl.run.transformer.Transformer.Factory;
+import owl.run.InputReaders;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.OutputWriters;
+import owl.run.Transformer;
+import owl.run.env.Environment;
+import owl.run.parser.ImmutableSingleModuleConfiguration;
+import owl.run.parser.SimpleModuleParser;
 import owl.translations.Optimisation;
 
 public class NBA2DPAModule implements TransformerSettings {
   public static void main(String... args) {
     SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .inputParser(new HoaInput())
+      .readerModule(InputReaders.HOA)
       .transformer(new NBA2DPAModule())
-      .outputWriter(new ToHoa())
+      .writerModule(OutputWriters.HOA)
       .build());
   }
 
   @Override
-  public Factory parseTransformerSettings(CommandLine settings) throws ParseException {
+  public Transformer create(CommandLine settings, Environment environment)
+    throws ParseException {
     EnumSet<Optimisation> optimisations = EnumSet.of(Optimisation.COMPUTE_SAFETY_PROPERTY);
     if (settings.hasOption("nosafety")) {
       optimisations.remove(Optimisation.COMPUTE_SAFETY_PROPERTY);
     }
 
-    return environment -> {
-      NBA2DPAFunction<Object> function = new NBA2DPAFunction<>(optimisations);
-      return (input, context) -> function.apply(
-        AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
-    };
+    NBA2DPAFunction<Object> function = new NBA2DPAFunction<>(optimisations);
+    return (input, context) -> function
+      .apply(AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
   }
 
   @Override

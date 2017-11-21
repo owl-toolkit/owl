@@ -43,7 +43,8 @@ import owl.automaton.minimizations.GenericMinimizations;
 import owl.collections.ValuationSet;
 
 public final class ParityUtil {
-  private ParityUtil() {}
+  private ParityUtil() {
+  }
 
   public static <S> void complement(MutableAutomaton<S, ParityAcceptance> automaton,
     Supplier<S> sinkSupplier) {

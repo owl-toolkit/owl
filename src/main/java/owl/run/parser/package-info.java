@@ -16,6 +16,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.cli;
+package owl.run.parser;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

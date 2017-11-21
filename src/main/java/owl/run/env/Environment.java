@@ -1,7 +1,6 @@
 package owl.run.env;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
-import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import owl.factories.FactorySupplier;
 import owl.run.coordinator.Coordinator;
@@ -18,28 +17,27 @@ public interface Environment {
   boolean annotations();
 
   /**
-   * Whether the constructions should try to recover from errors or fail-fast.
-   */
-  boolean lenient();
-
-  /**
-   * The charset used for all I/O tasks. {@link java.nio.charset.StandardCharsets#UTF_8 UTF-8} is
-   * strongly recommended.
-   */
-  Charset charset();
-
-  /**
    * Returns the configured {@link FactorySupplier}.
    */
   FactorySupplier factorySupplier();
 
   /**
    * The shared executor for all computations.
-   *
    * <p><strong>Warning</strong>: Modules <b>must not</b> {@link ExecutorService#shutdown()
    * shutdown} this executor. This is the responsibility of the {@link Coordinator}.</p>
    */
   ListeningExecutorService getExecutor();
+
+  /**
+   * Whether the constructions should try to recover from errors or fail-fast.
+   */
+  boolean lenient();
+
+  /**
+   * Returns whether meta information gathering is enabled.
+   */
+  // TODO Does this belong here? Or should this be put into the ExecutionContext?
+  boolean metaInformation();
 
   /**
    * Whether computations should be parallel. Note that this method should only be used when
@@ -54,10 +52,4 @@ public interface Environment {
   default void shutdown() {
     getExecutor().shutdown();
   }
-
-  /**
-   * Returns whether meta information gathering is enabled.
-   */
-  // TODO Does this belong here? Or should this be put into the ExecutionContext?
-  boolean metaInformation();
 }

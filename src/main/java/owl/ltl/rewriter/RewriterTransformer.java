@@ -3,29 +3,50 @@ package owl.ltl.rewriter;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.Transformer;
+import owl.run.Transformers;
 import owl.run.env.Environment;
-import owl.run.transformer.Transformer;
-import owl.run.transformer.Transformers;
 
-public class RewriterTransformer implements Transformer.Factory {
-  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
-    .key("rewrite")
-    .options(options())
-    .transformerSettingsParser(settings -> {
+public class RewriterTransformer {
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment)
+      throws ParseException {
+      List<RewriterEnum> rewrites = new ArrayList<>();
       String[] modes = settings.getOptionValues("mode");
-      List<RewriterEnum> rewrites = new ArrayList<>(modes.length);
+
       for (String mode : modes) {
         rewrites.add(parseMode(mode));
       }
-      return new RewriterTransformer(rewrites);
-    }).build();
+
+      RewriterTransformer transformer = new RewriterTransformer(rewrites);
+
+      return Transformers.fromFunction(LabelledFormula.class, input -> {
+        LabelledFormula result = input;
+        for (RewriterEnum rewrite : transformer.rewrites) {
+          result = RewriterFactory.apply(rewrite, result);
+        }
+        return result;
+      });
+    }
+
+    @Override
+    public String getKey() {
+      return "rewrite";
+    }
+
+    @Override
+    public Options getOptions() {
+      return options();
+    }
+  };
 
   private final List<RewriterEnum> rewrites;
 
@@ -63,14 +84,4 @@ public class RewriterTransformer implements Transformer.Factory {
     }
   }
 
-  @Override
-  public Transformer createTransformer(Environment environment) {
-    return Transformers.fromFunction(LabelledFormula.class, input -> {
-      LabelledFormula result = input;
-      for (RewriterEnum rewrite : rewrites) {
-        result = RewriterFactory.apply(rewrite, result);
-      }
-      return result;
-    });
-  }
 }
