@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -40,37 +41,46 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.run.transformer.Transformers;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.Transformer;
+import owl.run.Transformers;
+import owl.run.env.Environment;
 
 public final class ArenaFactory {
-  public static final TransformerSettings settings;
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment)
+      throws ParseException {
+      String[] playerOnePropositions = settings.getOptionValues("player");
+      if (playerOnePropositions == null) {
+        throw new ParseException("Player one propositions required");
+      }
+      ImmutableList<String> propositions = ImmutableList.copyOf(playerOnePropositions);
+      //noinspection unchecked
+      return Transformers
+        .fromFunction(Automaton.class, automaton -> split(automaton, propositions));
+    }
 
-  static {
-    Option option = new Option("p", "player", true,
-      "List of atomic propositions controlled by player one");
-    option.setRequired(true);
+    @Override
+    public String getKey() {
+      return "aut2arena";
+    }
 
-    settings = ImmutableTransformerSettings.builder()
-      .key("aut2arena")
-      .options(new Options().addOption(option))
-      .transformerSettingsParser(settings -> {
-        String[] playerOnePropositions = settings.getOptionValues("player");
-        if (playerOnePropositions == null) {
-          throw new ParseException("Player one propositions required");
-        }
-        ImmutableList<String> propositions = ImmutableList.copyOf(playerOnePropositions);
-        //noinspection unchecked
-        return environment -> Transformers.fromFunction(Automaton.class,
-          automaton -> split(automaton, propositions));
-      }).build();
+    @Override
+    public Options getOptions() {
+      Option option = new Option("p", "player", true,
+        "List of atomic propositions controlled by player one");
+      option.setRequired(true);
+      return new Options().addOption(option);
+    }
+  };
+
+
+  private ArenaFactory() {
   }
-
-  private ArenaFactory() {}
 
   public static <S, A extends OmegaAcceptance> Arena<S, A> copyOf(Arena<S, A> arena) {
     assert arena.isComplete() : "Only defined for complete arena.";

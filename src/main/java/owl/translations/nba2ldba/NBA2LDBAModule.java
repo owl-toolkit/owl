@@ -6,31 +6,31 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.cli.ModuleSettings.TransformerSettings;
-import owl.cli.parser.ImmutableSingleModuleConfiguration;
-import owl.cli.parser.SimpleModuleParser;
-import owl.run.input.HoaInput;
-import owl.run.meta.ToHoa;
-import owl.run.transformer.Transformer.Factory;
+import owl.run.InputReaders;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.OutputWriters;
+import owl.run.Transformer;
+import owl.run.env.Environment;
+import owl.run.parser.ImmutableSingleModuleConfiguration;
+import owl.run.parser.SimpleModuleParser;
 import owl.translations.Optimisation;
 
 public class NBA2LDBAModule implements TransformerSettings {
   public static void main(String... args) {
     SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .inputParser(new HoaInput())
+      .readerModule(InputReaders.HOA)
       .transformer(new NBA2LDBAModule())
-      .outputWriter(new ToHoa())
+      .writerModule(OutputWriters.HOA)
       .build());
   }
 
   @Override
-  public Factory parseTransformerSettings(CommandLine settings) throws ParseException {
-    return environment -> {
-      NBA2LDBAFunction<Object> function =
-        new NBA2LDBAFunction<>(EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
-      return (input, context) -> function.apply(
-        AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
-    };
+  public Transformer create(CommandLine settings, Environment environment)
+    throws ParseException {
+    NBA2LDBAFunction<Object> function =
+      new NBA2LDBAFunction<>(EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
+    return (input, context) -> function.apply(
+      AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
   }
 
   @Override

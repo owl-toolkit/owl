@@ -26,57 +26,65 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
-import owl.cli.parser.ImmutableSingleModuleConfiguration;
-import owl.cli.parser.SimpleModuleParser;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterTransformer;
+import owl.run.InputReaders;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.OutputWriters;
+import owl.run.Transformer;
+import owl.run.Transformers;
 import owl.run.env.Environment;
-import owl.run.input.LtlInput;
-import owl.run.meta.ToHoa;
-import owl.run.transformer.Transformers;
+import owl.run.parser.ImmutableSingleModuleConfiguration;
+import owl.run.parser.SimpleModuleParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.Optimisation;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class DelagBuilder<T>
   implements Function<LabelledFormula, Automaton<State<T>, ? extends OmegaAcceptance>> {
-  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
-    .key("delag")
-    .options(new Options().addOption("f", "fallback", true,
-      "Fallback tool for input outside the fragment ('none' for strict mode)"))
-    .transformerSettingsParser(settings -> {
-      @Nullable
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment)
+      throws ParseException {
       String fallbackTool = settings.getOptionValue("fallback");
 
-      return environment -> {
-        Function<LabelledFormula, ? extends Automaton<?, ? extends OmegaAcceptance>> fallback;
-        if ("none".equals(fallbackTool)) {
-          fallback = formula -> {
-            throw new IllegalArgumentException("Formula " + formula
-              + " outside of supported fragment");
-          };
-        } else {
-          fallback = fallbackTool == null
-            ? new LTL2DPAFunction(environment, EnumSet.allOf(Optimisation.class))
-            : new ExternalTranslator(environment, fallbackTool);
-        }
-        //noinspection unchecked,rawtypes
-        return Transformers.fromFunction(LabelledFormula.class,
-          new DelagBuilder(environment, fallback));
-      };
-    }).build();
+      Function<LabelledFormula, ? extends Automaton<?, ? extends OmegaAcceptance>> fallback;
+      if ("none".equals(fallbackTool)) {
+        fallback = formula -> {
+          throw new IllegalArgumentException("Formula " + formula
+            + " outside of supported fragment");
+        };
+      } else {
+        fallback = fallbackTool == null
+                   ? new LTL2DPAFunction(environment, EnumSet.allOf(Optimisation.class))
+                   : new ExternalTranslator(environment, fallbackTool);
+      }
+      //noinspection unchecked,rawtypes
+      return Transformers.fromFunction(LabelledFormula.class,
+        new DelagBuilder(environment, fallback));
+    }
+
+    @Override
+    public String getKey() {
+      return "delag";
+    }
+
+    @Override
+    public Options getOptions() {
+      return new Options().addOption("f", "fallback", true,
+        "Fallback tool for input outside the fragment ('none' for strict mode)");
+    }
+  };
 
   private final Environment env;
   private final Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
@@ -92,10 +100,10 @@ public class DelagBuilder<T>
 
   public static void main(String... args) {
     SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .inputParser(new LtlInput())
-      .addPreProcessors(new RewriterTransformer(RewriterFactory.RewriterEnum.MODAL_ITERATIVE))
+      .readerModule(InputReaders.LTL)
+      .addPreProcessors(Transformers.SIMPLIFY_MODAL_ITER)
       .transformer(settings)
-      .outputWriter(new ToHoa())
+      .writerModule(OutputWriters.HOA)
       .build());
   }
 

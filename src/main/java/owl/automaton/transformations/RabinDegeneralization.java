@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.Immutable;
+import org.apache.commons.cli.CommandLine;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -37,20 +38,32 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
+import owl.run.ModuleSettings.TransformerSettings;
 import owl.run.PipelineExecutionContext;
-import owl.run.transformer.Transformer;
+import owl.run.Transformer;
+import owl.run.env.Environment;
 
 public final class RabinDegeneralization implements Transformer {
-  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
-    .key("dgra2dra")
-    .description("Converts a generalized rabin automaton into a regular one")
-    .transformerSettingsParser(settings -> environment -> new RabinDegeneralization())
-    .build();
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment) {
+      return new RabinDegeneralization();
+    }
+
+    @Override
+    public String getDescription() {
+      return "Converts a generalized rabin automaton into a regular one";
+    }
+
+    @Override
+    public String getKey() {
+      return "dgra2dra";
+    }
+  };
+
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
 
   public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
@@ -209,8 +222,8 @@ public final class RabinDegeneralization implements Transformer {
               RabinPair currentPair = rabinPairs[currentPairIndex];
 
               edgeAcceptance.set(pair.containsFinite(edge)
-                ? currentPair.getFiniteIndex()
-                : currentPair.getInfiniteIndex());
+                                 ? currentPair.getFiniteIndex()
+                                 : currentPair.getInfiniteIndex());
             });
 
             DegeneralizedRabinState<S> successor =
@@ -304,8 +317,8 @@ public final class RabinDegeneralization implements Transformer {
     @Override
     public String toString() {
       return awaitedSets.length == 0
-        ? String.format("{%s}", generalizedState)
-        : String.format("{%s|%s}", generalizedState, Arrays.toString(awaitedSets));
+             ? String.format("{%s}", generalizedState)
+             : String.format("{%s|%s}", generalizedState, Arrays.toString(awaitedSets));
     }
   }
 }

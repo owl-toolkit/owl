@@ -1,6 +1,5 @@
-package owl.run.transformer;
+package owl.run;
 
-import owl.run.PipelineExecutionContext;
 import owl.run.env.Environment;
 
 /**
@@ -12,7 +11,7 @@ import owl.run.env.Environment;
  * <p>Implementation notes: It is strongly encouraged to design transformers in a stateless fashion,
  * since it allows for easy parallelism. As parallel processing is a central design concept, the
  * {@link Transformer#transform(Object, PipelineExecutionContext)} method must support parallel
- * calls, even if there is some state involved.
+ * calls, even if there is some state involved.</p>
  */
 @FunctionalInterface
 public interface Transformer {

@@ -22,6 +22,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -29,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jhoafparser.parser.generated.ParseException;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
@@ -36,28 +39,27 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.cli.ImmutableTransformerSettings;
-import owl.cli.ModuleSettings.TransformerSettings;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.Transformer;
+import owl.run.Transformers;
 import owl.run.env.Environment;
-import owl.run.transformer.Transformers;
 
 public class ExternalTranslator
   implements Function<LabelledFormula, Automaton<HoaState, OmegaAcceptance>> {
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
-  public static final TransformerSettings settings = ImmutableTransformerSettings.builder()
-    .key("ltl2aut-ext")
-    .description("Runs an external tool for ltl to automaton translation")
-    .options(options())
-    .transformerSettingsParser(settings -> {
-      InputMode inputMode;
+
+  public static final TransformerSettings settings = new TransformerSettings() {
+    @Override
+    public Transformer create(CommandLine settings, Environment environment)
+      throws org.apache.commons.cli.ParseException {
+      InputMode inputMode = InputMode.STDIN;
+
       String inputType = settings.getOptionValue("inputType");
-      if (inputType == null) {
-        inputMode = InputMode.STDIN;
-      } else {
+      if (inputType != null) {
         switch (inputType) {
           case "stdin":
             inputMode = InputMode.STDIN;
@@ -69,13 +71,37 @@ public class ExternalTranslator
             throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
         }
       }
+
       String toolPath = settings.getOptionValue("tool");
       String[] tool = splitPattern.split(toolPath);
-      return environment -> {
-        ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
-        return Transformers.fromFunction(LabelledFormula.class, translator);
-      };
-    }).build();
+
+      ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
+      return Transformers.fromFunction(LabelledFormula.class, translator);
+    }
+
+    @Override
+    public String getDescription() {
+      return "Runs an external tool for ltl to automaton translation";
+    }
+
+    @Override
+    public String getKey() {
+      return "ltl2aut-ext";
+    }
+
+    @Override
+    public Options getOptions() {
+      Option toolOption = new Option("t", "tool", true, "The tool invocation");
+      toolOption.setRequired(true);
+
+      Option inputType = new Option("i", "input", true, "How to pass the formula to the tool. "
+        + "Available modes are stdin or replace (add %f to the invocation)");
+
+      return new Options()
+        .addOption(toolOption)
+        .addOption(inputType);
+    }
+  };
 
   private final Environment env;
   private final InputMode inputMode;
@@ -94,18 +120,6 @@ public class ExternalTranslator
     if (inputMode == InputMode.REPLACE) {
       checkArgument(Arrays.stream(tool).anyMatch("%f"::equals));
     }
-  }
-
-  private static Options options() {
-    Option tool = new Option("t", "tool", true, "The tool invocation");
-    tool.setRequired(true);
-
-    Option inputType = new Option("i", "input", true, "How to pass the formula to the tool. "
-      + "Available modes are stdin or replace (add %f to the invocation)");
-
-    return new Options()
-      .addOption(tool)
-      .addOption(inputType);
   }
 
   @Override
@@ -130,8 +144,8 @@ public class ExternalTranslator
       logger.log(Level.FINER, "Running process {0}", processBuilder.command());
 
       if (inputMode == InputMode.STDIN) {
-        try (OutputStreamWriter outputStream =
-               new OutputStreamWriter(process.getOutputStream(), env.charset())) {
+        try (Writer outputStream = new OutputStreamWriter(process.getOutputStream(),
+          Charset.defaultCharset())) {
           logger.log(Level.FINER, "Passing {0} to process", formulaString);
           outputStream.write(formulaString);
           outputStream.write('\n');

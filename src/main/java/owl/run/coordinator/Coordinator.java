@@ -1,13 +1,12 @@
 package owl.run.coordinator;
 
+import owl.run.InputReader;
+import owl.run.OutputWriter;
 import owl.run.PipelineSpecification;
-import owl.run.input.InputParser;
-import owl.run.output.OutputWriter;
 
 /**
  * Coordinators take care of setting up the surroundings of the pipeline and passing objects through
  * the various stages.
- *
  * <p>Implementation notes: Coordinators are inherently difficult to specify and implement, so if
  * you plan to implement a custom coordinator, carefully read the following contracts.</p> <ul>
  * <li>Streams: Coordinators need to take care of closing all opened resources. All other elements
@@ -18,7 +17,7 @@ import owl.run.output.OutputWriter;
  * tasks and, e.g., recreating the input supplier. Errors in the processing may be handled
  * similarly. They might lead to a complete stop of the evaluation or simply skipping the erroneous
  * input.</li> <li>Parallelism: Only transformers are allowed to be executed without any
- * synchronization. Exactly one {@link InputParser input parser} is created and invoked per input
+ * synchronization. Exactly one {@link InputReader input parser} is created and invoked per input
  * stream. Similarly, exactly one {@link OutputWriter output writer} exists per output stream and
  * and each may only be called at most once simultaneously.</li> </ul>
  */

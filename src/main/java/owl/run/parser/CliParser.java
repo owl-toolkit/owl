@@ -1,9 +1,9 @@
-package owl.cli.parser;
+package owl.run.parser;
 
-import static owl.cli.ModuleSettings.CoordinatorSettings;
-import static owl.cli.ModuleSettings.InputSettings;
-import static owl.cli.ModuleSettings.OutputSettings;
-import static owl.cli.ModuleSettings.TransformerSettings;
+import static owl.run.ModuleSettings.CoordinatorSettings;
+import static owl.run.ModuleSettings.ReaderSettings;
+import static owl.run.ModuleSettings.TransformerSettings;
+import static owl.run.ModuleSettings.WriterSettings;
 
 import com.google.common.base.Strings;
 import java.io.PrintWriter;
@@ -23,12 +23,13 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.cli.CommandLineRegistry;
-import owl.cli.ModuleSettings;
-import owl.cli.env.EnvironmentSettings;
+import owl.run.CommandLineRegistry;
 import owl.run.ImmutablePipelineSpecification;
+import owl.run.ModuleSettings;
 import owl.run.coordinator.Coordinator;
-import owl.util.CloseGuardOutputStream;
+import owl.run.env.Environment;
+import owl.run.env.EnvironmentSettings;
+import owl.util.UncloseableWriter;
 
 /**
  * Utility class used to parse the extended command line format (explicit pipeline specification)
@@ -80,7 +81,7 @@ public final class CliParser {
    */
   @Nullable
   public static Coordinator parse(String[] arguments, CommandLineRegistry registry) {
-    try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+    try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
       return new CliParser(arguments, registry, pw).parse();
     }
   }
@@ -90,7 +91,7 @@ public final class CliParser {
     helpFormatter.setSyntaxPrefix("");
     helpFormatter.setWidth(80);
 
-    try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+    try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
       if (invalidName != null) {
         helpFormatter.printWrapped(pw, helpFormatter.getWidth(), "Unknown input parser "
           + invalidName + ". Available parsers are:");
@@ -98,7 +99,7 @@ public final class CliParser {
         helpFormatter.printWrapped(pw, helpFormatter.getWidth(), "Available input parsers are:");
       }
 
-      printModuleSettings(helpFormatter, pw, registry.getAllInputSettings());
+      printModuleSettings(helpFormatter, pw, registry.getReaderSettings());
     }
   }
 
@@ -128,20 +129,23 @@ public final class CliParser {
     Iterator<String> iterator = Arrays.asList(arguments).iterator();
 
     CommandLineParser parser = new DefaultParser();
-    ImmutablePipelineSpecification.Builder executionBuilder =
+    ImmutablePipelineSpecification.Builder pipelineSpecificationBuilder =
       ImmutablePipelineSpecification.builder();
 
     // Environment arguments
     EnvironmentSettings environmentSettings = registry.getEnvironmentSettings();
     Options environmentOptions = environmentSettings.getOptions();
+    Environment environment = null;
 
     try {
-      executionBuilder.environment(environmentSettings.buildEnvironment(
-        parser.parse(environmentOptions, getNext(iterator))));
+      environment = environmentSettings.buildEnvironment(
+        parser.parse(environmentOptions, getNext(iterator)));
+      pipelineSpecificationBuilder.environment(environment);
     } catch (ParseException e) {
       printEnvironmentHelp(environmentSettings, e.getMessage());
       return null;
     }
+
 
     // Coordinator
     String coordinatorName = iterator.next();
@@ -157,22 +161,25 @@ public final class CliParser {
       checkEmpty(settings);
     } catch (ParseException e) {
       printModuleHelp(coordinatorSettings, e.getMessage());
+      environment.shutdown();
       return null;
     }
 
     // Input specification
     String inputName = iterator.next();
-    InputSettings inputSettings = registry.getInputSettings(inputName);
-    if (inputSettings == null) {
+    ReaderSettings readerSettings = registry.getReaderSettings(inputName);
+    if (readerSettings == null) {
       printInputs(registry, inputName);
+      environment.shutdown();
       return null;
     }
     try {
-      CommandLine settings = parser.parse(inputSettings.getOptions(), getNext(iterator));
-      executionBuilder.input(inputSettings.parseInputSettings(settings));
+      CommandLine settings = parser.parse(readerSettings.getOptions(), getNext(iterator));
+      pipelineSpecificationBuilder.input(readerSettings.create(settings, environment));
       checkEmpty(settings);
     } catch (ParseException e) {
-      printModuleHelp(inputSettings, e.getMessage());
+      printModuleHelp(readerSettings, e.getMessage());
+      environment.shutdown();
       return null;
     }
 
@@ -180,6 +187,7 @@ public final class CliParser {
       // Special case: Maybe we can add aliases or default paths, so that writing, e.g.,
       // "owl rabinizer" implicitly adds a "parse ltl from stdin" and "write hoa to stdout".
       System.err.println("No output specified");
+      environment.shutdown();
       return null;
     }
 
@@ -191,14 +199,17 @@ public final class CliParser {
       TransformerSettings transformer = registry.getTransformerSettings(currentName);
       if (transformer == null) {
         printTransformers(currentName);
+        environment.shutdown();
         return null;
       }
       try {
         CommandLine settings = parser.parse(transformer.getOptions(), currentArgs);
-        executionBuilder.addTransformers(transformer.parseTransformerSettings(settings));
+        pipelineSpecificationBuilder
+          .addTransformers(transformer.create(settings, environment));
         checkEmpty(settings);
       } catch (ParseException e) {
         printModuleHelp(transformer, e.getMessage());
+        environment.shutdown();
         return null;
       }
 
@@ -210,21 +221,24 @@ public final class CliParser {
     String outputName = currentName;
     String[] outputArgs = currentArgs; // NOPMD
 
-    OutputSettings outputSettings = registry.getOutputSettings(outputName);
-    if (outputSettings == null) {
+    WriterSettings writerSettings = registry.getWriterSettings(outputName);
+    if (writerSettings == null) {
       printOutputs(currentName);
+      environment.shutdown();
       return null;
     }
     try {
-      CommandLine settings = parser.parse(outputSettings.getOptions(), outputArgs);
-      executionBuilder.output(outputSettings.parseOutputSettings(settings));
+      CommandLine settings = parser.parse(writerSettings.getOptions(), outputArgs);
+      pipelineSpecificationBuilder
+        .output(writerSettings.create(settings, environment));
       checkEmpty(settings);
     } catch (ParseException e) {
-      printModuleHelp(outputSettings, e.getMessage());
+      printModuleHelp(writerSettings, e.getMessage());
+      environment.shutdown();
       return null;
     }
 
-    return coordinatorFactory.create(executionBuilder.build());
+    return coordinatorFactory.create(pipelineSpecificationBuilder.build());
   }
 
   private void printCoordinators(@Nullable String invalidName) {
@@ -232,7 +246,7 @@ public final class CliParser {
     helpFormatter.setSyntaxPrefix("");
     helpFormatter.setWidth(80);
 
-    try (PrintWriter pw = new PrintWriter(CloseGuardOutputStream.syserr())) {
+    try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
       if (invalidName != null) {
         helpFormatter.printWrapped(pw, helpFormatter.getWidth(), "Unknown coordinator "
           + invalidName + ". Available coordinators are:");
@@ -240,7 +254,7 @@ public final class CliParser {
         helpFormatter.printWrapped(pw, helpFormatter.getWidth(), "Available coordinators are:");
       }
 
-      printModuleSettings(helpFormatter, pw, registry.getAllCoordinatorSettings());
+      printModuleSettings(helpFormatter, pw, registry.getCoordinatorSettings());
     }
   }
 
@@ -277,12 +291,12 @@ public final class CliParser {
     pw.println();
     pw.println("Coordinators:");
     pw.println();
-    registry.getAllCoordinatorSettings().stream().sorted(settingsComparator)
+    registry.getCoordinatorSettings().stream().sorted(settingsComparator)
       .forEach(settingsPrinter);
     pw.println();
     pw.println("Input parsers:");
     pw.println();
-    registry.getAllInputSettings().stream().sorted(settingsComparator).forEach(settingsPrinter);
+    registry.getReaderSettings().stream().sorted(settingsComparator).forEach(settingsPrinter);
     pw.println();
     pw.println("Transformers:");
     pw.println();
@@ -291,7 +305,7 @@ public final class CliParser {
     pw.println();
     pw.println("Output writers:");
     pw.println();
-    registry.getAllOutputSettings().stream().sorted(settingsComparator).forEach(settingsPrinter);
+    registry.getWriterSettings().stream().sorted(settingsComparator).forEach(settingsPrinter);
   }
 
   private void printModuleHelp(ModuleSettings settings, @Nullable String reason) {
@@ -313,7 +327,7 @@ public final class CliParser {
       helpFormatter.printWrapped(pw, helpFormatter.getWidth(), "Available output writers are:");
     }
 
-    printModuleSettings(helpFormatter, pw, registry.getAllOutputSettings());
+    printModuleSettings(helpFormatter, pw, registry.getWriterSettings());
   }
 
   private void printTransformers(@Nullable String invalidName) {

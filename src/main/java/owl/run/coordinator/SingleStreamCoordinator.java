@@ -1,68 +1,60 @@
 package owl.run.coordinator;
 
-import com.google.common.collect.ImmutableList;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.cli.ImmutableCoordinatorSettings;
-import owl.cli.ModuleSettings.CoordinatorSettings;
+import owl.run.ImmutableCoordinatorSettings;
+import owl.run.ModuleSettings.CoordinatorSettings;
 import owl.run.PipelineExecutionException;
 import owl.run.PipelineRunner;
 import owl.run.PipelineSpecification;
-import owl.util.CloseGuardOutputStream;
+import owl.util.UncloseableWriter;
 
 public class SingleStreamCoordinator implements Coordinator {
   public static final CoordinatorSettings settings = ImmutableCoordinatorSettings.builder()
     .key("stream")
     .options(options())
-    .coordinatorSettingsParser(SingleStreamCoordinator::parseSettings)
+    .coordinatorSettingsParser((settings, env) -> parseSettings(settings))
     .build();
 
-  private final PipelineSpecification execution;
-  // Use callables here to delegate the responsibility of closing the streams to the executing code
-  private final Callable<InputStream> inputStreamSupplier;
-  private final Callable<OutputStream> outputStreamSupplier;
   private final int pipelineWorkerCount;
+  // Use callables to delay exception handling.
+  private final Callable<Reader> readerSupplier;
+  private final PipelineSpecification specification;
+  private final Callable<Writer> writerSupplier;
 
-  public SingleStreamCoordinator(PipelineSpecification execution,
-    Callable<InputStream> inputStreamSupplier, Callable<OutputStream> outputStreamSupplier,
-    int pipelineWorkerCount) {
-    this.inputStreamSupplier = inputStreamSupplier;
-    this.outputStreamSupplier = outputStreamSupplier;
-    this.execution = execution;
+  private SingleStreamCoordinator(PipelineSpecification specification,
+    Callable<Reader> readerSupplier, Callable<Writer> writerSupplier, int pipelineWorkerCount) {
+    this.readerSupplier = readerSupplier;
+    this.writerSupplier = writerSupplier;
+    this.specification = specification;
     this.pipelineWorkerCount = pipelineWorkerCount;
   }
 
-  @SuppressWarnings("resource")
-  private static Callable<InputStream> getInputFromSource(String source) {
-    return "-".equals(source)
-      ? () -> System.in
-      : () -> Files.newInputStream(Paths.get(source), StandardOpenOption.READ);
+  private static Callable<Reader> createReader(List<String> inputs) {
+    StringJoiner joiner = new StringJoiner(System.lineSeparator());
+    inputs.forEach(joiner::add);
+    return () -> new StringReader(joiner.toString());
   }
 
-  private static InputStream getInputStream(List<String> inputs) {
-    StringBuilder inputBuilder = new StringBuilder(200);
-    Iterator<String> iterator = inputs.iterator();
-    inputBuilder.append(iterator.next());
-    while (iterator.hasNext()) {
-      inputBuilder.append(System.lineSeparator()).append(iterator.next());
-    }
-    String string = inputBuilder.toString();
-    //noinspection resource
-    return new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
+  private static Callable<Reader> createReaderFromSource(String source) {
+    return "-".equals(source)
+           ? () -> new BufferedReader(new InputStreamReader(System.in))
+           : () -> Files.newBufferedReader(Paths.get(source));
   }
 
   private static Options options() {
@@ -71,7 +63,7 @@ public class SingleStreamCoordinator implements Coordinator {
     Option fixedInput = new Option("i", "input", true, "Use given strings as input");
     OptionGroup inputGroup = new OptionGroup().addOption(fileInput).addOption(fixedInput);
     Option workerCount = new Option("w", "worker", true,
-      "Number of workers used for processing the input (0 for direct execution)");
+      "Number of workers used for processing the input");
 
     Option fileOutput = new Option("O", "fileout", true,
       "Write output to the specified file (- for stdout)");
@@ -84,37 +76,29 @@ public class SingleStreamCoordinator implements Coordinator {
 
   @SuppressWarnings("resource")
   private static Coordinator.Factory parseSettings(CommandLine settings) throws ParseException {
-    Callable<InputStream> input;
-
+    Callable<Reader> reader;
     if (settings.hasOption("filein")) {
       String[] sources = settings.getOptionValues("filein");
       if (sources.length != 1) {
         throw new ParseException("Multiple sources specified");
       }
-      input = getInputFromSource(sources[0]);
+      reader = createReaderFromSource(sources[0]);
     } else if (System.getenv("OWL_INPUT") != null) {
-      input = getInputFromSource(System.getenv("OWL_INPUT"));
+      reader = createReaderFromSource(System.getenv("OWL_INPUT"));
     } else if (settings.hasOption("input")) {
-      input = () -> getInputStream(Arrays.asList(settings.getOptionValues("input")));
+      reader = createReader(Arrays.asList(settings.getOptionValues("input")));
     } else if (!settings.getArgList().isEmpty()) {
-      List<String> argList = ImmutableList.copyOf(settings.getArgList());
-      input = () -> getInputStream(argList);
+      reader = createReader(settings.getArgList());
       settings.getArgList().clear();
     } else {
-      input = () -> System.in;
+      reader = createReaderFromSource("-");
     }
 
-    Callable<OutputStream> output;
-    if (settings.hasOption("fileout")) {
-      String destination = settings.getOptionValue("fileout");
-      //noinspection resource
-      output = "-".equals(destination)
-        ? CloseGuardOutputStream::sysout
-        : () -> Files.newOutputStream(Paths.get(destination),
-          StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-    } else {
-      output = CloseGuardOutputStream::sysout;
-    }
+    String destination = settings.getOptionValue("fileout");
+    Callable<Writer> writer = destination == null || "-".equals(destination)
+             ? UncloseableWriter::sysout
+             : () -> Files.newBufferedWriter(Paths.get(destination), StandardOpenOption.APPEND,
+                      StandardOpenOption.CREATE);
 
     int pipelineWorkerCount;
     if (settings.hasOption("worker")) {
@@ -127,14 +111,15 @@ public class SingleStreamCoordinator implements Coordinator {
       pipelineWorkerCount = 2;
     }
 
-    return execution -> new SingleStreamCoordinator(execution, input, output, pipelineWorkerCount);
+    return execution -> new SingleStreamCoordinator(execution, reader, writer,
+      pipelineWorkerCount);
   }
 
   @Override
   public void run() {
-    try (InputStream inputStream = inputStreamSupplier.call();
-         OutputStream outputStream = outputStreamSupplier.call()) {
-      PipelineRunner.run(inputStream, outputStream, execution, pipelineWorkerCount);
+    try (Reader reader = readerSupplier.call();
+         Writer writer = writerSupplier.call()) {
+      new PipelineRunner(specification, reader, writer, pipelineWorkerCount).run();
     } catch (Exception e) { // NOPMD
       throw PipelineExecutionException.wrap(e);
     }

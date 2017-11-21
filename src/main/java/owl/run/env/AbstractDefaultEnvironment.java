@@ -18,7 +18,6 @@ abstract class AbstractDefaultEnvironment implements Environment {
   public abstract boolean annotations();
 
   @Value.Default
-  @Override
   public Charset charset() {
     return StandardCharsets.UTF_8;
   }
@@ -42,10 +41,6 @@ abstract class AbstractDefaultEnvironment implements Environment {
     return MoreExecutors.newDirectExecutorService();
   }
 
-  @Value.Parameter
-  @Override
-  public abstract boolean parallel();
-
   @Value.Default
   @Override
   public boolean lenient() {
@@ -55,4 +50,8 @@ abstract class AbstractDefaultEnvironment implements Environment {
   @Value.Parameter
   @Override
   public abstract boolean metaInformation();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean parallel();
 }
