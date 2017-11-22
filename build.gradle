@@ -20,8 +20,9 @@ plugins {
     id 'com.github.spotbugs' version '1.4'
 }
 
-apply plugin: 'java'
 apply plugin: 'c'
+apply plugin: 'java'
+
 apply plugin: 'antlr'
 
 apply plugin: 'pmd'
@@ -290,6 +291,98 @@ idea {
         downloadSources = true
     }
 }
+
+// println "Building on OS: " + System.properties['os.name']
+// println "Using JDK: " + System.properties['java.home']
+
+// def SYS_INCLUDE_DIR = this.properties['system.include.dir']
+// def SYS_LOCAL_INCLUDE_DIR = this.properties['system.local.include.dir']
+// def JNI_INCLUDE_DIR = System.properties['java.home'] + "/include"
+// def JNI_LIB_DIR = System.properties['java.home'] + "/lib"
+// def JNI_LIB_DIR2 = System.properties['java.home'] + "/lib/jli"
+
+// println "Using system include directory: " + SYS_INCLUDE_DIR
+// println "Using system local include directory: " + SYS_LOCAL_INCLUDE_DIR
+// println "Using JNI include directory: " + JNI_INCLUDE_DIR
+// println "Using JNI lib directory: " + JNI_LIB_DIR
+
+// model {
+//     components {
+//         OwlJni(NativeLibrarySpec) {
+//             sources {
+//                 cpp {
+//                     source {
+//                         srcDir 'owl-jni/source'
+//                         include "**/*.cpp"
+//                     }
+
+//                     exportedHeaders {
+//             			srcDir "owl-jni/include"
+//         			}
+//                 }
+//             }
+
+//             buildTypes {
+//                 debug
+//                 release
+//             }
+//         }
+
+//         OwlJniExample(NativeExecutableSpec) {
+//         	sources {
+//         		cpp {
+//         			source {
+//                         srcDir 'owl-jni/examples'
+//                         include "**/*.cpp"
+//                     }
+//         		}
+//         	}
+
+// 			binaries.all {
+//                 lib library: 'OwlJni', linkage: 'static'
+//             }
+//         }
+//     }
+
+//     toolChains {
+//         clang(Clang) {
+//             eachPlatform {
+//                 if (System.properties['os.name'].equals('Mac OS X')) {
+//                     cppCompiler.withArguments { args ->
+//                         args << "-O2"
+//                         args << "-I" + SYS_INCLUDE_DIR
+//                         args << "-I" + SYS_LOCAL_INCLUDE_DIR
+//                         args << "-I" + JNI_INCLUDE_DIR
+//                         args << "-I" + JNI_INCLUDE_DIR + "/darwin"
+//                         args << "-std=c++1z"
+//                         args << "-ljvm"
+//                     }
+//                     linker.withArguments { args ->
+//                     	args << "-L" + JNI_LIB_DIR
+//                     	args << "-L" + JNI_LIB_DIR2
+//                         args << "-O2"
+//                         args << "-lc++"
+//                         args << "-v"
+//                         args << "-ljvm"
+//                     }
+//                 } else {
+//                     cppCompiler.withArguments { args ->
+//                         args << "-O2"
+//                         args << "-I" + SYS_INCLUDE_DIR
+//                         args << "-I" + SYS_LOCAL_INCLUDE_DIR
+//                         args << "-I" + JNI_INCLUDE_DIR
+//                         args << "-I" + JNI_INCLUDE_DIR + "/linux"
+//                         args << "-std=c++17"
+//                     }
+//                     linker.withArguments { args ->
+//                         args << "-O2"
+//                         args << "-lstdc++"
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 
 // Helpers
 

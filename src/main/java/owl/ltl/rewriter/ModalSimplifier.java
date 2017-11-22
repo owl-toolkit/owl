@@ -290,6 +290,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
     // Only call constructor, when necessary.
     Formula d;
+
     if (elementsChanged) {
       d = Disjunction.create(newChildren.stream());
     } else {

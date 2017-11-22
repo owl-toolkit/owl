@@ -19,12 +19,12 @@ package owl.ltl.visitors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -39,7 +39,7 @@ public final class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
   }
 
   private static void minimise(List<Set<Formula>> cnf) {
-    cnf.removeIf(subset -> cnf.stream().anyMatch(set -> set != subset && subset.containsAll(set)));
+    cnf.removeIf(set -> cnf.stream().anyMatch(subset -> set != subset && subset.containsAll(set)));
   }
 
   public static List<Set<Formula>> normaliseStatic(Formula formula) {
@@ -75,7 +75,7 @@ public final class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<
       .collect(Collectors.toList());
 
     for (List<Set<Formula>> union : Lists.cartesianProduct(allCnf)) {
-      cnf.add(union.stream().flatMap(Collection::stream).collect(Collectors.toSet()));
+      cnf.add(Collections3.parallelUnion(union));
     }
 
     minimise(cnf);

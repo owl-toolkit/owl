@@ -18,7 +18,6 @@
 package owl.ltl.tlsf;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.OptionalInt;
@@ -121,7 +120,7 @@ public abstract class Tlsf {
         variables[i] = "p" + i;
       }
     }
-    return LabelledFormula.create(result, ImmutableList.copyOf(variables));
+    return LabelledFormula.create(result, List.of(variables));
   }
 
   public enum Semantics {
