@@ -73,7 +73,7 @@ def _test(args):
             test_arguments.append(name)
             if enable_server:
                 servers.append(loaded_tool.get_server_execution(port))
-                test_arguments.append("\"build/exe/ltl2aut/ltl2aut\""
+                test_arguments.append("\"build/exe/owlClient/owl-client\""
                                       + " localhost " + str(port) + " %f")
                 port += 1
             else:

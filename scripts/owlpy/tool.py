@@ -77,7 +77,7 @@ class OwlTool(Tool):
         return pipeline
 
     def get_base_executable(self):
-        tool_execution = ["build/bin/owl"]
+        tool_execution = ["build/bin/owl-server"]
         if self.parallel:
             tool_execution.append("--parallel")
         tool_execution.append("---")

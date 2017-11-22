@@ -20,10 +20,21 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import owl.run.DefaultCli;
 import owl.run.ImmutableCoordinatorSettings;
 import owl.run.ModuleSettings.CoordinatorSettings;
 import owl.run.PipelineRunner;
 import owl.run.PipelineSpecification;
+import owl.run.parser.CliParser;
+import owl.translations.ExternalTranslator;
+import owl.translations.LTL2DA;
+import owl.translations.delag.DelagBuilder;
+import owl.translations.dra2dpa.IARBuilder;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2ldba.LTL2LDBAModule;
+import owl.translations.nba2dpa.NBA2DPAModule;
+import owl.translations.nba2ldba.NBA2LDBAModule;
+import owl.translations.rabinizer.RabinizerModule;
 
 public class ServerCoordinator implements Coordinator {
   public static final CoordinatorSettings settings = ImmutableCoordinatorSettings.builder()
@@ -34,6 +45,22 @@ public class ServerCoordinator implements Coordinator {
     .build();
 
   private static final Logger logger = Logger.getLogger(ServerCoordinator.class.getName());
+
+  // TODO: Fix coordinator and inline settings.
+  public static void main(String... args) {
+    DefaultCli.defaultRegistry.register(new RabinizerModule(), IARBuilder.settings,
+      DelagBuilder.settings,
+      new LTL2LDBAModule(), LTL2DA.settings, LTL2DPAFunction.settings, new NBA2DPAModule(),
+      new NBA2LDBAModule(), ExternalTranslator.settings);
+
+    Coordinator coordinator = CliParser.parse(args, DefaultCli.defaultRegistry);
+
+    if (coordinator == null) {
+      return;
+    }
+
+    coordinator.run();
+  }
 
   // TODO Maybe don't start one coordinator for each connection but share them?
   private final InetAddress address;

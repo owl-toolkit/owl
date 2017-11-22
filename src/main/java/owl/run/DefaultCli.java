@@ -49,6 +49,7 @@ public final class DefaultCli {
       new NBA2LDBAModule(), ExternalTranslator.settings);
 
     Coordinator coordinator = CliParser.parse(args, defaultRegistry);
+
     if (coordinator == null) {
       return;
     }

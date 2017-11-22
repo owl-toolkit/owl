@@ -21,6 +21,7 @@ plugins {
 }
 
 apply plugin: 'c'
+apply plugin: 'cpp'
 apply plugin: 'java'
 
 apply plugin: 'antlr'
@@ -108,24 +109,80 @@ generateGrammarSource {
     }
 }
 
-// C
+// C and C++ 
+
 model {
-    binaries {
-        all {
-            if (toolChain in Gcc) {
-                cppCompiler.args "-O3", "-Wall"
+    repositories {
+        libs(PrebuiltLibraries) {
+            jdk {
+                headers.srcDirs "${System.properties['java.home']}/include", 
+                    "${System.properties['java.home']}/include/win32",
+                    "${System.properties['java.home']}/include/darwin",
+                    "${System.properties['java.home']}/include/linux"
+            }
+
+            internal {
+                headers.srcDirs "src/main/headers", 
+                    "src/main/cpp/library"
             }
         }
     }
+
     components {
-        ltl2aut(NativeExecutableSpec) {
+        owl(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs "src/main/cpp/library"
+                        include "**.cc"
+                    }
+
+                    exportedHeaders {
+                        srcDir "src/main/headers"
+                    }
+                }
+            }
+
+            binaries.all {
+                cppCompiler.args "-O2", "-std=c++1z"
+                linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
+
+                lib library: 'internal', linkage: 'api'
+                lib library: 'jdk', linkage: 'api'
+            }
+        }
+
+        owlClient(NativeExecutableSpec) {
+            baseName "owl-client"
+
             sources {
                 c {
                     source {
-                        srcDir "scripts/owlc"
-                        include "ltl2aut.c"
+                        srcDir "src/main/c"
+                        include "owl-client.c"
                     }
                 }
+            }
+        }
+
+        owlExample(NativeExecutableSpec) {
+            baseName "owl-jni-example"
+
+            sources {
+                cpp {
+                    source {
+                        srcDir "src/main/cpp/example"
+                        include "example.cc"
+                    }   
+                }
+            }
+
+            binaries.all {
+                cppCompiler.args "-O2", "-std=c++1z"
+                linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
+
+                lib library: 'jdk', linkage: 'api'
+                lib library: 'owl', linkage: 'static' 
             }
         }
     }
@@ -189,15 +246,16 @@ checkstyle {
 mainClassName = "owl.run.DefaultCli"
 // Create startup scripts for each tool
 def scripts = [
-    'ltl2da'  : 'owl.translations.LTL2DA',
-    'ltl2dpa' : 'owl.translations.LTL2DPA',
-    'ltl2ldba': 'owl.translations.ltl2ldba.LTL2LDBAModule',
-    'nba2ldba': 'owl.translations.nba2ldba.NBA2LDBAModule',
-    'dra2dpa' : 'owl.translations.dra2dpa.IARBuilder',
-    'delag'   : 'owl.translations.delag.DelagBuilder',
-    'ltl2dgra': 'owl.translations.rabinizer.RabinizerMain',
-    'ltl2dra' : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'nba2dpa' : 'owl.translations.nba2dpa.NBA2DPAModule'
+    'ltl2da'     : 'owl.translations.LTL2DA',
+    'ltl2dpa'    : 'owl.translations.LTL2DPA',
+    'ltl2ldba'   : 'owl.translations.ltl2ldba.LTL2LDBAModule',
+    'nba2ldba'   : 'owl.translations.nba2ldba.NBA2LDBAModule',
+    'dra2dpa'    : 'owl.translations.dra2dpa.IARBuilder',
+    'delag'      : 'owl.translations.delag.DelagBuilder',
+    'ltl2dgra'   : 'owl.translations.rabinizer.RabinizerMain',
+    'ltl2dra'    : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
+    'nba2dpa'    : 'owl.translations.nba2dpa.NBA2DPAModule',
+    'owl-server' : 'owl.run.coordinator.ServerCoordinator' 
 ]
 
 scripts.each() { scriptName, className ->
@@ -291,98 +349,6 @@ idea {
         downloadSources = true
     }
 }
-
-// println "Building on OS: " + System.properties['os.name']
-// println "Using JDK: " + System.properties['java.home']
-
-// def SYS_INCLUDE_DIR = this.properties['system.include.dir']
-// def SYS_LOCAL_INCLUDE_DIR = this.properties['system.local.include.dir']
-// def JNI_INCLUDE_DIR = System.properties['java.home'] + "/include"
-// def JNI_LIB_DIR = System.properties['java.home'] + "/lib"
-// def JNI_LIB_DIR2 = System.properties['java.home'] + "/lib/jli"
-
-// println "Using system include directory: " + SYS_INCLUDE_DIR
-// println "Using system local include directory: " + SYS_LOCAL_INCLUDE_DIR
-// println "Using JNI include directory: " + JNI_INCLUDE_DIR
-// println "Using JNI lib directory: " + JNI_LIB_DIR
-
-// model {
-//     components {
-//         OwlJni(NativeLibrarySpec) {
-//             sources {
-//                 cpp {
-//                     source {
-//                         srcDir 'owl-jni/source'
-//                         include "**/*.cpp"
-//                     }
-
-//                     exportedHeaders {
-//             			srcDir "owl-jni/include"
-//         			}
-//                 }
-//             }
-
-//             buildTypes {
-//                 debug
-//                 release
-//             }
-//         }
-
-//         OwlJniExample(NativeExecutableSpec) {
-//         	sources {
-//         		cpp {
-//         			source {
-//                         srcDir 'owl-jni/examples'
-//                         include "**/*.cpp"
-//                     }
-//         		}
-//         	}
-
-// 			binaries.all {
-//                 lib library: 'OwlJni', linkage: 'static'
-//             }
-//         }
-//     }
-
-//     toolChains {
-//         clang(Clang) {
-//             eachPlatform {
-//                 if (System.properties['os.name'].equals('Mac OS X')) {
-//                     cppCompiler.withArguments { args ->
-//                         args << "-O2"
-//                         args << "-I" + SYS_INCLUDE_DIR
-//                         args << "-I" + SYS_LOCAL_INCLUDE_DIR
-//                         args << "-I" + JNI_INCLUDE_DIR
-//                         args << "-I" + JNI_INCLUDE_DIR + "/darwin"
-//                         args << "-std=c++1z"
-//                         args << "-ljvm"
-//                     }
-//                     linker.withArguments { args ->
-//                     	args << "-L" + JNI_LIB_DIR
-//                     	args << "-L" + JNI_LIB_DIR2
-//                         args << "-O2"
-//                         args << "-lc++"
-//                         args << "-v"
-//                         args << "-ljvm"
-//                     }
-//                 } else {
-//                     cppCompiler.withArguments { args ->
-//                         args << "-O2"
-//                         args << "-I" + SYS_INCLUDE_DIR
-//                         args << "-I" + SYS_LOCAL_INCLUDE_DIR
-//                         args << "-I" + JNI_INCLUDE_DIR
-//                         args << "-I" + JNI_INCLUDE_DIR + "/linux"
-//                         args << "-std=c++17"
-//                     }
-//                     linker.withArguments { args ->
-//                         args << "-O2"
-//                         args << "-lstdc++"
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 // Helpers
 

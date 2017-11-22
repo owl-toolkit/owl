@@ -1,6 +1,6 @@
-#include <cstdio>
-#include <iostream>
+#include <bitset>
 #include <deque>
+#include <iostream>
 #include <set>
 
 #include "owl.h"
@@ -12,7 +12,7 @@ Formula parse_formula(const Owl& owl) {
     FormulaRewriter rewriter = owl.createFormulaRewriter();
 
     // Create mapping from string to [0,n[ for the parser.
-    std::vector<const std::string> mapping = std::vector<const std::string>({"a", "b", "c"});
+    std::vector<std::string> mapping = std::vector<std::string>({"a", "b", "c"});
 
     // Parse with provided mapping
     Formula parsedFormula = factory.parse("X a & (G F G c) | b | (G F a & F G ! a)", mapping);
@@ -63,14 +63,14 @@ Formula create_formula(const Owl& owl) {
 
         std::cout << "Shifted literals:" << std::endl;
 
-        for (auto entry : mapping) {
+        for (const auto & entry : mapping) {
             std::cout << entry.first << " -> " << entry.second << std::endl;
         }
     }
 
     std::cout << "Removed literals with fixed valuation:" << std::endl;
 
-    for (auto entry : removed) {
+    for (const auto &entry : removed) {
         std::cout << entry.first << " -> " << entry.second << std::endl;
     }
 
@@ -132,7 +132,7 @@ void dpa_example(const Owl& owl, const Formula& formula) {
 int main(int argc, char** argv) {
     const char* classpath = "-Djava.class.path="
             "../../../build/lib/owl-1.2.0-SNAPSHOT.jar:"
-            "../../../build/lib/jhoafparser-1.1.1.jar:"
+            "../../../build/lib/jhoafparser-1.1.1-patched.jar:"
             "../../../build/lib/jbdd-0.2.0.jar:"
             "../../../build/lib/guava-23.4-jre.jar:"
             "../../../build/lib/naturals-util-0.7.0.jar:"

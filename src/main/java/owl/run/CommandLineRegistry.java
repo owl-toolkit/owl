@@ -85,7 +85,7 @@ public class CommandLineRegistry {
     return moduleSettings;
   }
 
-  void register(ModuleSettings... settings) {
+  public void register(ModuleSettings... settings) {
     register(Arrays.asList(settings));
   }
 

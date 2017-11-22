@@ -8,7 +8,6 @@ import owl.run.coordinator.Coordinator;
 import owl.run.coordinator.Coordinator.Factory;
 import owl.run.env.Environment;
 
-@SuppressWarnings("InterfaceMayBeAnnotatedFunctional")
 public interface ModuleSettings<M> {
   @Value.Default
   default String getDescription() {
@@ -25,7 +24,7 @@ public interface ModuleSettings<M> {
   @Value.Default
   default BiParseFunction<CommandLine, Environment, M> constructor() {
     return (x, y) -> {
-      throw new IllegalStateException("Constructor not defined.");
+      throw new UnsupportedOperationException("Either override create() or set constructor().");
     };
   }
 
@@ -33,7 +32,7 @@ public interface ModuleSettings<M> {
     return constructor().parse(commandLine, environment);
   }
 
-  // TODO this doesn't belong here. Coordinator do not env atm.
+  // TODO this doesn't belong here. Coordinator do not env atm are not a module of a pipeline.
   @Value.Immutable
   interface CoordinatorSettings extends ModuleSettings<Coordinator> {
     BiParseFunction<CommandLine, Void, Factory> coordinatorSettingsParser();
