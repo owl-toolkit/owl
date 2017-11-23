@@ -130,7 +130,7 @@ namespace owl {
         return negation;
     }
 
-    Formula FormulaFactory::parse(const std::string &formula_string, const std::vector<const std::string>& apMapping) {
+    Formula FormulaFactory::parse(const std::string &formula_string, const std::vector<std::string>& apMapping) {
         jstring string = copy_to_java(env, formula_string);
         jobject mapping = copy_to_java(env, apMapping);
         auto formula = call_static_method<jobject, jstring, jobject>(env, parser, parseID, string, mapping);

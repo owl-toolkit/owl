@@ -74,19 +74,19 @@ namespace owl {
         Formula createImplication(const Formula& left, const Formula& right);
         Formula createNegation(const Formula& formula);
         Formula createBiimplication(const Formula &left, const Formula &right);
-        Formula parse(const std::string& formula, const std::vector<const std::string>& apMapping);
+        Formula parse(const std::string& formula, const std::vector<std::string>& apMapping);
 
         template<typename... Args>
         Formula createConjunction(const Formula& left, const Formula& right, Args... args) {
             Formula conjunction = createConjunction(left, right);
             return createConjunction(conjunction, args...);
-        };
+        }
 
         template<typename... Args>
         Formula createDisjunction(const Formula& left, const Formula& right, Args... args) {
             Formula disjunction = createDisjunction(left, right);
             return createDisjunction(disjunction, args...);
-        };
+        }
     };
 
     class FormulaRewriter {

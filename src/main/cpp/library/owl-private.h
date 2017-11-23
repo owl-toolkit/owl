@@ -13,12 +13,12 @@ inline void check_exception(JNIEnv *env, const char *message) {
 template<typename T1>
 constexpr bool is_any_of() {
     return false;
-};
+}
 
 template<typename T1, typename T2, typename... T3>
 constexpr bool is_any_of() {
     return std::is_same<T1, T2>::value || is_any_of<T1, T3...>();
-};
+}
 
 template<typename T>
 constexpr bool is_jobject() {
@@ -188,8 +188,8 @@ inline jobject copy_to_java(JNIEnv *env, const std::vector<T>& vector) {
 class copy_from_java
 {
 private:
-    jobject value;
     JNIEnv *env;
+    jobject value;
 
 public:
     copy_from_java(JNIEnv *_env, jobject _value) : env(_env), value(_value) {};

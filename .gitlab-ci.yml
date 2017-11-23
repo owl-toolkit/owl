@@ -21,7 +21,7 @@ build:
 
 .ltlcross: &ltlcross_template
   script:
-    - ./gradlew --no-daemon buildBin ltl2autExecutable
+    - ./gradlew --no-daemon buildBin owlClientExecutable
     - python3 scripts/util.py test $TEST_NAME
   artifacts:
     paths:
