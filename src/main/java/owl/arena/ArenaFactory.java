@@ -33,6 +33,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
+import owl.util.ImmutableObject;
 
 public final class ArenaFactory {
   private ArenaFactory() {}
@@ -132,7 +133,7 @@ public final class ArenaFactory {
       return owner == Owner.PLAYER_1 ? variablesPlayer1 : variablesPlayer2;
     }
 
-    private static final class ValueEdge {
+    private static final class ValueEdge extends ImmutableObject {
       final int colour;
       final ValuationSet valuationSet;
 
@@ -146,21 +147,13 @@ public final class ArenaFactory {
       }
 
       @Override
-      public boolean equals(Object o) {
-        if (this == o) {
-          return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-          return false;
-        }
-
+      protected boolean equals2(ImmutableObject o) {
         ValueEdge valueEdge = (ValueEdge) o;
         return colour == valueEdge.colour && Objects.equals(valuationSet, valueEdge.valuationSet);
       }
 
       @Override
-      public int hashCode() {
+      protected int hashCodeOnce() {
         return Objects.hash(valuationSet, colour);
       }
     }

@@ -23,13 +23,12 @@ import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUM
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
 
-import java.io.IOException;
 import java.util.EnumSet;
 import org.junit.Test;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public class LTL2LDGBATest {
@@ -39,7 +38,7 @@ public class LTL2LDGBATest {
       EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
     LabelledFormula formula = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<?, ?, ?, ?> automaton =
-      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(TestEnvironment.INSTANCE, opts)
+      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(), opts)
         .apply(formula);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
@@ -50,21 +49,21 @@ public class LTL2LDGBATest {
       EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
     LabelledFormula formula = LtlParser.parse(ltl);
     LimitDeterministicAutomaton<?, ?, ?, ?> automaton =
-      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(TestEnvironment.INSTANCE, opts)
-        .apply(formula);
+      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(),
+        opts).apply(formula);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
   }
 
   // @Test
-  public void regressionTestStack() throws IOException {
+  public void regressionTestStack() {
     String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | "
       + "(G((!(b)) | ((c) & (X(F(e))))))))))";
     testGenOutput(ltl, 46);
   }
 
   @Test
-  public void testAcceptanceSetSize() throws Exception {
+  public void testAcceptanceSetSize() {
     String ltl = "G ((p1 & p2 & (X(((p1)) | (p2)))) | G(! p2))";
     testGenOutput(ltl, 3);
 
@@ -77,7 +76,7 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testCasePrism() throws Exception {
+  public void testCasePrism() {
     String ltl1 = "(G F p1) & (F G ((p1) U (p3)))";
     testGenOutput(ltl1, 2);
 
@@ -87,67 +86,67 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testEnoughJumps() throws Exception {
+  public void testEnoughJumps() {
     String ltl = "(F G a) | ((F G b) & (G X (X c U F d)))";
     testGenOutput(ltl, 3);
   }
 
   @Test
-  public void testEx() throws Exception {
+  public void testEx() {
     String ltl2 = "X G (a | F b)";
     testGenOutput(ltl2, 3);
   }
 
   @Test
-  public void testFGa() throws Exception {
+  public void testFGa() {
     String ltl = "F G a";
     testGenOutput(ltl, 2);
   }
 
   @Test
-  public void testFoo() throws Exception {
+  public void testFoo() {
     String ltl = "G((p) U (X(G(p))))";
     testGenOutput(ltl, 3);
   }
 
   @Test
-  public void testFoo2() throws Exception {
+  public void testFoo2() {
     String ltl = "(G F c | F G b | F G a)";
     testGenOutput(ltl, 4);
   }
 
   @Test
-  public void testGR1() throws Exception {
+  public void testGR1() {
     String ltl = "((G F b1 & G F b2) | F G !a2 | F G !a1)";
     testGenOutput(ltl, 4);
   }
 
   @Test
-  public void testJumps() throws Exception {
+  public void testJumps() {
     String ltl = "(G a) | X X X b";
     testGenOutput(ltl, 9);
   }
 
   @Test
-  public void testOptimisations() throws Exception {
+  public void testOptimisations() {
     String ltl = "((G F d | F G c) & (G F b | F G a) & (G F k | F G h))";
     testGenOutput(ltl, 9);
   }
 
   @Test
-  public void testOptimisations2() throws Exception {
+  public void testOptimisations2() {
     String ltl = "G F (b | a)";
     testGenOutput(ltl, 3);
   }
 
   @Test
-  public void testOptimisations3() throws Exception {
+  public void testOptimisations3() {
     String ltl = "G((a & !X a) | (X (a U (a & !b & (X(a & b & (a U (a & !b & (X(a & b))))))))))";
     testGenOutput(ltl, 8);
   }
 
   @Test
-  public void testRejectingCycle() throws Exception {
+  public void testRejectingCycle() {
     String ltl = "!(G(a|b|c))";
     testGenOutput(ltl, 2);
 
@@ -156,7 +155,7 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testRelease() throws Exception {
+  public void testRelease() {
     String ltl1 = "a R b";
     testGenOutput(ltl1, 2);
 
@@ -165,38 +164,38 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testRelease2() throws Exception {
+  public void testRelease2() {
     String ltl = "((G a & F b) | b)";
     testGenOutput(ltl, 4);
   }
 
   @Test
-  public void testSanityCheckFailed() throws Exception {
+  public void testSanityCheckFailed() {
     String ltl = "(G((F(!(a))) & (F((b) & (X(!(c))))) & (G(F((a) U (d)))))) & (G(F((X(d)) U "
       + "((b) | (G(c))))))";
     testGenOutput(ltl, 3);
   }
 
   @Test
-  public void testSanityCheckFailed2() throws Exception {
+  public void testSanityCheckFailed2() {
     String ltl = "!(((X a) | (F b)) U (a))";
     testGenOutput(ltl, 4);
   }
 
   @Test
-  public void testSccPatient() throws Exception {
+  public void testSccPatient() {
     String ltl = "X (a & (X (b & X G c)))";
     testGenOutput(ltl, 4);
   }
 
   @Test
-  public void testSingle() throws Exception {
+  public void testSingle() {
     String ltl = "G ((F a) & (F b))";
     testGenOutput(ltl, 1);
   }
 
   @Test
-  public void testSpot() throws Exception {
+  public void testSpot() {
     String ltl1 = "p U (r | s)";
     testGenOutput(ltl1, 2);
 
@@ -205,43 +204,43 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testToHoa() throws Exception {
+  public void testToHoa() {
     String ltl = "((F G (a U c)) & G X b) | (F G X (f U d)) & X X e";
     testGenOutput(ltl, 9);
   }
 
   @Test
-  public void testToHoa2() throws Exception {
+  public void testToHoa2() {
     String ltl = "(G F a) | (G ((b | X ! a) & ((! b | X a))))";
     testGenOutput(ltl, 6);
   }
 
   @Test
-  public void testToHoa342() throws Exception {
+  public void testToHoa342() {
     String ltl = "(F p) U (G q)";
     testGenOutput(ltl, 3);
   }
 
   @Test
-  public void testToHoa6() throws Exception {
+  public void testToHoa6() {
     String ltl = "G a | X G b";
     testGenOutput(ltl, 4);
   }
 
   @Test
-  public void testToHoa7() throws Exception {
+  public void testToHoa7() {
     String ltl = "X F (a U G b)";
     testGenOutput(ltl, 2);
   }
 
   @Test
-  public void testToHoa73() throws Exception {
+  public void testToHoa73() {
     String ltl = "G ((X X (a)) | (X b)) | G c";
     testGenOutput(ltl, 6);
   }
 
   @Test
-  public void testTrivial() throws Exception {
+  public void testTrivial() {
     testGenOutput("true", 1);
     testGenOutput("false", 0);
     testGenOutput("a | !a", 1);

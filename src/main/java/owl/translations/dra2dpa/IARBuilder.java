@@ -21,8 +21,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -37,57 +35,41 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.run.InputReaders;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.OutputWriters;
-import owl.run.PipelineExecutionException;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
-import owl.run.parser.ImmutableSingleModuleConfiguration;
-import owl.run.parser.SimpleModuleParser;
+import owl.run.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.InputReaders;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.OutputWriters;
+import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 
 public final class IARBuilder<R> {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("dra2dpa")
+    .transformerSettingsParser(settings -> Transformers.RABIN_TO_PARITY)
+    .build();
+
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws ParseException {
-      return (input, context) -> {
-        Automaton<Object, RabinAcceptance> automaton =
-          AutomatonUtil.cast(input, Object.class, RabinAcceptance.class);
-
-        try {
-          return new IARBuilder<>(automaton).build();
-        } catch (ExecutionException e) {
-          throw PipelineExecutionException.wrap(e);
-        }
-      };
-    }
-
-    @Override
-    public String getKey() {
-      return "dra2dpa";
-    }
-  };
-
+  private final Environment environment;
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final ValuationSetFactory vsFactory;
 
-  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
+  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
     resultAutomaton =
       MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), vsFactory);
+    this.environment = environment;
   }
 
   public static void main(String... args) {
-    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.HOA)
-      .transformer(settings)
-      .addPostProcessors(Transformers.MINIMIZER)
-      .writerModule(OutputWriters.HOA)
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("dra2dpa")
+      .reader(InputReaders.HoaReader.DEFAULT)
+      .addTransformer(SETTINGS)
+      .addTransformer(Transformers.MINIMIZER)
+      .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
   }
 
@@ -101,8 +83,7 @@ public final class IARBuilder<R> {
     List<Set<R>> rabinSccs = SccDecomposition.computeSccs(rabinAutomaton);
     logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
 
-    // TODO: This is not parallelizable, since ValuationSetFactory cannot handle parallel write
-    // access! Hence we use a direct executor...
+    // TODO Threading once we have a thread safe BDD library
     CompletionService<SccProcessingResult<R>> completionService =
       new ExecutorCompletionService<>(MoreExecutors.directExecutor());
 

@@ -32,7 +32,7 @@ public class SplitterTest {
   }
 
   @Test
-  public void splitBuechi() throws Exception {
+  public void splitBuechi() {
     Splitter.split(LtlParser.syntax("G (a | X F a)"), false, AUTO);
   }
 

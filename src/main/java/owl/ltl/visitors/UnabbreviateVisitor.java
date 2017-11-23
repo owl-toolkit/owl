@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.ltl.Conjunction;
@@ -32,30 +31,39 @@ import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.env.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings.TransformerSettings;
 
 public class UnabbreviateVisitor extends DefaultConverter {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment) throws ParseException {
-      return DefaultConverter.asTransformer(new UnabbreviateVisitor(parseClassList(settings)));
-    }
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("unabbreviate")
+    .optionsDirect(new Options()
+      .addOption("w", "weak-until", false, "Remove W operator")
+      .addOption("r", "release", false, "Remove R operator")
+      .addOption("m", "strong-release", false, "Remove M operator")
+    ).transformerSettingsParser(settings -> {
+      ImmutableList.Builder<Class<? extends Formula>> classes =
+        ImmutableList.builder();
+      if (settings.hasOption("weak-until")) {
+        classes.add(WOperator.class);
+      }
 
-    @Override
-    public String getKey() {
-      return "unabbreviate";
-    }
+      if (settings.hasOption("release")) {
+        classes.add(ROperator.class);
+      }
 
-    @Override
-    public Options getOptions() {
-      return new Options()
-        .addOption("w", "weak-until", false, "Remove W operator")
-        .addOption("r", "release", false, "Remove R operator")
-        .addOption("m", "strong-release", false, "Remove M operator");
-    }
-  };
+      if (settings.hasOption("strong-release")) {
+        classes.add(MOperator.class);
+      }
+
+      ImmutableList<Class<? extends Formula>> classList = classes.build();
+      if (classList.isEmpty()) {
+        throw new ParseException("No operation specified");
+      }
+
+      return DefaultConverter.asTransformer(new UnabbreviateVisitor(classList));
+    })
+    .build();
 
   // TODO Support for more operators
   private final Set<Class<? extends Formula>> classes;
@@ -67,31 +75,6 @@ public class UnabbreviateVisitor extends DefaultConverter {
 
   public UnabbreviateVisitor(List<Class<? extends Formula>> classes) {
     this.classes = ImmutableSet.copyOf(classes);
-  }
-
-  private static ImmutableList<Class<? extends Formula>> parseClassList(CommandLine settings)
-    throws ParseException {
-    ImmutableList.Builder<Class<? extends Formula>> classes = ImmutableList.builder();
-
-    if (settings.hasOption("weak-until")) {
-      classes.add(WOperator.class);
-    }
-
-    if (settings.hasOption("release")) {
-      classes.add(ROperator.class);
-    }
-
-    if (settings.hasOption("strong-release")) {
-      classes.add(MOperator.class);
-    }
-
-    ImmutableList<Class<? extends Formula>> classList = classes.build();
-
-    if (classList.isEmpty()) {
-      throw new ParseException("No operation specified");
-    }
-
-    return classList;
   }
 
   @Override

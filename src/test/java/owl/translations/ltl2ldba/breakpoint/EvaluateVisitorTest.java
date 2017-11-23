@@ -10,7 +10,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisitor;
 
 public class EvaluateVisitorTest {
@@ -18,7 +18,7 @@ public class EvaluateVisitorTest {
   public void testEvaluateSetG() {
     GOperator operator = (GOperator) LtlParser.parse("G(p2)").formula;
     LabelledFormula formula = LtlParser.parse("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
-    Factories factories = TestEnvironment.INSTANCE.factorySupplier().getFactories(formula);
+    Factories factories = DefaultEnvironment.annotated().factorySupplier().getFactories(formula);
     EvaluateVisitor visitor = new EvaluateVisitor(Set.of(operator),
       factories.eqFactory.getTrue());
     assertThat(formula.accept(visitor), is(BooleanConstant.FALSE));

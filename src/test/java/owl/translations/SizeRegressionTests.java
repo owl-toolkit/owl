@@ -55,7 +55,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
@@ -214,7 +214,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
         OPTIMISE_INITIAL_STATE, Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
 
       public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(TestEnvironment.INSTANCE, DPA_ALL),
+        super(selectedClass, new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL),
           "breakpoint");
       }
 
@@ -230,7 +230,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
         OPTIMISE_INITIAL_STATE, Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
 
       public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(TestEnvironment.INSTANCE, DPA_ALL),
+        super(selectedClass, new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL),
           "breakpointfree");
       }
 
@@ -246,8 +246,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Delag(FormulaSet selectedClass) {
-      super(selectedClass, formula -> new DelagBuilder(TestEnvironment.INSTANCE,
-          new LTL2DPAFunction(TestEnvironment.INSTANCE,
+      super(selectedClass, formula -> new DelagBuilder(DefaultEnvironment.annotated(),
+          new LTL2DPAFunction(DefaultEnvironment.annotated(),
             LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG))
           .apply(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula)),
       x -> x.getStates().size(),
@@ -275,7 +275,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class Breakpoint extends LDBA {
       public Breakpoint(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-            .createDegeneralizedBreakpointLDBABuilder(TestEnvironment.INSTANCE, LDBA_ALL),
+            .createDegeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(), LDBA_ALL),
           "breakpoint");
       }
 
@@ -289,7 +289,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class BreakpointFree extends LDBA {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-            .createDegeneralizedBreakpointFreeLDBABuilder(TestEnvironment.INSTANCE, LDBA_ALL),
+            .createDegeneralizedBreakpointFreeLDBABuilder(DefaultEnvironment.annotated(), LDBA_ALL),
           "breakpointfree");
       }
 
@@ -312,7 +312,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class Breakpoint extends LDGBA {
       public Breakpoint(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-            .createGeneralizedBreakpointLDBABuilder(TestEnvironment.INSTANCE, LDBA.LDBA_ALL),
+            .createGeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(), LDBA.LDBA_ALL),
           "breakpoint");
       }
 
@@ -326,8 +326,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     public static class BreakpointFree extends LDGBA {
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
-            .createGeneralizedBreakpointFreeLDBABuilder(TestEnvironment.INSTANCE, LDBA.LDBA_ALL),
-          "breakpointfree");
+            .createGeneralizedBreakpointFreeLDBABuilder(DefaultEnvironment.annotated(),
+              LDBA.LDBA_ALL), "breakpointfree");
       }
 
       @Parameterized.Parameters(name = "Group: {0}")

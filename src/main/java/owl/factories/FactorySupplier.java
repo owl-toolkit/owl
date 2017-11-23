@@ -19,4 +19,8 @@ public interface FactorySupplier {
   }
 
   ValuationSetFactory getValuationSetFactory(List<String> alphabet);
+
+  default boolean isThreadSafe() {
+    return false;
+  }
 }

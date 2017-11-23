@@ -28,10 +28,10 @@ import owl.arena.Arena;
 import owl.arena.Views;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.run.ImmutableTransformerSettings;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.Transformers;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings;
+import owl.run.modules.Transformer;
+import owl.run.modules.Transformers;
 
 public final class ParityGameSolver {
   // TODO: should be returning a winning region or strategy
@@ -46,8 +46,9 @@ public final class ParityGameSolver {
       return "The specification is UNREALISABLE";
     });
 
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
-    .key("zielonka").constructor((x, y) -> ZIELONKA_SOLVER).build();
+  public static final ModuleSettings.TransformerSettings SETTINGS =
+    ImmutableTransformerSettings.builder().key("zielonka")
+      .transformerSettingsParser(settings -> ZIELONKA_SOLVER).build();
 
   private ParityGameSolver() {}
 

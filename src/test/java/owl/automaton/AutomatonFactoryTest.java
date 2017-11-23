@@ -16,13 +16,14 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 
 public class AutomatonFactoryTest {
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testSingleton() {
-    ValuationSetFactory factory = TestEnvironment.INSTANCE.factorySupplier()
+    ValuationSetFactory factory = DefaultEnvironment.annotated().factorySupplier()
       .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, NoneAcceptance> singleton =
@@ -37,7 +38,7 @@ public class AutomatonFactoryTest {
 
   @Test
   public void testUniverse() {
-    ValuationSetFactory factory = TestEnvironment.INSTANCE.factorySupplier()
+    ValuationSetFactory factory = DefaultEnvironment.annotated().factorySupplier()
       .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, AllAcceptance> singleton =

@@ -26,7 +26,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.util.BitSets;
 
 public class AutomatonReaderTest {
@@ -178,7 +178,7 @@ public class AutomatonReaderTest {
   @Test
   public void readAutomatonBuchi() throws ParseException {
     Automaton<HoaState, BuchiAcceptance> automaton = AutomatonReader.readHoa(HOA_BUCHI,
-      TestEnvironment.INSTANCE.factorySupplier(), BuchiAcceptance.class);
+      DefaultEnvironment.annotated().factorySupplier(), BuchiAcceptance.class);
     assertThat(automaton.getStates().size(), is(2));
     Int2ObjectMap<HoaState> states = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.getFactory();
@@ -196,19 +196,20 @@ public class AutomatonReaderTest {
 
   @Test(expected = ParseException.class)
   public void readAutomatonInvalid() throws ParseException {
-    AutomatonReader.readHoaCollection(HOA_INVALID, TestEnvironment.INSTANCE.factorySupplier());
+    AutomatonReader.readHoaCollection(HOA_INVALID,
+      DefaultEnvironment.annotated().factorySupplier());
   }
 
   @Test(expected = ParseException.class)
   public void readAutomatonMissingAccName() throws ParseException {
     AutomatonReader.readHoaCollection(HOA_MISSING_ACC_NAME,
-      TestEnvironment.INSTANCE.factorySupplier());
+      DefaultEnvironment.annotated().factorySupplier());
   }
 
   @Test
   public void readAutomatonParity() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(HOA_PARITY,
-      TestEnvironment.INSTANCE.factorySupplier());
+      DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.getAcceptance(), instanceOf(ParityAcceptance.class));
@@ -237,7 +238,7 @@ public class AutomatonReaderTest {
   @Test
   public void readAutomatonSimple() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(HOA_SIMPLE,
-      TestEnvironment.INSTANCE.factorySupplier());
+      DefaultEnvironment.annotated().factorySupplier());
     assertThat(automata.size(), is(1));
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
     assertThat(automaton.getStates().size(), is(2));
@@ -258,7 +259,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceGeneralizedBuchi() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERALIZED_BUCHI, TestEnvironment.INSTANCE.factorySupplier());
+      HOA_GENERALIZED_BUCHI, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 1);
@@ -270,7 +271,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceGeneralizedRabin() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERALIZED_RABIN, TestEnvironment.INSTANCE.factorySupplier());
+      HOA_GENERALIZED_RABIN, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 2);
@@ -282,7 +283,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceGeneric() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERIC, TestEnvironment.INSTANCE.factorySupplier());
+      HOA_GENERIC, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 3);
@@ -294,7 +295,7 @@ public class AutomatonReaderTest {
   @Test
   public void testAcceptanceRabin() throws ParseException {
     Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_RABIN, TestEnvironment.INSTANCE.factorySupplier());
+      HOA_RABIN, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertEquals(automaton.getStates().size(), 3);

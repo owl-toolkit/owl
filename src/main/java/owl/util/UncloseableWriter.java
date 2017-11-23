@@ -2,13 +2,20 @@ package owl.util;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Writer;
 
-public class UncloseableWriter extends Writer {
+/**
+ * A wrapper for writers which only forwards a {@link Writer#flush()} upon {@link #close()}. This
+ * is useful in combination with, e.g., {@link System#out}, since upon calling close on that stream,
+ * nothing can be written to console anymore.
+ *
+ * <p><strong>Warning:</strong> Code using these writers should still use try-with-resource guards
+ * or similar, as otherwise the output may not get flushed.</p>
+ */
+@SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
+public final class UncloseableWriter extends Writer {
   public static final Writer syserr = new UncloseableWriter(new OutputStreamWriter(System.err));
   public static final Writer sysout = new UncloseableWriter(new OutputStreamWriter(System.out));
-  public static final PrintWriter pwsyserr = new PrintWriter(syserr);
 
   private final Writer delegate;
 

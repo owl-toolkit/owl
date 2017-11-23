@@ -5,10 +5,11 @@ import java.util.List;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.run.Transformer;
-import owl.run.env.Environment;
+import owl.run.PipelineExecutionContext;
+import owl.run.modules.Transformer;
 
-public class ExplicitMinimizeTransformer<S, A extends OmegaAcceptance> {
+public class ExplicitMinimizeTransformer<S, A extends OmegaAcceptance>
+  implements Transformer.Instance {
   private final Class<A> acceptanceClass;
   private final List<Minimization<S, A>> minimizationList;
   private final Class<S> stateClass;
@@ -20,14 +21,13 @@ public class ExplicitMinimizeTransformer<S, A extends OmegaAcceptance> {
     this.acceptanceClass = acceptanceClass;
   }
 
-  public Transformer createTransformer(Environment environment) {
-    return (input, context) -> {
-      MutableAutomaton<S, A> castedAutomaton =
-        AutomatonUtil.castMutable(input, stateClass, acceptanceClass);
-      for (Minimization<S, A> minimization : minimizationList) {
-        minimization.apply(castedAutomaton);
-      }
-      return castedAutomaton;
-    };
+  @Override
+  public Object transform(Object object, PipelineExecutionContext context) {
+    MutableAutomaton<S, A> castedAutomaton =
+      AutomatonUtil.castMutable(object, stateClass, acceptanceClass);
+    for (Minimization<S, A> minimization : minimizationList) {
+      minimization.apply(castedAutomaton);
+    }
+    return castedAutomaton;
   }
 }

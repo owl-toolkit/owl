@@ -26,9 +26,7 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
@@ -37,22 +35,24 @@ import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
-import owl.run.InputReaders;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.OutputWriters;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
-import owl.run.parser.ImmutableSingleModuleConfiguration;
-import owl.run.parser.SimpleModuleParser;
+import owl.run.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.InputReaders;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.OutputWriters;
+import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws ParseException {
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("delag")
+    .optionsDirect(new Options().addOption("f", "fallback", true,
+      "Fallback tool for input outside the fragment ('none' for strict mode)"))
+    .transformerSettingsParser(settings -> environment -> {
       String fallbackTool = settings.getOptionValue("fallback");
 
       Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
@@ -64,26 +64,13 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
       } else {
 
         fallback = fallbackTool == null
-                   ? new LTL2DPAFunction(environment, LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG)
-                   : new ExternalTranslator(environment, fallbackTool);
+          ? new LTL2DPAFunction(environment, LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG)
+          : new ExternalTranslator(environment, fallbackTool);
       }
 
-      //noinspection unchecked,rawtypes
-      return Transformers.fromFunction(LabelledFormula.class,
+      return Transformers.instanceFromFunction(LabelledFormula.class,
         new DelagBuilder(environment, fallback));
-    }
-
-    @Override
-    public String getKey() {
-      return "delag";
-    }
-
-    @Override
-    public Options getOptions() {
-      return new Options().addOption("f", "fallback", true,
-        "Fallback tool for input outside the fragment ('none' for strict mode)");
-    }
-  };
+    }).build();
 
   private final Environment env;
   private final Function<LabelledFormula, ? extends Automaton<T, ?>> fallback;
@@ -97,11 +84,11 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   }
 
   public static void main(String... args) {
-    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.LTL)
-      .addPreProcessors(Transformers.SIMPLIFY_MODAL_ITER)
-      .transformer(settings)
-      .writerModule(OutputWriters.HOA)
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
+      .addTransformer(SETTINGS)
+      .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
   }
 

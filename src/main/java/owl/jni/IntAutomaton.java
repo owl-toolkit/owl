@@ -44,13 +44,15 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.ShiftRewriter;
 import owl.ltl.rewriter.ShiftRewriter.ShiftedFormula;
-import owl.run.env.EnvironmentSettings;
+import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.SimpleTranslations;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
-public class IntAutomaton {
-
+// This is a JNI entry point. No touching.
+@SuppressWarnings({"unused", "AssignmentOrReturnOfFieldWithMutableType"})
+public final class IntAutomaton {
   private static final int NO_COLOUR = -1;
   private static final int NO_STATE = -1;
 
@@ -116,21 +118,25 @@ public class IntAutomaton {
   }
 
   public static IntAutomaton of(Formula formula, boolean onTheFly) {
+    Environment environment = DefaultEnvironment.standard();
     ShiftedFormula shiftedFormula = ShiftRewriter.shiftLiterals(RewriterFactory.apply(formula));
     LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
 
     if (Fragments.isSafety(labelledFormula.formula)) {
-      return of(SimpleTranslations.buildSafety(labelledFormula), Acceptance.SAFETY,
-        shiftedFormula.mapping);
-    } else if (Fragments.isCoSafety(labelledFormula.formula)) {
-      return of(SimpleTranslations.buildCoSafety(labelledFormula), Acceptance.CO_SAFETY,
-        shiftedFormula.mapping);
-    } else if (Fragments.isDetBuchiRecognisable(labelledFormula.formula)) {
-      return of(SimpleTranslations.buildBuchi(labelledFormula), Acceptance.BUCHI,
-        shiftedFormula.mapping);
-    } else if (Fragments.isDetCoBuchiRecognisable(labelledFormula.formula)) {
-      return of(SimpleTranslations.buildCoBuchi(labelledFormula), Acceptance.CO_BUCHI,
-        shiftedFormula.mapping);
+      return of(SimpleTranslations.buildSafety(labelledFormula, environment),
+        Acceptance.SAFETY, shiftedFormula.mapping);
+    }
+    if (Fragments.isCoSafety(labelledFormula.formula)) {
+      return of(SimpleTranslations.buildCoSafety(labelledFormula, environment),
+        Acceptance.CO_SAFETY, shiftedFormula.mapping);
+    }
+    if (Fragments.isDetBuchiRecognisable(labelledFormula.formula)) {
+      return of(SimpleTranslations.buildBuchi(labelledFormula, environment),
+        Acceptance.BUCHI, shiftedFormula.mapping);
+    }
+    if (Fragments.isDetCoBuchiRecognisable(labelledFormula.formula)) {
+      return of(SimpleTranslations.buildCoBuchi(labelledFormula, environment),
+        Acceptance.CO_BUCHI, shiftedFormula.mapping);
     }
 
     // Fallback to DPA
@@ -141,8 +147,8 @@ public class IntAutomaton {
       configuration.remove(Configuration.OPTIMISE_INITIAL_STATE);
     }
 
-    Automaton<?, ParityAcceptance> automaton = new LTL2DPAFunction(
-      EnvironmentSettings.DEFAULT_ENVIRONMENT, configuration).apply(labelledFormula);
+    Automaton<?, ParityAcceptance> automaton =
+      new LTL2DPAFunction(environment, configuration).apply(labelledFormula);
     assert !onTheFly || !(automaton instanceof MutableAutomaton)
       : "Internal Error: Automaton was explicitly constructed and not on-the-fly.";
     return of(automaton, detectAcceptance(automaton), shiftedFormula.mapping);

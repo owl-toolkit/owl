@@ -47,7 +47,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.Collector;
-import owl.run.env.Environment;
+import owl.run.Environment;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomaton;
 import owl.translations.ldba2dpa.RankingState;
@@ -131,11 +131,9 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       }
 
       return automaton.getAcceptance().getAcceptanceSets()
-               <= complement.getAcceptance().getAcceptanceSets() ? automaton : complement;
+        <= complement.getAcceptance().getAcceptanceSets() ? automaton : complement;
     } catch (ExecutionException ex) {
       // The translation broke down, it is unsafe to continue...
-      // In order to immediately shutdown the JVM without using SYSTEM.exit(), we cancel all running
-      // Futures.
 
       automatonFuture.cancel(true);
       complementFuture.cancel(true);
@@ -149,14 +147,14 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   private Callable<Result<?>> callable(LabelledFormula formula, boolean complement) {
     if (!complement) {
       return configuration.contains(GUESS_F)
-             ? () -> applyBreakpointFree(formula)
-             : () -> applyBreakpoint(formula);
+        ? () -> applyBreakpointFree(formula)
+        : () -> applyBreakpoint(formula);
     }
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION)) {
       return configuration.contains(GUESS_F)
-             ? () -> applyBreakpointFree(formula.not())
-             : () -> applyBreakpoint(formula.not());
+        ? () -> applyBreakpointFree(formula.not())
+        : () -> applyBreakpoint(formula.not());
     }
 
     return () -> null;
@@ -232,6 +230,11 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     return false;
   }
 
+  public enum Configuration {
+    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
+    COMPLETE, GUESS_F
+  }
+
   static final class Result<T> {
     final Automaton<T, ParityAcceptance> automaton;
     final Supplier<T> sinkSupplier;
@@ -257,10 +260,5 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       ParityUtil.complement(automaton, sinkSupplier);
       return automaton;
     }
-  }
-
-  public enum Configuration {
-    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPLETE, GUESS_F
   }
 }

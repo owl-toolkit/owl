@@ -17,7 +17,6 @@
 
 package owl.arena;
 
-import com.google.common.collect.ImmutableList;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -34,37 +33,38 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.run.ImmutableTransformerSettings;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformers;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.Transformers;
 
 public final class Views {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
-    .key("aut2arena")
-    .options(options())
-    .constructor((settings, environment) -> {
-      String[] playerOnePropositions = settings.getOptionValues("player");
-      if (playerOnePropositions == null) {
-        throw new ParseException("Player one propositions required");
-      }
-      ImmutableList<String> propositions = ImmutableList.copyOf(playerOnePropositions);
-      //noinspection unchecked
-      return Transformers.fromFunction(Automaton.class,
-        automaton -> split(automaton, propositions));
-    }).build();
+  public static final TransformerSettings AUTOMATON_TO_ARENA_SETTINGS =
+    ImmutableTransformerSettings.builder()
+      .key("aut2arena")
+      .optionsBuilder(() -> {
+        Option option = new Option("u", "uncontrollable", true,
+          "List of atomic propositions controlled by player one (Environment)");
+        option.setRequired(true);
+        return new Options().addOption(option);
+      })
+      .transformerSettingsParser(settings -> {
+        String[] playerOnePropositions = settings.getOptionValues("uncontrollable");
+        if (playerOnePropositions == null) {
+          throw new ParseException("Player one (environment) propositions required");
+        }
 
-  private static Options options() {
-    Option option = new Option("p", "player", true,
-      "List of atomic propositions controlled by player one");
-    option.setRequired(true);
-    return new Options().addOption(option);
-  }
+        return Transformers.fromFunction(Automaton.class, automaton ->
+          Views.split(AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class),
+            List.of(playerOnePropositions)));
+      }).build();
 
   private Views() {}
 
@@ -173,7 +173,7 @@ public final class Views {
      * NOTE: In order to have the arena be complete, we make player 1
      * transitions be labelled with their choice of player-1 proposition
      * valuation with all valuations of propositions of player 2. The same is
-     * done for player 2. This is IMPORTANT when trying to recove a strategy
+     * done for player 2. This is important when trying to recover a strategy
      * from a subarena.
      */
     @Override
@@ -191,8 +191,8 @@ public final class Views {
         for (BitSet valuation : BitSets.powerSet(player2Propositions)) {
           ValuationSet valuationSet =
             factory.createValuationSet(valuation, player2Propositions);
-          // NOTE: it is crucial that we clone the bitset since we do an
-          // in-place or with state.choice later
+
+          // Modified by or() below
           BitSet joined = (BitSet) valuation.clone();
           joined.or(state.choice);
           Edge<S> edge = automaton.getEdge(state.state, joined);

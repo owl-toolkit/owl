@@ -2,12 +2,12 @@ package owl.translations.rabinizer;
 
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
-import owl.run.InputReaders;
-import owl.run.OutputWriters;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.parser.ImmutableSingleModuleConfiguration;
-import owl.run.parser.SimpleModuleParser;
+import owl.run.modules.InputReaders;
+import owl.run.modules.OutputWriters;
+import owl.run.modules.Transformer;
+import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 
 public final class RabinizerMain {
   private RabinizerMain() {}
@@ -17,12 +17,12 @@ public final class RabinizerMain {
       RewriterFactory.RewriterEnum.MODAL_ITERATIVE));
 
   public static void main(String... args) {
-    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.LTL)
-      .addPreProcessors(SIMPLIFIER, Transformers.UNABBREVIATE_RW)
-      .transformer(new RabinizerModule())
-      .addPostProcessors(Transformers.MINIMIZER)
-      .writerModule(OutputWriters.HOA)
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")
+      .reader(InputReaders.LTL)
+      .addTransformer(SIMPLIFIER, Transformers.UNABBREVIATE_RW)
+      .addTransformer(new RabinizerModule())
+      .addTransformer(Transformers.MINIMIZER)
+      .writer(OutputWriters.HOA)
       .build());
   }
 }

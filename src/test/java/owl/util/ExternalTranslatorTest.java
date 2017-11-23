@@ -20,7 +20,7 @@ package owl.util;
 import org.junit.Test;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.ExternalTranslator;
 
 public class ExternalTranslatorTest {
@@ -41,7 +41,7 @@ public class ExternalTranslatorTest {
   public void testApply() {
     for (int i = 0; i < FORMULA.length; i++) {
       LabelledFormula formula = LtlParser.parse(FORMULA[i]);
-      ExternalTranslator tool = new ExternalTranslator(TestEnvironment.INSTANCE, TOOL[i]);
+      ExternalTranslator tool = new ExternalTranslator(DefaultEnvironment.annotated(), TOOL[i]);
       tool.apply(formula);
     }
   }
