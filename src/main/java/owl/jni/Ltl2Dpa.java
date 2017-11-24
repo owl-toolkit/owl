@@ -27,12 +27,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.edge.Edge;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
+import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.visitors.Collector;
 import owl.translations.Optimisation;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
@@ -43,19 +45,25 @@ public class Ltl2Dpa {
   private static final int NO_COLOUR = -1;
   private static final int NO_STATE = -1;
 
-  private final Automaton<Object, ParityAcceptance> automaton;
+  private Automaton<Object, ParityAcceptance> automaton;
   private final List<Object> int2StateMap;
   private final Object2IntMap<Object> state2intMap;
 
   public Ltl2Dpa(Formula formula) {
     int largestAtom = Collector.collectAtoms(formula).stream().max().orElse(0);
     final LabelledFormula formula1 = LabelledFormula
-      .create(formula, IntStream.range(0, largestAtom + 1)
+      .create(RewriterFactory.apply(formula), IntStream.range(0, largestAtom + 1)
         .mapToObj(i -> "p" + i).collect(Collectors.toList()));
     EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
     optimisations.remove(Optimisation.COMPLETE);
+
     automaton = AutomatonUtil.cast(new LTL2DPAFunction(TestEnvironment.get(), optimisations)
         .apply(formula1), Object.class, ParityAcceptance.class);
+
+    if (automaton.stateCount() == 0) {
+      automaton = AutomatonFactory.singleton(new Object(), automaton.getFactory(),
+        new ParityAcceptance(2));
+    }
 
     int2StateMap = new ArrayList<>();
     state2intMap = new Object2IntOpenHashMap<>();
