@@ -82,10 +82,10 @@ public class RealizabilityRewriter {
     return new ArrayList<>(groups.keySet());
   }
 
-  public static Formula[] split(Formula formula, int lastInputAtomIndex,
+  public static Formula[] split(Formula formula, int numberOfInputSignals,
     Map<Integer, Boolean> fixedValuations) {
-    BitSet inputVariablesMask = new BitSet(lastInputAtomIndex);
-    inputVariablesMask.set(0, lastInputAtomIndex + 1);
+    BitSet inputVariablesMask = new BitSet(numberOfInputSignals);
+    inputVariablesMask.set(0, numberOfInputSignals);
     return split(inputVariablesMask, formula, fixedValuations).toArray(new Formula[0]);
   }
 

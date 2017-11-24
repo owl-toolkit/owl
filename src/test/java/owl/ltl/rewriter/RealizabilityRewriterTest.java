@@ -46,14 +46,14 @@ public class RealizabilityRewriterTest {
     Formula case1 = LtlParser.syntax("i -> o", List.of("i", "o"));
     Map<Integer, Boolean> map1 = new HashMap<>();
 
-    Formula[] split1 = RealizabilityRewriter.split(case1, 0, map1);
+    Formula[] split1 = RealizabilityRewriter.split(case1, 1, map1);
     assertThat(split1, Matchers.is(new Formula[]{}));
     assertThat(map1, Matchers.is(Map.of(0, true, 1, true)));
 
     Formula case2 = LtlParser.syntax("i & o", List.of("i", "o"));
     Map<Integer, Boolean> map2 = new HashMap<>();
 
-    Formula[] split2 = RealizabilityRewriter.split(case2, 0, map2);
+    Formula[] split2 = RealizabilityRewriter.split(case2, 1, map2);
     assertThat(split2, Matchers.is(new Formula[]{BooleanConstant.FALSE}));
     assertThat(map2, Matchers.is(Map.of(0, false)));
   }
