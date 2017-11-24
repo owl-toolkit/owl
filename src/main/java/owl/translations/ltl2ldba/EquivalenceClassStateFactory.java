@@ -28,7 +28,7 @@ import owl.factories.EquivalenceClassFactory;
 import owl.factories.EquivalenceClassUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.visitors.DisjunctiveNormalFormVisitor;
+import owl.ltl.rewriter.NormalForms;
 import owl.translations.Optimisation;
 
 public class EquivalenceClassStateFactory {
@@ -130,8 +130,8 @@ public class EquivalenceClassStateFactory {
 
   public List<EquivalenceClass> splitEquivalenceClass(EquivalenceClass clazz) {
     assert clazz.getRepresentative() != null;
-    List<EquivalenceClass> successors = DisjunctiveNormalFormVisitor
-      .normaliseStatic(clazz.getRepresentative()).stream()
+    List<EquivalenceClass> successors = NormalForms
+      .toDnf(clazz.getRepresentative()).stream()
       .map(this::getInitial).collect(Collectors.toCollection(LinkedList::new));
 
     if (removeRedundantObligations) {

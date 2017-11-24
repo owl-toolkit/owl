@@ -9,16 +9,15 @@ import java.util.Map;
 import java.util.Set;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.ConjunctiveNormalFormVisitor;
 import owl.ltl.visitors.DefaultConverter;
 
 public class RealizabilityRewriter {
 
-  private RealizabilityRewriter() {
-  }
+  private RealizabilityRewriter() {}
 
   private static Formula removeAtoms(BitSet inputVariablesMask, Formula formula,
     Map<Integer, Boolean> fixedValuations) {
@@ -53,14 +52,12 @@ public class RealizabilityRewriter {
       rewritten = removeAtoms(inputVariablesMask, original, fixedValuations);
     } while (!original.equals(rewritten));
 
-    List<Set<Formula>> cnf = ConjunctiveNormalFormVisitor.normaliseStatic(original);
-
     // Group by
     Map<Formula, BitSet> groups = new HashMap<>();
 
-    for (Set<Formula> set : cnf) {
+    for (Set<Formula> set : NormalForms.toCnf(original)) {
       Set<Formula> conjunction = new HashSet<>();
-      conjunction.add(Conjunction.create(set));
+      conjunction.add(Disjunction.create(set));
       BitSet outputVariables = Collector.collectAtoms(set);
       outputVariables.andNot(inputVariablesMask);
 
@@ -88,7 +85,7 @@ public class RealizabilityRewriter {
   public static Formula[] split(Formula formula, int lastInputAtomIndex,
     Map<Integer, Boolean> fixedValuations) {
     BitSet inputVariablesMask = new BitSet(lastInputAtomIndex);
-    inputVariablesMask.set(0, lastInputAtomIndex);
+    inputVariablesMask.set(0, lastInputAtomIndex + 1);
     return split(inputVariablesMask, formula, fixedValuations).toArray(new Formula[0]);
   }
 
