@@ -24,13 +24,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
-import it.unimi.dsi.fastutil.ints.IntIterable;
-import it.unimi.dsi.fastutil.ints.IntLists;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -92,16 +88,14 @@ public final class AutomatonFactory {
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
-    ValuationSetFactory factory, A acceptance, IntSet acceptanceSet) {
-    Map<IntIterable, ValuationSet> loopAcceptanceSets = Collections
-      .singletonMap(acceptanceSet, factory.createUniverseValuationSet());
-    return new SingletonAutomaton<>(state, factory, loopAcceptanceSets, acceptance);
+    ValuationSetFactory factory, A acceptance, Set<Integer> acceptanceSet) {
+    return new SingletonAutomaton<>(state, factory, Map.of(acceptanceSet,
+      factory.createUniverseValuationSet()), acceptance);
   }
 
   public static <S> Automaton<S, AllAcceptance> universe(S state, ValuationSetFactory factory) {
-    Map<IntIterable, ValuationSet> selfLoop = Map.of(IntLists.EMPTY_LIST,
-      factory.createUniverseValuationSet());
-    return new SingletonAutomaton<>(state, factory, selfLoop, AllAcceptance.INSTANCE);
+    return new SingletonAutomaton<>(state, factory, Map.of(Set.of(),
+      factory.createUniverseValuationSet()), AllAcceptance.INSTANCE);
   }
 
   private static final class EmptyAutomaton<S> implements Automaton<S, NoneAcceptance> {
@@ -327,7 +321,7 @@ public final class AutomatonFactory {
     private final S singletonState;
 
     SingletonAutomaton(S singletonState, ValuationSetFactory factory,
-      Map<IntIterable, ValuationSet> acceptances, A acceptance) {
+      Map<Set<Integer>, ValuationSet> acceptances, A acceptance) {
       this.singletonState = singletonState;
       this.factory = factory;
       this.acceptance = acceptance;
@@ -340,7 +334,8 @@ public final class AutomatonFactory {
         ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
 
         acceptances.forEach((edgeAcceptance, valuations) -> {
-          Edge<S> edge = Edges.create(singletonState, edgeAcceptance.iterator());
+          Edge<S> edge = Edges.create(singletonState, edgeAcceptance.stream()
+            .mapToInt(x -> x).iterator());
           builder.add(new LabelledEdge<>(edge, valuations));
           selfLoopValuations.addAll(valuations);
         });
