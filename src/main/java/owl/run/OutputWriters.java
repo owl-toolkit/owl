@@ -23,6 +23,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
+import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrintable;
@@ -126,7 +127,7 @@ public final class OutputWriters {
           automaton -> String.valueOf(automaton.getAcceptance().getAcceptanceSets()))
         // Is deterministic
         .put(Pattern.compile("%D", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> automaton.isDeterministic() ? "1" : "0")
+          automaton -> automaton.is(Property.DETERMINISTIC) ? "1" : "0")
         // Single line HOA
         .put(Pattern.compile("%H", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
           automaton -> AutomatonUtil.toHoa(automaton).replace('\n', ' '))
@@ -135,7 +136,7 @@ public final class OutputWriters {
           HoaPrintable::getName)
         // State count
         .put(Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> String.valueOf(automaton.stateCount()))
+          automaton -> String.valueOf(automaton.getStates().size()))
         // Number of propositions
         .put(Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
           automaton -> String.valueOf(automaton.getVariables().size()))

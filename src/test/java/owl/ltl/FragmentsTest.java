@@ -35,13 +35,13 @@ public class FragmentsTest {
 
   @Test
   public void isX() {
-    assertTrue(Fragments.isX(FORMULAS.get(0)));
-    assertTrue(Fragments.isX(FORMULAS.get(1)));
-    assertTrue(Fragments.isX(FORMULAS.get(2)));
-    assertFalse(Fragments.isX(FORMULAS.get(3)));
-    assertFalse(Fragments.isX(FORMULAS.get(4)));
-    assertTrue(Fragments.isX(FORMULAS.get(5)));
-    assertFalse(Fragments.isX(FORMULAS.get(8)));
+    assertTrue(Fragments.isFinite(FORMULAS.get(0)));
+    assertTrue(Fragments.isFinite(FORMULAS.get(1)));
+    assertTrue(Fragments.isFinite(FORMULAS.get(2)));
+    assertFalse(Fragments.isFinite(FORMULAS.get(3)));
+    assertFalse(Fragments.isFinite(FORMULAS.get(4)));
+    assertTrue(Fragments.isFinite(FORMULAS.get(5)));
+    assertFalse(Fragments.isFinite(FORMULAS.get(8)));
   }
 
 }

@@ -1,12 +1,11 @@
 package owl.translations.nba2ldba;
 
 import com.google.common.collect.Lists;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
@@ -23,7 +22,7 @@ public final class SafetyUtil {
     List<Set<S>> sccs = Lists.reverse(SccDecomposition.computeSccs(
       automaton, Set.of(state), false));
     for (Set<S> s : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, s);
+      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, s);
 
       if (!isOnlyAccepting(filteredAutomaton) && !isOnlyNonAccepting(filteredAutomaton)) {
         return false;
@@ -32,7 +31,7 @@ public final class SafetyUtil {
 
     Set<S> accepting = new HashSet<>();
     for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
       if (isOnlyAccepting(filteredAutomaton)) {
         accepting.addAll(scc);
@@ -40,7 +39,7 @@ public final class SafetyUtil {
     }
 
     for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
       if (isOnlyNonAccepting(filteredAutomaton) && scc.stream()
         .anyMatch(x -> automaton.getSuccessors(x).stream().anyMatch(accepting::contains))) {
@@ -80,7 +79,7 @@ public final class SafetyUtil {
       automaton, state, false));
 
     for (Set<S> s : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, s);
+      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, s);
 
       if (!isOnlyAccepting(filteredAutomaton) && !isOnlyNonAccepting(filteredAutomaton)) {
         return false;
@@ -89,7 +88,7 @@ public final class SafetyUtil {
 
     Set<S> nonAccepting = new HashSet<>();
     for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
       if (isOnlyNonAccepting(filteredAutomaton)) {
         nonAccepting.addAll(scc);
@@ -97,7 +96,7 @@ public final class SafetyUtil {
     }
 
     for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
       if (isOnlyAccepting(filteredAutomaton)
         && scc.stream().anyMatch(x -> automaton.getSuccessors(x)

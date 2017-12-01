@@ -12,7 +12,7 @@ namespace owl {
        deref(env, formula);
     }
 
-    const void Formula::print() {
+    void Formula::print() const {
         jclass clazz = get_class(env, formula);
         jmethodID toString = get_methodID(env, clazz, "toString", "()Ljava/lang/String;");
         auto string = call_method<jstring>(env, formula, toString);
@@ -160,7 +160,7 @@ namespace owl {
             formulas.emplace_back(Formula(env, output));
         }
 
-        deref(env, array, java_map);
+        deref(env, array);
         return formulas;
     }
 
@@ -181,10 +181,6 @@ namespace owl {
                 map[i] = j;
             }
         }
-
-        std::vector<std::string> list = std::vector<std::string>({"foo", "bar"});
-
-        copy_to_java(env, list);
 
         deref(env, shifted_formula, mapping);
         return Formula(env, result);

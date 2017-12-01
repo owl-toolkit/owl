@@ -24,7 +24,6 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
@@ -41,13 +40,13 @@ import owl.translations.delag.DependencyTree.Type;
 class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
   private final ProductState.Builder<T> builder;
-  private final Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
+  private final Function<LabelledFormula, ? extends Automaton<T, ?>>
     constructor;
   private final EquivalenceClassFactory factory;
   int setNumber;
 
   DependencyTreeFactory(Factories factory,
-    Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>> constructor) {
+    Function<LabelledFormula, ? extends Automaton<T, ?>> constructor) {
     this.factory = factory.eqFactory;
     setNumber = 0;
     builder = ProductState.builder();
@@ -107,7 +106,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     List<DependencyTree<T>> children = new ArrayList<>();
 
     formulas.forEach(x -> {
-      if (Fragments.isX(x)) {
+      if (Fragments.isFinite(x)) {
         finite.add(x);
         return;
       }

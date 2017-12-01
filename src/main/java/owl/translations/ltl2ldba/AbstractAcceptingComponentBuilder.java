@@ -21,14 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.automaton.ExploreBuilder;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
 
 public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAcceptance,
-  U extends RecurringObligation> implements ExploreBuilder<Jump<U>, S, T> {
+  U extends RecurringObligation> implements MutableAutomatonBuilder<Jump<U>, S, T> {
 
   protected final List<S> anchors = new ArrayList<>();
   protected final Factories factories;

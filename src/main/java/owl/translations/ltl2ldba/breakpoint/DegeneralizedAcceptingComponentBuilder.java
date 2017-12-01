@@ -54,7 +54,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Override
   public MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance> build() {
-    return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(),
+    return MutableAutomatonFactory.createMutableAutomaton(BuchiAcceptance.INSTANCE,
       factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
@@ -70,7 +70,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass safety = obligations.safety;
     EquivalenceClass current = remainder;
 
-    if (remainder.testSupport(Fragments::isX)) {
+    if (remainder.testSupport(Fragments::isFinite)) {
       safety = current.andWith(safety);
       current = factories.eqFactory.getTrue();
     }

@@ -119,7 +119,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (Fragments.isX(conjunction)) {
+      if (Fragments.isFinite(conjunction)) {
         return wrap(conjunction);
       }
 
@@ -128,7 +128,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (Fragments.isX(disjunction)) {
+      if (Fragments.isFinite(disjunction)) {
         return wrap(disjunction);
       }
 
@@ -141,7 +141,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
           disjuncts.add(((FOperator) child).operand.accept(INFINITELY_OFTEN_VISITOR));
         } else if (child instanceof GOperator) {
           disjuncts.add(((GOperator) child).operand.accept(this));
-        } else if (Fragments.isX(child)) {
+        } else if (Fragments.isFinite(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Conjunction;
@@ -196,7 +196,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (Fragments.isX(conjunction)) {
+      if (Fragments.isFinite(conjunction)) {
         return wrap(conjunction);
       }
 
@@ -209,7 +209,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
           conjuncts.add(((FOperator) child).operand.accept(this));
         } else if (child instanceof GOperator) {
           conjuncts.add(((GOperator) child).operand.accept(ALMOST_ALL_VISITOR));
-        } else if (Fragments.isX(child)) {
+        } else if (Fragments.isFinite(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Disjunction;
@@ -227,7 +227,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (Fragments.isX(disjunction)) {
+      if (Fragments.isFinite(disjunction)) {
         return wrap(disjunction);
       }
 

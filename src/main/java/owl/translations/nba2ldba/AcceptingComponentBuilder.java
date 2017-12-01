@@ -28,8 +28,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -38,7 +38,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 
 final class AcceptingComponentBuilder<S>
-  implements ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> {
+  implements MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> {
 
   private final List<Set<Edge<S>>> finEdges;
   private final List<BreakpointState<S>> initialStates;
@@ -91,8 +91,8 @@ final class AcceptingComponentBuilder<S>
 
   @Override
   public MutableAutomaton<BreakpointState<S>, BuchiAcceptance> build() {
-    return MutableAutomatonFactory.createMutableAutomaton(new BuchiAcceptance(), nba.getFactory(),
-      initialStates, this::explore, (x) -> null);
+    return MutableAutomatonFactory.createMutableAutomaton(BuchiAcceptance.INSTANCE,
+      nba.getFactory(), initialStates, this::explore, (x) -> null);
   }
 
   @Nullable

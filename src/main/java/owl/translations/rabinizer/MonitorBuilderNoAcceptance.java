@@ -7,7 +7,6 @@ import com.google.common.collect.Maps;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -46,7 +45,7 @@ final class MonitorBuilderNoAcceptance {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    isSafety = formula.testSupport(Fragments::isX);
+    isSafety = formula.testSupport(Fragments::isFinite);
     boolean noSubFormula = isSafety || formula.testSupport(NO_SUB_FORMULA);
     assert !isSafety || formula.testSupport(NO_SUB_FORMULA);
 
@@ -159,7 +158,7 @@ final class MonitorBuilderNoAcceptance {
     // and update the automata
 
     // If there is no initial state in the array, we need to recreate it as youngest token
-    assert successorContainsInitial == Arrays.asList(successorRanking).contains(initialClass);
+    assert successorContainsInitial == List.of(successorRanking).contains(initialClass);
     if (!successorContainsInitial) {
       successorRanking[successorRankingSize] = initialClass;
       successorRankingSize += 1;

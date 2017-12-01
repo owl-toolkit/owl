@@ -34,8 +34,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
@@ -47,18 +47,18 @@ import owl.translations.Optimisation;
 public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   B extends GeneralizedBuchiAcceptance, C> {
 
-  private final ExploreBuilder<KeyT, T, B> acceptingComponentBuilder;
+  private final MutableAutomatonBuilder<KeyT, T, B> acceptingComponentBuilder;
   private final Set<C> components;
   private final Function<S, Iterable<KeyT>> jumpGenerator;
   private final Function<T, C> getComponent;
-  private final ExploreBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder;
+  private final MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder;
   private final Set<T> initialStates;
   private final Predicate<S> isProtected;
   private final EnumSet<Optimisation> optimisations;
 
   private LimitDeterministicAutomatonBuilder(
-    ExploreBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder,
-    ExploreBuilder<KeyT, T, B> acceptingComponentBuilder,
+    MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder,
+    MutableAutomatonBuilder<KeyT, T, B> acceptingComponentBuilder,
     Function<S, Iterable<KeyT>> jumpGenerator,
     Function<T, C> annot,
     EnumSet<Optimisation> optimisations, Predicate<S> isProtected) {
@@ -74,8 +74,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
 
   public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
   LimitDeterministicAutomatonBuilder<X, S, X2, T, Acc, X3> create(
-    ExploreBuilder<X, S, NoneAcceptance> initialComponentBuilder,
-    ExploreBuilder<X2, T, Acc> acceptingComponentBuilder, Function<S, Iterable<X2>> jumpGenerator,
+    MutableAutomatonBuilder<X, S, NoneAcceptance> initialComponentBuilder,
+    MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
+    Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annot,
     EnumSet<Optimisation> optimisations) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
@@ -84,8 +85,8 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
 
   public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
   LimitDeterministicAutomatonBuilder<X, S, X2, T, Acc, X3> create(
-    ExploreBuilder<X, S, NoneAcceptance> initialComponentBuilder,
-    ExploreBuilder<X2, T, Acc> acceptingComponentBuilder,
+    MutableAutomatonBuilder<X, S, NoneAcceptance> initialComponentBuilder,
+    MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annot,
     EnumSet<Optimisation> optimisations,

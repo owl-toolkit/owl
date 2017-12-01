@@ -24,19 +24,21 @@ import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 
-public interface OmegaAcceptance {
+public abstract class OmegaAcceptance {
 
-  int getAcceptanceSets();
+  public abstract int getAcceptanceSets();
 
   /**
    * Canonical representation as {@link BooleanExpression}.
    */
-  BooleanExpression<AtomAcceptance> getBooleanExpression();
+  public abstract BooleanExpression<AtomAcceptance> getBooleanExpression();
 
   @Nullable
-  String getName();
+  public abstract String getName();
 
-  List<Object> getNameExtra();
+  public List<Object> getNameExtra() {
+    return List.of();
+  }
 
   /**
    * This method determines if the given edge is a well defined edge for this acceptance condition.
@@ -48,10 +50,17 @@ public interface OmegaAcceptance {
    *
    * @return Whether the edge acceptance is well defined.
    */
-  boolean isWellFormedEdge(Edge<?> edge);
+  public abstract boolean isWellFormedEdge(Edge<?> edge);
 
-  default <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
+  public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
     return automaton.getStates().stream()
       .allMatch(x -> automaton.getEdges(x).stream().allMatch(this::isWellFormedEdge));
+  }
+
+  @Override
+  public String toString() {
+    String name = getName();
+    return (name != null ? name + " " + getNameExtra() : getClass().getSimpleName()) + ": "
+      + getAcceptanceSets() + " " + getBooleanExpression();
   }
 }

@@ -1,11 +1,10 @@
 package owl.automaton.acceptance;
 
-import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
-public class GenericAcceptance implements OmegaAcceptance {
+public class GenericAcceptance extends OmegaAcceptance {
 
   private final BooleanExpression<AtomAcceptance> expression;
   private final int sets;
@@ -28,11 +27,6 @@ public class GenericAcceptance implements OmegaAcceptance {
   @Override
   public String getName() {
     return null;
-  }
-
-  @Override
-  public List<Object> getNameExtra() {
-    return List.of();
   }
 
   @Override

@@ -25,14 +25,17 @@ public final class LabelledEdge<S> {
   public final Edge<S> edge;
   public final ValuationSet valuations;
 
-  public LabelledEdge(Edge<S> edge, ValuationSet valuations) {
-    this.edge = edge;
-    this.valuations = valuations;
+  public static <S> LabelledEdge<S> of(Edge<S> edge, ValuationSet valuations) {
+    return new LabelledEdge<>(edge, valuations);
   }
 
-  public LabelledEdge(Map.Entry<Edge<S>, ValuationSet> entry) {
-    this.edge = entry.getKey();
-    this.valuations = entry.getValue();
+  public static <S> LabelledEdge<S> of(Map.Entry<Edge<S>, ValuationSet> entry) {
+    return of(entry.getKey(), entry.getValue());
+  }
+
+  private LabelledEdge(Edge<S> edge, ValuationSet valuations) {
+    this.edge = edge;
+    this.valuations = valuations;
   }
 
   @Override

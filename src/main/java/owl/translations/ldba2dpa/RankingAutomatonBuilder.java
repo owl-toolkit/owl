@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -37,8 +36,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -50,7 +49,7 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.translations.Optimisation;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
-  implements ExploreBuilder<S, RankingState<S, T>, ParityAcceptance> {
+  implements MutableAutomatonBuilder<S, RankingState<S, T>, ParityAcceptance> {
   private static final Logger logger = Logger.getLogger(RankingAutomatonBuilder.class.getName());
 
   private final ParityAcceptance acceptance;

@@ -37,6 +37,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
+import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -81,13 +82,13 @@ public final class ArenaFactory {
   private ArenaFactory() {}
 
   public static <S, A extends OmegaAcceptance> Arena<S, A> copyOf(Arena<S, A> arena) {
-    assert arena.isComplete() : "Only defined for complete arena.";
+    assert arena.is(Property.COMPLETE) : "Only defined for complete arena.";
     return new ImmutableGuavaArena<>(arena);
   }
 
   public static <S, A extends OmegaAcceptance> Arena<Node<S>, A> split(Automaton<S, A> automaton,
     List<String> player1Propositions) {
-    assert automaton.isComplete() : "Only defined for complete automata.";
+    assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
     return new ForwardingArena<>(automaton, player1Propositions);
   }
 
@@ -127,7 +128,7 @@ public final class ArenaFactory {
       if (state.choice == null) {
         for (BitSet valuation : BitSets.powerSet(player1Propositions)) {
           ValuationSet valuationSet = factory.createValuationSet(valuation, player1Propositions);
-          edges.add(new LabelledEdge<>(Edges.create(
+          edges.add(LabelledEdge.of(Edges.create(
             new Node<>(state.state, (BitSet) valuation.clone())), valuationSet));
         }
       } else {
@@ -140,7 +141,7 @@ public final class ArenaFactory {
             continue;
           }
 
-          edges.add(new LabelledEdge<>(Edges.create(new Node<>(edge.getSuccessor()),
+          edges.add(LabelledEdge.of(Edges.create(new Node<>(edge.getSuccessor()),
             edge.acceptanceSetIterator()), valuationSet));
         }
       }
@@ -203,11 +204,6 @@ public final class ArenaFactory {
     }
 
     @Override
-    public ImmutableList<String> getVariables() {
-      return automaton.getVariables();
-    }
-
-    @Override
     public List<String> getVariables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
@@ -238,7 +234,7 @@ public final class ArenaFactory {
       for (S state : arena.getStates()) {
         for (LabelledEdge<S> edge : arena.getLabelledEdges(state)) {
           graph.putEdgeValue(state, edge.edge.getSuccessor(), new ValueEdge(edge.valuations,
-            edge.getEdge().largestAcceptanceSet()));
+            edge.edge.largestAcceptanceSet()));
         }
 
         if (Owner.PLAYER_1 == arena.getOwner(state)) {
@@ -276,9 +272,9 @@ public final class ArenaFactory {
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
 
         if (valueEdge.colour == -1) {
-          return new LabelledEdge<>(Edges.create(x.target()), valueEdge.valuationSet);
+          return LabelledEdge.of(Edges.create(x.target()), valueEdge.valuationSet);
         } else {
-          return new LabelledEdge<>(Edges.create(x.target(), valueEdge.colour),
+          return LabelledEdge.of(Edges.create(x.target(), valueEdge.colour),
             valueEdge.valuationSet);
         }
       }).collect(Collectors.toSet());

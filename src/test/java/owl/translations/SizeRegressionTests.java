@@ -202,7 +202,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     }
 
     DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
-      super(selectedClass, translator, Automaton::stateCount,
+      super(selectedClass, translator, automaton -> automaton.getStates().size(),
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2dpa." + configuration);
     }
 
@@ -247,7 +247,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       super(selectedClass, formula -> new DelagBuilder(TestEnvironment.get(),
           new LTL2DPAFunction(TestEnvironment.get(), DELAG_DPA_ALL))
           .apply(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula)),
-        Automaton::stateCount,
+      automaton -> automaton.getStates().size(),
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }
 

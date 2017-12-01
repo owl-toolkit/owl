@@ -22,7 +22,6 @@ import com.google.common.collect.SetMultimap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -30,8 +29,8 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
@@ -42,7 +41,7 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 
 public class InitialComponentBuilder<K extends RecurringObligation>
-  implements ExploreBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
+  implements MutableAutomatonBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
 
   private final boolean constructDeterministic;
   private final Deque<EquivalenceClass> constructionQueue;

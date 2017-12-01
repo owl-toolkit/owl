@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
+import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
 public final class BooleanExpressions {
@@ -98,5 +99,15 @@ public final class BooleanExpressions {
     List<BooleanExpression<T>> disjuncts = getDisjuncts(exp.getLeft());
     disjuncts.addAll(getDisjuncts(exp.getRight()));
     return disjuncts;
+  }
+
+  public static BooleanExpression<AtomAcceptance> mkFin(int number) {
+    return new BooleanExpression<>(
+      new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_FIN, number, false));
+  }
+
+  public static BooleanExpression<AtomAcceptance> mkInf(int number) {
+    return new BooleanExpression<>(
+      new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
   }
 }

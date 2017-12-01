@@ -10,7 +10,6 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +19,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.Automaton;
+import owl.automaton.Automaton.Property;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -56,7 +56,7 @@ final class MonitorBuilder {
     if (noSubFormula && gOperator.operand instanceof FOperator) {
       // TODO breaks for GF(a1 & !(a2 U b2)) if "noSubFormula" test is removed
       fragment = Fragment.EVENTUAL;
-    } else if (operand.testSupport(Fragments::isX)) {
+    } else if (operand.testSupport(Fragments::isFinite)) {
       fragment = Fragment.FINITE;
     } else {
       fragment = Fragment.FULL;
@@ -193,8 +193,8 @@ final class MonitorBuilder {
       monitor.getAcceptance().setAcceptanceSets(maximalPriority[contextIndex] + 1);
       builder.put(relevantSets[contextIndex], monitor);
 
-      assert monitor.isDeterministic() : String.format("%s monitor for %s is not deterministic",
-        relevantSets[contextIndex], initialClass);
+      assert monitor.is(Property.DETERMINISTIC) : String.format(
+        "%s monitor for %s is not deterministic", relevantSets[contextIndex], initialClass);
     }
 
     return new MonitorAutomaton(gOperator, builder.build());

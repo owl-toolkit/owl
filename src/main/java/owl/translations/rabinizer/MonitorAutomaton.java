@@ -1,6 +1,5 @@
 package owl.translations.rabinizer;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
@@ -69,12 +68,6 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   }
 
   @Override
-  public Map<MonitorState, ValuationSet> getIncompleteStates() {
-    assert anyAutomaton.getIncompleteStates().isEmpty();
-    return ImmutableMap.of();
-  }
-
-  @Override
   public Set<MonitorState> getInitialStates() {
     return anyAutomaton.getInitialStates();
   }
@@ -89,12 +82,8 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
     }
     Collection<LabelledEdge<MonitorState>> strippedEdges = new ArrayList<>(successors.size());
     successors.forEach((successor, valuation) ->
-      strippedEdges.add(new LabelledEdge<>(Edges.create(successor), valuation)));
+      strippedEdges.add(LabelledEdge.of(Edges.create(successor), valuation)));
     return strippedEdges;
-  }
-
-  public GOperator getMonitoredG() {
-    return formula;
   }
 
   @Nullable
@@ -117,10 +106,5 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   @Override
   public Set<MonitorState> getSuccessors(MonitorState state) {
     return anyAutomaton.getSuccessors(state);
-  }
-
-  @Override
-  public ImmutableList<String> getVariables() {
-    return anyAutomaton.getVariables();
   }
 }

@@ -17,11 +17,10 @@
 
 package owl.ltl.rewriter;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
 import java.util.function.Function;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.util.UnaryOperators;
 
 public final class RewriterFactory {
   private RewriterFactory() {}
@@ -51,9 +50,7 @@ public final class RewriterFactory {
   public enum RewriterEnum {
     MODAL(new ModalSimplifier()),
     PULLUP_X(PullupXVisitor.INSTANCE),
-    MODAL_ITERATIVE(
-      new IterativeRewriter(
-        UnaryOperators.chain(ImmutableList.of(
+    MODAL_ITERATIVE(new IterativeRewriter(UnaryOperators.chain(List.of(
           PullupXVisitor.INSTANCE,
           NormaliseX.INSTANCE,
           ModalSimplifier.INSTANCE,

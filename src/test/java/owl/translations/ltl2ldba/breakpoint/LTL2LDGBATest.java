@@ -39,7 +39,6 @@ public class LTL2LDGBATest {
 
   private static final String TRIVIAL_FALSE = "HOA: v1\n"
     + "tool: \"owl\" \"* *\"\n"
-    + "States: 0\n"
     + "acc-name: none\n"
     + "Acceptance: 0 f\n"
     + "properties: trans-acc trans-label \n"
@@ -48,7 +47,6 @@ public class LTL2LDGBATest {
     + "--END--\n";
   private static final String TRIVIAL_TRUE = "HOA: v1\n"
     + "tool: \"owl\" \"* *\"\n"
-    + "States: 1\n"
     + "Start: 0\n"
     + "acc-name: generalized-Buchi 1\n"
     + "Acceptance: 1 Inf(0)\n"

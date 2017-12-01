@@ -28,16 +28,17 @@ namespace owl {
         jobject formula;
         Formula(JNIEnv *env, jobject formula);
 
-        friend class DPA;
+        friend class Automaton;
         friend class FormulaFactory;
         friend class FormulaRewriter;
+        friend class Owl;
 
     public:
         Formula(const Formula &obj);
         Formula(const Formula &&obj) noexcept;
         ~Formula();
 
-        const void print();
+        void print() const;
     };
 
     class FormulaFactory {

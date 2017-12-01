@@ -164,13 +164,14 @@ public class AutomatonReaderTest {
     + "--END--\n";
 
   private Int2ObjectMap<HoaState> getStates(Automaton<HoaState, ?> automaton) {
-    Int2ObjectMap<HoaState> states = new Int2ObjectLinkedOpenHashMap<>(automaton.stateCount());
+    Int2ObjectMap<HoaState> states = new Int2ObjectLinkedOpenHashMap<>(
+      automaton.getStates().size());
     for (HoaState state : automaton.getStates()) {
       int stateId = state.id;
       assertThat(states.containsKey(stateId), is(false));
       states.put(stateId, state);
     }
-    assertThat(states.size(), is(automaton.stateCount()));
+    assertThat(states.size(), is(automaton.getStates().size()));
     return states;
   }
 
@@ -185,11 +186,11 @@ public class AutomatonReaderTest {
 
     assertThat(automaton.getInitialState(), is(states.get(1)));
 
-    LabelledEdge<HoaState> successorEdge = new LabelledEdge<>(Edges.create(states.get(0)),
+    LabelledEdge<HoaState> successorEdge = LabelledEdge.of(Edges.create(states.get(0)),
       valuationSetFactory.createValuationSet(BitSets.createBitSet(true)));
     assertThat(automaton.getLabelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
 
-    LabelledEdge<HoaState> loopEdge = new LabelledEdge<>(Edges.create(states.get(0), 0),
+    LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edges.create(states.get(0), 0),
       valuationSetFactory.createUniverseValuationSet());
     assertThat(automaton.getLabelledEdges(states.get(0)), containsInAnyOrder(loopEdge));
   }

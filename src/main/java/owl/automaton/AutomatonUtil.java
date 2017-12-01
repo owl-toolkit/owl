@@ -22,13 +22,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +49,7 @@ import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.collections.ValuationSet;
+import owl.factories.ValuationSetFactory;
 
 public final class AutomatonUtil {
 
@@ -57,22 +58,33 @@ public final class AutomatonUtil {
   @SuppressWarnings("unchecked")
   public static <S, A extends OmegaAcceptance> Automaton<S, A> cast(Object automaton,
     Class<S> stateClass, Class<A> acceptanceClass) {
-    checkArgument(automaton instanceof Automaton<?, ?>, "Expected automaton, got %s",
+    checkArgument(automaton instanceof Automaton, "Expected automaton, got %s",
       automaton.getClass().getName());
     Automaton<?, ?> castedAutomaton = (Automaton<?, ?>) automaton;
 
-    if (acceptanceClass != OmegaAcceptance.class) {
-      Object acceptance = castedAutomaton.getAcceptance();
-      checkArgument(acceptanceClass.isInstance(acceptance), "Expected acceptance type %s, got %s",
-        acceptanceClass.getName(), acceptance.getClass());
-    }
-
+    checkAcceptanceClass(castedAutomaton, acceptanceClass);
     // Very costly to check, so only asserted
-    assert stateClass == Object.class
-      || Iterables.all(castedAutomaton.getStates(), stateClass::isInstance)
-      : "Expected states of class " + stateClass.getName();
-
+    assert checkStateClass(castedAutomaton, stateClass);
     return (Automaton<S, A>) castedAutomaton;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> cast(Automaton<S, ?> automaton,
+    Class<A> acceptanceClass) {
+    checkAcceptanceClass(automaton, acceptanceClass);
+    return (Automaton<S, A>) automaton;
+  }
+
+  private static <S> boolean checkAcceptanceClass(Automaton<S, ?> automaton, Class<?> clazz) {
+    checkArgument(clazz.isInstance(automaton.getAcceptance()),
+      "Expected acceptance type %s, got %s", clazz.getName(), automaton.getAcceptance().getClass());
+    return true;
+  }
+
+  private static <S> boolean checkStateClass(Automaton<S, ?> automaton, Class<?> clazz) {
+    checkArgument(Iterables.all(automaton.getStates(), clazz::isInstance),
+      "Expected states of type %s", clazz.getName());
+    return true;
   }
 
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A>
@@ -100,9 +112,9 @@ public final class AutomatonUtil {
    */
   public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, Supplier<S> sinkSupplier,
     Supplier<BitSet> rejectingAcceptanceSupplier) {
-    Map<S, ValuationSet> incompleteStates = automaton.getIncompleteStates();
+    Map<S, ValuationSet> incompleteStates = getIncompleteStates(automaton);
 
-    if (automaton.stateCount() != 0 && incompleteStates.isEmpty()) {
+    if (automaton.getStates().size() != 0 && incompleteStates.isEmpty()) {
       return Optional.empty();
     }
 
@@ -220,6 +232,7 @@ public final class AutomatonUtil {
       if (Thread.interrupted()) {
         throw new CancellationException();
       }
+
       sizeCounter.lazySet(exploredStates.size());
     }
   }
@@ -269,103 +282,79 @@ public final class AutomatonUtil {
     List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
 
     for (Set<S> scc : sccs) {
-      Automaton<S, ?> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, ?> filteredAutomaton = Views.filter(automaton, scc);
       filteredAutomaton.forEachLabelledEdge((x, y, z) -> action.accept(x, y));
     }
   }
 
   /**
-   * Returns true if this successor set is complete, i.e. there is at least one transition in this
-   * set for each valuation.
+   * Determines all states which are incomplete, i.e. there are valuations for which the state has
+   * no successor. The valuations sets have to be free'd after use.
    *
-   * @return Whether this successor set is complete.
+   * @param automaton The automaton.
+   * @return The set of incomplete states and the missing valuations.
    */
-  public static <S> boolean isComplete(Iterable<LabelledEdge<S>> labelledEdges) {
-    Iterator<LabelledEdge<S>> successorIterator = labelledEdges.iterator();
+  public static <S, A extends OmegaAcceptance> Map<S, ValuationSet> getIncompleteStates(
+    Automaton<S, A> automaton) {
+    Map<S, ValuationSet> incompleteStates = new HashMap<>();
+    ValuationSetFactory vsFactory = automaton.getFactory();
 
-    if (!successorIterator.hasNext()) {
-      return false;
-    }
+    automaton.getStates().forEach(state -> {
+      ValuationSet unionSet = vsFactory.createEmptyValuationSet();
+      automaton.forEachLabelledEdge(state, (edge, valuations) -> unionSet.addAll(valuations));
 
-    ValuationSet valuations = successorIterator.next().valuations.copy();
-    successorIterator.forEachRemaining(x -> valuations.addAll(x.valuations));
-
-    boolean isUniverse = valuations.isUniverse();
-    valuations.free();
-    return isUniverse;
-  }
-
-  /**
-   * Determines if this successor set is deterministic, i.e. there is at most one transition in this
-   * set for each valuation.
-   *
-   * @return Whether this successor set is deterministic.
-   *
-   * @see #isDeterministic(Iterable, BitSet)
-   */
-  public static <S> boolean isDeterministic(Iterable<LabelledEdge<S>> labelledEdges) {
-    Iterator<LabelledEdge<S>> successorIterator = labelledEdges.iterator();
-
-    if (!successorIterator.hasNext()) {
-      return true;
-    }
-
-    ValuationSet seenValuations = successorIterator.next().valuations.copy();
-
-    while (successorIterator.hasNext()) {
-      ValuationSet nextEdge = successorIterator.next().valuations;
-
-      if (seenValuations.intersects(nextEdge)) {
-        seenValuations.free();
-        return false;
+      // State is incomplete; complement() creates a new, referenced node.
+      if (!unionSet.isUniverse()) {
+        incompleteStates.put(state, unionSet.complement());
       }
 
-      seenValuations.addAll(nextEdge);
-    }
+      unionSet.free();
+    });
 
-    seenValuations.free();
-    return true;
+    return incompleteStates;
   }
 
   /**
-   * Determines if this successor set is deterministic for the specified valuation, i.e. there is at
-   * most one transition under the given valuation.
+   * Returns all states reachable from the initial states.
    *
-   * @param valuation
-   *     The valuation to check.
+   * @param automaton The automaton.
+   * @return All reachable states.
    *
-   * @return If there is no or an unique successor under valuation.
-   *
-   * @see #isDeterministic(Iterable)
+   * @see #getReachableStates(Automaton, Collection)
    */
-  public static <S> boolean isDeterministic(Iterable<LabelledEdge<S>> labelledEdges,
-    BitSet valuation) {
-    boolean foundOne = false;
+  public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(
+    Automaton<S, A> automaton) {
+    return getReachableStates(automaton, automaton.getInitialStates());
+  }
 
-    for (LabelledEdge<S> labelledEdge : labelledEdges) {
-      if (labelledEdge.valuations.contains(valuation)) {
-        if (foundOne) {
-          return false;
+  /**
+   * Returns all states reachable from the given set of states.
+   *
+   * @param automaton
+   *     The automaton
+   * @param start
+   *     Starting states for the reachable states search.
+   */
+  public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(Automaton<S, A> automaton,
+    Collection<? extends S> start) {
+    Set<S> exploredStates = Sets.newHashSet(start);
+    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    while (!workQueue.isEmpty()) {
+      automaton.getSuccessors(workQueue.poll()).forEach(successor -> {
+        if (exploredStates.add(successor)) {
+          workQueue.add(successor);
         }
-
-        foundOne = true;
-      }
+      });
     }
 
-    return true;
+    return exploredStates;
   }
 
   public static String toHoa(HoaPrintable printable) {
     ByteArrayOutputStream writer = new ByteArrayOutputStream();
     HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
     printable.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS));
-    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
-  }
-
-  public static <S> String toHoa(Automaton<S, ?> automaton, Object2IntMap<S> mapping) {
-    ByteArrayOutputStream writer = new ByteArrayOutputStream();
-    HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
-    automaton.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS), mapping);
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 }

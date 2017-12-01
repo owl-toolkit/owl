@@ -19,18 +19,13 @@ package owl.automaton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
@@ -81,7 +76,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
     getStates().forEach(x ->
-      getLabelledEdges(x).forEach(y -> action.accept(x, y.edge, y.valuations)));
+      getLabelledEdges(x).forEach((y) -> action.accept(x, y.edge, y.valuations)));
   }
 
   default void free() {
@@ -96,34 +91,24 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   A getAcceptance();
 
   /**
-   * Returns any successor edge of the specified {@code state} under the given {@code valuation}.
-   * This is a faster replacement for {@link #getEdge(Object, BitSet)} if the automaton is known to
-   * be deterministic.
-   */
-  @Nullable
-  default Edge<S> getAnyEdge(S state, BitSet valuation) {
-    return getEdges(state, valuation).iterator().next();
-  }
-
-  /**
-   * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
-   * Throws an {@link IllegalArgumentException} if there is a non-deterministic choice in this state
-   * for the specified valuation.
+   * <p>Returns the successor edge of the specified {@code state} under the given {@code valuation}.
+   * Returns some edge if there is a non-deterministic choice in this state for the specified
+   * valuation.</p>
+   *
+   * <p>If you want to check if this is the unique edge use the getEdges() method.</p>
    *
    * @param state
    *     The starting state of the transition.
    * @param valuation
    *     The valuation.
    *
-   * @return The unique successor edge or {@code null} if none.
+   * @return A successor edge or {@code null} if none.
    *
-   * @throws IllegalArgumentException
-   *     If the edge has multiple successor edges.
    * @see #getLabelledEdges(Object)
    */
   @Nullable
   default Edge<S> getEdge(S state, BitSet valuation) {
-    return Iterables.getOnlyElement(getEdges(state, valuation), null);
+    return Iterables.getFirst(getEdges(state, valuation), null);
   }
 
   /**
@@ -154,31 +139,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   ValuationSetFactory getFactory();
-
-  /**
-   * Determines all states which are incomplete, i.e. there are valuations for which the state has
-   * no successor. The valuations sets have to be free'd after use.
-   *
-   * @return The set of incomplete states and the missing valuations.
-   */
-  default Map<S, ValuationSet> getIncompleteStates() {
-    Map<S, ValuationSet> incompleteStates = new HashMap<>();
-    ValuationSetFactory vsFactory = getFactory();
-
-    getStates().forEach(state -> {
-      ValuationSet unionSet = vsFactory.createEmptyValuationSet();
-      forEachLabelledEdge(state, (edge, valuations) -> unionSet.addAll(valuations));
-
-      // State is incomplete; complement() creates a new, referenced node.
-      if (!unionSet.isUniverse()) {
-        incompleteStates.put(state, unionSet.complement());
-      }
-
-      unionSet.free();
-    });
-
-    return incompleteStates;
-  }
 
   /**
    * Returns the initial state. Throws an {@link IllegalStateException} if there a no or multiple
@@ -226,38 +186,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   /**
-   * Returns all states reachable from the initial states.
-   *
-   * @return All reachable states.
-   *
-   * @see #getReachableStates(Collection)
-   */
-  default Set<S> getReachableStates() {
-    return getReachableStates(getInitialStates());
-  }
-
-  /**
-   * Returns all states reachable from the given set of states.
-   *
-   * @param start
-   *     Starting states for the reachable states search.
-   */
-  default Set<S> getReachableStates(Collection<? extends S> start) {
-    Set<S> exploredStates = Sets.newHashSet(start);
-    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
-
-    while (!workQueue.isEmpty()) {
-      getSuccessors(workQueue.poll()).forEach(successor -> {
-        if (exploredStates.add(successor)) {
-          workQueue.add(successor);
-        }
-      });
-    }
-
-    return exploredStates;
-  }
-
-  /**
    * Returns all states in this automaton.
    *
    * @return All states of the automaton
@@ -270,12 +198,10 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Map<S, ValuationSet> getSuccessorMap(S state) {
-    Collection<LabelledEdge<S>> labelledEdges = getLabelledEdges(state);
-    Map<S, ValuationSet> successors = new HashMap<>(labelledEdges.size());
-    for (LabelledEdge<S> edge : labelledEdges) {
-      ValuationSetMapUtil.add(successors, edge);
-    }
-    return Collections.unmodifiableMap(successors);
+    Map<S, ValuationSet> successorMap = new HashMap<>();
+    forEachLabelledEdge(state, (edge, valuations) ->
+      ValuationSetMapUtil.add(successorMap, edge.getSuccessor(), valuations.copy()));
+    return successorMap;
   }
 
   default Set<S> getSuccessors(S state) {
@@ -291,48 +217,27 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return getFactory().getAlphabet();
   }
 
-  /**
-   * Determines whether the automaton is complete, i.e. every state has at least one successor for
-   * each valuation.
-   *
-   * @return Whether the automaton is complete.
-   *
-   * @see AutomatonUtil#isComplete(Iterable)
-   */
-  default boolean isComplete() {
-    Set<S> states = getStates();
-    return !states.isEmpty()
-      && states.stream().allMatch(s -> AutomatonUtil.isComplete(getLabelledEdges(s)));
-  }
+  default boolean is(Property property) {
+    switch (property) {
+      case COMPLETE:
+        return Properties.isComplete(this);
 
-  /**
-   * Determines whether the automaton is deterministic, i.e. there is at most one initial state and
-   * every state has at most one successor under each valuation.
-   *
-   * @return Whether the automaton is deterministic.
-   *
-   * @see AutomatonUtil#isDeterministic(Iterable)
-   */
-  default boolean isDeterministic() {
-    return getInitialStates().size() <= 1
-      && getStates().stream().allMatch(s -> AutomatonUtil.isDeterministic(getLabelledEdges(s)));
-  }
+      case DETERMINISTIC:
+        return Properties.isDeterministic(this);
 
-  /**
-   * Returns the amount of states in this automaton.
-   *
-   * @return Number of states.
-   *
-   * @see #getStates()
-   */
-  default int stateCount() {
-    return getStates().size();
+      case NON_DETERMINISTIC:
+        return !Properties.isDeterministic(this);
+
+      default:
+        throw new UnsupportedOperationException("Property Detection for " + property
+          + " is not implemented");
+    }
   }
 
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic(), getName());
+      getAcceptance(), getInitialStates(), options, is(Property.DETERMINISTIC), getName());
 
     getStates().forEach(state -> {
       hoa.addState(state);
@@ -343,17 +248,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     hoa.notifyEnd();
   }
 
-  default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options, Object2IntMap<S> mapping) {
-    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), getInitialStates(), stateCount(), options, isDeterministic(), getName(),
-      mapping);
-
-    getStates().forEach(state -> {
-      hoa.addState(state);
-      forEachLabelledEdge(state, hoa::addEdge);
-      hoa.notifyEndOfState();
-    });
-
-    hoa.notifyEnd();
+  enum Property {
+    COMPLETE, DETERMINISTIC, LIMIT_DETERMINISTIC, NON_DETERMINISTIC, TERMINAL, WEAK
   }
 }

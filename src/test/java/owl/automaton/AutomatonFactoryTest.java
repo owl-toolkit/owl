@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.iterableWithSize;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
@@ -25,17 +26,13 @@ public class AutomatonFactoryTest {
       .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, NoneAcceptance> singleton =
-      AutomatonFactory.singleton(singletonState, factory);
-
+      AutomatonFactory.singleton(singletonState, factory, NoneAcceptance.INSTANCE, Set.of());
 
     assertThat(singleton.getStates(), contains(singletonState));
     assertThat(singleton.getAcceptance(), is(NoneAcceptance.INSTANCE));
-    assertThat(singleton.getEdges(singletonState), empty());
-    assertThat(singleton.getIncompleteStates(),
-      is(Map.of(singletonState, factory.createUniverseValuationSet())));
-    assertThat(singleton.getReachableStates(), contains(singletonState));
-    assertThat(singleton.getSuccessorMap(singletonState).entrySet(), empty());
-    assertThat(singleton.getLabelledEdges(singletonState), empty());
+    assertThat(singleton.getEdges(singletonState), contains(Edges.create(singletonState)));
+    assertThat(AutomatonUtil.getIncompleteStates(singleton), is(Map.of()));
+    assertThat(AutomatonUtil.getReachableStates(singleton), contains(singletonState));
   }
 
   @Test
@@ -44,17 +41,17 @@ public class AutomatonFactoryTest {
       .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, AllAcceptance> singleton =
-      AutomatonFactory.universe(singletonState, factory);
+      AutomatonFactory.singleton(singletonState, factory, AllAcceptance.INSTANCE, Set.of());
 
     assertThat(singleton.getStates(), contains(singletonState));
     assertThat(singleton.getAcceptance(), is(AllAcceptance.INSTANCE));
     //noinspection unchecked
     assertThat(singleton.getEdges(singletonState), contains(Edges.create(singletonState)));
 
-    assertThat(singleton.getIncompleteStates().entrySet(), empty());
-    assertThat(singleton.getReachableStates(), contains(singletonState));
+    assertThat(AutomatonUtil.getIncompleteStates(singleton).entrySet(), empty());
+    assertThat(AutomatonUtil.getReachableStates(singleton), contains(singletonState));
     assertThat(singleton.getSuccessorMap(singletonState).entrySet(), iterableWithSize(1));
-    LabelledEdge<Object> selfLoop = new LabelledEdge<>(Edges.create(singletonState),
+    LabelledEdge<Object> selfLoop = LabelledEdge.of(Edges.create(singletonState),
       factory.createUniverseValuationSet());
     assertThat(singleton.getLabelledEdges(singletonState), hasItem(selfLoop));
   }

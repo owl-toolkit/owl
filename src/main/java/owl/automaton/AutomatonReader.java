@@ -109,14 +109,14 @@ public final class AutomatonReader {
     return Iterables.getOnlyElement(automata);
   }
 
-  public static List<Automaton<HoaState, ? extends OmegaAcceptance>> readHoaCollection(
+  public static List<Automaton<HoaState, ?>> readHoaCollection(
     InputStream input, FactorySupplier factorySupplier) throws ParseException {
     List<Automaton<HoaState, ?>> automatonList = new ArrayList<>();
     readHoa(input, automatonList::add, factorySupplier);
     return automatonList;
   }
 
-  public static List<Automaton<HoaState, ? extends OmegaAcceptance>> readHoaCollection(String input,
+  public static List<Automaton<HoaState, ?>> readHoaCollection(String input,
     FactorySupplier factorySupplier) throws ParseException {
     return readHoaCollection(toStream(input), factorySupplier);
   }
@@ -291,7 +291,7 @@ public final class AutomatonReader {
           return NoneAcceptance.INSTANCE;
 
         case "buchi":
-          return new BuchiAcceptance();
+          return BuchiAcceptance.INSTANCE;
 
         case "parity":
           check(acceptanceExtra.size() == 3);

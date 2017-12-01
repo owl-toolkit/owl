@@ -53,12 +53,12 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
   Map<ValuationSet, Set<T>> getValuationSetJumps(S state);
 
   default boolean isDeterministic() {
-    return getInitialComponent().stateCount() == 0
+    return getInitialComponent().getStates().size() == 0
       && getAcceptingComponent().getInitialStates().size() <= 1;
   }
 
   default int size() {
-    return getInitialComponent().stateCount() + getAcceptingComponent().stateCount();
+    return getInitialComponent().getStates().size() + getAcceptingComponent().getStates().size();
   }
 
   @Override
@@ -68,7 +68,7 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
       getAcceptingComponent().getAcceptance(),
       Sets.union(getInitialComponent().getInitialStates(),
         getAcceptingComponent().getInitialStates()),
-      size(), options, false, getName());
+      options, false, getName());
 
     for (S state : getInitialComponent().getStates()) {
       consumerExt.addState(state);

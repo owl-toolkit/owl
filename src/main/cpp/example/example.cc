@@ -78,26 +78,29 @@ Formula create_formula(const Owl& owl) {
 }
 
 void dpa_example(const Owl& owl, const Formula& formula) {
-    DPA dpa = owl.createDPA(formula);
+    Automaton dpa = owl.createAutomaton(formula);
 
     std::cout << "Automaton constructed with ";
 
-    switch(dpa.parity()) {
-        case MIN_EVEN:
+    switch(dpa.acceptance()) {
+        case PARITY_MIN_EVEN:
             std::cout << "(min,even) parity" << std::endl;
             break;
 
-        case MAX_EVEN:
+        case PARITY_MAX_EVEN:
             std::cout << "(max,even) parity" << std::endl;
             break;
 
-        case MIN_ODD:
+        case PARITY_MIN_ODD:
             std::cout << "(min,odd) parity" << std::endl;
             break;
 
-        case MAX_ODD:
+        case PARITY_MAX_ODD:
             std::cout << "(max,odd) parity" << std::endl;
             break;
+
+        default:
+            std::cout << "not a dpa" << std::endl;
     }
 
     std::cout << "Transition Function:" << std::endl;
@@ -117,7 +120,7 @@ void dpa_example(const Owl& owl, const Formula& formula) {
 
         unsigned int letter = 0;
 
-        for (const auto &i : dpa.successors(currentState)) {
+        for (const auto &i : dpa.edges(currentState)) {
             std::cout << " Letter: " << std::bitset<32>(letter) << " Successor: " << i.successor << " Colour: " << i.colour << std::endl;
             letter++;
 
@@ -127,6 +130,41 @@ void dpa_example(const Owl& owl, const Formula& formula) {
             }
         }
     }
+}
+
+void visit_tree(const LabelledTree<Tag, Automaton>& tree, int indent) {
+    for (int i = 0; i < indent; i++) {
+        std::cout << "  ";
+    }
+
+    if (tree.type == LEAF) {
+        std::cout << "* Automaton with Acceptance Index: " << tree.getLabel2().acceptance() << std::endl;
+    } else {
+        if (tree.getLabel1() == CONJUNCTION) {
+            std::cout << "* Conjunction" << std::endl;
+        } else {
+            std::cout << "* Disjunction" << std::endl;
+        }
+
+        for (auto const& child : tree.getChildren()) {
+            visit_tree(child, indent + 1);
+        }
+    }
+}
+
+void simple_arbiter_example(const Owl& owl) {
+    Formula formula = owl.createFormulaFactory().parse("(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
+                                                    "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
+                                                    "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
+                                                    "(g_7)))))) || (((((! (g_0)) && (! (g_1))) && (((! (g_2)) && (true)) || ((true) && (! (g_3)"
+                                                    ")))) || ((((! (g_0)) && (true)) || ((true) && (! (g_1)))) && ((! (g_2)) && (! (g_3))))) &&"
+                                                    " ((((! (g_4)) && (! (g_5))) && (! (g_6))) && (! (g_7)))))) && (G ((r_0) -> (F (g_0))))) &&"
+                                                    " (G ((r_1) -> (F (g_1))))) && (G ((r_2) -> (F (g_2))))) && (G ((r_3) -> (F (g_3))))) && (G"
+                                                    " ((r_4) -> (F (g_4))))) && (G ((r_5) -> (F (g_5))))) && (G ((r_6) -> (F (g_6))))) && (G ("
+                                                    "(r_7) -> (F (g_7)))))", std::vector<std::string>());
+
+    LabelledTree<Tag, Automaton> tree = owl.createAutomatonTree(formula);
+    visit_tree(tree, 0);
 }
 
 int main(int argc, char** argv) {
@@ -149,11 +187,14 @@ int main(int argc, char** argv) {
     std::cout << std::endl << "Built Formula Example: " << std::endl << std::endl;
     Formula built_formula = create_formula(owl);
 
-    std::cout << std::endl << "DPA Example 1: " << std::endl << std::endl;
+    std::cout << std::endl << "Automaton Example 1: " << std::endl << std::endl;
     dpa_example(owl, parsed_formula);
 
-    std::cout << std::endl << "DPA Example 2: " << std::endl << std::endl;
+    std::cout << std::endl << "Automaton Example 2: " << std::endl << std::endl;
     dpa_example(owl, built_formula);
+
+    std::cout << std::endl << "Arbiter Example: " << std::endl << std::endl;
+    simple_arbiter_example(owl);
 
     return 0;
 }

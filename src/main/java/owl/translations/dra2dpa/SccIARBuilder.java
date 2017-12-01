@@ -113,7 +113,7 @@ final class SccIARBuilder<R> {
           continue;
         }
         Edge<IARState<R>> iarEdge = computeSuccessorEdge(currentRecord, rabinEdge);
-        successors.add(new LabelledEdge<>(iarEdge, rabinLabelledEdge.valuations));
+        successors.add(LabelledEdge.of(iarEdge, rabinLabelledEdge.valuations));
       }
       return successors;
     });

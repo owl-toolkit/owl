@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.Views;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 
@@ -27,7 +27,7 @@ public class InclusionCheckCacheLoader<S> extends CacheLoader<Entry<Set<S>, S>, 
     List<S> initialState = new ArrayList<>(entry.getKey());
     initialState.add(entry.getValue());
     RabinAcceptance acceptance = new RabinAcceptance(1);
-    Automaton<List<S>, RabinAcceptance> prodAutomaton = AutomatonFactory.createProductAutomaton(
+    Automaton<List<S>, RabinAcceptance> prodAutomaton = Views.createProductAutomaton(
       acceptance, initialState, automaton);
     return !EmptinessCheck.isEmpty(prodAutomaton);
   }

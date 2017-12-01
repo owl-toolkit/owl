@@ -58,7 +58,7 @@ final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
 
   @Override
   public Formula visit(Conjunction conjunction, Integer depth) {
-    if (Fragments.isX(conjunction)) {
+    if (Fragments.isFinite(conjunction)) {
       return XOperator.create(conjunction, depth);
     }
 
@@ -67,7 +67,7 @@ final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
 
   @Override
   public Formula visit(Disjunction disjunction, Integer depth) {
-    if (Fragments.isX(disjunction)) {
+    if (Fragments.isFinite(disjunction)) {
       return XOperator.create(disjunction, depth);
     }
 

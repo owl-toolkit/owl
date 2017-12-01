@@ -168,7 +168,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
     mapping.put(proposition, i + 1);
     reverseMapping[i] = proposition;
 
-    if (Fragments.isX(proposition)) {
+    if (Fragments.isFinite(proposition)) {
       mapping.put(proposition.not(), -(i + 1));
     }
 

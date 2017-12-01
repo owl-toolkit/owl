@@ -15,25 +15,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.util;
+package owl.ltl.rewriter;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public final class UnaryOperators {
+final class UnaryOperators {
   private UnaryOperators() {}
 
-  public static <T> UnaryOperator<T> chain(ImmutableList<UnaryOperator<T>> operators) {
-    return (x) -> chain(x, operators);
-  }
+  static <T> UnaryOperator<T> chain(List<UnaryOperator<T>> operators) {
+    Function<T, T> operator = UnaryOperator.identity();
 
-  private static <T> T chain(T input, ImmutableList<UnaryOperator<T>> operators) {
-    T output = input;
-
-    for (UnaryOperator<T> operator : operators) {
-      output = operator.apply(output);
+    for (Function<T, T> nextOperator : operators) {
+      operator = operator.andThen(nextOperator);
     }
 
-    return output;
+    return wrap(operator);
+  }
+
+  static <T> UnaryOperator<T> wrap(Function<T, T> function) {
+    return function::apply;
   }
 }

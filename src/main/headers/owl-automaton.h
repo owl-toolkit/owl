@@ -7,34 +7,48 @@
 #define OWL_AUTOMATON_H
 
 namespace owl {
+    struct Edge;
+
+    enum Acceptance {
+        BUCHI, CO_BUCHI, CO_SAFETY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD, SAFETY
+    };
+
+    class Automaton {
+    private:
+        JNIEnv* env{nullptr};
+        jobject handle{nullptr};
+
+        // Method IDs.
+        jmethodID alphabet_mappingID{};
+        jmethodID acceptanceID{};
+        jmethodID edgesID{};
+        jmethodID successorsID{};
+
+        Automaton(JNIEnv* env, const Formula& formula);
+        Automaton(JNIEnv* env, jobject handle);
+
+        void bind_methods(jclass const &clazz);
+
+        friend class Owl;
+        friend class copy_from_java;
+
+    public:
+        Automaton() : env(nullptr) {};
+        Automaton(const Automaton &automaton);
+        ~Automaton();
+
+        std::map<int, int> alphabet_mapping();
+        Acceptance acceptance() const;
+        std::vector<Edge> edges(int state);
+        std::vector<int> successors(int state);
+    };
+
     struct Edge {
         int successor;
         int colour;
 
-        Edge(int successor, int colour) : successor(successor), colour(colour) {};
-    };
-
-    enum Parity {
-        MIN_EVEN, MIN_ODD, MAX_EVEN, MAX_ODD
-    };
-
-    class DPA {
-    private:
-        JNIEnv* env;
-        jobject handle;
-        jmethodID successorsID;
-        jmethodID parityID;
-
-        DPA(JNIEnv* env, const Formula& formula);
-        friend class Owl;
-
-    public:
-        DPA(const DPA &dpa);
-        DPA(const DPA &&dpa) noexcept : env(dpa.env), handle(dpa.handle), successorsID(dpa.successorsID), parityID(dpa.parityID) {};
-        ~DPA();
-
-        Parity parity();
-        std::vector<Edge> successors(int state);
+        Edge() : successor(-1), colour(-1) {};
+        Edge(int _successor, int _colour) : successor(_successor), colour(_colour) {};
     };
 }
 

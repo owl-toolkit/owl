@@ -84,7 +84,7 @@ public final class CliParser {
       return null;
     }
 
-    Iterator<String> iterator = Arrays.asList(arguments).iterator();
+    Iterator<String> iterator = List.of(arguments).iterator();
 
     CommandLineParser parser = new DefaultParser();
     ImmutablePipelineSpecification.Builder pipelineSpecificationBuilder =
