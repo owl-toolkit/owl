@@ -21,7 +21,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.PrimitiveIterator.OfInt;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -38,18 +37,8 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public int acceptanceSetCount() {
-    return acceptance.cardinality();
-  }
-
-  @Override
   public OfInt acceptanceSetIterator() {
     return BitSets.iterator(acceptance);
-  }
-
-  @Override
-  public IntStream acceptanceSetStream() {
-    return acceptance.stream();
   }
 
   @Override
@@ -103,12 +92,16 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public EdgeGeneric<S> withSuccessor(S successor) {
+  public <T> EdgeGeneric<T> withSuccessor(T successor) {
     return new EdgeGeneric<>(successor, acceptance);
   }
 
   @Override
   public String toString() {
-    return Edge.toString(this);
+    OfInt acceptanceSetIterator = acceptanceSetIterator();
+    StringBuilder builder = new StringBuilder(10);
+    builder.append(acceptanceSetIterator.nextInt());
+    acceptanceSetIterator.forEachRemaining((int x) -> builder.append(", ").append(x));
+    return "-> " + getSuccessor() + " {" + builder.toString() + '}';
   }
 }

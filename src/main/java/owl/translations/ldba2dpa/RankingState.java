@@ -39,17 +39,17 @@ public final class RankingState<S, T> extends ImmutableObject {
     this.safetyProgress = safetyProgress;
   }
 
-  static <S, T> RankingState<S, T> create(@Nullable S initialComponentState) {
-    return create(initialComponentState, List.of(), -1);
+  static <S, T> RankingState<S, T> of(@Nullable S initialComponentState) {
+    return of(initialComponentState, List.of(), -1);
   }
 
-  static <S, T> RankingState<S, T> create(@Nullable S initialComponentState, List<T> ranking,
+  static <S, T> RankingState<S, T> of(@Nullable S initialComponentState, List<T> ranking,
     int safetyProgress) {
     return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), safetyProgress);
   }
 
-  public static <S, T> RankingState<S, T> createSink() {
-    return create(null);
+  public static <S, T> RankingState<S, T> of() {
+    return of(null);
   }
 
   @Override

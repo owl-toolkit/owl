@@ -35,7 +35,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 
 final class AcceptingComponentBuilder<S>
   implements MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> {
@@ -138,9 +137,9 @@ final class AcceptingComponentBuilder<S>
       Edge::getSuccessor).collect(Collectors.toSet()), n1);
 
     if (i1 == 0 && outEdgesM.equals(outEdgesN)) {
-      return Edges.create(successor, 0);
+      return Edge.of(successor, 0);
     }
 
-    return Edges.create(successor);
+    return Edge.of(successor);
   }
 }

@@ -71,7 +71,7 @@ class PullupXVisitor implements Visitor<PullupXVisitor.XFormula>, UnaryOperator<
 
   @Override
   public XFormula visit(FOperator fOperator) {
-    return visit(fOperator, FOperator::create);
+    return visit(fOperator, FOperator::of);
   }
 
   @Override
@@ -81,7 +81,7 @@ class PullupXVisitor implements Visitor<PullupXVisitor.XFormula>, UnaryOperator<
 
   @Override
   public XFormula visit(GOperator gOperator) {
-    return visit(gOperator, GOperator::create);
+    return visit(gOperator, GOperator::of);
   }
 
   @Override
@@ -91,22 +91,22 @@ class PullupXVisitor implements Visitor<PullupXVisitor.XFormula>, UnaryOperator<
 
   @Override
   public XFormula visit(MOperator mOperator) {
-    return visit(mOperator, MOperator::create);
+    return visit(mOperator, MOperator::of);
   }
 
   @Override
   public XFormula visit(ROperator rOperator) {
-    return visit(rOperator, ROperator::create);
+    return visit(rOperator, ROperator::of);
   }
 
   @Override
   public XFormula visit(UOperator uOperator) {
-    return visit(uOperator, UOperator::create);
+    return visit(uOperator, UOperator::of);
   }
 
   @Override
   public XFormula visit(WOperator wOperator) {
-    return visit(wOperator, WOperator::create);
+    return visit(wOperator, WOperator::of);
   }
 
   @Override

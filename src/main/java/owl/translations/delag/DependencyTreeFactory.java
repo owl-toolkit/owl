@@ -64,7 +64,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
   protected DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
     Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber,
-      () -> constructor.apply(LabelledFormula.create(formula, factory.getVariables())),
+      () -> constructor.apply(LabelledFormula.of(formula, factory.getVariables())),
       piggyback);
 
     if (leaf.type == Type.CO_SAFETY || leaf.type == Type.SAFETY) {
@@ -142,11 +142,11 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     }
 
     if (!safety.isEmpty()) {
-      children.add(defaultAction(Disjunction.create(safety), findPiggybackableLeaf(children)));
+      children.add(defaultAction(Disjunction.of(safety), findPiggybackableLeaf(children)));
     }
 
     if (!coSafety.isEmpty()) {
-      children.add(defaultAction(Disjunction.create(coSafety)));
+      children.add(defaultAction(Disjunction.of(coSafety)));
     }
 
     return DependencyTree.createOr(children);
@@ -172,11 +172,11 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     }
 
     if (!safety.isEmpty()) {
-      children.add(defaultAction(Conjunction.create(safety)));
+      children.add(defaultAction(Conjunction.of(safety)));
     }
 
     if (!coSafety.isEmpty()) {
-      children.add(defaultAction(Conjunction.create(coSafety), findPiggybackableLeaf(children)));
+      children.add(defaultAction(Conjunction.of(coSafety), findPiggybackableLeaf(children)));
     }
 
     return DependencyTree.createAnd(children);

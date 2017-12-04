@@ -70,11 +70,11 @@ public class Splitter {
       List<LabelledTree<Tag, IntAutomaton>> children = new ArrayList<>();
 
       if (!grouping.safety.isEmpty()) {
-        children.add(createLeaf(Conjunction.create(grouping.safety)));
+        children.add(createLeaf(Conjunction.of(grouping.safety)));
       }
 
       if (!grouping.cosafety.isEmpty()) {
-        children.add(createLeaf(Conjunction.create(grouping.cosafety)));
+        children.add(createLeaf(Conjunction.of(grouping.cosafety)));
       }
 
       grouping.dba.forEach(x -> children.add(createLeaf(x)));
@@ -83,7 +83,7 @@ public class Splitter {
       if (grouping.mixed.size() == 1) {
         children.add(Iterables.getOnlyElement(grouping.mixed).accept(this));
       } else if (grouping.mixed.size() > 1) {
-        children.add(new Leaf<>(IntAutomaton.of(Conjunction.create(grouping.mixed))));
+        children.add(new Leaf<>(IntAutomaton.of(Conjunction.of(grouping.mixed))));
       }
 
       return new Node<>(Tag.CONJUNCTION, children);
@@ -96,11 +96,11 @@ public class Splitter {
       List<LabelledTree<Tag, IntAutomaton>> children = new ArrayList<>();
 
       if (!grouping.safety.isEmpty()) {
-        children.add(createLeaf(Disjunction.create(grouping.safety)));
+        children.add(createLeaf(Disjunction.of(grouping.safety)));
       }
 
       if (!grouping.cosafety.isEmpty()) {
-        children.add(createLeaf(Disjunction.create(grouping.cosafety)));
+        children.add(createLeaf(Disjunction.of(grouping.cosafety)));
       }
 
       grouping.dba.forEach(x -> children.add(createLeaf(x)));
@@ -109,7 +109,7 @@ public class Splitter {
       if (grouping.mixed.size() == 1) {
         children.add(Iterables.getOnlyElement(grouping.mixed).accept(this));
       } else if (grouping.mixed.size() > 1) {
-        children.add(createLeaf(Disjunction.create(grouping.mixed)));
+        children.add(createLeaf(Disjunction.of(grouping.mixed)));
       }
 
       return new Node<>(Tag.DISJUNCTION, children);

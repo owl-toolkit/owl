@@ -104,7 +104,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
   private static final class AlmostAllVisitor extends DefaultVisitor<Formula> {
 
     private static Formula wrap(Formula formula) {
-      return FOperator.create(GOperator.create(formula));
+      return FOperator.of(GOperator.of(formula));
     }
 
     @Override
@@ -123,7 +123,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         return wrap(conjunction);
       }
 
-      return Conjunction.create(conjunction.map(x -> x.accept(this)));
+      return Conjunction.of(conjunction.map(x -> x.accept(this)));
     }
 
     @Override
@@ -149,12 +149,12 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         }
       });
 
-      conjuncts.add(Set.of(Disjunction.create(xFragment)));
-      Formula conjunction = Conjunction.create(Sets.cartesianProduct(conjuncts).stream()
-        .map(Disjunction::create));
+      conjuncts.add(Set.of(Disjunction.of(xFragment)));
+      Formula conjunction = Conjunction.of(Sets.cartesianProduct(conjuncts).stream()
+        .map(Disjunction::of));
 
       disjuncts.add(conjunction.accept(this));
-      return Disjunction.create(disjuncts);
+      return Disjunction.of(disjuncts);
     }
 
     @Override
@@ -181,7 +181,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
   private static final class InfinitelyOftenVisitor extends DefaultVisitor<Formula> {
 
     private static Formula wrap(Formula formula) {
-      return GOperator.create(FOperator.create(formula));
+      return GOperator.of(FOperator.of(formula));
     }
 
     @Override
@@ -217,12 +217,12 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         }
       });
 
-      disjuncts.add(Set.of(Conjunction.create(xFragment)));
-      Formula disjunction = Disjunction.create(Sets.cartesianProduct(disjuncts).stream()
-        .map(Conjunction::create));
+      disjuncts.add(Set.of(Conjunction.of(xFragment)));
+      Formula disjunction = Disjunction.of(Sets.cartesianProduct(disjuncts).stream()
+        .map(Conjunction::of));
 
       conjuncts.add(disjunction.accept(this));
-      return Conjunction.create(conjuncts);
+      return Conjunction.of(conjuncts);
     }
 
     @Override
@@ -231,7 +231,7 @@ class FairnessSimplifier implements UnaryOperator<Formula> {
         return wrap(disjunction);
       }
 
-      return Disjunction.create(disjunction.map(x -> x.accept(this)));
+      return Disjunction.of(disjunction.map(x -> x.accept(this)));
     }
 
     @Override

@@ -103,7 +103,7 @@ public class TestHasAcceptingRun {
       result = translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!hasAcceptingRun));
-    ParityUtil.complement(result, RankingState::createSink);
+    ParityUtil.complement(result, RankingState::of);
     assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!complementHasAcceptingRun));
   }
 }

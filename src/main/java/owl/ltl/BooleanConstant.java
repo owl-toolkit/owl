@@ -30,12 +30,12 @@ public final class BooleanConstant extends ImmutableObject implements Formula {
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
 
-  private BooleanConstant(boolean value) {
-    this.value = value;
+  public static BooleanConstant of(boolean value) {
+    return value ? TRUE : FALSE;
   }
 
-  public static BooleanConstant get(boolean value) {
-    return value ? TRUE : FALSE;
+  private BooleanConstant(boolean value) {
+    this.value = value;
   }
 
   @Override

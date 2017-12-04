@@ -9,7 +9,7 @@ import owl.ltl.visitors.Collector;
 class Hacks {
   static LabelledFormula attachDummyAlphabet(Formula formula) {
     int largestAtom = Collector.collectAtoms(formula).stream().max().orElse(0);
-    return LabelledFormula.create(formula, IntStream
+    return LabelledFormula.of(formula, IntStream
       .range(0, largestAtom + 1)
       .mapToObj(i -> "p" + i)
       .collect(ImmutableList.toImmutableList()));

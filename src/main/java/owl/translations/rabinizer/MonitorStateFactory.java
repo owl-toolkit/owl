@@ -86,19 +86,19 @@ final class MonitorStateFactory extends RabinizerStateFactory {
 
     @Override
     public Formula visit(FOperator fOperator) {
-      return Disjunction.create(fOperator.operand.accept(this), fOperator);
+      return Disjunction.of(fOperator.operand.accept(this), fOperator);
     }
 
     @Override
     public Formula visit(UOperator uOperator) {
-      return Disjunction.create(uOperator.right.accept(this),
-        Conjunction.create(uOperator.left.accept(this), uOperator));
+      return Disjunction.of(uOperator.right.accept(this),
+        Conjunction.of(uOperator.left.accept(this), uOperator));
     }
 
     @Override
     public Formula visit(MOperator mOperator) {
-      return Conjunction.create(mOperator.right.accept(this),
-        Disjunction.create(mOperator.left.accept(this), mOperator));
+      return Conjunction.of(mOperator.right.accept(this),
+        Disjunction.of(mOperator.left.accept(this), mOperator));
     }
 
     @Override

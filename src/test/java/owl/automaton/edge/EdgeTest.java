@@ -71,11 +71,11 @@ public class EdgeTest {
         }
 
         ImmutableList.Builder<Edge<?>> representatives = ImmutableList.builder();
-        representatives.add(Edges.create(successor, acceptanceSet));
+        representatives.add(Edge.of(successor, acceptanceSet));
         if (acceptanceSetArray.length == 0) {
-          representatives.add(Edges.create(successor));
+          representatives.add(Edge.of(successor));
         } else if (acceptanceSetArray.length == 1) {
-          representatives.add(Edges.create(successor, acceptanceSetArray[0]));
+          representatives.add(Edge.of(successor, acceptanceSetArray[0]));
         }
         testCasesBuilder.add(new TestCase(representatives.build(), successor, acceptanceSet));
       }

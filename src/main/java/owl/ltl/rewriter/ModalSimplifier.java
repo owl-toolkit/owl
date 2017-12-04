@@ -58,7 +58,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
     if (operand instanceof MOperator) {
       MOperator mOperator = (MOperator) operand;
-      return FOperator.create(Conjunction.create(mOperator.left, mOperator.right));
+      return FOperator.of(Conjunction.of(mOperator.left, mOperator.right));
     }
 
     if (operand instanceof ROperator) {
@@ -71,21 +71,21 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     if (operand instanceof UOperator) {
       UOperator uOperator = (UOperator) operand;
 
-      return FOperator.create(uOperator.right);
+      return FOperator.of(uOperator.right);
     }
 
     if (operand instanceof WOperator) {
       WOperator wOperator = (WOperator) operand;
-      return Disjunction.create(FOperator.create(GOperator.create(wOperator.left)),
-        FOperator.create(wOperator.right));
+      return Disjunction.of(FOperator.of(GOperator.of(wOperator.left)),
+        FOperator.of(wOperator.right));
     }
 
     if (operand instanceof Conjunction && ((Conjunction) operand)
       .children.stream().allMatch(Formula::isPureUniversal)) {
-      return Conjunction.create(((Conjunction) operand).children.stream().map(FOperator::create));
+      return Conjunction.of(((Conjunction) operand).children.stream().map(FOperator::of));
     }
 
-    return FOperator.create(operand);
+    return FOperator.of(operand);
   }
 
   @Override
@@ -104,34 +104,34 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     if (operand instanceof MOperator) {
       MOperator mOperator = (MOperator) operand;
 
-      return Conjunction.create(GOperator.create(mOperator.right),
-        GOperator.create(FOperator.create(Conjunction.create(mOperator.left))));
+      return Conjunction.of(GOperator.of(mOperator.right),
+        GOperator.of(FOperator.of(Conjunction.of(mOperator.left))));
     }
 
     if (operand instanceof ROperator) {
       ROperator rOperator = (ROperator) operand;
-      return GOperator.create(rOperator.right);
+      return GOperator.of(rOperator.right);
     }
 
     if (operand instanceof UOperator) {
       UOperator uOperator = (UOperator) operand;
 
-      return Conjunction.create(
-        GOperator.create(Disjunction.create(uOperator.left, uOperator.right)),
-        GOperator.create(FOperator.create(uOperator.right)));
+      return Conjunction.of(
+        GOperator.of(Disjunction.of(uOperator.left, uOperator.right)),
+        GOperator.of(FOperator.of(uOperator.right)));
     }
 
     if (operand instanceof WOperator) {
       WOperator wOperator = (WOperator) operand;
-      return GOperator.create(Disjunction.create(wOperator.left, wOperator.right));
+      return GOperator.of(Disjunction.of(wOperator.left, wOperator.right));
     }
 
     if (operand instanceof Disjunction && ((Disjunction) operand)
       .children.stream().allMatch(Formula::isPureEventual)) {
-      return Disjunction.create(((Disjunction) operand).children.stream().map(GOperator::create));
+      return Disjunction.of(((Disjunction) operand).children.stream().map(GOperator::of));
     }
 
-    return GOperator.create(operand);
+    return GOperator.of(operand);
   }
 
   @Override
@@ -144,7 +144,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula left = mOperator.left.accept(this);
     Formula right = mOperator.right.accept(this);
 
-    return MOperator.create(left, right);
+    return MOperator.of(left, right);
   }
 
   @Override
@@ -158,10 +158,10 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula left = uOperator.left.accept(this);
 
     if (left.isSuspendable() || left.isPureUniversal()) {
-      return Disjunction.create(Conjunction.create(left, FOperator.create(right)), right);
+      return Disjunction.of(Conjunction.of(left, FOperator.of(right)), right);
     }
 
-    return UOperator.create(left, right);
+    return UOperator.of(left, right);
   }
 
   @Override
@@ -170,14 +170,14 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula right = wOperator.right.accept(this);
 
     if (left.isPureUniversal() || left.isSuspendable()) {
-      return Disjunction.create(left, right);
+      return Disjunction.of(left, right);
     }
 
     if (right.isSuspendable() || right.isPureEventual()) {
-      return Disjunction.create(GOperator.create(left), right);
+      return Disjunction.of(GOperator.of(left), right);
     }
 
-    return WOperator.create(left, right);
+    return WOperator.of(left, right);
   }
 
   @Override
@@ -191,10 +191,10 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula left = rOperator.left.accept(this);
 
     if (left.isSuspendable()) {
-      return Disjunction.create(Conjunction.create(left, right), GOperator.create(right));
+      return Disjunction.of(Conjunction.of(left, right), GOperator.of(right));
     }
 
-    return ROperator.create(left, right);
+    return ROperator.of(left, right);
   }
 
   @Override
@@ -250,7 +250,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula c;
 
     if (elementsChanged) {
-      c = Conjunction.create(newChildren.stream());
+      c = Conjunction.of(newChildren.stream());
     } else {
       c = conjunction;
     }
@@ -292,7 +292,7 @@ class ModalSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     Formula d;
 
     if (elementsChanged) {
-      d = Disjunction.create(newChildren.stream());
+      d = Disjunction.of(newChildren.stream());
     } else {
       d = disjunction;
     }

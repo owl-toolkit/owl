@@ -32,7 +32,7 @@ public final class Literal extends ImmutableObject implements Formula {
   private final int index;
   private final Literal negation;
 
-  public static Literal create(int index, boolean negate) {
+  public static Literal of(int index, boolean negate) {
     return new Literal(index, negate);
   }
 
@@ -118,7 +118,7 @@ public final class Literal extends ImmutableObject implements Formula {
 
   @Override
   public Formula temporalStep(BitSet valuation) {
-    return BooleanConstant.get(valuation.get(getAtom()) ^ isNegated());
+    return BooleanConstant.of(valuation.get(getAtom()) ^ isNegated());
   }
 
   @Override

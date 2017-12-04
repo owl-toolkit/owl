@@ -97,21 +97,21 @@ public abstract class Tlsf {
 
   @Value.Derived
   public LabelledFormula toFormula() {
-    Formula formula = Disjunction.create(FOperator.create(require().not()), assume().not(),
-      Conjunction.create(GOperator.create(assert_()), guarantee()));
+    Formula formula = Disjunction.of(FOperator.of(require().not()), assume().not(),
+      Conjunction.of(GOperator.of(assert_()), guarantee()));
 
     if (semantics().isStrict()) {
-      formula = Conjunction.create(preset(), formula, Disjunction
-        .create(UOperator.create(assert_(), require().not()), GOperator.create(assert_())));
+      formula = Conjunction.of(preset(), formula, Disjunction
+        .of(UOperator.of(assert_(), require().not()), GOperator.of(assert_())));
     } else {
-      formula = Conjunction.create(preset(), formula);
+      formula = Conjunction.of(preset(), formula);
     }
 
-    Formula result = convert(Disjunction.create(initially().not(), formula));
+    Formula result = convert(Disjunction.of(initially().not(), formula));
     BiMap<Integer, String> mapping = mapping().inverse();
     OptionalInt maximalIndex = mapping.keySet().stream().mapToInt(Integer::intValue).max();
     if (!maximalIndex.isPresent()) {
-      return LabelledFormula.create(result, List.of());
+      return LabelledFormula.of(result, List.of());
     }
     String[] variables = new String[maximalIndex.getAsInt() + 1];
     mapping.forEach((index, name) -> variables[index] = name);
@@ -120,7 +120,7 @@ public abstract class Tlsf {
         variables[i] = "p" + i;
       }
     }
-    return LabelledFormula.create(result, List.of(variables));
+    return LabelledFormula.of(result, List.of(variables));
   }
 
   public enum Semantics {

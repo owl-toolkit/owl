@@ -72,7 +72,7 @@ public class FormulaTest {
   @Test
   public void simplify3() {
     Formula f0 = new Literal(1, false);
-    Formula f1 = new UOperator(BooleanConstant.get(true), f0);
+    Formula f1 = new UOperator(BooleanConstant.of(true), f0);
     Formula f2 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f0, f1));
     Formula f3 = f2.not();
     assertNotEquals(f3, f0.not());
@@ -113,7 +113,7 @@ public class FormulaTest {
     Formula f2 = new GOperator(f1);
     Formula f3 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f2, f1));
     assertEquals(RewriterFactory.apply(RewriterEnum.MODAL, f3.temporalStep(new BitSet())),
-      BooleanConstant.get(false));
+      BooleanConstant.of(false));
   }
 
   @Test
@@ -122,7 +122,7 @@ public class FormulaTest {
     Formula f4 = new GOperator(f1);
     Formula f5 = f4.unfold();
     Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, f5.temporalStep(new BitSet()));
-    assertEquals(f6, BooleanConstant.get(false));
+    assertEquals(f6, BooleanConstant.of(false));
   }
 
   @Test
@@ -150,7 +150,7 @@ public class FormulaTest {
   public void testFormulaFactory1() {
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(0, false);
-    Formula f3 = Disjunction.create(f1, f2);
+    Formula f3 = Disjunction.of(f1, f2);
     assertEquals(f2, f3);
   }
 
@@ -158,8 +158,8 @@ public class FormulaTest {
   public void testFormulaFactory2() {
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(2, false);
-    Formula f3 = Disjunction.create(f1, f2);
-    Formula f4 = Disjunction.create(f1, f3);
+    Formula f3 = Disjunction.of(f1, f2);
+    Formula f4 = Disjunction.of(f1, f3);
     assertEquals(f3, f4);
   }
 
@@ -167,17 +167,17 @@ public class FormulaTest {
   public void testFormulaFactory3() {
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(0, false);
-    Formula f3 = Conjunction.create(f1, f2);
+    Formula f3 = Conjunction.of(f1, f2);
     assertEquals(f2, f3);
   }
 
   @Test
   public void testFormulaFactory5() {
-    Formula f0 = BooleanConstant.get(false);
-    Formula f1 = BooleanConstant.get(false);
-    Formula f2 = BooleanConstant.get(false);
-    Formula f3 = Disjunction.create(f0, f1, f2);
-    assertEquals(f3, BooleanConstant.get(false));
+    Formula f0 = BooleanConstant.of(false);
+    Formula f1 = BooleanConstant.of(false);
+    Formula f2 = BooleanConstant.of(false);
+    Formula f3 = Disjunction.of(f0, f1, f2);
+    assertEquals(f3, BooleanConstant.of(false));
   }
 
   @Test
@@ -214,7 +214,7 @@ public class FormulaTest {
   @Test
   public void testSimplifyAggressively3() {
     Formula f1 = new Literal(1, false);
-    Formula f2 = new FOperator(BooleanConstant.get(true));
+    Formula f2 = new FOperator(BooleanConstant.of(true));
     Formula f3 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f1, f2));
 
     assertEquals(f1, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f3));
@@ -278,8 +278,8 @@ public class FormulaTest {
     Formula f2 = new Literal(0, false);
     Formula f3 = new GOperator(f1);
     Formula f4 = new GOperator(f2);
-    Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, Conjunction.create(f3, f4));
-    Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, Conjunction.create(f5, f1, f2));
+    Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, Conjunction.of(f3, f4));
+    Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, Conjunction.of(f5, f1, f2));
 
     assertEquals(f6, RewriterFactory.apply(RewriterEnum.MODAL, f5.unfold()));
   }

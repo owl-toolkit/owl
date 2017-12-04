@@ -25,7 +25,7 @@ import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
-import owl.automaton.edge.Edges;
+import owl.automaton.edge.Edge;
 
 final class InitialComponentBuilder<S> implements MutableAutomatonBuilder<S, S, NoneAcceptance> {
 
@@ -50,7 +50,7 @@ final class InitialComponentBuilder<S> implements MutableAutomatonBuilder<S, S, 
       .createMutableAutomaton(NoneAcceptance.INSTANCE, nba.getFactory());
 
     AutomatonUtil.explore(automaton, nba.getInitialStates(), (state, valuation) ->
-      Collections2.transform(nba.getSuccessors(state, valuation), Edges::create));
+      Collections2.transform(nba.getSuccessors(state, valuation), Edge::of));
 
     automaton.setInitialStates(nba.getInitialStates());
     return automaton;

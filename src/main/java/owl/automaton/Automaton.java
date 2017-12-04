@@ -229,7 +229,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
         return !Properties.isDeterministic(this);
 
       default:
-        throw new UnsupportedOperationException("Property Detection for " + property
+        throw new UnsupportedOperationException("Property detection for " + property
           + " is not implemented");
     }
   }
@@ -249,6 +249,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   enum Property {
-    COMPLETE, DETERMINISTIC, LIMIT_DETERMINISTIC, NON_DETERMINISTIC, TERMINAL, WEAK
+    COMPLETE, DETERMINISTIC, LIMIT_DETERMINISTIC, NON_DETERMINISTIC, TERMINAL, WEAK, COLOURED
   }
 }

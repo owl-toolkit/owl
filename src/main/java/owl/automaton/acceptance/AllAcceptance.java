@@ -43,6 +43,6 @@ public final class AllAcceptance extends OmegaAcceptance {
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return !edge.acceptanceSetIterator().hasNext();
+    return !edge.hasAcceptanceSets();
   }
 }

@@ -114,7 +114,7 @@ public final class FGObligations implements RecurringObligation {
       }
 
       // Wrap into F.
-      formula = FOperator.create(formula);
+      formula = FOperator.of(formula);
 
       if (formula instanceof FOperator) {
         builder.add((FOperator) formula);
@@ -166,7 +166,7 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public EquivalenceClass getLanguage() {
     return safety.getFactory().createEquivalenceClass(
-      Collections3.transform(rewrittenOperators, GOperator::create));
+      Collections3.transform(rewrittenOperators, GOperator::of));
   }
 
   EquivalenceClass getObligation() {

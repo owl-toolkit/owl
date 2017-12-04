@@ -30,7 +30,7 @@ public final class RewriterFactory {
   }
 
   public static LabelledFormula apply(RewriterEnum rewriter, LabelledFormula formula) {
-    return LabelledFormula.create(rewriter.getRewriter().apply(formula.formula), formula.variables);
+    return LabelledFormula.of(rewriter.getRewriter().apply(formula.formula), formula.variables);
   }
 
   public static LabelledFormula apply(LabelledFormula formula, RewriterEnum... rewriters) {

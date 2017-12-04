@@ -51,7 +51,7 @@ public final class RabinAcceptance extends OmegaAcceptance {
     }
   }
 
-  public static RabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
+  public static RabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
     RabinAcceptance acceptance = new RabinAcceptance();
 
     if (expression.getType() == BooleanExpression.Type.EXP_FALSE) {
@@ -130,7 +130,7 @@ public final class RabinAcceptance extends OmegaAcceptance {
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.acceptanceSetStream().allMatch(index -> index < 2 * pairs.size());
+    return edge.largestAcceptanceSet() < 2 * pairs.size();
   }
 
   public static final class RabinPair {

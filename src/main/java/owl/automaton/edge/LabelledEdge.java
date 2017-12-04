@@ -25,6 +25,10 @@ public final class LabelledEdge<S> {
   public final Edge<S> edge;
   public final ValuationSet valuations;
 
+  public static <S> LabelledEdge<S> of(S state, ValuationSet valuations) {
+    return of(Edge.of(state), valuations);
+  }
+
   public static <S> LabelledEdge<S> of(Edge<S> edge, ValuationSet valuations) {
     return new LabelledEdge<>(edge, valuations);
   }

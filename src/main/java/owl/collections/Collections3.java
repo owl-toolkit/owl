@@ -27,9 +27,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import javax.annotation.Nullable;
 
 public final class Collections3 {
@@ -122,6 +124,26 @@ public final class Collections3 {
     });
 
     return set;
+  }
+
+  public static BitSet toBitSet(@Nullable Iterable<Integer> ints) {
+    BitSet bitSet = new BitSet();
+
+    if (ints != null) {
+      ints.forEach(bitSet::set);
+    }
+
+    return bitSet;
+  }
+
+  public static BitSet toBitSet(@Nullable OfInt ints) {
+    BitSet bitSet = new BitSet();
+
+    if (ints != null) {
+      ints.forEachRemaining((IntConsumer) bitSet::set);
+    }
+
+    return bitSet;
   }
 
   public static <E> Set<E> union(Collection<? extends Collection<E>> elements) {

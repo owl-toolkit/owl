@@ -26,7 +26,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
@@ -124,7 +123,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     DegeneralizedBreakpointFreeState successor = new DegeneralizedBreakpointFreeState(j,
       safetySuccessor, livenessSuccessor, state.obligations);
-    return acceptingEdge ? Edges.create(successor, 0) : Edges.create(successor);
+    return acceptingEdge ? Edge.of(successor, 0) : Edge.of(successor);
   }
 
   @Nonnegative

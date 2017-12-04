@@ -44,7 +44,6 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.HoaOption;
@@ -119,7 +118,7 @@ public final class AutomatonUtil {
     }
 
     S sinkState = sinkSupplier.get();
-    Edge<S> sinkEdge = Edges.create(sinkState, rejectingAcceptanceSupplier.get());
+    Edge<S> sinkEdge = Edge.of(sinkState, rejectingAcceptanceSupplier.get());
     automaton.addEdge(sinkState, automaton.getFactory().createUniverseValuationSet(), sinkEdge);
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
     incompleteStates.values().forEach(ValuationSet::free);

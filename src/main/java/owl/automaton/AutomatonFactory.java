@@ -26,8 +26,8 @@ import java.util.function.BiFunction;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -105,8 +105,7 @@ public final class AutomatonFactory {
       ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
 
       acceptances.forEach((edgeAcceptance, valuations) -> {
-        Edge<S> edge = Edges.create(singletonState, edgeAcceptance.stream()
-          .mapToInt(x -> x).iterator());
+        Edge<S> edge = Edge.of(singletonState, Collections3.toBitSet(edgeAcceptance));
         builder.add(LabelledEdge.of(edge, valuations));
         selfLoopValuations.addAll(valuations);
       });

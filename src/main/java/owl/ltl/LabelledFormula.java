@@ -17,7 +17,7 @@ public final class LabelledFormula {
     this.formula = formula;
   }
 
-  public static LabelledFormula create(Formula formula, List<String> variables) {
+  public static LabelledFormula of(Formula formula, List<String> variables) {
     return new LabelledFormula(ImmutableList.copyOf(variables), formula);
   }
 

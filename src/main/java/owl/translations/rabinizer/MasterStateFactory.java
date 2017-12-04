@@ -3,7 +3,6 @@ package owl.translations.rabinizer;
 import java.util.BitSet;
 import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.ltl.EquivalenceClass;
 
 final class MasterStateFactory extends RabinizerStateFactory {
@@ -35,7 +34,7 @@ final class MasterStateFactory extends RabinizerStateFactory {
 
     // If the master moves into false, there is no way of accepting, since the finite prefix
     // of the word already violates the formula. Hence, we refrain from creating this state.
-    return successor.isFalse() && !complete ? null : Edges.create(successor);
+    return successor.isFalse() && !complete ? null : Edge.of(successor);
   }
 
 }

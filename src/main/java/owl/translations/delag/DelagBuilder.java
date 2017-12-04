@@ -35,7 +35,6 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
@@ -156,6 +155,6 @@ public class DelagBuilder<T>
 
     ProductState<T> successor = builder.build();
     History history = getHistory(state.past, valuation, successor);
-    return Edges.create(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
+    return Edge.of(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
   }
 }

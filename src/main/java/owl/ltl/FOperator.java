@@ -32,7 +32,7 @@ public class FOperator extends UnaryModalOperator {
     super(f);
   }
 
-  public static Formula create(Formula operand) {
+  public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant) {
       return operand;
     }
@@ -46,11 +46,11 @@ public class FOperator extends UnaryModalOperator {
     }
 
     if (operand instanceof UOperator) {
-      return create(((UOperator) operand).right);
+      return of(((UOperator) operand).right);
     }
 
     if (operand instanceof Disjunction) {
-      return Disjunction.create(((Disjunction) operand).children.stream().map(FOperator::create));
+      return Disjunction.of(((Disjunction) operand).children.stream().map(FOperator::of));
     }
 
     return new FOperator(operand);
@@ -108,6 +108,6 @@ public class FOperator extends UnaryModalOperator {
 
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
-    return Disjunction.create(operand.unfoldTemporalStep(valuation), this);
+    return Disjunction.of(operand.unfoldTemporalStep(valuation), this);
   }
 }

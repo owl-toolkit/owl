@@ -126,27 +126,27 @@ public final class TlsfParser {
     }
     if (!initial.isEmpty()) {
       //noinspection ConstantConditions
-      builder.initially(Conjunction.create(initial.stream().map(LabelledFormula::getFormula)));
+      builder.initially(Conjunction.of(initial.stream().map(LabelledFormula::getFormula)));
     }
     if (!preset.isEmpty()) {
       //noinspection ConstantConditions
-      builder.preset(Conjunction.create(preset.stream().map(LabelledFormula::getFormula)));
+      builder.preset(Conjunction.of(preset.stream().map(LabelledFormula::getFormula)));
     }
     if (!require.isEmpty()) {
       //noinspection ConstantConditions
-      builder.preset(Conjunction.create(require.stream().map(LabelledFormula::getFormula)));
+      builder.preset(Conjunction.of(require.stream().map(LabelledFormula::getFormula)));
     }
     if (!assert_.isEmpty()) {
       //noinspection ConstantConditions
-      builder.assert_(Conjunction.create(assert_.stream().map(LabelledFormula::getFormula)));
+      builder.assert_(Conjunction.of(assert_.stream().map(LabelledFormula::getFormula)));
     }
     if (!assume.isEmpty()) {
       //noinspection ConstantConditions
-      builder.assume(Conjunction.create(assume.stream().map(LabelledFormula::getFormula)));
+      builder.assume(Conjunction.of(assume.stream().map(LabelledFormula::getFormula)));
     }
     if (!guarantee.isEmpty()) {
       //noinspection ConstantConditions
-      builder.guarantee(Conjunction.create(guarantee.stream().map(LabelledFormula::getFormula)));
+      builder.guarantee(Conjunction.of(guarantee.stream().map(LabelledFormula::getFormula)));
     }
 
     return builder.build();

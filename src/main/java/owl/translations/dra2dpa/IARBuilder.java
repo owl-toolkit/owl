@@ -34,7 +34,6 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.run.InputReaders;
@@ -161,7 +160,7 @@ public final class IARBuilder<R> {
         assert rabinToIarStateMap.containsKey(successorState) :
           String.format("No successor present for %s", successorState);
         // TODO instead of 0 we should use any which is actually used
-        Edge<IARState<R>> iarEdge = Edges.create(rabinToIarStateMap.get(successorState), 0);
+        Edge<IARState<R>> iarEdge = Edge.of(rabinToIarStateMap.get(successorState), 0);
         resultAutomaton.addEdge(iarState, labelledEdge.valuations, iarEdge);
       }
     }
@@ -199,7 +198,7 @@ public final class IARBuilder<R> {
           // The transition leads outside of the SCC
           continue;
         }
-        Edge<IARState<R>> iarEdge = Edges.create(successorIARState, 0);
+        Edge<IARState<R>> iarEdge = Edge.of(successorIARState, 0);
         resultTransitionSystem.addEdge(iarState, labelledEdge.valuations, iarEdge);
       }
     }

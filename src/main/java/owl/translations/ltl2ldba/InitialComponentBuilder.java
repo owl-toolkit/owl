@@ -34,7 +34,6 @@ import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
@@ -116,7 +115,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
     generateJumps(state);
 
     if (successor.isTrue()) {
-      return Edges.create(successor, 0);
+      return Edge.of(successor, 0);
     }
 
     // Suppress edge, if successor is a non-accepting state or this state is impatient (e.g. G a)
@@ -124,7 +123,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
       return null;
     }
 
-    return Edges.create(successor);
+    return Edge.of(successor);
   }
 
   Set<Jump<K>> getJumps(EquivalenceClass state) {
@@ -138,7 +137,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
     generateJumps(state);
 
     if (successorClass.isTrue()) {
-      return Set.of(Edges.create(successorClass, 0));
+      return Set.of(Edge.of(successorClass, 0));
     }
 
     // Suppress edge, if successor is a non-accepting state or this state is impatient (e.g. G a)
@@ -148,7 +147,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
 
     // Split successor
     List<Edge<EquivalenceClass>> successors = new ArrayList<>();
-    factory.splitEquivalenceClass(successorClass).forEach(x -> successors.add(Edges.create(x)));
+    factory.splitEquivalenceClass(successorClass).forEach(x -> successors.add(Edge.of(x)));
     return successors;
   }
 }

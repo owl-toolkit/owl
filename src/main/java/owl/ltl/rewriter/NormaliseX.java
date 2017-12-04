@@ -59,36 +59,36 @@ final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
   @Override
   public Formula visit(Conjunction conjunction, Integer depth) {
     if (Fragments.isFinite(conjunction)) {
-      return XOperator.create(conjunction, depth);
+      return XOperator.of(conjunction, depth);
     }
 
-    return Conjunction.create(conjunction.map(x -> x.accept(this, depth)));
+    return Conjunction.of(conjunction.map(x -> x.accept(this, depth)));
   }
 
   @Override
   public Formula visit(Disjunction disjunction, Integer depth) {
     if (Fragments.isFinite(disjunction)) {
-      return XOperator.create(disjunction, depth);
+      return XOperator.of(disjunction, depth);
     }
 
-    return Disjunction.create(disjunction.map(x -> x.accept(this, depth)));
+    return Disjunction.of(disjunction.map(x -> x.accept(this, depth)));
   }
 
   // The F is within of the scope of FG / GF. Resetting the  X-depth is safe.
   @Override
   public Formula visit(FOperator fOperator, Integer depth) {
-    return FOperator.create(fOperator.operand.accept(this, 0));
+    return FOperator.of(fOperator.operand.accept(this, 0));
   }
 
   // The G is within of the scope of FG / GF. Resetting the  X-depth is safe.
   @Override
   public Formula visit(GOperator gOperator, Integer depth) {
-    return GOperator.create(gOperator.operand.accept(this, 0));
+    return GOperator.of(gOperator.operand.accept(this, 0));
   }
 
   @Override
   public Formula visit(Literal literal, Integer parameter) {
-    return XOperator.create(literal, parameter);
+    return XOperator.of(literal, parameter);
   }
 
   @Override

@@ -21,7 +21,6 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -170,7 +169,7 @@ final class MonitorBuilderNoAcceptance {
         ? Arrays.copyOf(successorRanking, successorRankingSize)
         : successorRanking;
 
-    return Edges.create(new MonitorState(trimmedSuccessorRanking));
+    return Edge.of(new MonitorState(trimmedSuccessorRanking));
   }
 
   private Edge<MonitorState> getSuccessorSafety(MonitorState currentState, BitSet valuation) {
@@ -183,6 +182,6 @@ final class MonitorBuilderNoAcceptance {
       : successorClass.and(initialClass);
     EquivalenceClass[] successorRanking = {equivalenceClass};
 
-    return Edges.create(new MonitorState(successorRanking));
+    return Edge.of(new MonitorState(successorRanking));
   }
 }

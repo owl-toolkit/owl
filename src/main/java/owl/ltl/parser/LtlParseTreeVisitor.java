@@ -50,12 +50,14 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     ListIterator<String> literalIterator = literals.listIterator();
     ImmutableList.Builder<Literal> literalBuilder = ImmutableList.builder();
     ImmutableList.Builder<String> variableBuilder = ImmutableList.builder();
+
     while (literalIterator.hasNext()) {
       int index = literalIterator.nextIndex();
       String name = literalIterator.next();
       literalBuilder.add(new Literal(index));
       variableBuilder.add(name);
     }
+
     literalCache = literalBuilder.build();
     variables = variableBuilder.build();
   }
@@ -68,7 +70,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitAndExpression(AndExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
 
-    return Conjunction.create(ctx.children.stream()
+    return Conjunction.of(ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit));
   }
@@ -83,33 +85,33 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     Formula right = visit(ctx.right);
 
     if (binaryOp.BIIMP() != null) {
-      return Disjunction.create(Conjunction.create(left, right),
-        Conjunction.create(left.not(), right.not()));
+      return Disjunction.of(Conjunction.of(left, right),
+        Conjunction.of(left.not(), right.not()));
     }
 
     if (binaryOp.IMP() != null) {
-      return Disjunction.create(left.not(), right);
+      return Disjunction.of(left.not(), right);
     }
 
     if (binaryOp.XOR() != null) {
-      return Disjunction.create(Conjunction.create(left, right.not()),
-        Conjunction.create(left.not(), right));
+      return Disjunction.of(Conjunction.of(left, right.not()),
+        Conjunction.of(left.not(), right));
     }
 
     if (binaryOp.UNTIL() != null) {
-      return UOperator.create(left, right);
+      return UOperator.of(left, right);
     }
 
     if (binaryOp.WUNTIL() != null) {
-      return WOperator.create(left, right);
+      return WOperator.of(left, right);
     }
 
     if (binaryOp.RELEASE() != null) {
-      return ROperator.create(left, right);
+      return ROperator.of(left, right);
     }
 
     if (binaryOp.SRELEASE() != null) {
-      return MOperator.create(left, right);
+      return MOperator.of(left, right);
     }
 
     throw new ParseCancellationException("Unknown operator");
@@ -154,7 +156,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitOrExpression(OrExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
 
-    return Disjunction.create(ctx.children.stream()
+    return Disjunction.of(ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit));
   }
@@ -171,15 +173,15 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     }
 
     if (unaryOp.FINALLY() != null) {
-      return FOperator.create(operand);
+      return FOperator.of(operand);
     }
 
     if (unaryOp.GLOBALLY() != null) {
-      return GOperator.create(operand);
+      return GOperator.of(operand);
     }
 
     if (unaryOp.NEXT() != null) {
-      return XOperator.create(operand);
+      return XOperator.of(operand);
     }
 
     if (unaryOp.frequencyOp() != null) {

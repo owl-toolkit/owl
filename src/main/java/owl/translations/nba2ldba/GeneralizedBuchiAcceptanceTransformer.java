@@ -8,7 +8,7 @@ import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.edge.Edges;
+import owl.automaton.edge.Edge;
 
 public final class GeneralizedBuchiAcceptanceTransformer<S>
   implements MutableAutomatonBuilder<S, S, GeneralizedBuchiAcceptance> {
@@ -36,7 +36,7 @@ public final class GeneralizedBuchiAcceptanceTransformer<S>
       .createMutableAutomaton(new GeneralizedBuchiAcceptance(1), nba.getFactory());
 
     AutomatonUtil.explore(automaton, nba.getInitialStates(), (state, valuation) -> Collections2
-      .transform(nba.getSuccessors(state, valuation), x -> Edges.create(x, 0)));
+      .transform(nba.getSuccessors(state, valuation), x -> Edge.of(x, 0)));
 
     automaton.setInitialStates(nba.getInitialStates());
     return automaton;

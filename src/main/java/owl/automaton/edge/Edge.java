@@ -17,9 +17,13 @@
 
 package owl.automaton.edge;
 
+import de.tum.in.naturals.NaturalsTransformer;
+import de.tum.in.naturals.bitset.ImmutableBitSet;
+import java.util.BitSet;
 import java.util.PrimitiveIterator;
-import java.util.stream.IntStream;
+import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
+import owl.collections.Collections3;
 
 /**
  * This interface represents edges of automata including their acceptance membership.
@@ -32,29 +36,64 @@ import javax.annotation.Nonnegative;
  *     The type of the (successor) state.
  */
 public interface Edge<S> {
-  static <S> String toString(Edge<S> edge) {
-    StringBuilder builder = new StringBuilder(10);
-    builder.append("-> ").append(edge.getSuccessor());
-    PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
-    if (acceptanceSetIterator.hasNext()) {
-      builder.append(" {");
-      while (true) {
-        builder.append(acceptanceSetIterator.nextInt());
-        if (acceptanceSetIterator.hasNext()) {
-          builder.append(',');
-        } else {
-          break;
-        }
-      }
-      builder.append('}');
-    }
-    return builder.toString();
+  /**
+   * Creates an edge which belongs to no delegate set.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   *
+   * @return An edge leading to {@code successor} with no delegate.
+   */
+  static <S> Edge<S> of(S successor) {
+    return new EdgeSingleton<>(successor);
   }
 
   /**
-   * Returns the number of acceptances sets this edge is a member of.
+   * Creates an edge which belongs to a single delegate set.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   * @param acceptance
+   *     The delegate set this edge should belong to.
+   *
+   * @return An edge leading to {@code successor} with given delegate.
    */
-  int acceptanceSetCount();
+  static <S> Edge<S> of(S successor, @Nonnegative int acceptance) {
+    assert acceptance >= 0;
+    return new EdgeSingleton<>(successor, acceptance);
+  }
+
+  /**
+   * Creates an edge which belongs to the specified delegate sets.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   * @param acceptance
+   *     The delegate sets this edge should belong to.
+   *
+   * @return An edge leading to {@code successor} with given delegate.
+   */
+  static <S> Edge<S> of(S successor, BitSet acceptance) {
+    if (acceptance.isEmpty()) {
+      return of(successor);
+    }
+
+    if (acceptance.cardinality() == 1) {
+      return of(successor, acceptance.nextSetBit(0));
+    }
+
+    if (acceptance.length() <= Long.SIZE) {
+      return new EdgeLong<>(successor, acceptance);
+    }
+
+    return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptance));
+  }
 
   /**
    * An iterator containing all acceptance sets this edge is a member of in ascending order.
@@ -62,13 +101,6 @@ public interface Edge<S> {
    * @return An iterator with all acceptance sets of this edge.
    */
   PrimitiveIterator.OfInt acceptanceSetIterator();
-
-  /**
-   * A stream containing all acceptance sets this edge is a member of in ascending order.
-   *
-   * @return An stream with all acceptance sets of this edge.
-   */
-  IntStream acceptanceSetStream();
 
   /**
    * Get the target state of the edge.
@@ -103,8 +135,30 @@ public interface Edge<S> {
    */
   int smallestAcceptanceSet();
 
+  default Edge<S> withAcceptance(BitSet acceptance) {
+    return of(getSuccessor(), acceptance);
+  }
+
+  default Edge<S> withAcceptance(IntUnaryOperator transformer) {
+    PrimitiveIterator.OfInt iter = new NaturalsTransformer(acceptanceSetIterator(), transformer);
+
+    if (!iter.hasNext()) {
+      return of(getSuccessor());
+    }
+
+    int first = iter.nextInt();
+
+    if (!iter.hasNext()) {
+      return of(getSuccessor(), first);
+    }
+
+    BitSet acceptanceSet = Collections3.toBitSet(iter);
+    acceptanceSet.set(first);
+    return withAcceptance(acceptanceSet);
+  }
+
   /**
    * Returns an edge which has the same acceptance but the given state as successor.
    */
-  Edge<S> withSuccessor(S successor);
+  <T> Edge<T> withSuccessor(T successor);
 }

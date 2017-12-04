@@ -20,7 +20,6 @@ package owl.automaton.edge;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -42,20 +41,10 @@ final class EdgeSingleton<S> implements Edge<S> {
   }
 
   @Override
-  public int acceptanceSetCount() {
-    return hasAcceptanceSets() ? 1 : 0;
-  }
-
-  @Override
   public PrimitiveIterator.OfInt acceptanceSetIterator() {
     return hasAcceptanceSets()
       ? IntIterators.singleton(acceptance)
       : IntIterators.EMPTY_ITERATOR;
-  }
-
-  @Override
-  public IntStream acceptanceSetStream() {
-    return hasAcceptanceSets() ? IntStream.of(acceptance) : IntStream.empty();
   }
 
   @Override
@@ -108,11 +97,11 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public String toString() {
-    return Edge.toString(this);
+    return "-> " + getSuccessor() + " {" + (hasAcceptanceSets() ? acceptance : "") + "}";
   }
 
   @Override
-  public EdgeSingleton<S> withSuccessor(S successor) {
+  public <T> EdgeSingleton<T> withSuccessor(T successor) {
     return hasAcceptanceSets()
       ? new EdgeSingleton<>(successor, acceptance)
       : new EdgeSingleton<>(successor);
