@@ -41,7 +41,6 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
@@ -103,7 +102,7 @@ public final class Views {
     Complete(Automaton<S, A> automaton, S sink) {
       super(automaton);
       this.sink = sink;
-      this.loop = Edges.create(sink);
+      this.loop = Edge.of(sink);
     }
 
     @Override
@@ -314,7 +313,7 @@ public final class Views {
       List<LabelledEdge<Set<S>>> edges = new ArrayList<>();
 
       for (BitSet valuation : BitSets.powerSet(getFactory().getSize())) {
-        edges.add(LabelledEdge.of(Edges.create(getSuccessor(state, valuation)),
+        edges.add(LabelledEdge.of(getSuccessor(state, valuation),
           getFactory().createValuationSet(valuation)));
       }
 
@@ -380,7 +379,7 @@ public final class Views {
         successor.add(edge.getSuccessor());
       }
 
-      return Edges.create(successor, acceptance);
+      return Edge.of(successor, acceptance);
     }
   }
 

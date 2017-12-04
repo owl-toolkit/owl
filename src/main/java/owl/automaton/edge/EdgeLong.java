@@ -4,8 +4,7 @@ import java.util.BitSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
-import java.util.function.IntConsumer;
-import java.util.stream.IntStream;
+import java.util.PrimitiveIterator.OfInt;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 import owl.util.BitUtil;
@@ -15,7 +14,7 @@ final class EdgeLong<S> implements Edge<S> {
   private final long store;
   private final S successor;
 
-  EdgeLong(S successor, long store) {
+  private EdgeLong(S successor, long store) {
     this.store = store;
     this.successor = successor;
   }
@@ -33,20 +32,8 @@ final class EdgeLong<S> implements Edge<S> {
   }
 
   @Override
-  public int acceptanceSetCount() {
-    return Long.bitCount(store);
-  }
-
-  @Override
   public PrimitiveIterator.OfInt acceptanceSetIterator() {
     return new LongBitIterator(store);
-  }
-
-  @Override
-  public IntStream acceptanceSetStream() {
-    IntStream.Builder builder = IntStream.builder();
-    acceptanceSetIterator().forEachRemaining((IntConsumer) builder::add);
-    return builder.build();
   }
 
   @Override
@@ -99,11 +86,15 @@ final class EdgeLong<S> implements Edge<S> {
 
   @Override
   public String toString() {
-    return Edge.toString(this);
+    OfInt acceptanceSetIterator = acceptanceSetIterator();
+    StringBuilder builder = new StringBuilder(10);
+    builder.append(acceptanceSetIterator.nextInt());
+    acceptanceSetIterator.forEachRemaining((int x) -> builder.append(", ").append(x));
+    return "-> " + getSuccessor() + " {" + builder.toString() + '}';
   }
 
   @Override
-  public EdgeLong<S> withSuccessor(S successor) {
+  public <T> EdgeLong<T> withSuccessor(T successor) {
     return new EdgeLong<>(successor, store);
   }
 

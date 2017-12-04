@@ -239,7 +239,7 @@ public class LTL2DPAFunction
       EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
       oracle, this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
-    return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+    return new ComplementableAutomaton<>(builder.build(), RankingState::of);
   }
 
   private ComplementableAutomaton<?>
@@ -260,7 +260,7 @@ public class LTL2DPAFunction
       Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
       new BooleanLattice(), this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
-    return new ComplementableAutomaton<>(builder.build(), RankingState::createSink);
+    return new ComplementableAutomaton<>(builder.build(), RankingState::of);
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {

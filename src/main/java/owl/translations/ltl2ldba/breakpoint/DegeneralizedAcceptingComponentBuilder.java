@@ -26,7 +26,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
@@ -217,7 +216,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     DegeneralizedBreakpointState successor = new DegeneralizedBreakpointState(j, safetySuccessor,
       currentSuccessor, nextSuccessors,
       state.obligations);
-    return acceptingEdge ? Edges.create(successor, 0) : Edges.create(successor);
+    return acceptingEdge ? Edge.of(successor, 0) : Edge.of(successor);
   }
 
   private int scan(int i, EquivalenceClass[] obligations, BitSet valuation,

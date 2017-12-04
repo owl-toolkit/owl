@@ -13,7 +13,7 @@ import java.util.Set;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
-import owl.automaton.edge.Edges;
+import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.util.TestEnvironment;
@@ -30,7 +30,7 @@ public class AutomatonFactoryTest {
 
     assertThat(singleton.getStates(), contains(singletonState));
     assertThat(singleton.getAcceptance(), is(NoneAcceptance.INSTANCE));
-    assertThat(singleton.getEdges(singletonState), contains(Edges.create(singletonState)));
+    assertThat(singleton.getEdges(singletonState), contains(Edge.of(singletonState)));
     assertThat(AutomatonUtil.getIncompleteStates(singleton), is(Map.of()));
     assertThat(AutomatonUtil.getReachableStates(singleton), contains(singletonState));
   }
@@ -46,12 +46,12 @@ public class AutomatonFactoryTest {
     assertThat(singleton.getStates(), contains(singletonState));
     assertThat(singleton.getAcceptance(), is(AllAcceptance.INSTANCE));
     //noinspection unchecked
-    assertThat(singleton.getEdges(singletonState), contains(Edges.create(singletonState)));
+    assertThat(singleton.getEdges(singletonState), contains(Edge.of(singletonState)));
 
     assertThat(AutomatonUtil.getIncompleteStates(singleton).entrySet(), empty());
     assertThat(AutomatonUtil.getReachableStates(singleton), contains(singletonState));
     assertThat(singleton.getSuccessorMap(singletonState).entrySet(), iterableWithSize(1));
-    LabelledEdge<Object> selfLoop = LabelledEdge.of(Edges.create(singletonState),
+    LabelledEdge<Object> selfLoop = LabelledEdge.of(singletonState,
       factory.createUniverseValuationSet());
     assertThat(singleton.getLabelledEdges(singletonState), hasItem(selfLoop));
   }

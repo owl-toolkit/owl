@@ -106,7 +106,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   static Formula replaceFOperators(ImmutableSet<FOperator> trueFOperators,
     ImmutableSet<GOperator> trueGOperators, GOperator formula) {
     ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(trueFOperators, trueGOperators);
-    return GOperator.create(formula.operand.accept(visitor));
+    return GOperator.of(formula.operand.accept(visitor));
   }
 
   private static Formula replaceFOperators(FGObligations obligations, Formula formula) {
@@ -206,12 +206,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      return Conjunction.create(conjunction.map(x -> x.accept(this)));
+      return Conjunction.of(conjunction.map(x -> x.accept(this)));
     }
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      return Disjunction.create(disjunction.map(x -> x.accept(this)));
+      return Disjunction.of(disjunction.map(x -> x.accept(this)));
     }
 
     @Override
@@ -221,7 +221,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
     @Override
     public Formula visit(XOperator xOperator) {
-      return XOperator.create(xOperator.operand.accept(this));
+      return XOperator.of(xOperator.operand.accept(this));
     }
   }
 
@@ -449,7 +449,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
     @Override
     public Formula visit(FOperator fOperator) {
-      return BooleanConstant.get(isTrueFOperator(fOperator));
+      return BooleanConstant.of(isTrueFOperator(fOperator));
     }
 
     @Override
@@ -458,13 +458,13 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
         return BooleanConstant.TRUE;
       }
 
-      return BooleanConstant.get(goperators.contains(gOperator));
+      return BooleanConstant.of(goperators.contains(gOperator));
     }
 
     @Override
     public Formula visit(MOperator mOperator) {
       if (isTrueFOperator(new FOperator(mOperator.left))) {
-        return ROperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+        return ROperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
       }
 
       return BooleanConstant.FALSE;
@@ -473,7 +473,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     @Override
     public Formula visit(UOperator uOperator) {
       if (isTrueFOperator(new FOperator(uOperator.right))) {
-        return WOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+        return WOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
       }
 
       return BooleanConstant.FALSE;
@@ -481,12 +481,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
     @Override
     public Formula visit(ROperator rOperator) {
-      return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+      return ROperator.of(rOperator.left.accept(this), rOperator.right.accept(this));
     }
 
     @Override
     public Formula visit(WOperator wOperator) {
-      return WOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
+      return WOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
     }
   }
 
@@ -507,12 +507,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
     @Override
     public Formula visit(FOperator fOperator) {
-      return FOperator.create(fOperator.operand.accept(this));
+      return FOperator.of(fOperator.operand.accept(this));
     }
 
     @Override
     public Formula visit(GOperator gOperator) {
-      return BooleanConstant.get(isTrueGOperator(gOperator));
+      return BooleanConstant.of(isTrueGOperator(gOperator));
     }
 
     @Override
@@ -527,12 +527,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
     @Override
     public Formula visit(MOperator mOperator) {
-      return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+      return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
     }
 
     @Override
     public Formula visit(UOperator uOperator) {
-      return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+      return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
     }
 
     @Override
@@ -541,7 +541,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
         return BooleanConstant.TRUE;
       }
 
-      return MOperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+      return MOperator.of(rOperator.left.accept(this), rOperator.right.accept(this));
     }
 
     @Override
@@ -550,7 +550,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
+      return UOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
     }
   }
 

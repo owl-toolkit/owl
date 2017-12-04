@@ -36,7 +36,6 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.edge.Edges;
 import owl.automaton.transformations.ParityUtil;
 
 public final class MinimizationUtil {
@@ -144,7 +143,7 @@ public final class MinimizationUtil {
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
     automaton
-      .remapEdges(automaton.getStates(), (state, edge) -> Edges.remapAcceptance(edge, remapping));
+      .remapEdges(automaton.getStates(), (state, edge) -> edge.withAcceptance(remapping));
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
@@ -216,7 +215,7 @@ public final class MinimizationUtil {
 
     logger.log(Level.FINER, "Removing acceptance indices {0} on subset", indicesToRemove);
     IntUnaryOperator transformer = index -> indicesToRemove.contains(index) ? -1 : index;
-    automaton.remapEdges(states, (state, edge) -> Edges.remapAcceptance(edge, transformer));
+    automaton.remapEdges(states, (state, edge) -> edge.withAcceptance(transformer));
   }
 
   public enum MinimizationLevel {

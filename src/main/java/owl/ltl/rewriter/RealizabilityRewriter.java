@@ -57,7 +57,7 @@ public class RealizabilityRewriter {
 
     for (Set<Formula> set : NormalForms.toCnf(original)) {
       Set<Formula> conjunction = new HashSet<>();
-      conjunction.add(Disjunction.create(set));
+      conjunction.add(Disjunction.of(set));
       BitSet outputVariables = Collector.collectAtoms(set);
       outputVariables.andNot(inputVariablesMask);
 
@@ -76,7 +76,7 @@ public class RealizabilityRewriter {
         });
       }
 
-      groups.put(Conjunction.create(conjunction), outputVariables);
+      groups.put(Conjunction.of(conjunction), outputVariables);
     }
 
     return new ArrayList<>(groups.keySet());

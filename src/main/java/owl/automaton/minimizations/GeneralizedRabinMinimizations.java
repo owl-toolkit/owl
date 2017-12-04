@@ -55,7 +55,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
 
 public final class GeneralizedRabinMinimizations {
@@ -349,7 +348,7 @@ public final class GeneralizedRabinMinimizations {
           }
         });
 
-      return Edges.create(edge.getSuccessor(), newAcceptance);
+      return Edge.of(edge.getSuccessor(), newAcceptance);
     });
 
     // Delete the now superfluous indices
@@ -401,7 +400,7 @@ public final class GeneralizedRabinMinimizations {
         }
       }
 
-      return Edges.create(edge.getSuccessor(), modifiedAcceptance);
+      return Edge.of(edge.getSuccessor(), modifiedAcceptance);
     });
   }
 

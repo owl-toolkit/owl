@@ -26,7 +26,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.Optimisation;
@@ -107,7 +106,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     assert Arrays.stream(livenessSuccessor).noneMatch(EquivalenceClass::isFalse) :
       "Liveness properties cannot be false.";
 
-    return Edges.create(
+    return Edge.of(
       new GeneralizedBreakpointFreeState(safetySuccessor, livenessSuccessor, state.obligations),
       bs);
   }

@@ -38,7 +38,7 @@ public class ShiftRewriter {
     public Formula visit(Literal literal) {
       assert mapping[literal.getAtom()] != UNDEFINED;
       assert mapping[literal.getAtom()] <= literal.getAtom();
-      return Literal.create(mapping[literal.getAtom()], literal.isNegated());
+      return Literal.of(mapping[literal.getAtom()], literal.isNegated());
     }
   }
 

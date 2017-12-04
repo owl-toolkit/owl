@@ -32,7 +32,7 @@ public final class WOperator extends BinaryModalOperator {
     super(left, right);
   }
 
-  public static Formula create(Formula left, Formula right) {
+  public static Formula of(Formula left, Formula right) {
     if (left == BooleanConstant.TRUE || right == BooleanConstant.TRUE) {
       return BooleanConstant.TRUE;
     }
@@ -46,11 +46,11 @@ public final class WOperator extends BinaryModalOperator {
     }
 
     if (right == BooleanConstant.FALSE) {
-      return GOperator.create(left);
+      return GOperator.of(left);
     }
 
     if (left instanceof GOperator) {
-      return Disjunction.create(left, right);
+      return Disjunction.of(left, right);
     }
 
     return new WOperator(left, right);
@@ -108,8 +108,8 @@ public final class WOperator extends BinaryModalOperator {
 
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
-    return Disjunction.create(right.unfoldTemporalStep(valuation),
-      Conjunction.create(left.unfoldTemporalStep(valuation), this));
+    return Disjunction.of(right.unfoldTemporalStep(valuation),
+      Conjunction.of(left.unfoldTemporalStep(valuation), this));
   }
 
 }

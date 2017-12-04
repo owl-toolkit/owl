@@ -253,7 +253,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       if (this.representative == null || that.representative == null) {
         representative = null;
       } else {
-        representative = Conjunction.create(this.representative, that.representative);
+        representative = Conjunction.of(this.representative, that.representative);
       }
       return createEquivalenceClass(representative, factory.reference(factory.and(bdd, that.bdd)));
     }
@@ -372,7 +372,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       if (this.representative == null || that.representative == null) {
         representative = null;
       } else {
-        representative = Disjunction.create(this.representative, that.representative);
+        representative = Disjunction.of(this.representative, that.representative);
       }
       return createEquivalenceClass(representative, factory.reference(factory.or(bdd, that.bdd)));
     }

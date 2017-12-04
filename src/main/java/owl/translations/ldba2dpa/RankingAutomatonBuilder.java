@@ -44,7 +44,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.translations.Optimisation;
 
@@ -133,7 +132,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private Edge<RankingState<S, T>> buildEdge(S state, List<T> previousRanking,
     int previousSafetyProgress, @Nullable BitSet valuation) {
     if (isAcceptingState.test(state)) {
-      return Edges.create(RankingState.create(state), 1);
+      return Edge.of(RankingState.of(state), 1);
     }
 
     // We compute the relevant accepting components, which we can jump to.
@@ -255,7 +254,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     logger.log(Level.FINER, "Ranking after extension: {0}.", ranking);
 
     existingLanguages.forEach((x, y) -> y.free());
-    return Edges.create(RankingState.create(state, ranking, safetyProgress), edgeColor);
+    return Edge.of(RankingState.of(state, ranking, safetyProgress), edgeColor);
   }
 
   @Nullable
@@ -296,7 +295,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     // If a SCC switch occurs, the ranking and the safety progress is reset.
     if (resetRanking && sccSwitchOccurred(state.state, successor)) {
-      return Edges.create(buildEdge(successor, List.of(), -1,
+      return Edge.of(buildEdge(successor, List.of(), -1,
         valuation).getSuccessor());
     }
 

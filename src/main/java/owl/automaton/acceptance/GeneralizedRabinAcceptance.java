@@ -39,7 +39,6 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 
 /**
  * Generalized Rabin Acceptance - OR (Fin(i) and AND Inf(j)).
@@ -60,7 +59,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
     pairList = new LinkedList<>();
   }
 
-  public static GeneralizedRabinAcceptance create(BooleanExpression<AtomAcceptance> expression) {
+  public static GeneralizedRabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
     GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
 
     for (BooleanExpression<AtomAcceptance> dis : getDisjuncts(expression)) {
@@ -121,7 +120,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
       }
     }
     if (!edgeRemapping.isEmpty()) {
-      automaton.remapEdges((state, edge) -> Edges.remapAcceptance(edge, edgeRemapping));
+      automaton.remapEdges((state, edge) -> edge.withAcceptance(edgeRemapping));
     }
   }
 

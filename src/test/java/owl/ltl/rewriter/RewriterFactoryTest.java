@@ -51,8 +51,8 @@ public class RewriterFactoryTest {
   @Test
   public void testModal() {
     for (int i = 0; i < INPUT.length; i++) {
-      Formula input = LtlParser.create(INPUT[i]).parse(literals).formula;
-      Formula output = LtlParser.create(OUTPUT[i]).parse(literals).formula;
+      Formula input = LtlParser.syntax(INPUT[i], literals);
+      Formula output = LtlParser.syntax(OUTPUT[i], literals);
       assertEquals(output, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, input));
     }
   }

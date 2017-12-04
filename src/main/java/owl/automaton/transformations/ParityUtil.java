@@ -37,7 +37,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.minimizations.GenericMinimizations;
 import owl.collections.ValuationSet;
@@ -132,7 +131,7 @@ public final class ParityUtil {
 
       // This remaps _all_ outgoing edges of the states in the SCC - including transient edges.
       // Since these are only taken finitely often by any run, their value does not matter.
-      automaton.remapEdges(scc, (state, edge) -> Edges.remapAcceptance(edge, reductionMapping));
+      automaton.remapEdges(scc, (state, edge) -> edge.withAcceptance(reductionMapping));
     }
 
     automaton.getAcceptance().setAcceptanceSets(usedAcceptanceSets);
@@ -175,14 +174,14 @@ public final class ParityUtil {
     private Edge<S> convertBuchiToParity(Edge<? extends S> edge) {
       checkState(isAcceptanceCompatible());
 
-      return edge.inSet(0) ? (Edge<S>) edge : Edges.create(edge.getSuccessor(), 1);
+      return edge.inSet(0) ? (Edge<S>) edge : Edge.of(edge.getSuccessor(), 1);
     }
 
     private Edge<S> convertParityToBuchi(Edge<? extends S> edge) {
       checkState(isAcceptanceCompatible());
       return edge.inSet(0)
-        ? Edges.create(edge.getSuccessor(), 0)
-        : Edges.create(edge.getSuccessor());
+        ? Edge.of(edge.getSuccessor(), 0)
+        : Edge.of(edge.getSuccessor());
     }
 
     @Override

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -36,7 +37,6 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
@@ -133,8 +133,9 @@ public final class RabinDegeneralization implements Transformer {
       // this SCC)
       IntSet indices = new IntAVLTreeSet();
 
-      Automaton<S, ?> filtered = Views.filter(automaton, scc);
-      filtered.forEachLabelledEdge((x, y, z) -> y.acceptanceSetStream().forEach(indices::add));
+      Views.filter(automaton, scc)
+        .forEachLabelledEdge((x, y, z) -> y.acceptanceSetIterator()
+          .forEachRemaining((IntConsumer) indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
       Collections3.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
@@ -230,7 +231,7 @@ public final class RabinDegeneralization implements Transformer {
             DegeneralizedRabinState<S> successor =
               new DegeneralizedRabinState<>(generalizedSuccessor, successorAwaitedIndices);
             ValuationSet valuations = labelledEdge.valuations.copy();
-            successors.add(LabelledEdge.of(Edges.create(successor, edgeAcceptance), valuations));
+            successors.add(LabelledEdge.of(Edge.of(successor, edgeAcceptance), valuations));
           }
           return successors;
         });
@@ -253,7 +254,7 @@ public final class RabinDegeneralization implements Transformer {
     transientEdgesTable.rowMap().forEach((state, successors) ->
       successors.forEach((generalizedSuccessor, valuations) -> {
         DegeneralizedRabinState<S> successor = stateMap.get(generalizedSuccessor);
-        resultAutomaton.addEdge(state, valuations, Edges.create(successor));
+        resultAutomaton.addEdge(state, valuations, Edge.of(successor));
       }));
     // Free transient table
     transientEdgesTable.values().forEach(ValuationSet::free);

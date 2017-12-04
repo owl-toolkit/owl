@@ -20,7 +20,6 @@ package owl.ltl;
 import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
@@ -41,23 +40,23 @@ public final class Disjunction extends PropositionalFormula {
     super(formulaStream);
   }
 
-  public static Formula create(Formula left, Formula right) {
-    return create(Stream.of(left, right));
+  public static Formula of(Formula left, Formula right) {
+    return of(Stream.of(left, right));
   }
 
-  public static Formula create(Formula... formulas) {
-    return create(List.of(formulas));
+  public static Formula of(Formula... formulas) {
+    return of(Stream.of(formulas));
   }
 
-  public static Formula create(Iterable<? extends Formula> iterable) {
-    return create(iterable.iterator());
+  public static Formula of(Iterable<? extends Formula> iterable) {
+    return of(iterable.iterator());
   }
 
-  public static Formula create(Stream<? extends Formula> stream) {
-    return create(stream.iterator());
+  public static Formula of(Stream<? extends Formula> stream) {
+    return of(stream.iterator());
   }
 
-  public static Formula create(Iterator<? extends Formula> iterator) {
+  public static Formula of(Iterator<? extends Formula> iterator) {
     ImmutableSet.Builder<Formula> builder = ImmutableSet.builder();
 
     while (iterator.hasNext()) {
@@ -124,21 +123,21 @@ public final class Disjunction extends PropositionalFormula {
 
   @Override
   public Formula temporalStep(BitSet valuation) {
-    return create(children.stream().map(c -> c.temporalStep(valuation)));
+    return of(children.stream().map(c -> c.temporalStep(valuation)));
   }
 
   @Override
   public Formula temporalStepUnfold(BitSet valuation) {
-    return create(children.stream().map(c -> c.temporalStepUnfold(valuation)));
+    return of(children.stream().map(c -> c.temporalStepUnfold(valuation)));
   }
 
   @Override
   public Formula unfold() {
-    return create(children.stream().map(Formula::unfold));
+    return of(children.stream().map(Formula::unfold));
   }
 
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
-    return create(children.stream().map(c -> c.unfoldTemporalStep(valuation)));
+    return of(children.stream().map(c -> c.unfoldTemporalStep(valuation)));
   }
 }

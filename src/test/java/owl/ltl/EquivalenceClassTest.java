@@ -62,7 +62,7 @@ public abstract class EquivalenceClassTest {
 
   @Test
   public void testEmptyDomain() {
-    EquivalenceClassFactory factory = setUpFactory(LabelledFormula.create(BooleanConstant.TRUE,
+    EquivalenceClassFactory factory = setUpFactory(LabelledFormula.of(BooleanConstant.TRUE,
       List.of()));
     assertNotEquals(factory, null);
   }
@@ -121,9 +121,8 @@ public abstract class EquivalenceClassTest {
 
     EquivalenceClass classC = factory.createEquivalenceClass(formulas[2]);
     EquivalenceClass classExistsC = classC.exists(predicate);
-    Set<Formula> allGOperators = Sets.newHashSet(
-      LtlParser.create("G a").parse(literals).formula,
-      LtlParser.create("G b").parse(literals).formula);
+    Set<Formula> allGOperators = Set.of(LtlParser.syntax("G a", literals),
+      LtlParser.syntax("G b", literals));
     assertEquals(factory.getTrue(), classExistsC);
     assertEquals(Sets.powerSet(allGOperators),
       Sets.newHashSet(classExistsC.satisfyingAssignments(allGOperators)));
@@ -190,9 +189,9 @@ public abstract class EquivalenceClassTest {
       LtlParser.syntax("G a")
     };
 
-    EquivalenceClass clazz = factory.createEquivalenceClass(Conjunction.create(formulas));
+    EquivalenceClass clazz = factory.createEquivalenceClass(Conjunction.of(formulas));
 
-    assertEquals(Sets.newHashSet(formulas), clazz.getSupport());
+    assertEquals(Set.of(formulas), clazz.getSupport());
     assertEquals(Set.of(formulas[1]), clazz.getSupport(FOperator.class));
   }
 

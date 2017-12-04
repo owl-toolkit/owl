@@ -191,7 +191,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     @Override
     public Formula visit(Conjunction conjunction) {
       // Implication check not necessary for conjunctions.
-      return Conjunction.create(conjunction.children.stream().map(e -> e.accept(this)));
+      return Conjunction.of(conjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
@@ -200,7 +200,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return Disjunction.create(disjunction.children.stream().map(e -> e.accept(this)));
+      return Disjunction.of(disjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
@@ -209,7 +209,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return FOperator.create(fOperator.operand.accept(this));
+      return FOperator.of(fOperator.operand.accept(this));
     }
 
     @Override
@@ -223,7 +223,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return BooleanConstant.get(gOperator.operand.accept(this) == BooleanConstant.TRUE);
+      return BooleanConstant.of(gOperator.operand.accept(this) == BooleanConstant.TRUE);
     }
 
     @Override
@@ -237,7 +237,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+      return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
     }
 
     @Override
@@ -250,7 +250,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return MOperator.create(rOperator.left, rOperator.right).accept(this);
+      return MOperator.of(rOperator.left, rOperator.right).accept(this);
     }
 
     @Override
@@ -259,7 +259,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+      return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
     }
 
     @Override
@@ -272,7 +272,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.create(wOperator.left, wOperator.right).accept(this);
+      return UOperator.of(wOperator.left, wOperator.right).accept(this);
     }
 
     @Override
@@ -281,7 +281,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         return BooleanConstant.TRUE;
       }
 
-      return XOperator.create(xOperator.operand.accept(this));
+      return XOperator.of(xOperator.operand.accept(this));
     }
   }
 }

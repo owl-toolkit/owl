@@ -30,24 +30,24 @@ namespace owl {
     }
 
     FormulaFactory::FormulaFactory(JNIEnv* env) : env(env) {
-        const char* create = "create";
+        const char* of = "of";
         const char* unarySignature = "(Lowl/ltl/Formula;)Lowl/ltl/Formula;";
         const char* binarySignature = "(Lowl/ltl/Formula;Lowl/ltl/Formula;)Lowl/ltl/Formula;";
 
-        bind_static(BooleanConstant, "owl/ltl/BooleanConstant", "get", "(Z)Lowl/ltl/BooleanConstant;");
-        bind_static(Literal, "owl/ltl/Literal", "create", "(IZ)Lowl/ltl/Literal;");
+        bind_static(BooleanConstant, "owl/ltl/BooleanConstant", of, "(Z)Lowl/ltl/BooleanConstant;");
+        bind_static(Literal, "owl/ltl/Literal", of, "(IZ)Lowl/ltl/Literal;");
 
-        bind_static(Conjunction, "owl/ltl/Conjunction", create, binarySignature);
-        bind_static(Disjunction, "owl/ltl/Disjunction", create, binarySignature);
+        bind_static(Conjunction, "owl/ltl/Conjunction", of, binarySignature);
+        bind_static(Disjunction, "owl/ltl/Disjunction", of, binarySignature);
 
-        bind_static(FOperator, "owl/ltl/FOperator", create, unarySignature);
-        bind_static(GOperator, "owl/ltl/GOperator", create, unarySignature);
-        bind_static(XOperator, "owl/ltl/XOperator", create, unarySignature);
+        bind_static(FOperator, "owl/ltl/FOperator", of, unarySignature);
+        bind_static(GOperator, "owl/ltl/GOperator", of, unarySignature);
+        bind_static(XOperator, "owl/ltl/XOperator", of, unarySignature);
 
-        bind_static(UOperator, "owl/ltl/UOperator", create, binarySignature);
-        bind_static(ROperator, "owl/ltl/ROperator", create, binarySignature);
-        bind_static(WOperator, "owl/ltl/WOperator", create, binarySignature);
-        bind_static(MOperator, "owl/ltl/MOperator", create, binarySignature);
+        bind_static(UOperator, "owl/ltl/UOperator", of, binarySignature);
+        bind_static(ROperator, "owl/ltl/ROperator", of, binarySignature);
+        bind_static(WOperator, "owl/ltl/WOperator", of, binarySignature);
+        bind_static(MOperator, "owl/ltl/MOperator", of, binarySignature);
 
         bind_static_method(env, "owl/ltl/parser/LtlParser", "syntax", "(Ljava/lang/String;Ljava/util/List;)Lowl/ltl/Formula;", parser, parseID);
     }

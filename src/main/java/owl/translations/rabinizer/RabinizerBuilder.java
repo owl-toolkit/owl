@@ -45,7 +45,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
@@ -546,7 +545,7 @@ public class RabinizerBuilder {
           assert configuration.completeAutomaton() || !masterSuccessor.isFalse();
 
           RabinizerState rabinizerSuccessor = getAnyState.apply(masterSuccessor);
-          Edge<RabinizerState> edge = Edges.create(rabinizerSuccessor);
+          Edge<RabinizerState> edge = Edge.of(rabinizerSuccessor);
           rabinizerStates.forEach(state -> rabinizerAutomaton.addEdge(state, valuations, edge));
         });
       });
@@ -561,7 +560,7 @@ public class RabinizerBuilder {
 
       GeneralizedRabinPair truePair = acceptance.createPair(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
-      Edge<RabinizerState> edge = Edges.create(trueState, truePair.getInfiniteIndex(0));
+      Edge<RabinizerState> edge = Edge.of(trueState, truePair.getInfiniteIndex(0));
       rabinizerAutomaton.addEdge(trueState, vsFactory.createUniverseValuationSet(), edge);
     }
 
@@ -638,7 +637,7 @@ public class RabinizerBuilder {
         }
 
         // Create the edge
-        Edge<RabinizerState> rabinizerEdge = Edges.create(rabinizerSuccessor, edgeAcceptanceSet);
+        Edge<RabinizerState> rabinizerEdge = Edge.of(rabinizerSuccessor, edgeAcceptanceSet);
         // Expand valuation to the full alphabet
         ValuationSet edgeValuation = vsFactory.createValuationSet(valuation, sensitiveAlphabet);
         // Add edge to result
@@ -1019,7 +1018,7 @@ public class RabinizerBuilder {
       // TODO Cached substitution
       // TODO Can we apply the substitution to the consequent, too?
       Function<Formula, Formula> strengthening = formula -> formula instanceof GOperator
-        ? BooleanConstant.get(activeFormulaSet.contains(formula))
+        ? BooleanConstant.of(activeFormulaSet.contains(formula))
         : formula;
       EquivalenceClass strengthenedAntecedent = antecedent.substitute(strengthening);
 
@@ -1094,7 +1093,7 @@ public class RabinizerBuilder {
     @Override
     public Formula visit(Conjunction conjunction) {
       // Implication check not necessary for conjunctions.
-      return Conjunction.create(conjunction.children.stream().map(e -> e.accept(this)));
+      return Conjunction.of(conjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
@@ -1103,7 +1102,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return Disjunction.create(disjunction.children.stream().map(e -> e.accept(this)));
+      return Disjunction.of(disjunction.children.stream().map(e -> e.accept(this)));
     }
 
     @Override
@@ -1112,7 +1111,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return FOperator.create(fOperator.operand.accept(this));
+      return FOperator.of(fOperator.operand.accept(this));
     }
 
     @Override
@@ -1126,7 +1125,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return BooleanConstant.get(gOperator.operand.accept(this) == BooleanConstant.TRUE);
+      return BooleanConstant.of(gOperator.operand.accept(this) == BooleanConstant.TRUE);
     }
 
     @Override
@@ -1140,7 +1139,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+      return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
     }
 
     @Override
@@ -1153,7 +1152,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return MOperator.create(rOperator.left, rOperator.right).accept(this);
+      return MOperator.of(rOperator.left, rOperator.right).accept(this);
     }
 
     @Override
@@ -1162,7 +1161,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+      return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
     }
 
     @Override
@@ -1175,7 +1174,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.create(wOperator.left, wOperator.right).accept(this);
+      return UOperator.of(wOperator.left, wOperator.right).accept(this);
     }
 
     @Override
@@ -1184,7 +1183,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return XOperator.create(xOperator.operand.accept(this));
+      return XOperator.of(xOperator.operand.accept(this));
     }
   }
 }

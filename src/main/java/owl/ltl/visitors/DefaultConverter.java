@@ -53,22 +53,22 @@ public abstract class DefaultConverter implements Visitor<Formula>, Function<For
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    return Conjunction.create(conjunction.children.stream().map(c -> c.accept(this)));
+    return Conjunction.of(conjunction.children.stream().map(c -> c.accept(this)));
   }
 
   @Override
   public Formula visit(Disjunction disjunction) {
-    return Disjunction.create(disjunction.children.stream().map(c -> c.accept(this)));
+    return Disjunction.of(disjunction.children.stream().map(c -> c.accept(this)));
   }
 
   @Override
   public Formula visit(FOperator fOperator) {
-    return FOperator.create(fOperator.operand.accept(this));
+    return FOperator.of(fOperator.operand.accept(this));
   }
 
   @Override
   public Formula visit(GOperator gOperator) {
-    return GOperator.create(gOperator.operand.accept(this));
+    return GOperator.of(gOperator.operand.accept(this));
   }
 
   @Override
@@ -78,7 +78,7 @@ public abstract class DefaultConverter implements Visitor<Formula>, Function<For
 
   @Override
   public Formula visit(MOperator mOperator) {
-    return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+    return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
   }
 
   @Override
@@ -88,21 +88,21 @@ public abstract class DefaultConverter implements Visitor<Formula>, Function<For
 
   @Override
   public Formula visit(UOperator uOperator) {
-    return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+    return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
   }
 
   @Override
   public Formula visit(WOperator wOperator) {
-    return WOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
+    return WOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
   }
 
   @Override
   public Formula visit(ROperator rOperator) {
-    return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+    return ROperator.of(rOperator.left.accept(this), rOperator.right.accept(this));
   }
 
   @Override
   public Formula visit(XOperator xOperator) {
-    return XOperator.create(xOperator.operand.accept(this));
+    return XOperator.of(xOperator.operand.accept(this));
   }
 }

@@ -20,7 +20,6 @@ package owl.translations.ltl2ldba.breakpoint;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,7 +27,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
@@ -194,7 +192,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       }
     }
 
-    return Edges.create(
+    return Edge.of(
       new GeneralizedBreakpointState(state.obligations, nextSafety, currentSuccessors,
         nextSuccessors), bs);
   }
@@ -211,14 +209,15 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       }
 
       if (!remainder.isTrue()) {
-        return Edges
-          .create(new GeneralizedBreakpointState(state.obligations, nextSafety,
+        return Edge
+          .of(new GeneralizedBreakpointState(state.obligations, nextSafety,
             new EquivalenceClass[] {remainder}, EquivalenceClassUtil.EMPTY));
       }
     }
 
-    return Edges.create(new GeneralizedBreakpointState(state.obligations, nextSafety,
-        EquivalenceClassUtil.EMPTY, EquivalenceClassUtil.EMPTY),
-      IntStream.range(0, acceptanceSets).iterator());
+    BitSet acceptance = new BitSet();
+    acceptance.set(0, acceptanceSets);
+    return Edge.of(new GeneralizedBreakpointState(state.obligations, nextSafety,
+        EquivalenceClassUtil.EMPTY, EquivalenceClassUtil.EMPTY), acceptance);
   }
 }

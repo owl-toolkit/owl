@@ -9,7 +9,7 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.edge.Edges;
+import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.FactorySupplier;
@@ -67,10 +67,10 @@ public class SimpleTranslations {
         if (successor.isFalse()) {
           return null;
         } else if (successor.isTrue()) {
-          return Edges.create(successor, 0);
+          return Edge.of(successor, 0);
         }
 
-        return Edges.create(successor);
+        return Edge.of(successor);
       });
   }
 
@@ -87,7 +87,7 @@ public class SimpleTranslations {
       factory.getInitial(labelledFormula.formula), vsFactory,
       (x, y) -> {
         EquivalenceClass successor = factory.getSuccessor(x, y);
-        return successor.isFalse() ? null : Edges.create(successor);
+        return successor.isFalse() ? null : Edge.of(successor);
       });
   }
 }

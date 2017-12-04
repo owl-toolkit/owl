@@ -28,11 +28,11 @@ public interface EquivalenceClassFactory {
   EquivalenceClass createEquivalenceClass(Formula formula);
 
   default EquivalenceClass createEquivalenceClass(Iterable<? extends Formula> formulas) {
-    return createEquivalenceClass(Conjunction.create(formulas));
+    return createEquivalenceClass(Conjunction.of(formulas));
   }
 
   default EquivalenceClass createEquivalenceClass(Stream<? extends Formula> formulas) {
-    return createEquivalenceClass(Conjunction.create(formulas));
+    return createEquivalenceClass(Conjunction.of(formulas));
   }
 
   default EquivalenceClass getFalse() {

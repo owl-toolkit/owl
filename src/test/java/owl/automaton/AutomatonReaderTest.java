@@ -24,7 +24,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.util.BitSets;
@@ -186,11 +185,11 @@ public class AutomatonReaderTest {
 
     assertThat(automaton.getInitialState(), is(states.get(1)));
 
-    LabelledEdge<HoaState> successorEdge = LabelledEdge.of(Edges.create(states.get(0)),
+    LabelledEdge<HoaState> successorEdge = LabelledEdge.of(states.get(0),
       valuationSetFactory.createValuationSet(BitSets.createBitSet(true)));
     assertThat(automaton.getLabelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
 
-    LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edges.create(states.get(0), 0),
+    LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edge.of(states.get(0), 0),
       valuationSetFactory.createUniverseValuationSet());
     assertThat(automaton.getLabelledEdges(states.get(0)), containsInAnyOrder(loopEdge));
   }

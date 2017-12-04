@@ -32,11 +32,11 @@ public final class XOperator extends UnaryModalOperator {
     super(f);
   }
 
-  public static Formula create(Formula operand) {
-    return create(operand, 1);
+  public static Formula of(Formula operand) {
+    return of(operand, 1);
   }
 
-  public static Formula create(Formula operand, int n) {
+  public static Formula of(Formula operand, int n) {
     if (operand instanceof BooleanConstant) {
       return operand;
     }

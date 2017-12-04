@@ -47,7 +47,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(conjunction);
     }
 
-    return Conjunction.create(conjunction.children.stream().map(x -> x.accept(this)));
+    return Conjunction.of(conjunction.children.stream().map(x -> x.accept(this)));
   }
 
   @Override
@@ -56,7 +56,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(disjunction);
     }
 
-    return Disjunction.create(disjunction.children.stream().map(x -> x.accept(this)));
+    return Disjunction.of(disjunction.children.stream().map(x -> x.accept(this)));
   }
 
   @Override
@@ -65,7 +65,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(fOperator);
     }
 
-    return FOperator.create(fOperator.operand.accept(this));
+    return FOperator.of(fOperator.operand.accept(this));
   }
 
   @Override
@@ -74,7 +74,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(freq);
     }
 
-    return FrequencyG.create(freq.operand.accept(this));
+    return FrequencyG.of(freq.operand.accept(this));
   }
 
   @Override
@@ -83,7 +83,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(gOperator);
     }
 
-    return GOperator.create(gOperator.operand.accept(this));
+    return GOperator.of(gOperator.operand.accept(this));
   }
 
   @Override
@@ -101,7 +101,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(mOperator);
     }
 
-    return MOperator.create(mOperator.left.accept(this), mOperator.right.accept(this));
+    return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
   }
 
   @Override
@@ -110,7 +110,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(rOperator);
     }
 
-    return ROperator.create(rOperator.left.accept(this), rOperator.right.accept(this));
+    return ROperator.of(rOperator.left.accept(this), rOperator.right.accept(this));
   }
 
   @Override
@@ -119,7 +119,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(uOperator);
     }
 
-    return UOperator.create(uOperator.left.accept(this), uOperator.right.accept(this));
+    return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
   }
 
   @Override
@@ -128,7 +128,7 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(wOperator);
     }
 
-    return WOperator.create(wOperator.left.accept(this), wOperator.right.accept(this));
+    return WOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
   }
 
   @Override
@@ -137,6 +137,6 @@ class TraverseRewriter implements UnaryOperator<Formula>, Visitor<Formula> {
       return rewriter.apply(xOperator);
     }
 
-    return XOperator.create(xOperator.operand.accept(this));
+    return XOperator.of(xOperator.operand.accept(this));
   }
 }

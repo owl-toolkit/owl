@@ -1,8 +1,8 @@
 package owl.translations.rabinizer;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
@@ -76,14 +75,14 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   public Collection<LabelledEdge<MonitorState>> getLabelledEdges(MonitorState state) {
     Collection<LabelledEdge<MonitorState>> labelledEdges = anyAutomaton.getLabelledEdges(state);
     Map<MonitorState, ValuationSet> successors = new HashMap<>(labelledEdges.size());
+
     for (LabelledEdge<MonitorState> labelledEdge : labelledEdges) {
       ValuationSetMapUtil.add(successors, labelledEdge.edge.getSuccessor(),
         labelledEdge.valuations.copy());
     }
-    Collection<LabelledEdge<MonitorState>> strippedEdges = new ArrayList<>(successors.size());
-    successors.forEach((successor, valuation) ->
-      strippedEdges.add(LabelledEdge.of(Edges.create(successor), valuation)));
-    return strippedEdges;
+
+    return Collections2.transform(successors.entrySet(),
+      x -> LabelledEdge.of(x.getKey(), x.getValue()));
   }
 
   @Nullable

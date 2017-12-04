@@ -21,7 +21,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.edge.Edges;
+import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 
 public final class GenericMinimizations {
@@ -47,7 +47,7 @@ public final class GenericMinimizations {
         return edge;
       }
 
-      return Edges.create(successor);
+      return Edge.of(successor);
     });
   }
 }

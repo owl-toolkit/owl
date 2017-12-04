@@ -40,7 +40,6 @@ import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
@@ -128,8 +127,8 @@ public final class ArenaFactory {
       if (state.choice == null) {
         for (BitSet valuation : BitSets.powerSet(player1Propositions)) {
           ValuationSet valuationSet = factory.createValuationSet(valuation, player1Propositions);
-          edges.add(LabelledEdge.of(Edges.create(
-            new Node<>(state.state, (BitSet) valuation.clone())), valuationSet));
+          edges.add(LabelledEdge.of(new Node<>(state.state, (BitSet) valuation.clone()),
+            valuationSet));
         }
       } else {
         for (BitSet valuation : BitSets.powerSet(player2Propositions)) {
@@ -141,8 +140,8 @@ public final class ArenaFactory {
             continue;
           }
 
-          edges.add(LabelledEdge.of(Edges.create(new Node<>(edge.getSuccessor()),
-            edge.acceptanceSetIterator()), valuationSet));
+          edges.add(LabelledEdge.of(edge.withSuccessor(new Node<>(edge.getSuccessor())),
+            valuationSet));
         }
       }
 
@@ -272,10 +271,9 @@ public final class ArenaFactory {
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
 
         if (valueEdge.colour == -1) {
-          return LabelledEdge.of(Edges.create(x.target()), valueEdge.valuationSet);
+          return LabelledEdge.of(x.target(), valueEdge.valuationSet);
         } else {
-          return LabelledEdge.of(Edges.create(x.target(), valueEdge.colour),
-            valueEdge.valuationSet);
+          return LabelledEdge.of(Edge.of(x.target(), valueEdge.colour), valueEdge.valuationSet);
         }
       }).collect(Collectors.toSet());
     }

@@ -9,7 +9,6 @@ import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +46,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetUtil;
 import owl.factories.FactorySupplier;
@@ -265,10 +264,7 @@ public final class AutomatonReader {
     private void addEdge(HoaState source, ValuationSet valuationSet,
       @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
       throws HOAConsumerException {
-      Edge<HoaState> edge = storedEdgeAcceptance == null
-        ? Edges.create(successor)
-        : Edges.create(successor, IntIterators.asIntIterator(storedEdgeAcceptance.iterator()));
-
+      Edge<HoaState> edge = Edge.of(successor, Collections3.toBitSet(storedEdgeAcceptance));
       check(automaton.getAcceptance().isWellFormedEdge(edge));
       automaton.addEdge(source, valuationSet, edge);
     }
@@ -349,12 +345,12 @@ public final class AutomatonReader {
         case "rabin":
           // acc-name: Rabin 3
           // Acceptance: 6 (Fin(0)&Inf(1))|(Fin(2)&Inf(3))|(Fin(4)&Inf(5))
-          return RabinAcceptance.create(acceptanceExpression);
+          return RabinAcceptance.of(acceptanceExpression);
 
         case "generalized-rabin":
           // acc-name: generalized-Rabin 2 3 2
           // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
-          return GeneralizedRabinAcceptance.create(acceptanceExpression);
+          return GeneralizedRabinAcceptance.of(acceptanceExpression);
 
         default:
           return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);

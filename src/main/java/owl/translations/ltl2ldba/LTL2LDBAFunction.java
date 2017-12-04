@@ -28,7 +28,7 @@ import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
-import owl.automaton.edge.Edges;
+import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.factories.Factories;
@@ -170,7 +170,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
     initialComponent.remapEdges((state, x) -> {
       assert !state.isFalse();
-      return state.testSupport(Fragments::isSafety) ? Edges.create(x.getSuccessor(), bitSet) : x;
+      return state.testSupport(Fragments::isSafety) ? Edge.of(x.getSuccessor(), bitSet) : x;
     });
     return ldba;
   }

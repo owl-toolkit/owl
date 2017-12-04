@@ -31,7 +31,6 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.transformations.ParityUtil;
 
@@ -168,7 +167,7 @@ final class SccIARBuilder<R> {
     IntPreOrder successorRecord = currentRecord.generation(visitedFinSetIndices);
     IARState<R> iarSuccessor = iarStates.row(rabinSuccessor)
       .computeIfAbsent(successorRecord, record -> IARState.active(rabinSuccessor, record));
-    return Edges.create(iarSuccessor, priority);
+    return Edge.of(iarSuccessor, priority);
   }
 
   private Set<IARState<R>> getInitialStates() {
@@ -409,7 +408,7 @@ final class SccIARBuilder<R> {
           return edge;
         }
 
-        return Edges.create(refinedSuccessor, edge.acceptanceSetIterator());
+        return edge.withSuccessor(refinedSuccessor);
       });
 
       // Remove stale states

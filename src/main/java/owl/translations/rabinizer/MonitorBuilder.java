@@ -25,7 +25,6 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
@@ -167,9 +166,9 @@ final class MonitorBuilder {
           Edge<MonitorState> edge;
           if (priority == none()) {
             // No event occurred
-            edge = Edges.create(successorState);
+            edge = Edge.of(successorState);
           } else {
-            edge = Edges.create(successorState, priority);
+            edge = Edge.of(successorState, priority);
             if (maximalPriority[contextIndex] < priority) {
               // Found new maximal priority
               maximalPriority[contextIndex] = priority;
