@@ -68,7 +68,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     EquivalenceClass safety = obligations.safety;
 
-    if (theRemainder.testSupport(Fragments::isX)) {
+    if (theRemainder.testSupport(Fragments::isFinite)) {
       safety = theRemainder.andWith(safety);
       theRemainder = factories.eqFactory.getTrue();
     }

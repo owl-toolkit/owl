@@ -21,16 +21,15 @@ import com.google.common.collect.Sets;
 import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.Automaton;
-import owl.automaton.ExploreBuilder;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.translations.Optimisation;
 
-public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extends OmegaAcceptance>,
+public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety>> {
   private final EnumSet<Optimisation> optimisations;
 
@@ -41,7 +40,7 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
   @SuppressWarnings("unchecked")
   @Override
   public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> apply(
-    Automaton<S, ? extends OmegaAcceptance> nba) {
+    Automaton<S, ?> nba) {
     Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
@@ -55,7 +54,7 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ? extend
     }
 
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
-    ExploreBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
+    MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
       = AcceptingComponentBuilder.createScc(nbaGBA);
 
     Function<BreakpointState<S>, Safety> stateSafety;

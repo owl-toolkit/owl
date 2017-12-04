@@ -31,7 +31,7 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.Views.ForwardingMutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
@@ -73,7 +73,7 @@ public final class ParityUtil {
 
   private static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
     MutableAutomaton<S, ParityAcceptance> automaton, List<Set<S>> sccs) {
-    if (automaton instanceof MutableAutomatonFactory.ForwardingMutableAutomaton) {
+    if (automaton instanceof ForwardingMutableAutomaton) {
       return automaton;
     }
 
@@ -148,7 +148,7 @@ public final class ParityUtil {
   // acceptance is changed without notifying this automaton of it.
   private static final class WrappedBuchiAutomaton<S>
     extends
-    MutableAutomatonFactory.ForwardingMutableAutomaton<S, ParityAcceptance, BuchiAcceptance> {
+    ForwardingMutableAutomaton<S, ParityAcceptance, BuchiAcceptance> {
     private final ParityAcceptance acceptance;
 
     WrappedBuchiAutomaton(MutableAutomaton<S, BuchiAcceptance> backingAutomaton) {
@@ -194,7 +194,7 @@ public final class ParityUtil {
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
       //noinspection ConstantConditions
       return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
-        new LabelledEdge<>(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
+        LabelledEdge.of(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
     }
 
     @Nullable

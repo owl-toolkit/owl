@@ -20,6 +20,7 @@ package owl.automaton.acceptance;
 import java.util.List;
 
 public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
+  public static final BuchiAcceptance INSTANCE = new BuchiAcceptance();
 
   public BuchiAcceptance() {
     super(1);

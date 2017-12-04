@@ -25,10 +25,8 @@ import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaConsumerExtended;
 
-public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
-
+public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   @Nonnegative
   public final int size;
 
@@ -43,7 +41,7 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    return createConjunction(IntStream.range(0, size).mapToObj(HoaConsumerExtended::mkInf));
+    return createConjunction(IntStream.range(0, size).mapToObj(BooleanExpressions::mkInf));
   }
 
   @Override
@@ -58,6 +56,6 @@ public class GeneralizedBuchiAcceptance implements OmegaAcceptance {
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.acceptanceSetStream().allMatch(index -> index < size);
+    return edge.largestAcceptanceSet() < size;
   }
 }

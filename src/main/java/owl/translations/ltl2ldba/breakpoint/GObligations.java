@@ -111,7 +111,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
       }
 
       if (optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE)) {
-        if (clazz.testSupport(Fragments::isX)) {
+        if (clazz.testSupport(Fragments::isFinite)) {
           safety = safety.andWith(clazz);
           clazz.free();
           continue;

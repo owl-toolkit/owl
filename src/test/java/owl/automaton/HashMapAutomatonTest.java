@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import org.junit.Test;
+import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edges;
 import owl.automaton.edge.LabelledEdge;
@@ -45,11 +46,10 @@ public class HashMapAutomatonTest {
 
   @Test
   public void testEmptyAutomaton() {
-    HashMapAutomaton<?, ?> automaton =
-      new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
-    assertThat(automaton.isComplete(), is(false));
-    assertThat(automaton.isDeterministic(), is(true));
-    assertThat(automaton.getIncompleteStates().keySet(), empty());
+    HashMapAutomaton<?, ?> automaton = new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
+    assertThat(automaton.is(Property.COMPLETE), is(false));
+    assertThat(automaton.is(Property.DETERMINISTIC), is(true));
+    assertThat(AutomatonUtil.getIncompleteStates(automaton).keySet(), empty());
     assertThat(automaton.getInitialStates(), empty());
     assertThat(automaton.getStates(), empty());
   }
@@ -83,7 +83,7 @@ public class HashMapAutomatonTest {
     });
 
     assertThat(automaton.getLabelledEdges("1"), containsInAnyOrder(
-      new LabelledEdge<>(Edges.create("2"), FACTORY.createUniverseValuationSet())));
+      LabelledEdge.of(Edges.create("2"), FACTORY.createUniverseValuationSet())));
   }
 
   @SuppressWarnings("unchecked")
@@ -97,12 +97,12 @@ public class HashMapAutomatonTest {
     automaton.addState("2");
 
     assertThat(automaton.getStates(), containsInAnyOrder("1", "2"));
-    assertThat(automaton.getReachableStates(), empty());
+    assertThat(AutomatonUtil.getReachableStates(automaton), empty());
 
     automaton.setInitialState("1");
     assertThat(automaton.getInitialState(), is("1"));
     assertThat(automaton.getInitialStates(), containsInAnyOrder("1"));
-    assertThat(automaton.getReachableStates(), containsInAnyOrder("1"));
+    assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1"));
 
     // Add edge
     automaton.addEdge("1", FACTORY.createUniverseValuationSet(),
@@ -110,18 +110,18 @@ public class HashMapAutomatonTest {
     assertThat(automaton.getEdge("1", new BitSet()), is(Edges.create("2")));
     assertThat(automaton.getEdges("1", new BitSet()), containsInAnyOrder(Edges.create("2")));
     assertThat(automaton.getLabelledEdges("1"), containsInAnyOrder(
-      new LabelledEdge<>(Edges.create("2"), FACTORY.createUniverseValuationSet())));
+      LabelledEdge.of(Edges.create("2"), FACTORY.createUniverseValuationSet())));
     assertThat(automaton.getEdge("1", new BitSet()), is(Edges.create("2")));
 
-    assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
-    assertThat(automaton.isDeterministic(), is(true));
+    assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1", "2"));
+    assertThat(automaton.is(Property.DETERMINISTIC), is(true));
 
     // Add duplicate edge
     automaton.addEdge("1", FACTORY.createValuationSet(new BitSet()), Edges.create("2"));
     assertThat(Iterators.size(automaton.getLabelledEdges("1").iterator()), is(1));
     assertThat(automaton.getEdge("1", new BitSet()), is(Edges.create("2")));
 
-    assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
+    assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1", "2"));
 
     // Add edge with different acceptance
     automaton.addEdge("1", FACTORY.createValuationSet(new BitSet()), Edges.create("2", 1));
@@ -129,19 +129,19 @@ public class HashMapAutomatonTest {
       containsInAnyOrder(Edges.create("2"), Edges.create("2", 1)));
     assertThat(Iterators.size(automaton.getLabelledEdges("1").iterator()), is(2));
 
-    assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
+    assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1", "2"));
 
     automaton.addEdge("1", FACTORY.createUniverseValuationSet(), Edges.create("1"));
     assertThat(automaton.getEdges("1", new BitSet()),
       containsInAnyOrder(Edges.create("1"), Edges.create("2"), Edges.create("2", 1)));
-    assertThat(automaton.getReachableStates(), containsInAnyOrder("1", "2"));
+    assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1", "2"));
 
     automaton.setInitialStates(Set.of("2"));
     assertThat(automaton.getInitialState(), is("2"));
     assertThat(automaton.getInitialStates(), containsInAnyOrder("2"));
-    assertThat(automaton.getReachableStates(), containsInAnyOrder("2"));
+    assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("2"));
 
-    assertThat(automaton.getIncompleteStates().keySet(), containsInAnyOrder("2"));
+    assertThat(AutomatonUtil.getIncompleteStates(automaton).keySet(), containsInAnyOrder("2"));
 
     IntUnaryOperator transformer = key -> 2;
     automaton.remapEdges(automaton.getStates(), (state, edge) ->

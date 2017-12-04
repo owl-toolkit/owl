@@ -3,15 +3,15 @@ package owl.translations.nba2ldba;
 import com.google.common.collect.Collections2;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edges;
 
 public final class GeneralizedBuchiAcceptanceTransformer<S>
-  implements ExploreBuilder<S, S, GeneralizedBuchiAcceptance> {
+  implements MutableAutomatonBuilder<S, S, GeneralizedBuchiAcceptance> {
 
   private final Automaton<S, AllAcceptance> nba;
 

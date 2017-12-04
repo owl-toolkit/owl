@@ -8,6 +8,7 @@ import com.google.common.collect.Table;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -86,7 +87,7 @@ public class CommandLineRegistry {
   }
 
   public void register(ModuleSettings... settings) {
-    register(Arrays.asList(settings));
+    register(List.of(settings));
   }
 
   public void register(ModuleSettings description) {

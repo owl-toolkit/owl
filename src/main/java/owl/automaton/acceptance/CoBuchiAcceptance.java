@@ -22,30 +22,31 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
-public final class GeneralizedParityAcceptance implements OmegaAcceptance {
+public final class CoBuchiAcceptance extends OmegaAcceptance {
+  public static final CoBuchiAcceptance INSTANCE = new CoBuchiAcceptance();
 
   @Override
   public int getAcceptanceSets() {
-    throw new UnsupportedOperationException("Not yet implemented!");
+    return 1;
   }
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    throw new UnsupportedOperationException("Not yet implemented!");
+    return BooleanExpressions.mkFin(0);
   }
 
   @Override
   public String getName() {
-    throw new UnsupportedOperationException("Not yet implemented!");
+    return "co-Buchi";
   }
 
   @Override
   public List<Object> getNameExtra() {
-    throw new UnsupportedOperationException("Not yet implemented!");
+    return List.of();
   }
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    throw new UnsupportedOperationException("Not yet implemented!");
+    return edge.largestAcceptanceSet() <= 0;
   }
 }

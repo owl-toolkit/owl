@@ -43,7 +43,15 @@ namespace owl {
         return FormulaRewriter(env);
     }
 
-    DPA Owl::createDPA(const Formula &formula) const {
-        return DPA(env, formula);
+    Automaton Owl::createAutomaton(const Formula &formula) const {
+        return Automaton(env, formula);
+    }
+
+    LabelledTree<Tag, Automaton> Owl::createAutomatonTree(const Formula &formula) const {
+        jclass splitter_class = lookup_class(env, "owl/jni/Splitter");
+        jmethodID split_method = get_static_methodID(env, splitter_class, "split", "(Lowl/ltl/Formula;)Lowl/collections/LabelledTree;");
+        auto java_tree = call_static_method<jobject, jobject>(env, splitter_class, split_method, formula.formula);
+        deref(env, splitter_class);
+        return copy_from_java(env, java_tree);
     }
 }

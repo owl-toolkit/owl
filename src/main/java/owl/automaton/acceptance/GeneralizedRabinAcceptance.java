@@ -40,7 +40,6 @@ import jhoafparser.ast.BooleanExpression;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.automaton.output.HoaConsumerExtended;
 
 /**
  * Generalized Rabin Acceptance - OR (Fin(i) and AND Inf(j)).
@@ -51,7 +50,7 @@ import owl.automaton.output.HoaConsumerExtended;
  * <p>According to the HOA specifications, the indices are monotonically increasing and used for
  * exactly one Fin/Inf atom.</p>
  */
-public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
+public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
   private static final int NOT_ALLOCATED = -1;
   private final Object mutex = new Object();
   private final List<GeneralizedRabinPair> pairList;
@@ -168,8 +167,8 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       nonEmptyPairs += 1;
       extra.add(pair.getInfiniteIndexCount());
     }
-    extra.set(0, nonEmptyPairs);
 
+    extra.set(0, nonEmptyPairs);
     return extra;
   }
 
@@ -185,7 +184,7 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
     synchronized (mutex) {
-      return edge.acceptanceSetStream().allMatch(index -> index < setCount);
+      return edge.largestAcceptanceSet() < setCount;
     }
   }
 
@@ -199,16 +198,6 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       }
       setCount -= removedIndices;
     }
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder(40);
-    builder.append("GeneralisedRabinAcceptance: ");
-    for (GeneralizedRabinPair pair : pairList) {
-      builder.append(pair);
-    }
-    return builder.toString();
   }
 
   public static final class GeneralizedRabinPair {
@@ -283,15 +272,15 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
 
       BooleanExpression<AtomAcceptance> acceptance;
       if (hasFinite()) {
-        acceptance = HoaConsumerExtended.mkFin(finiteIndex);
+        acceptance = BooleanExpressions.mkFin(finiteIndex);
         if (hasInfinite()) {
-          acceptance = acceptance.and(HoaConsumerExtended.mkInf(infiniteIndicesFrom));
+          acceptance = acceptance.and(BooleanExpressions.mkInf(infiniteIndicesFrom));
         }
       } else {
-        acceptance = HoaConsumerExtended.mkInf(infiniteIndicesFrom);
+        acceptance = BooleanExpressions.mkInf(infiniteIndicesFrom);
       }
       for (int index = infiniteIndicesFrom + 1; index < infiniteIndicesTo; index++) {
-        acceptance = acceptance.and(HoaConsumerExtended.mkInf(index));
+        acceptance = acceptance.and(BooleanExpressions.mkInf(index));
       }
 
       return acceptance;
@@ -361,28 +350,5 @@ public final class GeneralizedRabinAcceptance implements OmegaAcceptance {
       infiniteIndicesFrom += amount;
       assert infiniteIndicesFrom >= 0;
     }
-
-    @Override
-    public String toString() {
-      StringBuilder builder = new StringBuilder((getInfiniteIndexCount() + 1) * 3);
-      builder.append('(');
-      if (hasFinite()) {
-        builder.append(finiteIndex);
-      } else {
-        builder.append('#');
-      }
-      builder.append('|');
-      if (hasInfinite()) {
-        builder.append(infiniteIndicesFrom);
-        for (int index = infiniteIndicesFrom + 1; index < infiniteIndicesTo; index++) {
-          builder.append(',').append(index);
-        }
-      } else {
-        builder.append('#');
-      }
-      builder.append(')');
-      return builder.toString();
-    }
   }
-
 }

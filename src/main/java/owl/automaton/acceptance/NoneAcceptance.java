@@ -17,12 +17,11 @@
 
 package owl.automaton.acceptance;
 
-import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
-public final class NoneAcceptance implements OmegaAcceptance {
+public final class NoneAcceptance extends OmegaAcceptance {
   public static final NoneAcceptance INSTANCE = new NoneAcceptance();
 
   private NoneAcceptance() {}
@@ -43,13 +42,7 @@ public final class NoneAcceptance implements OmegaAcceptance {
   }
 
   @Override
-  public List<Object> getNameExtra() {
-    return List.of();
-  }
-
-
-  @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return !edge.acceptanceSetIterator().hasNext();
+    return !edge.hasAcceptanceSets();
   }
 }

@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
@@ -60,24 +59,11 @@ public final class HoaConsumerExtended<S> {
   private S currentState = null;
 
   public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
-    Set<? extends S> initialStates, int size, EnumSet<HoaOption> options,
-    boolean isDeterministic, @Nullable String name) {
-    this(consumer, aliases, acceptance, initialStates, size, options, isDeterministic, name, null);
-  }
-
-  public HoaConsumerExtended(
-    HOAConsumer consumer,
-    List<String> aliases,
-    OmegaAcceptance acceptance,
-    Set<? extends S> initialStates,
-    int size,
-    EnumSet<HoaOption> options,
-    boolean isDeterministic,
-    @Nullable String name,
-    @Nullable Object2IntMap<S> stateNumbers) {
+    Set<? extends S> initialStates, EnumSet<HoaOption> options, boolean isDeterministic,
+    @Nullable String name) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
-    this.stateNumbers = stateNumbers == null ? new Object2IntOpenHashMap<>() : stateNumbers;
+    this.stateNumbers = new Object2IntOpenHashMap<>();
     alphabetSize = aliases.size();
 
     try {
@@ -90,10 +76,6 @@ public final class HoaConsumerExtended<S> {
         } else {
           consumer.setName("Automaton for " + initialStates);
         }
-      }
-
-      if (size >= 0) {
-        consumer.setNumberOfStates(size);
       }
 
       if (initialStates.isEmpty()) {
@@ -122,28 +104,20 @@ public final class HoaConsumerExtended<S> {
         }
       }
 
+      // TODO: Use Properties.java to derive properties.
+
       // TODO: fix this.
       consumer.addProperties(List.of("trans-acc", "trans-label"));
       consumer.setAPs(aliases);
 
       consumer.notifyBodyStart();
 
-      if (initialStates.isEmpty() || size == 0) {
+      if (initialStates.isEmpty()) {
         consumer.notifyEnd();
       }
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
-  }
-
-  public static BooleanExpression<AtomAcceptance> mkFin(int number) {
-    return new BooleanExpression<>(
-      new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_FIN, number, false));
-  }
-
-  public static BooleanExpression<AtomAcceptance> mkInf(int number) {
-    return new BooleanExpression<>(
-      new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
   }
 
   public void addEdge(ValuationSet label, S end) {

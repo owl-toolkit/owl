@@ -17,6 +17,7 @@
 
 package owl.automaton;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
@@ -43,24 +44,22 @@ import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 
 class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
-  // TODO Efficient implementation of containsState
-
   private final A acceptance;
-  private final BiFunction<S, BitSet, Edge<S>> computeDeterministicSuccessors;
   private final ValuationSetFactory factory;
   private final ImmutableSet<S> initialStates;
+  private final BiFunction<S, BitSet, Edge<S>> successors;
 
   StreamingAutomaton(A acceptance, ValuationSetFactory factory, Collection<S> initialStates,
-    BiFunction<S, BitSet, Edge<S>> computeDeterministicSuccessors) {
+    BiFunction<S, BitSet, Edge<S>> successors) {
     this.acceptance = acceptance;
     this.factory = factory;
     this.initialStates = ImmutableSet.copyOf(initialStates);
-    this.computeDeterministicSuccessors = computeDeterministicSuccessors;
+    this.successors = successors;
   }
 
   private void computeEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
     for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
-      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+      Edge<S> edge = successors.apply(state, valuation);
 
       if (edge == null) {
         continue;
@@ -70,19 +69,18 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     }
   }
 
-  private void computeLabelledEdges(S state, BiConsumer<Edge<S>, ValuationSet> consumer) {
-    Map<Edge<S>, ValuationSet> valuations = new HashMap<>();
+  private Map<Edge<S>, ValuationSet> computeEdgeMap(S state) {
+    Map<Edge<S>, ValuationSet> edgeMap = new HashMap<>();
+
     for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
-      Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+      Edge<S> edge = successors.apply(state, valuation);
 
-      if (edge == null) {
-        continue;
+      if (edge != null) {
+        ValuationSetMapUtil.add(edgeMap, edge, factory.createValuationSet(valuation));
       }
-
-      ValuationSetMapUtil.add(valuations, edge, factory.createValuationSet(valuation));
     }
-    valuations.forEach(consumer);
-    ValuationSetMapUtil.clear(valuations);
+
+    return edgeMap;
   }
 
   private Set<S> exploreReachableStates(Collection<? extends S> start,
@@ -125,8 +123,15 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   }
 
   @Override
+  public Set<Edge<S>> getEdges(S state) {
+    Set<Edge<S>> edges = new HashSet<>();
+    computeEdges(state, (x, edge) -> edges.add(edge));
+    return edges;
+  }
+
+  @Override
   public Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    Edge<S> edge = computeDeterministicSuccessors.apply(state, valuation);
+    Edge<S> edge = successors.apply(state, valuation);
     return edge != null ? Set.of(edge) : Set.of();
   }
 
@@ -136,39 +141,24 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   }
 
   @Override
-  public Map<S, ValuationSet> getIncompleteStates() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public Set<S> getInitialStates() {
     return initialStates;
   }
 
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-    Set<LabelledEdge<S>> edges = new HashSet<>();
-
-    computeLabelledEdges(state, (edge, valuation) ->
-      edges.add(new LabelledEdge<>(edge, valuation.copy())));
-
-    return edges;
-  }
-
-  @Override
-  public Set<S> getReachableStates(Collection<? extends S> start) {
-    return exploreReachableStates(start, null, null, null);
+    return Collections2.transform(computeEdgeMap(state).entrySet(), LabelledEdge::of);
   }
 
   @Override
   public Set<S> getStates() {
-    return getReachableStates(initialStates);
+    return AutomatonUtil.getReachableStates(this, initialStates);
   }
 
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      acceptance, initialStates, -1, options, true, getName());
+      acceptance, initialStates, options, true, getName());
     exploreReachableStates(initialStates, hoa::addState, (x) -> hoa.notifyEndOfState(),
       hoa::addEdge);
     hoa.notifyEnd();

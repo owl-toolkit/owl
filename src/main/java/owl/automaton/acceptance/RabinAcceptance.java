@@ -26,7 +26,6 @@ import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaConsumerExtended;
 
 /**
  * This class represents a Rabin acceptance. It consists of multiple {@link
@@ -36,7 +35,7 @@ import owl.automaton.output.HoaConsumerExtended;
  * acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
  * acceptance without any pairs rejects every word.
  */
-public final class RabinAcceptance implements OmegaAcceptance {
+public final class RabinAcceptance extends OmegaAcceptance {
   private static final int NOT_ALLOCATED = -1;
   private final BitSet allocatedIndices = new BitSet();
   private final List<RabinPair> pairs;
@@ -134,16 +133,6 @@ public final class RabinAcceptance implements OmegaAcceptance {
     return edge.acceptanceSetStream().allMatch(index -> index < 2 * pairs.size());
   }
 
-  @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder(30);
-    builder.append("RabinAcceptance: ");
-    for (RabinPair pair : pairs) {
-      builder.append(pair);
-    }
-    return builder.toString();
-  }
-
   public static final class RabinPair {
     private final int finiteIndex;
     private final int infiniteIndex;
@@ -184,12 +173,12 @@ public final class RabinAcceptance implements OmegaAcceptance {
     private BooleanExpression<AtomAcceptance> getBooleanExpression() {
       assert !isEmpty();
       if (finiteIndex == NOT_ALLOCATED) {
-        return HoaConsumerExtended.mkInf(infiniteIndex);
+        return BooleanExpressions.mkInf(infiniteIndex);
       }
       if (infiniteIndex == NOT_ALLOCATED) {
-        return HoaConsumerExtended.mkFin(finiteIndex);
+        return BooleanExpressions.mkFin(finiteIndex);
       }
-      return HoaConsumerExtended.mkFin(finiteIndex).and(HoaConsumerExtended.mkInf(infiniteIndex));
+      return BooleanExpressions.mkFin(finiteIndex).and(BooleanExpressions.mkInf(infiniteIndex));
     }
 
     public int getFiniteIndex() {
@@ -221,29 +210,6 @@ public final class RabinAcceptance implements OmegaAcceptance {
      */
     public boolean isEmpty() {
       return finiteIndex == NOT_ALLOCATED && infiniteIndex == NOT_ALLOCATED;
-    }
-
-    @Override
-    public String toString() {
-      if (isEmpty()) {
-        return "";
-      }
-
-      StringBuilder builder = new StringBuilder(10);
-      builder.append('(');
-      if (finiteIndex == NOT_ALLOCATED) {
-        builder.append('#');
-      } else {
-        builder.append(finiteIndex);
-      }
-      builder.append('|');
-      if (infiniteIndex == NOT_ALLOCATED) {
-        builder.append('#');
-      } else {
-        builder.append(infiniteIndex);
-      }
-      builder.append(')');
-      return builder.toString();
     }
   }
 }

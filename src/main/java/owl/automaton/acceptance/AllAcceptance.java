@@ -17,12 +17,11 @@
 
 package owl.automaton.acceptance;
 
-import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
-public final class AllAcceptance implements OmegaAcceptance {
+public final class AllAcceptance extends OmegaAcceptance {
   public static final AllAcceptance INSTANCE = new AllAcceptance();
 
   private AllAcceptance() {}
@@ -40,11 +39,6 @@ public final class AllAcceptance implements OmegaAcceptance {
   @Override
   public String getName() {
     return "all";
-  }
-
-  @Override
-  public List<Object> getNameExtra() {
-    return List.of();
   }
 
   @Override

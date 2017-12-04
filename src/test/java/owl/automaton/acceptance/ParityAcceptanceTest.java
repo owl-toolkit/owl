@@ -26,7 +26,6 @@ import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
-import owl.automaton.output.HoaConsumerExtended;
 
 @RunWith(Theories.class)
 public class ParityAcceptanceTest {
@@ -41,7 +40,7 @@ public class ParityAcceptanceTest {
 
   @Test
   public void getBooleanExpression() {
-    assertEquals(HoaConsumerExtended.mkFin(0), ACCEPTANCE.getBooleanExpression());
+    assertEquals(BooleanExpressions.mkFin(0), ACCEPTANCE.getBooleanExpression());
   }
 
   @Theory

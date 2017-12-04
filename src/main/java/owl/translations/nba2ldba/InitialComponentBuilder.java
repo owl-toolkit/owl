@@ -20,14 +20,14 @@ package owl.translations.nba2ldba;
 import com.google.common.collect.Collections2;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edges;
 
-final class InitialComponentBuilder<S> implements ExploreBuilder<S, S, NoneAcceptance> {
+final class InitialComponentBuilder<S> implements MutableAutomatonBuilder<S, S, NoneAcceptance> {
 
   private final Automaton<S, GeneralizedBuchiAcceptance> nba;
 

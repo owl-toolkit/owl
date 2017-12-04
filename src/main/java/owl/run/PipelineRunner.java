@@ -32,6 +32,7 @@ public class PipelineRunner implements Runnable {
   private final ExecutorService executor;
   private final BlockingQueue<Future<?>> processingQueue = new LinkedBlockingQueue<>();
   private final Thread readerThread;
+  private final AtomicBoolean readerFinished = new AtomicBoolean(false);
   private final AtomicBoolean shutdown = new AtomicBoolean(false);
   private final Thread writerThread;
 
@@ -55,11 +56,13 @@ public class PipelineRunner implements Runnable {
 
     Uninterruptibles.joinUninterruptibly(readerThread);
     logger.log(Level.FINE, "ReaderThread is done.");
+    readerFinished.set(true);
 
     Uninterruptibles.joinUninterruptibly(writerThread);
     logger.log(Level.FINE, "WriterThread is done.");
 
     shutdown.set(true);
+
     processingQueue.clear();
     specification.transformers().forEach(Transformer::closeTransformer);
     executor.shutdownNow();
@@ -162,9 +165,13 @@ public class PipelineRunner implements Runnable {
     public void run() {
       OutputWriter outputWriter = specification.output();
 
-      while (!shutdown.get() && (!processingQueue.isEmpty() || readerThread.isAlive())) {
+      while (!readerFinished.get() || !processingQueue.isEmpty()) {
         try {
-          Object result = Uninterruptibles.getUninterruptibly(processingQueue.take());
+          Future<?> poll = processingQueue.poll(100, TimeUnit.MILLISECONDS);
+          if (poll == null) {
+            continue;
+          }
+          Object result = Uninterruptibles.getUninterruptibly(poll);
           logger.log(Level.FINEST, "Got result {0} from queue", result);
           System.err.flush(); // Try to keep logging statements in front of the output
           outputWriter.write(result, writer);

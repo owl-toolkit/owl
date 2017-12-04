@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +37,6 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -161,14 +159,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Nullable
   @Override
-  public Edge<S> getAnyEdge(S state, BitSet valuation) {
-    return ValuationSetMapUtil.findFirst(getEdgeMap(state), valuation);
-  }
-
-  @Nullable
-  @Override
   public Edge<S> getEdge(S state, BitSet valuation) {
-    return ValuationSetMapUtil.findOnly(getEdgeMap(state), valuation);
+    return ValuationSetMapUtil.findFirst(getEdgeMap(state), valuation);
   }
 
   private Map<Edge<S>, ValuationSet> getEdgeMap(S state) {
@@ -200,9 +192,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
     Map<Edge<S>, ValuationSet> transitionMap = getEdgeMap(state);
-
     return Collections.unmodifiableCollection(Collections2.transform(
-      Maps.transformValues(transitionMap, ValuationSet::copy).entrySet(), LabelledEdge::new));
+      Maps.transformValues(transitionMap, ValuationSet::copy).entrySet(), LabelledEdge::of));
   }
 
   @Override
@@ -211,39 +202,13 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public Set<S> getReachableStates(Collection<? extends S> start) {
-    checkArgument(containsStates(start), "Some of the states %s are not in the automaton", start);
-
-    Set<S> reachedStates = Sets.newIdentityHashSet();
-    start.forEach(state -> reachedStates.add(makeUnique(state)));
-    Queue<S> workQueue = new ArrayDeque<>(reachedStates);
-
-    while (!workQueue.isEmpty()) {
-      S state = workQueue.poll();
-      Map<Edge<S>, ValuationSet> edges = transitions.get(state);
-
-      ValuationSetMapUtil.viewSuccessors(edges).forEach(successor -> {
-        if (reachedStates.add(successor)) {
-          workQueue.add(successor);
-        }
-      });
-    }
-
-    return reachedStates;
+  public Set<S> getSuccessors(S state) {
+    return new HashSet<>(ValuationSetMapUtil.viewSuccessors(transitions.get(makeUnique(state))));
   }
 
   @Override
   public Set<S> getStates() {
     return Collections.unmodifiableSet(uniqueStates.keySet());
-  }
-
-  @Override
-  public Map<S, ValuationSet> getSuccessorMap(S state) {
-    Map<Edge<S>, ValuationSet> edges = getEdgeMap(state);
-    Map<S, ValuationSet> successorMap = new HashMap<>();
-    edges.forEach((edge, valuations) -> ValuationSetMapUtil.add(successorMap, edge.getSuccessor(),
-      valuations.copy()));
-    return successorMap;
   }
 
   private S makeUnique(S state) {
@@ -330,7 +295,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public void removeUnreachableStates(Collection<? extends S> start,
     Consumer<? super S> removedStatesConsumer) {
-    Set<S> reachableStates = getReachableStates(start);
+    Set<S> reachableStates = AutomatonUtil.getReachableStates(this, start);
     assert containsStates(reachableStates) : "Internal inconsistency";
 
     if (!retainStates(reachableStates)) {
@@ -362,15 +327,10 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public int stateCount() {
-    return transitions.size();
-  }
-
-  @Override
   public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      acceptance, ImmutableSet.copyOf(initialStates), stateCount(), options,
-      isDeterministic(), getName());
+      acceptance, ImmutableSet.copyOf(initialStates), options,
+      is(Property.DETERMINISTIC), getName());
 
     transitions.forEach((state, edges) -> {
       hoa.addState(state);

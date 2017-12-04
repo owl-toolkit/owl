@@ -23,8 +23,8 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
-import owl.automaton.ExploreBuilder;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
@@ -55,7 +55,7 @@ import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 public final class
 LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObligation>
   implements Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
-  private final Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor;
+  private final Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor;
   private final boolean deterministicInitialComponent;
   private final Environment env;
   private final Function<LabelledFormula, LabelledFormula> formulaPreprocessor;
@@ -66,7 +66,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   private LTL2LDBAFunction(Environment env,
     Function<LabelledFormula, LabelledFormula> formulaPreprocessor,
     Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
-    Function<Factories, ExploreBuilder<Jump<C>, S, B>> builderConstructor,
+    Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor,
     EnumSet<Optimisation> optimisations, Function<S, C> getAnnotation) {
     this.env = env;
     this.formulaPreprocessor = formulaPreprocessor;
@@ -177,7 +177,8 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   private LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
   createBuilder(Factories factories, AbstractJumpManager<C> selector) {
-    ExploreBuilder<Jump<C>, S, B> acceptingComponentBuilder = builderConstructor.apply(factories);
+    MutableAutomatonBuilder<Jump<C>, S, B> acceptingComponentBuilder = builderConstructor
+      .apply(factories);
     InitialComponentBuilder<C> initialComponentBuilder = new InitialComponentBuilder<>(factories,
       EnumSet.copyOf(optimisations), selector);
 

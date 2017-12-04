@@ -17,7 +17,6 @@
 
 package owl.ltl.visitors;
 
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
@@ -61,11 +60,11 @@ public final class Collector {
   }
 
   public static <T> Set<T> collect(Function<Formula, T> function, Formula... formulas) {
-    return collect(function, Arrays.asList(formulas));
+    return collect(function, List.of(formulas));
   }
 
   public static Set<Formula> collect(Predicate<Formula> predicate, Formula... formulas) {
-    return collect(toFunction(predicate), Arrays.asList(formulas));
+    return collect(toFunction(predicate), List.of(formulas));
   }
 
   public static Set<Formula> collect(Predicate<Formula> predicate,

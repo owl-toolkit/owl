@@ -17,16 +17,14 @@
 
 package owl.automaton.acceptance;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaConsumerExtended;
 
-public final class ParityAcceptance implements OmegaAcceptance {
+public final class ParityAcceptance extends OmegaAcceptance {
   @Nonnegative
   private int colours;
   private Priority priority;
@@ -89,7 +87,7 @@ public final class ParityAcceptance implements OmegaAcceptance {
 
   @Override
   public List<Object> getNameExtra() {
-    return Arrays.asList("min", priority.toString(), colours);
+    return List.of("min", priority.toString(), colours);
   }
 
   public Priority getPriority() {
@@ -117,8 +115,8 @@ public final class ParityAcceptance implements OmegaAcceptance {
 
   private BooleanExpression<AtomAcceptance> mkColor(int i) {
     return (i % 2 == 0 ^ priority == Priority.EVEN)
-      ? HoaConsumerExtended.mkFin(i)
-      : HoaConsumerExtended.mkInf(i);
+      ? BooleanExpressions.mkFin(i)
+      : BooleanExpressions.mkInf(i);
   }
 
   public void setAcceptanceSets(@Nonnegative int colors) {
@@ -153,6 +151,4 @@ public final class ParityAcceptance implements OmegaAcceptance {
 
     public abstract Priority not();
   }
-
-
 }

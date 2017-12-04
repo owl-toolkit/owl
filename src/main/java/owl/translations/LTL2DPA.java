@@ -10,8 +10,7 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.rabinizer.RabinizerModule;
 
 public final class LTL2DPA {
-  private LTL2DPA() {
-  }
+  private LTL2DPA() {}
 
   public static void main(String... args) {
     ImmutableSingleModuleConfiguration ldba = ImmutableSingleModuleConfiguration.builder()

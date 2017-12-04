@@ -287,7 +287,7 @@ public class RabinizerBuilder {
         new Object[] {this.initialClass, toHoa(masterAutomaton)});
     } else {
       logger.log(Level.FINE, "Master automaton for {0} has {1} states",
-        new Object[] {this.initialClass, masterAutomaton.stateCount()});
+        new Object[] {this.initialClass, masterAutomaton.getStates().size()});
     }
 
     /* Determine the SCC decomposition of the master.
@@ -669,8 +669,7 @@ public class RabinizerBuilder {
       new HashMap<>();
 
     // BFS work list
-    Set<RabinizerState> exploredStates =
-      new HashSet<>(List.of(initialState));
+    Set<RabinizerState> exploredStates = Sets.newHashSet(initialState);
     Queue<RabinizerState> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
@@ -730,7 +729,7 @@ public class RabinizerBuilder {
         for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
           // Get the edge in the master automaton
           Edge<EquivalenceClass> masterEdge =
-            masterAutomaton.getAnyEdge(currentState.masterState, valuation);
+            masterAutomaton.getEdge(currentState.masterState, valuation);
           if (masterEdge == null) {
             // A null master edge means the master automaton moves into the "ff" state - a sure
             // failure and we don't need to investigate further.
@@ -925,6 +924,7 @@ public class RabinizerBuilder {
       // Iterate over all enabled sub formulas and check acceptance for each monitor
       int relevantIndex = -1;
       int activeIndex = -1;
+
       for (int gIndex = 0; gIndex < activeFormulas.length; gIndex++) {
         if (!relevantFormulas[gIndex]) {
           continue;
@@ -975,6 +975,7 @@ public class RabinizerBuilder {
           edgeAcceptanceSet.add(pair.getInfiniteIndex(activeIndex));
         }
       }
+
       return edgeAcceptanceSet == null ? IntSets.EMPTY_SET : edgeAcceptanceSet;
     }
 
@@ -1038,6 +1039,7 @@ public class RabinizerBuilder {
         forEachRelevantAndActive((relevantIndex, activeIndex) -> {
           EquivalenceClass[] monitorStateRanking = monitorStates[relevantIndex].formulaRanking;
           int rank = ranking[activeIndex];
+
           if (rank <= monitorStateRanking.length) {
             List<EquivalenceClass> rankingList = Arrays.asList(monitorStateRanking);
             activeMonitorStates.addAll(rankingList.subList(rank, monitorStateRanking.length));
@@ -1055,6 +1057,7 @@ public class RabinizerBuilder {
       antecedent.free();
       strengthenedAntecedent.free();
       weakenedConsequent.free();
+
       if (eager) {
         testedConsequent.free();
       }

@@ -48,9 +48,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
 import owl.automaton.algorithms.SccDecomposition;
@@ -262,7 +262,7 @@ public final class GeneralizedRabinMinimizations {
 
     Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
       Set<GeneralizedRabinPair> pairsInScc = new HashSet<>();
-      AutomatonFactory.filter(automaton, scc)
+      Views.filter(automaton, scc)
         .forEachLabelledEdge((x, y, z) -> pairs.forEach(pair -> {
           if (pair.contains(y)) {
             pairsInScc.add(pair);
@@ -447,7 +447,7 @@ public final class GeneralizedRabinMinimizations {
           BitSets.forEach(consequences, consumer);
         });
 
-      Automaton<S, ?> filtered = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, ?> filtered = Views.filter(automaton, scc);
       scc.forEach(x -> filtered.getEdges(x).forEach(edge -> action.accept(x, edge)));
 
       Multimap<GeneralizedRabinPair, GeneralizedRabinPair> sccImplications =
@@ -599,7 +599,7 @@ public final class GeneralizedRabinMinimizations {
       IntSet indicesInScc = new IntAVLTreeSet();
       BiConsumer<S, Edge<S>> action = (state, edge) ->
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indicesInScc::add);
-      Automaton<S, ?> filtered = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, ?> filtered = Views.filter(automaton, scc);
       scc.forEach(x -> filtered.getEdges(x).forEach(edge -> action.accept(x, edge)));
 
       IntSet indicesToRemove = new IntAVLTreeSet();
@@ -649,7 +649,7 @@ public final class GeneralizedRabinMinimizations {
       IntSet usedIndices = new IntAVLTreeSet();
       BiConsumer<S, Edge<S>> action = (state, edge) ->
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) usedIndices::add);
-      Automaton<S, ?> filtered = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, ?> filtered = Views.filter(automaton, scc);
       scc.forEach(x -> filtered.getEdges(x).forEach(edge -> action.accept(x, edge)));
       pairs.stream()
         .filter(pair -> !usedIndices.contains(pair.getFiniteIndex()))

@@ -8,7 +8,6 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
@@ -86,7 +85,7 @@ public class SingleStreamCoordinator implements Coordinator {
     } else if (System.getenv("OWL_INPUT") != null) {
       reader = createReaderFromSource(System.getenv("OWL_INPUT"));
     } else if (settings.hasOption("input")) {
-      reader = createReader(Arrays.asList(settings.getOptionValues("input")));
+      reader = createReader(List.of(settings.getOptionValues("input")));
     } else if (!settings.getArgList().isEmpty()) {
       reader = createReader(settings.getArgList());
       settings.getArgList().clear();

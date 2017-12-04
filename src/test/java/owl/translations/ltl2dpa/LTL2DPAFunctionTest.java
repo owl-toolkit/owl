@@ -48,7 +48,7 @@ public class LTL2DPAFunctionTest {
     try (OutputStream stream = new ByteArrayOutputStream()) {
       HOAConsumer consumer = new HOAConsumerPrint(stream);
       automaton.toHoa(consumer, EnumSet.allOf(HoaPrintable.HoaOption.class));
-      assertEquals(stream.toString(), size, automaton.stateCount());
+      assertEquals(stream.toString(), size, automaton.getStates().size());
       assertThat(stream.toString(), automaton.getAcceptance().getAcceptanceSets(),
         Matchers.lessThanOrEqualTo(accSize));
     } catch (IOException ex) {

@@ -171,10 +171,10 @@ public class LTL2DPAFunction
 
           int size = automaton == null
             ? automatonCounter.get()
-            : automaton.automaton.stateCount();
+            : automaton.automaton.getStates().size();
           int complementSize = complement == null
             ? complementCounter.get()
-            : complement.automaton.stateCount();
+            : complement.automaton.getStates().size();
 
           if (automaton != null && size <= complementSize) {
             complementFuture.cancel(true);

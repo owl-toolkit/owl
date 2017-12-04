@@ -18,9 +18,9 @@
 package owl.ltl;
 
 import com.google.common.collect.ImmutableSet;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
@@ -46,7 +46,7 @@ public final class Disjunction extends PropositionalFormula {
   }
 
   public static Formula create(Formula... formulas) {
-    return create(Arrays.asList(formulas));
+    return create(List.of(formulas));
   }
 
   public static Formula create(Iterable<? extends Formula> iterable) {

@@ -30,8 +30,7 @@ public final class Fragments {
   private static final Predicate<Formula> SAFETY = x -> x instanceof GOperator
     || x instanceof ROperator || x instanceof WOperator;
 
-  private Fragments() {
-  }
+  private Fragments() {}
 
   public static boolean isAlmostAll(Formula formula) {
     return formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator;
@@ -41,8 +40,20 @@ public final class Fragments {
     return formula.allMatch(FINITE.or(CO_SAFETY));
   }
 
+  public static boolean isDetBuchiRecognisable(Formula formula) {
+    return formula instanceof GOperator && isCoSafety(((GOperator) formula).operand);
+  }
+
+  public static boolean isDetCoBuchiRecognisable(Formula formula) {
+    return formula instanceof FOperator && isSafety(((FOperator) formula).operand);
+  }
+
   public static boolean isFgx(Formula formula) {
     return formula.allMatch(FINITE.or(FG));
+  }
+
+  public static boolean isFinite(Formula formula) {
+    return formula.allMatch(FINITE);
   }
 
   public static boolean isInfinitelyOften(Formula formula) {
@@ -51,9 +62,5 @@ public final class Fragments {
 
   public static boolean isSafety(Formula formula) {
     return formula.allMatch(FINITE.or(SAFETY));
-  }
-
-  public static boolean isX(Formula formula) {
-    return formula.allMatch(FINITE);
   }
 }

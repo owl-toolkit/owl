@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.Automaton.Property;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -40,6 +40,7 @@ import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 import owl.translations.delag.ProductState.Builder;
 
+// TODO: Port to standard tree datastructure
 abstract class DependencyTree<T> {
   static <T> DependencyTree<T> createAnd(List<DependencyTree<T>> children) {
     if (children.size() == 1) {
@@ -50,7 +51,7 @@ abstract class DependencyTree<T> {
   }
 
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
-    Supplier<? extends Automaton<T, ? extends OmegaAcceptance>> fallback,
+    Supplier<? extends Automaton<T, ?>> fallback,
     @Nullable AtomAcceptance piggyback) {
     if (Fragments.isCoSafety(formula)) {
       if (piggyback == null) {
@@ -139,7 +140,7 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety.containsKey(leaf.formula)
-        && (Fragments.isX(leaf.formula) || leaf.type == Type.CO_SAFETY);
+        && (Fragments.isFinite(leaf.formula) || leaf.type == Type.CO_SAFETY);
     }
 
     @Override
@@ -154,12 +155,12 @@ abstract class DependencyTree<T> {
 
   static class FallbackLeaf<T> extends Leaf<T> {
     final int acceptanceSet;
-    final Automaton<T, ? extends OmegaAcceptance> automaton;
+    final Automaton<T, ?> automaton;
 
     FallbackLeaf(Formula formula, int acceptanceSet,
-      Automaton<T, ? extends OmegaAcceptance> automaton) {
+      Automaton<T, ?> automaton) {
       super(formula, Type.FALLBACK, -1);
-      assert automaton.isDeterministic();
+      assert automaton.is(Property.DETERMINISTIC);
       this.acceptanceSet = acceptanceSet;
       this.automaton = automaton;
     }
@@ -509,7 +510,7 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety.containsKey(leaf.formula)
-        && (Fragments.isX(leaf.formula) || leaf.type == Type.SAFETY);
+        && (Fragments.isFinite(leaf.formula) || leaf.type == Type.SAFETY);
     }
 
     @Override

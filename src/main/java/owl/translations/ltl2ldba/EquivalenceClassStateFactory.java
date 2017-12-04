@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2ldba;
 
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,10 +38,16 @@ public class EquivalenceClassStateFactory {
 
   public EquivalenceClassStateFactory(EquivalenceClassFactory factory,
     Set<Optimisation> optimisations) {
+    this(factory,
+      optimisations.contains(Optimisation.EAGER_UNFOLD),
+      optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE));
+  }
+
+  public EquivalenceClassStateFactory(EquivalenceClassFactory factory, boolean eagerUnfold,
+    boolean removeRedundantObligations) {
     this.factory = factory;
-    this.eagerUnfold = optimisations.contains(Optimisation.EAGER_UNFOLD);
-    this.removeRedundantObligations = optimisations
-      .contains(Optimisation.OPTIMISED_STATE_STRUCTURE);
+    this.eagerUnfold = eagerUnfold;
+    this.removeRedundantObligations = removeRedundantObligations;
   }
 
   private EquivalenceClass and(Iterable<EquivalenceClass> equivalenceClasses) {
@@ -56,7 +61,7 @@ public class EquivalenceClassStateFactory {
   }
 
   public EquivalenceClass getInitial(Formula... formulas) {
-    return getInitial(Arrays.asList(formulas));
+    return getInitial(List.of(formulas));
   }
 
   private EquivalenceClass getInitial(Iterable<Formula> formulas) {
@@ -114,7 +119,7 @@ public class EquivalenceClassStateFactory {
   private EquivalenceClass removeRedundantObligations(EquivalenceClass state,
     EquivalenceClass... environmentArray) {
     if (removeRedundantObligations && environmentArray.length > 0) {
-      EquivalenceClass environment = and(Arrays.asList(environmentArray));
+      EquivalenceClass environment = and(List.of(environmentArray));
 
       if (environment.implies(state)) {
         state.free();
@@ -131,8 +136,10 @@ public class EquivalenceClassStateFactory {
   public List<EquivalenceClass> splitEquivalenceClass(EquivalenceClass clazz) {
     assert clazz.getRepresentative() != null;
     List<EquivalenceClass> successors = NormalForms
-      .toDnf(clazz.getRepresentative()).stream()
-      .map(this::getInitial).collect(Collectors.toCollection(LinkedList::new));
+      .toDnf(clazz.getRepresentative())
+      .stream()
+      .map(this::getInitial)
+      .collect(Collectors.toCollection(LinkedList::new));
 
     if (removeRedundantObligations) {
       //noinspection ObjectEquality

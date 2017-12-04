@@ -22,6 +22,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
@@ -31,8 +32,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GenericAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.factories.Factories;
@@ -51,14 +52,14 @@ import owl.translations.Optimisation;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class DelagBuilder<T>
-  implements Function<LabelledFormula, Automaton<State<T>, ? extends OmegaAcceptance>> {
+  implements Function<LabelledFormula, Automaton<State<T>, ?>> {
   public static final TransformerSettings settings = new TransformerSettings() {
     @Override
     public Transformer create(CommandLine settings, Environment environment)
       throws ParseException {
       String fallbackTool = settings.getOptionValue("fallback");
 
-      Function<LabelledFormula, ? extends Automaton<?, ? extends OmegaAcceptance>> fallback;
+      Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
       if ("none".equals(fallbackTool)) {
         fallback = formula -> {
           throw new IllegalArgumentException("Formula " + formula
@@ -87,13 +88,13 @@ public class DelagBuilder<T>
   };
 
   private final Environment env;
-  private final Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>>
+  private final Function<LabelledFormula, ? extends Automaton<T, ?>>
     fallback;
   @Nullable
   private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 
   public DelagBuilder(Environment env,
-    Function<LabelledFormula, ? extends Automaton<T, ? extends OmegaAcceptance>> fallback) {
+    Function<LabelledFormula, ? extends Automaton<T, ?>> fallback) {
     this.env = env;
     this.fallback = fallback;
   }
@@ -108,7 +109,7 @@ public class DelagBuilder<T>
   }
 
   @Override
-  public Automaton<State<T>, ? extends OmegaAcceptance> apply(LabelledFormula formula) {
+  public Automaton<State<T>, ?> apply(LabelledFormula formula) {
     Factories factories = env.factorySupplier().getFactories(formula);
 
     if (formula.formula.equals(BooleanConstant.FALSE)) {
@@ -116,7 +117,8 @@ public class DelagBuilder<T>
     }
 
     if (formula.formula.equals(BooleanConstant.TRUE)) {
-      return AutomatonFactory.universe(new State<>(), factories.vsFactory);
+      return AutomatonFactory.singleton(new State<>(), factories.vsFactory, AllAcceptance.INSTANCE,
+        Set.of());
     }
 
     DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories, fallback);

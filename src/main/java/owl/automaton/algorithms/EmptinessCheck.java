@@ -32,7 +32,8 @@ import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.AutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -61,7 +62,8 @@ public final class EmptinessCheck {
 
     for (Edge<S> edge : automaton.getEdges(q)) {
       S successor = edge.getSuccessor();
-      if ((edge.inSet(infIndex) || infIndex == -1) && !inSet(edge, finIndex, allFinIndicesBelow)) {
+      if ((infIndex == -1 || edge.inSet(infIndex))
+        && (!inSet(edge, finIndex, allFinIndicesBelow))) {
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
           visitedStates, visitedAcceptingStates, infIndex,
           finIndex, true, allFinIndicesBelow)) {
@@ -84,7 +86,7 @@ public final class EmptinessCheck {
     for (Edge<S> edge : automaton.getEdges(q)) {
       S successor = edge.getSuccessor();
 
-      if ((edge.inSet(infIndex) || infIndex == -1) && !inSet(edge, finIndex, allFinIndicesBelow)
+      if ((infIndex == -1 || edge.inSet(infIndex)) && !inSet(edge, finIndex, allFinIndicesBelow)
         && successor.equals(seed)) {
         return true;
       }
@@ -129,31 +131,25 @@ public final class EmptinessCheck {
     return index >= 0 && edge.inSet(index);
   }
 
-  public static <S> boolean isRejectingScc(Automaton<S, ?> automaton, Set<S> scc) {
-    Automaton<S, ?> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
-    assert SccDecomposition.isTrap(filteredAutomaton, scc);
-    return isEmpty(filteredAutomaton, scc.iterator().next());
-  }
-
-  @SuppressWarnings("unchecked")
   private static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
     OmegaAcceptance acceptance = automaton.getAcceptance();
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
     if (acceptance instanceof AllAcceptance) {
-      return false;
+      return !hasAcceptingLasso(automaton, initialState, -1, -1, false);
     }
 
     if (automaton.getAcceptance() instanceof BuchiAcceptance) {
-      Automaton<S, BuchiAcceptance> casted = (Automaton<S, BuchiAcceptance>) automaton;
+      Automaton<S, BuchiAcceptance> casted = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
       /* assert Buchi.containsAcceptingLasso(casted, initialState)
         == Buchi.containsAcceptingScc(casted, initialState); */
       return !Buchi.containsAcceptingLasso(casted, initialState);
     }
 
     if (acceptance instanceof GeneralizedBuchiAcceptance) {
-      return !Buchi.containsAcceptingScc(
-        (Automaton<S, GeneralizedBuchiAcceptance>) automaton, initialState);
+      return !Buchi
+        .containsAcceptingScc(AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class),
+          initialState);
     }
 
     if (acceptance instanceof NoneAcceptance) {
@@ -161,7 +157,7 @@ public final class EmptinessCheck {
     }
 
     if (acceptance instanceof ParityAcceptance) {
-      Automaton<S, ParityAcceptance> casted = (Automaton<S, ParityAcceptance>) automaton;
+      Automaton<S, ParityAcceptance> casted = AutomatonUtil.cast(automaton, ParityAcceptance.class);
 
       /* assert Parity.containsAcceptingLasso(casted, initialState)
         == Parity.containsAcceptingScc(casted, initialState); */
@@ -169,7 +165,7 @@ public final class EmptinessCheck {
     }
 
     if (acceptance instanceof RabinAcceptance) {
-      Automaton<S, RabinAcceptance> casted = (Automaton<S, RabinAcceptance>) automaton;
+      Automaton<S, RabinAcceptance> casted = AutomatonUtil.cast(automaton, RabinAcceptance.class);
       /* assert Rabin.containsAcceptingLasso(casted, initialState)
         == Rabin.containsAcceptingScc(casted, initialState); */
       return !Rabin.containsAcceptingLasso(casted, initialState);
@@ -177,6 +173,12 @@ public final class EmptinessCheck {
 
     logger.log(Level.FINE, "Emptiness check for {0} not yet implemented.", acceptance.getClass());
     return false;
+  }
+
+  public static <S> boolean isRejectingScc(Automaton<S, ?> automaton, Set<S> scc) {
+    Automaton<S, ?> filteredAutomaton = Views.filter(automaton, scc);
+    assert SccDecomposition.isTrap(filteredAutomaton, scc);
+    return isEmpty(filteredAutomaton, scc.iterator().next());
   }
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
@@ -273,7 +275,7 @@ public final class EmptinessCheck {
           // with priority less than minimalPriorityInScc, since otherwise the search would have
           // terminated before adding this sub-SCC.
 
-          Automaton<S, ParityAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton,
+          Automaton<S, ParityAcceptance> filteredAutomaton = Views.filter(automaton,
             result.scc, edge -> edge.smallestAcceptanceSet() > result.minimalPriority);
           subSccs = SccDecomposition.computeSccs(filteredAutomaton, result.scc, false);
         }
@@ -367,7 +369,7 @@ public final class EmptinessCheck {
         }
 
         if (!noFinitePairs.isEmpty()) {
-          Automaton<S, RabinAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc);
+          Automaton<S, RabinAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
           // Check if there is any edge containing the infinite index of a pair with no finite index
           boolean anyNoFinitePairAccepts = scc.stream()
@@ -391,7 +393,7 @@ public final class EmptinessCheck {
 
         for (RabinPair pair : finitePairs) {
           // Compute all SCCs after removing the finite edges of the current finite pair
-          Automaton<S, RabinAcceptance> filteredAutomaton = AutomatonFactory.filter(automaton, scc,
+          Automaton<S, RabinAcceptance> filteredAutomaton = Views.filter(automaton, scc,
             edge -> !pair.containsFinite(edge));
 
           if (SccDecomposition.computeSccs(filteredAutomaton, scc)

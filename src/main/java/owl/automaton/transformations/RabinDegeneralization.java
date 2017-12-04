@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.Immutable;
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -69,7 +69,8 @@ public final class RabinDegeneralization implements Transformer {
   public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
     Automaton<S, GeneralizedRabinAcceptance> automaton) {
     // TODO parallel
-    logger.log(Level.FINER, "De-generalising automaton with {0} states", automaton.stateCount());
+    logger.log(Level.FINER, "De-generalising automaton with {0} states",
+      automaton.getStates().size());
 
     // Generalized Rabin pair condition is Fin & /\ Inf(i), if the big AND is empty, it's true.
     // This means the condition translates to "don't visit the Fin set". Hence, as long as a
@@ -100,7 +101,7 @@ public final class RabinDegeneralization implements Transformer {
     }
 
     // Arbitrary correspondence map for each original state
-    Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>(automaton.stateCount());
+    Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>(automaton.getStates().size());
     // Table containing all transient edges
     Table<DegeneralizedRabinState<S>, S, ValuationSet> transientEdgesTable =
       HashBasedTable.create();
@@ -132,7 +133,7 @@ public final class RabinDegeneralization implements Transformer {
       // this SCC)
       IntSet indices = new IntAVLTreeSet();
 
-      Automaton<S, ?> filtered = AutomatonFactory.filter(automaton, scc);
+      Automaton<S, ?> filtered = Views.filter(automaton, scc);
       filtered.forEachLabelledEdge((x, y, z) -> y.acceptanceSetStream().forEach(indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
@@ -161,7 +162,7 @@ public final class RabinDegeneralization implements Transformer {
             new ArrayList<>(labelledEdges.size());
 
           for (LabelledEdge<S> labelledEdge : labelledEdges) {
-            Edge<S> edge = labelledEdge.getEdge();
+            Edge<S> edge = labelledEdge.edge;
             S generalizedSuccessor = edge.getSuccessor();
             if (!scc.contains(generalizedSuccessor)) {
               // This is a transient edge, add to the table and ignore it
@@ -229,13 +230,13 @@ public final class RabinDegeneralization implements Transformer {
             DegeneralizedRabinState<S> successor =
               new DegeneralizedRabinState<>(generalizedSuccessor, successorAwaitedIndices);
             ValuationSet valuations = labelledEdge.valuations.copy();
-            successors.add(new LabelledEdge<>(Edges.create(successor, edgeAcceptance), valuations));
+            successors.add(LabelledEdge.of(Edges.create(successor, edgeAcceptance), valuations));
           }
           return successors;
         });
 
       List<Set<DegeneralizedRabinState<S>>> resultSccs = SccDecomposition.computeSccs(
-        AutomatonFactory.filter((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
+        Views.filter((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
           exploredStates), exploredStates, false);
       Set<DegeneralizedRabinState<S>> resultBscc = resultSccs.stream()
         .filter(resultScc -> SccDecomposition.isTrap(resultAutomaton, resultScc))

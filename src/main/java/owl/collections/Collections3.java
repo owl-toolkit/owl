@@ -18,10 +18,13 @@
 package owl.collections;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
+import java.util.AbstractCollection;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -49,6 +52,30 @@ public final class Collections3 {
 
     list.add(element);
     return true;
+  }
+
+  public static <E> Collection<E> concat(Collection<E> collection1, Collection<E> collection2) {
+    return new AbstractCollection<>() {
+      @Override
+      public boolean contains(Object o) {
+        return collection1.contains(o) || collection2.contains(o);
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return collection1.isEmpty() && collection2.isEmpty();
+      }
+
+      @Override
+      public Iterator<E> iterator() {
+        return Iterators.concat(collection1.iterator(), collection2.iterator());
+      }
+
+      @Override
+      public int size() {
+        return collection1.size() + collection2.size();
+      }
+    };
   }
 
   public static <T> void forEachIndexed(List<T> list, IndexedConsumer<T> action) {

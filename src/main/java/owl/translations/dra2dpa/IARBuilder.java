@@ -27,6 +27,7 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -124,13 +125,13 @@ public final class IARBuilder<R> {
 
         SccProcessingResult<R> result = currentResultFuture.get();
 
-        Automaton<IARState<R>, ?> subAutomaton = result.getSubAutomaton();
+        Automaton<IARState<R>, ?> subAutomaton = result.subAutomaton;
         OmegaAcceptance subAutomatonAcceptance = subAutomaton.getAcceptance();
         if (subAutomatonAcceptance instanceof ParityAcceptance) {
           maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
             subAutomatonAcceptance.getAcceptanceSets() - 1);
         }
-        interSccConnectionsBuilder.putAll(result.getInterSccConnections());
+        interSccConnectionsBuilder.putAll(result.interSccConnections);
         resultAutomaton.addAll(subAutomaton);
         subAutomaton.free();
         completedSccs += 1;
@@ -239,6 +240,7 @@ public final class IARBuilder<R> {
         }
       }
     }
+
     ImmutableMultimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();
 
     if (!sccHasALoop) {
@@ -247,7 +249,7 @@ public final class IARBuilder<R> {
       R transientSccState = scc.iterator().next();
       IARState<R> iarState = IARState.trivial(transientSccState);
       return new SccProcessingResult<>(interSccConnections,
-        AutomatonFactory.singleton(iarState, vsFactory));
+        AutomatonFactory.singleton(iarState, vsFactory, NoneAcceptance.INSTANCE));
     }
 
     if (!seenAnyInfSet) {
@@ -271,22 +273,14 @@ public final class IARBuilder<R> {
     return new SccProcessingResult<>(interSccConnections, subAutomaton);
   }
 
-  private static final class SccProcessingResult<R> {
-    private final Multimap<R, LabelledEdge<R>> interSccConnections;
-    private final Automaton<IARState<R>, ?> subAutomaton;
+  static final class SccProcessingResult<R> {
+    final Multimap<R, LabelledEdge<R>> interSccConnections;
+    final Automaton<IARState<R>, ?> subAutomaton;
 
     SccProcessingResult(Multimap<R, LabelledEdge<R>> interSccConnections,
       Automaton<IARState<R>, ?> subAutomaton) {
       this.interSccConnections = interSccConnections;
       this.subAutomaton = subAutomaton;
-    }
-
-    private Multimap<R, LabelledEdge<R>> getInterSccConnections() {
-      return interSccConnections;
-    }
-
-    private Automaton<IARState<R>, ?> getSubAutomaton() {
-      return subAutomaton;
     }
   }
 }
