@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Test;
 import owl.arena.Arena.Owner;
-import owl.arena.ArenaFactory.Node;
+import owl.arena.Views.Node;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -39,7 +39,7 @@ public class ArenaFactoryTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
     Arena<Node<Object>, ParityAcceptance> arena =
-      ArenaFactory.copyOf(ArenaFactory.split(automaton, List.of("a", "c")));
+      ArenaFactory.copyOf(Views.split(automaton, List.of("a", "c")));
 
     for (Node<Object> state : arena.getStates()) {
       for (Node<Object> predecessor : arena.getPredecessors(state)) {
@@ -60,7 +60,7 @@ public class ArenaFactoryTest {
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
     Arena<Node<Object>, ParityAcceptance> arena =
-      ArenaFactory.copyOf(ArenaFactory.split(automaton, List.of("a")));
+      ArenaFactory.copyOf(Views.split(automaton, List.of("a")));
 
     Set<Node<Object>> winningStates = arena.getStates().stream()
       .filter(x -> {
