@@ -15,7 +15,12 @@ public class SplitterTest {
     + "(r_7) -> (F (g_7)))))";
 
   @Test
-  public void split() throws Exception {
+  public void splitSimpleArbiter() throws Exception {
     Splitter.split(LtlParser.syntax(SIMPLE_ARBITER));
+  }
+
+  @Test
+  public void splitFG() throws Exception {
+    Splitter.split(LtlParser.syntax("F G a"));
   }
 }

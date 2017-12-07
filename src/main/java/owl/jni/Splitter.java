@@ -83,7 +83,7 @@ public class Splitter {
       if (grouping.mixed.size() == 1) {
         children.add(Iterables.getOnlyElement(grouping.mixed).accept(this));
       } else if (grouping.mixed.size() > 1) {
-        children.add(new Leaf<>(IntAutomaton.of(Conjunction.of(grouping.mixed))));
+        children.add(createLeaf(Conjunction.of(grouping.mixed)));
       }
 
       return new Node<>(Tag.CONJUNCTION, children);

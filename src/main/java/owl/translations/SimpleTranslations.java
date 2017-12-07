@@ -46,7 +46,7 @@ public class SimpleTranslations {
 
   public static Automaton<DegeneralizedBreakpointState, CoBuchiAcceptance> buildCoBuchi(
     LabelledFormula formula) {
-    return AutomatonUtil.cast(Views.complement(buildBuchi(formula),
+    return AutomatonUtil.cast(Views.complement(buildBuchi(formula.not()),
       DegeneralizedBreakpointState.createSink()), CoBuchiAcceptance.class);
   }
 
