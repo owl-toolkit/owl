@@ -20,7 +20,7 @@ public class SplitterTest {
   }
 
   @Test
-  public void splitFG() throws Exception {
+  public void splitFg() throws Exception {
     Splitter.split(LtlParser.syntax("F G a"));
   }
 }
