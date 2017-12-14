@@ -37,10 +37,10 @@ namespace owl {
         Automaton(const Automaton &automaton);
         ~Automaton();
 
-        std::map<int, int> alphabet_mapping();
+        std::map<int, int> alphabet_mapping() const;
         Acceptance acceptance() const;
-        std::vector<Edge> edges(int state);
-        std::vector<int> successors(int state);
+        std::vector<Edge> edges(int state) const;
+        std::vector<int> successors(int state) const;
     };
 
     struct Edge {

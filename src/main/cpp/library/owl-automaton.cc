@@ -48,7 +48,7 @@ namespace owl {
         return Acceptance(call_int_method<>(env, handle, acceptanceID));
     }
 
-    std::vector<Edge> Automaton::edges(int state) {
+    std::vector<Edge> Automaton::edges(int state) const {
         auto result = call_method<jintArray>(env, handle, edgesID, state);
 
         // Provide an array to copy into...
@@ -60,7 +60,7 @@ namespace owl {
         return edges;
     }
 
-    std::vector<int> Automaton::successors(int state){
+    std::vector<int> Automaton::successors(int state) const {
         auto result = call_method<jintArray>(env, handle, successorsID, state);
 
         // Provide an array to copy into...
@@ -72,7 +72,7 @@ namespace owl {
         return successors;
     }
 
-    std::map<int, int> Automaton::alphabet_mapping() {
+    std::map<int, int> Automaton::alphabet_mapping() const {
         std::map<int, int> mapping = std::map<int, int>();
         auto java_mapping = call_method<jintArray>(env, handle, alphabet_mappingID);
 
