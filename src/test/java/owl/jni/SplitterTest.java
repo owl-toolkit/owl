@@ -23,4 +23,9 @@ public class SplitterTest {
   public void splitFg() throws Exception {
     Splitter.split(LtlParser.syntax("F G a"));
   }
+
+  @Test
+  public void splitBuechi() throws Exception {
+    Splitter.split(LtlParser.syntax("G (a | X F a)"));
+  }
 }
