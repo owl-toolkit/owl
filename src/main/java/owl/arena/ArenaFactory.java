@@ -27,54 +27,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
 
 public final class ArenaFactory {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment) throws ParseException {
-      String[] playerOnePropositions = settings.getOptionValues("uncontrollable");
-
-      if (playerOnePropositions == null) {
-        throw new ParseException("Player one (environment) propositions required");
-      }
-
-      return Transformers.fromFunction(Automaton.class, automaton ->
-        Views.split(AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class),
-        List.of(playerOnePropositions)));
-    }
-
-    @Override
-    public String getKey() {
-      return "aut2arena";
-    }
-
-    @Override
-    public Options getOptions() {
-      Option option = new Option("u", "uncontrollable", true,
-        "List of atomic propositions controlled by player one (Environment)");
-      option.setRequired(true);
-      option.setArgs(Option.UNLIMITED_VALUES);
-      return new Options().addOption(option);
-    }
-  };
-
   private ArenaFactory() {}
 
   public static <S, A extends OmegaAcceptance> Arena<S, A> copyOf(Arena<S, A> arena) {

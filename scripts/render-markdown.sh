@@ -23,5 +23,5 @@ for FILE in ${FILES}; do
     exit 1
   fi
 
-  pandoc --standalone -f markdown_github -t html5 -o "$DESTINATION/$FILE.html" "$SOURCE_PATH"
+  pandoc --standalone -f markdown_github -t html5 -o "$DESTINATION/$FILE.html" "$SOURCE_PATH" || true
 done

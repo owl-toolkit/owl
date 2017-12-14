@@ -69,8 +69,7 @@ public final class RabinDegeneralization implements Transformer {
   public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
     Automaton<S, GeneralizedRabinAcceptance> automaton) {
     // TODO parallel
-    logger.log(Level.FINER, "De-generalising automaton with {0} states",
-      automaton.getStates().size());
+    logger.log(Level.FINER, "De-generalising automaton with {0} states", automaton.size());
 
     // Generalized Rabin pair condition is Fin & /\ Inf(i), if the big AND is empty, it's true.
     // This means the condition translates to "don't visit the Fin set". Hence, as long as a

@@ -7,24 +7,24 @@ import java.util.EnumSet;
 import java.util.List;
 import org.junit.Test;
 import owl.arena.Arena;
-import owl.arena.Views.Node;
 import owl.arena.Views;
+import owl.arena.Views.Node;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.Optimisation;
+import owl.run.TestEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.util.TestEnvironment;
+import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class ParityGameSolverTest {
   private static final LTL2DPAFunction TRANSLATION;
 
   static {
-    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-    optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
-    TRANSLATION = new LTL2DPAFunction(TestEnvironment.get(), optimisations, false);
+    EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
+    optimisations.remove(Configuration.COMPLEMENT_CONSTRUCTION);
+    TRANSLATION = new LTL2DPAFunction(TestEnvironment.INSTANCE, optimisations, false);
   }
 
   @Test

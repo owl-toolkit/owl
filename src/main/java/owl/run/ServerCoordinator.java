@@ -1,4 +1,4 @@
-package owl.run.coordinator;
+package owl.run;
 
 import com.google.common.base.Strings;
 import java.io.BufferedReader;
@@ -13,56 +13,24 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.run.DefaultCli;
-import owl.run.ImmutableCoordinatorSettings;
-import owl.run.ModuleSettings.CoordinatorSettings;
-import owl.run.PipelineRunner;
-import owl.run.PipelineSpecification;
+import owl.run.env.Environment;
+import owl.run.parser.CliHelpPrinter;
 import owl.run.parser.CliParser;
-import owl.translations.ExternalTranslator;
-import owl.translations.LTL2DA;
-import owl.translations.delag.DelagBuilder;
-import owl.translations.dra2dpa.IARBuilder;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.translations.ltl2ldba.LTL2LDBAModule;
-import owl.translations.nba2dpa.NBA2DPAModule;
-import owl.translations.nba2ldba.NBA2LDBAModule;
-import owl.translations.rabinizer.RabinizerModule;
 
-public class ServerCoordinator implements Coordinator {
-  public static final CoordinatorSettings settings = ImmutableCoordinatorSettings.builder()
-    .key("server")
-    .description("Opens a server and runs an execution for each connection")
-    .options(options())
-    .coordinatorSettingsParser((settings, env) -> parseSettings(settings))
-    .build();
+public class ServerCoordinator {
 
   private static final Logger logger = Logger.getLogger(ServerCoordinator.class.getName());
-
-  // TODO: Fix coordinator and inline settings.
-  public static void main(String... args) {
-    DefaultCli.defaultRegistry.register(new RabinizerModule(), IARBuilder.settings,
-      DelagBuilder.settings,
-      new LTL2LDBAModule(), LTL2DA.settings, LTL2DPAFunction.settings, new NBA2DPAModule(),
-      new NBA2LDBAModule(), ExternalTranslator.settings);
-
-    Coordinator coordinator = CliParser.parse(args, DefaultCli.defaultRegistry);
-
-    if (coordinator == null) {
-      return;
-    }
-
-    coordinator.run();
-  }
-
-  // TODO Maybe don't start one coordinator for each connection but share them?
   private final InetAddress address;
   private final PipelineSpecification execution;
   private final int port;
@@ -71,6 +39,41 @@ public class ServerCoordinator implements Coordinator {
     this.execution = execution;
     this.address = address;
     this.port = port;
+  }
+
+  public static void main(String... args) {
+    CliHelpPrinter help = new CliHelpPrinter(CommandLineRegistry.DEFAULT_REGISTRY);
+
+    if (CliHelpPrinter.isHelpRequested(args)) {
+      help.printHelp();
+      return;
+    }
+
+    List<String> nextArgs = new ArrayList<>();
+    Environment environment = CliParser.parseEnvironment(Arrays.asList(args),
+      CommandLineRegistry.DEFAULT_REGISTRY, nextArgs);
+
+    if (environment == null) {
+      return;
+    }
+
+    String[] coordinatorArgs = CliParser.getNext(nextArgs.iterator());
+
+    PipelineSpecification pipelineSpecification = CliParser.parsePipeline(
+      nextArgs.subList(coordinatorArgs.length + 1, nextArgs.size()),
+      CommandLineRegistry.DEFAULT_REGISTRY,
+      environment);
+
+    if (pipelineSpecification == null) {
+      return;
+    }
+
+    try {
+      parse(new DefaultParser().parse(options(), coordinatorArgs), pipelineSpecification).run();
+    } catch (ParseException e) {
+      help.printModuleHelp("server", "Opens a server and runs an execution for each connection",
+        options(), e.getMessage());
+    }
   }
 
   private static Options options() {
@@ -83,7 +86,8 @@ public class ServerCoordinator implements Coordinator {
       .addOption(allowNonLocal);
   }
 
-  private static Coordinator.Factory parseSettings(CommandLine settings) throws ParseException {
+  private static ServerCoordinator parse(CommandLine settings,
+    PipelineSpecification pipelineSpecification) throws ParseException {
     @Nullable
     InetAddress address;
     if (Strings.isNullOrEmpty(settings.getOptionValue("address"))) {
@@ -121,10 +125,9 @@ public class ServerCoordinator implements Coordinator {
       }
     }
 
-    return execution -> new ServerCoordinator(execution, address, port);
+    return new ServerCoordinator(pipelineSpecification, address, port);
   }
 
-  @Override
   public void run() {
     logger.log(Level.INFO, "Starting server on {0}:{1}", new Object[] {address, port});
     try (ServerSocket socket = new ServerSocket(port, 0, address)) {
@@ -163,10 +166,10 @@ public class ServerCoordinator implements Coordinator {
   }
 
   private static class Runner implements Runnable {
-    private final Socket socket;
-    private final Reader reader;
-    private final Writer writer;
     private final PipelineSpecification pipelineSpecification;
+    private final Reader reader;
+    private final Socket socket;
+    private final Writer writer;
 
     Runner(PipelineSpecification pipelineSpecification, Socket socket, Reader reader,
       Writer writer) {

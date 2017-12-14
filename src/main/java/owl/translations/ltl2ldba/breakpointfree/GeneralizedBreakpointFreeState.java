@@ -20,6 +20,7 @@ package owl.translations.ltl2ldba.breakpointfree;
 import java.util.Arrays;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
+import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
 
 public final class GeneralizedBreakpointFreeState extends ImmutableObject {
@@ -53,9 +54,9 @@ public final class GeneralizedBreakpointFreeState extends ImmutableObject {
 
   @Override
   public String toString() {
-    return "[obligations=" + obligations
-      + (safety.isTrue() ? "" : ", safety=" + safety)
-      + ", liveness=" + Arrays.toString(liveness)
-      + ']';
+    return obligations + StringUtil.join(
+      safety.isTrue() ? null : "GWR=" + safety,
+      liveness.length <= 0 ? null : "FUM=" + Arrays.toString(liveness));
   }
+
 }

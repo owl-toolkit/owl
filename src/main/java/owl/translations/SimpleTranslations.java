@@ -18,10 +18,11 @@ import owl.factories.jbdd.JBddSupplier;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
+import owl.run.env.EnvironmentSettings;
 import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
-import owl.util.TestEnvironment;
 
 public class SimpleTranslations {
 
@@ -29,17 +30,15 @@ public class SimpleTranslations {
 
   public static Automaton<DegeneralizedBreakpointState, BuchiAcceptance> buildBuchi(
     LabelledFormula formula) {
-    EnumSet<Optimisation> ldbaOptimisations = EnumSet.of(
-      Optimisation.DETERMINISTIC_INITIAL_COMPONENT,
-      Optimisation.EAGER_UNFOLD,
-      Optimisation.SUPPRESS_JUMPS,
-      Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES,
-      Optimisation.FORCE_JUMPS,
-      Optimisation.OPTIMISED_STATE_STRUCTURE);
+    EnumSet<Configuration> configuration = EnumSet.of(
+      Configuration.EAGER_UNFOLD,
+      Configuration.SUPPRESS_JUMPS,
+      Configuration.FORCE_JUMPS,
+      Configuration.OPTIMISED_STATE_STRUCTURE);
 
     LimitDeterministicAutomaton<?, DegeneralizedBreakpointState, BuchiAcceptance, ?> ldba =
       LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(
-        TestEnvironment.get(), ldbaOptimisations).apply(formula);
+        EnvironmentSettings.DEFAULT_ENVIRONMENT, configuration).apply(formula);
     assert ldba.isDeterministic();
     return ldba.getAcceptingComponent();
   }

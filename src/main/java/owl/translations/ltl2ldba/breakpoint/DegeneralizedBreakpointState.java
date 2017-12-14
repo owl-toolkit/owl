@@ -22,6 +22,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassUtil;
 import owl.ltl.EquivalenceClass;
+import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
 
 public final class DegeneralizedBreakpointState extends ImmutableObject {
@@ -97,10 +98,9 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
 
   @Override
   public String toString() {
-    return "[obligations=" + obligations
-      + (safety == null || safety.isTrue() ? "" : ", safety=" + safety)
-      + (index == 0 ? "" : ", index=" + index)
-      + (current == null || current.isTrue() ? "" : ", current=" + current)
-      + (next.length <= 0 ? "" : ", next=" + Arrays.toString(next)) + ']';
+    return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
+      index == 0 ? null : "i=" + index,
+      current == null || current.isTrue() ? null : "C=" + current,
+      next.length <= 0 ? null : "N=" + Arrays.toString(next));
   }
 }

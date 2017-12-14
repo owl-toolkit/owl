@@ -17,13 +17,15 @@
 
 package owl.translations.ltl2ldba;
 
+import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT;
+
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Deque;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,8 +38,8 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public class InitialComponentBuilder<K extends RecurringObligation>
   implements MutableAutomatonBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
@@ -50,14 +52,14 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   private final SetMultimap<EquivalenceClass, Jump<K>> jumps;
   private final Set<EquivalenceClass> patientStates;
 
-  InitialComponentBuilder(Factories factories, EnumSet<Optimisation> optimisations,
+  InitialComponentBuilder(Factories factories, ImmutableSet<Configuration> configuration,
     AbstractJumpManager<K> jumpFactory) {
     this.factories = factories;
     this.jumpFactory = jumpFactory;
 
-    factory = new EquivalenceClassStateFactory(factories.eqFactory, optimisations);
+    factory = new EquivalenceClassStateFactory(factories.eqFactory, configuration);
     constructionQueue = new ArrayDeque<>();
-    constructDeterministic = optimisations.contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
+    constructDeterministic = !configuration.contains(NON_DETERMINISTIC_INITIAL_COMPONENT);
 
     jumps = MultimapBuilder.hashKeys().hashSetValues().build();
     patientStates = new HashSet<>();

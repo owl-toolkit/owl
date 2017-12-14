@@ -50,10 +50,10 @@ ltl2ldba:
     TEST_NAME: "ltl2ldba"
   <<: *ltlcross_template
 
-ltl2ldbga:
+ltl2ldba small:
   stage: test
   variables:
-    TEST_NAME: "ltl2ldbga"
+    TEST_NAME: "ltl2ldba-small"
   <<: *ltlcross_template
 
 # NBA to LDBA translations
@@ -80,10 +80,10 @@ ltl2dpa:
     TEST_NAME: "ltl2dpa"
   <<: *ltlcross_template
 
-ltl2dpa Breakpoint:
+ltl2dpa small:
   stage: test
   variables:
-    TEST_NAME: "ltl2dpa-bp"
+    TEST_NAME: "ltl2dpa-small"
   <<: *ltlcross_template
 
 # LTL to D*A translations

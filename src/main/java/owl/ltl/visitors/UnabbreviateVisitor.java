@@ -39,10 +39,8 @@ import owl.run.env.Environment;
 public class UnabbreviateVisitor extends DefaultConverter {
   public static final TransformerSettings settings = new TransformerSettings() {
     @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws ParseException {
-      return DefaultConverter
-        .asTransformer(new UnabbreviateVisitor(parseClassList(settings)));
+    public Transformer create(CommandLine settings, Environment environment) throws ParseException {
+      return DefaultConverter.asTransformer(new UnabbreviateVisitor(parseClassList(settings)));
     }
 
     @Override
@@ -73,22 +71,26 @@ public class UnabbreviateVisitor extends DefaultConverter {
 
   private static ImmutableList<Class<? extends Formula>> parseClassList(CommandLine settings)
     throws ParseException {
-    ImmutableList.Builder<Class<? extends Formula>> classes =
-      ImmutableList.builder();
+    ImmutableList.Builder<Class<? extends Formula>> classes = ImmutableList.builder();
+
     if (settings.hasOption("weak-until")) {
       classes.add(WOperator.class);
     }
+
     if (settings.hasOption("release")) {
       classes.add(ROperator.class);
     }
+
     if (settings.hasOption("strong-release")) {
       classes.add(MOperator.class);
     }
 
     ImmutableList<Class<? extends Formula>> classList = classes.build();
+
     if (classList.isEmpty()) {
       throw new ParseException("No operation specified");
     }
+
     return classList;
   }
 

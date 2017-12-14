@@ -17,10 +17,10 @@
 
 package owl.translations.ltl2ldba;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
@@ -28,7 +28,7 @@ import owl.factories.EquivalenceClassUtil;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.rewriter.NormalForms;
-import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public class EquivalenceClassStateFactory {
 
@@ -36,11 +36,10 @@ public class EquivalenceClassStateFactory {
   private final EquivalenceClassFactory factory;
   private final boolean removeRedundantObligations;
 
-  public EquivalenceClassStateFactory(EquivalenceClassFactory factory,
-    Set<Optimisation> optimisations) {
-    this(factory,
-      optimisations.contains(Optimisation.EAGER_UNFOLD),
-      optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE));
+  EquivalenceClassStateFactory(EquivalenceClassFactory factory,
+    ImmutableSet<Configuration> configuration) {
+    this(factory, configuration.contains(Configuration.EAGER_UNFOLD),
+      configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE));
   }
 
   public EquivalenceClassStateFactory(EquivalenceClassFactory factory, boolean eagerUnfold,

@@ -42,7 +42,6 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.ValuationSet;
-import owl.translations.Optimisation;
 
 public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   B extends GeneralizedBuchiAcceptance, C> {
@@ -54,14 +53,14 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   private final MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder;
   private final Set<T> initialStates;
   private final Predicate<S> isProtected;
-  private final EnumSet<Optimisation> optimisations;
+  private final EnumSet<Configuration> optimisations;
 
   private LimitDeterministicAutomatonBuilder(
     MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder,
     MutableAutomatonBuilder<KeyT, T, B> acceptingComponentBuilder,
     Function<S, Iterable<KeyT>> jumpGenerator,
     Function<T, C> annot,
-    EnumSet<Optimisation> optimisations, Predicate<S> isProtected) {
+    EnumSet<Configuration> optimisations, Predicate<S> isProtected) {
     this.initialComponentBuilder = initialComponentBuilder;
     this.acceptingComponentBuilder = acceptingComponentBuilder;
     this.optimisations = EnumSet.copyOf(optimisations);
@@ -78,7 +77,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annot,
-    EnumSet<Optimisation> optimisations) {
+    EnumSet<Configuration> optimisations) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
       acceptingComponentBuilder, jumpGenerator, annot, optimisations, x -> false);
   }
@@ -89,7 +88,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annot,
-    EnumSet<Optimisation> optimisations,
+    EnumSet<Configuration> optimisations,
     Predicate<S> isProtected) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
       acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected);
@@ -145,7 +144,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Predicate<S> initialComponentProtectedStates = x -> isProtected.test(x)
       || epsilonJumps.keySet().contains(x) || valuationSetJumps.rowKeySet().contains(x);
 
-    if (optimisations.contains(Optimisation.REMOVE_EPSILON_TRANSITIONS)) {
+    if (optimisations.contains(Configuration.REMOVE_EPSILON_TRANSITIONS)) {
       Set<T> reachableStates = new HashSet<>(initialStates);
 
       for (S state : initialComponent.getStates()) {
@@ -185,7 +184,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   private void generateJumps(Automaton<S, NoneAcceptance> initialComponent,
     Multimap<S, T> epsilonJumps) {
     // Decompose into SCCs
-    List<Set<S>> sccs = optimisations.contains(Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES)
+    List<Set<S>> sccs = optimisations.contains(Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES)
       ? SccDecomposition.computeSccs(initialComponent, true)
       : List.of(initialComponent.getStates());
 
@@ -224,5 +223,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
         }
       }
     }
+  }
+
+  public enum Configuration {
+    SUPPRESS_JUMPS_FOR_TRANSIENT_STATES, REMOVE_EPSILON_TRANSITIONS
   }
 }

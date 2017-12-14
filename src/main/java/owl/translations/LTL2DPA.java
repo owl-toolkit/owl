@@ -6,7 +6,7 @@ import owl.run.OutputWriters;
 import owl.run.Transformers;
 import owl.run.parser.ImmutableSingleModuleConfiguration;
 import owl.run.parser.SimpleModuleParser;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2dpa.LTL2DPAModule;
 import owl.translations.rabinizer.RabinizerModule;
 
 public final class LTL2DPA {
@@ -16,7 +16,7 @@ public final class LTL2DPA {
     ImmutableSingleModuleConfiguration ldba = ImmutableSingleModuleConfiguration.builder()
       .readerModule(InputReaders.LTL)
       .addPreProcessors(Transformers.SIMPLIFY_MODAL_ITER)
-      .transformer(LTL2DPAFunction.settings)
+      .transformer(LTL2DPAModule.INSTANCE)
       .addPostProcessors(Transformers.MINIMIZER)
       .writerModule(OutputWriters.HOA)
       .build();

@@ -6,25 +6,14 @@ import owl.run.ModuleSettings;
 import owl.run.ModuleSettings.ReaderSettings;
 import owl.run.ModuleSettings.WriterSettings;
 import owl.run.Transformer;
-import owl.run.coordinator.SingleStreamCoordinator;
-import owl.run.env.DefaultEnvironmentSettings;
 import owl.run.env.EnvironmentSettings;
 
 @Value.Immutable
 public abstract class SingleModuleConfiguration {
   @Value.Default
-  public ModuleSettings.CoordinatorSettings coordinatorSettings() {
-    return SingleStreamCoordinator.settings;
-  }
-
-  @Value.Default
   public EnvironmentSettings environmentSettings() {
-    return new DefaultEnvironmentSettings();
+    return new EnvironmentSettings();
   }
-
-  public abstract ReaderSettings readerModule();
-
-  public abstract WriterSettings writerModule();
 
   @Value.Default
   public boolean passNonOptionToCoordinator() {
@@ -41,5 +30,9 @@ public abstract class SingleModuleConfiguration {
     return List.of();
   }
 
+  public abstract ReaderSettings readerModule();
+
   public abstract ModuleSettings.TransformerSettings transformer();
+
+  public abstract WriterSettings writerModule();
 }

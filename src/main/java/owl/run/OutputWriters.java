@@ -110,7 +110,7 @@ public final class OutputWriters {
   public static final WriterSettings STRING = ImmutableWriterSettings.builder()
     .key("string")
     .description("Prints the toString() representation of all passed objects")
-    .constructor((x, y) -> (object, stream) -> stream.write(object.toString()))
+    .constructor((x, y) -> (object, stream) -> stream.write(object + System.lineSeparator()))
     .build();
 
   private OutputWriters() {
@@ -136,7 +136,7 @@ public final class OutputWriters {
           HoaPrintable::getName)
         // State count
         .put(Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> String.valueOf(automaton.getStates().size()))
+          automaton -> String.valueOf(automaton.size()))
         // Number of propositions
         .put(Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
           automaton -> String.valueOf(automaton.getVariables().size()))

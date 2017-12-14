@@ -42,19 +42,28 @@
     "tests": {
         "ltl2ldba": {
             "tools": [
-                "ltl2ldba",
-                "ltl2ldba#breakpoint",
-                "ltl2ldba#breakpoint,deterministic",
-                "ltl2ldba#deterministic"
+                "ltl2ldba#",
+                "ltl2ldba#non-deterministic",
+                "ltl2ldba#guess-f",
+                "ltl2ldba#guess-f,non-deterministic",
+                "ltl2ldba#degeneralise",
+                "ltl2ldba#degeneralise,non-deterministic",
+                "ltl2ldba#degeneralise,guess-f",
+                "ltl2ldba#degeneralise,guess-f,non-deterministic"
             ]
         },
-        "ltl2ldbga": {
+        "ltl2ldba-small": {
             "tools": [
-                "ltl2ldba#gen-buchi",
-                "ltl2ldba#gen-buchi,breakpoint",
-                "ltl2ldba#gen-buchi,deterministic,breakpoint",
-                "ltl2ldba#gen-buchi,deterministic"
-            ]
+                "ltl2ldba#simple",
+                "ltl2ldba#non-deterministic,simple",
+                "ltl2ldba#guess-f,simple",
+                "ltl2ldba#guess-f,non-deterministic,simple",
+                "ltl2ldba#degeneralise,simple",
+                "ltl2ldba#degeneralise,non-deterministic,simple",
+                "ltl2ldba#degeneralise,guess-f,simple",
+                "ltl2ldba#degeneralise,guess-f,non-deterministic,simple"
+            ],
+            "data": "small"
         },
         "ltl2dpa": {
             "tools": [
@@ -62,10 +71,14 @@
                 "ltl2dpa#complement"
             ]
         },
-        "ltl2dpa-bp": {
+        "ltl2dpa-small": {
             "tools": [
-                "ltl2dpa#breakpoint",
-                "ltl2dpa#breakpoint,complement"
+                "ltl2dpa#guess-f",
+                "ltl2dpa#guess-f,complement",
+                "ltl2dpa#simple",
+                "ltl2dpa#complement,simple",
+                "ltl2dpa#guess-f,simple",
+                "ltl2dpa#guess-f,complement,simple"
             ],
             "data": "small"
         },
@@ -73,8 +86,7 @@
         "nba2ldba": "spot-nba2ldba",
         "nba2dpa": {
             "tools": [
-                "spot-nba2dpa",
-                "spot-nba2dpa#nosafety"
+                "spot-nba2dpa"
             ],
             "data": "small"
         },

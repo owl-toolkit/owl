@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -47,11 +46,9 @@ import owl.run.env.Environment;
 import owl.run.parser.ImmutableSingleModuleConfiguration;
 import owl.run.parser.SimpleModuleParser;
 import owl.translations.ExternalTranslator;
-import owl.translations.Optimisation;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
-public class DelagBuilder<T>
-  implements Function<LabelledFormula, Automaton<State<T>, ?>> {
+public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
   public static final TransformerSettings settings = new TransformerSettings() {
     @Override
     public Transformer create(CommandLine settings, Environment environment)
@@ -66,7 +63,7 @@ public class DelagBuilder<T>
         };
       } else {
         fallback = fallbackTool == null
-                   ? new LTL2DPAFunction(environment, EnumSet.allOf(Optimisation.class))
+                   ? new LTL2DPAFunction(environment)
                    : new ExternalTranslator(environment, fallbackTool);
       }
       //noinspection unchecked,rawtypes
@@ -87,8 +84,7 @@ public class DelagBuilder<T>
   };
 
   private final Environment env;
-  private final Function<LabelledFormula, ? extends Automaton<T, ?>>
-    fallback;
+  private final Function<LabelledFormula, ? extends Automaton<T, ?>> fallback;
   @Nullable
   private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 

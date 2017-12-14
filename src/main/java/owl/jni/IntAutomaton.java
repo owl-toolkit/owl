@@ -41,10 +41,10 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.ShiftRewriter;
 import owl.ltl.rewriter.ShiftRewriter.ShiftedFormula;
-import owl.translations.Optimisation;
+import owl.run.env.EnvironmentSettings;
 import owl.translations.SimpleTranslations;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.util.TestEnvironment;
+import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class IntAutomaton {
 
@@ -131,11 +131,10 @@ public class IntAutomaton {
     }
 
     // Fallback to DPA
-    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-    optimisations.remove(Optimisation.COMPLETE);
-    MutableAutomaton<?, ParityAcceptance> automaton = new LTL2DPAFunction(TestEnvironment.get(),
-      optimisations)
-      .apply(labelledFormula);
+    EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
+    optimisations.remove(Configuration.COMPLETE);
+    MutableAutomaton<?, ParityAcceptance> automaton = new LTL2DPAFunction(
+      EnvironmentSettings.DEFAULT_ENVIRONMENT, optimisations).apply(labelledFormula);
     return of(automaton, detectAcceptance(automaton), shiftedFormula.mapping);
   }
 

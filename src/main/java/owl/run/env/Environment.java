@@ -1,55 +1,52 @@
 package owl.run.env;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import java.util.concurrent.ExecutorService;
+import org.immutables.value.Value;
 import owl.factories.FactorySupplier;
-import owl.run.coordinator.Coordinator;
+import owl.factories.jbdd.JBddSupplier;
 
 /**
- * The environment makes global configuration available to all parts of the pipeline. For example,
- * it provides an {@link ListeningExecutorService executor} that is supposed to be used by all
- * implementations if they support parallelism.
+ * The environment makes global configuration available to all parts of the pipeline.
  */
+@Value.Immutable
 public interface Environment {
   /**
    * Whether additional information (like semantic state labels) should be included.
    */
-  boolean annotations();
+  @Value.Default
+  default boolean annotations() {
+    return false;
+  }
 
   /**
    * Returns the configured {@link FactorySupplier}.
    */
-  FactorySupplier factorySupplier();
-
-  /**
-   * The shared executor for all computations.
-   * <p><strong>Warning</strong>: Modules <b>must not</b> {@link ExecutorService#shutdown()
-   * shutdown} this executor. This is the responsibility of the {@link Coordinator}.</p>
-   */
-  ListeningExecutorService getExecutor();
+  @Value.Default
+  default FactorySupplier factorySupplier() {
+    return JBddSupplier.async();
+  }
 
   /**
    * Whether the constructions should try to recover from errors or fail-fast.
    */
-  boolean lenient();
+  @Value.Default
+  default boolean lenient() {
+    return false;
+  }
 
   /**
    * Returns whether meta information gathering is enabled.
    */
-  // TODO Does this belong here? Or should this be put into the ExecutionContext?
-  boolean metaInformation();
+  @Value.Default
+  default boolean metaInformation() {
+    return true;
+  }
 
   /**
    * Whether computations should be parallel. Note that this method should only be used when
-   * parallelism significantly influences the algorithm. For usual applications, it suffices to just
-   * use the specified executor returned by {@link #getExecutor()}.
+   * parallelism significantly influences the algorithm.
    */
-  boolean parallel();
-
-  /**
-   * Shutdown method. Must only be called by the coordinator.
-   */
-  default void shutdown() {
-    getExecutor().shutdown();
+  @Value.Default
+  default boolean parallel() {
+    return false;
   }
 }

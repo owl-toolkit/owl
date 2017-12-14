@@ -80,12 +80,11 @@ class OwlTool(Tool):
         tool_execution = ["build/bin/owl-server"]
         if self.parallel:
             tool_execution.append("--parallel")
-        tool_execution.append("---")
         return tool_execution
 
     def get_server_execution(self, port=None):
         tool_execution = self.get_base_executable()
-        tool_execution.extend(["server", "--address", "localhost"])
+        tool_execution.extend(["--address", "localhost"])
         if port is not None:
             tool_execution.extend(["--port", str(port)])
         tool_execution.append("---")

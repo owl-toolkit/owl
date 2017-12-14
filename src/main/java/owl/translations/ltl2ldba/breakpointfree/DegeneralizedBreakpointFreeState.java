@@ -20,6 +20,7 @@ package owl.translations.ltl2ldba.breakpointfree;
 import java.util.Objects;
 import javax.annotation.Nonnegative;
 import owl.ltl.EquivalenceClass;
+import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
 
 public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
@@ -62,10 +63,7 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
 
   @Override
   public String toString() {
-    return "[obligations=" + obligations
-      + (safety.isTrue() ? "" : ", safety=" + safety)
-      + (index == 0 ? "" : ", index=" + index)
-      + (liveness.isTrue() ? "" : ", current-liveness=" + liveness)
-      + ']';
+    return obligations + StringUtil.join(safety.isTrue() ? null : "GWR=" + safety,
+      liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ")");
   }
 }

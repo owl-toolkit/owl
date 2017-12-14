@@ -109,20 +109,20 @@ generateGrammarSource {
     }
 }
 
-// C and C++ 
+// C and C++
 
 model {
     repositories {
         libs(PrebuiltLibraries) {
             jdk {
-                headers.srcDirs "${System.properties['java.home']}/include", 
+                headers.srcDirs "${System.properties['java.home']}/include",
                     "${System.properties['java.home']}/include/win32",
                     "${System.properties['java.home']}/include/darwin",
                     "${System.properties['java.home']}/include/linux"
             }
 
             internal {
-                headers.srcDirs "src/main/headers", 
+                headers.srcDirs "src/main/headers",
                     "src/main/cpp/library"
             }
         }
@@ -173,7 +173,7 @@ model {
                     source {
                         srcDir "src/main/cpp/example"
                         include "example.cc"
-                    }   
+                    }
                 }
             }
 
@@ -182,7 +182,7 @@ model {
                 linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
 
                 lib library: 'jdk', linkage: 'api'
-                lib library: 'owl', linkage: 'static' 
+                lib library: 'owl', linkage: 'static'
             }
         }
     }
@@ -243,7 +243,7 @@ checkstyle {
 }
 
 // Create startup scripts
-mainClassName = "owl.run.DefaultCli"
+mainClassName = "owl.run.SingleStreamCoordinator"
 // Create startup scripts for each tool
 def scripts = [
     'synth'      : 'owl.translations.Synthesis',
@@ -256,7 +256,7 @@ def scripts = [
     'ltl2dgra'   : 'owl.translations.rabinizer.RabinizerMain',
     'ltl2dra'    : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'nba2dpa'    : 'owl.translations.nba2dpa.NBA2DPAModule',
-    'owl-server' : 'owl.run.coordinator.ServerCoordinator'
+    'owl-server' : 'owl.run.ServerCoordinator'
 ]
 
 scripts.each() { scriptName, className ->

@@ -18,43 +18,28 @@
 package owl.automaton.ldba;
 
 import java.util.EnumSet;
-import java.util.function.Function;
-import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
-import org.junit.Before;
 import org.junit.Test;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.Optimisation;
+import owl.run.TestEnvironment;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
-import owl.translations.ltl2ldba.breakpoint.GObligations;
-import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
-import owl.util.TestEnvironment;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public class CutDeterministicAutomatonTest {
-  @Nullable
-  private LimitDeterministicAutomaton<EquivalenceClass, ?, ?, ?> ldba = null;
-
-  @Before
-  public void setUp() throws Exception {
-    EnumSet<Optimisation> optimisations = EnumSet.of(
-      Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES,
-      Optimisation.EAGER_UNFOLD,
-      Optimisation.FORCE_JUMPS, Optimisation.SUPPRESS_JUMPS,
-      Optimisation.OPTIMISED_STATE_STRUCTURE);
-
-    Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-      GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>> function =
-      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(TestEnvironment.get(), optimisations);
-    ldba = function.apply(LtlParser.parse("a | F b | G c | G d"));
-  }
-
   @Test
   public void test() {
-    assert ldba != null;
+    EnumSet<Configuration> configuration = EnumSet.of(
+      Configuration.EAGER_UNFOLD,
+      Configuration.FORCE_JUMPS,
+      Configuration.SUPPRESS_JUMPS,
+      Configuration.OPTIMISED_STATE_STRUCTURE);
+
+    LimitDeterministicAutomaton<EquivalenceClass, ?, ?, ?> ldba = LTL2LDBAFunction
+      .createGeneralizedBreakpointLDBABuilder(TestEnvironment.INSTANCE,
+        configuration).apply(LtlParser.parse("a | F b | G c | G d"));
+
     ldba.asCutDeterministicAutomaton().toHoa(new HOAIntermediateCheckValidity(
       new HOAConsumerNull()));
   }

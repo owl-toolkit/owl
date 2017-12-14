@@ -27,13 +27,13 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
-import owl.translations.Optimisation;
+import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 
 public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety>> {
-  private final EnumSet<Optimisation> optimisations;
+  private final EnumSet<Configuration> optimisations;
 
-  public NBA2LDBAFunction(EnumSet<Optimisation> optimisations) {
+  public NBA2LDBAFunction(EnumSet<Configuration> optimisations) {
     this.optimisations = optimisations;
   }
 
@@ -59,7 +59,8 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
 
     Function<BreakpointState<S>, Safety> stateSafety;
 
-    if (optimisations.contains(Optimisation.COMPUTE_SAFETY_PROPERTY)) {
+    // TODO: Code is broken.
+    if (optimisations.contains(null)) {
       nba.getStates().forEach(acceptingComponentBuilder::add);
       Automaton<BreakpointState<S>, BuchiAcceptance> acceptingComponent
         = acceptingComponentBuilder.build();
