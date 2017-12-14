@@ -93,9 +93,8 @@ public final class GObligations extends ImmutableObject implements RecurringObli
       EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i),
         factory.getTrue());
 
-      Formula formula = RewriterFactory.apply(RewriterEnum.PUSHDOWN_X, RewriterFactory
-        .apply(RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor))
-      );
+      Formula formula = RewriterFactory.apply(
+        RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor));
 
       if (!(formula instanceof BooleanConstant) && !(formula instanceof GOperator)) {
         builder.add(new GOperator(formula));

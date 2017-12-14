@@ -187,7 +187,7 @@ public class LTL2LDGBATest {
   @Test
   public void testOptimisations3() throws Exception {
     String ltl = "G((a & !X a) | (X (a U (a & !b & (X(a & b & (a U (a & !b & (X(a & b))))))))))";
-    testOutput(ltl, 19);
+    testOutput(ltl, 8);
   }
 
   @Test
