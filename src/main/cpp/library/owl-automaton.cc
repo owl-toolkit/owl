@@ -25,6 +25,7 @@ namespace owl {
     void Automaton::bind_methods(const jclass &clazz) {
         alphabet_mappingID = get_methodID(env, clazz, "alphabetMapping", "()[I");
         acceptanceID = get_methodID(env, clazz, "acceptance", "()I");
+        acceptanceSetCountID = get_methodID(env, clazz, "acceptanceSetCount", "()I");
         edgesID = get_methodID(env, clazz, "edges", "(I)[I");
         successorsID = get_methodID(env, clazz, "successors", "(I)[I");
     }
@@ -46,6 +47,10 @@ namespace owl {
 
     Acceptance Automaton::acceptance() const {
         return Acceptance(call_int_method<>(env, handle, acceptanceID));
+    }
+
+    int Automaton::acceptance_set_count() const {
+        return call_int_method<>(env, handle, acceptanceSetCountID);
     }
 
     std::vector<Edge> Automaton::edges(int state) const {
@@ -89,4 +94,6 @@ namespace owl {
 
         return mapping;
     }
+
+
 }
