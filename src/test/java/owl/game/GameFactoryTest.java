@@ -32,6 +32,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.util.AnnotatedState;
 import owl.game.Game.Owner;
 import owl.game.GameViews.Node;
+import owl.game.algorithms.AttractorSolver;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -82,11 +83,11 @@ class GameFactoryTest {
     assertThat(winningStates, x -> !x.isEmpty());
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
-    assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_2),
+    assertThat(AttractorSolver.getAttractor(winningStates, Owner.PLAYER_2),
       x -> x.contains(game.onlyInitialState()));
 
     // Player 1 can never win...
-    assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
+    assertThat(AttractorSolver.getAttractor(winningStates, Owner.PLAYER_1),
       x -> !x.contains(game.onlyInitialState()));
   }
 }

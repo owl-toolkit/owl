@@ -130,4 +130,7 @@ public interface ValuationSetFactory {
   <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets);
 
 
+  ValuationSet exists(ValuationSet set, BitSet quantifiedVariables);
+
+  ValuationSet forall(ValuationSet set, BitSet quantifiedVariables);
 }

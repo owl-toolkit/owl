@@ -21,22 +21,23 @@ package owl.translations.dpa2safety;
 
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.BitSet;
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.IntPredicate;
+import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.translations.dpa2safety.DPA2Safety.Counter;
+import owl.automaton.util.AnnotatedState;
+import owl.util.annotation.HashedTuple;
 
 public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>, Integer,
-  Automaton<Counter<S>, AllAcceptance>> {
+  Automaton<? extends AnnotatedState<S>, AllAcceptance>> {
 
   @Override
-  public Automaton<Counter<S>, AllAcceptance> apply(Automaton<S, ParityAcceptance> automaton,
-    Integer bound) {
+  public Automaton<? extends AnnotatedState<S>, AllAcceptance> apply(
+    Automaton<S, ParityAcceptance> automaton, Integer bound) {
     int d;
 
     if (automaton.acceptance().acceptanceSets() % 2 == 0) {
@@ -45,18 +46,18 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       d = automaton.acceptance().acceptanceSets();
     }
 
-    Counter<S> initialState = new Counter<>(automaton.onlyInitialState(), d / 2 + 1);
-
+    Counter<S> initialState = Counter.of(automaton.onlyInitialState(), d / 2 + 1);
     IntPredicate isAcceptingColour = x -> automaton.acceptance().isAccepting(x);
 
     BiFunction<Counter<S>, BitSet, Edge<Counter<S>>> successor = (x, y) -> {
-      Edge<S> edge = automaton.edge(x.state, y);
+      Edge<S> edge = automaton.edge(x.state(), y);
+
 
       if (edge == null) {
         return null;
       }
 
-      int[] counters = x.counters.toArray();
+      int[] counters = x.counters().toArray();
       int colour = edge.smallestAcceptanceSet();
       int i = (colour == Integer.MAX_VALUE ? d : colour) / 2;
 
@@ -69,52 +70,32 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
         // Increment
         counters[i]++;
 
-        if (x.counters.get(i) == bound) {
+        if (x.counters().get(i) == bound) {
           return null;
         }
       }
 
-      return Edge.of(new Counter<>(edge.successor(), counters));
+      return Edge.of(Counter.of(edge.successor(), counters));
     };
 
     return AutomatonFactory.create(automaton.factory(), initialState, AllAcceptance.INSTANCE,
       successor);
   }
 
-  static final class Counter<X> {
-    // TODO Tuple style
-    final X state;
-    final ImmutableIntArray counters;
-
-    Counter(X state, int length) {
-      this(state, new int[length]);
-    }
-
-    Counter(X state, int[] counters) {
-      this.state = state;
-      this.counters = ImmutableIntArray.copyOf(counters);
-    }
-
+  @Value.Immutable
+  @HashedTuple
+  abstract static class Counter<S> implements AnnotatedState<S> {
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      final Counter<?> counters1 = (Counter<?>) o;
-      return Objects.equals(state, counters1.state) && Objects.equals(counters, counters1.counters);
+    public abstract S state();
+
+    abstract ImmutableIntArray counters();
+
+    static <S> Counter<S> of(S state, int length) {
+      return of(state, new int[length]);
     }
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(state, counters);
-    }
-
-    @Override
-    public String toString() {
-      return "Counters{" + "state=" + state + ", counters=" + counters + '}';
+    static <S> Counter<S> of(S state, int[] counters) {
+      return CounterTuple.create(state, ImmutableIntArray.copyOf(counters));
     }
   }
 }

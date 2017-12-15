@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.factories.ValuationSetFactory;
+import owl.ltl.EquivalenceClass;
 
 public class ValuationSet {
   private final ValuationSetFactory factory;
@@ -101,5 +102,14 @@ public class ValuationSet {
     builder.setLength(builder.length() - 2);
     builder.append(']');
     return builder.toString();
+  }
+
+
+  public ValuationSet exists(BitSet quantifiedVariables) {
+    return factory.exists(this, quantifiedVariables);
+  }
+
+  public ValuationSet forall(BitSet quantifiedVariables) {
+    return factory.forall(this, quantifiedVariables);
   }
 }

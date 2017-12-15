@@ -77,14 +77,14 @@ public final class AutomatonOperations {
    *
    * @return An automaton that is constructed on-the-fly.
    */
-  public static <S> Automaton<List<S>, OmegaAcceptance> intersection(
-    List<Automaton<S, ? extends OmegaAcceptance>> automata) {
+  public static <S, A extends OmegaAcceptance> Automaton<List<S>, OmegaAcceptance> intersection(
+    List<Automaton<S, A>> automata) {
     checkArgument(!automata.isEmpty(), "No automaton was passed.");
 
     ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(false, true);
     int offset = 1;
 
-    for (Automaton<S, ? extends OmegaAcceptance> automaton : automata) {
+    for (var automaton : automata) {
       checkArgument(automaton.is(DETERMINISTIC), "Only deterministic automata supported");
 
       if (automaton.acceptance() instanceof AllAcceptance) {
@@ -104,7 +104,7 @@ public final class AutomatonOperations {
     OmegaAcceptance acceptance;
 
     if (builder.buchi.isEmpty()) {
-      acceptance = CoBuchiAcceptance.INSTANCE;
+      acceptance = builder.coBuchi.isEmpty() ? AllAcceptance.INSTANCE : CoBuchiAcceptance.INSTANCE;
     } else if (builder.coBuchi.isEmpty()) {
       acceptance = GeneralizedBuchiAcceptance.of(offset - 1);
     } else if (offset < 2) {

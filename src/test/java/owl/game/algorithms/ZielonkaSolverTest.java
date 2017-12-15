@@ -38,7 +38,7 @@ import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
-class ParityGameSolverTest {
+class ZielonkaSolverTest {
   private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
     DefaultEnvironment.annotated(),
     Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
@@ -53,8 +53,7 @@ class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("a"));
 
-    assertTrue(ParityGameSolver.zielonkaRealizability(game));
-  }
+    assertTrue(ZielonkaSolver.zielonkaRealizability(game));
 
   @Test
   void ltl2zielonkaTest2() {
@@ -68,7 +67,7 @@ class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("r_0", "r_1"));
 
-    assertFalse(ParityGameSolver.zielonkaRealizability(game));
+    assertFalse(ZielonkaSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -84,7 +83,7 @@ class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("go", "cancel", "req"));
 
-    assertFalse(ParityGameSolver.zielonkaRealizability(game));
+    assertFalse(ZielonkaSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -97,6 +96,6 @@ class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("r_0", "r_1"));
 
-    assertTrue(ParityGameSolver.zielonkaRealizability(game));
+    assertTrue(ZielonkaSolver.zielonkaRealizability(game));
   }
 }

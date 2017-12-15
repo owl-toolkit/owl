@@ -30,6 +30,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -58,8 +59,8 @@ class InitialComponentBuilder<K extends RecurringObligation>
 
   InitialComponentBuilder(Factories factories, Set<Configuration> configuration,
     AbstractJumpManager<K> jumpFactory) {
-    this.factories = factories;
-    this.jumpFactory = jumpFactory;
+    this.factories = Objects.requireNonNull(factories);
+    this.jumpFactory = Objects.requireNonNull(jumpFactory);
 
     factory = new EquivalenceClassStateFactory(factories, configuration);
     constructionQueue = new ArrayDeque<>();

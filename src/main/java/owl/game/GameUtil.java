@@ -123,7 +123,7 @@ public final class GameUtil {
       output.print(priorityState.acceptance());
       output.print(' ');
       // TODO Here the semantics might be important?
-      output.print(game.getOwner(priorityState.state()) == Game.Owner.PLAYER_1 ? 0 : 1);
+      output.print(game.owner(priorityState.state()) == Game.Owner.PLAYER_1 ? 0 : 1);
 
       Iterator<Edge<S>> iterator = game.edges(priorityState.state()).iterator();
       if (iterator.hasNext()) {

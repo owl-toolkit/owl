@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.immutables.value.Value;
-import owl.automaton.Automaton.Property;
 import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -42,7 +41,6 @@ public final class GameFactory {
   private GameFactory() {}
 
   public static <S, A extends OmegaAcceptance> Game<S, A> copyOf(Game<S, A> game) {
-    assert game.is(Property.COMPLETE) : "Only defined for complete game.";
     return new ImmutableGame<>(game);
   }
 
@@ -63,7 +61,7 @@ public final class GameFactory {
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
       for (S state : game.states()) {
-        if (Owner.PLAYER_1 == game.getOwner(state)) {
+        if (Owner.PLAYER_1 == game.owner(state)) {
           player1NodesBuilder.add(state);
         }
 
@@ -77,13 +75,13 @@ public final class GameFactory {
       this.graph = ImmutableValueGraph.copyOf(graph);
       this.initialStates = Set.copyOf(game.initialStates());
       this.player1Nodes = Set.copyOf(player1NodesBuilder);
-      this.variablesPlayer1 = List.copyOf(game.getVariables(Owner.PLAYER_1));
-      this.variablesPlayer2 = List.copyOf(game.getVariables(Owner.PLAYER_2));
-      this.choice = game::getChoice;
+      this.variablesPlayer1 = List.copyOf(game.variables(Owner.PLAYER_1));
+      this.variablesPlayer2 = List.copyOf(game.variables(Owner.PLAYER_2));
+      this.choice = game::choice;
     }
 
     @Override
-    public BitSet getChoice(S state, Owner owner) {
+    public BitSet choice(S state, Owner owner) {
       return choice.apply(state, owner);
     }
 
@@ -119,7 +117,7 @@ public final class GameFactory {
     }
 
     @Override
-    public Owner getOwner(S state) {
+    public Owner owner(S state) {
       return player1Nodes.contains(state) ? Owner.PLAYER_1 : Owner.PLAYER_2;
     }
 
@@ -139,7 +137,7 @@ public final class GameFactory {
     }
 
     @Override
-    public List<String> getVariables(Owner owner) {
+    public List<String> variables(Owner owner) {
       return owner == Owner.PLAYER_1 ? variablesPlayer1 : variablesPlayer2;
     }
 

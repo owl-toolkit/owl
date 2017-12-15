@@ -27,7 +27,7 @@ import owl.automaton.AutomatonOperations;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
 
 public final class LanguageAnalysis {
 
@@ -53,10 +53,10 @@ public final class LanguageAnalysis {
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
       "Second argument needs to be deterministic.");
 
-    var casted1 = AutomatonUtil.cast(automaton1, Object.class, BuchiAcceptance.class);
-    var casted2 = AutomatonUtil.cast(automaton2, Object.class, BuchiAcceptance.class);
+    var casted1 = AutomatonUtil.cast(automaton1, Object.class, OmegaAcceptance.class);
+    var casted2 = AutomatonUtil.cast(automaton2, Object.class, OmegaAcceptance.class);
 
     return EmptinessCheck.isEmpty(AutomatonOperations.intersection(List.of(casted1,
-      AutomatonUtil.cast(Views.complement(casted2, new Object()), CoBuchiAcceptance.class))));
+      AutomatonUtil.cast(Views.complement(casted2, new Object()), OmegaAcceptance.class))));
   }
 }

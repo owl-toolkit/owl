@@ -128,7 +128,7 @@ public abstract class Tlsf {
     List<LabelledFormula> conjuncts = new ArrayList<>();
     assert_().forEach(x -> conjuncts.add(toFormula(x, BooleanConstant.TRUE)));
     guarantee().forEach(x -> conjuncts.add(toFormula(BooleanConstant.TRUE, x)));
-    return conjuncts;
+    return List.copyOf(conjuncts);
   }
 
   public enum Semantics {

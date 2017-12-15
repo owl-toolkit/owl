@@ -39,6 +39,7 @@ import owl.factories.ValuationSetFactory;
 
 final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuationSet>
   implements ValuationSetFactory {
+
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
   private static final BitSet EMPTY = new BitSet(0);
@@ -191,6 +192,15 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
     return create(factory.notAnd(getBdd(set1), getBdd(set2)));
   }
 
+  @Override
+  public ValuationSet exists(ValuationSet set, BitSet quantifiedVariables) {
+    return create(factory.exists(getBdd(set), quantifiedVariables));
+  }
+
+  @Override
+  public ValuationSet forall(ValuationSet set, BitSet quantifiedVariables) {
+    return create(factory.not(factory.exists(factory.not(getBdd(set)), quantifiedVariables)));
+  }
 
   @Override
   public BooleanExpression<AtomLabel> toExpression(ValuationSet set) {
