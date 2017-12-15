@@ -143,6 +143,10 @@ public class IntAutomaton {
     return acceptance.ordinal();
   }
 
+  public int acceptanceSetCount() {
+    return automaton.getAcceptance().getAcceptanceSets();
+  }
+
   public int[] alphabetMapping() {
     return alphabetMapping;
   }

@@ -21,6 +21,7 @@ namespace owl {
         // Method IDs.
         jmethodID alphabet_mappingID{};
         jmethodID acceptanceID{};
+        jmethodID acceptanceSetCountID{};
         jmethodID edgesID{};
         jmethodID successorsID{};
 
@@ -39,6 +40,7 @@ namespace owl {
 
         std::map<int, int> alphabet_mapping() const;
         Acceptance acceptance() const;
+        int acceptance_set_count() const;
         std::vector<Edge> edges(int state) const;
         std::vector<int> successors(int state) const;
     };
