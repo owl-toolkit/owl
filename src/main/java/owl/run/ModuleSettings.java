@@ -4,8 +4,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.immutables.value.Value;
-import owl.run.coordinator.Coordinator;
-import owl.run.coordinator.Coordinator.Factory;
 import owl.run.env.Environment;
 
 public interface ModuleSettings<M> {
@@ -30,17 +28,6 @@ public interface ModuleSettings<M> {
 
   default M create(CommandLine commandLine, Environment environment) throws ParseException {
     return constructor().parse(commandLine, environment);
-  }
-
-  // TODO this doesn't belong here. Coordinator do not env atm are not a module of a pipeline.
-  @Value.Immutable
-  interface CoordinatorSettings extends ModuleSettings<Coordinator> {
-    BiParseFunction<CommandLine, Void, Factory> coordinatorSettingsParser();
-
-    default Coordinator.Factory parseCoordinatorSettings(CommandLine settings)
-      throws ParseException {
-      return coordinatorSettingsParser().parse(settings, null);
-    }
   }
 
   @Value.Immutable

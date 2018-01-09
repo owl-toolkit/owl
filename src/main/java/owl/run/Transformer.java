@@ -1,7 +1,5 @@
 package owl.run;
 
-import owl.run.env.Environment;
-
 /**
  * Transformers are the central pieces of the pipeline concept. They should be used for any
  * non-trivial mutation of objects. Typical instantiations are, for example, LTL to Automaton
@@ -35,9 +33,4 @@ public interface Transformer {
    * Applies the transformation represented by this transformer to the given object.
    */
   Object transform(Object object, PipelineExecutionContext context);
-
-  @FunctionalInterface
-  interface Factory {
-    Transformer createTransformer(Environment environment);
-  }
 }

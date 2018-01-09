@@ -8,8 +8,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.set.NatCartesianProductIterator;
 import de.tum.in.naturals.set.NatCartesianProductSet;
@@ -286,7 +284,7 @@ public class RabinizerBuilder {
         new Object[] {this.initialClass, toHoa(masterAutomaton)});
     } else {
       logger.log(Level.FINE, "Master automaton for {0} has {1} states",
-        new Object[] {this.initialClass, masterAutomaton.getStates().size()});
+        new Object[] {this.initialClass, masterAutomaton.size()});
     }
 
     /* Determine the SCC decomposition of the master.
@@ -328,13 +326,11 @@ public class RabinizerBuilder {
 
     // TODO We could detect effectively false G operators here (i.e. monitors never accept)
     // But this rarely happens
-    List<ListenableFuture<MonitorAutomaton>> monitorFutures = new ArrayList<>(numberOfGFormulas);
-    for (int gIndex = 0; gIndex < numberOfGFormulas; gIndex++) {
-      GOperator gFormula = gFormulas[gIndex];
-      monitorFutures.add(env.getExecutor().submit(() -> buildMonitor(gFormula)));
-    }
     MonitorAutomaton[] monitors = new MonitorAutomaton[numberOfGFormulas];
-    Arrays.setAll(monitors, i -> Futures.getUnchecked(monitorFutures.get(i)));
+
+    for (int gIndex = 0; gIndex < numberOfGFormulas; gIndex++) {
+      monitors[gIndex] = buildMonitor(gFormulas[gIndex]);
+    }
 
     /* Build the product
      *

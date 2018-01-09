@@ -33,16 +33,16 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.Optimisation;
-import owl.util.TestEnvironment;
+import owl.run.TestEnvironment;
+import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class LTL2DPAFunctionTest {
 
   private static void testOutput(String ltl, int size, int accSize) {
-    EnumSet<Optimisation> opts = EnumSet.allOf(Optimisation.class);
-    opts.remove(Optimisation.COMPLETE);
+    EnumSet<Configuration> opts = EnumSet.allOf(Configuration.class);
+    opts.remove(Configuration.COMPLETE);
     LabelledFormula parseResult = LtlParser.parse(ltl);
-    LTL2DPAFunction translation = new LTL2DPAFunction(TestEnvironment.get(), opts);
+    LTL2DPAFunction translation = new LTL2DPAFunction(TestEnvironment.INSTANCE, opts);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
 
     try (OutputStream stream = new ByteArrayOutputStream()) {

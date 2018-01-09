@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -45,7 +44,6 @@ import owl.automaton.acceptance.ParityAcceptance.Priority;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.translations.Optimisation;
 
 public final class RankingAutomatonBuilder<S, T, U, V>
   implements MutableAutomatonBuilder<S, RankingState<S, T>, ParityAcceptance> {
@@ -65,7 +63,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private RankingState<S, T> initialState = null;
 
   public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
-    AtomicInteger sizeCounter, EnumSet<Optimisation> optimisations,
+    AtomicInteger sizeCounter, boolean resetAfterSccSwitch,
     LanguageLattice<V, T, U> lattice, Predicate<S> isAcceptingState,
     boolean resetRanking) {
     this.ldba = ldba;
@@ -86,7 +84,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
 
     this.isAcceptingState = isAcceptingState;
 
-    initialComponentSccs = optimisations.contains(Optimisation.RESET_AFTER_SCC_SWITCH)
+    initialComponentSccs = resetAfterSccSwitch
       ? SccDecomposition.computeSccs(this.ldba.getInitialComponent())
       : null;
 

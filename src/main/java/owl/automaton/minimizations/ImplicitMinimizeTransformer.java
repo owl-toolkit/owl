@@ -20,6 +20,7 @@ public class ImplicitMinimizeTransformer implements Transformer {
       String levelString = settings.getOptionValue("level");
       @Nullable
       MinimizationUtil.MinimizationLevel level = getLevel(levelString);
+
       if (level == null) {
         throw new ParseException("Invalid value for \"level\": " + levelString);
       }

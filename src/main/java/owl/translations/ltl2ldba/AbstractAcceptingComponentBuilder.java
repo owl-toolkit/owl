@@ -17,15 +17,15 @@
 
 package owl.translations.ltl2ldba;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAcceptance,
   U extends RecurringObligation> implements MutableAutomatonBuilder<Jump<U>, S, T> {
@@ -34,10 +34,9 @@ public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAccept
   protected final Factories factories;
   protected final EquivalenceClassStateFactory factory;
 
-  protected AbstractAcceptingComponentBuilder(Set<Optimisation> optimisations,
+  protected AbstractAcceptingComponentBuilder(ImmutableSet<Configuration> optimisations,
     Factories factories) {
-    this.factory = new EquivalenceClassStateFactory(factories.eqFactory,
-      optimisations);
+    this.factory = new EquivalenceClassStateFactory(factories.eqFactory, optimisations);
     this.factories = factories;
   }
 

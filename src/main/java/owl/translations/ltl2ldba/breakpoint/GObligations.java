@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -38,7 +37,7 @@ import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.RankingComparator;
 import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisitor;
@@ -76,7 +75,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
    */
   @Nullable
   static GObligations build(Set<GOperator> gOperatorsSet,
-    EquivalenceClassFactory factory, EnumSet<Optimisation> optimisations) {
+    EquivalenceClassFactory factory, ImmutableSet<Configuration> optimisations) {
     // Fields for GObligations
     EquivalenceClass safety = factory.getTrue();
     List<EquivalenceClass> liveness = new ArrayList<>(gOperatorsSet.size());
@@ -109,7 +108,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
         return null;
       }
 
-      if (optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE)) {
+      if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
         if (clazz.testSupport(Fragments::isFinite)) {
           safety = safety.andWith(clazz);
           clazz.free();
@@ -196,30 +195,8 @@ public final class GObligations extends ImmutableObject implements RecurringObli
 
   @Override
   public String toString() {
-    StringBuilder stringBuilder = new StringBuilder(50);
-
-    stringBuilder.append('<');
-    if (!safety.isTrue()) {
-      stringBuilder.append("safety=").append(safety);
-    }
-
-    if (liveness.length > 0) {
-      if (!safety.isTrue()) {
-        stringBuilder.append(", ");
-      }
-
-      stringBuilder.append("liveness=").append(Arrays.toString(liveness));
-    }
-
-    if (obligations.length > 0) {
-      if (!safety.isTrue() || liveness.length > 0) {
-        stringBuilder.append(", ");
-      }
-
-      stringBuilder.append("obligations=").append(Arrays.toString(obligations));
-    }
-
-    stringBuilder.append('>');
-    return stringBuilder.toString();
+    return "<" + (safety.isTrue() ? "" : "S=" + safety + " ")
+      + (liveness.length <= 0 ? "" : "L=" + Arrays.toString(liveness) + " ")
+      + (obligations.length <= 0 ? "" : "O=" + Arrays.toString(obligations)) + ">";
   }
 }

@@ -1,4 +1,4 @@
-package owl.run.coordinator;
+package owl.run;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -8,28 +8,23 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import owl.run.ImmutableCoordinatorSettings;
-import owl.run.ModuleSettings.CoordinatorSettings;
-import owl.run.PipelineExecutionException;
-import owl.run.PipelineRunner;
-import owl.run.PipelineSpecification;
+import owl.run.env.Environment;
+import owl.run.parser.CliHelpPrinter;
+import owl.run.parser.CliParser;
 import owl.util.UncloseableWriter;
 
-public class SingleStreamCoordinator implements Coordinator {
-  public static final CoordinatorSettings settings = ImmutableCoordinatorSettings.builder()
-    .key("stream")
-    .options(options())
-    .coordinatorSettingsParser((settings, env) -> parseSettings(settings))
-    .build();
-
+public class SingleStreamCoordinator {
   private final int pipelineWorkerCount;
   // Use callables to delay exception handling.
   private final Callable<Reader> readerSupplier;
@@ -56,17 +51,48 @@ public class SingleStreamCoordinator implements Coordinator {
            : () -> Files.newBufferedReader(Paths.get(source));
   }
 
-  private static Options options() {
+  public static void main(String... args) {
+    CliHelpPrinter help = new CliHelpPrinter(CommandLineRegistry.DEFAULT_REGISTRY);
+
+    if (CliHelpPrinter.isHelpRequested(args)) {
+      help.printHelp();
+      return;
+    }
+
+    List<String> nextArgs = new ArrayList<>();
+    Environment environment = CliParser.parseEnvironment(Arrays.asList(args),
+      CommandLineRegistry.DEFAULT_REGISTRY, nextArgs);
+
+    if (environment == null) {
+      return;
+    }
+
+    String[] coordinatorArgs = CliParser.getNext(nextArgs.iterator());
+
+    PipelineSpecification pipelineSpecification = CliParser.parsePipeline(
+      nextArgs.subList(coordinatorArgs.length + 1, nextArgs.size()),
+      CommandLineRegistry.DEFAULT_REGISTRY, environment);
+
+    if (pipelineSpecification == null) {
+      return;
+    }
+
+    try {
+      parse(new DefaultParser().parse(options(), coordinatorArgs), pipelineSpecification).run();
+    } catch (ParseException e) {
+      help.printModuleHelp("stream", "", options(), e.getMessage());
+    }
+  }
+
+  public static Options options() {
     Option fileInput = new Option("I", "filein", true,
       "Read input from the specified file (- for stdin)");
     Option fixedInput = new Option("i", "input", true, "Use given strings as input");
     OptionGroup inputGroup = new OptionGroup().addOption(fileInput).addOption(fixedInput);
     Option workerCount = new Option("w", "worker", true,
       "Number of workers used for processing the input");
-
     Option fileOutput = new Option("O", "fileout", true,
       "Write output to the specified file (- for stdout)");
-
     return new Options()
       .addOptionGroup(inputGroup)
       .addOption(fileOutput)
@@ -74,7 +100,8 @@ public class SingleStreamCoordinator implements Coordinator {
   }
 
   @SuppressWarnings("resource")
-  private static Coordinator.Factory parseSettings(CommandLine settings) throws ParseException {
+  public static SingleStreamCoordinator parse(CommandLine settings,
+    PipelineSpecification pipelineSpecification) throws ParseException {
     Callable<Reader> reader;
     if (settings.hasOption("filein")) {
       String[] sources = settings.getOptionValues("filein");
@@ -95,9 +122,10 @@ public class SingleStreamCoordinator implements Coordinator {
 
     String destination = settings.getOptionValue("fileout");
     Callable<Writer> writer = destination == null || "-".equals(destination)
-             ? UncloseableWriter::sysout
-             : () -> Files.newBufferedWriter(Paths.get(destination), StandardOpenOption.APPEND,
-                      StandardOpenOption.CREATE);
+                              ? () -> UncloseableWriter.sysout
+                              : () -> Files.newBufferedWriter(Paths.get(destination),
+      StandardOpenOption.APPEND,
+      StandardOpenOption.CREATE);
 
     int pipelineWorkerCount;
     if (settings.hasOption("worker")) {
@@ -110,11 +138,9 @@ public class SingleStreamCoordinator implements Coordinator {
       pipelineWorkerCount = 2;
     }
 
-    return execution -> new SingleStreamCoordinator(execution, reader, writer,
-      pipelineWorkerCount);
+    return new SingleStreamCoordinator(pipelineSpecification, reader, writer, pipelineWorkerCount);
   }
 
-  @Override
   public void run() {
     try (Reader reader = readerSupplier.call();
          Writer writer = writerSupplier.call()) {

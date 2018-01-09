@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -70,13 +71,20 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return getStates().containsAll(states);
   }
 
+  default void forEachEdge(S state, Consumer<Edge<S>> action) {
+    getEdges(state).forEach(action);
+  }
+
+  default void forEachEdge(BiConsumer<S, Edge<S>> action) {
+    getStates().forEach(state -> forEachEdge(state, edge -> action.accept(state, edge)));
+  }
+
   default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    getLabelledEdges(state).forEach(y -> action.accept(y.edge, y.valuations));
+    getLabelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
   }
 
   default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
-    getStates().forEach(x ->
-      getLabelledEdges(x).forEach((y) -> action.accept(x, y.edge, y.valuations)));
+    getStates().forEach(x -> forEachLabelledEdge(x, (y, z) -> action.accept(x, y, z)));
   }
 
   default void free() {
@@ -232,6 +240,17 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
         throw new UnsupportedOperationException("Property detection for " + property
           + " is not implemented");
     }
+  }
+
+  /**
+   * Returns the number of states of this automaton (its cardinality). If this
+   * set contains more than {@code Integer.MAX_VALUE} elements, returns
+   * {@code Integer.MAX_VALUE}.
+   *
+   * @return the number of elements in this set (its cardinality)
+   */
+  default int size() {
+    return getStates().size();
   }
 
   @Override

@@ -31,7 +31,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,22 +59,22 @@ import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultVisitor;
-import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class FGObligationsJumpManager extends AbstractJumpManager<FGObligations> {
 
   private final Table<ImmutableSet<FOperator>, ImmutableSet<GOperator>, FGObligations> cache;
 
   private FGObligationsJumpManager(EquivalenceClassFactory factories,
-    EnumSet<Optimisation> optimisations) {
+    ImmutableSet<Configuration> optimisations) {
     super(optimisations, factories);
     cache = HashBasedTable.create();
   }
 
   public static FGObligationsJumpManager build(EquivalenceClass initialState,
-    EnumSet<Optimisation> optimisations) {
+    ImmutableSet<Configuration> optimisations) {
     return new FGObligationsJumpManager(initialState.getFactory(), optimisations);
   }
 

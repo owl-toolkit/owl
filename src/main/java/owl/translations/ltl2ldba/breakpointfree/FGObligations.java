@@ -194,7 +194,6 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public String toString() {
-    return "FGObligations{" + fOperators + ", " + gOperators + ", safety=" + safety + ", liveness="
-      + Arrays.toString(liveness) + '}';
+    return "<" + fOperators + ", " + gOperators + ">";
   }
 }

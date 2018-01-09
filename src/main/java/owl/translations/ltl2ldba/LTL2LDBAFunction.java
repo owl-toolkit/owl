@@ -23,12 +23,12 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
-import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.factories.Factories;
@@ -39,7 +39,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.run.env.Environment;
-import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
@@ -56,62 +55,57 @@ public final class
 LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObligation>
   implements Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass, S, B, C>> {
   private final Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor;
-  private final boolean deterministicInitialComponent;
   private final Environment env;
-  private final Function<LabelledFormula, LabelledFormula> formulaPreprocessor;
   private final Function<S, C> getAnnotation;
-  private final EnumSet<Optimisation> optimisations;
+  private final ImmutableSet<Configuration> configuration;
   private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
 
   private LTL2LDBAFunction(Environment env,
-    Function<LabelledFormula, LabelledFormula> formulaPreprocessor,
     Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor,
-    EnumSet<Optimisation> optimisations, Function<S, C> getAnnotation) {
+    ImmutableSet<Configuration> configuration, Function<S, C> getAnnotation) {
     this.env = env;
-    this.formulaPreprocessor = formulaPreprocessor;
     this.selectorConstructor = selectorConstructor;
     this.builderConstructor = builderConstructor;
-    this.optimisations = EnumSet.copyOf(optimisations);
+    this.configuration = configuration;
     this.getAnnotation = getAnnotation;
-    this.deterministicInitialComponent =
-      optimisations.contains(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
   }
 
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
   createDegeneralizedBreakpointFreeLDBABuilder(Environment env,
-    EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
-      x -> FGObligationsJumpManager.build(x, optimisations),
-      x -> new DegeneralizedAcceptingComponentBuilder(x, optimisations),
-      optimisations, DegeneralizedBreakpointFreeState::getObligations);
+    Set<Configuration> configuration) {
+    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    return new LTL2LDBAFunction<>(env,
+      x -> FGObligationsJumpManager.build(x, configuration2),
+      x -> new DegeneralizedAcceptingComponentBuilder(x, configuration2),
+      configuration2, DegeneralizedBreakpointFreeState::getObligations);
   }
   // CSON: Indentation
 
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
-  createDegeneralizedBreakpointLDBABuilder(Environment env, EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
-      x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
+  createDegeneralizedBreakpointLDBABuilder(Environment env, Set<Configuration> configuration) {
+    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    return new LTL2LDBAFunction<>(env,
+      x -> GObligationsJumpManager.build(x, configuration2),
       x -> new owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder(x,
-        ImmutableSet.copyOf(optimisations)),
-      optimisations,
-      DegeneralizedBreakpointState::getObligations);
+        configuration2), configuration2, DegeneralizedBreakpointState::getObligations);
   }
   // CSON: Indentation
 
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
-  createGeneralizedBreakpointFreeLDBABuilder(Environment env, EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
-      x -> FGObligationsJumpManager.build(x, optimisations),
+  createGeneralizedBreakpointFreeLDBABuilder(Environment env, Set<Configuration> configuration) {
+    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    return new LTL2LDBAFunction<>(env,
+      x -> FGObligationsJumpManager.build(x, configuration2),
       x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
-        optimisations),
-      optimisations,
+        configuration2),
+      configuration2,
       GeneralizedBreakpointFreeState::getObligations);
   }
   // CSON: Indentation
@@ -119,22 +113,19 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
-  createGeneralizedBreakpointLDBABuilder(Environment env, EnumSet<Optimisation> optimisations) {
-    return new LTL2LDBAFunction<>(env, LTL2LDBAFunction::preProcess,
-      x -> GObligationsJumpManager.build(x, EnumSet.copyOf(optimisations)),
-      x -> new GeneralizedAcceptingComponentBuilder(x, EnumSet.copyOf(optimisations)),
-      optimisations,
+  createGeneralizedBreakpointLDBABuilder(Environment env, Set<Configuration> configuration) {
+    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    return new LTL2LDBAFunction<>(env,
+      x -> GObligationsJumpManager.build(x, configuration2),
+      x -> new GeneralizedAcceptingComponentBuilder(x, configuration2),
+      configuration2,
       GeneralizedBreakpointState::getObligations);
   }
   // CSON: Indentation
 
-  private static LabelledFormula preProcess(LabelledFormula formula) {
-    return RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-  }
-
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
-    LabelledFormula rewritten = formulaPreprocessor.apply(formula);
+    LabelledFormula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
     Factories factories = env.factorySupplier().getFactories(rewritten);
 
     Formula processedFormula = rewritten.formula;
@@ -170,7 +161,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
     initialComponent.remapEdges((state, x) -> {
       assert !state.isFalse();
-      return state.testSupport(Fragments::isSafety) ? Edge.of(x.getSuccessor(), bitSet) : x;
+      return state.testSupport(Fragments::isSafety) ? x.withAcceptance(bitSet) : x;
     });
     return ldba;
   }
@@ -180,25 +171,44 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     MutableAutomatonBuilder<Jump<C>, S, B> acceptingComponentBuilder = builderConstructor
       .apply(factories);
     InitialComponentBuilder<C> initialComponentBuilder = new InitialComponentBuilder<>(factories,
-      EnumSet.copyOf(optimisations), selector);
+      configuration, selector);
 
-    return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder,
-      initialComponentBuilder::getJumps,
-      getAnnotation,
-      EnumSet.copyOf(optimisations),
-      x -> x.testSupport(Fragments::isSafety));
+    Predicate<EquivalenceClass> isSafety = x -> x.testSupport(Fragments::isSafety);
+
+    if (configuration.contains(Configuration.EPSILON_TRANSITIONS)) {
+      return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+        acceptingComponentBuilder,
+        initialComponentBuilder::getJumps,
+        getAnnotation,
+        EnumSet.of(
+          LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
+        isSafety);
+    } else {
+      return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
+        acceptingComponentBuilder,
+        initialComponentBuilder::getJumps,
+        getAnnotation,
+        EnumSet.of(
+          LimitDeterministicAutomatonBuilder.Configuration.REMOVE_EPSILON_TRANSITIONS,
+          LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
+        isSafety);
+    }
   }
 
   private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
     EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(
-      factories.eqFactory, EnumSet.copyOf(optimisations));
+      factories.eqFactory, configuration);
 
-    if (deterministicInitialComponent) {
-      return Set.of(factory.getInitial(formula));
+    if (configuration.contains(Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT)) {
+      EquivalenceClass clazz = factories.eqFactory.createEquivalenceClass(formula);
+      return factory.splitEquivalenceClass(clazz);
     }
 
-    EquivalenceClass clazz = factories.eqFactory.createEquivalenceClass(formula);
-    return factory.splitEquivalenceClass(clazz);
+    return Set.of(factory.getInitial(formula));
+  }
+
+  public enum Configuration {
+    NON_DETERMINISTIC_INITIAL_COMPONENT, EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE,
+    SUPPRESS_JUMPS, EPSILON_TRANSITIONS
   }
 }

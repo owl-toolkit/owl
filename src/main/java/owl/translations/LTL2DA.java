@@ -16,13 +16,14 @@ import owl.run.parser.ImmutableSingleModuleConfiguration;
 import owl.run.parser.SimpleModuleParser;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class LTL2DA {
   public static final TransformerSettings settings = new TransformerSettings() {
     @Override
     public Transformer create(CommandLine settings, Environment environment) {
       return Transformers.fromFunction(LabelledFormula.class,
-        formula -> translate(environment, formula, EnumSet.allOf(Optimisation.class)));
+        formula -> translate(environment, formula));
     }
 
     @Override
@@ -31,8 +32,7 @@ public final class LTL2DA {
     }
   };
 
-  private LTL2DA() {
-  }
+  private LTL2DA() {}
 
   public static void main(String... args) {
     SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
@@ -44,12 +44,14 @@ public final class LTL2DA {
       .build());
   }
 
-  private static HoaPrintable translate(Environment env, LabelledFormula formula,
-    EnumSet<Optimisation> optimisations) {
-    optimisations.remove(Optimisation.COMPLETE);
+  private static HoaPrintable translate(Environment env, LabelledFormula formula) {
+    EnumSet<LTL2DPAFunction.Configuration> optimisations
+      = EnumSet.allOf(LTL2DPAFunction.Configuration.class);
+    optimisations.remove(LTL2DPAFunction.Configuration.COMPLETE);
     LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(env, optimisations);
     LimitDeterministicAutomaton<?, ?, ?, ?> ldba = LTL2LDBAFunction
-      .createGeneralizedBreakpointLDBABuilder(env, optimisations).apply(formula);
+      .createGeneralizedBreakpointLDBABuilder(env,
+        EnumSet.allOf(Configuration.class)).apply(formula);
     Automaton<?, ?> automaton = ltl2Dpa.apply(formula);
 
     if (ldba.isDeterministic()

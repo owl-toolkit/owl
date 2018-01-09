@@ -17,6 +17,7 @@
 
 package owl.arena;
 
+import com.google.common.collect.ImmutableList;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -28,6 +29,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -36,8 +40,32 @@ import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
+import owl.run.ImmutableTransformerSettings;
+import owl.run.ModuleSettings.TransformerSettings;
+import owl.run.Transformers;
 
 public final class Views {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("aut2arena")
+    .options(options())
+    .constructor((settings, environment) -> {
+      String[] playerOnePropositions = settings.getOptionValues("player");
+      if (playerOnePropositions == null) {
+        throw new ParseException("Player one propositions required");
+      }
+      ImmutableList<String> propositions = ImmutableList.copyOf(playerOnePropositions);
+      //noinspection unchecked
+      return Transformers.fromFunction(Automaton.class,
+        automaton -> split(automaton, propositions));
+    }).build();
+
+  private static Options options() {
+    Option option = new Option("p", "player", true,
+      "List of atomic propositions controlled by player one");
+    option.setRequired(true);
+    return new Options().addOption(option);
+  }
+
   private Views() {}
 
   public static <S, A extends OmegaAcceptance> Arena<S, A> filter(Arena<S, A> arena,

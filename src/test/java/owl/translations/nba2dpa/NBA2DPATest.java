@@ -32,10 +32,10 @@ import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.translations.Optimisation;
+import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
+import owl.run.TestEnvironment;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
-import owl.util.TestEnvironment;
 
 public class NBA2DPATest {
 
@@ -523,15 +523,15 @@ public class NBA2DPATest {
 
   private void runTest(String input, int size) throws ParseException {
     Automaton<HoaState, GeneralizedBuchiAcceptance> nba = AutomatonReader.readHoa(input,
-      TestEnvironment.get().factorySupplier(), GeneralizedBuchiAcceptance.class);
+      TestEnvironment.INSTANCE.factorySupplier(), GeneralizedBuchiAcceptance.class);
     nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
-    EnumSet<Optimisation> optimisations = EnumSet.noneOf(Optimisation.class);
+    EnumSet<Configuration> optimisations = EnumSet.noneOf(Configuration.class);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>(optimisations);
 
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
       dpa = translation.apply(nba);
     dpa.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertThat(dpa.getStates().size(), lessThanOrEqualTo(size));
+    assertThat(dpa.size(), lessThanOrEqualTo(size));
   }
 }

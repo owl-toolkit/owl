@@ -17,9 +17,9 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.EnumSet;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.automaton.MutableAutomaton;
@@ -28,8 +28,8 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
   <GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations> {
@@ -38,7 +38,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   private int acceptanceSets;
 
   public GeneralizedAcceptingComponentBuilder(Factories factories,
-    EnumSet<Optimisation> optimisations) {
+    ImmutableSet<Configuration> optimisations) {
     super(optimisations, factories);
     acceptanceSets = 1;
   }

@@ -13,18 +13,19 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.Literal;
-import owl.translations.Optimisation;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public abstract class AbstractJumpManager<X extends RecurringObligation> {
-  private static final Logger logger = Logger.getLogger(AbstractJumpManager.class.getName());
 
+  private static final Logger logger = Logger.getLogger(AbstractJumpManager.class.getName());
   private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(Set.of());
 
   protected final EquivalenceClassFactory factory;
-  protected final ImmutableSet<Optimisation> optimisations;
+  protected final ImmutableSet<Configuration> configuration;
 
-  public AbstractJumpManager(Set<Optimisation> optimisations, EquivalenceClassFactory factory) {
-    this.optimisations = ImmutableSet.copyOf(optimisations);
+  public AbstractJumpManager(ImmutableSet<Configuration> configuration,
+    EquivalenceClassFactory factory) {
+    this.configuration = configuration;
     this.factory = factory;
   }
 
@@ -64,7 +65,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     logger.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
 
-    if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)) {
+    if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
       jumps.removeIf(jump -> jumps.stream().anyMatch(
         otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
     }
@@ -72,11 +73,11 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     logger.log(Level.FINE, () ->
       state + " has the following jumps (after language inclusion check): " + jumps);
 
-    if (optimisations.contains(Optimisation.FORCE_JUMPS)) {
+    if (configuration.contains(Configuration.FORCE_JUMPS)) {
       for (Jump<X> jump : jumps) {
         EquivalenceClass jumpLanguage = jump.getLanguage();
 
-        if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
+        if (configuration.contains(Configuration.EAGER_UNFOLD)) {
           jumpLanguage = jumpLanguage.unfold();
         }
 
@@ -93,7 +94,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   }
 
   protected Jump<X> buildJump(EquivalenceClass remainder, X obligations) {
-    if (optimisations.contains(Optimisation.EAGER_UNFOLD)) {
+    if (configuration.contains(Configuration.EAGER_UNFOLD)) {
       return new Jump<>(remainder.unfold(), obligations);
     }
 
@@ -111,7 +112,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     }
 
     // Check if the state depends on an independent cosafety property.
-    if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)) {
+    if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
       Set<Formula> notCoSafety = state.getSupport(x -> !Fragments.isCoSafety(x));
 
       EquivalenceClass coSafety = state.exists(x -> {

@@ -28,19 +28,26 @@ import owl.arena.Arena;
 import owl.arena.Views;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.run.ImmutableTransformerSettings;
+import owl.run.ModuleSettings.TransformerSettings;
 import owl.run.Transformer;
 import owl.run.Transformers;
 
 public final class ParityGameSolver {
-
   // TODO: should be returning a winning region or strategy
-  public static final Transformer zielonkaSolver =
+  public static final Transformer ZIELONKA_SOLVER =
     Transformers.fromFunction(Arena.class, x -> {
       WinningRegions winning = recursiveZielonka(x);
-      System.out.println("Is the initial state winning? "
-        + winning.player2.contains(x.getInitialState()));
-      return x;
+
+      if (winning.player2.contains(x.getInitialState())) {
+        return "The specification is REALISABLE";
+      }
+
+      return "The specification is UNREALISABLE";
     });
+
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("zielonka").constructor((x, y) -> ZIELONKA_SOLVER).build();
 
   private ParityGameSolver() {}
 

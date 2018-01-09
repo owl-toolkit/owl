@@ -65,8 +65,8 @@ final class SccIARBuilder<R> {
     this.usedPriorities = new BitSet(trackedPairs.size() * 2);
     this.usedPriorities.set(0);
 
-    iarStates = HashBasedTable.create(rabinAutomaton.getStates().size(),
-      rabinAutomaton.getStates().size() * trackedPairs.size());
+    iarStates = HashBasedTable.create(rabinAutomaton.size(),
+      rabinAutomaton.size() * trackedPairs.size());
     indexToPair = new RabinPair[trackedPairs.size()];
 
     int pairIndex = 0;
@@ -127,7 +127,7 @@ final class SccIARBuilder<R> {
     resultAutomaton.getAcceptance().setAcceptanceSets(maximalUsedPriority + 1);
     logger.log(Level.FINER, "Built automaton with {0} states and {1} priorities for input "
       + "automaton with {2} states and {3} pairs", new Object[] {
-      resultAutomaton.getStates().size(), maximalUsedPriority, getRelevantStates().size(),
+      resultAutomaton.size(), maximalUsedPriority, getRelevantStates().size(),
       numberOfTrackedPairs()});
 
     return resultAutomaton;

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -49,23 +48,23 @@ import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
-import owl.translations.Optimisation;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
+import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
   private static final Logger logger = Logger.getLogger(GObligationsJumpManager.class.getName());
   private final ImmutableSet<GObligations> obligations;
 
   private GObligationsJumpManager(EquivalenceClassFactory factory,
-    EnumSet<Optimisation> optimisations, ImmutableSet<GObligations> obligations) {
-    super(ImmutableSet.copyOf(optimisations), factory);
+    ImmutableSet<Configuration> optimisations, ImmutableSet<GObligations> obligations) {
+    super(optimisations, factory);
     this.obligations = obligations;
     logger.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
   }
 
   public static GObligationsJumpManager build(EquivalenceClass initialState,
-    EnumSet<Optimisation> optimisations) {
+    ImmutableSet<Configuration> optimisations) {
 
     if (initialState.testSupport(Fragments::isCoSafety) || initialState
       .testSupport(Fragments::isSafety)) {
@@ -123,7 +122,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
 
   @Override
   protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
-    EquivalenceClass state2 = optimisations.contains(Optimisation.EAGER_UNFOLD)
+    EquivalenceClass state2 = configuration.contains(Configuration.EAGER_UNFOLD)
       ? state.duplicate()
       : state.unfold();
     Set<Formula> support = state2.getSupport();
@@ -145,7 +144,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         continue;
       }
 
-      if (optimisations.contains(Optimisation.SUPPRESS_JUMPS)
+      if (configuration.contains(Configuration.SUPPRESS_JUMPS)
         && dependsOnExternalAtoms(remainder, obligation)) {
         remainder.free();
         continue;

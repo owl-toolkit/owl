@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,7 +58,7 @@ public final class IARBuilder<R> {
           AutomatonUtil.cast(input, Object.class, RabinAcceptance.class);
 
         try {
-          return new IARBuilder<>(automaton, environment).build();
+          return new IARBuilder<>(automaton).build();
         } catch (ExecutionException e) {
           throw PipelineExecutionException.wrap(e);
         }
@@ -70,17 +71,15 @@ public final class IARBuilder<R> {
     }
   };
 
-  private final Environment environment;
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final ValuationSetFactory vsFactory;
 
-  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
+  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
     resultAutomaton =
       MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), vsFactory);
-    this.environment = environment;
   }
 
   public static void main(String... args) {
@@ -102,8 +101,10 @@ public final class IARBuilder<R> {
     List<Set<R>> rabinSccs = SccDecomposition.computeSccs(rabinAutomaton);
     logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
 
+    // TODO: This is not parallelizable, since ValuationSetFactory cannot handle parallel write
+    // access! Hence we use a direct executor...
     CompletionService<SccProcessingResult<R>> completionService =
-      new ExecutorCompletionService<>(environment.getExecutor());
+      new ExecutorCompletionService<>(MoreExecutors.directExecutor());
 
     // Start possibly parallel execution
     for (Set<R> rabinScc : rabinSccs) {

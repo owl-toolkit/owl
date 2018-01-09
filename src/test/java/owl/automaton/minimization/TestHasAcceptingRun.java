@@ -16,12 +16,12 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.transformations.ParityUtil;
-import owl.translations.Optimisation;
+import owl.run.TestEnvironment;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 import owl.translations.nba2ldba.BreakpointState;
-import owl.util.TestEnvironment;
 
 public class TestHasAcceptingRun {
 
@@ -91,12 +91,12 @@ public class TestHasAcceptingRun {
 
   private void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
-    EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-    optimisations.remove(Optimisation.REMOVE_EPSILON_TRANSITIONS);
+    EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
+    optimisations.remove(Configuration.REMOVE_EPSILON_TRANSITIONS);
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
 
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
-      TestEnvironment.get().factorySupplier(), GeneralizedBuchiAcceptance.class);
+      TestEnvironment.INSTANCE.factorySupplier(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>

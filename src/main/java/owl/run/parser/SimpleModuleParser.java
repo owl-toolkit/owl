@@ -12,10 +12,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import owl.run.BiParseFunction;
 import owl.run.ImmutablePipelineSpecification;
 import owl.run.ModuleSettings;
+import owl.run.PipelineSpecification;
+import owl.run.SingleStreamCoordinator;
 import owl.run.Transformer;
-import owl.run.coordinator.Coordinator;
 import owl.run.env.Environment;
 import owl.util.UncloseableWriter;
 
@@ -25,31 +27,7 @@ import owl.util.UncloseableWriter;
  * through a special {@code --mode} switch.
  */
 public final class SimpleModuleParser {
-  private SimpleModuleParser() {
-  }
-
-  private static boolean isHelp(String arg) {
-    return "help".equals(arg) || "--help".equals(arg) || "-h".equals(arg);
-  }
-
-  private static void printFailure(String name, String reason, Options options,
-    HelpFormatter formatter) {
-    try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
-      formatter.printWrapped(pw, formatter.getWidth(), "Failed to parse " + name
-        + " options. Reason: " + reason);
-      formatter.printHelp(pw, formatter.getWidth(), "Available options:", null, options, 4, 2,
-        null, true);
-      pw.flush();
-    }
-  }
-
-  private static void printHelp(Options options, HelpFormatter formatter, PrintWriter pw,
-    String name) {
-    if (!options.getOptions().isEmpty()) {
-      formatter.printHelp(pw, formatter.getWidth(), name, null, options, 4, 2, null, true);
-      pw.println();
-    }
-  }
+  private SimpleModuleParser() {}
 
   public static void run(String[] args, Map<String, SingleModuleConfiguration> modes,
     SingleModuleConfiguration defaultMode) {
@@ -60,8 +38,8 @@ public final class SimpleModuleParser {
 
     HelpFormatter formatter = new HelpFormatter();
     formatter.setSyntaxPrefix("");
-    if (args.length == 1 && isHelp(args[0])) {
-      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
+    if (args.length == 1 && CliParser.isHelp(args[0])) {
+      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr)) {
         formatter.printWrapped(pw, formatter.getWidth(), "This is the specialized, multi-mode "
           + "construction. To select a mode, give --mode=<mode> as first argument. Add --help "
           + "after that to obtain specific help for the selected mode. Available modes are: "
@@ -106,18 +84,19 @@ public final class SimpleModuleParser {
     HelpFormatter formatter = new HelpFormatter();
     formatter.setSyntaxPrefix("");
     Options environmentOptions = configuration.environmentSettings().getOptions();
-    Options coordinatorOptions = configuration.coordinatorSettings().getOptions();
     Options transformerOptions = transformerSettings.getOptions();
 
-    if (args.length == 1 && isHelp(args[0])) {
-      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
+    if (args.length == 1 && CliParser.isHelp(args[0])) {
+      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr)) {
         formatter.printWrapped(pw, formatter.getWidth(), "This is the specialized construction "
           + transformerSettings.getKey() + ". Options are specified as <global> <coordinator>"
           + " <transformer>. See below for available options.");
 
-        printHelp(environmentOptions, formatter, pw, "Global options: ");
-        printHelp(coordinatorOptions, formatter, pw, "Global options: ");
-        printHelp(transformerOptions, formatter, pw, transformerSettings.getKey() + " options: ");
+        CliHelpPrinter.printHelp(environmentOptions, formatter, pw, "Global options: ");
+        CliHelpPrinter
+          .printHelp(SingleStreamCoordinator.options(), formatter, pw, "Global options: ");
+        CliHelpPrinter.printHelp(transformerOptions, formatter, pw,
+          transformerSettings.getKey() + " options: ");
       }
       return;
     }
@@ -131,16 +110,17 @@ public final class SimpleModuleParser {
       environmentCommandLine = parser.parse(environmentOptions, args, true);
       environment = configuration.environmentSettings().buildEnvironment(environmentCommandLine);
     } catch (ParseException e) {
-      printFailure("environment", e.getMessage(), environmentOptions, formatter);
+      CliHelpPrinter.printFailure("environment", e.getMessage(), environmentOptions, formatter);
       System.exit(1);
       return;
     }
 
-    Coordinator.Factory coordinatorFactory;
+    BiParseFunction<PipelineSpecification, Void, SingleStreamCoordinator> coordinatorFactory;
     List<String> transformerArguments;
     try {
       String[] remainingArgs = environmentCommandLine.getArgs();
-      CommandLine coordinatorCommandLine = parser.parse(coordinatorOptions, remainingArgs, true);
+      CommandLine coordinatorCommandLine = parser
+        .parse(SingleStreamCoordinator.options(), remainingArgs, true);
       List<String> remainingArguments = coordinatorCommandLine.getArgList();
       if (configuration.passNonOptionToCoordinator()) {
         Iterator<String> remainingIterator = remainingArguments.listIterator();
@@ -158,32 +138,34 @@ public final class SimpleModuleParser {
         transformerArguments = new ArrayList<>(remainingArguments);
         remainingArguments.clear();
       }
-      coordinatorFactory = configuration.coordinatorSettings()
-        .parseCoordinatorSettings(coordinatorCommandLine);
+      coordinatorFactory = (x, y) -> SingleStreamCoordinator.parse(coordinatorCommandLine, x);
     } catch (ParseException e) {
-      printFailure("coordinator", e.getMessage(), coordinatorOptions, formatter);
+      CliHelpPrinter
+        .printFailure("coordinator", e.getMessage(), SingleStreamCoordinator.options(), formatter);
       System.exit(1);
       return;
     }
 
     CommandLine transformerCommandLine;
     Transformer transformer;
+
     try {
       transformerCommandLine = parser.parse(transformerOptions,
         transformerArguments.toArray(new String[transformerArguments.size()]), true);
       transformer = transformerSettings.create(transformerCommandLine, environment);
     } catch (ParseException e) {
-      printFailure(transformerSettings.getKey(), e.getMessage(), coordinatorOptions, formatter);
+      CliHelpPrinter.printFailure(transformerSettings.getKey(), e.getMessage(),
+        SingleStreamCoordinator.options(), formatter);
       System.exit(1);
       return;
     }
 
     List<String> unmatchedArguments = transformerCommandLine.getArgList();
+
     if (!unmatchedArguments.isEmpty()) {
-      try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr())) {
-        formatter.printWrapped(pw, formatter.getWidth(), "Unmatched argument(s): "
-          + String.join(", ", unmatchedArguments));
-      }
+      formatter.printWrapped(UncloseableWriter.pwsyserr, formatter.getWidth(),
+        "Unmatched argument(s): " + String.join(", ", unmatchedArguments));
+      UncloseableWriter.pwsyserr.flush();
       System.exit(1);
       return;
     }
@@ -191,14 +173,16 @@ public final class SimpleModuleParser {
     CommandLine empty = (new CommandLine.Builder()).build();
 
     try {
-      coordinatorFactory.create(ImmutablePipelineSpecification.builder()
+      PipelineSpecification specification = ImmutablePipelineSpecification.builder()
         .environment(environment)
         .input(configuration.readerModule().create(empty, environment))
         .addAllTransformers(configuration.preProcessors())
         .addTransformers(transformer)
         .addAllTransformers(configuration.postProcessors())
         .output(configuration.writerModule().create(empty, environment))
-        .build()).run();
+        .build();
+
+      coordinatorFactory.parse(specification, null).run();
     } catch (ParseException e) {
       System.err.println(e.getMessage());
       System.exit(1);

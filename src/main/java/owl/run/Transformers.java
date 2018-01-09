@@ -12,12 +12,10 @@ import owl.ltl.ROperator;
 import owl.ltl.WOperator;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.visitors.UnabbreviateVisitor;
-import owl.run.env.DefaultEnvironment;
 import owl.translations.dra2dpa.IARBuilder;
 
 public final class Transformers {
-  private Transformers() {
-  }
+  private Transformers() {}
 
   public static final Transformer SIMPLIFY_MODAL_ITER =
     Transformers.fromFunction(LabelledFormula.class, x ->
@@ -32,7 +30,7 @@ public final class Transformers {
 
   public static final Transformer IAR = Transformers.fromFunction(Automaton.class, x -> {
     try {
-      return new IARBuilder<>(x, DefaultEnvironment.of(true, false, true)).build();
+      return new IARBuilder<>(x).build();
     } catch (ExecutionException e) {
       throw PipelineExecutionException.wrap(e);
     }

@@ -2,21 +2,18 @@ package owl.util;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 
 public class UncloseableWriter extends Writer {
+  public static final Writer syserr = new UncloseableWriter(new OutputStreamWriter(System.err));
+  public static final Writer sysout = new UncloseableWriter(new OutputStreamWriter(System.out));
+  public static final PrintWriter pwsyserr = new PrintWriter(syserr);
+
   private final Writer delegate;
 
   private UncloseableWriter(Writer delegate) {
     this.delegate = delegate;
-  }
-
-  public static Writer syserr() {
-    return new UncloseableWriter(new OutputStreamWriter(System.err));
-  }
-
-  public static Writer sysout() {
-    return new UncloseableWriter(new OutputStreamWriter(System.out));
   }
 
   @Override

@@ -6,6 +6,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.run.InputReaders;
 import owl.run.ModuleSettings.TransformerSettings;
 import owl.run.OutputWriters;
@@ -13,7 +14,6 @@ import owl.run.Transformer;
 import owl.run.env.Environment;
 import owl.run.parser.ImmutableSingleModuleConfiguration;
 import owl.run.parser.SimpleModuleParser;
-import owl.translations.Optimisation;
 
 public class NBA2LDBAModule implements TransformerSettings {
   public static void main(String... args) {
@@ -28,7 +28,7 @@ public class NBA2LDBAModule implements TransformerSettings {
   public Transformer create(CommandLine settings, Environment environment)
     throws ParseException {
     NBA2LDBAFunction<Object> function =
-      new NBA2LDBAFunction<>(EnumSet.of(Optimisation.REMOVE_EPSILON_TRANSITIONS));
+      new NBA2LDBAFunction<>(EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
     return (input, context) -> function.apply(
       AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
   }

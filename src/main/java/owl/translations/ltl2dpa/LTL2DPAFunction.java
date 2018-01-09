@@ -26,9 +26,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -40,11 +37,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.Collector;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.Transformers;
 import owl.run.env.Environment;
-import owl.translations.Optimisation;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
 import owl.translations.ldba2dpa.RankingState;
@@ -58,84 +51,51 @@ import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
 public class LTL2DPAFunction
   implements Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws ParseException {
-      boolean breakpoints = settings.hasOption("breakpoint");
-      boolean complement = settings.hasOption("complement");
-      EnumSet<Optimisation> optimisations = EnumSet.allOf(Optimisation.class);
-      optimisations.add(Optimisation.DETERMINISTIC_INITIAL_COMPONENT);
-      optimisations.remove(Optimisation.COMPLETE);
-
-      if (complement) {
-        optimisations.add(Optimisation.COMPLEMENT_CONSTRUCTION);
-      } else {
-        optimisations.remove(Optimisation.COMPLEMENT_CONSTRUCTION);
-      }
-
-      Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> translation =
-        new LTL2DPAFunction(environment, optimisations, !breakpoints);
-
-      return Transformers.fromFunction(LabelledFormula.class, translation);
-    }
-
-    @Override
-    public String getKey() {
-      return "ltl2dpa";
-    }
-
-    @Override
-    public Options getOptions() {
-      return new Options()
-        .addOption("bp", "breakpoint", false,
-          "Use breakpoint construction instead of breakpoint-free one")
-        .addOption("c", "complement", false, "Also compute the automaton for the negation and take "
-          + "the smaller of the two");
-    }
-  };
 
   // Polling time in ms.
   private static final int SLEEP_MS = 50;
   private final boolean breakpointFree;
-  private final EnumSet<Optimisation> optimisations;
+  private final EnumSet<Configuration> configuration;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
-  public LTL2DPAFunction(Environment env, EnumSet<Optimisation> optimisations) {
-    this(env, optimisations, false);
+  public LTL2DPAFunction(Environment env) {
+    this(env, EnumSet.allOf(Configuration.class), false);
   }
 
-  public LTL2DPAFunction(Environment env, EnumSet<Optimisation> optimisations,
-    boolean breakpointFree) {
-    this.optimisations = EnumSet.copyOf(optimisations);
+  public LTL2DPAFunction(Environment env, EnumSet<Configuration> configuration) {
+    this(env, configuration, false);
+  }
 
-    EnumSet<Optimisation> ldbaOptimisations = EnumSet.of(
-      Optimisation.DETERMINISTIC_INITIAL_COMPONENT,
-      Optimisation.EAGER_UNFOLD,
-      Optimisation.SUPPRESS_JUMPS,
-      Optimisation.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES);
+  public LTL2DPAFunction(Environment env, EnumSet<Configuration> configuration,
+    boolean guessF) {
+    this.configuration = EnumSet.copyOf(configuration);
 
-    if (optimisations.contains(Optimisation.OPTIMISED_STATE_STRUCTURE)) {
-      ldbaOptimisations.add(Optimisation.OPTIMISED_STATE_STRUCTURE);
+    EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
+      LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
+      LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS,
+      LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS);
+
+    if (configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
+      ldbaConfiguration.add(LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE);
     }
 
     translatorBreakpointFree =
-      LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaOptimisations);
+      LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaConfiguration);
     translatorBreakpoint =
-      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, ldbaOptimisations);
-    this.breakpointFree = breakpointFree;
+      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, ldbaConfiguration);
+    this.breakpointFree = guessF;
   }
 
   @Override
   public MutableAutomaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    if (!optimisations.contains(Optimisation.COMPLEMENT_CONSTRUCTION)) {
+    if (!configuration.contains(Configuration.COMPLEMENT_CONSTRUCTION)) {
       // TODO Instead, one should use a direct executor here
       ComplementableAutomaton<?> automaton = apply(formula, new AtomicInteger());
 
-      if (optimisations.contains(Optimisation.COMPLETE)) {
+      if (configuration.contains(Configuration.COMPLETE)) {
         automaton.complete();
       }
 
@@ -179,7 +139,7 @@ public class LTL2DPAFunction
           if (automaton != null && size <= complementSize) {
             complementFuture.cancel(true);
 
-            if (optimisations.contains(Optimisation.COMPLETE)) {
+            if (configuration.contains(Configuration.COMPLETE)) {
               automaton.complete();
             }
 
@@ -236,7 +196,7 @@ public class LTL2DPAFunction
       new EquivalenceClassLanguageLattice(
         ldba.getInitialComponent().getInitialState().getFactory());
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointState, GObligations,
-      EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
+      EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, counter, true,
       oracle, this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::of);
@@ -257,7 +217,7 @@ public class LTL2DPAFunction
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
-      Void> builder = new RankingAutomatonBuilder<>(ldba, counter, optimisations,
+      Void> builder = new RankingAutomatonBuilder<>(ldba, counter, true,
       new BooleanLattice(), this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
     return new ComplementableAutomaton<>(builder.build(), RankingState::of);
@@ -269,7 +229,7 @@ public class LTL2DPAFunction
     }
 
     // Check if the state has an independent safety core.
-    if (optimisations.contains(Optimisation.EXISTS_SAFETY_CORE)) {
+    if (configuration.contains(Configuration.EXISTS_SAFETY_CORE)) {
       BitSet nonSafetyAP = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
 
       EquivalenceClass core = state.substitute(x -> {
@@ -312,5 +272,9 @@ public class LTL2DPAFunction
     void complement() {
       ParityUtil.complement(automaton, sinkSupplier);
     }
+  }
+
+  public enum Configuration {
+    OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE, COMPLETE
   }
 }
