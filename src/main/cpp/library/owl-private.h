@@ -114,6 +114,15 @@ inline T call_method(JNIEnv *env, jobject object, jmethodID methodID, Args... ar
 }
 
 template<typename T, typename... Args>
+inline T call_method(JNIEnv *env, jobject object, const char *name, const char *signature, Args... args) {
+    jclass clazz = get_class(env, object);
+    jmethodID method_id = get_methodID(env, clazz, name, signature);
+    T result = call_method<T, Args...>(env, object, method_id, args...);
+    deref(env, clazz);
+    return result;
+}
+
+template<typename T, typename... Args>
 inline T call_static_method(JNIEnv *env, jclass clazz, jmethodID methodID, Args... args) {
     static_assert(is_jobject<T>());
     auto result = reinterpret_cast<T>(env->CallStaticObjectMethod(clazz, methodID, args...));
@@ -132,6 +141,15 @@ template<typename... Args>
 inline jint call_int_method(JNIEnv *env, jobject object, jmethodID methodID, Args... args) {
     jint result = env->CallIntMethod(object, methodID, args...);
     check_exception(env, "Failed to call int method.");
+    return result;
+}
+
+template<typename... Args>
+inline jint call_int_method(JNIEnv *env, jobject object, const char *name, const char *signature, Args... args) {
+    jclass clazz = get_class(env, object);
+    jmethodID method_id = get_methodID(env, clazz, name, signature);
+    jint result = call_int_method<Args...>(env, object, method_id, args...);
+    deref(env, clazz);
     return result;
 }
 
@@ -234,6 +252,13 @@ namespace owl {
             jmethodID methodID = get_methodID(env, clazz, "intValue", "()I");
             int result = call_int_method(env, value, methodID);
             deref(env, clazz);
+            return result;
+        }
+
+        operator std::string() const {
+            const char *resultCStr = env->GetStringUTFChars(reinterpret_cast<jstring>(value), nullptr);
+            std::string result(resultCStr);
+            env->ReleaseStringUTFChars(reinterpret_cast<jstring>(value), resultCStr);
             return result;
         }
 

@@ -25,6 +25,50 @@ Formula parse_formula(const Owl& owl) {
     return simplifiedFormula;
 }
 
+Formula parse_tlsf(const Owl& owl) {
+    FormulaFactory factory = owl.createFormulaFactory();
+
+    std::vector<std::string> mapping;
+    int num_inputs = -1;
+
+    Formula parsed_formula = factory.parseTlsf("INFO {\n"
+       "  TITLE:       \"LTL -> DBA  -  Example 12\"\n"
+       "  DESCRIPTION: \"One of the Acacia+ example files\"\n"
+       "  SEMANTICS:   Moore\n"
+       "  TARGET:      Mealy\n"
+       "}\n"
+       "// TEST COMMENT\n"
+       "MAIN {\n"
+       "// TEST COMMENT\n"
+       "  INPUTS {\n"
+       "    p;\n"
+       "    q;\n"
+       "  }\n"
+       "// TEST COMMENT\n"
+       "  OUTPUTS {\n"
+       "    acc;\n"
+       "  }\n"
+       "// TEST COMMENT\n"
+       "  GUARANTEE {\n"
+       "// TEST COMMENT\n"
+       "    (G p -> F q) && (G !p <-> F !q)\n"
+       "      && G F acc;\n"
+       "  }\n"
+       "// TEST COMMENT\n"
+       "}", mapping, num_inputs);
+
+    parsed_formula.print();
+
+    std::cout << "Vars: " << std::endl;
+
+    for (const auto & entry : mapping) {
+        std::cout << entry << std::endl;
+    }
+
+    std::cout << "Inputs: " << num_inputs << std::endl;
+    return parsed_formula;
+}
+
 Formula create_formula(const Owl& owl) {
     FormulaFactory factory = owl.createFormulaFactory();
     FormulaRewriter rewriter = owl.createFormulaRewriter();
@@ -182,13 +226,16 @@ int main(int argc, char** argv) {
     Owl owl = Owl(classpath, true);
 
     std::cout << "Parse Formula Example: " << std::endl << std::endl;
-    Formula parsed_formula = parse_formula(owl);
+    Formula parsed_formula_1 = parse_formula(owl);
+
+    std::cout << "Parse TLSF Example: " << std::endl << std::endl;
+    Formula parsed_formula_2 = parse_tlsf(owl);
 
     std::cout << std::endl << "Built Formula Example: " << std::endl << std::endl;
     Formula built_formula = create_formula(owl);
 
     std::cout << std::endl << "Automaton Example 1: " << std::endl << std::endl;
-    dpa_example(owl, parsed_formula);
+    dpa_example(owl, parsed_formula_1);
 
     std::cout << std::endl << "Automaton Example 2: " << std::endl << std::endl;
     dpa_example(owl, built_formula);

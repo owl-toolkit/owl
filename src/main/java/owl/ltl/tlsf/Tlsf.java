@@ -17,10 +17,10 @@
 
 package owl.ltl.tlsf;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import java.util.BitSet;
 import java.util.List;
-import java.util.OptionalInt;
 import org.immutables.value.Value;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -30,7 +30,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
-import owl.ltl.UOperator;
+import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultConverter;
 
@@ -96,30 +96,24 @@ public abstract class Tlsf {
   public abstract String title();
 
   @Value.Derived
+  public int numberOfInputs() {
+    return inputs().cardinality();
+  }
+
+  @Value.Derived
   public LabelledFormula toFormula() {
     Formula formula = Disjunction.of(FOperator.of(require().not()), assume().not(),
       Conjunction.of(GOperator.of(assert_()), guarantee()));
 
     if (semantics().isStrict()) {
-      formula = Conjunction.of(preset(), formula, Disjunction
-        .of(UOperator.of(assert_(), require().not()), GOperator.of(assert_())));
+      formula = Conjunction.of(preset(), formula, WOperator.of(assert_(), require().not()));
     } else {
       formula = Conjunction.of(preset(), formula);
     }
 
     Formula result = convert(Disjunction.of(initially().not(), formula));
-    BiMap<Integer, String> mapping = mapping().inverse();
-    OptionalInt maximalIndex = mapping.keySet().stream().mapToInt(Integer::intValue).max();
-    if (!maximalIndex.isPresent()) {
-      return LabelledFormula.of(result, List.of());
-    }
-    String[] variables = new String[maximalIndex.getAsInt() + 1];
-    mapping.forEach((index, name) -> variables[index] = name);
-    for (int i = 0; i < variables.length; i++) {
-      if (variables[i] == null) {
-        variables[i] = "p" + i;
-      }
-    }
+    String[] variables = new String[mapping().size()];
+    mapping().forEach((name, index) -> variables[index] = name);
     return LabelledFormula.of(result, List.of(variables));
   }
 
@@ -149,6 +143,26 @@ public abstract class Tlsf {
 
         default:
           return false;
+      }
+    }
+  }
+
+  @Value.Check
+  protected void check() {
+    boolean outputs = false;
+
+    for (int i = 0; i < mapping().size(); i++) {
+      Preconditions.checkState(mapping().inverse().get(i) != null,
+        "'mapping' should have continuous ids.");
+      Preconditions.checkState(inputs().get(i) ^ outputs().get(i),
+        "'inputs' and 'outputs' must use distinct ids.");
+
+      if (outputs().get(i)) {
+        outputs = true;
+      }
+
+      if (outputs) {
+        Preconditions.checkState(!inputs().get(i), "'inputs' should use lower numbers.");
       }
     }
   }
