@@ -27,7 +27,6 @@ import java.util.List;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -133,7 +132,7 @@ public class IntAutomaton {
     // Fallback to DPA
     EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
     optimisations.remove(Configuration.COMPLETE);
-    MutableAutomaton<?, ParityAcceptance> automaton = new LTL2DPAFunction(
+    Automaton<?, ParityAcceptance> automaton = new LTL2DPAFunction(
       EnvironmentSettings.DEFAULT_ENVIRONMENT, optimisations).apply(labelledFormula);
     return of(automaton, detectAcceptance(automaton), shiftedFormula.mapping);
   }
