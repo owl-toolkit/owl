@@ -8,8 +8,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
-import java.util.function.Function;
+import java.util.List;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -64,6 +63,7 @@ public final class TlsfParser {
     } else {
       throw new ParseCancellationException("Unknown semantics");
     }
+
     TargetContext target = tree.target();
     if (target.MEALY() != null) {
       builder.target(Semantics.MEALY);
@@ -77,28 +77,31 @@ public final class TlsfParser {
     BitSet inputs = new BitSet();
     BitSet outputs = new BitSet();
     BiMap<String, Integer> variables = HashBiMap.create();
-    Function<String, Integer> valueFunction = key -> variables.size();
+
     for (TerminalNode variableNode : tree.input().VAR_ID()) {
       String variableName = variableNode.getText();
-      int index = variables.computeIfAbsent(variableName, valueFunction);
+      int index = variables.computeIfAbsent(variableName, key -> variables.size());
       inputs.set(index);
     }
+
     for (TerminalNode variableNode : tree.output().VAR_ID()) {
       String variableName = variableNode.getText();
-      int index = variables.computeIfAbsent(variableName, valueFunction);
+      int index = variables.computeIfAbsent(variableName, key -> variables.size());
       outputs.set(index);
     }
+
     builder.inputs(inputs);
     builder.outputs(outputs);
     builder.mapping(variables);
 
     // Specifications
-    Collection<LabelledFormula> initial = new ArrayList<>();
-    Collection<LabelledFormula> preset = new ArrayList<>();
-    Collection<LabelledFormula> require = new ArrayList<>();
-    Collection<LabelledFormula> assert_ = new ArrayList<>();
-    Collection<LabelledFormula> assume = new ArrayList<>();
-    Collection<LabelledFormula> guarantee = new ArrayList<>();
+    List<LabelledFormula> initial = new ArrayList<>();
+    List<LabelledFormula> preset = new ArrayList<>();
+    List<LabelledFormula> require = new ArrayList<>();
+    List<LabelledFormula> assert_ = new ArrayList<>();
+    List<LabelledFormula> assume = new ArrayList<>();
+    List<LabelledFormula> guarantee = new ArrayList<>();
+
     for (SpecificationContext specificationContext : tree.specification()) {
       String formulaString = specificationContext.formula.getText();
       assert !formulaString.isEmpty();
@@ -124,6 +127,7 @@ public final class TlsfParser {
         throw new ParseCancellationException("Unknown specification type");
       }
     }
+
     if (!initial.isEmpty()) {
       //noinspection ConstantConditions
       builder.initially(Conjunction.of(initial.stream().map(LabelledFormula::getFormula)));

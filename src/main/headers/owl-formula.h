@@ -47,7 +47,9 @@ namespace owl {
         jclass classes[MOperator + 1];
         jmethodID methodIDs[MOperator + 1];
         jclass parser;
+        jclass tlsfParser;
         jmethodID parseID;
+        jmethodID tlsfParseID;
 
         void bind_static(int index, const char *className, const char *methodName, const char *signature);
 
@@ -76,6 +78,7 @@ namespace owl {
         Formula createNegation(const Formula& formula);
         Formula createBiimplication(const Formula &left, const Formula &right);
         Formula parse(const std::string& formula, const std::vector<std::string>& apMapping);
+        Formula parseTlsf(const std::string& tlsf, std::vector<std::string>& apMapping, int &numberOfInputVariables);
 
         template<typename... Args>
         Formula createConjunction(const Formula& left, const Formula& right, Args... args) {
@@ -109,7 +112,7 @@ namespace owl {
     public:
         ~FormulaRewriter();
 
-        std::vector<Formula> split(const Formula& input, int lastInputAtom, std::map<int, bool>& map);
+        std::vector<Formula> split(const Formula& input, int numberOfInputVariables, std::map<int, bool>& map);
         Formula shift_literals(const Formula& formula, std::map<int, int>& map);
         Formula simplify(const Formula& formula);
     };

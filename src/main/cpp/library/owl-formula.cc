@@ -50,6 +50,7 @@ namespace owl {
         bind_static(MOperator, "owl/ltl/MOperator", of, binarySignature);
 
         bind_static_method(env, "owl/ltl/parser/LtlParser", "syntax", "(Ljava/lang/String;Ljava/util/List;)Lowl/ltl/Formula;", parser, parseID);
+        bind_static_method(env, "owl/ltl/parser/TlsfParser", "parse", "(Ljava/lang/String;)Lowl/ltl/tlsf/Tlsf;", tlsfParser, tlsfParseID);
     }
 
     FormulaFactory::~FormulaFactory() {
@@ -58,6 +59,7 @@ namespace owl {
         }
 
         deref(env, parser);
+        deref(env, tlsfParser);
     }
 
     template<typename... Args>
@@ -138,6 +140,21 @@ namespace owl {
         return Formula(env, formula);
     }
 
+    Formula FormulaFactory::parseTlsf(const std::string &tlsf_string, std::vector<std::string> &apMapping,
+                                      int &numberOfInputVariables) {
+        jstring string = copy_to_java(env, tlsf_string);
+        auto tlsf = call_static_method<jobject, jstring>(env, tlsfParser, tlsfParseID, string);
+        auto labelled_formula = call_method<jobject>(env, tlsf, "toFormula", "()Lowl/ltl/LabelledFormula;");
+        auto formula = get_object_field<jobject>(env, labelled_formula, "formula", "Lowl/ltl/Formula;");
+        auto variables = get_object_field<jobject>(env, labelled_formula, "variables", "Lcom/google/common/collect/ImmutableList;");
+
+        apMapping = copy_from_java(env, variables);
+        numberOfInputVariables = call_int_method<>(env, tlsf, "numberOfInputs", "()I");
+        deref(env, tlsf, labelled_formula);
+
+        return Formula(env, formula);
+    }
+
     FormulaRewriter::FormulaRewriter(JNIEnv *env) : env(env) {
         bind_static_method(env, "owl/ltl/rewriter/ShiftRewriter", "shiftLiterals",
                            "(Lowl/ltl/Formula;)Lowl/ltl/rewriter/ShiftRewriter$ShiftedFormula;", shift_rewriter,
@@ -147,9 +164,9 @@ namespace owl {
         bind_static_method(env, "owl/ltl/rewriter/RewriterFactory", "apply", "(Lowl/ltl/Formula;)Lowl/ltl/Formula;", simplifier, simplifyID);
     }
 
-    std::vector<Formula> FormulaRewriter::split(const Formula &input, int lastInputAtom, std::map<int, bool>& map) {
+    std::vector<Formula> FormulaRewriter::split(const Formula &input, int numberOfInputVariables, std::map<int, bool>& map) {
         auto java_map = new_object<jobject>(env, "java/util/HashMap", "()V");
-        auto array = call_static_method<jobjectArray>(env, realizability_rewriter, splitID, input.formula, lastInputAtom, java_map);
+        auto array = call_static_method<jobjectArray>(env, realizability_rewriter, splitID, input.formula, numberOfInputVariables, java_map);
         map = copy_from_java(env, java_map);
 
         jsize length = env->GetArrayLength(array);
