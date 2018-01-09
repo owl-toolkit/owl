@@ -17,15 +17,22 @@
 
 package owl.translations.ltl2dpa;
 
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
+
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -49,11 +56,10 @@ import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
-public class LTL2DPAFunction
-  implements Function<LabelledFormula, MutableAutomaton<?, ParityAcceptance>> {
+public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
 
   // Polling time in ms.
-  private static final int SLEEP_MS = 50;
+  private static final int SLEEP_MS = 10;
   private final boolean breakpointFree;
   private final EnumSet<Configuration> configuration;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
@@ -90,74 +96,77 @@ public class LTL2DPAFunction
   }
 
   @Override
-  public MutableAutomaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    if (!configuration.contains(Configuration.COMPLEMENT_CONSTRUCTION)) {
-      // TODO Instead, one should use a direct executor here
-      ComplementableAutomaton<?> automaton = apply(formula, new AtomicInteger());
+  public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
+    ExecutorService executor = Executors.newCachedThreadPool();
 
-      if (configuration.contains(Configuration.COMPLETE)) {
-        automaton.complete();
-      }
+    Automaton<?, ParityAcceptance> automaton = null;
+    Automaton<?, ParityAcceptance> complement = null;
 
-      return automaton.automaton;
-    }
+    AtomicInteger automatonSize = new AtomicInteger(-1);
+    AtomicInteger complementSize = new AtomicInteger(-1);
 
-    // TODO Use CompletionService
-    // TODO Use environment pool?
-    ExecutorService executor = Executors.newFixedThreadPool(2);
+    Future<Result<?>> automatonFuture = executor.submit(() -> apply(formula, automatonSize));
+    Future<Result<?>> complementFuture = executor.submit(() -> configuration.contains(
+      COMPLEMENT_CONSTRUCTION) ? apply(formula.not(), complementSize) : null);
 
-    AtomicInteger automatonCounter = new AtomicInteger(-1);
-    AtomicInteger complementCounter = new AtomicInteger(-1);
-
-    Future<ComplementableAutomaton<?>> automatonFuture =
-      executor.submit(() -> apply(formula, automatonCounter));
-    Future<ComplementableAutomaton<?>> complementFuture =
-      executor.submit(() -> apply(formula.not(), complementCounter));
+    boolean automatonDone = false;
+    boolean complementDone = false;
 
     try {
-      ComplementableAutomaton<?> complement = null;
-      ComplementableAutomaton<?> automaton = null;
-      while (true) {
-        //noinspection NestedTryStatement
-        try {
-          // Get new results.
-          if (automaton == null && automatonFuture.isDone()) {
-            automaton = automatonFuture.get();
+      while (!automatonDone || !complementDone) {
+        // Retrieve done futures.
+        if (!automatonDone && automatonFuture.isDone()) {
+          Result<?> result = Futures.getDone(automatonFuture);
+
+          if (configuration.contains(COMPLETE)) {
+            result.complete();
           }
 
-          if (complement == null && complementFuture.isDone()) {
-            complement = complementFuture.get();
-          }
-
-          int size = automaton == null
-            ? automatonCounter.get()
-            : automaton.automaton.getStates().size();
-          int complementSize = complement == null
-            ? complementCounter.get()
-            : complement.automaton.getStates().size();
-
-          if (automaton != null && size <= complementSize) {
-            complementFuture.cancel(true);
-
-            if (configuration.contains(Configuration.COMPLETE)) {
-              automaton.complete();
-            }
-
-            return automaton.automaton;
-          }
-
-          if (complement != null && complementSize < size) {
-            automatonFuture.cancel(true);
-            complement.complement();
-            return complement.automaton;
-          }
-
-          //noinspection BusyWait
-          Thread.sleep(SLEEP_MS);
-        } catch (InterruptedException ignored) {
-          // Let's continue checking stuff...
+          automaton = result.automaton;
+          automatonDone = true;
+          automatonSize.set(automaton.size());
         }
+
+        if (!complementDone && complementFuture.isDone()) {
+          Result<?> result = Futures.getDone(complementFuture);
+
+          if (result != null) {
+            result.complement();
+          }
+
+          complement = result != null ? result.automaton : null;
+          complementDone = true;
+          complementSize.set(complement != null ? complement.size() : Integer.MAX_VALUE);
+        }
+
+        // Cancel too large futures.
+        if (automatonDone && automatonSize.get() < complementSize.get()) {
+          complementDone = true;
+          complementFuture.cancel(true);
+        }
+
+        if (complementDone && complementSize.get() < automatonSize.get()) {
+          automatonDone = true;
+          automatonFuture.cancel(true);
+        }
+
+        if (automatonDone && complementDone) {
+          break;
+        }
+
+        Uninterruptibles.sleepUninterruptibly(SLEEP_MS, TimeUnit.MILLISECONDS);
       }
+
+      if (complement == null) {
+        assert automaton != null;
+        return automaton;
+      }
+
+      if (automaton == null) {
+        return complement;
+      }
+
+      return automaton.size() <= complement.size() ? automaton : complement;
     } catch (ExecutionException ex) {
       // The translation broke down, it is unsafe to continue...
       // In order to immediately shutdown the JVM without using SYSTEM.exit(), we cancel all running
@@ -172,19 +181,16 @@ public class LTL2DPAFunction
     }
   }
 
-  private ComplementableAutomaton<?> apply(LabelledFormula formula, AtomicInteger sizeCounter) {
-    return breakpointFree
-      ? applyBreakpointFree(formula, sizeCounter)
-      : applyBreakpoint(formula, sizeCounter);
+  private Result<?> apply(LabelledFormula formula, AtomicInteger size) {
+    return breakpointFree ? applyBreakpointFree(formula, size) : applyBreakpoint(formula, size);
   }
 
-  private ComplementableAutomaton<?> applyBreakpoint(LabelledFormula formula,
-    AtomicInteger counter) {
+  private Result<?> applyBreakpoint(LabelledFormula formula, AtomicInteger size) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState,
       BuchiAcceptance, GObligations> ldba = translatorBreakpoint.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
+      return new Result<>(ParityUtil.viewAsParity(
         (MutableAutomaton<DegeneralizedBreakpointState, BuchiAcceptance>)
           ldba.getAcceptingComponent()), DegeneralizedBreakpointState::createSink);
     }
@@ -196,19 +202,18 @@ public class LTL2DPAFunction
       new EquivalenceClassLanguageLattice(
         ldba.getInitialComponent().getInitialState().getFactory());
     RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointState, GObligations,
-      EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, counter, true,
+      EquivalenceClass> builder = new RankingAutomatonBuilder<>(ldba, size, true,
       oracle, this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
-    return new ComplementableAutomaton<>(builder.build(), RankingState::of);
+    return new Result<>(builder.build(), RankingState::of);
   }
 
-  private ComplementableAutomaton<?>
-  applyBreakpointFree(LabelledFormula formula, AtomicInteger counter) {
+  private Result<?> applyBreakpointFree(LabelledFormula formula, AtomicInteger size) {
     LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
       BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return new ComplementableAutomaton<>(ParityUtil.viewAsParity(
+      return new Result<>(ParityUtil.viewAsParity(
         (MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance>) ldba
           .getAcceptingComponent()), DegeneralizedBreakpointFreeState::createSink);
     }
@@ -216,11 +221,11 @@ public class LTL2DPAFunction
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations,
-      Void> builder = new RankingAutomatonBuilder<>(ldba, counter, true,
+    RankingAutomatonBuilder<EquivalenceClass, DegeneralizedBreakpointFreeState, FGObligations, Void>
+      builder = new RankingAutomatonBuilder<>(ldba, size, true,
       new BooleanLattice(), this::hasSafetyCore, true);
     builder.add(ldba.getInitialComponent().getInitialState());
-    return new ComplementableAutomaton<>(builder.build(), RankingState::of);
+    return new Result<>(builder.build(), RankingState::of);
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {
@@ -253,12 +258,11 @@ public class LTL2DPAFunction
     return false;
   }
 
-  static final class ComplementableAutomaton<T> {
+  static final class Result<T> {
     final MutableAutomaton<T, ParityAcceptance> automaton;
     final Supplier<T> sinkSupplier;
 
-    ComplementableAutomaton(MutableAutomaton<T, ParityAcceptance> automaton,
-      Supplier<T> sinkSupplier) {
+    Result(MutableAutomaton<T, ParityAcceptance> automaton, Supplier<T> sinkSupplier) {
       this.automaton = automaton;
       this.sinkSupplier = sinkSupplier;
     }
