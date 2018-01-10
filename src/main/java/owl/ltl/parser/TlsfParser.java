@@ -1,7 +1,6 @@
 package owl.ltl.parser;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -15,6 +14,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import owl.grammar.TLSFLexer;
 import owl.grammar.TLSFParser;
@@ -23,7 +23,7 @@ import owl.grammar.TLSFParser.SpecificationContext;
 import owl.grammar.TLSFParser.TargetContext;
 import owl.grammar.TLSFParser.TlsfContext;
 import owl.ltl.Conjunction;
-import owl.ltl.LabelledFormula;
+import owl.ltl.Formula;
 import owl.ltl.tlsf.ImmutableTlsf;
 import owl.ltl.tlsf.ImmutableTlsf.Builder;
 import owl.ltl.tlsf.Tlsf;
@@ -76,83 +76,77 @@ public final class TlsfParser {
     // Input / output
     BitSet inputs = new BitSet();
     BitSet outputs = new BitSet();
-    BiMap<String, Integer> variables = HashBiMap.create();
+    List<String> variables = new ArrayList<>();
 
     for (TerminalNode variableNode : tree.input().VAR_ID()) {
       String variableName = variableNode.getText();
-      int index = variables.computeIfAbsent(variableName, key -> variables.size());
-      inputs.set(index);
+
+      if (variables.contains(variableName)) {
+        throw new ParseCancellationException("Duplicate variable definition: " + variableName);
+      }
+
+      inputs.set(variables.size());
+      variables.add(variableName);
     }
 
     for (TerminalNode variableNode : tree.output().VAR_ID()) {
       String variableName = variableNode.getText();
-      int index = variables.computeIfAbsent(variableName, key -> variables.size());
-      outputs.set(index);
+
+      if (variables.contains(variableName)) {
+        throw new ParseCancellationException("Duplicate variable definition: " + variableName);
+      }
+
+      outputs.set(variables.size());
+      variables.add(variableName);
     }
 
     builder.inputs(inputs);
     builder.outputs(outputs);
-    builder.mapping(variables);
+    builder.variables(ImmutableList.copyOf(variables));
 
     // Specifications
-    List<LabelledFormula> initial = new ArrayList<>();
-    List<LabelledFormula> preset = new ArrayList<>();
-    List<LabelledFormula> require = new ArrayList<>();
-    List<LabelledFormula> assert_ = new ArrayList<>();
-    List<LabelledFormula> assume = new ArrayList<>();
-    List<LabelledFormula> guarantee = new ArrayList<>();
+    List<Formula> initial = new ArrayList<>();
+    List<Formula> preset = new ArrayList<>();
+    List<Formula> require = new ArrayList<>();
+    List<Formula> assert_ = new ArrayList<>();
+    List<Formula> assume = new ArrayList<>();
+    List<Formula> guarantee = new ArrayList<>();
 
     for (SpecificationContext specificationContext : tree.specification()) {
-      String formulaString = specificationContext.formula.getText();
-      assert !formulaString.isEmpty();
-      // Strip trailing ;
-      String sanitizedFormula = formulaString
-        .substring(0, formulaString.length() - 1)
-        .trim();
-      LabelledFormula formula = LtlParser.parse(sanitizedFormula);
+      int children = specificationContext.children.size();
 
-      if (specificationContext.INITIALLY() != null) {
-        initial.add(formula);
-      } else if (specificationContext.PRESET() != null) {
-        preset.add(formula);
-      } else if (specificationContext.REQUIRE() != null) {
-        require.add(formula);
-      } else if (specificationContext.ASSERT() != null) {
-        assert_.add(formula);
-      } else if (specificationContext.ASSUME() != null) {
-        assume.add(formula);
-      } else if (specificationContext.GUARANTEE() != null) {
-        guarantee.add(formula);
-      } else {
-        throw new ParseCancellationException("Unknown specification type");
+      for (ParseTree child : specificationContext.children.subList(2, children - 1)) {
+        String formulaString = child.getText();
+        assert !formulaString.isEmpty();
+        // Strip trailing ;
+        String sanitizedFormula = formulaString.substring(0, formulaString.length() - 1).trim();
+        Formula formula = LtlParser.syntax(sanitizedFormula, variables);
+
+        if (specificationContext.INITIALLY() != null) {
+          initial.add(formula);
+        } else if (specificationContext.PRESET() != null) {
+          preset.add(formula);
+        } else if (specificationContext.REQUIRE() != null) {
+          require.add(formula);
+        } else if (specificationContext.ASSERT() != null) {
+          assert_.add(formula);
+        } else if (specificationContext.ASSUME() != null) {
+          assume.add(formula);
+        } else if (specificationContext.GUARANTEE() != null) {
+          guarantee.add(formula);
+        } else {
+          throw new ParseCancellationException("Unknown specification type");
+        }
       }
     }
 
-    if (!initial.isEmpty()) {
-      //noinspection ConstantConditions
-      builder.initially(Conjunction.of(initial.stream().map(LabelledFormula::getFormula)));
-    }
-    if (!preset.isEmpty()) {
-      //noinspection ConstantConditions
-      builder.preset(Conjunction.of(preset.stream().map(LabelledFormula::getFormula)));
-    }
-    if (!require.isEmpty()) {
-      //noinspection ConstantConditions
-      builder.preset(Conjunction.of(require.stream().map(LabelledFormula::getFormula)));
-    }
-    if (!assert_.isEmpty()) {
-      //noinspection ConstantConditions
-      builder.assert_(Conjunction.of(assert_.stream().map(LabelledFormula::getFormula)));
-    }
-    if (!assume.isEmpty()) {
-      //noinspection ConstantConditions
-      builder.assume(Conjunction.of(assume.stream().map(LabelledFormula::getFormula)));
-    }
-    if (!guarantee.isEmpty()) {
-      //noinspection ConstantConditions
-      builder.guarantee(Conjunction.of(guarantee.stream().map(LabelledFormula::getFormula)));
-    }
-
+    builder.initially(Conjunction.of(initial));
+    builder.preset(Conjunction.of(preset));
+    builder.preset(Conjunction.of(require));
+    builder.assert_(Conjunction.of(assert_));
+    builder.assume(Conjunction.of(assume));
+    builder.guarantee(Conjunction.of(guarantee));
+    
     return builder.build();
   }
 

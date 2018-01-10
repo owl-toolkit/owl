@@ -2,6 +2,7 @@ package owl.ltl;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -55,5 +56,24 @@ public final class LabelledFormula {
 
   public LabelledFormula wrap(Formula formula) {
     return new LabelledFormula(variables, formula);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    LabelledFormula that = (LabelledFormula) o;
+    return Objects.equals(formula, that.formula) && Objects.equals(variables, that.variables);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(formula, variables);
   }
 }

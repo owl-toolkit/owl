@@ -18,7 +18,6 @@
 package owl.ltl.tlsf;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
 import java.util.BitSet;
 import java.util.List;
 import org.immutables.value.Value;
@@ -74,9 +73,9 @@ public abstract class Tlsf {
   // Main / Body
   public abstract BitSet inputs();
 
-  public abstract BiMap<String, Integer> mapping();
-
   public abstract BitSet outputs();
+
+  public abstract List<String> variables();
 
   @Value.Default
   public Formula preset() {
@@ -112,9 +111,7 @@ public abstract class Tlsf {
     }
 
     Formula result = convert(Disjunction.of(initially().not(), formula));
-    String[] variables = new String[mapping().size()];
-    mapping().forEach((name, index) -> variables[index] = name);
-    return LabelledFormula.of(result, List.of(variables));
+    return LabelledFormula.of(result, variables());
   }
 
   public enum Semantics {
@@ -151,9 +148,7 @@ public abstract class Tlsf {
   protected void check() {
     boolean outputs = false;
 
-    for (int i = 0; i < mapping().size(); i++) {
-      Preconditions.checkState(mapping().inverse().get(i) != null,
-        "'mapping' should have continuous ids.");
+    for (int i = 0; i < variables().size(); i++) {
       Preconditions.checkState(inputs().get(i) ^ outputs().get(i),
         "'inputs' and 'outputs' must use distinct ids.");
 
