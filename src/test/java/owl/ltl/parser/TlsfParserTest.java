@@ -102,6 +102,29 @@ public class TlsfParserTest {
   private static final String LILY_LTL = "(G ((((X req) -> (X (grant && (X ((grant) && (X (gran"
     + "t))))))) && (grant -> (X (! (grant))))) && ((X (cancel)) -> (X ((! (grant)) U (X (go)))))))";
 
+  private static final String UPPER_CASE = "INFO {\n"
+    + "  TITLE:       \"Lily Demo V1\"\n"
+    + "  DESCRIPTION: \"One of the Lily demo files\"\n"
+    + "  SEMANTICS:   Moore\n"
+    + "  TARGET:      Mealy\n"
+    + "}\n"
+    + "\n"
+    + "MAIN {\n"
+    + "  INPUTS {\n"
+    + "    GO;\n"
+    + "    CANCEL;\n"
+    + "    REQ;\n"
+    + "  }\n"
+    + "  OUTPUTS {\n"
+    + "    GRANT;\n"
+    + "  }\n"
+    + "  ASSERT {\n"
+    + "    ((REQ) -> (X ((GRANT) && (X ((GRANT) && (X (GRANT)))))));\n"
+    + "    ((GRANT) -> (X (! (GRANT))));\n"
+    + "    ((CANCEL) -> (X ((! (GRANT)) U (GO))));\n"
+    + "  }\n"
+    + "}";
+
   @Test
   public void testParse1() {
     Tlsf tlsf = TlsfParser.parse(TLSF1);
@@ -133,5 +156,12 @@ public class TlsfParserTest {
     Tlsf lily = TlsfParser.parse(LILY);
     LabelledFormula expectedFormula = LtlParser.parse(LILY_LTL, lily.toFormula().variables);
     assertEquals(expectedFormula, lily.toFormula());
+  }
+
+  @Test
+  public void testParseUpperCase() {
+    Tlsf lily = TlsfParser.parse(LILY);
+    Tlsf upperCase = TlsfParser.parse(UPPER_CASE);
+    assertEquals(lily.toFormula().formula, upperCase.toFormula().formula);
   }
 }

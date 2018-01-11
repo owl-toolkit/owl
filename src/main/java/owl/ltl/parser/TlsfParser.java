@@ -77,6 +77,7 @@ public final class TlsfParser {
     BitSet inputs = new BitSet();
     BitSet outputs = new BitSet();
     List<String> variables = new ArrayList<>();
+    List<String> ephemeralVariables = new ArrayList<>();
 
     for (TerminalNode variableNode : tree.input().VAR_ID()) {
       String variableName = variableNode.getText();
@@ -86,6 +87,7 @@ public final class TlsfParser {
       }
 
       inputs.set(variables.size());
+      ephemeralVariables.add("v" + variables.size());
       variables.add(variableName);
     }
 
@@ -97,7 +99,18 @@ public final class TlsfParser {
       }
 
       outputs.set(variables.size());
+      ephemeralVariables.add("v" + variables.size());
       variables.add(variableName);
+    }
+
+    for (String variable1 : variables) {
+      for (String variable2 : variables) {
+        if (!variable1.equals(variable2)
+          && (variable1.contains(variable2) || variable2.contains(variable1))) {
+          throw new ParseCancellationException("Variables cannot be safely replaced: "
+            + variable1 + ", " + variable2);
+        }
+      }
     }
 
     builder.inputs(inputs);
@@ -120,7 +133,13 @@ public final class TlsfParser {
         assert !formulaString.isEmpty();
         // Strip trailing ;
         String sanitizedFormula = formulaString.substring(0, formulaString.length() - 1).trim();
-        Formula formula = LtlParser.syntax(sanitizedFormula, variables);
+
+        // Map arbitrary variable names to ephemeral variables
+        for (int i = 0; i < variables.size(); i++) {
+          sanitizedFormula = sanitizedFormula.replace(variables.get(i), ephemeralVariables.get(i));
+        }
+
+        Formula formula = LtlParser.syntax(sanitizedFormula, ephemeralVariables);
 
         if (specificationContext.INITIALLY() != null) {
           initial.add(formula);
@@ -146,7 +165,7 @@ public final class TlsfParser {
     builder.assert_(Conjunction.of(assert_));
     builder.assume(Conjunction.of(assume));
     builder.guarantee(Conjunction.of(guarantee));
-    
+
     return builder.build();
   }
 
