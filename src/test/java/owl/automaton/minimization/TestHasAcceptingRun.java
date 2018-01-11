@@ -100,7 +100,7 @@ public class TestHasAcceptingRun {
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      result = translation.apply(automaton);
+      result = (MutableAutomaton) translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!hasAcceptingRun));
     ParityUtil.complement(result, RankingState::of);

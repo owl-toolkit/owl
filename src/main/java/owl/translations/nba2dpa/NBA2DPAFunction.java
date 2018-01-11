@@ -37,28 +37,24 @@ import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomatonBuilder;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
-import owl.translations.nba2ldba.GeneralizedBuchiAcceptanceTransformer;
+import owl.translations.nba2ldba.GeneralizedBuchiView;
 import owl.translations.nba2ldba.NBA2LDBAFunction;
-import owl.translations.nba2ldba.Safety;
 
 public final class NBA2DPAFunction<S>
   implements Function<Automaton<S, ?>, HoaPrintable> {
 
   public NBA2DPAFunction() {}
 
-  public NBA2DPAFunction(EnumSet<Configuration> optimisations) {}
-
   @SuppressWarnings("unchecked")
   @Override
-  public MutableAutomaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
-  apply(Automaton<S, ?> nba) {
+  public Automaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
+    apply(Automaton<S, ?> nba) {
     Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (nba.getAcceptance() instanceof AllAcceptance) {
 
-      nbaGBA = GeneralizedBuchiAcceptanceTransformer
-        .create((Automaton<S, AllAcceptance>) nba).build();
+      nbaGBA = new GeneralizedBuchiView<>((Automaton<S, AllAcceptance>) nba).build();
     } else if (nba.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
       nbaGBA = (Automaton<S, GeneralizedBuchiAcceptance>) nba;
     } else {
@@ -66,19 +62,19 @@ public final class NBA2DPAFunction<S>
     }
 
     NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(EnumSet.noneOf(Configuration.class));
-    LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> ldba =
+    LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> ldba =
       nba2ldba.apply(nbaGBA);
 
-    LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Safety>
+    LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Void>
       ldbaCutDet = ldba.asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<S>, BuchiAcceptance>) ldbaCutDet
       .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
 
-    LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Safety> oracle =
-      new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent(), ldba::getAnnotation);
+    LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Void> oracle =
+      new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
     Predicate<Set<S>> isAccepting = s -> false;
 
-    RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Safety, Set<BreakpointState<S>>> builder =
+    RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Void, Set<BreakpointState<S>>> builder =
       new RankingAutomatonBuilder<>(ldbaCutDet, new AtomicInteger(), true, oracle,
         isAccepting, false);
     builder.add(ldbaCutDet.getInitialComponent().getInitialState());

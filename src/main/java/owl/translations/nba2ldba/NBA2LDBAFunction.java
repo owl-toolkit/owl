@@ -30,7 +30,7 @@ import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 
 public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
-  LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety>> {
+  LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
   private final EnumSet<Configuration> optimisations;
 
   public NBA2LDBAFunction(EnumSet<Configuration> optimisations) {
@@ -39,46 +39,25 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
 
   @SuppressWarnings("unchecked")
   @Override
-  public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Safety> apply(
-    Automaton<S, ?> nba) {
-    Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
+  public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> apply(
+    Automaton<S, ?> automaton) {
+    Automaton<S, GeneralizedBuchiAcceptance> nba;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
-    if (nba.getAcceptance() instanceof AllAcceptance) {
-      nbaGBA = GeneralizedBuchiAcceptanceTransformer
-        .create((Automaton<S, AllAcceptance>) nba).build();
-    } else if (nba.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
-      nbaGBA = (Automaton<S, GeneralizedBuchiAcceptance>) nba;
+    if (automaton.getAcceptance() instanceof AllAcceptance) {
+      nba = new GeneralizedBuchiView<>((Automaton<S, AllAcceptance>) automaton).build();
+    } else if (automaton.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
+      nba = (Automaton<S, GeneralizedBuchiAcceptance>) automaton;
     } else {
-      throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
+      throw new UnsupportedOperationException(automaton.getAcceptance() + " is unsupported.");
     }
 
-    InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nbaGBA);
+    InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
     MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
-      = AcceptingComponentBuilder.createScc(nbaGBA);
-
-    Function<BreakpointState<S>, Safety> stateSafety;
-
-    // TODO: Code is broken.
-    if (optimisations.contains(null)) {
-      nba.getStates().forEach(acceptingComponentBuilder::add);
-      Automaton<BreakpointState<S>, BuchiAcceptance> acceptingComponent
-        = acceptingComponentBuilder.build();
-
-      stateSafety = state -> {
-        if (SafetyUtil.isSafetyLanguage(state, acceptingComponent)) {
-          return Safety.SAFETY;
-        }
-        if (SafetyUtil.isCosafetyLanguage(state, acceptingComponent)) {
-          return Safety.CO_SAFETY;
-        }
-        return Safety.NEITHER;
-      };
-    } else {
-      stateSafety = x -> null;
-    }
+      = AcceptingComponentBuilder.createScc(nba);
 
     return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder, Sets::newHashSet, stateSafety, optimisations).build();
+      acceptingComponentBuilder, Sets::newHashSet,
+      (Function<BreakpointState<S>, Void>) x -> null, optimisations).build();
   }
 }

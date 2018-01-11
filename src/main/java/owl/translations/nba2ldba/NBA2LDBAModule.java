@@ -3,9 +3,7 @@ package owl.translations.nba2ldba;
 import java.util.EnumSet;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import owl.automaton.AutomatonUtil;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.run.InputReaders;
 import owl.run.ModuleSettings.TransformerSettings;
@@ -25,12 +23,10 @@ public class NBA2LDBAModule implements TransformerSettings {
   }
 
   @Override
-  public Transformer create(CommandLine settings, Environment environment)
-    throws ParseException {
-    NBA2LDBAFunction<Object> function =
-      new NBA2LDBAFunction<>(EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
-    return (input, context) -> function.apply(
-      AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
+  public Transformer create(CommandLine settings, Environment environment) {
+    EnumSet<Configuration> configuration = EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS);
+    NBA2LDBAFunction<Object> translation = new NBA2LDBAFunction<>(configuration);
+    return (nba, context) -> translation.apply((Automaton<Object, ?>) nba);
   }
 
   @Override

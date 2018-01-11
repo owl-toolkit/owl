@@ -20,8 +20,6 @@ package owl.translations.nba2dpa;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
-import java.util.EnumSet;
-import java.util.Set;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
@@ -29,13 +27,9 @@ import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.run.TestEnvironment;
-import owl.translations.ldba2dpa.RankingState;
-import owl.translations.nba2ldba.BreakpointState;
 
 public class NBA2DPATest {
 
@@ -526,11 +520,9 @@ public class NBA2DPATest {
       TestEnvironment.INSTANCE.factorySupplier(), GeneralizedBuchiAcceptance.class);
     nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
-    EnumSet<Configuration> optimisations = EnumSet.noneOf(Configuration.class);
-    NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>(optimisations);
+    NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
 
-    MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      dpa = translation.apply(nba);
+    Automaton<?, ParityAcceptance> dpa = translation.apply(nba);
     dpa.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertThat(dpa.size(), lessThanOrEqualTo(size));
   }
