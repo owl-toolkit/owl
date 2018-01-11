@@ -35,6 +35,7 @@ namespace owl {
             handle(ref(automaton.env, automaton.handle)),
             alphabet_mappingID(automaton.alphabet_mappingID),
             acceptanceID(automaton.acceptanceID),
+            acceptanceSetCountID(automaton.acceptanceSetCountID),
             edgesID(automaton.edgesID),
             successorsID(automaton.successorsID) {}
 
