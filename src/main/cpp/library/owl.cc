@@ -43,14 +43,20 @@ namespace owl {
         return FormulaRewriter(env);
     }
 
-    Automaton Owl::createAutomaton(const Formula &formula) const {
-        return Automaton(env, formula);
+    Automaton Owl::createAutomaton(const Formula &formula, const bool on_the_fly) const {
+        return Automaton(env, formula, on_the_fly);
     }
 
-    LabelledTree<Tag, Automaton> Owl::createAutomatonTree(const Formula &formula) const {
+    LabelledTree <Tag, Automaton> Owl::createAutomatonTree(const Formula &formula, bool on_the_fly,
+                                                           SafetySplitting safety_splitting) const {
         jclass splitter_class = lookup_class(env, "owl/jni/Splitter");
-        jmethodID split_method = get_static_methodID(env, splitter_class, "split", "(Lowl/ltl/Formula;)Lowl/collections/LabelledTree;");
-        auto java_tree = call_static_method<jobject, jobject>(env, splitter_class, split_method, formula.formula);
+        jmethodID split_method = get_static_methodID(env, splitter_class, "split", "(Lowl/ltl/Formula;ZI)Lowl/collections/LabelledTree;");
+        auto java_tree = call_static_method<jobject, jobject, jboolean, jint>(env,
+                                                                                  splitter_class,
+                                                                                  split_method,
+                                                                                  formula.formula,
+                                                                                  static_cast<jboolean>(on_the_fly),
+                                                                                  static_cast<jint>(safety_splitting));
         deref(env, splitter_class);
         return copy_from_java(env, java_tree);
     }

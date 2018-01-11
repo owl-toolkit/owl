@@ -18,6 +18,9 @@
 package owl.translations;
 
 import static org.junit.Assert.assertThat;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNFOLD;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
@@ -55,6 +58,7 @@ import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.run.TestEnvironment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 @SuppressWarnings("PMD.UseUtilityClass")
@@ -197,10 +201,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   }
 
   public abstract static class DPA extends SizeRegressionTests<Automaton<?, ?>> {
-    static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL =
-      EnumSet.complementOf(EnumSet.of(
-        LTL2DPAFunction.Configuration.COMPLETE,
-        LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION));
+
 
     DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
       super(selectedClass, translator, automaton -> automaton.getStates().size(),
@@ -209,8 +210,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
     @RunWith(Parameterized.class)
     public static class Breakpoint extends DPA {
+      static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(
+        OPTIMISE_INITIAL_STATE, Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
+
       public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(TestEnvironment.INSTANCE, DPA_ALL, false),
+        super(selectedClass, new LTL2DPAFunction(TestEnvironment.INSTANCE, DPA_ALL),
           "breakpoint");
       }
 
@@ -222,8 +226,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
     @RunWith(Parameterized.class)
     public static class BreakpointFree extends DPA {
+      static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(GUESS_F,
+        OPTIMISE_INITIAL_STATE, Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
+
       public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(TestEnvironment.INSTANCE, DPA_ALL, true),
+        super(selectedClass, new LTL2DPAFunction(TestEnvironment.INSTANCE, DPA_ALL),
           "breakpointfree");
       }
 
@@ -236,17 +243,12 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
   @RunWith(Parameterized.class)
   public static class Delag extends SizeRegressionTests<Automaton<?, ?>> {
-    static final EnumSet<LTL2DPAFunction.Configuration> DELAG_DPA_ALL;
-
-    static {
-      DELAG_DPA_ALL = EnumSet.allOf(LTL2DPAFunction.Configuration.class);
-      DELAG_DPA_ALL.remove(LTL2DPAFunction.Configuration.COMPLETE);
-    }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Delag(FormulaSet selectedClass) {
       super(selectedClass, formula -> new DelagBuilder(TestEnvironment.INSTANCE,
-          new LTL2DPAFunction(TestEnvironment.INSTANCE, DELAG_DPA_ALL))
+          new LTL2DPAFunction(TestEnvironment.INSTANCE,
+            LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG))
           .apply(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula)),
       x -> x.getStates().size(),
         SizeRegressionTests::getAcceptanceSetsSize, "delag");

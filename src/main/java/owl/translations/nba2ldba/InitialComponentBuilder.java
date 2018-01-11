@@ -21,11 +21,11 @@ import com.google.common.collect.Collections2;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.ldba.MutableAutomatonBuilder;
 
 final class InitialComponentBuilder<S> implements MutableAutomatonBuilder<S, S, NoneAcceptance> {
 

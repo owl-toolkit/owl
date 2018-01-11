@@ -16,6 +16,10 @@ namespace owl {
         NODE, LEAF
     };
 
+    enum SafetySplitting {
+        NEVER, AUTO, ALWAYS
+    };
+
     template<typename L1, typename L2>
     class LabelledTree {
     public:
@@ -88,8 +92,8 @@ namespace owl {
 
         FormulaFactory createFormulaFactory() const;
         FormulaRewriter createFormulaRewriter() const;
-        Automaton createAutomaton(const Formula &formula) const;
-        LabelledTree<Tag, Automaton> createAutomatonTree(const Formula &formula) const;
+        Automaton createAutomaton(const Formula &formula, bool on_the_fly) const;
+        LabelledTree<Tag, Automaton> createAutomatonTree(const Formula &formula, bool on_the_fly, SafetySplitting safety_splitting) const;
     };
 }
 

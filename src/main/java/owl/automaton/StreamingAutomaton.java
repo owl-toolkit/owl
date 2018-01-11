@@ -156,6 +156,11 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
   }
 
   @Override
+  public boolean is(Property property) {
+    return property == Property.DETERMINISTIC || Automaton.super.is(property);
+  }
+
+  @Override
   public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       acceptance, initialStates, options, true, getName());

@@ -17,10 +17,12 @@
 
 package owl.automaton;
 
+import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
@@ -60,6 +62,8 @@ public final class MutableAutomatonFactory {
 
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
     Automaton<S, A> automaton) {
+    Preconditions.checkArgument(automaton.is(Property.DETERMINISTIC),
+      "Only deterministic automata supported");
     return createMutableAutomaton(automaton.getAcceptance(),
       automaton.getFactory(), automaton.getInitialStates(), automaton::getEdge,
       (x) -> null);

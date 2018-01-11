@@ -29,6 +29,8 @@ public final class Fragments {
     || x instanceof Literal || x instanceof PropositionalFormula || x instanceof XOperator;
   private static final Predicate<Formula> SAFETY = x -> x instanceof GOperator
     || x instanceof ROperator || x instanceof WOperator;
+  private static final Predicate<Formula> SINGLE_STEP = x -> x instanceof BooleanConstant
+    || x instanceof Literal || x instanceof PropositionalFormula;
 
   private Fragments() {}
 
@@ -50,6 +52,10 @@ public final class Fragments {
 
   public static boolean isFgx(Formula formula) {
     return formula.allMatch(FINITE.or(FG));
+  }
+
+  public static boolean isSingleStep(Formula formula) {
+    return formula.allMatch(SINGLE_STEP);
   }
 
   public static boolean isFinite(Formula formula) {

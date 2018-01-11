@@ -6,6 +6,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.run.ModuleSettings.TransformerSettings;
 import owl.run.PipelineExecutionContext;
@@ -69,9 +71,9 @@ public class ImplicitMinimizeTransformer implements Transformer {
 
   @Override
   public Object transform(Object object, PipelineExecutionContext context) {
-    checkArgument(object instanceof MutableAutomaton, "Expected mutable automaton, got %s",
+    checkArgument(object instanceof Automaton, "Expected automaton, got %s",
       object.getClass());
-    MutableAutomaton<?, ?> automaton = (MutableAutomaton<?, ?>) object;
+    MutableAutomaton<?, ?> automaton = AutomatonUtil.asMutable((Automaton) object);
     MinimizationUtil.minimizeDefault(automaton, level);
     return automaton;
   }

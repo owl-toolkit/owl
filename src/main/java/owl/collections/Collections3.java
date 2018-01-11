@@ -91,6 +91,11 @@ public final class Collections3 {
     return collection.size() == Sets.newHashSet(collection).size();
   }
 
+  public static boolean isDistinctConsuming(BitSet set1, BitSet set2) {
+    set1.and(set2);
+    return set1.isEmpty();
+  }
+
   public static boolean isSubsetConsuming(BitSet set1, BitSet set2) {
     set1.andNot(set2);
     return set1.isEmpty();

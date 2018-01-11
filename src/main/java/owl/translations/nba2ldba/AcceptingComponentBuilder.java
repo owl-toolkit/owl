@@ -29,12 +29,12 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.automaton.ldba.MutableAutomatonBuilder;
 
 final class AcceptingComponentBuilder<S>
   implements MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> {

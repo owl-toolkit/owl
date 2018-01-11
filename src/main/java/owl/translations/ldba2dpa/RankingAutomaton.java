@@ -19,7 +19,6 @@ package owl.translations.ldba2dpa;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -27,17 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonBuilder;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Priority;
@@ -45,9 +42,8 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 
-public final class RankingAutomatonBuilder<S, T, U, V>
-  implements MutableAutomatonBuilder<S, RankingState<S, T>, ParityAcceptance> {
-  private static final Logger logger = Logger.getLogger(RankingAutomatonBuilder.class.getName());
+public final class RankingAutomaton<S, T, U, V> {
+  private static final Logger logger = Logger.getLogger(RankingAutomaton.class.getName());
 
   private final ParityAcceptance acceptance;
   @Nullable
@@ -57,14 +53,12 @@ public final class RankingAutomatonBuilder<S, T, U, V>
   private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba;
   private final boolean resetRanking;
   private final List<U> safetyComponents;
-  private final AtomicInteger sizeCounter;
   private final List<U> sortingOrder;
   @Nullable
   private RankingState<S, T> initialState = null;
 
-  public RankingAutomatonBuilder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
-    AtomicInteger sizeCounter, boolean resetAfterSccSwitch,
-    LanguageLattice<V, T, U> lattice, Predicate<S> isAcceptingState,
+  private RankingAutomaton(LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
+    boolean resetAfterSccSwitch, LanguageLattice<V, T, U> lattice, Predicate<S> isAcceptingState,
     boolean resetRanking) {
     this.ldba = ldba;
 
@@ -85,44 +79,70 @@ public final class RankingAutomatonBuilder<S, T, U, V>
     this.isAcceptingState = isAcceptingState;
 
     initialComponentSccs = resetAfterSccSwitch
-      ? SccDecomposition.computeSccs(this.ldba.getInitialComponent())
-      : null;
+                           ? SccDecomposition.computeSccs(this.ldba.getInitialComponent())
+                           : null;
 
     acceptance = new ParityAcceptance(2, Priority.ODD);
 
-    this.sizeCounter = sizeCounter;
     this.lattice = lattice;
     this.resetRanking = resetRanking;
   }
 
-  @Override
-  public RankingState<S, T> add(S state) {
-    Preconditions.checkState(initialState == null, "At most one initial state is supported.");
-    initialState = buildEdge(state, List.of(), -1, null).getSuccessor();
-    return initialState;
-  }
+  public static <S, T, U, V> Automaton<RankingState<S, T>, ParityAcceptance> of(
+    LimitDeterministicAutomaton<S, T, BuchiAcceptance, U> ldba,
+    boolean resetAfterSccSwitch,
+    LanguageLattice<V, T, U> lattice, Predicate<S> isAcceptingState,
+    boolean resetRanking, boolean optimizeInitialState) {
+    RankingAutomaton<S, T, U, V> builder = new RankingAutomaton<>(ldba, resetAfterSccSwitch,
+      lattice, isAcceptingState, resetRanking);
 
-  @Override
-  public MutableAutomaton<RankingState<S, T>, ParityAcceptance> build() {
-    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton =
-      MutableAutomatonFactory.createMutableAutomaton(acceptance,
-        ldba.getAcceptingComponent().getFactory());
-
-    if (initialState == null) {
-      return automaton;
-    }
+    Preconditions
+      .checkState(builder.initialState == null, "At most one initial state is supported.");
+    builder.initialState = builder.buildEdge(ldba.getInitialComponent().getInitialState(),
+      List.of(), -1, null).getSuccessor();
 
     // TODO: add getSensitiveAlphabet Method
-    AutomatonUtil.exploreDeterministic(automaton, List.of(initialState),
-      this::getSuccessor, sizeCounter);
-    automaton.setInitialState(initialState);
-    List<Set<RankingState<S, T>>> sccs = SccDecomposition.computeSccs(automaton, false);
+    Automaton<RankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory
+      .createStreamingAutomaton(builder.acceptance, builder.initialState,
+        builder.ldba.getAcceptingComponent().getFactory(), builder::getSuccessor);
 
-    for (Set<RankingState<S, T>> scc : Lists.reverse(sccs)) {
-      scc.stream().filter(x -> Objects.equals(x.state, initialState))
-        .findAny().ifPresent(automaton::setInitialState);
+    if (optimizeInitialState) {
+      return optimizeInitialState(automaton);
     }
 
+    return automaton;
+  }
+
+  private static <S, T> Automaton<RankingState<S, T>, ParityAcceptance> optimizeInitialState(
+    Automaton<RankingState<S, T>, ParityAcceptance> readOnly) {
+    S originalInitialState = readOnly.getInitialState().state;
+
+    if (originalInitialState == null) {
+      return readOnly;
+    }
+
+    MutableAutomaton<RankingState<S, T>, ParityAcceptance> automaton =
+      AutomatonUtil.asMutable(readOnly);
+
+    RankingState<S, T> potentialInitialState = automaton.getInitialState();
+    int size = automaton.size();
+
+    for (Set<RankingState<S, T>> scc : SccDecomposition.computeSccs(automaton, false)) {
+      for (RankingState<S, T> state : scc) {
+        if (!originalInitialState.equals(state.state)) {
+          continue;
+        }
+
+        int newSize = AutomatonUtil.getReachableStates(automaton, Set.of(state)).size();
+
+        if (newSize < size) {
+          size = newSize;
+          potentialInitialState = state;
+        }
+      }
+    }
+
+    automaton.setInitialState(potentialInitialState);
     automaton.removeUnreachableStates();
     return automaton;
   }
@@ -196,7 +216,7 @@ public final class RankingAutomatonBuilder<S, T, U, V>
           edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
 
           logger.log(Level.FINER, "Found safety language {0} with safety index {1}.",
-            new Object[]{rankingState, safetyIndex});
+            new Object[] {rankingState, safetyIndex});
 
           if (resetRanking) {
             existingLanguages.replace(annotation, lattice.getTop());

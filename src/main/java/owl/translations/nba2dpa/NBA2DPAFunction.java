@@ -20,9 +20,7 @@ package owl.translations.nba2dpa;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -34,7 +32,7 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrintable;
 import owl.translations.ldba2dpa.LanguageLattice;
-import owl.translations.ldba2dpa.RankingAutomatonBuilder;
+import owl.translations.ldba2dpa.RankingAutomaton;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.GeneralizedBuchiView;
@@ -62,23 +60,16 @@ public final class NBA2DPAFunction<S>
     }
 
     NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(EnumSet.noneOf(Configuration.class));
-    LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> ldba =
-      nba2ldba.apply(nbaGBA);
 
     LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Void>
-      ldbaCutDet = ldba.asCutDeterministicAutomaton();
+      ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<S>, BuchiAcceptance>) ldbaCutDet
       .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
 
     LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Void> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
-    Predicate<Set<S>> isAccepting = s -> false;
 
-    RankingAutomatonBuilder<Set<S>, BreakpointState<S>, Void, Set<BreakpointState<S>>> builder =
-      new RankingAutomatonBuilder<>(ldbaCutDet, new AtomicInteger(), true, oracle,
-        isAccepting, false);
-    builder.add(ldbaCutDet.getInitialComponent().getInitialState());
-
-    return builder.build();
+    return RankingAutomaton.of(ldbaCutDet, true, oracle,
+      s -> false, false, true);
   }
 }

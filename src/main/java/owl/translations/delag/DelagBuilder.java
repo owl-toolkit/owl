@@ -62,10 +62,12 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
             + " outside of supported fragment");
         };
       } else {
+
         fallback = fallbackTool == null
-                   ? new LTL2DPAFunction(environment)
+                   ? new LTL2DPAFunction(environment, LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG)
                    : new ExternalTranslator(environment, fallbackTool);
       }
+
       //noinspection unchecked,rawtypes
       return Transformers.fromFunction(LabelledFormula.class,
         new DelagBuilder(environment, fallback));

@@ -2,13 +2,13 @@
 #include "owl-private.h"
 
 namespace owl {
-    Automaton::Automaton(JNIEnv *env, const Formula& formula) {
+    Automaton::Automaton(JNIEnv *env, const Formula& formula, bool on_the_fly) {
         this->env = env;
 
         jclass clazz = lookup_class(env, "owl/jni/IntAutomaton");
-        jmethodID constructor = get_static_methodID(env, clazz, "of", "(Lowl/ltl/Formula;)Lowl/jni/IntAutomaton;");
+        jmethodID constructor = get_static_methodID(env, clazz, "of", "(Lowl/ltl/Formula;Z)Lowl/jni/IntAutomaton;");
 
-        this->handle = call_static_method<jobject, jobject>(env, clazz, constructor, formula.formula);
+        this->handle = call_static_method<jobject, jobject, jboolean>(env, clazz, constructor, formula.formula, (jboolean) on_the_fly);
         bind_methods(clazz);
         deref(env, clazz);
     }

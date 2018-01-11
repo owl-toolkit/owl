@@ -122,7 +122,7 @@ Formula create_formula(const Owl& owl) {
 }
 
 void dpa_example(const Owl& owl, const Formula& formula) {
-    Automaton dpa = owl.createAutomaton(formula);
+    Automaton dpa = owl.createAutomaton(formula, false);
 
     std::cout << "Automaton constructed with ";
 
@@ -197,18 +197,16 @@ void visit_tree(const LabelledTree<Tag, Automaton>& tree, int indent) {
 }
 
 void simple_arbiter_example(const Owl& owl) {
-    Formula formula = owl.createFormulaFactory().parse("(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
-                                                    "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
-                                                    "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
-                                                    "(g_7)))))) || (((((! (g_0)) && (! (g_1))) && (((! (g_2)) && (true)) || ((true) && (! (g_3)"
-                                                    ")))) || ((((! (g_0)) && (true)) || ((true) && (! (g_1)))) && ((! (g_2)) && (! (g_3))))) &&"
-                                                    " ((((! (g_4)) && (! (g_5))) && (! (g_6))) && (! (g_7)))))) && (G ((r_0) -> (F (g_0))))) &&"
-                                                    " (G ((r_1) -> (F (g_1))))) && (G ((r_2) -> (F (g_2))))) && (G ((r_3) -> (F (g_3))))) && (G"
-                                                    " ((r_4) -> (F (g_4))))) && (G ((r_5) -> (F (g_5))))) && (G ((r_6) -> (F (g_6))))) && (G ("
-                                                    "(r_7) -> (F (g_7)))))", std::vector<std::string>());
+    Formula formula = owl.createFormulaFactory().parse("G (!g_0) && !g_0 R !g_1 && G (! g_0 && ! g_1 && (! g_2 && true || (true && (! g_3))) || (! g_0 && true || (true && (! g_1)) && (! g_2 && ! g_3))) && G (r_0 -> F g_0) && G (r_1 -> F g_1) && G (r_2 -> F g_2) && G (r_3 -> F g_3)", std::vector<std::string>());
 
-    LabelledTree<Tag, Automaton> tree = owl.createAutomatonTree(formula);
-    visit_tree(tree, 0);
+    LabelledTree<Tag, Automaton> tree1 = owl.createAutomatonTree(formula, true, NEVER);
+    visit_tree(tree1, 0);
+
+    LabelledTree<Tag, Automaton> tree2 = owl.createAutomatonTree(formula, false, AUTO);
+    visit_tree(tree2, 0);
+
+    LabelledTree<Tag, Automaton> tree3 = owl.createAutomatonTree(formula, false, ALWAYS);
+    visit_tree(tree3, 0);
 }
 
 int main(int argc, char** argv) {
