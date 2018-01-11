@@ -10,19 +10,14 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 
-public final class GeneralizedBuchiAcceptanceTransformer<S>
+// TODO: Convert this to a View.
+public final class GeneralizedBuchiView<S>
   implements MutableAutomatonBuilder<S, S, GeneralizedBuchiAcceptance> {
 
   private final Automaton<S, AllAcceptance> nba;
 
-  private GeneralizedBuchiAcceptanceTransformer(Automaton<S, AllAcceptance> nba) {
+  public GeneralizedBuchiView(Automaton<S, AllAcceptance> nba) {
     this.nba = nba;
-  }
-
-  public static <S> GeneralizedBuchiAcceptanceTransformer<S> create(
-    Automaton<S, AllAcceptance> nba) {
-    // TODO Move this to transformation package, create transformer modules from this
-    return new GeneralizedBuchiAcceptanceTransformer<>(nba);
   }
 
   @Override

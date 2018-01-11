@@ -1,4 +1,4 @@
-package owl.translations.nba2ldba;
+package owl.automaton.algorithms;
 
 import com.google.common.collect.Lists;
 import java.util.HashSet;
@@ -7,12 +7,12 @@ import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.translations.nba2ldba.BreakpointState;
 
-public final class SafetyUtil {
+public final class LanguageAnalysis {
 
-  private SafetyUtil() {}
+  private LanguageAnalysis() {}
 
   public static <S> boolean isSafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
     if (BreakpointState.getSink().equals(state)) {
