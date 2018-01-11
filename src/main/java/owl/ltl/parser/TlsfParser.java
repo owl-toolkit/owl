@@ -77,40 +77,30 @@ public final class TlsfParser {
     BitSet inputs = new BitSet();
     BitSet outputs = new BitSet();
     List<String> variables = new ArrayList<>();
-    List<String> ephemeralVariables = new ArrayList<>();
+    List<String> lowercaseVariables = new ArrayList<>();
 
     for (TerminalNode variableNode : tree.input().VAR_ID()) {
       String variableName = variableNode.getText();
 
-      if (variables.contains(variableName)) {
+      if (lowercaseVariables.contains(variableName.toLowerCase())) {
         throw new ParseCancellationException("Duplicate variable definition: " + variableName);
       }
 
       inputs.set(variables.size());
-      ephemeralVariables.add("v" + variables.size());
       variables.add(variableName);
+      lowercaseVariables.add(variableName.toLowerCase());
     }
 
     for (TerminalNode variableNode : tree.output().VAR_ID()) {
       String variableName = variableNode.getText();
 
-      if (variables.contains(variableName)) {
+      if (lowercaseVariables.contains(variableName.toLowerCase())) {
         throw new ParseCancellationException("Duplicate variable definition: " + variableName);
       }
 
       outputs.set(variables.size());
-      ephemeralVariables.add("v" + variables.size());
       variables.add(variableName);
-    }
-
-    for (String variable1 : variables) {
-      for (String variable2 : variables) {
-        if (!variable1.equals(variable2)
-          && (variable1.contains(variable2) || variable2.contains(variable1))) {
-          throw new ParseCancellationException("Variables cannot be safely replaced: "
-            + variable1 + ", " + variable2);
-        }
-      }
+      lowercaseVariables.add(variableName.toLowerCase());
     }
 
     builder.inputs(inputs);
@@ -134,12 +124,18 @@ public final class TlsfParser {
         // Strip trailing ;
         String sanitizedFormula = formulaString.substring(0, formulaString.length() - 1).trim();
 
-        // Map arbitrary variable names to ephemeral variables
+        // Map arbitrary variable names to lowercase variables
         for (int i = 0; i < variables.size(); i++) {
-          sanitizedFormula = sanitizedFormula.replace(variables.get(i), ephemeralVariables.get(i));
+          String variableName = variables.get(i);
+
+          for (int j = 0; j < i; j++) {
+            variableName = variableName.replace(variables.get(j), lowercaseVariables.get(j));
+          }
+
+          sanitizedFormula = sanitizedFormula.replace(variableName, lowercaseVariables.get(i));
         }
 
-        Formula formula = LtlParser.syntax(sanitizedFormula, ephemeralVariables);
+        Formula formula = LtlParser.syntax(sanitizedFormula, lowercaseVariables);
 
         if (specificationContext.INITIALLY() != null) {
           initial.add(formula);

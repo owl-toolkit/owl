@@ -1,7 +1,10 @@
 package owl.ltl.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
+import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.ltl.LabelledFormula;
 import owl.ltl.tlsf.Tlsf;
@@ -125,6 +128,42 @@ public class TlsfParserTest {
     + "  }\n"
     + "}";
 
+  private static final String UPPER_CASE_DIFFICULT = "INFO {\n"
+    + "  TITLE:       \"Lily Demo V1\"\n"
+    + "  DESCRIPTION: \"One of the Lily demo files\"\n"
+    + "  SEMANTICS:   Moore\n"
+    + "  TARGET:      Mealy\n"
+    + "}\n"
+    + "\n"
+    + "MAIN {\n"
+    + "  INPUTS {\n"
+    + "    BARFOO;\n"
+    + "    FOO;\n"
+    + "    BAR;\n"
+    + "  }\n"
+    + "  OUTPUTS {\n"
+    + "    FOOBAR;\n"
+    + "  }\n"
+    + "  ASSERT {\n"
+    + "    ((BARFOO) -> (X ((FOO) && (X ((BAR) && (X (FOOBAR)))))));\n"
+    + "  }\n"
+    + "}";
+
+  private static final String UPPER_CASE_FAULTY = "INFO {\n"
+    + "  TITLE:       \"Lily Demo V1\"\n"
+    + "  DESCRIPTION: \"One of the Lily demo files\"\n"
+    + "  SEMANTICS:   Moore\n"
+    + "  TARGET:      Mealy\n"
+    + "}\n"
+    + "\n"
+    + "MAIN {\n"
+    + "  INPUTS {\n"
+    + "    Foo;\n"
+    + "    fOO;\n"
+    + "    foo;\n"
+    + "  }\n"
+    + "}";
+
   @Test
   public void testParse1() {
     Tlsf tlsf = TlsfParser.parse(TLSF1);
@@ -163,5 +202,16 @@ public class TlsfParserTest {
     Tlsf lily = TlsfParser.parse(LILY);
     Tlsf upperCase = TlsfParser.parse(UPPER_CASE);
     assertEquals(lily.toFormula().formula, upperCase.toFormula().formula);
+  }
+
+  @Test
+  public void testParseUpperCaseDifficult() {
+    Tlsf upperCaseDifficult = TlsfParser.parse(UPPER_CASE_DIFFICULT);
+    assertThat(upperCaseDifficult.variables(), Matchers.contains("BARFOO", "FOO", "BAR", "FOOBAR"));
+  }
+
+  @Test(expected = ParseCancellationException.class)
+  public void testParseUpperCaseFaulty() {
+    TlsfParser.parse(UPPER_CASE_FAULTY);
   }
 }
