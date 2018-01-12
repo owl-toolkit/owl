@@ -21,20 +21,20 @@ import com.google.common.collect.Sets;
 import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
+import owl.automaton.ldba.MutableAutomatonBuilder;
 
 public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
-  private final EnumSet<Configuration> optimisations;
+  private final EnumSet<Configuration> configuration;
 
-  public NBA2LDBAFunction(EnumSet<Configuration> optimisations) {
-    this.optimisations = optimisations;
+  public NBA2LDBAFunction(EnumSet<Configuration> configuration) {
+    this.configuration = configuration;
   }
 
   @SuppressWarnings("unchecked")
@@ -58,6 +58,6 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
 
     return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
       acceptingComponentBuilder, Sets::newHashSet,
-      (Function<BreakpointState<S>, Void>) x -> null, optimisations).build();
+      (Function<BreakpointState<S>, Void>) x -> null, configuration).build();
   }
 }

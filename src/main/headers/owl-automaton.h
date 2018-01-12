@@ -25,7 +25,7 @@ namespace owl {
         jmethodID edgesID{};
         jmethodID successorsID{};
 
-        Automaton(JNIEnv* env, const Formula& formula);
+        Automaton(JNIEnv* env, const Formula& formula, bool on_the_fly);
         Automaton(JNIEnv* env, jobject handle);
 
         void bind_methods(jclass const &clazz);

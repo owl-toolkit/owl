@@ -190,7 +190,7 @@ public final class Views {
     B extends OmegaAcceptance, T extends Automaton<S, B>> implements Automaton<S, A> {
     protected final T automaton;
 
-    ForwardingAutomaton(T automaton) {
+    protected ForwardingAutomaton(T automaton) {
       this.automaton = automaton;
     }
 

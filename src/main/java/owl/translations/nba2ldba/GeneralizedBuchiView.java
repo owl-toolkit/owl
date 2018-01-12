@@ -4,11 +4,11 @@ import com.google.common.collect.Collections2;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.ldba.MutableAutomatonBuilder;
 
 // TODO: Convert this to a View.
 public final class GeneralizedBuchiView<S>

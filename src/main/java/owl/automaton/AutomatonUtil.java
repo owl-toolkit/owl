@@ -94,6 +94,15 @@ public final class AutomatonUtil {
     return (MutableAutomaton<S, A>) castedAutomaton;
   }
 
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> asMutable(
+    Automaton<S, A> automaton) {
+    if (automaton instanceof MutableAutomaton) {
+      return (MutableAutomaton<S, A>) automaton;
+    }
+
+    return MutableAutomatonFactory.createMutableAutomaton(automaton);
+  }
+
   /**
    * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
    * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once, if

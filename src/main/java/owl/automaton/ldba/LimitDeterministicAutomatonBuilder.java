@@ -35,7 +35,6 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonBuilder;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.algorithms.SccDecomposition;

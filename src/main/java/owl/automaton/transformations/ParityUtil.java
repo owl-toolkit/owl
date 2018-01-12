@@ -29,8 +29,10 @@ import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.Views.ForwardingAutomaton;
 import owl.automaton.Views.ForwardingMutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -39,7 +41,6 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.minimizations.GenericMinimizations;
-import owl.collections.ValuationSet;
 
 public final class ParityUtil {
   private ParityUtil() {
@@ -138,50 +139,26 @@ public final class ParityUtil {
     return automaton;
   }
 
-  public static <S> MutableAutomaton<S, ParityAcceptance> viewAsParity(
-    MutableAutomaton<S, BuchiAcceptance> automaton) {
+  public static <S> Automaton<S, ParityAcceptance> viewAsParity(
+    Automaton<S, BuchiAcceptance> automaton) {
     return new WrappedBuchiAutomaton<>(automaton);
   }
 
   // TODO Complementing these automata feels a bit iffy right now: The priority type of the
   // acceptance is changed without notifying this automaton of it.
-  private static final class WrappedBuchiAutomaton<S>
-    extends
-    ForwardingMutableAutomaton<S, ParityAcceptance, BuchiAcceptance> {
+  private static final class WrappedBuchiAutomaton<S> extends
+    ForwardingAutomaton<S, ParityAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
     private final ParityAcceptance acceptance;
 
-    WrappedBuchiAutomaton(MutableAutomaton<S, BuchiAcceptance> backingAutomaton) {
+    WrappedBuchiAutomaton(Automaton<S, BuchiAcceptance> backingAutomaton) {
       super(backingAutomaton);
       acceptance = new ParityAcceptance(2, Priority.EVEN);
-    }
-
-    @Override
-    public void addEdge(S source, Edge<? extends S> edge) {
-      super.addEdge(source, convertParityToBuchi(edge));
-    }
-
-    @Override
-    public void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
-      super.addEdge(source, valuation, convertParityToBuchi(edge));
-    }
-
-    @Override
-    public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
-      super.addEdge(source, valuations, convertParityToBuchi(edge));
     }
 
     @SuppressWarnings("unchecked")
     private Edge<S> convertBuchiToParity(Edge<? extends S> edge) {
       checkState(isAcceptanceCompatible());
-
       return edge.inSet(0) ? (Edge<S>) edge : Edge.of(edge.getSuccessor(), 1);
-    }
-
-    private Edge<S> convertParityToBuchi(Edge<? extends S> edge) {
-      checkState(isAcceptanceCompatible());
-      return edge.inSet(0)
-        ? Edge.of(edge.getSuccessor(), 0)
-        : Edge.of(edge.getSuccessor());
     }
 
     @Override

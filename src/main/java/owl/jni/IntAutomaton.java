@@ -17,6 +17,8 @@
 
 package owl.jni;
 
+import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
+
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -24,9 +26,11 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -106,12 +110,12 @@ public class IntAutomaton {
     throw new IllegalStateException();
   }
 
-  public static IntAutomaton of(Automaton<?, ?> automaton, Acceptance acceptance, int[] mapping) {
+  private static IntAutomaton of(Automaton<?, ?> automaton, Acceptance acceptance, int[] mapping) {
     return new IntAutomaton(AutomatonUtil.cast(automaton, Object.class, OmegaAcceptance.class),
       acceptance, mapping);
   }
 
-  public static IntAutomaton of(Formula formula) {
+  public static IntAutomaton of(Formula formula, boolean onTheFly) {
     ShiftedFormula shiftedFormula = ShiftRewriter.shiftLiterals(RewriterFactory.apply(formula));
     LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
 
@@ -130,10 +134,17 @@ public class IntAutomaton {
     }
 
     // Fallback to DPA
-    EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
-    optimisations.remove(Configuration.COMPLETE);
+    Set<Configuration> configuration = EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
+
+    if (onTheFly) {
+      configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
+      configuration.remove(Configuration.OPTIMISE_INITIAL_STATE);
+    }
+
     Automaton<?, ParityAcceptance> automaton = new LTL2DPAFunction(
-      EnvironmentSettings.DEFAULT_ENVIRONMENT, optimisations).apply(labelledFormula);
+      EnvironmentSettings.DEFAULT_ENVIRONMENT, configuration).apply(labelledFormula);
+    assert !onTheFly || !(automaton instanceof MutableAutomaton)
+      : "Internal Error: Automaton was explicitly constructed and not on-the-fly.";
     return of(automaton, detectAcceptance(automaton), shiftedFormula.mapping);
   }
 

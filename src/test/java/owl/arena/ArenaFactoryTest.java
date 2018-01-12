@@ -28,9 +28,10 @@ public class ArenaFactoryTest {
   private static final LTL2DPAFunction TRANSLATION;
 
   static {
-    EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
-    optimisations.remove(Configuration.COMPLEMENT_CONSTRUCTION);
-    TRANSLATION = new LTL2DPAFunction(TestEnvironment.INSTANCE, optimisations, false);
+    EnumSet<Configuration> configuration = EnumSet.allOf(Configuration.class);
+    configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
+    configuration.remove(Configuration.GUESS_F);
+    TRANSLATION = new LTL2DPAFunction(TestEnvironment.INSTANCE, configuration);
   }
 
   @Test

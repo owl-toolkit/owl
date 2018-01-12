@@ -59,7 +59,7 @@ public final class LtlParser {
     parser.setErrorHandler(new BailErrorStrategy());
 
     // Convert the AST into a proper object
-    LtlParseTreeVisitor treeVisitor = literals == null
+    LtlParseTreeVisitor treeVisitor = literals == null || literals.isEmpty()
       ? new LtlParseTreeVisitor()
       : new LtlParseTreeVisitor(literals);
     return LabelledFormula.of(treeVisitor.visit(parser.formula()), treeVisitor.variables());
