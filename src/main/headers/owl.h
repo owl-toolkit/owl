@@ -69,7 +69,6 @@ namespace owl {
     template<typename L1, typename L2>
     LabelledTree<L1, L2>::LabelledTree(L1 label1, std::vector<LabelledTree<L1, L2>> children) : type(NODE), label1(label1), label2(), children(children) {}
 
-
     template<typename L1, typename L2>
     LabelledTree<L1, L2>::LabelledTree(const LabelledTree<L1, L2> &tree) {
         type = tree.type;
@@ -78,22 +77,37 @@ namespace owl {
         children = tree.children;
     }
 
-    class Owl {
+    class OwlThread {
     private:
-        const bool debug;
-        JNIEnv* env;
         JavaVM* vm;
+        JNIEnv* env;
+
+        explicit OwlThread(JavaVM* _vm, JNIEnv* _env) : vm(_vm), env(_env) {};
+        friend class OwlJavaVM;
 
     public:
-        Owl(const char* classpath, bool debug);
-        Owl(const Owl &owl) = delete;
-        Owl(const Owl &&owl) noexcept : debug(owl.debug), env(owl.env), vm(owl.vm) {};
-        ~Owl();
+        OwlThread(const OwlThread &owl) = delete;
+        OwlThread(const OwlThread &&owl) noexcept :vm(owl.vm), env(owl.env) {};
+        ~OwlThread();
+
+        Formula adoptFormula(const Formula &formula) const;
+        Automaton adoptAutomaton(const Automaton &automaton) const;
 
         FormulaFactory createFormulaFactory() const;
         FormulaRewriter createFormulaRewriter() const;
         Automaton createAutomaton(const Formula &formula, bool on_the_fly) const;
         LabelledTree<Tag, Automaton> createAutomatonTree(const Formula &formula, bool on_the_fly, SafetySplitting safety_splitting) const;
+    };
+
+    class OwlJavaVM {
+    private:
+        JavaVM* vm;
+
+    public:
+        OwlJavaVM(const char* classpath, bool debug);
+        ~OwlJavaVM();
+
+        OwlThread attachCurrentThread() const;
     };
 }
 

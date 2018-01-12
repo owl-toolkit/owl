@@ -7,7 +7,7 @@
 
 using namespace owl;
 
-Formula parse_formula(const Owl& owl) {
+Formula parse_formula(const OwlThread& owl) {
     FormulaFactory factory = owl.createFormulaFactory();
     FormulaRewriter rewriter = owl.createFormulaRewriter();
 
@@ -25,7 +25,7 @@ Formula parse_formula(const Owl& owl) {
     return simplifiedFormula;
 }
 
-Formula parse_tlsf(const Owl& owl) {
+Formula parse_tlsf(const OwlThread& owl) {
     FormulaFactory factory = owl.createFormulaFactory();
 
     std::vector<std::string> mapping;
@@ -69,7 +69,7 @@ Formula parse_tlsf(const Owl& owl) {
     return parsed_formula;
 }
 
-Formula create_formula(const Owl& owl) {
+Formula create_formula(const OwlThread& owl) {
     FormulaFactory factory = owl.createFormulaFactory();
     FormulaRewriter rewriter = owl.createFormulaRewriter();
 
@@ -121,7 +121,7 @@ Formula create_formula(const Owl& owl) {
     return imp2;
 }
 
-void dpa_example(const Owl& owl, const Formula& formula) {
+void dpa_example(const OwlThread& owl, const Formula& formula) {
     Automaton dpa = owl.createAutomaton(formula, false);
 
     std::cout << "Automaton constructed with ";
@@ -196,7 +196,8 @@ void visit_tree(const LabelledTree<Tag, Automaton>& tree, int indent) {
     }
 }
 
-void simple_arbiter_example(const Owl& owl) {
+
+void simple_arbiter_example(const OwlThread& owl) {
     Formula formula = owl.createFormulaFactory().parse("G (!g_0) && !g_0 R !g_1 && G (! g_0 && ! g_1 && (! g_2 && true || (true && (! g_3))) || (! g_0 && true || (true && (! g_1)) && (! g_2 && ! g_3))) && G (r_0 -> F g_0) && G (r_1 -> F g_1) && G (r_2 -> F g_2) && G (r_3 -> F g_3)", std::vector<std::string>());
 
     LabelledTree<Tag, Automaton> tree1 = owl.createAutomatonTree(formula, true, NEVER);
@@ -221,7 +222,8 @@ int main(int argc, char** argv) {
             "../../../build/lib/antlr4-runtime-4.7.jar";
 
     // Set the second argument to true to obtain additional debugging output.
-    Owl owl = Owl(classpath, true);
+    OwlJavaVM owlJavaVM = OwlJavaVM(classpath, true);
+    OwlThread owl = owlJavaVM.attachCurrentThread();
 
     std::cout << "Parse Formula Example: " << std::endl << std::endl;
     Formula parsed_formula_1 = parse_formula(owl);

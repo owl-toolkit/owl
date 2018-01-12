@@ -145,6 +145,7 @@ public final class IntAutomaton {
     if (onTheFly) {
       configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
       configuration.remove(Configuration.OPTIMISE_INITIAL_STATE);
+      configuration.add(Configuration.COLOUR_OVERAPPROXIMATION);
     }
 
     Automaton<?, ParityAcceptance> automaton =

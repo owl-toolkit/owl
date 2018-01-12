@@ -25,12 +25,13 @@ namespace owl {
         jmethodID edgesID{};
         jmethodID successorsID{};
 
+        // TODO: Unify constructors
         Automaton(JNIEnv* env, const Formula& formula, bool on_the_fly);
         Automaton(JNIEnv* env, jobject handle);
 
         void bind_methods(jclass const &clazz);
 
-        friend class Owl;
+        friend class OwlThread;
         friend class copy_from_java;
 
     public:
