@@ -31,7 +31,7 @@ namespace owl {
         friend class Automaton;
         friend class FormulaFactory;
         friend class FormulaRewriter;
-        friend class Owl;
+        friend class OwlThread;
 
     public:
         Formula(const Formula &obj);
@@ -57,7 +57,7 @@ namespace owl {
         Formula create(int index, Args... args);
 
         explicit FormulaFactory(JNIEnv *env);
-        friend class Owl;
+        friend class OwlThread;
 
     public:
         ~FormulaFactory();
@@ -107,7 +107,7 @@ namespace owl {
         jmethodID simplifyID;
 
         explicit FormulaRewriter(JNIEnv* env);
-        friend class Owl;
+        friend class OwlThread;
 
     public:
         ~FormulaRewriter();

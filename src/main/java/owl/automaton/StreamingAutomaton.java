@@ -43,7 +43,7 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 
-class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
+public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
   private final A acceptance;
   private final ValuationSetFactory factory;
   private final ImmutableSet<S> initialStates;
@@ -122,6 +122,32 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
     return acceptance;
   }
 
+  @Nullable
+  @Override
+  public S getSuccessor(S state, BitSet valuation) {
+    Edge<S> edge = getEdge(state, valuation);
+    return edge != null ? edge.getSuccessor() : null;
+  }
+
+  @Override
+  public Set<S> getSuccessors(S state) {
+    Set<S> successors = new HashSet<>();
+    computeEdges(state, (x, edge) -> successors.add(edge.getSuccessor()));
+    return successors;
+  }
+
+  @Override
+  public Set<S> getSuccessors(S state, BitSet valuation) {
+    S successor = getSuccessor(state, valuation);
+    return successor != null ? Set.of(successor) : Set.of();
+  }
+
+  @Nullable
+  @Override
+  public Edge<S> getEdge(S state, BitSet valuation) {
+    return successors.apply(state, valuation);
+  }
+
   @Override
   public Set<Edge<S>> getEdges(S state) {
     Set<Edge<S>> edges = new HashSet<>();
@@ -131,7 +157,7 @@ class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A
 
   @Override
   public Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    Edge<S> edge = successors.apply(state, valuation);
+    Edge<S> edge = getEdge(state, valuation);
     return edge != null ? Set.of(edge) : Set.of();
   }
 

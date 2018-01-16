@@ -3,8 +3,9 @@ package owl.arena.algorithms;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import java.util.EnumSet;
+import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 import owl.arena.Arena;
 import owl.arena.Views;
@@ -19,14 +20,9 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class ParityGameSolverTest {
-  private static final LTL2DPAFunction TRANSLATION;
-
-  static {
-    EnumSet<Configuration> configuration = EnumSet.allOf(Configuration.class);
-    configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
-    configuration.remove(Configuration.GUESS_F);
-    TRANSLATION = new LTL2DPAFunction(DefaultEnvironment.annotated(), configuration);
-  }
+  private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
+    DefaultEnvironment.annotated(),
+    Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
   public void ltl2zielonkaTest1() {

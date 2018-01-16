@@ -17,6 +17,7 @@
 
 package owl.translations.ltl2dpa;
 
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COLOUR_OVERAPPROXIMATION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
@@ -38,6 +39,7 @@ import java.util.function.Supplier;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.StreamingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
@@ -166,7 +168,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(ParityUtil.viewAsParity(ldba.getAcceptingComponent()),
-        DegeneralizedBreakpointState::createSink);
+        DegeneralizedBreakpointState::createSink, -1);
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
@@ -179,7 +181,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Automaton<RankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
       automaton = RankingAutomaton.of(ldba, true, oracle, this::hasSafetyCore,
       true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, RankingState::of);
+    return new Result<>(automaton, RankingState::of, 2 * ldba.getAcceptingComponent().size());
   }
 
   private Result<?> applyBreakpointFree(LabelledFormula formula) {
@@ -188,7 +190,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(ParityUtil.viewAsParity(ldba.getAcceptingComponent()),
-        DegeneralizedBreakpointFreeState::createSink);
+        DegeneralizedBreakpointFreeState::createSink, -1);
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
@@ -197,7 +199,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Automaton<RankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>, ParityAcceptance>
       automaton = RankingAutomaton.of(ldba, true, new BooleanLattice(),
       this::hasSafetyCore, true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, RankingState::of);
+    return new Result<>(automaton, RankingState::of, 2 * ldba.getAcceptingComponent().size());
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {
@@ -232,19 +234,26 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public enum Configuration {
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPLETE, GUESS_F
+    COMPLETE, GUESS_F, COLOUR_OVERAPPROXIMATION
   }
 
-  static final class Result<T> {
+  final class Result<T> {
     final Automaton<T, ParityAcceptance> automaton;
     final Supplier<T> sinkSupplier;
 
-    Result(Automaton<T, ParityAcceptance> automaton, Supplier<T> sinkSupplier) {
+    Result(Automaton<T, ParityAcceptance> automaton, Supplier<T> sinkSupplier,
+      int colourApproximation) {
       this.automaton = automaton;
       this.sinkSupplier = sinkSupplier;
 
       // HACK: Query state space to initialise colour correctly.
-      automaton.getStates();
+      if (automaton instanceof StreamingAutomaton) {
+        if (configuration.contains(COLOUR_OVERAPPROXIMATION)) {
+          automaton.getAcceptance().setAcceptanceSets(colourApproximation + 2);
+        } else {
+          automaton.getStates();
+        }
+      }
     }
 
     Automaton<T, ParityAcceptance> complete() {

@@ -39,11 +39,9 @@ import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 public class LTL2DPAFunctionTest {
 
   private static void testOutput(String ltl, int size, int accSize) {
-    EnumSet<Configuration> opts = EnumSet.allOf(Configuration.class);
-    opts.remove(Configuration.COMPLETE);
-    opts.remove(Configuration.GUESS_F);
     LabelledFormula parseResult = LtlParser.parse(ltl);
-    LTL2DPAFunction translation = new LTL2DPAFunction(DefaultEnvironment.annotated(), opts);
+    LTL2DPAFunction translation = new LTL2DPAFunction(DefaultEnvironment.annotated(),
+      LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
 
     try (OutputStream stream = new ByteArrayOutputStream()) {

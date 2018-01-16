@@ -38,10 +38,8 @@ public final class LTL2DA {
   }
 
   private static HoaPrintable translate(Environment env, LabelledFormula formula) {
-    EnumSet<LTL2DPAFunction.Configuration> optimisations
-      = EnumSet.allOf(LTL2DPAFunction.Configuration.class);
-    optimisations.remove(LTL2DPAFunction.Configuration.COMPLETE);
-    LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(env, optimisations);
+    LTL2DPAFunction ltl2Dpa = new LTL2DPAFunction(env,
+      LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     LimitDeterministicAutomaton<?, ?, ?, ?> ldba = LTL2LDBAFunction
       .createGeneralizedBreakpointLDBABuilder(env,
         EnumSet.allOf(Configuration.class)).apply(formula);

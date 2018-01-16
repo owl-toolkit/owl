@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 
-import java.util.EnumSet;
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,14 +25,9 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class ArenaFactoryTest {
-  private static final LTL2DPAFunction TRANSLATION;
-
-  static {
-    EnumSet<Configuration> configuration = EnumSet.allOf(Configuration.class);
-    configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
-    configuration.remove(Configuration.GUESS_F);
-    TRANSLATION = new LTL2DPAFunction(DefaultEnvironment.annotated(), configuration);
-  }
+  private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
+    DefaultEnvironment.annotated(),
+    Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
   public void testTransform() throws Exception {
