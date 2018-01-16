@@ -18,6 +18,7 @@
 package owl.ltl.tlsf;
 
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import org.immutables.value.Value;
@@ -37,8 +38,8 @@ import owl.ltl.visitors.DefaultConverter;
 public abstract class Tlsf {
 
   @Value.Default
-  public Formula assert_() {
-    return BooleanConstant.TRUE;
+  public List<Formula> assert_() {
+    return List.of();
   }
 
   @Value.Default
@@ -61,8 +62,8 @@ public abstract class Tlsf {
   public abstract String description();
 
   @Value.Default
-  public Formula guarantee() {
-    return BooleanConstant.TRUE;
+  public List<Formula> guarantee() {
+    return List.of();
   }
 
   @Value.Default
@@ -101,17 +102,29 @@ public abstract class Tlsf {
 
   @Value.Derived
   public LabelledFormula toFormula() {
+    return toFormula(Conjunction.of(assert_()), Conjunction.of(guarantee()));
+  }
+
+  private LabelledFormula toFormula(Formula assert_, Formula guarantee) {
     Formula formula = Disjunction.of(FOperator.of(require().not()), assume().not(),
-      Conjunction.of(GOperator.of(assert_()), guarantee()));
+      Conjunction.of(GOperator.of(assert_), guarantee));
 
     if (semantics().isStrict()) {
-      formula = Conjunction.of(preset(), formula, WOperator.of(assert_(), require().not()));
+      formula = Conjunction.of(preset(), formula, WOperator.of(assert_, require().not()));
     } else {
       formula = Conjunction.of(preset(), formula);
     }
 
     Formula result = convert(Disjunction.of(initially().not(), formula));
-    return LabelledFormula.of(result, variables());
+    return LabelledFormula.of(result, variables(), inputs());
+  }
+
+  @Value.Derived
+  public List<LabelledFormula> toAssertGuaranteeConjuncts() {
+    List<LabelledFormula> conjuncts = new ArrayList<>();
+    assert_().forEach(x -> conjuncts.add(toFormula(x, BooleanConstant.TRUE)));
+    guarantee().forEach(x -> conjuncts.add(toFormula(BooleanConstant.TRUE, x)));
+    return conjuncts;
   }
 
   public enum Semantics {

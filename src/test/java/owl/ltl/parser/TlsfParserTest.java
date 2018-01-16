@@ -3,6 +3,7 @@ package owl.ltl.parser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.util.BitSet;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -194,7 +195,15 @@ public class TlsfParserTest {
   public void testParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);
     LabelledFormula expectedFormula = LtlParser.parse(LILY_LTL, lily.toFormula().variables);
-    assertEquals(expectedFormula, lily.toFormula());
+    BitSet inputs = new BitSet();
+    inputs.set(0, 3);
+    assertEquals(expectedFormula.wrap(inputs), lily.toFormula());
+  }
+
+  @Test
+  public void testCompParseLily() {
+    Tlsf lily = TlsfParser.parse(LILY);
+    assertEquals(lily.assert_().size(), 3);
   }
 
   @Test
