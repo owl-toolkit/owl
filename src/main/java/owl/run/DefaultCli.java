@@ -25,8 +25,8 @@ public final class DefaultCli {
   private DefaultCli() {}
 
   public static void main(String... args) {
-    OwlParser parseResult =
-      OwlParser.parse(args, new DefaultParser(), getOptions(), ModuleRegistry.DEFAULT_REGISTRY);
+    OwlParser parseResult = OwlParser.parse(args, new DefaultParser(), getOptions(),
+      ModuleRegistry.DEFAULT_REGISTRY);
     if (parseResult == null) {
       System.exit(1);
       return;

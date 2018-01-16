@@ -80,8 +80,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   @Override
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
     MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
-      MutableAutomatonFactory
-        .createMutableAutomaton(NoneAcceptance.INSTANCE, factories.vsFactory);
+      MutableAutomatonFactory.create(NoneAcceptance.INSTANCE, factories.vsFactory);
 
     if (constructDeterministic) {
       AutomatonUtil.exploreDeterministic(automaton, constructionQueue,

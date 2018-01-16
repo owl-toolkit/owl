@@ -54,6 +54,11 @@ public final class AutomatonUtil {
 
   private AutomatonUtil() {}
 
+  public static <A extends OmegaAcceptance> Automaton<Object, A> cast(Object automaton,
+    Class<A> acceptanceClass) {
+    return cast(automaton, Object.class, acceptanceClass);
+  }
+
   @SuppressWarnings("unchecked")
   public static <S, A extends OmegaAcceptance> Automaton<S, A> cast(Object automaton,
     Class<S> stateClass, Class<A> acceptanceClass) {
@@ -100,7 +105,7 @@ public final class AutomatonUtil {
       return (MutableAutomaton<S, A>) automaton;
     }
 
-    return MutableAutomatonFactory.createMutableAutomaton(automaton);
+    return MutableAutomatonFactory.create(automaton);
   }
 
   /**
@@ -299,7 +304,9 @@ public final class AutomatonUtil {
    * Determines all states which are incomplete, i.e. there are valuations for which the state has
    * no successor. The valuations sets have to be free'd after use.
    *
-   * @param automaton The automaton.
+   * @param automaton
+   *     The automaton.
+   *
    * @return The set of incomplete states and the missing valuations.
    */
   public static <S, A extends OmegaAcceptance> Map<S, ValuationSet> getIncompleteStates(
@@ -325,7 +332,9 @@ public final class AutomatonUtil {
   /**
    * Returns all states reachable from the initial states.
    *
-   * @param automaton The automaton.
+   * @param automaton
+   *     The automaton.
+   *
    * @return All reachable states.
    *
    * @see #getReachableStates(Automaton, Collection)

@@ -62,7 +62,6 @@ import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
-
   public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE);
 

@@ -143,13 +143,13 @@ public interface Edge<S> {
     PrimitiveIterator.OfInt iter = new NaturalsTransformer(acceptanceSetIterator(), transformer);
 
     if (!iter.hasNext()) {
-      return of(getSuccessor());
+      return Edge.of(getSuccessor());
     }
 
     int first = iter.nextInt();
 
     if (!iter.hasNext()) {
-      return of(getSuccessor(), first);
+      return Edge.of(getSuccessor(), first);
     }
 
     BitSet acceptanceSet = Collections3.toBitSet(iter);

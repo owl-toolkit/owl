@@ -33,6 +33,7 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.transformations.ParityUtil;
+import owl.factories.ValuationSetFactory;
 
 /**
  * Constructs the IAR parity automaton from the given Rabin automaton SCC.
@@ -75,8 +76,8 @@ final class SccIARBuilder<R> {
       pairIndex += 1;
     }
 
-    this.resultAutomaton = MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0),
-      rabinAutomaton.getFactory());
+    ValuationSetFactory vsFactory = rabinAutomaton.getFactory();
+    this.resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0), vsFactory);
   }
 
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,

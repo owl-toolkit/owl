@@ -30,6 +30,7 @@ import owl.util.DaemonThreadFactory;
 /**
  * Helper class to execute a specific pipeline with created input and output streams.
  */
+@SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared"})
 public class PipelineRunner {
   private static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
 
@@ -51,7 +52,6 @@ public class PipelineRunner {
     this.worker = worker;
   }
 
-  @SuppressWarnings("ProhibitedExceptionDeclared")
   public static void run(Pipeline specification, Environment env,
     Callable<Reader> readerProvider, Callable<Writer> writerProvider, int worker) throws Exception {
     try (Reader reader = readerProvider.call();
@@ -60,17 +60,15 @@ public class PipelineRunner {
     }
   }
 
-  @SuppressWarnings("ProhibitedExceptionDeclared")
   public static void run(Pipeline specification, Environment env, Reader reader,
-    Writer writer, int worker) throws IOException {
+    Writer writer, int worker) throws Exception {
     try (reader;
          writer) {
       new PipelineRunner(specification, env, reader, writer, worker).run();
     }
   }
 
-  private void run() {
-    // TODO Re-throw occurring exception
+  private void run() throws Exception {
     ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
     ExecutorService executor = Executors.newFixedThreadPool(worker == 0
       ? Runtime.getRuntime().availableProcessors()
@@ -103,6 +101,8 @@ public class PipelineRunner {
     readerThread.setDaemon(true);
     readerThread.start();
 
+    @Nullable
+    Exception occurredException = null;
     while (!shutdown.get() && (!readerFinished.get() || !processingQueue.isEmpty())) {
       try {
         // Obtain a task which is not finished yet ...
@@ -119,6 +119,7 @@ public class PipelineRunner {
         logger.log(Level.FINEST, "Got result {0} from queue", result);
         // Try to keep logging statements (typically written to stderr) in front of the output
         System.err.flush();
+        // Write result
         outputWriter.write(result);
       } catch (InterruptedException ignored) { // NOPMD
         // Ignored
@@ -127,6 +128,7 @@ public class PipelineRunner {
           shutdown.lazySet(true);
           logger.log(Level.FINE, "Exception while querying and writing results", e);
         }
+        occurredException = e;
       }
     }
     logger.log(Level.FINE, "Finished writing results");
@@ -134,11 +136,15 @@ public class PipelineRunner {
     List<Runnable> remaining = executor.shutdownNow();
     assert remaining.isEmpty() && processingQueue.isEmpty() : "Remaining tasks";
 
-    shutdown.set(true);
+    shutdown.lazySet(true);
 
     processingQueue.clear();
     transformers.forEach(Transformer.Instance::closeTransformer);
     env.shutdown();
+
+    if (occurredException != null) {
+      throw occurredException;
+    }
   }
 
   private static final class SimpleExecutionContext implements PipelineExecutionContext {
@@ -197,8 +203,7 @@ public class PipelineRunner {
 
         return output;
       } catch (Exception e) {
-        // TODO Exceptions get swallowed here!
-        logger.log(Level.FINEST, "Exception", e);
+        logger.log(Level.FINE, "Exception while processing", e);
         shutdown.lazySet(true);
         throw e;
       }

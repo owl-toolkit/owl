@@ -103,7 +103,7 @@ final class MonitorBuilder {
 
     for (int i = 0; i < monitorAutomata.length; i++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
-        .createMutableAutomaton(new ParityAcceptance(0), vsFactory);
+        .create(new ParityAcceptance(0), vsFactory);
       monitor.setName(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addState(initialState);
       monitor.setInitialState(initialState);

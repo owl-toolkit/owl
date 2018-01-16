@@ -59,13 +59,15 @@ public class ServerRunner implements Callable<Void> {
           logger.log(Level.FINE, "New connection from {0}", socket);
           connectionExecutor.submit(() -> {
             Environment environment = environmentSupplier.get();
+
+            //noinspection OverlyBroadCatchBlock - IntelliJ error.
             try (connection;
                  Reader reader =
                    new BufferedReader(new InputStreamReader(connection.getInputStream()));
                  Writer writer =
                    new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()))) {
               PipelineRunner.run(execution, environment, reader, writer, 1);
-            } catch (IOException e) {
+            } catch (Exception e) {
               logger.log(Level.WARNING, e, () -> "Error while handling connection " + connection);
             }
           });

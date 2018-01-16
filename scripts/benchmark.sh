@@ -129,8 +129,10 @@ fi
 
 echo -n "Running benchmark with $METHOD and formulas from $FORMULA_FILE "
 echo    "(total of $(wc -l < ${FORMULA_FILE}) formulas)"
+echo    "Command: ${TOOL_EXEC[@]}"
 
 TOOL_EXEC=( "${TOOL_EXEC[@]/\%F/${FORMULA_FILE}}" )
+
 
 if [ "$METHOD" = "time" ]; then
   /usr/bin/time -v ${TOOL_EXEC[@]} 2>&1 >/dev/null

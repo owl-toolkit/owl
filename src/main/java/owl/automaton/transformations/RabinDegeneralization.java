@@ -96,8 +96,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
-      MutableAutomatonFactory
-        .createMutableAutomaton(degeneralizedAcceptance, automaton.getFactory());
+      MutableAutomatonFactory.create(degeneralizedAcceptance, automaton.getFactory());
 
     // Build the transition structure for each SCC separately
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, true)) {

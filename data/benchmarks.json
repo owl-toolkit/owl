@@ -24,9 +24,7 @@
         "ltl2ldba-nondet": "ltl2ldba#nondet-init",
         "delag": "delag",
         "ltl2dpa": "ltl2dpa",
-        "ltl2dpa-parallel": "ltl2dpa#parallel",
         "ltl2da": "ltl2da",
-        "ltl2da-parallel": "ltl2da#parallel",
         "ltl2tgba": {
             "tool": "ltl2tgba",
             "update": false

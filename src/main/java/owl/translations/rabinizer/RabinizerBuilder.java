@@ -276,7 +276,7 @@ public class RabinizerBuilder {
       };*/
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
-      MutableAutomatonFactory.createMutableAutomaton(AllAcceptance.INSTANCE, vsFactory,
+      MutableAutomatonFactory.create(AllAcceptance.INSTANCE, vsFactory,
         Set.of(initialClass), masterStateFactory::getMasterSuccessor,
         masterStateFactory::getClassSensitiveAlphabet);
     if (logger.isLoggable(Level.FINER)) {
@@ -372,7 +372,7 @@ public class RabinizerBuilder {
     }
 
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      MutableAutomatonFactory.createMutableAutomaton(acceptance, vsFactory);
+      MutableAutomatonFactory.create(acceptance, vsFactory);
 
     // Process each subset separately
     // TODO Parallel

@@ -28,10 +28,12 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -92,6 +94,14 @@ public final class Views {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
     return new FilteredAutomaton<>(automaton, states, edgeFilter);
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
+    IntUnaryOperator remappingOperator) {
+    return AutomatonFactory.createStreamingAutomaton(automaton.getAcceptance(),
+      automaton.getInitialState(), automaton.getFactory(), (state, valuation) ->
+        Objects.requireNonNull(automaton.getEdge(state, valuation))
+          .withAcceptance(remappingOperator));
   }
 
   static class Complete<S, A extends OmegaAcceptance>

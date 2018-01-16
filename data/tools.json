@@ -82,9 +82,7 @@
                 ]
             ],
             "post": [
-                [
-                    "minimize-aut"
-                ]
+                "minimize-aut"
             ]
         },
         "rabinizer-degen": {
@@ -105,12 +103,8 @@
                 ]
             ],
             "post": [
-                [
-                    "minimize-aut"
-                ],
-                [
-                    "dgra2dra"
-                ]
+                "minimize-aut",
+                "dgra2dra"
             ]
         },
         "rabinizer-iar": {
@@ -129,20 +123,12 @@
                     "--release",
                     "--weak-until"
                 ],
-                [
-                    "ltl2dgra"
-                ],
-                [
-                    "minimize-aut"
-                ],
-                [
-                    "dgra2dra"
-                ]
+                "ltl2dgra",
+                "minimize-aut",
+                "dgra2dra"
             ],
             "post": [
-                [
-                    "minimize-aut"
-                ]
+                "minimize-aut"
             ]
         },
         "spot-nba2ldba": {

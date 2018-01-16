@@ -90,7 +90,7 @@ final class AcceptingComponentBuilder<S>
 
   @Override
   public MutableAutomaton<BreakpointState<S>, BuchiAcceptance> build() {
-    return MutableAutomatonFactory.createMutableAutomaton(BuchiAcceptance.INSTANCE,
+    return MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE,
       nba.getFactory(), initialStates, this::explore, (x) -> null);
   }
 

@@ -59,8 +59,7 @@ public final class IARBuilder<R> {
   public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
-    resultAutomaton =
-      MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(0), vsFactory);
+    resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0), vsFactory);
     this.environment = environment;
   }
 
@@ -167,7 +166,7 @@ public final class IARBuilder<R> {
     simpleScc.forEach(rabinState -> mapping.put(rabinState, IARState.trivial(rabinState)));
 
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
-      MutableAutomatonFactory.createMutableAutomaton(new ParityAcceptance(1), vsFactory);
+      MutableAutomatonFactory.create(new ParityAcceptance(1), vsFactory);
 
     for (Map.Entry<R, IARState<R>> iarStateEntry : mapping.entrySet()) {
       R rabinState = iarStateEntry.getKey();
@@ -260,7 +259,7 @@ public final class IARBuilder<R> {
 
     SccProcessingResult(Multimap<R, LabelledEdge<R>> interSccConnections,
       Automaton<IARState<R>, ?> subAutomaton) {
-      this.interSccConnections = interSccConnections;
+      this.interSccConnections = ImmutableMultimap.copyOf(interSccConnections);
       this.subAutomaton = subAutomaton;
     }
   }
