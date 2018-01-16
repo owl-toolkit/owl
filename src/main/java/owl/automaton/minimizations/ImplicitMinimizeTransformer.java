@@ -3,22 +3,22 @@ package owl.automaton.minimizations;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import javax.annotation.Nullable;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.run.ModuleSettings.TransformerSettings;
 import owl.run.PipelineExecutionContext;
-import owl.run.Transformer;
-import owl.run.env.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.Transformers;
 
-public class ImplicitMinimizeTransformer implements Transformer {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws ParseException {
+public class ImplicitMinimizeTransformer extends Transformers.SimpleTransformer {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("minimize-aut")
+    .optionsDirect(new Options()
+      .addOption("l", "level", true, "Level of minimization (light,medium,all)"))
+    .transformerSettingsParser(settings -> {
       String levelString = settings.getOptionValue("level");
       @Nullable
       MinimizationUtil.MinimizationLevel level = getLevel(levelString);
@@ -26,21 +26,8 @@ public class ImplicitMinimizeTransformer implements Transformer {
       if (level == null) {
         throw new ParseException("Invalid value for \"level\": " + levelString);
       }
-
-      return new ImplicitMinimizeTransformer(level);
-    }
-
-    @Override
-    public String getKey() {
-      return "minimize-aut";
-    }
-
-    @Override
-    public Options getOptions() {
-      return new Options()
-        .addOption("l", "level", true, "Level of minimization (light,medium,all)");
-    }
-  };
+      return environment -> new ImplicitMinimizeTransformer(level);
+    }).build();
 
   private final MinimizationUtil.MinimizationLevel level;
 

@@ -29,7 +29,7 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 
 public class NBA2DPATest {
 
@@ -517,7 +517,7 @@ public class NBA2DPATest {
 
   private void runTest(String input, int size) throws ParseException {
     Automaton<HoaState, GeneralizedBuchiAcceptance> nba = AutomatonReader.readHoa(input,
-      TestEnvironment.INSTANCE.factorySupplier(), GeneralizedBuchiAcceptance.class);
+      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
     nba.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();

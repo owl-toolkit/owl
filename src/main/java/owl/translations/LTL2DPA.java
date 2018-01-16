@@ -1,11 +1,11 @@
 package owl.translations;
 
-import com.google.common.collect.ImmutableMap;
-import owl.run.InputReaders;
-import owl.run.OutputWriters;
-import owl.run.Transformers;
-import owl.run.parser.ImmutableSingleModuleConfiguration;
-import owl.run.parser.SimpleModuleParser;
+import java.util.Map;
+import owl.run.modules.InputReaders;
+import owl.run.modules.OutputWriters;
+import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ltl2dpa.LTL2DPAModule;
 import owl.translations.rabinizer.RabinizerModule;
 
@@ -13,21 +13,22 @@ public final class LTL2DPA {
   private LTL2DPA() {}
 
   public static void main(String... args) {
-    ImmutableSingleModuleConfiguration ldba = ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.LTL)
-      .addPreProcessors(Transformers.SIMPLIFY_MODAL_ITER)
-      .transformer(LTL2DPAModule.INSTANCE)
-      .addPostProcessors(Transformers.MINIMIZER)
-      .writerModule(OutputWriters.HOA)
+    PartialModuleConfiguration ldba = PartialModuleConfiguration.builder("ltl2dpa")
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
+      .addTransformer(LTL2DPAModule.INSTANCE)
+      .addTransformer(Transformers.MINIMIZER)
+      .writer(OutputWriters.HOA)
       .build();
-    ImmutableSingleModuleConfiguration rabinizerIar = ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.LTL)
-      .addPreProcessors(Transformers.SIMPLIFY_MODAL_ITER, Transformers.UNABBREVIATE_RW)
-      .transformer(new RabinizerModule())
-      .addPostProcessors(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION,
-        Transformers.IAR)
-      .writerModule(OutputWriters.HOA)
+    PartialModuleConfiguration rabinizerIar = PartialModuleConfiguration.builder("ltl2dpa")
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER, Transformers.UNABBREVIATE_RW)
+      .addTransformer(new RabinizerModule())
+      .addTransformer(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION,
+        Transformers.RABIN_TO_PARITY)
+      .writer(OutputWriters.HOA)
       .build();
-    SimpleModuleParser.run(args, ImmutableMap.of("ldba", ldba, "rabinizer", rabinizerIar), ldba);
+    Map<String, PartialModuleConfiguration> map = Map.of("ldba", ldba, "rabinizer", rabinizerIar);
+    PartialConfigurationParser.run(args, map, ldba);
   }
 }

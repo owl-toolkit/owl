@@ -38,7 +38,7 @@ import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.run.env.Environment;
+import owl.run.Environment;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.GObligations;

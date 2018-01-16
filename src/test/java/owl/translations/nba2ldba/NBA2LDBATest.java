@@ -28,7 +28,7 @@ import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrintable;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 
 public class NBA2LDBATest {
 
@@ -112,11 +112,11 @@ public class NBA2LDBATest {
   }
 
   private void runTest(String input) throws ParseException {
-    NBA2LDBAFunction<HoaState> translation = new NBA2LDBAFunction<>(
+    NBA2LDBA<HoaState> translation = new NBA2LDBA<>(
       EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
 
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
-      TestEnvironment.INSTANCE.factorySupplier(), GeneralizedBuchiAcceptance.class);
+      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrintable result = translation.apply(automaton);

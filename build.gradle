@@ -250,13 +250,13 @@ def scripts = [
     'ltl2da'     : 'owl.translations.LTL2DA',
     'ltl2dpa'    : 'owl.translations.LTL2DPA',
     'ltl2ldba'   : 'owl.translations.ltl2ldba.LTL2LDBAModule',
-    'nba2ldba'   : 'owl.translations.nba2ldba.NBA2LDBAModule',
+    'nba2ldba'   : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'    : 'owl.translations.dra2dpa.IARBuilder',
     'delag'      : 'owl.translations.delag.DelagBuilder',
     'ltl2dgra'   : 'owl.translations.rabinizer.RabinizerMain',
     'ltl2dra'    : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'nba2dpa'    : 'owl.translations.nba2dpa.NBA2DPAModule',
-    'owl-server' : 'owl.run.ServerCoordinator'
+    'owl-server' : 'owl.run.ServerCli'
 ]
 
 scripts.each() { scriptName, className ->

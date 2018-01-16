@@ -1,9 +1,12 @@
 package owl.run;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -12,175 +15,192 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import owl.run.modules.InputReader;
+import owl.run.modules.OutputWriter;
+import owl.run.modules.Transformer;
+import owl.run.modules.Transformers;
+import owl.util.DaemonThreadFactory;
 
 /**
  * Helper class to execute a specific pipeline with created input and output streams.
  */
-public class PipelineRunner implements Runnable {
-
+public class PipelineRunner {
   private static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
 
-  private final PipelineSpecification specification;
-  private final ExecutorService executor;
+  private final Pipeline specification;
+  private final int worker;
+  private final Environment env;
+  private final Reader reader;
+  private final Writer writer;
   private final BlockingQueue<Future<?>> processingQueue = new LinkedBlockingQueue<>();
-  private final Thread readerThread;
   private final AtomicBoolean readerFinished = new AtomicBoolean(false);
   private final AtomicBoolean shutdown = new AtomicBoolean(false);
-  private final Thread writerThread;
 
-  public PipelineRunner(PipelineSpecification specification, Reader reader, Writer writer,
+  PipelineRunner(Pipeline specification, Environment env, Reader reader, Writer writer,
     int worker) {
-    executor = Executors.newFixedThreadPool(
-      worker == 0 ? Runtime.getRuntime().availableProcessors() : worker,
-      new DaemonThreadFactory());
+    this.env = env;
+    this.reader = reader;
+    this.writer = writer;
     this.specification = specification;
-    readerThread = new ReaderThread(reader);
-    writerThread = new WriterThread(writer);
+    this.worker = worker;
   }
 
-  @Override
-  public void run() {
-    readerThread.setDaemon(true);
-    writerThread.setDaemon(true);
-
-    readerThread.start();
-    writerThread.start();
-
-    Uninterruptibles.joinUninterruptibly(readerThread);
-    logger.log(Level.FINE, "ReaderThread is done.");
-    readerFinished.set(true);
-
-    Uninterruptibles.joinUninterruptibly(writerThread);
-    logger.log(Level.FINE, "WriterThread is done.");
-
-    shutdown.set(true);
-
-    processingQueue.clear();
-    specification.transformers().forEach(Transformer::closeTransformer);
-    executor.shutdownNow();
-  }
-
-  private static final class DaemonThreadFactory implements ThreadFactory {
-    private final ThreadGroup group;
-    private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-    DaemonThreadFactory() {
-      group = Thread.currentThread().getThreadGroup(); // NOPMD
-    }
-
-    @Override
-    public Thread newThread(Runnable r) {
-      Thread t = new Thread(group, r, "owl-worker-" + threadNumber.getAndIncrement());
-      t.setDaemon(true);
-      return t;
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  public static void run(Pipeline specification, Environment env,
+    Callable<Reader> readerProvider, Callable<Writer> writerProvider, int worker) throws Exception {
+    try (Reader reader = readerProvider.call();
+         Writer writer = writerProvider.call()) {
+      new PipelineRunner(specification, env, reader, writer, worker).run();
     }
   }
 
-  private final class ReaderThread extends Thread {
-    private final Reader reader;
-
-    ReaderThread(Reader reader) {
-      super(Thread.currentThread().getThreadGroup(), "owl-reader-thread");
-      this.reader = reader;
+  @SuppressWarnings("ProhibitedExceptionDeclared")
+  public static void run(Pipeline specification, Environment env, Reader reader,
+    Writer writer, int worker) throws IOException {
+    try (reader;
+         writer) {
+      new PipelineRunner(specification, env, reader, writer, worker).run();
     }
+  }
 
-    @Override
-    public void run() {
+  private void run() {
+    // TODO Re-throw occurring exception
+    ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+    ExecutorService executor = Executors.newFixedThreadPool(worker == 0
+      ? Runtime.getRuntime().availableProcessors()
+      : worker, new DaemonThreadFactory(threadGroup));
+
+    logger.log(Level.FINE, "Instantiating pipeline");
+
+    OutputWriter.Binding outputWriter = specification.output().bind(writer, env);
+
+    List<Transformer.Instance> transformers =
+      Transformers.build(specification.transformers(), env);
+
+    Consumer<Object> callback = x -> processingQueue.add(
+      executor.submit(new TransformerExecution(x, transformers)));
+    InputReader inputReader = specification.input();
+
+    Thread writerThread = Thread.currentThread();
+    Thread readerThread = new Thread(threadGroup, () -> {
       try {
-        InputReader inputReader = specification.input();
-        Consumer<Object> callback = x ->
-          processingQueue.add(executor.submit(new TransformerExecution(x)));
-        inputReader.read(reader, callback);
+        inputReader.run(reader, callback, env);
+        logger.log(Level.FINE, "Reader is done.");
+        writerThread.interrupt();
       } catch (Exception e) {
         shutdown.lazySet(true);
         logger.log(Level.FINE, "Exception while reading input.", e);
       }
+      readerFinished.lazySet(true);
+    }, "owl-reader");
+
+    readerThread.setDaemon(true);
+    readerThread.start();
+
+    while (!shutdown.get() && (!readerFinished.get() || !processingQueue.isEmpty())) {
+      try {
+        // Obtain a task which is not finished yet ...
+        Future<?> future = processingQueue.take();
+        // ... and wait for its completion.
+        Object result = Uninterruptibles.getUninterruptibly(future);
+
+        if (result == null) {
+          // Some error occurred while waiting and the transformer short-circuited to null
+          assert shutdown.get();
+          continue;
+        }
+
+        logger.log(Level.FINEST, "Got result {0} from queue", result);
+        // Try to keep logging statements (typically written to stderr) in front of the output
+        System.err.flush();
+        outputWriter.write(result);
+      } catch (InterruptedException ignored) { // NOPMD
+        // Ignored
+      } catch (ExecutionException | CancellationException | IOException e) {
+        if (!shutdown.get()) {
+          shutdown.lazySet(true);
+          logger.log(Level.FINE, "Exception while querying and writing results", e);
+        }
+      }
+    }
+    logger.log(Level.FINE, "Finished writing results");
+
+    List<Runnable> remaining = executor.shutdownNow();
+    assert remaining.isEmpty() && processingQueue.isEmpty() : "Remaining tasks";
+
+    shutdown.set(true);
+
+    processingQueue.clear();
+    transformers.forEach(Transformer.Instance::closeTransformer);
+    env.shutdown();
+  }
+
+  private static final class SimpleExecutionContext implements PipelineExecutionContext {
+    private final StringWriter writer;
+
+    public SimpleExecutionContext() {
+      this.writer = new StringWriter();
+    }
+
+    @Override
+    public Writer getMetaWriter() {
+      return writer;
+    }
+
+    String getWrittenString() {
+      return writer.toString();
     }
   }
 
   private class TransformerExecution implements Callable<Object> {
+    private final List<Transformer.Instance> transformers;
     private final Object input;
 
-    TransformerExecution(Object input) {
+    TransformerExecution(Object input, List<Transformer.Instance> transformers) {
+      this.transformers = ImmutableList.copyOf(transformers);
       this.input = input;
     }
 
+    @SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared"})
     @Nullable
     @Override
-    public Object call() {
-      PipelineExecutionContext context;
-
-      if (specification.environment().metaInformation()) {
-        context = information -> {
-          // TODO Pseudo implementation
-          logger.log(Level.FINE, "Meta information for {0}:\n{1}",
-            new Object[] {input, information.get()});
-        };
-      } else {
-        context = information -> {
-        };
-      }
-
+    public Object call() throws Exception {
+      logger.log(Level.FINEST, "Handling input {0}", input);
       try {
-        long executionTime = System.nanoTime(); // NOPMD
+        long startTime = System.nanoTime();
         Object output = input;
 
-        for (Transformer transformer : specification.transformers()) {
+        for (Transformer.Instance transformer : transformers) {
           if (shutdown.get()) {
+            logger.log(Level.FINE, "Early stop due to shutdown");
             return null;
           }
 
+          SimpleExecutionContext context = new SimpleExecutionContext();
           output = transformer.transform(output, context);
+          String meta = context.getWrittenString();
+          if (!meta.isEmpty()) {
+            logger.log(Level.FINE, () -> String.format("Module %s(%s) on input (%s):%n%s",
+              transformer, transformer.getClass().getSimpleName(), input, meta));
+          }
         }
 
-        executionTime = System.nanoTime() - executionTime;
-        context.addMetaInformation(String.format("Execution of transformers took %.2f sec",
-          (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
+        long executionTime = System.nanoTime() - startTime;
+        logger.log(Level.FINE, () -> String.format("Execution of transformers for %s took %.2f sec",
+          input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
 
         return output;
-      } catch (RuntimeException e) {
+      } catch (Exception e) {
+        // TODO Exceptions get swallowed here!
+        logger.log(Level.FINEST, "Exception", e);
         shutdown.lazySet(true);
-        throw PipelineExecutionException.wrap(e);
-      }
-    }
-  }
-
-  private final class WriterThread extends Thread {
-    private final Writer writer;
-
-    WriterThread(Writer writer) {
-      super(Thread.currentThread().getThreadGroup(),"owl-writer-thread");
-      this.writer = writer;
-    }
-
-    @Override
-    public void run() {
-      OutputWriter outputWriter = specification.output();
-
-      while (!readerFinished.get() || !processingQueue.isEmpty()) {
-        try {
-          Future<?> poll = processingQueue.poll(100, TimeUnit.MILLISECONDS);
-          if (poll == null) {
-            continue;
-          }
-          Object result = Uninterruptibles.getUninterruptibly(poll);
-          logger.log(Level.FINEST, "Got result {0} from queue", result);
-          System.err.flush(); // Try to keep logging statements in front of the output
-          outputWriter.write(result, writer);
-        } catch (InterruptedException e) {
-          // Nothing
-        } catch (ExecutionException | CancellationException | IOException e) {
-          shutdown.lazySet(true);
-          logger.log(Level.FINE, "Exception while querying and writing results", e);
-        }
+        throw e;
       }
     }
   }

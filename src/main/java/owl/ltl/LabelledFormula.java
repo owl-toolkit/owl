@@ -34,6 +34,10 @@ public final class LabelledFormula {
     return formula.accept(visitor, parameter);
   }
 
+  public LabelledFormula acceptConverter(Visitor<Formula> visitor) {
+    return of(formula.accept(visitor), variables);
+  }
+
   public boolean allMatch(Predicate<Formula> predicate) {
     return formula.allMatch(predicate);
   }

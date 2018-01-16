@@ -23,7 +23,7 @@ import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import org.junit.Test;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
@@ -37,7 +37,7 @@ public class CutDeterministicAutomatonTest {
       Configuration.OPTIMISED_STATE_STRUCTURE);
 
     LimitDeterministicAutomaton<EquivalenceClass, ?, ?, ?> ldba = LTL2LDBAFunction
-      .createGeneralizedBreakpointLDBABuilder(TestEnvironment.INSTANCE,
+      .createGeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(),
         configuration).apply(LtlParser.parse("a | F b | G c | G d"));
 
     ldba.asCutDeterministicAutomaton().toHoa(new HOAIntermediateCheckValidity(

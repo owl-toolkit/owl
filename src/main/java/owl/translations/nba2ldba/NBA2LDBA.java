@@ -21,19 +21,35 @@ import com.google.common.collect.Sets;
 import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.ldba.MutableAutomatonBuilder;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.InputReaders;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.OutputWriters;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 
-public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
+public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("nba2ldba")
+    .transformerSettingsParser(settings -> {
+      NBA2LDBA<Object> function =
+        new NBA2LDBA<>(EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
+      return environment -> (input, context) ->
+        function.apply(AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
+    }).build();
   private final EnumSet<Configuration> configuration;
 
-  public NBA2LDBAFunction(EnumSet<Configuration> configuration) {
+  public NBA2LDBA(EnumSet<Configuration> configuration) {
     this.configuration = configuration;
   }
 
@@ -59,5 +75,13 @@ public final class NBA2LDBAFunction<S> implements Function<Automaton<S, ?>,
     return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
       acceptingComponentBuilder, Sets::newHashSet,
       (Function<BreakpointState<S>, Void>) x -> null, configuration).build();
+  }
+
+  public static void main(String... args) {
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2ldba")
+      .reader(InputReaders.HOA)
+      .addTransformer(SETTINGS)
+      .writer(OutputWriters.HOA)
+      .build());
   }
 }

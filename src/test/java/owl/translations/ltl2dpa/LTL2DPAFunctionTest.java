@@ -33,7 +33,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class LTL2DPAFunctionTest {
@@ -43,7 +43,7 @@ public class LTL2DPAFunctionTest {
     opts.remove(Configuration.COMPLETE);
     opts.remove(Configuration.GUESS_F);
     LabelledFormula parseResult = LtlParser.parse(ltl);
-    LTL2DPAFunction translation = new LTL2DPAFunction(TestEnvironment.INSTANCE, opts);
+    LTL2DPAFunction translation = new LTL2DPAFunction(DefaultEnvironment.annotated(), opts);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
 
     try (OutputStream stream = new ByteArrayOutputStream()) {

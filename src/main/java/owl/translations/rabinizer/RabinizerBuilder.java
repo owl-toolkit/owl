@@ -67,7 +67,7 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 import owl.ltl.visitors.PrintVisitor;
-import owl.run.env.Environment;
+import owl.run.Environment;
 import owl.util.IntBiConsumer;
 
 /**

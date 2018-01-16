@@ -25,7 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.Immutable;
-import org.apache.commons.cli.CommandLine;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -41,28 +40,19 @@ import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
-import owl.run.ModuleSettings.TransformerSettings;
 import owl.run.PipelineExecutionContext;
-import owl.run.Transformer;
-import owl.run.env.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.Transformers;
 
-public final class RabinDegeneralization implements Transformer {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment) {
-      return new RabinDegeneralization();
-    }
+public final class RabinDegeneralization extends Transformers.SimpleTransformer {
+  public static final RabinDegeneralization INSTANCE = new RabinDegeneralization();
 
-    @Override
-    public String getDescription() {
-      return "Converts a generalized rabin automaton into a regular one";
-    }
-
-    @Override
-    public String getKey() {
-      return "dgra2dra";
-    }
-  };
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("dgra2dra")
+    .description("Converts a generalized rabin automaton into a regular one")
+    .transformerSettingsParser(settings -> environment -> INSTANCE)
+    .build();
 
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
 

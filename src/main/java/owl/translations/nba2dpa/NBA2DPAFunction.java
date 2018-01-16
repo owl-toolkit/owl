@@ -27,21 +27,47 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrintable;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.InputReaders;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.OutputWriters;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomaton;
 import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.GeneralizedBuchiView;
-import owl.translations.nba2ldba.NBA2LDBAFunction;
+import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPAFunction<S>
   implements Function<Automaton<S, ?>, HoaPrintable> {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("nba2dpa")
+    .transformerSettingsParser(settings -> environment -> {
+      NBA2DPAFunction<Object> function = new NBA2DPAFunction<>();
+      return (input, context) ->
+        function.apply(AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
+    })
+    .build();
+
 
   public NBA2DPAFunction() {}
+
+  public NBA2DPAFunction(EnumSet<Configuration> optimisations) {}
+
+  public static void main(String... args) {
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
+      .reader(InputReaders.HOA)
+      .addTransformer(SETTINGS)
+      .writer(OutputWriters.HOA)
+      .build());
+  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -59,7 +85,7 @@ public final class NBA2DPAFunction<S>
       throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
     }
 
-    NBA2LDBAFunction<S> nba2ldba = new NBA2LDBAFunction<>(EnumSet.noneOf(Configuration.class));
+    NBA2LDBA<S> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
 
     LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Void>
       ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();

@@ -1,22 +1,22 @@
 package owl.translations.rabinizer;
 
-import owl.run.InputReaders;
-import owl.run.OutputWriters;
-import owl.run.Transformers;
-import owl.run.parser.ImmutableSingleModuleConfiguration;
-import owl.run.parser.SimpleModuleParser;
+import owl.run.modules.InputReaders;
+import owl.run.modules.OutputWriters;
+import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 
 public final class RabinizerDegeneralizeMain {
   private RabinizerDegeneralizeMain() {
   }
 
   public static void main(String... args) {
-    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.LTL)
-      .addPreProcessors(RabinizerMain.SIMPLIFIER, Transformers.UNABBREVIATE_RW)
-      .transformer(new RabinizerModule())
-      .addPostProcessors(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION)
-      .writerModule(OutputWriters.HOA)
+    PartialConfigurationParser.run(args,  PartialModuleConfiguration.builder("ltl2dra")
+      .reader(InputReaders.LTL)
+      .addTransformer(RabinizerMain.SIMPLIFIER, Transformers.UNABBREVIATE_RW)
+      .addTransformer(new RabinizerModule())
+      .addTransformer(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION)
+      .writer(OutputWriters.HOA)
       .build());
   }
 }

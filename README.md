@@ -186,4 +186,5 @@ Similarly, dedicated command line tools like our presented `ltl2dgra` or `nba2dp
 
 ## History
 
-owl is a merger of the previous separate projects owl-base and owl-translations. owl-base itself was a merger of the previous separate projects ltl-lib and omega-automaton-lib. The Rabinizer implementation in the code originated from the Rabinizer 3.1 implementation.
+owl is a merger of the previous separate projects owl-base and owl-translations. owl-base itself was a merger of the previous separate projects ltl-lib and omega-automaton-lib.
+The Rabinizer implementation in the code originated from the Rabinizer3.1 implementation.

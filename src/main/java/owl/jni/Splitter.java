@@ -21,7 +21,8 @@ import owl.ltl.rewriter.RewriterFactory;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultVisitor;
 
-public class Splitter {
+public final class Splitter {
+  private Splitter() {}
 
   public static LabelledTree<Tag, IntAutomaton> split(Formula formula, boolean onTheFly,
     SafetySplitting safetySplitting) {

@@ -1,5 +1,6 @@
 package owl.translations.ltl2dpa;
 
+import static owl.run.modules.ModuleSettings.TransformerSettings;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
@@ -7,47 +8,18 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_S
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
 import java.util.EnumSet;
-import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import owl.ltl.LabelledFormula;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
+import owl.run.modules.Transformer;
+import owl.run.modules.Transformers;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 import owl.translations.ltl2ldba.LTL2LDBAModule;
 
 public final class LTL2DPAModule implements TransformerSettings {
-  public static final LTL2DPAModule INSTANCE = new LTL2DPAModule();
-
-  private static final List<String> COMPLEMENT = List.of("c", "complement",
-    "Compute the automaton also for the negation and return the smaller.");
+  public static final TransformerSettings INSTANCE = new LTL2DPAModule();
 
   private LTL2DPAModule() {}
-
-  @Override
-  public Transformer create(CommandLine settings, Environment environment) {
-    EnumSet<Configuration> configuration;
-
-    if (settings.hasOption(LTL2LDBAModule.SIMPLE.get(0))) {
-      configuration = EnumSet.noneOf(Configuration.class);
-    } else {
-      configuration = EnumSet.of(EXISTS_SAFETY_CORE, OPTIMISED_STATE_STRUCTURE,
-        OPTIMISE_INITIAL_STATE);
-    }
-
-    if (settings.hasOption(COMPLEMENT.get(0))) {
-      configuration.add(COMPLEMENT_CONSTRUCTION);
-    }
-
-    if (settings.hasOption(LTL2LDBAModule.GUESS_F.get(0))) {
-      configuration.add(GUESS_F);
-    }
-
-    return Transformers.fromFunction(LabelledFormula.class,
-      new LTL2DPAFunction(environment, configuration));
-  }
 
   @Override
   public String getKey() {
@@ -56,12 +28,33 @@ public final class LTL2DPAModule implements TransformerSettings {
 
   @Override
   public Options getOptions() {
-    Options options = new Options();
+    return new Options()
+      .addOption("c", "complement", false,
+        "Compute the automaton also for the negation and return the smaller.")
+      .addOption(LTL2LDBAModule.guessF())
+      .addOption(LTL2LDBAModule.simple());
+  }
 
-    for (List<String> option : List.of(COMPLEMENT, LTL2LDBAModule.GUESS_F, LTL2LDBAModule.SIMPLE)) {
-      options.addOption(option.get(0), option.get(1), false, option.get(2));
+  @Override
+  public Transformer parse(CommandLine settings) {
+    EnumSet<Configuration> configuration;
+
+    if (settings.hasOption(LTL2LDBAModule.guessF().getOpt())) {
+      configuration = EnumSet.noneOf(Configuration.class);
+    } else {
+      configuration = EnumSet.of(EXISTS_SAFETY_CORE, OPTIMISED_STATE_STRUCTURE,
+        OPTIMISE_INITIAL_STATE);
     }
 
-    return options;
+    if (settings.hasOption("complement")) {
+      configuration.add(COMPLEMENT_CONSTRUCTION);
+    }
+
+    if (settings.hasOption(LTL2LDBAModule.guessF().getOpt())) {
+      configuration.add(GUESS_F);
+    }
+
+    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+      new LTL2DPAFunction(environment, configuration));
   }
 }

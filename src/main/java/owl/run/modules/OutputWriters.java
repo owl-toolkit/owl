@@ -1,4 +1,4 @@
-package owl.run;
+package owl.run.modules;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -19,7 +19,6 @@ import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.storage.StoredAutomatonManipulator;
 import jhoafparser.transformations.ToStateAcceptance;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
@@ -28,24 +27,13 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.HoaOption;
-import owl.run.ModuleSettings.WriterSettings;
-import owl.run.env.Environment;
+import owl.run.Environment;
+import owl.run.modules.ModuleSettings.WriterSettings;
 
 public final class OutputWriters {
-
-  public static final WriterSettings AUTOMATON_STATS = new WriterSettings() {
-    @Override
-    public OutputWriter create(CommandLine settings, Environment environment) {
-      return new AutomatonStats(settings.getOptionValue("format"))::writeChecked;
-    }
-
-    @Override
-    public String getKey() {
-      return "aut-stat";
-    }
-
-    @Override
-    public Options getOptions() {
+  public static final WriterSettings AUTOMATON_STATS_SETTINGS = ImmutableWriterSettings.builder()
+    .key("aut-stat")
+    .optionsBuilder(() -> {
       Option format = new Option("f", "format", true,
         "The format string. Uses a reduced set of the spot syntax\n"
           + "%A, %a   Number of acceptance sets\n"
@@ -57,66 +45,58 @@ public final class OutputWriters {
           + "%M, %m   Name of the automaton\n"
           + "%X, %x   Number of atomic propositions");
       format.setRequired(true);
-
       return new Options().addOption(format);
-    }
-  };
+    })
+    .outputSettingsParser(settings -> automatonStats(settings.getOptionValue("format")))
+    .build();
 
-  public static final WriterSettings HOA = new WriterSettings() {
-    @Override
-    public OutputWriter create(CommandLine settings, Environment environment) {
-      return (object, writer) -> {
-        checkArgument(object instanceof HoaPrintable);
-        HOAConsumer consumer = new HOAConsumerPrint(writer);
+  public static final WriterSettings HOA_SETTINGS = ImmutableWriterSettings.builder()
+    .key("hoa")
+    .description("Writes the HOA format representation of an automaton or an arena")
+    .outputSettingsParser(settings -> {
 
-        if (!ToHoa.parseSettings(settings).manipulations.isEmpty()) {
-          StoredAutomatonManipulator[] manipulators =
-            ToHoa.parseSettings(settings).manipulations.toArray(
-              new StoredAutomatonManipulator[ToHoa.parseSettings(settings).manipulations.size()]);
-          consumer = new HOAIntermediateStoreAndManipulate(consumer, manipulators);
-        }
+      List<StoredAutomatonManipulator> manipulators;
+      if (settings.hasOption("state-acceptance")) {
+        manipulators = List.of(new ToStateAcceptance());
+      } else {
+        manipulators = List.of();
+      }
 
-        ((HoaPrintable) object).toHoa(consumer, ToHoa.parseSettings(settings)
-          .getOptions(environment.annotations()));
-      };
-    }
+      EnumSet<ToHoa.Setting> hoaSettings = EnumSet.noneOf(ToHoa.Setting.class);
 
-    @Override
-    public String getDescription() {
-      return "Writes the HOA format representation of an automaton or an arena";
-    }
+      if (settings.hasOption("simple-trans")) {
+        hoaSettings.add(ToHoa.Setting.SIMPLE_TRANSITION_LABELS);
+      }
 
-    @Override
-    public String getKey() {
-      return "hoa";
-    }
+      return new ToHoa(hoaSettings, manipulators);
+    }).build();
 
-    @Override
-    public Options getOptions() {
-      return new Options()
-        .addOption("s", "state-acceptance", false, "Convert to state-acceptance")
-        .addOption(null, "simple-trans", false,
-          "Force use of simple transition labels, resulting "
-            + "in 2^AP edges per state)");
-    }
-  };
-
-  public static final WriterSettings NULL = ImmutableWriterSettings.builder()
+  public static final OutputWriter NULL = (writer, environment) -> object -> writer.flush();
+  public static final WriterSettings NULL_SETTINGS = ImmutableWriterSettings.builder()
     .key("null")
     .description("Discards the output - useful for performance testing")
-    .constructor((x, y) -> (object, stream) -> stream.flush())
+    .outputSettingsParser(settings -> NULL)
     .build();
 
-  public static final WriterSettings STRING = ImmutableWriterSettings.builder()
+  public static final OutputWriter TO_STRING = (writer, environment) -> object ->  {
+    writer.write(object.toString());
+    writer.write(System.lineSeparator());
+  };
+  public static final WriterSettings TO_STRING_SETTINGS = ImmutableWriterSettings.builder()
     .key("string")
     .description("Prints the toString() representation of all passed objects")
-    .constructor((x, y) -> (object, stream) -> stream.write(object + System.lineSeparator()))
+    .outputSettingsParser(settings -> TO_STRING)
     .build();
+  public static OutputWriter HOA = ToHoa.DEFAULT;
 
   private OutputWriters() {
   }
 
-  static final class AutomatonStats {
+  public static OutputWriter automatonStats(String format) {
+    return (writer, environment) -> new AutomatonStats(format, writer)::write;
+  }
+
+  public static class AutomatonStats {
     private static final Map<Pattern, Function<Automaton<?, ?>, String>> patterns =
       ImmutableMap.<Pattern, Function<Automaton<?, ?>, String>>builder()
         // Acceptance condition
@@ -146,12 +126,14 @@ public final class OutputWriters {
         .build();
 
     private final String formatString;
+    private final Writer writer;
 
-    private AutomatonStats(String formatString) {
+    public AutomatonStats(String formatString, Writer writer) {
       this.formatString = formatString;
+      this.writer = writer;
     }
 
-    private void writeChecked(Object object, Writer writer) throws IOException {
+    void write(Object object) throws IOException {
       checkArgument(object instanceof Automaton);
       Automaton<?, ?> automaton = (Automaton<?, ?>) object;
 
@@ -161,8 +143,8 @@ public final class OutputWriters {
         Matcher matcher = pattern.getKey().matcher(result);
 
         if (matcher.find()) {
-          result = matcher
-            .replaceAll(Matcher.quoteReplacement(pattern.getValue().apply(automaton)));
+          String replacement = Matcher.quoteReplacement(pattern.getValue().apply(automaton));
+          result = matcher.replaceAll(replacement);
         }
       }
 
@@ -174,33 +156,18 @@ public final class OutputWriters {
    * Converts any {@link HoaPrintable HOA printable} object to its corresponding <a
    * href="http://adl.github.io/hoaf/">HOA</a> representation.
    */
-  static class ToHoa {
-    private final Set<Setting> hoaSettings;
-    private final List<StoredAutomatonManipulator> manipulations;
+  public static class ToHoa implements OutputWriter {
+    public static final ToHoa DEFAULT = new ToHoa(EnumSet.noneOf(Setting.class), List.of());
 
-    ToHoa(EnumSet<Setting> hoaSettings, List<StoredAutomatonManipulator> manipulations) {
+    final Set<Setting> hoaSettings;
+    final ImmutableList<StoredAutomatonManipulator> manipulations;
+
+    public ToHoa(EnumSet<Setting> hoaSettings, List<StoredAutomatonManipulator> manipulations) {
       this.hoaSettings = ImmutableSet.copyOf(hoaSettings);
       this.manipulations = ImmutableList.copyOf(manipulations);
     }
 
-    static ToHoa parseSettings(CommandLine settings) {
-      List<StoredAutomatonManipulator> manipulators;
-      if (settings.hasOption("state-acceptance")) {
-        manipulators = List.of(new ToStateAcceptance());
-      } else {
-        manipulators = List.of();
-      }
-
-      EnumSet<Setting> hoaSettings = EnumSet.noneOf(Setting.class);
-
-      if (settings.hasOption("simple-trans")) {
-        hoaSettings.add(Setting.SIMPLE_TRANSITION_LABELS);
-      }
-
-      return new ToHoa(hoaSettings, manipulators);
-    }
-
-    EnumSet<HoaOption> getOptions(boolean annotations) {
+    private EnumSet<HoaOption> getOptions(boolean annotations) {
       EnumSet<HoaOption> options = EnumSet.noneOf(HoaOption.class);
       if (annotations) {
         options.add(HoaOption.ANNOTATIONS);
@@ -209,6 +176,26 @@ public final class OutputWriters {
         options.add(HoaOption.SIMPLE_TRANSITION_LABELS);
       }
       return options;
+    }
+
+    @Override
+    public Binding bind(Writer writer, Environment env) {
+      HOAConsumer consumer;
+      if (manipulations.isEmpty()) {
+        consumer = new HOAConsumerPrint(writer);
+      } else {
+        StoredAutomatonManipulator[] manipulators =
+          manipulations.toArray(new StoredAutomatonManipulator[manipulations.size()]);
+        consumer = new HOAIntermediateStoreAndManipulate(new HOAConsumerPrint(writer),
+          manipulators);
+      }
+
+      EnumSet<HoaOption> options = getOptions(env.annotations());
+
+      return input -> {
+        checkArgument(input instanceof HoaPrintable);
+        ((HoaPrintable) input).toHoa(consumer, options);
+      };
     }
 
     public enum Setting {

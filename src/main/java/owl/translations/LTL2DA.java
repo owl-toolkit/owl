@@ -1,46 +1,39 @@
 package owl.translations;
 
 import java.util.EnumSet;
-import org.apache.commons.cli.CommandLine;
 import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
-import owl.run.InputReaders;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.OutputWriters;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
-import owl.run.parser.ImmutableSingleModuleConfiguration;
-import owl.run.parser.SimpleModuleParser;
+import owl.run.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.InputReaders;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.OutputWriters;
+import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class LTL2DA {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment) {
-      return Transformers.fromFunction(LabelledFormula.class,
-        formula -> translate(environment, formula));
-    }
-
-    @Override
-    public String getKey() {
-      return "ltl2da";
-    }
-  };
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("ltl2da")
+    .transformerSettingsParser(settings -> environment ->
+      Transformers.instanceFromFunction(LabelledFormula.class,
+        formula -> translate(environment, formula)))
+    .build();
 
   private LTL2DA() {}
 
   public static void main(String... args) {
-    SimpleModuleParser.run(args, ImmutableSingleModuleConfiguration.builder()
-      .readerModule(InputReaders.LTL)
-      .addPreProcessors(Transformers.SIMPLIFY_MODAL_ITER)
-      .transformer(settings)
-      .addPostProcessors(Transformers.MINIMIZER)
-      .writerModule(OutputWriters.HOA)
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2da")
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
+      .addTransformer(SETTINGS)
+      .addTransformer(Transformers.MINIMIZER)
+      .writer(OutputWriters.HOA)
       .build());
   }
 

@@ -14,7 +14,7 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.TestEnvironment;
+import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
@@ -25,7 +25,7 @@ public class ParityGameSolverTest {
     EnumSet<Configuration> configuration = EnumSet.allOf(Configuration.class);
     configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
     configuration.remove(Configuration.GUESS_F);
-    TRANSLATION = new LTL2DPAFunction(TestEnvironment.INSTANCE, configuration);
+    TRANSLATION = new LTL2DPAFunction(DefaultEnvironment.annotated(), configuration);
   }
 
   @Test

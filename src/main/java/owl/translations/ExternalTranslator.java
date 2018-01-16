@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jhoafparser.parser.generated.ParseException;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
@@ -39,58 +38,24 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.factories.FactorySupplier;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
+import owl.run.Environment;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.Transformers;
 
 public class ExternalTranslator
   implements Function<LabelledFormula, Automaton<HoaState, OmegaAcceptance>> {
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
 
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws org.apache.commons.cli.ParseException {
-      InputMode inputMode = InputMode.STDIN;
-
-      String inputType = settings.getOptionValue("inputType");
-      if (inputType != null) {
-        switch (inputType) {
-          case "stdin":
-            inputMode = InputMode.STDIN;
-            break;
-          case "replace":
-            inputMode = InputMode.REPLACE;
-            break;
-          default:
-            throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
-        }
-      }
-
-      String toolPath = settings.getOptionValue("tool");
-      String[] tool = splitPattern.split(toolPath);
-
-      ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
-      return Transformers.fromFunction(LabelledFormula.class, translator);
-    }
-
-    @Override
-    public String getDescription() {
-      return "Runs an external tool for ltl to automaton translation";
-    }
-
-    @Override
-    public String getKey() {
-      return "ltl2aut-ext";
-    }
-
-    @Override
-    public Options getOptions() {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("ltl2aut-ext")
+    .description("Runs an external tool for LTL to automaton translation")
+    .optionsBuilder(() -> {
       Option toolOption = new Option("t", "tool", true, "The tool invocation");
       toolOption.setRequired(true);
 
@@ -100,8 +65,25 @@ public class ExternalTranslator
       return new Options()
         .addOption(toolOption)
         .addOption(inputType);
-    }
-  };
+    }).transformerSettingsParser(settings -> {
+      String inputType = settings.getOptionValue("inputType");
+      InputMode inputMode;
+      if (inputType == null || "stdin".equals(inputType)) {
+        inputMode = InputMode.STDIN;
+      } else if ("replace".equals(inputType)) {
+        inputMode = InputMode.REPLACE;
+      } else {
+        throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
+      }
+
+      String toolPath = settings.getOptionValue("tool");
+      String[] tool = splitPattern.split(toolPath);
+
+      return environment -> {
+        ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
+        return Transformers.instanceFromFunction(LabelledFormula.class, translator);
+      };
+    }).build();
 
   private final Environment env;
   private final InputMode inputMode;
@@ -153,10 +135,10 @@ public class ExternalTranslator
       }
 
       try (BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream())) {
-        ValuationSetFactory vsFactory = env.factorySupplier()
-          .getValuationSetFactory(formula.variables);
-        Automaton<HoaState, OmegaAcceptance> automaton = AutomatonReader
-          .readHoa(inputStream, vsFactory, OmegaAcceptance.class);
+        FactorySupplier factorySupplier = env.factorySupplier();
+        ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(formula.variables);
+        Automaton<HoaState, OmegaAcceptance> automaton =
+          AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
         logger.log(Level.FINEST, () -> String.format("Read automaton for %s:%n%s", formula,
           AutomatonUtil.toHoa(automaton)));
         return automaton;
@@ -168,7 +150,8 @@ public class ExternalTranslator
         process.destroy();
         try {
           process.waitFor(10, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) { // NOPMD
+        } catch (InterruptedException ignored) {
+          // NOPMD
         }
         process.destroyForcibly();
       }

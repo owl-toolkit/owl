@@ -1,23 +1,32 @@
 package owl.ltl.rewriter;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
-import owl.run.ModuleSettings.TransformerSettings;
-import owl.run.Transformer;
-import owl.run.Transformers;
-import owl.run.env.Environment;
+import owl.run.PipelineExecutionContext;
+import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.Transformers;
 
-public class RewriterTransformer {
-  public static final TransformerSettings settings = new TransformerSettings() {
-    @Override
-    public Transformer create(CommandLine settings, Environment environment)
-      throws ParseException {
+public class RewriterTransformer extends Transformers.SimpleTransformer {
+  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+    .key("rewrite")
+    .optionsBuilder(() -> {
+      Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "
+        + "comma separated list. Possible values are: modal, modal-iter, pullup, pushdown, "
+        + "fairness");
+      modeOption.setRequired(true);
+      modeOption.setArgs(Option.UNLIMITED_VALUES);
+      modeOption.setValueSeparator(',');
+      return new Options().addOption(modeOption);
+    }).transformerSettingsParser(settings -> {
       List<RewriterEnum> rewrites = new ArrayList<>();
       String[] modes = settings.getOptionValues("mode");
 
@@ -25,41 +34,18 @@ public class RewriterTransformer {
         rewrites.add(parseMode(mode));
       }
 
-      RewriterTransformer transformer = new RewriterTransformer(rewrites);
-
-      return Transformers.fromFunction(LabelledFormula.class, input -> {
-        LabelledFormula result = input;
-        for (RewriterEnum rewrite : transformer.rewrites) {
-          result = RewriterFactory.apply(rewrite, result);
-        }
-        return result;
-      });
-    }
-
-    @Override
-    public String getKey() {
-      return "rewrite";
-    }
-
-    @Override
-    public Options getOptions() {
-      return options();
-    }
-  };
+      return new RewriterTransformer(rewrites);
+    })
+    .build();
 
   private final List<RewriterEnum> rewrites;
 
-  private RewriterTransformer(List<RewriterEnum> rewrites) {
-    this.rewrites = rewrites;
+  public RewriterTransformer(RewriterEnum... rewrites) {
+    this.rewrites = ImmutableList.copyOf(rewrites);
   }
 
-  private static Options options() {
-    Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "
-      + "comma separated list. Possible values are: modal, modal-iter, pullup, pushdown, fairness");
-    modeOption.setRequired(true);
-    modeOption.setArgs(Option.UNLIMITED_VALUES);
-    modeOption.setValueSeparator(',');
-    return new Options().addOption(modeOption);
+  public RewriterTransformer(List<RewriterEnum> rewrites) {
+    this.rewrites = ImmutableList.copyOf(rewrites);
   }
 
   private static RewriterEnum parseMode(String mode) throws ParseException {
@@ -79,4 +65,13 @@ public class RewriterTransformer {
     }
   }
 
+  @Override
+  public Object transform(Object object, PipelineExecutionContext context) {
+    checkArgument(object instanceof LabelledFormula);
+    LabelledFormula result = (LabelledFormula) object;
+    for (RewriterEnum rewrite : rewrites) {
+      result = RewriterFactory.apply(rewrite, result);
+    }
+    return result;
+  }
 }

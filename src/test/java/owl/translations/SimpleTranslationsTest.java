@@ -11,15 +11,17 @@ import owl.automaton.algorithms.EmptinessCheck;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
+import owl.run.DefaultEnvironment;
 
 public class SimpleTranslationsTest {
   @Test
-  public void contruct() throws Exception {
+  public void contruct() {
     LabelledFormula formula = LtlParser.parse("a | b R X c");
 
-    Automaton<EquivalenceClass, AllAcceptance> automaton = SimpleTranslations.buildSafety(formula);
-    Automaton<EquivalenceClass, BuchiAcceptance> complementAutomaton = SimpleTranslations
-      .buildCoSafety(formula.not());
+    Automaton<EquivalenceClass, AllAcceptance> automaton =
+      SimpleTranslations.buildSafety(formula, DefaultEnvironment.annotated());
+    Automaton<EquivalenceClass, BuchiAcceptance> complementAutomaton =
+      SimpleTranslations.buildCoSafety(formula.not(), DefaultEnvironment.annotated());
 
     assertThat(automaton.getStates().size(), is(complementAutomaton.getStates().size()));
     assertThat(EmptinessCheck.isEmpty(automaton), is(false));
