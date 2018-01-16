@@ -92,7 +92,7 @@ final class MonitorBuilderNoAcceptance {
     MonitorState initialState = new MonitorState(new EquivalenceClass[] {initialClass});
 
     MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
-      .createMutableAutomaton(new ParityAcceptance(0), vsFactory);
+      .create(new ParityAcceptance(0), vsFactory);
     monitor.setName(String.format("Monitor for %s", initialClass));
     monitor.addState(initialState);
     monitor.setInitialState(initialState);

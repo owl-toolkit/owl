@@ -7,6 +7,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.immutables.value.Value;
 
+// Helper class to create simple immutable builders for module settings
 abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // NOPMD
   private Settings() {}
 
@@ -45,6 +46,11 @@ abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // N
     // Since Options can't be fully specified in one expression (e.g., setting some option as
     // required), this utility method allows to define a builder for them.
     return null;
+  }
+
+  @FunctionalInterface
+  public interface ParseFunction<K, V> {
+    V parse(K input) throws ParseException;
   }
 
   @Value.Style(typeAbstract = "Abstract*",
@@ -90,10 +96,5 @@ abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // N
     }
 
     abstract ParseFunction<CommandLine, Transformer> transformerSettingsParser();
-  }
-
-  @FunctionalInterface
-  public interface ParseFunction<K, V> {
-    V parse(K input) throws ParseException;
   }
 }

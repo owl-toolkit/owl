@@ -41,8 +41,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Override
   public MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance> build() {
-    return MutableAutomatonFactory.createMutableAutomaton(BuchiAcceptance.INSTANCE,
-      factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+    return MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, factories.vsFactory, anchors,
+      this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override

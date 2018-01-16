@@ -21,5 +21,7 @@ public interface OutputWriter extends OwlModule {
   @FunctionalInterface
   interface Binding {
     void write(Object object) throws IOException;
+
+    default void closeWriter() {}
   }
 }

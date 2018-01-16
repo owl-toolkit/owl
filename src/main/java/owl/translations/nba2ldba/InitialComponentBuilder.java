@@ -47,7 +47,7 @@ final class InitialComponentBuilder<S> implements MutableAutomatonBuilder<S, S, 
   @Override
   public MutableAutomaton<S, NoneAcceptance> build() {
     MutableAutomaton<S, NoneAcceptance> automaton = MutableAutomatonFactory
-      .createMutableAutomaton(NoneAcceptance.INSTANCE, nba.getFactory());
+      .create(NoneAcceptance.INSTANCE, nba.getFactory());
 
     AutomatonUtil.explore(automaton, nba.getInitialStates(), (state, valuation) ->
       Collections2.transform(nba.getSuccessors(state, valuation), Edge::of));

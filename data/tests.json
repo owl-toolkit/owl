@@ -54,27 +54,36 @@
     },
     "tests": {
         "ltl2ldba": {
-            "tools": [
-                "ltl2ldba#",
-                "ltl2ldba#non-deterministic",
-                "ltl2ldba#guess-f",
-                "ltl2ldba#guess-f,non-deterministic",
-                "ltl2ldba#degeneralise",
-                "ltl2ldba#degeneralise,non-deterministic",
-                "ltl2ldba#degeneralise,guess-f",
-                "ltl2ldba#degeneralise,guess-f,non-deterministic"
-            ]
+            "tools": {
+                "default": "ltl2ldba#degeneralise",
+                "non-det": "ltl2ldba#degeneralise,non-deterministic",
+                "guess-F": "ltl2ldba#degeneralise,guess-f",
+                "guess-F+non-det": "ltl2ldba#degeneralise,guess-f,non-deterministic"
+            }
         },
         "ltl2ldba-small": {
             "tools": [
-                "ltl2ldba#simple",
-                "ltl2ldba#non-deterministic,simple",
-                "ltl2ldba#guess-f,simple",
-                "ltl2ldba#guess-f,non-deterministic,simple",
                 "ltl2ldba#degeneralise,simple",
                 "ltl2ldba#degeneralise,non-deterministic,simple",
                 "ltl2ldba#degeneralise,guess-f,simple",
                 "ltl2ldba#degeneralise,guess-f,non-deterministic,simple"
+            ],
+            "data": "small"
+        },
+        "ltl2ldgba": {
+            "tools": [
+                "ltl2ldba#",
+                "ltl2ldba#non-deterministic",
+                "ltl2ldba#guess-f",
+                "ltl2ldba#guess-f,non-deterministic"
+            ]
+        },
+        "ltl2ldgba-small": {
+            "tools": [
+                "ltl2ldba#simple",
+                "ltl2ldba#non-deterministic,simple",
+                "ltl2ldba#guess-f,simple",
+                "ltl2ldba#guess-f,non-deterministic,simple"
             ],
             "data": "small"
         },

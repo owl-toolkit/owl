@@ -65,7 +65,7 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
 
   @Override
   public Automaton<Set<S>, NoneAcceptance> getInitialComponent() {
-    return MutableAutomatonFactory.createMutableAutomaton(Views.createPowerSetAutomaton(
+    return MutableAutomatonFactory.create(Views.createPowerSetAutomaton(
       ldba.getInitialComponent()));
   }
 

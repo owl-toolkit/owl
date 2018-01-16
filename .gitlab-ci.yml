@@ -8,7 +8,7 @@ stages:
   - test
   - bench
 
-build:
+Build:
   stage:
     build
   script:
@@ -42,108 +42,76 @@ build:
   when: manual
   dependencies: []
 
-# LTL to LDBA Translations
 
-ltl2ldba:
+# LTL to Automaton
+
+LTL2LDBA:
   stage: test
   variables:
-    TEST_NAME: "ltl2ldba"
+    TEST_NAME: "ltl2ldba-small;ltl2ldba"
   <<: *ltlcross_template
 
-ltl2ldba small:
+LTL2LDGBA:
   stage: test
   variables:
-    TEST_NAME: "ltl2ldba-small"
+    TEST_NAME: "ltl2ldgba-small;ltl2ldgba"
   <<: *ltlcross_template
 
-# NBA to LDBA translations
-
-nba2ldba:
+LTL2DPA:
   stage: test
   variables:
-    TEST_NAME: "nba2ldba"
+    TEST_NAME: "ltl2dpa-small;ltl2dpa"
   <<: *ltlcross_template
 
-# NBA to LDBA translations
-
-nba2dpa:
-  stage: test
-  variables:
-    TEST_NAME: "nba2dpa"
-  <<: *ltlcross_template
-
-# LTL to DPA translations
-
-ltl2dpa:
-  stage: test
-  variables:
-    TEST_NAME: "ltl2dpa"
-  <<: *ltlcross_template
-
-ltl2dpa small:
-  stage: test
-  variables:
-    TEST_NAME: "ltl2dpa-small"
-  <<: *ltlcross_template
-
-# LTL to D*A translations
-
-ltl2da:
+LTL2DA:
   stage: test
   variables:
     TEST_NAME: "ltl2da"
   <<: *ltlcross_template
 
-# LTL to DELA translations
-
-delag Strict:
+DELAG:
   stage: test
   variables:
-    TEST_NAME: "delag-strict"
+    TEST_NAME: "delag-strict;delag"
   <<: *ltlcross_template
 
-delag:
-  stage: test
-  variables:
-    TEST_NAME: "delag"
-  <<: *ltlcross_template
-
-# rabinizer
-
-rabinizer:
+Rabinizer:
   stage: test
   variables:
     TEST_NAME: "rabinizer"
   <<: *ltlcross_template
 
+NBA2LDBA:
+  stage: test
+  variables:
+    TEST_NAME: "nba2ldba"
+  <<: *ltlcross_template
+
+NBA2DPA:
+  stage: test
+  variables:
+    TEST_NAME: "nba2dpa"
+  <<: *ltlcross_template
+
+
 # Benchmarks
 
-bench ltl2ldba:
+LTL2LDBA Benchmark:
   variables:
     BENCH_NAME: "ltl2ldba"
   <<: *benchmark_template
 
-bench delag:
+DELAG Benchmark:
   variables:
     BENCH_NAME: "delag"
   <<: *benchmark_template
 
-bench ltl2dpa:
+LTL2DPA Benchmark:
   variables:
     BENCH_NAME: "ltl2dpa"
   <<: *benchmark_template
 
-bench ltl2da:
+LTL2DA Benchmark:
   variables:
     BENCH_NAME: "ltl2da"
-  <<: *benchmark_template
-
-bench ltl2dpa Parallel:
-  variables:
-    BENCH_NAME: "ltl2dpa-parallel"
-  <<: *benchmark_template
-
-bench ltl2da Parallel:
-  variables:
-    BENCH_NAME: "ltl2da-parallel"
   <<: *benchmark_template

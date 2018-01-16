@@ -84,7 +84,6 @@ public class FormulaTest {
     Formula f1 = new Literal(0);
     Formula f2 = new UOperator(f0, f1);
     Formula f3 = f2.not();
-    System.out.print(f3);
     f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
     Formula f4 = new Literal(1, true);

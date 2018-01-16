@@ -28,7 +28,7 @@ public final class GeneralizedBuchiView<S>
   @Override
   public MutableAutomaton<S, GeneralizedBuchiAcceptance> build() {
     MutableAutomaton<S, GeneralizedBuchiAcceptance> automaton = MutableAutomatonFactory
-      .createMutableAutomaton(new GeneralizedBuchiAcceptance(1), nba.getFactory());
+      .create(new GeneralizedBuchiAcceptance(1), nba.getFactory());
 
     AutomatonUtil.explore(automaton, nba.getInitialStates(), (state, valuation) -> Collections2
       .transform(nba.getSuccessors(state, valuation), x -> Edge.of(x, 0)));

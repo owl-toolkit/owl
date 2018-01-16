@@ -56,7 +56,10 @@ class OwlTool(Tool):
 
         # Pre-processing
         for pre_command in self.pre:
-            pipeline.extend(pre_command)
+            if isinstance(pre_command, str):
+                pipeline.append(pre_command)
+            else:
+                pipeline.extend(pre_command)
             pipeline.append("---")
 
         # Tool execution
@@ -66,7 +69,10 @@ class OwlTool(Tool):
 
         # Post-processing
         for post_command in self.post:
-            pipeline.extend(post_command)
+            if isinstance(post_command, str):
+                pipeline.append(post_command)
+            else:
+                pipeline.extend(post_command)
             pipeline.append("---")
 
         # Output

@@ -18,10 +18,14 @@
 package owl.automaton;
 
 import com.google.common.base.Preconditions;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -46,26 +50,40 @@ public final class MutableAutomatonFactory {
    *
    * @return Empty automaton with the specified parameters.
    */
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
-    A acceptance, ValuationSetFactory valuationSetFactory) {
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
+    ValuationSetFactory valuationSetFactory) {
     return new HashMapAutomaton<>(valuationSetFactory, acceptance);
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
-    A acceptance, ValuationSetFactory valuationSetFactory, Collection<S> initialStates,
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
+    ValuationSetFactory valuationSetFactory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
-    MutableAutomaton<S, A> automaton = createMutableAutomaton(acceptance, valuationSetFactory);
+    MutableAutomaton<S, A> automaton = create(acceptance, valuationSetFactory);
     AutomatonUtil.exploreDeterministic(automaton, initialStates, successors, alphabet);
     automaton.setInitialStates(initialStates);
     return automaton;
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> createMutableAutomaton(
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(
     Automaton<S, A> automaton) {
     Preconditions.checkArgument(automaton.is(Property.DETERMINISTIC),
       "Only deterministic automata supported");
-    return createMutableAutomaton(automaton.getAcceptance(),
+    // TODO Efficient copy of HashMapAutomaton
+    return create(automaton.getAcceptance(),
       automaton.getFactory(), automaton.getInitialStates(), automaton::getEdge,
       (x) -> null);
+  }
+
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> singleton(S state,
+    ValuationSetFactory factory, A acceptance) {
+    return singleton(state, factory, acceptance, IntSets.EMPTY_SET);
+  }
+
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> singleton(S state,
+    ValuationSetFactory factory, A acceptance, IntSet acceptanceSet) {
+    BitSet loopAcceptance = new BitSet();
+    acceptanceSet.forEach((IntConsumer) loopAcceptance::set);
+    return create(acceptance, factory, Set.of(state),
+      (s, vs) -> Edge.of(state, loopAcceptance), s -> new BitSet(0));
   }
 }
