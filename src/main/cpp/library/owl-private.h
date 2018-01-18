@@ -36,7 +36,7 @@ inline T ref(JNIEnv* env, T ref) {
         throw std::runtime_error("ref called with null arguments");
     }
 
-    static_assert(is_jobject<T>());
+    static_assert(is_jobject<T>(), "Template parameter T for 'ref' method is not a Java object.");
     T globalRef = reinterpret_cast<T>(env->NewGlobalRef(ref));
     check_exception(env, "Failed to acquire global reference.");
     return globalRef;
@@ -107,7 +107,7 @@ inline jmethodID get_static_methodID(JNIEnv *env, jclass clazz, const char *name
 
 template<typename T, typename... Args>
 inline T call_method(JNIEnv *env, jobject object, jmethodID methodID, Args... args) {
-    static_assert(is_jobject<T>());
+    static_assert(is_jobject<T>(), "Template parameter T for 'call_method' method is not a Java object.");
     auto result = reinterpret_cast<T>(env->CallObjectMethod(object, methodID, args...));
     check_exception(env, "Failed to call object method.");
     return make_global(env, result);
@@ -124,7 +124,7 @@ inline T call_method(JNIEnv *env, jobject object, const char *name, const char *
 
 template<typename T, typename... Args>
 inline T call_static_method(JNIEnv *env, jclass clazz, jmethodID methodID, Args... args) {
-    static_assert(is_jobject<T>());
+    static_assert(is_jobject<T>(), "Template parameter T for 'call_static_method' method is not a Java object.");
     auto result = reinterpret_cast<T>(env->CallStaticObjectMethod(clazz, methodID, args...));
     check_exception(env, "Failed to call object method.");
     return make_global(env, result);
@@ -155,7 +155,7 @@ inline jint call_int_method(JNIEnv *env, jobject object, const char *name, const
 
 template<typename T, typename... Args>
 inline T new_object(JNIEnv *env, jclass clazz, jmethodID constructor, Args... args) {
-    static_assert(is_jobject<T>());
+    static_assert(is_jobject<T>(), "Template parameter T for 'new_object' method is not a Java object.");
     auto object = reinterpret_cast<T>(env->NewObject(clazz, constructor, args...));
     check_exception(env, "Failed to construct object.");
     return make_global(env, object);
@@ -163,7 +163,7 @@ inline T new_object(JNIEnv *env, jclass clazz, jmethodID constructor, Args... ar
 
 template<typename T, typename... Args>
 inline T new_object(JNIEnv *env, const char *className, const char *signature, Args... args) {
-    static_assert(is_jobject<T>());
+    static_assert(is_jobject<T>(), "Template parameter T for 'new_object' method is not a Java object.");
     jclass clazz = lookup_class(env, className);
     jmethodID constructor = get_methodID(env, clazz, "<init>", signature);
     auto object = new_object<T>(env, clazz, constructor, args...);
