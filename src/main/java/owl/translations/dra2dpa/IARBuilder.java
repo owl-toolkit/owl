@@ -211,7 +211,7 @@ public final class IARBuilder<R> {
           }
           // Check which of the Inf sets is active here
           // N.B. |= does not short-circuit
-          seenAnyInfSet |= remainingPairsToCheck.removeIf(pair -> pair.containsInfinite(edge));
+          seenAnyInfSet |= remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infiniteIndex));
           // When remaining is create, have seen all sets
           seenAllInfSets = remainingPairsToCheck.isEmpty();
         } else {

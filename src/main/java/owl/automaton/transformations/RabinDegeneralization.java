@@ -56,7 +56,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
 
-  public static <S> MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
+  public static <S> Automaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
     Automaton<S, GeneralizedRabinAcceptance> automaton) {
     // TODO parallel
     logger.log(Level.FINER, "De-generalising automaton with {0} states", automaton.size());
@@ -143,7 +143,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
       Set<DegeneralizedRabinState<S>> exploredStates =
         AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, Set.of(initialSccState), state -> {
-          S generalizedState = state.getGeneralizedState();
+          S generalizedState = state.generalizedState;
           Collection<LabelledEdge<S>> labelledEdges = automaton.getLabelledEdges(generalizedState);
 
           Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
@@ -181,7 +181,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                 // We have seen the fin set, put this transition into the fin set and restart
                 // the wait
                 awaitedInfSet = 0;
-                edgeAcceptance.set(rabinPairs[currentPairIndex].getFiniteIndex());
+                edgeAcceptance.set(rabinPairs[currentPairIndex].finiteIndex);
               } else {
                 // We did not see the fin set, check which inf sets have been seen
                 // Check all inf sets of the rabin pair, starting from the awaited index.
@@ -197,7 +197,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                   if (currentInfNumber == infiniteIndexCount - 1) {
                     // We reached a breakpoint and can add the transition to the inf set
                     RabinPair rabinPair = rabinPairs[currentPairIndex];
-                    int infiniteIndex = rabinPair.getInfiniteIndex();
+                    int infiniteIndex = rabinPair.infiniteIndex;
                     edgeAcceptance.set(infiniteIndex);
                   }
                 }
@@ -212,8 +212,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
               RabinPair currentPair = rabinPairs[currentPairIndex];
 
               edgeAcceptance.set(pair.containsFinite(edge)
-                                 ? currentPair.getFiniteIndex()
-                                 : currentPair.getInfiniteIndex());
+                                 ? currentPair.finiteIndex
+                                 : currentPair.infiniteIndex);
             });
 
             DegeneralizedRabinState<S> successor =
@@ -233,7 +233,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
       resultAutomaton.removeStates(state ->
         exploredStates.contains(state) && !resultBscc.contains(state));
-      resultBscc.forEach(state -> stateMap.putIfAbsent(state.getGeneralizedState(), state));
+      resultBscc.forEach(state -> stateMap.putIfAbsent(state.generalizedState, state));
     }
 
     assert Objects.equals(stateMap.keySet(), automaton.getStates());
@@ -266,9 +266,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
   @Immutable
   public static class DegeneralizedRabinState<S> {
-    private final int[] awaitedSets;
-    private final S generalizedState;
-    private final int hashCode;
+    final int[] awaitedSets;
+    final S generalizedState;
+    final int hashCode;
 
     @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
     DegeneralizedRabinState(S generalizedState, int[] awaitedSets) {
@@ -286,6 +286,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       if (this == o) {
         return true;
       }
+
       if (!(o instanceof DegeneralizedRabinState)) {
         return false;
       }
@@ -293,10 +294,6 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       DegeneralizedRabinState<?> that = (DegeneralizedRabinState<?>) o;
       return generalizedState.equals(that.generalizedState)
         && Arrays.equals(awaitedSets, that.awaitedSets);
-    }
-
-    public S getGeneralizedState() {
-      return generalizedState;
     }
 
     @Override

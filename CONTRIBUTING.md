@@ -20,7 +20,17 @@ If you instead want to work with the IDEA gradle plugin, import the project as u
 
 Before submitting code please executed `./gradlew check` locally to run all code checks.
 Apart from jUnit tests, static code analysis is performed by [PMD](https://pmd.github.io/) and [FindBugs](http://findbugs.sourceforge.net/) (rules are located in the `config` folder).
-Further, [checkstyle](http://checkstyle.sourceforge.net/) is used to check compliance with the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html). 
+Further, [checkstyle](http://checkstyle.sourceforge.net/) is used to check compliance with the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 Passing all these tests is mandatory for submitted code.
+
+# Coding Conventions
+
+## UnsupportedOperationException
+
+If a method does not support a particular operation, but could be implemented then use an UnsupportedOperationException.
+
+## IllegalArgumentException
+
+If a method will never support this.
 
 

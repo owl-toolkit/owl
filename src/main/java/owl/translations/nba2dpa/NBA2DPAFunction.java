@@ -24,6 +24,7 @@ import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -40,13 +41,11 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ldba2dpa.RankingAutomaton;
-import owl.translations.ldba2dpa.RankingState;
 import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.GeneralizedBuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
 
-public final class NBA2DPAFunction<S>
-  implements Function<Automaton<S, ?>, HoaPrintable> {
+public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPrintable> {
   public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
     .key("nba2dpa")
     .transformerSettingsParser(settings -> environment -> {
@@ -59,8 +58,6 @@ public final class NBA2DPAFunction<S>
 
   public NBA2DPAFunction() {}
 
-  public NBA2DPAFunction(EnumSet<Configuration> optimisations) {}
-
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
       .reader(InputReaders.HOA)
@@ -71,31 +68,30 @@ public final class NBA2DPAFunction<S>
 
   @SuppressWarnings("unchecked")
   @Override
-  public Automaton<RankingState<Set<S>, BreakpointState<S>>, ParityAcceptance>
-    apply(Automaton<S, ?> nba) {
-    Automaton<S, GeneralizedBuchiAcceptance> nbaGBA;
+  public Automaton<?, ParityAcceptance> apply(Automaton<S, ?> nba) {
+    Automaton<Object, GeneralizedBuchiAcceptance> nbaGBA;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (nba.getAcceptance() instanceof AllAcceptance) {
-
-      nbaGBA = new GeneralizedBuchiView<>((Automaton<S, AllAcceptance>) nba).build();
+      nbaGBA = new GeneralizedBuchiView<>((Automaton<Object, AllAcceptance>) nba).build();
     } else if (nba.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
-      nbaGBA = (Automaton<S, GeneralizedBuchiAcceptance>) nba;
+      nbaGBA = (Automaton<Object, GeneralizedBuchiAcceptance>) nba;
     } else {
       throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
     }
 
-    NBA2LDBA<S> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
+    nbaGBA = Views.complete(nbaGBA, new Object());
 
-    LimitDeterministicAutomaton<Set<S>, BreakpointState<S>, BuchiAcceptance, Void>
+    NBA2LDBA<Object> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
+
+    LimitDeterministicAutomaton<Set<Object>, BreakpointState<Object>, BuchiAcceptance, Void>
       ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
-    AutomatonUtil.complete((MutableAutomaton<BreakpointState<S>, BuchiAcceptance>) ldbaCutDet
+    AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
       .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
 
-    LanguageLattice<Set<BreakpointState<S>>, BreakpointState<S>, Void> oracle =
+    LanguageLattice<Set<BreakpointState<Object>>, BreakpointState<Object>, Void> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
 
-    return RankingAutomaton.of(ldbaCutDet, true, oracle,
-      s -> false, false, true);
+    return RankingAutomaton.of(ldbaCutDet, true, oracle, s -> false, false, true);
   }
 }

@@ -154,10 +154,10 @@ final class SccIARBuilder<R> {
     for (int currentClass = 0; currentClass < classes; currentClass++) {
       for (int rabinPairInClass : currentRecord.equivalenceClass(currentClass)) {
         RabinAcceptance.RabinPair rabinPair = indexToPair[rabinPairInClass];
-        if (rabinPair.hasFinite() && rabinEdge.inSet(rabinPair.getFiniteIndex())) {
+        if (rabinEdge.inSet(rabinPair.finiteIndex)) {
           visitedFinSetIndices.add(rabinPairInClass);
           priority = Math.min(priority, maximumPriority - 2 * currentClass - 2);
-        } else if (rabinPair.hasInfinite() && rabinEdge.inSet(rabinPair.getInfiniteIndex())) {
+        } else if (rabinEdge.inSet(rabinPair.infiniteIndex)) {
           priority = Math.min(priority, maximumPriority - 2 * currentClass - 1);
         }
       }

@@ -19,10 +19,12 @@ package owl.automaton.acceptance;
 
 import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
@@ -36,7 +38,6 @@ import owl.automaton.edge.Edge;
  * acceptance without any pairs rejects every word.
  */
 public final class RabinAcceptance extends OmegaAcceptance {
-  private static final int NOT_ALLOCATED = -1;
   private final BitSet allocatedIndices = new BitSet();
   private final List<RabinPair> pairs;
 
@@ -60,8 +61,8 @@ public final class RabinAcceptance extends OmegaAcceptance {
     }
 
     for (BooleanExpression<AtomAcceptance> pair : BooleanExpressions.getDisjuncts(expression)) {
-      int fin = NOT_ALLOCATED;
-      int inf = NOT_ALLOCATED;
+      int fin = -1;
+      int inf = -1;
 
       for (BooleanExpression<AtomAcceptance> element : BooleanExpressions.getConjuncts(pair)) {
         AtomAcceptance atom = element.getAtom();
@@ -74,8 +75,7 @@ public final class RabinAcceptance extends OmegaAcceptance {
             inf = atom.getAcceptanceSet();
             break;
           default:
-            assert false;
-            break;
+            throw new IllegalArgumentException("Rabin Acceptance not well-formed.");
         }
       }
 
@@ -86,13 +86,12 @@ public final class RabinAcceptance extends OmegaAcceptance {
   }
 
   private RabinPair createPair(int fin, int inf) {
+    Preconditions.checkArgument(fin >= 0);
+    Preconditions.checkArgument(inf >= 0);
+
     RabinPair pair = new RabinPair(fin, inf);
-    if (fin != NOT_ALLOCATED) {
-      allocatedIndices.set(fin);
-    }
-    if (inf != NOT_ALLOCATED) {
-      allocatedIndices.set(inf);
-    }
+    allocatedIndices.set(fin);
+    allocatedIndices.set(inf);
     pairs.add(pair);
     return pair;
   }
@@ -110,8 +109,7 @@ public final class RabinAcceptance extends OmegaAcceptance {
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    return createDisjunction(pairs.stream()
-      .filter(x -> !x.isEmpty()).map(RabinPair::getBooleanExpression));
+    return createDisjunction(pairs.stream().map(RabinPair::getBooleanExpression));
   }
 
   @Override
@@ -134,82 +132,19 @@ public final class RabinAcceptance extends OmegaAcceptance {
   }
 
   public static final class RabinPair {
-    private final int finiteIndex;
-    private final int infiniteIndex;
+    @Nonnegative
+    public final int finiteIndex;
 
-    RabinPair(int fin, int inf) {
+    @Nonnegative
+    public final int infiniteIndex;
+
+    RabinPair(@Nonnegative int fin, @Nonnegative int inf) {
       finiteIndex = fin;
       infiniteIndex = inf;
     }
 
-    /**
-     * Checks whether the given edge is contained in the <b>Fin</b> set of this pair.
-     *
-     * @param edge
-     *     The edge to be tested.
-     *
-     * @return If {@code edge} is contained in the <b>Fin</b> set.
-     *
-     * @see Edge#inSet(int)
-     */
-    public boolean containsFinite(Edge<?> edge) {
-      return hasFinite() && edge.inSet(finiteIndex);
-    }
-
-    /**
-     * Checks whether the given edge is contained in the <b>Inf</b> set of this pair.
-     *
-     * @param edge
-     *     The edge to be tested.
-     *
-     * @return If {@code edge} is contained in the <b>Inf</b> set.
-     *
-     * @see Edge#inSet(int)
-     */
-    public boolean containsInfinite(Edge<?> edge) {
-      return hasInfinite() && edge.inSet(infiniteIndex);
-    }
-
     private BooleanExpression<AtomAcceptance> getBooleanExpression() {
-      assert !isEmpty();
-      if (finiteIndex == NOT_ALLOCATED) {
-        return BooleanExpressions.mkInf(infiniteIndex);
-      }
-      if (infiniteIndex == NOT_ALLOCATED) {
-        return BooleanExpressions.mkFin(finiteIndex);
-      }
       return BooleanExpressions.mkFin(finiteIndex).and(BooleanExpressions.mkInf(infiniteIndex));
-    }
-
-    public int getFiniteIndex() {
-      assert hasFinite();
-      return finiteIndex;
-    }
-
-    public int getInfiniteIndex() {
-      assert hasInfinite();
-      return infiniteIndex;
-    }
-
-    /**
-     * Checks if the <b>Fin</b> set of this pair is already used.
-     */
-    public boolean hasFinite() {
-      return finiteIndex != NOT_ALLOCATED;
-    }
-
-    /**
-     * Checks if the <b>Inf</b> set of this pair is already used.
-     */
-    public boolean hasInfinite() {
-      return infiniteIndex != NOT_ALLOCATED;
-    }
-
-    /**
-     * Checks if the <b>Fin</b> or <b>Inf</b> set of this pair are allocated.
-     */
-    public boolean isEmpty() {
-      return finiteIndex == NOT_ALLOCATED && infiniteIndex == NOT_ALLOCATED;
     }
   }
 }
