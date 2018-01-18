@@ -292,7 +292,7 @@ namespace owl {
                 deref(env, clazz);
                 return owl::LabelledTree<T1, T2>(label1, std::move(children));
             }
-        };
+        }
 
         template<typename T>
         operator std::vector<T>() const {
