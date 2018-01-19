@@ -7,14 +7,13 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class RabinizerDegeneralizeMain {
-  private RabinizerDegeneralizeMain() {
-  }
+  private RabinizerDegeneralizeMain() {}
 
   public static void main(String... args) {
     PartialConfigurationParser.run(args,  PartialModuleConfiguration.builder("ltl2dra")
       .reader(InputReaders.LTL)
       .addTransformer(RabinizerMain.SIMPLIFIER, Transformers.UNABBREVIATE_RW)
-      .addTransformer(new RabinizerModule())
+      .addTransformer(RabinizerCliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION)
       .writer(OutputWriters.HOA)
       .build());

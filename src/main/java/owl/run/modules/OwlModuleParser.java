@@ -5,7 +5,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 @SuppressWarnings("InterfaceMayBeAnnotatedFunctional")
-public interface ModuleSettings<M extends OwlModule> {
+public interface OwlModuleParser<M extends OwlModule> {
   default String getDescription() {
     return "";
   }
@@ -16,14 +16,11 @@ public interface ModuleSettings<M extends OwlModule> {
     return new Options();
   }
 
-  M parse(CommandLine settings) throws ParseException;
+  M parse(CommandLine commandLine) throws ParseException;
 
-  interface ReaderSettings extends ModuleSettings<InputReader> {
-  }
+  interface ReaderParser extends OwlModuleParser<InputReader> {}
 
-  interface TransformerSettings extends ModuleSettings<Transformer> {
-  }
+  interface TransformerParser extends OwlModuleParser<Transformer> {}
 
-  interface WriterSettings extends ModuleSettings<OutputWriter> {
-  }
+  interface WriterParser extends OwlModuleParser<OutputWriter> {}
 }

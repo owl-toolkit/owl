@@ -10,13 +10,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import owl.run.modules.ModuleRegistry;
-import owl.run.modules.ModuleSettings;
+import owl.run.modules.OwlModuleParser;
+import owl.run.modules.OwlModuleRegistry;
 import owl.util.UncloseableWriter;
 
 final class ParseUtil {
-  public static final Comparator<ModuleSettings<?>> MODULE_COMPARATOR =
-    Comparator.comparing(ModuleSettings::getKey);
+  public static final Comparator<OwlModuleParser<?>> MODULE_COMPARATOR =
+    Comparator.comparing(OwlModuleParser::getKey);
   private static final HelpFormatter formatter;
 
   static {
@@ -31,27 +31,15 @@ final class ParseUtil {
     return args.length == 1 && List.of("help", "--help", "-h").contains(args[0]);
   }
 
-  static Collection<ModuleSettings<?>> getSortedSettings(ModuleRegistry registry,
-    ModuleRegistry.Type type) {
+  static Collection<OwlModuleParser<?>> getSortedSettings(OwlModuleRegistry registry,
+    OwlModuleRegistry.Type type) {
     return registry.getSettings(type).stream()
       .sorted(MODULE_COMPARATOR)
       .collect(Collectors.toList());
   }
 
-  static void printModuleHelp(ModuleSettings<?> settings, @Nullable String reason) {
-    printGuarded(writer -> {
-      if (reason != null) {
-        formatter.printWrapped(writer, formatter.getWidth(), "Failed to parse settings for "
-          + "module " + settings.getKey() + ". Reason: " + reason);
-      }
-      formatter.printWrapped(writer, formatter.getWidth(),
-        "Available settings for " + settings.getKey() + " are:");
-      formatter.printHelp(writer, formatter.getWidth(), settings.getKey(), "    "
-        + settings.getDescription(), settings.getOptions(), 4, 2, null, true);
-    });
-  }
-
-  static void printList(ModuleRegistry.Type type, Collection<ModuleSettings<?>> settingsCollection,
+  static void printList(OwlModuleRegistry.Type type,
+    Collection<OwlModuleParser<?>> settingsCollection,
     @Nullable String invalidName) {
     printGuarded(writer -> {
       if (invalidName != null) {
@@ -62,7 +50,7 @@ final class ParseUtil {
           + type.name + " modules: ");
       }
 
-      for (ModuleSettings<?> settings : settingsCollection) {
+      for (OwlModuleParser<?> settings : settingsCollection) {
         String description = settings.getDescription();
         if (Strings.isNullOrEmpty(description)) {
           formatter.printWrapped(writer, formatter.getWidth(), settings.getKey());
@@ -71,6 +59,19 @@ final class ParseUtil {
             settings.getKey() + ": " + description);
         }
       }
+    });
+  }
+
+  static void printModuleHelp(OwlModuleParser<?> settings, @Nullable String reason) {
+    printGuarded(writer -> {
+      if (reason != null) {
+        formatter.printWrapped(writer, formatter.getWidth(), "Failed to parse settings for "
+          + "module " + settings.getKey() + ". Reason: " + reason);
+      }
+      formatter.printWrapped(writer, formatter.getWidth(),
+        "Available settings for " + settings.getKey() + " are:");
+      formatter.printHelp(writer, formatter.getWidth(), settings.getKey(), "    "
+        + settings.getDescription(), settings.getOptions(), 4, 2, null, true);
     });
   }
 

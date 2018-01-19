@@ -8,13 +8,13 @@ import org.apache.commons.cli.ParseException;
 import org.immutables.value.Value;
 
 // Helper class to create simple immutable builders for module settings
-abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // NOPMD
-  private Settings() {}
+abstract class AbstractOwlModuleParser<M extends OwlModule> implements OwlModuleParser<M> { // NOPMD
+  private AbstractOwlModuleParser() {}
 
   @Override
   @Value.Default
   public String getDescription() {
-    return ModuleSettings.super.getDescription();
+    return OwlModuleParser.super.getDescription();
   }
 
   @Override
@@ -28,9 +28,11 @@ abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // N
     if (directOptions == null) {
       return optionsBuilder == null ? new Options() : optionsBuilder.get();
     }
+
     if (optionsBuilder == null) {
       return directOptions;
     }
+
     throw new IllegalStateException("Both optionsDirect() and optionsBuilder() used");
   }
 
@@ -48,6 +50,13 @@ abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // N
     return null;
   }
 
+  @Override
+  public final M parse(CommandLine commandLine) throws ParseException {
+    return parser().parse(commandLine);
+  }
+
+  abstract ParseFunction<CommandLine, M> parser();
+
   @FunctionalInterface
   public interface ParseFunction<K, V> {
     V parse(K input) throws ParseException;
@@ -56,45 +65,21 @@ abstract class Settings<M extends OwlModule> implements ModuleSettings<M> { // N
   @Value.Style(typeAbstract = "Abstract*",
                visibility = Value.Style.ImplementationVisibility.PUBLIC)
   @Value.Immutable
-  abstract static class AbstractReaderSettings extends Settings<InputReader>
-    implements ModuleSettings.ReaderSettings {
-
-    @Override
-    public final InputReader parse(CommandLine settings)
-      throws ParseException {
-      return inputSettingsParser().parse(settings);
-    }
-
-    abstract ParseFunction<CommandLine, InputReader> inputSettingsParser();
+  abstract static class AbstractReaderParser extends AbstractOwlModuleParser<InputReader>
+    implements ReaderParser {
   }
 
   @Value.Immutable
   @Value.Style(typeAbstract = "Abstract*",
                visibility = Value.Style.ImplementationVisibility.PUBLIC)
-  abstract static class AbstractWriterSettings extends Settings<OutputWriter>
-    implements ModuleSettings.WriterSettings {
-
-    @Override
-    public final OutputWriter parse(CommandLine settings)
-      throws ParseException {
-      return outputSettingsParser().parse(settings);
-    }
-
-    abstract ParseFunction<CommandLine, OutputWriter> outputSettingsParser();
+  abstract static class AbstractTransformerParser extends AbstractOwlModuleParser<Transformer>
+    implements TransformerParser {
   }
 
   @Value.Immutable
   @Value.Style(typeAbstract = "Abstract*",
                visibility = Value.Style.ImplementationVisibility.PUBLIC)
-  abstract static class AbstractTransformerSettings extends Settings<Transformer>
-    implements ModuleSettings.TransformerSettings {
-
-    @Override
-    public final Transformer parse(CommandLine settings)
-      throws ParseException {
-      return transformerSettingsParser().parse(settings);
-    }
-
-    abstract ParseFunction<CommandLine, Transformer> transformerSettingsParser();
+  abstract static class AbstractWriterParser extends AbstractOwlModuleParser<OutputWriter>
+    implements WriterParser {
   }
 }

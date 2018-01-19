@@ -17,7 +17,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import owl.run.modules.ModuleRegistry;
+import owl.run.modules.OwlModuleRegistry;
 import owl.run.parser.OwlParser;
 import owl.util.UncloseableWriter;
 
@@ -26,7 +26,7 @@ public final class DefaultCli {
 
   public static void main(String... args) {
     OwlParser parseResult = OwlParser.parse(args, new DefaultParser(), getOptions(),
-      ModuleRegistry.DEFAULT_REGISTRY);
+      OwlModuleRegistry.DEFAULT_REGISTRY);
     if (parseResult == null) {
       System.exit(1);
       return;

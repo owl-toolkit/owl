@@ -41,13 +41,13 @@ import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.run.modules.ImmutableTransformerSettings;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
 public final class Views {
-  public static final TransformerSettings AUTOMATON_TO_ARENA_SETTINGS =
-    ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER =
+    ImmutableTransformerParser.builder()
       .key("aut2arena")
       .optionsBuilder(() -> {
         Option option = new Option("u", "uncontrollable", true,
@@ -55,7 +55,7 @@ public final class Views {
         option.setRequired(true);
         return new Options().addOption(option);
       })
-      .transformerSettingsParser(settings -> {
+      .parser(settings -> {
         String[] playerOnePropositions = settings.getOptionValues("uncontrollable");
         if (playerOnePropositions == null) {
           throw new ParseException("Player one (environment) propositions required");

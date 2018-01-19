@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.function.Function;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
@@ -26,11 +25,8 @@ public final class Transformers {
     x -> x.acceptConverter(new UnabbreviateVisitor(ROperator.class, WOperator.class)));
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();
   public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();
-  public static final Transformer RABIN_TO_PARITY = environment -> (input, context) -> {
-    Automaton<Object, RabinAcceptance> automaton =
-      AutomatonUtil.cast(input, Object.class, RabinAcceptance.class);
-    return new IARBuilder<>(automaton, environment).build();
-  };
+  public static final Transformer RABIN_TO_PARITY = environment -> (input, context) ->
+    new IARBuilder<>(AutomatonUtil.cast(input, Object.class, RabinAcceptance.class)).build();
 
   private Transformers() {
   }

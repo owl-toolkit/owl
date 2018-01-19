@@ -9,16 +9,16 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.run.PipelineExecutionContext;
-import owl.run.modules.ImmutableTransformerSettings;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
 public class ImplicitMinimizeTransformer extends Transformers.SimpleTransformer {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("minimize-aut")
     .optionsDirect(new Options()
       .addOption("l", "level", true, "Level of minimization (light,medium,all)"))
-    .transformerSettingsParser(settings -> {
+    .parser(settings -> {
       String levelString = settings.getOptionValue("level");
       @Nullable
       MinimizationUtil.MinimizationLevel level = getLevel(levelString);

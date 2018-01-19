@@ -35,38 +35,35 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
-import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
-import owl.run.modules.ModuleSettings.TransformerSettings;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class IARBuilder<R> {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("dra2dpa")
-    .transformerSettingsParser(settings -> Transformers.RABIN_TO_PARITY)
+    .parser(settings -> Transformers.RABIN_TO_PARITY)
     .build();
 
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
-  private final Environment environment;
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final ValuationSetFactory vsFactory;
 
-  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Environment environment) {
+  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.getFactory();
     resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0), vsFactory);
-    this.environment = environment;
   }
 
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("dra2dpa")
       .reader(InputReaders.HoaReader.DEFAULT)
-      .addTransformer(SETTINGS)
+      .addTransformer(CLI_PARSER)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());

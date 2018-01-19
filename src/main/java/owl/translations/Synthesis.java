@@ -7,7 +7,7 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.ltl2dpa.LTL2DPAModule;
+import owl.translations.ltl2dpa.LTL2DPACliParser;
 
 public final class Synthesis {
   private Synthesis() {}
@@ -16,9 +16,9 @@ public final class Synthesis {
     PartialModuleConfiguration builder = PartialModuleConfiguration.builder("synth")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
-      .addTransformer(LTL2DPAModule.INSTANCE)
+      .addTransformer(LTL2DPACliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
-      .addTransformer(Views.AUTOMATON_TO_ARENA_SETTINGS)
+      .addTransformer(Views.CLI_PARSER)
       .addTransformer(ParityGameSolver.ZIELONKA_SOLVER)
       .writer(OutputWriters.TO_STRING) // we need an AIG writer here
       .build();

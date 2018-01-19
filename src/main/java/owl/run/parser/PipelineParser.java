@@ -1,9 +1,9 @@
 package owl.run.parser;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.run.modules.ModuleSettings.ReaderSettings;
-import static owl.run.modules.ModuleSettings.TransformerSettings;
-import static owl.run.modules.ModuleSettings.WriterSettings;
+import static owl.run.modules.OwlModuleParser.ReaderParser;
+import static owl.run.modules.OwlModuleParser.TransformerParser;
+import static owl.run.modules.OwlModuleParser.WriterParser;
 import static owl.run.parser.ParseUtil.toArray;
 
 import java.util.ArrayList;
@@ -16,15 +16,16 @@ import org.apache.commons.cli.ParseException;
 import owl.run.ImmutablePipeline;
 import owl.run.Pipeline;
 import owl.run.modules.InputReader;
-import owl.run.modules.ModuleRegistry;
-import owl.run.modules.ModuleSettings;
 import owl.run.modules.OutputWriter;
 import owl.run.modules.OwlModule;
+import owl.run.modules.OwlModuleParser;
+import owl.run.modules.OwlModuleRegistry;
+import owl.run.modules.OwlModuleRegistry.OwlModuleNotFoundException;
 import owl.run.modules.Transformer;
 
 /**
  * Utility class used to parse a {@link Pipeline pipeline} description based on a
- * {@link ModuleRegistry registry}.
+ * {@link OwlModuleRegistry registry}.
  */
 public final class PipelineParser {
   private PipelineParser() {}
@@ -33,7 +34,7 @@ public final class PipelineParser {
    * Parses the given command line with the given {@code registry}.
    */
   public static Pipeline parse(List<ModuleDescription> arguments, CommandLineParser parser,
-    ModuleRegistry registry) throws ModuleRegistry.ModuleNotFoundException,
+    OwlModuleRegistry registry) throws OwlModuleNotFoundException,
     ModuleParseException {
     Iterator<ModuleDescription> iterator = arguments.iterator();
 
@@ -41,8 +42,8 @@ public final class PipelineParser {
 
     // Input specification
     ModuleDescription readerDescription = iterator.next();
-    ReaderSettings readerSettings = registry.getReaderSettings(readerDescription.name);
-    InputReader reader = parseModule(parser, readerSettings, readerDescription);
+    ReaderParser readerParser = registry.getReaderParser(readerDescription.name);
+    InputReader reader = parseModule(parser, readerParser, readerDescription);
     pipelineSpecificationBuilder.input(reader);
 
     if (!iterator.hasNext()) {
@@ -54,17 +55,17 @@ public final class PipelineParser {
     // Now parse the remaining arguments
     ModuleDescription currentDescription = iterator.next();
     while (iterator.hasNext()) {
-      TransformerSettings transformerSettings =
-        registry.getTransformerSettings(currentDescription.name);
-      Transformer transformer = parseModule(parser, transformerSettings, currentDescription);
+      TransformerParser transformerParser =
+        registry.getTransformerParser(currentDescription.name);
+      Transformer transformer = parseModule(parser, transformerParser, currentDescription);
       pipelineSpecificationBuilder.addTransformers(transformer);
       currentDescription = iterator.next();
     }
 
     // Finally, get the output
     ModuleDescription output = currentDescription;
-    WriterSettings writerSettings = registry.getWriterSettings(output.name);
-    OutputWriter writer = parseModule(parser, writerSettings, currentDescription);
+    WriterParser writerParser = registry.getWriterParser(output.name);
+    OutputWriter writer = parseModule(parser, writerParser, currentDescription);
     pipelineSpecificationBuilder.output(writer);
 
     return pipelineSpecificationBuilder.build();
@@ -100,7 +101,7 @@ public final class PipelineParser {
     return result;
   }
 
-  static <T extends OwlModule> T parseModule(CommandLineParser parser, ModuleSettings<T> settings,
+  static <T extends OwlModule> T parseModule(CommandLineParser parser, OwlModuleParser<T> settings,
     ModuleDescription description)
     throws ModuleParseException {
     T result;
@@ -130,9 +131,9 @@ public final class PipelineParser {
   }
 
   public static class ModuleParseException extends Exception {
-    public final ModuleSettings<?> settings;
+    public final OwlModuleParser<?> settings;
 
-    public ModuleParseException(ParseException cause, ModuleSettings<?> settings) {
+    public ModuleParseException(ParseException cause, OwlModuleParser<?> settings) {
       super(cause.getMessage(), cause);
       this.settings = settings;
     }

@@ -10,16 +10,16 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.run.modules.InputReaders;
-import owl.run.modules.ModuleSettings.TransformerSettings;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
-public final class LTL2LDBAModule implements TransformerSettings {
-  public static final LTL2LDBAModule INSTANCE = new LTL2LDBAModule();
+public final class LTL2LDBACliParser implements TransformerParser {
+  public static final LTL2LDBACliParser INSTANCE = new LTL2LDBACliParser();
 
   private static final Option DEGENERALISE = new Option("d", "degeneralise", false,
     "Construct a Büchi automaton instead of a generalised-Büchi automaton.");
@@ -29,7 +29,7 @@ public final class LTL2LDBAModule implements TransformerSettings {
   private static final Option NON_DETERMINISTIC = new Option("n", "non-deterministic", false,
     "Construct a non-deterministic initial component instead of a deterministic.");
 
-  private LTL2LDBAModule() {}
+  private LTL2LDBACliParser() {}
 
   public static Option guessF() {
     return new Option("f", "guess-f", false,
@@ -52,25 +52,25 @@ public final class LTL2LDBAModule implements TransformerSettings {
   }
 
   @Override
-  public Transformer parse(CommandLine settings) {
-    EnumSet<Configuration> configuration = settings.hasOption(simple().getOpt())
+  public Transformer parse(CommandLine commandLine) {
+    EnumSet<Configuration> configuration = commandLine.hasOption(simple().getOpt())
       ? EnumSet.noneOf(Configuration.class)
       : EnumSet.of(Configuration.EAGER_UNFOLD, Configuration.FORCE_JUMPS,
         Configuration.OPTIMISED_STATE_STRUCTURE, Configuration.SUPPRESS_JUMPS);
 
-    if (settings.hasOption(NON_DETERMINISTIC.getOpt())) {
+    if (commandLine.hasOption(NON_DETERMINISTIC.getOpt())) {
       configuration.add(Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT);
     }
 
-    if (settings.hasOption(EPSILON.getOpt())) {
+    if (commandLine.hasOption(EPSILON.getOpt())) {
       configuration.add(Configuration.EPSILON_TRANSITIONS);
     }
 
     Function<Environment, Function<LabelledFormula, ? extends
       LimitDeterministicAutomaton<?, ?, ?, ?>>> translatorProvider;
 
-    if (settings.hasOption(DEGENERALISE.getOpt())) {
-      if (settings.hasOption(guessF().getOpt())) {
+    if (commandLine.hasOption(DEGENERALISE.getOpt())) {
+      if (commandLine.hasOption(guessF().getOpt())) {
         translatorProvider = environment ->
           LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(environment, configuration);
       } else {
@@ -78,7 +78,7 @@ public final class LTL2LDBAModule implements TransformerSettings {
           LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(environment, configuration);
       }
     } else {
-      if (settings.hasOption(guessF().getOpt())) {
+      if (commandLine.hasOption(guessF().getOpt())) {
         translatorProvider = environment ->
           LTL2LDBAFunction.createGeneralizedBreakpointFreeLDBABuilder(environment, configuration);
       } else {
