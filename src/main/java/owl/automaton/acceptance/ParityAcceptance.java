@@ -100,7 +100,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   public boolean isAccepting(int priority) {
-    return priority % 2 == 0 ^ this.priority == Priority.ODD;
+    return priority >= 0 && priority < colours && priority % 2 == 0 ^ this.priority == Priority.ODD;
   }
 
   @Override

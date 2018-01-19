@@ -36,7 +36,6 @@ public final class TlsfParser {
     return parse(CharStreams.fromString(input));
   }
 
-  @SuppressWarnings("PMD.ConfusingTernary")
   private static Tlsf parse(CharStream stream) {
     TLSFLexer lexer = new TLSFLexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
@@ -52,6 +51,7 @@ public final class TlsfParser {
     builder.title(tree.title.getText());
     builder.description(tree.description.getText());
     SemanticsContext semantics = tree.semantics();
+
     if (semantics.MEALY() != null) {
       builder.semantics(Semantics.MEALY);
     } else if (semantics.MOORE() != null) {
@@ -65,6 +65,7 @@ public final class TlsfParser {
     }
 
     TargetContext target = tree.target();
+
     if (target.MEALY() != null) {
       builder.target(Semantics.MEALY);
     } else if (target.MOORE() != null) {
