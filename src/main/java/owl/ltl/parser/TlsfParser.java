@@ -35,7 +35,7 @@ public final class TlsfParser {
   public static Tlsf parse(String input) {
     return parse(CharStreams.fromString(input));
   }
-
+  
   private static Tlsf parse(CharStream stream) {
     TLSFLexer lexer = new TLSFLexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
@@ -159,10 +159,9 @@ public final class TlsfParser {
     builder.initially(Conjunction.of(initial));
     builder.preset(Conjunction.of(preset));
     builder.preset(Conjunction.of(require));
-    builder.assert_(Conjunction.of(assert_));
     builder.assume(Conjunction.of(assume));
-    builder.guarantee(Conjunction.of(guarantee));
-
+    builder.assert_(ImmutableList.copyOf(assert_));
+    builder.guarantee(ImmutableList.copyOf(guarantee));
     return builder.build();
   }
 
