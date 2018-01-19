@@ -36,10 +36,10 @@ import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
-import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
-import owl.run.modules.ModuleSettings.TransformerSettings;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
@@ -48,11 +48,11 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("delag")
     .optionsDirect(new Options().addOption("f", "fallback", true,
       "Fallback tool for input outside the fragment ('none' for strict mode)"))
-    .transformerSettingsParser(settings -> environment -> {
+    .parser(settings -> environment -> {
       String fallbackTool = settings.getOptionValue("fallback");
 
       Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
@@ -87,7 +87,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
-      .addTransformer(SETTINGS)
+      .addTransformer(CLI_PARSER)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
   }

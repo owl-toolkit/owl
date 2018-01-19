@@ -4,11 +4,15 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import owl.factories.Factories;
 import owl.ltl.LabelledFormula;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 
-public class RabinizerModule implements TransformerSettings {
+public class RabinizerCliParser implements TransformerParser {
+  public static final RabinizerCliParser INSTANCE = new RabinizerCliParser();
+
+  private RabinizerCliParser() {}
+
   @Override
   public String getKey() {
     return "ltl2dgra";
@@ -25,12 +29,12 @@ public class RabinizerModule implements TransformerSettings {
   }
 
   @Override
-  public Transformer parse(CommandLine settings) {
-    boolean eager = !settings.hasOption("noeager");
-    boolean support = !settings.hasOption("nosupport");
-    boolean acceptance = !settings.hasOption("noacceptance");
-    boolean complete = settings.hasOption("complete");
-    boolean suspend = !settings.hasOption("nosuspend");
+  public Transformer parse(CommandLine commandLine) {
+    boolean eager = !commandLine.hasOption("noeager");
+    boolean support = !commandLine.hasOption("nosupport");
+    boolean acceptance = !commandLine.hasOption("noacceptance");
+    boolean complete = commandLine.hasOption("complete");
+    boolean suspend = !commandLine.hasOption("nosuspend");
     ImmutableRabinizerConfiguration configuration = ImmutableRabinizerConfiguration.builder()
       .eager(eager)
       .supportBasedRelevantFormulaAnalysis(support)

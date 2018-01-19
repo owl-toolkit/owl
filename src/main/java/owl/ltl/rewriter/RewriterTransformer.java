@@ -11,12 +11,12 @@ import org.apache.commons.cli.ParseException;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.run.PipelineExecutionContext;
-import owl.run.modules.ImmutableTransformerSettings;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
 public class RewriterTransformer extends Transformers.SimpleTransformer {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("rewrite")
     .optionsBuilder(() -> {
       Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "
@@ -26,7 +26,7 @@ public class RewriterTransformer extends Transformers.SimpleTransformer {
       modeOption.setArgs(Option.UNLIMITED_VALUES);
       modeOption.setValueSeparator(',');
       return new Options().addOption(modeOption);
-    }).transformerSettingsParser(settings -> {
+    }).parser(settings -> {
       List<RewriterEnum> rewrites = new ArrayList<>();
       String[] modes = settings.getOptionValues("mode");
 

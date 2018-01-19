@@ -10,8 +10,9 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.run.Pipeline;
-import owl.run.modules.ModuleRegistry;
-import owl.run.modules.ModuleRegistry.Type;
+import owl.run.modules.OwlModuleRegistry;
+import owl.run.modules.OwlModuleRegistry.OwlModuleNotFoundException;
+import owl.run.modules.OwlModuleRegistry.Type;
 
 public final class OwlParser {
   private static final Logger logger = Logger.getLogger(PipelineParser.class.getName());
@@ -26,7 +27,7 @@ public final class OwlParser {
   @SuppressWarnings("NestedTryStatement")
   @Nullable
   public static OwlParser parse(String[] arguments, CommandLineParser parser,
-    Options globalOptions, ModuleRegistry registry) {
+    Options globalOptions, OwlModuleRegistry registry) {
     logger.log(Level.FINE, "Parsing arguments list {0}", Arrays.toString(arguments));
     if (arguments.length == 0 || ParseUtil.isHelp(arguments)) {
       ParseUtil.println("This is owl. Owl is a flexible "
@@ -65,7 +66,7 @@ public final class OwlParser {
     Pipeline pipeline;
     try {
       pipeline = PipelineParser.parse(split, parser, registry);
-    } catch (ModuleRegistry.ModuleNotFoundException e) {
+    } catch (OwlModuleNotFoundException e) {
       ParseUtil.printList(e.type, registry.getSettings(e.type), e.name);
       return null;
     } catch (PipelineParser.ModuleParseException e) {

@@ -31,17 +31,17 @@ import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
-import owl.run.modules.ImmutableTransformerSettings;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 
 public class UnabbreviateVisitor extends DefaultConverter {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("unabbreviate")
     .optionsDirect(new Options()
       .addOption("w", "weak-until", false, "Remove W operator")
       .addOption("r", "release", false, "Remove R operator")
       .addOption("m", "strong-release", false, "Remove M operator")
-    ).transformerSettingsParser(settings -> {
+    ).parser(settings -> {
       ImmutableList.Builder<Class<? extends Formula>> classes =
         ImmutableList.builder();
       if (settings.hasOption("weak-until")) {

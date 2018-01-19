@@ -17,17 +17,17 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 import owl.run.Environment;
-import owl.run.modules.ModuleSettings.ReaderSettings;
+import owl.run.modules.OwlModuleParser.ReaderParser;
 
 public final class InputReaders {
   private static final Logger logger = Logger.getLogger(InputReaders.class.getName());
 
   public static final InputReader HOA = HoaReader.DEFAULT;
-  public static final ReaderSettings HOA_SETTINGS = ImmutableReaderSettings.builder()
+  public static final ReaderParser HOA_CLI_PARSER = ImmutableReaderParser.builder()
     .key("hoa")
     .description("Parses automata given in HOA format, converting them to transition based "
       + "acceptance if necessary")
-    .inputSettingsParser(settings -> {
+    .parser(settings -> {
       HOAFParserSettings hoafParserSettings = new HOAFParserSettings();
       hoafParserSettings.setFlagValidate(false);
       return new HoaReader(hoafParserSettings);
@@ -38,10 +38,6 @@ public final class InputReaders {
     LabelledFormula formula = tlsf.toFormula();
     callback.accept(formula);
   };
-  public static final ReaderSettings TLSF_SETTINGS = ImmutableReaderSettings.builder()
-    .key("tlsf")
-    .description("Parses a single TLSF instance and converts it to an LTL formula")
-    .inputSettingsParser(settings -> TLSF).build();
 
   public static final InputReader LTL = (reader, callback, env) ->
     CharStreams.readLines(reader, new LineProcessor<Void>() {
@@ -67,10 +63,16 @@ public final class InputReaders {
       }
     });
 
-  public static final ReaderSettings LTL_SETTINGS = ImmutableReaderSettings.builder()
+  public static final ReaderParser LTL_CLI_PARSER = ImmutableReaderParser.builder()
     .key("ltl")
     .description("Parses LTL formulas and converts them into NNF")
-    .inputSettingsParser(settings -> LTL).build();
+    .parser(settings -> LTL).build();
+
+
+  public static final ReaderParser TLSF_CLI_PARSER = ImmutableReaderParser.builder()
+    .key("tlsf")
+    .description("Parses a single TLSF instance and converts it to an LTL formula")
+    .parser(settings -> TLSF).build();
 
   private InputReaders() {}
 

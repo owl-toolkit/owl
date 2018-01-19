@@ -41,17 +41,17 @@ import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.run.PipelineExecutionContext;
-import owl.run.modules.ImmutableTransformerSettings;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
 public final class RabinDegeneralization extends Transformers.SimpleTransformer {
   public static final RabinDegeneralization INSTANCE = new RabinDegeneralization();
 
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("dgra2dra")
     .description("Converts a generalized rabin automaton into a regular one")
-    .transformerSettingsParser(settings -> environment -> INSTANCE)
+    .parser(settings -> environment -> INSTANCE)
     .build();
 
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());

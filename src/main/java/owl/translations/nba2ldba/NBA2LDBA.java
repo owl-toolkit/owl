@@ -30,18 +30,18 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.ldba.MutableAutomatonBuilder;
-import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
-import owl.run.modules.ModuleSettings.TransformerSettings;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("nba2ldba")
-    .transformerSettingsParser(settings -> {
+    .parser(settings -> {
       NBA2LDBA<Object> function =
         new NBA2LDBA<>(EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
       return environment -> (input, context) ->
@@ -80,7 +80,7 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2ldba")
       .reader(InputReaders.HOA)
-      .addTransformer(SETTINGS)
+      .addTransformer(CLI_PARSER)
       .writer(OutputWriters.HOA)
       .build());
   }

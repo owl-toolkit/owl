@@ -6,10 +6,10 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
-import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
-import owl.run.modules.ModuleSettings.TransformerSettings;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
@@ -18,9 +18,9 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class LTL2DA {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("ltl2da")
-    .transformerSettingsParser(settings -> environment ->
+    .parser(settings -> environment ->
       Transformers.instanceFromFunction(LabelledFormula.class,
         formula -> translate(environment, formula)))
     .build();
@@ -31,7 +31,7 @@ public final class LTL2DA {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2da")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
-      .addTransformer(SETTINGS)
+      .addTransformer(CLI_PARSER)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build());

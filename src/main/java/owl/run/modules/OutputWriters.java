@@ -28,10 +28,10 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.run.Environment;
-import owl.run.modules.ModuleSettings.WriterSettings;
+import owl.run.modules.OwlModuleParser.WriterParser;
 
 public final class OutputWriters {
-  public static final WriterSettings AUTOMATON_STATS_SETTINGS = ImmutableWriterSettings.builder()
+  public static final WriterParser AUTOMATON_STATS_CLI_PARSER = ImmutableWriterParser.builder()
     .key("aut-stat")
     .optionsBuilder(() -> {
       Option format = new Option("f", "format", true,
@@ -47,13 +47,13 @@ public final class OutputWriters {
       format.setRequired(true);
       return new Options().addOption(format);
     })
-    .outputSettingsParser(settings -> automatonStats(settings.getOptionValue("format")))
+    .parser(settings -> automatonStats(settings.getOptionValue("format")))
     .build();
 
-  public static final WriterSettings HOA_SETTINGS = ImmutableWriterSettings.builder()
+  public static final WriterParser HOA_CLI_PARSER = ImmutableWriterParser.builder()
     .key("hoa")
     .description("Writes the HOA format representation of an automaton or an arena")
-    .outputSettingsParser(settings -> {
+    .parser(settings -> {
 
       List<StoredAutomatonManipulator> manipulators;
       if (settings.hasOption("state-acceptance")) {
@@ -72,20 +72,21 @@ public final class OutputWriters {
     }).build();
 
   public static final OutputWriter NULL = (writer, environment) -> object -> writer.flush();
-  public static final WriterSettings NULL_SETTINGS = ImmutableWriterSettings.builder()
+  public static final WriterParser NULL_CLI_PARSER = ImmutableWriterParser.builder()
     .key("null")
     .description("Discards the output - useful for performance testing")
-    .outputSettingsParser(settings -> NULL)
+    .parser(settings -> NULL)
     .build();
 
   public static final OutputWriter TO_STRING = (writer, environment) -> object ->  {
     writer.write(object.toString());
     writer.write(System.lineSeparator());
   };
-  public static final WriterSettings TO_STRING_SETTINGS = ImmutableWriterSettings.builder()
+
+  public static final WriterParser TO_STRING_CLI_PARSER = ImmutableWriterParser.builder()
     .key("string")
     .description("Prints the toString() representation of all passed objects")
-    .outputSettingsParser(settings -> TO_STRING)
+    .parser(settings -> TO_STRING)
     .build();
   public static OutputWriter HOA = ToHoa.DEFAULT;
 

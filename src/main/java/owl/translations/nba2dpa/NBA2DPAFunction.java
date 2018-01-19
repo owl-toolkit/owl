@@ -33,10 +33,10 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrintable;
-import owl.run.modules.ImmutableTransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
-import owl.run.modules.ModuleSettings.TransformerSettings;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ldba2dpa.LanguageLattice;
@@ -46,9 +46,9 @@ import owl.translations.nba2ldba.GeneralizedBuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPrintable> {
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("nba2dpa")
-    .transformerSettingsParser(settings -> environment -> {
+    .parser(settings -> environment -> {
       NBA2DPAFunction<Object> function = new NBA2DPAFunction<>();
       return (input, context) ->
         function.apply(AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
@@ -61,7 +61,7 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
       .reader(InputReaders.HOA)
-      .addTransformer(SETTINGS)
+      .addTransformer(CLI_PARSER)
       .writer(OutputWriters.HOA)
       .build());
   }

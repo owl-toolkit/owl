@@ -3,8 +3,8 @@ package owl.run.parser;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.function.Function;
-import owl.run.modules.ModuleSettings;
 import owl.run.modules.OwlModule;
+import owl.run.modules.OwlModuleParser;
 
 abstract class Wrapper {
   static <T extends OwlModule> Wrapper module(T module) {
@@ -12,13 +12,13 @@ abstract class Wrapper {
     return new Module<>(module);
   }
 
-  static <T extends ModuleSettings<?>> Wrapper settings(T settings) {
+  static <T extends OwlModuleParser<?>> Wrapper settings(T settings) {
     checkNotNull(settings);
     return new Settings<>(settings);
   }
 
   @SuppressWarnings("NullableProblems") // IntelliJ gets this wrong somehow
-  abstract <V> V map(Function<OwlModule, V> moduleFun, Function<ModuleSettings<?>, V> settingsFun);
+  abstract <V> V map(Function<OwlModule, V> moduleFun, Function<OwlModuleParser<?>, V> settingsFun);
 
   private static final class Module<T extends OwlModule> extends Wrapper {
     final T module;
@@ -28,12 +28,13 @@ abstract class Wrapper {
     }
 
     @Override
-    public <V> V map(Function<OwlModule, V> moduleFun, Function<ModuleSettings<?>, V> settingsFun) {
+    public <V> V map(Function<OwlModule, V> moduleFun,
+      Function<OwlModuleParser<?>, V> settingsFun) {
       return moduleFun.apply(module);
     }
   }
 
-  private static final class Settings<T extends ModuleSettings<?>> extends Wrapper {
+  private static final class Settings<T extends OwlModuleParser<?>> extends Wrapper {
     final T settings;
 
     Settings(T settings) {
@@ -41,7 +42,8 @@ abstract class Wrapper {
     }
 
     @Override
-    public <V> V map(Function<OwlModule, V> moduleFun, Function<ModuleSettings<?>, V> settingsFun) {
+    public <V> V map(Function<OwlModule, V> moduleFun,
+      Function<OwlModuleParser<?>, V> settingsFun) {
       return settingsFun.apply(settings);
     }
   }

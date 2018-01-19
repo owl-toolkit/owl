@@ -5,8 +5,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import org.immutables.value.Value;
 import owl.run.modules.InputReader;
-import owl.run.modules.ModuleSettings;
 import owl.run.modules.OutputWriter;
+import owl.run.modules.OwlModuleParser.ReaderParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.modules.Transformer;
 
 @Value.Immutable
@@ -41,8 +43,11 @@ public abstract class PartialModuleConfiguration {
       return this;
     }
 
-    public Constructor reader(ModuleSettings.ReaderSettings settings) {
-      builder.input(Wrapper.settings(settings));
+    public Constructor addTransformer(TransformerParser... settings) {
+      checkNotNull(settings);
+      for (TransformerParser setting : settings) {
+        builder.addTransformers(Wrapper.settings(setting));
+      }
       return this;
     }
 
@@ -54,11 +59,8 @@ public abstract class PartialModuleConfiguration {
       return this;
     }
 
-    public Constructor addTransformer(ModuleSettings.TransformerSettings... settings) {
-      checkNotNull(settings);
-      for (ModuleSettings.TransformerSettings setting : settings) {
-        builder.addTransformers(Wrapper.settings(setting));
-      }
+    public Constructor reader(ReaderParser settings) {
+      builder.input(Wrapper.settings(settings));
       return this;
     }
 
@@ -67,7 +69,7 @@ public abstract class PartialModuleConfiguration {
       return this;
     }
 
-    public Constructor writer(ModuleSettings.WriterSettings settings) {
+    public Constructor writer(WriterParser settings) {
       builder.output(Wrapper.settings(settings));
       return this;
     }

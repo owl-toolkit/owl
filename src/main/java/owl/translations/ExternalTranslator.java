@@ -43,8 +43,8 @@ import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
-import owl.run.modules.ImmutableTransformerSettings;
-import owl.run.modules.ModuleSettings.TransformerSettings;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
 public class ExternalTranslator
@@ -52,7 +52,7 @@ public class ExternalTranslator
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
 
-  public static final TransformerSettings SETTINGS = ImmutableTransformerSettings.builder()
+  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
     .key("ltl2aut-ext")
     .description("Runs an external tool for LTL to automaton translation")
     .optionsBuilder(() -> {
@@ -65,7 +65,7 @@ public class ExternalTranslator
       return new Options()
         .addOption(toolOption)
         .addOption(inputType);
-    }).transformerSettingsParser(settings -> {
+    }).parser(settings -> {
       String inputType = settings.getOptionValue("inputType");
       InputMode inputMode;
       if (inputType == null || "stdin".equals(inputType)) {

@@ -20,7 +20,7 @@ public final class RabinizerMain {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")
       .reader(InputReaders.LTL)
       .addTransformer(SIMPLIFIER, Transformers.UNABBREVIATE_RW)
-      .addTransformer(new RabinizerModule())
+      .addTransformer(RabinizerCliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build());
