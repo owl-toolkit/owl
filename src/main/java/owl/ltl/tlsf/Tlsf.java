@@ -118,14 +118,7 @@ public abstract class Tlsf {
     MEALY, MEALY_STRICT, MOORE, MOORE_STRICT;
 
     public boolean isMealy() {
-      switch (this) {
-        case MEALY:
-        case MEALY_STRICT:
-          return true;
-
-        default:
-          return false;
-      }
+      return this == Semantics.MEALY || this == Semantics.MEALY_STRICT;
     }
 
     public boolean isMoore() {

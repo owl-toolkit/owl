@@ -18,26 +18,20 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.automaton.Automaton.Property.COMPLETE;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import owl.automaton.Automaton.Property;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
@@ -49,14 +43,17 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class Views {
-  private Views() {
+  private Views() {}
+
+  public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton) {
+    return complement(automaton, null);
   }
 
   public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton,
     @Nullable S trapState) {
     Automaton<S, ?> completeAutomaton =
-      trapState != null ? new Complete<>(automaton, trapState) : automaton;
-    assert completeAutomaton.is(Property.COMPLETE) : "Automaton is not complete.";
+      trapState != null ? complete(automaton, trapState) : automaton;
+    assert completeAutomaton.is(COMPLETE) : "Automaton is not complete.";
     OmegaAcceptance acceptance = completeAutomaton.getAcceptance();
 
     if (acceptance instanceof BuchiAcceptance) {
@@ -72,18 +69,22 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> complete(Automaton<S, A> automaton,
     S trapState) {
-    return new Complete<>(automaton, trapState);
+    return new Complete<>(automaton, Edge.of(trapState), automaton.getAcceptance());
   }
 
-  public static <S> PowerSetAutomaton<S> createPowerSetAutomaton(
+  public static <S> Automaton<S, CoBuchiAcceptance> completeAllAcceptance(
+    Automaton<S, AllAcceptance> automaton, S trapState) {
+    return new Complete<>(automaton, Edge.of(trapState, 0), CoBuchiAcceptance.INSTANCE);
+  }
+
+  public static <S> Automaton<Set<S>, NoneAcceptance> createPowerSetAutomaton(
     Automaton<S, NoneAcceptance> automaton) {
-    return new PowerSetAutomaton<>(automaton);
-  }
-
-  public static <S, U extends OmegaAcceptance> Automaton<List<S>, U>
-  createProductAutomaton(U acceptance, List<S> initialState, Automaton<S, ?> automaton) {
-    return AutomatonFactory.createStreamingAutomaton(acceptance,
-      initialState, automaton.getFactory(), (x, y) -> ProductAutomaton.explore(x, y, automaton));
+    return AutomatonFactory.createStreamingAutomaton(NoneAcceptance.INSTANCE,
+      automaton.getInitialStates(), automaton.getFactory(), (x, y) -> {
+        ImmutableSet.Builder<S> builder = ImmutableSet.builder();
+        x.forEach(s -> builder.addAll(automaton.getSuccessors(s, y)));
+        return Edge.of(builder.build());
+      });
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
@@ -100,24 +101,41 @@ public final class Views {
     IntUnaryOperator remappingOperator) {
     return AutomatonFactory.createStreamingAutomaton(automaton.getAcceptance(),
       automaton.getInitialState(), automaton.getFactory(), (state, valuation) ->
-        Objects.requireNonNull(automaton.getEdge(state, valuation))
-          .withAcceptance(remappingOperator));
+        automaton.getEdge(state, valuation).withAcceptance(remappingOperator));
   }
 
-  static class Complete<S, A extends OmegaAcceptance>
-    extends ForwardingAutomaton<S, A, A, Automaton<S, A>> {
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(
+    Automaton<S, A> automaton, Set<S> initialStates) {
+    Set<S> immutableInitialStates = ImmutableSet.copyOf(initialStates);
+    return new ForwardingAutomaton<>(automaton) {
+      @Override
+      public A getAcceptance() {
+        return automaton.getAcceptance();
+      }
+
+      @Override
+      public Set<S> getInitialStates() {
+        return immutableInitialStates;
+      }
+    };
+  }
+
+  static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
+    extends ForwardingAutomaton<S, B, A, Automaton<S, A>> {
     private final Edge<S> loop;
     private final S sink;
+    private final B acceptance;
 
-    Complete(Automaton<S, A> automaton, S sink) {
+    Complete(Automaton<S, A> automaton, Edge<S> loop, B acceptance) {
       super(automaton);
-      this.sink = sink;
-      this.loop = Edge.of(sink);
+      this.sink = loop.getSuccessor();
+      this.loop = loop;
+      this.acceptance = acceptance;
     }
 
     @Override
-    public A getAcceptance() {
-      return automaton.getAcceptance();
+    public B getAcceptance() {
+      return acceptance;
     }
 
     @Override
@@ -296,109 +314,12 @@ public final class Views {
     }
   }
 
-  private static final class PowerSetAutomaton<S> implements Automaton<Set<S>, NoneAcceptance> {
-    private final Automaton<S, NoneAcceptance> automaton;
-
-    PowerSetAutomaton(Automaton<S, NoneAcceptance> automaton) {
-      this.automaton = automaton;
-    }
-
-    @Override
-    public NoneAcceptance getAcceptance() {
-      return automaton.getAcceptance();
-    }
-
-    @Override
-    public ValuationSetFactory getFactory() {
-      return automaton.getFactory();
-    }
-
-    @Override
-    public Set<Set<S>> getInitialStates() {
-      return Set.of(automaton.getInitialStates());
-    }
-
-    @Override
-    public Collection<LabelledEdge<Set<S>>> getLabelledEdges(Set<S> state) {
-      List<LabelledEdge<Set<S>>> edges = new ArrayList<>();
-
-      for (BitSet valuation : BitSets.powerSet(getFactory().getSize())) {
-        edges.add(LabelledEdge.of(getSuccessor(state, valuation),
-          getFactory().createValuationSet(valuation)));
-      }
-
-      return edges;
-    }
-
-    @Override
-    public Set<Set<S>> getStates() {
-      return AutomatonUtil.getReachableStates(this, getInitialStates());
-    }
-
-    @Override
-    @Nonnull
-    public Set<S> getSuccessor(Set<S> state, BitSet valuation) {
-      ImmutableSet.Builder<S> builder = ImmutableSet.builder();
-      state.forEach(s -> builder.addAll(automaton.getSuccessors(s, valuation)));
-      return builder.build();
-    }
-
-    @Override
-    public Set<Set<S>> getSuccessors(Set<S> state, BitSet valuation) {
-      return Set.of(getSuccessor(state, valuation));
-    }
-
-    @Override
-    public Set<Set<S>> getSuccessors(Set<S> state) {
-      ImmutableSet.Builder<Set<S>> builder = ImmutableSet.builder();
-
-      for (BitSet valuation : BitSets.powerSet(getFactory().getSize())) {
-        builder.add(getSuccessor(state, valuation));
-      }
-
-      return builder.build();
-    }
-  }
-
-  private static final class ProductAutomaton {
-
-    private ProductAutomaton() {
-    }
-
-    private static <S> Edge<List<S>> explore(List<S> state, BitSet valuation,
-      Automaton<S, ?> automaton) {
-      List<S> successor = new ArrayList<>(state.size());
-      BitSet acceptance = new BitSet();
-      Iterator<S> it = state.iterator();
-
-      while (it.hasNext()) {
-        S next = it.next();
-        // TODO Non-determinism?
-        Edge<S> edge = automaton.getEdge(next, valuation);
-
-        if (edge == null) {
-          continue;
-        }
-
-        if (it.hasNext()) {
-          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptance::set);
-        } else {
-          edge.acceptanceSetIterator().forEachRemaining((int x) -> acceptance.set(x + 1));
-        }
-
-        successor.add(edge.getSuccessor());
-      }
-
-      return Edge.of(successor, acceptance);
-    }
-  }
-
   static class ReplaceAcceptance<S, A extends OmegaAcceptance,
     B extends OmegaAcceptance> extends ForwardingAutomaton<S, A,
     B, Automaton<S, B>> {
     private final A acceptance;
 
-    public ReplaceAcceptance(Automaton<S, B> automaton, A acceptance) {
+    ReplaceAcceptance(Automaton<S, B> automaton, A acceptance) {
       super(automaton);
       this.acceptance = acceptance;
     }

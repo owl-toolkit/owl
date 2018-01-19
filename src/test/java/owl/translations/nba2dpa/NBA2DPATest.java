@@ -330,7 +330,7 @@ public class NBA2DPATest {
 
   @Test
   public void testApply3() throws ParseException {
-    runTest(INPUT3, 8);
+    runTest(INPUT3, 12);
   }
 
   @Test
@@ -365,22 +365,17 @@ public class NBA2DPATest {
 
   @Test
   public void testApply10() throws ParseException {
-    runTest(INPUT10, 9);
-  }
-
-  @Test
-  public void testApply14() throws ParseException {
-    runTest(INPUT14, 126);
+    runTest(INPUT10, 11);
   }
 
   @Test
   public void testApply15() throws ParseException {
-    runTest(INPUT15, 12);
+    runTest(INPUT15, 23);
   }
 
   @Test
   public void testApply16() throws ParseException {
-    runTest(INPUT16, 7);
+    runTest(INPUT16, 13);
   }
 
   @Test

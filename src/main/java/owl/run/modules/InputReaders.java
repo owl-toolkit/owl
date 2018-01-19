@@ -50,6 +50,7 @@ public final class InputReaders {
         if (env.isShutdown()) {
           return false;
         }
+
         if (line.isEmpty()) {
           return true;
         }
@@ -65,6 +66,7 @@ public final class InputReaders {
         return null;
       }
     });
+
   public static final ReaderSettings LTL_SETTINGS = ImmutableReaderSettings.builder()
     .key("ltl")
     .description("Parses LTL formulas and converts them into NNF")
