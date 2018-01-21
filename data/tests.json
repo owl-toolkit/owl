@@ -71,12 +71,12 @@
             "data": "small"
         },
         "ltl2ldgba": {
-            "tools": [
-                "ltl2ldba#",
-                "ltl2ldba#non-deterministic",
-                "ltl2ldba#guess-f",
-                "ltl2ldba#guess-f,non-deterministic"
-            ]
+            "tools": {
+                "default": "ltl2ldba#",
+                "non-det": "ltl2ldba#non-deterministic",
+                "guess-F": "ltl2ldba#guess-f",
+                "guess-F+non-det": "ltl2ldba#guess-f,non-deterministic"
+            }
         },
         "ltl2ldgba-small": {
             "tools": [

@@ -75,14 +75,25 @@ def _test(args):
         elif type(tools) is list:
             for tool_description in tools:
                 tool = load_tool(tool_description)
-                loaded_tools.append((tool.get_name(), tool))
+                loaded_tools.append(tool)
+        elif type(tools) is str:
+            tool = load_tool(tools)
+            loaded_tools.append(tool)
         else:
             raise TypeError("Unknown tools type {0!s}".format(type(tools)))
 
         enable_server = True
         port = 6060
         servers = []
-        for (tool_test_name, loaded_tool) in loaded_tools:
+        for test_tool in loaded_tools:
+            if type(test_tool) is tuple:
+                tool_test_name, loaded_tool = test_tool
+            else:
+                loaded_tool = test_tool
+                tool_test_name = loaded_tool.get_name()
+                if loaded_tool.flags and len(loaded_tools) > 1:
+                    tool_test_name = tool_test_name + "#" + ",".join(loaded_tool.flags.keys())
+
             test_arguments.append("-t")
             test_arguments.append(tool_test_name)
             if type(loaded_tool) is owl_tool.OwlTool:
