@@ -165,6 +165,70 @@ public class TlsfParserTest {
     + "  }\n"
     + "}";
 
+  private static final String TLSF_COMPLETE = "INFO {\n"
+    + "  TITLE:       \"TLSF - Test Specification\"\n"
+    + "  DESCRIPTION: \"Test Test Test\"\n"
+    + "  SEMANTICS:   Mealy\n"
+    + "  TARGET:      Mealy\n"
+    + "}\n"
+    + "\n"
+    + "MAIN {\n"
+    + "\n"
+    + "  INPUTS {\n"
+    + "    a1;\n"
+    + "    b2;\n"
+    + "    c3;\n"
+    + "    d4;\n"
+    + "    e5;\n"
+    + "  } \n"
+    + "\n"
+    + "  OUTPUTS {\n"
+    + "    f6;\n"
+    + "    g7;\n"
+    + "    h8;\n"
+    + "    i9;\n"
+    + "  }\n"
+    + "\n"
+    + "  INITIALLY {\n"
+    + "    a1;\n"
+    + "  }\n"
+    + "\n"
+    + "  PRESET {\n"
+    + "    b2;\n"
+    + "  }\n"
+    + "\n"
+    + "  REQUIRE {\n"
+    + "    c3;\n"
+    + "  }\n"
+    + "\n"
+    + "  ASSERT {\n"
+    + "    d4;\n"
+    + "  }\n"
+    + "\n"
+    + "  INVARIANTS {\n"
+    + "    e5;\n"
+    + "  }\n"
+    + "\n"
+    + "  ASSUME {\n"
+    + "    f6;\n"
+    + "  }\n"
+    + "\n"
+    + "  ASSUMPTIONS {\n"
+    + "    g7;\n"
+    + "  }\n"
+    + "\n"
+    + "  GUARANTEE {\n"
+    + "    h8;\n"
+    + "  }\n"
+    + "\n"
+    + "  GUARANTEES {\n"
+    + "    i9;\n"
+    + "  }  \n"
+    + "}";
+
+  private static final String LTL_COMPLETE =
+    "((a1) -> ((b2) && ((((G (c3)) && (f6)) && (g7)) -> (((G ((d4) && (e5))) && (h8)) && (i9)))))";
+
   @Test
   public void testParse1() {
     Tlsf tlsf = TlsfParser.parse(TLSF1);
@@ -222,5 +286,11 @@ public class TlsfParserTest {
   @Test(expected = ParseCancellationException.class)
   public void testParseUpperCaseFaulty() {
     TlsfParser.parse(UPPER_CASE_FAULTY);
+  }
+
+  @Test
+  public void testTlsfComplete() {
+    Tlsf tlsf = TlsfParser.parse(TLSF_COMPLETE);
+    assertEquals(LtlParser.syntax(LTL_COMPLETE, tlsf.variables()), tlsf.toFormula().formula);
   }
 }
