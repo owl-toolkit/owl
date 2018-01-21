@@ -17,8 +17,8 @@
 
 package owl.automaton.acceptance;
 
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.List;
-import java.util.PrimitiveIterator;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -27,31 +27,37 @@ import owl.automaton.edge.Edge;
 public final class ParityAcceptance extends OmegaAcceptance {
   @Nonnegative
   private int colours;
-  private Priority priority;
+  private Parity parity;
 
-  public ParityAcceptance(@Nonnegative int colours) {
-    this(colours, Priority.ODD);
-  }
-
-  public ParityAcceptance(@Nonnegative int colours, Priority priority) {
+  public ParityAcceptance(@Nonnegative int colours, Parity parity) {
     this.colours = colours;
-    this.priority = priority;
-  }
-
-  public void complement() {
-    priority = priority.not();
+    this.parity = parity;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ParityAcceptance that = (ParityAcceptance) o;
-    return colours == that.colours && priority == that.priority;
+  public String getName() {
+    return "parity";
+  }
+
+  @Override
+  public List<Object> getNameExtra() {
+    return List.of(parity.maxString(), parity.evenString(), colours);
+  }
+
+  public Parity getParity() {
+    return parity;
+  }
+
+  public void setParity(Parity parity) {
+    this.parity = parity;
+  }
+
+  public void complement() {
+    parity = parity.flipEven();
+  }
+
+  public boolean emptyIsAccepting() {
+    return parity == Parity.MIN_EVEN || parity == Parity.MAX_ODD;
   }
 
   @Override
@@ -62,93 +68,143 @@ public final class ParityAcceptance extends OmegaAcceptance {
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
     if (colours == 0) {
-      return new BooleanExpression<>(priority == Priority.EVEN);
+      return new BooleanExpression<>(emptyIsAccepting());
     }
-
-    int index = colours - 1;
-
-    BooleanExpression<AtomAcceptance> exp = mkColor(index);
-
-    for (index--; 0 <= index; index--) {
-      if (index % 2 == 0 ^ priority == Priority.EVEN) {
-        exp = mkColor(index).and(exp);
-      } else {
-        exp = mkColor(index).or(exp);
+    BooleanExpression<AtomAcceptance> exp;
+    if (parity.max()) {
+      exp = mkColor(0);
+      for (int index = 1; index < colours; index++) {
+        exp = isAccepting(index) ? mkColor(index).or(exp) : mkColor(index).and(exp);
+      }
+    } else {
+      exp = mkColor(colours - 1);
+      for (int index = colours - 2; index >= 0; index--) {
+        exp = isAccepting(index) ? mkColor(index).or(exp) : mkColor(index).and(exp);
       }
     }
-
     return exp;
   }
 
-  @Override
-  public String getName() {
-    return "parity";
-  }
-
-  @Override
-  public List<Object> getNameExtra() {
-    return List.of("min", priority.toString(), colours);
-  }
-
-  public Priority getPriority() {
-    return priority;
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * colours + priority.hashCode();
+  private BooleanExpression<AtomAcceptance> mkColor(int priority) {
+    return isAccepting(priority)
+      ? BooleanExpressions.mkInf(priority)
+      : BooleanExpressions.mkFin(priority);
   }
 
   public boolean isAccepting(int priority) {
-    return priority >= 0 && priority < colours && priority % 2 == 0 ^ this.priority == Priority.ODD;
+    return priority % 2 == 0 ^ !parity.even();
   }
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    PrimitiveIterator.OfInt iterator = edge.acceptanceSetIterator();
-    if (!iterator.hasNext()) {
-      return true;
-    }
-    int firstIndex = iterator.nextInt();
-    return !iterator.hasNext() && firstIndex < colours;
-  }
-
-  private BooleanExpression<AtomAcceptance> mkColor(int i) {
-    return (i % 2 == 0 ^ priority == Priority.EVEN)
-      ? BooleanExpressions.mkFin(i)
-      : BooleanExpressions.mkInf(i);
+    return !edge.hasAcceptanceSets()
+      || (edge.smallestAcceptanceSet() == edge.largestAcceptanceSet()
+      && edge.largestAcceptanceSet() < colours);
   }
 
   public void setAcceptanceSets(@Nonnegative int colors) {
     this.colours = colors;
   }
 
+  @SuppressWarnings("NonFinalFieldReferenceInEquals")
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ParityAcceptance that = (ParityAcceptance) o;
+    return colours == that.colours && parity == that.parity;
+  }
+
+  @SuppressWarnings("NonFinalFieldReferencedInHashCode")
+  @Override
+  public int hashCode() {
+    return HashCommon.mix(colours) ^ parity.hashCode();
+  }
+
   @SuppressWarnings("MethodReturnAlwaysConstant")
-  public enum Priority {
-    EVEN {
-      @Override
-      public Priority not() {
-        return ODD;
+  public enum Parity {
+    MIN_EVEN, MIN_ODD, MAX_EVEN, MAX_ODD;
+
+    @SuppressWarnings("BooleanParameter")
+    public static Parity of(boolean max, boolean even) {
+      if (max && even) {
+        return MAX_EVEN;
       }
 
-      @Override
-      public String toString() {
-        return "even";
-      }
-    },
-
-    ODD {
-      @Override
-      public Priority not() {
-        return EVEN;
+      if (max) {
+        return MAX_ODD;
       }
 
-      @Override
-      public String toString() {
-        return "odd";
+      if (even) {
+        return MIN_EVEN;
       }
-    };
 
-    public abstract Priority not();
+      return MIN_ODD;
+    }
+
+    public Parity flipMax() {
+      switch (this) {
+        case MIN_ODD:
+          return MAX_ODD;
+        case MIN_EVEN:
+          return MAX_EVEN;
+        case MAX_EVEN:
+          return MIN_EVEN;
+        case MAX_ODD:
+          return MIN_ODD;
+        default:
+          throw new AssertionError();
+      }
+    }
+
+    public Parity flipEven() {
+      switch (this) {
+        case MIN_ODD:
+          return MIN_EVEN;
+        case MIN_EVEN:
+          return MIN_ODD;
+        case MAX_EVEN:
+          return MAX_ODD;
+        case MAX_ODD:
+          return MAX_EVEN;
+        default:
+          throw new AssertionError();
+      }
+    }
+
+    public boolean even() {
+      return equals(MIN_EVEN) || equals(MAX_EVEN);
+    }
+
+    public boolean max() {
+      return equals(MAX_EVEN) || equals(MAX_ODD);
+    }
+
+    public Parity setEven(boolean even) {
+      return even == even() ? this : flipEven();
+    }
+
+    public Parity setMax(boolean max) {
+      return max == max() ? this : flipMax();
+    }
+
+    public String evenString() {
+      return even() ? "even" : "odd";
+    }
+
+    public String maxString() {
+      return max() ? "max" : "min";
+    }
+
+    @Override
+    public String toString() {
+      return maxString() + ' ' + evenString();
+    }
   }
 }

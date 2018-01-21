@@ -53,10 +53,10 @@ dependencies {
     compileOnly 'javax.annotation:javax.annotation-api:1.3.1'
 
     compile 'com.google.guava:guava:23.4-jre'
-    compile 'it.unimi.dsi:fastutil:8.1.0'
+    compile 'it.unimi.dsi:fastutil:8.1.1'
     compile 'org.antlr:antlr4-runtime:4.7'
     compile 'de.tum.in:jbdd:0.2.0'
-    compile 'de.tum.in:naturals-util:0.7.0'
+    compile 'de.tum.in:naturals-util:0.8.0'
     compile 'commons-cli:commons-cli:1.4'
 
     compile files('lib/jhoafparser-1.1.1-patched.jar')
@@ -243,7 +243,7 @@ checkstyle {
 }
 
 // Create startup scripts
-mainClassName = "owl.run.SingleStreamCoordinator"
+mainClassName = "owl.run.DefaultCli"
 // Create startup scripts for each tool
 def scripts = [
     'synth'      : 'owl.translations.Synthesis',

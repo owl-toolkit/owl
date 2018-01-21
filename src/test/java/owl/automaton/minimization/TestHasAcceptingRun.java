@@ -1,13 +1,13 @@
 package owl.automaton.minimization;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 import java.util.EnumSet;
 import java.util.Set;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
@@ -89,7 +89,7 @@ public class TestHasAcceptingRun {
     testHasAcceptingRun(INPUT3, false, true);
   }
 
-  private void testHasAcceptingRun(String input, boolean hasAcceptingRun,
+  private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
     EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
     optimisations.remove(Configuration.REMOVE_EPSILON_TRANSITIONS);
@@ -100,10 +100,13 @@ public class TestHasAcceptingRun {
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      result = (MutableAutomaton) translation.apply(automaton);
+      result = (MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>,
+      ParityAcceptance>) translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!hasAcceptingRun));
-    ParityUtil.complement(result, RankingState::of);
-    assertThat(EmptinessCheck.isEmpty(result), Matchers.is(!complementHasAcceptingRun));
+
+    assertThat(EmptinessCheck.isEmpty(result), is(!hasAcceptingRun));
+    MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
+      complement = ParityUtil.complement(result, RankingState::of);
+    assertThat(EmptinessCheck.isEmpty(complement), is(!complementHasAcceptingRun));
   }
 }

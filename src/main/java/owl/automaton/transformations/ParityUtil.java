@@ -25,44 +25,137 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.Views.ForwardingAutomaton;
 import owl.automaton.Views.ForwardingMutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Priority;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.minimizations.GenericMinimizations;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 
 public final class ParityUtil {
+  public static final TransformerParser COMPLEMENT_CLI = ImmutableTransformerParser.builder()
+      .key("complement-parity")
+      .description("Complements a parity automaton")
+      .parser(settings -> environment -> (input, context) -> {
+        Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
+          ParityAcceptance.class);
+        return ParityUtil.complement(AutomatonUtil.asMutable(automaton),
+          AutomatonUtil.defaultSinkSupplier());
+      }).build();
+
+  public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
+      .key("convert-parity")
+      .optionsDirect(new Options()
+        .addOptionGroup(new OptionGroup()
+          .addOption(new Option(null, "max", false, null))
+          .addOption(new Option(null, "min", false, null)))
+        .addOptionGroup(new OptionGroup()
+          .addOption(new Option(null, "even", false, null))
+          .addOption(new Option(null, "odd", false, null))))
+      .description("Converts a parity automaton into the desired type")
+      .parser(settings -> {
+        @Nullable
+        Boolean toMax;
+        if (settings.hasOption("max")) {
+          toMax = true;
+        } else if (settings.hasOption("min")) {
+          toMax = false;
+        } else {
+          toMax = null;
+        }
+
+        @Nullable
+        Boolean toEven;
+        if (settings.hasOption("even")) {
+          toEven = true;
+        } else if (settings.hasOption("odd")) {
+          toEven = false;
+        } else {
+          toEven = null;
+        }
+
+        return environment -> (input, context) -> {
+          Automaton<Object, ParityAcceptance> automaton =
+            AutomatonUtil.cast(input, ParityAcceptance.class);
+          ParityAcceptance acceptance = automaton.getAcceptance();
+          Parity target = acceptance.getParity();
+          if (toEven != null) {
+            target = target.setEven(toEven);
+          }
+          if (toMax != null) {
+            target = target.setMax(toMax);
+          }
+
+          return ParityUtil.convert(automaton, target);
+        };
+      }).build();
+
   private ParityUtil() {
   }
 
-  public static <S> void complement(MutableAutomaton<S, ParityAcceptance> automaton,
-    Supplier<S> sinkSupplier) {
-    BitSet rejectingAcceptance = new BitSet();
-    ParityAcceptance parityCondition = automaton.getAcceptance();
+  public static <S> MutableAutomaton<S, ParityAcceptance>
+  complement(MutableAutomaton<S, ParityAcceptance> automaton, Supplier<S> sinkSupplier) {
+    ParityAcceptance acceptance = automaton.getAcceptance();
 
-    if (parityCondition.getAcceptanceSets() < 2) {
-      parityCondition.setAcceptanceSets(2);
+    if (acceptance.getAcceptanceSets() == 0) {
+      if (!acceptance.emptyIsAccepting()) {
+        // Automaton currently accepts nothing
+        automaton.free();
+        acceptance.complement();
+        return MutableAutomatonFactory.singleton(sinkSupplier.get(), automaton.getFactory(),
+          acceptance);
+      }
+
+      Optional<S> completionState = AutomatonUtil.complete(automaton, sinkSupplier, () -> {
+        BitSet bitSet = new BitSet(1);
+        bitSet.set(0);
+        return bitSet;
+      });
+
+      if (!completionState.isPresent()) {
+        // Automaton accepted everything
+        automaton.free();
+        acceptance.complement();
+        return MutableAutomatonFactory.singleton(sinkSupplier.get(), automaton.getFactory(),
+          acceptance);
+      }
+
+      // Automaton accepted everything which does not end up in the completion state
+      acceptance.setAcceptanceSets(1);
+      acceptance.setParity(Parity.MAX_EVEN);
+      return automaton;
     }
 
-    if (parityCondition.getPriority() == Priority.EVEN) {
-      rejectingAcceptance.set(1);
-    } else {
-      rejectingAcceptance.set(0);
+    int rejectingAcceptance = acceptance.getParity().even() ? 1 : 0;
+    BitSet set = new BitSet(rejectingAcceptance + 1);
+    set.set(rejectingAcceptance);
+
+    Optional<S> completionState = AutomatonUtil.complete(automaton, sinkSupplier, () -> set);
+    if (completionState.isPresent() && acceptance.getAcceptanceSets() <= rejectingAcceptance) {
+      acceptance.setAcceptanceSets(rejectingAcceptance + 1);
     }
 
-    AutomatonUtil.complete(automaton, sinkSupplier, () -> rejectingAcceptance);
-    automaton.getAcceptance().complement();
+    acceptance.complement();
+    return automaton;
   }
 
   public static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
@@ -144,21 +237,77 @@ public final class ParityUtil {
     return new WrappedBuchiAutomaton<>(automaton);
   }
 
-  // TODO Complementing these automata feels a bit iffy right now: The priority type of the
-  // acceptance is changed without notifying this automaton of it.
+  public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
+    Parity toParity) {
+    // TODO Check for "colored" property
+    ParityAcceptance acceptance = automaton.getAcceptance();
+
+    if (acceptance.getParity().equals(toParity)) {
+      return automaton;
+    }
+
+    IntUnaryOperator mapping = getEdgeMapping(acceptance, toParity);
+
+    MutableAutomaton<S, ParityAcceptance> mutable = AutomatonUtil.asMutable(automaton);
+    AtomicInteger maximalNewAcceptance = new AtomicInteger(0);
+
+    mutable.remapEdges((state, edge) -> {
+      if (!edge.hasAcceptanceSets()) {
+        return edge;
+      }
+
+      int newAcceptance = mapping.applyAsInt(edge.smallestAcceptanceSet());
+
+      if (newAcceptance == -1) {
+        return Edge.of(edge.getSuccessor());
+      }
+
+      if (maximalNewAcceptance.get() < newAcceptance) {
+        maximalNewAcceptance.set(newAcceptance);
+      }
+
+      return Edge.of(edge.getSuccessor(), newAcceptance);
+    });
+
+    acceptance.setParity(toParity);
+    acceptance.setAcceptanceSets(maximalNewAcceptance.get() + 1);
+    return mutable;
+  }
+
+  private static IntUnaryOperator getEdgeMapping(ParityAcceptance fromAcceptance, Parity toParity) {
+    Parity fromParity = fromAcceptance.getParity();
+
+    if (fromParity.max() == toParity.max()) {
+      assert fromParity.even() != toParity.even();
+      return i -> i + 1;
+    } else {
+      int acceptanceSets = fromAcceptance.getAcceptanceSets();
+      int leastImportantColor = fromParity.max() ? 0 : acceptanceSets - 1;
+      int offset;
+
+      if (fromParity.even() != toParity.even()) {
+        // Delete the least important color
+        offset = fromAcceptance.isAccepting(leastImportantColor) ? -1 : -2;
+      } else {
+        offset = fromAcceptance.isAccepting(leastImportantColor) ? 0 : 1;
+      }
+
+      int newAcceptanceSets = acceptanceSets + offset;
+      return i -> newAcceptanceSets - i;
+    }
+  }
+
   private static final class WrappedBuchiAutomaton<S> extends
     ForwardingAutomaton<S, ParityAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
     private final ParityAcceptance acceptance;
 
     WrappedBuchiAutomaton(Automaton<S, BuchiAcceptance> backingAutomaton) {
       super(backingAutomaton);
-      acceptance = new ParityAcceptance(2, Priority.EVEN);
+      acceptance = new ParityAcceptance(2, Parity.MIN_EVEN);
     }
 
-    @SuppressWarnings("unchecked")
-    private Edge<S> convertBuchiToParity(Edge<? extends S> edge) {
-      checkState(isAcceptanceCompatible());
-      return edge.inSet(0) ? (Edge<S>) edge : Edge.of(edge.getSuccessor(), 1);
+    private Edge<S> convertBuchiToParity(Edge<S> edge) {
+      return edge.inSet(0) ? edge : Edge.of(edge.getSuccessor(), 1);
     }
 
     @Override
@@ -168,7 +317,7 @@ public final class ParityUtil {
 
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      //noinspection ConstantConditions
+      checkState(acceptance.getAcceptanceSets() == 2);
       return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
         LabelledEdge.of(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
     }
@@ -184,8 +333,9 @@ public final class ParityUtil {
       return automaton.getSuccessors(state);
     }
 
-    private boolean isAcceptanceCompatible() {
-      return acceptance.getAcceptanceSets() == 2;
+    @Override
+    public boolean is(Property property) {
+      return property.equals(Property.COLOURED) || super.is(property);
     }
   }
 }

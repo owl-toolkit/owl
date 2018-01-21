@@ -179,6 +179,31 @@
             "flags": {
                 "hoaf": "--hoaf=1.1"
             }
+        },
+        "ltl2dpa-convert": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "convert-parity",
+            "flags": {
+                "max": "--max",
+                "min": "--min",
+                "even": "--even",
+                "odd": "--odd"
+            },
+            "pre": [
+                [
+                    "rewrite",
+                    "--mode",
+                    "modal-iter"
+                ],
+                "ltl2dpa"
+            ],
+            "post": [
+                "complement-parity",
+                "minimize-aut",
+                "complement-parity"
+            ]
         }
     },
     "aliases": {

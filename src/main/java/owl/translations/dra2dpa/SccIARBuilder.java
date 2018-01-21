@@ -27,6 +27,7 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
@@ -77,7 +78,8 @@ final class SccIARBuilder<R> {
     }
 
     ValuationSetFactory vsFactory = rabinAutomaton.getFactory();
-    this.resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0), vsFactory);
+    this.resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD),
+      vsFactory);
   }
 
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,

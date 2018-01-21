@@ -42,7 +42,6 @@ Build:
   when: manual
   dependencies: []
 
-
 # LTL to Automaton
 
 LTL2LDBA:
@@ -93,6 +92,13 @@ NBA2DPA:
     TEST_NAME: "nba2dpa"
   <<: *ltlcross_template
 
+# Conversions
+
+DPA Conversion:
+  stage: test
+  variables:
+    TEST_NAME: "ltl2dpa-convert"
+  <<: *ltlcross_template
 
 # Benchmarks
 

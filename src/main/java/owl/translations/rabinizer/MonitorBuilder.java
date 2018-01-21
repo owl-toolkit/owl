@@ -23,6 +23,7 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -103,7 +104,7 @@ final class MonitorBuilder {
 
     for (int i = 0; i < monitorAutomata.length; i++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
-        .create(new ParityAcceptance(0), vsFactory);
+        .create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
       monitor.setName(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addState(initialState);
       monitor.setInitialState(initialState);

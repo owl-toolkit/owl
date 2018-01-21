@@ -108,6 +108,15 @@ public final class AutomatonUtil {
     return MutableAutomatonFactory.create(automaton);
   }
 
+  public static Supplier<Object> defaultSinkSupplier() {
+    return () -> Sink.INSTANCE;
+  }
+
+  public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton,
+    Supplier<BitSet> rejectingAcceptanceSupplier) {
+    return complete(automaton, defaultSinkSupplier(), rejectingAcceptanceSupplier);
+  }
+
   /**
    * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
    * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once, if
@@ -127,7 +136,7 @@ public final class AutomatonUtil {
     Supplier<BitSet> rejectingAcceptanceSupplier) {
     Map<S, ValuationSet> incompleteStates = getIncompleteStates(automaton);
 
-    if (automaton.getStates().size() != 0 && incompleteStates.isEmpty()) {
+    if (automaton.size() != 0 && incompleteStates.isEmpty()) {
       return Optional.empty();
     }
 
@@ -373,5 +382,26 @@ public final class AutomatonUtil {
     HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
     printable.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS));
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
+  }
+
+  private static final class Sink {
+    private static final Sink INSTANCE = new Sink();
+
+    private Sink() {}
+
+    @Override
+    public String toString() {
+      return "SINK";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj == this;
+    }
+
+    @Override
+    public int hashCode() {
+      return Sink.class.hashCode();
+    }
   }
 }

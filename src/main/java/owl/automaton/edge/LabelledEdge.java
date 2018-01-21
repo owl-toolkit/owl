@@ -26,7 +26,7 @@ public final class LabelledEdge<S> {
   public final ValuationSet valuations;
 
   public static <S> LabelledEdge<S> of(S state, ValuationSet valuations) {
-    return of(Edge.of(state), valuations);
+    return LabelledEdge.of(Edge.of(state), valuations);
   }
 
   public static <S> LabelledEdge<S> of(Edge<S> edge, ValuationSet valuations) {
@@ -34,7 +34,7 @@ public final class LabelledEdge<S> {
   }
 
   public static <S> LabelledEdge<S> of(Map.Entry<Edge<S>, ValuationSet> entry) {
-    return of(entry.getKey(), entry.getValue());
+    return LabelledEdge.of(entry.getKey(), entry.getValue());
   }
 
   private LabelledEdge(Edge<S> edge, ValuationSet valuations) {

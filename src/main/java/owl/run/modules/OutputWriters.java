@@ -78,7 +78,7 @@ public final class OutputWriters {
     .parser(settings -> NULL)
     .build();
 
-  public static final OutputWriter TO_STRING = (writer, environment) -> object ->  {
+  public static final OutputWriter TO_STRING = (writer, environment) -> object -> {
     writer.write(object.toString());
     writer.write(System.lineSeparator());
   };
