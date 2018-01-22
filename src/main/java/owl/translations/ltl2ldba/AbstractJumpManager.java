@@ -1,18 +1,21 @@
 package owl.translations.ltl2ldba;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
-import owl.ltl.Literal;
+import owl.ltl.visitors.Collector;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public abstract class AbstractJumpManager<X extends RecurringObligation> {
@@ -46,12 +49,6 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     }
 
     return stream;
-  }
-
-  /* Literals are differently encoded in support */
-  private static boolean equalsInSupport(Formula formula1, Formula formula2) {
-    return formula1.equals(formula2) || formula1 instanceof Literal && formula2 instanceof Literal
-      && ((Literal) formula1).getAtom() == ((Literal) formula2).getAtom();
   }
 
   AnalysisResult<X> analyse(EquivalenceClass state) {
@@ -113,25 +110,24 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     // Check if the state depends on an independent cosafety property.
     if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
-      Set<Formula> notCoSafety = state.getSupport(x -> !Fragments.isCoSafety(x));
+      BitSet nonCoSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isCoSafety(x)));
 
-      EquivalenceClass coSafety = state.exists(x -> {
-        for (Formula formula : notCoSafety) {
-          if (formula.anyMatch(z -> equalsInSupport(x, z))) {
-            return true;
-          }
+      EquivalenceClass core = state.rewrite(x -> {
+        if (!Fragments.isCoSafety(x)) {
+          return BooleanConstant.TRUE;
         }
 
-        return false;
+        BitSet ap = Collector.collectAtoms(x);
+        assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
+        return Collections3.isDisjointConsuming(ap, nonCoSafety) ? BooleanConstant.FALSE : x;
       });
 
-      boolean existsExternalCondition = !coSafety.isTrue();
-      coSafety.free();
-
-      if (existsExternalCondition) {
+      if (core.isFalse()) {
         logger.log(Level.FINE, state + " has independent cosafety property. Suppressing jump.");
         return (AnalysisResult<X>) EMPTY;
       }
+
+      core.free();
     }
 
     return null;

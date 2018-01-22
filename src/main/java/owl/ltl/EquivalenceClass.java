@@ -17,6 +17,7 @@
 
 package owl.ltl;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
 import java.util.Set;
@@ -26,6 +27,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.visitors.SubstitutionVisitor;
 
 /**
  * EquivalenceClass interface. The general contract of this interface is: If two implementing
@@ -99,6 +101,15 @@ public interface EquivalenceClass {
     EquivalenceClass or = or(equivalenceClass);
     free();
     return or;
+  }
+
+  default EquivalenceClass rewrite(Function<? super Formula, ? extends Formula> substitution) {
+    // WARNING: THIS IS NOT EQUIVALENT TO substitute DUE TO THE LITERAL ENCODING IN THE BDD!
+    Formula representative = this.getRepresentative();
+    Preconditions.checkState(representative != null,
+      "Operation only available for non-null representative.");
+    return getFactory().createEquivalenceClass(representative.accept(
+      new SubstitutionVisitor(substitution)));
   }
 
   ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support);

@@ -44,6 +44,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
+import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
@@ -208,17 +209,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     // Check if the state has an independent safety core.
     if (configuration.contains(Configuration.EXISTS_SAFETY_CORE)) {
-      BitSet nonSafetyAP = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
+      BitSet nonSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
 
-      EquivalenceClass core = state.substitute(x -> {
+      EquivalenceClass core = state.rewrite(x -> {
         if (!Fragments.isSafety(x)) {
           return BooleanConstant.FALSE;
         }
 
         BitSet ap = Collector.collectAtoms(x);
         assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        ap.and(nonSafetyAP);
-        return ap.isEmpty() ? BooleanConstant.TRUE : x;
+        return Collections3.isDisjointConsuming(ap, nonSafety) ? BooleanConstant.TRUE : x;
       });
 
       if (core.isTrue()) {

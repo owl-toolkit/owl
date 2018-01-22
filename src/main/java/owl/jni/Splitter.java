@@ -45,7 +45,7 @@ public final class Splitter {
   private static boolean isIndependent(Iterable<Formula> x, Formula y) {
     BitSet atoms1 = Collector.collectAtoms(x);
     BitSet atoms2 = Collector.collectAtoms(y);
-    return Collections3.isDistinctConsuming(atoms1, atoms2);
+    return Collections3.isDisjointConsuming(atoms1, atoms2);
   }
 
   static Set<Formula> merge(List<Set<Formula>> formulas, Formula formula) {

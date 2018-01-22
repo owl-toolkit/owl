@@ -20,6 +20,7 @@ package owl.ltl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
@@ -29,8 +30,10 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import jhoafparser.parser.generated.ParseException;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import owl.factories.EquivalenceClassFactory;
@@ -291,5 +294,31 @@ public abstract class EquivalenceClassTest {
       assertEquals(ref, clazz);
       assertEquals(clazz, clazz.unfold());
     }
+  }
+
+  @Test
+  public void testRewrite() {
+    Formula formula = LtlParser.syntax("G (a | X!b) | F c");
+    EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold();
+
+    Function<Formula, Formula> substitution = x -> {
+      if (x instanceof FOperator) {
+        return BooleanConstant.FALSE;
+      }
+
+      if (x instanceof Literal) {
+        return ((Literal) x).getAtom() == 2 ? x : BooleanConstant.TRUE;
+      }
+
+      return BooleanConstant.TRUE;
+    };
+
+    EquivalenceClass core = clazz.rewrite(substitution);
+    assertThat(core, Matchers.is(factory.getTrue()));
+
+    clazz = clazz.temporalStepUnfold(new BitSet());
+
+    core = clazz.rewrite(substitution);
+    assertThat(core, Matchers.is(factory.getTrue()));
   }
 }
