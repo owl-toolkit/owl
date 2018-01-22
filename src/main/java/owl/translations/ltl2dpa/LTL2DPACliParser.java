@@ -39,7 +39,7 @@ public final class LTL2DPACliParser implements TransformerParser {
   public Transformer parse(CommandLine commandLine) {
     EnumSet<Configuration> configuration;
 
-    if (commandLine.hasOption(LTL2LDBACliParser.guessF().getOpt())) {
+    if (commandLine.hasOption(LTL2LDBACliParser.simple().getOpt())) {
       configuration = EnumSet.noneOf(Configuration.class);
     } else {
       configuration = EnumSet.of(EXISTS_SAFETY_CORE, OPTIMISED_STATE_STRUCTURE,

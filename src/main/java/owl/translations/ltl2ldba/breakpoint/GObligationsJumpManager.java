@@ -102,10 +102,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     // Check if external atoms are non-empty and disjoint.
     if (!externalAtoms.isEmpty()) {
       externalAtoms.and(internalAtoms);
-
-      if (externalAtoms.isEmpty()) {
-        return true;
-      }
+      return externalAtoms.isEmpty();
     }
 
     return false;

@@ -19,6 +19,7 @@ package owl.translations.ltl2ldba.breakpointfree;
 
 import java.util.Objects;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
@@ -27,12 +28,16 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
 
   @Nonnegative // Index of the current checked liveness (F) obligation.
   final int index;
+
+  @Nullable
   final EquivalenceClass liveness;
+  @Nullable
   final FGObligations obligations;
+  @Nullable
   final EquivalenceClass safety;
 
-  DegeneralizedBreakpointFreeState(@Nonnegative int index, EquivalenceClass safety,
-    EquivalenceClass liveness, FGObligations obligations) {
+  DegeneralizedBreakpointFreeState(@Nonnegative int index, @Nullable EquivalenceClass safety,
+    @Nullable EquivalenceClass liveness, @Nullable FGObligations obligations) {
     assert 0 == index || (0 < index && index < obligations.liveness.length);
 
     this.index = index;
@@ -63,7 +68,7 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
 
   @Override
   public String toString() {
-    return obligations + StringUtil.join(safety.isTrue() ? null : "GWR=" + safety,
-      liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ")");
+    return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
+      liveness == null || liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ")");
   }
 }

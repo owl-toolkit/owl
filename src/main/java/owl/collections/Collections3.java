@@ -91,7 +91,13 @@ public final class Collections3 {
     return collection.size() == Sets.newHashSet(collection).size();
   }
 
-  public static boolean isDistinctConsuming(BitSet set1, BitSet set2) {
+  /**
+   * Test if the given sets are disjoint.
+   * @param set1 The first BitSet. This is consumed.
+   * @param set2 The second BitSet. This stays unmodified.
+   * @return true if set1 and set2 are disjoint.
+   */
+  public static boolean isDisjointConsuming(BitSet set1, BitSet set2) {
     set1.and(set2);
     return set1.isEmpty();
   }
