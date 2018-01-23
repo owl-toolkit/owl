@@ -11,11 +11,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.arena.ArenaUtil;
-import owl.arena.Views;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.transformations.RabinDegeneralization;
+import owl.game.GameUtil;
+import owl.game.Views;
 import owl.ltl.rewriter.RewriterTransformer;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.modules.OwlModuleParser.ReaderParser;
@@ -47,21 +47,18 @@ public class OwlModuleRegistry {
     DEFAULT_REGISTRY = new OwlModuleRegistry();
 
     // I/O
-    DEFAULT_REGISTRY.register(
-      InputReaders.LTL_CLI_PARSER, InputReaders.HOA_CLI_PARSER, InputReaders.TLSF_CLI_PARSER,
-      OutputWriters.TO_STRING_CLI_PARSER, OutputWriters.AUTOMATON_STATS_CLI_PARSER,
-      OutputWriters.NULL_CLI_PARSER, OutputWriters.HOA_CLI_PARSER, ArenaUtil.TO_PG_SOLVER_CLI);
+    DEFAULT_REGISTRY.register(InputReaders.LTL_CLI, InputReaders.HOA_CLI, InputReaders.TLSF_CLI,
+      OutputWriters.STRING_CLI, OutputWriters.AUTOMATON_STATS_CLI, OutputWriters.NULL_CLI,
+      OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI);
 
     // Transformer
-    DEFAULT_REGISTRY.register(RewriterTransformer.CLI_PARSER, Views.AUTOMATON_TO_ARENA_PARSER,
-      ImplicitMinimizeTransformer.CLI_PARSER, RabinDegeneralization.CLI_PARSER,
-      UnabbreviateVisitor.CLI_PARSER);
+    DEFAULT_REGISTRY.register(RewriterTransformer.CLI, Views.AUTOMATON_TO_GAME_CLI,
+      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI, UnabbreviateVisitor.CLI);
 
     // Advanced constructions
-    DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI_PARSER,
-      DelagBuilder.CLI_PARSER, LTL2LDBACliParser.INSTANCE, LTL2DA.CLI_PARSER, NBA2LDBA.CLI_PARSER,
-      LTL2DPACliParser.INSTANCE, NBA2DPAFunction.CLI_PARSER, ExternalTranslator.CLI_PARSER,
-      ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI);
+    DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI, LTL2DA.CLI, NBA2LDBA.CLI,
+      LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE, DelagBuilder.CLI, NBA2DPAFunction.CLI,
+      ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI);
   }
 
   private final Table<Type, String, OwlModuleParser<?>> registeredModules = HashBasedTable.create();

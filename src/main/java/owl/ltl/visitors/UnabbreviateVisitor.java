@@ -35,7 +35,7 @@ import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 
 public class UnabbreviateVisitor extends DefaultConverter {
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("unabbreviate")
     .optionsDirect(new Options()
       .addOption("w", "weak-until", false, "Remove W operator")

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.arena;
+package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -56,7 +56,7 @@ import owl.util.ImmutableObject;
 public final class Views {
   private static final Logger logger = Logger.getLogger(Views.class.getName());
 
-  public static final TransformerParser AUTOMATON_TO_ARENA_PARSER =
+  public static final TransformerParser AUTOMATON_TO_GAME_CLI =
     ImmutableTransformerParser.builder()
       .key("aut2arena")
       .optionsBuilder(() -> {
@@ -105,7 +105,7 @@ public final class Views {
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
           List<String> environmentAp = automaton.getVariables().stream()
             .filter(isEnvironmentAp).collect(toImmutableList());
-          logger.log(Level.FINER, "Splitting automaton into Arena with APs {0}/{1}",
+          logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
             new Object[] {environmentAp,
               Collections2.filter(automaton.getVariables(), x -> !isEnvironmentAp.test(x))});
           return Views.split(AutomatonUtil.cast(automaton, ParityAcceptance.class), environmentAp);
@@ -115,31 +115,31 @@ public final class Views {
 
   private Views() {}
 
-  public static <S, A extends OmegaAcceptance> Arena<S, A> filter(Arena<S, A> arena,
+  public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
     Set<S> states) {
-    return new FilteredArena<>(arena, states, x -> true);
+    return new FilteredArena<>(game, states, x -> true);
   }
 
-  public static <S, A extends OmegaAcceptance> Arena<S, A> filter(Arena<S, A> arena,
+  public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
-    return new FilteredArena<>(arena, states, edgeFilter);
+    return new FilteredArena<>(game, states, edgeFilter);
   }
 
-  public static <S, A extends OmegaAcceptance> Arena<Node<S>, A> split(Automaton<S, A> automaton,
+  public static <S, A extends OmegaAcceptance> Game<Node<S>, A> split(Automaton<S, A> automaton,
     List<String> firstPropositions) {
     assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
-    return new ForwardingArena<>(automaton, firstPropositions);
+    return new ForwardingGame<>(automaton, firstPropositions);
   }
 
-  private static final class FilteredArena<S, A extends OmegaAcceptance> implements Arena<S, A> {
+  private static final class FilteredArena<S, A extends OmegaAcceptance> implements Game<S, A> {
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
 
-    FilteredArena(Arena<S, A> arena, Set<S> states, Predicate<Edge<S>> edgeFilter) {
-      this.filteredAutomaton = owl.automaton.Views.filter(arena, states, edgeFilter);
-      this.ownership = arena::getOwner;
-      this.variableOwnership = arena::getVariables;
+    FilteredArena(Game<S, A> game, Set<S> states, Predicate<Edge<S>> edgeFilter) {
+      this.filteredAutomaton = owl.automaton.Views.filter(game, states, edgeFilter);
+      this.ownership = game::getOwner;
+      this.variableOwnership = game::getVariables;
     }
 
     @Override
@@ -189,17 +189,17 @@ public final class Views {
   }
 
   /**
-   * An arena based on an automaton and a splitting of its variables. The arena is constructed by
+   * An game based on an automaton and a splitting of its variables. The game is constructed by
    * first letting player one choose his part of the variables, then letting the second player
    * choose the remained of the valuation and finally updating the state based on the combined
    * valuation, emitting the corresponding acceptance.
    */
-  static final class ForwardingArena<S, A extends OmegaAcceptance> implements Arena<Node<S>, A> {
+  static final class ForwardingGame<S, A extends OmegaAcceptance> implements Game<Node<S>, A> {
     private final Automaton<S, A> automaton;
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
 
-    ForwardingArena(Automaton<S, A> automaton, List<String> firstPlayer) {
+    ForwardingGame(Automaton<S, A> automaton, List<String> firstPlayer) {
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
       firstPlayer.forEach(x -> this.firstPlayer.set(automaton.getVariables().indexOf(x)));
@@ -225,9 +225,9 @@ public final class Views {
     @Override
     public Collection<LabelledEdge<Node<S>>> getLabelledEdges(Node<S> node) {
       /*
-       * In order obtain a complete arena, each players transitions are labeled with his choice
+       * In order obtain a complete game, each players transitions are labeled with his choice
        * and all valuations of the other players APs. This is important when trying to recover a
-       * strategy from a sub-arena.
+       * strategy from a sub-game.
        */
 
       List<LabelledEdge<Node<S>>> edges = new ArrayList<>();
@@ -252,7 +252,7 @@ public final class Views {
           checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
             node.state, joined);
 
-          // Lift the automaton edge to the arena
+          // Lift the automaton edge to the game
           Edge<Node<S>> successor = edge.withSuccessor(new Node<>(edge.getSuccessor()));
           edges.add(LabelledEdge.of(successor, valuationSet));
         }
@@ -332,7 +332,7 @@ public final class Views {
   }
 
   /**
-   * A state of the split arena.
+   * A state of the split game.
    */
   public static final class Node<S> extends ImmutableObject {
     @Nullable

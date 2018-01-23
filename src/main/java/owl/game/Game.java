@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.arena;
+package owl.game;
 
 import com.google.common.collect.Sets;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 
-public interface Arena<S, A extends OmegaAcceptance> extends Automaton<S, A> {
+public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A> {
   default Set<S> getAttractor(Collection<S> states, Owner owner) {
     // Does not contain the states itself.
     Set<S> attractor = new HashSet<>();

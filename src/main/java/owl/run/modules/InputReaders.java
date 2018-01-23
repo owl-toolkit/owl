@@ -23,7 +23,7 @@ public final class InputReaders {
   private static final Logger logger = Logger.getLogger(InputReaders.class.getName());
 
   public static final InputReader HOA = HoaReader.DEFAULT;
-  public static final ReaderParser HOA_CLI_PARSER = ImmutableReaderParser.builder()
+  public static final ReaderParser HOA_CLI = ImmutableReaderParser.builder()
     .key("hoa")
     .description("Parses automata given in HOA format, converting them to transition based "
       + "acceptance if necessary")
@@ -63,13 +63,13 @@ public final class InputReaders {
       }
     });
 
-  public static final ReaderParser LTL_CLI_PARSER = ImmutableReaderParser.builder()
+  public static final ReaderParser LTL_CLI = ImmutableReaderParser.builder()
     .key("ltl")
     .description("Parses LTL formulas and converts them into NNF")
     .parser(settings -> LTL).build();
 
 
-  public static final ReaderParser TLSF_CLI_PARSER = ImmutableReaderParser.builder()
+  public static final ReaderParser TLSF_CLI = ImmutableReaderParser.builder()
     .key("tlsf")
     .description("Parses a single TLSF instance and converts it to an LTL formula")
     .parser(settings -> TLSF).build();

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.arena;
+package owl.game;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -36,15 +36,15 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.util.ImmutableObject;
 
-public final class ArenaFactory {
-  private ArenaFactory() {}
+public final class GameFactory {
+  private GameFactory() {}
 
-  public static <S, A extends OmegaAcceptance> Arena<S, A> copyOf(Arena<S, A> arena) {
-    assert arena.is(Property.COMPLETE) : "Only defined for complete arena.";
-    return new ImmutableGuavaArena<>(arena);
+  public static <S, A extends OmegaAcceptance> Game<S, A> copyOf(Game<S, A> game) {
+    assert game.is(Property.COMPLETE) : "Only defined for complete game.";
+    return new ImmutableGame<>(game);
   }
 
-  static final class ImmutableGuavaArena<S, A extends OmegaAcceptance> implements Arena<S, A> {
+  static final class ImmutableGame<S, A extends OmegaAcceptance> implements Game<S, A> {
     private final A acceptance;
     private final ValuationSetFactory factory;
     private final ImmutableValueGraph<S, ValueEdge> graph;
@@ -53,32 +53,32 @@ public final class ArenaFactory {
     private final ImmutableList<String> variablesPlayer1;
     private final ImmutableList<String> variablesPlayer2;
 
-    ImmutableGuavaArena(Arena<S, A> arena) {
-      this(arena, arena.getStates());
+    ImmutableGame(Game<S, A> game) {
+      this(game, game.getStates());
     }
 
-    ImmutableGuavaArena(Arena<S, A> arena, Set<S> states) {
+    ImmutableGame(Game<S, A> game, Set<S> states) {
       ImmutableSet.Builder<S> player1NodesBuilder = ImmutableSet.builder();
       MutableValueGraph<S, ValueEdge> graph = ValueGraphBuilder.directed().allowsSelfLoops(true)
         .build();
 
       for (S state : states) {
-        for (LabelledEdge<S> edge : arena.getLabelledEdges(state)) {
+        for (LabelledEdge<S> edge : game.getLabelledEdges(state)) {
           graph.putEdgeValue(state, edge.edge.getSuccessor(), new ValueEdge(edge));
         }
 
-        if (Owner.PLAYER_1 == arena.getOwner(state)) {
+        if (Owner.PLAYER_1 == game.getOwner(state)) {
           player1NodesBuilder.add(state);
         }
       }
 
-      this.acceptance = arena.getAcceptance();
-      this.factory = arena.getFactory();
+      this.acceptance = game.getAcceptance();
+      this.factory = game.getFactory();
       this.graph = ImmutableValueGraph.copyOf(graph);
-      this.initialStates = ImmutableSet.copyOf(arena.getInitialStates());
+      this.initialStates = ImmutableSet.copyOf(game.getInitialStates());
       this.player1Nodes = player1NodesBuilder.build();
-      this.variablesPlayer1 = ImmutableList.copyOf(arena.getVariables(Owner.PLAYER_1));
-      this.variablesPlayer2 = ImmutableList.copyOf(arena.getVariables(Owner.PLAYER_2));
+      this.variablesPlayer1 = ImmutableList.copyOf(game.getVariables(Owner.PLAYER_1));
+      this.variablesPlayer2 = ImmutableList.copyOf(game.getVariables(Owner.PLAYER_2));
     }
 
     @Override

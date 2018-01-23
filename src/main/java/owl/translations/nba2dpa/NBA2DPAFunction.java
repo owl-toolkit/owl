@@ -46,7 +46,7 @@ import owl.translations.nba2ldba.GeneralizedBuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPrintable> {
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2dpa")
     .parser(settings -> environment -> {
       NBA2DPAFunction<Object> function = new NBA2DPAFunction<>();
@@ -61,7 +61,7 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
       .reader(InputReaders.HOA)
-      .addTransformer(CLI_PARSER)
+      .addTransformer(CLI)
       .writer(OutputWriters.HOA)
       .build());
   }

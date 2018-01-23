@@ -39,7 +39,7 @@ import owl.run.parser.PartialModuleConfiguration;
 
 public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2ldba")
     .parser(settings -> {
       NBA2LDBA<Object> function =
@@ -80,7 +80,7 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2ldba")
       .reader(InputReaders.HOA)
-      .addTransformer(CLI_PARSER)
+      .addTransformer(CLI)
       .writer(OutputWriters.HOA)
       .build());
   }

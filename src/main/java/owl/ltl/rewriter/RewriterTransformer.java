@@ -16,7 +16,7 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
 public class RewriterTransformer extends Transformers.SimpleTransformer {
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("rewrite")
     .optionsBuilder(() -> {
       Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "

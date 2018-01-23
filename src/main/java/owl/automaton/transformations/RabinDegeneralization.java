@@ -48,7 +48,7 @@ import owl.run.modules.Transformers;
 public final class RabinDegeneralization extends Transformers.SimpleTransformer {
   public static final RabinDegeneralization INSTANCE = new RabinDegeneralization();
 
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("dgra2dra")
     .description("Converts a generalized rabin automaton into a regular one")
     .parser(settings -> environment -> INSTANCE)
