@@ -16,6 +16,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.arena;
+package owl.game;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

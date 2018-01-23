@@ -1,4 +1,4 @@
-package owl.arena;
+package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -22,11 +22,11 @@ import owl.run.modules.OutputWriter;
 import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.util.ImmutableObject;
 
-public final class ArenaUtil {
+public final class GameUtil {
   @SuppressWarnings("unchecked")
-  public static final WriterParser TO_PG_SOLVER_CLI = ImmutableWriterParser.builder()
+  public static final WriterParser PG_SOLVER_CLI = ImmutableWriterParser.builder()
     .key("pg-solver")
-    .description("Writes the given max even parity arena in PG Solver format")
+    .description("Writes the given max even parity game in PG Solver format")
     .parser(settings -> (writer, env) -> {
       //noinspection resource,IOResourceOpenedButNotSafelyClosed
       PrintWriter printStream = writer instanceof PrintWriter
@@ -38,12 +38,12 @@ public final class ArenaUtil {
       return new OutputWriter.Binding() {
         @Override
         public void write(Object input) {
-          checkArgument(input instanceof Arena);
-          Arena<?, ?> arena = (Arena<?, ?>) input;
-          checkArgument(arena.getAcceptance() instanceof ParityAcceptance);
-          ParityAcceptance acceptance = (ParityAcceptance) arena.getAcceptance();
+          checkArgument(input instanceof Game);
+          Game<?, ?> game = (Game<?, ?>) input;
+          checkArgument(game.getAcceptance() instanceof ParityAcceptance);
+          ParityAcceptance acceptance = (ParityAcceptance) game.getAcceptance();
           checkArgument(acceptance.getParity() == Parity.MAX_EVEN);
-          ArenaUtil.toPgSolver((Arena<?, ParityAcceptance>) arena, printStream, names);
+          GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, names);
         }
 
         @Override
@@ -53,15 +53,15 @@ public final class ArenaUtil {
       };
     }).build();
 
-  private ArenaUtil() {}
+  private GameUtil() {}
 
-  public static <S> void toPgSolver(Arena<S, ParityAcceptance> arena, PrintWriter output,
+  public static <S> void toPgSolver(Game<S, ParityAcceptance> game, PrintWriter output,
     boolean names) {
-    assert arena.is(Automaton.Property.COMPLETE);
-    ParityAcceptance acceptance = arena.getAcceptance();
+    assert game.is(Automaton.Property.COMPLETE);
+    ParityAcceptance acceptance = game.getAcceptance();
     checkArgument(acceptance.getParity() == Parity.MAX_EVEN, "Invalid acceptance");
     // TODO Support it by adding a pseudo state
-    checkArgument(arena.getInitialStates().size() == 1, "Multiple initial states not supported");
+    checkArgument(game.getInitialStates().size() == 1, "Multiple initial states not supported");
 
     // The format does not support transition acceptance, thus acceptance is encoded into states
     Object2IntMap<PriorityState<S>> stateNumbering = new Object2IntLinkedOpenHashMap<>();
@@ -69,7 +69,7 @@ public final class ArenaUtil {
 
     int highestPriority = acceptance.getAcceptanceSets() - 1;
 
-    S initialState = arena.getInitialState();
+    S initialState = game.getInitialState();
     stateNumbering.put(new PriorityState<>(initialState, highestPriority), 0);
 
     Set<S> reachedStates = new HashSet<>(List.of(initialState));
@@ -80,11 +80,11 @@ public final class ArenaUtil {
     ToIntFunction<Edge<S>> getAcceptance = edge -> edge.hasAcceptanceSets()
       ? edge.smallestAcceptanceSet() + 1 : 0;
 
-    // Explore the reachable states of the state-acceptance arena
+    // Explore the reachable states of the state-acceptance game
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Set<Edge<S>> edges = arena.getEdges(state);
-      checkArgument(!edges.isEmpty(), "Provided arena is not complete");
+      Set<Edge<S>> edges = game.getEdges(state);
+      checkArgument(!edges.isEmpty(), "Provided game is not complete");
       for (Edge<S> edge : edges) {
         assert acceptance.isWellFormedEdge(edge);
         S successor = edge.getSuccessor();
@@ -110,9 +110,9 @@ public final class ArenaUtil {
       output.print(priorityState.acceptance);
       output.print(' ');
       // TODO Here the semantics might be important?
-      output.print(arena.getOwner(priorityState.state) == Arena.Owner.PLAYER_1 ? 0 : 1);
+      output.print(game.getOwner(priorityState.state) == Game.Owner.PLAYER_1 ? 0 : 1);
 
-      Iterator<Edge<S>> iterator = arena.getEdges(priorityState.state).iterator();
+      Iterator<Edge<S>> iterator = game.getEdges(priorityState.state).iterator();
       if (iterator.hasNext()) {
         output.print(' ');
       }

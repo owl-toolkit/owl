@@ -34,7 +34,6 @@ import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
-import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 public class LTL2DPAFunctionTest {
 

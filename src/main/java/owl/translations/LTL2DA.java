@@ -18,7 +18,7 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class LTL2DA {
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("ltl2da")
     .parser(settings -> environment ->
       Transformers.instanceFromFunction(LabelledFormula.class,
@@ -31,7 +31,7 @@ public final class LTL2DA {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2da")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
-      .addTransformer(CLI_PARSER)
+      .addTransformer(CLI)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build());

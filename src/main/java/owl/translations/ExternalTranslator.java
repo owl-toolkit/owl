@@ -52,7 +52,7 @@ public class ExternalTranslator
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
 
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("ltl2aut-ext")
     .description("Runs an external tool for LTL to automaton translation")
     .optionsBuilder(() -> {

@@ -1,4 +1,4 @@
-package owl.arena.algorithms;
+package owl.game.algorithms;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -7,12 +7,12 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
-import owl.arena.Arena;
-import owl.arena.Views;
-import owl.arena.Views.Node;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.game.Game;
+import owl.game.Views;
+import owl.game.Views.Node;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
@@ -31,10 +31,10 @@ public class ParityGameSolverTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
-    Arena<Node<Object>, ParityAcceptance> arena =
+    Game<Node<Object>, ParityAcceptance> game =
       Views.split(automaton, List.of("a"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(arena), equalTo(true));
+    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(true));
   }
 
   @Test
@@ -46,10 +46,10 @@ public class ParityGameSolverTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
-    Arena<Node<Object>, ParityAcceptance> arena =
+    Game<Node<Object>, ParityAcceptance> game =
       Views.split(automaton, List.of("r_0", "r_1"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(arena), equalTo(false));
+    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(false));
   }
 
   @Test
@@ -62,10 +62,10 @@ public class ParityGameSolverTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
-    Arena<Node<Object>, ParityAcceptance> arena =
+    Game<Node<Object>, ParityAcceptance> game =
       Views.split(automaton, List.of("go", "cancel", "req"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(arena), equalTo(false));
+    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(false));
   }
 
   @Test
@@ -75,9 +75,9 @@ public class ParityGameSolverTest {
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
-    Arena<Node<Object>, ParityAcceptance> arena =
+    Game<Node<Object>, ParityAcceptance> game =
       Views.split(automaton, List.of("r_0", "r_1"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(arena), equalTo(true));
+    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(true));
   }
 }

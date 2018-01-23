@@ -15,26 +15,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.arena.algorithms;
+package owl.game.algorithms;
 
-import static owl.arena.Arena.Owner.PLAYER_1;
-import static owl.arena.Arena.Owner.PLAYER_2;
+import static owl.game.Game.Owner.PLAYER_1;
+import static owl.game.Game.Owner.PLAYER_2;
 
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
-import owl.arena.Arena;
-import owl.arena.Views;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.game.Game;
+import owl.game.Views;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 
 public final class ParityGameSolver {
   // TODO: should be returning a winning region or strategy
   public static final Transformer ZIELONKA_SOLVER =
-    Transformers.fromFunction(Arena.class, x -> {
+    Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
 
       if (winning.player2.contains(x.getInitialState())) {
@@ -49,23 +49,23 @@ public final class ParityGameSolver {
   // The convention here is that player 2 wants to satisfy the parity condition
   // that is, get a minimal colour appearing infinitely often to be accepting.
   // Also, player 1 chooses actions BEFORE player 2 does
-  private static <S> WinningRegions<S> recursiveZielonka(Arena<S, ParityAcceptance> arena) {
-    ParityAcceptance acceptance = arena.getAcceptance();
+  private static <S> WinningRegions<S> recursiveZielonka(Game<S, ParityAcceptance> game) {
+    ParityAcceptance acceptance = game.getAcceptance();
 
-    // get the minimal colour in the arena
+    // get the minimal colour in the game
     int minimalColour = acceptance.getAcceptanceSets();
 
-    for (S state : arena.getStates()) {
-      for (Edge<S> edge : arena.getEdges(state)) {
+    for (S state : game.getStates()) {
+      for (Edge<S> edge : game.getEdges(state)) {
         minimalColour = Math.min(minimalColour, edge.smallestAcceptanceSet());
       }
     }
 
     // if the min did not change, we have a winner
-    Arena.Owner ourHorse = acceptance.isAccepting(minimalColour) ? PLAYER_2 : PLAYER_1;
+    Game.Owner ourHorse = acceptance.isAccepting(minimalColour) ? PLAYER_2 : PLAYER_1;
 
     if (minimalColour == acceptance.getAcceptanceSets()) {
-      return new WinningRegions<>(arena.getStates(), ourHorse);
+      return new WinningRegions<>(game.getStates(), ourHorse);
     }
 
     // lets get the set of all target states, this will depend on
@@ -75,56 +75,56 @@ public final class ParityGameSolver {
     int finMinColour = minimalColour;
     Predicate<Edge<S>> hasMinCol = y -> y.smallestAcceptanceSet() == finMinColour;
 
-    Set<S> winningStates = Sets.filter(arena.getStates(), x -> {
-      if (arena.getOwner(x) != PLAYER_2) {
+    Set<S> winningStates = Sets.filter(game.getStates(), x -> {
+      if (game.getOwner(x) != PLAYER_2) {
         return false;
       }
 
       if (PLAYER_2 == ourHorse) {
-        return arena.getEdges(x).stream().anyMatch(hasMinCol);
+        return game.getEdges(x).stream().anyMatch(hasMinCol);
       } else {
-        return arena.getEdges(x).stream().allMatch(hasMinCol);
+        return game.getEdges(x).stream().allMatch(hasMinCol);
       }
     });
 
     // NOTE: winningStates may be empty! this is because it is actually
     // the second layer of the attractor fixpoint, with the coloured edges
     // being the first layer
-    assert winningStates.stream().allMatch(x -> arena.getOwner(x) == PLAYER_2);
+    assert winningStates.stream().allMatch(x -> game.getOwner(x) == PLAYER_2);
 
     // we now compute the attractor of the winning states and get a filtered
-    // arena without the attractor states
-    Set<S> losingSet = Sets.difference(arena.getStates(),
-      arena.getAttractorFixpoint(winningStates, ourHorse));
+    // game without the attractor states
+    Set<S> losingSet = Sets.difference(game.getStates(),
+      game.getAttractorFixpoint(winningStates, ourHorse));
 
-    Arena<S, ParityAcceptance> subArena = Views.filter(arena, losingSet, hasMinCol.negate());
-    WinningRegions<S> subWinning = recursiveZielonka(subArena);
+    Game<S, ParityAcceptance> subGame = Views.filter(game, losingSet, hasMinCol.negate());
+    WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
     // if in the subgame our horse wins everywhere, then he's the winner
-    if (subWinning.winningRegion(ourHorse).containsAll(subArena.getStates())) {
-      return new WinningRegions<>(arena.getStates(), ourHorse);
+    if (subWinning.winningRegion(ourHorse).containsAll(subGame.getStates())) {
+      return new WinningRegions<>(game.getStates(), ourHorse);
     }
 
     // otherwise, we have to test a different subgame
     Set<S> opponentAttractor =
-      arena.getAttractorFixpoint(subWinning.winningRegion(ourHorse.flip()), ourHorse.flip());
+      game.getAttractorFixpoint(subWinning.winningRegion(ourHorse.flip()), ourHorse.flip());
 
-    losingSet = Sets.difference(arena.getStates(), opponentAttractor);
-    subWinning = recursiveZielonka(Views.filter(arena, losingSet));
+    losingSet = Sets.difference(game.getStates(), opponentAttractor);
+    subWinning = recursiveZielonka(Views.filter(game, losingSet));
     subWinning.addAll(opponentAttractor, ourHorse.flip());
 
     return subWinning;
   }
 
-  public static <S> boolean zielonkaRealizability(Arena<S, ParityAcceptance> arena) {
-    return recursiveZielonka(arena).player2.contains(arena.getInitialState());
+  public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
+    return recursiveZielonka(game).player2.contains(game.getInitialState());
   }
 
   private static final class WinningRegions<S> {
     private final Set<S> player1;
     private final Set<S> player2;
 
-    WinningRegions(Set<S> s, Arena.Owner o) {
+    WinningRegions(Set<S> s, Game.Owner o) {
       if (PLAYER_1 == o) {
         this.player1 = new HashSet<>(s);
         this.player2 = new HashSet<>();
@@ -134,7 +134,7 @@ public final class ParityGameSolver {
       }
     }
 
-    void addAll(Set<S> s, Arena.Owner o) {
+    void addAll(Set<S> s, Game.Owner o) {
       if (PLAYER_1 == o) {
         this.player1.addAll(s);
       } else {
@@ -142,7 +142,7 @@ public final class ParityGameSolver {
       }
     }
 
-    Set<S> winningRegion(Arena.Owner o) {
+    Set<S> winningRegion(Game.Owner o) {
       return PLAYER_1 == o ? this.player1 : this.player2;
     }
   }

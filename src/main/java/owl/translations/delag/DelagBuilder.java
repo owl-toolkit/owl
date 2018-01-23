@@ -48,7 +48,7 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("delag")
     .optionsDirect(new Options().addOption("f", "fallback", true,
       "Fallback tool for input outside the fragment ('none' for strict mode)"))
@@ -87,7 +87,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
-      .addTransformer(CLI_PARSER)
+      .addTransformer(CLI)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
   }

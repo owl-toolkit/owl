@@ -31,7 +31,7 @@ import owl.run.Environment;
 import owl.run.modules.OwlModuleParser.WriterParser;
 
 public final class OutputWriters {
-  public static final WriterParser AUTOMATON_STATS_CLI_PARSER = ImmutableWriterParser.builder()
+  public static final WriterParser AUTOMATON_STATS_CLI = ImmutableWriterParser.builder()
     .key("aut-stat")
     .optionsBuilder(() -> {
       Option format = new Option("f", "format", true,
@@ -50,9 +50,9 @@ public final class OutputWriters {
     .parser(settings -> automatonStats(settings.getOptionValue("format")))
     .build();
 
-  public static final WriterParser HOA_CLI_PARSER = ImmutableWriterParser.builder()
+  public static final WriterParser HOA_CLI = ImmutableWriterParser.builder()
     .key("hoa")
-    .description("Writes the HOA format representation of an automaton or an arena")
+    .description("Writes the HOA format representation of an automaton or an game")
     .parser(settings -> {
 
       List<StoredAutomatonManipulator> manipulators;
@@ -72,7 +72,7 @@ public final class OutputWriters {
     }).build();
 
   public static final OutputWriter NULL = (writer, environment) -> object -> writer.flush();
-  public static final WriterParser NULL_CLI_PARSER = ImmutableWriterParser.builder()
+  public static final WriterParser NULL_CLI = ImmutableWriterParser.builder()
     .key("null")
     .description("Discards the output - useful for performance testing")
     .parser(settings -> NULL)
@@ -83,7 +83,7 @@ public final class OutputWriters {
     writer.write(System.lineSeparator());
   };
 
-  public static final WriterParser TO_STRING_CLI_PARSER = ImmutableWriterParser.builder()
+  public static final WriterParser STRING_CLI = ImmutableWriterParser.builder()
     .key("string")
     .description("Prints the toString() representation of all passed objects")
     .parser(settings -> TO_STRING)

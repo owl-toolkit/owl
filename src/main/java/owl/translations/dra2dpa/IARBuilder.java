@@ -45,7 +45,7 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class IARBuilder<R> {
-  public static final TransformerParser CLI_PARSER = ImmutableTransformerParser.builder()
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("dra2dpa")
     .parser(settings -> Transformers.RABIN_TO_PARITY)
     .build();
@@ -65,7 +65,7 @@ public final class IARBuilder<R> {
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("dra2dpa")
       .reader(InputReaders.HoaReader.DEFAULT)
-      .addTransformer(CLI_PARSER)
+      .addTransformer(CLI)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
