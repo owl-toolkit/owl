@@ -31,7 +31,6 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -88,18 +87,8 @@ public final class IntAutomaton {
     }
   }
 
-  private static Acceptance detectAcceptance(Automaton<?, ?> automaton) {
-    OmegaAcceptance acceptance = automaton.getAcceptance();
-
-    if (acceptance instanceof AllAcceptance) {
-      return Acceptance.SAFETY;
-    }
-
-    // TODO: Add explicit support for safety, cosafety.
-    if (acceptance instanceof BuchiAcceptance) {
-      return Acceptance.CO_SAFETY;
-    }
-    ParityAcceptance parity = (ParityAcceptance) acceptance;
+  private static Acceptance detectAcceptance(Automaton<?, ParityAcceptance> automaton) {
+    ParityAcceptance parity = automaton.getAcceptance();
 
     switch (parity.getParity()) {
       case MAX_EVEN:
@@ -146,9 +135,9 @@ public final class IntAutomaton {
     Set<Configuration> configuration = EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
 
     if (onTheFly) {
-      configuration.remove(Configuration.COMPLEMENT_CONSTRUCTION);
-      configuration.remove(Configuration.OPTIMISE_INITIAL_STATE);
+      configuration.add(Configuration.GREEDY);
       configuration.add(Configuration.COLOUR_OVERAPPROXIMATION);
+      configuration.remove(Configuration.OPTIMISE_INITIAL_STATE);
     }
 
     Automaton<?, ParityAcceptance> automaton =

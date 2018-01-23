@@ -46,15 +46,18 @@ import owl.factories.ValuationSetFactory;
 public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
   private final A acceptance;
   private final ValuationSetFactory factory;
-  private final ImmutableSet<S> initialStates;
+  private final S initialState;
   private final BiFunction<S, BitSet, Edge<S>> successors;
 
-  StreamingAutomaton(A acceptance, ValuationSetFactory factory, Collection<S> initialStates,
-    BiFunction<S, BitSet, Edge<S>> successors) {
+  @Nullable
+  private Set<S> cachedStates = null;
+
+  StreamingAutomaton(S initialState, BiFunction<S, BitSet, Edge<S>> successorFunction, A acceptance,
+    ValuationSetFactory factory) {
     this.acceptance = acceptance;
     this.factory = factory;
-    this.initialStates = ImmutableSet.copyOf(initialStates);
-    this.successors = successors;
+    this.initialState = initialState;
+    this.successors = successorFunction;
   }
 
   private void computeEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
@@ -83,11 +86,10 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
     return edgeMap;
   }
 
-  private Set<S> exploreReachableStates(Collection<? extends S> start,
-    @Nullable Consumer<S> enterStateCallback,
+  private Set<S> exploreReachableStates(@Nullable Consumer<S> enterStateCallback,
     @Nullable Consumer<S> exitStateCallback,
     @Nullable BiConsumer<Edge<S>, BitSet> visitEdge) {
-    Set<S> exploredStates = Sets.newHashSet(start);
+    Set<S> exploredStates = Sets.newHashSet(initialState);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
@@ -114,7 +116,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
       }
     }
 
-    return exploredStates;
+    return ImmutableSet.copyOf(exploredStates);
   }
 
   @Override
@@ -168,7 +170,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
 
   @Override
   public Set<S> getInitialStates() {
-    return initialStates;
+    return Set.of(initialState);
   }
 
   @Override
@@ -178,7 +180,11 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
 
   @Override
   public Set<S> getStates() {
-    return AutomatonUtil.getReachableStates(this, initialStates);
+    if (cachedStates != null) {
+      return cachedStates;
+    }
+
+    return cachedStates = exploreReachableStates(null, null, null);
   }
 
   @Override
@@ -189,9 +195,8 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      acceptance, initialStates, options, true, getName());
-    exploreReachableStates(initialStates, hoa::addState, (x) -> hoa.notifyEndOfState(),
-      hoa::addEdge);
+      acceptance, Set.of(initialState), options, true, getName());
+    exploreReachableStates(hoa::addState, x -> hoa.notifyEndOfState(), hoa::addEdge);
     hoa.notifyEnd();
   }
 }

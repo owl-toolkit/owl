@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -334,7 +335,7 @@ public final class ParityUtil {
     }
 
     @Override
-    public boolean is(Property property) {
+    public boolean is(@Nonnull Property property) {
       return property.equals(Property.COLOURED) || super.is(property);
     }
   }

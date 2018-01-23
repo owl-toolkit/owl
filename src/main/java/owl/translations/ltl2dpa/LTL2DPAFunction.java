@@ -21,10 +21,12 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COLOUR_OVER
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.BitSet;
 import java.util.EnumSet;
@@ -34,8 +36,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -61,6 +66,7 @@ import owl.translations.ltl2ldba.breakpoint.GObligations;
 import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
+import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
   public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
@@ -68,6 +74,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(GUESS_F,
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE);
+
+  private static final int GREEDY_TIME_MS = 10;
 
   private final EnumSet<Configuration> configuration;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
@@ -77,6 +85,9 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public LTL2DPAFunction(Environment env, Set<Configuration> configuration) {
     this.configuration = EnumSet.copyOf(configuration);
+    Preconditions.checkArgument(!configuration.contains(GREEDY)
+      || configuration.contains(COMPLEMENT_CONSTRUCTION),
+      "GREEDY requires COMPLEMENT_CONSTRUCTION");
 
     EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
       LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
@@ -95,40 +106,40 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    ExecutorService executor = Executors.newCachedThreadPool();
+    ExecutorService executor = Executors.newCachedThreadPool(
+      new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
     Future<Result<?>> automatonFuture = executor.submit(callable(formula, false));
     Future<Result<?>> complementFuture = executor.submit(callable(formula, true));
 
     try {
-      Automaton<?, ParityAcceptance> automaton;
-      Automaton<?, ParityAcceptance> complement;
+      Automaton<?, ParityAcceptance> automaton = null;
+      Automaton<?, ParityAcceptance> complement = null;
 
-      // Get automaton.
-      Result<?> result = Uninterruptibles.getUninterruptibly(automatonFuture);
+      do {
+        if (automaton == null) {
+          automaton = getAutomaton(automatonFuture);
+        }
 
-      if (configuration.contains(COMPLETE)) {
-        automaton = result.complete();
-      } else {
-        automaton = result.automaton;
-      }
+        if (complement == null) {
+          complement = getComplement(complementFuture);
+        }
+      } while (!exitLoop(automaton, complement));
 
-      // Get complement automaton.
-      result = Uninterruptibles.getUninterruptibly(complementFuture);
-
-      if (result == null) {
+      if (complement == null) {
+        assert automaton != null;
         return automaton;
       }
 
-      complement = result.complement();
+      if (automaton == null) {
+        return complement;
+      }
 
       // Select smaller automaton.
-      int size = automaton.size();
-
-      if (size < complement.size()) {
+      if (automaton.size() < complement.size()) {
         return automaton;
       }
 
-      if (size > complement.size()) {
+      if (automaton.size() > complement.size()) {
         return complement;
       }
 
@@ -136,7 +147,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
         <= complement.getAcceptance().getAcceptanceSets() ? automaton : complement;
     } catch (ExecutionException ex) {
       // The translation broke down, it is unsafe to continue...
-
       automatonFuture.cancel(true);
       complementFuture.cancel(true);
       //noinspection ProhibitedExceptionThrown
@@ -144,6 +154,56 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     } finally {
       executor.shutdown();
     }
+  }
+
+  private boolean exitLoop(@Nullable Automaton<?, ?> automaton,
+    @Nullable Automaton<?, ?> complement) {
+    if (configuration.contains(GREEDY)) {
+      return automaton != null || complement != null;
+    }
+
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION)) {
+      return  automaton != null && complement != null;
+    }
+
+    return automaton != null;
+  }
+
+  @Nullable
+  private Result<?> getResult(Future<Result<?>> future) throws ExecutionException {
+    if (!configuration.contains(GREEDY)) {
+      return Uninterruptibles.getUninterruptibly(future);
+    }
+
+    try {
+      return future.get(GREEDY_TIME_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | TimeoutException e) {
+      // Swallow exception
+      return null;
+    }
+  }
+
+  @Nullable
+  private Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
+    throws ExecutionException {
+    Result<?> result = getResult(future);
+
+    if (result == null) {
+      return null;
+    }
+
+    if (configuration.contains(COMPLETE)) {
+      return result.complete();
+    } else {
+      return result.automaton;
+    }
+  }
+
+  @Nullable
+  private Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
+    throws ExecutionException {
+    Result<?> result = getResult(future);
+    return result != null ? result.complement() : null;
   }
 
   private Callable<Result<?>> callable(LabelledFormula formula, boolean complement) {
@@ -233,7 +293,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public enum Configuration {
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPLETE, GUESS_F, COLOUR_OVERAPPROXIMATION
+    COMPLETE, GUESS_F, COLOUR_OVERAPPROXIMATION, GREEDY
   }
 
   final class Result<T> {
