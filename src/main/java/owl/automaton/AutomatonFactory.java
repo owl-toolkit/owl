@@ -37,7 +37,7 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> createStreamingAutomaton(
     A acceptance, S initialState, ValuationSetFactory factory,
     BiFunction<S, BitSet, Edge<S>> transitions) {
-    return new StreamingAutomaton<>(acceptance, factory, Set.of(initialState), transitions);
+    return new StreamingAutomaton<>(initialState, transitions, acceptance, factory);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
