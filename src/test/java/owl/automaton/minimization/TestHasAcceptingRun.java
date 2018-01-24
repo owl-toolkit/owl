@@ -19,7 +19,7 @@ import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.transformations.ParityUtil;
 import owl.run.DefaultEnvironment;
-import owl.translations.ldba2dpa.RankingState;
+import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 import owl.translations.nba2ldba.BreakpointState;
 
@@ -99,14 +99,14 @@ public class TestHasAcceptingRun {
       DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      result = (MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>,
+    MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
+      result = (MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>,
       ParityAcceptance>) translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     assertThat(EmptinessCheck.isEmpty(result), is(!hasAcceptingRun));
-    MutableAutomaton<RankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      complement = ParityUtil.complement(result, RankingState::of);
+    MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
+      complement = ParityUtil.complement(result, FlatRankingState::of);
     assertThat(EmptinessCheck.isEmpty(complement), is(!complementHasAcceptingRun));
   }
 }

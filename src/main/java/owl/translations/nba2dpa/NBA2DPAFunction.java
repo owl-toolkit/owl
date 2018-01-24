@@ -39,8 +39,8 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.ldba2dpa.FlatRankingAutomaton;
 import owl.translations.ldba2dpa.LanguageLattice;
-import owl.translations.ldba2dpa.RankingAutomaton;
 import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.GeneralizedBuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
@@ -89,9 +89,9 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
       .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
 
-    LanguageLattice<Set<BreakpointState<Object>>, BreakpointState<Object>, Void> oracle =
+    LanguageLattice<BreakpointState<Object>, Void, Set<BreakpointState<Object>>> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
 
-    return RankingAutomaton.of(ldbaCutDet, true, oracle, s -> false, false, true);
+    return FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true);
   }
 }

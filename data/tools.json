@@ -24,6 +24,16 @@
                "simple": "-s"
             }
         },
+        "ltl2dra": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dra",
+            "flags": {
+               "degeneralise": "-d",
+               "simple": "-s"
+            }
+        },
         "ltl2da": {
             "type": "owl",
             "input": "ltl",

@@ -82,6 +82,9 @@ public final class FGObligations implements RecurringObligation {
         return null;
       }
 
+      // Wrap into G.
+      formula = GOperator.of(formula);
+
       if (formula instanceof GOperator) {
         builder.add((GOperator) formula);
       } else {
@@ -134,16 +137,14 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public boolean containsLanguageOf(RecurringObligation other) {
     checkArgument(other instanceof FGObligations);
+    return ((FGObligations) other).rewrittenOperators.containsAll(rewrittenOperators);
 
-    if (((FGObligations) other).rewrittenOperators.containsAll(rewrittenOperators)) {
-      return true;
-    }
-
-    EquivalenceClass thisObligation = getObligation();
-    EquivalenceClass thatObligation = ((FGObligations) other).getObligation();
-    boolean implies = thatObligation.implies(thisObligation);
-    EquivalenceClassUtil.free(thisObligation, thatObligation);
-    return implies;
+    // TODO: Fix this? -> Might Depend on EquivalenceClassFactory Literal Encoding.
+    //EquivalenceClass thisObligation = getObligation();
+    //EquivalenceClass thatObligation = ((FGObligations) other).getObligation();
+    //boolean implies = thatObligation.implies(thisObligation);
+    //EquivalenceClassUtil.free(thisObligation, thatObligation);
+    //return implies;
   }
 
   @Override

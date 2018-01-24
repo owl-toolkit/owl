@@ -20,7 +20,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
-import owl.translations.ldba2dpa.RankingState;
+import owl.translations.ldba2dpa.AnnotatedState;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
@@ -61,7 +61,7 @@ public class GameFactoryTest {
     Set<Node<Object>> winningStates = game.getStates().stream()
       .filter(x -> {
         @SuppressWarnings("unchecked")
-        RankingState<EquivalenceClass, ?> state = (RankingState<EquivalenceClass, ?>) x.state;
+        AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state;
         return state.state != null && state.state.isTrue();
       }).collect(Collectors.toSet());
     assertThat(winningStates, not(empty()));
