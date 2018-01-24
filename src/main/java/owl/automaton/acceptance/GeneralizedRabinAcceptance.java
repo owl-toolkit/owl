@@ -22,22 +22,20 @@ import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
 import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
 import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
 
-import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
+import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.edge.Edge;
 
 /**
@@ -50,20 +48,34 @@ import owl.automaton.edge.Edge;
  * exactly one Fin/Inf atom.</p>
  */
 public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
-  private static final int NOT_ALLOCATED = -1;
   private final Object mutex = new Object();
-  private final List<GeneralizedRabinPair> pairList;
+  private final List<RabinPair> pairList;
+
+  @Nonnegative
   private int setCount = 0;
 
   public GeneralizedRabinAcceptance() {
     pairList = new LinkedList<>();
   }
 
+  private boolean assertConsistent() {
+    int i = 0;
+
+    for (RabinPair pair : pairList) {
+      assert i == pair.finIndex;
+      assert pair.finIndex <= pair.infIndex;
+      i = pair.infIndex + 1;
+    }
+
+    assert i == setCount;
+    return true;
+  }
+
   public static GeneralizedRabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
     GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
 
     for (BooleanExpression<AtomAcceptance> dis : getDisjuncts(expression)) {
-      int fin = NOT_ALLOCATED;
+      int fin = -1;
       IntSortedSet inf = new IntAVLTreeSet();
 
       for (BooleanExpression<AtomAcceptance> element : getConjuncts(dis)) {
@@ -71,7 +83,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
         switch (atom.getType()) {
           case TEMPORAL_FIN:
-            checkArgument(fin == NOT_ALLOCATED);
+            checkArgument(fin == -1);
             fin = atom.getAcceptanceSet();
             break;
           case TEMPORAL_INF:
@@ -83,55 +95,25 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
         }
       }
 
-      checkArgument(fin != NOT_ALLOCATED);
+      // TODO: This validation is not complete.
+      checkArgument(fin != -1);
+      checkArgument(fin == acceptance.setCount);
       checkArgument(inf.isEmpty() || inf.lastInt() - inf.firstInt() == inf.size() - 1);
       checkArgument(inf.isEmpty() || fin == inf.firstInt() - 1);
       acceptance.createPair(inf.size());
     }
 
+    assert acceptance.assertConsistent();
     return acceptance;
   }
 
-  public static void normalize(MutableAutomaton<?, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-
-    acceptance.pairList.removeIf(GeneralizedRabinPair::isEmpty);
-    Int2IntMap edgeRemapping = new Int2IntLinkedOpenHashMap();
-
-    int currentIndex = 0;
-    int currentShift = 0;
-    for (int i = 0; i < acceptance.pairList.size(); i++) {
-      GeneralizedRabinPair pair = acceptance.pairList.get(i);
-
-      if (pair.hasFinite()) {
-        int finalCurrentShift = currentShift;
-        pair.forEachIndex(index -> edgeRemapping.put(index, index + finalCurrentShift));
-
-        pair.shiftIndices(currentShift);
-        currentIndex += 1 + pair.getInfiniteIndexCount();
-      } else {
-        currentShift += 1;
-        int finalCurrentShift = currentShift;
-        pair.forEachInfiniteIndex(index -> edgeRemapping.put(index, index + finalCurrentShift));
-
-        pair.shiftIndices(currentShift);
-        pair.setFiniteIndex(currentIndex);
-        currentIndex += pair.getInfiniteIndexCount();
-      }
-    }
-    if (!edgeRemapping.isEmpty()) {
-      automaton.remapEdges((state, edge) -> edge.withAcceptance(edgeRemapping));
-    }
-  }
-
-  public GeneralizedRabinPair createPair(int infCount) {
+  public RabinPair createPair(@Nonnegative int infSets) {
     synchronized (mutex) {
       int finIndex = setCount;
-      setCount += 1;
-
-      GeneralizedRabinPair pair = new GeneralizedRabinPair(finIndex, setCount, setCount + infCount);
-      setCount += infCount;
+      setCount = setCount + 1 + infSets;
+      RabinPair pair = new RabinPair(finIndex, finIndex + infSets);
       pairList.add(pair);
+      assert assertConsistent();
       return pair;
     }
   }
@@ -143,8 +125,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    return createDisjunction(pairList.stream().filter(x -> !x.isEmpty())
-      .map(GeneralizedRabinPair::getBooleanExpression));
+    return createDisjunction(pairList.stream().map(RabinPair::getBooleanExpression));
   }
 
   @Override
@@ -156,18 +137,12 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
   public List<Object> getNameExtra() {
     // <pair_count> <inf_pairs_of_1> <inf_pairs_of_2> <...>
     List<Object> extra = new ArrayList<>(pairList.size() + 1);
-    extra.add(0); // Will be replaced by count of non-empty pairs.
+    extra.add(pairList.size());
 
-    int nonEmptyPairs = 0;
-    for (GeneralizedRabinPair pair : pairList) {
-      if (pair.isEmpty()) {
-        continue;
-      }
-      nonEmptyPairs += 1;
+    for (RabinPair pair : pairList) {
       extra.add(pair.getInfiniteIndexCount());
     }
 
-    extra.set(0, nonEmptyPairs);
     return extra;
   }
 
@@ -176,8 +151,8 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
    *
    * @return The rabin pairs of this acceptance condition
    */
-  public Collection<GeneralizedRabinPair> getPairs() {
-    return Collections.unmodifiableCollection(pairList);
+  public List<RabinPair> getPairs() {
+    return Collections.unmodifiableList(pairList);
   }
 
   @Override
@@ -190,44 +165,54 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
   public void removeIndices(IntPredicate removalPredicate) {
     synchronized (mutex) {
       int removedIndices = 0;
-      for (GeneralizedRabinPair pair : pairList) {
-        int pairRemovedIndices = pair.removeIndices(removalPredicate);
-        pair.shiftIndices(-removedIndices);
-        removedIndices += pairRemovedIndices;
+      Iterator<RabinPair> iterator = pairList.iterator();
+      while (iterator.hasNext()) {
+        RabinPair pair = iterator.next();
+
+        if (removalPredicate.test(pair.finIndex)) {
+          iterator.remove();
+          removedIndices += pair.getInfiniteIndexCount() + 1;
+        } else {
+          int removedInfIndices = 0;
+
+          for (int i = pair.finIndex + 1; i <= pair.infIndex; i++) {
+            if (removalPredicate.test(i)) {
+              removedInfIndices++;
+            }
+          }
+
+          assert pair.finIndex >= removedIndices;
+          assert pair.infIndex >= removedIndices + removedInfIndices;
+
+          pair.finIndex = pair.finIndex - removedIndices;
+          pair.infIndex = pair.infIndex - (removedIndices + removedInfIndices);
+          removedIndices += removedInfIndices;
+        }
       }
+
       setCount -= removedIndices;
+      assert assertConsistent();
     }
   }
 
-  public static final class GeneralizedRabinPair {
+  public static final class RabinPair {
 
-    private int finiteIndex;
-    private int infiniteIndicesFrom;
-    private int infiniteIndicesTo;
+    @Nonnegative
+    private int finIndex;
 
-    GeneralizedRabinPair(int finiteIndex, int infiniteIndicesFrom, int infiniteIndicesTo) {
-      assert finiteIndex >= 0;
-      this.finiteIndex = finiteIndex;
-      this.infiniteIndicesFrom = infiniteIndicesFrom;
-      this.infiniteIndicesTo = infiniteIndicesTo;
+    @Nonnegative
+    // All indices in the interval ]finIndex, infIndex] are considered inf.
+    private int infIndex;
+
+    RabinPair(@Nonnegative int finIndex, int infIndex) {
+      assert finIndex >= 0;
+      assert infIndex >= finIndex;
+      this.finIndex = finIndex;
+      this.infIndex = infIndex;
     }
 
     public boolean contains(Edge<?> edge) {
-      return containsFinite(edge) || containsInfinite(edge);
-    }
-
-    /**
-     * Checks whether the given edge is contained in the <b>Fin</b> set of this pair.
-     *
-     * @param edge
-     *     The edge to be tested.
-     *
-     * @return If {@code edge} is contained in the <b>Fin</b> set.
-     *
-     * @see Edge#inSet(int)
-     */
-    public boolean containsFinite(Edge<?> edge) {
-      return hasFinite() && edge.inSet(finiteIndex);
+      return edge.inSet(finIndex) || containsInfinite(edge);
     }
 
     /**
@@ -241,113 +226,62 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
      * @see Edge#inSet(int)
      */
     public boolean containsInfinite(Edge<?> edge) {
-      for (int index = infiniteIndicesFrom; index < infiniteIndicesTo; index++) {
-        if (edge.inSet(index)) {
+      for (int i = finIndex + 1; i <= infIndex; i++) {
+        if (edge.inSet(i)) {
           return true;
         }
       }
+
       return false;
     }
 
     public void forEachIndex(IntConsumer action) {
-      forFiniteIndex(action);
+      action.accept(finIndex);
       forEachInfiniteIndex(action);
     }
 
     public void forEachInfiniteIndex(IntConsumer action) {
-      for (int index = infiniteIndicesFrom; index < infiniteIndicesTo; index++) {
-        action.accept(index);
-      }
-    }
-
-    public void forFiniteIndex(IntConsumer action) {
-      if (hasFinite()) {
-        action.accept(finiteIndex);
+      for (int i = finIndex + 1; i <= infIndex; i++) {
+        action.accept(i);
       }
     }
 
     private BooleanExpression<AtomAcceptance> getBooleanExpression() {
-      assert !isEmpty();
+      BooleanExpression<AtomAcceptance> acceptance = BooleanExpressions.mkFin(finIndex);
 
-      BooleanExpression<AtomAcceptance> acceptance;
-      if (hasFinite()) {
-        acceptance = BooleanExpressions.mkFin(finiteIndex);
-        if (hasInfinite()) {
-          acceptance = acceptance.and(BooleanExpressions.mkInf(infiniteIndicesFrom));
-        }
-      } else {
-        acceptance = BooleanExpressions.mkInf(infiniteIndicesFrom);
-      }
-      for (int index = infiniteIndicesFrom + 1; index < infiniteIndicesTo; index++) {
+      for (int index = finIndex + 1; index <= infIndex; index++) {
         acceptance = acceptance.and(BooleanExpressions.mkInf(index));
       }
 
       return acceptance;
     }
 
+    @Nonnegative
     public int getFiniteIndex() {
-      return finiteIndex;
+      return finIndex;
     }
 
+    @Nonnegative
     public int getInfiniteIndex(int number) {
-      assert infiniteIndicesFrom + number < infiniteIndicesTo;
-      return infiniteIndicesFrom + number;
+      assert finIndex + number < infIndex;
+      return finIndex + 1 + number;
     }
 
+    @Nonnegative
     public int getInfiniteIndexCount() {
-      return infiniteIndicesTo - infiniteIndicesFrom;
-    }
-
-    public boolean hasFinite() {
-      return finiteIndex != NOT_ALLOCATED;
+      return infIndex - finIndex;
     }
 
     public boolean hasInfinite() {
-      return infiniteIndicesFrom < infiniteIndicesTo;
+      return getInfiniteIndexCount() > 0;
     }
 
     public IntIterator infiniteIndexIterator() {
-      return IntIterators.fromTo(infiniteIndicesFrom, infiniteIndicesTo);
+      return IntIterators.fromTo(finIndex + 1, infIndex + 1);
     }
 
-    public boolean isEmpty() {
-      return !(hasFinite() || hasInfinite());
-    }
-
-    public boolean isInfinite(int index) {
-      return infiniteIndicesFrom <= index && index < infiniteIndicesTo;
-    }
-
-    int removeIndices(IntPredicate removal) {
-      int removedIndices = 0;
-      for (int index = infiniteIndicesFrom; index < infiniteIndicesTo; index++) {
-        if (removal.test(index)) {
-          removedIndices += 1;
-        }
-      }
-      infiniteIndicesTo -= removedIndices;
-
-      if (hasFinite() && removal.test(finiteIndex)) {
-        finiteIndex = NOT_ALLOCATED;
-        removedIndices += 1;
-        infiniteIndicesFrom -= 1;
-        infiniteIndicesTo -= 1;
-      }
-      return removedIndices;
-    }
-
-    void setFiniteIndex(int finiteIndex) {
-      this.finiteIndex = finiteIndex;
-    }
-
-    void shiftIndices(int amount) {
-      if (hasFinite()) {
-        finiteIndex += amount;
-        assert finiteIndex >= 0;
-      }
-      infiniteIndicesTo += amount;
-      infiniteIndicesFrom += amount;
-      assert infiniteIndicesFrom >= 0;
+    public boolean isInfinite(int i) {
+      return finIndex < i && i <= infIndex;
     }
   }
 }

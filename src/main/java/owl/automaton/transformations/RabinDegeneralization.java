@@ -31,9 +31,8 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -66,16 +65,16 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     // transition is not contained in the fin set, it's a good transition. We don't need to
     // track that index at all then and can save some space.
     GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-    Collection<GeneralizedRabinPair> pairs = acceptance.getPairs();
+    Collection<RabinPair> pairs = acceptance.getPairs();
 
     // Filter out the obviously irrelevant pairs
-    List<GeneralizedRabinPair> trackedPairs = new ArrayList<>();
-    List<GeneralizedRabinPair> noInfPairs = new ArrayList<>();
+    List<RabinPair> trackedPairs = new ArrayList<>();
+    List<RabinPair> noInfPairs = new ArrayList<>();
 
     pairs.forEach(pair -> {
       if (pair.hasInfinite()) {
         trackedPairs.add(pair);
-      } else if (pair.hasFinite()) {
+      } else {
         noInfPairs.add(pair);
       }
     });
@@ -84,7 +83,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     int trackedPairsCount = trackedPairs.size();
     int rabinCount = trackedPairsCount + noInfPairs.size();
     RabinAcceptance degeneralizedAcceptance = new RabinAcceptance();
-    RabinPair[] rabinPairs = new RabinPair[rabinCount];
+    RabinAcceptance.RabinPair[] rabinPairs = new RabinAcceptance.RabinPair[rabinCount];
     for (int i = 0; i < rabinPairs.length; i++) {
       rabinPairs[i] = degeneralizedAcceptance.createPair();
     }
@@ -133,9 +132,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         }
       });
 
-      int sccTrackedPairsCount = sccTrackedPairs.size();
-      assert sccTrackedPairsCount <= trackedPairsCount;
-      int[] awaitedIndices = new int[sccTrackedPairsCount];
+      assert sccTrackedPairs.size() <= trackedPairsCount;
+      int[] awaitedIndices = new int[sccTrackedPairs.size()];
 
       // Pick an arbitrary starting state for the exploration
       DegeneralizedRabinState<S> initialSccState =
@@ -161,7 +159,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             }
 
             // The index of the next awaited inf set of each generalized pair in the successor
-            int[] successorAwaitedIndices = new int[sccTrackedPairsCount];
+            int[] successorAwaitedIndices = new int[sccTrackedPairs.size()];
 
             // The acceptance on this edge. If a the Fin set of a generalized pair is encountered on
             // the original edge, this edge will have the corresponding Fin bit set. If otherwise an
@@ -170,14 +168,13 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             BitSet edgeAcceptance = new BitSet(rabinCount);
 
             // First handle the non-trivial case of pairs with Fin and Inf sets.
-            for (int sccPairIndex = 0; sccPairIndex < sccTrackedPairsCount; sccPairIndex++) {
+            for (int sccPairIndex = 0; sccPairIndex < sccTrackedPairs.size(); sccPairIndex++) {
               int currentPairIndex = sccTrackedPairs.getInt(sccPairIndex);
-              GeneralizedRabinPair currentGeneralizedRabinPair =
+              RabinPair currentPair =
                 trackedPairs.get(currentPairIndex);
               int awaitedInfSet = state.awaitedInfSet(sccPairIndex);
 
-              if (currentGeneralizedRabinPair.hasFinite()
-                && edge.inSet(currentGeneralizedRabinPair.getFiniteIndex())) {
+              if (edge.inSet(currentPair.getFiniteIndex())) {
                 // We have seen the fin set, put this transition into the fin set and restart
                 // the wait
                 awaitedInfSet = 0;
@@ -185,18 +182,18 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
               } else {
                 // We did not see the fin set, check which inf sets have been seen
                 // Check all inf sets of the rabin pair, starting from the awaited index.
-                int infiniteIndexCount = currentGeneralizedRabinPair.getInfiniteIndexCount();
+                int infiniteIndexCount = currentPair.getInfiniteIndexCount();
                 int currentInfNumber = awaitedInfSet;
                 for (int i = 0; i < infiniteIndexCount; i++) {
                   currentInfNumber = (awaitedInfSet + i) % infiniteIndexCount;
                   int currentInfIndex =
-                    currentGeneralizedRabinPair.getInfiniteIndex(currentInfNumber);
+                    currentPair.getInfiniteIndex(currentInfNumber);
                   if (!edge.inSet(currentInfIndex)) {
                     break;
                   }
                   if (currentInfNumber == infiniteIndexCount - 1) {
                     // We reached a breakpoint and can add the transition to the inf set
-                    RabinPair rabinPair = rabinPairs[currentPairIndex];
+                    RabinAcceptance.RabinPair rabinPair = rabinPairs[currentPairIndex];
                     int infiniteIndex = rabinPair.infiniteIndex;
                     edgeAcceptance.set(infiniteIndex);
                   }
@@ -209,9 +206,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             // Deal with sets which have no Fin set separately
             Collections3.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
               int currentPairIndex = trackedPairsCount + noInfIndex;
-              RabinPair currentPair = rabinPairs[currentPairIndex];
+              RabinAcceptance.RabinPair currentPair = rabinPairs[currentPairIndex];
 
-              edgeAcceptance.set(pair.containsFinite(edge)
+              edgeAcceptance.set(edge.inSet(pair.getFiniteIndex())
                                  ? currentPair.finiteIndex
                                  : currentPair.infiniteIndex);
             });

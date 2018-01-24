@@ -40,7 +40,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance.GeneralizedRabinPair;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -213,7 +213,7 @@ public class RabinizerBuilder {
       Iterator<int[]> rankingIterator = activeSet.rankings.iterator();
       int index = 0;
       while (rankingIterator.hasNext()) {
-        GeneralizedRabinPair pair = activeSet.getPairForRanking(index);
+        RabinPair pair = activeSet.getPairForRanking(index);
         tableBuilder.append("\n  ").append(RabinizerUtil.printRanking(rankingIterator.next()))
           .append(" -> ").append(pair);
         index += 1;
@@ -463,7 +463,7 @@ public class RabinizerBuilder {
             rankingIndex += 1;
             int[] ranking = rankingIterator.next();
             assert ranking.length == entries(activeSubFormulas);
-            GeneralizedRabinPair pair = activeSet.getPairForRanking(rankingIndex);
+            RabinPair pair = activeSet.getPairForRanking(rankingIndex);
 
             GSetRanking rankingPair = new GSetRanking(relevantFormulas, activeSubFormulas,
               activeSubFormulasSet, pair, ranking, eqFactory, monitorPriorities);
@@ -554,7 +554,7 @@ public class RabinizerBuilder {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.getSuccessors(trueState)),
         trueState);
 
-      GeneralizedRabinPair truePair = acceptance.createPair(1);
+      RabinPair truePair = acceptance.createPair(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
       Edge<RabinizerState> edge = Edge.of(trueState, truePair.getInfiniteIndex(0));
       rabinizerAutomaton.addEdge(trueState, vsFactory.createUniverseValuationSet(), edge);
@@ -823,10 +823,10 @@ public class RabinizerBuilder {
   private static final class ActiveSet {
     final GSet activeSet;
     final Set<int[]> rankings;
-    private final GeneralizedRabinPair[] rankingPairs;
+    private final RabinPair[] rankingPairs;
 
     @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-    ActiveSet(GSet activeSet, Set<int[]> rankings, GeneralizedRabinPair[] rankingPairs) {
+    ActiveSet(GSet activeSet, Set<int[]> rankings, RabinPair[] rankingPairs) {
       this.rankings = rankings;
       this.activeSet = activeSet;
       this.rankingPairs = rankingPairs;
@@ -858,20 +858,20 @@ public class RabinizerBuilder {
 
       // Allocate the acceptance caches
       Set<int[]> rankings = new NatCartesianProductSet(maximalRanks);
-      GeneralizedRabinPair[] rankingPairs = new GeneralizedRabinPair[rankings.size()];
+      RabinPair[] rankingPairs = new RabinPair[rankings.size()];
       Arrays.setAll(rankingPairs, i -> acceptance.createPair(subset.size()));
 
       return new ActiveSet(subset, rankings, rankingPairs);
     }
 
-    GeneralizedRabinPair getPairForRanking(int rankingIndex) {
+    RabinPair getPairForRanking(int rankingIndex) {
       return rankingPairs[rankingIndex];
     }
   }
 
   private static final class GSetRanking {
     final GSet activeFormulaSet;
-    final GeneralizedRabinPair pair;
+    final RabinPair pair;
     final int[] ranking;
     private final boolean[] activeFormulas;
     private final EquivalenceClassFactory eqFactory;
@@ -880,7 +880,7 @@ public class RabinizerBuilder {
 
     @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
     GSetRanking(boolean[] relevantFormulas, boolean[] activeFormulas, GSet activeFormulaSet,
-      GeneralizedRabinPair pair, int[] ranking, EquivalenceClassFactory eqFactory,
+      RabinPair pair, int[] ranking, EquivalenceClassFactory eqFactory,
       ValuationSet[][] monitorPriorities) {
       assert activeFormulas.length == relevantFormulas.length;
 
