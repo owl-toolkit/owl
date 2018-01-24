@@ -17,14 +17,8 @@
 
 package owl.automaton.acceptance;
 
-import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
-
 import com.google.common.base.Preconditions;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
@@ -37,18 +31,15 @@ import owl.automaton.edge.Edge;
  * acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
  * acceptance without any pairs rejects every word.
  */
-public final class RabinAcceptance extends OmegaAcceptance {
-  private final BitSet allocatedIndices = new BitSet();
-  private final List<RabinPair> pairs;
-
+public class RabinAcceptance extends GeneralizedRabinAcceptance {
   public RabinAcceptance() {
-    pairs = new ArrayList<>();
+    this(0);
   }
 
-  public RabinAcceptance(int pairNr) {
-    pairs = new ArrayList<>();
-    for (int i = 0; i < pairNr; i++) {
-      createPair(2 * i, 2 * i + 1);
+  public RabinAcceptance(int n) {
+    super();
+    for (int i = 0; i < n; i++) {
+      createPair();
     }
   }
 
@@ -79,37 +70,22 @@ public final class RabinAcceptance extends OmegaAcceptance {
         }
       }
 
-      acceptance.createPair(fin, inf);
+      Preconditions.checkArgument(fin >= 0);
+      Preconditions.checkArgument(inf >= 0);
+      acceptance.createPair(1);
     }
 
     return acceptance;
   }
 
-  private RabinPair createPair(int fin, int inf) {
-    Preconditions.checkArgument(fin >= 0);
-    Preconditions.checkArgument(inf >= 0);
-
-    RabinPair pair = new RabinPair(fin, inf);
-    allocatedIndices.set(fin);
-    allocatedIndices.set(inf);
-    pairs.add(pair);
-    return pair;
-  }
-
   public RabinPair createPair() {
-    int fin = allocatedIndices.nextClearBit(0);
-    int inf = allocatedIndices.nextClearBit(fin + 1);
-    return createPair(fin, inf);
+    return createPair(1);
   }
 
   @Override
-  public int getAcceptanceSets() {
-    return allocatedIndices.cardinality();
-  }
-
-  @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    return createDisjunction(pairs.stream().map(RabinPair::getBooleanExpression));
+  public RabinPair createPair(int infSets) {
+    Preconditions.checkArgument(infSets == 1, "Rabin Acceptance.");
+    return super.createPair(infSets);
   }
 
   @Override
@@ -122,29 +98,20 @@ public final class RabinAcceptance extends OmegaAcceptance {
     return List.of(pairs.size());
   }
 
-  public List<RabinPair> getPairs() {
-    return Collections.unmodifiableList(pairs);
-  }
-
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
     return edge.largestAcceptanceSet() < 2 * pairs.size();
   }
 
-  public static final class RabinPair {
-    @Nonnegative
-    public final int finiteIndex;
+  @Override
+  protected boolean assertConsistent() {
+    super.assertConsistent();
+    assert getAcceptanceSets() == 2 * pairs.size();
 
-    @Nonnegative
-    public final int infiniteIndex;
-
-    RabinPair(@Nonnegative int fin, @Nonnegative int inf) {
-      finiteIndex = fin;
-      infiniteIndex = inf;
+    for (RabinPair pair : pairs) {
+      assert pair.finSet() + 1 == pair.infSet();
     }
 
-    private BooleanExpression<AtomAcceptance> getBooleanExpression() {
-      return BooleanExpressions.mkFin(finiteIndex).and(BooleanExpressions.mkInf(infiniteIndex));
-    }
+    return true;
   }
 }

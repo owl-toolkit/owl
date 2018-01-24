@@ -33,11 +33,11 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.edge.Edge;
 import owl.automaton.transformations.RabinDegeneralization;
 
@@ -346,8 +346,8 @@ public final class EmptinessCheck {
     private static <S> boolean containsAcceptingLasso(Automaton<S, RabinAcceptance> automaton,
       S initialState) {
       for (RabinPair pair : automaton.getAcceptance().getPairs()) {
-        if (hasAcceptingLasso(automaton, initialState, pair.infiniteIndex,
-          pair.finiteIndex, false)) {
+        if (hasAcceptingLasso(automaton, initialState, pair.infSet(),
+          pair.finSet(), false)) {
           return true;
         }
       }
@@ -363,18 +363,18 @@ public final class EmptinessCheck {
         for (RabinPair pair : finitePairs) {
           // Compute all SCCs after removing the finite edges of the current finite pair
           Automaton<S, RabinAcceptance> filteredAutomaton = Views.filter(automaton, scc,
-            edge -> !edge.inSet(pair.finiteIndex));
+            edge -> !edge.inSet(pair.finSet()));
 
           if (SccDecomposition.computeSccs(filteredAutomaton, scc)
             .stream().anyMatch(subScc -> {
               // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
               for (S state : subScc) {
                 for (Edge<S> edge : filteredAutomaton.getEdges(state)) {
-                  if (!subScc.contains(edge.getSuccessor()) || edge.inSet(pair.finiteIndex)) {
+                  if (!subScc.contains(edge.getSuccessor()) || edge.inSet(pair.finSet())) {
                     // This edge does not qualify for an accepting cycle
                     continue;
                   }
-                  if (edge.inSet(pair.infiniteIndex)) {
+                  if (edge.inSet(pair.infSet())) {
                     // This edge yields an accepting cycle
                     return true;
                   }

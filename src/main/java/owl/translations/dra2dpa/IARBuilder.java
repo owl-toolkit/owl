@@ -26,12 +26,12 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -210,7 +210,7 @@ public final class IARBuilder<R> {
           }
           // Check which of the Inf sets is active here
           // N.B. |= does not short-circuit
-          seenAnyInfSet |= remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infiniteIndex));
+          seenAnyInfSet |= remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infSet()));
           // When remaining is create, have seen all sets
           seenAllInfSets = remainingPairsToCheck.isEmpty();
         } else {
@@ -220,7 +220,7 @@ public final class IARBuilder<R> {
       }
     }
 
-    ImmutableMultimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();
+    Multimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();
 
     if (!sccHasALoop) {
       // SCC has no transition inside, it's a transient one
@@ -241,7 +241,7 @@ public final class IARBuilder<R> {
     if (seenAllInfSets) {
       activeRabinPairs = ImmutableSet.copyOf(rabinPairs);
     } else {
-      activeRabinPairs = ImmutableSet.copyOf(Sets.difference(rabinPairs, remainingPairsToCheck));
+      activeRabinPairs = Sets.difference(rabinPairs, remainingPairsToCheck).immutableCopy();
     }
 
     // TODO This might access the factory in parallel... Maybe we can return a lazy-explore type

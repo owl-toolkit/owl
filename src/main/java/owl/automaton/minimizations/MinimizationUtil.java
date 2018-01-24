@@ -34,6 +34,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.transformations.ParityUtil;
@@ -70,6 +71,26 @@ public final class MinimizationUtil {
     GeneralizedRabinMinimizations::minimizeSccIrrelevant,
     GeneralizedRabinMinimizations::minimizeGloballyIrrelevant
   );
+  private static final List<Minimization<Object, GeneralizedRabinAcceptance>>
+    rabinDefaultAllList = List.of(
+    GeneralizedRabinMinimizations::minimizeOverlap,
+    GeneralizedRabinMinimizations::minimizeMergePairs,
+    GenericMinimizations::removeTransientAcceptance,
+    // MinimizationUtil::removeDeadStates,
+    // GeneralizedRabinMinimizations::minimizeComplementaryInf,
+    GeneralizedRabinMinimizations::minimizeGloballyIrrelevant,
+    GeneralizedRabinMinimizations::minimizeEdgeImplications,
+    GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+    GeneralizedRabinMinimizations::minimizeTrivial,
+    GeneralizedRabinMinimizations::minimizePairImplications,
+    GeneralizedRabinMinimizations::minimizeMergePairs,
+    // GeneralizedRabinMinimizations::minimizeComplementaryInf,
+    GeneralizedRabinMinimizations::minimizePairImplications,
+    GeneralizedRabinMinimizations::minimizeEdgeImplications,
+    GeneralizedRabinMinimizations::minimizeSccIrrelevant,
+    GeneralizedRabinMinimizations::minimizeGloballyIrrelevant
+  );
+
   private static final List<Minimization<Object, ParityAcceptance>>
     parityDefaultList = List.of(
     GenericMinimizations::removeTransientAcceptance,
@@ -80,16 +101,16 @@ public final class MinimizationUtil {
   private MinimizationUtil() {}
 
   public static <S, A extends OmegaAcceptance> void applyMinimization(
-    MutableAutomaton<S, A> automaton, List<Minimization<S, A>> minimizationList) {
+    MutableAutomaton<S, ? extends A> automaton, List<Minimization<S, A>> minimizationList) {
     if (minimizationList.isEmpty()) {
       return;
     }
     logger.log(Level.FINE, "Optimizing automaton with {0}", minimizationList);
 
-    for (Minimization<S, A> minimization : minimizationList) {
+    for (Minimization<S, ? extends A> minimization : minimizationList) {
       logger.log(Level.FINEST, () -> String.format("Current automaton: %s", toHoa(automaton)));
       logger.log(Level.FINER, "Applying {0}", minimization);
-      minimization.minimize(automaton);
+      minimization.minimize((MutableAutomaton) automaton);
     }
 
     logger.log(Level.FINEST, () -> String.format("Automaton after optimization:%n%s",
@@ -101,8 +122,10 @@ public final class MinimizationUtil {
     MutableAutomaton<S, A> automaton, MinimizationLevel level) {
     OmegaAcceptance acceptance = automaton.getAcceptance();
 
-    // TODO More
-    if (acceptance instanceof GeneralizedRabinAcceptance) {
+    if (acceptance instanceof RabinAcceptance) {
+      applyMinimization((MutableAutomaton<Object, RabinAcceptance>) automaton,
+        rabinDefaultAllList);
+    } else if (acceptance instanceof GeneralizedRabinAcceptance) {
       MutableAutomaton<Object, GeneralizedRabinAcceptance> dgra =
         (MutableAutomaton<Object, GeneralizedRabinAcceptance>) automaton;
       if (level == MinimizationLevel.ALL) {

@@ -55,8 +55,12 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
 
-  public static <S> Automaton<DegeneralizedRabinState<S>, RabinAcceptance> degeneralize(
-    Automaton<S, GeneralizedRabinAcceptance> automaton) {
+  public static <S> Automaton<?, RabinAcceptance> degeneralize(
+    Automaton<S, ? extends GeneralizedRabinAcceptance> automaton) {
+    if (automaton.getAcceptance() instanceof RabinAcceptance) {
+      return AutomatonUtil.cast(automaton, RabinAcceptance.class);
+    }
+
     // TODO parallel
     logger.log(Level.FINER, "De-generalising automaton with {0} states", automaton.size());
 
@@ -72,7 +76,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     List<RabinPair> noInfPairs = new ArrayList<>();
 
     pairs.forEach(pair -> {
-      if (pair.hasInfinite()) {
+      if (pair.hasInfSet()) {
         trackedPairs.add(pair);
       } else {
         noInfPairs.add(pair);
@@ -126,8 +130,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
       Collections3.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
-        assert pair.hasInfinite();
-        if (IntIterators.all(pair.infiniteIndexIterator(), indices::contains)) {
+        assert pair.hasInfSet();
+        if (IntIterators.all(pair.infSetIterator(), indices::contains)) {
           sccTrackedPairs.add(pairIndex);
         }
       });
@@ -174,27 +178,27 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                 trackedPairs.get(currentPairIndex);
               int awaitedInfSet = state.awaitedInfSet(sccPairIndex);
 
-              if (edge.inSet(currentPair.getFiniteIndex())) {
+              if (edge.inSet(currentPair.finSet())) {
                 // We have seen the fin set, put this transition into the fin set and restart
                 // the wait
                 awaitedInfSet = 0;
-                edgeAcceptance.set(rabinPairs[currentPairIndex].finiteIndex);
+                edgeAcceptance.set(rabinPairs[currentPairIndex].finSet());
               } else {
                 // We did not see the fin set, check which inf sets have been seen
                 // Check all inf sets of the rabin pair, starting from the awaited index.
-                int infiniteIndexCount = currentPair.getInfiniteIndexCount();
+                int infiniteIndexCount = currentPair.infSetCount();
                 int currentInfNumber = awaitedInfSet;
                 for (int i = 0; i < infiniteIndexCount; i++) {
                   currentInfNumber = (awaitedInfSet + i) % infiniteIndexCount;
                   int currentInfIndex =
-                    currentPair.getInfiniteIndex(currentInfNumber);
+                    currentPair.infSet(currentInfNumber);
                   if (!edge.inSet(currentInfIndex)) {
                     break;
                   }
                   if (currentInfNumber == infiniteIndexCount - 1) {
                     // We reached a breakpoint and can add the transition to the inf set
                     RabinAcceptance.RabinPair rabinPair = rabinPairs[currentPairIndex];
-                    int infiniteIndex = rabinPair.infiniteIndex;
+                    int infiniteIndex = rabinPair.infSet();
                     edgeAcceptance.set(infiniteIndex);
                   }
                 }
@@ -208,9 +212,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
               int currentPairIndex = trackedPairsCount + noInfIndex;
               RabinAcceptance.RabinPair currentPair = rabinPairs[currentPairIndex];
 
-              edgeAcceptance.set(edge.inSet(pair.getFiniteIndex())
-                                 ? currentPair.finiteIndex
-                                 : currentPair.infiniteIndex);
+              edgeAcceptance.set(edge.inSet(pair.finSet())
+                                 ? currentPair.finSet()
+                                 : currentPair.infSet());
             });
 
             DegeneralizedRabinState<S> successor =
