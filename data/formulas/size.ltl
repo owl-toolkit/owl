@@ -11,3 +11,19 @@ F G a | F G b | F G c | F G d
 F G a0 | G b0
 F G a0 | F G a1 | G b0 | G b1
 F G a0 | F G a1 | F G a2 | G b0 | G b1 | G b2
+
+G (a1 | X b1)
+G (a1 | X b1) & G (a2 | X b2)
+G (a1 | X b1) & G (a2 | X b2) & G (a3 | X b3)
+
+G (a1 | XX b1)
+G (a1 | XX b1) & G (a2 | XX b2)
+G (a1 | XX b1) & G (a2 | XX b2) & G (a3 | XX b3)
+
+GF (a1 & X b1)
+GF (a1 & X b1) & GF (a2 & X b2)
+GF (a1 & X b1) & GF (a2 & X b2) & GF (a3 & X b3)
+
+GF (a1 & XX b1)
+GF (a1 & XX b1) & GF (a2 & XX b2)
+GF (a1 & XX b1) & GF (a2 & XX b2) & GF (a3 & XX b3)
