@@ -471,7 +471,7 @@ public class RabinizerBuilder {
             // Check if the current master state is entailed by the current |G| and r pair
             if (!configuration.eager() && !rankingPair.monitorsEntail(state)) {
               // Bad transition for this (|G|, r) pair - all edges are Fin
-              int finiteIndex = pair.getFiniteIndex();
+              int finiteIndex = pair.finSet();
               successors.forEach((transition, valuations) ->
                 transition.addAcceptance(valuations, finiteIndex));
               continue;
@@ -487,7 +487,7 @@ public class RabinizerBuilder {
                 ValuationSet edgeValuation =
                   vsFactory.createValuationSet(valuation, sensitiveAlphabet);
                 if (configuration.eager() && !rankingPair.monitorsEntailEager(state, valuation)) {
-                  transition.addAcceptance(edgeValuation, pair.getFiniteIndex());
+                  transition.addAcceptance(edgeValuation, pair.finSet());
                 } else {
                   IntSet edgeAcceptance = rankingPair.getAcceptance(valuation);
                   transition.addAcceptance(edgeValuation, edgeAcceptance);
@@ -556,7 +556,7 @@ public class RabinizerBuilder {
 
       RabinPair truePair = acceptance.createPair(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
-      Edge<RabinizerState> edge = Edge.of(trueState, truePair.getInfiniteIndex(0));
+      Edge<RabinizerState> edge = Edge.of(trueState, truePair.infSet(0));
       rabinizerAutomaton.addEdge(trueState, vsFactory.createUniverseValuationSet(), edge);
     }
 
@@ -951,7 +951,7 @@ public class RabinizerBuilder {
         }
         if (priority == 0) {
           // This edge is fail - definitely Fin
-          return IntSets.singleton(pair.getFiniteIndex());
+          return IntSets.singleton(pair.finSet());
         }
         int succeedPriority = 2 * ranking[activeIndex] + 1;
         if (priority > succeedPriority) {
@@ -960,14 +960,14 @@ public class RabinizerBuilder {
         }
         if (priority % 2 == 0) {
           // Merged at some lower rank
-          return IntSets.singleton(pair.getFiniteIndex());
+          return IntSets.singleton(pair.finSet());
         }
         if (priority == succeedPriority) {
           // Succeeded at the current rank
           if (edgeAcceptanceSet == null) {
             edgeAcceptanceSet = new IntOpenHashSet();
           }
-          edgeAcceptanceSet.add(pair.getInfiniteIndex(activeIndex));
+          edgeAcceptanceSet.add(pair.infSet(activeIndex));
         }
       }
 

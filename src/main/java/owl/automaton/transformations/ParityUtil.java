@@ -233,11 +233,6 @@ public final class ParityUtil {
     return automaton;
   }
 
-  public static <S> Automaton<S, ParityAcceptance> viewAsParity(
-    Automaton<S, BuchiAcceptance> automaton) {
-    return new WrappedBuchiAutomaton<>(automaton);
-  }
-
   public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
     Parity toParity) {
     // TODO Check for "colored" property
@@ -298,45 +293,4 @@ public final class ParityUtil {
     }
   }
 
-  private static final class WrappedBuchiAutomaton<S> extends
-    ForwardingAutomaton<S, ParityAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
-    private final ParityAcceptance acceptance;
-
-    WrappedBuchiAutomaton(Automaton<S, BuchiAcceptance> backingAutomaton) {
-      super(backingAutomaton);
-      acceptance = new ParityAcceptance(2, Parity.MIN_EVEN);
-    }
-
-    private Edge<S> convertBuchiToParity(Edge<S> edge) {
-      return edge.inSet(0) ? edge : Edge.of(edge.getSuccessor(), 1);
-    }
-
-    @Override
-    public ParityAcceptance getAcceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      checkState(acceptance.getAcceptanceSets() == 2);
-      return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
-        LabelledEdge.of(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
-    }
-
-    @Nullable
-    @Override
-    public S getSuccessor(S state, BitSet valuation) {
-      return automaton.getSuccessor(state, valuation);
-    }
-
-    @Override
-    public Set<S> getSuccessors(S state) {
-      return automaton.getSuccessors(state);
-    }
-
-    @Override
-    public boolean is(@Nonnull Property property) {
-      return property.equals(Property.COLOURED) || super.is(property);
-    }
-  }
 }

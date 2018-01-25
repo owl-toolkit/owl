@@ -18,6 +18,7 @@
 package owl.automaton.acceptance;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
 import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
 import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
@@ -29,7 +30,6 @@ import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -47,21 +47,21 @@ import owl.automaton.edge.Edge;
  * <p>According to the HOA specifications, the indices are monotonically increasing and used for
  * exactly one Fin/Inf atom.</p>
  */
-public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
+public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   private final Object mutex = new Object();
-  private final List<RabinPair> pairList;
+  final List<RabinPair> pairs;
 
   @Nonnegative
   private int setCount = 0;
 
   public GeneralizedRabinAcceptance() {
-    pairList = new LinkedList<>();
+    pairs = new ArrayList<>();
   }
 
-  private boolean assertConsistent() {
+  protected boolean assertConsistent() {
     int i = 0;
 
-    for (RabinPair pair : pairList) {
+    for (RabinPair pair : pairs) {
       assert i == pair.finIndex;
       assert pair.finIndex <= pair.infIndex;
       i = pair.infIndex + 1;
@@ -112,7 +112,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
       int finIndex = setCount;
       setCount = setCount + 1 + infSets;
       RabinPair pair = new RabinPair(finIndex, finIndex + infSets);
-      pairList.add(pair);
+      pairs.add(pair);
       assert assertConsistent();
       return pair;
     }
@@ -125,7 +125,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
   @Override
   public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    return createDisjunction(pairList.stream().map(RabinPair::getBooleanExpression));
+    return createDisjunction(pairs.stream().map(RabinPair::getBooleanExpression));
   }
 
   @Override
@@ -136,11 +136,11 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
   @Override
   public List<Object> getNameExtra() {
     // <pair_count> <inf_pairs_of_1> <inf_pairs_of_2> <...>
-    List<Object> extra = new ArrayList<>(pairList.size() + 1);
-    extra.add(pairList.size());
+    List<Object> extra = new ArrayList<>(pairs.size() + 1);
+    extra.add(pairs.size());
 
-    for (RabinPair pair : pairList) {
-      extra.add(pair.getInfiniteIndexCount());
+    for (RabinPair pair : pairs) {
+      extra.add(pair.infSetCount());
     }
 
     return extra;
@@ -152,7 +152,7 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
    * @return The rabin pairs of this acceptance condition
    */
   public List<RabinPair> getPairs() {
-    return Collections.unmodifiableList(pairList);
+    return Collections.unmodifiableList(pairs);
   }
 
   @Override
@@ -165,13 +165,13 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
   public void removeIndices(IntPredicate removalPredicate) {
     synchronized (mutex) {
       int removedIndices = 0;
-      Iterator<RabinPair> iterator = pairList.iterator();
+      Iterator<RabinPair> iterator = pairs.iterator();
       while (iterator.hasNext()) {
         RabinPair pair = iterator.next();
 
         if (removalPredicate.test(pair.finIndex)) {
           iterator.remove();
-          removedIndices += pair.getInfiniteIndexCount() + 1;
+          removedIndices += pair.infSetCount() + 1;
         } else {
           int removedInfIndices = 0;
 
@@ -237,10 +237,10 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
     public void forEachIndex(IntConsumer action) {
       action.accept(finIndex);
-      forEachInfiniteIndex(action);
+      forEachInfSet(action);
     }
 
-    public void forEachInfiniteIndex(IntConsumer action) {
+    public void forEachInfSet(IntConsumer action) {
       for (int i = finIndex + 1; i <= infIndex; i++) {
         action.accept(i);
       }
@@ -257,31 +257,36 @@ public final class GeneralizedRabinAcceptance extends OmegaAcceptance {
     }
 
     @Nonnegative
-    public int getFiniteIndex() {
+    public int finSet() {
       return finIndex;
     }
 
     @Nonnegative
-    public int getInfiniteIndex(int number) {
+    public int infSet(int number) {
       assert finIndex + number < infIndex;
       return finIndex + 1 + number;
     }
 
     @Nonnegative
-    public int getInfiniteIndexCount() {
+    public int infSetCount() {
       return infIndex - finIndex;
     }
 
-    public boolean hasInfinite() {
-      return getInfiniteIndexCount() > 0;
+    public boolean hasInfSet() {
+      return infSetCount() > 0;
     }
 
-    public IntIterator infiniteIndexIterator() {
+    public IntIterator infSetIterator() {
       return IntIterators.fromTo(finIndex + 1, infIndex + 1);
     }
 
     public boolean isInfinite(int i) {
       return finIndex < i && i <= infIndex;
+    }
+
+    public int infSet() {
+      checkState(infSetCount() == 1);
+      return infIndex;
     }
   }
 }

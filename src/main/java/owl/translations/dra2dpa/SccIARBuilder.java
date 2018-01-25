@@ -26,10 +26,10 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.RabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -156,10 +156,10 @@ final class SccIARBuilder<R> {
     for (int currentClass = 0; currentClass < classes; currentClass++) {
       for (int rabinPairInClass : currentRecord.equivalenceClass(currentClass)) {
         RabinAcceptance.RabinPair rabinPair = indexToPair[rabinPairInClass];
-        if (rabinEdge.inSet(rabinPair.finiteIndex)) {
+        if (rabinEdge.inSet(rabinPair.finSet())) {
           visitedFinSetIndices.add(rabinPairInClass);
           priority = Math.min(priority, maximumPriority - 2 * currentClass - 2);
-        } else if (rabinEdge.inSet(rabinPair.infiniteIndex)) {
+        } else if (rabinEdge.inSet(rabinPair.infSet())) {
           priority = Math.min(priority, maximumPriority - 2 * currentClass - 1);
         }
       }

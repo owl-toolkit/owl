@@ -30,12 +30,18 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.ParityAcceptance.Parity;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
@@ -327,6 +333,142 @@ public final class Views {
     @Override
     public A getAcceptance() {
       return acceptance;
+    }
+  }
+
+  // TODO: Merge with cast?
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> viewAs(Automaton<S, ?> automaton,
+    Class<A> acceptanceClazz) {
+    if (ParityAcceptance.class.equals(acceptanceClazz)) {
+      checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
+      return AutomatonUtil.cast(new Buchi2Parity<>(
+        AutomatonUtil.cast(automaton, BuchiAcceptance.class)), acceptanceClazz);
+    }
+
+    if (RabinAcceptance.class.equals(acceptanceClazz)) {
+      checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
+      return AutomatonUtil.cast(new Buchi2Rabin<>(
+        AutomatonUtil.cast(automaton, BuchiAcceptance.class)), acceptanceClazz);
+    }
+
+    if (GeneralizedRabinAcceptance.class.equals(acceptanceClazz)) {
+      checkArgument(automaton.getAcceptance() instanceof GeneralizedBuchiAcceptance);
+      return AutomatonUtil.cast(new GenBuchi2GenRabin<>(
+        AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class)), acceptanceClazz);
+    }
+
+    throw new UnsupportedOperationException();
+  }
+
+  private static final class Buchi2Parity<S> extends
+    ForwardingAutomaton<S, ParityAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
+    private final ParityAcceptance acceptance;
+
+    Buchi2Parity(Automaton<S, BuchiAcceptance> backingAutomaton) {
+      super(backingAutomaton);
+      acceptance = new ParityAcceptance(2, Parity.MIN_EVEN);
+    }
+
+    private Edge<S> convertBuchiToParity(Edge<S> edge) {
+      return edge.inSet(0) ? edge : Edge.of(edge.getSuccessor(), 1);
+    }
+
+    @Override
+    public ParityAcceptance getAcceptance() {
+      return acceptance;
+    }
+
+    @Override
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
+        LabelledEdge.of(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
+    }
+
+    @Nullable
+    @Override
+    public S getSuccessor(S state, BitSet valuation) {
+      return automaton.getSuccessor(state, valuation);
+    }
+
+    @Override
+    public Set<S> getSuccessors(S state) {
+      return automaton.getSuccessors(state);
+    }
+
+    @Override
+    public boolean is(@Nonnull Property property) {
+      return property.equals(Property.COLOURED) || super.is(property);
+    }
+  }
+
+  private static final class Buchi2Rabin<S> extends
+    ForwardingAutomaton<S, RabinAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
+    private final RabinAcceptance acceptance;
+
+    Buchi2Rabin(Automaton<S, BuchiAcceptance> backingAutomaton) {
+      super(backingAutomaton);
+      acceptance = new RabinAcceptance(1);
+    }
+
+    private Edge<S> convertBuchiToRabin(Edge<S> edge) {
+      return edge.withAcceptance(x -> x + 1);
+    }
+
+    @Override
+    public RabinAcceptance getAcceptance() {
+      return acceptance;
+    }
+
+    @Override
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
+        LabelledEdge.of(convertBuchiToRabin(labelledEdge.edge), labelledEdge.valuations));
+    }
+
+    @Nullable
+    @Override
+    public S getSuccessor(S state, BitSet valuation) {
+      return automaton.getSuccessor(state, valuation);
+    }
+
+    @Override
+    public Set<S> getSuccessors(S state) {
+      return automaton.getSuccessors(state);
+    }
+  }
+
+  private static final class GenBuchi2GenRabin<S> extends
+    ForwardingAutomaton<S, GeneralizedRabinAcceptance, GeneralizedBuchiAcceptance,
+      Automaton<S, GeneralizedBuchiAcceptance>> {
+    private final GeneralizedRabinAcceptance acceptance;
+
+    GenBuchi2GenRabin(Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton) {
+      super(backingAutomaton);
+      acceptance = new GeneralizedRabinAcceptance();
+      acceptance.createPair(backingAutomaton.getAcceptance().getAcceptanceSets());
+    }
+
+    @Override
+    public GeneralizedRabinAcceptance getAcceptance() {
+      return acceptance;
+    }
+
+    @Override
+    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      return Collections2.transform(super.getLabelledEdges(state),
+        labelledEdge -> LabelledEdge
+          .of(labelledEdge.edge.withAcceptance(x -> x + 1), labelledEdge.valuations));
+    }
+
+    @Nullable
+    @Override
+    public S getSuccessor(S state, BitSet valuation) {
+      return automaton.getSuccessor(state, valuation);
+    }
+
+    @Override
+    public Set<S> getSuccessors(S state) {
+      return automaton.getSuccessors(state);
     }
   }
 }
