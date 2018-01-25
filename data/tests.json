@@ -62,12 +62,12 @@
             }
         },
         "ltl2ldba-small": {
-            "tools": [
-                "ltl2ldba#degeneralise,simple",
-                "ltl2ldba#degeneralise,non-deterministic,simple",
-                "ltl2ldba#degeneralise,guess-f,simple",
-                "ltl2ldba#degeneralise,guess-f,non-deterministic,simple"
-            ],
+            "tools": {
+                "simple": "ltl2ldba#degeneralise,simple",
+                "non-det+simple": "ltl2ldba#degeneralise,non-deterministic,simple",
+                "guess-F+simple": "ltl2ldba#degeneralise,guess-f,simple",
+                "guess-F+non-det+simple": "ltl2ldba#degeneralise,guess-f,non-deterministic,simple"
+            },
             "data": "small"
         },
         "ltl2ldgba": {
@@ -79,12 +79,12 @@
             }
         },
         "ltl2ldgba-small": {
-            "tools": [
-                "ltl2ldba#simple",
-                "ltl2ldba#non-deterministic,simple",
-                "ltl2ldba#guess-f,simple",
-                "ltl2ldba#guess-f,non-deterministic,simple"
-            ],
+            "tools": {
+                "simple": "ltl2ldba#simple",
+                "non-det+simple": "ltl2ldba#non-deterministic,simple",
+                "guess-F+simple": "ltl2ldba#guess-f,simple",
+                "guess-F+non-det+simple": "ltl2ldba#guess-f,non-deterministic,simple"
+            },
             "data": "small"
         },
         "ltl2dpa": {
@@ -94,14 +94,14 @@
             ]
         },
         "ltl2dpa-small": {
-            "tools": [
-                "ltl2dpa#guess-f",
-                "ltl2dpa#guess-f,complement",
-                "ltl2dpa#simple",
-                "ltl2dpa#complement,simple",
-                "ltl2dpa#guess-f,simple",
-                "ltl2dpa#guess-f,complement,simple"
-            ],
+            "tools": {
+                "guess-F": "ltl2dpa#guess-f",
+                "guess-F+comp": "ltl2dpa#guess-f,complement",
+                "simple": "ltl2dpa#simple",
+                "simple+comp": "ltl2dpa#complement,simple",
+                "guess-F+simple": "ltl2dpa#guess-f,simple",
+                "guess-F+simple+comp": "ltl2dpa#guess-f,complement,simple"
+            },
             "data": "small"
         },
         "ltl2da": "ltl2da",

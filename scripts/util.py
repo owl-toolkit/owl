@@ -13,15 +13,15 @@ import owlpy.tool as owl_tool
 
 def _test(args):
     if len(args) > 2:
-        print("Usage: util.py test <database>? <test names>")
+        print("Usage: util.py test <test names> <dataset>?")
         sys.exit(1)
 
-    if len(args) == 1:
-        database = owl_defaults.get_test_path()
-        test_names = args[0].split(";")
-    else:
-        database = args[0]
-        test_names = args[1].split(";")
+    database = owl_defaults.get_test_path()
+    test_names = args[0].split(";")
+    test_set_override = None
+
+    if len(args) == 2:
+        test_set_override = args[1]
 
     test_config = owl_defaults.load_json(database)
 
@@ -51,12 +51,12 @@ def _test(args):
             tools = [test_json["tools"]]
         else:
             tools = test_json["tools"]
-        data = test_json["data"]
-        if type(data) is str:
-            if data in dataset_json:
-                data = dataset_json[data]
+        test_data_sets = test_json["data"]
+        if type(test_data_sets) is str:
+            if test_data_sets in dataset_json:
+                test_data_sets = dataset_json[test_data_sets]
             else:
-                data = [data]
+                test_data_sets = [test_data_sets]
 
         test_arguments = [owl_defaults.get_script_path("ltlcross-run.sh"),
                           reference["name"], " ".join(reference["exec"])]
@@ -112,23 +112,32 @@ def _test(args):
         formulas_json = owl_defaults.load_json(owl_defaults.get_formula_path())
         formula_sets = owl_formula.read_formula_sets(formulas_json)
 
-        for data_set in data:
-            if type(data_set) is dict:
-                if "name" not in data_set:
-                    raise KeyError("No dataset name provided")
-                data_set_name = data_set["name"]
-                data_set_det = data_set.get("determinize", False)
-            elif type(data_set) is str:
-                data_set_name = data_set
-                data_set_det = False
-            else:
-                raise TypeError("Unknown specification format")
-            if data_set_name not in formula_sets:
-                raise KeyError("Unknown formula set {0!s}".format(data_set_name))
+        test_formula_sets = []
 
-            if data_set_det:
+        if test_set_override is None:
+            for data_set in test_data_sets:
+                if type(data_set) is dict:
+                    if "name" not in data_set:
+                        raise KeyError("No dataset name provided")
+                    formula_set_name = data_set["name"]
+                    formula_set_det = data_set.get("determinize", False)
+                elif type(data_set) is str:
+                    formula_set_name = data_set
+                    formula_set_det = False
+                else:
+                    raise TypeError("Unknown specification format")
+
+                test_formula_sets.append((formula_set_name, formula_set_det))
+        else:
+            test_formula_sets.append((test_set_override, False))
+
+        for (formula_set_name, formula_set_det) in test_formula_sets:
+            if formula_set_name not in formula_sets:
+                raise KeyError("Unknown formula set {0!s}".format(formula_set_name))
+
+            if formula_set_det:
                 test_arguments.append("-d")
-            test_arguments.append(data_set_name)
+            test_arguments.append(formula_set_name)
 
         sub_env = os.environ.copy()
         sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
