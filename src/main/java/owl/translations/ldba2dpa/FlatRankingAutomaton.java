@@ -27,8 +27,8 @@ public final class FlatRankingAutomaton {
   public static <S, T, A, L> Automaton<FlatRankingState<S, T>, ParityAcceptance> of(
     LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba, LanguageLattice<T, A, L> lattice,
     Predicate<S> isAcceptingState, boolean resetRanking, boolean optimizeInitialState) {
-    checkArgument(ldba.getAcceptingComponent().getInitialStates().isEmpty()
-      && ldba.getInitialComponent().getInitialStates().size() == 1,
+    checkArgument(//ldba.getAcceptingComponent().getInitialStates().isEmpty()
+      ldba.getInitialComponent().getInitialStates().size() == 1,
       "Exactly one initial state expected.");
 
     Builder<S, T, A, L> builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking);
