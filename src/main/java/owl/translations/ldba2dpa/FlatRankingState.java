@@ -26,35 +26,32 @@ import owl.collections.Collections3;
 import owl.util.ImmutableObject;
 
 @Immutable
-public final class RankingState<S, T> extends ImmutableObject {
+public final class FlatRankingState<S, T> extends AnnotatedState<S> {
   public final ImmutableList<T> ranking;
-  @Nullable
-  public final S state;
   public final int safetyProgress;
 
-  private RankingState(@Nullable S state, ImmutableList<T> ranking, int safetyProgress) {
+  private FlatRankingState(@Nullable S state, List<T> ranking, int safetyProgress) {
+    super(state);
     assert Collections3.isDistinct(ranking);
-    this.state = state;
-    this.ranking = ranking;
+    this.ranking = ImmutableList.copyOf(ranking);
     this.safetyProgress = safetyProgress;
   }
 
-  static <S, T> RankingState<S, T> of(@Nullable S initialComponentState) {
-    return of(initialComponentState, List.of(), -1);
+  static <S, T> FlatRankingState<S, T> of(@Nullable S state) {
+    return of(state, List.of(), -1);
   }
 
-  static <S, T> RankingState<S, T> of(@Nullable S initialComponentState, List<T> ranking,
-    int safetyProgress) {
-    return new RankingState<>(initialComponentState, ImmutableList.copyOf(ranking), safetyProgress);
+  static <S, T> FlatRankingState<S, T> of(@Nullable S state, List<T> ranking, int safetyProgress) {
+    return new FlatRankingState<>(state, ranking, safetyProgress);
   }
 
-  public static <S, T> RankingState<S, T> of() {
+  public static <S, T> FlatRankingState<S, T> of() {
     return of(null);
   }
 
   @Override
   protected boolean equals2(ImmutableObject o) {
-    RankingState<?, ?> that = (RankingState<?, ?>) o;
+    FlatRankingState<?, ?> that = (FlatRankingState<?, ?>) o;
     return safetyProgress == that.safetyProgress
       && Objects.equals(state, that.state)
       && Objects.equals(ranking, that.ranking);

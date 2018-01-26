@@ -6,8 +6,8 @@ import owl.ltl.Fragments;
 import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
-public class EquivalenceClassLanguageLattice implements LanguageLattice<EquivalenceClass,
-  DegeneralizedBreakpointState, GObligations> {
+public class EquivalenceClassLanguageLattice implements
+  LanguageLattice<DegeneralizedBreakpointState, GObligations, EquivalenceClass> {
 
   private final EquivalenceClassFactory eqFactory;
 

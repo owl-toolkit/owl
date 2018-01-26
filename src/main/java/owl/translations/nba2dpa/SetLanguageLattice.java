@@ -21,7 +21,7 @@ import owl.automaton.algorithms.LanguageAnalysis;
 import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
-class SetLanguageLattice<S> implements LanguageLattice<Set<S>, S, Void> {
+class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
   private final Language<Set<S>> bottom;
   private final LoadingCache<Entry<Set<S>, Set<S>>, Boolean> greaterOrEqualCache;
   private final Language<Set<S>> top;

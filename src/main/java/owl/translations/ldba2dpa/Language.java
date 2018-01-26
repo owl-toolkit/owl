@@ -1,21 +1,21 @@
 package owl.translations.ldba2dpa;
 
-public interface Language<T> {
+public interface Language<L> {
   default void free() {
     // Default implementation does nothing.
   }
 
-  T getT();
+  L getT();
 
-  boolean greaterOrEqual(Language<T> language);
+  boolean greaterOrEqual(Language<L> language);
 
   boolean isBottom();
 
   boolean isTop();
 
-  Language<T> join(Language<T> language);
+  Language<L> join(Language<L> language);
 
-  default boolean lessOrEqual(Language<T> language) {
+  default boolean lessOrEqual(Language<L> language) {
     return language.greaterOrEqual(this);
   }
 }

@@ -164,6 +164,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
   public void removeIndices(IntPredicate removalPredicate) {
     synchronized (mutex) {
+      assert assertConsistent();
       int removedIndices = 0;
       Iterator<RabinPair> iterator = pairs.iterator();
       while (iterator.hasNext()) {
@@ -189,7 +190,6 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
           removedIndices += removedInfIndices;
         }
       }
-
       setCount -= removedIndices;
       assert assertConsistent();
     }
@@ -287,6 +287,11 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     public int infSet() {
       checkState(infSetCount() == 1);
       return infIndex;
+    }
+
+    @Override
+    public String toString() {
+      return "(" + finIndex + ", " + infIndex + ')';
     }
   }
 }

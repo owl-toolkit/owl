@@ -4,7 +4,7 @@ import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
 public class BooleanLattice
-  implements LanguageLattice<Void, DegeneralizedBreakpointFreeState, FGObligations> {
+  implements LanguageLattice<DegeneralizedBreakpointFreeState, FGObligations, Void> {
 
   private static final Language<Void> BOTTOM = new BottomLanguage();
   private static final Language<Void> TOP = new TopLanguage();

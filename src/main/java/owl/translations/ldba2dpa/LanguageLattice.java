@@ -1,17 +1,17 @@
 package owl.translations.ldba2dpa;
 
-public interface LanguageLattice<S, T, U> {
-  Language<S> getBottom();
+public interface LanguageLattice<S, A, L> {
+  Language<L> getBottom();
 
-  Language<S> getLanguage(T state);
+  Language<L> getLanguage(S state);
 
-  Language<S> getTop();
+  Language<L> getTop();
 
-  boolean isLivenessLanguage(U annotation);
+  boolean isLivenessLanguage(A annotation);
 
-  boolean isSafetyAnnotation(U annotation);
+  boolean isSafetyAnnotation(A annotation);
 
-  boolean acceptsSafetyLanguage(T state);
+  boolean acceptsSafetyLanguage(S state);
 
-  boolean acceptsLivenessLanguage(T state);
+  boolean acceptsLivenessLanguage(S state);
 }

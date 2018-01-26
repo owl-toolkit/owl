@@ -118,7 +118,7 @@ public final class MinimizationUtil {
   }
 
   @SuppressWarnings("unchecked")
-  public static <S, A extends OmegaAcceptance> void minimizeDefault(
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> minimizeDefault(
     MutableAutomaton<S, A> automaton, MinimizationLevel level) {
     OmegaAcceptance acceptance = automaton.getAcceptance();
 
@@ -141,6 +141,8 @@ public final class MinimizationUtil {
       // removeDeadStates(automaton);
       logger.log(Level.FINE, "Received unsupported acceptance type {0}", acceptance.getClass());
     }
+
+    return automaton;
   }
 
   public static <S> void removeAndRemapIndices(MutableAutomaton<S, ?> automaton,
@@ -148,9 +150,8 @@ public final class MinimizationUtil {
     if (indicesToRemove.isEmpty()) {
       return;
     }
-    OmegaAcceptance acceptance = automaton.getAcceptance();
-    int acceptanceSets = acceptance.getAcceptanceSets();
 
+    int acceptanceSets = automaton.getAcceptance().getAcceptanceSets();
     Int2IntMap remapping = new Int2IntAVLTreeMap();
     remapping.defaultReturnValue(Integer.MAX_VALUE);
 
@@ -165,8 +166,7 @@ public final class MinimizationUtil {
     }
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
-    automaton
-      .remapEdges(automaton.getStates(), (state, edge) -> edge.withAcceptance(remapping));
+    automaton.remapEdges(automaton.getStates(), (state, edge) -> edge.withAcceptance(remapping));
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {

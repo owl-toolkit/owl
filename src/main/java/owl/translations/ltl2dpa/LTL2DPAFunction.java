@@ -57,9 +57,9 @@ import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.Collector;
 import owl.run.Environment;
+import owl.translations.ldba2dpa.FlatRankingAutomaton;
+import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.ldba2dpa.LanguageLattice;
-import owl.translations.ldba2dpa.RankingAutomaton;
-import owl.translations.ldba2dpa.RankingState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
@@ -235,14 +235,14 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    LanguageLattice<EquivalenceClass, DegeneralizedBreakpointState, GObligations> oracle =
+    LanguageLattice<DegeneralizedBreakpointState, GObligations, EquivalenceClass> oracle =
       new EquivalenceClassLanguageLattice(
         ldba.getInitialComponent().getInitialState().getFactory());
 
-    Automaton<RankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
-      automaton = RankingAutomaton.of(ldba, true, oracle, this::hasSafetyCore,
-      true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, RankingState::of, 2 * ldba.getAcceptingComponent().size());
+    Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
+      automaton = FlatRankingAutomaton.of(ldba, oracle, this::hasSafetyCore, true,
+      configuration.contains(OPTIMISE_INITIAL_STATE));
+    return new Result<>(automaton, FlatRankingState::of, 2 * ldba.getAcceptingComponent().size());
   }
 
   private Result<?> applyBreakpointFree(LabelledFormula formula) {
@@ -257,10 +257,10 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    Automaton<RankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>, ParityAcceptance>
-      automaton = RankingAutomaton.of(ldba, true, new BooleanLattice(),
+    Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>,
+      ParityAcceptance> automaton = FlatRankingAutomaton.of(ldba, new BooleanLattice(),
       this::hasSafetyCore, true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, RankingState::of, 2 * ldba.getAcceptingComponent().size());
+    return new Result<>(automaton, FlatRankingState::of, 2 * ldba.getAcceptingComponent().size());
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {

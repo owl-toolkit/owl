@@ -62,6 +62,12 @@ LTL2DPA:
     TEST_NAME: "ltl2dpa-small;ltl2dpa"
   <<: *ltlcross_template
 
+LTL2DRA:
+  stage: test
+  variables:
+    TEST_NAME: "ltl2dra-medium"
+  <<: *ltlcross_template
+
 LTL2DA:
   stage: test
   variables:

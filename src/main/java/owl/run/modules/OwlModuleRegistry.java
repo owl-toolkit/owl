@@ -26,6 +26,7 @@ import owl.translations.LTL2DA;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dpa.LTL2DPACliParser;
+import owl.translations.ltl2dra.LTL2DRACliParser;
 import owl.translations.ltl2ldba.LTL2LDBACliParser;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 import owl.translations.nba2ldba.NBA2LDBA;
@@ -58,7 +59,8 @@ public class OwlModuleRegistry {
     // Advanced constructions
     DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI, LTL2DA.CLI, NBA2LDBA.CLI,
       LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE, DelagBuilder.CLI, NBA2DPAFunction.CLI,
-      ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI);
+      ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI,
+      LTL2DRACliParser.INSTANCE);
   }
 
   private final Table<Type, String, OwlModuleParser<?>> registeredModules = HashBasedTable.create();
