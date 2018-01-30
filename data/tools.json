@@ -70,7 +70,7 @@
                 ]
             ]
         },
-        "rabinizer": {
+        "rabinizer-dgra": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
@@ -95,7 +95,7 @@
                 "minimize-aut"
             ]
         },
-        "rabinizer-degen": {
+        "rabinizer-dra": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
@@ -114,10 +114,11 @@
             ],
             "post": [
                 "minimize-aut",
-                "dgra2dra"
+                "dgra2dra",
+                "minimize-aut"
             ]
         },
-        "rabinizer-iar": {
+        "rabinizer-dpa": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",

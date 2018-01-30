@@ -135,8 +135,9 @@
         },
         "rabinizer": {
             "tools": [
-                "rabinizer",
-                "rabinizer-iar"
+                "rabinizer-dgra",
+                "rabinizer-dra",
+                "rabinizer-dpa"
             ],
             "data": "medium"
         },
