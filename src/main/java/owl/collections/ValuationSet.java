@@ -59,6 +59,8 @@ public interface ValuationSet {
     other.free();
   }
 
+  BitSet any();
+
   ValuationSet complement();
 
   boolean contains(BitSet valuation);

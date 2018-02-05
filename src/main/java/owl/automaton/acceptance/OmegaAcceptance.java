@@ -60,7 +60,7 @@ public abstract class OmegaAcceptance {
   @Override
   public String toString() {
     String name = getName();
-    return (name != null ? name + " " + getNameExtra() : getClass().getSimpleName()) + ": "
-      + getAcceptanceSets() + " " + getBooleanExpression();
+    return (name != null ? name + ' ' + getNameExtra() : getClass().getSimpleName()) + ": "
+      + getAcceptanceSets() + ' ' + getBooleanExpression();
   }
 }

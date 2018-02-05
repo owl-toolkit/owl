@@ -17,13 +17,9 @@
 
 package owl.automaton.transformations;
 
-import static com.google.common.base.Preconditions.checkState;
-
-import com.google.common.collect.Collections2;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.PrimitiveIterator;
@@ -31,7 +27,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -40,14 +35,11 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.Views.ForwardingAutomaton;
 import owl.automaton.Views.ForwardingMutableAutomaton;
-import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.automaton.minimizations.GenericMinimizations;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;

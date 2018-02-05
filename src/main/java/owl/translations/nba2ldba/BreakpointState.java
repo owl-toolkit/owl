@@ -64,6 +64,6 @@ public class BreakpointState<S> {
 
   @Override
   public String toString() {
-    return "(" + ix + ", " + this.mx + ", " + this.nx + ")";
+    return "(" + ix + ", " + this.mx + ", " + this.nx + ')';
   }
 }

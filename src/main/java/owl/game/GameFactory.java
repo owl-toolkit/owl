@@ -23,10 +23,12 @@ import com.google.common.graph.ImmutableValueGraph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import it.unimi.dsi.fastutil.HashCommon;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -52,6 +54,7 @@ public final class GameFactory {
     private final ImmutableSet<S> player1Nodes;
     private final ImmutableList<String> variablesPlayer1;
     private final ImmutableList<String> variablesPlayer2;
+    private final BiFunction<S, Owner, BitSet> choice;
 
     ImmutableGame(Game<S, A> game) {
       this(game, game.getStates());
@@ -59,8 +62,8 @@ public final class GameFactory {
 
     ImmutableGame(Game<S, A> game, Set<S> states) {
       ImmutableSet.Builder<S> player1NodesBuilder = ImmutableSet.builder();
-      MutableValueGraph<S, ValueEdge> graph = ValueGraphBuilder.directed().allowsSelfLoops(true)
-        .build();
+      MutableValueGraph<S, ValueEdge> graph =
+        ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
       for (S state : states) {
         for (LabelledEdge<S> edge : game.getLabelledEdges(state)) {
@@ -79,6 +82,12 @@ public final class GameFactory {
       this.player1Nodes = player1NodesBuilder.build();
       this.variablesPlayer1 = ImmutableList.copyOf(game.getVariables(Owner.PLAYER_1));
       this.variablesPlayer2 = ImmutableList.copyOf(game.getVariables(Owner.PLAYER_2));
+      this.choice = game::getChoice;
+    }
+
+    @Override
+    public BitSet getChoice(S state, Owner owner) {
+      return choice.apply(state, owner);
     }
 
     @Override

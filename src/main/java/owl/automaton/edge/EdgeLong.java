@@ -90,7 +90,7 @@ final class EdgeLong<S> implements Edge<S> {
     StringBuilder builder = new StringBuilder(10);
     builder.append(acceptanceSetIterator.nextInt());
     acceptanceSetIterator.forEachRemaining((int x) -> builder.append(", ").append(x));
-    return "-> " + getSuccessor() + " {" + builder.toString() + '}';
+    return "-> " + successor + " {" + builder + '}';
   }
 
   @Override

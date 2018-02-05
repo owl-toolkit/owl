@@ -146,14 +146,19 @@ final class MonitorBuilder {
       for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
         MonitorState successorState;
 
-        if (fragment == Fragment.FINITE) {
-          successorState = getSuccessorFiniteFragment(currentState, valuation, priorities);
-        } else if (fragment == Fragment.EVENTUAL) {
-          successorState = getSuccessorEventualFragment(currentState, valuation, priorities);
-        } else {
-          // Reset loop data structures
-          Arrays.fill(priorities, none());
-          successorState = getSuccessor(currentState, valuation, priorities, initialAccepting);
+        switch (fragment) {
+          case FINITE:
+            successorState = getSuccessorFiniteFragment(currentState, valuation, priorities);
+            break;
+          case EVENTUAL:
+            successorState = getSuccessorEventualFragment(currentState, valuation, priorities);
+            break;
+
+          default:
+            // Reset loop data structures
+            Arrays.fill(priorities, none());
+            successorState = getSuccessor(currentState, valuation, priorities, initialAccepting);
+            break;
         }
 
         if (exploredStates.add(successorState)) {

@@ -91,7 +91,7 @@ public class LiteralTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testConstructor() {
-    new Literal(-1);
+    Literal literal = new Literal(-1);
   }
 
   @Test
