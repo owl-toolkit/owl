@@ -17,17 +17,13 @@
 
 package owl.ltl;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
-import owl.ltl.visitors.SubstitutionVisitor;
 
 /**
  * EquivalenceClass interface. The general contract of this interface is: If two implementing
@@ -51,8 +47,6 @@ public interface EquivalenceClass {
 
   EquivalenceClass exists(Predicate<Formula> predicate);
 
-  void forEachSatisfyingAssignment(BiConsumer<BitSet, BitSet> action);
-
   void free();
 
   void freeRepresentative();
@@ -72,17 +66,10 @@ public interface EquivalenceClass {
    *
    * @return All literals and modal operators this equivalence class depends on.
    */
-  default Set<Formula> getSupport() {
-    return getSupport(Formula.class);
-  }
-
-  /**
-   * Compute the support of the EquivalenceClass and restrict the set to a particular type.
-   */
-  <T extends Formula> Set<T> getSupport(Class<T> clazz);
+  Set<Formula> getSupport();
 
   default Set<Formula> getSupport(Predicate<Formula> predicate) {
-    return getSupport().stream().filter(predicate).collect(Collectors.toSet());
+    return Sets.filter(getSupport(), predicate::test);
   }
 
   boolean implies(EquivalenceClass equivalenceClass);
@@ -102,17 +89,6 @@ public interface EquivalenceClass {
     free();
     return or;
   }
-
-  default EquivalenceClass rewrite(Function<? super Formula, ? extends Formula> substitution) {
-    // WARNING: THIS IS NOT EQUIVALENT TO substitute DUE TO THE LITERAL ENCODING IN THE BDD!
-    Formula representative = this.getRepresentative();
-    Preconditions.checkState(representative != null,
-      "Operation only available for non-null representative.");
-    return getFactory().createEquivalenceClass(representative.accept(
-      new SubstitutionVisitor(substitution)));
-  }
-
-  ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support);
 
   EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution);
 

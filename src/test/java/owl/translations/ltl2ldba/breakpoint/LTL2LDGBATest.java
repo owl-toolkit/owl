@@ -142,7 +142,7 @@ public class LTL2LDGBATest {
   @Test
   public void testOptimisations3() {
     String ltl = "G((a & !X a) | (X (a U (a & !b & (X(a & b & (a U (a & !b & (X(a & b))))))))))";
-    testGenOutput(ltl, 8);
+    testGenOutput(ltl, 9);
   }
 
   @Test
