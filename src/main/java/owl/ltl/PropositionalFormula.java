@@ -86,17 +86,17 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
 
   @Override
   public boolean isPureEventual() {
-    return Iterables.all(children, Formula::isPureEventual);
+    return children.stream().allMatch(Formula::isPureEventual);
   }
 
   @Override
   public boolean isPureUniversal() {
-    return Iterables.all(children, Formula::isPureUniversal);
+    return children.stream().allMatch(Formula::isPureUniversal);
   }
 
   @Override
   public boolean isSuspendable() {
-    return Iterables.all(children, Formula::isSuspendable);
+    return children.stream().allMatch(Formula::isSuspendable);
   }
 
   public <T> Stream<T> map(Function<Formula, T> mapper) {

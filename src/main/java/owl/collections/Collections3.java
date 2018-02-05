@@ -17,6 +17,8 @@
 
 package owl.collections;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -27,9 +29,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import javax.annotation.Nullable;
@@ -113,6 +117,27 @@ public final class Collections3 {
     return union;
   }
 
+  public static <E> Iterable<E> repeat(E object, int times) {
+    return () -> new Iterator<>() {
+      private int counter = times;
+
+      @Override
+      public boolean hasNext() {
+        return counter > 0;
+      }
+
+      @Override
+      public E next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+
+        counter--;
+        return object;
+      }
+    };
+  }
+
   public static <F, T> Set<T> transform(Collection<F> collection, Function<F, T> transformer) {
     if (collection.isEmpty()) {
       return Set.of();
@@ -161,6 +186,17 @@ public final class Collections3 {
     Set<E> union = new HashSet<>(elements.size());
     elements.forEach(union::addAll);
     return union;
+  }
+
+  public static <E1, E2> void zip(List<E1> list1, List<E2> list2, BiConsumer<E1, E2> action) {
+    Iterator<E1> iterator1 = list1.iterator();
+    Iterator<E2> iterator2 = list2.iterator();
+
+    while (iterator1.hasNext() && iterator2.hasNext()) {
+      action.accept(iterator1.next(), iterator2.next());
+    }
+
+    checkArgument(!iterator1.hasNext() && !iterator2.hasNext(), "Length mismatch.");
   }
 
   @FunctionalInterface

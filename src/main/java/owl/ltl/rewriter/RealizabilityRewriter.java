@@ -86,7 +86,8 @@ public class RealizabilityRewriter {
     Map<Integer, Boolean> fixedValuations) {
     BitSet inputVariablesMask = new BitSet(numberOfInputSignals);
     inputVariablesMask.set(0, numberOfInputSignals);
-    return split(inputVariablesMask, formula, fixedValuations).toArray(new Formula[0]);
+    List<Formula> var = split(inputVariablesMask, formula, fixedValuations);
+    return var.toArray(new Formula[var.size()]);
   }
 
   static class AtomSimplifier extends DefaultConverter {

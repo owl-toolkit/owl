@@ -107,11 +107,11 @@ public final class ParityGameSolver {
 
     // otherwise, we have to test a different subgame
     Set<S> opponentAttractor =
-      game.getAttractorFixpoint(subWinning.winningRegion(ourHorse.flip()), ourHorse.flip());
+      game.getAttractorFixpoint(subWinning.winningRegion(ourHorse.opponent()), ourHorse.opponent());
 
     losingSet = Sets.difference(game.getStates(), opponentAttractor);
     subWinning = recursiveZielonka(Views.filter(game, losingSet));
-    subWinning.addAll(opponentAttractor, ourHorse.flip());
+    subWinning.addAll(opponentAttractor, ourHorse.opponent());
 
     return subWinning;
   }

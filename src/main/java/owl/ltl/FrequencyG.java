@@ -56,7 +56,7 @@ public class FrequencyG extends GOperator {
 
   @Override
   public String getOperator() {
-    return "G{" + limes + " " + cmp + " " + bound + "}";
+    return "G{" + limes + ' ' + cmp + ' ' + bound + '}';
   }
 
   @Override

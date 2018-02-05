@@ -69,6 +69,6 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
   @Override
   public String toString() {
     return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
-      liveness == null || liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ")");
+      liveness == null || liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ')');
   }
 }

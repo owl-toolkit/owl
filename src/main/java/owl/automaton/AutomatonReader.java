@@ -293,22 +293,29 @@ public final class AutomatonReader {
 
           String stringPriority = acceptanceExtra.get(0).toString();
           boolean max;
-          if ("max".equals(stringPriority)) {
-            max = true;
-          } else if ("min".equals(stringPriority)) {
-            max = false;
-          } else {
-            throw new HOAConsumerException("Unkown priority " + stringPriority);
+
+          switch (stringPriority) {
+            case "max":
+              max = true;
+              break;
+            case "min":
+              max = false;
+              break;
+            default:
+              throw new HOAConsumerException("Unkown priority " + stringPriority);
           }
 
           String stringParity = acceptanceExtra.get(1).toString();
           boolean even;
-          if ("even".equals(stringParity)) {
-            even = true;
-          } else if ("odd".equals(stringParity)) {
-            even = false;
-          } else {
-            throw new HOAConsumerException("Unknown parity " + stringParity);
+          switch (stringParity) {
+            case "even":
+              even = true;
+              break;
+            case "odd":
+              even = false;
+              break;
+            default:
+              throw new HOAConsumerException("Unknown parity " + stringParity);
           }
 
           String stringColours = acceptanceExtra.get(2).toString();

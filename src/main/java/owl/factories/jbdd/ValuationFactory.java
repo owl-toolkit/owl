@@ -23,6 +23,7 @@ import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -181,6 +182,17 @@ final class ValuationFactory implements ValuationSetFactory {
     @Override
     public BddValuationSet copy() {
       return new BddValuationSet(factory.reference(bdd));
+    }
+
+    @Override
+    public BitSet any() {
+      for (BitSet set : BitSets.powerSet(getSupport())) {
+        if (contains(set)) {
+          return set;
+        }
+      }
+
+      throw new NoSuchElementException();
     }
 
     @Override

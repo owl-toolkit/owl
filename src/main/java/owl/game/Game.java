@@ -17,15 +17,26 @@
 
 package owl.game;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.collections.Collections3;
+import owl.game.output.AigConsumer;
+import owl.game.output.AigFactory;
+import owl.game.output.AigPrintable;
+import owl.game.output.LabelledAig;
 
-public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A> {
+public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, AigPrintable {
+
   default Set<S> getAttractor(Collection<S> states, Owner owner) {
     // Does not contain the states itself.
     Set<S> attractor = new HashSet<>();
@@ -52,6 +63,74 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A> {
   }
 
   Owner getOwner(S state);
+
+  default Set<S> getStates(Owner owner) {
+    return Sets.filter(getStates(), x -> getOwner(x) == owner);
+  }
+
+  BitSet getChoice(S state, Owner owner);
+
+  default void feedTo(AigConsumer consumer) {
+    List<String> inputNames = getVariables(Owner.PLAYER_1);
+    List<String> outputNames = getVariables(Owner.PLAYER_2);
+
+    AigFactory factory = new AigFactory();
+    inputNames.forEach(consumer::addInput);
+
+    // how many latches will we need?
+    int nStates = getStates(Owner.PLAYER_2).size();
+    int nLatches = (int) Math.ceil(Math.log(nStates) / Math.log(2));
+
+    // create mapping from states to bitsets of latches + inputs
+    // where the input bits are always set to 0
+    Map<S, BitSet> encoding = new HashMap<>();
+    int iState = inputNames.size() + 1;
+
+    for (S state : getStates(Owner.PLAYER_2)) {
+      int value = iState;
+      int index = inputNames.size();
+      BitSet b = new BitSet(inputNames.size() + nLatches);
+      while (value != 0) {
+        if (value % 2 != 0) {
+          b.set(index);
+        }
+        index++;
+        value = value >>> 1;
+      }
+      encoding.put(state, b);
+      iState += 1;
+    }
+
+    // create a list of LabelledAigs for the latches and outputs
+    List<LabelledAig> latches = Lists.newArrayList(
+      Collections3.repeat(factory.getFalse(), nLatches));
+    List<LabelledAig> outputs = Lists.newArrayList(
+      Collections3.repeat(factory.getFalse(), outputNames.size()));
+
+    // iterate through labelled edges to create latch and output formulas
+    for (S player2State : getStates(Owner.PLAYER_2)) {
+      BitSet stateAndInput = (BitSet) encoding.get(player2State).clone();
+      stateAndInput.or(getChoice(player2State, Owner.PLAYER_1));
+      LabelledAig stateAndInputAig = factory.cube(stateAndInput);
+
+      // for all set indices in the output valuation
+      // we update their transition function
+      getChoice(player2State, Owner.PLAYER_2).stream().forEach(
+        i -> outputs.set(i, factory.disjunction(outputs.get(i), stateAndInputAig)));
+
+      // we do the same for all set indices in the representation
+      // of the successor state
+      encoding.get(Iterables.getOnlyElement(getSuccessors(player2State))).stream().forEach(
+        i -> latches.set(i, factory.disjunction(latches.get(i), stateAndInputAig)));
+    }
+
+    // we finish adding the information to the consumer
+    for (LabelledAig a : latches) {
+      consumer.addLatch("", a);
+    }
+
+    Collections3.zip(outputNames, outputs, consumer::addOutput);
+  }
 
   default Set<S> getPredecessors(S state, Owner owner) {
     return getPredecessors(Set.of(state), owner);
@@ -84,7 +163,6 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A> {
   List<String> getVariables(Owner owner);
 
   enum Owner {
-    // TODO Should this be switchable?
     /**
      * This player wants to dissatisfy the acceptance condition.
      */
@@ -94,7 +172,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A> {
      */
     PLAYER_2;
 
-    public Owner flip() {
+    public Owner opponent() {
       return this == PLAYER_1 ? PLAYER_2 : PLAYER_1;
     }
   }

@@ -44,26 +44,26 @@ public class TlsfParserTest {
     + "  SEMANTICS:   Moore\n"
     + "  TARGET:      Mealy\n"
     + "}\n"
-    + "\n"
+    + '\n'
     + "MAIN {\n"
-    + "\n"
+    + '\n'
     + "  INPUTS {\n"
     + "    idle;\n"
     + "    request0;\n"
     + "    request1;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  OUTPUTS {\n"
     + "    grant0;\n"
     + "    grant1;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  ASSUMPTIONS {\n"
     + "    G F idle;\n"
     + "    G (!(idle && !grant0 && !grant1) || X idle);    \n"
     + "    G (!grant0 || X ((!request0 && !idle) U (!request0 && idle)));\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  INVARIANTS {\n"
     + "    !request0 || !grant1;\n"
     + "    !grant0 || !grant1;\n"
@@ -72,12 +72,12 @@ public class TlsfParserTest {
     + "    !grant1 || request1;\n"
     + "    (!grant0 && !grant1) || idle;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  GUARANTEES {\n"
     + "    ! F G (request0 && !grant0);\n"
     + "    ! F G (request1 && !grant1);\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "}\n";
 
   private static final String LILY = "INFO {\n"
@@ -86,7 +86,7 @@ public class TlsfParserTest {
     + "  SEMANTICS:   Moore\n"
     + "  TARGET:      Mealy\n"
     + "}\n"
-    + "\n"
+    + '\n'
     + "MAIN {\n"
     + "  INPUTS {\n"
     + "    go;\n"
@@ -101,7 +101,7 @@ public class TlsfParserTest {
     + "    ((grant) -> (X (! (grant))));\n"
     + "    ((cancel) -> (X ((! (grant)) U (go))));\n"
     + "  }\n"
-    + "}";
+    + '}';
 
   private static final String LILY_LTL = "(G ((((X req) -> (X (grant && (X ((grant) && (X (gran"
     + "t))))))) && (grant -> (X (! (grant))))) && ((X (cancel)) -> (X ((! (grant)) U (X (go)))))))";
@@ -112,7 +112,7 @@ public class TlsfParserTest {
     + "  SEMANTICS:   Moore\n"
     + "  TARGET:      Mealy\n"
     + "}\n"
-    + "\n"
+    + '\n'
     + "MAIN {\n"
     + "  INPUTS {\n"
     + "    GO;\n"
@@ -127,7 +127,7 @@ public class TlsfParserTest {
     + "    ((GRANT) -> (X (! (GRANT))));\n"
     + "    ((CANCEL) -> (X ((! (GRANT)) U (GO))));\n"
     + "  }\n"
-    + "}";
+    + '}';
 
   private static final String UPPER_CASE_DIFFICULT = "INFO {\n"
     + "  TITLE:       \"Lily Demo V1\"\n"
@@ -135,7 +135,7 @@ public class TlsfParserTest {
     + "  SEMANTICS:   Moore\n"
     + "  TARGET:      Mealy\n"
     + "}\n"
-    + "\n"
+    + '\n'
     + "MAIN {\n"
     + "  INPUTS {\n"
     + "    BARFOO;\n"
@@ -148,7 +148,7 @@ public class TlsfParserTest {
     + "  ASSERT {\n"
     + "    ((BARFOO) -> (X ((FOO) && (X ((BAR) && (X (FOOBAR)))))));\n"
     + "  }\n"
-    + "}";
+    + '}';
 
   private static final String UPPER_CASE_FAULTY = "INFO {\n"
     + "  TITLE:       \"Lily Demo V1\"\n"
@@ -156,14 +156,14 @@ public class TlsfParserTest {
     + "  SEMANTICS:   Moore\n"
     + "  TARGET:      Mealy\n"
     + "}\n"
-    + "\n"
+    + '\n'
     + "MAIN {\n"
     + "  INPUTS {\n"
     + "    Foo;\n"
     + "    fOO;\n"
     + "    foo;\n"
     + "  }\n"
-    + "}";
+    + '}';
 
   private static final String TLSF_COMPLETE = "INFO {\n"
     + "  TITLE:       \"TLSF - Test Specification\"\n"
@@ -171,9 +171,9 @@ public class TlsfParserTest {
     + "  SEMANTICS:   Mealy\n"
     + "  TARGET:      Mealy\n"
     + "}\n"
-    + "\n"
+    + '\n'
     + "MAIN {\n"
-    + "\n"
+    + '\n'
     + "  INPUTS {\n"
     + "    a1;\n"
     + "    b2;\n"
@@ -181,50 +181,50 @@ public class TlsfParserTest {
     + "    d4;\n"
     + "    e5;\n"
     + "  } \n"
-    + "\n"
+    + '\n'
     + "  OUTPUTS {\n"
     + "    f6;\n"
     + "    g7;\n"
     + "    h8;\n"
     + "    i9;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  INITIALLY {\n"
     + "    a1;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  PRESET {\n"
     + "    b2;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  REQUIRE {\n"
     + "    c3;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  ASSERT {\n"
     + "    d4;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  INVARIANTS {\n"
     + "    e5;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  ASSUME {\n"
     + "    f6;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  ASSUMPTIONS {\n"
     + "    g7;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  GUARANTEE {\n"
     + "    h8;\n"
     + "  }\n"
-    + "\n"
+    + '\n'
     + "  GUARANTEES {\n"
     + "    i9;\n"
     + "  }  \n"
-    + "}";
+    + '}';
 
   private static final String LTL_COMPLETE =
     "((a1) -> ((b2) && ((((G (c3)) && (f6)) && (g7)) -> (((G ((d4) && (e5))) && (h8)) && (i9)))))";

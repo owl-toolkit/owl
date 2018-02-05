@@ -22,7 +22,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.Collections2;
+
+import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -31,14 +34,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.annotation.Nullable;
+
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
@@ -117,29 +124,37 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
     Set<S> states) {
-    return new FilteredArena<>(game, states, x -> true);
+    return new FilteredGame<>(game, states, x -> true);
   }
 
   public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
-    return new FilteredArena<>(game, states, edgeFilter);
+    return new FilteredGame<>(game, states, edgeFilter);
   }
 
-  public static <S, A extends OmegaAcceptance> Game<Node<S>, A> split(Automaton<S, A> automaton,
-    List<String> firstPropositions) {
+  public static <S, A extends OmegaAcceptance> Game<Node<S>, A>
+      split(Automaton<S, A> automaton, List<String> firstPropositions) {
     assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
     return new ForwardingGame<>(automaton, firstPropositions);
   }
 
-  private static final class FilteredArena<S, A extends OmegaAcceptance> implements Game<S, A> {
+  private static final class
+      FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A> {
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
+    private final BiFunction<S, Owner, BitSet> choice;
 
-    FilteredArena(Game<S, A> game, Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    FilteredGame(Game<S, A> game, Set<S> states, Predicate<Edge<S>> edgeFilter) {
       this.filteredAutomaton = owl.automaton.Views.filter(game, states, edgeFilter);
       this.ownership = game::getOwner;
       this.variableOwnership = game::getVariables;
+      this.choice = game::getChoice;
+    }
+
+    @Override
+    public BitSet getChoice(S state, Owner owner) {
+      return choice.apply(state, owner);
     }
 
     @Override
@@ -189,12 +204,14 @@ public final class Views {
   }
 
   /**
-   * An game based on an automaton and a splitting of its variables. The game is constructed by
-   * first letting player one choose his part of the variables, then letting the second player
-   * choose the remained of the valuation and finally updating the state based on the combined
-   * valuation, emitting the corresponding acceptance.
+   * A game based on an automaton and a splitting of its variables. The game is
+   * constructed by first letting player one choose his part of the variables,
+   * then letting the second player choose the remained of the valuation and
+   * finally updating the state based on the combined valuation, emitting the
+   * corresponding acceptance.
    */
-  static final class ForwardingGame<S, A extends OmegaAcceptance> implements Game<Node<S>, A> {
+  static final class ForwardingGame<S, A extends OmegaAcceptance>
+      implements Game<Node<S>, A> {
     private final Automaton<S, A> automaton;
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
@@ -225,9 +242,9 @@ public final class Views {
     @Override
     public Collection<LabelledEdge<Node<S>>> getLabelledEdges(Node<S> node) {
       /*
-       * In order obtain a complete game, each players transitions are labeled with his choice
-       * and all valuations of the other players APs. This is important when trying to recover a
-       * strategy from a sub-game.
+       * In order obtain a complete game, each players transitions are labeled
+       * with his choice and all valuations of the other players APs. This is
+       * important when trying to recover a strategy from a sub-game.
        */
 
       List<LabelledEdge<Node<S>>> edges = new ArrayList<>();
@@ -237,14 +254,18 @@ public final class Views {
         // First player chooses his part of the valuation
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
-          ValuationSet valuationSet = factory.createValuationSet(valuation, firstPlayer);
-          edges.add(LabelledEdge.of(node.choose((BitSet) valuation.clone()), valuationSet));
+          ValuationSet valuationSet =
+            factory.createValuationSet(valuation, firstPlayer);
+          edges.add(LabelledEdge.of(node.choose((BitSet) valuation.clone()),
+                valuationSet));
         }
       } else {
-        // Second player completes the valuation, yielding a transition in the automaton
+        // Second player completes the valuation, yielding a transition in the
+        // automaton
 
         for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
-          ValuationSet valuationSet = factory.createValuationSet(valuation, secondPlayer);
+          ValuationSet valuationSet =
+            factory.createValuationSet(valuation, secondPlayer);
 
           BitSet joined = (BitSet) valuation.clone();
           joined.or(node.firstPlayerChoice);
@@ -253,7 +274,8 @@ public final class Views {
             node.state, joined);
 
           // Lift the automaton edge to the game
-          Edge<Node<S>> successor = edge.withSuccessor(new Node<>(edge.getSuccessor()));
+          Edge<Node<S>> successor =
+            edge.withSuccessor(new Node<>(edge.getSuccessor()));
           edges.add(LabelledEdge.of(successor, valuationSet));
         }
       }
@@ -328,6 +350,17 @@ public final class Views {
     @Override
     public String toString() {
       return "Arena: " + firstPlayer + '/' + secondPlayer + '\n' + automaton;
+    }
+
+    @Override
+    public BitSet getChoice(Node<S> state, Owner owner) {
+      checkArgument(state.firstPlayerChoice != null, "The state has no encoded choice.");
+
+      if (owner == Owner.PLAYER_1) {
+        return (BitSet) state.firstPlayerChoice.clone();
+      }
+
+      return Iterables.getOnlyElement(getLabelledEdges(state)).valuations.any();
     }
   }
 

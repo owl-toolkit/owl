@@ -97,7 +97,7 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public String toString() {
-    return "-> " + getSuccessor() + " {" + (hasAcceptanceSets() ? acceptance : "") + "}";
+    return "-> " + successor + " {" + (hasAcceptanceSets() ? acceptance : "") + '}';
   }
 
   @Override

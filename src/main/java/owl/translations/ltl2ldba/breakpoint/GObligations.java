@@ -195,8 +195,8 @@ public final class GObligations extends ImmutableObject implements RecurringObli
 
   @Override
   public String toString() {
-    return "<" + (safety.isTrue() ? "" : "S=" + safety + " ")
-      + (liveness.length <= 0 ? "" : "L=" + Arrays.toString(liveness) + " ")
-      + (obligations.length <= 0 ? "" : "O=" + Arrays.toString(obligations)) + ">";
+    return '<' + (safety.isTrue() ? "" : "S=" + safety + ' ')
+      + (liveness.length <= 0 ? "" : "L=" + Arrays.toString(liveness) + ' ')
+      + (obligations.length <= 0 ? "" : "O=" + Arrays.toString(obligations)) + '>';
   }
 }
