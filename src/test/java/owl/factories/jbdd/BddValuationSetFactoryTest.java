@@ -40,25 +40,25 @@ public class BddValuationSetFactoryTest {
 
   @Test
   public void testCreateEmptyValuationSet() {
-    assertEquals(0, factory.createEmptyValuationSet().size());
+    assertEquals(0, factory.of().size());
   }
 
   @Test
   public void testCreateUniverseValuationSet() {
-    ValuationSet universe = factory.createUniverseValuationSet();
-    ValuationSet empty = factory.createEmptyValuationSet();
+    ValuationSet universe = factory.universe();
+    ValuationSet empty = factory.of();
     BitSet alphabet = new BitSet(this.alphabet.size());
     alphabet.set(0, this.alphabet.size());
     for (BitSet element : de.tum.in.naturals.bitset.BitSets.powerSet(alphabet)) {
       assertTrue(universe.contains(element));
-      empty.add(element);
+      empty = factory.union(empty, factory.of(element));
     }
     assertEquals(empty, universe);
   }
 
   @Test
   public void testGetAlphabet() {
-    assertEquals(alphabet.size(), factory.getSize());
+    assertEquals(alphabet.size(), factory.alphabetSize());
   }
 }
 

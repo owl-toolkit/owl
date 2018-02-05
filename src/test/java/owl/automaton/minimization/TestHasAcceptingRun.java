@@ -106,7 +106,7 @@ public class TestHasAcceptingRun {
 
     assertThat(EmptinessCheck.isEmpty(result), is(!hasAcceptingRun));
     MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      complement = ParityUtil.complement(result, FlatRankingState::of);
+      complement = ParityUtil.complement(result, FlatRankingState.of());
     assertThat(EmptinessCheck.isEmpty(complement), is(!complementHasAcceptingRun));
   }
 }

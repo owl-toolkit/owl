@@ -130,7 +130,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
     Formula processedFormula = rewritten.formula;
     AbstractJumpManager<C> factory = selectorConstructor.apply(factories.eqFactory
-      .createEquivalenceClass(processedFormula));
+      .of(processedFormula));
 
     LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
       builder = createBuilder(factories, factory);
@@ -200,7 +200,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
       factories.eqFactory, configuration);
 
     if (configuration.contains(Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT)) {
-      EquivalenceClass clazz = factories.eqFactory.createEquivalenceClass(formula);
+      EquivalenceClass clazz = factories.eqFactory.of(formula);
       return factory.splitEquivalenceClass(clazz);
     }
 

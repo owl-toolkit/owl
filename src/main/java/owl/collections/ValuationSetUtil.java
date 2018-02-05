@@ -11,14 +11,14 @@ public final class ValuationSetUtil {
   private ValuationSetUtil() {
   }
 
-  public static ValuationSet toValuationSet(ValuationSetFactory valuationSetFactory,
+  public static ValuationSet toValuationSet(ValuationSetFactory factory,
     BooleanExpression<AtomLabel> expression, @Nullable IntUnaryOperator mapping) {
     if (expression.isFALSE()) {
-      return valuationSetFactory.createEmptyValuationSet();
+      return factory.of();
     }
 
     if (expression.isTRUE()) {
-      return valuationSetFactory.createUniverseValuationSet();
+      return factory.universe();
     }
 
     if (expression.isAtom()) {
@@ -31,25 +31,23 @@ public final class ValuationSetUtil {
         bs.set(label.getAPIndex());
       }
 
-      return valuationSetFactory.createValuationSet(bs, bs);
+      return factory.of(bs, bs);
     }
 
     if (expression.isNOT()) {
-      return toValuationSet(valuationSetFactory, expression.getLeft(), mapping).complement();
+      return factory.complement(toValuationSet(factory, expression.getLeft(), mapping));
     }
 
     if (expression.isAND()) {
-      ValuationSet left = toValuationSet(valuationSetFactory, expression.getLeft(), mapping);
-      ValuationSet right = toValuationSet(valuationSetFactory, expression.getRight(), mapping);
-      left.retainAll(right);
-      right.free();
-      return left;
+      ValuationSet left = toValuationSet(factory, expression.getLeft(), mapping);
+      ValuationSet right = toValuationSet(factory, expression.getRight(), mapping);
+      return factory.intersection(left, right);
     }
 
     if (expression.isOR()) {
-      ValuationSet left = toValuationSet(valuationSetFactory, expression.getLeft(), mapping);
-      left.addAllWith(toValuationSet(valuationSetFactory, expression.getRight(), mapping));
-      return left;
+      ValuationSet left = toValuationSet(factory, expression.getLeft(), mapping);
+      ValuationSet right = toValuationSet(factory, expression.getRight(), mapping);
+      return factory.union(left, right);
     }
 
     throw new IllegalArgumentException("Unsupported Case: " + expression);

@@ -34,30 +34,25 @@ final class RabinizerUtil {
         action.accept((GOperator) temporalOperator);
       } else {
         Formula unwrapped = temporalOperator;
+
         while (unwrapped instanceof UnaryModalOperator) {
           unwrapped = ((UnaryModalOperator) unwrapped).operand;
+
           if (unwrapped instanceof GOperator) {
             break;
           }
         }
+
+        EquivalenceClassFactory factory = equivalenceClass.getFactory();
+
         if (unwrapped instanceof GOperator) {
           action.accept((GOperator) unwrapped);
         } else if (unwrapped instanceof BinaryModalOperator) {
           BinaryModalOperator binaryOperator = (BinaryModalOperator) unwrapped;
-
-          EquivalenceClassFactory eqFactory = equivalenceClass.getFactory();
-          EquivalenceClass leftClass = eqFactory.createEquivalenceClass(binaryOperator.left);
-          findSupportingSubFormulas(leftClass, action);
-          leftClass.free();
-
-          EquivalenceClass rightClass = eqFactory.createEquivalenceClass(binaryOperator.right);
-          findSupportingSubFormulas(rightClass, action);
-          rightClass.free();
+          findSupportingSubFormulas(factory.of(binaryOperator.left), action);
+          findSupportingSubFormulas(factory.of(binaryOperator.right), action);
         } else {
-          EquivalenceClass unwrappedClass =
-            equivalenceClass.getFactory().createEquivalenceClass(unwrapped);
-          findSupportingSubFormulas(unwrappedClass, action);
-          unwrappedClass.free();
+          findSupportingSubFormulas(factory.of(unwrapped), action);
         }
       }
     }
@@ -65,15 +60,17 @@ final class RabinizerUtil {
 
   public static Set<GOperator> getRelevantSubFormulas(EquivalenceClass equivalenceClass) {
     Formula representative = equivalenceClass.getRepresentative();
-    Set<GOperator> operators;
-    if (representative == null) {
-      operators = new HashSet<>();
-      for (Formula formula : equivalenceClass.getSupport()) {
-        operators.addAll(Collector.collectGOperators(formula));
-      }
-    } else {
-      operators = Collector.collectGOperators(representative);
+
+    if (representative != null) {
+      return Collector.collectGOperators(representative);
     }
+
+    Set<GOperator> operators = new HashSet<>();
+
+    for (Formula formula : equivalenceClass.getSupport()) {
+      operators.addAll(Collector.collectGOperators(formula));
+    }
+
     return operators;
   }
 

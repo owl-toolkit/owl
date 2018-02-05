@@ -27,11 +27,13 @@ final class RabinizerProductEdge {
       // TODO Maybe we don't want to do this?
       successorAcceptance = Arrays.copyOf(successorAcceptance, acceptance + 1);
     }
+
     ValuationSet old = successorAcceptance[acceptance];
+
     if (old == null) {
-      successorAcceptance[acceptance] = valuations.copy();
+      successorAcceptance[acceptance] = valuations;
     } else {
-      old.addAll(valuations);
+      successorAcceptance[acceptance] = old.getFactory().union(old, valuations);
     }
   }
 
@@ -44,6 +46,7 @@ final class RabinizerProductEdge {
     if (this == o) {
       return true;
     }
+
     if (!(o instanceof RabinizerProductEdge)) {
       return false;
     }

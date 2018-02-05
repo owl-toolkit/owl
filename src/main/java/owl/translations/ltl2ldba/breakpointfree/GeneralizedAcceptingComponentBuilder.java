@@ -52,7 +52,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   @Override
   protected GeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
     FGObligations obligations) {
-    EquivalenceClass safety = remainder.andWith(obligations.safety);
+    EquivalenceClass safety = remainder.and(obligations.safety);
     EquivalenceClass[] liveness = new EquivalenceClass[obligations.liveness.length];
 
     for (int i = 0; i < liveness.length; i++) {

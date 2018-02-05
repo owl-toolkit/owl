@@ -24,7 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
@@ -85,7 +84,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     Map<Edge<S>, ValuationSet> map = transitions.computeIfAbsent(makeUnique(source), mapSupplier);
     Edge<S> uniqueEdge = makeUnique(edge);
     transitions.computeIfAbsent(uniqueEdge.getSuccessor(), mapSupplier);
-    ValuationSetMapUtil.add(map, uniqueEdge, valuations.copy());
+    ValuationSetMapUtil.add(map, uniqueEdge, valuations);
   }
 
   @Override
@@ -148,11 +147,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public void free() {
-    transitions.forEach((state, edges) -> edges.values().forEach(ValuationSet::free));
-  }
-
-  @Override
   public A getAcceptance() {
     return acceptance;
   }
@@ -191,9 +185,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-    Map<Edge<S>, ValuationSet> transitionMap = getEdgeMap(state);
-    return Collections.unmodifiableCollection(Collections2.transform(
-      Maps.transformValues(transitionMap, ValuationSet::copy).entrySet(), LabelledEdge::of));
+    return Collections.unmodifiableCollection(Collections2.transform(getEdgeMap(state).entrySet(),
+      LabelledEdge::of));
   }
 
   @Override
@@ -259,9 +252,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void removeEdge(S source, BitSet valuation, S destination) {
-    ValuationSet valuationSet = valuationSetFactory.createValuationSet(valuation);
+    ValuationSet valuationSet = valuationSetFactory.of(valuation);
     removeEdge(source, valuationSet, destination);
-    valuationSet.free();
   }
 
   @Override
@@ -283,7 +275,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
       Map<Edge<S>, ValuationSet> edges = entry.getValue();
 
       if (removeState) {
-        ValuationSetMapUtil.clear(edges);
+        edges.clear();
       } else {
         ValuationSetMapUtil.remove(edges, filter);
       }
@@ -298,13 +290,11 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     Set<S> reachableStates = AutomatonUtil.getReachableStates(this, start);
     assert containsStates(reachableStates) : "Internal inconsistency";
 
-    if (!retainStates(reachableStates)) {
-      return;
-    }
-
-    for (S state : transitions.keySet()) {
-      if (!reachableStates.contains(state)) {
-        removedStatesConsumer.accept(state);
+    if (retainStates(reachableStates)) {
+      for (S state : transitions.keySet()) {
+        if (!reachableStates.contains(state)) {
+          removedStatesConsumer.accept(state);
+        }
       }
     }
   }

@@ -31,23 +31,11 @@ import owl.factories.EquivalenceClassFactory;
  */
 public interface EquivalenceClass {
 
+  EquivalenceClass[] EMPTY = new EquivalenceClass[0];
+
   EquivalenceClass and(EquivalenceClass equivalenceClass);
 
-  /**
-   * Performs the same operation as {@link EquivalenceClass#and}, but also calls free() on the
-   * instance.
-   */
-  default EquivalenceClass andWith(EquivalenceClass equivalenceClass) {
-    EquivalenceClass and = and(equivalenceClass);
-    free();
-    return and;
-  }
-
-  EquivalenceClass duplicate();
-
   EquivalenceClass exists(Predicate<Formula> predicate);
-
-  void free();
 
   void freeRepresentative();
 
@@ -79,16 +67,6 @@ public interface EquivalenceClass {
   boolean isTrue();
 
   EquivalenceClass or(EquivalenceClass equivalenceClass);
-
-  /**
-   * Performs the same operation as {@link EquivalenceClass#or}, but also calls free() on the
-   * instance.
-   */
-  default EquivalenceClass orWith(EquivalenceClass equivalenceClass) {
-    EquivalenceClass or = or(equivalenceClass);
-    free();
-    return or;
-  }
 
   EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution);
 

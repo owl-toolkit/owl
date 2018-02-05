@@ -39,9 +39,9 @@ public final class AutomatonOperations {
     while (iterator.hasNext()) {
       ValuationSetFactory otherFactory = iterator.next();
 
-      if (isSublist(factory.getAlphabet(), otherFactory.getAlphabet())) {
+      if (isSublist(factory.alphabet(), otherFactory.alphabet())) {
         factory = otherFactory;
-      } else if (!isSublist(otherFactory.getAlphabet(), factory.getAlphabet())) {
+      } else if (!isSublist(otherFactory.alphabet(), factory.alphabet())) {
         throw new IllegalArgumentException("Could not find shared alphabet.");
       }
     }

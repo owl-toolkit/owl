@@ -27,7 +27,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
@@ -66,25 +65,25 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     EquivalenceClass safety = obligations.safety;
 
     if (theRemainder.testSupport(Fragments::isFinite)) {
-      safety = theRemainder.andWith(safety);
+      safety = theRemainder.and(safety);
       theRemainder = factories.eqFactory.getTrue();
     }
 
     if (length == 0) {
       if (theRemainder.isTrue()) {
-        return new GeneralizedBreakpointState(obligations, safety, EquivalenceClassUtil.EMPTY,
-          EquivalenceClassUtil.EMPTY);
+        return new GeneralizedBreakpointState(obligations, safety, EquivalenceClass.EMPTY,
+          EquivalenceClass.EMPTY);
       } else {
         return new GeneralizedBreakpointState(obligations, safety,
-          new EquivalenceClass[] {theRemainder}, EquivalenceClassUtil.EMPTY);
+          new EquivalenceClass[] {theRemainder}, EquivalenceClass.EMPTY);
       }
     }
 
     EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
     if (obligations.obligations.length > 0) {
-      currentBuilder[0] = factory.getInitial(theRemainder.andWith(obligations.obligations[0]));
+      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.obligations[0]));
     } else {
-      currentBuilder[0] = factory.getInitial(theRemainder.andWith(obligations.liveness[0]));
+      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.liveness[0]));
     }
 
     for (int i = 1; i < obligations.obligations.length; i++) {
@@ -122,7 +121,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     GeneralizedBreakpointState state, BitSet valuation) {
     // Check the safety field first.
     EquivalenceClass nextSafety = factory.getSuccessor(state.safety, valuation)
-      .andWith(state.obligations.safety);
+      .and(state.obligations.safety);
 
     if (nextSafety.isFalse()) {
       return null;
@@ -152,14 +151,11 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       EquivalenceClass nextSuccessor = factory.getSuccessor(state.next[i], valuation, assumptions);
 
       if (nextSuccessor.isFalse()) {
-        EquivalenceClassUtil.free(currentSuccessors);
-        EquivalenceClassUtil.free(nextSuccessors);
-        assumptions.free();
         return null;
       }
 
       nextSuccessor = nextSuccessor
-        .andWith(factory.getInitial(state.obligations.obligations[i], assumptions));
+        .and(factory.getInitial(state.obligations.obligations[i], assumptions));
 
       // Successor is done and we can switch components.
       if (currentSuccessor.isTrue()) {
@@ -170,8 +166,6 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
         currentSuccessors[i] = currentSuccessor;
         nextSuccessors[i] = nextSuccessor;
       }
-
-      assumptions.free();
     }
 
     for (int i = state.next.length; i < length; i++) {
@@ -191,8 +185,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       }
     }
 
-    return Edge.of(
-      new GeneralizedBreakpointState(state.obligations, nextSafety, currentSuccessors,
+    return Edge.of(new GeneralizedBreakpointState(state.obligations, nextSafety, currentSuccessors,
         nextSuccessors), bs);
   }
 
@@ -210,13 +203,13 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       if (!remainder.isTrue()) {
         return Edge
           .of(new GeneralizedBreakpointState(state.obligations, nextSafety,
-            new EquivalenceClass[] {remainder}, EquivalenceClassUtil.EMPTY));
+            new EquivalenceClass[] {remainder}, EquivalenceClass.EMPTY));
       }
     }
 
     BitSet acceptance = new BitSet();
     acceptance.set(0, acceptanceSets);
     return Edge.of(new GeneralizedBreakpointState(state.obligations, nextSafety,
-        EquivalenceClassUtil.EMPTY, EquivalenceClassUtil.EMPTY), acceptance);
+        EquivalenceClass.EMPTY, EquivalenceClass.EMPTY), acceptance);
   }
 }

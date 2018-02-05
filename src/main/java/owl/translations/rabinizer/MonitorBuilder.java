@@ -166,7 +166,7 @@ final class MonitorBuilder {
         }
 
         // Create the edges for each automaton
-        ValuationSet valuationSet = vsFactory.createValuationSet(valuation, sensitiveAlphabet);
+        ValuationSet valuationSet = vsFactory.of(valuation, sensitiveAlphabet);
         for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
           int priority = priorities[contextIndex];
           Edge<MonitorState> edge;
@@ -180,9 +180,8 @@ final class MonitorBuilder {
               maximalPriority[contextIndex] = priority;
             }
           }
-          monitorAutomata[contextIndex].addEdge(currentState, valuationSet.copy(), edge);
+          monitorAutomata[contextIndex].addEdge(currentState, valuationSet, edge);
         }
-        valuationSet.free();
       }
       sensitiveAlphabet.clear();
     }
@@ -426,7 +425,7 @@ final class MonitorBuilder {
       successorRanking[0] = initialClass;
     } else {
       priorities[0] = succeed(0);
-      successorRanking[0] = successorClass.andWith(initialClass);
+      successorRanking[0] = successorClass.and(initialClass);
     }
 
     return new MonitorState(successorRanking);

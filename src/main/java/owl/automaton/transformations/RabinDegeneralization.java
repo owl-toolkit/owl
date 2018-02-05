@@ -115,8 +115,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         stateMap.put(state, degeneralizedState);
 
         Map<S, ValuationSet> successors = transientEdgesTable.row(degeneralizedState);
-        automaton.getLabelledEdges(state).forEach(labelledEdge ->
-          ValuationSetMapUtil.add(successors, labelledEdge));
+        automaton.getLabelledEdges(state).forEach(
+          labelledEdge -> ValuationSetMapUtil
+            .add(successors, labelledEdge.getEdge().getSuccessor(), labelledEdge.valuations));
         continue;
       }
 
@@ -158,7 +159,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             if (!scc.contains(generalizedSuccessor)) {
               // This is a transient edge, add to the table and ignore it
               ValuationSetMapUtil.add(transientSuccessors, generalizedSuccessor,
-                labelledEdge.valuations.copy());
+                labelledEdge.valuations);
               continue;
             }
 
@@ -219,7 +220,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
             DegeneralizedRabinState<S> successor =
               new DegeneralizedRabinState<>(generalizedSuccessor, successorAwaitedIndices);
-            ValuationSet valuations = labelledEdge.valuations.copy();
+            ValuationSet valuations = labelledEdge.valuations;
             successors.add(LabelledEdge.of(Edge.of(successor, edgeAcceptance), valuations));
           }
           return successors;
@@ -246,7 +247,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         resultAutomaton.addEdge(state, valuations, Edge.of(successor));
       }));
     // Free transient table
-    transientEdgesTable.values().forEach(ValuationSet::free);
+    transientEdgesTable.values().forEach(valuationSet -> {
+    });
 
     // Set initial states
     Set<DegeneralizedRabinState<S>> initialStates = automaton.getInitialStates().stream()

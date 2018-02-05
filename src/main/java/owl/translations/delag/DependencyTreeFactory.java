@@ -68,7 +68,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
       piggyback);
 
     if (leaf.type == Type.CO_SAFETY || leaf.type == Type.SAFETY) {
-      builder.safety.put(formula, factory.createEquivalenceClass(formula.unfold()));
+      builder.safety.put(formula, factory.of(formula.unfold()));
     }
 
     if (leaf instanceof FallbackLeaf) {

@@ -17,7 +17,6 @@
 
 package owl.factories.jbdd;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import de.tum.in.jbdd.Bdd;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -25,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,11 +46,11 @@ import owl.ltl.visitors.DefaultIntVisitor;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 
-final class EquivalenceFactory implements EquivalenceClassFactory {
+final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
+  implements EquivalenceClassFactory {
 
   private final ImmutableList<String> alphabet;
   private final int alphabetSize;
-  private final Bdd factory;
   private final BddEquivalenceClass falseClass;
   private final Object2IntMap<Formula> mapping;
   private final BddEquivalenceClass trueClass;
@@ -60,9 +60,10 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
   private int[] unfoldSubstitution;
 
   public EquivalenceFactory(Bdd factory, List<String> alphabet) {
+    super(factory);
+
     this.alphabetSize = alphabet.size();
     this.alphabet = ImmutableList.copyOf(alphabet);
-    this.factory = factory;
 
     mapping = new Object2IntOpenHashMap<>();
     mapping.defaultReturnValue(-1);
@@ -95,11 +96,33 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
   }
 
   @Override
-  public BddEquivalenceClass createEquivalenceClass(Formula formula) {
+  public EquivalenceClass of(Formula formula) {
     return createEquivalenceClass(formula, formula.accept(visitor));
   }
 
-  private BddEquivalenceClass createEquivalenceClass(@Nullable Formula representative, int bdd) {
+  @Override
+  public EquivalenceClass conjunction(Iterator<EquivalenceClass> classes) {
+    EquivalenceClass result = trueClass;
+
+    while (classes.hasNext()) {
+      result = result.and(classes.next());
+    }
+
+    return result;
+  }
+
+  @Override
+  public EquivalenceClass disjunction(Iterator<EquivalenceClass> classes) {
+    EquivalenceClass result = trueClass;
+
+    while (classes.hasNext()) {
+      result = result.or(classes.next());
+    }
+
+    return result;
+  }
+
+  private EquivalenceClass createEquivalenceClass(@Nullable Formula representative, int bdd) {
     if (bdd == factory.getTrueNode()) {
       return trueClass;
     }
@@ -108,7 +131,8 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       return falseClass;
     }
 
-    return new BddEquivalenceClass(representative, bdd);
+    summonReaper();
+    return canonicalize(bdd, new BddEquivalenceClass(representative, bdd));
   }
 
   @Override
@@ -194,12 +218,13 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
   }
 
   private final class BddEquivalenceClass implements EquivalenceClass {
-    private static final int INVALID_BDD = -1;
     private int bdd;
     @Nullable
     private Formula representative;
 
     BddEquivalenceClass(@Nullable Formula representative, int bdd) {
+      //assert representative == null || factory.dereference(representative.accept(visitor)) == bdd
+      //  : "Representative and BDD do not match.";
       this.representative = representative;
       this.bdd = bdd;
     }
@@ -208,6 +233,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
     public EquivalenceClass and(EquivalenceClass equivalenceClass) {
       assert equivalenceClass instanceof BddEquivalenceClass;
       BddEquivalenceClass that = (BddEquivalenceClass) equivalenceClass;
+
       @Nullable Formula representative;
       if (this.representative == null || that.representative == null) {
         representative = null;
@@ -216,11 +242,6 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       }
 
       return createEquivalenceClass(representative, factory.reference(factory.and(bdd, that.bdd)));
-    }
-
-    @Override
-    public EquivalenceClass duplicate() {
-      return new BddEquivalenceClass(representative, factory.reference(bdd));
     }
 
     @Override
@@ -248,18 +269,6 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       }
 
       return createEquivalenceClass(null, factory.reference(factory.exists(bdd, exists)));
-    }
-
-    @Override
-    public void free() {
-      Preconditions.checkState(bdd != INVALID_BDD, "Double free");
-
-      // Only remove BDD nodes for unsaturated nodes.
-      if (!factory.isVariableOrNegated(bdd) && !factory.isNodeRoot(bdd)) {
-        factory.dereference(bdd);
-        bdd = INVALID_BDD;
-        representative = null;
-      }
     }
 
     @Override
@@ -353,8 +362,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       }
 
       @Nullable
-      Formula substitutionRepresentative =
-        representative == null ? null
+      Formula substitutionRepresentative = representative == null ? null
           : representative.accept(new SubstitutionVisitor(substitution));
       return createEquivalenceClass(substitutionRepresentative, substitutedBdd);
     }
@@ -389,8 +397,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public boolean testSupport(Predicate<Formula> predicate) {
-      BitSet support = factory.support(bdd);
-      return support.stream().allMatch(i -> predicate.test(reverseMapping[i]));
+      return factory.support(bdd).stream().allMatch(i -> predicate.test(reverseMapping[i]));
     }
 
     @Override
@@ -407,7 +414,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       if (representative == null) {
         return String.format("(%d)", bdd);
       }
-      // Maybe apply simplifier here
+
       return PrintVisitor.toString(representative, alphabet, false);
     }
 

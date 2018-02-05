@@ -52,7 +52,7 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
     ValuationSetFactory factory, A acceptance, Set<Integer> acceptanceSet) {
     return new SingletonAutomaton<>(state, factory, Map.of(acceptanceSet,
-      factory.createUniverseValuationSet()), acceptance);
+      factory.universe()), acceptance);
   }
 
   private static final class EmptyAutomaton<S> implements Automaton<S, NoneAcceptance> {
@@ -101,22 +101,15 @@ public final class AutomatonFactory {
       this.singletonState = singletonState;
       this.factory = factory;
       this.acceptance = acceptance;
-      this.selfLoopValuations = factory.createEmptyValuationSet();
-      ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
 
+      ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
       acceptances.forEach((edgeAcceptance, valuations) -> {
         Edge<S> edge = Edge.of(singletonState, Collections3.toBitSet(edgeAcceptance));
         builder.add(LabelledEdge.of(edge, valuations));
-        selfLoopValuations.addAll(valuations);
       });
 
       this.selfLoopEdges = builder.build();
-    }
-
-    @Override
-    public void free() {
-      selfLoopValuations.free();
-      selfLoopEdges.forEach(LabelledEdge::free);
+      this.selfLoopValuations = factory.union(selfLoopEdges.stream().map(x -> x.valuations));
     }
 
     @Override

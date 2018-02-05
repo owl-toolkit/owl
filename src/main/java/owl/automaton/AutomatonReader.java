@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
@@ -208,7 +207,8 @@ public final class AutomatonReader {
       this.storedHeader = storedAutomaton.getStoredHeader();
 
       List<String> variables = storedHeader.getAPs();
-      ImmutableList<String> alphabet = vsFactory.getAlphabet();
+      List<String> alphabet = vsFactory.alphabet();
+
       if (variables.equals(alphabet)) {
         remapping = null;
       } else {
@@ -402,7 +402,7 @@ public final class AutomatonReader {
 
             // TODO Pretty sure we have to remap here, too?
             ValuationSet valuationSet =
-              vsFactory.createValuationSet(BooleanExpression.fromImplicit(counter));
+              vsFactory.of(BooleanExpression.fromImplicit(counter));
 
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
 

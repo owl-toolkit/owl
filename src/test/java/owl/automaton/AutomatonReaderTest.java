@@ -185,11 +185,11 @@ public class AutomatonReaderTest {
     assertThat(automaton.getInitialState(), is(states.get(1)));
 
     LabelledEdge<HoaState> successorEdge = LabelledEdge.of(states.get(0),
-      valuationSetFactory.createValuationSet(BitSets.createBitSet(true)));
+      valuationSetFactory.of(BitSets.createBitSet(true)));
     assertThat(automaton.getLabelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
 
     LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edge.of(states.get(0), 0),
-      valuationSetFactory.createUniverseValuationSet());
+      valuationSetFactory.universe());
     assertThat(automaton.getLabelledEdges(states.get(0)), containsInAnyOrder(loopEdge));
   }
 

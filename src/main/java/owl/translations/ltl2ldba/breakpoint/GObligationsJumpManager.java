@@ -112,15 +112,13 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     EvaluateVisitor evaluateVisitor =
       new EvaluateVisitor(keys.gOperators, keys.getObligation());
     Formula subst = formula.accept(evaluateVisitor);
-    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, subst);
-    evaluateVisitor.free();
-    return evaluated;
+    return RewriterFactory.apply(RewriterEnum.MODAL, subst);
   }
 
   @Override
   protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
     EquivalenceClass state2 = configuration.contains(Configuration.EAGER_UNFOLD)
-      ? state.duplicate()
+      ? state
       : state.unfold();
     Set<Formula> support = state2.getSupport();
     Set<GObligations> availableObligations = new HashSet<>();
@@ -130,7 +128,6 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         availableObligations.add(x);
       }
     }
-    state2.free();
 
     Set<Jump<GObligations>> jumps = new HashSet<>();
 
@@ -143,7 +140,6 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
 
       if (configuration.contains(Configuration.SUPPRESS_JUMPS)
         && dependsOnExternalAtoms(remainder, obligation)) {
-        remainder.free();
         continue;
       }
 
@@ -157,7 +153,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     Formula formula = clazz.getRepresentative();
 
     if (formula != null) {
-      return factory.createEquivalenceClass(evaluate(formula, keys));
+      return factory.of(evaluate(formula, keys));
     }
 
     return clazz.substitute(x -> evaluate(x, keys));
@@ -169,19 +165,13 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
 
     EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
       this.factory = label.getFactory();
-      this.environment = label.and(factory.createEquivalenceClass(
-        Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand))));
-    }
-
-    void free() {
-      environment.free();
+      this.environment = label.and(factory.of(
+        Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));
     }
 
     private boolean isImplied(Formula formula) {
-      EquivalenceClass clazz = factory.createEquivalenceClass(formula);
-      boolean isTrue = environment.implies(clazz);
-      clazz.free();
-      return isTrue;
+      EquivalenceClass clazz = factory.of(formula);
+      return environment.implies(clazz);
     }
 
     @Override

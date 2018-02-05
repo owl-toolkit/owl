@@ -61,7 +61,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
   }
 
   private void computeEdges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
-    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
+    for (BitSet valuation : BitSets.powerSet(factory.alphabetSize())) {
       Edge<S> edge = successors.apply(state, valuation);
 
       if (edge == null) {
@@ -75,11 +75,11 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
   private Map<Edge<S>, ValuationSet> computeEdgeMap(S state) {
     Map<Edge<S>, ValuationSet> edgeMap = new HashMap<>();
 
-    for (BitSet valuation : BitSets.powerSet(factory.getSize())) {
+    for (BitSet valuation : BitSets.powerSet(factory.alphabetSize())) {
       Edge<S> edge = successors.apply(state, valuation);
 
       if (edge != null) {
-        ValuationSetMapUtil.add(edgeMap, edge, factory.createValuationSet(valuation));
+        ValuationSetMapUtil.add(edgeMap, edge, factory.of(valuation));
       }
     }
 

@@ -31,7 +31,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
+import owl.factories.ValuationSetFactory;
 
 public final class ValuationSetMapUtil {
 
@@ -39,30 +39,19 @@ public final class ValuationSetMapUtil {
   }
 
   public static <K> void add(Map<K, ValuationSet> map, K key, ValuationSet valuations) {
-    map.merge(key, valuations, ValuationSet::union);
-  }
-
-  public static <K> void add(Map<K, ValuationSet> map, LabelledEdge<K> labelledEdge) {
-    map.merge(labelledEdge.getEdge().getSuccessor(), labelledEdge.getValuations(),
-      ValuationSet::union);
-  }
-
-  public static <K> void add(Map<K, ValuationSet> map, Map<K, ValuationSet> secondMap) {
-    secondMap.forEach((edge, valuations) -> add(map, edge, valuations));
-  }
-
-  public static <S> void clear(Map<Edge<S>, ValuationSet> map) {
-    map.values().forEach(ValuationSet::free);
-    map.clear();
+    ValuationSetFactory factory = valuations.getFactory();
+    map.merge(key, valuations, factory::union);
   }
 
   public static <K> Set<K> findAll(Map<K, ValuationSet> map, BitSet valuation) {
     Set<K> edges = new HashSet<>(map.size());
+
     map.forEach((key, valuations) -> {
       if (valuations.contains(valuation)) {
         edges.add(key);
       }
     });
+
     return edges;
   }
 
@@ -93,22 +82,14 @@ public final class ValuationSetMapUtil {
     return key;
   }
 
-  public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state) {
-    remove(map, (Predicate<S>) state::equals);
-  }
-
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, Predicate<? super S> predicate) {
-    map.entrySet().removeIf(entry -> {
-      if (!predicate.test(entry.getKey().getSuccessor())) {
-        return false;
-      }
-
-      entry.getValue().free();
-      return true;
-    });
+    map.entrySet().removeIf(entry -> predicate.test(entry.getKey().getSuccessor()));
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state, ValuationSet valuations) {
+    ValuationSetFactory factory = valuations.getFactory();
+    ValuationSet complement = factory.complement(valuations);
+
     map.entrySet().removeIf(entry -> {
       S successorState = entry.getKey().getSuccessor();
 
@@ -117,15 +98,18 @@ public final class ValuationSetMapUtil {
       }
 
       ValuationSet edgeValuation = entry.getValue();
-      edgeValuation.removeAll(valuations);
+      entry.setValue(factory.intersection(edgeValuation, complement));
       return edgeValuation.isEmpty();
     });
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, Edge<S> edge,
     ValuationSet valuations) {
+    ValuationSetFactory factory = valuations.getFactory();
+    ValuationSet complement = factory.complement(valuations);
+
     map.computeIfPresent(edge, (key, value) -> {
-      value.removeAll(valuations);
+      value = factory.intersection(value, complement);
 
       if (value.isEmpty()) {
         return null;
@@ -136,9 +120,12 @@ public final class ValuationSetMapUtil {
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, ValuationSet valuations) {
-    map.values().removeIf(vs -> {
-      vs.removeAll(valuations);
-      return vs.isEmpty();
+    ValuationSetFactory factory = valuations.getFactory();
+    ValuationSet complement = factory.complement(valuations);
+
+    map.entrySet().removeIf(entry -> {
+      entry.setValue(factory.intersection(entry.getValue(), complement));
+      return entry.getValue().isEmpty();
     });
   }
 
@@ -160,7 +147,7 @@ public final class ValuationSetMapUtil {
       return true;
     });
 
-    add(map, secondMap);
+    secondMap.forEach((edge, valuations) -> add(map, edge, valuations));
   }
 
   public static <S> Collection<S> viewSuccessors(Map<Edge<S>, ValuationSet> map) {

@@ -194,7 +194,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, fFreeFormula);
     Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated
       + " using " + obligation);
-    return factory.createEquivalenceClass(evaluated);
+    return factory.of(evaluated);
   }
 
   abstract static class AbstractReplaceOperatorsVisitor extends DefaultVisitor<Formula> {

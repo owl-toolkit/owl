@@ -163,7 +163,7 @@ public final class IntAutomaton {
     Object o = int2StateMap.get(state);
 
     int i = 0;
-    int size = automaton.getFactory().getSize();
+    int size = automaton.getFactory().alphabetSize();
     int[] edges = new int[2 << size];
 
     for (BitSet valuation : BitSets.powerSet(size)) {
@@ -199,7 +199,7 @@ public final class IntAutomaton {
     Object o = int2StateMap.get(state);
 
     int i = 0;
-    int size = automaton.getFactory().getSize();
+    int size = automaton.getFactory().alphabetSize();
     int[] successors = new int[1 << size];
 
     for (BitSet valuation : BitSets.powerSet(size)) {

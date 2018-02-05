@@ -90,7 +90,7 @@ public class RabinizerBuilder {
 
   RabinizerBuilder(Environment env, RabinizerConfiguration configuration, Factories factories,
     Formula formula) {
-    EquivalenceClass initialClass = factories.eqFactory.createEquivalenceClass(formula);
+    EquivalenceClass initialClass = factories.eqFactory.of(formula);
 
     this.env = env;
     this.configuration = configuration;
@@ -137,10 +137,11 @@ public class RabinizerBuilder {
         ValuationSet oldValuations = edgePriorities[priority];
         if (oldValuations == null) {
           // Need to free again later on
-          edgePriorities[priority] = monitorLabelledEdge.valuations.copy();
+          edgePriorities[priority] = monitorLabelledEdge.valuations;
         } else {
           // This happens if the monitor has two different transitions but the same acceptance
-          oldValuations.addAll(monitorLabelledEdge.valuations);
+          edgePriorities[priority] = oldValuations.getFactory()
+            .union(oldValuations, monitorLabelledEdge.valuations);
         }
       }
       monitorPriorities[relevantIndex] = edgePriorities;
@@ -168,13 +169,9 @@ public class RabinizerBuilder {
       if (monitorPriority == null) {
         continue;
       }
+
       //noinspection AssignmentToNull
       monitorPriorities[relevantIndex] = null;
-      for (ValuationSet priorityValuations : monitorPriority) {
-        if (priorityValuations != null) {
-          priorityValuations.free();
-        }
-      }
     }
   }
 
@@ -189,16 +186,13 @@ public class RabinizerBuilder {
     for (EquivalenceClass state : scc) {
       EvaluateVisitor visitor = new EvaluateVisitor(relevantOperators, state);
       EquivalenceClass substitute = state.substitute(visitor);
-      visitor.free();
-
       BitSet externalAtoms = Collector.collectAtoms(substitute.getSupport());
-      substitute.free();
-
       // Check if external atoms are non-empty and disjoint.
       if (externalAtoms.isEmpty() || externalAtoms.intersects(internalAtoms)) {
         return false;
       }
     }
+
     return true;
   }
 
@@ -485,14 +479,13 @@ public class RabinizerBuilder {
               // due to the call to monitors entail
               valuations.forEach(sensitiveAlphabet, valuation -> {
                 ValuationSet edgeValuation =
-                  vsFactory.createValuationSet(valuation, sensitiveAlphabet);
+                  vsFactory.of(valuation, sensitiveAlphabet);
                 if (configuration.eager() && !rankingPair.monitorsEntailEager(state, valuation)) {
                   transition.addAcceptance(edgeValuation, pair.finSet());
                 } else {
                   IntSet edgeAcceptance = rankingPair.getAcceptance(valuation);
                   transition.addAcceptance(edgeValuation, edgeAcceptance);
                 }
-                edgeValuation.free();
               });
             });
           }
@@ -509,9 +502,7 @@ public class RabinizerBuilder {
       });
     }
 
-    masterAutomaton.free();
     for (MonitorAutomaton monitor : monitors) {
-      monitor.free();
     }
 
     /* Now, we need to take care of connecting the partitioned state space, set the initial state
@@ -550,14 +541,15 @@ public class RabinizerBuilder {
 
     // Handle the |G| = {} case
     RabinizerState trueState = emptyProductState(eqFactory.getTrue());
+
     if (rabinizerAutomaton.containsState(trueState)) {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.getSuccessors(trueState)),
         trueState);
 
       RabinPair truePair = acceptance.createPair(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
-      Edge<RabinizerState> edge = Edge.of(trueState, truePair.infSet(0));
-      rabinizerAutomaton.addEdge(trueState, vsFactory.createUniverseValuationSet(), edge);
+      rabinizerAutomaton.addEdge(trueState, vsFactory.universe(),
+        Edge.of(trueState, truePair.infSet(0)));
     }
 
     // If the initial states of the monitors are not optimized, there might be unreachable states
@@ -565,11 +557,9 @@ public class RabinizerBuilder {
     logger.log(Level.FINER, "Removed unreachable states: {0}", unreachableStates);
 
     logger.log(Level.FINER, () -> String.format("Result:%n%s", toHoa(rabinizerAutomaton)));
+
     if (activeSets != null) {
       logger.log(Level.FINER, () -> printOperatorSets(activeSets));
-      for (ActiveSet activeSet : activeSets) {
-        activeSet.activeSet.free();
-      }
     }
 
     return rabinizerAutomaton;
@@ -578,7 +568,7 @@ public class RabinizerBuilder {
   private MonitorAutomaton buildMonitor(GOperator gOperator) {
     logger.log(Level.FINE, "Building monitor for sub-formula {0}", gOperator);
 
-    EquivalenceClass operand = eqFactory.createEquivalenceClass(gOperator.operand);
+    EquivalenceClass operand = eqFactory.of(gOperator.operand);
     if (!env.annotations()) {
       operand.freeRepresentative();
     }
@@ -595,7 +585,6 @@ public class RabinizerBuilder {
         configuration.eager());
 
     // Postprocessing and logging
-    relevantGSets.forEach(GSet::free);
     logger.log(Level.FINER, () -> String.format("Monitor for %s:%n%s", gOperator, toHoa(monitor)));
     if (logger.isLoggable(Level.FINEST)) {
       monitor.getAutomata().forEach((set, automaton) -> logger.log(Level.FINEST,
@@ -635,17 +624,10 @@ public class RabinizerBuilder {
         // Create the edge
         Edge<RabinizerState> rabinizerEdge = Edge.of(rabinizerSuccessor, edgeAcceptanceSet);
         // Expand valuation to the full alphabet
-        ValuationSet edgeValuation = vsFactory.createValuationSet(valuation, sensitiveAlphabet);
+        ValuationSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
         // Add edge to result
         rabinizerAutomaton.addEdge(state, edgeValuation, rabinizerEdge);
       });
-
-      for (ValuationSet cachedValuations : acceptanceCache) {
-        if (cachedValuations != null) {
-          cachedValuations.free();
-        }
-      }
-      valuations.free();
     });
   }
 
@@ -750,7 +732,7 @@ public class RabinizerBuilder {
             monitorSuccessors);
 
           ValuationSetMapUtil.add(rabinizerSuccessors, new RabinizerProductEdge(rabinizerSuccessor),
-            vsFactory.createValuationSet(valuation, sensitiveAlphabet));
+            vsFactory.of(valuation, sensitiveAlphabet));
 
           // Update exploration queue
           if (exploredStates.add(rabinizerSuccessor)) {
@@ -777,7 +759,7 @@ public class RabinizerBuilder {
           product:
           while (productIterator.hasNext()) {
             int[] successorSelection = productIterator.next();
-            ValuationSet productValuation = masterSuccessorValuation.copy();
+            ValuationSet productValuation = masterSuccessorValuation;
 
             // Evolve each monitor
             MonitorState[] monitorSuccessors = new MonitorState[monitorStates.length];
@@ -789,10 +771,11 @@ public class RabinizerBuilder {
                 monitorSuccessorMatrix[monitorIndex][monitorMatrixIndex];
               ValuationSet monitorSuccessorValuation =
                 monitorValuationMatrix[monitorIndex][monitorMatrixIndex];
-              productValuation.retainAll(monitorSuccessorValuation);
+              productValuation = vsFactory.intersection(productValuation,
+                monitorSuccessorValuation);
+
               // TODO Forget about this whole subtree
               if (productValuation.isEmpty()) {
-                productValuation.free();
                 continue product;
               }
             }
@@ -807,7 +790,6 @@ public class RabinizerBuilder {
               workQueue.add(successor);
             }
           }
-          masterSuccessorValuation.free();
         }
       }
     }
@@ -997,14 +979,14 @@ public class RabinizerBuilder {
         for (int stateIndex = rank; stateIndex < monitorStateRanking.length; stateIndex++) {
           EquivalenceClass rankEntry = monitorStateRanking[stateIndex];
           EquivalenceClass state = eager ? rankEntry.temporalStep(valuation) : rankEntry;
-          antecedentArray[0] = antecedentArray[0].andWith(state);
+          antecedentArray[0] = antecedentArray[0].and(state);
         }
       });
       EquivalenceClass antecedent = antecedentArray[0];
 
       if (eager) {
         // In the eager construction, we need to add some more knowledge to the antecedent
-        antecedent = antecedent.andWith(activeFormulaSet.operatorConjunction());
+        antecedent = antecedent.and(activeFormulaSet.operatorConjunction());
       }
 
       // Important: We need to inject the state of the G operators into the monitor states,
@@ -1048,15 +1030,6 @@ public class RabinizerBuilder {
         logger.log(Level.FINEST, log);
       }
 
-      // Deliberately not calling the varargs free, since this part of the code is really hot
-      antecedent.free();
-      strengthenedAntecedent.free();
-      weakenedConsequent.free();
-
-      if (eager) {
-        testedConsequent.free();
-      }
-
       return result;
     }
 
@@ -1071,19 +1044,12 @@ public class RabinizerBuilder {
 
     EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
       this.factory = label.getFactory();
-      this.environment = label.and(factory.createEquivalenceClass(
-        Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand))));
-    }
-
-    void free() {
-      environment.free();
+      this.environment = label.and(factory.of(
+        Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));
     }
 
     private boolean isImplied(Formula formula) {
-      EquivalenceClass clazz = factory.createEquivalenceClass(formula);
-      boolean isTrue = environment.implies(clazz);
-      clazz.free();
-      return isTrue;
+      return environment.implies(factory.of(formula));
     }
 
     @Override

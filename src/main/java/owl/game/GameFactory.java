@@ -153,7 +153,7 @@ public final class GameFactory {
       }
 
       ValueEdge(ValuationSet set, int colour) {
-        valuationSet = set.copy();
+        valuationSet = set;
         this.colour = colour;
       }
 

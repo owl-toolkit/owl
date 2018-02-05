@@ -21,73 +21,24 @@ import java.util.BitSet;
 import java.util.function.Consumer;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
+import owl.factories.ValuationSetFactory;
 
-/**
- * This interface is very similar to a {@link java.util.Set} containing {@link BitSet}s but breaks
- * several standard contracts on purpose, such as returning a boolean, if the operation changes the
- * underlying data-structure. This information is never used and it is costly to support this.
- */
 public interface ValuationSet {
-  // TODO Move all operations to the factory (less objects and easier synchronization)
-  // TODO Remove iterators, replace with forEach()-type calls
-
-  static ValuationSet intersection(ValuationSet vs1, ValuationSet vs2) {
-    vs1.retainAll(vs2);
-    vs2.free();
-    return vs1;
-  }
-
-  static ValuationSet union(ValuationSet vs1, ValuationSet vs2) {
-    vs1.addAllWith(vs2);
-    return vs1;
-  }
-
-  void add(BitSet valuation);
-
-  void addAll(ValuationSet other);
-
-  /**
-   * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@code other}.
-   *
-   * @param other
-   *     the other valuation set.
-   *
-   * @see #addAll(ValuationSet)
-   */
-  default void addAllWith(ValuationSet other) {
-    addAll(other);
-    other.free();
-  }
-
   BitSet any();
-
-  ValuationSet complement();
 
   boolean contains(BitSet valuation);
 
   boolean containsAll(ValuationSet vs);
 
-  ValuationSet copy();
-
   void forEach(Consumer<? super BitSet> action);
 
   void forEach(BitSet restriction, Consumer<? super BitSet> action);
 
-  void free();
-
-  BitSet getSupport();
-
-  ValuationSet intersect(ValuationSet v2);
-
-  boolean intersects(ValuationSet value);
+  ValuationSetFactory getFactory();
 
   boolean isEmpty();
 
   boolean isUniverse();
-
-  void removeAll(ValuationSet other);
-
-  void retainAll(ValuationSet other);
 
   int size();
 

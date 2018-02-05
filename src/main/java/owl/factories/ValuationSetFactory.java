@@ -17,20 +17,71 @@
 
 package owl.factories;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 import owl.collections.ValuationSet;
 
 public interface ValuationSetFactory {
-  ImmutableList<String> getAlphabet();
+  List<String> alphabet();
 
-  ValuationSet createEmptyValuationSet();
+  default int alphabetSize() {
+    return alphabet().size();
+  }
 
-  ValuationSet createUniverseValuationSet();
+  ValuationSet complement(ValuationSet set);
 
-  ValuationSet createValuationSet(BitSet valuation);
+  default ValuationSet intersection(ValuationSet set) {
+    return set;
+  }
 
-  ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet);
+  default ValuationSet intersection(ValuationSet set1, ValuationSet set2) {
+    return intersection(List.of(set1, set2));
+  }
 
-  int getSize();
+  default ValuationSet intersection(ValuationSet... sets) {
+    return intersection(Iterators.forArray(sets));
+  }
+
+  default ValuationSet intersection(Stream<ValuationSet> sets) {
+    return intersection(sets.iterator());
+  }
+
+  default ValuationSet intersection(Iterable<ValuationSet> sets) {
+    return intersection(sets.iterator());
+  }
+
+  ValuationSet intersection(Iterator<ValuationSet> sets);
+
+  ValuationSet of();
+
+  ValuationSet of(BitSet valuation);
+
+  ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
+
+  default ValuationSet union(ValuationSet set) {
+    return set;
+  }
+
+  default ValuationSet union(ValuationSet set1, ValuationSet set2) {
+    return union(List.of(set1, set2));
+  }
+
+  default ValuationSet union(ValuationSet... sets) {
+    return union(Iterators.forArray(sets));
+  }
+
+  default ValuationSet union(Stream<ValuationSet> sets) {
+    return union(sets.iterator());
+  }
+
+  default ValuationSet union(Iterable<ValuationSet> sets) {
+    return union(sets.iterator());
+  }
+
+  ValuationSet union(Iterator<ValuationSet> sets);
+
+  ValuationSet universe();
 }

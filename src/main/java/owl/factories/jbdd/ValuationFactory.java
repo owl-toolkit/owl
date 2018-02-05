@@ -22,6 +22,7 @@ import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
@@ -30,34 +31,73 @@ import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
-final class ValuationFactory implements ValuationSetFactory {
+final class ValuationFactory extends GcManagedFactory<ValuationSet> implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
+
   private final ImmutableList<String> alphabet;
-  private final Bdd factory;
+  private final ValuationSet empty;
+  private final ValuationSet universe;
 
   ValuationFactory(Bdd factory, List<String> alphabet) {
-    this.factory = factory;
+    super(factory);
     this.alphabet = ImmutableList.copyOf(alphabet);
 
     for (int i = 0; i < alphabet.size(); i++) {
       factory.createVariable();
     }
+
+    universe = createValuationSet(factory.getTrueNode());
+    empty = createValuationSet(factory.getFalseNode());
+  }
+
+  @Override
+  public ValuationSet complement(ValuationSet set) {
+    BddValuationSet castedSet = (BddValuationSet) set;
+    return createValuationSet(factory.reference(factory.not(castedSet.bdd)));
+  }
+
+  @Override
+  public ValuationSet union(Iterator<ValuationSet> sets) {
+    int bdd = factory.getFalseNode();
+
+    while (sets.hasNext()) {
+      BddValuationSet set = (BddValuationSet) sets.next();
+      bdd = factory.updateWith(factory.or(bdd, set.bdd), bdd);
+    }
+
+    return createValuationSet(bdd);
+  }
+
+  @Override
+  public ValuationSet intersection(Iterator<ValuationSet> sets) {
+    int bdd = factory.getTrueNode();
+
+    while (sets.hasNext()) {
+      BddValuationSet set = (BddValuationSet) sets.next();
+      bdd = factory.updateWith(factory.and(bdd, set.bdd), bdd);
+    }
+
+    return createValuationSet(bdd);
   }
 
   private int createBdd(BitSet set, BitSet base) {
     int bdd = factory.getTrueNode();
+
     for (int i = base.nextSetBit(0); i != -1; i = base.nextSetBit(i + 1)) {
       bdd = createBddUpdateHelper(set, i, bdd);
     }
+
     return bdd;
   }
 
   private int createBdd(BitSet set) {
     int bdd = factory.getTrueNode();
+
     for (int i = 0; i < factory.numberOfVariables(); i++) {
       bdd = createBddUpdateHelper(set, i, bdd);
     }
+
     return bdd;
   }
 
@@ -72,8 +112,8 @@ final class ValuationFactory implements ValuationSetFactory {
   }
 
   @Override
-  public ValuationSet createEmptyValuationSet() {
-    return new BddValuationSet(factory.getFalseNode());
+  public ValuationSet of() {
+    return empty;
   }
 
   private BooleanExpression<AtomLabel> createRepresentative(int bdd) {
@@ -83,10 +123,6 @@ final class ValuationFactory implements ValuationSetFactory {
 
     if (bdd == factory.getTrueNode()) {
       return TRUE;
-    }
-
-    if (bdd == BddValuationSet.INVALID_BDD) {
-      throw new IllegalStateException("Valuationset already freed!");
     }
 
     BooleanExpression<AtomLabel> letter = new BooleanExpression<>(
@@ -117,54 +153,35 @@ final class ValuationFactory implements ValuationSetFactory {
   }
 
   @Override
-  public ValuationSet createUniverseValuationSet() {
-    return new BddValuationSet(factory.getTrueNode());
+  public ValuationSet universe() {
+    return universe;
   }
 
   @Override
-  public ValuationSet createValuationSet(BitSet valuation, BitSet restrictedAlphabet) {
-    return new BddValuationSet(createBdd(valuation, restrictedAlphabet));
+  public ValuationSet of(BitSet valuation, BitSet restrictedAlphabet) {
+    return createValuationSet(createBdd(valuation, restrictedAlphabet));
   }
 
   @Override
-  public ValuationSet createValuationSet(BitSet valuation) {
-    return new BddValuationSet(createBdd(valuation));
+  public ValuationSet of(BitSet valuation) {
+    return createValuationSet(createBdd(valuation));
+  }
+
+  private ValuationSet createValuationSet(int bdd) {
+    summonReaper();
+    return canonicalize(bdd, new BddValuationSet(bdd));
   }
 
   @Override
-  public ImmutableList<String> getAlphabet() {
+  public List<String> alphabet() {
     return alphabet;
   }
 
-  @Override
-  public int getSize() {
-    return factory.numberOfVariables();
-  }
-
-  private final class BddValuationSet implements ValuationSet {
-    static final int INVALID_BDD = -1;
-    private int bdd;
+  final class BddValuationSet implements ValuationSet {
+    final int bdd;
 
     BddValuationSet(int bdd) {
       this.bdd = bdd;
-    }
-
-    @Override
-    public void add(BitSet valuation) {
-      int bddSet = createBdd(valuation);
-      bdd = factory.consume(factory.or(bdd, bddSet), bdd, bddSet);
-    }
-
-    @Override
-    public void addAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-      BddValuationSet otherSet = (BddValuationSet) other;
-      bdd = factory.updateWith(factory.or(bdd, otherSet.bdd), bdd);
-    }
-
-    @Override
-    public ValuationSet complement() {
-      return new BddValuationSet(factory.reference(factory.not(bdd)));
     }
 
     @Override
@@ -180,13 +197,8 @@ final class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public BddValuationSet copy() {
-      return new BddValuationSet(factory.reference(bdd));
-    }
-
-    @Override
     public BitSet any() {
-      for (BitSet set : BitSets.powerSet(getSupport())) {
+      for (BitSet set : BitSets.powerSet(alphabetSize())) {
         if (contains(set)) {
           return set;
         }
@@ -200,9 +212,11 @@ final class ValuationFactory implements ValuationSetFactory {
       if (this == o) {
         return true;
       }
+
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
+
       BddValuationSet bitSets = (BddValuationSet) o;
       return bdd == bitSets.bdd;
     }
@@ -247,33 +261,8 @@ final class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void free() {
-      // if (bdd > factory.getTrueNode()) {
-      //  factory.dereference(bdd);
-      //  bdd = INVALID_BDD;
-      // }
-    }
-
-    @Override
-    public BitSet getSupport() {
-      return factory.support(bdd);
-    }
-
-    @Override
     public int hashCode() {
       return HashCommon.mix(bdd);
-    }
-
-    @Override
-    public ValuationSet intersect(ValuationSet v2) {
-      ValuationSet thisClone = this.copy();
-      thisClone.retainAll(v2);
-      return thisClone;
-    }
-
-    @Override
-    public boolean intersects(ValuationSet value) {
-      return !intersect(value).isEmpty();
     }
 
     @Override
@@ -287,21 +276,8 @@ final class ValuationFactory implements ValuationSetFactory {
     }
 
     @Override
-    public void removeAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-
-      BddValuationSet otherSet = (BddValuationSet) other;
-      int notOtherIndex = factory.reference(factory.not(otherSet.bdd));
-      bdd = factory.updateWith(factory.and(bdd, notOtherIndex), bdd);
-      factory.dereference(notOtherIndex);
-    }
-
-    @Override
-    public void retainAll(ValuationSet other) {
-      assert other instanceof BddValuationSet;
-
-      BddValuationSet otherSet = (BddValuationSet) other;
-      bdd = factory.updateWith(factory.and(bdd, otherSet.bdd), bdd);
+    public ValuationSetFactory getFactory() {
+      return ValuationFactory.this;
     }
 
     @Override
@@ -319,6 +295,7 @@ final class ValuationFactory implements ValuationSetFactory {
       if (isEmpty()) {
         return "[]";
       }
+
       StringBuilder builder = new StringBuilder(factory.numberOfVariables() * 10 + 10);
       builder.append('[');
       forEach(bitSet -> builder.append(bitSet).append(", "));

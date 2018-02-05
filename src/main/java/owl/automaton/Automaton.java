@@ -17,13 +17,13 @@
 
 package owl.automaton;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -85,10 +85,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
     getStates().forEach(x -> forEachLabelledEdge(x, (y, z) -> action.accept(x, y, z)));
-  }
-
-  default void free() {
-    // Only override if needed
   }
 
   /**
@@ -207,8 +203,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   default Map<S, ValuationSet> getSuccessorMap(S state) {
     Map<S, ValuationSet> successorMap = new HashMap<>();
-    forEachLabelledEdge(state, (edge, valuations) ->
-      ValuationSetMapUtil.add(successorMap, edge.getSuccessor(), valuations.copy()));
+    forEachLabelledEdge(state,
+      (edge, valuations) -> ValuationSetMapUtil.add(successorMap, edge.getSuccessor(), valuations));
     return successorMap;
   }
 
@@ -221,8 +217,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   @Override
-  default ImmutableList<String> getVariables() {
-    return getFactory().getAlphabet();
+  default List<String> getVariables() {
+    return getFactory().alphabet();
   }
 
   default boolean is(Property property) {

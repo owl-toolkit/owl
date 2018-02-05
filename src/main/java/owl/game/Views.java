@@ -221,7 +221,7 @@ public final class Views {
       this.firstPlayer = new BitSet();
       firstPlayer.forEach(x -> this.firstPlayer.set(automaton.getVariables().indexOf(x)));
       secondPlayer = (BitSet) this.firstPlayer.clone();
-      secondPlayer.flip(0, automaton.getFactory().getSize());
+      secondPlayer.flip(0, automaton.getFactory().alphabetSize());
     }
 
     @Override
@@ -254,18 +254,15 @@ public final class Views {
         // First player chooses his part of the valuation
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
-          ValuationSet valuationSet =
-            factory.createValuationSet(valuation, firstPlayer);
-          edges.add(LabelledEdge.of(node.choose((BitSet) valuation.clone()),
-                valuationSet));
+          ValuationSet valuationSet = factory.of(valuation, firstPlayer);
+          edges.add(LabelledEdge.of(node.choose((BitSet) valuation.clone()), valuationSet));
         }
       } else {
         // Second player completes the valuation, yielding a transition in the
         // automaton
 
         for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
-          ValuationSet valuationSet =
-            factory.createValuationSet(valuation, secondPlayer);
+          ValuationSet valuationSet = factory.of(valuation, secondPlayer);
 
           BitSet joined = (BitSet) valuation.clone();
           joined.or(node.firstPlayerChoice);

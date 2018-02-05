@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
-import owl.factories.EquivalenceClassUtil;
 import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
@@ -99,19 +99,15 @@ public final class GObligations extends ImmutableObject implements RecurringObli
         builder.add(new GOperator(formula));
       }
 
-      EquivalenceClass clazz = factory.createEquivalenceClass(formula);
-
-      evaluateVisitor.free();
+      EquivalenceClass clazz = factory.of(formula);
 
       if (clazz.isFalse()) {
-        EquivalenceClassUtil.free(clazz, safety, liveness, obligations);
         return null;
       }
 
       if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
         if (clazz.testSupport(Fragments::isFinite)) {
-          safety = safety.andWith(clazz);
-          clazz.free();
+          safety = safety.and(clazz);
           continue;
         }
 
@@ -129,7 +125,6 @@ public final class GObligations extends ImmutableObject implements RecurringObli
     }
 
     if (safety.isFalse()) {
-      EquivalenceClassUtil.free(null, safety, liveness, obligations);
       return null;
     }
 
@@ -170,18 +165,18 @@ public final class GObligations extends ImmutableObject implements RecurringObli
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety.getFactory().createEquivalenceClass(rewrittenGOperators);
+    return safety.getFactory().of(Conjunction.of(rewrittenGOperators));
   }
 
   EquivalenceClass getObligation() {
-    EquivalenceClass obligation = safety.duplicate();
+    EquivalenceClass obligation = safety;
 
     for (EquivalenceClass clazz : liveness) {
-      obligation = obligation.andWith(clazz);
+      obligation = obligation.and(clazz);
     }
 
     for (EquivalenceClass clazz : obligations) {
-      obligation = obligation.andWith(clazz);
+      obligation = obligation.and(clazz);
     }
 
     return obligation;
