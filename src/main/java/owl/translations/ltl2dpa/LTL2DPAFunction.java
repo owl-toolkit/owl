@@ -272,7 +272,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     if (configuration.contains(Configuration.EXISTS_SAFETY_CORE)) {
       BitSet nonSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
 
-      EquivalenceClass core = state.rewrite(x -> {
+      EquivalenceClass core = state.substitute(x -> {
         if (!Fragments.isSafety(x)) {
           return BooleanConstant.FALSE;
         }

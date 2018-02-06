@@ -25,16 +25,13 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
-import owl.factories.EquivalenceClassUtil;
 import owl.factories.PropositionVisitor;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
@@ -42,7 +39,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
@@ -51,9 +47,6 @@ import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 
 final class EquivalenceFactory implements EquivalenceClassFactory {
-  // TODO We should be able to treat "true" formulas and atoms completely separate
-  // Then, the literals won't litter the mappings etc.
-  // TODO Make the bdd reusable, i.e. don't assume that reverseMapping.length == bdd.variableCount()
 
   private final ImmutableList<String> alphabet;
   private final int alphabetSize;
@@ -72,25 +65,29 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
     this.factory = factory;
 
     mapping = new Object2IntOpenHashMap<>();
-    mapping.defaultReturnValue(0);
+    mapping.defaultReturnValue(-1);
     visitor = new BddVisitor();
 
-    unfoldSubstitution = new int[alphabetSize];
-    temporalStepSubstitution = new int[alphabetSize];
-    reverseMapping = new Formula[alphabetSize];
+    unfoldSubstitution = new int[2 * alphabetSize];
+    temporalStepSubstitution = new int[2 * alphabetSize];
+    reverseMapping = new Formula[2 * alphabetSize];
 
     for (int i = 0; i < alphabetSize; i++) {
       Literal literal = new Literal(i);
-      int variableNode = factory.createVariable();
-      assert factory.getVariable(variableNode) == i;
+      int variableNodePos = factory.createVariable();
+      int variableNodeNeg = factory.createVariable();
 
-      // In order to "distinguish" -0 and +0 we shift the variables by 1 -> -1, 1.
-      mapping.put(literal, i + 1);
-      mapping.put(literal.not(), -(i + 1));
-      reverseMapping[i] = literal;
+      assert factory.getVariable(variableNodePos) == 2 * i;
+      assert factory.getVariable(variableNodeNeg) == 2 * i + 1;
+
+      mapping.put(literal, 2 * i);
+      mapping.put(literal.not(), 2 * i + 1);
+      reverseMapping[2 * i] = literal;
+      reverseMapping[2 * i + 1] = literal.not();
 
       // Literals are not unfolded.
-      unfoldSubstitution[i] = -1;
+      unfoldSubstitution[2 * i] = -1;
+      unfoldSubstitution[2 * i + 1] = -1;
     }
 
     trueClass = new BddEquivalenceClass(BooleanConstant.TRUE, factory.getTrueNode());
@@ -131,28 +128,16 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
 
     int value = mapping.getInt(formula);
 
-    if (value == 0) {
+    if (value < 0) {
       // All literals should have been already discovered.
-      assert !(formula instanceof Literal);
-      Deque<Formula> propositions = PropositionVisitor.extractPropositions(formula);
-
-      value = factory.numberOfVariables();
-      resize(value + propositions.size());
-      value = register(propositions, value);
-      resize(value);
+      assert formula instanceof UnaryModalOperator || formula instanceof BinaryModalOperator;
+      register(PropositionVisitor.extractPropositions(formula));
+      value = mapping.getInt(formula);
+      assert value >= 0;
     }
 
     // We don't need to increment the reference-counter, since all variables are saturated.
-    int result;
-
-    if (value > 0) {
-      result = factory.getVariableNode(value - 1);
-    } else {
-      result = factory.not(factory.getVariableNode(-(value + 1)));
-    }
-
-    assert factory.isVariableOrNegated(result);
-    return result;
+    return factory.getVariableNode(value);
   }
 
   @Override
@@ -160,74 +145,48 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
     return alphabet;
   }
 
-  private void register(Formula proposition, int i) {
-    assert !(proposition instanceof Literal);
+  private void register(Deque<Formula> propositions) {
+    List<Formula> newPropositions = propositions.stream().distinct()
+      .filter(x -> !mapping.containsKey(x)).collect(Collectors.toList());
 
-    int variableNode = factory.createVariable();
-    assert factory.getVariable(variableNode) == i;
-    mapping.put(proposition, i + 1);
-    reverseMapping[i] = proposition;
-
-    if (Fragments.isFinite(proposition)) {
-      mapping.put(proposition.not(), -(i + 1));
-    }
-
-    if (proposition instanceof XOperator) {
-      unfoldSubstitution[i] = -1;
-      temporalStepSubstitution[i] = ((XOperator) proposition).operand.accept(visitor);
-    } else {
-      unfoldSubstitution[i] = proposition.unfold().accept(visitor);
-      temporalStepSubstitution[i] = -1;
-    }
-  }
-
-  private int register(Deque<Formula> propositions, int i) {
-    int counter = i;
-    for (Formula proposition : propositions) {
-      if (mapping.containsKey(proposition)) {
-        continue;
-      }
-
-      register(proposition, counter);
-      counter++;
-    }
-
-    return counter;
-  }
-
-  // TODO: Use size counter to reduce number of copies.
-  private void resize(int size) {
+    int size = mapping.size() + newPropositions.size();
     reverseMapping = Arrays.copyOf(reverseMapping, size);
     unfoldSubstitution = Arrays.copyOf(unfoldSubstitution, size);
     temporalStepSubstitution = Arrays.copyOf(temporalStepSubstitution, size);
+
+    for (Formula proposition : newPropositions) {
+      assert proposition instanceof UnaryModalOperator
+        || proposition instanceof BinaryModalOperator;
+      assert !mapping.containsKey(proposition);
+
+      int variableNode = factory.createVariable();
+      int variable = factory.getVariable(variableNode);
+      mapping.put(proposition, variable);
+      reverseMapping[variable] = proposition;
+
+      if (proposition instanceof XOperator) {
+        unfoldSubstitution[variable] = -1;
+        temporalStepSubstitution[variable] = ((XOperator) proposition).operand.accept(visitor);
+      } else {
+        unfoldSubstitution[variable] = proposition.unfold().accept(visitor);
+        temporalStepSubstitution[variable] = -1;
+      }
+    }
   }
 
   private int temporalStepBdd(int bdd, BitSet valuation) {
     // Adjust valuation literals in substitution. This is not thread-safe!
     for (int i = 0; i < alphabetSize; i++) {
       if (valuation.get(i)) {
-        temporalStepSubstitution[i] = factory.getTrueNode();
+        temporalStepSubstitution[2 * i] = factory.getTrueNode();
+        temporalStepSubstitution[2 * i + 1] = factory.getFalseNode();
       } else {
-        temporalStepSubstitution[i] = factory.getFalseNode();
+        temporalStepSubstitution[2 * i] = factory.getFalseNode();
+        temporalStepSubstitution[2 * i + 1] = factory.getTrueNode();
       }
     }
 
     return factory.compose(bdd, temporalStepSubstitution);
-  }
-
-  private BitSet toBitSet(Iterable<? extends Formula> formulas) {
-    BitSet bitSet = new BitSet();
-    formulas.forEach(x -> {
-      getVariable(x);
-      bitSet.set(mapping.getInt(x) - 1);
-    });
-    return bitSet;
-  }
-
-  private Set<Formula> toSet(BitSet bitSet) {
-    Set<Formula> formulas = new HashSet<>();
-    bitSet.stream().forEach(x -> formulas.add(reverseMapping[x]));
-    return formulas;
   }
 
   private int unfoldBdd(int bdd) {
@@ -255,6 +214,7 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
       } else {
         representative = Conjunction.of(this.representative, that.representative);
       }
+
       return createEquivalenceClass(representative, factory.reference(factory.and(bdd, that.bdd)));
     }
 
@@ -291,15 +251,6 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public void forEachSatisfyingAssignment(BiConsumer<BitSet, BitSet> action) {
-      if (alphabetSize == 0) {
-        action.accept(new BitSet(0), new BitSet(0));
-      } else {
-        factory.forEachNonEmptyPath(bdd, alphabetSize - 1, action);
-      }
-    }
-
-    @Override
     public void free() {
       Preconditions.checkState(bdd != INVALID_BDD, "Double free");
 
@@ -320,7 +271,14 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
 
     @Override
     public BitSet getAtoms() {
-      return factory.support(bdd, alphabetSize);
+      BitSet atoms = factory.support(bdd, 2 * alphabetSize);
+
+      for (int i = 0; i < alphabetSize; i++) {
+        atoms.set(i, atoms.get(2 * i) || atoms.get(2 * i + 1));
+      }
+
+      atoms.clear(alphabetSize, 2 * alphabetSize);
+      return atoms;
     }
 
     @Override
@@ -335,11 +293,9 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
     }
 
     @Override
-    public <T extends Formula> Set<T> getSupport(Class<T> clazz) {
-      BitSet support = factory.support(bdd);
-      //noinspection unchecked - We want to save a .map(clazz::cast) here
-      return (Set<T>) support.stream().mapToObj(i -> reverseMapping[i]).filter(clazz::isInstance)
-        .collect(Collectors.toSet());
+    public Set<Formula> getSupport() {
+      return factory.support(bdd).stream()
+        .mapToObj(i -> reverseMapping[i]).collect(Collectors.toSet());
     }
 
     @Override
@@ -375,19 +331,6 @@ final class EquivalenceFactory implements EquivalenceClassFactory {
         representative = Disjunction.of(this.representative, that.representative);
       }
       return createEquivalenceClass(representative, factory.reference(factory.or(bdd, that.bdd)));
-    }
-
-    @Override
-    public ImmutableList<Set<Formula>> satisfyingAssignments(Iterable<? extends Formula> support) {
-      BitSet supportBitSet = toBitSet(support);
-      Set<BitSet> minimalSolutions = new HashSet<>();
-      //noinspection UseOfClone
-      factory.forEachMinimalSolution(bdd, solution ->
-        minimalSolutions.add((BitSet) solution.clone()));
-
-      Set<BitSet> closure = EquivalenceClassUtil.upwardClosure(supportBitSet, minimalSolutions);
-      return closure.stream().map(EquivalenceFactory.this::toSet)
-        .collect(ImmutableList.toImmutableList());
     }
 
     @Override

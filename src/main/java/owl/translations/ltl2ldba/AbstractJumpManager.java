@@ -112,7 +112,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
       BitSet nonCoSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isCoSafety(x)));
 
-      EquivalenceClass core = state.rewrite(x -> {
+      EquivalenceClass core = state.substitute(x -> {
         if (!Fragments.isCoSafety(x)) {
           return BooleanConstant.TRUE;
         }
