@@ -112,7 +112,6 @@ public final class IARBuilder<R> {
         }
         interSccConnectionsBuilder.putAll(result.interSccConnections);
         resultAutomaton.addAll(subAutomaton);
-        subAutomaton.free();
         completedSccs += 1;
       } catch (InterruptedException e) {
         // TODO Stop if environment.isStopped()

@@ -18,7 +18,10 @@
 package owl.translations.ltl2ldba.breakpoint;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +29,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.factories.EquivalenceClassUtil;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
@@ -39,16 +41,6 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
     ImmutableSet<Configuration> optimisations) {
     super(optimisations, factories);
-  }
-
-  private EquivalenceClass and(EquivalenceClass[] classes) {
-    EquivalenceClass conjunction = factories.eqFactory.getTrue();
-
-    for (EquivalenceClass clazz : classes) {
-      conjunction = conjunction.andWith(clazz);
-    }
-
-    return conjunction;
   }
 
   @Override
@@ -70,15 +62,16 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass current = remainder;
 
     if (remainder.testSupport(Fragments::isFinite)) {
-      safety = current.andWith(safety);
+      safety = current.and(safety);
       current = factories.eqFactory.getTrue();
     }
 
-    EquivalenceClass environment = safety.and(and(obligations.liveness));
+    EquivalenceClass environment = factories.eqFactory.conjunction(
+      Iterables.concat(List.of(safety), Arrays.asList(obligations.liveness)));
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,
-        factory.getInitial(current, environment), EquivalenceClassUtil.EMPTY, obligations);
+        factory.getInitial(current, environment), EquivalenceClass.EMPTY, obligations);
     }
 
     EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];
@@ -95,9 +88,6 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     for (int i = current.isTrue() ? 1 : 0; i < nextBuilder.length; i++) {
       nextBuilder[i] = factory.getInitial(obligations.obligations[i], current);
     }
-
-    // Drop unused representative.
-    current.freeRepresentative();
 
     return new DegeneralizedBreakpointState(
       obligations.obligations.length > 0 ? 0 : -obligations.liveness.length, safety,
@@ -125,7 +115,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private Edge<DegeneralizedBreakpointState> getSuccessor(DegeneralizedBreakpointState state,
     BitSet valuation) {
     EquivalenceClass safetySuccessor = factory.getSuccessor(state.safety, valuation)
-      .andWith(state.obligations.safety);
+      .and(state.obligations.safety);
 
     if (safetySuccessor.isFalse()) {
       return null;
@@ -135,21 +125,18 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       .getSuccessor(state.current, valuation, safetySuccessor);
 
     if (currentSuccessor.isFalse()) {
-      EquivalenceClassUtil.free(safetySuccessor);
       return null;
     }
 
     EquivalenceClass assumptions = currentSuccessor.and(safetySuccessor);
 
     if (assumptions.isFalse()) {
-      EquivalenceClassUtil.free(safetySuccessor, currentSuccessor);
       return null;
     }
 
     EquivalenceClass[] nextSuccessors = factory.getSuccessors(state.next, valuation, assumptions);
 
     if (nextSuccessors == null) {
-      EquivalenceClassUtil.free(safetySuccessor, currentSuccessor, assumptions);
       return null;
     }
 
@@ -198,20 +185,14 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     }
 
     if (currentSuccessor.isFalse()) {
-      EquivalenceClassUtil.free(safetySuccessor, currentSuccessor, assumptions);
-      EquivalenceClassUtil.free(nextSuccessors);
       return null;
     }
 
     for (EquivalenceClass clazz : nextSuccessors) {
       if (clazz.isFalse()) {
-        EquivalenceClassUtil.free(safetySuccessor, currentSuccessor, assumptions);
-        EquivalenceClassUtil.free(nextSuccessors);
         return null;
       }
     }
-
-    assumptions.free();
 
     DegeneralizedBreakpointState successor = new DegeneralizedBreakpointState(j, safetySuccessor,
       currentSuccessor, nextSuccessors,
@@ -222,6 +203,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private int scan(int i, EquivalenceClass[] obligations, BitSet valuation,
     EquivalenceClass environment, GObligations obligations2) {
     int index = i;
+
     if (index < 0) {
       index = scanLiveness(index, valuation, environment, obligations2);
     }

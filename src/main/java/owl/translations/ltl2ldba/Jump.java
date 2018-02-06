@@ -62,7 +62,7 @@ public class Jump<U extends RecurringObligation> {
   }
 
   EquivalenceClass getLanguage() {
-    return language.duplicate();
+    return language;
   }
 
   @Override

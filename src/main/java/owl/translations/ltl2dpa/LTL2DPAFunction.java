@@ -39,7 +39,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
@@ -229,7 +228,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
-        DegeneralizedBreakpointState::createSink, -1);
+        DegeneralizedBreakpointState.createSink(), -1);
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
@@ -242,7 +241,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
       automaton = FlatRankingAutomaton.of(ldba, oracle, this::hasSafetyCore, true,
       configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, FlatRankingState::of, 2 * ldba.getAcceptingComponent().size());
+    return new Result<>(automaton, FlatRankingState.of(), 2 * ldba.getAcceptingComponent().size());
   }
 
   private Result<?> applyBreakpointFree(LabelledFormula formula) {
@@ -251,7 +250,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
-        DegeneralizedBreakpointFreeState::createSink, -1);
+        DegeneralizedBreakpointFreeState.createSink(), -1);
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
@@ -260,7 +259,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>,
       ParityAcceptance> automaton = FlatRankingAutomaton.of(ldba, new BooleanLattice(),
       this::hasSafetyCore, true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, FlatRankingState::of, 2 * ldba.getAcceptingComponent().size());
+    return new Result<>(automaton, FlatRankingState.of(), 2 * ldba.getAcceptingComponent().size());
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {
@@ -282,11 +281,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
         return Collections3.isDisjointConsuming(ap, nonSafety) ? BooleanConstant.TRUE : x;
       });
 
-      if (core.isTrue()) {
-        return true;
-      }
-
-      core.free();
+      return core.isTrue();
     }
 
     return false;
@@ -299,12 +294,12 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   final class Result<T> {
     final Automaton<T, ParityAcceptance> automaton;
-    final Supplier<T> sinkSupplier;
+    final T sinkState;
 
-    Result(Automaton<T, ParityAcceptance> automaton, Supplier<T> sinkSupplier,
+    Result(Automaton<T, ParityAcceptance> automaton, T sinkState,
       int colourApproximation) {
       this.automaton = automaton;
-      this.sinkSupplier = sinkSupplier;
+      this.sinkState = sinkState;
 
       // HACK: Query state space to initialise colour correctly.
       if (automaton instanceof StreamingAutomaton) {
@@ -320,13 +315,13 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       MutableAutomaton<T, ParityAcceptance> automaton = AutomatonUtil.asMutable(this.automaton);
       BitSet reject = new BitSet();
       reject.set(0);
-      AutomatonUtil.complete(automaton, sinkSupplier, () -> reject);
+      AutomatonUtil.complete(automaton, sinkState, reject);
       return automaton;
     }
 
     Automaton<T, ParityAcceptance> complement() {
       MutableAutomaton<T, ParityAcceptance> automaton = AutomatonUtil.asMutable(this.automaton);
-      ParityUtil.complement(automaton, sinkSupplier);
+      ParityUtil.complement(automaton, sinkState);
       return automaton;
     }
   }

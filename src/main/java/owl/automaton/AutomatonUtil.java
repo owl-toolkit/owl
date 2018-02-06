@@ -113,8 +113,8 @@ public final class AutomatonUtil {
   }
 
   public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton,
-    Supplier<BitSet> rejectingAcceptanceSupplier) {
-    return complete(automaton, defaultSinkSupplier(), rejectingAcceptanceSupplier);
+    BitSet rejectingAcceptance) {
+    return complete(automaton, Sink.INSTANCE, rejectingAcceptance);
   }
 
   /**
@@ -125,26 +125,24 @@ public final class AutomatonUtil {
    * the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop. <p> Note:
    * The completion process considers unreachable states. </p>
    *
-   * @param sinkSupplier
-   *     Supplier of a sink state. Will be called once iff a sink needs to be added.
-   * @param rejectingAcceptanceSupplier
-   *     Supplier of a rejecting acceptance, called iff a sink state was added.
+   * @param sinkState
+   *     A sink state.
+   * @param rejectingAcceptance
+   *     A rejecting acceptance.
    *
    * @return The added state or {@code empty} if none was added.
    */
-  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, Supplier<S> sinkSupplier,
-    Supplier<BitSet> rejectingAcceptanceSupplier) {
+  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, S sinkState,
+    BitSet rejectingAcceptance) {
     Map<S, ValuationSet> incompleteStates = getIncompleteStates(automaton);
 
     if (automaton.size() != 0 && incompleteStates.isEmpty()) {
       return Optional.empty();
     }
 
-    S sinkState = sinkSupplier.get();
-    Edge<S> sinkEdge = Edge.of(sinkState, rejectingAcceptanceSupplier.get());
-    automaton.addEdge(sinkState, automaton.getFactory().createUniverseValuationSet(), sinkEdge);
+    Edge<S> sinkEdge = Edge.of(sinkState, rejectingAcceptance);
+    automaton.addEdge(sinkState, automaton.getFactory().universe(), sinkEdge);
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
-    incompleteStates.values().forEach(ValuationSet::free);
 
     if (automaton.getInitialStates().isEmpty()) {
       automaton.addInitialState(sinkState);
@@ -217,7 +215,7 @@ public final class AutomatonUtil {
     BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
     Function<S, BitSet> sensitiveAlphabetOracle, AtomicInteger sizeCounter) {
 
-    int alphabetSize = automaton.getFactory().getSize();
+    int alphabetSize = automaton.getFactory().alphabetSize();
     Set<S> exploredStates = Sets.newHashSet(states);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
     sizeCounter.lazySet(exploredStates.size());
@@ -234,9 +232,9 @@ public final class AutomatonUtil {
           ValuationSet valuationSet;
 
           if (sensitiveAlphabet == null) {
-            valuationSet = automaton.getFactory().createValuationSet(valuation);
+            valuationSet = automaton.getFactory().of(valuation);
           } else {
-            valuationSet = automaton.getFactory().createValuationSet(valuation, sensitiveAlphabet);
+            valuationSet = automaton.getFactory().of(valuation, sensitiveAlphabet);
           }
 
           S successorState = edge.getSuccessor();
@@ -321,18 +319,16 @@ public final class AutomatonUtil {
   public static <S, A extends OmegaAcceptance> Map<S, ValuationSet> getIncompleteStates(
     Automaton<S, A> automaton) {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
-    ValuationSetFactory vsFactory = automaton.getFactory();
+    ValuationSetFactory factory = automaton.getFactory();
 
     automaton.getStates().forEach(state -> {
-      ValuationSet unionSet = vsFactory.createEmptyValuationSet();
-      automaton.forEachLabelledEdge(state, (edge, valuations) -> unionSet.addAll(valuations));
+      ValuationSet complementIntersection = factory.intersection(
+        automaton.getLabelledEdges(state).stream().map(x -> factory.complement(x.valuations)));
 
-      // State is incomplete; complement() creates a new, referenced node.
-      if (!unionSet.isUniverse()) {
-        incompleteStates.put(state, unionSet.complement());
+      // State is incomplete.
+      if (!complementIntersection.isEmpty()) {
+        incompleteStates.put(state, complementIntersection);
       }
-
-      unionSet.free();
     });
 
     return incompleteStates;

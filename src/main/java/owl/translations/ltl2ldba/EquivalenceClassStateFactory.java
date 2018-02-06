@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
-import owl.factories.EquivalenceClassUtil;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.rewriter.NormalForms;
@@ -49,29 +49,16 @@ public class EquivalenceClassStateFactory {
     this.removeRedundantObligations = removeRedundantObligations;
   }
 
-  private EquivalenceClass and(Iterable<EquivalenceClass> equivalenceClasses) {
-    EquivalenceClass conjunction = factory.getTrue().duplicate();
-
-    for (EquivalenceClass equivalenceClass : equivalenceClasses) {
-      conjunction = conjunction.andWith(equivalenceClass);
-    }
-
-    return conjunction;
-  }
-
   public EquivalenceClass getInitial(Formula... formulas) {
     return getInitial(List.of(formulas));
   }
 
   private EquivalenceClass getInitial(Iterable<Formula> formulas) {
-    EquivalenceClass clazz = factory.createEquivalenceClass(formulas);
-    EquivalenceClass initial = getInitial(clazz);
-    clazz.free();
-    return initial;
+    return getInitial(factory.of(Conjunction.of(formulas)));
   }
 
   public EquivalenceClass getInitial(EquivalenceClass clazz, EquivalenceClass... environmentArray) {
-    EquivalenceClass initial = eagerUnfold ? clazz.unfold() : clazz.duplicate();
+    EquivalenceClass initial = eagerUnfold ? clazz.unfold() : clazz;
     return removeRedundantObligations(initial, environmentArray);
   }
 
@@ -83,10 +70,7 @@ public class EquivalenceClassStateFactory {
     if (eagerUnfold) {
       return clazz.getAtoms();
     } else {
-      EquivalenceClass unfold = clazz.unfold();
-      BitSet atoms = unfold.getAtoms();
-      unfold.free();
-      return atoms;
+      return clazz.unfold().getAtoms();
     }
   }
 
@@ -107,7 +91,6 @@ public class EquivalenceClassStateFactory {
       successors[i] = getSuccessor(clazz[i], valuation, environment);
 
       if (successors[i].isFalse()) {
-        EquivalenceClassUtil.free(successors);
         return null;
       }
     }
@@ -118,15 +101,11 @@ public class EquivalenceClassStateFactory {
   private EquivalenceClass removeRedundantObligations(EquivalenceClass state,
     EquivalenceClass... environmentArray) {
     if (removeRedundantObligations && environmentArray.length > 0) {
-      EquivalenceClass environment = and(List.of(environmentArray));
+      EquivalenceClass environment = factory.conjunction(environmentArray);
 
       if (environment.implies(state)) {
-        state.free();
-        environment.free();
         return factory.getTrue();
       }
-
-      environment.free();
     }
 
     return state;

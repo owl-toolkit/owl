@@ -137,11 +137,7 @@ public class LTL2DRAFunction
         return Collections3.isDisjointConsuming(ap, nonSafety) ? BooleanConstant.TRUE : x;
       });
 
-      if (core.isTrue()) {
-        return true;
-      }
-
-      core.free();
+      return core.isTrue();
     }
 
     return false;

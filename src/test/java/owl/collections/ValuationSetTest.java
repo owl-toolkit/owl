@@ -48,26 +48,27 @@ public abstract class ValuationSetTest {
     List<String> aliases = ImmutableList.of("a", "b", "c", "d");
     ValuationSetFactory factory = setUpFactory(aliases);
 
-    empty = factory.createEmptyValuationSet();
-    universe = factory.createUniverseValuationSet();
+    empty = factory.of();
+    universe = factory.universe();
 
     BitSet bs = new BitSet(4);
     bs.flip(0, 4);
-    abcd = factory.createValuationSet(bs);
+    abcd = factory.of(bs);
 
     bs.clear();
     bs.set(0);
-    containsA = factory.createValuationSet(bs, bs);
+    containsA = factory.of(bs, bs);
   }
 
   public abstract ValuationSetFactory setUpFactory(List<String> aliases);
 
   @Test
   public void testComplement() {
-    assertEquals(universe.complement(), empty);
-    assertEquals(empty.complement(), universe);
-    assertEquals(abcd.complement().complement(), abcd);
-    assertNotEquals(abcd.complement(), containsA);
+    ValuationSetFactory factory = empty.getFactory();
+    assertEquals(factory.complement(universe), empty);
+    assertEquals(factory.complement(empty), universe);
+    assertEquals(factory.complement(factory.complement(abcd)), abcd);
+    assertNotEquals(factory.complement(abcd), containsA);
   }
 
   @SuppressWarnings("UseOfClone")

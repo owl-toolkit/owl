@@ -30,8 +30,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
-import owl.factories.EquivalenceClassUtil;
 import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
@@ -74,9 +74,8 @@ public final class FGObligations implements RecurringObligation {
     for (GOperator gOperator : gOperators) {
       Formula formula = FGObligationsJumpManager
         .replaceFOperators(fOperators, gOperators, gOperator);
-      EquivalenceClass safety2 = factory.createEquivalenceClass(formula);
-      safety = safety.andWith(safety2);
-      safety2.free();
+      EquivalenceClass safety2 = factory.of(formula);
+      safety = safety.and(safety2);
 
       if (safety.unfold().isFalse()) {
         return null;
@@ -106,8 +105,6 @@ public final class FGObligations implements RecurringObligation {
 
       // Checking this doesn't make any sense...
       if (formula == BooleanConstant.FALSE) {
-        EquivalenceClassUtil.free(safety);
-        EquivalenceClassUtil.free(livenessList);
         return null;
       }
 
@@ -125,7 +122,7 @@ public final class FGObligations implements RecurringObligation {
         builder.add(new FOperator(formula));
       }
 
-      EquivalenceClass liveness = factory.createEquivalenceClass(formula);
+      EquivalenceClass liveness = factory.of(formula);
       livenessList.add(liveness);
     }
 
@@ -166,15 +163,15 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety.getFactory().createEquivalenceClass(
-      Collections3.transform(rewrittenOperators, GOperator::of));
+    return safety.getFactory()
+      .of(Conjunction.of(Collections3.transform(rewrittenOperators, GOperator::of)));
   }
 
   EquivalenceClass getObligation() {
-    EquivalenceClass obligation = safety.duplicate();
+    EquivalenceClass obligation = safety;
 
     for (EquivalenceClass clazz : liveness) {
-      obligation = obligation.andWith(clazz);
+      obligation = obligation.and(clazz);
     }
 
     return obligation;

@@ -20,7 +20,6 @@ package owl.translations.ltl2ldba.breakpoint;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.Nullable;
-import owl.factories.EquivalenceClassUtil;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
@@ -55,7 +54,7 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
 
   public static DegeneralizedBreakpointState createSink() {
     return new DegeneralizedBreakpointState(0, null, null,
-      EquivalenceClassUtil.EMPTY, null);
+      EquivalenceClass.EMPTY, null);
   }
 
   @Override
@@ -72,15 +71,15 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
       label = safety.and(current);
 
       for (EquivalenceClass clazz : next) {
-        label = label.andWith(clazz);
+        label = label.and(clazz);
       }
 
       for (EquivalenceClass clazz : obligations.obligations) {
-        label = label.andWith(clazz);
+        label = label.and(clazz);
       }
 
       for (EquivalenceClass clazz : obligations.liveness) {
-        label = label.andWith(clazz);
+        label = label.and(clazz);
       }
     }
 

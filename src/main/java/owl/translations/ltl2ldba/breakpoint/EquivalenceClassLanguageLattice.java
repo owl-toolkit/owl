@@ -60,11 +60,6 @@ public class EquivalenceClassLanguageLattice implements
     }
 
     @Override
-    public void free() {
-      eq.free();
-    }
-
-    @Override
     public EquivalenceClass getT() {
       return eq;
     }
@@ -86,7 +81,7 @@ public class EquivalenceClassLanguageLattice implements
 
     @Override
     public Language<EquivalenceClass> join(Language<EquivalenceClass> language) {
-      return new EquivalenceClassLanguage(eq.orWith(language.getT()));
+      return new EquivalenceClassLanguage(eq.or(language.getT()));
     }
   }
 }

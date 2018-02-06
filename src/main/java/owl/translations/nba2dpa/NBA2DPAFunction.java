@@ -87,7 +87,7 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     LimitDeterministicAutomaton<Set<Object>, BreakpointState<Object>, BuchiAcceptance, Void>
       ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
-      .getAcceptingComponent(), BreakpointState::getSink, BitSet::new);
+      .getAcceptingComponent(), BreakpointState.getSink(), new BitSet());
 
     LanguageLattice<BreakpointState<Object>, Void, Set<BreakpointState<Object>>> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());

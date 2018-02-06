@@ -55,10 +55,6 @@ public final class LabelledEdge<S> {
       && Objects.equals(valuations, that.valuations);
   }
 
-  public void free() {
-    valuations.free();
-  }
-
   public Edge<S> getEdge() {
     return edge;
   }

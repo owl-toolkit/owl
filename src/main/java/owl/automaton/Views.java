@@ -161,22 +161,21 @@ public final class Views {
 
     @Override
     public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+      ValuationSetFactory factory = getFactory();
+
       if (sink.equals(state)) {
-        return Set.of(LabelledEdge.of(loop, getFactory().createUniverseValuationSet()));
+        return Set.of(LabelledEdge.of(loop, factory.universe()));
       }
 
-      ValuationSet valuations = getFactory().createEmptyValuationSet();
-      Collection<LabelledEdge<S>> labelledEdges = automaton.getLabelledEdges(state);
-      labelledEdges.forEach(x -> valuations.addAll(x.valuations));
-
-      ValuationSet complement = valuations.complement();
-      valuations.free();
+      Collection<LabelledEdge<S>> edges = automaton.getLabelledEdges(state);
+      ValuationSet complement = factory.complement(
+        factory.union(edges.stream().map(x -> x.valuations)));
 
       if (!complement.isEmpty()) {
-        return Collections3.concat(labelledEdges, Set.of(LabelledEdge.of(loop, complement)));
+        return Collections3.concat(edges, Set.of(LabelledEdge.of(loop, complement)));
       }
 
-      return labelledEdges;
+      return edges;
     }
 
     @Override
@@ -276,11 +275,6 @@ public final class Views {
     @Override
     public void addStates(Collection<? extends S> states) {
       automaton.addStates(states);
-    }
-
-    @Override
-    public void free() {
-      automaton.free();
     }
 
     @Override

@@ -72,11 +72,11 @@ public abstract class EquivalenceClassTest {
   public void testEqualsAndHashCode() {
     Collection<EquivalenceClass> classes = new ArrayList<>();
 
-    classes.add(factory.createEquivalenceClass(contradiction));
-    classes.add(factory.createEquivalenceClass(tautology));
-    classes.add(factory.createEquivalenceClass(literal));
-    classes.add(factory.createEquivalenceClass(new Disjunction(tautology, contradiction, literal)));
-    classes.add(factory.createEquivalenceClass(new Conjunction(tautology, contradiction, literal)));
+    classes.add(factory.of(contradiction));
+    classes.add(factory.of(tautology));
+    classes.add(factory.of(literal));
+    classes.add(factory.of(new Disjunction(tautology, contradiction, literal)));
+    classes.add(factory.of(new Conjunction(tautology, contradiction, literal)));
 
     for (EquivalenceClass lhs : classes) {
       for (EquivalenceClass rhs : classes) {
@@ -91,10 +91,10 @@ public abstract class EquivalenceClassTest {
 
   @Test
   public void testEquivalent() {
-    EquivalenceClass equivalenceClass = factory.createEquivalenceClass(contradiction);
+    EquivalenceClass equivalenceClass = factory.of(contradiction);
 
     assertEquals(equivalenceClass, equivalenceClass);
-    assertEquals(equivalenceClass, factory.createEquivalenceClass(RewriterFactory
+    assertEquals(equivalenceClass, factory.of(RewriterFactory
       .apply(RewriterEnum.MODAL_ITERATIVE, new Conjunction(literal, new Literal(0, true)))));
   }
 
@@ -109,28 +109,28 @@ public abstract class EquivalenceClassTest {
       LtlParser.syntax("G a & G b & a"),
     };
 
-    EquivalenceClass classA = factory.createEquivalenceClass(formulas[0]);
+    EquivalenceClass classA = factory.of(formulas[0]);
     EquivalenceClass classExistsA = classA.exists(predicate);
     assertEquals(factory.getTrue(), classExistsA);
 
-    EquivalenceClass classB = factory.createEquivalenceClass(formulas[1]);
+    EquivalenceClass classB = factory.of(formulas[1]);
     EquivalenceClass classExistsB = classB.exists(predicate);
     assertEquals(classB, classExistsB);
 
-    EquivalenceClass classC = factory.createEquivalenceClass(formulas[2]);
+    EquivalenceClass classC = factory.of(formulas[2]);
     EquivalenceClass classExistsC = classC.exists(predicate);
     assertEquals(factory.getTrue(), classExistsC);
 
-    EquivalenceClass classD = factory.createEquivalenceClass(formulas[3]);
+    EquivalenceClass classD = factory.of(formulas[3]);
     EquivalenceClass classExistsD = classD.exists(predicate);
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("G a & G b")), classExistsD);
+    assertEquals(factory.of(LtlParser.syntax("G a & G b")), classExistsD);
   }
 
   @Test
   public void testFrequencyGNotFalse() {
     LabelledFormula formula = LtlParser.parse("G { >= 0.4} a");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.createEquivalenceClass(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula);
     assertNotEquals(factory.getFalse(), clazz.unfold().temporalStep(new BitSet(0)));
   }
 
@@ -138,7 +138,7 @@ public abstract class EquivalenceClassTest {
   public void testGetAtoms() {
     LabelledFormula formula = LtlParser.parse("a & (a | b) & (F c)");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.createEquivalenceClass(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula);
     BitSet atoms = new BitSet();
     atoms.set(0);
     assertThat(clazz.getAtoms(), is(atoms));
@@ -150,7 +150,7 @@ public abstract class EquivalenceClassTest {
   public void testGetAtoms2() {
     LabelledFormula formula = LtlParser.parse("(a | (b & X a) | (F a)) & (c | (b & X a) | (F a))");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.createEquivalenceClass(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula);
     BitSet atoms = new BitSet();
     atoms.set(0, 3);
     assertEquals(atoms, clazz.getAtoms());
@@ -160,7 +160,7 @@ public abstract class EquivalenceClassTest {
   public void testGetAtomsEmpty() {
     LabelledFormula formula = LtlParser.parse("G a");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.createEquivalenceClass(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula);
     BitSet atoms = new BitSet();
     assertEquals(atoms, clazz.getAtoms());
     atoms.set(0);
@@ -169,7 +169,7 @@ public abstract class EquivalenceClassTest {
 
   @Test
   public void testGetRepresentative() {
-    assertEquals(contradiction, factory.createEquivalenceClass(contradiction).getRepresentative());
+    assertEquals(contradiction, factory.of(contradiction).getRepresentative());
   }
 
   @Test
@@ -180,15 +180,15 @@ public abstract class EquivalenceClassTest {
       LtlParser.syntax("G a")
     };
 
-    EquivalenceClass clazz = factory.createEquivalenceClass(Conjunction.of(formulas));
+    EquivalenceClass clazz = factory.of(Conjunction.of(formulas));
     assertEquals(Set.of(formulas), clazz.getSupport());
   }
 
   @Test
   public void testImplies() {
-    EquivalenceClass contradictionClass = factory.createEquivalenceClass(contradiction);
-    EquivalenceClass tautologyClass = factory.createEquivalenceClass(tautology);
-    EquivalenceClass literalClass = factory.createEquivalenceClass(literal);
+    EquivalenceClass contradictionClass = factory.of(contradiction);
+    EquivalenceClass tautologyClass = factory.of(tautology);
+    EquivalenceClass literalClass = factory.of(literal);
 
     assertTrue(contradictionClass.implies(contradictionClass));
 
@@ -228,9 +228,9 @@ public abstract class EquivalenceClassTest {
   @Test
   public void testSubstitute() {
     EquivalenceClass[] formulas = {
-      factory.createEquivalenceClass(LtlParser.syntax("a")),
-      factory.createEquivalenceClass(LtlParser.syntax("G a")),
-      factory.createEquivalenceClass(LtlParser.syntax("G a & a"))
+      factory.of(LtlParser.syntax("a")),
+      factory.of(LtlParser.syntax("G a")),
+      factory.of(LtlParser.syntax("G a & a"))
     };
 
     assertEquals(formulas[1].substitute(Formula::unfold), formulas[2]);
@@ -244,39 +244,39 @@ public abstract class EquivalenceClassTest {
     BitSet stepSet = new BitSet();
     LabelledFormula formula = LtlParser.parse("a & X (! a)");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("! a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("! a")),
+      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("a")),
+      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
 
     formula = LtlParser.parse("(! a) & X (a)");
     factory = setUpFactory(formula);
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("! a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("! a")),
+      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("a")),
+      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
 
     formula = LtlParser.parse("(a) & X (a)");
     factory = setUpFactory(formula);
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("! a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("! a")),
+      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("a")),
+      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
 
     formula = LtlParser.parse("(! a) & X (! a)");
     factory = setUpFactory(formula);
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("! a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.createEquivalenceClass(LtlParser.syntax("a")),
-      factory.createEquivalenceClass(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("! a")),
+      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.syntax("a")),
+      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
   }
 
   @Test
   public void testUnfoldUnfold() {
     for (LabelledFormula formula : formulas) {
       EquivalenceClassFactory factory = setUpFactory(formula);
-      EquivalenceClass ref = factory.createEquivalenceClass(formula.formula.unfold());
-      EquivalenceClass clazz = factory.createEquivalenceClass(formula.formula).unfold();
+      EquivalenceClass ref = factory.of(formula.formula.unfold());
+      EquivalenceClass clazz = factory.of(formula.formula).unfold();
       assertEquals(ref, clazz);
       assertEquals(clazz, clazz.unfold());
     }
@@ -285,7 +285,7 @@ public abstract class EquivalenceClassTest {
   @Test
   public void testRewrite() {
     Formula formula = LtlParser.syntax("G (a | X!b) | F c");
-    EquivalenceClass clazz = factory.createEquivalenceClass(formula).unfold();
+    EquivalenceClass clazz = factory.of(formula).unfold();
 
     Function<Formula, Formula> substitution = x -> {
       if (x instanceof FOperator) {

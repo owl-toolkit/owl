@@ -49,7 +49,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Nullable
   protected DegeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
     FGObligations obligations) {
-    EquivalenceClass safety = remainder.andWith(obligations.safety);
+    EquivalenceClass safety = remainder.and(obligations.safety);
 
     if (safety.isFalse()) {
       return null;

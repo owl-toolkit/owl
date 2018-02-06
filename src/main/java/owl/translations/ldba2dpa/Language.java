@@ -1,10 +1,6 @@
 package owl.translations.ldba2dpa;
 
 public interface Language<L> {
-  default void free() {
-    // Default implementation does nothing.
-  }
-
   L getT();
 
   boolean greaterOrEqual(Language<L> language);

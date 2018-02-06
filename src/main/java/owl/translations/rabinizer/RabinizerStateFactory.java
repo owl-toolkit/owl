@@ -14,9 +14,7 @@ class RabinizerStateFactory {
     if (eager) {
       return equivalenceClass.getAtoms();
     }
-    EquivalenceClass unfold = equivalenceClass.unfold();
-    BitSet atoms = unfold.getAtoms();
-    unfold.free();
-    return atoms;
+
+    return equivalenceClass.unfold().getAtoms();
   }
 }

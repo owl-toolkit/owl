@@ -40,11 +40,6 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   }
 
   @Override
-  public void free() {
-    anyAutomaton.free();
-  }
-
-  @Override
   public NoneAcceptance getAcceptance() {
     return NoneAcceptance.INSTANCE;
   }
@@ -78,7 +73,7 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
 
     for (LabelledEdge<MonitorState> labelledEdge : labelledEdges) {
       ValuationSetMapUtil.add(successors, labelledEdge.edge.getSuccessor(),
-        labelledEdge.valuations.copy());
+        labelledEdge.valuations);
     }
 
     return Collections2.transform(successors.entrySet(),

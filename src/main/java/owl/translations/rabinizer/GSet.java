@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.GOperator;
 
@@ -25,9 +26,9 @@ final class GSet extends AbstractSet<GOperator> {
 
   GSet(Iterable<GOperator> elements, EquivalenceClassFactory factory) {
     this.elements = ImmutableSet.copyOf(elements);
-    this.conjunction = factory.createEquivalenceClass(elements);
-    this.operatorConjunction = factory.createEquivalenceClass(
-      Iterables.transform(elements, GOperator::getOperand));
+    this.conjunction = factory.of(Conjunction.of(elements));
+    this.operatorConjunction = factory
+      .of(Conjunction.of(Iterables.transform(elements, GOperator::getOperand)));
     hashCode = this.elements.hashCode();
   }
 
@@ -64,15 +65,6 @@ final class GSet extends AbstractSet<GOperator> {
         : conjunction.equals(other.conjunction);
     }
     return super.equals(o);
-  }
-
-  public void free() {
-    if (operatorConjunction != null) {
-      operatorConjunction.free();
-    }
-    if (conjunction != null) {
-      conjunction.free();
-    }
   }
 
   @Override

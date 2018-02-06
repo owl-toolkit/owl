@@ -26,7 +26,6 @@ import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -52,7 +51,7 @@ public final class ParityUtil {
         Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
           ParityAcceptance.class);
         return ParityUtil.complement(AutomatonUtil.asMutable(automaton),
-          AutomatonUtil.defaultSinkSupplier());
+          AutomatonUtil.defaultSinkSupplier().get());
       }).build();
 
   public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
@@ -106,29 +105,26 @@ public final class ParityUtil {
   }
 
   public static <S> MutableAutomaton<S, ParityAcceptance>
-  complement(MutableAutomaton<S, ParityAcceptance> automaton, Supplier<S> sinkSupplier) {
+  complement(MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
     ParityAcceptance acceptance = automaton.getAcceptance();
 
     if (acceptance.getAcceptanceSets() == 0) {
       if (!acceptance.emptyIsAccepting()) {
         // Automaton currently accepts nothing
-        automaton.free();
         acceptance.complement();
-        return MutableAutomatonFactory.singleton(sinkSupplier.get(), automaton.getFactory(),
+        return MutableAutomatonFactory.singleton(sinkState, automaton.getFactory(),
           acceptance);
       }
 
-      Optional<S> completionState = AutomatonUtil.complete(automaton, sinkSupplier, () -> {
-        BitSet bitSet = new BitSet(1);
-        bitSet.set(0);
-        return bitSet;
-      });
+      BitSet bitSet = new BitSet(1);
+      bitSet.set(0);
+
+      Optional<S> completionState = AutomatonUtil.complete(automaton, sinkState, bitSet);
 
       if (!completionState.isPresent()) {
         // Automaton accepted everything
-        automaton.free();
         acceptance.complement();
-        return MutableAutomatonFactory.singleton(sinkSupplier.get(), automaton.getFactory(),
+        return MutableAutomatonFactory.singleton(sinkState, automaton.getFactory(),
           acceptance);
       }
 
@@ -142,7 +138,7 @@ public final class ParityUtil {
     BitSet set = new BitSet(rejectingAcceptance + 1);
     set.set(rejectingAcceptance);
 
-    Optional<S> completionState = AutomatonUtil.complete(automaton, sinkSupplier, () -> set);
+    Optional<S> completionState = AutomatonUtil.complete(automaton, sinkState, set);
     if (completionState.isPresent() && acceptance.getAcceptanceSets() <= rejectingAcceptance) {
       acceptance.setAcceptanceSets(rejectingAcceptance + 1);
     }
@@ -284,5 +280,4 @@ public final class ParityUtil {
       return i -> newAcceptanceSets - i;
     }
   }
-
 }

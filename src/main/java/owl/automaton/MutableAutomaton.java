@@ -31,7 +31,7 @@ import owl.collections.ValuationSet;
 public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automaton<S, A> {
   default void addAll(Automaton<S, ?> automaton) {
     addStates(automaton.getStates());
-    automaton.forEachLabelledEdge((x, y, z) -> addEdge(x, z.copy(), y));
+    automaton.forEachLabelledEdge((x, y, z) -> addEdge(x, z, y));
   }
 
   /**
@@ -43,7 +43,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     The respective edge, containing destination and acceptance information.
    */
   default void addEdge(S source, Edge<? extends S> edge) {
-    addEdge(source, getFactory().createUniverseValuationSet(), edge);
+    addEdge(source, getFactory().universe(), edge);
   }
 
   /**
@@ -57,7 +57,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     The respective edge, containing destination and acceptance information.
    */
   default void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
-    addEdge(source, getFactory().createValuationSet(valuation), edge);
+    addEdge(source, getFactory().of(valuation), edge);
   }
 
   /**
@@ -198,7 +198,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     If either {@code source} or {@code destination} are not present in the automaton.
    */
   default void removeEdges(S source, S destination) {
-    removeEdge(source, getFactory().createUniverseValuationSet(), destination);
+    removeEdge(source, getFactory().universe(), destination);
   }
 
   /**

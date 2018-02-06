@@ -44,8 +44,8 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     Stream<X> stream = Stream.empty();
 
     for (Formula disjunct : disjunction.children) {
-      EquivalenceClass disjunctState = state.getFactory().createEquivalenceClass(disjunct);
-      stream = Stream.concat(stream, createDisjunctionStream(disjunctState, streamBuilder));
+      EquivalenceClass disjunctState = state.getFactory().of(disjunct);
+      stream = Stream.concat(stream, streamBuilder.apply(disjunctState));
     }
 
     return stream;
@@ -78,10 +78,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
           jumpLanguage = jumpLanguage.unfold();
         }
 
-        boolean stateLanguageIsContained = state.implies(jumpLanguage);
-        jumpLanguage.free();
-
-        if (stateLanguageIsContained) {
+        if (state.implies(jumpLanguage)) {
           return AnalysisResult.buildMust(jump);
         }
       }
@@ -126,8 +123,6 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
         logger.log(Level.FINE, state + " has independent cosafety property. Suppressing jump.");
         return (AnalysisResult<X>) EMPTY;
       }
-
-      core.free();
     }
 
     return null;

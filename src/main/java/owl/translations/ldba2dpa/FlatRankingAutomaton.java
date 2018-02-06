@@ -181,8 +181,6 @@ public final class FlatRankingAutomaton {
       }
 
       logger.log(Level.FINER, "Ranking after extension: {0}.", ranking);
-
-      existingLanguages.forEach((x, y) -> y.free());
       return Edge.of(FlatRankingState.of(state, ranking, safetyProgress), edgeColor);
     }
 

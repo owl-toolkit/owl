@@ -18,29 +18,41 @@
 package owl.factories;
 
 import com.google.common.collect.ImmutableList;
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.Iterator;
 import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
 public interface EquivalenceClassFactory {
-  EquivalenceClass createEquivalenceClass(Formula formula);
+  EquivalenceClass of(Formula formula);
 
-  default EquivalenceClass createEquivalenceClass(Iterable<? extends Formula> formulas) {
-    return createEquivalenceClass(Conjunction.of(formulas));
+  default EquivalenceClass conjunction(EquivalenceClass... classes) {
+    return conjunction(Arrays.asList(classes));
   }
 
-  default EquivalenceClass createEquivalenceClass(Stream<? extends Formula> formulas) {
-    return createEquivalenceClass(Conjunction.of(formulas));
+  default EquivalenceClass conjunction(Iterable<EquivalenceClass> classes) {
+    return conjunction(classes.iterator());
   }
+
+  EquivalenceClass conjunction(Iterator<EquivalenceClass> classes);
+
+  default EquivalenceClass disjunction(EquivalenceClass... classes) {
+    return disjunction(Arrays.asList(classes));
+  }
+
+  default EquivalenceClass disjunction(Iterable<EquivalenceClass> classes) {
+    return disjunction(classes.iterator());
+  }
+
+  EquivalenceClass disjunction(Iterator<EquivalenceClass> classes);
 
   default EquivalenceClass getFalse() {
-    return createEquivalenceClass(BooleanConstant.FALSE);
+    return of(BooleanConstant.FALSE);
   }
 
   default EquivalenceClass getTrue() {
-    return createEquivalenceClass(BooleanConstant.TRUE);
+    return of(BooleanConstant.TRUE);
   }
 
   ImmutableList<String> getVariables();
