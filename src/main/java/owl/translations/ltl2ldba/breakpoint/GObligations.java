@@ -35,8 +35,6 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.GOperator;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.RankingComparator;
 import owl.translations.ltl2ldba.RecurringObligation;
@@ -92,8 +90,7 @@ public final class GObligations extends ImmutableObject implements RecurringObli
       EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i),
         factory.getTrue());
 
-      Formula formula = RewriterFactory.apply(
-        RewriterEnum.MODAL_ITERATIVE, gOperator.operand.accept(evaluateVisitor));
+      Formula formula = gOperator.operand.accept(evaluateVisitor);
 
       if (!(formula instanceof BooleanConstant) && !(formula instanceof GOperator)) {
         builder.add(new GOperator(formula));
