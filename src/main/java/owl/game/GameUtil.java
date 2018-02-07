@@ -18,7 +18,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.edge.Edge;
 import owl.run.modules.ImmutableWriterParser;
-import owl.run.modules.OutputWriter;
+import owl.run.modules.OutputWriter.Binding;
 import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.util.ImmutableObject;
 
@@ -35,21 +35,13 @@ public final class GameUtil {
 
       boolean names = env.annotations();
 
-      return new OutputWriter.Binding() {
-        @Override
-        public void write(Object input) {
-          checkArgument(input instanceof Game);
-          Game<?, ?> game = (Game<?, ?>) input;
-          checkArgument(game.getAcceptance() instanceof ParityAcceptance);
-          ParityAcceptance acceptance = (ParityAcceptance) game.getAcceptance();
-          checkArgument(acceptance.getParity() == Parity.MAX_EVEN);
-          GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, names);
-        }
-
-        @Override
-        public void close() {
-          printStream.flush();
-        }
+      return (Binding) input -> {
+        checkArgument(input instanceof Game);
+        Game<?, ?> game = (Game<?, ?>) input;
+        checkArgument(game.getAcceptance() instanceof ParityAcceptance);
+        ParityAcceptance acceptance = (ParityAcceptance) game.getAcceptance();
+        checkArgument(acceptance.getParity() == Parity.MAX_EVEN);
+        GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, names);
       };
     }).build();
 
