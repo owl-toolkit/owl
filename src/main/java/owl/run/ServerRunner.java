@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +38,7 @@ public class ServerRunner implements Callable<Void> {
   }
 
   @Override
+  @SuppressWarnings({"PMD.AvoidCatchingGenericException", "FutureReturnValueIgnored"})
   public Void call() {
     logger.log(Level.INFO, "Starting server on {0}:{1}", new Object[] {address, port});
     ExecutorService connectionExecutor = Executors.newCachedThreadPool(
@@ -61,12 +63,11 @@ public class ServerRunner implements Callable<Void> {
           connectionExecutor.submit(() -> {
             Environment environment = environmentSupplier.get();
 
-            //noinspection OverlyBroadCatchBlock - IntelliJ error.
             try (connection;
-                 Reader reader =
-                   new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                 Writer writer =
-                   new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()))) {
+                 Reader reader = new BufferedReader(
+                   new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+                 Writer writer = new BufferedWriter(
+                   new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8))) {
               PipelineRunner.run(execution, environment, reader, writer, 0);
             } catch (Exception e) {
               logger.log(Level.WARNING, e, () -> "Error while handling connection " + connection);
@@ -84,9 +85,11 @@ public class ServerRunner implements Callable<Void> {
       logger.log(Level.FINER, "Waiting for remaining tasks to finish");
       connectionExecutor.shutdown();
       while (!connectionExecutor.isTerminated()) {
+        //noinspection NestedTryStatement
         try {
           connectionExecutor.awaitTermination(1, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) { // NOPMD
+        } catch (InterruptedException ignored) {
+          // Nop.
         }
       }
       logger.log(Level.FINE, "Finished all remaining tasks");

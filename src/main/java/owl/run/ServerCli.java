@@ -36,6 +36,7 @@ public final class ServerCli {
       .addOption(getDefaultParallelOption());
   }
 
+  @SuppressWarnings("PMD.SystemPrintln")
   public static Callable<Void> build(CommandLine settings, Pipeline pipeline) {
     @Nullable
     InetAddress address;
@@ -43,13 +44,13 @@ public final class ServerCli {
       try {
         address = InetAddress.getLocalHost();
       } catch (UnknownHostException e) {
-        throw failWithMessage("Could not resolve localhost: " + e.getMessage());
+        throw failWithMessage("Could not resolve localhost: " + e.getMessage(), e);
       }
     } else {
       try {
         address = Inet4Address.getByName(settings.getOptionValue("address"));
       } catch (UnknownHostException e) {
-        throw failWithMessage("Failed to resolve given address: " + e.getMessage());
+        throw failWithMessage("Failed to resolve given address: " + e.getMessage(), e);
       }
       // TODO Is this entirely correct?
       if (!(address.isLinkLocalAddress() || address.isLoopbackAddress())) {
@@ -58,7 +59,7 @@ public final class ServerCli {
             + address + "). Make sure that this is what you want!");
         } else {
           throw failWithMessage("Refusing to bind on non-local address " + address
-            + " (neither link-local nor loop-back)");
+            + " (neither link-local nor loop-back)", null);
         }
       }
     }
@@ -69,8 +70,8 @@ public final class ServerCli {
     } else {
       try {
         port = Integer.parseInt(settings.getOptionValue("port"));
-      } catch (NumberFormatException ignored) {
-        throw failWithMessage("Invalid value for port");
+      } catch (NumberFormatException e) {
+        throw failWithMessage("Invalid value for port", e);
       }
     }
 

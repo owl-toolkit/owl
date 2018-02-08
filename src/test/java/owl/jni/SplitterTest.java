@@ -20,6 +20,10 @@ public class SplitterTest {
     + " (G ((r_1) -> (F (g_1))))) && (G ((r_2) -> (F (g_2))))) && (G ((r_3) -> (F (g_3))))) && (G"
     + " ((r_4) -> (F (g_4))))) && (G ((r_5) -> (F (g_5))))) && (G ((r_6) -> (F (g_6))))) && (G ("
     + "(r_7) -> (F (g_7)))))";
+  private static final String CO_SAFETY = "(F (grant_1 && grant_2)) && (release_1 U grant_1) "
+    + "&& (release_2 U grant_2) && (F (x -> X y))";
+  private static final String SAFETY = "(G (grant_1 || grant_2)) && (release_1 R grant_1) "
+    + "&& (release_2 R grant_2) && (G (request_1 -> X grant_1))";
 
   @Test
   public void splitSimpleArbiter() {
@@ -36,9 +40,6 @@ public class SplitterTest {
     Splitter.split(LtlParser.syntax("G (a | X F a)"), false, AUTO);
   }
 
-  private static final String CO_SAFETY = "(F (grant_1 && grant_2)) && (release_1 U grant_1) "
-    + "&& (release_2 U grant_2) && (F (x -> X y))";
-
   @Test
   public void testCoSafetySplitting() {
     LabelledTree<?, ?> tree1 = Splitter.split(LtlParser.syntax(CO_SAFETY), false, ALWAYS);
@@ -50,9 +51,6 @@ public class SplitterTest {
     LabelledTree<?, ?> tree3 = Splitter.split(LtlParser.syntax(CO_SAFETY), false, NEVER);
     assertEquals(1, ((Node<?, ?>) tree3).getChildren().size());
   }
-
-  private static final String SAFETY = "(G (grant_1 || grant_2)) && (release_1 R grant_1) "
-    + "&& (release_2 R grant_2) && (G (request_1 -> X grant_1))";
 
   @Test
   public void testSafetySplitting() {

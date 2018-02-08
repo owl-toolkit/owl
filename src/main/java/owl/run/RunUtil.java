@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
@@ -38,15 +39,20 @@ public final class RunUtil {
    * as possible, since {@link System#exit(int)} does not return, but the compiler doesn't know
    * about this.
    */
-  public static AssertionError failWithMessage(String message) {
-    System.err.println(message);
+  public static AssertionError failWithMessage(String message, @Nullable Throwable cause) {
+    System.err.println(message); // NOPMD
+    if (cause != null) {
+      logger.log(Level.FINE, "Stacktrace:", cause);
+    }
+
     System.exit(1);
-    return new AssertionError("Unreachable");
+    return new AssertionError("Unreachable", cause);
   }
 
   /**
    * Executes the given given runner and logs any occurring error to the console.
    */
+  @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.SystemPrintln"})
   public static void execute(Callable<Void> runner) {
     try {
       runner.call();

@@ -20,7 +20,6 @@ package owl.translations.ltl2ldba;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.io.Serializable;
 import java.util.Comparator;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -37,17 +36,11 @@ import owl.ltl.visitors.DefaultIntVisitor;
 /*
  * Note: this comparator imposes orderings that are inconsistent with equals.
  */
-public class RankingComparator implements Comparator<GOperator>, Serializable {
-
+public class RankingComparator implements Comparator<GOperator> {
   private static final RankVisitor VISITOR = new RankVisitor();
   private static final LoadingCache<GOperator, Integer> LOADING_CACHE = CacheBuilder.newBuilder()
-    .maximumSize(1000L).build(
-      new CacheLoader<GOperator, Integer>() {
-        @Override
-        public Integer load(GOperator key) {
-          return key.accept(VISITOR);
-        }
-      });
+    .maximumSize(1000L)
+    .build(CacheLoader.from(key -> key.accept(VISITOR)));
 
   @Override
   public int compare(GOperator o1, GOperator o2) {
@@ -55,7 +48,6 @@ public class RankingComparator implements Comparator<GOperator>, Serializable {
   }
 
   private static class RankVisitor extends DefaultIntVisitor {
-
     @Override
     protected int defaultAction(Formula formula) {
       return 0;

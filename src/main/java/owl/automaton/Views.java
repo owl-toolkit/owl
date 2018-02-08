@@ -58,7 +58,7 @@ public final class Views {
   public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton,
     @Nullable S trapState) {
     Automaton<S, ?> completeAutomaton =
-      trapState != null ? complete(automaton, trapState) : automaton;
+      trapState == null ? automaton : complete(automaton, trapState);
     assert completeAutomaton.is(COMPLETE) : "Automaton is not complete.";
     OmegaAcceptance acceptance = completeAutomaton.getAcceptance();
 

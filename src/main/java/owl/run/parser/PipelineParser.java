@@ -139,7 +139,7 @@ public final class PipelineParser {
     }
 
     @Override
-    public synchronized ParseException getCause() {
+    public ParseException getCause() {
       return (ParseException) super.getCause();
     }
   }

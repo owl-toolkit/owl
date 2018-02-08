@@ -26,7 +26,7 @@ public class ExplicitMinimizeTransformer<S, A extends OmegaAcceptance>
     MutableAutomaton<S, A> castedAutomaton =
       AutomatonUtil.castMutable(object, stateClass, acceptanceClass);
     for (Minimization<S, A> minimization : minimizationList) {
-      minimization.apply(castedAutomaton);
+      minimization.minimize(castedAutomaton);
     }
     return castedAutomaton;
   }

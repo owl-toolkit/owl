@@ -412,7 +412,7 @@ public final class AutomatonReader {
 
           check(counter == (1L << storedHeader.getAPs().size()));
         } else if (storedAutomaton.hasEdgesWithLabel(stateId)) {
-          IntUnaryOperator apMapping = remapping != null ? i -> remapping[i] : null;
+          IntUnaryOperator apMapping = remapping == null ? null : i -> remapping[i];
 
           for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
             HoaState successorState = getSuccessor(edgeWithLabel.getConjSuccessors());

@@ -59,6 +59,7 @@ final class RabinizerProductEdge {
     return successorState;
   }
 
+  @SuppressWarnings({"PMD.MethodReturnsInternalArray", "AssignmentOrReturnOfFieldWithMutableType"})
   ValuationSet[] getSuccessorAcceptance() {
     return successorAcceptance;
   }

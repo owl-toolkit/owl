@@ -14,10 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import groovy.io.FileType
+
+buildscript {
+    repositories {
+        flatDir dirs: 'lib/', name: 'proguard.jar'
+    }
+    dependencies {
+        classpath ':proguard:'
+    }
+}
 
 plugins {
-    id 'com.github.spotbugs' version '1.4'
+    // https://github.com/tbroyer/gradle-errorprone-plugin
+    id 'net.ltgt.errorprone' version '0.0.13'
+    // http://imperceptiblethoughts.com/shadow/
+    // id 'com.github.johnrengelman.shadow' version '2.0.2'
 }
 
 apply plugin: 'c'
@@ -39,8 +50,14 @@ project.sourceCompatibility = '1.9'
 project.targetCompatibility = '1.9'
 project.archivesBaseName = 'owl'
 
+mainClassName = "owl.run.DefaultCli"
+def minimize = !project.hasProperty("full")
+def buildNatives = !project.hasProperty("disable-native")
+
 def defaultEncoding = 'UTF-8'
+//noinspection GroovyAssignabilityCheck
 tasks.withType(JavaCompile) { options.encoding = defaultEncoding }
+//noinspection GroovyAssignabilityCheck
 tasks.withType(Javadoc) { options.encoding = defaultEncoding }
 
 repositories {
@@ -48,15 +65,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.0-RC6'
-    compileOnly 'org.immutables:value:2.5.5'
-    compileOnly 'javax.annotation:javax.annotation-api:1.3.1'
+    compileOnly 'org.immutables:value:2.5.5' // https://immutables.github.io/
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.1' // TODO Remove
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.1' // TODO Remove
 
-    compile 'com.google.guava:guava:23.4-jre'
+    compile 'com.google.guava:guava:24.0-jre'
     compile 'it.unimi.dsi:fastutil:8.1.1'
-    compile 'org.antlr:antlr4-runtime:4.7'
+    compile 'org.antlr:antlr4-runtime:4.7.1'
     compile 'de.tum.in:jbdd:0.2.0'
-    compile 'de.tum.in:naturals-util:0.8.0'
+    compile 'de.tum.in:naturals-util:0.9.0'
     compile 'commons-cli:commons-cli:1.4'
 
     compile files('lib/jhoafparser-1.1.1-patched.jar')
@@ -66,366 +83,169 @@ dependencies {
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'org.hamcrest:hamcrest-library:1.3'
 
-    antlr 'org.antlr:antlr4:4.7' // Introduces unused runtime dependencies
-}
+    antlr 'org.antlr:antlr4:4.7.1' // Introduces unused runtime dependencies
 
-// Unused during runtime
-def unused = [[group: 'org.antlr', module: 'antlr4'],
-              [group: 'org.antlr', module: 'antlr-runtime'],
-              [group: 'org.antlr', module: 'ST4'],
-              [group: 'org.abego.treelayout'],
-              [group: 'org.glassfish']]
-unused.each { unusedDependency ->
-    configurations.runtime.exclude unusedDependency
-    configurations.testCompile.exclude unusedDependency
+    errorprone 'com.google.errorprone:error_prone_core:2.2.0'
 }
 
 // Add resources directory for native libraries.
+//noinspection GroovyAssignabilityCheck
 tasks.withType(Test) {
     systemProperty "java.library.path", "src/main/resources/"
 }
 
-// Antlr
-generateGrammarSource {
-    arguments += ["-visitor", "-long-messages", "-lib", "src/main/antlr"]
-    // http://stackoverflow.com/questions/30642144/generating-antlr4-grammar-files-with-package-declaration-in-gradle
-    // Using outputDirectory here doesn't work - then IDEA does not pick up the folder as source
-    // root anymore.
-    doLast {
-        def move = [/*File wrong position*/:/*File right position*/]
-        generateGrammarSource.outputDirectory.eachFileMatch(FileType.FILES, ~/.*\.java/) { f ->
-            def pkg = f.readLines().find { it.trim() =~ /^package/ }
-            if (pkg) {
-                pkg = pkg.split(' ')[1].replace(';', '')
-                pkg = pkg.replace('.', '/')
-                //noinspection GroovyAssignabilityCheck
-                move.put(f, new File("${generateGrammarSource.outputDirectory}/$pkg/${f.name}"))
-            }
-        }
-        move.each { s, t ->
-            t.parentFile.mkdirs()
-            s.renameTo(t.absolutePath)
-        }
+apply from: 'gradle/analysis.gradle'
+apply from: 'gradle/antlr.gradle'
+if (buildNatives)
+    apply from: 'gradle/natives.gradle'
+
+jar {
+    manifest {
+        attributes(
+            "Implementation-Title": "owl",
+            "Main-Class": project.mainClassName,
+            "Implementation-Version": version)
     }
+    exclude('**.java') // Generated .java files
 }
 
-// C and C++
+//noinspection GroovyAssignabilityCheck,UnnecessaryQualifiedReference
+def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuardTask) {
+    if (minimize)
+        configuration 'config/proguard-min.txt'
+    else
+        configuration 'config/proguard.txt'
 
-model {
-    repositories {
-        libs(PrebuiltLibraries) {
-            jdk {
-                headers.srcDirs "${System.properties['java.home']}/include",
-                    "${System.properties['java.home']}/include/win32",
-                    "${System.properties['java.home']}/include/darwin",
-                    "${System.properties['java.home']}/include/linux"
-            }
+    libraryjars "${System.getProperty('java.home')}/jmods"
+    libraryjars "${System.getProperty('java.home')}/lib"
 
-            internal {
-                headers.srcDirs "src/main/headers",
-                    "src/main/cpp/library"
-            }
-        }
-    }
+    dontwarn 'org.immutables.**'
+    dontwarn 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings' // TODO remove
+    dontwarn 'afu.org.checkerframework.checker.**'
+    dontwarn 'org.checkerframework.checker.**'
 
-    components {
-        owl(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDirs "src/main/cpp/library"
-                        include "**.cc"
-                    }
-
-                    exportedHeaders {
-                        srcDir "src/main/headers"
-                    }
-                }
-            }
-
-            binaries.all {
-                cppCompiler.args "-O2", "-std=c++1z"
-                linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
-
-                lib library: 'internal', linkage: 'api'
-                lib library: 'jdk', linkage: 'api'
-            }
-        }
-
-        owlClient(NativeExecutableSpec) {
-            baseName "owl-client"
-
-            sources {
-                c {
-                    source {
-                        srcDir "src/main/c"
-                        include "owl-client.c"
-                    }
-                }
-            }
-        }
-
-        owlExample(NativeExecutableSpec) {
-            baseName "owl-jni-example"
-
-            sources {
-                cpp {
-                    source {
-                        srcDir "src/main/cpp/example"
-                        include "example.cc"
-                    }
-                }
-            }
-
-            binaries.all {
-                cppCompiler.args "-O2", "-std=c++1z"
-                linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
-
-                lib library: 'jdk', linkage: 'api'
-                lib library: 'owl', linkage: 'static'
-            }
-        }
-    }
+    injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
+    injars files(jar)
+    outjars new File(project.buildDir, 'libs/owl.jar')
 }
 
-// Spotbugs
-// https://plugins.gradle.org/plugin/com.github.spotbugs
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
-
-spotbugs {
-    toolVersion = '3.1.0-RC6'
-    reportsDir = file("$project.buildDir/reports/spotbugs")
-    effort = "max"
-    reportLevel = "low"
-    excludeFilter = file("$project.projectDir/config/spotbugs-exclude.xml")
-    ignoreFailures = false
-}
-tasks.withType(com.github.spotbugs.SpotBugsTask) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
-// PMD
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
-pmd {
-    toolVersion = "5.8.1"
-    reportsDir = file("$project.buildDir/reports/pmd")
-    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
-    ruleSets = [] // We specify all rules in rules.xml
-    consoleOutput = false
-    ignoreFailures = false
-}
-tasks.withType(Pmd) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
-// Checkstyle
-// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
-checkstyle {
-    toolVersion = "8.3"
-    configFile = file("$project.rootDir/config/checkstyle.xml")
-    ignoreFailures = false
-    maxWarnings = 0
-    showViolations = false // Don't litter console
-    checkstyleMain {
-        configProperties = ['suppression-file':
-                                "$project.rootDir/config/checkstyle-main-suppression.xml"]
-    }
-    checkstyleTest {
-        configProperties = ['suppression-file':
-                                "$project.rootDir/config/checkstyle-test-suppression.xml"]
-    }
-}
-
-// Create startup scripts
-mainClassName = "owl.run.DefaultCli"
 // Create startup scripts for each tool
 def scripts = [
-    'synth'      : 'owl.translations.Synthesis',
-    'ltl2da'     : 'owl.translations.LTL2DA',
-    'ltl2dpa'    : 'owl.translations.LTL2DPA',
-    'ltl2ldba'   : 'owl.translations.ltl2ldba.LTL2LDBACliParser',
-    'nba2ldba'   : 'owl.translations.nba2ldba.NBA2LDBA',
-    'dra2dpa'    : 'owl.translations.dra2dpa.IARBuilder',
-    'delag'      : 'owl.translations.delag.DelagBuilder',
-    'ltl2dgra'   : 'owl.translations.rabinizer.RabinizerMain',
-    'ltl2dra'    : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'nba2dpa'    : 'owl.translations.nba2dpa.NBA2DPAModule',
-    'owl-server' : 'owl.run.ServerCli'
+    'synth'     : 'owl.translations.Synthesis',
+    'ltl2da'    : 'owl.translations.LTL2DA',
+    'ltl2dpa'   : 'owl.translations.LTL2DPA',
+    'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBACliParser',
+    'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
+    'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',
+    'delag'     : 'owl.translations.delag.DelagBuilder',
+    'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
+    'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
+    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPAModule',
+    'owl-server': 'owl.run.ServerCli'
 ]
 
-scripts.each() { scriptName, className ->
-    def t = tasks.create(name: scriptName + 'StartScript', type: CreateStartScripts) {
-        mainClassName = className
-        applicationName = scriptName
-        outputDir = new File(project.buildDir, 'scripts')
-        //noinspection GroovyAccessibility
-        classpath = jar.outputs.files + project.configurations.runtime
+ext.createStartScriptTasks = { name, cp, map ->
+    map.collect { scriptName, className ->
+        tasks.create(name: scriptName + name.capitalize() + 'StartScript',
+            type: CreateStartScripts) {
+            mainClassName = className
+            applicationName = scriptName
+            outputDir = new File(project.buildDir, 'scripts')
+            //noinspection GroovyAccessibility
+            classpath = cp
+        }
     }
-
-    t.dependsOn(jar)
-    startScripts.dependsOn(t)
 }
+
+createStartScriptTasks("", jar.outputs.files + project.configurations.runtime, scripts).each() {
+    it.dependsOn(jar)
+    startScripts.dependsOn(it)
+}
+
+def proGuardStartScripts = createStartScriptTasks("ProGuard", proGuardTask.outputs.files,
+    scripts + ['owl' : mainClassName])
+proGuardStartScripts.each() { it.dependsOn(proGuardTask) }
 
 // Compile the markdown files
 tasks.create(name: "compileMarkdown", type: Exec) {
     executable = 'scripts/render-markdown.sh'
     outputs.dir "$project.docsDir/markdown"
     args = ["$project.docsDir/markdown"]
-}
+}.onlyIf {
+    buildNatives
+} // ... if native compilation is enabled (pandoc isn't available everywhere)
 
 // Configure the distribution to include the documentation etc.
-distributions.main {
-    baseName = 'owl'
+distributions {
+    // TODO The distribution plugin is stupid: The "main" distribution always contains all runtime
+    // dependencies - we can't specify only the minimized jar.
+    main {
+        baseName = 'owl'
 
-    contents {
-        into("doc") {
-            from "AUTHORS"
-            from "LICENSE"
-            from compileMarkdown
-            from javadoc
+        contents {
+            into("doc") {
+                from "AUTHORS"
+                from "LICENSE"
+                from compileMarkdown
+                from javadoc
+            }
+            into("src") {
+                from "src"
+            }
         }
-        into("src") {
-            from "src"
+    }
+    small {
+        baseName = 'owl'
+
+        contents {
+            into("bin") {
+                //noinspection GroovyAssignabilityCheck
+                from proGuardStartScripts
+            }
+            into("lib") {
+                from proGuardTask
+            }
+            into("doc") {
+                from "AUTHORS"
+                from "LICENSE"
+                from compileMarkdown
+                from javadoc
+            }
+            into("src") {
+                from "src"
+            }
         }
     }
 }
 
 // Task to create a minimal running jar
-tasks.create(name: "buildBin", type: Copy) {
+def binTask = tasks.create(name: "buildBin", type: Copy) {
     destinationDir = project.buildDir
     into('bin') {
         // Copy all start-scripts and make them executable
-        from(startScripts) {
+        from(proGuardStartScripts) {
             exclude "*.bat"
         }
         fileMode = 0755
     }
     into('lib') {
-        from(jar) // Copy the jar itself
-        from([project.configurations.runtime]) // Copy the dependencies
+        from(proGuardTask)
     }
 }
 
-// If a user file is present, include it.
-if (file('../user.gradle').exists()) {
-    apply from: '../user.gradle'
+if (buildNatives) {
+    binTask.dependsOn("owlClientExecutable")
 }
 
-// Gradle IDEA project configuration stuff
-// Partly from http://mrhaki.blogspot.com/2012/09/gradle-goodness-customize-idea-project.html and
-// various SO posts
+// ProGuard dead code detection
+tasks.create(name: "reportDeadCode", type: proguard.gradle.ProGuardTask) {
+    injars files(jar)
 
-idea {
-    project {
-        vcs = 'Git'
+    configuration 'config/proguard-deadcode.txt'
+    dontwarn '**' // Don't care about missing dependencies - all entry points are here
 
-        ipr {
-            withXml { xmlProvider ->
-                def projectXml = xmlProvider.asNode()
-                customizeCompiler(projectXml)
-                customizeCodeStyle(projectXml, file("config/idea-codestyle.xml").getText("UTF-8"))
-                customizeEncoding(projectXml)
-            }
-        }
-    }
+    // Write usage (or rather lack thereof) into deadcode.txt
+    printusage file("$project.buildDir/reports/deadcode.txt")
+}.doFirst { file("$project.buildDir/reports").mkdirs() }
 
-    module {
-        def annotSrcFolder = file("build/generated-src/annot/main")
-        def annotTestFolder = file("build/generated-src/annot/test")
-
-        sourceDirs += annotSrcFolder
-        generatedSourceDirs += annotSrcFolder
-        sourceDirs += annotTestFolder
-        generatedSourceDirs += annotTestFolder
-
-        name = 'owl'
-
-        downloadJavadoc = true
-        downloadSources = true
-    }
-}
-
-// Helpers
-
-/* Search component with given name */
-
-static findComponent(node, name) {
-    node.component.find { it.@name == name }
-}
-
-/* Set value for option node with given name */
-
-static changeOption(node, name, value) {
-    node.option.find { it.@name == name }.@value = value
-}
-
-// Customizers
-
-static customizeCompiler(project) {
-    def compilerConfiguration = findComponent(project, 'CompilerConfiguration')
-
-    compilerConfiguration.annotationProcessing.replaceNode {
-        annotationProcessing {
-            profile(name: 'Default', default: true, enabled: true) {
-                processorPath(useClasspath: true)
-                sourceOutputDir(name: "build/generated-src/annot/main")
-                sourceTestOutputDir(name: "build/generated-src/annot/test")
-                outputRelativeToContentRoot(value: true)
-            }
-        }
-    }
-}
-
-// http://stackoverflow.com/questions/26108228/pass-custom-code-style-xml-to-gradle-idea-plugin
-static customizeCodeStyle(project, codeStyle) {
-    project.appendNode('component', [name: 'ProjectCodeStyleSettingsManager'])
-    def codeStyleNode = findComponent(project, 'ProjectCodeStyleSettingsManager')
-
-    codeStyleNode.appendNode('option', [name: 'USE_PER_PROJECT_SETTINGS', value: 'true'])
-    def projectSettingsNode = codeStyleNode.appendNode('option', [name: 'PER_PROJECT_SETTINGS'])
-        .appendNode('value')
-
-    def codeStyleXml = new XmlParser().parseText(codeStyle)
-    codeStyleXml.children().each { option ->
-        projectSettingsNode.append(option)
-    }
-}
-
-static customizeEncoding(project) {
-    def encoding = findComponent(project, 'Encoding')
-
-    if (encoding) {
-        // Change existing node.
-        encoding.@useUTFGuessing = true
-        encoding.@native2AsciiForPropertiesFiles = true
-        encoding.@defaultCharsetForPropertiesFiles = 'UTF-8'
-    } else {
-        // Create new node with default values.
-        project.appendNode 'Encoding',
-            [useUTFGuessing                  : true,
-             native2AsciiForPropertiesFiles  : true,
-             defaultCharsetForPropertiesFiles: 'UTF-8']
-    }
-}
-
-static customizeAnnotationProcessingSourceRoot(module) {
-    def moduleRootManager = findComponent(module, 'NewModuleRootManager')
-
-    def contentRoot = moduleRootManager.content.find { it.@url == 'file://$MODULE_DIR$/' }
-    contentRoot.appendNode('sourceFolder', [
-        url         : 'file://$MODULE_DIR$/build/generated-src/annot/main',
-        isTestSource: false,
-        generated   : true
-    ])
-    contentRoot.appendNode('sourceFolder', [
-        url         : 'file://$MODULE_DIR$/build/generated-src/annot/test',
-        isTestSource: true,
-        generated   : true
-    ])
-}
+apply from: 'gradle/idea.gradle'

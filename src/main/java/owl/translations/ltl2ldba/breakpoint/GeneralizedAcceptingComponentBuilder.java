@@ -71,11 +71,11 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     if (length == 0) {
       if (theRemainder.isTrue()) {
-        return new GeneralizedBreakpointState(obligations, safety, EquivalenceClass.EMPTY,
-          EquivalenceClass.EMPTY);
+        return new GeneralizedBreakpointState(obligations, safety, EquivalenceClass.EMPTY_ARRAY,
+          EquivalenceClass.EMPTY_ARRAY);
       } else {
         return new GeneralizedBreakpointState(obligations, safety,
-          new EquivalenceClass[] {theRemainder}, EquivalenceClass.EMPTY);
+          new EquivalenceClass[] {theRemainder}, EquivalenceClass.EMPTY_ARRAY);
       }
     }
 
@@ -203,13 +203,13 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       if (!remainder.isTrue()) {
         return Edge
           .of(new GeneralizedBreakpointState(state.obligations, nextSafety,
-            new EquivalenceClass[] {remainder}, EquivalenceClass.EMPTY));
+            new EquivalenceClass[] {remainder}, EquivalenceClass.EMPTY_ARRAY));
       }
     }
 
     BitSet acceptance = new BitSet();
     acceptance.set(0, acceptanceSets);
     return Edge.of(new GeneralizedBreakpointState(state.obligations, nextSafety,
-        EquivalenceClass.EMPTY, EquivalenceClass.EMPTY), acceptance);
+        EquivalenceClass.EMPTY_ARRAY, EquivalenceClass.EMPTY_ARRAY), acceptance);
   }
 }

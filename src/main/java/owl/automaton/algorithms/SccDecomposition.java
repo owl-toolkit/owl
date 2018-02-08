@@ -40,7 +40,7 @@ public final class SccDecomposition<S> {
 
   // Initial value for the low link - since we update the low-link whenever we find a link to a
   // state we can use this to detect trivial SCCs. MAX_VALUE is important for "<" comparisons
-  private static final int NO_LINK = Integer.MAX_VALUE;
+  static final int NO_LINK = Integer.MAX_VALUE;
 
   private final Deque<S> explorationStack = new ArrayDeque<>();
   private final boolean includeTransient;

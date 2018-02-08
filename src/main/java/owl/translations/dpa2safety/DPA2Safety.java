@@ -10,13 +10,13 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.translations.dpa2safety.DPA2Safety.Counters;
+import owl.translations.dpa2safety.DPA2Safety.Counter;
 
 public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>, Integer,
-  Automaton<Counters<S>, AllAcceptance>> {
+  Automaton<Counter<S>, AllAcceptance>> {
 
   @Override
-  public Automaton<Counters<S>, AllAcceptance> apply(Automaton<S, ParityAcceptance> automaton,
+  public Automaton<Counter<S>, AllAcceptance> apply(Automaton<S, ParityAcceptance> automaton,
     Integer bound) {
     int d;
 
@@ -26,11 +26,11 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       d = automaton.getAcceptance().getAcceptanceSets();
     }
 
-    Counters<S> initialState = new Counters<>(automaton.getInitialState(), d / 2 + 1);
+    Counter<S> initialState = new Counter<>(automaton.getInitialState(), d / 2 + 1);
 
     IntPredicate isAcceptingColour = x -> automaton.getAcceptance().isAccepting(x);
 
-    BiFunction<Counters<S>, BitSet, Edge<Counters<S>>> successor = (x, y) -> {
+    BiFunction<Counter<S>, BitSet, Edge<Counter<S>>> successor = (x, y) -> {
       Edge<S> edge = automaton.getEdge(x.state, y);
 
       if (edge == null) {
@@ -39,7 +39,7 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
 
       int[] counters = x.counters.toArray();
       int colour = edge.smallestAcceptanceSet();
-      int i = (colour != Integer.MAX_VALUE ? colour : d) / 2;
+      int i = (colour == Integer.MAX_VALUE ? d : colour) / 2;
 
       if (isAcceptingColour.test(colour)) {
         // Reset
@@ -55,22 +55,22 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
         }
       }
 
-      return Edge.of(new Counters<>(edge.getSuccessor(), counters));
+      return Edge.of(new Counter<>(edge.getSuccessor(), counters));
     };
 
     return AutomatonFactory.createStreamingAutomaton(AllAcceptance.INSTANCE, initialState,
       automaton.getFactory(), successor);
   }
 
-  static final class Counters<X> {
+  static final class Counter<X> {
     final X state;
     final ImmutableIntArray counters;
 
-    Counters(X state, int length) {
+    Counter(X state, int length) {
       this(state, new int[length]);
     }
 
-    Counters(X state, int[] counters) {
+    Counter(X state, int[] counters) {
       this.state = state;
       this.counters = ImmutableIntArray.copyOf(counters);
     }
@@ -83,7 +83,7 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      final Counters<?> counters1 = (Counters<?>) o;
+      final Counter<?> counters1 = (Counter<?>) o;
       return Objects.equals(state, counters1.state) && Objects.equals(counters, counters1.counters);
     }
 

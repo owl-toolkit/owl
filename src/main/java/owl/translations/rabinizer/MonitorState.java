@@ -9,8 +9,9 @@ final class MonitorState {
   final EquivalenceClass[] formulaRanking;
   private final int hashCode;
 
+  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
+                      "AssignmentToCollectionOrArrayFieldFromParameter"})
   MonitorState(EquivalenceClass[] formulaRanking) {
-    //noinspection AssignmentToCollectionOrArrayFieldFromParameter
     this.formulaRanking = formulaRanking;
     this.hashCode = Arrays.hashCode(formulaRanking);
   }

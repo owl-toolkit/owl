@@ -1,0 +1,78 @@
+// C and C++
+
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            jdk {
+                headers.srcDirs "${System.properties['java.home']}/include",
+                    "${System.properties['java.home']}/include/win32",
+                    "${System.properties['java.home']}/include/darwin",
+                    "${System.properties['java.home']}/include/linux"
+            }
+
+            internal {
+                headers.srcDirs "src/main/headers",
+                    "src/main/cpp/library"
+            }
+        }
+    }
+
+    components {
+        owl(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs "src/main/cpp/library"
+                        include "**.cc"
+                    }
+
+                    exportedHeaders {
+                        srcDir "src/main/headers"
+                    }
+                }
+            }
+
+            binaries.all {
+                cppCompiler.args "-O2", "-std=c++1z"
+                linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
+
+                lib library: 'internal', linkage: 'api'
+                lib library: 'jdk', linkage: 'api'
+            }
+        }
+
+        owlClient(NativeExecutableSpec) {
+            baseName "owl-client"
+
+            sources {
+                c {
+                    source {
+                        srcDir "src/main/c"
+                        include "owl-client.c"
+                    }
+                }
+            }
+        }
+
+        owlExample(NativeExecutableSpec) {
+            baseName "owl-jni-example"
+
+            sources {
+                cpp {
+                    source {
+                        srcDir "src/main/cpp/example"
+                        include "example.cc"
+                    }
+                }
+            }
+
+            binaries.all {
+                cppCompiler.args "-O2", "-std=c++1z"
+                linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
+
+                lib library: 'jdk', linkage: 'api'
+                lib library: 'owl', linkage: 'static'
+            }
+        }
+    }
+}

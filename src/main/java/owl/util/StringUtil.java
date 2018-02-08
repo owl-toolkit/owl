@@ -1,8 +1,10 @@
-package owl.translations.ltl2ldba;
+package owl.util;
 
 import java.util.StringJoiner;
 
-public class StringUtil {
+public final class StringUtil {
+  private StringUtil() {}
+
   public static String join(String... pieces) {
     StringJoiner joiner = new StringJoiner(", ", " [", "]");
 

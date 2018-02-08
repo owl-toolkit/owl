@@ -19,7 +19,6 @@ package owl.translations.ltl2ldba;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -113,13 +112,14 @@ public class EquivalenceClassStateFactory {
 
   public List<EquivalenceClass> splitEquivalenceClass(EquivalenceClass clazz) {
     assert clazz.getRepresentative() != null;
-    List<EquivalenceClass> successors = NormalForms
-      .toDnf(clazz.getRepresentative())
+    List<EquivalenceClass> successors = NormalForms.toDnf(clazz.getRepresentative())
       .stream()
       .map(this::getInitial)
-      .collect(Collectors.toCollection(LinkedList::new));
+      .collect(Collectors.toList());
 
     if (removeRedundantObligations) {
+      // TODO Check if this actually is allowed. Maybe rather make successor immutable and create
+      // a filtered version?
       //noinspection ObjectEquality
       successors.removeIf(x -> successors.stream().anyMatch(y -> x != y && x.implies(y)));
     }

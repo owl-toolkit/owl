@@ -10,7 +10,8 @@ public final class RabinizerState {
   final MonitorState[] monitorStates;
   private final int hashCode;
 
-  @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
+  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
+                      "AssignmentToCollectionOrArrayFieldFromParameter"})
   RabinizerState(EquivalenceClass masterState, MonitorState[] monitorStates) {
     this.masterState = masterState;
     this.monitorStates = monitorStates;

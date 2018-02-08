@@ -44,7 +44,17 @@ import owl.automaton.transformations.RabinDegeneralization;
 public final class EmptinessCheck {
   private EmptinessCheck() {}
 
-  private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
+  public static <S> boolean isRejectingScc(Automaton<S, ?> automaton, Set<S> scc) {
+    Automaton<S, ?> filteredAutomaton = Views.filter(automaton, scc);
+    assert SccDecomposition.isTrap(filteredAutomaton, scc);
+    return isEmpty(filteredAutomaton, scc.iterator().next());
+  }
+
+  public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
+    return automaton.getInitialStates().stream().allMatch(state -> isEmpty(automaton, state));
+  }
+
+  static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
     Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
     boolean allFinIndicesBelow) {
     if (acceptingState) {
@@ -72,7 +82,7 @@ public final class EmptinessCheck {
       allFinIndicesBelow);
   }
 
-  private static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
+  static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
     int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
     visitedStatesLasso.add(q);
 
@@ -94,7 +104,7 @@ public final class EmptinessCheck {
     return false;
   }
 
-  private static <S> boolean hasAcceptingLasso(Automaton<S, ?> automaton, S initialState,
+  static <S> boolean hasAcceptingLasso(Automaton<S, ?> automaton, S initialState,
     int infIndex, int finIndex, boolean allFinIndicesBelow) {
     Set<S> visitedStates = new HashSet<>();
     Set<S> visitedAcceptingStates = new HashSet<>();
@@ -116,7 +126,7 @@ public final class EmptinessCheck {
     return false;
   }
 
-  private static <S> boolean inSet(Edge<S> edge, int index, boolean allIndicesBelow) {
+  static <S> boolean inSet(Edge<S> edge, int index, boolean allIndicesBelow) {
     if (allIndicesBelow) {
       return edge.smallestAcceptanceSet() <= index;
     }
@@ -124,7 +134,7 @@ public final class EmptinessCheck {
     return index >= 0 && edge.inSet(index);
   }
 
-  private static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
+  static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
     OmegaAcceptance acceptance = automaton.getAcceptance();
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
@@ -178,23 +188,15 @@ public final class EmptinessCheck {
       String.format("Emptiness check for %s not yet implemented.", acceptance.getName()));
   }
 
-  public static <S> boolean isRejectingScc(Automaton<S, ?> automaton, Set<S> scc) {
-    Automaton<S, ?> filteredAutomaton = Views.filter(automaton, scc);
-    assert SccDecomposition.isTrap(filteredAutomaton, scc);
-    return isEmpty(filteredAutomaton, scc.iterator().next());
-  }
-
-  public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
-    return automaton.getInitialStates().stream().allMatch(state -> isEmpty(automaton, state));
-  }
-
   private static final class Buchi {
-    private static <S> boolean containsAcceptingLasso(
+    private Buchi() {}
+
+    static <S> boolean containsAcceptingLasso(
       Automaton<S, BuchiAcceptance> automaton, S initialState) {
       return hasAcceptingLasso(automaton, initialState, 0, -1, false);
     }
 
-    private static <S> boolean containsAcceptingScc(
+    static <S> boolean containsAcceptingScc(
       Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton, initialState)) {
         BitSet remaining = new BitSet(automaton.getAcceptance().size);
@@ -220,7 +222,9 @@ public final class EmptinessCheck {
   }
 
   private static final class Parity {
-    private static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
+    private Parity() {}
+
+    static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
       S initialState) {
       if (automaton.getAcceptance().getParity().max()) {
         throw new UnsupportedOperationException("Only min-{even,odd} conditions supported.");
@@ -228,19 +232,7 @@ public final class EmptinessCheck {
 
       int sets = automaton.getAcceptance().getAcceptanceSets();
 
-      if (!automaton.getAcceptance().getParity().even()) {
-        for (int fin = 0; fin < sets; fin += 2) {
-          int inf = -1;
-
-          if (sets - fin >= 2) {
-            inf = fin + 1;
-          }
-
-          if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
-            return true;
-          }
-        }
-      } else {
+      if (automaton.getAcceptance().getParity().even()) {
         for (int inf = 0; inf < sets; inf += 2) {
           int fin = inf - 1;
 
@@ -252,12 +244,24 @@ public final class EmptinessCheck {
             return true;
           }
         }
+      } else {
+        for (int fin = 0; fin < sets; fin += 2) {
+          int inf = -1;
+
+          if (sets - fin >= 2) {
+            inf = fin + 1;
+          }
+
+          if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
+            return true;
+          }
+        }
       }
 
       return false;
     }
 
-    private static <S> boolean containsAcceptingScc(Automaton<S, ParityAcceptance> automaton,
+    static <S> boolean containsAcceptingScc(Automaton<S, ParityAcceptance> automaton,
       S initialState) {
       Queue<AnalysisResult<S>> queue = new ArrayDeque<>();
 
@@ -343,7 +347,9 @@ public final class EmptinessCheck {
   }
 
   private static final class Rabin {
-    private static <S> boolean containsAcceptingLasso(Automaton<S, RabinAcceptance> automaton,
+    private Rabin() {}
+
+    static <S> boolean containsAcceptingLasso(Automaton<S, RabinAcceptance> automaton,
       S initialState) {
       for (RabinPair pair : automaton.getAcceptance().getPairs()) {
         if (hasAcceptingLasso(automaton, initialState, pair.infSet(),
@@ -355,7 +361,7 @@ public final class EmptinessCheck {
       return false;
     }
 
-    private static <S> boolean containsAcceptingScc(Automaton<S, RabinAcceptance> automaton,
+    static <S> boolean containsAcceptingScc(Automaton<S, RabinAcceptance> automaton,
       S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton, initialState)) {
         List<RabinPair> finitePairs = new ArrayList<>(automaton.getAcceptance().getPairs());

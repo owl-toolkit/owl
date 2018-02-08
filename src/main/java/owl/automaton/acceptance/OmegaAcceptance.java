@@ -25,7 +25,6 @@ import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 
 public abstract class OmegaAcceptance {
-
   public abstract int getAcceptanceSets();
 
   /**
@@ -60,7 +59,7 @@ public abstract class OmegaAcceptance {
   @Override
   public String toString() {
     String name = getName();
-    return (name != null ? name + ' ' + getNameExtra() : getClass().getSimpleName()) + ": "
+    return (name == null ? getClass().getSimpleName() : name + ' ' + getNameExtra()) + ": "
       + getAcceptanceSets() + ' ' + getBooleanExpression();
   }
 }

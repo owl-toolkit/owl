@@ -1,0 +1,112 @@
+// Gradle IDEA project configuration stuff
+// Partly from http://mrhaki.blogspot.com/2012/09/gradle-goodness-customize-idea-project.html and
+// various SO posts
+
+idea {
+    project {
+        vcs = 'Git'
+
+        ipr {
+            withXml { xmlProvider ->
+                def projectXml = xmlProvider.asNode()
+                customizeCompiler(projectXml)
+                customizeCodeStyle(projectXml, file("config/idea-codestyle.xml").getText("UTF-8"))
+                customizeEncoding(projectXml)
+            }
+        }
+    }
+
+    module {
+        def annotSrcFolder = file("build/generated-src/annot/main")
+        def annotTestFolder = file("build/generated-src/annot/test")
+
+        sourceDirs += annotSrcFolder
+        generatedSourceDirs += annotSrcFolder
+        sourceDirs += annotTestFolder
+        generatedSourceDirs += annotTestFolder
+
+        name = 'owl'
+
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+// Helpers
+
+/* Search component with given name */
+
+static findComponent(node, name) {
+    node.component.find { it.@name == name }
+}
+
+/* Set value for option node with given name */
+
+static changeOption(node, name, value) {
+    node.option.find { it.@name == name }.@value = value
+}
+
+// Customizers
+
+static customizeCompiler(project) {
+    def compilerConfiguration = findComponent(project, 'CompilerConfiguration')
+
+    compilerConfiguration.annotationProcessing.replaceNode {
+        annotationProcessing {
+            profile(name: 'Default', default: true, enabled: true) {
+                processorPath(useClasspath: true)
+                sourceOutputDir(name: "build/generated-src/annot/main")
+                sourceTestOutputDir(name: "build/generated-src/annot/test")
+                outputRelativeToContentRoot(value: true)
+            }
+        }
+    }
+}
+
+// http://stackoverflow.com/questions/26108228/pass-custom-code-style-xml-to-gradle-idea-plugin
+static customizeCodeStyle(project, codeStyle) {
+    project.appendNode('component', [name: 'ProjectCodeStyleSettingsManager'])
+    def codeStyleNode = findComponent(project, 'ProjectCodeStyleSettingsManager')
+
+    codeStyleNode.appendNode('option', [name: 'USE_PER_PROJECT_SETTINGS', value: 'true'])
+    def projectSettingsNode = codeStyleNode.appendNode('option', [name: 'PER_PROJECT_SETTINGS'])
+        .appendNode('value')
+
+    def codeStyleXml = new XmlParser().parseText(codeStyle)
+    codeStyleXml.children().each { option ->
+        projectSettingsNode.append(option)
+    }
+}
+
+static customizeEncoding(project) {
+    def encoding = findComponent(project, 'Encoding')
+
+    if (encoding) {
+        // Change existing node.
+        encoding.@useUTFGuessing = true
+        encoding.@native2AsciiForPropertiesFiles = true
+        encoding.@defaultCharsetForPropertiesFiles = 'UTF-8'
+    } else {
+        // Create new node with default values.
+        project.appendNode 'Encoding',
+            [useUTFGuessing                  : true,
+             native2AsciiForPropertiesFiles  : true,
+             defaultCharsetForPropertiesFiles: 'UTF-8']
+    }
+}
+
+static customizeAnnotationProcessingSourceRoot(module) {
+    def moduleRootManager = findComponent(module, 'NewModuleRootManager')
+
+    def contentRoot = moduleRootManager.content.find { it.@url == 'file://$MODULE_DIR$/' }
+    contentRoot.appendNode('sourceFolder', [
+        url         : 'file://$MODULE_DIR$/build/generated-src/annot/main',
+        isTestSource: false,
+        generated   : true
+    ])
+    contentRoot.appendNode('sourceFolder', [
+        url         : 'file://$MODULE_DIR$/build/generated-src/annot/test',
+        isTestSource: true,
+        generated   : true
+    ])
+}

@@ -66,7 +66,6 @@ public final class AutomatonOperations {
     checkArgument(!automata.isEmpty(), "No automaton was passed.");
 
     ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(false);
-    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));
     int offset = 1;
 
     for (Automaton<S, ? extends OmegaAcceptance> automaton : automata) {
@@ -79,7 +78,7 @@ public final class AutomatonOperations {
       } else if (automaton.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
         builder.buchi.add(AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class));
         builder.acceptanceRemapping.add(offset);
-        offset = offset + automaton.getAcceptance().getAcceptanceSets();
+        offset += automaton.getAcceptance().getAcceptanceSets();
       } else {
         throw new IllegalArgumentException(
           "Unsupported Acceptance Type " + automaton.getAcceptance());
@@ -100,6 +99,7 @@ public final class AutomatonOperations {
       acceptance = rabinAcceptance;
     }
 
+    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));
     return AutomatonFactory.createStreamingAutomaton(acceptance, builder.init(), factory,
       builder::successor);
   }
@@ -117,45 +117,47 @@ public final class AutomatonOperations {
       factory, builder::successor);
   }
 
-  private static class ListAutomatonBuilder<S> {
+  private static final class ListAutomatonBuilder<S> {
     final IntList acceptanceRemapping = new IntArrayList();
-    final List<Automaton<S, ? extends AllAcceptance>> all = new ArrayList<>();
+    final List<Automaton<S, AllAcceptance>> all = new ArrayList<>();
     final List<Automaton<S, ? extends GeneralizedBuchiAcceptance>> buchi = new ArrayList<>();
-    final List<Automaton<S, ? extends CoBuchiAcceptance>> coBuchi = new ArrayList<>();
+    final List<Automaton<S, CoBuchiAcceptance>> coBuchi = new ArrayList<>();
     final boolean collapseBuchi;
 
-    private ListAutomatonBuilder(boolean collapseBuchi) {
+    ListAutomatonBuilder(boolean collapseBuchi) {
       this.collapseBuchi = collapseBuchi;
     }
 
     Automaton<S, ?> getAutomaton(int i) {
-      if (i < all.size()) {
-        return all.get(i);
+      int index = i;
+      if (index < all.size()) {
+        return all.get(index);
       }
 
-      i -= all.size();
+      index -= all.size();
 
-      if (i < coBuchi.size()) {
-        return coBuchi.get(i);
+      if (index < coBuchi.size()) {
+        return coBuchi.get(index);
       }
 
-      i -= coBuchi.size();
-      return buchi.get(i);
+      index -= coBuchi.size();
+      return buchi.get(index);
     }
 
     int getOffset(int i) {
-      if (i < all.size()) {
+      int index = i;
+      if (index < all.size()) {
         return -1;
       }
 
-      i -= all.size();
+      index -= all.size();
 
-      if (i < coBuchi.size()) {
+      if (index < coBuchi.size()) {
         return 0;
       }
 
-      i -= coBuchi.size();
-      return acceptanceRemapping.getInt(i);
+      index -= coBuchi.size();
+      return acceptanceRemapping.getInt(index);
     }
 
     List<S> init() {

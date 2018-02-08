@@ -51,6 +51,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     return stream;
   }
 
+  @SuppressWarnings("ReferenceEquality")
   AnalysisResult<X> analyse(EquivalenceClass state) {
     AnalysisResult<X> result = checkTrivial(state);
 

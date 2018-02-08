@@ -108,13 +108,6 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     return false;
   }
 
-  private static Formula evaluate(Formula formula, GObligations keys) {
-    EvaluateVisitor evaluateVisitor =
-      new EvaluateVisitor(keys.gOperators, keys.getObligation());
-    Formula subst = formula.accept(evaluateVisitor);
-    return RewriterFactory.apply(RewriterEnum.MODAL, subst);
-  }
-
   @Override
   protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
     EquivalenceClass state2 = configuration.contains(Configuration.EAGER_UNFOLD)
@@ -149,11 +142,18 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     return jumps;
   }
 
-  private EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
+  private static Formula evaluate(Formula formula, GObligations keys) {
+    EvaluateVisitor evaluateVisitor =
+      new EvaluateVisitor(keys.gOperators, keys.getObligation());
+    Formula subst = formula.accept(evaluateVisitor);
+    return RewriterFactory.apply(RewriterEnum.MODAL, subst);
+  }
+
+  EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
     Formula formula = clazz.getRepresentative();
 
     if (formula != null) {
-      return factory.of(evaluate(formula, keys));
+      return factory.of(evaluate(formula, keys)); // NOPMD - Generates a synthetic accessor
     }
 
     return clazz.substitute(x -> evaluate(x, keys));

@@ -7,9 +7,10 @@ import owl.ltl.Literal;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 
-public class ShiftRewriter {
-
+public final class ShiftRewriter {
   static final int UNDEFINED = -1;
+
+  private ShiftRewriter() {}
 
   public static ShiftedFormula shiftLiterals(Formula formula) {
     BitSet atoms = Collector.collectAtoms(formula);
@@ -30,7 +31,8 @@ public class ShiftRewriter {
   static class LiteralShifter extends DefaultConverter {
     private final int[] mapping;
 
-    LiteralShifter(int[] mapping) {
+    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
+    LiteralShifter(int[] mapping) { // NOPMD
       this.mapping = mapping;
     }
 
@@ -42,11 +44,12 @@ public class ShiftRewriter {
     }
   }
 
-  public static class ShiftedFormula {
+  public static final class ShiftedFormula {
     public final Formula formula;
     public final int[] mapping;
 
-    private ShiftedFormula(Formula formula, int[] mapping) {
+    @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
+    ShiftedFormula(Formula formula, int[] mapping) {
       this.formula = formula;
       this.mapping = mapping;
     }

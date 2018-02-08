@@ -73,7 +73,7 @@ public final class OwlParser {
       ParseUtil.printModuleHelp(e.settings, e.getMessage());
       return null;
     } catch (IllegalArgumentException e) {
-      System.err.println(e.getMessage());
+      System.err.println(e.getMessage()); // NOPMD
       return null;
     }
     globalSettings.getArgList().clear();

@@ -21,8 +21,8 @@ import java.util.Objects;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
-import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
+import owl.util.StringUtil;
 
 public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
 

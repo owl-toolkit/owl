@@ -1,6 +1,7 @@
 package owl.ltl;
 
 import com.google.common.collect.ImmutableList;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -34,7 +35,7 @@ public final class LabelledFormula {
   public static LabelledFormula of(Formula formula, List<String> variables,
     BitSet player1Variables) {
     return new LabelledFormula(ImmutableList.copyOf(variables), formula,
-      (BitSet) player1Variables.clone());
+      BitSets.copyOf(player1Variables));
   }
 
   public int accept(IntVisitor visitor) {
@@ -69,6 +70,7 @@ public final class LabelledFormula {
     return of(formula.not(), variables);
   }
 
+  @Override
   public String toString() {
     return PrintVisitor.toString(this, false);
   }

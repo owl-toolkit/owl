@@ -3,6 +3,7 @@ package owl.util;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A wrapper for writers which only forwards a {@link Writer#flush()} upon {@link #close()}. This
@@ -14,8 +15,10 @@ import java.io.Writer;
  */
 @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
 public final class UncloseableWriter extends Writer {
-  public static final Writer syserr = new UncloseableWriter(new OutputStreamWriter(System.err));
-  public static final Writer sysout = new UncloseableWriter(new OutputStreamWriter(System.out));
+  public static final Writer syserr = new UncloseableWriter(new OutputStreamWriter(System.err,
+    StandardCharsets.UTF_8));
+  public static final Writer sysout = new UncloseableWriter(new OutputStreamWriter(System.out,
+    StandardCharsets.UTF_8));
 
   private final Writer delegate;
 

@@ -25,10 +25,10 @@ public final class ValuationSetUtil {
       AtomLabel label = expression.getAtom();
       BitSet bs = new BitSet();
 
-      if (mapping != null) {
-        bs.set(mapping.applyAsInt(label.getAPIndex()));
-      } else {
+      if (mapping == null) {
         bs.set(label.getAPIndex());
+      } else {
+        bs.set(mapping.applyAsInt(label.getAPIndex()));
       }
 
       return factory.of(bs, bs);

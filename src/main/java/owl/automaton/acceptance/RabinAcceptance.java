@@ -17,7 +17,8 @@
 
 package owl.automaton.acceptance;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -31,13 +32,12 @@ import owl.automaton.edge.Edge;
  * acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
  * acceptance without any pairs rejects every word.
  */
-public class RabinAcceptance extends GeneralizedRabinAcceptance {
+public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   public RabinAcceptance() {
     this(0);
   }
 
   public RabinAcceptance(int n) {
-    super();
     for (int i = 0; i < n; i++) {
       createPair();
     }
@@ -70,8 +70,8 @@ public class RabinAcceptance extends GeneralizedRabinAcceptance {
         }
       }
 
-      Preconditions.checkArgument(fin >= 0);
-      Preconditions.checkArgument(inf >= 0);
+      checkArgument(fin >= 0);
+      checkArgument(inf >= 0);
       acceptance.createPair(1);
     }
 
@@ -84,7 +84,7 @@ public class RabinAcceptance extends GeneralizedRabinAcceptance {
 
   @Override
   public RabinPair createPair(int infSets) {
-    Preconditions.checkArgument(infSets == 1, "Rabin Acceptance.");
+    checkArgument(infSets == 1, "Rabin Acceptance.");
     return super.createPair(infSets);
   }
 

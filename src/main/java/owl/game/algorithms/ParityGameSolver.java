@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.game.Game;
-import owl.game.Views;
+import owl.game.GameViews;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 
@@ -37,11 +37,9 @@ public final class ParityGameSolver {
     Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
 
-      if (winning.player2.contains(x.getInitialState())) {
-        return "The specification is REALISABLE";
-      }
-
-      return "The specification is UNREALISABLE";
+      return winning.player2.contains(x.getInitialState())
+        ? "The specification is REALISABLE"
+        : "The specification is UNREALISABLE";
     });
 
   private ParityGameSolver() {}
@@ -97,7 +95,7 @@ public final class ParityGameSolver {
     Set<S> losingSet = Sets.difference(game.getStates(),
       game.getAttractorFixpoint(winningStates, ourHorse));
 
-    Game<S, ParityAcceptance> subGame = Views.filter(game, losingSet, hasMinCol.negate());
+    Game<S, ParityAcceptance> subGame = GameViews.filter(game, losingSet, hasMinCol.negate());
     WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
     // if in the subgame our horse wins everywhere, then he's the winner
@@ -109,11 +107,11 @@ public final class ParityGameSolver {
     Set<S> opponentAttractor =
       game.getAttractorFixpoint(subWinning.winningRegion(ourHorse.opponent()), ourHorse.opponent());
 
-    losingSet = Sets.difference(game.getStates(), opponentAttractor);
-    subWinning = recursiveZielonka(Views.filter(game, losingSet));
-    subWinning.addAll(opponentAttractor, ourHorse.opponent());
+    Set<S> difference = Sets.difference(game.getStates(), opponentAttractor);
+    WinningRegions<S> newSubWinning = recursiveZielonka(GameViews.filter(game, difference));
+    newSubWinning.addAll(opponentAttractor, ourHorse.opponent());
 
-    return subWinning;
+    return newSubWinning;
   }
 
   public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
@@ -121,8 +119,8 @@ public final class ParityGameSolver {
   }
 
   private static final class WinningRegions<S> {
-    private final Set<S> player1;
-    private final Set<S> player2;
+    final Set<S> player1;
+    final Set<S> player2;
 
     WinningRegions(Set<S> s, Game.Owner o) {
       if (PLAYER_1 == o) {

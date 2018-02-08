@@ -17,19 +17,10 @@
 
 package owl.automaton.minimizations;
 
-import java.util.function.UnaryOperator;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 
 @FunctionalInterface
-public interface Minimization<S, A extends OmegaAcceptance>
-  extends UnaryOperator<MutableAutomaton<S, A>> {
-
-  @Override
-  default MutableAutomaton<S, A> apply(MutableAutomaton<S, A> automaton) {
-    minimize(automaton);
-    return automaton;
-  }
-
+public interface Minimization<S, A extends OmegaAcceptance> {
   void minimize(MutableAutomaton<S, A> automaton);
 }

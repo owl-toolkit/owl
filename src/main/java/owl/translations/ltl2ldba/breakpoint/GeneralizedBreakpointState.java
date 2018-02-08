@@ -20,8 +20,8 @@ package owl.translations.ltl2ldba.breakpoint;
 import java.util.Arrays;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
-import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
+import owl.util.StringUtil;
 
 public final class GeneralizedBreakpointState extends ImmutableObject {
 
@@ -30,6 +30,7 @@ public final class GeneralizedBreakpointState extends ImmutableObject {
   final GObligations obligations;
   final EquivalenceClass safety;
 
+  @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
   GeneralizedBreakpointState(GObligations obligations, EquivalenceClass safety,
     EquivalenceClass[] current, EquivalenceClass[] next) {
     this.obligations = obligations;

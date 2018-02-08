@@ -40,7 +40,7 @@ public interface Transformer extends OwlModule {
     /**
      * Applies the transformation represented by this transformer to the given object.
      */
-    @SuppressWarnings("ProhibitedExceptionDeclared")
+    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "ProhibitedExceptionDeclared"})
     Object transform(Object object, PipelineExecutionContext context) throws Exception;
   }
 }

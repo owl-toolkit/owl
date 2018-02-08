@@ -19,8 +19,8 @@ package owl.ltl.rewriter;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,7 +32,6 @@ import owl.ltl.Formula;
 import owl.ltl.visitors.DefaultVisitor;
 
 public final class NormalForms {
-
   private static final ConjunctiveNormalFormVisitor CNF = new ConjunctiveNormalFormVisitor();
   private static final DisjunctiveNormalFormVisitor DNF = new DisjunctiveNormalFormVisitor();
 
@@ -46,8 +45,11 @@ public final class NormalForms {
     return formula.accept(DNF);
   }
 
-  private static class ConjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<Formula>>> {
-    private ConjunctiveNormalFormVisitor() {}
+  private static final class ConjunctiveNormalFormVisitor
+    extends DefaultVisitor<List<Set<Formula>>> {
+    ConjunctiveNormalFormVisitor() {
+      // Empty.
+    }
 
     private static void minimise(List<Set<Formula>> cnf) {
       cnf.removeIf(x -> cnf.stream().anyMatch(y -> x != y && y.containsAll(x)));
@@ -65,7 +67,7 @@ public final class NormalForms {
 
     @Override
     public List<Set<Formula>> visit(Conjunction conjunction) {
-      List<Set<Formula>> cnf = new LinkedList<>();
+      List<Set<Formula>> cnf = new ArrayList<>();
       conjunction.children.forEach(x -> cnf.addAll(x.accept(this)));
       minimise(cnf);
       return cnf;
@@ -73,7 +75,7 @@ public final class NormalForms {
 
     @Override
     public List<Set<Formula>> visit(Disjunction disjunction) {
-      List<Set<Formula>> cnf = new LinkedList<>();
+      List<Set<Formula>> cnf = new ArrayList<>();
       List<List<Set<Formula>>> allCnf = disjunction.children.stream().map(x -> x.accept(this))
         .collect(Collectors.toList());
 
@@ -86,8 +88,11 @@ public final class NormalForms {
     }
   }
 
-  private static class DisjunctiveNormalFormVisitor extends DefaultVisitor<List<Set<Formula>>> {
-    private DisjunctiveNormalFormVisitor() {}
+  private static final class DisjunctiveNormalFormVisitor
+    extends DefaultVisitor<List<Set<Formula>>> {
+    DisjunctiveNormalFormVisitor() {
+      // Empty.
+    }
 
     private static void minimise(List<Set<Formula>> dnf) {
       dnf.removeIf(x -> dnf.stream().anyMatch(y -> x != y && x.containsAll(y)));
@@ -105,7 +110,7 @@ public final class NormalForms {
 
     @Override
     public List<Set<Formula>> visit(Conjunction conjunction) {
-      List<Set<Formula>> dnf = new LinkedList<>();
+      List<Set<Formula>> dnf = new ArrayList<>();
       List<List<Set<Formula>>> allDnf = conjunction.children.stream().map(x -> x.accept(this))
         .collect(Collectors.toList());
 
@@ -119,7 +124,7 @@ public final class NormalForms {
 
     @Override
     public List<Set<Formula>> visit(Disjunction disjunction) {
-      List<Set<Formula>> dnf = new LinkedList<>();
+      List<Set<Formula>> dnf = new ArrayList<>();
       disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
       minimise(dnf);
       return dnf;

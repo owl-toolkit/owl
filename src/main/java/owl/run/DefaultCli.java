@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -58,7 +59,7 @@ public final class DefaultCli {
     if (settings.hasOption("filein")) {
       String[] sources = settings.getOptionValues("filein");
       if (sources.length != 1) {
-        throw RunUtil.failWithMessage("Multiple sources specified");
+        throw RunUtil.failWithMessage("Multiple sources specified", null);
       }
       reader = createReaderFromPath(sources[0]);
     } else if (!Strings.isNullOrEmpty(System.getenv("OWL_INPUT"))) {
@@ -70,7 +71,18 @@ public final class DefaultCli {
       settings.getArgList().clear();
     } else {
       //noinspection resource,IOResourceOpenedButNotSafelyClosed
-      reader = () -> new BufferedReader(new InputStreamReader(System.in));
+      reader = () -> new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+    }
+
+    int workers;
+    if (settings.hasOption("worker")) {
+      Integer count = Integer.valueOf(settings.getOptionValue("worker"));
+      workers = count;
+      if (count < 0) {
+        throw RunUtil.failWithMessage("Negative worker count", null);
+      }
+    } else {
+      workers = 2;
     }
 
     String destination = settings.getOptionValue("fileout");
@@ -79,17 +91,6 @@ public final class DefaultCli {
       ? () -> UncloseableWriter.sysout
       : () -> Files.newBufferedWriter(Paths.get(destination), StandardOpenOption.APPEND,
         StandardOpenOption.CREATE);
-
-    int workers;
-    if (settings.hasOption("worker")) {
-      Integer count = Integer.valueOf(settings.getOptionValue("worker"));
-      workers = count;
-      if (count < 0) {
-        throw RunUtil.failWithMessage("Negative worker count");
-      }
-    } else {
-      workers = 2;
-    }
 
     boolean annotations = RunUtil.checkDefaultAnnotationOption(settings);
     boolean parallel = RunUtil.checkDefaultParallelOption(settings);

@@ -59,6 +59,7 @@ public final class RewriterFactory {
     PUSHDOWN_X(new PushDownXVisitor()),
     FAIRNESS(NormaliseX.INSTANCE.andThen(FairnessSimplifier.INSTANCE));
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final Function<Formula, Formula> rewriter;
 
     RewriterEnum(Function<Formula, Formula> rewriter) {

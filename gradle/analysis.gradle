@@ -1,0 +1,37 @@
+// PMD
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
+
+pmd {
+    toolVersion = "6.0.1" // https://pmd.github.io/
+    reportsDir = file("$project.buildDir/reports/pmd")
+    ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
+    ruleSets = [] // We specify all rules in rules.xml
+    consoleOutput = false
+    ignoreFailures = false
+}
+//noinspection GroovyAssignabilityCheck
+tasks.withType(Pmd) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+// Checkstyle
+// https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
+
+checkstyle {
+    toolVersion = "8.8" // http://checkstyle.sourceforge.net/releasenotes.html
+    configFile = file("$project.rootDir/config/checkstyle.xml")
+    ignoreFailures = false
+    maxWarnings = 0
+    showViolations = false // Don't litter console
+    checkstyleMain {
+        configProperties = ['suppression-file':
+                                "$project.rootDir/config/checkstyle-main-suppression.xml"]
+    }
+    checkstyleTest {
+        configProperties = ['suppression-file':
+                                "$project.rootDir/config/checkstyle-test-suppression.xml"]
+    }
+}

@@ -89,9 +89,10 @@ public class LiteralTest {
     assertEquals(BooleanConstant.FALSE, literal.not().temporalStep(valuation));
   }
 
+  @SuppressWarnings("ResultOfObjectAllocationIgnored")
   @Test(expected = IllegalArgumentException.class)
   public void testConstructor() {
-    Literal literal = new Literal(-1);
+    new Literal(-1);
   }
 
   @Test

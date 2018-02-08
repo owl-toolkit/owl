@@ -71,23 +71,21 @@ public abstract class ValuationSetTest {
     assertNotEquals(factory.complement(abcd), containsA);
   }
 
-  @SuppressWarnings("UseOfClone")
   @Test
   public void testForEach() {
     for (ValuationSet set : ImmutableSet.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.forEach(solution -> forEach.add((BitSet) solution.clone()));
+      set.forEach(solution -> forEach.add(BitSets.copyOf(solution)));
 
       Set<BitSet> collect = BitSets.powerSet(4).stream()
         .filter(set::contains)
-        .map(BitSet::clone).map(BitSet.class::cast)
+        .map(BitSets::copyOf)
         .collect(Collectors.toSet());
 
       assertThat(forEach, is(collect));
     }
   }
 
-  @SuppressWarnings("UseOfClone")
   @Test
   public void testForEachRestrict() {
     BitSet restriction = new BitSet();
@@ -96,12 +94,11 @@ public abstract class ValuationSetTest {
 
     for (ValuationSet set : ImmutableSet.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.forEach(restriction, solution -> forEach.add((BitSet) solution.clone()));
+      set.forEach(restriction, solution -> forEach.add(BitSets.copyOf(solution)));
 
       Set<BitSet> collect = BitSets.powerSet(restriction).stream()
         .filter(set::contains)
-        .map(BitSet::clone)
-        .map(BitSet.class::cast)
+        .map(BitSets::copyOf)
         .collect(Collectors.toSet());
 
       assertThat(forEach, is(collect));

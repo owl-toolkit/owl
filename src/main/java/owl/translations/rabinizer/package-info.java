@@ -45,9 +45,9 @@
  *
  * <p>This concept is encoded into the acceptance condition. We use a big disjunction of conditions
  * which allows the automaton to "guess" which G sub-formulas will accept. This is called the
- * "active activeSet" |G|. Consider, for example, the formula {@code G a XOR G b}. There, {@code |G|
+ * "active set" |G|. Consider, for example, the formula {@code G a XOR G b}. There, {@code |G|
  * = {G a}} and {@code |G| = {G b}} would accept, but not {@code {G a, G b}}. The first part of each
- * condition therefore is a check if the chosen activeSet entails the current master state, the
+ * condition therefore is a check if the chosen set entails the current master state, the
  * second part checks if all monitors satisfy this "promise".</p>
  *
  * <p>Unfortunately, the actual construction is more complicated as soon as nested G formulae are

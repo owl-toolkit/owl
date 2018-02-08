@@ -15,7 +15,7 @@ import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.game.GameUtil;
-import owl.game.Views;
+import owl.game.GameViews;
 import owl.ltl.rewriter.RewriterTransformer;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.modules.OwlModuleParser.ReaderParser;
@@ -53,7 +53,7 @@ public class OwlModuleRegistry {
       OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI);
 
     // Transformer
-    DEFAULT_REGISTRY.register(RewriterTransformer.CLI, Views.AUTOMATON_TO_GAME_CLI,
+    DEFAULT_REGISTRY.register(RewriterTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
       ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI, UnabbreviateVisitor.CLI);
 
     // Advanced constructions

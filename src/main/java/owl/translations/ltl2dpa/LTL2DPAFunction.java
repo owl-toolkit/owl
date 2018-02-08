@@ -77,10 +77,10 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   private static final int GREEDY_TIME_MS = 10;
 
-  private final EnumSet<Configuration> configuration;
-  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
+  final EnumSet<Configuration> configuration;
+  final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
-  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
+  final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
   public LTL2DPAFunction(Environment env, Set<Configuration> configuration) {
@@ -94,8 +94,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS,
       LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS);
 
-    if (configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
-      ldbaConfiguration.add(LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE);
+    if (configuration.contains(OPTIMISED_STATE_STRUCTURE)) {
+      ldbaConfiguration.add(LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE); // NOPMD
     }
 
     translatorBreakpointFree =
@@ -203,7 +203,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   private Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
     throws ExecutionException {
     Result<?> result = getResult(future);
-    return result != null ? result.complement() : null;
+    return result == null ? null : result.complement();
   }
 
   private Callable<Result<?>> callable(LabelledFormula formula, boolean complement) {
@@ -268,7 +268,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     }
 
     // Check if the state has an independent safety core.
-    if (configuration.contains(Configuration.EXISTS_SAFETY_CORE)) {
+    if (configuration.contains(EXISTS_SAFETY_CORE)) {
       BitSet nonSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
 
       EquivalenceClass core = state.substitute(x -> {
