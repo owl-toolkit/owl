@@ -17,6 +17,7 @@
 
 package owl.translations.ltl2dpa;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COLOUR_OVERAPPROXIMATION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
@@ -26,8 +27,8 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
-import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Uninterruptibles;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
@@ -49,7 +50,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
-import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
@@ -85,8 +85,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public LTL2DPAFunction(Environment env, Set<Configuration> configuration) {
     this.configuration = EnumSet.copyOf(configuration);
-    Preconditions.checkArgument(!configuration.contains(GREEDY)
-      || configuration.contains(COMPLEMENT_CONSTRUCTION),
+    checkArgument(!configuration.contains(GREEDY)
+        || configuration.contains(COMPLEMENT_CONSTRUCTION),
       "GREEDY requires COMPLEMENT_CONSTRUCTION");
 
     EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
@@ -278,7 +278,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
         BitSet ap = Collector.collectAtoms(x);
         assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return Collections3.isDisjointConsuming(ap, nonSafety) ? BooleanConstant.TRUE : x;
+        return BitSets.isDisjoint(ap, nonSafety) ? BooleanConstant.TRUE : x;
       });
 
       return core.isTrue();

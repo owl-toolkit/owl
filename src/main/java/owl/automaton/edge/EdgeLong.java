@@ -95,6 +95,7 @@ final class EdgeLong<S> implements Edge<S> {
 
   @Override
   public <T> EdgeLong<T> withSuccessor(T successor) {
+    assert successor != null;
     return new EdgeLong<>(successor, store);
   }
 

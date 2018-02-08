@@ -22,17 +22,16 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -44,6 +43,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.EquivalenceClassFactory;
@@ -68,6 +68,8 @@ import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
+import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
+import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
 import owl.util.IntBiConsumer;
 
 /**
@@ -77,7 +79,6 @@ import owl.util.IntBiConsumer;
  */
 public class RabinizerBuilder {
   private static final MonitorAutomaton[] EMPTY_MONITORS = new MonitorAutomaton[0];
-  private static final MonitorState[] EMPTY_MONITOR_STATES = new MonitorState[0];
   private static final GOperator[] EMPTY_G_OPERATORS = new GOperator[0];
 
   static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
@@ -100,15 +101,13 @@ public class RabinizerBuilder {
     if (!env.annotations()) {
       initialClass.freeRepresentative();
     }
-    boolean fairnessFragment = initialClass.testSupport(support ->
+    boolean fairnessFragment = configuration.eager() && initialClass.testSupport(support ->
       Fragments.isInfinitelyOften(support) || Fragments.isAlmostAll(support));
 
     vsFactory = factories.vsFactory;
     eqFactory = factories.eqFactory;
-    masterStateFactory = new MasterStateFactory(
-      configuration.eager(),
-      configuration.completeAutomaton(),
-      fairnessFragment);
+    masterStateFactory = new MasterStateFactory(configuration.eager(),
+      configuration.completeAutomaton(), fairnessFragment);
     productStateFactory = new ProductStateFactory(configuration.eager());
   }
 
@@ -116,18 +115,18 @@ public class RabinizerBuilder {
     MonitorState[] monitorStates, GSet activeSet) {
     int monitorCount = monitors.length;
     ValuationSet[][] monitorPriorities = new ValuationSet[monitorCount][];
-    for (int relevantIndex = 0; relevantIndex < monitorCount; relevantIndex++) {
+    for (int relevantIndex = 0; relevantIndex < monitorStates.length; relevantIndex++) {
       MonitorState monitorState = monitorStates[relevantIndex];
 
       // Get the corresponding monitor for this gSet.
-      Automaton<MonitorState, ParityAcceptance> subsetMonitor =
+      Automaton<MonitorState, ParityAcceptance> monitor =
         monitors[relevantIndex].getAutomaton(activeSet);
-      int monitorAcceptanceSets = subsetMonitor.getAcceptance().getAcceptanceSets();
+      int monitorAcceptanceSets = monitor.getAcceptance().getAcceptanceSets();
 
       // Cache the priorities of the edge
       ValuationSet[] edgePriorities = new ValuationSet[monitorAcceptanceSets];
       for (LabelledEdge<MonitorState> monitorLabelledEdge :
-        subsetMonitor.getLabelledEdges(monitorState)) {
+        monitor.getLabelledEdges(monitorState)) {
         Edge<MonitorState> monitorEdge = monitorLabelledEdge.getEdge();
         if (!monitorEdge.hasAcceptanceSets()) {
           continue;
@@ -142,17 +141,13 @@ public class RabinizerBuilder {
           edgePriorities[priority] = monitorLabelledEdge.valuations;
         } else {
           // This happens if the monitor has two different transitions but the same acceptance
-          edgePriorities[priority] = oldValuations.getFactory()
-            .union(oldValuations, monitorLabelledEdge.valuations);
+          ValuationSetFactory vsFactory = oldValuations.getFactory();
+          edgePriorities[priority] = vsFactory.union(oldValuations, monitorLabelledEdge.valuations);
         }
       }
       monitorPriorities[relevantIndex] = edgePriorities;
     }
     return monitorPriorities;
-  }
-
-  private static RabinizerState emptyProductState(EquivalenceClass masterState) {
-    return new RabinizerState(masterState, EMPTY_MONITOR_STATES);
   }
 
   private static int entries(boolean[] array) {
@@ -163,18 +158,6 @@ public class RabinizerBuilder {
       }
     }
     return count;
-  }
-
-  private static void freeMonitorPriorities(ValuationSet[][] monitorPriorities) {
-    for (int relevantIndex = 0; relevantIndex < monitorPriorities.length; relevantIndex++) {
-      ValuationSet[] monitorPriority = monitorPriorities[relevantIndex];
-      if (monitorPriority == null) {
-        continue;
-      }
-
-      //noinspection AssignmentToNull
-      monitorPriorities[relevantIndex] = null;
-    }
   }
 
   private static boolean isSuspendableScc(Set<EquivalenceClass> scc,
@@ -273,7 +256,7 @@ public class RabinizerBuilder {
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
       MutableAutomatonFactory.create(AllAcceptance.INSTANCE, vsFactory,
-        Set.of(initialClass), masterStateFactory::getMasterSuccessor,
+        Set.of(initialClass), masterStateFactory::getSuccessor,
         masterStateFactory::getClassSensitiveAlphabet);
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "Master automaton for {0}:\n{1}",
@@ -297,16 +280,16 @@ public class RabinizerBuilder {
     // after the analysis, we can remove it from the relevantSubFormulas set?
 
     int partitionSize = masterSccPartition.partitionSize();
-    List<Set<GOperator>> sccRelevantGList = new ArrayList<>(partitionSize);
-    Set<GOperator> allRelevantGFormulas = new HashSet<>();
-    for (Set<EquivalenceClass> stateSubset : masterSccPartition.sccs) {
-      ImmutableSet.Builder<GOperator> relevantSubFormulasBuilder = ImmutableSet.builder();
-      stateSubset.forEach(state -> relevantSubFormulasBuilder.addAll(relevantSubFormulas(state)));
-      ImmutableSet<GOperator> partitionRelevantSubFormulas = relevantSubFormulasBuilder.build();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    Set<GOperator>[] sccRelevantGList = new Set[partitionSize];
 
-      sccRelevantGList.add(partitionRelevantSubFormulas);
-      allRelevantGFormulas.addAll(partitionRelevantSubFormulas);
-    }
+    Collections3.forEachIndexed(masterSccPartition.sccs, (index, stateSubset) ->
+      sccRelevantGList[index] = stateSubset.stream()
+        .map(this::relevantSubFormulas).flatMap(Collection::stream)
+        .collect(ImmutableSet.toImmutableSet()));
+    Set<GOperator> allRelevantGFormulas =
+      Collections3.immutableUnion(Arrays.asList(sccRelevantGList));
+
     logger.log(Level.FINE, "Identified relevant sub-formulas: {0}", allRelevantGFormulas);
 
     // Assign arbitrary numbering to all relevant sub-formulas. Throughout the construction, we will
@@ -323,10 +306,7 @@ public class RabinizerBuilder {
     // TODO We could detect effectively false G operators here (i.e. monitors never accept)
     // But this rarely happens
     MonitorAutomaton[] monitors = new MonitorAutomaton[numberOfGFormulas];
-
-    for (int gIndex = 0; gIndex < numberOfGFormulas; gIndex++) {
-      monitors[gIndex] = buildMonitor(gFormulas[gIndex]);
-    }
+    Arrays.setAll(monitors, gIndex -> buildMonitor(gFormulas[gIndex]));
 
     /* Build the product
      *
@@ -378,7 +358,7 @@ public class RabinizerBuilder {
       // the previous example of "a & X G b | !a & X G c"). While in the SCC, all indexing is done
       // relative to the list of G operators relevant in the SCC.
       Set<EquivalenceClass> scc = partition.get(sccIndex);
-      Set<GOperator> sccRelevantOperators = sccRelevantGList.get(sccIndex);
+      Set<GOperator> sccRelevantOperators = sccRelevantGList[sccIndex];
 
       boolean suspendable = configuration.suspendableFormulaDetection()
         && isSuspendableScc(scc, sccRelevantOperators);
@@ -439,6 +419,7 @@ public class RabinizerBuilder {
         PowerSetIterator activeSubFormulasIterator = new PowerSetIterator(relevantFormulas);
         boolean[] empty = activeSubFormulasIterator.next(); // Empty set is handled separately
         assert entries(empty) == 0;
+
         while (activeSubFormulasIterator.hasNext()) {
           boolean[] activeSubFormulas = activeSubFormulasIterator.next();
           ActiveSet activeSet = activeSets[activeSubFormulasIterator.currentIndex() - 1];
@@ -491,9 +472,6 @@ public class RabinizerBuilder {
               });
             });
           }
-
-          // Free the priority cache
-          freeMonitorPriorities(monitorPriorities);
         }
 
         // Create the edges in the result automaton. The successors now contain for each edge in the
@@ -513,12 +491,14 @@ public class RabinizerBuilder {
     Multimap<EquivalenceClass, RabinizerState> statesPerClass = HashMultimap.create();
     rabinizerAutomaton.getStates().forEach(state -> statesPerClass.put(state.masterState, state));
     masterSccPartition.transientStates.forEach(state ->
-      statesPerClass.put(state, emptyProductState(state)));
+      statesPerClass.put(state, RabinizerState.empty(state)));
 
-    Function<EquivalenceClass, RabinizerState> getAnyState = masterState ->
-      masterSccPartition.transientStates.contains(masterState)
-        ? emptyProductState(masterState)
+    // CSOFF: Indentation
+    Function<EquivalenceClass, RabinizerState> getAnyState =
+      masterState -> masterSccPartition.transientStates.contains(masterState)
+        ? RabinizerState.empty(masterState)
         : statesPerClass.get(masterState).iterator().next();
+    // CSON: Indentation
 
     // For each edge A -> B between SCCs in the master, connect all states of the product system
     // with A as master state to an arbitrary state with B as master state
@@ -539,8 +519,7 @@ public class RabinizerBuilder {
     rabinizerAutomaton.setInitialState(getAnyState.apply(initialClass));
 
     // Handle the |G| = {} case
-    RabinizerState trueState = emptyProductState(eqFactory.getTrue());
-
+    RabinizerState trueState = RabinizerState.empty(eqFactory.getTrue());
     if (rabinizerAutomaton.containsState(trueState)) {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.getSuccessors(trueState)),
         trueState);
@@ -554,9 +533,7 @@ public class RabinizerBuilder {
     // If the initial states of the monitors are not optimized, there might be unreachable states
     Set<RabinizerState> unreachableStates = rabinizerAutomaton.removeUnreachableStates();
     logger.log(Level.FINER, "Removed unreachable states: {0}", unreachableStates);
-
     logger.log(Level.FINER, () -> String.format("Result:%n%s", toHoa(rabinizerAutomaton)));
-
     if (activeSets != null) {
       logger.log(Level.FINER, () -> printOperatorSets(activeSets));
     }
@@ -573,10 +550,9 @@ public class RabinizerBuilder {
     }
 
     Set<GOperator> relevantOperators = relevantSubFormulas(operand);
-
-    List<GSet> relevantGSets = Sets.powerSet(relevantOperators).stream()
-      .map(gSet -> new GSet(gSet, eqFactory))
-      .collect(Collectors.toList());
+    Set<Set<GOperator>> powerSets = Sets.powerSet(relevantOperators);
+    List<GSet> relevantGSets = new ArrayList<>(powerSets.size());
+    powerSets.forEach(gSet -> relevantGSets.add(new GSet(gSet, eqFactory)));
 
     MonitorAutomaton monitor = configuration.computeAcceptance()
       ? MonitorBuilder.create(gOperator, operand, relevantGSets, vsFactory, configuration.eager())
@@ -638,11 +614,10 @@ public class RabinizerBuilder {
     MonitorState[] monitorInitialStates = new MonitorState[relevantFormulaCount];
     Arrays.setAll(monitorInitialStates, i -> monitors[i].getInitialState());
 
-    RabinizerState initialState = new RabinizerState(masterInitialState, monitorInitialStates);
+    RabinizerState initialState = RabinizerState.of(masterInitialState, monitorInitialStates);
 
     // The distinct edges in the product transition graph
-    Map<RabinizerState, Map<RabinizerProductEdge, ValuationSet>> transitionSystem =
-      new HashMap<>();
+    Map<RabinizerState, Map<RabinizerProductEdge, ValuationSet>> transitionSystem = new HashMap<>();
 
     // BFS work list
     Set<RabinizerState> exploredStates = Sets.newHashSet(initialState);
@@ -666,30 +641,29 @@ public class RabinizerBuilder {
       transitionSystem.put(currentState, rabinizerSuccessors);
 
       MonitorState[] monitorStates = currentState.monitorStates;
-      int monitorCount = monitorStates.length;
 
       // Compute the successor matrix for all monitors. Basically, we assign a arbitrary ordering
       // on all successors for each monitor.
-      MonitorState[][] monitorSuccessorMatrix = new MonitorState[monitorCount][];
-      ValuationSet[][] monitorValuationMatrix = new ValuationSet[monitorCount][];
-      int[] successorCounts = new int[monitorCount];
+      MonitorState[][] monitorSuccessorMatrix = new MonitorState[relevantFormulaCount][];
+      ValuationSet[][] monitorValuationMatrix = new ValuationSet[relevantFormulaCount][];
+      int[] successorCounts = new int[relevantFormulaCount];
 
-      for (int monitorIndex = 0; monitorIndex < monitorCount; monitorIndex++) {
+      for (int monitorIndex = 0; monitorIndex < relevantFormulaCount; monitorIndex++) {
         MonitorState monitorState = monitorStates[monitorIndex];
         Map<MonitorState, ValuationSet> monitorSuccessorMap =
           monitors[monitorIndex].getSuccessorMap(monitorState);
+
         int monitorSuccessorCount = monitorSuccessorMap.size();
         successorCounts[monitorIndex] = monitorSuccessorCount - 1;
-        monitorSuccessorMatrix[monitorIndex] = new MonitorState[monitorSuccessorCount];
-        monitorValuationMatrix[monitorIndex] = new ValuationSet[monitorSuccessorCount];
 
-        Iterator<Map.Entry<MonitorState, ValuationSet>> successorIterator =
-          monitorSuccessorMap.entrySet().iterator();
-        for (int successorIndex = 0; successorIndex < monitorSuccessorCount; successorIndex++) {
-          Map.Entry<MonitorState, ValuationSet> successor = successorIterator.next();
-          monitorSuccessorMatrix[monitorIndex][successorIndex] = successor.getKey();
-          monitorValuationMatrix[monitorIndex][successorIndex] = successor.getValue();
-        }
+        MonitorState[] successorStates = new MonitorState[monitorSuccessorCount];
+        ValuationSet[] successorValuations = new ValuationSet[monitorSuccessorCount];
+        Collections3.forEachIndexed(monitorSuccessorMap.entrySet(), (successorIndex, entry) -> {
+          successorStates[successorIndex] = entry.getKey();
+          successorValuations[successorIndex] = entry.getValue();
+        });
+        monitorSuccessorMatrix[monitorIndex] = successorStates;
+        monitorValuationMatrix[monitorIndex] = successorValuations;
       }
 
       // Heuristics to check which approach is faster
@@ -720,15 +694,14 @@ public class RabinizerBuilder {
 
           // Evolve each monitor
           MonitorState[] monitorSuccessors = new MonitorState[monitorStates.length];
-          for (int relevantIndex = 0; relevantIndex < relevantFormulaCount; relevantIndex++) {
+          Arrays.setAll(monitorSuccessors, relevantIndex -> {
             MonitorState currentMonitorState = monitorStates[relevantIndex];
-            assert currentMonitorState != null;
             MonitorAutomaton monitor = monitors[relevantIndex];
-            monitorSuccessors[relevantIndex] = monitor.getSuccessor(currentMonitorState, valuation);
-          }
+            return monitor.getSuccessor(currentMonitorState, valuation);
+          });
+
           // Create product successor
-          RabinizerState rabinizerSuccessor = new RabinizerState(masterSuccessor,
-            monitorSuccessors);
+          RabinizerState rabinizerSuccessor = RabinizerState.of(masterSuccessor, monitorSuccessors);
 
           ValuationSetMapUtil.add(rabinizerSuccessors, new RabinizerProductEdge(rabinizerSuccessor),
             vsFactory.of(valuation, sensitiveAlphabet));
@@ -742,13 +715,10 @@ public class RabinizerBuilder {
         // Approach 2: Use the partition of the monitors to avoid computation if monitors aren't too
         // "fragmented".
 
-        for (Map.Entry<EquivalenceClass, ValuationSet> masterSuccessorEntry :
-          masterSuccessors.entrySet()) {
-          EquivalenceClass masterSuccessor = masterSuccessorEntry.getKey();
-          ValuationSet masterSuccessorValuation = masterSuccessorEntry.getValue();
+        masterSuccessors.forEach((masterSuccessor, masterSuccessorValuation) -> {
           if (!stateSubset.contains(masterSuccessor)) {
             // The successor is not part of this partition
-            continue;
+            return;
           }
 
           NatCartesianProductIterator productIterator =
@@ -762,6 +732,7 @@ public class RabinizerBuilder {
 
             // Evolve each monitor
             MonitorState[] monitorSuccessors = new MonitorState[monitorStates.length];
+
             for (int monitorIndex = 0; monitorIndex < relevantFormulaCount; monitorIndex++) {
               MonitorState currentMonitorState = monitorStates[monitorIndex];
               assert currentMonitorState != null;
@@ -780,7 +751,7 @@ public class RabinizerBuilder {
             }
 
             // Create product successor
-            RabinizerState successor = new RabinizerState(masterSuccessor, monitorSuccessors);
+            RabinizerState successor = RabinizerState.of(masterSuccessor, monitorSuccessors);
             RabinizerProductEdge edge = new RabinizerProductEdge(successor);
             ValuationSetMapUtil.add(rabinizerSuccessors, edge, productValuation);
 
@@ -789,7 +760,7 @@ public class RabinizerBuilder {
               workQueue.add(successor);
             }
           }
-        }
+        });
       }
     }
     return transitionSystem;
@@ -970,8 +941,7 @@ public class RabinizerBuilder {
       // consequent (i.e. the master state).  We can omit the conjunction of the active operators
       // for the antecedent, since we will inject it anyway
 
-      // Use an array so we can modify it in the lambda
-      EquivalenceClass[] antecedentArray = {eqFactory.getTrue()};
+      AtomicReference<EquivalenceClass> antecedent = new AtomicReference<>(eqFactory.getTrue());
       forEachRelevantAndActive((relevantIndex, activeIndex) -> {
         MonitorState monitorState = monitorStates[relevantIndex];
 
@@ -980,14 +950,13 @@ public class RabinizerBuilder {
         for (int stateIndex = rank; stateIndex < monitorStateRanking.length; stateIndex++) {
           EquivalenceClass rankEntry = monitorStateRanking[stateIndex];
           EquivalenceClass state = eager ? rankEntry.temporalStep(valuation) : rankEntry;
-          antecedentArray[0] = antecedentArray[0].and(state);
+          antecedent.updateAndGet(clazz -> clazz.and(state));
         }
       });
-      EquivalenceClass antecedent = antecedentArray[0];
 
       if (eager) {
         // In the eager construction, we need to add some more knowledge to the antecedent
-        antecedent = antecedent.and(activeFormulaSet.operatorConjunction());
+        antecedent.updateAndGet(clazz -> clazz.and(activeFormulaSet.operatorConjunction()));
       }
 
       // Important: We need to inject the state of the G operators into the monitor states,
@@ -999,7 +968,7 @@ public class RabinizerBuilder {
       Function<Formula, Formula> strengthening = formula -> formula instanceof GOperator
         ? BooleanConstant.of(activeFormulaSet.contains(formula))
         : formula;
-      EquivalenceClass strengthenedAntecedent = antecedent.substitute(strengthening);
+      EquivalenceClass strengthenedAntecedent = antecedent.get().substitute(strengthening);
 
       Function<Formula, Formula> weakening = formula ->
         formula instanceof GOperator && activeFormulaSet.contains(formula)
@@ -1087,8 +1056,7 @@ public class RabinizerBuilder {
       if (isImplied(gOperator)) {
         return BooleanConstant.TRUE;
       }
-
-      return BooleanConstant.of(gOperator.operand.accept(this) == BooleanConstant.TRUE);
+      return BooleanConstant.of(BooleanConstant.TRUE == gOperator.operand.accept(this));
     }
 
     @Override
@@ -1111,7 +1079,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      if (rOperator.right.accept(this) == BooleanConstant.TRUE) {
+      if (BooleanConstant.TRUE == rOperator.right.accept(this)) {
         return BooleanConstant.TRUE;
       }
 
@@ -1133,7 +1101,7 @@ public class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      if (wOperator.left.accept(this) == BooleanConstant.TRUE) {
+      if (BooleanConstant.TRUE == wOperator.left.accept(this)) {
         return BooleanConstant.TRUE;
       }
 

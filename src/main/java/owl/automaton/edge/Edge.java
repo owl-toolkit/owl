@@ -47,6 +47,7 @@ public interface Edge<S> {
    * @return An edge leading to {@code successor} with no delegate.
    */
   static <S> Edge<S> of(S successor) {
+    assert successor != null;
     return new EdgeSingleton<>(successor);
   }
 
@@ -63,7 +64,7 @@ public interface Edge<S> {
    * @return An edge leading to {@code successor} with given delegate.
    */
   static <S> Edge<S> of(S successor, @Nonnegative int acceptance) {
-    assert acceptance >= 0;
+    assert successor != null && acceptance >= 0;
     return new EdgeSingleton<>(successor, acceptance);
   }
 
@@ -80,6 +81,7 @@ public interface Edge<S> {
    * @return An edge leading to {@code successor} with given delegate.
    */
   static <S> Edge<S> of(S successor, BitSet acceptance) {
+    assert successor != null;
     if (acceptance.isEmpty()) {
       return of(successor);
     }

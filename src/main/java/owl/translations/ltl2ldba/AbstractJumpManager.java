@@ -1,6 +1,7 @@
 package owl.translations.ltl2ldba;
 
 import com.google.common.collect.ImmutableSet;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -8,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Disjunction;
@@ -117,7 +117,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
         BitSet ap = Collector.collectAtoms(x);
         assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return Collections3.isDisjointConsuming(ap, nonCoSafety) ? BooleanConstant.FALSE : x;
+        return BitSets.isDisjoint(ap, nonCoSafety) ? BooleanConstant.FALSE : x;
       });
 
       if (core.isFalse()) {

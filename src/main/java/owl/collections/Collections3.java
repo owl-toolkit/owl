@@ -19,6 +19,7 @@ package owl.collections;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -28,8 +29,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,26 +83,18 @@ public final class Collections3 {
     };
   }
 
-  public static <T> void forEachIndexed(List<T> list, IndexedConsumer<T> action) {
-    ListIterator<T> iterator = list.listIterator();
-    while (iterator.hasNext()) {
-      action.accept(iterator.nextIndex(), iterator.next());
+  public static <T> void forEachIndexed(Iterable<T> list, IndexedConsumer<T> action) {
+    Iterator<T> iterator = list.iterator();
+    //noinspection ForLoopThatDoesntUseLoopVariable
+    for (int i = 0; iterator.hasNext(); i++) {
+      T next = iterator.next();
+      assert next != null;
+      action.accept(i, next);
     }
   }
 
   public static <E> boolean isDistinct(Collection<E> collection) {
     return collection.size() == Sets.newHashSet(collection).size();
-  }
-
-  /**
-   * Test if the given sets are disjoint.
-   * @param set1 The first BitSet. This is consumed.
-   * @param set2 The second BitSet. This stays unmodified.
-   * @return true if set1 and set2 are disjoint.
-   */
-  public static boolean isDisjointConsuming(BitSet set1, BitSet set2) {
-    set1.and(set2);
-    return set1.isEmpty();
   }
 
   public static boolean isSubsetConsuming(BitSet set1, BitSet set2) {
@@ -115,27 +106,6 @@ public final class Collections3 {
     Set<E> union = ConcurrentHashMap.newKeySet(elements.size());
     elements.parallelStream().forEach(union::addAll);
     return union;
-  }
-
-  public static <E> Iterable<E> repeat(E object, int times) {
-    return () -> new Iterator<>() {
-      private int counter = times;
-
-      @Override
-      public boolean hasNext() {
-        return counter > 0;
-      }
-
-      @Override
-      public E next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-
-        counter--;
-        return object;
-      }
-    };
   }
 
   public static <F, T> Set<T> transform(Collection<F> collection, Function<F, T> transformer) {
@@ -162,23 +132,9 @@ public final class Collections3 {
     return set;
   }
 
-  public static BitSet toBitSet(@Nullable Iterable<Integer> ints) {
+  public static BitSet toBitSet(OfInt ints) {
     BitSet bitSet = new BitSet();
-
-    if (ints != null) {
-      ints.forEach(bitSet::set);
-    }
-
-    return bitSet;
-  }
-
-  public static BitSet toBitSet(@Nullable OfInt ints) {
-    BitSet bitSet = new BitSet();
-
-    if (ints != null) {
-      ints.forEachRemaining((IntConsumer) bitSet::set);
-    }
-
+    ints.forEachRemaining((IntConsumer) bitSet::set);
     return bitSet;
   }
 
@@ -186,6 +142,12 @@ public final class Collections3 {
     Set<E> union = new HashSet<>(elements.size());
     elements.forEach(union::addAll);
     return union;
+  }
+
+  public static <E> Set<E> immutableUnion(Collection<? extends Collection<E>> elements) {
+    ImmutableSet.Builder<E> builder = ImmutableSet.builder();
+    elements.forEach(builder::addAll);
+    return builder.build();
   }
 
   public static <E1, E2> void zip(List<E1> list1, List<E2> list2, BiConsumer<E1, E2> action) {

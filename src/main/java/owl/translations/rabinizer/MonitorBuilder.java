@@ -4,6 +4,7 @@ import static owl.translations.rabinizer.MonitorStateFactory.isAccepting;
 import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
 import com.google.common.collect.ImmutableMap;
+import de.tum.in.naturals.Arrays2;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.booleans.BooleanArrays;
 import java.util.ArrayDeque;
@@ -68,7 +69,6 @@ final class MonitorBuilder {
       new Object[] {operand, relevantSets, fragment, noSubFormula});
 
     this.stateFactory = new MonitorStateFactory(eager, noSubFormula);
-
     this.relevantSets = relevantSets.toArray(EMPTY);
     assert !noSubFormula || this.relevantSets.length == 1;
 
@@ -276,8 +276,7 @@ final class MonitorBuilder {
           // - If the initial class is accepting, all priorities are succeed(0).
           // - If not, the code below already was executed, setting each non-initialized value to
           //   some merge(i).
-          assert Arrays.stream(priorities)
-            .allMatch(contextPriority -> contextPriority < Integer.MAX_VALUE);
+          assert Arrays.stream(priorities).allMatch(priority -> priority < Integer.MAX_VALUE);
           continue;
         } else {
           // First time we see the initial class being produced from some rank under this valuation.
@@ -355,14 +354,16 @@ final class MonitorBuilder {
           // special case, we succeed(i) if q0 is accepting, is at rank i and the sink is
           // non-rejecting.
           for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
-            if (!isAccepting(successorClass, relevantSets[contextIndex])) {
+            GSet contextSet = relevantSets[contextIndex];
+            if (isAccepting(successorClass, contextSet)) {
+              if (priorities[contextIndex] == none() && !isAccepting(currentClass, contextSet)) {
+                // Successor is accepting and we had no event previously. We handled the case of
+                // accepting initial state already. Thus, we only check whether we move from a
+                // non-accepting to an accepting state.
+                priorities[contextIndex] = succeed(currentRank);
+              }
+            } else {
               priorities[contextIndex] = fail();
-            } else if (priorities[contextIndex] == none()
-              && !isAccepting(currentClass, relevantSets[contextIndex])) {
-              // Successor is accepting and we had no event previously. We handled the case of
-              // accepting initial state already. Thus, we only check whether we move from a
-              // non-accepting to an accepting state.
-              priorities[contextIndex] = succeed(currentRank);
             }
           }
 
@@ -401,16 +402,14 @@ final class MonitorBuilder {
     }
 
     // If there were some removed classes, compact the array, otherwise take it as is
-    EquivalenceClass[] trimmedSuccessorRanking = successorRankingSize < successorRanking.length
-      ? Arrays.copyOf(successorRanking, successorRankingSize)
-      : successorRanking;
+    successorRanking = Arrays2.trim(successorRanking, successorRankingSize);
 
-    assert Arrays.stream(trimmedSuccessorRanking).noneMatch(MonitorStateFactory::isSink);
-    assert Arrays.stream(trimmedSuccessorRanking)
+    assert Arrays.stream(successorRanking).noneMatch(MonitorStateFactory::isSink);
+    assert Arrays.stream(successorRanking)
       .filter(state -> state.equals(initialClass))
       .count() == 1;
 
-    return new MonitorState(trimmedSuccessorRanking);
+    return new MonitorState(successorRanking);
   }
 
   private MonitorState getSuccessorFiniteFragment(MonitorState currentState, BitSet valuation,
@@ -476,8 +475,7 @@ final class MonitorBuilder {
         new Object[] {initialState, optimizedInitialState});
       anyMonitor.setInitialState(optimizedInitialState);
       Set<MonitorState> unreachableStates = anyMonitor.removeUnreachableStates();
-      for (int index = 1; index < monitorAutomata.length; index++) {
-        MutableAutomaton<MonitorState, ParityAcceptance> monitor = monitorAutomata[index];
+      for (MutableAutomaton<MonitorState, ParityAcceptance> monitor : monitorAutomata) {
         monitor.setInitialState(optimizedInitialState);
         monitor.removeStates(unreachableStates);
       }

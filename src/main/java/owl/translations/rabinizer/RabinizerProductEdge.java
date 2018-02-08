@@ -29,12 +29,9 @@ final class RabinizerProductEdge {
     }
 
     ValuationSet old = successorAcceptance[acceptance];
-
-    if (old == null) {
-      successorAcceptance[acceptance] = valuations;
-    } else {
-      successorAcceptance[acceptance] = old.getFactory().union(old, valuations);
-    }
+    successorAcceptance[acceptance] = old == null
+      ? valuations
+      : old.getFactory().union(old, valuations);
   }
 
   void addAcceptance(ValuationSet valuations, IntSet acceptanceSet) {

@@ -6,16 +6,25 @@ import owl.ltl.EquivalenceClass;
 
 @Immutable
 public final class RabinizerState {
+  private static final MonitorState[] EMPTY_MONITOR_STATES = new MonitorState[0];
+
   final EquivalenceClass masterState;
   final MonitorState[] monitorStates;
   private final int hashCode;
 
-  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
-                      "AssignmentToCollectionOrArrayFieldFromParameter"})
-  RabinizerState(EquivalenceClass masterState, MonitorState[] monitorStates) {
+  @SuppressWarnings("PMD.ArrayIsStoredDirectly")
+  private RabinizerState(EquivalenceClass masterState, MonitorState[] monitorStates) {
     this.masterState = masterState;
     this.monitorStates = monitorStates;
     hashCode = masterState.hashCode() ^ Arrays.hashCode(monitorStates);
+  }
+
+  static RabinizerState of(EquivalenceClass masterState, MonitorState[] monitorStates) {
+    return new RabinizerState(masterState, monitorStates);
+  }
+
+  static RabinizerState empty(EquivalenceClass masterState) {
+    return new RabinizerState(masterState, EMPTY_MONITOR_STATES);
   }
 
   @Override
@@ -28,7 +37,8 @@ public final class RabinizerState {
     }
 
     RabinizerState that = (RabinizerState) o;
-    return masterState.equals(that.masterState)
+    return hashCode == that.hashCode
+      && masterState.equals(that.masterState)
       && Arrays.equals(monitorStates, that.monitorStates);
   }
 

@@ -11,7 +11,7 @@ public final class IARState<R> {
   private IARState(R originalState, IntPreOrder record) {
     this.originalState = originalState;
     this.record = record;
-    hashCode = originalState.hashCode() * 31 + record.hashCode();
+    hashCode = (31 * originalState.hashCode()) ^ (17 * record.hashCode());
   }
 
   public static <R> IARState<R> active(R originalState, IntPreOrder record) {
@@ -32,7 +32,8 @@ public final class IARState<R> {
     }
 
     IARState<?> other = (IARState<?>) o;
-    return Objects.equals(originalState, other.originalState)
+    return hashCode == other.hashCode
+      && Objects.equals(originalState, other.originalState)
       && Objects.equals(record, other.record);
   }
 

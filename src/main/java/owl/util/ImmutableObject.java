@@ -32,12 +32,12 @@ public abstract class ImmutableObject {
     if (o == null || !getClass().equals(o.getClass())) {
       return false;
     }
+
     ImmutableObject other = (ImmutableObject) o;
     if (cachedHashCode != 0 && other.cachedHashCode != 0
       && other.cachedHashCode != cachedHashCode) {
       return false;
     }
-
     return equals2(other);
   }
 

@@ -2,13 +2,13 @@ package owl.jni;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import owl.collections.Collections3;
 import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Leaf;
 import owl.collections.LabelledTree.Node;
@@ -45,7 +45,7 @@ public final class Splitter {
   private static boolean isIndependent(Iterable<Formula> x, Formula y) {
     BitSet atoms1 = Collector.collectAtoms(x);
     BitSet atoms2 = Collector.collectAtoms(y);
-    return Collections3.isDisjointConsuming(atoms1, atoms2);
+    return BitSets.isDisjoint(atoms1, atoms2);
   }
 
   static Set<Formula> merge(List<Set<Formula>> formulas, Formula formula) {

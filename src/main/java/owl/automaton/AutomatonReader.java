@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -44,7 +45,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetUtil;
 import owl.factories.FactorySupplier;
@@ -263,7 +263,9 @@ public final class AutomatonReader {
     private void addEdge(HoaState source, ValuationSet valuationSet,
       @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
       throws HOAConsumerException {
-      Edge<HoaState> edge = Edge.of(successor, Collections3.toBitSet(storedEdgeAcceptance));
+      Edge<HoaState> edge = storedEdgeAcceptance == null
+        ? Edge.of(successor)
+        : Edge.of(successor, BitSets.of(storedEdgeAcceptance));
       check(automaton.getAcceptance().isWellFormedEdge(edge));
       automaton.addEdge(source, valuationSet, edge);
     }
