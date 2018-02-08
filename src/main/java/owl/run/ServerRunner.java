@@ -53,6 +53,7 @@ public class ServerRunner implements Callable<Void> {
       }));
 
       while (!socket.isClosed()) {
+        //noinspection NestedTryStatement
         try {
           //noinspection resource
           Socket connection = socket.accept();
@@ -66,7 +67,7 @@ public class ServerRunner implements Callable<Void> {
                    new BufferedReader(new InputStreamReader(connection.getInputStream()));
                  Writer writer =
                    new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()))) {
-              PipelineRunner.run(execution, environment, reader, writer, 1);
+              PipelineRunner.run(execution, environment, reader, writer, 0);
             } catch (Exception e) {
               logger.log(Level.WARNING, e, () -> "Error while handling connection " + connection);
             }

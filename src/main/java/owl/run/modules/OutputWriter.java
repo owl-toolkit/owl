@@ -20,10 +20,12 @@ public interface OutputWriter extends OwlModule {
 
   @FunctionalInterface
   interface Binding {
-    void write(Object object) throws IOException;
+    void write(Object object) throws IOException, OutputWriterException;
+  }
 
-    default void close() {
-      // No operation
+  class OutputWriterException extends Exception {
+    public OutputWriterException(Throwable cause) {
+      super(cause);
     }
   }
 }

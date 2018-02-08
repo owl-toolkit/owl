@@ -33,13 +33,13 @@ public final class InputReaders {
       return new HoaReader(hoafParserSettings);
     }).build();
 
-  public static final InputReader TLSF = (reader, callback, env) -> {
+  public static final InputReader TLSF = (reader, env, callback) -> {
     Tlsf tlsf = TlsfParser.parse(reader);
     LabelledFormula formula = tlsf.toFormula();
     callback.accept(formula);
   };
 
-  public static final InputReader LTL = (reader, callback, env) ->
+  public static final InputReader LTL = (reader, env, callback) ->
     CharStreams.readLines(reader, new LineProcessor<Void>() {
       @Override
       public boolean processLine(String line) {
@@ -90,11 +90,16 @@ public final class InputReaders {
     }
 
     @Override
-    public void run(Reader reader, Consumer<Object> callback, Environment env)
-      throws ParseException {
+    public void run(Reader reader, Environment env, Consumer<Object> callback)
+      throws InputReaderException {
       HOAConsumerFactory factory = () ->
         new ToTransitionAcceptance(AutomatonReader.getConsumer(callback, env.factorySupplier()));
-      HOAFParser.parseHOA(reader, factory, hoafParserSettings);
+
+      try {
+        HOAFParser.parseHOA(reader, factory, hoafParserSettings);
+      } catch (ParseException e) {
+        throw new InputReaderException(e);
+      }
     }
   }
 }

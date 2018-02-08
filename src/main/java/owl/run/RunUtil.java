@@ -51,8 +51,14 @@ public final class RunUtil {
     try {
       runner.call();
     } catch (Exception e) {
-      System.err.println("Some error occurred during execution: " + e.getMessage());
-      logger.log(Level.WARNING, "Error during execution", e);
+      // Only FINE since we explicitly log to System.err
+      logger.log(Level.FINE, "Error during execution", e);
+      if (e.getMessage() == null) {
+        System.err.printf("An unspecified error occurred (type: %s)%n",
+          e.getClass().getSimpleName());
+      } else {
+        System.err.printf("An error occurred during execution: %s%n", e.getMessage());
+      }
     }
   }
 }
