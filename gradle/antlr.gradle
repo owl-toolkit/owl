@@ -1,0 +1,36 @@
+// Antlr
+import groovy.io.FileType
+
+// Unused during runtime
+def unused = [[group: 'org.antlr', module: 'antlr4'],
+              [group: 'org.antlr', module: 'antlr-runtime'],
+              [group: 'org.antlr', module: 'ST4'],
+              [group: 'org.abego.treelayout'],
+              [group: 'org.glassfish']]
+unused.each { unusedDependency ->
+    configurations.runtime.exclude unusedDependency
+    configurations.testCompile.exclude unusedDependency
+}
+
+generateGrammarSource {
+    arguments += ["-visitor", "-long-messages", "-lib", "src/main/antlr"]
+    // http://stackoverflow.com/questions/30642144/generating-antlr4-grammar-files-with-package-declaration-in-gradle
+    // Using outputDirectory here doesn't work - then IDEA does not pick up the folder as source
+    // root anymore.
+    doLast {
+        def move = [/*File wrong position*/:/*File right position*/]
+        generateGrammarSource.outputDirectory.eachFileMatch(FileType.FILES, ~/.*\.java/) { f ->
+            def pkg = f.readLines().find { it.trim() =~ /^package/ }
+            if (pkg) {
+                pkg = pkg.split(' ')[1].replace(';', '')
+                pkg = pkg.replace('.', '/')
+                //noinspection GroovyAssignabilityCheck
+                move.put(f, new File("${generateGrammarSource.outputDirectory}/$pkg/${f.name}"))
+            }
+        }
+        move.each { s, t ->
+            t.parentFile.mkdirs()
+            s.renameTo(t.absolutePath)
+        }
+    }
+}

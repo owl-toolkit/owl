@@ -20,7 +20,6 @@ package owl.translations.nba2ldba;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.PrimitiveIterator.OfInt;
@@ -69,7 +68,7 @@ final class AcceptingComponentBuilder<S>
     if (traverseOnlySccs) {
       sccs = SccDecomposition.computeSccs(nba, false);
     } else {
-      sccs = new LinkedList<>();
+      sccs = List.of();
     }
   }
 

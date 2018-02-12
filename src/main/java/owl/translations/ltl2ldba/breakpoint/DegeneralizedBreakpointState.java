@@ -21,24 +21,30 @@ import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
-import owl.translations.ltl2ldba.StringUtil;
 import owl.util.ImmutableObject;
+import owl.util.StringUtil;
 
 public final class DegeneralizedBreakpointState extends ImmutableObject {
 
+  @Nullable
   final EquivalenceClass current;
   // Index of the current checked obligation. A negative index means a liveness obligation is
   // checked.
   final int index;
   final EquivalenceClass[] next;
+  @Nullable
   final GObligations obligations;
+  @Nullable
   final EquivalenceClass safety;
 
   @Nullable
   private EquivalenceClass label = null;
 
-  DegeneralizedBreakpointState(int index, EquivalenceClass safety, EquivalenceClass current,
-    EquivalenceClass[] next, GObligations obligations) {
+  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
+                      "AssignmentToCollectionOrArrayFieldFromParameter"})
+  DegeneralizedBreakpointState(int index, @Nullable EquivalenceClass safety,
+    @Nullable EquivalenceClass current, EquivalenceClass[] next,
+    @Nullable GObligations obligations) {
     assert obligations == null || ((obligations.obligations.length == 0
       && obligations.liveness.length == 0 && index == 0)
       || (-obligations.liveness.length <= index && index < obligations.obligations.length));
@@ -54,7 +60,7 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
 
   public static DegeneralizedBreakpointState createSink() {
     return new DegeneralizedBreakpointState(0, null, null,
-      EquivalenceClass.EMPTY, null);
+      EquivalenceClass.EMPTY_ARRAY, null);
   }
 
   @Override
@@ -68,6 +74,7 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
 
   EquivalenceClass getLabel() {
     if (label == null) {
+      assert safety != null && current != null && obligations != null;
       label = safety.and(current);
 
       for (EquivalenceClass clazz : next) {
@@ -87,6 +94,7 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
   }
 
   public GObligations getObligations() {
+    assert obligations != null;
     return obligations;
   }
 

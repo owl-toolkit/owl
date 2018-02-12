@@ -9,21 +9,21 @@ import owl.run.modules.OwlModuleParser;
 abstract class Wrapper {
   static <T extends OwlModule> Wrapper module(T module) {
     checkNotNull(module);
-    return new Module<>(module);
+    return new ModuleWrapper<>(module);
   }
 
   static <T extends OwlModuleParser<?>> Wrapper settings(T settings) {
     checkNotNull(settings);
-    return new Settings<>(settings);
+    return new SettingsWrapper<>(settings);
   }
 
   @SuppressWarnings("NullableProblems") // IntelliJ gets this wrong somehow
   abstract <V> V map(Function<OwlModule, V> moduleFun, Function<OwlModuleParser<?>, V> settingsFun);
 
-  private static final class Module<T extends OwlModule> extends Wrapper {
+  private static final class ModuleWrapper<T extends OwlModule> extends Wrapper {
     final T module;
 
-    Module(T module) {
+    ModuleWrapper(T module) {
       this.module = module;
     }
 
@@ -34,10 +34,10 @@ abstract class Wrapper {
     }
   }
 
-  private static final class Settings<T extends OwlModuleParser<?>> extends Wrapper {
+  private static final class SettingsWrapper<T extends OwlModuleParser<?>> extends Wrapper {
     final T settings;
 
-    Settings(T settings) {
+    SettingsWrapper(T settings) {
       this.settings = settings;
     }
 

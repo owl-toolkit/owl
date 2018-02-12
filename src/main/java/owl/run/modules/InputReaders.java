@@ -20,7 +20,7 @@ import owl.run.Environment;
 import owl.run.modules.OwlModuleParser.ReaderParser;
 
 public final class InputReaders {
-  private static final Logger logger = Logger.getLogger(InputReaders.class.getName());
+  static final Logger logger = Logger.getLogger(InputReaders.class.getName());
 
   public static final InputReader HOA = HoaReader.DEFAULT;
   public static final ReaderParser HOA_CLI = ImmutableReaderParser.builder()

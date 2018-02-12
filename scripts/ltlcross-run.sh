@@ -6,8 +6,8 @@ IFS=$'\n\t'
 echo "Running test with args" $@
 
 source "$(dirname $0)/vars.sh"
-RESULTS_FOLDER="$PROJECT_FOLDER/build/results"
-EVALUATION_SCRIPT="$SCRIPT_FOLDER/ltlcross-eval.py"
+RESULTS_FOLDER="${PROJECT_FOLDER}/build/results"
+EVALUATION_SCRIPT="${SCRIPT_FOLDER}/ltlcross-eval.py"
 TIMEOUT_SEC="300"
 ANY_ERROR=0
 
@@ -70,9 +70,10 @@ while [ ${#} -gt 0 ]; do
   DATASET_ERROR="0"
   echo -n "Invocation: "
   echo -n "python3 scripts/util.py formula ${DATASET} |" \
-    "ltlcross --stop-on-error --strength --csv=\"${CSV_FILE}\" ${ADDITIONAL_ARGS}" \
-    "--grind=\"$GRIND_FILE\" --timeout=\"$TIMEOUT_SEC\"" \
-    "\"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\""
+    "ltlcross --stop-on-error --fail-on-timeout --strength " \
+    "--csv=\"${CSV_FILE}\" --grind=\"$GRIND_FILE\" --timeout=\"$TIMEOUT_SEC\" " \
+    "${ADDITIONAL_ARGS} " \
+    "--reference \"{$REFERENCE_TOOL_NAME} $REFERENCE_TOOL_INVOCATION >%O\""
   for INVOCATION in "${TOOLS_INVOCATION[@]}"; do
     echo -n " \"$INVOCATION\""
   done

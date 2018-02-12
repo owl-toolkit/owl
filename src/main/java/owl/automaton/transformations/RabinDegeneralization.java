@@ -274,7 +274,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     final int hashCode;
 
     @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-    DegeneralizedRabinState(S generalizedState, int[] awaitedSets) {
+    DegeneralizedRabinState(S generalizedState, int[] awaitedSets) { // NOPMD
       this.generalizedState = generalizedState;
       this.awaitedSets = awaitedSets;
       hashCode = Arrays.hashCode(awaitedSets) ^ generalizedState.hashCode();

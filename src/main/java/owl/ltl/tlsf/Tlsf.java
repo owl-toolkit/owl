@@ -34,10 +34,11 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.DefaultConverter;
 
+@SuppressWarnings("ReferenceEquality")
 @Value.Immutable
 public abstract class Tlsf {
-
   @Value.Default
+  @SuppressWarnings("PMD.MethodNamingConventions")
   public List<Formula> assert_() {
     return List.of();
   }

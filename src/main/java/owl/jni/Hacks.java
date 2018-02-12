@@ -6,7 +6,9 @@ import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.Collector;
 
-class Hacks {
+final class Hacks {
+  private Hacks() {}
+
   static LabelledFormula attachDummyAlphabet(Formula formula) {
     int largestAtom = Collector.collectAtoms(formula).stream().max().orElse(0);
     return LabelledFormula.of(formula, IntStream

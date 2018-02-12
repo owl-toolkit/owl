@@ -15,7 +15,7 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.game.Game.Owner;
-import owl.game.Views.Node;
+import owl.game.GameViews.Node;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -30,12 +30,12 @@ public class GameFactoryTest {
     Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
-  public void testTransform() throws Exception {
+  public void testTransform() {
     LabelledFormula formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
     Game<Node<Object>, ParityAcceptance> game =
-      GameFactory.copyOf(Views.split(automaton, List.of("a", "c")));
+      GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
 
     for (Node<Object> state : game.getStates()) {
       for (Node<Object> predecessor : game.getPredecessors(state)) {
@@ -49,14 +49,14 @@ public class GameFactoryTest {
   }
 
   @Test
-  public void testAttractor() throws Exception {
+  public void testAttractor() {
     LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
 
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
 
     Game<Node<Object>, ParityAcceptance> game =
-      GameFactory.copyOf(Views.split(automaton, List.of("a")));
+      GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
 
     Set<Node<Object>> winningStates = game.getStates().stream()
       .filter(x -> {

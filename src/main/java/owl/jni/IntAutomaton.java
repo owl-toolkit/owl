@@ -60,6 +60,7 @@ public final class IntAutomaton {
   private final List<Object> int2StateMap;
   private final Object2IntMap<Object> state2intMap;
 
+  @SuppressWarnings("PMD.ArrayIsStoredDirectly")
   private IntAutomaton(Automaton<Object, ?> automaton, Acceptance acceptance, int[] mapping) {
     if (automaton.getInitialStates().isEmpty()) {
       this.automaton = AutomatonFactory.singleton(new Object(), automaton.getFactory(),
@@ -155,6 +156,7 @@ public final class IntAutomaton {
     return automaton.getAcceptance().getAcceptanceSets();
   }
 
+  @SuppressWarnings("PMD.MethodReturnsInternalArray")
   public int[] alphabetMapping() {
     return alphabetMapping;
   }
@@ -169,12 +171,12 @@ public final class IntAutomaton {
     for (BitSet valuation : BitSets.powerSet(size)) {
       Edge<?> edge = automaton.getEdge(o, valuation);
 
-      if (edge != null) {
-        edges[i] = lookup(edge.getSuccessor());
-        edges[i + 1] = edge.largestAcceptanceSet();
-      } else {
+      if (edge == null) {
         edges[i] = NO_STATE;
         edges[i + 1] = NO_COLOUR;
+      } else {
+        edges[i] = lookup(edge.getSuccessor());
+        edges[i + 1] = edge.largestAcceptanceSet();
       }
 
       i += 2;
@@ -204,13 +206,7 @@ public final class IntAutomaton {
 
     for (BitSet valuation : BitSets.powerSet(size)) {
       Object successor = automaton.getSuccessor(o, valuation);
-
-      if (successor != null) {
-        successors[i] = lookup(successor);
-      } else {
-        successors[i] = NO_STATE;
-      }
-
+      successors[i] = successor == null ? NO_STATE : lookup(successor);
       i += 1;
     }
 

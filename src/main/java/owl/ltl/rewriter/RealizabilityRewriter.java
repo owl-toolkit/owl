@@ -1,5 +1,6 @@
 package owl.ltl.rewriter;
 
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -15,7 +16,8 @@ import owl.ltl.Literal;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 
-public class RealizabilityRewriter {
+public final class RealizabilityRewriter {
+  private static final Formula[] EMPTY = new Formula[0];
 
   private RealizabilityRewriter() {}
 
@@ -24,13 +26,13 @@ public class RealizabilityRewriter {
     BitSet positiveAtoms = Collector.collectAtoms(formula, false);
     BitSet negativeAtoms = Collector.collectAtoms(formula, true);
 
-    BitSet singleAtoms = (BitSet) positiveAtoms.clone();
+    BitSet singleAtoms = BitSets.copyOf(positiveAtoms);
     singleAtoms.xor(negativeAtoms);
 
-    BitSet inputSingleAtoms = (BitSet) singleAtoms.clone();
+    BitSet inputSingleAtoms = BitSets.copyOf(singleAtoms);
     inputSingleAtoms.and(inputVariablesMask);
 
-    BitSet outputSingleAtoms = (BitSet) singleAtoms.clone();
+    BitSet outputSingleAtoms = BitSets.copyOf(singleAtoms);
     outputSingleAtoms.andNot(inputVariablesMask);
 
     return formula
@@ -61,9 +63,10 @@ public class RealizabilityRewriter {
       BitSet outputVariables = Collector.collectAtoms(set);
       outputVariables.andNot(inputVariablesMask);
 
-      for (boolean removedElement = true; removedElement;) {
+      boolean removedElement = true;
+      while (removedElement) {
         removedElement = groups.entrySet().removeIf(x -> {
-          BitSet intersection = (BitSet) x.getValue().clone();
+          BitSet intersection = BitSets.copyOf(x.getValue());
           intersection.and(outputVariables);
 
           if (!intersection.isEmpty()) {
@@ -87,7 +90,7 @@ public class RealizabilityRewriter {
     BitSet inputVariablesMask = new BitSet(numberOfInputSignals);
     inputVariablesMask.set(0, numberOfInputSignals);
     List<Formula> var = split(inputVariablesMask, formula, fixedValuations);
-    return var.toArray(new Formula[var.size()]);
+    return var.toArray(EMPTY);
   }
 
   static class AtomSimplifier extends DefaultConverter {
@@ -95,6 +98,7 @@ public class RealizabilityRewriter {
     final BitSet singleAtoms;
     final Map<Integer, Boolean> fixedValuations;
 
+    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     AtomSimplifier(BooleanConstant constant, BitSet singleAtoms,
       Map<Integer, Boolean> fixedValuations) {
       this.constant = constant;

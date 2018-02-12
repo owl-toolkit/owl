@@ -88,7 +88,7 @@ public final class OutputWriters {
     .description("Prints the toString() representation of all passed objects")
     .parser(settings -> TO_STRING)
     .build();
-  public static OutputWriter HOA = ToHoa.DEFAULT;
+  public static final OutputWriter HOA = ToHoa.DEFAULT;
 
   private OutputWriters() {
   }
@@ -159,6 +159,7 @@ public final class OutputWriters {
    */
   public static class ToHoa implements OutputWriter {
     public static final ToHoa DEFAULT = new ToHoa(EnumSet.noneOf(Setting.class), List.of());
+    private static final StoredAutomatonManipulator[] EMPTY = new StoredAutomatonManipulator[0];
 
     final Set<Setting> hoaSettings;
     final ImmutableList<StoredAutomatonManipulator> manipulations;
@@ -185,8 +186,7 @@ public final class OutputWriters {
       if (manipulations.isEmpty()) {
         consumer = new HOAConsumerPrint(writer);
       } else {
-        StoredAutomatonManipulator[] manipulators =
-          manipulations.toArray(new StoredAutomatonManipulator[manipulations.size()]);
+        StoredAutomatonManipulator[] manipulators = manipulations.toArray(EMPTY);
         consumer = new HOAIntermediateStoreAndManipulate(new HOAConsumerPrint(writer),
           manipulators);
       }

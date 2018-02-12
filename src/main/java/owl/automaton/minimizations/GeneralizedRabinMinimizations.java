@@ -129,8 +129,7 @@ public final class GeneralizedRabinMinimizations {
     BitSet defaultConsequent = new BitSet(acceptanceSets);
     defaultConsequent.set(0, acceptanceSets);
     BitSet[] impliesMap = new BitSet[acceptanceSets];
-    //noinspection UseOfClone
-    Arrays.setAll(impliesMap, i -> (BitSet) defaultConsequent.clone());
+    Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) ->
       edge.acceptanceSetIterator().forEachRemaining((int index) -> {
@@ -217,11 +216,11 @@ public final class GeneralizedRabinMinimizations {
 
       for (int i = 0; i < pair.infSetCount() && (!anyInfOccurring || !impossibleInfFound); i++) {
         int infiniteIndex = pair.infSet(i);
-        if (!occurringIndices.contains(infiniteIndex)) {
+        if (occurringIndices.contains(infiniteIndex)) {
+          anyInfOccurring = true;
+        } else {
           impossibleInfFound = true;
           impossiblePairs.add(pair);
-        } else {
-          anyInfOccurring = true;
         }
       }
     }
@@ -414,8 +413,7 @@ public final class GeneralizedRabinMinimizations {
 
     for (int sccIndex = 0; sccIndex < sccs.size(); sccIndex++) {
       Set<S> scc = sccs.get(sccIndex);
-      //noinspection UseOfClone
-      Arrays.setAll(impliesMap, i -> (BitSet) defaultConsequent.clone());
+      Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
 
       // Build implication matrix on this SCC, including vacuous implications (!)
       BiConsumer<S, Edge<S>> action = (state, edge) ->

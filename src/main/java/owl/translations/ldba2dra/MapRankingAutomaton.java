@@ -21,7 +21,9 @@ import owl.translations.ldba2dpa.AbstractBuilder;
 import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 
-public class MapRankingAutomaton {
+public final class MapRankingAutomaton {
+  private MapRankingAutomaton() {}
+
   public static <S, T, A, L> Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> of(
     LimitDeterministicAutomaton<S, T, GeneralizedBuchiAcceptance, A> ldba,
     LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch,

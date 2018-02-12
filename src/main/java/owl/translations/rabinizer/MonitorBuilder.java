@@ -38,6 +38,7 @@ final class MonitorBuilder {
   private static final Predicate<Formula> NO_G_SUB_FORMULA = formula ->
     formula.allMatch(sub -> !(sub instanceof GOperator));
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
+  private static final GSet[] EMPTY = new GSet[0];
 
   private final EquivalenceClass initialClass;
   private final Fragment fragment;
@@ -68,7 +69,7 @@ final class MonitorBuilder {
 
     this.stateFactory = new MonitorStateFactory(eager, noSubFormula);
 
-    this.relevantSets = relevantSets.toArray(new GSet[relevantSets.size()]);
+    this.relevantSets = relevantSets.toArray(EMPTY);
     assert !noSubFormula || this.relevantSets.length == 1;
 
     //noinspection unchecked,rawtypes
@@ -468,7 +469,9 @@ final class MonitorBuilder {
     }
 
     assert optimizedInitialState != null;
-    if (!Objects.equals(optimizedInitialState, initialState)) {
+    if (Objects.equals(optimizedInitialState, initialState)) {
+      logger.log(Level.FINER, "No better initial state found");
+    } else {
       logger.log(Level.FINER, "Updating initial state from {0} to {1}",
         new Object[] {initialState, optimizedInitialState});
       anyMonitor.setInitialState(optimizedInitialState);
@@ -478,8 +481,6 @@ final class MonitorBuilder {
         monitor.setInitialState(optimizedInitialState);
         monitor.removeStates(unreachableStates);
       }
-    } else {
-      logger.log(Level.FINER, "No better initial state found");
     }
   }
 

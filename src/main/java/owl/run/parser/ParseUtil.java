@@ -18,6 +18,7 @@ final class ParseUtil {
   public static final Comparator<OwlModuleParser<?>> MODULE_COMPARATOR =
     Comparator.comparing(OwlModuleParser::getKey);
   private static final HelpFormatter formatter;
+  private static final String[] EMPTY = new String[0];
 
   static {
     formatter = new HelpFormatter();
@@ -42,12 +43,11 @@ final class ParseUtil {
     Collection<OwlModuleParser<?>> settingsCollection,
     @Nullable String invalidName) {
     printGuarded(writer -> {
-      if (invalidName != null) {
+      if (invalidName == null) {
+        formatter.printWrapped(writer, formatter.getWidth(), "All " + type.name + " modules: ");
+      } else {
         formatter.printWrapped(writer, formatter.getWidth(), "No module of type "
           + type.name + " with name " + invalidName + " found. Available:");
-      } else {
-        formatter.printWrapped(writer, formatter.getWidth(), "All "
-          + type.name + " modules: ");
       }
 
       for (OwlModuleParser<?> settings : settingsCollection) {
@@ -92,6 +92,7 @@ final class ParseUtil {
     printHelp(name, options, null);
   }
 
+  @SuppressWarnings("PMD.SystemPrintln")
   static void println() {
     System.err.println();
   }
@@ -110,6 +111,6 @@ final class ParseUtil {
   }
 
   static String[] toArray(List<String> list) {
-    return list.toArray(new String[list.size()]);
+    return list.toArray(EMPTY);
   }
 }

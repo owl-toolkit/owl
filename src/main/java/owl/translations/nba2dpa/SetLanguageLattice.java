@@ -22,9 +22,9 @@ import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
 class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
-  private final Language<Set<S>> bottom;
-  private final LoadingCache<Entry<Set<S>, Set<S>>, Boolean> greaterOrEqualCache;
-  private final Language<Set<S>> top;
+  final Language<Set<S>> bottom;
+  final LoadingCache<Entry<Set<S>, Set<S>>, Boolean> greaterOrEqualCache;
+  final Language<Set<S>> top;
 
   SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton) {
     assert automaton.is(Property.COMPLETE) : "Only complete automata supported.";
@@ -71,7 +71,7 @@ class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
     return false;
   }
 
-  private static class Loader<S>
+  private static final class Loader<S>
     extends CacheLoader<Entry<Set<S>, Set<S>>, Boolean> {
 
     private final Automaton<S, BuchiAcceptance> automaton;
@@ -96,11 +96,10 @@ class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
     }
   }
 
-  private class SetLanguage implements Language<Set<S>> {
-
+  private final class SetLanguage implements Language<Set<S>> {
     private final Set<S> set;
 
-    private SetLanguage(Set<S> set) {
+    SetLanguage(Set<S> set) {
       this.set = set;
     }
 
@@ -111,17 +110,13 @@ class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
 
     @Override
     public boolean greaterOrEqual(Language<Set<S>> language) {
-      Set<S> otherSet = language.getT();
-
       if (set.containsAll(language.getT())) {
         return true;
       }
-
       if (set.isEmpty()) {
         return false;
       }
-
-      return greaterOrEqualCache.getUnchecked(new AbstractMap.SimpleEntry<>(set, otherSet));
+      return greaterOrEqualCache.getUnchecked(new AbstractMap.SimpleEntry<>(set, language.getT()));
     }
 
     @Override

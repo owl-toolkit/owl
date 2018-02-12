@@ -12,17 +12,25 @@ public class NullExecutionContext implements PipelineExecutionContext {
   }
 
   @Override
-  public void printMeta(String line) {}
+  public void printMeta(String line) {
+    // Nop.
+  }
 
   private static final class NullWriter extends Writer {
     @Override
-    public void write(char[] cbuf, int off, int len) {}
+    public void write(char[] cbuf, int off, int len) {
+      // Nop.
+    }
 
     @Override
-    public void flush() {}
+    public void flush() {
+      // Nop.
+    }
 
     @Override
-    public void close() {}
+    public void close() {
+      // Nop.
+    }
   }
 }
 

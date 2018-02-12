@@ -8,7 +8,7 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 
-public class RabinizerCliParser implements TransformerParser {
+public final class RabinizerCliParser implements TransformerParser {
   public static final RabinizerCliParser INSTANCE = new RabinizerCliParser();
 
   private RabinizerCliParser() {}

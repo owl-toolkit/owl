@@ -20,6 +20,7 @@ package owl.game.output;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("PMD.DataClass")
 public final class Aig {
   public static final Aig FALSE = new Aig();
 
@@ -66,6 +67,7 @@ public final class Aig {
     return this.left == null && this.right == null;
   }
 
+  @SuppressWarnings({"ReferenceEquality", "ObjectEquality"})
   public boolean isConstant() {
     return this == FALSE;
   }

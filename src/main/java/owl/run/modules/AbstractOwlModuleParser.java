@@ -8,6 +8,7 @@ import org.apache.commons.cli.ParseException;
 import org.immutables.value.Value;
 
 // Helper class to create simple immutable builders for module settings
+@SuppressWarnings({"EmptyClass", "PMD.EmptyMethodInAbstractClassShouldBeAbstract"})
 abstract class AbstractOwlModuleParser<M extends OwlModule> implements OwlModuleParser<M> { // NOPMD
   private AbstractOwlModuleParser() {}
 

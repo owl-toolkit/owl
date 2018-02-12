@@ -10,11 +10,11 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class RabinizerMain {
-  private RabinizerMain() {}
-
   static final Transformer SIMPLIFIER = Transformers.fromFunction(LabelledFormula.class,
     x -> RewriterFactory.apply(x, RewriterFactory.RewriterEnum.PULLUP_X,
       RewriterFactory.RewriterEnum.MODAL_ITERATIVE));
+
+  private RabinizerMain() {}
 
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")

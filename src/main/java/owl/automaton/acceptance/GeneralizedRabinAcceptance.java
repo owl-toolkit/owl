@@ -51,6 +51,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   private final Object mutex = new Object();
   final List<RabinPair> pairs;
 
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   @Nonnegative
   private int setCount = 0;
 
@@ -110,7 +111,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   public RabinPair createPair(@Nonnegative int infSets) {
     synchronized (mutex) {
       int finIndex = setCount;
-      setCount = setCount + 1 + infSets;
+      setCount += 1 + infSets;
       RabinPair pair = new RabinPair(finIndex, finIndex + infSets);
       pairs.add(pair);
       assert assertConsistent();
@@ -185,8 +186,8 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
           assert pair.finIndex >= removedIndices;
           assert pair.infIndex >= removedIndices + removedInfIndices;
 
-          pair.finIndex = pair.finIndex - removedIndices;
-          pair.infIndex = pair.infIndex - (removedIndices + removedInfIndices);
+          pair.finIndex -= removedIndices;
+          pair.infIndex -= removedIndices + removedInfIndices;
           removedIndices += removedInfIndices;
         }
       }
@@ -196,13 +197,11 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   public static final class RabinPair {
-
     @Nonnegative
-    private int finIndex;
-
+    int finIndex;
     @Nonnegative
     // All indices in the interval ]finIndex, infIndex] are considered inf.
-    private int infIndex;
+    int infIndex;
 
     RabinPair(@Nonnegative int finIndex, int infIndex) {
       assert finIndex >= 0;

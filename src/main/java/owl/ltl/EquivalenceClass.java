@@ -30,8 +30,7 @@ import owl.factories.EquivalenceClassFactory;
  * objects were created from different factories, implies and equals have to return {@code false}.
  */
 public interface EquivalenceClass {
-
-  EquivalenceClass[] EMPTY = new EquivalenceClass[0];
+  EquivalenceClass[] EMPTY_ARRAY = new EquivalenceClass[0];
 
   EquivalenceClass and(EquivalenceClass equivalenceClass);
 

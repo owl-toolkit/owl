@@ -49,6 +49,7 @@ public final class FGObligations implements RecurringObligation {
   final ImmutableSet<UnaryModalOperator> rewrittenOperators;
   final EquivalenceClass safety;
 
+  @SuppressWarnings("PMD.ArrayIsStoredDirectly")
   private FGObligations(ImmutableSet<FOperator> fOperators, ImmutableSet<GOperator> gOperators,
     EquivalenceClass safety, EquivalenceClass[] liveness,
     ImmutableSet<UnaryModalOperator> rewrittenOperators) {
@@ -100,14 +101,16 @@ public final class FGObligations implements RecurringObligation {
       formula = RewriterFactory.apply(RewriterEnum.PULLUP_X, formula);
 
       while (formula instanceof XOperator) {
-        formula = ((XOperator) formula).operand;
+        formula = ((UnaryModalOperator) formula).operand;
       }
 
       // Checking this doesn't make any sense...
+      //noinspection ObjectEquality
       if (formula == BooleanConstant.FALSE) {
         return null;
       }
 
+      //noinspection ObjectEquality
       if (formula == BooleanConstant.TRUE) {
         Logger.getGlobal().log(Level.FINER, "Found true obligation.");
         continue;
@@ -127,7 +130,7 @@ public final class FGObligations implements RecurringObligation {
     }
 
     return new FGObligations(fOperators, gOperators, safety,
-      livenessList.toArray(new EquivalenceClass[livenessList.size()]),
+      livenessList.toArray(EquivalenceClass.EMPTY_ARRAY),
       builder.build());
   }
 
@@ -179,7 +182,7 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public int hashCode() {
-    return Objects.hash(fOperators, gOperators, safety, liveness);
+    return Objects.hash(fOperators, gOperators, safety, Arrays.hashCode(liveness));
   }
 
   boolean isPureLiveness() {

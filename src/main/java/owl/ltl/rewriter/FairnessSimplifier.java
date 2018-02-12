@@ -37,13 +37,11 @@ import owl.ltl.visitors.DefaultVisitor;
 
 @SuppressWarnings("PMD.GodClass")
 class FairnessSimplifier implements UnaryOperator<Formula> {
-
   static final UnaryOperator<Formula> INSTANCE = new TraverseRewriter(new FairnessSimplifier(),
     FairnessSimplifier::isApplicable);
 
-  private static final AlmostAllVisitor ALMOST_ALL_VISITOR = new AlmostAllVisitor();
-  private static final InfinitelyOftenVisitor INFINITELY_OFTEN_VISITOR =
-    new InfinitelyOftenVisitor();
+  static final AlmostAllVisitor ALMOST_ALL_VISITOR = new AlmostAllVisitor();
+  static final InfinitelyOftenVisitor INFINITELY_OFTEN_VISITOR = new InfinitelyOftenVisitor();
 
   @Nullable
   static Formula getAlmostAllOperand(Formula formula) {

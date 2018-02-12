@@ -20,6 +20,7 @@ package owl.game;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
@@ -70,6 +71,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
   BitSet getChoice(S state, Owner owner);
 
+  @Override
   default void feedTo(AigConsumer consumer) {
     List<String> inputNames = getVariables(Owner.PLAYER_1);
     List<String> outputNames = getVariables(Owner.PLAYER_2);
@@ -109,7 +111,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
     // iterate through labelled edges to create latch and output formulas
     for (S player2State : getStates(Owner.PLAYER_2)) {
-      BitSet stateAndInput = (BitSet) encoding.get(player2State).clone();
+      BitSet stateAndInput = BitSets.copyOf(encoding.get(player2State));
       stateAndInput.or(getChoice(player2State, Owner.PLAYER_1));
       LabelledAig stateAndInputAig = factory.cube(stateAndInput);
 

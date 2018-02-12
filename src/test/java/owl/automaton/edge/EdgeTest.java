@@ -155,9 +155,9 @@ public class EdgeTest {
   public void testLargestAcceptanceSet(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       if (testCase.acceptance.isEmpty()) {
-        assertEquals(edge.largestAcceptanceSet(), -1);
+        assertEquals(-1, edge.largestAcceptanceSet());
       } else {
-        assertEquals(edge.largestAcceptanceSet(), (long) Lists.reverse(testCase.acceptance).get(0));
+        assertEquals((long) Lists.reverse(testCase.acceptance).get(0), edge.largestAcceptanceSet());
       }
     }
   }
@@ -166,17 +166,17 @@ public class EdgeTest {
   public void testSmallestAcceptanceSet(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       if (testCase.acceptance.isEmpty()) {
-        assertEquals(edge.smallestAcceptanceSet(), Integer.MAX_VALUE);
+        assertEquals(Integer.MAX_VALUE, edge.smallestAcceptanceSet());
       } else {
-        assertEquals(edge.smallestAcceptanceSet(), testCase.acceptance.getInt(0));
+        assertEquals(testCase.acceptance.getInt(0), edge.smallestAcceptanceSet());
       }
     }
   }
 
   private static final class TestCase {
-    private final IntList acceptance;
-    private final ImmutableList<Edge<?>> edges;
-    private final Object successor;
+    final IntList acceptance;
+    final ImmutableList<Edge<?>> edges;
+    final Object successor;
 
     TestCase(List<Edge<?>> edges, Object successor, BitSet acceptance) {
       this.edges = ImmutableList.copyOf(edges);
@@ -185,6 +185,7 @@ public class EdgeTest {
       acceptance.stream().forEachOrdered(this.acceptance::add);
     }
 
+    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     IntList getAcceptance() {
       return acceptance;
     }

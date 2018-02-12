@@ -71,10 +71,10 @@ public final class HoaConsumerExtended<S> {
       consumer.setTool("owl", "* *"); // Owl in a cave.
 
       if (options.contains(HoaOption.ANNOTATIONS)) {
-        if (name != null) {
-          consumer.setName(name);
-        } else {
+        if (name == null) {
           consumer.setName("Automaton for " + initialStates);
+        } else {
+          consumer.setName(name);
         }
       }
 

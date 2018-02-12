@@ -1,0 +1,15 @@
+-dontoptimize
+-dontobfuscate
+-dontpreverify
+
+-keepclasseswithmembers public class owl.** {
+    public static void main(java.lang.String[]);
+}
+
+# JNI is a potential entry point
+-keep public class owl.jni.**
+
+-keepclassmembers class * {
+    static final % *;
+    static final java.lang.String *;
+}

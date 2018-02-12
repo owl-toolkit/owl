@@ -63,8 +63,9 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 @SuppressWarnings("PMD.UseUtilityClass")
 public abstract class SizeRegressionTests<T extends HoaPrintable> {
-  private static final String BASE_PATH = "data/formulas";
-  private static final Pattern DATA_SPLIT_PATTERN = Pattern.compile("[();]");
+  static final String BASE_PATH = "data/formulas";
+  static final Pattern DATA_SPLIT_PATTERN = Pattern.compile("[();]");
+
   private final ToIntFunction<T> getAcceptanceSets;
   private final ToIntFunction<T> getStateCount;
   private final FormulaSet selectedClass;
@@ -116,14 +117,14 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     if (actualStateCount != expectedStateCount) {
       String errorMessage = String.format("Formula %d: Expected %d states, got %d (%s)",
         index, expectedStateCount, actualStateCount, formula);
-      System.err.println("Error: " + errorMessage);
+      System.err.println("Error: " + errorMessage); // NOPMD
       errorMessages.add(errorMessage);
     }
 
     if (actualAcceptanceSets != expectedAcceptanceSets) {
       String errorMessage = String.format("Formula %d: Expected %d acceptance sets, got %d (%s)",
         index, expectedAcceptanceSets, actualAcceptanceSets, formula);
-      System.err.println("Error: " + errorMessage);
+      System.err.println("Error: " + errorMessage); // NOPMD
       errorMessages.add(errorMessage);
     }
   }
@@ -211,7 +212,9 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class Breakpoint extends DPA {
       static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(
-        OPTIMISE_INITIAL_STATE, Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
+        OPTIMISE_INITIAL_STATE,
+        Configuration.OPTIMISED_STATE_STRUCTURE, // NOPMD
+        EXISTS_SAFETY_CORE);
 
       public Breakpoint(FormulaSet selectedClass) {
         super(selectedClass, new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL),
@@ -227,7 +230,9 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class BreakpointFree extends DPA {
       static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(GUESS_F,
-        OPTIMISE_INITIAL_STATE, Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
+        OPTIMISE_INITIAL_STATE,
+        Configuration.OPTIMISED_STATE_STRUCTURE, // NOPMD
+        EXISTS_SAFETY_CORE);
 
       public BreakpointFree(FormulaSet selectedClass) {
         super(selectedClass, new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL),
@@ -263,7 +268,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   public abstract static class LDBA
     extends SizeRegressionTests<LimitDeterministicAutomaton<?, ?, ?, ?>> {
 
-    private static final EnumSet<LTL2LDBAFunction.Configuration> LDBA_ALL = EnumSet.of(
+    static final EnumSet<LTL2LDBAFunction.Configuration> LDBA_ALL = EnumSet.of(
       EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
 
     LDBA(FormulaSet selectedClass, LTL2LDBAFunction<?, ?, ?> translator, String configuration) {

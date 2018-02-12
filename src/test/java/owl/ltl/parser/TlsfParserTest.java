@@ -267,7 +267,7 @@ public class TlsfParserTest {
   @Test
   public void testCompParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);
-    assertEquals(lily.assert_().size(), 3);
+    assertEquals(3, lily.assert_().size());
   }
 
   @Test

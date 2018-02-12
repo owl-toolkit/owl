@@ -50,6 +50,7 @@ abstract class DependencyTree<T> {
     return new And<>(children);
   }
 
+  @SuppressWarnings("ClassReferencesSubclass")
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
     Supplier<? extends Automaton<T, ?>> fallback,
     @Nullable AtomAcceptance piggyback) {
@@ -214,6 +215,7 @@ abstract class DependencyTree<T> {
       return automaton.getEdge(stateT, valuation);
     }
 
+    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
       return LongArrays.EMPTY_ARRAY;
@@ -371,6 +373,7 @@ abstract class DependencyTree<T> {
       return new BooleanExpression<>(acceptance);
     }
 
+    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
       if (type == Type.CO_SAFETY || type == Type.SAFETY || XDepthVisitor.getDepth(formula) == 0) {
@@ -396,6 +399,7 @@ abstract class DependencyTree<T> {
       }
 
       Builder<T> childBuilder = new Builder<>();
+      @SuppressWarnings("OptionalAssignedToNull")
       Optional<Boolean> consensus = null;
 
       for (DependencyTree<T> child : children) {
@@ -428,9 +432,9 @@ abstract class DependencyTree<T> {
 
     @Override
     BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean parentAcceptance) {
-      Boolean acceptance = parentAcceptance != null
-        ? parentAcceptance
-        : state.productState.finished.get(this);
+      Boolean acceptance = parentAcceptance == null
+        ? state.productState.finished.get(this)
+        : parentAcceptance;
 
       BitSet set = new BitSet();
       @Nullable

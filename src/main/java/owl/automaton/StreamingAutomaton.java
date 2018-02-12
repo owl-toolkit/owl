@@ -128,7 +128,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
   @Override
   public S getSuccessor(S state, BitSet valuation) {
     Edge<S> edge = getEdge(state, valuation);
-    return edge != null ? edge.getSuccessor() : null;
+    return edge == null ? null : edge.getSuccessor();
   }
 
   @Override
@@ -141,7 +141,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
   @Override
   public Set<S> getSuccessors(S state, BitSet valuation) {
     S successor = getSuccessor(state, valuation);
-    return successor != null ? Set.of(successor) : Set.of();
+    return successor == null ? Set.of() : Set.of(successor);
   }
 
   @Nullable
@@ -160,7 +160,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
   @Override
   public Set<Edge<S>> getEdges(S state, BitSet valuation) {
     Edge<S> edge = getEdge(state, valuation);
-    return edge != null ? Set.of(edge) : Set.of();
+    return edge == null ? Set.of() : Set.of(edge);
   }
 
   @Override

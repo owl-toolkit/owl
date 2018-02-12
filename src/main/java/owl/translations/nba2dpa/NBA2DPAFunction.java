@@ -55,9 +55,6 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     })
     .build();
 
-
-  public NBA2DPAFunction() {}
-
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
       .reader(InputReaders.HOA)

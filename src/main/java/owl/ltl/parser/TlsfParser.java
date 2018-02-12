@@ -75,11 +75,10 @@ public final class TlsfParser {
     }
 
     // Input / output
-    BitSet inputs = new BitSet();
-    BitSet outputs = new BitSet();
     List<String> variables = new ArrayList<>();
     List<String> lowercaseVariables = new ArrayList<>();
 
+    BitSet inputs = new BitSet();
     for (TerminalNode variableNode : tree.input().VAR_ID()) {
       String variableName = variableNode.getText();
 
@@ -92,6 +91,7 @@ public final class TlsfParser {
       lowercaseVariables.add(variableName.toLowerCase());
     }
 
+    BitSet outputs = new BitSet();
     for (TerminalNode variableNode : tree.output().VAR_ID()) {
       String variableName = variableNode.getText();
 

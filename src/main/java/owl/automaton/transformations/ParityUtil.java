@@ -269,11 +269,11 @@ public final class ParityUtil {
       int leastImportantColor = fromParity.max() ? 0 : acceptanceSets - 1;
       int offset;
 
-      if (fromParity.even() != toParity.even()) {
+      if (fromParity.even() == toParity.even()) {
+        offset = fromAcceptance.isAccepting(leastImportantColor) ? 0 : 1;
+      } else {
         // Delete the least important color
         offset = fromAcceptance.isAccepting(leastImportantColor) ? -1 : -2;
-      } else {
-        offset = fromAcceptance.isAccepting(leastImportantColor) ? 0 : 1;
       }
 
       int newAcceptanceSets = acceptanceSets + offset;

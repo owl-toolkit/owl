@@ -31,10 +31,13 @@ import owl.util.DaemonThreadFactory;
 /**
  * Helper class to execute a specific pipeline with created input and output streams.
  */
-@SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared"})
-public class PipelineRunner {
-  private static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
+public final class PipelineRunner {
+  static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
 
+  private PipelineRunner() {}
+
+  @SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared",
+                      "PMD.SignatureDeclareThrowsException", "PMD.AvoidCatchingGenericException"})
   public static void run(Pipeline pipeline, Environment env, Callable<Reader> readerProvider,
     Callable<Writer> writerProvider, int worker) throws Exception {
     try (Reader reader = readerProvider.call();
@@ -68,16 +71,20 @@ public class PipelineRunner {
   }
 
   private static final class SequentialRunner {
-    private static void run(Environment env, InputReader inputReader, List<Instance> transformers,
-      Binding outputWriter, Reader reader)
-      throws IOException {
+    private SequentialRunner() {}
+
+    @SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared",
+                        "PMD.SignatureDeclareThrowsException", "PMD.AvoidCatchingGenericException",
+                        "PMD.PreserveStackTrace", "PMD.AvoidThrowingRawExceptionTypes"})
+    static void run(Environment env, InputReader inputReader, List<Instance> transformers,
+      Binding outputWriter, Reader reader) throws IOException {
       Consumer<Object> readerCallback = input -> {
         logger.log(Level.FINEST, "Handling input {0}", input);
         long startTime = System.nanoTime();
         Object output = input;
 
         try {
-          for (Transformer.Instance transformer : transformers) {
+          for (Instance transformer : transformers) {
             SimpleExecutionContext context = new SimpleExecutionContext();
             output = transformer.transform(output, context);
             String meta = context.getWrittenString();
@@ -91,8 +98,7 @@ public class PipelineRunner {
           logger.log(Level.FINE, () -> String.format(
             "Execution of transformers for %s took %.2f sec.",
             input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
-
-          outputWriter.write(output);
+          outputWriter.write(output); // NOPMD False positive
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -114,12 +120,12 @@ public class PipelineRunner {
 
     // Threading
     private final Thread mainThread;
-    private final ExecutorService executor;
+    final ExecutorService executor;
 
     // Pipeline
     private final Environment env;
     private final InputReader inputReader;
-    private final List<Transformer.Instance> transformers;
+    final List<Transformer.Instance> transformers;
     private final OutputWriter.Binding outputWriter;
 
     // Input stream
@@ -146,38 +152,36 @@ public class PipelineRunner {
       outputWriter = writer;
     }
 
-    private void run() throws IOException {
+    @SuppressWarnings({"ProhibitedExceptionThrown", "PMD.AvoidCatchingGenericException",
+                        "PMD.AvoidThrowingRawExceptionTypes"})
+    void run() {
       mainThread.setName("owl-writer");
       Thread readerThread = new Thread(mainThread.getThreadGroup(), this::read, "owl-reader");
       readerThread.start();
 
       try {
         write(readerThread);
-      } catch (Throwable t) {
-        onError(t);
+      } catch (OutputWriterException | IOException | RuntimeException e) {
+        onError(e);
       }
 
       logger.log(Level.FINE, "Execution finished");
 
       @Nullable
       Throwable error = firstError.get();
-
       if (error != null) {
-        if (error instanceof IOException) {
-          throw (IOException) error;
-        } else {
-          throw new RuntimeException(error);
-        }
+        throw new RuntimeException(error);
       }
     }
 
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private void read() {
       // Read from the input stream until it is exhausted or some error occurs.
       try (Reader closingReader = reader) {
         inputReader.run(closingReader, env,
           input -> processingQueue.add(executor.submit(new TransformerExecution(input))));
         logger.log(Level.FINE, "Input stream exhausted, waiting for termination");
-      } catch (@SuppressWarnings("OverlyBroadCatchBlock") Throwable t) {
+      } catch (InputReaderException | IOException | RuntimeException t) {
         onError(t);
       } finally {
         mainThread.interrupt();
@@ -185,7 +189,7 @@ public class PipelineRunner {
       }
     }
 
-    private void write(Thread readerThread) {
+    private void write(Thread readerThread) throws IOException, OutputWriterException {
       while (readerThread.isAlive() || !processingQueue.isEmpty()) {
         // Wait for a future
         Future<?> first;
@@ -214,13 +218,8 @@ public class PipelineRunner {
         }
 
         // Serialize the result
-        try {
-          System.err.flush(); // Try to keep logging statements in front of the output
-          outputWriter.write(result);
-        } catch (IOException | OutputWriterException e) {
-          onError(e);
-          break;
-        }
+        System.err.flush(); // Try to keep logging statements in front of the output
+        outputWriter.write(result);
       }
     }
 
@@ -242,7 +241,7 @@ public class PipelineRunner {
       }
     }
 
-    private boolean hasError() {
+    boolean hasError() {
       return firstError.get() != null;
     }
 
@@ -253,11 +252,12 @@ public class PipelineRunner {
         this.input = input;
       }
 
-      @SuppressWarnings({"ProhibitedExceptionThrown"})
       @Nullable
       @Override
+      @SuppressWarnings({"ProhibitedExceptionDeclared", "PMD.SignatureDeclareThrowsException"})
       public Object call() throws Exception {
         logger.log(Level.FINEST, "Handling input {0}", input);
+        @SuppressWarnings("PMD.PrematureDeclaration")
         long startTime = System.nanoTime();
         Object output = input;
 

@@ -19,22 +19,25 @@ package owl.game.output;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import java.io.BufferedWriter;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 import owl.collections.Collections3;
 
 public class AigerPrinter implements AigConsumer {
-
   private final boolean binaryOutput;
-  private List<String> inputNames;
-  private List<LabelledAig> latches;
-  private List<String> latchNames;
-  private List<LabelledAig> outputs;
-  private List<String> outputNames;
-  private List<String> comments;
+  private final List<String> inputNames;
+  private final List<LabelledAig> latches;
+  private final List<String> latchNames;
+  private final List<LabelledAig> outputs;
+  private final List<String> outputNames;
+  private final List<String> comments;
 
   public AigerPrinter(boolean binaryOutput) {
     this.binaryOutput = binaryOutput;
@@ -44,6 +47,65 @@ public class AigerPrinter implements AigConsumer {
     this.outputs = new ArrayList<>();
     this.outputNames = new ArrayList<>();
     this.comments = new ArrayList<>();
+  }
+
+  private static int visitAig(BiMap<Aig, Integer> index, int startIndex, Aig root) {
+    assert root != null;
+
+    // we maintain the invariant: everything in the stack is not in index
+    Deque<Aig> toVisit = new ArrayDeque<>();
+    if (index.get(root) == null) {
+      toVisit.push(root);
+    }
+
+    int maxIndex = startIndex;
+    while (!toVisit.isEmpty()) {
+      assert (toVisit.peek() != null);
+      if (toVisit.peek().isVariable()
+        || toVisit.peek().isConstant()) {  // just pop
+        toVisit.pop();
+      } else if (index.get(toVisit.peek().left) == null) {
+        assert toVisit.peek().left != null
+          : "All internal nodes should have exactly two children";
+        toVisit.push(toVisit.peek().left);
+      } else if (index.get(toVisit.peek().right) == null) {
+        assert toVisit.peek().right != null
+          : "All internal nodes should have exactly two children";
+        toVisit.push(toVisit.peek().right);
+      } else {
+        // not a variable, constant, or internal node
+        // with children not yet visited => just add it
+        index.put(toVisit.pop(), maxIndex);
+        maxIndex += 2;
+      }
+    }
+
+    return maxIndex;
+  }
+
+  private static int aig2lit(BiMap<Aig, Integer> index, LabelledAig aig) {
+    Integer i = index.get(aig.aig);
+    assert i != null : "Make sure the element is in the computed map!";
+    return aig.isNegated ? i + 1 : i;
+  }
+
+  @SuppressWarnings("NumericCastThatLosesPrecision")
+  private static void encode(PrintWriter writer, int x) {
+    int i = x;
+    char ch;
+    while ((i & ~0x7f) != 0) {
+      ch = (char) ((i & 0x7f) | 0x80);
+      writer.write(ch);
+      i >>= 7;
+    }
+    ch = (char) i;
+    writer.write(ch);
+  }
+
+  private static int aig2lit(BiMap<Aig, Integer> index, Aig aig, boolean negated) {
+    Integer i = index.get(aig);
+    assert i != null : "Make sure the element is in the computed map!";
+    return negated ? i + 1 : i;
   }
 
   @Override
@@ -70,66 +132,9 @@ public class AigerPrinter implements AigConsumer {
     comments.add(comment);
   }
 
-  private int visitAig(BiMap<Aig, Integer> index, int startIndex, Aig root) {
-    assert root != null : "You must provide a valid aig to start from.";
-    int maxIndex = startIndex;
-
-    // we maintain the invariant: everything in the stack is not in index
-    Stack<Aig> toVisit = new Stack<>();
-    if (index.get(root) == null) {
-      assert root != null;
-      toVisit.push(root);
-    }
-
-    while (!toVisit.isEmpty()) {
-      assert (toVisit.peek() != null);
-      if (toVisit.peek().isVariable()
-          || toVisit.peek().isConstant()) {  // just pop
-        toVisit.pop();
-      } else if (index.get(toVisit.peek().left) == null) {
-        assert toVisit.peek().left != null
-          : "All internal nodes should have exactly two children";
-        toVisit.push(toVisit.peek().left);
-      } else if (index.get(toVisit.peek().right) == null) {
-        assert toVisit.peek().right != null
-          : "All internal nodes should have exactly two children";
-        toVisit.push(toVisit.peek().right);
-      } else {
-        // not a variable, constant, or internal node
-        // with children not yet visited => just add it
-        index.put(toVisit.pop(), maxIndex);
-        maxIndex += 2;
-      }
-    }
-
-    return maxIndex;
-  }
-
-  private int aig2lit(BiMap<Aig, Integer> index, LabelledAig aig) {
-    Integer i = index.get(aig.aig);
-    assert i != null : "Make sure the element is in the computed map!";
-    return aig.isNegated ? i + 1 : i;
-  }
-
-  private void encode(PrintWriter writer, int x) {
-    int ch;
-    while ((x & ~0x7f) != 0) {
-      ch = (x & 0x7f) | 0x80;
-      writer.write((char) ch);
-      x >>= 7;
-    }
-    ch = x;
-    writer.write((char) ch);
-  }
-
-  private int aig2lit(BiMap<Aig, Integer> index, Aig aig, boolean negated) {
-    Integer i = index.get(aig);
-    assert i != null : "Make sure the element is in the computed map!";
-    return negated ? i + 1 : i;
-  }
-
   public void print(OutputStream ostream) {
-    PrintWriter writer = new PrintWriter(ostream);
+    PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(ostream,
+      StandardCharsets.UTF_8)));
     print(writer);
     writer.flush();
   }
@@ -216,7 +221,7 @@ public class AigerPrinter implements AigConsumer {
         Aig gate = index.inverse().get(j);
         assert gate != null : "All indices should have been assigned";
         writer.println(j + " " + aig2lit(index, gate.left, gate.leftIsNegated)
-                       + ' ' + aig2lit(index, gate.right, gate.rightIsNegated));
+          + ' ' + aig2lit(index, gate.right, gate.rightIsNegated));
       }
     }
 

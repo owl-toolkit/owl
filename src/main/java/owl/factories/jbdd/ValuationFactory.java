@@ -43,12 +43,18 @@ final class ValuationFactory extends GcManagedFactory<ValuationSet> implements V
     super(factory);
     this.alphabet = ImmutableList.copyOf(alphabet);
 
-    for (int i = 0; i < alphabet.size(); i++) {
+    int literals = alphabet.size();
+    for (int i = 0; i < literals; i++) {
       factory.createVariable();
     }
 
     universe = createValuationSet(factory.getTrueNode());
     empty = createValuationSet(factory.getFalseNode());
+  }
+
+  @Override
+  public List<String> alphabet() {
+    return alphabet;
   }
 
   @Override
@@ -81,6 +87,31 @@ final class ValuationFactory extends GcManagedFactory<ValuationSet> implements V
     return createValuationSet(bdd);
   }
 
+  @Override
+  public ValuationSet of() {
+    return empty;
+  }
+
+  @Override
+  public ValuationSet of(BitSet valuation, BitSet restrictedAlphabet) {
+    return createValuationSet(createBdd(valuation, restrictedAlphabet));
+  }
+
+  @Override
+  public ValuationSet of(BitSet valuation) {
+    return createValuationSet(createBdd(valuation));
+  }
+
+  @Override
+  public ValuationSet universe() {
+    return universe;
+  }
+
+  private ValuationSet createValuationSet(int bdd) {
+    summonReaper();
+    return canonicalize(bdd, new BddValuationSet(bdd));
+  }
+
   private int createBdd(BitSet set, BitSet base) {
     int bdd = factory.getTrueNode();
 
@@ -111,12 +142,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationSet> implements V
     }
   }
 
-  @Override
-  public ValuationSet of() {
-    return empty;
-  }
-
-  private BooleanExpression<AtomLabel> createRepresentative(int bdd) {
+  BooleanExpression<AtomLabel> createRepresentative(int bdd) {
     if (bdd == factory.getFalseNode()) {
       return FALSE;
     }
@@ -152,32 +178,8 @@ final class ValuationFactory extends GcManagedFactory<ValuationSet> implements V
     return pos.or(neg);
   }
 
-  @Override
-  public ValuationSet universe() {
-    return universe;
-  }
-
-  @Override
-  public ValuationSet of(BitSet valuation, BitSet restrictedAlphabet) {
-    return createValuationSet(createBdd(valuation, restrictedAlphabet));
-  }
-
-  @Override
-  public ValuationSet of(BitSet valuation) {
-    return createValuationSet(createBdd(valuation));
-  }
-
-  private ValuationSet createValuationSet(int bdd) {
-    summonReaper();
-    return canonicalize(bdd, new BddValuationSet(bdd));
-  }
-
-  @Override
-  public List<String> alphabet() {
-    return alphabet;
-  }
-
   final class BddValuationSet implements ValuationSet {
+
     final int bdd;
 
     BddValuationSet(int bdd) {
@@ -236,13 +238,12 @@ final class ValuationFactory extends GcManagedFactory<ValuationSet> implements V
       });
     }
 
-    @SuppressWarnings("UseOfClone")
     @Override
     public void forEach(BitSet restriction, Consumer<? super BitSet> action) {
       // TODO Make this native to the factory?
       int variables = factory.numberOfVariables();
 
-      BitSet restrictedVariables = (BitSet) restriction.clone();
+      BitSet restrictedVariables = BitSets.copyOf(restriction);
       restrictedVariables.flip(0, variables);
       int restrict = factory.reference(factory.restrict(bdd, restrictedVariables, new BitSet(0)));
 

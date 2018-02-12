@@ -39,7 +39,7 @@ public final class Literal extends ImmutableObject implements Formula {
   private Literal(Literal other) {
     this.negation = other;
     this.index = -other.index;
-    assert getAtom() == other.getAtom() && isNegated() ^ other.isNegated();
+    assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
   }
 
   public Literal(@Nonnegative int index) {

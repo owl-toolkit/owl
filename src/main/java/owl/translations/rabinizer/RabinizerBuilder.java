@@ -78,7 +78,9 @@ import owl.util.IntBiConsumer;
 public class RabinizerBuilder {
   private static final MonitorAutomaton[] EMPTY_MONITORS = new MonitorAutomaton[0];
   private static final MonitorState[] EMPTY_MONITOR_STATES = new MonitorState[0];
-  private static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
+  private static final GOperator[] EMPTY_G_OPERATORS = new GOperator[0];
+
+  static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
 
   private final RabinizerConfiguration configuration;
   private final Environment env;
@@ -201,7 +203,7 @@ public class RabinizerBuilder {
     tableBuilder.append("Acceptance mapping (GSet -> Ranking -> Pair):");
 
     for (ActiveSet activeSet : activeSets) {
-      GSet subset = activeSet.activeSet;
+      GSet subset = activeSet.set;
 
       tableBuilder.append("\n ").append(subset);
       Iterator<int[]> rankingIterator = activeSet.rankings.iterator();
@@ -310,7 +312,7 @@ public class RabinizerBuilder {
     // Assign arbitrary numbering to all relevant sub-formulas. Throughout the construction, we will
     // use this numbering to identify the sub-formulas.
     int numberOfGFormulas = allRelevantGFormulas.size();
-    GOperator[] gFormulas = allRelevantGFormulas.toArray(new GOperator[numberOfGFormulas]);
+    GOperator[] gFormulas = allRelevantGFormulas.toArray(EMPTY_G_OPERATORS);
 
     /* Build monitors for all formulas which are relevant somewhere.
      *
@@ -440,7 +442,7 @@ public class RabinizerBuilder {
         while (activeSubFormulasIterator.hasNext()) {
           boolean[] activeSubFormulas = activeSubFormulasIterator.next();
           ActiveSet activeSet = activeSets[activeSubFormulasIterator.currentIndex() - 1];
-          GSet activeSubFormulasSet = activeSet.activeSet;
+          GSet activeSubFormulasSet = activeSet.set;
 
           // Pre-compute the monitor transition priorities, as they are independent of the ranking.
           // The first dimension of this matrix is the monitor index, the second the priority. To
@@ -500,9 +502,6 @@ public class RabinizerBuilder {
         createEdges(state, successors, rabinizerAutomaton);
         successors.clear();
       });
-    }
-
-    for (MonitorAutomaton monitor : monitors) {
     }
 
     /* Now, we need to take care of connecting the partitioned state space, set the initial state
@@ -803,14 +802,15 @@ public class RabinizerBuilder {
   }
 
   private static final class ActiveSet {
-    final GSet activeSet;
+    final GSet set;
     final Set<int[]> rankings;
     private final RabinPair[] rankingPairs;
 
-    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-    ActiveSet(GSet activeSet, Set<int[]> rankings, RabinPair[] rankingPairs) {
+    @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
+                        "AssignmentToCollectionOrArrayFieldFromParameter"})
+    ActiveSet(GSet set, Set<int[]> rankings, RabinPair[] rankingPairs) {
+      this.set = set;
       this.rankings = rankings;
-      this.activeSet = activeSet;
       this.rankingPairs = rankingPairs;
     }
 
@@ -860,7 +860,8 @@ public class RabinizerBuilder {
     private final ValuationSet[][] monitorPriorities;
     private final boolean[] relevantFormulas;
 
-    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
+    @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
+                        "AssignmentToCollectionOrArrayFieldFromParameter"})
     GSetRanking(boolean[] relevantFormulas, boolean[] activeFormulas, GSet activeFormulaSet,
       RabinPair pair, int[] ranking, EquivalenceClassFactory eqFactory,
       ValuationSet[][] monitorPriorities) {

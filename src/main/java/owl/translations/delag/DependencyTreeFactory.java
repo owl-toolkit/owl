@@ -77,10 +77,10 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
       setNumber += fallbackLeaf.automaton.getAcceptance().getAcceptanceSets();
       T initialState = Iterables.getOnlyElement(fallbackLeaf.automaton.getInitialStates(), null);
 
-      if (initialState != null) {
-        builder.fallback.put(formula, initialState);
-      } else {
+      if (initialState == null) {
         builder.finished.put(fallbackLeaf, Boolean.FALSE);
+      } else {
+        builder.fallback.put(formula, initialState);
       }
     } else if (piggyback == null) {
       setNumber++;
@@ -135,10 +135,10 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
     List<DependencyTree<T>> children = group(disjunction.children, safety, coSafety, finite);
 
-    if (!safety.isEmpty()) {
-      safety.addAll(finite);
-    } else {
+    if (safety.isEmpty()) {
       coSafety.addAll(finite);
+    } else {
+      safety.addAll(finite);
     }
 
     if (!safety.isEmpty()) {
@@ -165,10 +165,10 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
     List<DependencyTree<T>> children = group(conjunction.children, safety, coSafety, finite);
 
-    if (!coSafety.isEmpty()) {
-      coSafety.addAll(finite);
-    } else {
+    if (coSafety.isEmpty()) {
       safety.addAll(finite);
+    } else {
+      coSafety.addAll(finite);
     }
 
     if (!safety.isEmpty()) {

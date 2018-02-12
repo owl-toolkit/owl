@@ -1,69 +1,94 @@
 <?xml version="1.0"?>
-<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         name="Custom ruleset"
+<ruleset name="owl PMD rules"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
-    <rule ref="rulesets/java/basic.xml" />
-    <rule ref="rulesets/java/braces.xml"/>
-    <rule ref="rulesets/java/strings.xml">
-        <!-- We often use logging, building log messages sometimes involves duplicate literals -->
-        <exclude name="AvoidDuplicateLiterals"/>
-        <!-- These rules are buggy in certain situations -->
-        <exclude name="InsufficientStringBufferDeclaration"/>
-        <exclude name="ConsecutiveLiteralAppends"/>
-    </rule>
-    <rule ref="rulesets/java/design.xml">
+    <description>RuleSet for owl</description>
+
+    <rule ref="category/java/bestpractices.xml">
         <exclude name="UseVarargs"/>
-        <exclude name="ConfusingTernary"/>
-        <exclude name="GodClass"/>
-        <exclude name="AccessorMethodGeneration"/>
-    </rule>
-    <rule ref="rulesets/java/unusedcode.xml"/>
-    <rule ref="rulesets/java/finalizers.xml"/>
-    <rule ref="rulesets/java/controversial.xml">
-        <!-- Always call super() in constructors -->
-        <exclude name="CallSuperInConstructor"/>
-        <!-- No package-visibility -->
-        <exclude name="DefaultPackage"/>
-        <!-- Methods should only have one return -->
-        <exclude name="OnlyOneReturn"/>
-        <!-- Dataflow analysis (referencing potentially undefined variables etc.) -->
-        <exclude name="DataflowAnomalyAnalysis"/>
-        <!-- No magic numbers -->
-        <exclude name="AvoidLiteralsInIfCondition"/>
-        <!-- No final locals -->
-        <exclude name="AvoidFinalLocalVariable"/>
-        <!-- Always use ConcurrentHashMap instead of hash map - reduces performance if not
-          multi-threaded -->
-        <exclude name="UseConcurrentHashMap"/>
-        <!-- Use native - Needed for sylvan -->
-        <exclude name="AvoidUsingNativeCode"/>
-        <!-- Each class should have at least one constructor -->
-        <exclude name="AtLeastOneConstructor"/>
-        <!-- Assigning a variable to null -->
-        <exclude name="NullAssignment" />
-    </rule>
-    <rule ref="rulesets/java/junit.xml">
+        <exclude name="GuardLogStatement"/>
+        <exclude name="JUnit4TestShouldUseTestAnnotation"/>
+        <exclude name="JUnitAssertionsShouldIncludeMessage"/>
         <exclude name="JUnitTestContainsTooManyAsserts"/>
-    </rule>
-    <rule ref="rulesets/java/imports.xml">
-        <exclude name="TooManyStaticImports"/>
-    </rule>
-    <rule ref="rulesets/java/strictexception.xml"/>
-    <rule ref="rulesets/java/optimizations.xml">
-        <exclude name="LocalVariableCouldBeFinal"/>
-        <exclude name="RedundantFieldInitializer"/>
-        <exclude name="MethodArgumentCouldBeFinal"/>
-        <!-- Don't use new Foo() in loops - often is unavoidable -->
-        <exclude name="AvoidInstantiatingObjectsInLoops" />
+        <exclude name="JUnitTestsShouldIncludeAssert"/>
     </rule>
 
-    <!-- <rule ref="rulesets/java/codesize.xml/CyclomaticComplexity">
+    <rule ref="category/java/codestyle.xml">
+        <exclude name="ShortVariable"/>
+        <exclude name="LongVariable"/>
+        <exclude name="ShortMethodName"/>
+        <exclude name="CallSuperInConstructor"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="CommentDefaultAccessModifier"/>
+        <exclude name="DefaultPackage"/>
+        <exclude name="ShortClassName"/>
+        <exclude name="AbstractNaming"/>
+        <exclude name="TooManyStaticImports"/>
+        <exclude name="GenericsNaming"/>
+        <exclude name="VariableNamingConventions"/>
+        <exclude name="UselessParentheses"/>
+        <exclude name="AtLeastOneConstructor"/>
+    </rule>
+    <rule ref="category/java/codestyle.xml/ConfusingTernary">
         <properties>
-            <property name="reportLevel" value="5"/>
+            <property name="ignoreElseIf">
+                <value>true</value>
+            </property>
         </properties>
     </rule>
-    -->
+
+    <rule ref="category/java/design.xml">
+        <exclude name="LawOfDemeter"/>
+        <exclude name="GodClass"/>
+        <exclude name="ExcessiveImports"/>
+        <exclude name="CyclomaticComplexity"/>
+        <exclude name="LoosePackageCoupling"/>
+        <exclude name="NcssCount"/>
+        <exclude name="TooManyMethods"/>
+        <exclude name="ExcessiveMethodLength"/>
+        <exclude name="ExcessivePublicCount"/>
+        <exclude name="ExcessiveParameterList"/>
+        <exclude name="ExcessiveClassLength"/>
+        <exclude name="NPathComplexity"/>
+    </rule>
+
+    <rule ref="category/java/documentation.xml">
+        <exclude name="CommentSize"/>
+        <exclude name="CommentRequired"/>
+    </rule>
+
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="AvoidLiteralsInIfCondition"/>
+        <exclude name="BeanMembersShouldSerialize"/>
+        <exclude name="DataflowAnomalyAnalysis"/>
+        <exclude name="NullAssignment"/>
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <exclude name="UseLocaleWithCaseConversions"/>
+        <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="DoNotCallSystemExit"/>
+    </rule>
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+        <properties>
+            <property name="allowExceptionNameRegex">
+                <value>^ignored$</value>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="category/java/multithreading.xml">
+        <exclude name="UseConcurrentHashMap"/>
+        <exclude name="DoNotUseThreads"/>
+        <exclude name="AvoidThreadGroup"/>
+    </rule>
+    <rule ref="category/java/performance.xml">
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+        <exclude name="RedundantFieldInitializer"/>
+        <exclude name="ConsecutiveLiteralAppends"/>
+        <exclude name="InsufficientStringBufferDeclaration"/>
+    </rule>
+
     <exclude-pattern>.*/owl/grammar/.*</exclude-pattern>
-    <description>RuleSet for owl</description>
 </ruleset>

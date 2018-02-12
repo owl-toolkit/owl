@@ -1,6 +1,6 @@
 package owl.translations;
 
-import owl.game.Views;
+import owl.game.GameViews;
 import owl.game.algorithms.ParityGameSolver;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -18,7 +18,7 @@ public final class Synthesis {
       .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
       .addTransformer(LTL2DPACliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
-      .addTransformer(Views.AUTOMATON_TO_GAME_CLI)
+      .addTransformer(GameViews.AUTOMATON_TO_GAME_CLI)
       .addTransformer(ParityGameSolver.ZIELONKA_SOLVER)
       .writer(OutputWriters.TO_STRING) // we need an AIG writer here
       .build();

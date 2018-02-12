@@ -71,7 +71,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,
-        factory.getInitial(current, environment), EquivalenceClass.EMPTY, obligations);
+        factory.getInitial(current, environment), EquivalenceClass.EMPTY_ARRAY, obligations);
     }
 
     EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];

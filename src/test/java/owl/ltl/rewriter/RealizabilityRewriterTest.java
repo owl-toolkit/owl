@@ -15,15 +15,16 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
 public class RealizabilityRewriterTest {
+  private static final Formula[] EMPTY = {};
 
   @Test
-  public void testSplit() throws Exception {
+  public void testSplit() {
     LabelledFormula formula = LtlParser.parse(
       "i1 | (G (i2 -> o1) & G o2 & G (i3 <-> o3) & G (i3 <-> o4))");
     BitSet inputMask = new BitSet();
 
     Collections3.forEachIndexed(formula.variables, (i, s) -> {
-      if (s.startsWith("i")) {
+      if (s.charAt(0) == 'i') {
         inputMask.set(i);
       }
     });
@@ -42,12 +43,12 @@ public class RealizabilityRewriterTest {
   }
 
   @Test
-  public void testRegression() throws Exception {
+  public void testRegression() {
     Formula case1 = LtlParser.syntax("i -> o", List.of("i", "o"));
     Map<Integer, Boolean> map1 = new HashMap<>();
 
     Formula[] split1 = RealizabilityRewriter.split(case1, 1, map1);
-    assertThat(split1, Matchers.is(new Formula[]{}));
+    assertThat(split1, Matchers.is(EMPTY));
     assertThat(map1, Matchers.is(Map.of(0, true, 1, true)));
 
     Formula case2 = LtlParser.syntax("i & o", List.of("i", "o"));

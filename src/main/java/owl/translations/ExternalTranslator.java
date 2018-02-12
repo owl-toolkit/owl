@@ -93,7 +93,8 @@ public class ExternalTranslator
     this(env, InputMode.STDIN, splitPattern.split(tool));
   }
 
-  @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
+  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
+                      "AssignmentToCollectionOrArrayFieldFromParameter"})
   ExternalTranslator(Environment env, InputMode inputMode, String[] tool) {
     this.env = env;
     this.inputMode = inputMode;

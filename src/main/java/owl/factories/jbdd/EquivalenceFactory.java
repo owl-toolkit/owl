@@ -49,13 +49,14 @@ import owl.ltl.visitors.SubstitutionVisitor;
 final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
   implements EquivalenceClassFactory {
 
-  private final ImmutableList<String> alphabet;
-  private final int alphabetSize;
-  private final BddEquivalenceClass falseClass;
+  final ImmutableList<String> alphabet;
+  final int alphabetSize;
+  final BddEquivalenceClass falseClass;
+  final BddEquivalenceClass trueClass;
+  Formula[] reverseMapping;
+  final BddVisitor visitor;
+
   private final Object2IntMap<Formula> mapping;
-  private final BddEquivalenceClass trueClass;
-  private final BddVisitor visitor;
-  private Formula[] reverseMapping;
   private int[] temporalStepSubstitution;
   private int[] unfoldSubstitution;
 
@@ -122,7 +123,22 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
     return result;
   }
 
-  private EquivalenceClass createEquivalenceClass(@Nullable Formula representative, int bdd) {
+  @Override
+  public EquivalenceClass getFalse() {
+    return falseClass;
+  }
+
+  @Override
+  public EquivalenceClass getTrue() {
+    return trueClass;
+  }
+
+  @Override
+  public ImmutableList<String> getVariables() {
+    return alphabet;
+  }
+
+  EquivalenceClass createEquivalenceClass(@Nullable Formula representative, int bdd) {
     if (bdd == factory.getTrueNode()) {
       return trueClass;
     }
@@ -135,17 +151,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
     return canonicalize(bdd, new BddEquivalenceClass(representative, bdd));
   }
 
-  @Override
-  public EquivalenceClass getFalse() {
-    return falseClass;
-  }
-
-  @Override
-  public EquivalenceClass getTrue() {
-    return trueClass;
-  }
-
-  private int getVariable(Formula formula) {
+  int getVariable(Formula formula) {
     assert formula instanceof Literal
       || formula instanceof UnaryModalOperator
       || formula instanceof BinaryModalOperator;
@@ -162,11 +168,6 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
 
     // We don't need to increment the reference-counter, since all variables are saturated.
     return factory.getVariableNode(value);
-  }
-
-  @Override
-  public ImmutableList<String> getVariables() {
-    return alphabet;
   }
 
   private void register(Deque<Formula> propositions) {
@@ -198,7 +199,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
     }
   }
 
-  private int temporalStepBdd(int bdd, BitSet valuation) {
+  int temporalStepBdd(int bdd, BitSet valuation) {
     // Adjust valuation literals in substitution. This is not thread-safe!
     for (int i = 0; i < alphabetSize; i++) {
       if (valuation.get(i)) {
@@ -213,12 +214,12 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceClass>
     return factory.compose(bdd, temporalStepSubstitution);
   }
 
-  private int unfoldBdd(int bdd) {
+  int unfoldBdd(int bdd) {
     return factory.compose(bdd, unfoldSubstitution);
   }
 
   private final class BddEquivalenceClass implements EquivalenceClass {
-    private int bdd;
+    final int bdd;
     @Nullable
     private Formula representative;
 

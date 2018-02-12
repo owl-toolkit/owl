@@ -22,10 +22,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.Collections2;
-
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -39,13 +37,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nullable;
-
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
@@ -60,8 +55,8 @@ import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.util.ImmutableObject;
 
-public final class Views {
-  private static final Logger logger = Logger.getLogger(Views.class.getName());
+public final class GameViews {
+  private static final Logger logger = Logger.getLogger(GameViews.class.getName());
 
   public static final TransformerParser AUTOMATON_TO_GAME_CLI =
     ImmutableTransformerParser.builder()
@@ -104,7 +99,7 @@ public final class Views {
         } else if (systemPrefixes != null) {
           isEnvironmentAp = ap -> Arrays.stream(systemPrefixes).noneMatch(ap::startsWith);
         } else {
-          isEnvironmentAp = ap -> ap.startsWith("i");
+          isEnvironmentAp = ap -> ap.charAt(0) == 'i';
         }
 
         return environment -> (input, context) -> {
@@ -115,12 +110,13 @@ public final class Views {
           logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
             new Object[] {environmentAp,
               Collections2.filter(automaton.getVariables(), x -> !isEnvironmentAp.test(x))});
-          return Views.split(AutomatonUtil.cast(automaton, ParityAcceptance.class), environmentAp);
+          return GameViews
+            .split(AutomatonUtil.cast(automaton, ParityAcceptance.class), environmentAp);
         };
       }).build();
 
 
-  private Views() {}
+  private GameViews() {}
 
   public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
     Set<S> states) {
@@ -220,7 +216,7 @@ public final class Views {
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
       firstPlayer.forEach(x -> this.firstPlayer.set(automaton.getVariables().indexOf(x)));
-      secondPlayer = (BitSet) this.firstPlayer.clone();
+      secondPlayer = BitSets.copyOf(this.firstPlayer);
       secondPlayer.flip(0, automaton.getFactory().alphabetSize());
     }
 
@@ -255,7 +251,7 @@ public final class Views {
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
           ValuationSet valuationSet = factory.of(valuation, firstPlayer);
-          edges.add(LabelledEdge.of(node.choose((BitSet) valuation.clone()), valuationSet));
+          edges.add(LabelledEdge.of(node.choose(BitSets.copyOf(valuation)), valuationSet));
         }
       } else {
         // Second player completes the valuation, yielding a transition in the
@@ -264,15 +260,14 @@ public final class Views {
         for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
           ValuationSet valuationSet = factory.of(valuation, secondPlayer);
 
-          BitSet joined = (BitSet) valuation.clone();
+          BitSet joined = BitSets.copyOf(valuation);
           joined.or(node.firstPlayerChoice);
           Edge<S> edge = automaton.getEdge(node.state, joined);
           checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
             node.state, joined);
 
           // Lift the automaton edge to the game
-          Edge<Node<S>> successor =
-            edge.withSuccessor(new Node<>(edge.getSuccessor()));
+          Edge<Node<S>> successor = edge.withSuccessor(new Node<>(edge.getSuccessor()));
           edges.add(LabelledEdge.of(successor, valuationSet));
         }
       }
@@ -282,12 +277,12 @@ public final class Views {
 
     @Override
     public Owner getOwner(Node<S> state) {
-      return state.firstPlayerChoice == null ? Owner.PLAYER_1 : Owner.PLAYER_2;
+      return state.isFirstPlayersTurn() ? Owner.PLAYER_1 : Owner.PLAYER_2;
     }
 
     @Override
     public Set<Node<S>> getPredecessors(Node<S> node) {
-      if (node.firstPlayerChoice != null) {
+      if (!node.isFirstPlayersTurn()) {
         return Set.of(new Node<>(node.state));
       }
 
@@ -300,7 +295,7 @@ public final class Views {
 
         Node<S> predecessorNode = new Node<>(predecessor);
         valuationSet.forEach(set -> {
-          BitSet localSet = (BitSet) set.clone();
+          BitSet localSet = BitSets.copyOf(set);
           localSet.and(firstPlayer);
           predecessors.add(predecessorNode.choose(localSet));
         });
@@ -324,7 +319,7 @@ public final class Views {
         states.add(node);
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
-          states.add(node.choose((BitSet) valuation.clone()));
+          states.add(node.choose(BitSets.copyOf(valuation)));
         }
       });
 
@@ -354,7 +349,7 @@ public final class Views {
       checkArgument(state.firstPlayerChoice != null, "The state has no encoded choice.");
 
       if (owner == Owner.PLAYER_1) {
-        return (BitSet) state.firstPlayerChoice.clone();
+        return BitSets.copyOf(state.firstPlayerChoice);
       }
 
       return Iterables.getOnlyElement(getLabelledEdges(state)).valuations.any();
@@ -366,10 +361,10 @@ public final class Views {
    */
   public static final class Node<S> extends ImmutableObject {
     @Nullable
-    private final BitSet firstPlayerChoice;
+    final BitSet firstPlayerChoice;
     public final S state;
 
-    private Node(S state) {
+    Node(S state) {
       this(state, null);
     }
 
@@ -399,9 +394,13 @@ public final class Views {
       return firstPlayerChoice == null ? "1:" + state : "2" + firstPlayerChoice + ':' + state;
     }
 
-    private Node<S> choose(BitSet valuation) {
+    Node<S> choose(BitSet valuation) {
       assert firstPlayerChoice == null;
       return new Node<>(state, valuation);
+    }
+
+    boolean isFirstPlayersTurn() {
+      return firstPlayerChoice == null;
     }
   }
 }
