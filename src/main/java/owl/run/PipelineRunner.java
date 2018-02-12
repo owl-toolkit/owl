@@ -1,9 +1,15 @@
 package owl.run;
 
+import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -13,16 +19,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.run.modules.InputReader;
-import owl.run.modules.InputReader.InputReaderException;
+import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriter;
 import owl.run.modules.OutputWriter.Binding;
-import owl.run.modules.OutputWriter.OutputWriterException;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformer.Instance;
 import owl.run.modules.Transformers;
@@ -31,39 +37,51 @@ import owl.util.DaemonThreadFactory;
 /**
  * Helper class to execute a specific pipeline with created input and output streams.
  */
+@SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared",
+                    "PMD.SignatureDeclareThrowsException", "PMD.AvoidCatchingGenericException",
+                    "PMD.AvoidThrowingRawExceptionTypes"})
 public final class PipelineRunner {
   static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
 
   private PipelineRunner() {}
 
-  @SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared",
-                      "PMD.SignatureDeclareThrowsException", "PMD.AvoidCatchingGenericException"})
-  public static void run(Pipeline pipeline, Environment env, Callable<Reader> readerProvider,
-    Callable<Writer> writerProvider, int worker) throws Exception {
-    try (Reader reader = readerProvider.call();
-         Writer writer = writerProvider.call()) {
-      run(pipeline, env, reader, writer, worker);
-    }
+  public static void run(Pipeline pipeline, Environment env, ByteChannel channel, int worker)
+    throws Exception {
+    run(pipeline, env, channel, channel, worker);
   }
 
-  public static void run(Pipeline pipeline, Environment env, Reader reader, Writer writer,
-    int worker) throws IOException {
-
+  public static void run(Pipeline pipeline, Environment env, ReadableByteChannel inputChannel,
+    WritableByteChannel outputChannel, int worker) throws Exception {
     logger.log(Level.FINE, "Instantiating pipeline");
     InputReader inputReader = pipeline.input();
     List<Transformer.Instance> transformers = Transformers.build(pipeline.transformers(), env);
-    OutputWriter.Binding outputWriter = pipeline.output().bind(writer, env);
 
     logger.log(Level.FINE, "Running pipeline");
-    try (reader;
-         writer) {
+    try (inputChannel;
+         Writer writer = Channels.newWriter(outputChannel, StandardCharsets.UTF_8.name())) {
+      OutputWriter.Binding outputWriter = pipeline.output().bind(writer, env);
       if (worker == 0) {
-        SequentialRunner.run(env, inputReader, transformers, outputWriter, reader);
+        SequentialRunner.run(env, inputReader, transformers, outputWriter, inputChannel);
       } else {
         ParallelRunner runner = new ParallelRunner(env, inputReader, transformers, outputWriter,
-          reader, worker);
+          inputChannel, worker);
         runner.run();
       }
+    } catch (Exception t) {
+      // Unwrap the error as much as possible
+      Throwables.throwIfUnchecked(t);
+
+      Throwable ex = t;
+      while (ex instanceof ExecutionException) {
+        Throwable cause = ex.getCause();
+        if (cause == null) {
+          break;
+        }
+        ex = cause;
+      }
+
+      Throwables.throwIfInstanceOf(ex, Exception.class);
+      throw new RuntimeException(ex); // NOPMD
     } finally {
       transformers.forEach(Transformer.Instance::closeTransformer);
       env.shutdown();
@@ -73,50 +91,42 @@ public final class PipelineRunner {
   private static final class SequentialRunner {
     private SequentialRunner() {}
 
-    @SuppressWarnings({"ProhibitedExceptionThrown", "ProhibitedExceptionDeclared",
-                        "PMD.SignatureDeclareThrowsException", "PMD.AvoidCatchingGenericException",
-                        "PMD.PreserveStackTrace", "PMD.AvoidThrowingRawExceptionTypes"})
     static void run(Environment env, InputReader inputReader, List<Instance> transformers,
-      Binding outputWriter, Reader reader) throws IOException {
-      Consumer<Object> readerCallback = input -> {
+      Binding outputWriter, ReadableByteChannel inputChannel) throws Exception {
+      Consumer<Object> readerCallback = InputReaders.checkedCallback(input -> {
         logger.log(Level.FINEST, "Handling input {0}", input);
         long startTime = System.nanoTime();
         Object output = input;
 
-        try {
-          for (Instance transformer : transformers) {
-            SimpleExecutionContext context = new SimpleExecutionContext();
-            output = transformer.transform(output, context);
-            String meta = context.getWrittenString();
-            if (!meta.isEmpty()) {
-              logger.log(Level.FINE, () -> String.format("Module %s(%s) on input (%s):%n%s",
-                transformer, transformer.getClass().getSimpleName(), input, meta));
-            }
+        for (Instance transformer : transformers) {
+          SimpleExecutionContext context = new SimpleExecutionContext();
+          output = transformer.transform(output, context);
+          String meta = context.getWrittenString();
+          if (!meta.isEmpty()) {
+            logger.log(Level.FINE, () -> String.format("Module %s(%s) on input (%s):%n%s",
+              transformer, transformer.getClass().getSimpleName(), input, meta));
           }
-
-          long executionTime = System.nanoTime() - startTime;
-          logger.log(Level.FINE, () -> String.format(
-            "Execution of transformers for %s took %.2f sec.",
-            input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
-          outputWriter.write(output); // NOPMD False positive
-        } catch (Exception e) {
-          throw new RuntimeException(e);
         }
-      };
+
+        long executionTime = System.nanoTime() - startTime;
+        logger.log(Level.FINE, () -> String.format(
+          "Execution of transformers for %s took %.2f sec.",
+          input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
+        outputWriter.write(output);
+      });
 
       // Read from the input stream until it is exhausted or some error occurs.
-      try {
+      try (Reader reader = Channels.newReader(inputChannel, StandardCharsets.UTF_8.name())) {
         inputReader.run(reader, env, readerCallback);
         logger.log(Level.FINE, "Execution finished");
-      } catch (InputReaderException ex) {
-        throw new RuntimeException(ex.getCause());
       }
     }
   }
 
   private static final class ParallelRunner {
     // Error handling
-    private final AtomicReference<Throwable> firstError = new AtomicReference<>();
+    private final AtomicReference<Exception> firstError = new AtomicReference<>();
+    private final AtomicBoolean inputExhausted = new AtomicBoolean(false);
 
     // Threading
     private final Thread mainThread;
@@ -125,20 +135,19 @@ public final class PipelineRunner {
     // Pipeline
     private final Environment env;
     private final InputReader inputReader;
-    final List<Transformer.Instance> transformers;
+    final List<Transformer.Instance> transformers; // Accessed by the transformer callbacks
     private final OutputWriter.Binding outputWriter;
 
-    // Input stream
-    private final Reader reader;
+    // Input channel
+    private final ReadableByteChannel inputChannel;
 
     // Result Queue
     private final BlockingQueue<Future<?>> processingQueue = new LinkedBlockingQueue<>();
 
-    ParallelRunner(Environment env, InputReader inputReader,
-      List<Instance> transformers, Binding writer, Reader reader,
-      int worker) {
+    ParallelRunner(Environment env, InputReader inputReader, List<Instance> transformers,
+      OutputWriter.Binding writer, ReadableByteChannel inputChannel, int worker) {
       this.env = env;
-      this.reader = reader;
+      this.inputChannel = inputChannel;
       mainThread = Thread.currentThread();
 
       ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
@@ -152,48 +161,49 @@ public final class PipelineRunner {
       outputWriter = writer;
     }
 
-    @SuppressWarnings({"ProhibitedExceptionThrown", "PMD.AvoidCatchingGenericException",
-                        "PMD.AvoidThrowingRawExceptionTypes"})
-    void run() {
-      mainThread.setName("owl-writer");
+    void run() throws Exception {
       Thread readerThread = new Thread(mainThread.getThreadGroup(), this::read, "owl-reader");
+      readerThread.setDaemon(true);
+      // Make sure this thread doesn't die silently
+      readerThread.setUncaughtExceptionHandler((thread, exception) -> {
+        logger.log(Level.SEVERE, "Uncaught exception in reader thread!", exception);
+        System.exit(1);
+      });
       readerThread.start();
 
+      mainThread.setName("owl-writer");
       try {
-        write(readerThread);
-      } catch (OutputWriterException | IOException | RuntimeException e) {
-        onError(e);
-      }
-
-      logger.log(Level.FINE, "Execution finished");
-
-      @Nullable
-      Throwable error = firstError.get();
-      if (error != null) {
-        throw new RuntimeException(error);
-      }
-    }
-
-    @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    private void read() {
-      // Read from the input stream until it is exhausted or some error occurs.
-      try (Reader closingReader = reader) {
-        inputReader.run(closingReader, env,
-          input -> processingQueue.add(executor.submit(new TransformerExecution(input))));
-        logger.log(Level.FINE, "Input stream exhausted, waiting for termination");
-      } catch (InputReaderException | IOException | RuntimeException t) {
-        onError(t);
+        write();
+        logger.log(Level.FINE, "Execution finished");
       } finally {
-        mainThread.interrupt();
         executor.shutdown();
       }
+
+      @Nullable
+      Exception error = firstError.get();
+      if (error != null) {
+        throw error;
+      }
     }
 
-    private void write(Thread readerThread) throws IOException, OutputWriterException {
-      while (readerThread.isAlive() || !processingQueue.isEmpty()) {
+    private void read() {
+      // Read from the input stream until it is exhausted or some error occurs.
+      try (Reader reader = Channels.newReader(inputChannel, StandardCharsets.UTF_8.name())) {
+        inputReader.run(reader, env,
+          input -> processingQueue.add(executor.submit(new TransformerExecution(input))));
+        logger.log(Level.FINE, "Input stream exhausted, waiting for termination");
+      } catch (Exception t) {
+        onError(t);
+      } finally {
+        inputExhausted.set(true);
+        mainThread.interrupt();
+      }
+    }
+
+    private void write() {
+      while (!inputExhausted.get() || !processingQueue.isEmpty()) {
         // Wait for a future
         Future<?> first;
-
         try {
           first = processingQueue.take();
         } catch (InterruptedException ignored) {
@@ -202,42 +212,48 @@ public final class PipelineRunner {
 
         // Wait for the future to finish
         Object result;
-
         try {
           result = Uninterruptibles.getUninterruptibly(first);
         } catch (ExecutionException e) {
-          onError(e.getCause() == null ? e : e.getCause());
+          onError(e);
           break;
         }
 
         logger.log(Level.FINEST, "Got result {0} from queue", result);
         if (result == null) {
           assert hasError();
-          // Execution was stopped due to an error and the processing queue will be cleared anyway.
+          // Execution was stopped due to an error and the processing queue will be cleared.
           break;
         }
 
         // Serialize the result
         System.err.flush(); // Try to keep logging statements in front of the output
-        outputWriter.write(result);
+        try {
+          outputWriter.write(result);
+        } catch (Exception e) {
+          onError(e);
+          break;
+        }
       }
     }
 
-    private void onError(Throwable t) {
-      if (!firstError.compareAndSet(null, t)) {
+    private void onError(Exception e) {
+      logger.log(Level.FINE, "Got error:", e);
+      if (!firstError.compareAndSet(null, e)) {
         // Some other error occurred
         return;
       }
 
       // Don't care about any results
-      logger.log(Level.FINE, "Clearing queue after error");
+      logger.log(Level.FINER, "Clearing queue after error");
       processingQueue.forEach(future -> future.cancel(true));
       processingQueue.clear();
 
+      inputExhausted.set(true);
       try {
-        reader.close();
-      } catch (IOException e) {
-        logger.log(Level.INFO, "IOException while closing input stream after error", e);
+        inputChannel.close();
+      } catch (IOException ex) {
+        logger.log(Level.INFO, "IOException after closing input channel", ex);
       }
     }
 
@@ -254,7 +270,6 @@ public final class PipelineRunner {
 
       @Nullable
       @Override
-      @SuppressWarnings({"ProhibitedExceptionDeclared", "PMD.SignatureDeclareThrowsException"})
       public Object call() throws Exception {
         logger.log(Level.FINEST, "Handling input {0}", input);
         @SuppressWarnings("PMD.PrematureDeclaration")

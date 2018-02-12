@@ -1,6 +1,5 @@
 package owl.run.modules;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.util.function.Consumer;
 import owl.run.Environment;
@@ -18,12 +17,6 @@ import owl.run.Environment;
  */
 @FunctionalInterface
 public interface InputReader extends OwlModule {
-  void run(Reader reader, Environment env, Consumer<Object> callback)
-    throws IOException, InputReaderException;
-
-  class InputReaderException extends Exception {
-    public InputReaderException(Throwable cause) {
-      super(cause);
-    }
-  }
+  @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "ProhibitedExceptionDeclared"})
+  void run(Reader reader, Environment env, Consumer<Object> callback) throws Exception;
 }

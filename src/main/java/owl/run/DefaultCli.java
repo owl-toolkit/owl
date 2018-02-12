@@ -1,11 +1,10 @@
 package owl.run;
 
 import com.google.common.base.Strings;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
+import java.io.ByteArrayInputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,7 +19,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.parser.OwlParser;
-import owl.util.UncloseableWriter;
+import owl.util.GuardedStream;
 
 public final class DefaultCli {
   private DefaultCli() {}
@@ -55,7 +54,7 @@ public final class DefaultCli {
   }
 
   public static Callable<Void> build(CommandLine settings, Pipeline pipeline) {
-    Callable<Reader> reader;
+    Callable<ReadableByteChannel> reader;
     if (settings.hasOption("filein")) {
       String[] sources = settings.getOptionValues("filein");
       if (sources.length != 1) {
@@ -70,46 +69,51 @@ public final class DefaultCli {
       reader = createReader(settings.getArgList());
       settings.getArgList().clear();
     } else {
-      //noinspection resource,IOResourceOpenedButNotSafelyClosed
-      reader = () -> new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+      reader = createSystemReader();
     }
 
-    int workers;
-    if (settings.hasOption("worker")) {
-      Integer count = Integer.valueOf(settings.getOptionValue("worker"));
-      workers = count;
-      if (count < 0) {
-        throw RunUtil.failWithMessage("Negative worker count", null);
-      }
-    } else {
-      workers = 2;
+    int workers = settings.hasOption("worker")
+      ? Integer.parseInt(settings.getOptionValue("worker"))
+      : 0;
+    if (workers < 0) {
+      throw RunUtil.failWithMessage("Negative worker count", null);
     }
 
     String destination = settings.getOptionValue("fileout");
     @SuppressWarnings("resource")
-    Callable<Writer> writer = destination == null || "-".equals(destination)
-      ? () -> UncloseableWriter.sysout
-      : () -> Files.newBufferedWriter(Paths.get(destination), StandardOpenOption.APPEND,
-        StandardOpenOption.CREATE);
+    Callable<WritableByteChannel> writer = destination == null || "-".equals(destination)
+      ? () -> Channels.newChannel(GuardedStream.sysout)
+      : () -> Files.newByteChannel(Paths.get(destination),
+        StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 
     boolean annotations = RunUtil.checkDefaultAnnotationOption(settings);
     boolean parallel = RunUtil.checkDefaultParallelOption(settings);
     DefaultEnvironment env = DefaultEnvironment.of(annotations, false, parallel);
     return () -> {
-      PipelineRunner.run(pipeline, env, reader, writer, workers);
+      PipelineRunner.run(pipeline, env, reader.call(), writer.call(), workers);
       return null;
     };
   }
 
-  @SuppressWarnings("resource")
-  private static Callable<Reader> createReader(List<String> inputs) {
-    StringJoiner joiner = new StringJoiner(System.lineSeparator());
-    inputs.forEach(joiner::add);
-    return () -> new StringReader(joiner.toString());
+  private static Callable<ReadableByteChannel> createReader(List<String> inputs) {
+    return () -> {
+      StringJoiner joiner = new StringJoiner(System.lineSeparator());
+      inputs.forEach(joiner::add);
+      byte[] bytes = joiner.toString().getBytes(StandardCharsets.UTF_8);
+      return Channels.newChannel(new ByteArrayInputStream(bytes));
+    };
   }
 
-  @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
-  private static Callable<Reader> createReaderFromPath(String source) {
-    return () -> Files.newBufferedReader(Paths.get(source));
+  @SuppressWarnings("resource")
+  private static Callable<ReadableByteChannel> createReaderFromPath(String source) {
+    if (source.trim().equals("-")) {
+      return createSystemReader();
+    }
+    return () -> Files.newByteChannel(Paths.get(source), StandardOpenOption.READ);
+  }
+
+  @SuppressWarnings("resource")
+  private static Callable<ReadableByteChannel> createSystemReader() {
+    return () -> Channels.newChannel(System.in);
   }
 }

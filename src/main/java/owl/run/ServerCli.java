@@ -92,5 +92,4 @@ public final class ServerCli {
 
     RunUtil.execute(build(parseResult.globalSettings, parseResult.pipeline));
   }
-
 }

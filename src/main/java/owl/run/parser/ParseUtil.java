@@ -12,7 +12,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import owl.run.modules.OwlModuleParser;
 import owl.run.modules.OwlModuleRegistry;
-import owl.util.UncloseableWriter;
+import owl.util.GuardedStream;
 
 final class ParseUtil {
   public static final Comparator<OwlModuleParser<?>> MODULE_COMPARATOR =
@@ -105,7 +105,7 @@ final class ParseUtil {
   }
 
   private static void printGuarded(Consumer<PrintWriter> print) {
-    try (PrintWriter pw = new PrintWriter(UncloseableWriter.syserr)) {
+    try (PrintWriter pw = new PrintWriter(GuardedStream.syserr)) {
       print.accept(pw);
     }
   }
