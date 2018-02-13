@@ -4,7 +4,7 @@ import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import java.util.Arrays;
+import de.tum.in.naturals.Arrays2;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -92,8 +92,8 @@ final class MonitorBuilderNoAcceptance {
     // We start with the (q0, bot, bot, ...) ranking
     MonitorState initialState = new MonitorState(new EquivalenceClass[] {initialClass});
 
-    MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
-      .create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
+    MutableAutomaton<MonitorState, ParityAcceptance> monitor =
+      MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
     monitor.setName(String.format("Monitor for %s", initialClass));
     monitor.addState(initialState);
     monitor.setInitialState(initialState);
@@ -165,12 +165,8 @@ final class MonitorBuilderNoAcceptance {
     }
 
     // If there were some removed classes, compact the array, otherwise take it as is
-    EquivalenceClass[] trimmedSuccessorRanking =
-      successorRankingSize < successorRanking.length
-        ? Arrays.copyOf(successorRanking, successorRankingSize)
-        : successorRanking;
-
-    return Edge.of(new MonitorState(trimmedSuccessorRanking));
+    successorRanking = Arrays2.trim(successorRanking, successorRankingSize);
+    return Edge.of(new MonitorState(successorRanking));
   }
 
   private Edge<MonitorState> getSuccessorSafety(MonitorState currentState, BitSet valuation) {

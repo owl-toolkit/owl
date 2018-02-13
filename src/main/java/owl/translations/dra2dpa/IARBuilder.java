@@ -8,8 +8,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.Automaton;
@@ -26,6 +26,7 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -76,6 +77,11 @@ public final class IARBuilder<R> {
     logger.log(Level.FINEST, () -> "Input automaton is\n" + AutomatonUtil.toHoa(rabinAutomaton));
 
     Set<RabinPair> rabinPairs = ImmutableSet.copyOf(rabinAutomaton.getAcceptance().getPairs());
+    if (rabinPairs.isEmpty()) {
+      IARState<R> state = IARState.trivial(rabinAutomaton.getInitialStates().iterator().next());
+      return AutomatonFactory.singleton(state, rabinAutomaton.getFactory(),
+        new ParityAcceptance(1, Parity.MIN_ODD), Collections.singleton(0));
+    }
 
     // Start analysis
     List<Set<R>> rabinSccs = SccDecomposition.computeSccs(rabinAutomaton);
@@ -92,13 +98,13 @@ public final class IARBuilder<R> {
 
     // Wait till all executions are finished
 
+    logger.log(Level.FINE, "Waiting for completion");
     ImmutableMultimap.Builder<R, LabelledEdge<R>> interSccConnectionsBuilder =
       ImmutableMultimap.builder();
     int completedSccs = 0;
     int maximalSubAutomatonPriority = 0;
     while (completedSccs < rabinSccs.size()) {
       try {
-        logger.log(Level.FINE, "Waiting for completion");
         Future<SccProcessingResult<R>> currentResultFuture = completionService.take();
         assert currentResultFuture.isDone();
 
@@ -122,35 +128,25 @@ public final class IARBuilder<R> {
     ImmutableMultimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();
 
     // Arbitrary correspondence map
-    Map<R, IARState<R>> rabinToIarStateMap =
-      Maps.newHashMapWithExpectedSize(rabinAutomaton.getStates().size());
-    resultAutomaton.getStates().forEach(iarState ->
+    Map<R, IARState<R>> rabinToIarStateMap = Maps.newHashMapWithExpectedSize(rabinAutomaton.size());
+    resultAutomaton.forEachState(iarState ->
       rabinToIarStateMap.put(iarState.getOriginalState(), iarState));
     assert Objects.equals(rabinToIarStateMap.keySet(), rabinAutomaton.getStates());
 
     logger.log(Level.FINE, "Connecting the SCCs");
 
     // Connect all SCCs back together
-    for (IARState<R> iarState : resultAutomaton.getStates()) {
-      R rabinState = iarState.getOriginalState();
-
-      for (LabelledEdge<R> labelledEdge : interSccConnections.get(rabinState)) {
-        R successorState = labelledEdge.edge.getSuccessor();
-        assert rabinToIarStateMap.containsKey(successorState) :
-          String.format("No successor present for %s", successorState);
+    resultAutomaton.forEachState(iarState ->
+      interSccConnections.get(iarState.getOriginalState()).forEach(labelledEdge -> {
+        IARState<R> successor = rabinToIarStateMap.get(labelledEdge.edge.getSuccessor());
         // TODO instead of 0 we should use any which is actually used
-        Edge<IARState<R>> iarEdge = Edge.of(rabinToIarStateMap.get(successorState), 0);
+        Edge<IARState<R>> iarEdge = Edge.of(successor, 0);
         resultAutomaton.addEdge(iarState, labelledEdge.valuations, iarEdge);
-      }
-    }
+      }));
 
-    ImmutableSet.Builder<IARState<R>> initialStateBuilder = ImmutableSet.builder();
-
-    for (R initialRabinState : rabinAutomaton.getInitialStates()) {
-      initialStateBuilder.add(rabinToIarStateMap.get(initialRabinState));
-    }
-
-    resultAutomaton.setInitialStates(initialStateBuilder.build());
+    resultAutomaton.setInitialStates(rabinAutomaton.getInitialStates().stream()
+      .map(rabinToIarStateMap::get)
+      .collect(ImmutableSet.toImmutableSet()));
     resultAutomaton.getAcceptance().setAcceptanceSets(maximalSubAutomatonPriority + 1);
     assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
 
@@ -160,27 +156,16 @@ public final class IARBuilder<R> {
   private SccProcessingResult<R> getTrivialSccResult(Set<R> simpleScc,
     Multimap<R, LabelledEdge<R>> interSccConnections) {
     // TODO If it is bottom, we can just replace it by single rejecting state
-    Map<R, IARState<R>> mapping = new HashMap<>(simpleScc.size());
-    simpleScc.forEach(rabinState -> mapping.put(rabinState, IARState.trivial(rabinState)));
-
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
       MutableAutomatonFactory.create(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
 
-    for (Map.Entry<R, IARState<R>> iarStateEntry : mapping.entrySet()) {
-      R rabinState = iarStateEntry.getKey();
-      IARState<R> iarState = iarStateEntry.getValue();
-      Collection<LabelledEdge<R>> successors = rabinAutomaton.getLabelledEdges(rabinState);
-      for (LabelledEdge<R> labelledEdge : successors) {
-        R successor = labelledEdge.edge.getSuccessor();
-        IARState<R> successorIARState = mapping.get(successor);
-        if (successorIARState == null) {
-          // The transition leads outside of the SCC
-          continue;
-        }
-        Edge<IARState<R>> iarEdge = Edge.of(successorIARState, 0);
-        resultTransitionSystem.addEdge(iarState, labelledEdge.valuations, iarEdge);
-      }
-    }
+    Views.filter(rabinAutomaton, simpleScc).forEachLabelledEdge((rabinState, edge, valuations) -> {
+      IARState<R> iarState = IARState.trivial(rabinState);
+      R successor = edge.getSuccessor();
+      Edge<IARState<R>> iarEdge = Edge.of(IARState.trivial(successor), 0);
+      resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
+    });
+
     // Arbitrary initial state to have nice logging
     resultTransitionSystem.setInitialState(resultTransitionSystem.getStates().iterator().next());
 
@@ -188,40 +173,34 @@ public final class IARBuilder<R> {
   }
 
   private SccProcessingResult<R> processScc(Set<R> scc, Set<RabinPair> rabinPairs) {
+    assert !rabinPairs.isEmpty();
     Set<RabinPair> remainingPairsToCheck = new HashSet<>(rabinPairs);
     ImmutableMultimap.Builder<R, LabelledEdge<R>> interSccConnectionsBuilder =
       ImmutableMultimap.builder();
 
-    boolean sccHasALoop = false;
-    boolean seenAnyInfSet = false;
-    boolean seenAllInfSets = false;
+    AtomicBoolean sccHasALoop = new AtomicBoolean(false);
+    AtomicBoolean seenAnyInfSet = new AtomicBoolean(false);
+    AtomicBoolean seenAllInfSets = new AtomicBoolean(false);
 
     // Analyse the SCC
     // TODO This could be done while doing Tarjan
-    for (R state : scc) {
-      for (LabelledEdge<R> labelledEdge : rabinAutomaton.getLabelledEdges(state)) {
-        Edge<R> edge = labelledEdge.edge;
-        if (scc.contains(edge.getSuccessor())) {
-          // This transition is inside this scc
-          sccHasALoop = true;
-          if (seenAllInfSets) {
-            continue;
-          }
-          // Check which of the Inf sets is active here
-          // N.B. |= does not short-circuit
-          seenAnyInfSet |= remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infSet()));
-          // When remaining is create, have seen all sets
-          seenAllInfSets = remainingPairsToCheck.isEmpty();
-        } else {
-          // This transition leads outside the SCC
-          interSccConnectionsBuilder.put(state, labelledEdge);
+    scc.forEach(state -> rabinAutomaton.forEachLabelledEdge(state, (edge, valuations) -> {
+      if (scc.contains(edge.getSuccessor())) {
+        // This transition is inside this scc
+        sccHasALoop.lazySet(true);
+        if (remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infSet()))) {
+          seenAnyInfSet.lazySet(true);
+          seenAllInfSets.lazySet(remainingPairsToCheck.isEmpty());
         }
+      } else {
+        // This transition leads outside the SCC
+        interSccConnectionsBuilder.put(state, LabelledEdge.of(edge, valuations));
       }
-    }
+    }));
 
     Multimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();
 
-    if (!sccHasALoop) {
+    if (!sccHasALoop.get()) {
       // SCC has no transition inside, it's a transient one
       checkState(scc.size() == 1);
       R transientSccState = scc.iterator().next();
@@ -230,14 +209,14 @@ public final class IARBuilder<R> {
         AutomatonFactory.singleton(iarState, vsFactory, NoneAcceptance.INSTANCE));
     }
 
-    if (!seenAnyInfSet) {
+    if (!seenAnyInfSet.get()) {
       // The SCC has some internal structure, but no transitions are relevant for acceptance
       return getTrivialSccResult(scc, interSccConnections);
     }
 
     Set<RabinPair> activeRabinPairs;
 
-    if (seenAllInfSets) {
+    if (seenAllInfSets.get()) {
       activeRabinPairs = ImmutableSet.copyOf(rabinPairs);
     } else {
       activeRabinPairs = Sets.difference(rabinPairs, remainingPairsToCheck).immutableCopy();

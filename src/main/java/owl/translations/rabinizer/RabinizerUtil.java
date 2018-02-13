@@ -66,10 +66,8 @@ final class RabinizerUtil {
     }
 
     Set<GOperator> operators = new HashSet<>();
-
-    for (Formula formula : equivalenceClass.getSupport()) {
-      operators.addAll(Collector.collectGOperators(formula));
-    }
+    equivalenceClass.getSupport().forEach(formula ->
+      operators.addAll(Collector.collectGOperators(formula)));
 
     return operators;
   }

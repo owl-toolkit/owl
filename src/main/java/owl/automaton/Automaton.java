@@ -87,6 +87,10 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     getStates().forEach(x -> forEachLabelledEdge(x, (y, z) -> action.accept(x, y, z)));
   }
 
+  default void forEachState(Consumer<S> action) {
+    getStates().forEach(action);
+  }
+
   /**
    * Returns the acceptance condition of this automaton.
    *

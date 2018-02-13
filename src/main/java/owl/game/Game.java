@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,7 +98,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
           b.set(index);
         }
         index++;
-        value = value >>> 1;
+        value >>>= 1;
       }
       encoding.put(state, b);
       iState += 1;
@@ -105,9 +106,9 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
     // create a list of LabelledAigs for the latches and outputs
     List<LabelledAig> latches = Lists.newArrayList(
-      Collections3.repeat(factory.getFalse(), nLatches));
+      Collections.nCopies(nLatches, factory.getFalse()));
     List<LabelledAig> outputs = Lists.newArrayList(
-      Collections3.repeat(factory.getFalse(), outputNames.size()));
+      Collections.nCopies(outputNames.size(), factory.getFalse()));
 
     // iterate through labelled edges to create latch and output formulas
     for (S player2State : getStates(Owner.PLAYER_2)) {

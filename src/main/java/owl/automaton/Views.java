@@ -95,7 +95,9 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Set<S> states) {
-    return new FilteredAutomaton<>(automaton, states, x -> true);
+    // TODO Add option to pass initial states too - maybe FilterBuilder pattern?
+    // Note: FilteredAutomaton always adds the "successor is in states"-edge-filter.
+    return new FilteredAutomaton<>(automaton, states, e -> true);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,

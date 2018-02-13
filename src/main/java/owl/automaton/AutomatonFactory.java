@@ -18,6 +18,7 @@
 package owl.automaton;
 
 import com.google.common.collect.ImmutableList;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Map;
@@ -27,7 +28,6 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -93,7 +93,6 @@ public final class AutomatonFactory {
     private final A acceptance;
     private final ValuationSetFactory factory;
     private final Collection<LabelledEdge<S>> selfLoopEdges;
-    private final ValuationSet selfLoopValuations;
     private final S singletonState;
 
     SingletonAutomaton(S singletonState, ValuationSetFactory factory,
@@ -104,12 +103,11 @@ public final class AutomatonFactory {
 
       ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
       acceptances.forEach((edgeAcceptance, valuations) -> {
-        Edge<S> edge = Edge.of(singletonState, Collections3.toBitSet(edgeAcceptance));
+        Edge<S> edge = Edge.of(singletonState, BitSets.of(edgeAcceptance));
         builder.add(LabelledEdge.of(edge, valuations));
       });
 
       this.selfLoopEdges = builder.build();
-      this.selfLoopValuations = factory.union(selfLoopEdges.stream().map(x -> x.valuations));
     }
 
     @Override

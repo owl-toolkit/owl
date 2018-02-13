@@ -4,7 +4,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Table;
 import de.tum.in.naturals.IntPreOrder;
@@ -17,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -26,6 +26,7 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
@@ -33,7 +34,6 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.transformations.ParityUtil;
 import owl.factories.ValuationSetFactory;
 
 /**
@@ -54,16 +54,16 @@ final class SccIARBuilder<R> {
   private final RabinPair[] indexToPair;
   private final ImmutableSet<R> initialRabinStates;
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
-  private final ImmutableSet<R> restriction;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final BitSet usedPriorities;
 
   private SccIARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton,
-    ImmutableSet<R> initialRabinStates, ImmutableSet<R> restriction,
-    ImmutableSet<RabinPair> trackedPairs) {
-    this.initialRabinStates = initialRabinStates;
+    ImmutableSet<R> initialRabinStates, ImmutableSet<RabinPair> trackedPairs) {
+    assert SccDecomposition.computeSccs(rabinAutomaton, initialRabinStates).size() == 1;
+    assert rabinAutomaton.containsStates(initialRabinStates);
+
     this.rabinAutomaton = rabinAutomaton;
-    this.restriction = restriction;
+    this.initialRabinStates = initialRabinStates;
     this.usedPriorities = new BitSet(trackedPairs.size() * 2);
     this.usedPriorities.set(0);
 
@@ -84,12 +84,12 @@ final class SccIARBuilder<R> {
 
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,
     Set<R> initialStates, Set<R> restriction, Set<RabinPair> trackedPairs) {
-    return new SccIARBuilder<>(rabinAutomaton, ImmutableSet.copyOf(initialStates),
-      ImmutableSet.copyOf(restriction), ImmutableSet.copyOf(trackedPairs));
+    return new SccIARBuilder<>(Views.filter(rabinAutomaton, restriction),
+      ImmutableSet.copyOf(initialStates), ImmutableSet.copyOf(trackedPairs));
   }
 
   Automaton<IARState<R>, ParityAcceptance> build() {
-    assert initialRabinStates.stream().noneMatch(this::isStateRestricted);
+    assert initialRabinStates.stream().allMatch(rabinAutomaton::containsState);
     logger.log(Level.FINE, "Building IAR automaton");
 
     Set<IARState<R>> initialStates = getInitialStates();
@@ -97,26 +97,16 @@ final class SccIARBuilder<R> {
     logger.log(Level.FINEST, "Starting state space generation from {0}", initialStates);
 
     AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, initialStates, state -> {
-      logger.log(Level.FINER, "Computing successors of {0}", state);
-
       // Compute the successors of the current state
       R rabinState = state.getOriginalState();
-
       IntPreOrder currentRecord = state.getRecord();
-      Collection<LabelledEdge<R>> rabinSuccessors = rabinAutomaton.getLabelledEdges(rabinState);
 
       // Iterate over each edge
-      Set<LabelledEdge<IARState<R>>> successors = new HashSet<>(rabinSuccessors.size());
-      for (LabelledEdge<R> rabinLabelledEdge : rabinSuccessors) {
-        Edge<R> rabinEdge = rabinLabelledEdge.edge;
-        R rabinSuccessor = rabinEdge.getSuccessor();
-        if (isStateRestricted(rabinSuccessor)) {
-          logger.log(Level.FINEST, "Successor {0} is prohibited, ignoring it", rabinSuccessor);
-          continue;
-        }
+      Set<LabelledEdge<IARState<R>>> successors = new HashSet<>();
+      rabinAutomaton.forEachLabelledEdge(rabinState, (rabinEdge, valuations) -> {
         Edge<IARState<R>> iarEdge = computeSuccessorEdge(currentRecord, rabinEdge);
-        successors.add(LabelledEdge.of(iarEdge, rabinLabelledEdge.valuations));
-      }
+        successors.add(LabelledEdge.of(iarEdge, valuations));
+      });
       return successors;
     });
 
@@ -124,20 +114,17 @@ final class SccIARBuilder<R> {
 
     optimizeSuccessorRecord();
     optimizeInitialStates();
-    ParityUtil.minimizePriorities(resultAutomaton);
 
     int maximalUsedPriority = getMaximalUsedPriority();
     resultAutomaton.getAcceptance().setAcceptanceSets(maximalUsedPriority + 1);
     logger.log(Level.FINER, "Built automaton with {0} states and {1} priorities for input "
-      + "automaton with {2} states and {3} pairs", new Object[] {
-      resultAutomaton.size(), maximalUsedPriority, getRelevantStates().size(),
-      numberOfTrackedPairs()});
-
+      + "automaton with {2} states and {3} pairs", new Object[] {resultAutomaton.size(),
+      maximalUsedPriority, rabinAutomaton.size(), numberOfTrackedPairs()});
     return resultAutomaton;
   }
 
   private boolean checkGeneratedStates() {
-    Set<R> stateSet = getRelevantStates();
+    Set<R> stateSet = rabinAutomaton.getStates();
     Set<R> exploredRabinStates = resultAutomaton.getStates().stream()
       .map(IARState::getOriginalState)
       .collect(Collectors.toSet());
@@ -175,24 +162,13 @@ final class SccIARBuilder<R> {
 
   private Set<IARState<R>> getInitialStates() {
     IntPreOrder initialRecord = IntPreOrder.coarsest(numberOfTrackedPairs());
-
-    ImmutableSet.Builder<IARState<R>> initialStateBuilder = ImmutableSet.builder();
-    for (R initialRabinState : initialRabinStates) {
-      initialStateBuilder.add(IARState.active(initialRabinState, initialRecord));
-    }
-    return initialStateBuilder.build();
+    return initialRabinStates.stream()
+      .map(initialRabinState -> IARState.active(initialRabinState, initialRecord))
+      .collect(ImmutableSet.toImmutableSet());
   }
 
   private int getMaximalUsedPriority() {
     return usedPriorities.length() - 1;
-  }
-
-  private Set<R> getRelevantStates() {
-    return restriction;
-  }
-
-  private boolean isStateRestricted(R state) {
-    return !restriction.contains(state);
   }
 
   private int numberOfTrackedPairs() {
@@ -204,7 +180,7 @@ final class SccIARBuilder<R> {
 
     // Iterate in reverse topological order - the "best" SCCs should be further down the ordering
     List<Set<IARState<R>>> sccs = Lists.reverse(SccDecomposition.computeSccs(resultAutomaton));
-    int rabinStateCount = getRelevantStates().size();
+    int rabinStateCount = rabinAutomaton.size();
 
     // We want to find the "optimal" SCC for each initial state. If we find a maximal SCC, we remove
     // the state from the search.
@@ -226,13 +202,13 @@ final class SccIARBuilder<R> {
       potentialInitialStates.clear();
 
       // Gather all the rabin states in this SCC and see which initial states could be mapped here
-      for (IARState<R> sccState : scc) {
+      scc.forEach(sccState -> {
         R originalState = sccState.getOriginalState();
         rabinStatesInScc.add(originalState);
         if (initialStatesToSearch.contains(originalState)) {
           potentialInitialStates.put(originalState, sccState);
         }
-      }
+      });
 
       if (potentialInitialStates.isEmpty()) {
         // This SCC does not contain any initial states - No point in continuing the search
@@ -276,7 +252,7 @@ final class SccIARBuilder<R> {
     Set<IARState<R>> unknownStates = new HashSet<>();
     // States which are not refined by any other state
     Set<IARState<R>> topElements = new HashSet<>();
-    for (R rabinState : rabinAutomaton.getStates()) {
+    rabinAutomaton.forEachState(rabinState -> {
       assert topElements.isEmpty() && unknownStates.isEmpty();
       unknownStates.addAll(iarStates.row(rabinState).values());
       // Found refinements (mapping a particular record to its refining state)
@@ -320,22 +296,20 @@ final class SccIARBuilder<R> {
       // Strategy: For each non-top value, search a top value which refines it (has to exist)
 
       Map<IntPreOrder, IARState<R>> refinementReplacement = new HashMap<>();
-      for (Map.Entry<IntPreOrder, IARState<R>> refinementEntry :
-        foundRefinements.entrySet()) {
-        IARState<R> refiningState = refinementEntry.getValue();
-        if (topElements.contains(refiningState)) {
-          continue;
-        }
 
-        Optional<IARState<R>> refiningTopElement = topElements.parallelStream().filter(
-          topElement -> topElement.getRecord().refines(refiningState.getRecord())).findAny();
-        assert refiningTopElement.isPresent();
-        refinementReplacement.put(refinementEntry.getKey(), refiningTopElement.get());
-      }
+      foundRefinements.forEach((order, refiningState) -> {
+        if (topElements.contains(refiningState)) {
+          return;
+        }
+        IARState<R> refiningTopElement = topElements.parallelStream()
+          .filter(topElement -> topElement.getRecord().refines(refiningState.getRecord()))
+          .findAny().orElseThrow(AssertionError::new);
+        refinementReplacement.put(order, refiningTopElement);
+      });
       foundRefinements.putAll(refinementReplacement);
 
       topElements.clear();
-    }
+    });
 
     // Now each refined state is mapped to a top refining state. Remap all edges to their refined
     // destination.
@@ -344,74 +318,40 @@ final class SccIARBuilder<R> {
       logger.log(Level.FINE, "No refinements found");
     } else {
       if (logger.isLoggable(Level.FINEST)) {
-        StringBuilder refinementTableStringBuilder = new StringBuilder("Refinements:\n");
-        Iterator<R> rabinStateIterator = rabinAutomaton.getStates().iterator();
-        while (rabinStateIterator.hasNext()) {
-          R rabinState = rabinStateIterator.next();
-          Map<IntPreOrder, IARState<R>> foundRefinements = refinementTable.row(rabinState);
-          if (foundRefinements.isEmpty()) {
-            continue;
+        StringBuilder stringBuilder = new StringBuilder("Refinements:");
+        rabinAutomaton.forEachState(rabinState -> {
+          Map<IntPreOrder, IARState<R>> refinements = refinementTable.row(rabinState);
+          if (refinements.isEmpty()) {
+            return;
           }
-          refinementTableStringBuilder.append(rabinState).append(":\n");
-          Multimap<IARState<R>, IntPreOrder> inverseRefinements =
-            Multimaps.invertFrom(Multimaps.forMap(foundRefinements), ArrayListMultimap.create());
-          Iterator<Map.Entry<IARState<R>, Collection<IntPreOrder>>> refinementIterator =
-            inverseRefinements.asMap().entrySet().iterator();
-
-          while (refinementIterator.hasNext()) {
-            Map.Entry<IARState<R>, Collection<IntPreOrder>> entry = refinementIterator.next();
-            refinementTableStringBuilder.append("  ").append(entry.getKey().getRecord())
-              .append(" <- ");
-
-            Iterator<IntPreOrder> refinementMappingIterator = entry.getValue().iterator();
-            while (refinementMappingIterator.hasNext()) {
-              IntPreOrder refinedRecord = refinementMappingIterator.next();
-              refinementTableStringBuilder.append(refinedRecord);
-              if (refinementMappingIterator.hasNext()) {
-                refinementTableStringBuilder.append(' ');
-              }
-            }
-            if (refinementIterator.hasNext()) {
-              refinementTableStringBuilder.append('\n');
-            }
-          }
-          if (rabinStateIterator.hasNext()) {
-            refinementTableStringBuilder.append('\n');
-          }
-        }
-        logger.log(Level.FINEST, refinementTableStringBuilder.toString());
+          stringBuilder.append('\n').append(rabinState).append(':');
+          Map<IARState<R>, Collection<IntPreOrder>> inverse =
+            Multimaps.invertFrom(Multimaps.forMap(refinements), ArrayListMultimap.create()).asMap();
+          inverse.forEach((iarState, stateRefinements) -> {
+            stringBuilder.append("\n  ").append(iarState.getRecord()).append(" <-");
+            stateRefinements.forEach(refinement -> stringBuilder.append(' ').append(refinement));
+          });
+        });
+        logger.log(Level.FINEST, stringBuilder.toString());
         logger.log(Level.FINEST, "Automaton before refinement:\n{0}",
           AutomatonUtil.toHoa(resultAutomaton));
       }
 
-      // Update initial states
-      Set<IARState<R>> newInitialStates = new HashSet<>(initialRabinStates.size());
-      for (IARState<R> initialState : resultAutomaton.getInitialStates()) {
-        // For each initial state, pick its refinement (if there is any)
-        IARState<R> refinedInitialState =
-          refinementTable.get(initialState.getOriginalState(), initialState.getRecord());
-        if (refinedInitialState == null) {
-          newInitialStates.add(initialState);
-        } else {
-          newInitialStates.add(refinedInitialState);
-        }
-      }
-      resultAutomaton.setInitialStates(newInitialStates);
+      // Update initial states, for each initial state, pick its refinement (if there is any)
+      resultAutomaton.setInitialStates(resultAutomaton.getInitialStates().stream()
+        .map(initialState -> {
+          IARState<R> refinedInitialState =
+            refinementTable.get(initialState.getOriginalState(), initialState.getRecord());
+          return Objects.requireNonNullElse(refinedInitialState, initialState);
+        }).collect(ImmutableSet.toImmutableSet()));
 
       // Update edges
-      resultAutomaton.remapEdges(resultAutomaton.getStates(), (state, edge) -> {
+      resultAutomaton.remapEdges((state, edge) -> {
         // For each edge, pick the refined successor (if there is a refinement)
         IARState<R> successor = edge.getSuccessor();
-        R originalSuccessorState = successor.getOriginalState();
-        IARState<R> refinedSuccessor =
-          refinementTable.get(originalSuccessorState, successor.getRecord());
-
-        // This successor is a top state - don't change the edge
-        if (refinedSuccessor == null) {
-          return edge;
-        }
-
-        return edge.withSuccessor(refinedSuccessor);
+        R rabinSuccessor = successor.getOriginalState();
+        IARState<R> refinedSuccessor = refinementTable.get(rabinSuccessor, successor.getRecord());
+        return refinedSuccessor == null ? edge : edge.withSuccessor(refinedSuccessor);
       });
 
       // Remove stale states
