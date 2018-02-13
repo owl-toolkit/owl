@@ -31,6 +31,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -133,7 +134,8 @@ public final class HoaConsumerExtended<S> {
       return;
     }
 
-    IntArrayList acceptanceSets = new IntArrayList(accSets);
+    IntArrayList acceptanceSets = new IntArrayList();
+    accSets.forEachRemaining((IntConsumer) acceptanceSets::add);
     if (options.contains(SIMPLE_TRANSITION_LABELS)) {
       label.forEach(bitSet -> addEdgeBackend(toLabel(bitSet), end, acceptanceSets));
     } else {
@@ -146,8 +148,9 @@ public final class HoaConsumerExtended<S> {
   }
 
   public void addEdge(Edge<? extends S> edge, BitSet label) {
-    addEdgeBackend(toLabel(label), edge.getSuccessor(),
-      new IntArrayList(edge.acceptanceSetIterator()));
+    IntArrayList accSets = new IntArrayList();
+    edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
+    addEdgeBackend(toLabel(label), edge.getSuccessor(), accSets);
   }
 
   public void addEdge(Edge<? extends S> edge, ValuationSet label) {

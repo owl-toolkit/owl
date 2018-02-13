@@ -39,7 +39,7 @@ public final class LabelledAig {
 
   @Override
   public int hashCode() {
-    return Objects.hash(aig, isNegated);
+    return aig.hashCode() ^ Boolean.hashCode(isNegated);
   }
 
   @Override
