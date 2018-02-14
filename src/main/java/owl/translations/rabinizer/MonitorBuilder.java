@@ -195,7 +195,8 @@ final class MonitorBuilder {
       = ImmutableMap.builder();
     for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = monitorAutomata[contextIndex];
-      monitor.getAcceptance().setAcceptanceSets(maximalPriority[contextIndex] + 1);
+      int sets = maximalPriority[contextIndex];
+      monitor.updateAcceptance(x -> x.setAcceptanceSets(sets + 1));
       builder.put(relevantSets[contextIndex], monitor);
 
       assert monitor.is(Property.DETERMINISTIC) : String.format(

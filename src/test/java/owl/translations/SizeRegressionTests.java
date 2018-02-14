@@ -18,6 +18,7 @@
 package owl.translations;
 
 import static org.junit.Assert.assertThat;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
@@ -212,6 +213,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class Breakpoint extends DPA {
       static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(
+        COMPRESS_COLOURS,
         OPTIMISE_INITIAL_STATE,
         Configuration.OPTIMISED_STATE_STRUCTURE, // NOPMD
         EXISTS_SAFETY_CORE);
@@ -230,6 +232,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @RunWith(Parameterized.class)
     public static class BreakpointFree extends DPA {
       static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(GUESS_F,
+        COMPRESS_COLOURS,
         OPTIMISE_INITIAL_STATE,
         Configuration.OPTIMISED_STATE_STRUCTURE, // NOPMD
         EXISTS_SAFETY_CORE);

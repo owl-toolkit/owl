@@ -19,6 +19,7 @@ package owl.automaton.acceptance;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -33,24 +34,28 @@ import owl.automaton.edge.Edge;
  * acceptance without any pairs rejects every word.
  */
 public final class RabinAcceptance extends GeneralizedRabinAcceptance {
-  public RabinAcceptance() {
-    this(0);
+  private RabinAcceptance(List<RabinPair> pairs) {
+    super(pairs);
+
+    // Check consistency.
+    checkArgument(getAcceptanceSets() == 2 * this.pairs.size());
+    for (RabinPair pair : this.pairs) {
+      checkArgument(pair.finSet() + 1 == pair.infSet());
+    }
   }
 
-  public RabinAcceptance(int n) {
-    for (int i = 0; i < n; i++) {
-      createPair();
-    }
+  public static RabinAcceptance of(List<RabinPair> pairs) {
+    return new RabinAcceptance(pairs);
+  }
+
+  public static RabinAcceptance of(RabinPair... pairs) {
+    return of(List.of(pairs));
   }
 
   public static RabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
-    RabinAcceptance acceptance = new RabinAcceptance();
+    Builder builder = new Builder();
 
-    if (expression.getType() == BooleanExpression.Type.EXP_FALSE) {
-      // Empty rabin acceptance
-      return acceptance;
-    }
-
+    int setCount = 0;
     for (BooleanExpression<AtomAcceptance> pair : BooleanExpressions.getDisjuncts(expression)) {
       int fin = -1;
       int inf = -1;
@@ -60,11 +65,19 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
 
         switch (atom.getType()) {
           case TEMPORAL_FIN:
+            checkArgument(fin == -1);
             fin = atom.getAcceptanceSet();
+            checkArgument(fin == setCount);
+            setCount++;
             break;
+
           case TEMPORAL_INF:
+            checkArgument(inf == -1);
             inf = atom.getAcceptanceSet();
+            checkArgument(inf == setCount);
+            setCount++;
             break;
+
           default:
             throw new IllegalArgumentException("Rabin Acceptance not well-formed.");
         }
@@ -72,20 +85,10 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
 
       checkArgument(fin >= 0);
       checkArgument(inf >= 0);
-      acceptance.createPair(1);
+      builder.add();
     }
 
-    return acceptance;
-  }
-
-  public RabinPair createPair() {
-    return createPair(1);
-  }
-
-  @Override
-  public RabinPair createPair(int infSets) {
-    checkArgument(infSets == 1, "Rabin Acceptance.");
-    return super.createPair(infSets);
+    return builder.build();
   }
 
   @Override
@@ -103,15 +106,19 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
     return edge.largestAcceptanceSet() < 2 * pairs.size();
   }
 
-  @Override
-  protected boolean assertConsistent() {
-    super.assertConsistent();
-    assert getAcceptanceSets() == 2 * pairs.size();
+  public static final class Builder {
+    private final ImmutableList.Builder<RabinPair> pairs = new ImmutableList.Builder<>(); // NOPMD
+    private int sets = 0;
 
-    for (RabinPair pair : pairs) {
-      assert pair.finSet() + 1 == pair.infSet();
+    public RabinPair add() {
+      RabinPair pair = new RabinPair(sets, sets + 1);
+      pairs.add(pair);
+      sets += 2;
+      return pair;
     }
 
-    return true;
+    public RabinAcceptance build() {
+      return of(pairs.build());
+    }
   }
 }

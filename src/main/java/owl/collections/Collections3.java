@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
-import java.util.AbstractCollection;
+import java.util.AbstractList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
@@ -59,8 +59,8 @@ public final class Collections3 {
     return true;
   }
 
-  public static <E> Collection<E> concat(Collection<E> collection1, Collection<E> collection2) {
-    return new AbstractCollection<>() {
+  public static <E> List<E> concat(List<E> collection1, List<E> collection2) {
+    return new AbstractList<>() {
       @Override
       public boolean contains(Object o) {
         return collection1.contains(o) || collection2.contains(o);
@@ -69,6 +69,15 @@ public final class Collections3 {
       @Override
       public boolean isEmpty() {
         return collection1.isEmpty() && collection2.isEmpty();
+      }
+
+      @Override
+      public E get(int index) {
+        if (collection1.size() > index) {
+          return collection1.get(index);
+        }
+
+        return collection2.get(index - collection1.size());
       }
 
       @Override

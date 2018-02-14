@@ -86,10 +86,10 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     // General setup, allocate used pairs, the result automaton, etc.
     int trackedPairsCount = trackedPairs.size();
     int rabinCount = trackedPairsCount + noInfPairs.size();
-    RabinAcceptance degeneralizedAcceptance = new RabinAcceptance();
+    RabinAcceptance.Builder builder = new RabinAcceptance.Builder();
     RabinAcceptance.RabinPair[] rabinPairs = new RabinAcceptance.RabinPair[rabinCount];
     for (int i = 0; i < rabinPairs.length; i++) {
-      rabinPairs[i] = degeneralizedAcceptance.createPair();
+      rabinPairs[i] = builder.add();
     }
 
     // Arbitrary correspondence map for each original state
@@ -99,7 +99,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
-      MutableAutomatonFactory.create(degeneralizedAcceptance, automaton.getFactory());
+      MutableAutomatonFactory.create(builder.build(), automaton.getFactory());
 
     // Build the transition structure for each SCC separately
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, true)) {

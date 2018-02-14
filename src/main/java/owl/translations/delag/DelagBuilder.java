@@ -30,7 +30,7 @@ import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
-import owl.automaton.acceptance.GenericAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
@@ -118,7 +118,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
     State<T> initialState = new State<>(initialProduct,
       getHistory(null, new BitSet(), initialProduct));
 
-    GenericAcceptance acceptance = new GenericAcceptance(sets, expression);
+    EmersonLeiAcceptance acceptance = new EmersonLeiAcceptance(sets, expression);
     return AutomatonFactory.createStreamingAutomaton(acceptance, initialState,
       factories.vsFactory, (x, y) -> this.getSuccessor(tree, x, y));
   }

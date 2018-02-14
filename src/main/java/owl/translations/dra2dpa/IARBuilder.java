@@ -157,7 +157,8 @@ public final class IARBuilder<R> {
     resultAutomaton.setInitialStates(rabinAutomaton.getInitialStates().stream()
       .map(rabinToIarStateMap::get)
       .collect(ImmutableSet.toImmutableSet()));
-    resultAutomaton.getAcceptance().setAcceptanceSets(maximalSubAutomatonPriority + 1);
+    int sets = maximalSubAutomatonPriority + 1;
+    resultAutomaton.updateAcceptance(x -> x.setAcceptanceSets(sets));
     assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
 
     return resultAutomaton;

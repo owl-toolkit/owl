@@ -116,7 +116,7 @@ final class SccIARBuilder<R> {
     optimizeInitialStates();
 
     int maximalUsedPriority = getMaximalUsedPriority();
-    resultAutomaton.getAcceptance().setAcceptanceSets(maximalUsedPriority + 1);
+    resultAutomaton.updateAcceptance(x -> x.setAcceptanceSets(maximalUsedPriority + 1));
     logger.log(Level.FINER, "Built automaton with {0} states and {1} priorities for input "
       + "automaton with {2} states and {3} pairs", new Object[] {resultAutomaton.size(),
       maximalUsedPriority, rabinAutomaton.size(), numberOfTrackedPairs()});
@@ -346,7 +346,7 @@ final class SccIARBuilder<R> {
         }).collect(ImmutableSet.toImmutableSet()));
 
       // Update edges
-      resultAutomaton.remapEdges((state, edge) -> {
+      resultAutomaton.updateEdges((state, edge) -> {
         // For each edge, pick the refined successor (if there is a refinement)
         IARState<R> successor = edge.getSuccessor();
         R rabinSuccessor = successor.getOriginalState();

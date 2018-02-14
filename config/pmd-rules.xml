@@ -6,6 +6,7 @@
     <description>RuleSet for owl</description>
 
     <rule ref="category/java/bestpractices.xml">
+        <exclude name="AccessorMethodGeneration"/>
         <exclude name="UseVarargs"/>
         <exclude name="GuardLogStatement"/>
         <exclude name="JUnit4TestShouldUseTestAnnotation"/>

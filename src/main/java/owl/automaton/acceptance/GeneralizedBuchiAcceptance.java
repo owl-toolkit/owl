@@ -30,8 +30,12 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   @Nonnegative
   public final int size;
 
-  public GeneralizedBuchiAcceptance(int size) {
+  GeneralizedBuchiAcceptance(int size) {
     this.size = size;
+  }
+
+  public static GeneralizedBuchiAcceptance of(int size) {
+    return new GeneralizedBuchiAcceptance(size);
   }
 
   @Override

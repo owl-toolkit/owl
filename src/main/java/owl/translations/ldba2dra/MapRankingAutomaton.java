@@ -33,13 +33,12 @@ public final class MapRankingAutomaton {
         && ldba.getInitialComponent().getInitialStates().size() == 1,
       "Exactly one initial state expected.");
 
-    GeneralizedRabinAcceptance acceptance =
-      ldba.getAcceptingComponent().getAcceptance().getAcceptanceSets() == 1
-      ? new RabinAcceptance()
-      : new GeneralizedRabinAcceptance();
 
     Builder<S, T, A, L, ?, ?> builder = new Builder<>(ldba, resetAfterSccSwitch, lattice,
-      isAcceptingState, acceptance);
+      isAcceptingState, (Class)
+      (ldba.getAcceptingComponent().getAcceptance().getAcceptanceSets() == 1
+       ? RabinAcceptance.class
+       : GeneralizedRabinAcceptance.class));
 
     Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton = AutomatonFactory
       .createStreamingAutomaton(builder.acceptance, builder.initialState,
@@ -59,14 +58,26 @@ public final class MapRankingAutomaton {
     final MapRankingState<S, A, T> initialState;
 
     Builder(LimitDeterministicAutomaton<S, T, B, A> ldba, boolean resetAfterSccSwitch,
-      LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, R acceptance) {
+      LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, Class<R> acceptanceClass) {
       super(ldba, lattice, isAcceptingState, resetAfterSccSwitch);
       logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
-      this.acceptance = acceptance;
       pairs = new HashMap<>();
-      int infSets = ldba.getAcceptingComponent().getAcceptance().getAcceptanceSets();
-      sortingOrder.forEach(x -> pairs.put(x, acceptance.createPair(infSets)));
-      truePair = acceptance.createPair(1);
+
+      if (acceptanceClass.equals(RabinAcceptance.class)) {
+        RabinAcceptance.Builder builder = new RabinAcceptance.Builder();
+        sortingOrder.forEach(x -> pairs.put(x, builder.add()));
+        truePair = builder.add();
+        acceptance = (R) builder.build();
+      } else if (acceptanceClass.equals(GeneralizedRabinAcceptance.class)) {
+        GeneralizedRabinAcceptance.Builder builder = new GeneralizedRabinAcceptance.Builder();
+        int infSets = ldba.getAcceptingComponent().getAcceptance().getAcceptanceSets();
+        sortingOrder.forEach(x -> pairs.put(x, builder.add(infSets)));
+        truePair = builder.add(0);
+        acceptance = (R) builder.build();
+      } else {
+        throw new AssertionError();
+      }
+
       initialState = buildEdge(ldba.getInitialComponent().getInitialState(), Map.of(), null)
         .getSuccessor();
     }
@@ -74,7 +85,11 @@ public final class MapRankingAutomaton {
     Edge<MapRankingState<S, A, T>> buildEdge(S state, Map<A, T> previousRanking,
       @Nullable BitSet valuation) {
       if (isAcceptingState.test(state)) {
-        return Edge.of(MapRankingState.of(state), truePair.infSet());
+        if (truePair.hasInfSet()) {
+          return Edge.of(MapRankingState.of(state), truePair.infSet());
+        }
+
+        return Edge.of(MapRankingState.of(state));
       }
 
       Map<A, T> ranking = new HashMap<>();

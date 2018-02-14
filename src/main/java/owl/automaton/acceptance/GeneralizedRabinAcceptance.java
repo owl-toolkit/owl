@@ -23,13 +23,10 @@ import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
 import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
 import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
 
-import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
-import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -48,36 +45,52 @@ import owl.automaton.edge.Edge;
  * exactly one Fin/Inf atom.</p>
  */
 public class GeneralizedRabinAcceptance extends OmegaAcceptance {
-  private final Object mutex = new Object();
+
   final List<RabinPair> pairs;
-
-  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   @Nonnegative
-  private int setCount = 0;
+  private final int setCount;
 
-  public GeneralizedRabinAcceptance() {
-    pairs = new ArrayList<>();
-  }
+  GeneralizedRabinAcceptance(List<RabinPair> pairs) {
+    this.pairs = ImmutableList.copyOf(pairs);
+    this.setCount = computeSetCount(this.pairs);
 
-  protected boolean assertConsistent() {
+    // Check consistency.
     int i = 0;
 
-    for (RabinPair pair : pairs) {
-      assert i == pair.finIndex;
-      assert pair.finIndex <= pair.infIndex;
+    for (RabinPair pair : this.pairs) {
+      checkArgument(i == pair.finIndex);
+      checkArgument(pair.finIndex <= pair.infIndex);
       i = pair.infIndex + 1;
     }
 
-    assert i == setCount;
-    return true;
+    checkArgument(i == setCount);
+  }
+
+  private int computeSetCount(List<RabinPair> pairs) {
+    int count = 0;
+
+    for (RabinPair pair : pairs) {
+      count += pair.infSetCount() + 1;
+    }
+
+    return count;
+  }
+
+  public static GeneralizedRabinAcceptance of(RabinPair... pairs) {
+    return of(List.of(pairs));
+  }
+
+  public static GeneralizedRabinAcceptance of(List<RabinPair> pairs) {
+    return new GeneralizedRabinAcceptance(pairs);
   }
 
   public static GeneralizedRabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
-    GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
+    Builder builder = new Builder();
+    int setCount = 0;
 
     for (BooleanExpression<AtomAcceptance> dis : getDisjuncts(expression)) {
       int fin = -1;
-      IntSortedSet inf = new IntAVLTreeSet();
+      int infSets = 0;
 
       for (BooleanExpression<AtomAcceptance> element : getConjuncts(dis)) {
         AtomAcceptance atom = element.getAtom();
@@ -86,37 +99,26 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
           case TEMPORAL_FIN:
             checkArgument(fin == -1);
             fin = atom.getAcceptanceSet();
+            checkArgument(fin == setCount);
             break;
+
           case TEMPORAL_INF:
-            inf.add(atom.getAcceptanceSet());
+            checkArgument(fin + infSets + 1 == atom.getAcceptanceSet());
+            infSets++;
             break;
+
           default:
-            assert false;
-            break;
+            throw new IllegalArgumentException("Generalized-Rabin Acceptance not well-formed.");
         }
+
+        setCount++;
       }
 
-      // TODO: This validation is not complete.
       checkArgument(fin != -1);
-      checkArgument(fin == acceptance.setCount);
-      checkArgument(inf.isEmpty() || inf.lastInt() - inf.firstInt() == inf.size() - 1);
-      checkArgument(inf.isEmpty() || fin == inf.firstInt() - 1);
-      acceptance.createPair(inf.size());
+      builder.add(infSets);
     }
 
-    assert acceptance.assertConsistent();
-    return acceptance;
-  }
-
-  public RabinPair createPair(@Nonnegative int infSets) {
-    synchronized (mutex) {
-      int finIndex = setCount;
-      setCount += 1 + infSets;
-      RabinPair pair = new RabinPair(finIndex, finIndex + infSets);
-      pairs.add(pair);
-      assert assertConsistent();
-      return pair;
-    }
+    return builder.build();
   }
 
   @Override
@@ -153,61 +155,63 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
    * @return The rabin pairs of this acceptance condition
    */
   public List<RabinPair> getPairs() {
-    return Collections.unmodifiableList(pairs);
+    return pairs;
   }
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    synchronized (mutex) {
-      return edge.largestAcceptanceSet() < setCount;
-    }
+    return edge.largestAcceptanceSet() < setCount;
   }
 
-  public void removeIndices(IntPredicate removalPredicate) {
-    synchronized (mutex) {
-      assert assertConsistent();
-      int removedIndices = 0;
-      Iterator<RabinPair> iterator = pairs.iterator();
-      while (iterator.hasNext()) {
-        RabinPair pair = iterator.next();
+  public GeneralizedRabinAcceptance filter(IntPredicate predicate) {
+    List<RabinPair> newPairs = new ArrayList<>(pairs.size());
+    int removedIndices = 0;
 
-        if (removalPredicate.test(pair.finIndex)) {
-          iterator.remove();
-          removedIndices += pair.infSetCount() + 1;
-        } else {
-          int removedInfIndices = 0;
+    for (RabinPair pair : pairs) {
+      if (predicate.test(pair.finIndex)) {
+        removedIndices += pair.infSetCount() + 1;
+      } else {
+        int removedInfIndices = 0;
 
-          for (int i = pair.finIndex + 1; i <= pair.infIndex; i++) {
-            if (removalPredicate.test(i)) {
-              removedInfIndices++;
-            }
+        for (int i = pair.finIndex + 1; i <= pair.infIndex; i++) {
+          if (predicate.test(i)) {
+            removedInfIndices++;
           }
-
-          assert pair.finIndex >= removedIndices;
-          assert pair.infIndex >= removedIndices + removedInfIndices;
-
-          pair.finIndex -= removedIndices;
-          pair.infIndex -= removedIndices + removedInfIndices;
-          removedIndices += removedInfIndices;
         }
+
+        assert pair.finIndex >= removedIndices;
+        assert pair.infIndex >= removedIndices + removedInfIndices;
+
+        newPairs.add(new RabinPair(pair.finIndex - removedIndices,
+          pair.infIndex - (removedIndices + removedInfIndices)));
+        removedIndices += removedInfIndices;
       }
-      setCount -= removedIndices;
-      assert assertConsistent();
     }
+
+    return new GeneralizedRabinAcceptance(newPairs);
   }
 
   public static final class RabinPair {
     @Nonnegative
-    int finIndex;
+    final int finIndex;
+
     @Nonnegative
     // All indices in the interval ]finIndex, infIndex] are considered inf.
-    int infIndex;
+    final int infIndex;
 
     RabinPair(@Nonnegative int finIndex, int infIndex) {
       assert finIndex >= 0;
       assert infIndex >= finIndex;
       this.finIndex = finIndex;
       this.infIndex = infIndex;
+    }
+
+    public static RabinPair of(@Nonnegative int finIndex) {
+      return ofGeneralized(finIndex, 1);
+    }
+
+    public static RabinPair ofGeneralized(@Nonnegative int finIndex, @Nonnegative int infSets) {
+      return new RabinPair(finIndex, finIndex + infSets);
     }
 
     public boolean contains(Edge<?> edge) {
@@ -291,6 +295,22 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     @Override
     public String toString() {
       return "(" + finIndex + ", " + infIndex + ')';
+    }
+  }
+
+  public static final class Builder {
+    private final ImmutableList.Builder<RabinPair> pairs = new ImmutableList.Builder<>();
+    private int sets = 0;
+
+    public RabinPair add(@Nonnegative int infSets) {
+      RabinPair pair = new RabinPair(sets, sets + infSets);
+      pairs.add(pair);
+      sets += 1 + infSets;
+      return pair;
+    }
+
+    public GeneralizedRabinAcceptance build() {
+      return of(pairs.build());
     }
   }
 }
