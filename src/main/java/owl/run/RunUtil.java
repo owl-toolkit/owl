@@ -56,14 +56,17 @@ public final class RunUtil {
   public static void execute(Callable<Void> runner) {
     try {
       runner.call();
+    } catch (PipelineException e) {
+      logger.log(Level.FINE, "Error during execution", e);
+      System.err.println(e.getMessage());
     } catch (Exception e) {
       // Only FINE since we explicitly log to System.err
       logger.log(Level.FINE, "Error during execution", e);
       if (e.getMessage() == null) {
-        System.err.printf("An unspecified error occurred (type: %s)%n",
+        System.err.printf("An unexpected error of type %s occurred during execution%n",
           e.getClass().getSimpleName());
       } else {
-        System.err.printf("An error occurred during execution: %s%n", e.getMessage());
+        System.err.printf("An unexpected error occurred during execution: %s%n", e.getMessage());
       }
     }
   }

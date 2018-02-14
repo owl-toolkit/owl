@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,7 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
+import owl.run.PipelineException;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -72,7 +74,7 @@ public final class IARBuilder<R> {
       .build());
   }
 
-  public Automaton<IARState<R>, ParityAcceptance> build() throws ExecutionException {
+  public Automaton<IARState<R>, ParityAcceptance> build() {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
     logger.log(Level.FINEST, () -> "Input automaton is\n" + AutomatonUtil.toHoa(rabinAutomaton));
 
@@ -104,25 +106,33 @@ public final class IARBuilder<R> {
     int completedSccs = 0;
     int maximalSubAutomatonPriority = 0;
     while (completedSccs < rabinSccs.size()) {
+      Future<SccProcessingResult<R>> currentResultFuture;
       try {
-        Future<SccProcessingResult<R>> currentResultFuture = completionService.take();
-        assert currentResultFuture.isDone();
-
-        SccProcessingResult<R> result = currentResultFuture.get();
-
-        Automaton<IARState<R>, ?> subAutomaton = result.subAutomaton;
-        OmegaAcceptance subAutomatonAcceptance = subAutomaton.getAcceptance();
-        if (subAutomatonAcceptance instanceof ParityAcceptance) {
-          maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
-            subAutomatonAcceptance.getAcceptanceSets() - 1);
-        }
-        interSccConnectionsBuilder.putAll(result.interSccConnections);
-        resultAutomaton.addAll(subAutomaton);
-        completedSccs += 1;
+        logger.log(Level.FINE, "Waiting for completion");
+        currentResultFuture = completionService.take();
       } catch (InterruptedException e) {
         // TODO Stop if environment.isStopped()
         logger.log(Level.FINE, "Interrupted", e);
+        continue;
       }
+      assert currentResultFuture.isDone();
+
+      SccProcessingResult<R> result;
+      try {
+        result = Uninterruptibles.getUninterruptibly(currentResultFuture);
+      } catch (ExecutionException e) {
+        throw PipelineException.propagate(e);
+      }
+
+      Automaton<IARState<R>, ?> subAutomaton = result.subAutomaton;
+      OmegaAcceptance subAutomatonAcceptance = subAutomaton.getAcceptance();
+      if (subAutomatonAcceptance instanceof ParityAcceptance) {
+        maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
+          subAutomatonAcceptance.getAcceptanceSets() - 1);
+      }
+      interSccConnectionsBuilder.putAll(result.interSccConnections);
+      resultAutomaton.addAll(subAutomaton);
+      completedSccs += 1;
     }
 
     ImmutableMultimap<R, LabelledEdge<R>> interSccConnections = interSccConnectionsBuilder.build();

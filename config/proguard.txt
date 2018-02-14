@@ -2,4 +2,6 @@
 -dontobfuscate
 -dontoptimize
 
--keep class owl.**
+-keep class owl.** {
+  *;
+}

@@ -1,5 +1,6 @@
 package owl.run.modules;
 
+import com.google.common.base.Throwables;
 import com.google.common.io.CharStreams;
 import com.google.common.io.LineProcessor;
 import java.io.Reader;
@@ -11,12 +12,15 @@ import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.HOAFParserSettings;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.transformations.ToTransitionAcceptance;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.automaton.AutomatonReader;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 import owl.run.Environment;
+import owl.run.PipelineException;
 import owl.run.modules.OwlModuleParser.ReaderParser;
 
 public final class InputReaders {
@@ -51,7 +55,12 @@ public final class InputReaders {
           return true;
         }
 
-        LabelledFormula formula = LtlParser.parse(line);
+        LabelledFormula formula;
+        try {
+          formula = LtlParser.parse(line);
+        } catch (RecognitionException | ParseCancellationException e) {
+          throw new PipelineException("Failed to parse LTL formula " + line, e);
+        }
         logger.log(Level.FINE, "Read formula {0} from line {1}", new Object[] {formula, line});
         callback.accept(formula);
         return true;
@@ -74,6 +83,19 @@ public final class InputReaders {
     .description("Parses a single TLSF instance and converts it to an LTL formula")
     .parser(settings -> TLSF).build();
 
+  @SuppressWarnings({"ProhibitedExceptionThrown","PMD.AvoidCatchingGenericException",
+                      "PMD.AvoidThrowingRawExceptionTypes"})
+  public static Consumer<Object> checkedCallback(CheckedCallback consumer) {
+    return input -> {
+      try {
+        consumer.accept(input);
+      } catch (Exception e) {
+        Throwables.throwIfUnchecked(e);
+        throw new RuntimeException(e);
+      }
+    };
+  }
+
   private InputReaders() {}
 
   public static final class HoaReader implements InputReader {
@@ -90,16 +112,20 @@ public final class InputReaders {
     }
 
     @Override
-    public void run(Reader reader, Environment env, Consumer<Object> callback)
-      throws InputReaderException {
+    public void run(Reader reader, Environment env, Consumer<Object> callback) {
       HOAConsumerFactory factory = () ->
         new ToTransitionAcceptance(AutomatonReader.getConsumer(callback, env.factorySupplier()));
-
       try {
         HOAFParser.parseHOA(reader, factory, hoafParserSettings);
       } catch (ParseException e) {
-        throw new InputReaderException(e);
+        throw new PipelineException("Failed to parse input automaton", e);
       }
     }
+  }
+
+  @SuppressWarnings({"ProhibitedExceptionDeclared", "PMD.SignatureDeclareThrowsException"})
+  @FunctionalInterface
+  public interface CheckedCallback {
+    void accept(Object input) throws Exception;
   }
 }
