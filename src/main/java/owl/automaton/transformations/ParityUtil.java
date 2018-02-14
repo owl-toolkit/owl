@@ -68,9 +68,9 @@ public final class ParityUtil {
         @Nullable
         Boolean toMax;
         if (settings.hasOption("max")) {
-          toMax = true;
+          toMax = Boolean.TRUE;
         } else if (settings.hasOption("min")) {
-          toMax = false;
+          toMax = Boolean.FALSE;
         } else {
           toMax = null;
         }
@@ -78,9 +78,9 @@ public final class ParityUtil {
         @Nullable
         Boolean toEven;
         if (settings.hasOption("even")) {
-          toEven = true;
+          toEven = Boolean.TRUE;
         } else if (settings.hasOption("odd")) {
-          toEven = false;
+          toEven = Boolean.FALSE;
         } else {
           toEven = null;
         }
