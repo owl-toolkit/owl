@@ -52,7 +52,7 @@ abstract class DependencyTree<T> {
 
   @SuppressWarnings("ClassReferencesSubclass")
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
-    Supplier<? extends Automaton<T, ?>> fallback,
+    Supplier<Automaton<T, ?>> fallback,
     @Nullable AtomAcceptance piggyback) {
     if (Fragments.isCoSafety(formula)) {
       if (piggyback == null) {
@@ -171,18 +171,18 @@ abstract class DependencyTree<T> {
       T fallbackState = state.productState.fallback.get(formula);
 
       if (fallbackState == null) {
-        builder.finished.put(this, Boolean.FALSE);
+        builder.addFinished(this, Boolean.FALSE);
         return Boolean.FALSE;
       }
 
       Edge<T> edge = automaton.getEdge(fallbackState, valuation);
 
       if (edge == null) {
-        builder.finished.put(this, Boolean.FALSE);
+        builder.addFinished(this, Boolean.FALSE);
         return Boolean.FALSE;
       }
 
-      builder.fallback.put(formula, edge.getSuccessor());
+      builder.addFallback(formula, edge.getSuccessor());
       return null;
     }
 
@@ -284,7 +284,7 @@ abstract class DependencyTree<T> {
       Boolean value = state.productState.finished.get(this);
 
       if (value != null) {
-        builder.finished.put(this, value);
+        builder.addFinished(this, value);
         return value;
       }
 
@@ -293,16 +293,16 @@ abstract class DependencyTree<T> {
           .temporalStepUnfold(valuation);
 
         if (successor.isFalse()) {
-          builder.finished.put(this, Boolean.FALSE);
+          builder.addFinished(this, Boolean.FALSE);
           return Boolean.FALSE;
         }
 
         if (successor.isTrue()) {
-          builder.finished.put(this, Boolean.TRUE);
+          builder.addFinished(this, Boolean.TRUE);
           return Boolean.TRUE;
         }
 
-        builder.safety.put(formula, successor);
+        builder.addSafety(formula, successor);
         return null;
       }
 
@@ -394,7 +394,7 @@ abstract class DependencyTree<T> {
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
       if (state.productState.finished.containsKey(this)) {
-        builder.finished.put(this, state.productState.finished.get(this));
+        builder.addFinished(this, state.productState.finished.get(this));
         return state.productState.finished.get(this);
       }
 
@@ -406,7 +406,7 @@ abstract class DependencyTree<T> {
         Boolean result = child.buildSuccessor(state, valuation, childBuilder);
 
         if (result != null && shortCircuit(result)) {
-          builder.finished.put(this, result);
+          builder.addFinished(this, result);
           return result;
         }
 
@@ -422,11 +422,11 @@ abstract class DependencyTree<T> {
       assert consensus != null : "Children list was empty!";
 
       if (consensus.isPresent()) {
-        builder.finished.put(this, consensus.get());
+        builder.addFinished(this, consensus.get());
         return consensus.get();
       }
 
-      builder.putAll(childBuilder);
+      builder.merge(childBuilder);
       return null;
     }
 

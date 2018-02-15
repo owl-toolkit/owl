@@ -27,11 +27,9 @@ final class RabinizerProductEdge {
       // TODO Maybe we don't want to do this?
       successorAcceptance = Arrays.copyOf(successorAcceptance, acceptance + 1);
     }
-
-    ValuationSet old = successorAcceptance[acceptance];
-    successorAcceptance[acceptance] = old == null
-      ? valuations
-      : old.getFactory().union(old, valuations);
+    successorAcceptance[acceptance] = successorAcceptance[acceptance] == null
+        ? valuations
+        : valuations.union(successorAcceptance[acceptance]);
   }
 
   void addAcceptance(ValuationSet valuations, IntSet acceptanceSet) {

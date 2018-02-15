@@ -17,7 +17,6 @@
 
 package owl.ltl;
 
-import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,53 +28,102 @@ import owl.factories.EquivalenceClassFactory;
  * EquivalenceClass interface. The general contract of this interface is: If two implementing
  * objects were created from different factories, implies and equals have to return {@code false}.
  */
-public interface EquivalenceClass {
-  EquivalenceClass[] EMPTY_ARRAY = new EquivalenceClass[0];
+public class EquivalenceClass {
+  public static final EquivalenceClass[] EMPTY_ARRAY = new EquivalenceClass[0];
 
-  EquivalenceClass and(EquivalenceClass equivalenceClass);
+  private final EquivalenceClassFactory factory;
+  @Nullable
+  private final Formula representative;
 
-  EquivalenceClass exists(Predicate<Formula> predicate);
+  protected EquivalenceClass(EquivalenceClassFactory factory, @Nullable Formula representative) {
+    this.factory = factory;
+    this.representative = representative;
+  }
 
-  void freeRepresentative();
+
+  @Nullable
+  public final Formula getRepresentative() {
+    return representative;
+  }
+
+  public final EquivalenceClassFactory getFactory() {
+    return factory;
+  }
+
+
+  public final boolean isFalse() {
+    return equals(factory.getFalse());
+  }
+
+  public final boolean isTrue() {
+    return equals(factory.getTrue());
+  }
+
 
   /**
    * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
    */
-  BitSet getAtoms();
-
-  EquivalenceClassFactory getFactory();
-
-  @Nullable
-  Formula getRepresentative();
+  public final BitSet getAtoms() {
+    return factory.getAtoms(this);
+  }
 
   /**
    * Compute the support of the EquivalenceClass.
    *
    * @return All literals and modal operators this equivalence class depends on.
    */
-  Set<Formula> getSupport();
-
-  default Set<Formula> getSupport(Predicate<Formula> predicate) {
-    return Sets.filter(getSupport(), predicate::test);
+  public final Set<Formula> getSupport() {
+    return factory.getSupport(this);
   }
 
-  boolean implies(EquivalenceClass equivalenceClass);
+  public final Set<Formula> getSupport(Predicate<Formula> predicate) {
+    return factory.getSupport(this, predicate);
+  }
 
-  boolean isFalse();
+  public final boolean testSupport(Predicate<Formula> predicate) {
+    return factory.testSupport(this, predicate);
+  }
 
-  boolean isTrue();
+  public final boolean implies(EquivalenceClass other) {
+    return factory.implies(this, other);
+  }
 
-  EquivalenceClass or(EquivalenceClass equivalenceClass);
 
-  EquivalenceClass substitute(Function<? super Formula, ? extends Formula> substitution);
+  public final EquivalenceClass and(EquivalenceClass other) {
+    return factory.conjunction(this, other);
+  }
 
-  EquivalenceClass temporalStep(BitSet valuation);
+  public final EquivalenceClass or(EquivalenceClass other) {
+    return factory.disjunction(this, other);
+  }
 
-  EquivalenceClass temporalStepUnfold(BitSet valuation);
+  public final EquivalenceClass exists(Predicate<Formula> predicate) {
+    return factory.exists(this, predicate);
+  }
 
-  boolean testSupport(Predicate<Formula> predicate);
+  public final EquivalenceClass substitute(
+    Function<? super Formula, ? extends Formula> substitution) {
+    return factory.substitute(this, substitution);
+  }
 
-  EquivalenceClass unfold();
+  public final EquivalenceClass temporalStep(BitSet valuation) {
+    return factory.temporalStep(this, valuation);
+  }
 
-  EquivalenceClass unfoldTemporalStep(BitSet valuation);
+  public final EquivalenceClass temporalStepUnfold(BitSet valuation) {
+    return factory.temporalStepUnfold(this, valuation);
+  }
+
+  public final EquivalenceClass unfold() {
+    return factory.unfold(this);
+  }
+
+  public final EquivalenceClass unfoldTemporalStep(BitSet valuation) {
+    return factory.unfoldTemporalStep(this, valuation);
+  }
+
+  @Override
+  public final String toString() {
+    return factory.toString(this);
+  }
 }

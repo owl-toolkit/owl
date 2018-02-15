@@ -84,23 +84,17 @@ public class RabinizerBuilder {
   static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
 
   private final RabinizerConfiguration configuration;
-  private final Environment env;
   private final EquivalenceClassFactory eqFactory;
   private final EquivalenceClass initialClass;
   private final MasterStateFactory masterStateFactory;
   private final ProductStateFactory productStateFactory;
   private final ValuationSetFactory vsFactory;
 
-  RabinizerBuilder(Environment env, RabinizerConfiguration configuration, Factories factories,
-    Formula formula) {
+  RabinizerBuilder(RabinizerConfiguration configuration, Factories factories, Formula formula) {
     EquivalenceClass initialClass = factories.eqFactory.of(formula);
 
-    this.env = env;
     this.configuration = configuration;
     this.initialClass = initialClass;
-    if (!env.annotations()) {
-      initialClass.freeRepresentative();
-    }
     boolean fairnessFragment = configuration.eager() && initialClass.testSupport(support ->
       Fragments.isInfinitelyOften(support) || Fragments.isAlmostAll(support));
 
@@ -134,16 +128,11 @@ public class RabinizerBuilder {
         int priority = edge.smallestAcceptanceSet();
         assert priority == edge.largestAcceptanceSet();
 
-        ValuationSet oldValuations = edgePriorities[priority];
-        if (oldValuations == null) {
-          // Need to free again later on
-          edgePriorities[priority] = valuations;
-        } else {
-          // This happens if the monitor has two different transitions but the same acceptance
-          ValuationSetFactory vsFactory = oldValuations.getFactory();
-          edgePriorities[priority] = vsFactory.union(oldValuations, valuations);
-        }
+        edgePriorities[priority] = edgePriorities[priority] == null
+            ? valuations
+            : valuations.union(edgePriorities[priority]);
       });
+
       monitorPriorities[relevantIndex] = edgePriorities;
     }
     return monitorPriorities;
@@ -207,10 +196,10 @@ public class RabinizerBuilder {
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
 
-    String formulaString = PrintVisitor.toString(phi, factories.eqFactory.getVariables());
+    String formulaString = PrintVisitor.toString(phi, factories.eqFactory.variables());
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      new RabinizerBuilder(env, configuration, factories, phi).build();
+      new RabinizerBuilder(configuration, factories, phi).build();
     rabinizerAutomaton.setName("Rabinizer automaton for " + formulaString);
     return rabinizerAutomaton;
   }
@@ -546,9 +535,6 @@ public class RabinizerBuilder {
     logger.log(Level.FINE, "Building monitor for sub-formula {0}", gOperator);
 
     EquivalenceClass operand = eqFactory.of(gOperator.operand);
-    if (!env.annotations()) {
-      operand.freeRepresentative();
-    }
 
     Set<GOperator> relevantOperators = relevantSubFormulas(operand);
     Set<Set<GOperator>> powerSets = Sets.powerSet(relevantOperators);
@@ -742,8 +728,7 @@ public class RabinizerBuilder {
                 monitorSuccessorMatrix[monitorIndex][monitorMatrixIndex];
               ValuationSet monitorSuccessorValuation =
                 monitorValuationMatrix[monitorIndex][monitorMatrixIndex];
-              productValuation = vsFactory.intersection(productValuation,
-                monitorSuccessorValuation);
+              productValuation = productValuation.intersection(monitorSuccessorValuation);
 
               // TODO Forget about this whole subtree
               if (productValuation.isEmpty()) {

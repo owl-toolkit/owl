@@ -20,6 +20,8 @@ package owl.util;
 import java.util.BitSet;
 
 public final class BitSets {
+  // TODO Remove on next release of naturals-util
+
   private BitSets() {
   }
 

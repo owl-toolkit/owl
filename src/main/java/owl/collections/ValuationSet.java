@@ -23,24 +23,80 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.factories.ValuationSetFactory;
 
-public interface ValuationSet {
-  BitSet any();
+public class ValuationSet {
+  private final ValuationSetFactory factory;
 
-  boolean contains(BitSet valuation);
+  protected ValuationSet(ValuationSetFactory factory) {
+    this.factory = factory;
+  }
 
-  boolean containsAll(ValuationSet vs);
 
-  void forEach(Consumer<? super BitSet> action);
+  public final ValuationSetFactory getFactory() {
+    return factory;
+  }
 
-  void forEach(BitSet restriction, Consumer<? super BitSet> action);
 
-  ValuationSetFactory getFactory();
+  public final boolean isEmpty() {
+    return equals(factory.empty());
+  }
 
-  boolean isEmpty();
+  public final boolean isUniverse() {
+    return equals(factory.universe());
+  }
 
-  boolean isUniverse();
+  public final BitSet any() {
+    return factory.any(this);
+  }
 
-  int size();
+  public final boolean contains(BitSet valuation) {
+    return factory.contains(this, valuation);
+  }
 
-  BooleanExpression<AtomLabel> toExpression();
+  public final boolean contains(ValuationSet other) {
+    return factory.contains(this, other);
+  }
+
+  public final boolean intersects(ValuationSet other) {
+    return factory.intersects(this, other);
+  }
+
+  public final void forEach(Consumer<? super BitSet> action) {
+    factory.forEach(this, action);
+  }
+
+  public final void forEach(BitSet restriction, Consumer<? super BitSet> action) {
+    factory.forEach(this, restriction, action);
+  }
+
+
+  public final ValuationSet complement() {
+    return factory.complement(this);
+  }
+
+  public final ValuationSet union(ValuationSet other) {
+    return factory.union(this, other);
+  }
+
+  public final ValuationSet intersection(ValuationSet other) {
+    return factory.intersection(this, other);
+  }
+
+
+  public final BooleanExpression<AtomLabel> toExpression() {
+    return factory.toExpression(this);
+  }
+
+  @Override
+  public String toString() {
+    if (isEmpty()) {
+      return "[]";
+    }
+
+    StringBuilder builder = new StringBuilder(factory.alphabetSize() * 10 + 10);
+    builder.append('[');
+    forEach(bitSet -> builder.append(bitSet).append(", "));
+    builder.setLength(builder.length() - 2);
+    builder.append(']');
+    return builder.toString();
+  }
 }

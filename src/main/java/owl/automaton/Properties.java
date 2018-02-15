@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
+import owl.collections.ValuationSetUtil;
 
 final class Properties {
   private Properties() {}
@@ -35,14 +35,9 @@ final class Properties {
    * @return Whether this successor set is complete.
    */
   private static <S> boolean isComplete(Collection<LabelledEdge<S>> labelledEdges) {
-    LabelledEdge<S> edge = Iterables.getFirst(labelledEdges, null);
-
-    if (edge == null) {
-      return false;
-    }
-
-    ValuationSetFactory factory = edge.valuations.getFactory();
-    return factory.union(labelledEdges.stream().map(x -> x.valuations)).isUniverse();
+    return !labelledEdges.isEmpty()
+      && ValuationSetUtil.union(LabelledEdge.valuations(labelledEdges))
+      .orElseThrow(AssertionError::new).isUniverse();
   }
 
   /**
@@ -56,7 +51,7 @@ final class Properties {
   static <S> boolean isComplete(Automaton<S, ?> automaton) {
     Set<S> states = automaton.getStates();
     return !states.isEmpty()
-      && states.stream().allMatch(s -> isComplete(automaton.getLabelledEdges(s)));
+      && Iterables.all(states, s -> isComplete(automaton.getLabelledEdges(s)));
   }
 
   /**
@@ -66,23 +61,22 @@ final class Properties {
    * @return Whether this successor set is deterministic.
    */
   private static <S> boolean isDeterministic(Collection<LabelledEdge<S>> labelledEdges) {
-    Iterator<LabelledEdge<S>> successorIterator = labelledEdges.iterator();
+    Iterator<LabelledEdge<S>> iterator = labelledEdges.iterator();
 
-    if (!successorIterator.hasNext()) {
+    if (!iterator.hasNext()) {
       return true;
     }
 
-    ValuationSet seenValuations = successorIterator.next().valuations;
-    ValuationSetFactory factory = seenValuations.getFactory();
+    ValuationSet seenValuations = iterator.next().valuations;
 
-    while (successorIterator.hasNext()) {
-      ValuationSet nextEdge = successorIterator.next().valuations;
+    while (iterator.hasNext()) {
+      ValuationSet nextEdge = iterator.next().valuations;
 
-      if (!factory.intersection(seenValuations, nextEdge).isEmpty()) {
+      if (seenValuations.intersects(nextEdge)) {
         return false;
       }
 
-      seenValuations = factory.union(seenValuations, nextEdge);
+      seenValuations = seenValuations.union(nextEdge);
     }
 
     return true;
@@ -98,7 +92,6 @@ final class Properties {
    */
   static <S> boolean isDeterministic(Automaton<S, ?> automaton) {
     return automaton.getInitialStates().size() <= 1
-      && automaton.getStates().stream()
-      .allMatch(s -> isDeterministic(automaton.getLabelledEdges(s)));
+      && Iterables.all(automaton.getStates(), s -> isDeterministic(automaton.getLabelledEdges(s)));
   }
 }

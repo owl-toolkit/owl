@@ -35,13 +35,13 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
-import owl.factories.jbdd.JBddSupplier;
+import owl.run.DefaultEnvironment;
 
 public class HashMapAutomatonTest {
   private static final ValuationSetFactory FACTORY;
 
   static {
-    FACTORY = JBddSupplier.async().getValuationSetFactory(List.of("a"));
+    FACTORY = DefaultEnvironment.annotated().factorySupplier().getValuationSetFactory(List.of("a"));
   }
 
   @Test

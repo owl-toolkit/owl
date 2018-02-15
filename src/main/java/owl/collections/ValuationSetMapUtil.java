@@ -87,8 +87,7 @@ public final class ValuationSetMapUtil {
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state, ValuationSet valuations) {
-    ValuationSetFactory factory = valuations.getFactory();
-    ValuationSet complement = factory.complement(valuations);
+    ValuationSet complement = valuations.complement();
 
     map.entrySet().removeIf(entry -> {
       S successorState = entry.getKey().getSuccessor();
@@ -98,33 +97,24 @@ public final class ValuationSetMapUtil {
       }
 
       ValuationSet edgeValuation = entry.getValue();
-      entry.setValue(factory.intersection(edgeValuation, complement));
+      entry.setValue(edgeValuation.intersection(complement));
       return edgeValuation.isEmpty();
     });
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, Edge<S> edge,
     ValuationSet valuations) {
-    ValuationSetFactory factory = valuations.getFactory();
-    ValuationSet complement = factory.complement(valuations);
+    ValuationSet complement = valuations.complement();
 
-    map.computeIfPresent(edge, (key, value) -> {
-      value = factory.intersection(value, complement);
-
-      if (value.isEmpty()) {
-        return null;
-      }
-
-      return value;
-    });
+    map.computeIfPresent(edge, (key, value) ->
+      value.intersects(complement) ? value.intersection(complement) : null);
   }
 
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, ValuationSet valuations) {
-    ValuationSetFactory factory = valuations.getFactory();
-    ValuationSet complement = factory.complement(valuations);
+    ValuationSet complement = valuations.complement();
 
     map.entrySet().removeIf(entry -> {
-      entry.setValue(factory.intersection(entry.getValue(), complement));
+      entry.setValue(entry.getValue().intersection(complement));
       return entry.getValue().isEmpty();
     });
   }

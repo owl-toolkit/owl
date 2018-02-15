@@ -1,6 +1,8 @@
 package owl.collections;
 
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
@@ -14,7 +16,7 @@ public final class ValuationSetUtil {
   public static ValuationSet toValuationSet(ValuationSetFactory factory,
     BooleanExpression<AtomLabel> expression, @Nullable IntUnaryOperator mapping) {
     if (expression.isFALSE()) {
-      return factory.of();
+      return factory.empty();
     }
 
     if (expression.isTRUE()) {
@@ -35,21 +37,30 @@ public final class ValuationSetUtil {
     }
 
     if (expression.isNOT()) {
-      return factory.complement(toValuationSet(factory, expression.getLeft(), mapping));
+      return toValuationSet(factory, expression.getLeft(), mapping).complement();
     }
 
     if (expression.isAND()) {
       ValuationSet left = toValuationSet(factory, expression.getLeft(), mapping);
       ValuationSet right = toValuationSet(factory, expression.getRight(), mapping);
-      return factory.intersection(left, right);
+      return left.intersection(right);
     }
 
     if (expression.isOR()) {
       ValuationSet left = toValuationSet(factory, expression.getLeft(), mapping);
       ValuationSet right = toValuationSet(factory, expression.getRight(), mapping);
-      return factory.union(left, right);
+      return left.union(right);
     }
 
     throw new IllegalArgumentException("Unsupported Case: " + expression);
+  }
+
+  public static Optional<ValuationSet> union(Iterable<ValuationSet> sets) {
+    Iterator<ValuationSet> iterator = sets.iterator();
+    if (!iterator.hasNext()) {
+      return Optional.empty();
+    }
+    ValuationSetFactory vsFactory = iterator.next().getFactory();
+    return Optional.of(vsFactory.union(sets));
   }
 }
