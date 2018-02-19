@@ -23,7 +23,7 @@ public class SimpleTranslationsTest {
     Automaton<EquivalenceClass, BuchiAcceptance> complementAutomaton =
       SimpleTranslations.buildCoSafety(formula.not(), DefaultEnvironment.annotated());
 
-    assertThat(automaton.getStates().size(), is(complementAutomaton.getStates().size()));
+    assertThat(automaton.size(), is(complementAutomaton.size()));
     assertThat(EmptinessCheck.isEmpty(automaton), is(false));
     assertThat(EmptinessCheck.isEmpty(complementAutomaton), is(false));
   }

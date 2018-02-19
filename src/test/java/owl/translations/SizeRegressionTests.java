@@ -206,7 +206,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
 
     DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
-      super(selectedClass, translator, automaton -> automaton.getStates().size(),
+      super(selectedClass, translator, automaton -> automaton.size(),
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2dpa." + configuration);
     }
 
@@ -258,7 +258,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
           new LTL2DPAFunction(DefaultEnvironment.annotated(),
             LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG))
           .apply(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula)),
-      x -> x.getStates().size(),
+      x -> x.size(),
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }
 

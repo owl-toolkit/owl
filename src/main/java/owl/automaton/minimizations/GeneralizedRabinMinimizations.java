@@ -48,7 +48,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.Views;
@@ -425,9 +424,7 @@ public final class GeneralizedRabinMinimizations {
           };
           BitSets.forEach(consequences, consumer);
         });
-
-      Automaton<S, ?> filtered = Views.filter(automaton, scc);
-      scc.forEach(x -> filtered.getEdges(x).forEach(edge -> action.accept(x, edge)));
+      Views.filter(automaton, scc).forEachEdge(action);
 
       Multimap<RabinPair, RabinPair> sccImplications =
         HashMultimap.create(pairs.size(), pairs.size() / 2 + 1);
@@ -573,10 +570,8 @@ public final class GeneralizedRabinMinimizations {
     GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, false)) {
       IntSet indicesInScc = new IntAVLTreeSet();
-      BiConsumer<S, Edge<S>> action = (state, edge) ->
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indicesInScc::add);
-      Automaton<S, ?> filtered = Views.filter(automaton, scc);
-      scc.forEach(x -> filtered.getEdges(x).forEach(edge -> action.accept(x, edge)));
+      Views.filter(automaton, scc).forEachEdge((state, edge) ->
+        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indicesInScc::add));
 
       IntSet indicesToRemove = new IntAVLTreeSet();
       for (RabinPair pair : acceptance.getPairs()) {
@@ -622,10 +617,8 @@ public final class GeneralizedRabinMinimizations {
 
     SccDecomposition.computeSccs(automaton, false).forEach(scc -> {
       IntSet usedIndices = new IntAVLTreeSet();
-      BiConsumer<S, Edge<S>> action = (state, edge) ->
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) usedIndices::add);
-      Automaton<S, ?> filtered = Views.filter(automaton, scc);
-      scc.forEach(x -> filtered.getEdges(x).forEach(edge -> action.accept(x, edge)));
+      Views.filter(automaton, scc).forEachEdge((state, edge) ->
+        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) usedIndices::add));
       pairs.stream()
         .filter(pair -> !usedIndices.contains(pair.finSet()))
         .findAny()

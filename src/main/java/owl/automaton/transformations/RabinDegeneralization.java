@@ -93,7 +93,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     }
 
     // Arbitrary correspondence map for each original state
-    Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>(automaton.getStates().size());
+    Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>(automaton.size());
     // Table containing all transient edges
     Table<DegeneralizedRabinState<S>, S, ValuationSet> transientEdgesTable =
       HashBasedTable.create();
@@ -115,9 +115,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         stateMap.put(state, degeneralizedState);
 
         Map<S, ValuationSet> successors = transientEdgesTable.row(degeneralizedState);
-        automaton.getLabelledEdges(state).forEach(
-          labelledEdge -> ValuationSetMapUtil
-            .add(successors, labelledEdge.getEdge().getSuccessor(), labelledEdge.valuations));
+        automaton.forEachLabelledEdge(state, (edge, valuations) ->
+          ValuationSetMapUtil.add(successors, edge.getSuccessor(), valuations));
         continue;
       }
 
@@ -125,9 +124,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       // this SCC)
       IntSet indices = new IntAVLTreeSet();
 
-      Views.filter(automaton, scc)
-        .forEachLabelledEdge((x, y, z) -> y.acceptanceSetIterator()
-          .forEachRemaining((IntConsumer) indices::add));
+      Views.filter(automaton, scc).forEachLabelledEdge((state, edge, valuations) ->
+        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
       Collections3.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
@@ -175,8 +173,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             // First handle the non-trivial case of pairs with Fin and Inf sets.
             for (int sccPairIndex = 0; sccPairIndex < sccTrackedPairs.size(); sccPairIndex++) {
               int currentPairIndex = sccTrackedPairs.getInt(sccPairIndex);
-              RabinPair currentPair =
-                trackedPairs.get(currentPairIndex);
+              RabinPair currentPair = trackedPairs.get(currentPairIndex);
               int awaitedInfSet = state.awaitedInfSet(sccPairIndex);
 
               if (edge.inSet(currentPair.finSet())) {
@@ -191,8 +188,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                 int currentInfNumber = awaitedInfSet;
                 for (int i = 0; i < infiniteIndexCount; i++) {
                   currentInfNumber = (awaitedInfSet + i) % infiniteIndexCount;
-                  int currentInfIndex =
-                    currentPair.infSet(currentInfNumber);
+                  int currentInfIndex = currentPair.infSet(currentInfNumber);
                   if (!edge.inSet(currentInfIndex)) {
                     break;
                   }
@@ -214,8 +210,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
               RabinAcceptance.RabinPair currentPair = rabinPairs[currentPairIndex];
 
               edgeAcceptance.set(edge.inSet(pair.finSet())
-                                 ? currentPair.finSet()
-                                 : currentPair.infSet());
+                ? currentPair.finSet()
+                : currentPair.infSet());
             });
 
             DegeneralizedRabinState<S> successor =

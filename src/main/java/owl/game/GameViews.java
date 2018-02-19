@@ -314,7 +314,7 @@ public final class GameViews {
     public Set<Node<S>> getStates() {
       Set<Node<S>> states = new HashSet<>();
 
-      automaton.getStates().forEach(state -> {
+      automaton.forEachState(state -> {
         Node<S> node = new Node<>(state);
         states.add(node);
 

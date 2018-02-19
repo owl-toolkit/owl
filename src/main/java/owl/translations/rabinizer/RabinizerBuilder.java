@@ -43,7 +43,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.Builder;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
@@ -126,26 +125,25 @@ public class RabinizerBuilder {
 
       // Cache the priorities of the edge
       ValuationSet[] edgePriorities = new ValuationSet[monitorAcceptanceSets];
-      for (LabelledEdge<MonitorState> monitorLabelledEdge :
-        monitor.getLabelledEdges(monitorState)) {
-        Edge<MonitorState> monitorEdge = monitorLabelledEdge.getEdge();
-        if (!monitorEdge.hasAcceptanceSets()) {
-          continue;
+
+      monitor.forEachLabelledEdge(monitorState, (edge, valuations) -> {
+        if (!edge.hasAcceptanceSets()) {
+          return;
         }
 
-        int priority = monitorEdge.smallestAcceptanceSet();
-        assert priority == monitorEdge.largestAcceptanceSet();
+        int priority = edge.smallestAcceptanceSet();
+        assert priority == edge.largestAcceptanceSet();
 
         ValuationSet oldValuations = edgePriorities[priority];
         if (oldValuations == null) {
           // Need to free again later on
-          edgePriorities[priority] = monitorLabelledEdge.valuations;
+          edgePriorities[priority] = valuations;
         } else {
           // This happens if the monitor has two different transitions but the same acceptance
           ValuationSetFactory vsFactory = oldValuations.getFactory();
-          edgePriorities[priority] = vsFactory.union(oldValuations, monitorLabelledEdge.valuations);
+          edgePriorities[priority] = vsFactory.union(oldValuations, valuations);
         }
-      }
+      });
       monitorPriorities[relevantIndex] = edgePriorities;
     }
     return monitorPriorities;
@@ -490,7 +488,7 @@ public class RabinizerBuilder {
     logger.log(Level.FINE, "Connecting the SCCs");
     // Which rabinizer states belong to which master state
     Multimap<EquivalenceClass, RabinizerState> statesPerClass = HashMultimap.create();
-    rabinizerAutomaton.getStates().forEach(state -> statesPerClass.put(state.masterState, state));
+    rabinizerAutomaton.forEachState(state -> statesPerClass.put(state.masterState, state));
     masterSccPartition.transientStates.forEach(state ->
       statesPerClass.put(state, RabinizerState.empty(state)));
 

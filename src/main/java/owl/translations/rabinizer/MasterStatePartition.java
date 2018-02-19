@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.ltl.EquivalenceClass;
@@ -38,10 +37,8 @@ final class MasterStatePartition {
     ImmutableSet.Builder<EquivalenceClass> transientStatesBuilder = ImmutableSet.builder();
     for (Set<EquivalenceClass> scc : masterSccs) {
       // Compute all outgoing transitions
-      scc.forEach(state -> masterAutomaton.getLabelledEdges(state).forEach(labelledEdge -> {
-        Edge<EquivalenceClass> edge = labelledEdge.getEdge();
+      scc.forEach(state -> masterAutomaton.forEachLabelledEdge(state, (edge, valuations) -> {
         if (!scc.contains(edge.getSuccessor())) {
-          ValuationSet valuations = labelledEdge.getValuations();
           outgoingTransitionsBuilder.put(state, edge.getSuccessor(), valuations);
         }
       }));

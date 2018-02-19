@@ -22,7 +22,6 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -56,12 +55,8 @@ final class AcceptingComponentBuilder<S>
       finEdges.add(new HashSet<>());
     }
 
-    for (S state : nba.getStates()) {
-      for (Edge<S> edge : nba.getEdges(state)) {
-        OfInt it = edge.acceptanceSetIterator();
-        it.forEachRemaining((int x) -> finEdges.get(x).add(edge));
-      }
-    }
+    nba.forEachEdge((state, edge) ->
+      edge.acceptanceSetIterator().forEachRemaining((int x) -> finEdges.get(x).add(edge)));
 
     assert finEdges.get(0) != null;
     this.traverseOnlySccs = traverseOnlySccs;

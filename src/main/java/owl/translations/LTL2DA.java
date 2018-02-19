@@ -46,7 +46,7 @@ public final class LTL2DA {
     Automaton<?, ?> automaton = ltl2Dpa.apply(formula);
 
     if (ldba.isDeterministic()
-      && ldba.getAcceptingComponent().getStates().size() <= automaton.getStates().size()) {
+      && ldba.getAcceptingComponent().size() <= automaton.size()) {
       automaton = ldba.getAcceptingComponent();
     }
 

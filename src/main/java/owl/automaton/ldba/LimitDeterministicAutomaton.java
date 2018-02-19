@@ -53,12 +53,12 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
   Map<ValuationSet, Set<T>> getValuationSetJumps(S state);
 
   default boolean isDeterministic() {
-    return getInitialComponent().getStates().size() == 0
+    return getInitialComponent().size() == 0
       && getAcceptingComponent().getInitialStates().size() <= 1;
   }
 
   default int size() {
-    return getInitialComponent().getStates().size() + getAcceptingComponent().getStates().size();
+    return getInitialComponent().size() + getAcceptingComponent().size();
   }
 
   @Override
@@ -70,19 +70,19 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
         getAcceptingComponent().getInitialStates()),
       options, false, getName());
 
-    for (S state : getInitialComponent().getStates()) {
+    getInitialComponent().forEachState(state -> {
       consumerExt.addState(state);
-      getInitialComponent().getLabelledEdges(state).forEach(consumerExt::addEdge);
+      getInitialComponent().forEachLabelledEdge(state, consumerExt::addEdge);
       getEpsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
       getValuationSetJumps(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
       consumerExt.notifyEndOfState();
-    }
+    });
 
-    for (T state : getAcceptingComponent().getStates()) {
+    getAcceptingComponent().forEachState(state -> {
       consumerExt.addState(state);
-      getAcceptingComponent().getLabelledEdges(state).forEach(consumerExt::addEdge);
+      getAcceptingComponent().forEachLabelledEdge(state, consumerExt::addEdge);
       consumerExt.notifyEndOfState();
-    }
+    });
 
     consumerExt.notifyEnd();
   }

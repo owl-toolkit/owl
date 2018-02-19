@@ -321,7 +321,7 @@ public final class AutomatonUtil {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
     ValuationSetFactory factory = automaton.getFactory();
 
-    automaton.getStates().forEach(state -> {
+    automaton.forEachState(state -> {
       ValuationSet complementIntersection = factory.intersection(
         automaton.getLabelledEdges(state).stream().map(x -> factory.complement(x.valuations)));
 
