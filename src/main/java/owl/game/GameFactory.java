@@ -57,23 +57,17 @@ public final class GameFactory {
     private final BiFunction<S, Owner, BitSet> choice;
 
     ImmutableGame(Game<S, A> game) {
-      this(game, game.getStates());
-    }
-
-    ImmutableGame(Game<S, A> game, Set<S> states) {
       ImmutableSet.Builder<S> player1NodesBuilder = ImmutableSet.builder();
       MutableValueGraph<S, ValueEdge> graph =
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
-      for (S state : states) {
-        for (LabelledEdge<S> edge : game.getLabelledEdges(state)) {
-          graph.putEdgeValue(state, edge.edge.getSuccessor(), new ValueEdge(edge));
-        }
+      game.forEachLabelledEdge((state, edge, valuations) -> {
+        graph.putEdgeValue(state, edge.getSuccessor(), new ValueEdge(edge, valuations));
 
         if (Owner.PLAYER_1 == game.getOwner(state)) {
           player1NodesBuilder.add(state);
         }
-      }
+      });
 
       this.acceptance = game.getAcceptance();
       this.factory = game.getFactory();
@@ -148,10 +142,10 @@ public final class GameFactory {
       final int colour;
       final ValuationSet valuationSet;
 
-      ValueEdge(LabelledEdge<?> labelledEdge) {
-        this(labelledEdge.valuations, labelledEdge.edge.largestAcceptanceSet());
+      ValueEdge(Edge<?> edge, ValuationSet valuations) {
+        this(valuations, edge.largestAcceptanceSet());
       }
-
+      
       ValueEdge(ValuationSet set, int colour) {
         valuationSet = set;
         this.colour = colour;

@@ -146,7 +146,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     if (optimisations.contains(Configuration.REMOVE_EPSILON_TRANSITIONS)) {
       Set<T> reachableStates = new HashSet<>(initialStates);
 
-      for (S state : initialComponent.getStates()) {
+      initialComponent.forEachState(state -> {
         Iterable<LabelledEdge<S>> successors = initialComponent.getLabelledEdges(state);
         Map<ValuationSet, Set<T>> successorJumps = valuationSetJumps.row(state);
 
@@ -163,7 +163,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
             return existingJumpTargets;
           });
         });
-      }
+      });
 
       epsilonJumps.clear();
       MinimizationUtil.removeDeadStates(initialComponent, initialComponentProtectedStates, x -> {

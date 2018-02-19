@@ -76,7 +76,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default void forEachEdge(BiConsumer<S, Edge<S>> action) {
-    getStates().forEach(state -> forEachEdge(state, edge -> action.accept(state, edge)));
+    forEachState(state -> forEachEdge(state, edge -> action.accept(state, edge)));
   }
 
   default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
@@ -84,7 +84,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
-    getStates().forEach(x -> forEachLabelledEdge(x, (y, z) -> action.accept(x, y, z)));
+    forEachState(state -> forEachLabelledEdge(state, (y, z) -> action.accept(state, y, z)));
   }
 
   default void forEachState(Consumer<S> action) {
@@ -258,7 +258,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       getAcceptance(), getInitialStates(), options, is(Property.DETERMINISTIC), getName());
 
-    getStates().forEach(state -> {
+    forEachState(state -> {
       hoa.addState(state);
       forEachLabelledEdge(state, hoa::addEdge);
       hoa.notifyEndOfState();

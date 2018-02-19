@@ -163,13 +163,13 @@ public class AutomatonReaderTest {
 
   private static Int2ObjectMap<HoaState> getStates(Automaton<HoaState, ?> automaton) {
     Int2ObjectMap<HoaState> states = new Int2ObjectLinkedOpenHashMap<>(
-      automaton.getStates().size());
-    for (HoaState state : automaton.getStates()) {
+      automaton.size());
+    automaton.forEachState(state ->  {
       int stateId = state.id;
       assertThat(states.containsKey(stateId), is(false));
       states.put(stateId, state);
-    }
-    assertThat(states.size(), is(automaton.getStates().size()));
+    });
+    assertThat(states.size(), is(automaton.size()));
     return states;
   }
 
@@ -178,7 +178,7 @@ public class AutomatonReaderTest {
   public void readAutomatonBuchi() throws ParseException {
     Automaton<HoaState, BuchiAcceptance> automaton = AutomatonReader.readHoa(HOA_BUCHI,
       DefaultEnvironment.annotated().factorySupplier(), BuchiAcceptance.class);
-    assertThat(automaton.getStates().size(), is(2));
+    assertThat(automaton.size(), is(2));
     Int2ObjectMap<HoaState> states = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.getFactory();
 
@@ -240,7 +240,7 @@ public class AutomatonReaderTest {
       DefaultEnvironment.annotated().factorySupplier());
     assertThat(automata.size(), is(1));
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
-    assertThat(automaton.getStates().size(), is(2));
+    assertThat(automaton.size(), is(2));
     assertThat(automaton.getAcceptance(), instanceOf(AllAcceptance.class));
 
     HoaState initialState = automaton.getInitialState();
@@ -261,7 +261,7 @@ public class AutomatonReaderTest {
       HOA_GENERALIZED_BUCHI, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertThat(automaton.getStates().size(), is(1));
+    assertThat(automaton.size(), is(1));
     assertThat(automaton.getAcceptance(), instanceOf(GeneralizedBuchiAcceptance.class));
     GeneralizedBuchiAcceptance acceptance = (GeneralizedBuchiAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(2));
@@ -273,7 +273,7 @@ public class AutomatonReaderTest {
       HOA_GENERALIZED_RABIN, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertThat(automaton.getStates().size(), is(2));
+    assertThat(automaton.size(), is(2));
     assertThat(automaton.getAcceptance(), instanceOf(GeneralizedRabinAcceptance.class));
     GeneralizedRabinAcceptance acceptance = (GeneralizedRabinAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(5));
@@ -285,7 +285,7 @@ public class AutomatonReaderTest {
       HOA_GENERIC, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertThat(automaton.getStates().size(), is(3));
+    assertThat(automaton.size(), is(3));
     assertThat(automaton.getAcceptance(), instanceOf(EmersonLeiAcceptance.class));
     EmersonLeiAcceptance acceptance = (EmersonLeiAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(2));
@@ -297,7 +297,7 @@ public class AutomatonReaderTest {
       HOA_RABIN, DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertThat(automaton.getStates().size(), is(3));
+    assertThat(automaton.size(), is(3));
     assertThat(automaton.getAcceptance(), instanceOf(RabinAcceptance.class));
     RabinAcceptance acceptance = (RabinAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(2));

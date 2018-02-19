@@ -29,7 +29,7 @@ public final class GenericMinimizations {
   }
 
   public static <S> void removeTransientAcceptance(MutableAutomaton<S, ?> automaton) {
-    Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.getStates().size());
+    Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.size());
     stateToSccMap.defaultReturnValue(-1);
 
     Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, true),

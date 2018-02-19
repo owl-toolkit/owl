@@ -136,7 +136,7 @@ public final class SccDecomposition<S> {
    * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
    */
   public static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
-    assert automaton.getStates().containsAll(trap);
+    assert automaton.containsStates(trap);
     return trap.stream().allMatch(s -> trap.containsAll(automaton.getSuccessors(s)));
   }
 

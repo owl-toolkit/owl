@@ -166,7 +166,7 @@ public final class MinimizationUtil {
     }
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
-    automaton.updateEdges(automaton.getStates(), (state, edge) -> edge.withAcceptance(remapping));
+    automaton.updateEdges((state, edge) -> edge.withAcceptance(remapping));
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
