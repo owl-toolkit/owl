@@ -36,9 +36,9 @@ import jhoafparser.storage.StoredState;
 import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -337,23 +337,23 @@ public final class AutomatonReader {
         case "co-buchi":
           // acc-name: co-Buchi
           // Acceptance: 1 Fin(0)
-          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
 
         case "generalized-buchi":
           // acc-name: generalized-Buchi 3
           // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
           int sets = Integer.parseInt(acceptanceExtra.get(0).toString());
-          return new GeneralizedBuchiAcceptance(sets);
+          return GeneralizedBuchiAcceptance.of(sets);
 
         case "generalized-co-buchi":
           // acc-name: generalized-co-Buchi 3
           // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
-          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
 
         case "streett":
           // acc-name: Streett 3
           // Acceptance: 6 (Fin(0)|Inf(1))&(Fin(2)|Inf(3))&(Fin(4)|Inf(5))
-          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
 
         case "rabin":
           // acc-name: Rabin 3
@@ -366,7 +366,7 @@ public final class AutomatonReader {
           return GeneralizedRabinAcceptance.of(acceptanceExpression);
 
         default:
-          return new GenericAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
       }
     }
 

@@ -18,6 +18,7 @@
 package owl.automaton.acceptance;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -82,6 +83,10 @@ public final class BooleanExpressions {
   }
 
   static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
+    if (exp.isTRUE()) {
+      return new ArrayList<>();
+    }
+
     if (!exp.isAND()) {
       return Lists.newArrayList(exp);
     }
@@ -92,6 +97,10 @@ public final class BooleanExpressions {
   }
 
   static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
+    if (exp.isFALSE()) {
+      return new ArrayList<>();
+    }
+
     if (!exp.isOR()) {
       return Lists.newArrayList(exp);
     }

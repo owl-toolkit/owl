@@ -166,7 +166,7 @@ public final class MinimizationUtil {
     }
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
-    automaton.remapEdges(automaton.getStates(), (state, edge) -> edge.withAcceptance(remapping));
+    automaton.updateEdges(automaton.getStates(), (state, edge) -> edge.withAcceptance(remapping));
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
@@ -238,7 +238,7 @@ public final class MinimizationUtil {
 
     logger.log(Level.FINER, "Removing acceptance indices {0} on subset", indicesToRemove);
     IntUnaryOperator transformer = index -> indicesToRemove.contains(index) ? -1 : index;
-    automaton.remapEdges(states, (state, edge) -> edge.withAcceptance(transformer));
+    automaton.updateEdges(states, (state, edge) -> edge.withAcceptance(transformer));
   }
 
   public enum MinimizationLevel {

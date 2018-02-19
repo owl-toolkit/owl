@@ -16,9 +16,9 @@ import org.junit.Test;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.GenericAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -286,8 +286,8 @@ public class AutomatonReaderTest {
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.getStates().size(), is(3));
-    assertThat(automaton.getAcceptance(), instanceOf(GenericAcceptance.class));
-    GenericAcceptance acceptance = (GenericAcceptance) automaton.getAcceptance();
+    assertThat(automaton.getAcceptance(), instanceOf(EmersonLeiAcceptance.class));
+    EmersonLeiAcceptance acceptance = (EmersonLeiAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(2));
   }
 

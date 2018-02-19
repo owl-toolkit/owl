@@ -30,7 +30,6 @@ import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -137,14 +136,12 @@ public final class IntAutomaton {
 
     if (onTheFly) {
       configuration.add(Configuration.GREEDY);
-      configuration.add(Configuration.COLOUR_OVERAPPROXIMATION);
+      configuration.remove(Configuration.COMPRESS_COLOURS);
       configuration.remove(Configuration.OPTIMISE_INITIAL_STATE);
     }
 
     Automaton<?, ParityAcceptance> automaton =
       new LTL2DPAFunction(environment, configuration).apply(labelledFormula);
-    assert !onTheFly || !(automaton instanceof MutableAutomaton)
-      : "Internal Error: Automaton was explicitly constructed and not on-the-fly.";
     return of(automaton, detectAcceptance(automaton), shiftedFormula.mapping);
   }
 

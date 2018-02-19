@@ -18,9 +18,9 @@
 package owl.translations.ltl2dpa;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COLOUR_OVERAPPROXIMATION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
@@ -44,7 +44,6 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.StreamingAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -70,17 +69,19 @@ import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
   public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
-    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE);
+    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
+    COMPRESS_COLOURS);
 
   public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(GUESS_F,
-    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE);
+    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
+    COMPRESS_COLOURS);
 
   private static final int GREEDY_TIME_MS = 10;
 
-  final EnumSet<Configuration> configuration;
-  final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
+  private final EnumSet<Configuration> configuration;
+  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
-  final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
+  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
   public LTL2DPAFunction(Environment env, Set<Configuration> configuration) {
@@ -228,7 +229,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
-        DegeneralizedBreakpointState.createSink(), -1);
+        DegeneralizedBreakpointState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
@@ -241,7 +242,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
       automaton = FlatRankingAutomaton.of(ldba, oracle, this::hasSafetyCore, true,
       configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, FlatRankingState.of(), 2 * ldba.getAcceptingComponent().size());
+    return new Result<>(automaton, FlatRankingState.of(), configuration.contains(COMPRESS_COLOURS));
   }
 
   private Result<?> applyBreakpointFree(LabelledFormula formula) {
@@ -250,7 +251,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
-        DegeneralizedBreakpointFreeState.createSink(), -1);
+        DegeneralizedBreakpointFreeState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
 
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
@@ -259,7 +260,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>,
       ParityAcceptance> automaton = FlatRankingAutomaton.of(ldba, new BooleanLattice(),
       this::hasSafetyCore, true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, FlatRankingState.of(), 2 * ldba.getAcceptingComponent().size());
+    return new Result<>(automaton, FlatRankingState.of(), configuration.contains(COMPRESS_COLOURS));
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {
@@ -289,25 +290,20 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public enum Configuration {
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPLETE, GUESS_F, COLOUR_OVERAPPROXIMATION, GREEDY
+    COMPLETE, GUESS_F, GREEDY, COMPRESS_COLOURS
   }
 
-  final class Result<T> {
+  private static final class Result<T> {
     final Automaton<T, ParityAcceptance> automaton;
     final T sinkState;
 
-    Result(Automaton<T, ParityAcceptance> automaton, T sinkState,
-      int colourApproximation) {
-      this.automaton = automaton;
+    Result(Automaton<T, ParityAcceptance> automaton, T sinkState, boolean compressColours) {
       this.sinkState = sinkState;
 
-      // HACK: Query state space to initialise colour correctly.
-      if (automaton instanceof StreamingAutomaton) {
-        if (configuration.contains(COLOUR_OVERAPPROXIMATION)) {
-          automaton.getAcceptance().setAcceptanceSets(colourApproximation + 2);
-        } else {
-          automaton.getStates();
-        }
+      if (compressColours) {
+        this.automaton = ParityUtil.minimizePriorities(AutomatonUtil.asMutable(automaton));
+      } else {
+        this.automaton = automaton;
       }
     }
 
@@ -320,9 +316,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     }
 
     Automaton<T, ParityAcceptance> complement() {
-      MutableAutomaton<T, ParityAcceptance> automaton = AutomatonUtil.asMutable(this.automaton);
-      ParityUtil.complement(automaton, sinkState);
-      return automaton;
+      return ParityUtil.complement(AutomatonUtil.asMutable(this.automaton), sinkState);
     }
   }
 }

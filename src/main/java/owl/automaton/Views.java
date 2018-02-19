@@ -23,8 +23,10 @@ import static owl.automaton.Automaton.Property.COMPLETE;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -37,6 +39,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -169,12 +172,12 @@ public final class Views {
         return Set.of(LabelledEdge.of(loop, factory.universe()));
       }
 
-      Collection<LabelledEdge<S>> edges = automaton.getLabelledEdges(state);
+      List<LabelledEdge<S>> edges = new ArrayList<>(automaton.getLabelledEdges(state));
       ValuationSet complement = factory.complement(
         factory.union(edges.stream().map(x -> x.valuations)));
 
       if (!complement.isEmpty()) {
-        return Collections3.concat(edges, Set.of(LabelledEdge.of(loop, complement)));
+        return Collections3.concat(edges, List.of(LabelledEdge.of(loop, complement)));
       }
 
       return edges;
@@ -280,8 +283,8 @@ public final class Views {
     }
 
     @Override
-    public void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
-      automaton.remapEdges(states, f);
+    public void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
+      automaton.updateEdges(states, f);
     }
 
     @Override
@@ -403,7 +406,7 @@ public final class Views {
 
     Buchi2Rabin(Automaton<S, BuchiAcceptance> backingAutomaton) {
       super(backingAutomaton);
-      acceptance = new RabinAcceptance(1);
+      acceptance = RabinAcceptance.of(RabinPair.of(0));
     }
 
     private Edge<S> convertBuchiToRabin(Edge<S> edge) {
@@ -440,8 +443,8 @@ public final class Views {
 
     GenBuchi2GenRabin(Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton) {
       super(backingAutomaton);
-      acceptance = new GeneralizedRabinAcceptance();
-      acceptance.createPair(backingAutomaton.getAcceptance().getAcceptanceSets());
+      int sets = backingAutomaton.getAcceptance().getAcceptanceSets();
+      acceptance = GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, sets));
     }
 
     @Override

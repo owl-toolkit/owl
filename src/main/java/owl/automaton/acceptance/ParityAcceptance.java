@@ -26,8 +26,8 @@ import owl.automaton.edge.Edge;
 
 public final class ParityAcceptance extends OmegaAcceptance {
   @Nonnegative
-  private int colours;
-  private Parity parity;
+  private final int colours;
+  private final Parity parity;
 
   public ParityAcceptance(@Nonnegative int colours, Parity parity) {
     this.colours = colours;
@@ -48,12 +48,12 @@ public final class ParityAcceptance extends OmegaAcceptance {
     return parity;
   }
 
-  public void setParity(Parity parity) {
-    this.parity = parity;
+  public ParityAcceptance setParity(Parity parity) {
+    return new ParityAcceptance(colours, parity);
   }
 
-  public void complement() {
-    parity = parity.flipEven();
+  public ParityAcceptance complement() {
+    return new ParityAcceptance(colours, parity.flipEven());
   }
 
   public boolean emptyIsAccepting() {
@@ -70,18 +70,21 @@ public final class ParityAcceptance extends OmegaAcceptance {
     if (colours == 0) {
       return new BooleanExpression<>(emptyIsAccepting());
     }
+
     BooleanExpression<AtomAcceptance> exp;
+
     if (parity.max()) {
       exp = mkColor(0);
-      for (int index = 1; index < colours; index++) {
-        exp = isAccepting(index) ? mkColor(index).or(exp) : mkColor(index).and(exp);
+      for (int i = 1; i < colours; i++) {
+        exp = isAccepting(i) ? mkColor(i).or(exp) : mkColor(i).and(exp);
       }
     } else {
       exp = mkColor(colours - 1);
-      for (int index = colours - 2; index >= 0; index--) {
-        exp = isAccepting(index) ? mkColor(index).or(exp) : mkColor(index).and(exp);
+      for (int i = colours - 2; i >= 0; i--) {
+        exp = isAccepting(i) ? mkColor(i).or(exp) : mkColor(i).and(exp);
       }
     }
+
     return exp;
   }
 
@@ -102,11 +105,10 @@ public final class ParityAcceptance extends OmegaAcceptance {
       && edge.largestAcceptanceSet() < colours);
   }
 
-  public void setAcceptanceSets(@Nonnegative int colors) {
-    this.colours = colors;
+  public ParityAcceptance setAcceptanceSets(@Nonnegative int colours) {
+    return new ParityAcceptance(colours, parity);
   }
 
-  @SuppressWarnings("NonFinalFieldReferenceInEquals")
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -121,7 +123,6 @@ public final class ParityAcceptance extends OmegaAcceptance {
     return colours == that.colours && parity == that.parity;
   }
 
-  @SuppressWarnings("NonFinalFieldReferencedInHashCode")
   @Override
   public int hashCode() {
     return HashCommon.mix(colours) ^ parity.hashCode();

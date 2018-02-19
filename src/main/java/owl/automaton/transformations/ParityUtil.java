@@ -111,11 +111,11 @@ public final class ParityUtil {
     if (acceptance.getAcceptanceSets() == 0) {
       if (!acceptance.emptyIsAccepting()) {
         // Automaton currently accepts nothing
-        acceptance.complement();
         return MutableAutomatonFactory.singleton(sinkState, automaton.getFactory(),
-          acceptance);
+          acceptance.complement());
       }
 
+      acceptance = acceptance.setAcceptanceSets(1);
       BitSet bitSet = new BitSet(1);
       bitSet.set(0);
 
@@ -123,14 +123,12 @@ public final class ParityUtil {
 
       if (!completionState.isPresent()) {
         // Automaton accepted everything
-        acceptance.complement();
         return MutableAutomatonFactory.singleton(sinkState, automaton.getFactory(),
-          acceptance);
+          acceptance.complement());
       }
 
       // Automaton accepted everything which does not end up in the completion state
-      acceptance.setAcceptanceSets(1);
-      acceptance.setParity(Parity.MAX_EVEN);
+      automaton.setAcceptance(new ParityAcceptance(1, Parity.MAX_EVEN));
       return automaton;
     }
 
@@ -139,11 +137,12 @@ public final class ParityUtil {
     set.set(rejectingAcceptance);
 
     Optional<S> completionState = AutomatonUtil.complete(automaton, sinkState, set);
+
     if (completionState.isPresent() && acceptance.getAcceptanceSets() <= rejectingAcceptance) {
-      acceptance.setAcceptanceSets(rejectingAcceptance + 1);
+      acceptance = acceptance.setAcceptanceSets(rejectingAcceptance + 1);
     }
 
-    acceptance.complement();
+    automaton.setAcceptance(acceptance.complement());
     return automaton;
   }
 
@@ -214,10 +213,10 @@ public final class ParityUtil {
 
       // This remaps _all_ outgoing edges of the states in the SCC - including transient edges.
       // Since these are only taken finitely often by any run, their value does not matter.
-      automaton.remapEdges(scc, (state, edge) -> edge.withAcceptance(reductionMapping));
+      automaton.updateEdges(scc, (state, edge) -> edge.withAcceptance(reductionMapping));
     }
 
-    automaton.getAcceptance().setAcceptanceSets(usedAcceptanceSets);
+    automaton.setAcceptance(acceptance.setAcceptanceSets(usedAcceptanceSets));
     return automaton;
   }
 
@@ -235,7 +234,7 @@ public final class ParityUtil {
     MutableAutomaton<S, ParityAcceptance> mutable = AutomatonUtil.asMutable(automaton);
     AtomicInteger maximalNewAcceptance = new AtomicInteger(0);
 
-    mutable.remapEdges((state, edge) -> {
+    mutable.updateEdges((state, edge) -> {
       if (!edge.hasAcceptanceSets()) {
         return edge;
       }
@@ -253,8 +252,7 @@ public final class ParityUtil {
       return Edge.of(edge.getSuccessor(), newAcceptance);
     });
 
-    acceptance.setParity(toParity);
-    acceptance.setAcceptanceSets(maximalNewAcceptance.get() + 1);
+    mutable.setAcceptance(new ParityAcceptance(maximalNewAcceptance.get() + 1, toParity));
     return mutable;
   }
 

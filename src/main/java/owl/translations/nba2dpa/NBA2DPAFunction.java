@@ -33,6 +33,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrintable;
+import owl.automaton.transformations.ParityUtil;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -89,6 +90,7 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     LanguageLattice<BreakpointState<Object>, Void, Set<BreakpointState<Object>>> oracle =
       new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
 
-    return FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true);
+    return ParityUtil.minimizePriorities(AutomatonUtil.asMutable(
+      FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true)));
   }
 }

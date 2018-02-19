@@ -159,7 +159,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     MutableAutomaton<EquivalenceClass, NoneAcceptance> initialComponent =
       (MutableAutomaton<EquivalenceClass, NoneAcceptance>) ldba.getInitialComponent();
 
-    initialComponent.remapEdges((state, x) -> {
+    initialComponent.updateEdges((state, x) -> {
       assert !state.isFalse();
       return state.testSupport(Fragments::isSafety) ? x.withAcceptance(bitSet) : x;
     });

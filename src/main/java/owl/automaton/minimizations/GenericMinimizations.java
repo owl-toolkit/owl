@@ -35,7 +35,7 @@ public final class GenericMinimizations {
     Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
       (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
-    automaton.remapEdges((state, edge) -> {
+    automaton.updateEdges((state, edge) -> {
       int sccIndex = stateToSccMap.getInt(state);
       S successor = edge.getSuccessor();
       int successorSccIndex = stateToSccMap.getInt(successor);

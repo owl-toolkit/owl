@@ -56,7 +56,7 @@ import owl.util.TriConsumer;
 // TODO: use Cofoja to ensure invariants.
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
 final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAutomaton<S, A> {
-  private final A acceptance;
+  private A acceptance;
   private final Set<S> initialStates;
   private final Function<S, Map<Edge<S>, ValuationSet>> mapSupplier = x -> new LinkedHashMap<>();
   private final IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
@@ -229,7 +229,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
+  public void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
     assert containsStates(states);
 
     for (S state : states) {
@@ -297,6 +297,11 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
         }
       }
     }
+  }
+
+  @Override
+  public void setAcceptance(A acceptance) {
+    this.acceptance = acceptance;
   }
 
   private boolean retainStates(Collection<? extends S> states) {

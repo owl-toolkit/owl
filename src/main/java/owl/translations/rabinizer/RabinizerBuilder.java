@@ -39,6 +39,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.Builder;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -323,9 +324,9 @@ public class RabinizerBuilder {
      * requiring that finitely often the current master state may not be entailed by |G| and the
      * monitor states. */
     boolean computeAcceptance = configuration.computeAcceptance();
-    GeneralizedRabinAcceptance acceptance = new GeneralizedRabinAcceptance();
-    Collection<Set<GOperator>> relevantSets = Sets.powerSet(allRelevantGFormulas);
-    assert relevantSets.contains(Set.<GOperator>of());
+    GeneralizedRabinAcceptance.Builder builder = new Builder();
+    Set<Set<GOperator>> relevantSets = Sets.powerSet(allRelevantGFormulas);
+    assert relevantSets.contains(Set.of());
 
     @Nullable
     ActiveSet[] activeSets;
@@ -340,7 +341,7 @@ public class RabinizerBuilder {
           continue;
         }
         GSet gSet = new GSet(subset, eqFactory);
-        activeSets[activeSetIndex] = ActiveSet.create(gFormulas, gSet, monitors, acceptance);
+        activeSets[activeSetIndex] = ActiveSet.create(gFormulas, gSet, monitors, builder);
         activeSetIndex += 1;
       }
     } else {
@@ -348,7 +349,7 @@ public class RabinizerBuilder {
     }
 
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      MutableAutomatonFactory.create(acceptance, vsFactory);
+      MutableAutomatonFactory.create(builder.build(), vsFactory);
 
     // Process each subset separately
     // TODO Parallel
@@ -519,15 +520,17 @@ public class RabinizerBuilder {
     rabinizerAutomaton.setInitialState(getAnyState.apply(initialClass));
 
     // Handle the |G| = {} case
+    // TODO: Piggyback on an existing RabinPair.
     RabinizerState trueState = RabinizerState.empty(eqFactory.getTrue());
     if (rabinizerAutomaton.containsState(trueState)) {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.getSuccessors(trueState)),
         trueState);
 
-      RabinPair truePair = acceptance.createPair(1);
+      RabinPair truePair = builder.add(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
       rabinizerAutomaton.addEdge(trueState, vsFactory.universe(),
-        Edge.of(trueState, truePair.infSet(0)));
+        Edge.of(trueState, truePair.infSet()));
+      rabinizerAutomaton.setAcceptance(builder.build());
     }
 
     // If the initial states of the monitors are not optimized, there might be unreachable states
@@ -786,7 +789,7 @@ public class RabinizerBuilder {
     }
 
     static ActiveSet create(GOperator[] operators, GSet subset, MonitorAutomaton[] monitors,
-      GeneralizedRabinAcceptance acceptance) {
+      GeneralizedRabinAcceptance.Builder builder) {
       int gCount = operators.length;
       int[] maximalRanks = new int[subset.size()];
 
@@ -812,8 +815,7 @@ public class RabinizerBuilder {
       // Allocate the acceptance caches
       Set<int[]> rankings = new NatCartesianProductSet(maximalRanks);
       RabinPair[] rankingPairs = new RabinPair[rankings.size()];
-      Arrays.setAll(rankingPairs, i -> acceptance.createPair(subset.size()));
-
+      Arrays.setAll(rankingPairs, i -> builder.add(subset.size()));
       return new ActiveSet(subset, rankings, rankingPairs);
     }
 

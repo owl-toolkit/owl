@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -130,10 +131,10 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @param updater
    *     The remapping function.
    *
-   * @see #remapEdges(Set, BiFunction)
+   * @see #updateEdges(Set, BiFunction)
    */
-  default void remapEdges(BiFunction<? super S, Edge<S>, Edge<S>> updater) {
-    remapEdges(getStates(), updater);
+  default void updateEdges(BiFunction<? super S, Edge<S>, Edge<S>> updater) {
+    updateEdges(getStates(), updater);
   }
 
   /**
@@ -150,7 +151,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If any state specified is not present in the automaton.
    */
-  void remapEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> updater);
+  void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> updater);
 
   /**
    * Removes all transition from {@code source} under {@code valuation} to {@code destination}.
@@ -267,6 +268,12 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    */
   void removeUnreachableStates(Collection<? extends S> start,
     Consumer<? super S> removedStatesConsumer);
+
+  void setAcceptance(A acceptance);
+
+  default void updateAcceptance(Function<? super A, ? extends A> updater) {
+    setAcceptance(updater.apply(getAcceptance()));
+  }
 
   /**
    * Set the initial state of the automaton. Requires the specified state to be present.

@@ -19,6 +19,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
@@ -90,13 +91,11 @@ public final class AutomatonOperations {
     if (builder.buchi.isEmpty()) {
       acceptance = CoBuchiAcceptance.INSTANCE;
     } else if (builder.coBuchi.isEmpty()) {
-      acceptance = new GeneralizedBuchiAcceptance(offset - 1);
+      acceptance = GeneralizedBuchiAcceptance.of(offset - 1);
     } else if (offset < 2) {
-      acceptance = new RabinAcceptance(1);
+      acceptance = RabinAcceptance.of(RabinPair.of(0));
     } else {
-      GeneralizedRabinAcceptance rabinAcceptance = new GeneralizedRabinAcceptance();
-      rabinAcceptance.createPair(offset - 1);
-      acceptance = rabinAcceptance;
+      acceptance = GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, offset - 1));
     }
 
     ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));

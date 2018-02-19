@@ -4,12 +4,12 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
 
-public class GenericAcceptance extends OmegaAcceptance {
+public final class EmersonLeiAcceptance extends OmegaAcceptance {
 
   private final BooleanExpression<AtomAcceptance> expression;
   private final int sets;
 
-  public GenericAcceptance(int sets, BooleanExpression<AtomAcceptance> expression) {
+  public EmersonLeiAcceptance(int sets, BooleanExpression<AtomAcceptance> expression) {
     this.expression = expression;
     this.sets = sets;
   }

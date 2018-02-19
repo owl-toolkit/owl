@@ -46,14 +46,15 @@ public final class FlatRankingAutomaton {
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
 
     private final boolean resetRanking;
-    final ParityAcceptance acceptance;
+    ParityAcceptance acceptance;
     final FlatRankingState<S, T> initialState;
 
     Builder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba,
       LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetRanking) {
       super(ldba, lattice, isAcceptingState, resetRanking);
       logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
-      acceptance = new ParityAcceptance(2, Parity.MIN_ODD);
+      acceptance = new ParityAcceptance(2 * Math.max(1, ldba.getAcceptingComponent().size() + 1),
+        Parity.MIN_ODD);
       this.resetRanking = resetRanking;
       initialState = buildEdge(ldba.getInitialComponent().getInitialState(), List.of(), -1, null)
         .getSuccessor();
@@ -211,10 +212,7 @@ public final class FlatRankingAutomaton {
       Edge<FlatRankingState<S, T>> edge = buildEdge(successor, state.ranking, state.safetyProgress,
         valuation);
 
-      if (edge.largestAcceptanceSet() >= acceptance.getAcceptanceSets()) {
-        acceptance.setAcceptanceSets(edge.largestAcceptanceSet() + 1);
-      }
-
+      assert edge.largestAcceptanceSet() < acceptance.getAcceptanceSets();
       return edge;
     }
   }

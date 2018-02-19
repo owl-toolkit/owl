@@ -70,7 +70,7 @@ public class HashMapAutomatonTest {
     automaton.addEdge("1", other, Edge.of("2"));
     automaton.addEdge("1", new BitSet(), Edge.of("2", 1));
 
-    automaton.remapEdges((state, edge) -> {
+    automaton.updateEdges((state, edge) -> {
       if (edge.getSuccessor().equals("2")) {
         return Edge.of(edge.getSuccessor());
       }
@@ -144,13 +144,13 @@ public class HashMapAutomatonTest {
     assertThat(AutomatonUtil.getIncompleteStates(automaton).keySet(), containsInAnyOrder("2"));
 
     IntUnaryOperator transformer = key -> 2;
-    automaton.remapEdges(automaton.getStates(), (state, edge) ->
+    automaton.updateEdges(automaton.getStates(), (state, edge) ->
       edge.withAcceptance(transformer));
     assertThat(automaton.getEdges("1", new BitSet()),
       containsInAnyOrder(Edge.of("1"), Edge.of("2"), Edge.of("2", 2)));
     assertThat(automaton.getEdges("2", new BitSet()), empty());
 
-    automaton.remapEdges((state, edge) -> Objects.equals(state, "1")
+    automaton.updateEdges((state, edge) -> Objects.equals(state, "1")
       ? Edge.of(edge.getSuccessor(), 0)
       : Edge.of(edge.getSuccessor(), 1));
 

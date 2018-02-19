@@ -111,7 +111,7 @@ public final class GeneralizedRabinMinimizations {
     logger.log(Level.FINER, "Removing complementary indices {0}", indicesToRemove);
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    acceptance.removeIndices(indicesToRemove::contains);
+    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
     assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -182,7 +182,7 @@ public final class GeneralizedRabinMinimizations {
     logger.log(Level.FINEST, "Implication removal: {0}", indicesToRemove);
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    acceptance.removeIndices(indicesToRemove::contains);
+    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
     assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -231,7 +231,7 @@ public final class GeneralizedRabinMinimizations {
     impossiblePairs.forEach(pair -> pair.forEachIndex(indicesToRemove::add));
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    acceptance.removeIndices(indicesToRemove::contains);
+    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
     assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -319,7 +319,7 @@ public final class GeneralizedRabinMinimizations {
         new Object[] {trueMerges, remapping});
     }
 
-    automaton.remapEdges((state, edge) -> {
+    automaton.updateEdges((state, edge) -> {
       BitSet newAcceptance = new BitSet();
 
       edge.acceptanceSetIterator().forEachRemaining(
@@ -339,8 +339,7 @@ public final class GeneralizedRabinMinimizations {
     IntSet indicesToRemove = new IntAVLTreeSet(remapping.keySet());
     remapping.values().forEach(indicesToRemove::removeAll);
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.getAcceptance().removeIndices(indicesToRemove::contains);
-
+    automaton.setAcceptance(automaton.getAcceptance().filter(indicesToRemove::contains));
     assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -357,7 +356,7 @@ public final class GeneralizedRabinMinimizations {
       return;
     }
 
-    automaton.remapEdges((state, edge) -> {
+    automaton.updateEdges((state, edge) -> {
       if (!edge.hasAcceptanceSets()) {
         return edge;
       }
@@ -561,7 +560,7 @@ public final class GeneralizedRabinMinimizations {
     toRemove.forEach(pair -> pair.forEachIndex(indicesToRemove::add));
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    acceptance.removeIndices(indicesToRemove::contains);
+    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
     assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
   }
 

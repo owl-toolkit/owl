@@ -2,6 +2,7 @@ package owl.translations.ltl2dpa;
 
 import static owl.run.modules.OwlModuleParser.TransformerParser;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
@@ -53,6 +54,8 @@ public final class LTL2DPACliParser implements TransformerParser {
     if (commandLine.hasOption(LTL2LDBACliParser.guessF().getOpt())) {
       configuration.add(GUESS_F);
     }
+
+    configuration.add(COMPRESS_COLOURS);
 
     return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
       new LTL2DPAFunction(environment, configuration));
