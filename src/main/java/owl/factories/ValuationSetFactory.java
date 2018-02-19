@@ -17,11 +17,12 @@
 
 package owl.factories;
 
-import com.google.common.collect.Iterators;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
+import jhoafparser.ast.AtomLabel;
+import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
 
 public interface ValuationSetFactory {
@@ -31,23 +32,32 @@ public interface ValuationSetFactory {
     return alphabet().size();
   }
 
+
+  ValuationSet of(BitSet valuation);
+
+  ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
+
+  ValuationSet empty();
+
+  ValuationSet universe();
+
   ValuationSet complement(ValuationSet set);
 
-  default ValuationSet intersection(ValuationSet set) {
-    return set;
-  }
 
-  default ValuationSet intersection(ValuationSet set1, ValuationSet set2) {
-    return intersection(List.of(set1, set2));
-  }
+  BitSet any(ValuationSet set);
 
-  default ValuationSet intersection(ValuationSet... sets) {
-    return intersection(Iterators.forArray(sets));
-  }
+  boolean contains(ValuationSet set, BitSet valuation);
 
-  default ValuationSet intersection(Stream<ValuationSet> sets) {
-    return intersection(sets.iterator());
-  }
+  boolean contains(ValuationSet set, ValuationSet other);
+
+  boolean intersects(ValuationSet set, ValuationSet other);
+
+  void forEach(ValuationSet set, Consumer<? super BitSet> action);
+
+  void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action);
+
+
+  ValuationSet intersection(ValuationSet set1, ValuationSet set2);
 
   default ValuationSet intersection(Iterable<ValuationSet> sets) {
     return intersection(sets.iterator());
@@ -55,27 +65,8 @@ public interface ValuationSetFactory {
 
   ValuationSet intersection(Iterator<ValuationSet> sets);
 
-  ValuationSet of();
 
-  ValuationSet of(BitSet valuation);
-
-  ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
-
-  default ValuationSet union(ValuationSet set) {
-    return set;
-  }
-
-  default ValuationSet union(ValuationSet set1, ValuationSet set2) {
-    return union(List.of(set1, set2));
-  }
-
-  default ValuationSet union(ValuationSet... sets) {
-    return union(Iterators.forArray(sets));
-  }
-
-  default ValuationSet union(Stream<ValuationSet> sets) {
-    return union(sets.iterator());
-  }
+  ValuationSet union(ValuationSet set1, ValuationSet set2);
 
   default ValuationSet union(Iterable<ValuationSet> sets) {
     return union(sets.iterator());
@@ -83,5 +74,11 @@ public interface ValuationSetFactory {
 
   ValuationSet union(Iterator<ValuationSet> sets);
 
-  ValuationSet universe();
+
+  default ValuationSet minus(ValuationSet set1, ValuationSet set2) {
+    return set1.intersection(set2.complement());
+  }
+
+
+  BooleanExpression<AtomLabel> toExpression(ValuationSet set);
 }

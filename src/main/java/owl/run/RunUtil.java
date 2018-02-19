@@ -68,6 +68,8 @@ public final class RunUtil {
       } else {
         System.err.printf("An unexpected error occurred during execution: %s%n", e.getMessage());
       }
+
+      e.printStackTrace(System.err);
     }
   }
 }

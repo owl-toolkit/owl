@@ -126,7 +126,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
     LabelledFormula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-    Factories factories = env.factorySupplier().getFactories(rewritten);
+    Factories factories = env.factorySupplier().getFactories(rewritten, true);
 
     Formula processedFormula = rewritten.formula;
     AbstractJumpManager<C> factory = selectorConstructor.apply(factories.eqFactory

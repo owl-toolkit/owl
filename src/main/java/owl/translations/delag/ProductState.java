@@ -54,10 +54,10 @@ class ProductState<T> extends ImmutableObject {
     return Objects.hash(fallback, safety, finished);
   }
 
-  static class Builder<T> {
-    final Map<Formula, T> fallback;
-    final Map<DependencyTree<T>, Boolean> finished;
-    final Map<Formula, EquivalenceClass> safety;
+  static final class Builder<T> {
+    private final Map<Formula, T> fallback;
+    private final Map<DependencyTree<T>, Boolean> finished;
+    private final Map<Formula, EquivalenceClass> safety;
 
     Builder() {
       fallback = new HashMap<>();
@@ -69,10 +69,27 @@ class ProductState<T> extends ImmutableObject {
       return new ProductState<>(fallback, finished, safety);
     }
 
-    void putAll(Builder<T> other) {
-      fallback.putAll(other.fallback);
-      finished.putAll(other.finished);
-      safety.putAll(other.safety);
+    void merge(Builder<T> other) {
+      other.fallback.forEach(this::addFallback);
+      other.finished.forEach(this::addFinished);
+      other.safety.forEach(this::addSafety);
+    }
+
+    static <K, V> void add(Map<K, V> map, K key, V value) {
+      V oldValue = map.put(key, value);
+      assert oldValue == null || value.equals(oldValue);
+    }
+
+    void addFallback(Formula key, T value) {
+      add(fallback, key, value);
+    }
+
+    void addSafety(Formula key, EquivalenceClass value) {
+      add(safety, key, value);
+    }
+
+    void addFinished(DependencyTree<T> tree, Boolean value) {
+      add(finished, tree, value);
     }
   }
 }

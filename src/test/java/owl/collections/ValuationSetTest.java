@@ -48,7 +48,7 @@ public abstract class ValuationSetTest {
     List<String> aliases = ImmutableList.of("a", "b", "c", "d");
     ValuationSetFactory factory = setUpFactory(aliases);
 
-    empty = factory.of();
+    empty = factory.empty();
     universe = factory.universe();
 
     BitSet bs = new BitSet(4);
@@ -64,11 +64,10 @@ public abstract class ValuationSetTest {
 
   @Test
   public void testComplement() {
-    ValuationSetFactory factory = empty.getFactory();
-    assertEquals(factory.complement(universe), empty);
-    assertEquals(factory.complement(empty), universe);
-    assertEquals(factory.complement(factory.complement(abcd)), abcd);
-    assertNotEquals(factory.complement(abcd), containsA);
+    assertEquals(universe.complement(), empty);
+    assertEquals(empty.complement(), universe);
+    assertEquals(abcd.complement().complement(), abcd);
+    assertNotEquals(abcd.complement(), containsA);
   }
 
   @Test
@@ -107,9 +106,7 @@ public abstract class ValuationSetTest {
 
   @Test
   public void testIsUniverse() {
-    assertEquals(16, universe.size());
     assertTrue(universe.isUniverse());
-
     assertFalse(empty.isUniverse());
     assertFalse(abcd.isUniverse());
     assertFalse(containsA.isUniverse());

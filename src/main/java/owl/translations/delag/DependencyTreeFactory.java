@@ -19,7 +19,9 @@ package owl.translations.delag;
 
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
@@ -40,9 +42,9 @@ import owl.translations.delag.DependencyTree.Type;
 class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
 
   private final ProductState.Builder<T> builder;
-  private final Function<LabelledFormula, ? extends Automaton<T, ?>>
-    constructor;
+  private final Function<Formula, ? extends Automaton<T, ?>> constructor;
   private final EquivalenceClassFactory factory;
+  private final Map<Formula, Automaton<T, ?>> automatonCache = new HashMap<>();
   int setNumber;
 
   DependencyTreeFactory(Factories factory,
@@ -50,7 +52,8 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     this.factory = factory.eqFactory;
     setNumber = 0;
     builder = ProductState.builder();
-    this.constructor = constructor;
+    this.constructor = formula -> automatonCache.computeIfAbsent(formula,
+      (x) -> constructor.apply(LabelledFormula.of(x, this.factory.variables())));
   }
 
   ProductState<T> buildInitialState() {
@@ -63,12 +66,11 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
   }
 
   protected DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
-    Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber,
-      () -> constructor.apply(LabelledFormula.of(formula, factory.getVariables())),
+    Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber, () -> constructor.apply(formula),
       piggyback);
 
     if (leaf.type == Type.CO_SAFETY || leaf.type == Type.SAFETY) {
-      builder.safety.put(formula, factory.of(formula.unfold()));
+      builder.addSafety(formula, factory.of(formula.unfold()));
     }
 
     if (leaf instanceof FallbackLeaf) {
@@ -78,9 +80,9 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
       T initialState = Iterables.getOnlyElement(fallbackLeaf.automaton.getInitialStates(), null);
 
       if (initialState == null) {
-        builder.finished.put(fallbackLeaf, Boolean.FALSE);
+        builder.addFinished(fallbackLeaf, Boolean.FALSE);
       } else {
-        builder.fallback.put(formula, initialState);
+        builder.addFallback(formula, initialState);
       }
     } else if (piggyback == null) {
       setNumber++;

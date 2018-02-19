@@ -9,7 +9,6 @@ idea {
         ipr {
             withXml { xmlProvider ->
                 def projectXml = xmlProvider.asNode()
-                customizeCompiler(projectXml)
                 customizeCodeStyle(projectXml, file("config/idea-codestyle.xml").getText("UTF-8"))
                 customizeEncoding(projectXml)
             }
@@ -17,14 +16,6 @@ idea {
     }
 
     module {
-        def annotSrcFolder = file("build/generated-src/annot/main")
-        def annotTestFolder = file("build/generated-src/annot/test")
-
-        sourceDirs += annotSrcFolder
-        generatedSourceDirs += annotSrcFolder
-        sourceDirs += annotTestFolder
-        generatedSourceDirs += annotTestFolder
-
         name = 'owl'
 
         downloadJavadoc = true
@@ -40,28 +31,7 @@ static findComponent(node, name) {
     node.component.find { it.@name == name }
 }
 
-/* Set value for option node with given name */
-
-static changeOption(node, name, value) {
-    node.option.find { it.@name == name }.@value = value
-}
-
 // Customizers
-
-static customizeCompiler(project) {
-    def compilerConfiguration = findComponent(project, 'CompilerConfiguration')
-
-    compilerConfiguration.annotationProcessing.replaceNode {
-        annotationProcessing {
-            profile(name: 'Default', default: true, enabled: true) {
-                processorPath(useClasspath: true)
-                sourceOutputDir(name: "build/generated-src/annot/main")
-                sourceTestOutputDir(name: "build/generated-src/annot/test")
-                outputRelativeToContentRoot(value: true)
-            }
-        }
-    }
-}
 
 // http://stackoverflow.com/questions/26108228/pass-custom-code-style-xml-to-gradle-idea-plugin
 static customizeCodeStyle(project, codeStyle) {
@@ -93,20 +63,4 @@ static customizeEncoding(project) {
              native2AsciiForPropertiesFiles  : true,
              defaultCharsetForPropertiesFiles: 'UTF-8']
     }
-}
-
-static customizeAnnotationProcessingSourceRoot(module) {
-    def moduleRootManager = findComponent(module, 'NewModuleRootManager')
-
-    def contentRoot = moduleRootManager.content.find { it.@url == 'file://$MODULE_DIR$/' }
-    contentRoot.appendNode('sourceFolder', [
-        url         : 'file://$MODULE_DIR$/build/generated-src/annot/main',
-        isTestSource: false,
-        generated   : true
-    ])
-    contentRoot.appendNode('sourceFolder', [
-        url         : 'file://$MODULE_DIR$/build/generated-src/annot/test',
-        isTestSource: true,
-        generated   : true
-    ])
 }

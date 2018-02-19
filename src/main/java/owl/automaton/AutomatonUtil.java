@@ -322,12 +322,12 @@ public final class AutomatonUtil {
     ValuationSetFactory factory = automaton.getFactory();
 
     automaton.forEachState(state -> {
-      ValuationSet complementIntersection = factory.intersection(
-        automaton.getLabelledEdges(state).stream().map(x -> factory.complement(x.valuations)));
+      Collection<LabelledEdge<S>> edges = automaton.getLabelledEdges(state);
+      ValuationSet union = factory.union(LabelledEdge.valuations(edges));
 
-      // State is incomplete.
-      if (!complementIntersection.isEmpty()) {
-        incompleteStates.put(state, complementIntersection);
+      if (!union.isUniverse()) {
+        // State is incomplete.
+        incompleteStates.put(state, union.complement());
       }
     });
 

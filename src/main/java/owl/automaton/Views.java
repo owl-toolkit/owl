@@ -173,8 +173,7 @@ public final class Views {
       }
 
       List<LabelledEdge<S>> edges = new ArrayList<>(automaton.getLabelledEdges(state));
-      ValuationSet complement = factory.complement(
-        factory.union(edges.stream().map(x -> x.valuations)));
+      ValuationSet complement = factory.union(LabelledEdge.valuations(edges)).complement();
 
       if (!complement.isEmpty()) {
         return Collections3.concat(edges, List.of(LabelledEdge.of(loop, complement)));

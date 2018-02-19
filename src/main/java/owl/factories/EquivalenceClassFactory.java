@@ -18,34 +18,23 @@
 package owl.factories;
 
 import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
+import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
 public interface EquivalenceClassFactory {
+  ImmutableList<String> variables();
+
+
   EquivalenceClass of(Formula formula);
-
-  default EquivalenceClass conjunction(EquivalenceClass... classes) {
-    return conjunction(Arrays.asList(classes));
-  }
-
-  default EquivalenceClass conjunction(Iterable<EquivalenceClass> classes) {
-    return conjunction(classes.iterator());
-  }
-
-  EquivalenceClass conjunction(Iterator<EquivalenceClass> classes);
-
-  default EquivalenceClass disjunction(EquivalenceClass... classes) {
-    return disjunction(Arrays.asList(classes));
-  }
-
-  default EquivalenceClass disjunction(Iterable<EquivalenceClass> classes) {
-    return disjunction(classes.iterator());
-  }
-
-  EquivalenceClass disjunction(Iterator<EquivalenceClass> classes);
 
   default EquivalenceClass getFalse() {
     return of(BooleanConstant.FALSE);
@@ -55,5 +44,64 @@ public interface EquivalenceClassFactory {
     return of(BooleanConstant.TRUE);
   }
 
-  ImmutableList<String> getVariables();
+
+  BitSet getAtoms(EquivalenceClass clazz);
+
+  Set<Formula> getSupport(EquivalenceClass clazz);
+
+  default Set<Formula> getSupport(EquivalenceClass clazz, Predicate<Formula> predicate) {
+    return Sets.filter(getSupport(clazz), predicate::test);
+  }
+
+  boolean testSupport(EquivalenceClass clazz, Predicate<Formula> predicate);
+
+  boolean implies(EquivalenceClass clazz, EquivalenceClass other);
+
+
+  default EquivalenceClass conjunction(EquivalenceClass clazz, EquivalenceClass other) {
+    return conjunction(List.of(clazz, other));
+  }
+
+  default EquivalenceClass conjunction(EquivalenceClass... classes) {
+    return conjunction(Iterators.forArray(classes));
+  }
+
+  default EquivalenceClass conjunction(Iterable<EquivalenceClass> classes) {
+    return conjunction(classes.iterator());
+  }
+
+  EquivalenceClass conjunction(Iterator<EquivalenceClass> classes);
+
+
+  default EquivalenceClass disjunction(EquivalenceClass clazz, EquivalenceClass other) {
+    return disjunction(List.of(clazz, other));
+  }
+
+  default EquivalenceClass disjunction(EquivalenceClass... classes) {
+    return disjunction(Iterators.forArray(classes));
+  }
+
+  default EquivalenceClass disjunction(Iterable<EquivalenceClass> classes) {
+    return disjunction(classes.iterator());
+  }
+
+  EquivalenceClass disjunction(Iterator<EquivalenceClass> classes);
+
+
+  EquivalenceClass exists(EquivalenceClass clazz, Predicate<Formula> predicate);
+
+  EquivalenceClass substitute(EquivalenceClass clazz,
+    Function<? super Formula, ? extends Formula> substitution);
+
+
+  EquivalenceClass temporalStep(EquivalenceClass clazz, BitSet valuation);
+
+  EquivalenceClass temporalStepUnfold(EquivalenceClass clazz, BitSet valuation);
+
+  EquivalenceClass unfold(EquivalenceClass clazz);
+
+  EquivalenceClass unfoldTemporalStep(EquivalenceClass clazz, BitSet valuation);
+
+
+  String toString(EquivalenceClass clazz);
 }

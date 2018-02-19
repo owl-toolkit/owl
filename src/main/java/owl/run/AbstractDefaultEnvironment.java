@@ -21,7 +21,7 @@ abstract class AbstractDefaultEnvironment implements Environment {
   public FactorySupplier factorySupplier() {
     /* TODO Factories not thread safe yet */
     // return isParallel() ? JBddSupplier.sync() : JBddSupplier.async();
-    return JBddSupplier.async();
+    return JBddSupplier.async(annotations());
   }
 
   @Value.Default

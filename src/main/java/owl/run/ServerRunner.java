@@ -1,5 +1,6 @@
 package owl.run;
 
+import com.google.common.base.Throwables;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -99,12 +100,13 @@ public class ServerRunner implements Callable<Void> {
     }
 
     @Override
-    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingThrowable"})
     public void run() {
       try (connection) {
         PipelineRunner.run(pipeline, environment, connection, 0);
-      } catch (Exception e) {
-        logger.log(Level.WARNING, e, () -> "Error while handling connection " + connection);
+      } catch (@SuppressWarnings("OverlyBroadCatchBlock") Throwable t) {
+        logger.log(Level.WARNING, "Error while handling connection", t);
+        Throwables.throwIfUnchecked(t);
       }
     }
   }
