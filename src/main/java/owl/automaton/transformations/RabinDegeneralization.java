@@ -5,14 +5,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import com.google.common.primitives.ImmutableIntArray;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,7 +23,7 @@ import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.concurrent.Immutable;
+import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -36,6 +35,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
@@ -109,7 +109,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         assert !stateMap.containsKey(state);
 
         DegeneralizedRabinState<S> degeneralizedState =
-          new DegeneralizedRabinState<>(state, IntArrays.EMPTY_ARRAY);
+          DegeneralizedRabinState.of(state);
         // This catches corner cases, where there are transient states with no successors
         resultAutomaton.addState(degeneralizedState);
         stateMap.put(state, degeneralizedState);
@@ -136,15 +136,14 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       });
 
       assert sccTrackedPairs.size() <= trackedPairsCount;
-      int[] awaitedIndices = new int[sccTrackedPairs.size()];
 
       // Pick an arbitrary starting state for the exploration
       DegeneralizedRabinState<S> initialSccState =
-        new DegeneralizedRabinState<>(Iterables.getFirst(scc, null), awaitedIndices);
+        DegeneralizedRabinState.of(Iterables.get(scc, 0), new int[sccTrackedPairs.size()]);
 
       Set<DegeneralizedRabinState<S>> exploredStates =
         AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, Set.of(initialSccState), state -> {
-          S generalizedState = state.generalizedState;
+          S generalizedState = state.state();
           Collection<LabelledEdge<S>> labelledEdges = automaton.getLabelledEdges(generalizedState);
 
           Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
@@ -215,9 +214,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             });
 
             DegeneralizedRabinState<S> successor =
-              new DegeneralizedRabinState<>(generalizedSuccessor, successorAwaitedIndices);
-            ValuationSet valuations = labelledEdge.valuations;
-            successors.add(LabelledEdge.of(Edge.of(successor, edgeAcceptance), valuations));
+              DegeneralizedRabinState.of(generalizedSuccessor, successorAwaitedIndices);
+            successors.add(LabelledEdge.of(Edge.of(successor, edgeAcceptance),
+              labelledEdge.valuations));
           }
           return successors;
         });
@@ -231,7 +230,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
       resultAutomaton.removeStates(state ->
         exploredStates.contains(state) && !resultBscc.contains(state));
-      resultBscc.forEach(state -> stateMap.putIfAbsent(state.generalizedState, state));
+      resultBscc.forEach(state -> stateMap.putIfAbsent(state.state(), state));
     }
 
     assert Objects.equals(stateMap.keySet(), automaton.getStates());
@@ -242,14 +241,10 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         DegeneralizedRabinState<S> successor = stateMap.get(generalizedSuccessor);
         resultAutomaton.addEdge(state, valuations, Edge.of(successor));
       }));
-    // Free transient table
-    transientEdgesTable.values().forEach(valuationSet -> {
-    });
 
     // Set initial states
-    Set<DegeneralizedRabinState<S>> initialStates = automaton.getInitialStates().stream()
-      .map(stateMap::get).collect(Collectors.toSet());
-    resultAutomaton.setInitialStates(initialStates);
+    resultAutomaton.setInitialStates(automaton.getInitialStates().stream()
+      .map(stateMap::get).collect(Collectors.toSet()));
 
     return resultAutomaton;
   }
@@ -263,48 +258,33 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     return degeneralize((Automaton<Object, GeneralizedRabinAcceptance>) automaton);
   }
 
-  @Immutable
-  public static class DegeneralizedRabinState<S> {
-    final int[] awaitedSets;
-    final S generalizedState;
-    final int hashCode;
+  @Value.Immutable(builder = false, copy = false, prehash = true)
+  abstract static class DegeneralizedRabinState<S> implements AnnotatedState<S> {
 
-    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-    DegeneralizedRabinState(S generalizedState, int[] awaitedSets) { // NOPMD
-      this.generalizedState = generalizedState;
-      this.awaitedSets = awaitedSets;
-      hashCode = Arrays.hashCode(awaitedSets) ^ generalizedState.hashCode();
+    @Override
+    @Value.Parameter
+    public abstract S state();
+
+    @Value.Parameter
+    public abstract ImmutableIntArray awaitedSets();
+
+    static <S> DegeneralizedRabinState<S> of(S state) {
+      return ImmutableDegeneralizedRabinState.of(state, ImmutableIntArray.of());
+    }
+
+    static <S> DegeneralizedRabinState<S> of(S state, int[] awaitedSets) {
+      return ImmutableDegeneralizedRabinState.of(state, ImmutableIntArray.copyOf(awaitedSets));
     }
 
     int awaitedInfSet(int generalizedPairIndex) {
-      return awaitedSets[generalizedPairIndex];
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof DegeneralizedRabinState)) {
-        return false;
-      }
-
-      DegeneralizedRabinState<?> that = (DegeneralizedRabinState<?>) o;
-      return generalizedState.equals(that.generalizedState)
-        && Arrays.equals(awaitedSets, that.awaitedSets);
-    }
-
-    @Override
-    public int hashCode() {
-      return hashCode;
+      return awaitedSets().get(generalizedPairIndex);
     }
 
     @Override
     public String toString() {
-      return awaitedSets.length == 0
-             ? String.format("{%s}", generalizedState)
-             : String.format("{%s|%s}", generalizedState, Arrays.toString(awaitedSets));
+      return awaitedSets().isEmpty()
+        ? String.format("{%s}", state())
+        : String.format("{%s|%s}", state(), awaitedSets());
     }
   }
 }

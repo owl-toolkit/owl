@@ -21,13 +21,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -39,29 +40,29 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.RankingComparator;
 import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisitor;
-import owl.util.ImmutableObject;
 
-public final class GObligations extends ImmutableObject implements RecurringObligation {
+@Value.Style(visibility = ImplementationVisibility.PACKAGE)
+@Value.Immutable(builder = false, copy = false, prehash = true)
+public abstract class GObligations implements RecurringObligation {
   private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
-  final ImmutableSet<GOperator> gOperators;
-  // G(liveness[]) is a liveness language.
-  final EquivalenceClass[] liveness;
-  // obligations[] are co-safety languages.
-  final EquivalenceClass[] obligations;
-  final ImmutableSet<GOperator> rewrittenGOperators;
-  // G(safety) is a safety language.
-  final EquivalenceClass safety;
+  @Value.Parameter
+  abstract Set<GOperator> goperators();
 
-  private GObligations(EquivalenceClass safety, List<EquivalenceClass> liveness,
-    List<EquivalenceClass> obligations, ImmutableSet<GOperator> es,
-    ImmutableSet<GOperator> build) {
-    this.safety = safety;
-    this.obligations = obligations.toArray(EquivalenceClass.EMPTY_ARRAY);
-    this.liveness = liveness.toArray(EquivalenceClass.EMPTY_ARRAY);
-    this.gOperators = es;
-    rewrittenGOperators = build;
-  }
+  // G(liveness[]) is a liveness language.
+  @Value.Parameter
+  abstract List<EquivalenceClass> liveness();
+
+  // obligations[] are co-safety languages.
+  @Value.Parameter
+  abstract List<EquivalenceClass> obligations();
+
+  @Value.Parameter
+  abstract Set<GOperator> rewrittenGOperators();
+
+  // G(safety) is a safety language.
+  @Value.Parameter
+  abstract EquivalenceClass safety();
 
   /**
    * Construct the recurring obligations for a Gset.
@@ -125,54 +126,43 @@ public final class GObligations extends ImmutableObject implements RecurringObli
       return null;
     }
 
-    return new GObligations(safety, liveness, obligations, ImmutableSet.copyOf(gOperators),
-      builder.build());
+    return ImmutableGObligations.of(ImmutableSet.copyOf(gOperators), liveness, obligations,
+      builder.build(), safety);
   }
 
   @Override
   public boolean containsLanguageOf(RecurringObligation other) {
     checkArgument(other instanceof GObligations);
 
-    if (((GObligations) other).rewrittenGOperators.containsAll(rewrittenGOperators)) {
-      return true;
-    }
-
-    // TODO: fix memory leak.
-    return ((GObligations) other).getObligation().implies(getObligation());
-  }
-
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    GObligations that = (GObligations) o;
-    // TODO: fix memory leak.
-    return getObligation().equals(that.getObligation());
+    return ((GObligations) other).rewrittenGOperators().containsAll(rewrittenGOperators())
+      || ((GObligations) other).getObligation().implies(getObligation());
   }
 
   void forEach(Consumer<EquivalenceClass> consumer) {
-    consumer.accept(safety);
+    consumer.accept(safety());
 
-    for (EquivalenceClass clazz : liveness) {
+    for (EquivalenceClass clazz : liveness()) {
       consumer.accept(clazz);
     }
 
-    for (EquivalenceClass clazz : obligations) {
+    for (EquivalenceClass clazz : obligations()) {
       consumer.accept(clazz);
     }
   }
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety.getFactory().of(Conjunction.of(rewrittenGOperators));
+    return safety().getFactory().of(Conjunction.of(rewrittenGOperators()));
   }
 
   EquivalenceClass getObligation() {
-    EquivalenceClass obligation = safety;
+    EquivalenceClass obligation = safety();
 
-    for (EquivalenceClass clazz : liveness) {
+    for (EquivalenceClass clazz : liveness()) {
       obligation = obligation.and(clazz);
     }
 
-    for (EquivalenceClass clazz : obligations) {
+    for (EquivalenceClass clazz : obligations()) {
       obligation = obligation.and(clazz);
     }
 
@@ -180,15 +170,28 @@ public final class GObligations extends ImmutableObject implements RecurringObli
   }
 
   @Override
-  protected int hashCodeOnce() {
-    // TODO: fix memory leak.
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || hashCode() != o.hashCode() || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GObligations that = (GObligations) o;
+    return getObligation().equals(that.getObligation());
+  }
+
+  @Override
+  public int hashCode() {
     return getObligation().hashCode();
   }
 
   @Override
   public String toString() {
-    return '<' + (safety.isTrue() ? "" : "S=" + safety + ' ')
-      + (liveness.length <= 0 ? "" : "L=" + Arrays.toString(liveness) + ' ')
-      + (obligations.length <= 0 ? "" : "O=" + Arrays.toString(obligations)) + '>';
+    return '<' + (safety().isTrue() ? "" : "S=" + safety() + ' ')
+      + (liveness().isEmpty() ? "" : "L=" + liveness() + ' ')
+      + (obligations().isEmpty() ? "" : "O=" + obligations()) + '>';
   }
 }

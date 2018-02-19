@@ -13,6 +13,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.util.AnnotatedState;
 
 public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
@@ -48,7 +49,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
   public static <S, A extends OmegaAcceptance, S2 extends AnnotatedState<S>>
     Automaton<S2, A> optimizeInitialState(Automaton<S2, A> readOnly) {
-    S originalInitialState = readOnly.getInitialState().state;
+    S originalInitialState = readOnly.getInitialState().state();
 
     if (originalInitialState == null) {
       return readOnly;
@@ -61,7 +62,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
     for (Set<S2> scc : SccDecomposition.computeSccs(automaton, false)) {
       for (S2 state : scc) {
-        if (!originalInitialState.equals(state.state)) {
+        if (!originalInitialState.equals(state.state())) {
           continue;
         }
 

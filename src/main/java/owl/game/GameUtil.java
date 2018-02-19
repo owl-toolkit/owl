@@ -2,7 +2,6 @@ package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.PrintWriter;
@@ -13,14 +12,15 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.ToIntFunction;
+import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.edge.Edge;
+import owl.automaton.util.AnnotatedState;
 import owl.run.modules.ImmutableWriterParser;
 import owl.run.modules.OutputWriter.Binding;
 import owl.run.modules.OwlModuleParser.WriterParser;
-import owl.util.ImmutableObject;
 
 public final class GameUtil {
   @SuppressWarnings("unchecked")
@@ -62,7 +62,7 @@ public final class GameUtil {
     int highestPriority = acceptance.getAcceptanceSets() - 1;
 
     S initialState = game.getInitialState();
-    stateNumbering.put(new PriorityState<>(initialState, highestPriority), 0);
+    stateNumbering.put(PriorityState.of(initialState, highestPriority), 0);
 
     Set<S> reachedStates = new HashSet<>(List.of(initialState));
     Queue<S> workQueue = new ArrayDeque<>(reachedStates);
@@ -82,7 +82,7 @@ public final class GameUtil {
         S successor = edge.getSuccessor();
         int stateAcceptance = getAcceptance.applyAsInt(edge);
 
-        PriorityState<S> prioritySuccessor = new PriorityState<>(successor, stateAcceptance);
+        PriorityState<S> prioritySuccessor = PriorityState.of(successor, stateAcceptance);
         stateNumbering.putIfAbsent(prioritySuccessor, stateNumbering.size());
 
         if (reachedStates.add(successor)) {
@@ -99,12 +99,12 @@ public final class GameUtil {
     stateNumbering.forEach((priorityState, identifier) -> {
       output.print(identifier);
       output.print(' ');
-      output.print(priorityState.acceptance);
+      output.print(priorityState.acceptance());
       output.print(' ');
       // TODO Here the semantics might be important?
-      output.print(game.getOwner(priorityState.state) == Game.Owner.PLAYER_1 ? 0 : 1);
+      output.print(game.getOwner(priorityState.state()) == Game.Owner.PLAYER_1 ? 0 : 1);
 
-      Iterator<Edge<S>> iterator = game.getEdges(priorityState.state).iterator();
+      Iterator<Edge<S>> iterator = game.getEdges(priorityState.state()).iterator();
       if (iterator.hasNext()) {
         output.print(' ');
       }
@@ -115,7 +115,7 @@ public final class GameUtil {
         S successor = edge.getSuccessor();
         int stateAcceptance = getAcceptance.applyAsInt(edge);
 
-        int successorIndex = stateNumbering.getInt(new PriorityState<>(successor, stateAcceptance));
+        int successorIndex = stateNumbering.getInt(PriorityState.of(successor, stateAcceptance));
         assert successorIndex >= 0;
         output.print(successorIndex);
         if (iterator.hasNext()) {
@@ -125,9 +125,9 @@ public final class GameUtil {
 
       if (names) {
         output.print(" \"");
-        output.print(priorityState.state);
+        output.print(priorityState.state());
         output.print(" (");
-        output.print(priorityState.acceptance);
+        output.print(priorityState.acceptance());
         output.print(")\"");
       }
       output.println(';');
@@ -135,24 +135,18 @@ public final class GameUtil {
     output.flush();
   }
 
-  private static final class PriorityState<S> extends ImmutableObject {
-    final S state;
-    final int acceptance;
-
-    PriorityState(S state, int acceptance) {
-      this.state = state;
-      this.acceptance = acceptance;
-    }
+  @Value.Immutable(builder = false, copy = false)
+  abstract static class PriorityState<S> implements AnnotatedState<S> {
 
     @Override
-    protected boolean equals2(ImmutableObject o) {
-      PriorityState<?> other = (PriorityState<?>) o;
-      return acceptance == other.acceptance && state.equals(other.state);
-    }
+    @Value.Parameter
+    public abstract S state();
 
-    @Override
-    protected int hashCodeOnce() {
-      return state.hashCode() ^ HashCommon.mix(acceptance);
+    @Value.Parameter
+    abstract int acceptance();
+
+    static <S> PriorityState<S> of(S state, int acceptance) {
+      return ImmutablePriorityState.of(state, acceptance);
     }
   }
 }

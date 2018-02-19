@@ -140,7 +140,7 @@ abstract class DependencyTree<T> {
 
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
-      return productState.safety.containsKey(leaf.formula)
+      return productState.safety().containsKey(leaf.formula)
         && (Fragments.isFinite(leaf.formula) || leaf.type == Type.CO_SAFETY);
     }
 
@@ -168,7 +168,7 @@ abstract class DependencyTree<T> {
 
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
-      T fallbackState = state.productState.fallback.get(formula);
+      T fallbackState = state.productState.fallback().get(formula);
 
       if (fallbackState == null) {
         builder.addFinished(this, Boolean.FALSE);
@@ -206,7 +206,7 @@ abstract class DependencyTree<T> {
 
     @Nullable
     private Edge<T> getEdge(ProductState<T> state, BitSet valuation) {
-      T stateT = state.fallback.get(formula);
+      T stateT = state.fallback().get(formula);
 
       if (stateT == null) {
         return null;
@@ -281,7 +281,7 @@ abstract class DependencyTree<T> {
 
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
-      Boolean value = state.productState.finished.get(this);
+      Boolean value = state.productState.finished().get(this);
 
       if (value != null) {
         builder.addFinished(this, value);
@@ -289,7 +289,7 @@ abstract class DependencyTree<T> {
       }
 
       if (type == Type.SAFETY || type == Type.CO_SAFETY) {
-        EquivalenceClass successor = state.productState.safety.get(formula)
+        EquivalenceClass successor = state.productState.safety().get(formula)
           .temporalStepUnfold(valuation);
 
         if (successor.isFalse()) {
@@ -321,7 +321,7 @@ abstract class DependencyTree<T> {
           // We use a FIN acceptance condition. If it is INF, we piggybacked on another leaf.
           // The other leaf is waiting for us. Thus we don't need to anything.
           if (acceptance.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
-            value = state.productState.finished.get(this);
+            value = state.productState.finished().get(this);
             inSet = (value == null) || !value;
           }
 
@@ -331,7 +331,7 @@ abstract class DependencyTree<T> {
           // We use a INF acceptance condition. If it is FIN, we piggybacked on another leaf.
           // The other leaf is waiting for us. Thus we don't need to anything.
           if (acceptance.getType() == AtomAcceptance.Type.TEMPORAL_INF) {
-            value = state.productState.finished.get(this);
+            value = state.productState.finished().get(this);
             inSet = (value == null) || value;
           }
 
@@ -393,9 +393,9 @@ abstract class DependencyTree<T> {
 
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
-      if (state.productState.finished.containsKey(this)) {
-        builder.addFinished(this, state.productState.finished.get(this));
-        return state.productState.finished.get(this);
+      if (state.productState.finished().containsKey(this)) {
+        builder.addFinished(this, state.productState.finished().get(this));
+        return state.productState.finished().get(this);
       }
 
       Builder<T> childBuilder = new Builder<>();
@@ -433,7 +433,7 @@ abstract class DependencyTree<T> {
     @Override
     BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean parentAcceptance) {
       Boolean acceptance = parentAcceptance == null
-        ? state.productState.finished.get(this)
+        ? state.productState.finished().get(this)
         : parentAcceptance;
 
       BitSet set = new BitSet();
@@ -475,7 +475,7 @@ abstract class DependencyTree<T> {
     long[] getRequiredHistory(ProductState<T> successor) {
       long[] requiredHistory = LongArrays.EMPTY_ARRAY;
 
-      if (successor.finished.containsKey(this)) {
+      if (successor.finished().containsKey(this)) {
         return requiredHistory;
       }
 
@@ -513,7 +513,7 @@ abstract class DependencyTree<T> {
 
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
-      return productState.safety.containsKey(leaf.formula)
+      return productState.safety().containsKey(leaf.formula)
         && (Fragments.isFinite(leaf.formula) || leaf.type == Type.SAFETY);
     }
 

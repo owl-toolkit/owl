@@ -48,21 +48,21 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   @Override
   public MutableAutomaton<GeneralizedBreakpointState, GeneralizedBuchiAcceptance> build() {
     return MutableAutomatonFactory.create(GeneralizedBuchiAcceptance.of(acceptanceSets),
-        factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+      factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
   }
 
   @Override
   public GeneralizedBreakpointState createState(EquivalenceClass remainder,
     GObligations obligations) {
     EquivalenceClass theRemainder = remainder;
-    int length = obligations.obligations.length + obligations.liveness.length;
+    int length = obligations.obligations().size() + obligations.liveness().size();
 
     // If it is necessary, increase the number of acceptance conditions.
     if (length > acceptanceSets) {
       acceptanceSets = length;
     }
 
-    EquivalenceClass safety = obligations.safety;
+    EquivalenceClass safety = obligations.safety();
 
     if (theRemainder.testSupport(Fragments::isFinite)) {
       safety = theRemainder.and(safety);
@@ -71,34 +71,33 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     if (length == 0) {
       if (theRemainder.isTrue()) {
-        return new GeneralizedBreakpointState(obligations, safety, EquivalenceClass.EMPTY_ARRAY,
+        return GeneralizedBreakpointState.of(obligations, safety, EquivalenceClass.EMPTY_ARRAY,
           EquivalenceClass.EMPTY_ARRAY);
       } else {
-        return new GeneralizedBreakpointState(obligations, safety,
+        return GeneralizedBreakpointState.of(obligations, safety,
           new EquivalenceClass[] {theRemainder}, EquivalenceClass.EMPTY_ARRAY);
       }
     }
 
     EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
-    if (obligations.obligations.length > 0) {
-      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.obligations[0]));
+    if (obligations.obligations().size() > 0) {
+      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.obligations().get(0)));
     } else {
-      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.liveness[0]));
+      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.liveness().get(0)));
     }
 
-    for (int i = 1; i < obligations.obligations.length; i++) {
-      currentBuilder[i] = factory.getInitial(obligations.obligations[i]);
+    for (int i = 1; i < obligations.obligations().size(); i++) {
+      currentBuilder[i] = factory.getInitial(obligations.obligations().get(i));
     }
 
-    for (int i = Math.max(1, obligations.obligations.length); i < length; i++) {
+    for (int i = Math.max(1, obligations.obligations().size()); i < length; i++) {
       currentBuilder[i] = factory
-        .getInitial(obligations.liveness[i - obligations.obligations.length]);
+        .getInitial(obligations.liveness().get(i - obligations.obligations().size()));
     }
 
-    EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.length];
+    EquivalenceClass[] next = new EquivalenceClass[obligations.obligations().size()];
     Arrays.fill(next, factories.eqFactory.getTrue());
-
-    return new GeneralizedBreakpointState(obligations, safety, currentBuilder, next);
+    return GeneralizedBreakpointState.of(obligations, safety, currentBuilder, next);
   }
 
   @Nonnull
@@ -121,13 +120,13 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     GeneralizedBreakpointState state, BitSet valuation) {
     // Check the safety field first.
     EquivalenceClass nextSafety = factory.getSuccessor(state.safety, valuation)
-      .and(state.obligations.safety);
+      .and(state.obligations.safety());
 
     if (nextSafety.isFalse()) {
       return null;
     }
 
-    if (state.obligations.obligations.length == 0 && state.obligations.liveness.length == 0) {
+    if (state.obligations.obligations().isEmpty() && state.obligations.liveness().isEmpty()) {
       return getSuccessorPureSafety(state, nextSafety, valuation);
     }
 
@@ -155,7 +154,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       }
 
       nextSuccessor = nextSuccessor
-        .and(factory.getInitial(state.obligations.obligations[i], assumptions));
+        .and(factory.getInitial(state.obligations.obligations().get(i), assumptions));
 
       // Successor is done and we can switch components.
       if (currentSuccessor.isTrue()) {
@@ -179,14 +178,14 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       if (currentSuccessor.isTrue()) {
         bs.set(i);
         currentSuccessors[i] = factory
-          .getInitial(state.obligations.liveness[i - state.next.length]);
+          .getInitial(state.obligations.liveness().get(i - state.next.length));
       } else {
         currentSuccessors[i] = currentSuccessor;
       }
     }
 
-    return Edge.of(new GeneralizedBreakpointState(state.obligations, nextSafety, currentSuccessors,
-        nextSuccessors), bs);
+    return Edge.of(GeneralizedBreakpointState.of(state.obligations, nextSafety, currentSuccessors,
+      nextSuccessors), bs);
   }
 
   @Nullable
@@ -201,15 +200,14 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       }
 
       if (!remainder.isTrue()) {
-        return Edge
-          .of(new GeneralizedBreakpointState(state.obligations, nextSafety,
-            new EquivalenceClass[] {remainder}, EquivalenceClass.EMPTY_ARRAY));
+        return Edge.of(GeneralizedBreakpointState.of(state.obligations, nextSafety,
+          new EquivalenceClass[] {remainder}, EquivalenceClass.EMPTY_ARRAY));
       }
     }
 
     BitSet acceptance = new BitSet();
     acceptance.set(0, acceptanceSets);
-    return Edge.of(new GeneralizedBreakpointState(state.obligations, nextSafety,
-        EquivalenceClass.EMPTY_ARRAY, EquivalenceClass.EMPTY_ARRAY), acceptance);
+    return Edge.of(GeneralizedBreakpointState.of(state.obligations, nextSafety,
+      EquivalenceClass.EMPTY_ARRAY, EquivalenceClass.EMPTY_ARRAY), acceptance);
   }
 }

@@ -22,21 +22,19 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableValueGraph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
-import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import org.immutables.value.Value;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.util.ImmutableObject;
 
 public final class GameFactory {
   private GameFactory() {}
@@ -62,7 +60,8 @@ public final class GameFactory {
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
       game.forEachLabelledEdge((state, edge, valuations) -> {
-        graph.putEdgeValue(state, edge.getSuccessor(), new ValueEdge(edge, valuations));
+        graph.putEdgeValue(state, edge.getSuccessor(),
+          ImmutableValueEdge.of(edge.smallestAcceptanceSet(), valuations));
 
         if (Owner.PLAYER_1 == game.getOwner(state)) {
           player1NodesBuilder.add(state);
@@ -105,10 +104,10 @@ public final class GameFactory {
         //noinspection ConstantConditions
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
 
-        if (valueEdge.colour == -1) {
-          return LabelledEdge.of(x.target(), valueEdge.valuationSet);
+        if (valueEdge.colour() == -1) {
+          return LabelledEdge.of(x.target(), valueEdge.valuationSet());
         } else {
-          return LabelledEdge.of(Edge.of(x.target(), valueEdge.colour), valueEdge.valuationSet);
+          return LabelledEdge.of(Edge.of(x.target(), valueEdge.colour()), valueEdge.valuationSet());
         }
       }).collect(Collectors.toSet());
     }
@@ -138,29 +137,13 @@ public final class GameFactory {
       return owner == Owner.PLAYER_1 ? variablesPlayer1 : variablesPlayer2;
     }
 
-    private static final class ValueEdge extends ImmutableObject {
-      final int colour;
-      final ValuationSet valuationSet;
+    @Value.Immutable(builder = false, copy = false)
+    abstract static class ValueEdge {
+      @Value.Parameter
+      abstract int colour();
 
-      ValueEdge(Edge<?> edge, ValuationSet valuations) {
-        this(valuations, edge.largestAcceptanceSet());
-      }
-      
-      ValueEdge(ValuationSet set, int colour) {
-        valuationSet = set;
-        this.colour = colour;
-      }
-
-      @Override
-      protected boolean equals2(ImmutableObject o) {
-        ValueEdge valueEdge = (ValueEdge) o;
-        return colour == valueEdge.colour && Objects.equals(valuationSet, valueEdge.valuationSet);
-      }
-
-      @Override
-      protected int hashCodeOnce() {
-        return valuationSet.hashCode() ^ HashCommon.mix(colour);
-      }
+      @Value.Parameter
+      abstract ValuationSet valuationSet();
     }
   }
 }

@@ -44,12 +44,12 @@ public class EquivalenceClassLanguageLattice implements
 
   @Override
   public boolean isLivenessLanguage(GObligations annotation) {
-    return annotation.obligations.length == 0 && annotation.safety.isTrue();
+    return annotation.obligations().isEmpty() && annotation.safety().isTrue();
   }
 
   @Override
   public boolean isSafetyAnnotation(GObligations annotation) {
-    return annotation.obligations.length == 0 && annotation.liveness.length == 0;
+    return annotation.obligations().isEmpty() && annotation.liveness().isEmpty();
   }
 
   private static class EquivalenceClassLanguage implements Language<EquivalenceClass> {

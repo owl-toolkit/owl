@@ -18,42 +18,30 @@
 package owl.translations.ldba2dra;
 
 import java.util.Map;
-import java.util.Objects;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-import owl.translations.ldba2dpa.AnnotatedState;
-import owl.util.ImmutableObject;
+import org.immutables.value.Value;
+import owl.automaton.util.AnnotatedState;
 
-@Immutable
-public final class MapRankingState<S, K, V> extends AnnotatedState<S> {
-  public final Map<K, V> componentMap;
+@Value.Style(of = "ofInternal")
+@Value.Immutable(builder = false, copy = false, prehash = true)
+public abstract class MapRankingState<S, K, V> implements AnnotatedState<S> {
 
-  private MapRankingState(@Nullable S state, Map<K, V> componentMap) {
-    super(state);
-    this.componentMap = componentMap;
-  }
+  @Override
+  @Value.Parameter
+  public abstract S state();
 
-  static <S, T, K> MapRankingState<S, K, T> of(@Nullable S state) {
+  @Value.Parameter
+  abstract Map<K, V> componentMap();
+
+  static <S, T, K> MapRankingState<S, K, T> of(S state) {
     return of(state, Map.of());
   }
 
-  static <S, T, K> MapRankingState<S, K, T> of(@Nullable S state, Map<K, T> ranking) {
-    return new MapRankingState<>(state, ranking);
-  }
-
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    MapRankingState<?, ?, ?> that = (MapRankingState<?, ?, ?>) o;
-    return Objects.equals(state, that.state) && Objects.equals(componentMap, that.componentMap);
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(state, componentMap);
+  static <S, T, K> MapRankingState<S, K, T> of(S state, Map<K, T> ranking) {
+    return ImmutableMapRankingState.ofInternal(state, ranking);
   }
 
   @Override
   public String toString() {
-    return String.format("|%s :: %s|", state, componentMap);
+    return String.format("|%s :: %s|", state(), componentMap());
   }
 }

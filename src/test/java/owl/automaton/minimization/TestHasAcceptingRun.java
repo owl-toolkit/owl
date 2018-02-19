@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.util.EnumSet;
-import java.util.Set;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
@@ -19,9 +18,7 @@ import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.transformations.ParityUtil;
 import owl.run.DefaultEnvironment;
-import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.nba2dpa.NBA2DPAFunction;
-import owl.translations.nba2ldba.BreakpointState;
 
 public class TestHasAcceptingRun {
 
@@ -99,14 +96,12 @@ public class TestHasAcceptingRun {
       DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
     automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      result = (MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>,
-      ParityAcceptance>) translation.apply(automaton);
+    MutableAutomaton<Object, ParityAcceptance> result = (MutableAutomaton<Object, ParityAcceptance>)
+      translation.apply(automaton);
     result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     assertThat(EmptinessCheck.isEmpty(result), is(!hasAcceptingRun));
-    MutableAutomaton<FlatRankingState<Set<HoaState>, BreakpointState<HoaState>>, ParityAcceptance>
-      complement = ParityUtil.complement(result, FlatRankingState.of());
-    assertThat(EmptinessCheck.isEmpty(complement), is(!complementHasAcceptingRun));
+    ParityUtil.complement(result, new Object());
+    assertThat(EmptinessCheck.isEmpty(result), is(!complementHasAcceptingRun));
   }
 }
