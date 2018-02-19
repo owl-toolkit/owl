@@ -28,6 +28,11 @@ public final class LTL2DPACliParser implements TransformerParser {
   }
 
   @Override
+  public String getDescription() {
+    return "Translates LTL to deterministic parity automata, using an LDBA construction";
+  }
+
+  @Override
   public Options getOptions() {
     return new Options()
       .addOption("c", "complement", false,

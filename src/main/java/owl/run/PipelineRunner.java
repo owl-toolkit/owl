@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -53,24 +54,21 @@ public final class PipelineRunner {
   public static void run(Pipeline pipeline, Environment env, ReadableByteChannel inputChannel,
     WritableByteChannel outputChannel, int worker) throws Exception {
     logger.log(Level.FINE, "Instantiating pipeline");
-    InputReader inputReader = pipeline.input();
+    InputReader reader = pipeline.input();
     List<Transformer.Instance> transformers = Transformers.build(pipeline.transformers(), env);
 
     logger.log(Level.FINE, "Running pipeline");
     try (inputChannel;
-         Writer writer = Channels.newWriter(outputChannel, StandardCharsets.UTF_8.name())) {
-      OutputWriter.Binding outputWriter = pipeline.output().bind(writer, env);
+         Writer output = Channels.newWriter(outputChannel, StandardCharsets.UTF_8.name())) {
+      OutputWriter.Binding writer = pipeline.output().bind(output, env);
       if (worker == 0) {
-        SequentialRunner.run(env, inputReader, transformers, outputWriter, inputChannel);
+        SequentialRunner.run(env, reader, transformers, writer, inputChannel);
       } else {
-        ParallelRunner runner = new ParallelRunner(env, inputReader, transformers, outputWriter,
-          inputChannel, worker);
-        runner.run();
+        new ParallelRunner(env, reader, transformers, writer, inputChannel, worker).run();
       }
     } catch (Exception t) {
       // Unwrap the error as much as possible
       Throwables.throwIfUnchecked(t);
-
       Throwable ex = t;
       while (ex instanceof ExecutionException) {
         Throwable cause = ex.getCause();
@@ -88,32 +86,36 @@ public final class PipelineRunner {
     }
   }
 
+  @Nullable
+  private static Object doTransform(Object input, List<Transformer.Instance> transformers,
+    Supplier<Boolean> earlyStop) throws Exception {
+    logger.log(Level.FINEST, "Handling input {0}", input);
+    @SuppressWarnings("PMD.PrematureDeclaration")
+    long startTime = System.nanoTime();
+
+    Object output = input;
+    for (Instance transformer : transformers) {
+      SimpleExecutionContext context = new SimpleExecutionContext();
+      output = transformer.transform(output, context);
+      if (earlyStop.get()) {
+        return null;
+      }
+    }
+
+    long executionTime = System.nanoTime() - startTime;
+    logger.log(Level.FINE, () -> String.format("Execution of transformers for %s took %.2f sec",
+      input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
+    return output;
+  }
+
   private static final class SequentialRunner {
     private SequentialRunner() {}
 
     static void run(Environment env, InputReader inputReader, List<Instance> transformers,
       Binding outputWriter, ReadableByteChannel inputChannel) throws Exception {
-      Consumer<Object> readerCallback = InputReaders.checkedCallback(input -> {
-        logger.log(Level.FINEST, "Handling input {0}", input);
-        long startTime = System.nanoTime();
-        Object output = input;
-
-        for (Instance transformer : transformers) {
-          SimpleExecutionContext context = new SimpleExecutionContext();
-          output = transformer.transform(output, context);
-          String meta = context.getWrittenString();
-          if (!meta.isEmpty()) {
-            logger.log(Level.FINE, () -> String.format("Module %s(%s) on input (%s):%n%s",
-              transformer, transformer.getClass().getSimpleName(), input, meta));
-          }
-        }
-
-        long executionTime = System.nanoTime() - startTime;
-        logger.log(Level.FINE, () -> String.format(
-          "Execution of transformers for %s took %.2f sec.",
-          input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
-        outputWriter.write(output);
-      });
+      @SuppressWarnings("ConstantConditions")
+      Consumer<Object> readerCallback = InputReaders.checkedCallback(input ->
+        outputWriter.write(doTransform(input, transformers, () -> Boolean.FALSE)));
 
       // Read from the input stream until it is exhausted or some error occurs.
       try (Reader reader = Channels.newReader(inputChannel, StandardCharsets.UTF_8.name())) {
@@ -145,7 +147,7 @@ public final class PipelineRunner {
     private final BlockingQueue<Future<?>> processingQueue = new LinkedBlockingQueue<>();
 
     ParallelRunner(Environment env, InputReader inputReader, List<Instance> transformers,
-      OutputWriter.Binding writer, ReadableByteChannel inputChannel, int worker) {
+      Binding writer, ReadableByteChannel inputChannel, int worker) {
       this.env = env;
       this.inputChannel = inputChannel;
       mainThread = Thread.currentThread();
@@ -189,8 +191,8 @@ public final class PipelineRunner {
     private void read() {
       // Read from the input stream until it is exhausted or some error occurs.
       try (Reader reader = Channels.newReader(inputChannel, StandardCharsets.UTF_8.name())) {
-        inputReader.run(reader, env,
-          input -> processingQueue.add(executor.submit(new TransformerExecution(input))));
+        inputReader.run(reader, env, input ->
+          processingQueue.add(executor.submit(new TransformerExecution(input))));
         logger.log(Level.FINE, "Input stream exhausted, waiting for termination");
       } catch (Exception t) {
         onError(t);
@@ -271,31 +273,7 @@ public final class PipelineRunner {
       @Nullable
       @Override
       public Object call() throws Exception {
-        logger.log(Level.FINEST, "Handling input {0}", input);
-        @SuppressWarnings("PMD.PrematureDeclaration")
-        long startTime = System.nanoTime();
-        Object output = input;
-
-        for (Transformer.Instance transformer : transformers) {
-          if (hasError()) {
-            logger.log(Level.FINE, "Early stop due to shutdown");
-            return null;
-          }
-
-          SimpleExecutionContext context = new SimpleExecutionContext();
-          output = transformer.transform(output, context);
-          String meta = context.getWrittenString();
-          if (!meta.isEmpty()) {
-            logger.log(Level.FINE, () -> String.format("Module %s(%s) on input (%s):%n%s",
-              transformer, transformer.getClass().getSimpleName(), input, meta));
-          }
-        }
-
-        long executionTime = System.nanoTime() - startTime;
-        logger.log(Level.FINE, () -> String.format("Execution of transformers for %s took %.2f sec",
-          input, (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
-
-        return output;
+        return doTransform(input, transformers, ParallelRunner.this::hasError);
       }
     }
   }

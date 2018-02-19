@@ -18,7 +18,8 @@ import owl.translations.ltl2ldba.LTL2LDBACliParser;
 public final class LTL2DRACliParser implements TransformerParser {
   public static final LTL2DRACliParser INSTANCE = new LTL2DRACliParser();
   private static final Option DEGENERALIZE = new Option("d", "degeneralize", false,
-    "Construct a Rabin automaton instead of a generalised-Rabin automaton.");
+    "Construct a Rabin automaton instead of a generalised-Rabin automaton (smaller than "
+      + "general-purpose degeneralization).");
 
   private LTL2DRACliParser() {
   }
@@ -26,6 +27,12 @@ public final class LTL2DRACliParser implements TransformerParser {
   @Override
   public String getKey() {
     return "ltl2dra";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Translates LTL to deterministic (generalized) Rabin automata, using an LDBA "
+      + "construction";
   }
 
   @Override

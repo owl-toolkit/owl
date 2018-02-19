@@ -2,6 +2,7 @@ package owl.run.parser;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -10,6 +11,8 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.run.Pipeline;
+import owl.run.RunUtil;
+import owl.run.modules.OwlModuleParser;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.modules.OwlModuleRegistry.OwlModuleNotFoundException;
 import owl.run.modules.OwlModuleRegistry.Type;
@@ -26,7 +29,7 @@ public final class OwlParser {
 
   @SuppressWarnings("NestedTryStatement")
   @Nullable
-  public static OwlParser parse(String[] arguments, CommandLineParser parser,
+  public static OwlParser parse(String[] arguments, CommandLineParser cliParser,
     Options globalOptions, OwlModuleRegistry registry) {
     logger.log(Level.FINE, "Parsing arguments list {0}", Arrays.toString(arguments));
     if (arguments.length == 0 || ParseUtil.isHelp(arguments)) {
@@ -41,20 +44,33 @@ public final class OwlParser {
 
       ParseUtil.printHelp("Global settings:", globalOptions);
       ParseUtil.println();
-      ParseUtil.printList(Type.READER,
-        ParseUtil.getSortedSettings(registry, Type.READER), null);
+      ParseUtil.printList(ParseUtil.getSortedSettings(registry, Type.READER), Type.READER,
+        null);
       ParseUtil.println();
-      ParseUtil.printList(Type.TRANSFORMER,
-        ParseUtil.getSortedSettings(registry, Type.TRANSFORMER), null);
+      ParseUtil.printList(ParseUtil.getSortedSettings(registry, Type.TRANSFORMER), Type.TRANSFORMER,
+        null);
       ParseUtil.println();
-      ParseUtil.printList(Type.WRITER,
-        ParseUtil.getSortedSettings(registry, Type.WRITER), null);
+      ParseUtil.printList(ParseUtil.getSortedSettings(registry, Type.WRITER), Type.WRITER,
+        null);
+      return null;
+    }
+    @Nullable
+    String specificHelp = ParseUtil.isSpecificHelp(arguments);
+    if (specificHelp != null) {
+      Map<Type, OwlModuleParser<?>> modules = registry.getAllWithName(specificHelp);
+      if (modules.isEmpty()) {
+        throw RunUtil.failWithMessage("No module found for name " + specificHelp);
+      }
+      modules.forEach((type, module) -> {
+        ParseUtil.printModuleHelp(module, null);
+        ParseUtil.println();
+      });
       return null;
     }
 
     CommandLine globalSettings;
     try {
-      globalSettings = parser.parse(globalOptions, arguments, true);
+      globalSettings = cliParser.parse(globalOptions, arguments, true);
     } catch (ParseException e) {
       ParseUtil.printHelp("global", globalOptions, e.getMessage());
       return null;
@@ -65,9 +81,9 @@ public final class OwlParser {
 
     Pipeline pipeline;
     try {
-      pipeline = PipelineParser.parse(split, parser, registry);
+      pipeline = PipelineParser.parse(split, cliParser, registry);
     } catch (OwlModuleNotFoundException e) {
-      ParseUtil.printList(e.type, registry.getSettings(e.type), e.name);
+      ParseUtil.printList(registry.getAllOfType(e.type), e.type, e.name);
       return null;
     } catch (PipelineParser.ModuleParseException e) {
       ParseUtil.printModuleHelp(e.settings, e.getMessage());

@@ -16,6 +16,7 @@ import owl.run.modules.Transformers;
 public class ImplicitMinimizeTransformer extends Transformers.SimpleTransformer {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("minimize-aut")
+    .description("Tries to minimize the given automaton")
     .optionsDirect(new Options()
       .addOption("l", "level", true, "Level of minimization (light,medium,all)"))
     .parser(settings -> {

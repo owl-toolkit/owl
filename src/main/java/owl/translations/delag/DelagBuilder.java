@@ -50,6 +50,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   @SuppressWarnings({"unchecked", "rawtypes"})
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("delag")
+    .description("Translates LTL to deterministic Emerson-Lei automata")
     .optionsDirect(new Options().addOption("f", "fallback", true,
       "Fallback tool for input outside the fragment ('none' for strict mode)"))
     .parser(settings -> environment -> {
@@ -62,7 +63,6 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
             + " outside of supported fragment");
         };
       } else {
-
         fallback = fallbackTool == null
           ? new LTL2DPAFunction(environment, LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG)
           : new ExternalTranslator(environment, fallbackTool);

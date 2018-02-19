@@ -54,7 +54,7 @@ def process():
   if annotations:
     args.append("--annotations")
 
-  args.extend(["-i", formula, "---", "ltl", "---", "rewrite", "--mode", "modal-iter", "---"])
+  args.extend(["-i", formula, "---", "ltl", "---", "simplify-ltl", "---"])
 
   if format == "dgra":
     args.extend(RABINIZER_CHAIN)

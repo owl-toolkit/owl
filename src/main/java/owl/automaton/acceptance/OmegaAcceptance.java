@@ -29,7 +29,7 @@ public abstract class OmegaAcceptance {
   public abstract int getAcceptanceSets();
 
   /**
-   * Canonical representation as {@link BooleanExpression}.
+   * Builds the canonical representation as {@link BooleanExpression}.
    */
   public abstract BooleanExpression<AtomAcceptance> getBooleanExpression();
 

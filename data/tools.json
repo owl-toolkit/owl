@@ -40,11 +40,7 @@
             "output": "hoa",
             "name": "ltl2da",
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ]
+                "simplify-ltl"
             ]
         },
         "delag": {
@@ -63,11 +59,7 @@
                 ]
             ],
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ]
+                "simplify-ltl"
             ]
         },
         "rabinizer-dgra": {
@@ -80,11 +72,7 @@
                 "noeager": "--noeager"
             },
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ],
+                "simplify-ltl",
                 [
                     "unabbreviate",
                     "--release",
@@ -101,11 +89,7 @@
             "output": "hoa",
             "name": "ltl2dgra",
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ],
+                "simplify-ltl",
                 [
                     "unabbreviate",
                     "--release",
@@ -124,11 +108,7 @@
             "output": "hoa",
             "name": "dra2dpa",
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ],
+                "simplify-ltl",
                 [
                     "unabbreviate",
                     "--release",
@@ -148,11 +128,7 @@
             "output": "hoa",
             "name": "nba2ldba",
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ],
+                "simplify-ltl",
                 [
                     "ltl2aut-ext",
                     "-t",
@@ -166,11 +142,7 @@
             "output": "hoa",
             "name": "nba2dpa",
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ],
+                "simplify-ltl",
                 [
                     "ltl2aut-ext",
                     "-t",
@@ -203,11 +175,7 @@
                 "odd": "--odd"
             },
             "pre": [
-                [
-                    "simplifier",
-                    "--mode",
-                    "syntactic-fixpoint"
-                ],
+                "simplify-ltl",
                 "ltl2dpa"
             ],
             "post": [

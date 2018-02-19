@@ -37,11 +37,17 @@ public final class InputReaders {
       return new HoaReader(hoafParserSettings);
     }).build();
 
+  
   public static final InputReader TLSF = (reader, env, callback) -> {
     Tlsf tlsf = TlsfParser.parse(reader);
     LabelledFormula formula = tlsf.toFormula();
     callback.accept(formula);
   };
+  public static final ReaderParser TLSF_CLI = ImmutableReaderParser.builder()
+    .key("tlsf")
+    .description("Parses a single TLSF instance and converts it to an LTL formula")
+    .parser(settings -> TLSF).build();
+
 
   public static final InputReader LTL = (reader, env, callback) ->
     CharStreams.readLines(reader, new LineProcessor<Void>() {
@@ -71,17 +77,11 @@ public final class InputReaders {
         return null;
       }
     });
-
   public static final ReaderParser LTL_CLI = ImmutableReaderParser.builder()
     .key("ltl")
     .description("Parses LTL formulas and converts them into NNF")
     .parser(settings -> LTL).build();
 
-
-  public static final ReaderParser TLSF_CLI = ImmutableReaderParser.builder()
-    .key("tlsf")
-    .description("Parses a single TLSF instance and converts it to an LTL formula")
-    .parser(settings -> TLSF).build();
 
   @SuppressWarnings({"ProhibitedExceptionThrown","PMD.AvoidCatchingGenericException",
                       "PMD.AvoidThrowingRawExceptionTypes"})
