@@ -81,15 +81,8 @@ final class History {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    return longs.equals(((History) o).longs);
+    return this == o
+      || (o != null && getClass() == o.getClass() && longs.equals(((History) o).longs));
   }
 
   boolean get(int time, Literal literal) {

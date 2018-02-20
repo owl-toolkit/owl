@@ -117,7 +117,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     Set<GObligations> availableObligations = new HashSet<>();
 
     for (GObligations x : obligations) {
-      if (containsAllPropositions(x.gOperators, support)) {
+      if (containsAllPropositions(x.goperators(), support)) {
         availableObligations.add(x);
       }
     }
@@ -144,7 +144,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
 
   private static Formula evaluate(Formula formula, GObligations keys) {
     EvaluateVisitor evaluateVisitor =
-      new EvaluateVisitor(keys.gOperators, keys.getObligation());
+      new EvaluateVisitor(keys.goperators(), keys.getObligation());
     Formula subst = formula.accept(evaluateVisitor);
     return RewriterFactory.apply(RewriterEnum.MODAL, subst);
   }

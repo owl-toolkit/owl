@@ -17,41 +17,26 @@
 
 package owl.translations.delag;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.util.ImmutableObject;
 
-class ProductState<T> extends ImmutableObject {
-  final ImmutableMap<Formula, T> fallback;
-  final ImmutableMap<DependencyTree<T>, Boolean> finished;
-  final ImmutableMap<Formula, EquivalenceClass> safety;
+@Value.Immutable(builder = false, copy = false, prehash = true)
+abstract class ProductState<T> {
 
-  ProductState(Map<Formula, T> fallback, Map<DependencyTree<T>, Boolean> finished,
-    Map<Formula, EquivalenceClass> safety) {
-    this.fallback = ImmutableMap.copyOf(fallback);
-    this.finished = ImmutableMap.copyOf(finished);
-    this.safety = ImmutableMap.copyOf(safety);
-  }
+  @Value.Parameter
+  abstract Map<Formula, T> fallback();
+
+  @Value.Parameter
+  abstract Map<DependencyTree<T>, Boolean> finished();
+
+  @Value.Parameter
+  abstract Map<Formula, EquivalenceClass> safety();
 
   static <T> Builder<T> builder() {
     return new Builder<>();
-  }
-
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    ProductState<?> that = (ProductState<?>) o;
-    return Objects.equals(fallback, that.fallback)
-      && Objects.equals(safety, that.safety)
-      && Objects.equals(finished, that.finished);
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(fallback, safety, finished);
   }
 
   static final class Builder<T> {
@@ -66,7 +51,7 @@ class ProductState<T> extends ImmutableObject {
     }
 
     ProductState<T> build() {
-      return new ProductState<>(fallback, finished, safety);
+      return ImmutableProductState.of(fallback, finished, safety);
     }
 
     void merge(Builder<T> other) {
@@ -75,7 +60,7 @@ class ProductState<T> extends ImmutableObject {
       other.safety.forEach(this::addSafety);
     }
 
-    static <K, V> void add(Map<K, V> map, K key, V value) {
+    private static <K, V> void add(Map<K, V> map, K key, V value) {
       V oldValue = map.put(key, value);
       assert oldValue == null || value.equals(oldValue);
     }

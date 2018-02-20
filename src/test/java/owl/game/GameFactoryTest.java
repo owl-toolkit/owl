@@ -14,13 +14,13 @@ import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.util.AnnotatedState;
 import owl.game.Game.Owner;
 import owl.game.GameViews.Node;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
-import owl.translations.ldba2dpa.AnnotatedState;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
@@ -52,17 +52,17 @@ public class GameFactoryTest {
   public void testAttractor() {
     LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
 
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
+    Automaton<AnnotatedState, ParityAcceptance> automaton = AutomatonUtil.cast(
+      TRANSLATION.apply(formula), AnnotatedState.class, ParityAcceptance.class);
 
-    Game<Node<Object>, ParityAcceptance> game =
+    Game<Node<AnnotatedState>, ParityAcceptance> game =
       GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
 
-    Set<Node<Object>> winningStates = game.getStates().stream()
+    Set<Node<AnnotatedState>> winningStates = game.getStates().stream()
       .filter(x -> {
         @SuppressWarnings("unchecked")
-        AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state;
-        return state.state != null && state.state.isTrue();
+        AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state();
+        return state.state() != null && state.state().isTrue();
       }).collect(Collectors.toSet());
     assertThat(winningStates, not(empty()));
 

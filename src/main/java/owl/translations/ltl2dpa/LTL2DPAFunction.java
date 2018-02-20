@@ -49,6 +49,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
+import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
@@ -235,14 +236,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
+    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().getFactory();
+
     LanguageLattice<DegeneralizedBreakpointState, GObligations, EquivalenceClass> oracle =
-      new EquivalenceClassLanguageLattice(
-        ldba.getInitialComponent().getInitialState().getFactory());
+      new EquivalenceClassLanguageLattice(factory);
 
     Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
       automaton = FlatRankingAutomaton.of(ldba, oracle, this::hasSafetyCore, true,
       configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, FlatRankingState.of(), configuration.contains(COMPRESS_COLOURS));
+    return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
+      configuration.contains(COMPRESS_COLOURS));
   }
 
   private Result<?> applyBreakpointFree(LabelledFormula formula) {
@@ -257,10 +260,13 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
+    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().getFactory();
+
     Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>,
       ParityAcceptance> automaton = FlatRankingAutomaton.of(ldba, new BooleanLattice(),
       this::hasSafetyCore, true, configuration.contains(OPTIMISE_INITIAL_STATE));
-    return new Result<>(automaton, FlatRankingState.of(), configuration.contains(COMPRESS_COLOURS));
+    return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
+      configuration.contains(COMPRESS_COLOURS));
   }
 
   private boolean hasSafetyCore(EquivalenceClass state) {

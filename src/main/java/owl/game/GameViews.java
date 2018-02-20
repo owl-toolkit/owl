@@ -30,7 +30,6 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -41,6 +40,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
@@ -48,12 +49,12 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.util.ImmutableObject;
 
 public final class GameViews {
   private static final Logger logger = Logger.getLogger(GameViews.class.getName());
@@ -232,7 +233,7 @@ public final class GameViews {
 
     @Override
     public Set<Node<S>> getInitialStates() {
-      return Collections3.transform(automaton.getInitialStates(), Node::new);
+      return Collections3.transform(automaton.getInitialStates(), Node::of);
     }
 
     @Override
@@ -246,29 +247,27 @@ public final class GameViews {
       List<LabelledEdge<Node<S>>> edges = new ArrayList<>();
       ValuationSetFactory factory = automaton.getFactory();
 
-      if (node.firstPlayerChoice == null) {
+      if (node.isFirstPlayersTurn()) {
         // First player chooses his part of the valuation
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
           ValuationSet valuationSet = factory.of(valuation, firstPlayer);
-          edges.add(LabelledEdge.of(node.choose(BitSets.copyOf(valuation)), valuationSet));
+          edges.add(LabelledEdge.of(Node.of(node.state(), valuation), valuationSet));
         }
       } else {
-        // Second player completes the valuation, yielding a transition in the
-        // automaton
+        // Second player completes the valuation, yielding a transition in the automaton
 
         for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
-          ValuationSet valuationSet = factory.of(valuation, secondPlayer);
+          ValuationSet vs = factory.of(valuation, secondPlayer);
 
           BitSet joined = BitSets.copyOf(valuation);
-          joined.or(node.firstPlayerChoice);
-          Edge<S> edge = automaton.getEdge(node.state, joined);
+          joined.or(node.firstPlayerChoice());
+          Edge<S> edge = automaton.getEdge(node.state(), joined);
           checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
-            node.state, joined);
+            node.state(), joined);
 
           // Lift the automaton edge to the game
-          Edge<Node<S>> successor = edge.withSuccessor(new Node<>(edge.getSuccessor()));
-          edges.add(LabelledEdge.of(successor, valuationSet));
+          edges.add(LabelledEdge.of(edge.withSuccessor(Node.of(edge.getSuccessor())), vs));
         }
       }
 
@@ -283,21 +282,20 @@ public final class GameViews {
     @Override
     public Set<Node<S>> getPredecessors(Node<S> node) {
       if (!node.isFirstPlayersTurn()) {
-        return Set.of(new Node<>(node.state));
+        return Set.of(Node.of(node.state()));
       }
 
       Set<Node<S>> predecessors = new HashSet<>();
 
       automaton.forEachLabelledEdge((predecessor, edge, valuationSet) -> {
-        if (!node.state.equals(edge.getSuccessor())) {
+        if (!node.state().equals(edge.getSuccessor())) {
           return;
         }
 
-        Node<S> predecessorNode = new Node<>(predecessor);
         valuationSet.forEach(set -> {
           BitSet localSet = BitSets.copyOf(set);
           localSet.and(firstPlayer);
-          predecessors.add(predecessorNode.choose(localSet));
+          predecessors.add(Node.of(predecessor, localSet));
         });
       });
 
@@ -315,11 +313,11 @@ public final class GameViews {
       Set<Node<S>> states = new HashSet<>();
 
       automaton.forEachState(state -> {
-        Node<S> node = new Node<>(state);
+        Node<S> node = Node.of(state);
         states.add(node);
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
-          states.add(node.choose(BitSets.copyOf(valuation)));
+          states.add(Node.of(state, valuation));
         }
       });
 
@@ -346,10 +344,12 @@ public final class GameViews {
 
     @Override
     public BitSet getChoice(Node<S> state, Owner owner) {
-      checkArgument(state.firstPlayerChoice != null, "The state has no encoded choice.");
+      checkArgument(state.firstPlayerChoice() != null, "The state has no encoded choice.");
 
       if (owner == Owner.PLAYER_1) {
-        return BitSets.copyOf(state.firstPlayerChoice);
+        BitSet choice = state.firstPlayerChoice();
+        assert choice != null;
+        return BitSets.copyOf(choice);
       }
 
       return Iterables.getOnlyElement(getLabelledEdges(state)).valuations.any();
@@ -359,48 +359,33 @@ public final class GameViews {
   /**
    * A state of the split game.
    */
-  public static final class Node<S> extends ImmutableObject {
+  @Value.Style(visibility = ImplementationVisibility.PACKAGE)
+  @Value.Immutable(builder = false, copy = false, prehash = true)
+  public abstract static class Node<S> implements AnnotatedState<S> {
+
+    @Value.Parameter
+    @Override
+    public abstract S state();
+
+    @Value.Parameter
     @Nullable
-    final BitSet firstPlayerChoice;
-    public final S state;
+    abstract BitSet firstPlayerChoice();
 
-    Node(S state) {
-      this(state, null);
+    static <S> Node<S> of(S state) {
+      return ImmutableNode.of(state, null);
     }
 
-    private Node(S state, @Nullable BitSet firstPlayerChoice) {
-      this.state = state;
-      this.firstPlayerChoice = firstPlayerChoice;
-    }
-
-    @Override
-    protected boolean equals2(ImmutableObject o) {
-      Node<?> node = (Node<?>) o;
-      return Objects.equals(state, node.state) && Objects.equals(
-        firstPlayerChoice, node.firstPlayerChoice);
-    }
-
-    @Override
-    protected int hashCodeOnce() {
-      if (firstPlayerChoice == null) {
-        return state.hashCode();
-      }
-
-      return state.hashCode() ^ firstPlayerChoice.hashCode();
+    static <S> Node<S> of(S state, BitSet choice) {
+      return ImmutableNode.of(state, BitSets.copyOf(choice));
     }
 
     @Override
     public String toString() {
-      return firstPlayerChoice == null ? "1:" + state : "2" + firstPlayerChoice + ':' + state;
-    }
-
-    Node<S> choose(BitSet valuation) {
-      assert firstPlayerChoice == null;
-      return new Node<>(state, valuation);
+      return isFirstPlayersTurn() ? "1:" + state() : "2" + firstPlayerChoice() + ':' + state();
     }
 
     boolean isFirstPlayersTurn() {
-      return firstPlayerChoice == null;
+      return firstPlayerChoice() == null;
     }
   }
 }

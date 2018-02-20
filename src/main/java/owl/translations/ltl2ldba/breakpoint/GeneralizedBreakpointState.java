@@ -31,12 +31,17 @@ public final class GeneralizedBreakpointState extends ImmutableObject {
   final EquivalenceClass safety;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
-  GeneralizedBreakpointState(GObligations obligations, EquivalenceClass safety,
+  private GeneralizedBreakpointState(GObligations obligations, EquivalenceClass safety,
     EquivalenceClass[] current, EquivalenceClass[] next) {
     this.obligations = obligations;
     this.safety = safety;
     this.current = current;
     this.next = next;
+  }
+
+  static GeneralizedBreakpointState of(GObligations obligations, EquivalenceClass safety,
+    EquivalenceClass[] current, EquivalenceClass[] next) {
+    return new GeneralizedBreakpointState(obligations, safety, current, next);
   }
 
   @Override

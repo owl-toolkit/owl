@@ -55,9 +55,9 @@ public class State<T> {
 
   @Override
   public String toString() {
-    return "Fallback: " + productState.fallback
-      + " Finished: " + productState.finished
-      + " Safety: " + productState.safety
+    return "Fallback: " + productState.fallback()
+      + " Finished: " + productState.finished()
+      + " Safety: " + productState.safety()
       + " History: " + past;
   }
 }

@@ -17,9 +17,6 @@
 
 package owl.util;
 
-import javax.annotation.concurrent.Immutable;
-
-@Immutable
 public abstract class ImmutableObject {
   private int cachedHashCode = 0;
 
@@ -34,11 +31,8 @@ public abstract class ImmutableObject {
     }
 
     ImmutableObject other = (ImmutableObject) o;
-    if (cachedHashCode != 0 && other.cachedHashCode != 0
-      && other.cachedHashCode != cachedHashCode) {
-      return false;
-    }
-    return equals2(other);
+    return (cachedHashCode == 0 || other.cachedHashCode == 0
+      || other.cachedHashCode == cachedHashCode) && equals2(other);
   }
 
   protected abstract boolean equals2(ImmutableObject o);

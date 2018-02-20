@@ -19,7 +19,6 @@ package owl.translations.ltl2ldba.breakpoint;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import javax.annotation.Nonnegative;
@@ -54,11 +53,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     GObligations obligations) {
     assert remainder.testSupport(Fragments::isCoSafety);
 
-    int length = obligations.obligations.length + obligations.liveness.length;
+    int length = obligations.obligations().size() + obligations.liveness().size();
 
     // TODO: field for extra data.
 
-    EquivalenceClass safety = obligations.safety;
+    EquivalenceClass safety = obligations.safety();
     EquivalenceClass current = remainder;
 
     if (remainder.testSupport(Fragments::isFinite)) {
@@ -67,30 +66,30 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     }
 
     EquivalenceClass environment = factories.eqFactory.conjunction(
-      Iterables.concat(List.of(safety), Arrays.asList(obligations.liveness)));
+      Iterables.concat(List.of(safety), obligations.liveness()));
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,
         factory.getInitial(current, environment), EquivalenceClass.EMPTY_ARRAY, obligations);
     }
 
-    EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.length];
+    EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations().size()];
 
     if (current.isTrue()) {
-      if (obligations.obligations.length > 0) {
+      if (obligations.obligations().size() > 0) {
         nextBuilder[0] = current;
-        current = factory.getInitial(obligations.obligations[0], environment);
+        current = factory.getInitial(obligations.obligations().get(0), environment);
       } else {
-        current = factory.getInitial(obligations.liveness[0]);
+        current = factory.getInitial(obligations.liveness().get(0));
       }
     }
 
     for (int i = current.isTrue() ? 1 : 0; i < nextBuilder.length; i++) {
-      nextBuilder[i] = factory.getInitial(obligations.obligations[i], current);
+      nextBuilder[i] = factory.getInitial(obligations.obligations().get(i), current);
     }
 
     return new DegeneralizedBreakpointState(
-      obligations.obligations.length > 0 ? 0 : -obligations.liveness.length, safety,
+      obligations.obligations().size() > 0 ? 0 : -obligations.liveness().size(), safety,
       current, nextBuilder, obligations);
   }
 
@@ -98,13 +97,13 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private BitSet getSensitiveAlphabet(DegeneralizedBreakpointState state) {
     BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.current);
     sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.safety));
-    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.obligations.safety));
+    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.obligations.safety()));
 
     for (EquivalenceClass clazz : state.next) {
       sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
     }
 
-    for (EquivalenceClass clazz : state.obligations.liveness) {
+    for (EquivalenceClass clazz : state.obligations.liveness()) {
       sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
     }
 
@@ -115,7 +114,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private Edge<DegeneralizedBreakpointState> getSuccessor(DegeneralizedBreakpointState state,
     BitSet valuation) {
     EquivalenceClass safetySuccessor = factory.getSuccessor(state.safety, valuation)
-      .and(state.obligations.safety);
+      .and(state.obligations.safety());
 
     if (safetySuccessor.isFalse()) {
       return null;
@@ -140,8 +139,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       return null;
     }
 
-    int obligationsLength = state.obligations.obligations.length;
-    int livenessLength = state.obligations.liveness.length;
+    int obligationsLength = state.obligations.obligations().size();
+    int livenessLength = state.obligations.liveness().size();
 
     boolean acceptingEdge = false;
     boolean obtainNewGoal = false;
@@ -171,17 +170,17 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
       if (obtainNewGoal && i == j) {
         currentSuccessor = nextSuccessor
-          .and(factory.getInitial(state.obligations.obligations[i], assumptions));
+          .and(factory.getInitial(state.obligations.obligations().get(i), assumptions));
         assumptions = assumptions.and(currentSuccessor);
         nextSuccessors[i] = factories.eqFactory.getTrue();
       } else {
         nextSuccessors[i] = nextSuccessor
-          .and(factory.getInitial(state.obligations.obligations[i], assumptions));
+          .and(factory.getInitial(state.obligations.obligations().get(i), assumptions));
       }
     }
 
     if (obtainNewGoal && j < 0) {
-      currentSuccessor = factory.getInitial(state.obligations.liveness[livenessLength + j]);
+      currentSuccessor = factory.getInitial(state.obligations.liveness().get(livenessLength + j));
     }
 
     if (currentSuccessor.isFalse()) {
@@ -218,12 +217,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment,
     GObligations obligations) {
     int index = i;
-    int livenessLength = obligations.liveness.length;
+    int livenessLength = obligations.liveness().size();
 
     while (index < 0) {
       EquivalenceClass successor = factory.getSuccessor(
-        factory.getInitial(obligations.liveness[livenessLength + index]),
-        valuation,
+        factory.getInitial(obligations.liveness().get(livenessLength + index)), valuation,
         environment);
 
       if (successor.isTrue()) {

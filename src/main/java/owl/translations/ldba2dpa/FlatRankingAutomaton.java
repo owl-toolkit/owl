@@ -187,14 +187,14 @@ public final class FlatRankingAutomaton {
 
     @Nullable
     Edge<FlatRankingState<S, T>> getSuccessor(FlatRankingState<S, T> state, BitSet valuation) {
-      if (state.state == null) {
+      if (state.state() == null) {
         return null;
       }
 
       S successor;
 
       { // We obtain the successor of the state in the initial component.
-        Edge<S> edge = ldba.getInitialComponent().getEdge(state.state, valuation);
+        Edge<S> edge = ldba.getInitialComponent().getEdge(state.state(), valuation);
 
         // The initial component moved to a rejecting sink. Thus all runs die.
         if (edge == null) {
@@ -205,12 +205,12 @@ public final class FlatRankingAutomaton {
       }
 
       // If a SCC switch occurs, the componentMap and the safety progress is reset.
-      if (sccSwitchOccurred(state.state, successor)) {
+      if (sccSwitchOccurred(state.state(), successor)) {
         return Edge.of(buildEdge(successor, List.of(), -1, valuation).getSuccessor());
       }
 
-      Edge<FlatRankingState<S, T>> edge = buildEdge(successor, state.ranking, state.safetyProgress,
-        valuation);
+      Edge<FlatRankingState<S, T>> edge = buildEdge(successor, state.ranking(),
+        state.safetyProgress(), valuation);
 
       assert edge.largestAcceptanceSet() < acceptance.getAcceptanceSets();
       return edge;

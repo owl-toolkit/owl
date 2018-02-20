@@ -104,8 +104,8 @@ public final class ParityUtil {
   private ParityUtil() {
   }
 
-  public static <S> MutableAutomaton<S, ParityAcceptance>
-  complement(MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
+  public static <S> MutableAutomaton<S, ParityAcceptance> complement(
+    MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
     ParityAcceptance acceptance = automaton.getAcceptance();
 
     if (acceptance.getAcceptanceSets() == 0) {

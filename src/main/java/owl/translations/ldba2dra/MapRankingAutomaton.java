@@ -116,14 +116,14 @@ public final class MapRankingAutomaton {
 
     @Nullable
     Edge<MapRankingState<S, A, T>> getSuccessor(MapRankingState<S, A, T> state, BitSet valuation) {
-      if (state.state == null) {
+      if (state.state() == null) {
         return null;
       }
 
       S successor;
 
       { // We obtain the successor of the state in the initial component.
-        Edge<S> edge = ldba.getInitialComponent().getEdge(state.state, valuation);
+        Edge<S> edge = ldba.getInitialComponent().getEdge(state.state(), valuation);
 
         // The initial component moved to a rejecting sink. Thus all runs die.
         if (edge == null) {
@@ -134,11 +134,11 @@ public final class MapRankingAutomaton {
       }
 
       // If a SCC switch occurs, the componentMap and the safety progress is reset.
-      if (sccSwitchOccurred(state.state, successor)) {
+      if (sccSwitchOccurred(state.state(), successor)) {
         return Edge.of(buildEdge(successor, Map.of(), valuation).getSuccessor());
       }
 
-      return buildEdge(successor, state.componentMap, valuation);
+      return buildEdge(successor, state.componentMap(), valuation);
     }
   }
 }
