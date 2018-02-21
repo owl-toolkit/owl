@@ -21,18 +21,16 @@ import java.util.List;
 import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
+import owl.util.annotation.HashedTuple;
 
-@Value.Immutable(builder = false, copy = false, prehash = true)
+@Value.Immutable
+@HashedTuple
 public abstract class FlatRankingState<S, T> implements AnnotatedState<S> {
-
   @Override
-  @Value.Parameter
   public abstract S state();
 
-  @Value.Parameter
   abstract List<T> ranking();
 
-  @Value.Parameter
   abstract int safetyProgress();
 
 
@@ -42,8 +40,9 @@ public abstract class FlatRankingState<S, T> implements AnnotatedState<S> {
 
   static <S, T> FlatRankingState<S, T> of(S state, List<T> ranking, int safetyProgress) {
     assert Collections3.isDistinct(ranking);
-    return ImmutableFlatRankingState.of(state, ranking, safetyProgress);
+    return FlatRankingStateTuple.create(state, ranking, safetyProgress);
   }
+
 
   @Override
   public String toString() {

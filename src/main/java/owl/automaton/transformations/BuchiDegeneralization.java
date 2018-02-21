@@ -10,8 +10,9 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
+import owl.util.annotation.Tuple;
 
-public class BuchiDegeneralization {
+public final class BuchiDegeneralization {
   private BuchiDegeneralization() {
   }
 
@@ -43,21 +44,21 @@ public class BuchiDegeneralization {
       });
   }
 
-  @Value.Immutable(builder = false, copy = false)
+  @Value.Immutable
+  @Tuple
   abstract static class DegeneralizedBuchiState<S> implements AnnotatedState<S> {
+    @Override
+    public abstract S state();
+
+    abstract int set();
+
+
     public static <S> DegeneralizedBuchiState<S> of(S state) {
       return of(state, 0);
     }
 
     public static <S> DegeneralizedBuchiState<S> of(S state, int set) {
-      return ImmutableDegeneralizedBuchiState.of(state, set);
+      return DegeneralizedBuchiStateTuple.create(state, set);
     }
-
-    @Override
-    @Value.Parameter
-    public abstract S state();
-
-    @Value.Parameter
-    abstract int set();
   }
 }

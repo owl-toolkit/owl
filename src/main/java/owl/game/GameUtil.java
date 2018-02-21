@@ -21,6 +21,7 @@ import owl.automaton.util.AnnotatedState;
 import owl.run.modules.ImmutableWriterParser;
 import owl.run.modules.OutputWriter.Binding;
 import owl.run.modules.OwlModuleParser.WriterParser;
+import owl.util.annotation.Tuple;
 
 public final class GameUtil {
   @SuppressWarnings("unchecked")
@@ -135,18 +136,17 @@ public final class GameUtil {
     output.flush();
   }
 
-  @Value.Immutable(builder = false, copy = false)
+  @Value.Immutable
+  @Tuple
   abstract static class PriorityState<S> implements AnnotatedState<S> {
-
     @Override
-    @Value.Parameter
     public abstract S state();
 
-    @Value.Parameter
     abstract int acceptance();
 
+
     static <S> PriorityState<S> of(S state, int acceptance) {
-      return ImmutablePriorityState.of(state, acceptance);
+      return PriorityStateTuple.create(state, acceptance);
     }
   }
 }

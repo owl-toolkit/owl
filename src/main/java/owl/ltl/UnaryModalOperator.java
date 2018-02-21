@@ -20,9 +20,8 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.function.Predicate;
-import owl.util.ImmutableObject;
 
-public abstract class UnaryModalOperator extends ImmutableObject implements Formula {
+public abstract class UnaryModalOperator extends AbstractFormula {
   public final Formula operand;
 
   UnaryModalOperator(Formula operand) {
@@ -40,7 +39,7 @@ public abstract class UnaryModalOperator extends ImmutableObject implements Form
   }
 
   @Override
-  protected boolean equals2(ImmutableObject o) {
+  protected boolean equals2(AbstractFormula o) {
     UnaryModalOperator that = (UnaryModalOperator) o;
     return Objects.equals(operand, that.operand);
   }

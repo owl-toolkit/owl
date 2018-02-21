@@ -140,14 +140,14 @@ public final class IARBuilder<R> {
     // Arbitrary correspondence map
     Map<R, IARState<R>> rabinToIarStateMap = Maps.newHashMapWithExpectedSize(rabinAutomaton.size());
     resultAutomaton.forEachState(iarState ->
-      rabinToIarStateMap.put(iarState.getOriginalState(), iarState));
+      rabinToIarStateMap.put(iarState.state(), iarState));
     assert Objects.equals(rabinToIarStateMap.keySet(), rabinAutomaton.getStates());
 
     logger.log(Level.FINE, "Connecting the SCCs");
 
     // Connect all SCCs back together
     resultAutomaton.forEachState(iarState ->
-      interSccConnections.get(iarState.getOriginalState()).forEach(labelledEdge -> {
+      interSccConnections.get(iarState.state()).forEach(labelledEdge -> {
         IARState<R> successor = rabinToIarStateMap.get(labelledEdge.edge.getSuccessor());
         // TODO instead of 0 we should use any which is actually used
         Edge<IARState<R>> iarEdge = Edge.of(successor, 0);

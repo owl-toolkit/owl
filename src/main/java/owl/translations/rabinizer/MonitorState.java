@@ -1,42 +1,26 @@
 package owl.translations.rabinizer;
 
-import java.util.Arrays;
-import javax.annotation.concurrent.Immutable;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
+import owl.util.annotation.HashedTuple;
 
-@Immutable
-final class MonitorState {
-  final EquivalenceClass[] formulaRanking;
-  private final int hashCode;
+@Value.Immutable
+@HashedTuple
+abstract class MonitorState {
+  abstract List<EquivalenceClass> formulaRanking();
 
-  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
-                      "AssignmentToCollectionOrArrayFieldFromParameter"})
-  MonitorState(EquivalenceClass[] formulaRanking) {
-    this.formulaRanking = formulaRanking;
-    this.hashCode = Arrays.hashCode(formulaRanking);
+
+  static MonitorState of(EquivalenceClass initialClass) {
+    return MonitorStateTuple.create(ImmutableList.of(initialClass));
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof MonitorState)) {
-      return false;
-    }
-
-    MonitorState that = (MonitorState) o;
-    return Arrays.equals(formulaRanking, that.formulaRanking);
+  static MonitorState of(EquivalenceClass[] ranking) {
+    return MonitorStateTuple.create(ImmutableList.copyOf(ranking));
   }
 
-  @Override
-  public int hashCode() {
-    assert hashCode == Arrays.hashCode(formulaRanking);
-    return hashCode;
-  }
-
-  @Override
-  public String toString() {
-    return Arrays.toString(formulaRanking);
+  static MonitorState of(List<EquivalenceClass> ranking) {
+    return MonitorStateTuple.create(ranking);
   }
 }

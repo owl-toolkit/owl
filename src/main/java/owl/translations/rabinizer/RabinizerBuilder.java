@@ -106,11 +106,11 @@ public class RabinizerBuilder {
   }
 
   private static ValuationSet[][] computeMonitorPriorities(MonitorAutomaton[] monitors,
-    MonitorState[] monitorStates, GSet activeSet) {
+    List<MonitorState> monitorStates, GSet activeSet) {
     int monitorCount = monitors.length;
     ValuationSet[][] monitorPriorities = new ValuationSet[monitorCount][];
-    for (int relevantIndex = 0; relevantIndex < monitorStates.length; relevantIndex++) {
-      MonitorState monitorState = monitorStates[relevantIndex];
+    for (int relevantIndex = 0; relevantIndex < monitorStates.size(); relevantIndex++) {
+      MonitorState monitorState = monitorStates.get(relevantIndex);
 
       // Get the corresponding monitor for this gSet.
       Automaton<MonitorState, ParityAcceptance> monitor =
@@ -393,7 +393,7 @@ public class RabinizerBuilder {
       logger.log(Level.FINER, "Computing acceptance on SCC {0}", sccIndex);
       transitionSystem.forEach((state, successors) -> {
         // TODO Can we do skeleton analysis here, too?
-        Set<GOperator> stateRelevantSubFormulas = relevantSubFormulas(state.masterState);
+        Set<GOperator> stateRelevantSubFormulas = relevantSubFormulas(state.masterState());
         logger.log(Level.FINEST, "Product transitions for {0}: {1}; relevant formulas: {2}",
           new Object[] {state, successors, stateRelevantSubFormulas});
 
@@ -419,7 +419,7 @@ public class RabinizerBuilder {
           // simply has to find a j such that priorities[i][j] contains the valuation. Note that
           // thus it is guaranteed that for each i priorities[i][j] are disjoint for all j.
           ValuationSet[][] monitorPriorities =
-            computeMonitorPriorities(sccMonitors, state.monitorStates, activeSubFormulasSet);
+            computeMonitorPriorities(sccMonitors, state.monitorStates(), activeSubFormulasSet);
 
           // Iterate over all possible rankings
           Iterator<int[]> rankingIterator = activeSet.rankings.iterator();
@@ -477,7 +477,7 @@ public class RabinizerBuilder {
     logger.log(Level.FINE, "Connecting the SCCs");
     // Which rabinizer states belong to which master state
     Multimap<EquivalenceClass, RabinizerState> statesPerClass = HashMultimap.create();
-    rabinizerAutomaton.forEachState(state -> statesPerClass.put(state.masterState, state));
+    rabinizerAutomaton.forEachState(state -> statesPerClass.put(state.masterState(), state));
     masterSccPartition.transientStates.forEach(state ->
       statesPerClass.put(state, RabinizerState.empty(state)));
 
@@ -613,11 +613,11 @@ public class RabinizerBuilder {
     while (!workQueue.isEmpty()) {
       RabinizerState currentState = workQueue.poll();
       logger.log(Level.FINEST, "Exploring {0}", currentState);
-      assert currentState.monitorStates.length == relevantFormulaCount;
+      assert currentState.monitorStates().size() == relevantFormulaCount;
       assert !transitionSystem.containsKey(currentState);
 
       Map<EquivalenceClass, ValuationSet> masterSuccessors =
-        masterAutomaton.getSuccessorMap(currentState.masterState);
+        masterAutomaton.getSuccessorMap(currentState.masterState());
 
       if (masterSuccessors.isEmpty()) {
         transitionSystem.put(currentState, Map.of());
@@ -627,7 +627,7 @@ public class RabinizerBuilder {
       Map<RabinizerProductEdge, ValuationSet> rabinizerSuccessors = new HashMap<>();
       transitionSystem.put(currentState, rabinizerSuccessors);
 
-      MonitorState[] monitorStates = currentState.monitorStates;
+      List<MonitorState> monitorStates = currentState.monitorStates();
 
       // Compute the successor matrix for all monitors. Basically, we assign a arbitrary ordering
       // on all successors for each monitor.
@@ -636,7 +636,7 @@ public class RabinizerBuilder {
       int[] successorCounts = new int[relevantFormulaCount];
 
       for (int monitorIndex = 0; monitorIndex < relevantFormulaCount; monitorIndex++) {
-        MonitorState monitorState = monitorStates[monitorIndex];
+        MonitorState monitorState = monitorStates.get(monitorIndex);
         Map<MonitorState, ValuationSet> monitorSuccessorMap =
           monitors[monitorIndex].getSuccessorMap(monitorState);
 
@@ -666,7 +666,7 @@ public class RabinizerBuilder {
         for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
           // Get the edge in the master automaton
           Edge<EquivalenceClass> masterEdge =
-            masterAutomaton.getEdge(currentState.masterState, valuation);
+            masterAutomaton.getEdge(currentState.masterState(), valuation);
           if (masterEdge == null) {
             // A null master edge means the master automaton moves into the "ff" state - a sure
             // failure and we don't need to investigate further.
@@ -680,9 +680,9 @@ public class RabinizerBuilder {
           }
 
           // Evolve each monitor
-          MonitorState[] monitorSuccessors = new MonitorState[monitorStates.length];
+          MonitorState[] monitorSuccessors = new MonitorState[monitorStates.size()];
           Arrays.setAll(monitorSuccessors, relevantIndex -> {
-            MonitorState currentMonitorState = monitorStates[relevantIndex];
+            MonitorState currentMonitorState = monitorStates.get(relevantIndex);
             MonitorAutomaton monitor = monitors[relevantIndex];
             return monitor.getSuccessor(currentMonitorState, valuation);
           });
@@ -718,10 +718,10 @@ public class RabinizerBuilder {
             ValuationSet productValuation = masterSuccessorValuation;
 
             // Evolve each monitor
-            MonitorState[] monitorSuccessors = new MonitorState[monitorStates.length];
+            MonitorState[] monitorSuccessors = new MonitorState[monitorStates.size()];
 
             for (int monitorIndex = 0; monitorIndex < relevantFormulaCount; monitorIndex++) {
-              MonitorState currentMonitorState = monitorStates[monitorIndex];
+              MonitorState currentMonitorState = monitorStates.get(monitorIndex);
               assert currentMonitorState != null;
               int monitorMatrixIndex = successorSelection[monitorIndex];
               monitorSuccessors[monitorIndex] =
@@ -914,10 +914,10 @@ public class RabinizerBuilder {
     }
 
     boolean monitorsEntail(RabinizerState state) {
-      return monitorsEntail(state.monitorStates, null, state.masterState);
+      return monitorsEntail(state.monitorStates(), null, state.masterState());
     }
 
-    private boolean monitorsEntail(MonitorState[] monitorStates, @Nullable BitSet valuation,
+    private boolean monitorsEntail(List<MonitorState> monitorStates, @Nullable BitSet valuation,
       EquivalenceClass consequent) {
       boolean eager = valuation != null;
 
@@ -928,12 +928,12 @@ public class RabinizerBuilder {
 
       AtomicReference<EquivalenceClass> antecedent = new AtomicReference<>(eqFactory.getTrue());
       forEachRelevantAndActive((relevantIndex, activeIndex) -> {
-        MonitorState monitorState = monitorStates[relevantIndex];
+        MonitorState monitorState = monitorStates.get(relevantIndex);
 
-        EquivalenceClass[] monitorStateRanking = monitorState.formulaRanking;
+        List<EquivalenceClass> monitorStateRanking = monitorState.formulaRanking();
         int rank = ranking[activeIndex];
-        for (int stateIndex = rank; stateIndex < monitorStateRanking.length; stateIndex++) {
-          EquivalenceClass rankEntry = monitorStateRanking[stateIndex];
+        for (int stateIndex = rank; stateIndex < monitorStateRanking.size(); stateIndex++) {
+          EquivalenceClass rankEntry = monitorStateRanking.get(stateIndex);
           EquivalenceClass state = eager ? rankEntry.temporalStep(valuation) : rankEntry;
           antecedent.updateAndGet(clazz -> clazz.and(state));
         }
@@ -969,12 +969,13 @@ public class RabinizerBuilder {
         List<EquivalenceClass> activeMonitorStates = new ArrayList<>(activeFormulaSet.size());
 
         forEachRelevantAndActive((relevantIndex, activeIndex) -> {
-          EquivalenceClass[] monitorStateRanking = monitorStates[relevantIndex].formulaRanking;
+          List<EquivalenceClass> monitorStateRanking =
+            monitorStates.get(relevantIndex).formulaRanking();
           int rank = ranking[activeIndex];
 
-          if (rank <= monitorStateRanking.length) {
-            List<EquivalenceClass> rankingList = Arrays.asList(monitorStateRanking);
-            activeMonitorStates.addAll(rankingList.subList(rank, monitorStateRanking.length));
+          int size = monitorStateRanking.size();
+          if (rank <= size) {
+            activeMonitorStates.addAll(monitorStateRanking.subList(rank, size));
           }
         });
         String rankingString = RabinizerUtil.printRanking(ranking);
@@ -989,7 +990,7 @@ public class RabinizerBuilder {
     }
 
     boolean monitorsEntailEager(RabinizerState state, BitSet valuation) {
-      return monitorsEntail(state.monitorStates, valuation, state.masterState);
+      return monitorsEntail(state.monitorStates(), valuation, state.masterState());
     }
   }
 

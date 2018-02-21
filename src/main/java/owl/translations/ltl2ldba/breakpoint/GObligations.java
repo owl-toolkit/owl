@@ -28,7 +28,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -40,29 +39,26 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.RankingComparator;
 import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisitor;
+import owl.util.annotation.HashedTuple;
 
-@Value.Style(visibility = ImplementationVisibility.PACKAGE)
-@Value.Immutable(builder = false, copy = false, prehash = true)
+@Value.Immutable
+@HashedTuple
 public abstract class GObligations implements RecurringObligation {
   private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
-  @Value.Parameter
   abstract Set<GOperator> goperators();
 
   // G(liveness[]) is a liveness language.
-  @Value.Parameter
   abstract List<EquivalenceClass> liveness();
 
   // obligations[] are co-safety languages.
-  @Value.Parameter
   abstract List<EquivalenceClass> obligations();
 
-  @Value.Parameter
   abstract Set<GOperator> rewrittenGOperators();
 
   // G(safety) is a safety language.
-  @Value.Parameter
   abstract EquivalenceClass safety();
+
 
   /**
    * Construct the recurring obligations for a Gset.
@@ -126,9 +122,10 @@ public abstract class GObligations implements RecurringObligation {
       return null;
     }
 
-    return ImmutableGObligations.of(ImmutableSet.copyOf(gOperators), liveness, obligations,
+    return GObligationsTuple.create(ImmutableSet.copyOf(gOperators), liveness, obligations,
       builder.build(), safety);
   }
+
 
   @Override
   public boolean containsLanguageOf(RecurringObligation other) {

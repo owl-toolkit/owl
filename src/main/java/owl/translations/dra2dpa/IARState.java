@@ -1,60 +1,33 @@
 package owl.translations.dra2dpa;
 
 import de.tum.in.naturals.IntPreOrder;
-import java.util.Objects;
+import org.immutables.value.Value;
+import owl.automaton.util.AnnotatedState;
+import owl.util.annotation.HashedTuple;
 
-public final class IARState<R> {
-  private final int hashCode;
-  private final R originalState;
-  private final IntPreOrder record;
+@Value.Immutable
+@HashedTuple
+public abstract class IARState<R> implements AnnotatedState<R> {
+  @Override
+  public abstract R state();
 
-  private IARState(R originalState, IntPreOrder record) {
-    this.originalState = originalState;
-    this.record = record;
-    hashCode = (31 * originalState.hashCode()) ^ (17 * record.hashCode());
-  }
+  public abstract IntPreOrder record();
+
 
   public static <R> IARState<R> active(R originalState, IntPreOrder record) {
-    return new IARState<>(originalState, record);
+    return IARStateTuple.create(originalState, record);
   }
 
   public static <R> IARState<R> trivial(R originalState) {
-    return new IARState<>(originalState, IntPreOrder.empty());
+    return IARStateTuple.create(originalState, IntPreOrder.empty());
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof IARState)) {
-      return false;
-    }
-
-    IARState<?> other = (IARState<?>) o;
-    return hashCode == other.hashCode
-      && Objects.equals(originalState, other.originalState)
-      && Objects.equals(record, other.record);
-  }
-
-  public R getOriginalState() {
-    return originalState;
-  }
-
-  public IntPreOrder getRecord() {
-    return record;
-  }
-
-  @Override
-  public int hashCode() {
-    return hashCode;
-  }
 
   @Override
   public String toString() {
-    if (record.size() == 0) {
-      return String.format("{%s}", originalState);
+    if (record().size() == 0) {
+      return String.format("{%s}", state());
     }
-    return String.format("{%s|%s}", originalState, record);
+    return String.format("{%s|%s}", state(), record());
   }
 }
