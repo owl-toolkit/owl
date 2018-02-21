@@ -35,6 +35,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
+import owl.util.annotation.Tuple;
 
 public final class GameFactory {
   private GameFactory() {}
@@ -61,7 +62,7 @@ public final class GameFactory {
 
       game.forEachLabelledEdge((state, edge, valuations) -> {
         graph.putEdgeValue(state, edge.getSuccessor(),
-          ImmutableValueEdge.of(edge.smallestAcceptanceSet(), valuations));
+          ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations));
 
         if (Owner.PLAYER_1 == game.getOwner(state)) {
           player1NodesBuilder.add(state);
@@ -137,12 +138,11 @@ public final class GameFactory {
       return owner == Owner.PLAYER_1 ? variablesPlayer1 : variablesPlayer2;
     }
 
-    @Value.Immutable(builder = false, copy = false)
+    @Value.Immutable
+    @Tuple
     abstract static class ValueEdge {
-      @Value.Parameter
       abstract int colour();
 
-      @Value.Parameter
       abstract ValuationSet valuationSet();
     }
   }

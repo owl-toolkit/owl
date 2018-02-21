@@ -20,25 +20,25 @@ package owl.translations.ldba2dra;
 import java.util.Map;
 import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
+import owl.util.annotation.Tuple;
 
-@Value.Style(of = "ofInternal")
-@Value.Immutable(builder = false, copy = false, prehash = true)
+@Value.Immutable
+@Tuple
 public abstract class MapRankingState<S, K, V> implements AnnotatedState<S> {
-
   @Override
-  @Value.Parameter
   public abstract S state();
 
-  @Value.Parameter
   abstract Map<K, V> componentMap();
+
 
   static <S, T, K> MapRankingState<S, K, T> of(S state) {
     return of(state, Map.of());
   }
 
   static <S, T, K> MapRankingState<S, K, T> of(S state, Map<K, T> ranking) {
-    return ImmutableMapRankingState.ofInternal(state, ranking);
+    return MapRankingStateTuple.create(state, ranking);
   }
+
 
   @Override
   public String toString() {

@@ -26,9 +26,8 @@ import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.ImmutableObject;
 
-public final class Literal extends ImmutableObject implements Formula {
+public final class Literal extends AbstractFormula {
   private final int index;
   private final Literal negation;
 
@@ -78,7 +77,7 @@ public final class Literal extends ImmutableObject implements Formula {
   }
 
   @Override
-  protected boolean equals2(ImmutableObject o) {
+  protected boolean equals2(AbstractFormula o) {
     Literal literal = (Literal) o;
     return index == literal.index;
   }

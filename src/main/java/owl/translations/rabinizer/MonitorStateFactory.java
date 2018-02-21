@@ -1,6 +1,8 @@
 package owl.translations.rabinizer;
 
 import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -56,13 +58,15 @@ final class MonitorStateFactory extends RabinizerStateFactory {
   }
 
   public BitSet getSensitiveAlphabet(MonitorState state) {
-    EquivalenceClass[] ranking = state.formulaRanking;
-    if (ranking.length == 0) {
+    List<EquivalenceClass> ranking = state.formulaRanking();
+    if (ranking.isEmpty()) {
       return new BitSet(0);
     }
-    BitSet sensitiveAlphabet = getClassSensitiveAlphabet(ranking[0]);
-    for (int i = 1; i < ranking.length; i++) {
-      sensitiveAlphabet.or(getClassSensitiveAlphabet(ranking[i]));
+
+    Iterator<EquivalenceClass> iterator = ranking.iterator();
+    BitSet sensitiveAlphabet = getClassSensitiveAlphabet(iterator.next());
+    while (iterator.hasNext()) {
+      sensitiveAlphabet.or(getClassSensitiveAlphabet(iterator.next()));
     }
     return sensitiveAlphabet;
   }

@@ -21,9 +21,8 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.function.Predicate;
-import owl.util.ImmutableObject;
 
-public abstract class BinaryModalOperator extends ImmutableObject implements Formula {
+public abstract class BinaryModalOperator extends AbstractFormula {
   public final Formula left;
   public final Formula right;
 
@@ -43,7 +42,7 @@ public abstract class BinaryModalOperator extends ImmutableObject implements For
   }
 
   @Override
-  protected boolean equals2(ImmutableObject o) {
+  protected boolean equals2(AbstractFormula o) {
     BinaryModalOperator that = (BinaryModalOperator) o;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
   }

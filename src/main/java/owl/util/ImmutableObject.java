@@ -17,6 +17,7 @@
 
 package owl.util;
 
+@Deprecated
 public abstract class ImmutableObject {
   private int cachedHashCode = 0;
 

@@ -24,9 +24,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import owl.util.ImmutableObject;
 
-public abstract class PropositionalFormula extends ImmutableObject implements Formula {
+public abstract class PropositionalFormula extends AbstractFormula {
   // TODO This is a source of nondeterminism. Replace by a list / linked set.
   public final ImmutableSet<Formula> children;
 
@@ -73,7 +72,7 @@ public abstract class PropositionalFormula extends ImmutableObject implements Fo
   }
 
   @Override
-  public boolean equals2(ImmutableObject o) {
+  public boolean equals2(AbstractFormula o) {
     PropositionalFormula that = (PropositionalFormula) o;
     return Objects.equals(children, that.children);
   }

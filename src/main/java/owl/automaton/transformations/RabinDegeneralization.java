@@ -1,7 +1,5 @@
 package owl.automaton.transformations;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
@@ -43,6 +41,7 @@ import owl.run.PipelineExecutionContext;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
+import owl.util.annotation.HashedTuple;
 
 public final class RabinDegeneralization extends Transformers.SimpleTransformer {
   public static final RabinDegeneralization INSTANCE = new RabinDegeneralization();
@@ -251,30 +250,26 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
   @Override
   public Object transform(Object object, PipelineExecutionContext context) {
-    checkArgument(object instanceof Automaton<?, ?>);
-    Automaton<?, ?> automaton = (Automaton<?, ?>) object;
-    checkArgument(automaton.getAcceptance() instanceof GeneralizedRabinAcceptance);
-    //noinspection unchecked
-    return degeneralize((Automaton<Object, GeneralizedRabinAcceptance>) automaton);
+    return degeneralize(AutomatonUtil.cast(object, GeneralizedRabinAcceptance.class));
   }
 
-  @Value.Immutable(builder = false, copy = false, prehash = true)
+  @Value.Immutable
+  @HashedTuple
   abstract static class DegeneralizedRabinState<S> implements AnnotatedState<S> {
-
     @Override
-    @Value.Parameter
     public abstract S state();
 
-    @Value.Parameter
     public abstract ImmutableIntArray awaitedSets();
 
+
     static <S> DegeneralizedRabinState<S> of(S state) {
-      return ImmutableDegeneralizedRabinState.of(state, ImmutableIntArray.of());
+      return DegeneralizedRabinStateTuple.create(state, ImmutableIntArray.of());
     }
 
     static <S> DegeneralizedRabinState<S> of(S state, int[] awaitedSets) {
-      return ImmutableDegeneralizedRabinState.of(state, ImmutableIntArray.copyOf(awaitedSets));
+      return DegeneralizedRabinStateTuple.create(state, ImmutableIntArray.copyOf(awaitedSets));
     }
+
 
     int awaitedInfSet(int generalizedPairIndex) {
       return awaitedSets().get(generalizedPairIndex);

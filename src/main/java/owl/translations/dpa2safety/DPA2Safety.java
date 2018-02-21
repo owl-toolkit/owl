@@ -63,6 +63,7 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
   }
 
   static final class Counter<X> {
+    // TODO Tuple style
     final X state;
     final ImmutableIntArray counters;
 

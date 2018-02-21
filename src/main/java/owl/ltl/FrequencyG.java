@@ -20,10 +20,8 @@ package owl.ltl;
 import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.ImmutableObject;
 
 public class FrequencyG extends GOperator {
-
   private static final double EPSILON = 1e-12;
 
   public final double bound;
@@ -48,7 +46,7 @@ public class FrequencyG extends GOperator {
   }
 
   @Override
-  protected boolean equals2(ImmutableObject o) {
+  protected boolean equals2(AbstractFormula o) {
     FrequencyG that = (FrequencyG) o;
     return Objects.equals(operand, that.operand) && Math.abs(this.bound - that.bound) < EPSILON
       && this.cmp == that.cmp && this.limes == that.limes;

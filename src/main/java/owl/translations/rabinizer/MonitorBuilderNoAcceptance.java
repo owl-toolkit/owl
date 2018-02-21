@@ -3,6 +3,7 @@ package owl.translations.rabinizer;
 import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import de.tum.in.naturals.Arrays2;
 import java.util.BitSet;
@@ -90,7 +91,7 @@ final class MonitorBuilderNoAcceptance {
 
   private MonitorAutomaton build() {
     // We start with the (q0, bot, bot, ...) ranking
-    MonitorState initialState = new MonitorState(new EquivalenceClass[] {initialClass});
+    MonitorState initialState = MonitorState.of(initialClass);
 
     MutableAutomaton<MonitorState, ParityAcceptance> monitor =
       MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
@@ -111,8 +112,8 @@ final class MonitorBuilderNoAcceptance {
   }
 
   private Edge<MonitorState> getSuccessor(MonitorState currentState, BitSet valuation) {
-    EquivalenceClass[] currentRanking = currentState.formulaRanking;
-    int currentRankingSize = currentRanking.length;
+    List<EquivalenceClass> currentRanking = currentState.formulaRanking();
+    int currentRankingSize = currentRanking.size();
 
     // Construct the successor ranking. At most one new class can be introduced (if the initial
     // formula is not ranked, it is re-created as youngest). If there are less, the array is shrunk
@@ -128,7 +129,7 @@ final class MonitorBuilderNoAcceptance {
       assert successorRankingSize <= rank;
 
       // Perform one step of "af_G(currentClass)" - we unfold all temporal operators except G
-      EquivalenceClass currentClass = currentRanking[rank];
+      EquivalenceClass currentClass = currentRanking.get(rank);
       EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentClass, valuation);
 
       if (successorClass.isFalse() || isSink(successorClass)) {
@@ -166,19 +167,16 @@ final class MonitorBuilderNoAcceptance {
 
     // If there were some removed classes, compact the array, otherwise take it as is
     successorRanking = Arrays2.trim(successorRanking, successorRankingSize);
-    return Edge.of(new MonitorState(successorRanking));
+    return Edge.of(MonitorState.of(successorRanking));
   }
 
   private Edge<MonitorState> getSuccessorSafety(MonitorState currentState, BitSet valuation) {
-    EquivalenceClass[] currentRanking = currentState.formulaRanking;
-    assert currentRanking.length == 1;
+    EquivalenceClass currentRanking = Iterables.getOnlyElement(currentState.formulaRanking());
 
-    EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentRanking[0], valuation);
-    EquivalenceClass equivalenceClass = successorClass.isFalse()
-      ? initialClass
+    EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentRanking, valuation);
+    EquivalenceClass successorRanking = successorClass.isFalse()
+      ? this.initialClass
       : successorClass.and(initialClass);
-    EquivalenceClass[] successorRanking = {equivalenceClass};
-
-    return Edge.of(new MonitorState(successorRanking));
+    return Edge.of(MonitorState.of(successorRanking));
   }
 }

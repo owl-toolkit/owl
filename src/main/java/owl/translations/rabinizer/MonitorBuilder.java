@@ -4,6 +4,7 @@ import static owl.translations.rabinizer.MonitorStateFactory.isAccepting;
 import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import de.tum.in.naturals.Arrays2;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.booleans.BooleanArrays;
@@ -101,7 +102,7 @@ final class MonitorBuilder {
   private MonitorAutomaton build() {
     // We start with the (q0, bot, bot, ...) ranking
     // TODO We don't need to put the initial class into the ranking if it is at the tail
-    MonitorState initialState = new MonitorState(new EquivalenceClass[] {initialClass});
+    MonitorState initialState = MonitorState.of(initialClass);
 
     for (int i = 0; i < monitorAutomata.length; i++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
@@ -208,8 +209,8 @@ final class MonitorBuilder {
 
   private MonitorState getSuccessor(MonitorState currentState, BitSet valuation, int[] priorities,
     boolean[] initialAccepting) {
-    EquivalenceClass[] currentRanking = currentState.formulaRanking;
-    int currentRankingSize = currentRanking.length;
+    List<EquivalenceClass> currentRanking = currentState.formulaRanking();
+    int currentRankingSize = currentRanking.size();
     int numberOfRelevantSets = relevantSets.length;
 
     /*
@@ -257,7 +258,7 @@ final class MonitorBuilder {
       assert successorRankingSize <= currentRank;
 
       // Perform one step of "af_G(currentClass)" - we unfold all temporal operators except G
-      EquivalenceClass currentClass = currentRanking[currentRank];
+      EquivalenceClass currentClass = currentRanking.get(currentRank);
       EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentClass, valuation);
 
       if (successorClass.isFalse()) {
@@ -329,7 +330,7 @@ final class MonitorBuilder {
               //  3) Neither of the two is accepting, then this is a merge(rank(q1) + 1).
 
               if (isAccepting(olderSuccessorClass, relevantSets[contextIndex])) {
-                assert isAccepting(currentRanking[olderSource], relevantSets[contextIndex]);
+                assert isAccepting(currentRanking.get(olderSource), relevantSets[contextIndex]);
                 if (priorities[contextIndex] == none()) {
                   // Don't overwrite a "stronger" succeed. It might be the case that, e.g., both
                   // rank 2 and 3 merge into the succeeding rank 1. Then, rank 3 would set the
@@ -410,46 +411,43 @@ final class MonitorBuilder {
       .filter(state -> state.equals(initialClass))
       .count() == 1;
 
-    return new MonitorState(successorRanking);
+    return MonitorState.of(successorRanking);
   }
 
   private MonitorState getSuccessorFiniteFragment(MonitorState currentState, BitSet valuation,
     int[] priorities) {
-    EquivalenceClass[] currentRanking = currentState.formulaRanking;
-    assert currentRanking.length == 1;
+    EquivalenceClass currentRanking = Iterables.getOnlyElement(currentState.formulaRanking());
 
-    EquivalenceClass successorClass =
-      stateFactory.getRankSuccessor(currentRanking[0], valuation);
-    EquivalenceClass[] successorRanking = new EquivalenceClass[1];
+    EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentRanking, valuation);
+    EquivalenceClass successorRanking;
     if (successorClass.isFalse()) {
       priorities[0] = fail();
-      successorRanking[0] = initialClass;
+      successorRanking = initialClass;
     } else {
       priorities[0] = succeed(0);
-      successorRanking[0] = successorClass.and(initialClass);
+      successorRanking = successorClass.and(initialClass);
     }
 
-    return new MonitorState(successorRanking);
+    return MonitorState.of(successorRanking);
   }
 
   private MonitorState getSuccessorEventualFragment(MonitorState currentState, BitSet valuation,
     int[] priorities) {
-    EquivalenceClass[] currentRanking = currentState.formulaRanking;
-    assert currentRanking.length == 1;
+    EquivalenceClass currentRanking = Iterables.getOnlyElement(currentState.formulaRanking());
 
-    EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentRanking[0], valuation);
-    EquivalenceClass[] successorRanking = new EquivalenceClass[1];
+    EquivalenceClass successorClass = stateFactory.getRankSuccessor(currentRanking, valuation);
+    EquivalenceClass successorRanking = null;
     for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
       if (isAccepting(successorClass, relevantSets[contextIndex])) {
         priorities[contextIndex] = succeed(0);
-        successorRanking[0] = initialClass;
+        successorRanking = initialClass;
       } else {
         priorities[contextIndex] = none();
-        successorRanking[0] = successorClass;
+        successorRanking = successorClass;
       }
     }
-
-    return new MonitorState(successorRanking);
+    assert successorRanking != null;
+    return MonitorState.of(successorRanking);
   }
 
   private void optimizeInitialState() {

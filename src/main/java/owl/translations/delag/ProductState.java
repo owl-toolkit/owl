@@ -22,22 +22,22 @@ import java.util.Map;
 import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.util.annotation.HashedTuple;
 
-@Value.Immutable(builder = false, copy = false, prehash = true)
+@Value.Immutable
+@HashedTuple
 abstract class ProductState<T> {
-
-  @Value.Parameter
   abstract Map<Formula, T> fallback();
 
-  @Value.Parameter
   abstract Map<DependencyTree<T>, Boolean> finished();
 
-  @Value.Parameter
   abstract Map<Formula, EquivalenceClass> safety();
+
 
   static <T> Builder<T> builder() {
     return new Builder<>();
   }
+
 
   static final class Builder<T> {
     private final Map<Formula, T> fallback;
@@ -51,7 +51,7 @@ abstract class ProductState<T> {
     }
 
     ProductState<T> build() {
-      return ImmutableProductState.of(fallback, finished, safety);
+      return ProductStateTuple.create(fallback, finished, safety);
     }
 
     void merge(Builder<T> other) {
@@ -78,3 +78,4 @@ abstract class ProductState<T> {
     }
   }
 }
+

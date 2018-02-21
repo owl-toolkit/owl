@@ -41,7 +41,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
@@ -55,6 +54,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.util.annotation.HashedTuple;
 
 public final class GameViews {
   private static final Logger logger = Logger.getLogger(GameViews.class.getName());
@@ -359,25 +359,24 @@ public final class GameViews {
   /**
    * A state of the split game.
    */
-  @Value.Style(visibility = ImplementationVisibility.PACKAGE)
-  @Value.Immutable(builder = false, copy = false, prehash = true)
+  @Value.Immutable
+  @HashedTuple
   public abstract static class Node<S> implements AnnotatedState<S> {
-
-    @Value.Parameter
     @Override
     public abstract S state();
 
-    @Value.Parameter
     @Nullable
     abstract BitSet firstPlayerChoice();
 
+
     static <S> Node<S> of(S state) {
-      return ImmutableNode.of(state, null);
+      return NodeTuple.create(state, null);
     }
 
     static <S> Node<S> of(S state, BitSet choice) {
-      return ImmutableNode.of(state, BitSets.copyOf(choice));
+      return NodeTuple.create(state, BitSets.copyOf(choice));
     }
+
 
     @Override
     public String toString() {
