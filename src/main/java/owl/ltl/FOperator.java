@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -32,25 +31,40 @@ public class FOperator extends UnaryModalOperator {
     super(f);
   }
 
+  /**
+   * Construct a LTL-equivalent formula for F(operand). The method examines the operand and might
+   * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
+   * In order to syntactically construct F(operand) use the constructor.
+   *
+   * @param operand the operand of the F-operator
+   *
+   * @return a formula equivalent to F(operand)
+   */
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant) {
       return operand;
+    }
+
+    if (operand instanceof Disjunction) {
+      return Disjunction.of(((Disjunction) operand).children.stream().map(FOperator::of));
     }
 
     if (operand instanceof FOperator) {
       return operand;
     }
 
-    if (operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator) {
-      return operand;
+    if (operand instanceof MOperator) {
+      MOperator mOperator = (MOperator) operand;
+      return FOperator.of(Conjunction.of(mOperator.left, mOperator.right));
     }
 
     if (operand instanceof UOperator) {
       return of(((UOperator) operand).right);
     }
 
-    if (operand instanceof Disjunction) {
-      return Disjunction.of(((Disjunction) operand).children.stream().map(FOperator::of));
+    if (operand instanceof WOperator) {
+      WOperator wOperator = (WOperator) operand;
+      return Disjunction.of(of(GOperator.of(wOperator.left)), of(wOperator.right));
     }
 
     return new FOperator(operand);
@@ -77,11 +91,6 @@ public class FOperator extends UnaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(FOperator.class, operand);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return true;
   }
@@ -97,13 +106,13 @@ public class FOperator extends UnaryModalOperator {
   }
 
   @Override
-  public GOperator not() {
-    return new GOperator(operand.not());
+  public Formula not() {
+    return GOperator.of(operand.not());
   }
 
   @Override
   public Formula unfold() {
-    return new Disjunction(operand.unfold(), this);
+    return Disjunction.of(operand.unfold(), this);
   }
 
   @Override

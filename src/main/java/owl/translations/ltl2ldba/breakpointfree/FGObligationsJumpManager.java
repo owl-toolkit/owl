@@ -55,8 +55,8 @@ import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultVisitor;
 import owl.translations.ltl2ldba.AbstractJumpManager;
@@ -191,7 +191,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     // TODO: use substitute
     Formula formula = clazz.getRepresentative();
     Formula fFreeFormula = replaceFOperators(obligation, formula);
-    Formula evaluated = RewriterFactory.apply(RewriterEnum.MODAL, fFreeFormula);
+    Formula evaluated = SimplifierFactory.apply(fFreeFormula, Mode.SYNTACTIC);
     Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated
       + " using " + obligation);
     return factory.of(evaluated);

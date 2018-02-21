@@ -12,7 +12,7 @@ import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
 import owl.ltl.ROperator;
 import owl.ltl.WOperator;
-import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.Environment;
 import owl.translations.dra2dpa.IARBuilder;
@@ -20,7 +20,7 @@ import owl.translations.dra2dpa.IARBuilder;
 public final class Transformers {
   public static final Transformer SIMPLIFY_MODAL_ITER =
     Transformers.fromFunction(LabelledFormula.class,
-      x -> RewriterFactory.apply(x, RewriterFactory.RewriterEnum.MODAL_ITERATIVE));
+      x -> SimplifierFactory.apply(x, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
   public static final Transformer UNABBREVIATE_RW = Transformers.fromFunction(LabelledFormula.class,
     x -> x.acceptConverter(new UnabbreviateVisitor(ROperator.class, WOperator.class)));
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();

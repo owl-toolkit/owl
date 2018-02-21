@@ -38,7 +38,7 @@ public class RealizabilityRewriterTest {
     Formula after = LtlParser.syntax("G (x <-> y)");
     Map<Integer, Boolean> map = new HashMap<>();
     Formula[] split2 = RealizabilityRewriter.split(before, 1, map);
-    assertThat(split2, Matchers.is(new Formula[]{after}));
+    assertThat(split2, Matchers.is(new Formula[] {after}));
     assertThat(map, Matchers.is(Map.of(2, true)));
   }
 
@@ -55,7 +55,7 @@ public class RealizabilityRewriterTest {
     Map<Integer, Boolean> map2 = new HashMap<>();
 
     Formula[] split2 = RealizabilityRewriter.split(case2, 1, map2);
-    assertThat(split2, Matchers.is(new Formula[]{BooleanConstant.FALSE}));
+    assertThat(split2, Matchers.is(new Formula[] {BooleanConstant.FALSE}));
     assertThat(map2, Matchers.is(Map.of(0, false)));
   }
 }

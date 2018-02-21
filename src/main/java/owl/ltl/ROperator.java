@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -28,28 +27,33 @@ import owl.ltl.visitors.Visitor;
  */
 public final class ROperator extends BinaryModalOperator {
 
-  public ROperator(Formula left, Formula right) {
-    super(left, right);
+  public ROperator(Formula leftOperand, Formula rightOperand) {
+    super(leftOperand, rightOperand);
   }
 
-  public static Formula of(Formula left, Formula right) {
-    if (left == BooleanConstant.TRUE || right instanceof BooleanConstant) {
-      return right;
+  /**
+   * Construct a LTL-equivalent formula for (leftOperand)R(rightOperand). The method examines the
+   * operands and might choose to construct a simpler formula. However, the size of the syntax tree
+   * is not increased. In order to syntactically construct (leftOperand)R(rightOperand) use the
+   * constructor.
+   *
+   * @param leftOperand the left operand of the R-operator
+   * @param rightOperand the right operand of the R-operator
+   * @return a formula equivalent to (leftOperand)R(rightOperand)
+   */
+  public static Formula of(Formula leftOperand, Formula rightOperand) {
+    if (rightOperand instanceof BooleanConstant
+      || rightOperand instanceof GOperator
+      || leftOperand.equals(rightOperand)
+      || leftOperand.equals(BooleanConstant.TRUE)) {
+      return rightOperand;
     }
 
-    if (left.equals(right)) {
-      return left;
+    if (leftOperand.equals(BooleanConstant.FALSE)) {
+      return GOperator.of(rightOperand);
     }
 
-    if (left == BooleanConstant.FALSE) {
-      return GOperator.of(right);
-    }
-
-    if (right instanceof GOperator) {
-      return right;
-    }
-
-    return new ROperator(left, right);
+    return new ROperator(leftOperand, rightOperand);
   }
 
   @Override
@@ -73,33 +77,28 @@ public final class ROperator extends BinaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(ROperator.class, left, right);
-  }
-
-  @Override
   public boolean isPureEventual() {
-    return left.isPureEventual() && right.isPureEventual();
+    return false;
   }
 
   @Override
   public boolean isPureUniversal() {
-    return right.isPureUniversal();
+    return false;
   }
 
   @Override
   public boolean isSuspendable() {
-    return right.isSuspendable();
+    return false;
   }
 
   @Override
-  public UOperator not() {
-    return new UOperator(left.not(), right.not());
+  public Formula not() {
+    return UOperator.of(left.not(), right.not());
   }
 
   @Override
   public Formula unfold() {
-    return new Conjunction(right.unfold(), new Disjunction(left.unfold(), this));
+    return Conjunction.of(right.unfold(), Disjunction.of(left.unfold(), this));
   }
 
   @Override
@@ -107,5 +106,4 @@ public final class ROperator extends BinaryModalOperator {
     return Conjunction.of(right.unfoldTemporalStep(valuation),
       Disjunction.of(left.unfoldTemporalStep(valuation), this));
   }
-
 }

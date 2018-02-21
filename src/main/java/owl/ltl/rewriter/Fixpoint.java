@@ -21,12 +21,19 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import owl.ltl.Formula;
 
-class IterativeRewriter implements UnaryOperator<Formula> {
-  private static final int MAX_ITERATIONS = 10;
+class Fixpoint implements UnaryOperator<Formula> {
+  private static final int MAX_ITERATIONS = 100;
   private final Function<Formula, Formula> rewriter;
 
-  IterativeRewriter(Function<Formula, Formula> rewriter) {
-    this.rewriter = rewriter;
+  @SafeVarargs
+  Fixpoint(UnaryOperator<Formula>... rewriter) {
+    Function<Formula, Formula> operator = UnaryOperator.identity();
+
+    for (UnaryOperator<Formula> nextOperator : rewriter) {
+      operator = operator.andThen(nextOperator);
+    }
+
+    this.rewriter = operator;
   }
 
   @Override

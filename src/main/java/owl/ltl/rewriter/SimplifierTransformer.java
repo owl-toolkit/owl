@@ -9,57 +9,53 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.run.PipelineExecutionContext;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 
-public class RewriterTransformer extends Transformers.SimpleTransformer {
+public final class SimplifierTransformer extends Transformers.SimpleTransformer {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("rewrite")
+    .key("simplifier")
     .optionsBuilder(() -> {
       Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "
-        + "comma separated list. Possible values are: modal, modal-iter, pullup, pushdown, "
-        + "fairness");
+        + "comma separated list. Possible values are: syntactic, syntactic-fairness, "
+        + "syntactic-fixpoint, pullup-X, pushdown-X");
       modeOption.setRequired(true);
       modeOption.setArgs(Option.UNLIMITED_VALUES);
       modeOption.setValueSeparator(',');
       return new Options().addOption(modeOption);
     }).parser(settings -> {
-      List<RewriterEnum> rewrites = new ArrayList<>();
+      List<Mode> rewrites = new ArrayList<>();
       String[] modes = settings.getOptionValues("mode");
 
       for (String mode : modes) {
         rewrites.add(parseMode(mode));
       }
 
-      return new RewriterTransformer(rewrites);
+      return new SimplifierTransformer(rewrites);
     })
     .build();
 
-  private final List<RewriterEnum> rewrites;
+  private final List<Mode> rewrites;
 
-  public RewriterTransformer(RewriterEnum... rewrites) {
+  private SimplifierTransformer(List<Mode> rewrites) {
     this.rewrites = ImmutableList.copyOf(rewrites);
   }
 
-  public RewriterTransformer(List<RewriterEnum> rewrites) {
-    this.rewrites = ImmutableList.copyOf(rewrites);
-  }
-
-  private static RewriterEnum parseMode(String mode) throws ParseException {
+  private static Mode parseMode(String mode) throws ParseException {
     switch (mode) {
-      case "modal":
-        return RewriterEnum.MODAL;
-      case "modal-iter":
-        return RewriterEnum.MODAL_ITERATIVE;
-      case "pullup":
-        return RewriterEnum.PULLUP_X;
-      case "pushdown":
-        return RewriterEnum.PUSHDOWN_X;
-      case "fairness":
-        return RewriterEnum.FAIRNESS;
+      case "syntactic":
+        return Mode.SYNTACTIC;
+      case "syntactic-fixpoint":
+        return Mode.SYNTACTIC_FIXPOINT;
+      case "pullup-X":
+        return Mode.PULLUP_X;
+      case "pushdown-X":
+        return Mode.PUSHDOWN_X;
+      case "syntactic-fairness":
+        return Mode.SYNTACTIC_FAIRNESS;
       default:
         throw new ParseException("Unknown mode " + mode);
     }
@@ -69,8 +65,8 @@ public class RewriterTransformer extends Transformers.SimpleTransformer {
   public Object transform(Object object, PipelineExecutionContext context) {
     checkArgument(object instanceof LabelledFormula);
     LabelledFormula result = (LabelledFormula) object;
-    for (RewriterEnum rewrite : rewrites) {
-      result = RewriterFactory.apply(rewrite, result);
+    for (Mode rewrite : rewrites) {
+      result = SimplifierFactory.apply(result, rewrite);
     }
     return result;
   }

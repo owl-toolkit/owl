@@ -33,11 +33,11 @@ public final class Conjunction extends PropositionalFormula {
   }
 
   public Conjunction(Formula... conjuncts) {
-    super(conjuncts);
+    this(ImmutableSet.copyOf(conjuncts));
   }
 
   public Conjunction(Stream<? extends Formula> formulaStream) {
-    super(formulaStream);
+    this(ImmutableSet.copyOf(formulaStream.iterator()));
   }
 
   public static Formula of(Formula left, Formula right) {

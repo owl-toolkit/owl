@@ -34,7 +34,7 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.visitors.UnabbreviateVisitor;
 
 public class FormulaTest {
@@ -43,39 +43,8 @@ public class FormulaTest {
   public void simplify1() {
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(2, false);
-    Formula f3 = RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(f1, f2));
+    Formula f3 = SimplifierFactory.apply(new Disjunction(f1, f2), Mode.SYNTACTIC);
     assertTrue(f3 instanceof Disjunction);
-
-  }
-
-  @Test
-  public void simplify2() {
-    Formula f0 = new Literal(1, false);
-    Formula f1 = new Literal(0, false);
-    Formula f2 = new Literal(2, false);
-    Formula f3 = RewriterFactory
-      .apply(RewriterEnum.MODAL,
-        new Conjunction(RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(f1, f2)), f0)
-      ).not();
-
-    Formula f4 = new Literal(1, true);
-    Formula f5 = new Literal(0, true);
-    Formula f6 = new Literal(2, true);
-    Formula f7 = RewriterFactory
-      .apply(RewriterEnum.MODAL,
-        new Disjunction(f4, RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f5, f6)))
-      );
-    assertEquals(f3, f7);
-
-  }
-
-  @Test
-  public void simplify3() {
-    Formula f0 = new Literal(1, false);
-    Formula f1 = new UOperator(BooleanConstant.of(true), f0);
-    Formula f2 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f0, f1));
-    Formula f3 = f2.not();
-    assertNotEquals(f3, f0.not());
   }
 
   @Test
@@ -88,9 +57,10 @@ public class FormulaTest {
 
     Formula f4 = new Literal(1, true);
     Formula f5 = new Literal(0, true);
-    Formula f6 = new UOperator(f5, RewriterFactory.apply(RewriterEnum.MODAL,
-      new Conjunction(f4, f5)));
-    Formula f7 = RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(new GOperator(f5), f6));
+    Formula f6 = new UOperator(f5, SimplifierFactory.apply(new Conjunction(f4, f5), Mode.SYNTACTIC
+    ));
+    Formula f7 = SimplifierFactory
+      .apply(new Disjunction(new GOperator(f5), f6), Mode.SYNTACTIC);
 
     assertEquals(f3, f7);
   }
@@ -110,9 +80,8 @@ public class FormulaTest {
   public void testAssertValuation1() {
     Formula f1 = new Literal(2, false);
     Formula f2 = new GOperator(f1);
-    Formula f3 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f2, f1));
-    assertEquals(RewriterFactory.apply(RewriterEnum.MODAL, f3.temporalStep(new BitSet())),
-      BooleanConstant.of(false));
+    Formula f3 = new Conjunction(f2, f1);
+    assertEquals(f3.temporalStep(new BitSet()), BooleanConstant.FALSE);
   }
 
   @Test
@@ -120,7 +89,7 @@ public class FormulaTest {
     Formula f1 = new Literal(2, false);
     Formula f4 = new GOperator(f1);
     Formula f5 = f4.unfold();
-    Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, f5.temporalStep(new BitSet()));
+    Formula f6 = SimplifierFactory.apply(f5.temporalStep(new BitSet()), Mode.SYNTACTIC);
     assertEquals(f6, BooleanConstant.of(false));
   }
 
@@ -170,14 +139,6 @@ public class FormulaTest {
     assertEquals(f2, f3);
   }
 
-  @Test
-  public void testFormulaFactory5() {
-    Formula f0 = BooleanConstant.of(false);
-    Formula f1 = BooleanConstant.of(false);
-    Formula f2 = BooleanConstant.of(false);
-    Formula f3 = Disjunction.of(f0, f1, f2);
-    assertEquals(f3, BooleanConstant.of(false));
-  }
 
   @Test
   public void testFormulaFactory6() {
@@ -186,9 +147,9 @@ public class FormulaTest {
     Formula f3 = new FOperator(f1);
     Formula f4 = new UOperator(f3, f2);
 
-    Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(f2,
-      new FOperator(RewriterFactory.apply(RewriterEnum.MODAL,
-        new Conjunction(new XOperator(f2), f3))))
+    Formula f5 = SimplifierFactory.apply(new Disjunction(f2,
+      new FOperator(SimplifierFactory.apply(new Conjunction(new XOperator(f2), f3), Mode.SYNTACTIC
+      ))), Mode.SYNTACTIC
     );
     assertNotEquals(f4, f5);
   }
@@ -207,16 +168,16 @@ public class FormulaTest {
     Formula f2 = new GOperator(new FOperator(f1));
     Formula f3 = new XOperator(f1);
     Formula f4 = new GOperator(new FOperator(f3));
-    assertEquals(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f4), f2);
+    assertEquals(SimplifierFactory.apply(f4, Mode.SYNTACTIC_FIXPOINT), f2);
   }
 
   @Test
   public void testSimplifyAggressively3() {
     Formula f1 = new Literal(1, false);
     Formula f2 = new FOperator(BooleanConstant.of(true));
-    Formula f3 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f1, f2));
+    Formula f3 = SimplifierFactory.apply(new Conjunction(f1, f2), Mode.SYNTACTIC);
 
-    assertEquals(f1, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f3));
+    assertEquals(f1, SimplifierFactory.apply(f3, Mode.SYNTACTIC_FIXPOINT));
   }
 
   @Test
@@ -224,7 +185,7 @@ public class FormulaTest {
     Formula f1 = new Literal(1, false);
     Formula f2 = new UOperator(f1, f1);
 
-    assertEquals(f1, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f2));
+    assertEquals(f1, SimplifierFactory.apply(f2, Mode.SYNTACTIC_FIXPOINT));
   }
 
   @Test
@@ -233,10 +194,10 @@ public class FormulaTest {
 
     Formula f4 = new GOperator(f1);
     Formula f5 = new GOperator(new FOperator(f1));
-    Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f4, f5));
+    Formula f6 = SimplifierFactory.apply(new Conjunction(f4, f5), Mode.SYNTACTIC);
     assertNotEquals(f6,
-      new GOperator(RewriterFactory.apply(RewriterEnum.MODAL,
-        new Conjunction(f1, new FOperator(f1)))));
+      new GOperator(SimplifierFactory.apply(new Conjunction(f1, new FOperator(f1)), Mode.SYNTACTIC
+      )));
   }
 
   @Test
@@ -245,17 +206,17 @@ public class FormulaTest {
 
     Formula f4 = new XOperator(f1);
     Formula f5 = new XOperator(new FOperator(f1));
-    Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(f4, f5));
+    Formula f6 = SimplifierFactory.apply(new Disjunction(f4, f5), Mode.SYNTACTIC);
     assertNotEquals(f6,
-      new XOperator(RewriterFactory.apply(RewriterEnum.MODAL,
-        new Disjunction(f1, new FOperator(f1)))));
+      new XOperator(SimplifierFactory.apply(new Disjunction(f1, new FOperator(f1)), Mode.SYNTACTIC
+      )));
   }
 
   @Test
   public void testSimplifyModal() {
     Formula f1 = LtlParser.syntax("true U G(F(a))");
     Formula f2 = LtlParser.syntax("G F a");
-    assertEquals(f2, RewriterFactory.apply(RewriterEnum.MODAL, f1));
+    assertEquals(f2, SimplifierFactory.apply(f1, Mode.SYNTACTIC));
   }
 
   @Test
@@ -264,9 +225,9 @@ public class FormulaTest {
     Formula f1 = new Literal(0, false);
     Formula f2 = new UOperator(f0, f1);
     Formula f3 = f2.unfold();
-    Formula f4 = RewriterFactory
-      .apply(RewriterEnum.MODAL,
-        new Disjunction(f1, RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(f0, f2)))
+    Formula f4 = SimplifierFactory
+      .apply(new Disjunction(f1, SimplifierFactory.apply(new Conjunction(f0, f2), Mode.SYNTACTIC)),
+        Mode.SYNTACTIC
       );
     assertEquals(f3, f4);
   }
@@ -277,10 +238,10 @@ public class FormulaTest {
     Formula f2 = new Literal(0, false);
     Formula f3 = new GOperator(f1);
     Formula f4 = new GOperator(f2);
-    Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, Conjunction.of(f3, f4));
-    Formula f6 = RewriterFactory.apply(RewriterEnum.MODAL, Conjunction.of(f5, f1, f2));
+    Formula f5 = SimplifierFactory.apply(Conjunction.of(f3, f4), Mode.SYNTACTIC);
+    Formula f6 = SimplifierFactory.apply(Conjunction.of(f5, f1, f2), Mode.SYNTACTIC);
 
-    assertEquals(f6, RewriterFactory.apply(RewriterEnum.MODAL, f5.unfold()));
+    assertEquals(f6, SimplifierFactory.apply(f5.unfold(), Mode.SYNTACTIC));
   }
 
   @Test
@@ -288,9 +249,9 @@ public class FormulaTest {
     Formula f0 = new Literal(1, false);
     Formula f1 = new Literal(0, false);
     Formula f2 = new Literal(2, false);
-    Formula f3 = RewriterFactory
-      .apply(RewriterEnum.MODAL,
-        new Conjunction(RewriterFactory.apply(RewriterEnum.MODAL, new Disjunction(f1, f2)), f1)
+    Formula f3 = SimplifierFactory
+      .apply(new Conjunction(SimplifierFactory.apply(new Disjunction(f1, f2), Mode.SYNTACTIC), f1),
+        Mode.SYNTACTIC
       );
     assertNotEquals(f0, f1);
     assertNotEquals(f0, f2);

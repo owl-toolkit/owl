@@ -7,10 +7,10 @@ import owl.ltl.Literal;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 
-public final class ShiftRewriter {
+public final class LiteralMapper {
   static final int UNDEFINED = -1;
 
-  private ShiftRewriter() {}
+  private LiteralMapper() {}
 
   public static ShiftedFormula shiftLiterals(Formula formula) {
     BitSet atoms = Collector.collectAtoms(formula);

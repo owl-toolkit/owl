@@ -17,7 +17,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.GOperator;
-import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultVisitor;
 
@@ -26,7 +26,8 @@ public final class Splitter {
 
   public static LabelledTree<Tag, IntAutomaton> split(Formula formula, boolean onTheFly,
     SafetySplitting safetySplitting) {
-    return RewriterFactory.apply(formula).accept(new Visitor(onTheFly, safetySplitting));
+    return SimplifierFactory.apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
+      .accept(new Visitor(onTheFly, safetySplitting));
   }
 
   public static LabelledTree<Tag, IntAutomaton> split(Formula formula, boolean onTheFly,

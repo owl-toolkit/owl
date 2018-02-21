@@ -39,9 +39,9 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
-class PullupXVisitor implements Visitor<PullupXVisitor.XFormula>, UnaryOperator<Formula> {
+class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<Formula> {
 
-  static final UnaryOperator<Formula> INSTANCE = new PullupXVisitor();
+  static final UnaryOperator<Formula> INSTANCE = new PullUpXVisitor();
 
   @Override
   public Formula apply(Formula formula) {

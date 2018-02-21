@@ -26,19 +26,30 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class PropositionalFormula extends AbstractFormula {
-  // TODO This is a source of nondeterminism. Replace by a list / linked set.
   public final ImmutableSet<Formula> children;
 
   PropositionalFormula(Iterable<? extends Formula> children) {
     this.children = ImmutableSet.copyOf(children);
   }
 
-  PropositionalFormula(Formula... children) {
-    this.children = ImmutableSet.copyOf(children);
-  }
+  public static Formula shortCircuit(Formula formula) {
+    if (formula instanceof Conjunction) {
+      Conjunction conjunction = (Conjunction) formula;
 
-  PropositionalFormula(Stream<? extends Formula> formulaStream) {
-    children = ImmutableSet.copyOf(formulaStream.iterator());
+      if (conjunction.children.stream().anyMatch(x -> conjunction.children.contains(x.not()))) {
+        return BooleanConstant.FALSE;
+      }
+    }
+
+    if (formula instanceof Disjunction) {
+      Disjunction disjunction = (Disjunction) formula;
+
+      if (disjunction.children.stream().anyMatch(x -> disjunction.children.contains(x.not()))) {
+        return BooleanConstant.TRUE;
+      }
+    }
+
+    return formula;
   }
 
   @Override

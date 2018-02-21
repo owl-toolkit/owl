@@ -38,9 +38,9 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.ShiftRewriter;
-import owl.ltl.rewriter.ShiftRewriter.ShiftedFormula;
+import owl.ltl.rewriter.LiteralMapper;
+import owl.ltl.rewriter.LiteralMapper.ShiftedFormula;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.SimpleTranslations;
@@ -111,7 +111,8 @@ public final class IntAutomaton {
 
   public static IntAutomaton of(Formula formula, boolean onTheFly) {
     Environment environment = DefaultEnvironment.standard();
-    ShiftedFormula shiftedFormula = ShiftRewriter.shiftLiterals(RewriterFactory.apply(formula));
+    ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(
+      SimplifierFactory.apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
     LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
 
     if (Fragments.isSafety(labelledFormula.formula)) {

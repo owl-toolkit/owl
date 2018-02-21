@@ -21,10 +21,9 @@ import java.util.Objects;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
-import owl.util.ImmutableObject;
 import owl.util.StringUtil;
 
-public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
+public final class DegeneralizedBreakpointFreeState {
 
   @Nonnegative // Index of the current checked liveness (F) obligation.
   final int index;
@@ -35,6 +34,7 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
   final FGObligations obligations;
   @Nullable
   final EquivalenceClass safety;
+  private int hashCode = 0;
 
   DegeneralizedBreakpointFreeState(@Nonnegative int index, @Nullable EquivalenceClass safety,
     @Nullable EquivalenceClass liveness, @Nullable FGObligations obligations) {
@@ -50,25 +50,38 @@ public final class DegeneralizedBreakpointFreeState extends ImmutableObject {
     return new DegeneralizedBreakpointFreeState(0, null, null, null);
   }
 
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    DegeneralizedBreakpointFreeState that = (DegeneralizedBreakpointFreeState) o;
-    return index == that.index && Objects.equals(safety, that.safety) && Objects
-      .equals(liveness, that.liveness) && Objects.equals(obligations, that.obligations);
-  }
-
   public FGObligations getObligations() {
     return obligations;
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(liveness, obligations, safety, index);
   }
 
   @Override
   public String toString() {
     return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
       liveness == null || liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ')');
+  }
+
+  @SuppressWarnings("NonFinalFieldReferenceInEquals")
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+
+    DegeneralizedBreakpointFreeState other = (DegeneralizedBreakpointFreeState) o;
+    return (hashCode == 0 || other.hashCode == 0 || other.hashCode == hashCode)
+      && index == other.index && Objects.equals(safety, other.safety)
+      && Objects.equals(liveness, other.liveness) && Objects.equals(obligations, other.obligations);
+  }
+
+  @Override
+  public int hashCode() {
+    if (hashCode == 0) {
+      hashCode = Objects.hash(liveness, obligations, safety, index);
+    }
+
+    return hashCode;
   }
 }

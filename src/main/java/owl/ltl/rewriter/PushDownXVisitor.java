@@ -34,6 +34,8 @@ import owl.ltl.visitors.BinaryVisitor;
 
 class PushDownXVisitor implements BinaryVisitor<Integer, Formula>, UnaryOperator<Formula> {
 
+  static final UnaryOperator<Formula> INSTANCE = new PushDownXVisitor();
+
   @Override
   public Formula apply(Formula formula) {
     return formula.accept(this, 0);
@@ -66,13 +68,7 @@ class PushDownXVisitor implements BinaryVisitor<Integer, Formula>, UnaryOperator
 
   @Override
   public Formula visit(Literal literal, Integer parameter) {
-    Formula formula = literal;
-
-    for (int i = 0; i < parameter; i++) {
-      formula = new XOperator(formula);
-    }
-
-    return formula;
+    return XOperator.of(literal, parameter);
   }
 
   @Override

@@ -20,15 +20,15 @@ package owl.translations.ltl2ldba.breakpoint;
 import java.util.Arrays;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
-import owl.util.ImmutableObject;
 import owl.util.StringUtil;
 
-public final class GeneralizedBreakpointState extends ImmutableObject {
+public final class GeneralizedBreakpointState {
 
   final EquivalenceClass[] current;
   final EquivalenceClass[] next;
   final GObligations obligations;
   final EquivalenceClass safety;
+  private int hashCode = 0;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
   private GeneralizedBreakpointState(GObligations obligations, EquivalenceClass safety,
@@ -44,20 +44,8 @@ public final class GeneralizedBreakpointState extends ImmutableObject {
     return new GeneralizedBreakpointState(obligations, safety, current, next);
   }
 
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    GeneralizedBreakpointState that = (GeneralizedBreakpointState) o;
-    return Objects.equals(safety, that.safety) && Objects.equals(obligations, that.obligations)
-      && Arrays.equals(current, that.current) && Arrays.equals(next, that.next);
-  }
-
   public GObligations getObligations() {
     return obligations;
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(safety, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
   }
 
   @Override
@@ -65,5 +53,32 @@ public final class GeneralizedBreakpointState extends ImmutableObject {
     return obligations + StringUtil.join(safety.isTrue() ? null : "GWR=" + safety,
       current.length <= 0 ? null : "C=" + Arrays.toString(current),
       next.length <= 0 ? null : "N=" + Arrays.toString(next));
+  }
+
+  @SuppressWarnings("NonFinalFieldReferenceInEquals")
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+
+    GeneralizedBreakpointState that = (GeneralizedBreakpointState) o;
+    return (hashCode == 0 || that.hashCode == 0 || that.hashCode == hashCode)
+      && Objects.equals(safety, that.safety) && Objects.equals(obligations, that.obligations)
+      && Arrays.equals(current, that.current) && Arrays.equals(next, that.next);
+  }
+
+  @Override
+  public int hashCode() {
+    // TODO: Hash code could potentially be 0? Not worth a boolean flag though, probably.
+    if (hashCode == 0) {
+      hashCode = Objects.hash(safety, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
+    }
+
+    return hashCode;
   }
 }

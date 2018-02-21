@@ -1,7 +1,7 @@
 package owl.translations.rabinizer;
 
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.RewriterFactory;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.Transformer;
@@ -11,8 +11,8 @@ import owl.run.parser.PartialModuleConfiguration;
 
 public final class RabinizerMain {
   static final Transformer SIMPLIFIER = Transformers.fromFunction(LabelledFormula.class,
-    x -> RewriterFactory.apply(x, RewriterFactory.RewriterEnum.PULLUP_X,
-      RewriterFactory.RewriterEnum.MODAL_ITERATIVE));
+    x -> SimplifierFactory.apply(x, SimplifierFactory.Mode.PULLUP_X,
+      SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
 
   private RabinizerMain() {}
 

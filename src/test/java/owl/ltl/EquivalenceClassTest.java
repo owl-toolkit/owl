@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -36,8 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 
 public abstract class EquivalenceClassTest {
   private static final List<String> formulaStrings = ImmutableList
@@ -94,8 +95,8 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass equivalenceClass = factory.of(contradiction);
 
     assertEquals(equivalenceClass, equivalenceClass);
-    assertEquals(equivalenceClass, factory.of(RewriterFactory
-      .apply(RewriterEnum.MODAL_ITERATIVE, new Conjunction(literal, new Literal(0, true)))));
+    assertEquals(equivalenceClass, factory.of(SimplifierFactory
+      .apply(new Conjunction(literal, new Literal(0, true)), Mode.SYNTACTIC_FIXPOINT)));
   }
 
   @Test
@@ -180,7 +181,7 @@ public abstract class EquivalenceClassTest {
       LtlParser.syntax("G a")
     };
 
-    EquivalenceClass clazz = factory.of(Conjunction.of(formulas));
+    EquivalenceClass clazz = factory.of(Conjunction.of(Arrays.asList(formulas)));
     assertEquals(Set.of(formulas), clazz.getSupport());
   }
 
@@ -201,30 +202,7 @@ public abstract class EquivalenceClassTest {
     assertFalse(tautologyClass.implies(contradictionClass));
     assertFalse(tautologyClass.implies(literalClass));
   }
-
-  // @Test
-  public void testLtlBackgroundTheory1() {
-    Formula f1 = LtlParser.syntax("G p0 & p0");
-    Formula f2 = LtlParser.syntax("G p0");
-    assertEquals(f2, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f1));
-  }
-
-  // @Test
-  public void testLtlBackgroundTheory2() {
-    Formula f1 = LtlParser.syntax("G p0 | p0");
-    Formula f2 = LtlParser.syntax("p0");
-    assertEquals(f2, RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f1));
-  }
-
-  // @Test
-  public void testLtlBackgroundTheory3() {
-    Formula f1 = new Literal(1, false);
-    Formula f2 = new GOperator(f1);
-    Formula f5 = RewriterFactory.apply(RewriterEnum.MODAL, new Conjunction(
-      new GOperator(new FOperator(new XOperator(f1))), f2));
-    assertEquals(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, f5), f2);
-  }
-
+  
   @Test
   public void testSubstitute() {
     EquivalenceClass[] formulas = {

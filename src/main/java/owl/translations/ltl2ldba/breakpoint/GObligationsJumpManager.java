@@ -44,8 +44,8 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.DefaultConverter;
 import owl.translations.ltl2ldba.AbstractJumpManager;
@@ -146,7 +146,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     EvaluateVisitor evaluateVisitor =
       new EvaluateVisitor(keys.goperators(), keys.getObligation());
     Formula subst = formula.accept(evaluateVisitor);
-    return RewriterFactory.apply(RewriterEnum.MODAL, subst);
+    return SimplifierFactory.apply(subst, Mode.SYNTACTIC);
   }
 
   EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
