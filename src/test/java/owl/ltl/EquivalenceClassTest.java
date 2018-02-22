@@ -131,7 +131,7 @@ public abstract class EquivalenceClassTest {
   public void testFrequencyGNotFalse() {
     LabelledFormula formula = LtlParser.parse("G { >= 0.4} a");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula());
     assertNotEquals(factory.getFalse(), clazz.unfold().temporalStep(new BitSet(0)));
   }
 
@@ -139,7 +139,7 @@ public abstract class EquivalenceClassTest {
   public void testGetAtoms() {
     LabelledFormula formula = LtlParser.parse("a & (a | b) & (F c)");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula());
     BitSet atoms = new BitSet();
     atoms.set(0);
     assertThat(clazz.getAtoms(), is(atoms));
@@ -151,7 +151,7 @@ public abstract class EquivalenceClassTest {
   public void testGetAtoms2() {
     LabelledFormula formula = LtlParser.parse("(a | (b & X a) | (F a)) & (c | (b & X a) | (F a))");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula());
     BitSet atoms = new BitSet();
     atoms.set(0, 3);
     assertEquals(atoms, clazz.getAtoms());
@@ -161,7 +161,7 @@ public abstract class EquivalenceClassTest {
   public void testGetAtomsEmpty() {
     LabelledFormula formula = LtlParser.parse("G a");
     EquivalenceClassFactory factory = setUpFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula);
+    EquivalenceClass clazz = factory.of(formula.formula());
     BitSet atoms = new BitSet();
     assertEquals(atoms, clazz.getAtoms());
     atoms.set(0);
@@ -253,8 +253,8 @@ public abstract class EquivalenceClassTest {
   public void testUnfoldUnfold() {
     for (LabelledFormula formula : formulas) {
       EquivalenceClassFactory factory = setUpFactory(formula);
-      EquivalenceClass ref = factory.of(formula.formula.unfold());
-      EquivalenceClass clazz = factory.of(formula.formula).unfold();
+      EquivalenceClass ref = factory.of(formula.formula().unfold());
+      EquivalenceClass clazz = factory.of(formula.formula()).unfold();
       assertEquals(ref, clazz);
       assertEquals(clazz, clazz.unfold());
     }

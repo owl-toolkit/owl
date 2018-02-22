@@ -17,54 +17,47 @@
 
 package owl.game.output;
 
-import java.util.Objects;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import javax.annotation.Nullable;
+import org.immutables.value.Value;
+import owl.util.annotation.Tuple;
 
-@SuppressWarnings("PMD.DataClass")
-public final class Aig {
-  public static final Aig FALSE = new Aig();
+@Value.Immutable
+@Tuple
+public abstract class Aig {
+  @SuppressWarnings("StaticInitializerReferencesSubClass")
+  public static final Aig FALSE = AigTuple.create(0, null, false, null, false);
 
-  public final boolean leftIsNegated;
-  public final boolean rightIsNegated;
+  public abstract int variable();
 
   @Nullable
-  public final Aig left;
+  public abstract Aig left();
+
+  public abstract boolean leftIsNegated();
 
   @Nullable
-  public final Aig right;
-  public final int variable;
+  public abstract Aig right();
 
-  private Aig() {
-    this.variable = 0;
-    this.leftIsNegated = false;
-    this.rightIsNegated = false;
-    this.left = null;
-    this.right = null;
+  public abstract boolean rightIsNegated();
+
+
+  public static Aig leaf(int variable) {
+    checkArgument(variable > 0, "Variables need to have positive indices");
+    return AigTuple.create(variable, null, false, null, false);
   }
 
-  public Aig(int variable) {
-    assert variable > 0 : "Variables need to have positive indices";
-    this.variable = variable;
-    this.leftIsNegated = false;
-    this.rightIsNegated = false;
-    this.left = null;
-    this.right = null;
+  public static Aig node(Aig left, Aig right) {
+    return AigTuple.create(0, left, false, right, false);
   }
 
-  public Aig(Aig l, Aig r, boolean lNegated, boolean rNegated) {
-    this.variable = 0;
-    this.left = l;
-    this.right = r;
-    this.leftIsNegated = lNegated;
-    this.rightIsNegated = rNegated;
+  public static Aig node(Aig left, boolean leftNegated, Aig right, boolean rightNegated) {
+    return AigTuple.create(0, left, leftNegated, right, rightNegated);
   }
 
-  public Aig(Aig l, Aig r) {
-    this(l, r, false, false);
-  }
 
   public boolean isLeaf() {
-    return this.left == null && this.right == null;
+    return left() == null && right() == null;
   }
 
   @SuppressWarnings({"ReferenceEquality", "ObjectEquality"})
@@ -74,26 +67,5 @@ public final class Aig {
 
   public boolean isVariable() {
     return isLeaf() && !isConstant();
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(leftIsNegated, rightIsNegated, left, right, variable);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == this) {
-      return true;
-    }
-    if (!(o instanceof Aig)) {
-      return false;
-    }
-    Aig aig = (Aig) o;
-    return this.leftIsNegated == aig.leftIsNegated
-      && this.rightIsNegated == aig.rightIsNegated
-      && Objects.equals(this.left, aig.left)
-      && Objects.equals(this.right, aig.right)
-      && this.variable == aig.variable;
   }
 }

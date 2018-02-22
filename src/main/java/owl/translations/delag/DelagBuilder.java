@@ -96,11 +96,11 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   public Automaton<State<T>, ?> apply(LabelledFormula formula) {
     Factories factories = env.factorySupplier().getFactories(formula);
 
-    if (formula.formula.equals(BooleanConstant.FALSE)) {
+    if (formula.formula().equals(BooleanConstant.FALSE)) {
       return AutomatonFactory.empty(factories.vsFactory);
     }
 
-    if (formula.formula.equals(BooleanConstant.TRUE)) {
+    if (formula.formula().equals(BooleanConstant.TRUE)) {
       return AutomatonFactory.singleton(new State<>(), factories.vsFactory, AllAcceptance.INSTANCE,
         Set.of());
     }

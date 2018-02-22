@@ -142,7 +142,7 @@ final class SccIARBuilder<R> {
     int priority = maximumPriority;
     for (int currentClass = 0; currentClass < classes; currentClass++) {
       for (int rabinPairInClass : currentRecord.equivalenceClass(currentClass)) {
-        RabinAcceptance.RabinPair rabinPair = indexToPair[rabinPairInClass];
+        RabinPair rabinPair = indexToPair[rabinPairInClass];
         if (rabinEdge.inSet(rabinPair.finSet())) {
           visitedFinSetIndices.add(rabinPairInClass);
           priority = Math.min(priority, maximumPriority - 2 * currentClass - 2);

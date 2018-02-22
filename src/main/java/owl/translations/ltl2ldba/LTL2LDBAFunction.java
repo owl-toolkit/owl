@@ -128,7 +128,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     LabelledFormula rewritten = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
     Factories factories = env.factorySupplier().getFactories(rewritten, true);
 
-    Formula processedFormula = rewritten.formula;
+    Formula processedFormula = rewritten.formula();
     AbstractJumpManager<C> factory = selectorConstructor.apply(factories.eqFactory
       .of(processedFormula));
 

@@ -5,11 +5,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import de.tum.in.naturals.Indices;
 import java.util.List;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.ltl.EquivalenceClass;
 
@@ -64,7 +64,7 @@ final class MasterStatePartition {
     if (!transientStates.isEmpty()) {
       builder.append("\n  Transient: ").append(transientStates);
     }
-    Collections3.forEachIndexed(sccs, (index, element) ->
+    Indices.forEachIndexed(sccs, (index, element) ->
       builder.append("\n  ").append(index).append(": ").append(element));
     return builder.toString();
   }

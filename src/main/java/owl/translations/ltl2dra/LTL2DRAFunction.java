@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2dra;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
@@ -134,7 +133,7 @@ public class LTL2DRAFunction
 
         BitSet ap = Collector.collectAtoms(x);
         assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return BitSets.isDisjoint(ap, nonSafety) ? BooleanConstant.TRUE : x;
+        return ap.intersects(nonSafety) ? x : BooleanConstant.TRUE;
       });
 
       return core.isTrue();

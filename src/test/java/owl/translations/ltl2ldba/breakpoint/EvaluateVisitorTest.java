@@ -16,7 +16,7 @@ import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisi
 public class EvaluateVisitorTest {
   @Test
   public void testEvaluateSetG() {
-    GOperator operator = (GOperator) LtlParser.parse("G(p2)").formula;
+    GOperator operator = (GOperator) LtlParser.parse("G(p2)").formula();
     LabelledFormula formula = LtlParser.parse("(p1) U (X((G(F(G(p2)))) & (F(X(X(G(p2)))))))");
     Factories factories = DefaultEnvironment.annotated().factorySupplier().getFactories(formula);
     EvaluateVisitor visitor = new EvaluateVisitor(Set.of(operator),

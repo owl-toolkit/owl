@@ -1,7 +1,6 @@
 package owl.translations.ltl2ldba;
 
 import com.google.common.collect.ImmutableSet;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -117,7 +116,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
         BitSet ap = Collector.collectAtoms(x);
         assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return BitSets.isDisjoint(ap, nonCoSafety) ? BooleanConstant.FALSE : x;
+        return ap.intersects(nonCoSafety) ? x : BooleanConstant.FALSE;
       });
 
       if (core.isFalse()) {

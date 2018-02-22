@@ -38,7 +38,7 @@ import owl.run.modules.Transformers;
 public abstract class DefaultConverter implements Visitor<Formula>, Function<Formula, Formula> {
   public static Transformer asTransformer(Visitor<Formula> converter) {
     return Transformers.fromFunction(LabelledFormula.class,
-      labelledFormula -> labelledFormula.wrap(labelledFormula.formula.accept(converter)));
+      labelledFormula -> labelledFormula.wrap(labelledFormula.formula().accept(converter)));
   }
 
   @Override

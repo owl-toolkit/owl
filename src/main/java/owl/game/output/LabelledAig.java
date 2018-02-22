@@ -17,41 +17,27 @@
 
 package owl.game.output;
 
-import java.util.Objects;
+import org.immutables.value.Value;
+import owl.util.annotation.HashedTuple;
 
-public final class LabelledAig {
-  public final Aig aig;
-  public final boolean isNegated;
+@Value.Immutable
+@HashedTuple
+public abstract class LabelledAig {
+  public abstract Aig aig();
 
-  LabelledAig(Aig aig, boolean isNegated) {
-    this.aig = aig;
-    this.isNegated = isNegated;
+  public abstract boolean isNegated();
+
+
+  public static LabelledAig of(Aig aig) {
+    return LabelledAigTuple.create(aig, false);
   }
 
-  LabelledAig(Aig aig) {
-    this.aig = aig;
-    this.isNegated = false;
+  public static LabelledAig of(Aig aig, boolean negated) {
+    return LabelledAigTuple.create(aig, negated);
   }
+
 
   public LabelledAig flip() {
-    return new LabelledAig(this.aig, !this.isNegated);
-  }
-
-  @Override
-  public int hashCode() {
-    return aig.hashCode() ^ Boolean.hashCode(isNegated);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == this) {
-      return true;
-    }
-    if (!(o instanceof LabelledAig)) {
-      return false;
-    }
-    LabelledAig other = (LabelledAig) o;
-    return this.isNegated == other.isNegated
-      && Objects.equals(this.aig, other.aig);
+    return of(aig(), !this.isNegated());
   }
 }

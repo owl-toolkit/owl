@@ -5,7 +5,7 @@ import owl.ltl.LabelledFormula;
 
 public interface FactorySupplier {
   default EquivalenceClassFactory getEquivalenceClassFactory(LabelledFormula formula) {
-    return getEquivalenceClassFactory(formula.variables);
+    return getEquivalenceClassFactory(formula.variables());
   }
 
 
@@ -18,11 +18,11 @@ public interface FactorySupplier {
 
 
   default Factories getFactories(LabelledFormula formula) {
-    return getFactories(formula.variables);
+    return getFactories(formula.variables());
   }
 
   default Factories getFactories(LabelledFormula formula, boolean keepRepresentatives) {
-    return getFactories(formula.variables, keepRepresentatives);
+    return getFactories(formula.variables(), keepRepresentatives);
   }
 
   default Factories getFactories(List<String> alphabet) {

@@ -28,7 +28,6 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_S
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
 import com.google.common.util.concurrent.Uninterruptibles;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
@@ -285,7 +284,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
         BitSet ap = Collector.collectAtoms(x);
         assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return BitSets.isDisjoint(ap, nonSafety) ? BooleanConstant.TRUE : x;
+        return ap.intersects(nonSafety) ? x : BooleanConstant.TRUE;
       });
 
       return core.isTrue();

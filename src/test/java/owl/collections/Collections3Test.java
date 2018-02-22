@@ -3,6 +3,7 @@ package owl.collections;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ public class Collections3Test {
     set1.set(1);
     set2.set(1, 3);
 
-    assertTrue(Collections3.isSubsetConsuming(set1, set2));
+    assertTrue(BitSets.isSubset(set1, set2));
 
     set1.clear();
     set2.clear();
@@ -23,6 +24,6 @@ public class Collections3Test {
     set1.set(1);
     set2.set(0);
 
-    assertFalse(Collections3.isSubsetConsuming(set1, set2));
+    assertFalse(BitSets.isSubset(set1, set2));
   }
 }

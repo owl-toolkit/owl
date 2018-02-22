@@ -22,7 +22,7 @@ public final class Transformers {
     Transformers.fromFunction(LabelledFormula.class,
       x -> SimplifierFactory.apply(x, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
   public static final Transformer UNABBREVIATE_RW = Transformers.fromFunction(LabelledFormula.class,
-    x -> x.acceptConverter(new UnabbreviateVisitor(ROperator.class, WOperator.class)));
+    x -> x.convert(new UnabbreviateVisitor(ROperator.class, WOperator.class)));
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();
   public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();
   public static final Transformer RABIN_TO_PARITY = environment -> (input, context) ->

@@ -2,13 +2,13 @@ package owl.ltl.rewriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import de.tum.in.naturals.Indices;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -23,15 +23,15 @@ public class RealizabilityRewriterTest {
       "i1 | (G (i2 -> o1) & G o2 & G (i3 <-> o3) & G (i3 <-> o4))");
     BitSet inputMask = new BitSet();
 
-    Collections3.forEachIndexed(formula.variables, (i, s) -> {
+    Indices.forEachIndexed(formula.variables(), (i, s) -> {
       if (s.charAt(0) == 'i') {
         inputMask.set(i);
       }
     });
 
-    List<Formula> split1 = RealizabilityRewriter.split(formula.formula, inputMask);
-    Formula f1 = LtlParser.syntax("G (i3 <-> o3)", formula.variables);
-    Formula f2 = LtlParser.syntax("G (i3 <-> o4)", formula.variables);
+    List<Formula> split1 = RealizabilityRewriter.split(formula.formula(), inputMask);
+    Formula f1 = LtlParser.syntax("G (i3 <-> o3)", formula.variables());
+    Formula f2 = LtlParser.syntax("G (i3 <-> o4)", formula.variables());
     assertThat(split1, Matchers.containsInAnyOrder(f1, f2));
 
     Formula before = LtlParser.syntax("(G (x <-> y)) & z");

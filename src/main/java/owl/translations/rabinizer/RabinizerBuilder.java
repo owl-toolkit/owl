@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.set.NatCartesianProductIterator;
 import de.tum.in.naturals.set.NatCartesianProductSet;
@@ -271,7 +272,7 @@ public class RabinizerBuilder {
     @SuppressWarnings({"unchecked", "rawtypes"})
     Set<GOperator>[] sccRelevantGList = new Set[partitionSize];
 
-    Collections3.forEachIndexed(masterSccPartition.sccs, (index, stateSubset) ->
+    Indices.forEachIndexed(masterSccPartition.sccs, (index, stateSubset) ->
       sccRelevantGList[index] = stateSubset.stream()
         .map(this::relevantSubFormulas).flatMap(Collection::stream)
         .collect(ImmutableSet.toImmutableSet()));
@@ -645,7 +646,7 @@ public class RabinizerBuilder {
 
         MonitorState[] successorStates = new MonitorState[monitorSuccessorCount];
         ValuationSet[] successorValuations = new ValuationSet[monitorSuccessorCount];
-        Collections3.forEachIndexed(monitorSuccessorMap.entrySet(), (successorIndex, entry) -> {
+        Indices.forEachIndexed(monitorSuccessorMap.entrySet(), (successorIndex, entry) -> {
           successorStates[successorIndex] = entry.getKey();
           successorValuations[successorIndex] = entry.getValue();
         });
