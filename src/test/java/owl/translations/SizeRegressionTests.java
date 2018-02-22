@@ -54,8 +54,8 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.run.DefaultEnvironment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
@@ -257,7 +257,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
       super(selectedClass, formula -> new DelagBuilder(DefaultEnvironment.annotated(),
           new LTL2DPAFunction(DefaultEnvironment.annotated(),
             LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG))
-          .apply(RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula)),
+          .apply(SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT)),
       x -> x.size(),
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }

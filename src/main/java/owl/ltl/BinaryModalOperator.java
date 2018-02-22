@@ -26,9 +26,9 @@ public abstract class BinaryModalOperator extends AbstractFormula {
   public final Formula left;
   public final Formula right;
 
-  BinaryModalOperator(Formula left, Formula right) {
-    this.left = left;
-    this.right = right;
+  BinaryModalOperator(Formula leftOperand, Formula rightOperand) {
+    this.left = leftOperand;
+    this.right = rightOperand;
   }
 
   @Override
@@ -42,7 +42,13 @@ public abstract class BinaryModalOperator extends AbstractFormula {
   }
 
   @Override
-  protected boolean equals2(AbstractFormula o) {
+  protected final int hashCodeOnce() {
+    return Objects.hash(getOperator(), left, right);
+  }
+
+  @Override
+  protected final boolean equals2(AbstractFormula o) {
+    assert this.getClass() == o.getClass();
     BinaryModalOperator that = (BinaryModalOperator) o;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
   }

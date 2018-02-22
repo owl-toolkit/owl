@@ -36,8 +36,8 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.run.Environment;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
@@ -125,7 +125,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
-    LabelledFormula rewritten = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
+    LabelledFormula rewritten = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
     Factories factories = env.factorySupplier().getFactories(rewritten, true);
 
     Formula processedFormula = rewritten.formula;

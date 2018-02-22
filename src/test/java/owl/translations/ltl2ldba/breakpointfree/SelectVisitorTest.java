@@ -63,25 +63,6 @@ public class SelectVisitorTest {
   }
 
   @Test
-  public void testFScopedSelectorW() {
-    FOperator fOperator = (FOperator) LtlParser.parse("F (a W b)").formula;
-    GOperator gOperator = (GOperator) LtlParser.syntax("G a");
-
-    Set<UnaryModalOperator> choice1 = Set.of(fOperator);
-    Set<UnaryModalOperator> choice2 = Set.of(fOperator, gOperator);
-    assertThat(getGScoped(fOperator), containsInAnyOrder(choice1, choice2));
-  }
-
-  @Test
-  public void testGScopedSelectorM() {
-    GOperator gOperator = (GOperator) LtlParser.parse("G (a M b)").formula;
-    FOperator fOperator = (FOperator) LtlParser.syntax("F a");
-
-    Set<UnaryModalOperator> choice = Set.of(gOperator, fOperator);
-    assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
-  }
-
-  @Test
   public void testGScopedSelectorR() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a R b)").formula;
 

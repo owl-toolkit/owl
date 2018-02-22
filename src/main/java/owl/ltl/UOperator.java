@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -28,24 +27,33 @@ import owl.ltl.visitors.Visitor;
  */
 public final class UOperator extends BinaryModalOperator {
 
-  public UOperator(Formula left, Formula right) {
-    super(left, right);
+  public UOperator(Formula leftOperand, Formula rightOperand) {
+    super(leftOperand, rightOperand);
   }
 
-  public static Formula of(Formula left, Formula right) {
-    if (left == BooleanConstant.FALSE || right instanceof BooleanConstant) {
-      return right;
+  /**
+   * Construct a LTL-equivalent formula for (leftOperand)U(rightOperand). The method examines the
+   * operands and might choose to construct a simpler formula. However, the size of the syntax tree
+   * is not increased. In order to syntactically construct (leftOperand)U(rightOperand) use the
+   * constructor.
+   *
+   * @param leftOperand the left operand of the U-operator
+   * @param rightOperand the right operand of the U-operator
+   * @return a formula equivalent to (leftOperand)U(rightOperand)
+   */
+  public static Formula of(Formula leftOperand, Formula rightOperand) {
+    if (rightOperand instanceof BooleanConstant
+      || rightOperand instanceof FOperator
+      || leftOperand.equals(rightOperand)
+      || leftOperand.equals(BooleanConstant.FALSE)) {
+      return rightOperand;
     }
 
-    if (left.equals(right)) {
-      return left;
+    if (leftOperand.equals(BooleanConstant.TRUE)) {
+      return FOperator.of(rightOperand);
     }
 
-    if (left == BooleanConstant.TRUE) {
-      return FOperator.of(right);
-    }
-
-    return new UOperator(left, right);
+    return new UOperator(leftOperand, rightOperand);
   }
 
   @Override
@@ -69,33 +77,28 @@ public final class UOperator extends BinaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(UOperator.class, left, right);
-  }
-
-  @Override
   public boolean isPureEventual() {
-    return right.isPureEventual();
+    return false;
   }
 
   @Override
   public boolean isPureUniversal() {
-    return left.isPureUniversal() && right.isPureUniversal();
+    return false;
   }
 
   @Override
   public boolean isSuspendable() {
-    return right.isSuspendable();
+    return false;
   }
 
   @Override
-  public ROperator not() {
-    return new ROperator(left.not(), right.not());
+  public Formula not() {
+    return ROperator.of(left.not(), right.not());
   }
 
   @Override
   public Formula unfold() {
-    return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
+    return Disjunction.of(right.unfold(), Conjunction.of(left.unfold(), this));
   }
 
   @Override
@@ -103,5 +106,4 @@ public final class UOperator extends BinaryModalOperator {
     return Disjunction.of(right.unfoldTemporalStep(valuation),
       Conjunction.of(left.unfoldTemporalStep(valuation), this));
   }
-
 }

@@ -20,6 +20,7 @@ package owl.ltl;
 import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
@@ -33,15 +34,15 @@ public final class Disjunction extends PropositionalFormula {
   }
 
   public Disjunction(Formula... disjuncts) {
-    super(disjuncts);
+    this(ImmutableSet.copyOf(disjuncts));
   }
 
   public Disjunction(Stream<? extends Formula> formulaStream) {
-    super(formulaStream);
+    this(ImmutableSet.copyOf(formulaStream.iterator()));
   }
 
   public static Formula of(Formula left, Formula right) {
-    return of(Stream.of(left, right));
+    return of(List.of(left, right));
   }
 
   public static Formula of(Formula... formulas) {

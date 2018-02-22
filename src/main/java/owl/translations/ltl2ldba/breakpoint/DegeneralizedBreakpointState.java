@@ -21,10 +21,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
-import owl.util.ImmutableObject;
 import owl.util.StringUtil;
 
-public final class DegeneralizedBreakpointState extends ImmutableObject {
+public final class DegeneralizedBreakpointState {
 
   @Nullable
   final EquivalenceClass current;
@@ -39,6 +38,7 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
 
   @Nullable
   private EquivalenceClass label = null;
+  private int hashCode = 0;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
                       "AssignmentToCollectionOrArrayFieldFromParameter"})
@@ -59,14 +59,6 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
   public static DegeneralizedBreakpointState createSink() {
     return new DegeneralizedBreakpointState(0, null, null,
       EquivalenceClass.EMPTY_ARRAY, null);
-  }
-
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    DegeneralizedBreakpointState that = (DegeneralizedBreakpointState) o;
-    return index == that.index && Objects.equals(safety, that.safety) && Objects
-      .equals(current, that.current) && Arrays.equals(next, that.next) && Objects
-      .equals(obligations, that.obligations);
   }
 
   EquivalenceClass getLabel() {
@@ -96,15 +88,37 @@ public final class DegeneralizedBreakpointState extends ImmutableObject {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(current, obligations, safety, index, Arrays.hashCode(next));
-  }
-
-  @Override
   public String toString() {
     return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
       index == 0 ? null : "i=" + index,
       current == null || current.isTrue() ? null : "C=" + current,
       next.length <= 0 ? null : "N=" + Arrays.toString(next));
+  }
+
+  @SuppressWarnings("NonFinalFieldReferenceInEquals")
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+
+    DegeneralizedBreakpointState other = (DegeneralizedBreakpointState) o;
+    return (hashCode == 0 || other.hashCode == 0 || other.hashCode == hashCode)
+      && index == other.index && Objects.equals(safety, other.safety)
+      && Objects.equals(current, other.current) && Arrays.equals(next, other.next)
+      && Objects.equals(obligations, other.obligations);
+  }
+
+  @Override
+  public int hashCode() {
+    // TODO: Hash code could potentially be 0? Not worth a boolean flag though, probably.
+    if (hashCode == 0) {
+      hashCode = Objects.hash(current, obligations, safety, index, Arrays.hashCode(next));
+    }
+
+    return hashCode;
   }
 }

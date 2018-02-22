@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -28,32 +27,33 @@ import owl.ltl.visitors.Visitor;
  */
 public final class WOperator extends BinaryModalOperator {
 
-  public WOperator(Formula left, Formula right) {
-    super(left, right);
+  public WOperator(Formula leftOperand, Formula rightOperand) {
+    super(leftOperand, rightOperand);
   }
 
-  public static Formula of(Formula left, Formula right) {
-    if (left == BooleanConstant.TRUE || right == BooleanConstant.TRUE) {
-      return BooleanConstant.TRUE;
+  /**
+   * Construct a LTL-equivalent formula for (leftOperand)W(rightOperand). The method examines the
+   * operands and might choose to construct a simpler formula. However, the size of the syntax tree
+   * is not increased. In order to syntactically construct (leftOperand)W(rightOperand) use the
+   * constructor.
+   *
+   * @param leftOperand the left operand of the W-operator
+   * @param rightOperand the right operand of the W-operator
+   * @return a formula equivalent to (leftOperand)W(rightOperand)
+   */
+  public static Formula of(Formula leftOperand, Formula rightOperand) {
+    if (leftOperand instanceof BooleanConstant
+      || leftOperand instanceof GOperator
+      || leftOperand.equals(rightOperand)
+      || rightOperand.equals(BooleanConstant.TRUE)) {
+      return Disjunction.of(leftOperand, rightOperand);
     }
 
-    if (left == BooleanConstant.FALSE) {
-      return right;
+    if (rightOperand.equals(BooleanConstant.FALSE)) {
+      return GOperator.of(leftOperand);
     }
 
-    if (left.equals(right)) {
-      return left;
-    }
-
-    if (right == BooleanConstant.FALSE) {
-      return GOperator.of(left);
-    }
-
-    if (left instanceof GOperator) {
-      return Disjunction.of(left, right);
-    }
-
-    return new WOperator(left, right);
+    return new WOperator(leftOperand, rightOperand);
   }
 
   @Override
@@ -77,11 +77,6 @@ public final class WOperator extends BinaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(WOperator.class, left, right);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return false;
   }
@@ -97,13 +92,13 @@ public final class WOperator extends BinaryModalOperator {
   }
 
   @Override
-  public MOperator not() {
-    return new MOperator(left.not(), right.not());
+  public Formula not() {
+    return MOperator.of(left.not(), right.not());
   }
 
   @Override
   public Formula unfold() {
-    return new Disjunction(right.unfold(), new Conjunction(left.unfold(), this));
+    return Disjunction.of(right.unfold(), Conjunction.of(left.unfold(), this));
   }
 
   @Override
@@ -111,5 +106,4 @@ public final class WOperator extends BinaryModalOperator {
     return Disjunction.of(right.unfoldTemporalStep(valuation),
       Conjunction.of(left.unfoldTemporalStep(valuation), this));
   }
-
 }

@@ -38,8 +38,8 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
-import owl.ltl.rewriter.RewriterFactory;
-import owl.ltl.rewriter.RewriterFactory.RewriterEnum;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.translations.ltl2ldba.RecurringObligation;
 
 public final class FGObligations implements RecurringObligation {
@@ -97,8 +97,8 @@ public final class FGObligations implements RecurringObligation {
     for (FOperator fOperator : fOperators) {
       Formula formula = FGObligationsJumpManager
         .replaceGOperators(gOperators, fOperators, fOperator);
-      formula = RewriterFactory.apply(RewriterEnum.MODAL_ITERATIVE, formula);
-      formula = RewriterFactory.apply(RewriterEnum.PULLUP_X, formula);
+      formula = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
+      formula = SimplifierFactory.apply(formula, Mode.PULLUP_X);
 
       while (formula instanceof XOperator) {
         formula = ((UnaryModalOperator) formula).operand;

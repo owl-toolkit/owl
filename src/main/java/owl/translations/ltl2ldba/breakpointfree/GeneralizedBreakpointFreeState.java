@@ -20,14 +20,14 @@ package owl.translations.ltl2ldba.breakpointfree;
 import java.util.Arrays;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
-import owl.util.ImmutableObject;
 import owl.util.StringUtil;
 
-public final class GeneralizedBreakpointFreeState extends ImmutableObject {
+public final class GeneralizedBreakpointFreeState {
 
   final EquivalenceClass[] liveness;
   final FGObligations obligations;
   final EquivalenceClass safety;
+  private int hashCode = 0;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
   GeneralizedBreakpointFreeState(EquivalenceClass safety, EquivalenceClass[] liveness,
@@ -37,20 +37,8 @@ public final class GeneralizedBreakpointFreeState extends ImmutableObject {
     this.safety = safety;
   }
 
-  @Override
-  protected boolean equals2(ImmutableObject o) {
-    GeneralizedBreakpointFreeState that = (GeneralizedBreakpointFreeState) o;
-    return Objects.equals(obligations, that.obligations) && Objects.equals(safety, that.safety)
-      && Arrays.equals(liveness, that.liveness);
-  }
-
   public FGObligations getObligations() {
     return obligations;
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(Arrays.hashCode(liveness), obligations, safety);
   }
 
   @Override
@@ -60,4 +48,29 @@ public final class GeneralizedBreakpointFreeState extends ImmutableObject {
       liveness.length <= 0 ? null : "FUM=" + Arrays.toString(liveness));
   }
 
+  @SuppressWarnings("NonFinalFieldReferenceInEquals")
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+
+    GeneralizedBreakpointFreeState other = (GeneralizedBreakpointFreeState) o;
+    return (hashCode == 0 || other.hashCode == 0 || other.hashCode == hashCode)
+      && Objects.equals(obligations, other.obligations) && Objects.equals(safety, other.safety)
+      && Arrays.equals(liveness, other.liveness);
+  }
+
+  @Override
+  public int hashCode() {
+    // TODO: Hash code could potentially be 0? Not worth a boolean flag though, probably.
+    if (hashCode == 0) {
+      hashCode = Objects.hash(Arrays.hashCode(liveness), obligations, safety);
+    }
+
+    return hashCode;
+  }
 }

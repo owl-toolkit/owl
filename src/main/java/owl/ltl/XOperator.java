@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -71,11 +70,6 @@ public final class XOperator extends UnaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(XOperator.class, operand);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return operand.isPureEventual();
   }
@@ -92,7 +86,7 @@ public final class XOperator extends UnaryModalOperator {
 
   @Override
   public Formula not() {
-    return new XOperator(operand.not());
+    return XOperator.of(operand.not());
   }
 
   @Override

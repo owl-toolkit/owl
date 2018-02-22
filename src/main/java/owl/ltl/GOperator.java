@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -32,25 +31,40 @@ public class GOperator extends UnaryModalOperator {
     super(f);
   }
 
+  /**
+   * Construct a LTL-equivalent formula for G(operand). The method examines the operand and might
+   * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
+   * In order to syntactically construct G(operand) use the constructor.
+   *
+   * @param operand the operand of the G-operator
+   *
+   * @return a formula equivalent to G(operand)
+   */
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant) {
       return operand;
+    }
+
+    if (operand instanceof Conjunction) {
+      return Conjunction.of(((Conjunction) operand).children.stream().map(GOperator::of));
     }
 
     if (operand instanceof GOperator) {
       return operand;
     }
 
-    if (operand instanceof FOperator && ((FOperator) operand).operand instanceof GOperator) {
-      return operand;
+    if (operand instanceof MOperator) {
+      MOperator mOperator = (MOperator) operand;
+      return Conjunction.of(of(mOperator.right), of(FOperator.of(mOperator.left)));
     }
 
     if (operand instanceof ROperator) {
       return of(((ROperator) operand).right);
     }
 
-    if (operand instanceof Conjunction) {
-      return Conjunction.of(((Conjunction) operand).children.stream().map(GOperator::of));
+    if (operand instanceof WOperator) {
+      WOperator wOperator = (WOperator) operand;
+      return of(Disjunction.of(wOperator.left, wOperator.right));
     }
 
     return new GOperator(operand);
@@ -77,11 +91,6 @@ public class GOperator extends UnaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(GOperator.class, operand);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return operand.isPureEventual();
   }
@@ -97,13 +106,13 @@ public class GOperator extends UnaryModalOperator {
   }
 
   @Override
-  public UnaryModalOperator not() {
-    return new FOperator(operand.not());
+  public Formula not() {
+    return FOperator.of(operand.not());
   }
 
   @Override
   public Formula unfold() {
-    return new Conjunction(operand.unfold(), this);
+    return Conjunction.of(operand.unfold(), this);
   }
 
   @Override

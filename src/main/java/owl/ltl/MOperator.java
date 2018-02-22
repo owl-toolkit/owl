@@ -18,7 +18,6 @@
 package owl.ltl;
 
 import java.util.BitSet;
-import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -28,28 +27,33 @@ import owl.ltl.visitors.Visitor;
  */
 public final class MOperator extends BinaryModalOperator {
 
-  public MOperator(Formula left, Formula right) {
-    super(left, right);
+  public MOperator(Formula leftOperand, Formula rightOperand) {
+    super(leftOperand, rightOperand);
   }
 
-  public static Formula of(Formula left, Formula right) {
-    if (left == BooleanConstant.FALSE || right == BooleanConstant.FALSE) {
-      return BooleanConstant.FALSE;
+  /**
+   * Construct a LTL-equivalent formula for (leftOperand)M(rightOperand). The method examines the
+   * operands and might choose to construct a simpler formula. However, the size of the syntax tree
+   * is not increased. In order to syntactically construct (leftOperand)M(rightOperand) use the
+   * constructor.
+   *
+   * @param leftOperand the left operand of the M-operator
+   * @param rightOperand the right operand of the M-operator
+   * @return a formula equivalent to (leftOperand)M(rightOperand)
+   */
+  public static Formula of(Formula leftOperand, Formula rightOperand) {
+    if (leftOperand instanceof BooleanConstant
+      || leftOperand instanceof FOperator
+      || leftOperand.equals(rightOperand)
+      || rightOperand.equals(BooleanConstant.FALSE)) {
+      return Conjunction.of(leftOperand, rightOperand);
     }
 
-    if (left == BooleanConstant.TRUE) {
-      return right;
+    if (rightOperand == BooleanConstant.TRUE) {
+      return FOperator.of(leftOperand);
     }
 
-    if (left.equals(right)) {
-      return left;
-    }
-
-    if (right == BooleanConstant.TRUE) {
-      return FOperator.of(left);
-    }
-
-    return new MOperator(left, right);
+    return new MOperator(leftOperand, rightOperand);
   }
 
   @Override
@@ -73,11 +77,6 @@ public final class MOperator extends BinaryModalOperator {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(MOperator.class, left, right);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return false;
   }
@@ -93,13 +92,13 @@ public final class MOperator extends BinaryModalOperator {
   }
 
   @Override
-  public WOperator not() {
-    return new WOperator(left.not(), right.not());
+  public Formula not() {
+    return WOperator.of(left.not(), right.not());
   }
 
   @Override
   public Formula unfold() {
-    return new Conjunction(right.unfold(), new Disjunction(left.unfold(), this));
+    return Conjunction.of(right.unfold(), Disjunction.of(left.unfold(), this));
   }
 
   @Override
@@ -107,5 +106,4 @@ public final class MOperator extends BinaryModalOperator {
     return Conjunction.of(right.unfoldTemporalStep(valuation),
       Disjunction.of(left.unfoldTemporalStep(valuation), this));
   }
-
 }

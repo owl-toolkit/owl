@@ -39,7 +39,13 @@ public abstract class UnaryModalOperator extends AbstractFormula {
   }
 
   @Override
+  protected int hashCodeOnce() {
+    return Objects.hash(getOperator(), operand);
+  }
+
+  @Override
   protected boolean equals2(AbstractFormula o) {
+    assert this.getClass() == o.getClass();
     UnaryModalOperator that = (UnaryModalOperator) o;
     return Objects.equals(operand, that.operand);
   }

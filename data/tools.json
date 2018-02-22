@@ -41,9 +41,9 @@
             "name": "ltl2da",
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "modal-iter"
+                    "syntactic-fixpoint"
                 ]
             ]
         },
@@ -64,9 +64,9 @@
             ],
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "modal-iter"
+                    "syntactic-fixpoint"
                 ]
             ]
         },
@@ -81,9 +81,9 @@
             },
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "pullup,modal-iter,fairness"
+                    "syntactic-fixpoint"
                 ],
                 [
                     "unabbreviate",
@@ -102,9 +102,9 @@
             "name": "ltl2dgra",
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "pullup,modal-iter,fairness"
+                    "syntactic-fixpoint"
                 ],
                 [
                     "unabbreviate",
@@ -125,9 +125,9 @@
             "name": "dra2dpa",
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "pullup,modal-iter,fairness"
+                    "syntactic-fixpoint"
                 ],
                 [
                     "unabbreviate",
@@ -149,9 +149,9 @@
             "name": "nba2ldba",
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "modal-iter"
+                    "syntactic-fixpoint"
                 ],
                 [
                     "ltl2aut-ext",
@@ -167,9 +167,9 @@
             "name": "nba2dpa",
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "modal-iter"
+                    "syntactic-fixpoint"
                 ],
                 [
                     "ltl2aut-ext",
@@ -204,9 +204,9 @@
             },
             "pre": [
                 [
-                    "rewrite",
+                    "simplifier",
                     "--mode",
-                    "modal-iter"
+                    "syntactic-fixpoint"
                 ],
                 "ltl2dpa"
             ],
