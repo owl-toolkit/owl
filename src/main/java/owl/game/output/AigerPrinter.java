@@ -19,6 +19,7 @@ package owl.game.output;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import de.tum.in.naturals.Indices;
 import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -28,7 +29,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import owl.collections.Collections3;
 
 public class AigerPrinter implements AigConsumer {
   private final boolean binaryOutput;
@@ -64,14 +64,14 @@ public class AigerPrinter implements AigConsumer {
       if (toVisit.peek().isVariable()
         || toVisit.peek().isConstant()) {  // just pop
         toVisit.pop();
-      } else if (index.get(toVisit.peek().left) == null) {
-        assert toVisit.peek().left != null
+      } else if (index.get(toVisit.peek().left()) == null) {
+        assert toVisit.peek().left() != null
           : "All internal nodes should have exactly two children";
-        toVisit.push(toVisit.peek().left);
-      } else if (index.get(toVisit.peek().right) == null) {
-        assert toVisit.peek().right != null
+        toVisit.push(toVisit.peek().left());
+      } else if (index.get(toVisit.peek().right()) == null) {
+        assert toVisit.peek().right() != null
           : "All internal nodes should have exactly two children";
-        toVisit.push(toVisit.peek().right);
+        toVisit.push(toVisit.peek().right());
       } else {
         // not a variable, constant, or internal node
         // with children not yet visited => just add it
@@ -84,9 +84,9 @@ public class AigerPrinter implements AigConsumer {
   }
 
   private static int aig2lit(BiMap<Aig, Integer> index, LabelledAig aig) {
-    Integer i = index.get(aig.aig);
+    Integer i = index.get(aig.aig());
     assert i != null : "Make sure the element is in the computed map!";
-    return aig.isNegated ? i + 1 : i;
+    return aig.isNegated() ? i + 1 : i;
   }
 
   @SuppressWarnings("NumericCastThatLosesPrecision")
@@ -149,19 +149,19 @@ public class AigerPrinter implements AigConsumer {
     int varIndex = 2;
 
     for (int i = 1; i <= inputNames.size(); i++) {
-      index.put(new Aig(i), varIndex);
+      index.put(Aig.leaf(i), varIndex);
       varIndex += 2;
     }
 
     for (int i = 1; i <= latchNames.size(); i++) {
-      index.put(new Aig(i + inputNames.size()), varIndex);
-      maxIndex = visitAig(index, maxIndex, latches.get(i - 1).aig);
+      index.put(Aig.leaf(i + inputNames.size()), varIndex);
+      maxIndex = visitAig(index, maxIndex, latches.get(i - 1).aig());
       varIndex += 2;
     }
 
     // add the outputs too
     for (LabelledAig output : outputs) {
-      maxIndex = visitAig(index, maxIndex, output.aig);
+      maxIndex = visitAig(index, maxIndex, output.aig());
     }
 
     /*
@@ -186,8 +186,8 @@ public class AigerPrinter implements AigConsumer {
       for (int j = (inputNames.size() + latches.size() + 1) * 2; j < maxIndex; j += 2) {
         Aig gate = index.inverse().get(j);
         assert gate != null : "All indices should have been assigned";
-        int leftLit = aig2lit(index, gate.left, gate.leftIsNegated);
-        int rightLit = aig2lit(index, gate.right, gate.rightIsNegated);
+        int leftLit = aig2lit(index, gate.left(), gate.leftIsNegated());
+        int rightLit = aig2lit(index, gate.right(), gate.rightIsNegated());
         assert rightLit >= leftLit : "Visiting sequence must be wrong!";
         encode(writer, rightLit - leftLit);
       }
@@ -220,8 +220,8 @@ public class AigerPrinter implements AigConsumer {
            j < maxIndex; j += 2) {
         Aig gate = index.inverse().get(j);
         assert gate != null : "All indices should have been assigned";
-        writer.println(j + " " + aig2lit(index, gate.left, gate.leftIsNegated)
-          + ' ' + aig2lit(index, gate.right, gate.rightIsNegated));
+        writer.println(j + " " + aig2lit(index, gate.left(), gate.leftIsNegated())
+          + ' ' + aig2lit(index, gate.right(), gate.rightIsNegated()));
       }
     }
 
@@ -230,19 +230,19 @@ public class AigerPrinter implements AigConsumer {
      */
 
     // print symbol table
-    Collections3.forEachIndexed(inputNames, (j, name) -> {
+    Indices.forEachIndexed(inputNames, (j, name) -> {
       if (!name.isEmpty()) {
         writer.println("i" + j + ' ' + name);
       }
     });
 
-    Collections3.forEachIndexed(latchNames, (j, name) -> {
+    Indices.forEachIndexed(latchNames, (j, name) -> {
       if (!name.isEmpty()) {
         writer.println("l" + j + ' ' + name);
       }
     });
 
-    Collections3.forEachIndexed(outputNames, (j, name) -> {
+    Indices.forEachIndexed(outputNames, (j, name) -> {
       if (!name.isEmpty()) {
         writer.println("o" + j + ' ' + name);
       }

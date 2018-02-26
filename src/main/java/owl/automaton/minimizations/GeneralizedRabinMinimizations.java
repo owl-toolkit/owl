@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -55,7 +56,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.collections.Collections3;
 
 public final class GeneralizedRabinMinimizations {
   private static final Logger logger = Logger.getLogger(GeneralizedRabinAcceptance.class.getName());
@@ -248,15 +248,15 @@ public final class GeneralizedRabinMinimizations {
     }
 
     Map<RabinPair, IntSet> pairActiveSccs = new HashMap<>();
-    Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
+    Indices.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
       Set<RabinPair> pairsInScc = new HashSet<>();
       Views.filter(automaton, scc).forEachLabelledEdge((x, y, z) -> pairs.forEach(pair -> {
         if (pair.contains(y)) {
           pairsInScc.add(pair);
         }
       }));
-      pairsInScc.forEach(pair -> pairActiveSccs.computeIfAbsent(pair, k -> new IntAVLTreeSet())
-        .add(sccIndex));
+      pairsInScc.forEach(pair ->
+        pairActiveSccs.computeIfAbsent(pair, k -> new IntOpenHashSet()).add(sccIndex));
     });
 
     List<MergeClass> mergeClasses = new ArrayList<>(pairs.size());

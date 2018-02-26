@@ -36,11 +36,11 @@ public final class AigFactory {
   }
 
   public LabelledAig getTrue() {
-    return not(new LabelledAig(Aig.FALSE));
+    return not(LabelledAig.of(Aig.FALSE));
   }
 
   public LabelledAig getFalse() {
-    return new LabelledAig(Aig.FALSE);
+    return LabelledAig.of(Aig.FALSE);
   }
 
   public LabelledAig conjunction(LabelledAig left, LabelledAig right) {
@@ -65,31 +65,30 @@ public final class AigFactory {
   }
 
   private LabelledAig createNode(int variable) {
-    return new LabelledAig(makeUnique(new Aig(variable)));
+    return LabelledAig.of(makeUnique(Aig.leaf(variable)));
   }
 
   private LabelledAig createNode(LabelledAig left, LabelledAig right) {
     LabelledAig realLeft;
-    LabelledAig realRight;
-
-    if (left.isNegated && left.equals(getTrue())) {
+    if (left.isNegated() && left.equals(getTrue())) {
       realLeft = getFalse();
-    } else if (left.isNegated && left.equals(getFalse())) {
+    } else if (left.isNegated() && left.equals(getFalse())) {
       realLeft = getTrue();
     } else {
       realLeft = left;
     }
 
-    if (right.isNegated && right.equals(getTrue())) {
+    LabelledAig realRight;
+    if (right.isNegated() && right.equals(getTrue())) {
       realRight = getFalse();
-    } else if (right.isNegated && right.equals(getFalse())) {
+    } else if (right.isNegated() && right.equals(getFalse())) {
       realRight = getTrue();
     } else {
       realRight = right;
     }
 
-    return new LabelledAig(
-      makeUnique(new Aig(realLeft.aig, realRight.aig, realLeft.isNegated, realRight.isNegated)));
+    return LabelledAig.of(makeUnique(Aig.node(realLeft.aig(), realLeft.isNegated(),
+      realRight.aig(), realRight.isNegated())));
   }
 
   private Aig makeUnique(Aig object) {

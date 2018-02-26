@@ -37,11 +37,11 @@ public final class LtlParser {
   }
 
   public static Formula syntax(String input) {
-    return parse(input).formula;
+    return parse(input).formula();
   }
 
   public static Formula syntax(String input, @Nullable List<String> literals) {
-    return parse(input, literals).formula;
+    return parse(input, literals).formula();
   }
 
   private LabelledFormula doParse(@Nullable List<String> literals) {

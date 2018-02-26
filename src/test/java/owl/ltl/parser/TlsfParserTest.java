@@ -3,7 +3,7 @@ package owl.ltl.parser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.util.BitSet;
+import com.google.common.collect.ImmutableSet;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -258,10 +258,8 @@ public class TlsfParserTest {
   @Test
   public void testParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);
-    LabelledFormula expectedFormula = LtlParser.parse(LILY_LTL, lily.toFormula().variables);
-    BitSet inputs = new BitSet();
-    inputs.set(0, 3);
-    assertEquals(expectedFormula.wrap(inputs), lily.toFormula());
+    LabelledFormula expectedFormula = LtlParser.parse(LILY_LTL, lily.toFormula().variables());
+    assertEquals(expectedFormula.split(ImmutableSet.of("go", "cancel", "req")), lily.toFormula());
   }
 
   @Test
@@ -274,7 +272,7 @@ public class TlsfParserTest {
   public void testParseUpperCase() {
     Tlsf lily = TlsfParser.parse(LILY);
     Tlsf upperCase = TlsfParser.parse(UPPER_CASE);
-    assertEquals(lily.toFormula().formula, upperCase.toFormula().formula);
+    assertEquals(lily.toFormula().formula(), upperCase.toFormula().formula());
   }
 
   @Test
@@ -291,6 +289,6 @@ public class TlsfParserTest {
   @Test
   public void testTlsfComplete() {
     Tlsf tlsf = TlsfParser.parse(TLSF_COMPLETE);
-    assertEquals(LtlParser.syntax(LTL_COMPLETE, tlsf.variables()), tlsf.toFormula().formula);
+    assertEquals(LtlParser.syntax(LTL_COMPLETE, tlsf.variables()), tlsf.toFormula().formula());
   }
 }

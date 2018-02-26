@@ -4,6 +4,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
+import de.tum.in.naturals.Indices;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIterators;
@@ -34,7 +35,6 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.util.AnnotatedState;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.run.PipelineExecutionContext;
@@ -86,7 +86,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     int trackedPairsCount = trackedPairs.size();
     int rabinCount = trackedPairsCount + noInfPairs.size();
     RabinAcceptance.Builder builder = new RabinAcceptance.Builder();
-    RabinAcceptance.RabinPair[] rabinPairs = new RabinAcceptance.RabinPair[rabinCount];
+    RabinPair[] rabinPairs = new RabinPair[rabinCount];
     for (int i = 0; i < rabinPairs.length; i++) {
       rabinPairs[i] = builder.add();
     }
@@ -127,7 +127,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::add));
 
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
-      Collections3.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
+      Indices.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfSet();
         if (IntIterators.all(pair.infSetIterator(), indices::contains)) {
           sccTrackedPairs.add(pairIndex);
@@ -192,7 +192,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                   }
                   if (currentInfNumber == infiniteIndexCount - 1) {
                     // We reached a breakpoint and can add the transition to the inf set
-                    RabinAcceptance.RabinPair rabinPair = rabinPairs[currentPairIndex];
+                    RabinPair rabinPair = rabinPairs[currentPairIndex];
                     int infiniteIndex = rabinPair.infSet();
                     edgeAcceptance.set(infiniteIndex);
                   }
@@ -203,9 +203,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             }
 
             // Deal with sets which have no Fin set separately
-            Collections3.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
+            Indices.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
               int currentPairIndex = trackedPairsCount + noInfIndex;
-              RabinAcceptance.RabinPair currentPair = rabinPairs[currentPairIndex];
+              RabinPair currentPair = rabinPairs[currentPairIndex];
 
               edgeAcceptance.set(edge.inSet(pair.finSet())
                 ? currentPair.finSet()

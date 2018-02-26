@@ -29,17 +29,17 @@ public final class SimplifierFactory {
   }
 
   public static LabelledFormula apply(LabelledFormula formula, Mode mode) {
-    return LabelledFormula.of(apply(formula.formula, mode), formula.variables);
+    return formula.wrap(apply(formula.formula(), mode));
   }
 
   public static LabelledFormula apply(LabelledFormula formula, Mode... modes) {
-    LabelledFormula result = formula;
+    Formula result = formula.formula();
 
     for (Mode mode : modes) {
       result = apply(result, mode);
     }
 
-    return result;
+    return formula.wrap(result);
   }
 
   public enum Mode {

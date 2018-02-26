@@ -2,7 +2,6 @@ package owl.jni;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -46,7 +45,7 @@ public final class Splitter {
   private static boolean isIndependent(Iterable<Formula> x, Formula y) {
     BitSet atoms1 = Collector.collectAtoms(x);
     BitSet atoms2 = Collector.collectAtoms(y);
-    return BitSets.isDisjoint(atoms1, atoms2);
+    return !atoms1.intersects(atoms2);
   }
 
   static Set<Formula> merge(List<Set<Formula>> formulas, Formula formula) {

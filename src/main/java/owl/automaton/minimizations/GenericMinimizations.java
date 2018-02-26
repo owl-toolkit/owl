@@ -17,12 +17,12 @@
 
 package owl.automaton.minimizations;
 
+import de.tum.in.naturals.Indices;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.collections.Collections3;
 
 public final class GenericMinimizations {
   private GenericMinimizations() {
@@ -32,7 +32,7 @@ public final class GenericMinimizations {
     Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.size());
     stateToSccMap.defaultReturnValue(-1);
 
-    Collections3.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
+    Indices.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
       (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
     automaton.updateEdges((state, edge) -> {

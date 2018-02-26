@@ -49,16 +49,16 @@ public final class SimpleTranslations {
 
   public static Automaton<EquivalenceClass, BuchiAcceptance> buildCoSafety(
     LabelledFormula labelledFormula, Environment env) {
-    Preconditions.checkArgument(Fragments.isCoSafety(labelledFormula.formula),
+    Preconditions.checkArgument(Fragments.isCoSafety(labelledFormula.formula()),
       "Formula is not from the syntactic co-safety fragment.");
 
     FactorySupplier supplier = env.factorySupplier();
     EquivalenceClassFactory eqFactory = supplier.getEquivalenceClassFactory(labelledFormula);
-    ValuationSetFactory vsFactory = supplier.getValuationSetFactory(labelledFormula.variables);
+    ValuationSetFactory vsFactory = supplier.getValuationSetFactory(labelledFormula.variables());
     EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(eqFactory, true, false);
 
     return AutomatonFactory.createStreamingAutomaton(BuchiAcceptance.INSTANCE,
-      factory.getInitial(labelledFormula.formula), vsFactory,
+      factory.getInitial(labelledFormula.formula()), vsFactory,
       (x, y) -> {
         EquivalenceClass successor = factory.getSuccessor(x, y);
 
@@ -75,16 +75,16 @@ public final class SimpleTranslations {
 
   public static Automaton<EquivalenceClass, AllAcceptance> buildSafety(
     LabelledFormula labelledFormula, Environment env) {
-    Preconditions.checkArgument(Fragments.isSafety(labelledFormula.formula),
+    Preconditions.checkArgument(Fragments.isSafety(labelledFormula.formula()),
       "Formula is not from the syntactic safety fragment.");
 
     FactorySupplier supplier = env.factorySupplier();
     EquivalenceClassFactory eqFactory = supplier.getEquivalenceClassFactory(labelledFormula);
-    ValuationSetFactory vsFactory = supplier.getValuationSetFactory(labelledFormula.variables);
+    ValuationSetFactory vsFactory = supplier.getValuationSetFactory(labelledFormula.variables());
     EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(eqFactory, true, false);
 
     return AutomatonFactory.createStreamingAutomaton(AllAcceptance.INSTANCE,
-      factory.getInitial(labelledFormula.formula), vsFactory,
+      factory.getInitial(labelledFormula.formula()), vsFactory,
       (x, y) -> {
         EquivalenceClass successor = factory.getSuccessor(x, y);
         return successor.isFalse() ? null : Edge.of(successor);

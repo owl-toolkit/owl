@@ -19,6 +19,7 @@ package owl.translations.ltl2ldba.breakpoint;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,7 +28,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -86,7 +86,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     Collection<? extends Formula> set2) {
     BitSet obligationAtoms = Collector.collectAtoms(set1);
     BitSet supportAtoms = Collector.collectAtoms(set2);
-    return Collections3.isSubsetConsuming(obligationAtoms, supportAtoms);
+    return BitSets.isSubset(obligationAtoms, supportAtoms);
   }
 
   private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {

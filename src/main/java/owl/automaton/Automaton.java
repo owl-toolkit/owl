@@ -128,7 +128,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The set of edges originating from {@code state}
    */
   default Set<Edge<S>> getEdges(S state) {
-    return Collections3.transform(getLabelledEdges(state), x -> x.edge);
+    return Collections3.transformUnique(getLabelledEdges(state), x -> x.edge);
   }
 
   /**
@@ -142,7 +142,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return The successor edges, possibly empty.
    */
   default Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    return Collections3.transform(getLabelledEdges(state),
+    return Collections3.transformUnique(getLabelledEdges(state),
       x -> x.valuations.contains(valuation) ? x.edge : null);
   }
 
@@ -213,11 +213,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default Set<S> getSuccessors(S state) {
-    return Collections3.transform(getEdges(state), Edge::getSuccessor);
+    return Collections3.transformUnique(getEdges(state), Edge::getSuccessor);
   }
 
   default Set<S> getSuccessors(S state, BitSet valuation) {
-    return Collections3.transform(getEdges(state, valuation), Edge::getSuccessor);
+    return Collections3.transformUnique(getEdges(state, valuation), Edge::getSuccessor);
   }
 
   @Override

@@ -93,7 +93,6 @@ final class EdgeGeneric<S> implements Edge<S> {
 
   @Override
   public <T> EdgeGeneric<T> withSuccessor(T successor) {
-    assert successor != null;
     return new EdgeGeneric<>(successor, acceptance);
   }
 

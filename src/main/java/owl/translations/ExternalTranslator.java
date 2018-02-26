@@ -127,6 +127,7 @@ public class ExternalTranslator
       logger.log(Level.FINER, "Running process {0}", processBuilder.command());
 
       if (inputMode == InputMode.STDIN) {
+        //noinspection NestedTryStatement
         try (Writer outputStream = new OutputStreamWriter(process.getOutputStream(),
           Charset.defaultCharset())) {
           logger.log(Level.FINER, "Passing {0} to process", formulaString);
@@ -135,9 +136,10 @@ public class ExternalTranslator
         }
       }
 
+      //noinspection NestedTryStatement
       try (BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream())) {
         FactorySupplier factorySupplier = env.factorySupplier();
-        ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(formula.variables);
+        ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(formula.variables());
         Automaton<HoaState, OmegaAcceptance> automaton =
           AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
         logger.log(Level.FINEST, () -> String.format("Read automaton for %s:%n%s", formula,

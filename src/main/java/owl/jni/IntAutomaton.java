@@ -115,19 +115,19 @@ public final class IntAutomaton {
       SimplifierFactory.apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
     LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
 
-    if (Fragments.isSafety(labelledFormula.formula)) {
+    if (Fragments.isSafety(labelledFormula.formula())) {
       return of(SimpleTranslations.buildSafety(labelledFormula, environment),
         Acceptance.SAFETY, shiftedFormula.mapping);
     }
-    if (Fragments.isCoSafety(labelledFormula.formula)) {
+    if (Fragments.isCoSafety(labelledFormula.formula())) {
       return of(SimpleTranslations.buildCoSafety(labelledFormula, environment),
         Acceptance.CO_SAFETY, shiftedFormula.mapping);
     }
-    if (Fragments.isDetBuchiRecognisable(labelledFormula.formula)) {
+    if (Fragments.isDetBuchiRecognisable(labelledFormula.formula())) {
       return of(SimpleTranslations.buildBuchi(labelledFormula, environment),
         Acceptance.BUCHI, shiftedFormula.mapping);
     }
-    if (Fragments.isDetCoBuchiRecognisable(labelledFormula.formula)) {
+    if (Fragments.isDetCoBuchiRecognisable(labelledFormula.formula())) {
       return of(SimpleTranslations.buildCoBuchi(labelledFormula, environment),
         Acceptance.CO_BUCHI, shiftedFormula.mapping);
     }

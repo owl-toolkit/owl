@@ -403,8 +403,7 @@ public final class AutomatonReader {
             HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
 
             // TODO Pretty sure we have to remap here, too?
-            ValuationSet valuationSet =
-              vsFactory.of(BooleanExpression.fromImplicit(counter));
+            ValuationSet valuationSet = vsFactory.of(BooleanExpression.fromImplicit(counter));
 
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
 

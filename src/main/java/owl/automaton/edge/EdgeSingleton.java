@@ -102,7 +102,6 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public <T> EdgeSingleton<T> withSuccessor(T successor) {
-    assert successor != null;
     return hasAcceptanceSets()
       ? new EdgeSingleton<>(successor, acceptance)
       : new EdgeSingleton<>(successor);

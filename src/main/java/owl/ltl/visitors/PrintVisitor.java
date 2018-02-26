@@ -41,7 +41,7 @@ public final class PrintVisitor implements Visitor<String> {
   }
 
   public static String toString(LabelledFormula formula, boolean parenthesize) {
-    PrintVisitor visitor = new PrintVisitor(parenthesize, formula.variables);
+    PrintVisitor visitor = new PrintVisitor(parenthesize, formula.variables());
     return formula.accept(visitor);
   }
 

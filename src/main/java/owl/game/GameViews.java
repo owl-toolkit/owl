@@ -23,6 +23,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,13 +131,13 @@ public final class GameViews {
   }
 
   public static <S, A extends OmegaAcceptance> Game<Node<S>, A>
-      split(Automaton<S, A> automaton, List<String> firstPropositions) {
+  split(Automaton<S, A> automaton, List<String> firstPropositions) {
     assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
     return new ForwardingGame<>(automaton, firstPropositions);
   }
 
   private static final class
-      FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A> {
+  FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A> {
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
@@ -208,7 +209,7 @@ public final class GameViews {
    * corresponding acceptance.
    */
   static final class ForwardingGame<S, A extends OmegaAcceptance>
-      implements Game<Node<S>, A> {
+    implements Game<Node<S>, A> {
     private final Automaton<S, A> automaton;
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
@@ -233,7 +234,7 @@ public final class GameViews {
 
     @Override
     public Set<Node<S>> getInitialStates() {
-      return Collections3.transform(automaton.getInitialStates(), Node::of);
+      return Collections3.transformUnique(automaton.getInitialStates(), Node::of);
     }
 
     @Override
@@ -328,7 +329,7 @@ public final class GameViews {
     public List<String> getVariables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
-      Collections3.forEachIndexed(getVariables(), (i, s) -> {
+      Indices.forEachIndexed(getVariables(), (i, s) -> {
         if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
           variables.add(s);
         }
