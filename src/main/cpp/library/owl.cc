@@ -15,31 +15,23 @@ namespace owl {
         return FormulaRewriter(env);
     }
 
-    Automaton OwlThread::createAutomaton(const Formula &formula, const bool on_the_fly) const {
-        return Automaton(env, formula, on_the_fly);
-    }
+    EmersonLeiAutomaton OwlThread::createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, bool on_the_fly) const {
+        jclass clazz = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton");
+        jmethodID split_method = get_static_methodID(env, clazz, "of",
+                                                     "(Lowl/ltl/Formula;ZZIZ)Lowl/jni/JniEmersonLeiAutomaton;");
+        auto java_tree = call_static_method<jobject, jobject, jboolean, jboolean, jint, jboolean>
+                (env, clazz, split_method, formula.handle, static_cast<jboolean>(simplify), static_cast<jboolean>(monolithic), static_cast<jint>(safety_splitting), static_cast<jboolean>(on_the_fly));
 
-    LabelledTree<Tag, Automaton> OwlThread::createAutomatonTree(const Formula &formula, bool on_the_fly,
-                                                           SafetySplitting safety_splitting) const {
-        jclass splitter_class = lookup_class(env, "owl/jni/Splitter");
-        jmethodID split_method = get_static_methodID(env, splitter_class, "split",
-                                                     "(Lowl/ltl/Formula;ZI)Lowl/collections/LabelledTree;");
-        auto java_tree = call_static_method<jobject, jobject, jboolean, jint>(env,
-                                                                              splitter_class,
-                                                                              split_method,
-                                                                              formula.formula,
-                                                                              static_cast<jboolean>(on_the_fly),
-                                                                              static_cast<jint>(safety_splitting));
-        deref(env, splitter_class);
+        deref(env, clazz);
         return copy_from_java(env, java_tree);
     }
 
     Formula OwlThread::adoptFormula(const Formula &formula) const {
-        return Formula(env, ref(env, formula.formula));
+        return Formula(env, ref(env, formula.handle));
     }
 
     Automaton OwlThread::adoptAutomaton(const Automaton &automaton) const {
-        return Automaton(env, ref(env, automaton.handle));
+        return Automaton(env, automaton.handle);
     }
 
     OwlJavaVM::OwlJavaVM(const char *classpath, bool debug) {

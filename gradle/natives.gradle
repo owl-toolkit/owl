@@ -33,7 +33,7 @@ model {
             }
 
             binaries.all {
-                cppCompiler.args "-O2", "-std=c++1z"
+                cppCompiler.args "-O2", "-std=c++1z", "-W", "-Wall"
                 linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
 
                 lib library: 'internal', linkage: 'api'
@@ -67,7 +67,7 @@ model {
             }
 
             binaries.all {
-                cppCompiler.args "-O2", "-std=c++1z"
+                cppCompiler.args "-O2", "-std=c++1z", "-W", "-Wall"
                 linker.args "-L${System.properties['java.home']}/lib/server/", "-ljvm"
 
                 lib library: 'jdk', linkage: 'api'

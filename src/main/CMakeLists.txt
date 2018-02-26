@@ -19,10 +19,12 @@ message(${JNI_LIBRARIES})
 
 add_library(owl
         headers/owl.h
+        headers/owl-base.h
         headers/owl-automaton.h
         headers/owl-formula.h
         cpp/library/owl-private.h
         cpp/library/owl.cc
+        cpp/library/owl-base.cc
         cpp/library/owl-automaton.cc
         cpp/library/owl-formula.cc)
 include_directories(owl ${JNI_INCLUDE_DIRS} ${CMAKE_CURRENT_LIST_DIR}/include)

@@ -1,16 +1,16 @@
 package owl.jni;
 
 import static org.junit.Assert.assertEquals;
-import static owl.jni.Splitter.SafetySplitting.ALWAYS;
-import static owl.jni.Splitter.SafetySplitting.AUTO;
-import static owl.jni.Splitter.SafetySplitting.NEVER;
+import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.ALWAYS;
+import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.AUTO;
+import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.NEVER;
 
 import org.junit.Test;
 import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.parser.LtlParser;
 
-public class SplitterTest {
+public class JniEmersonLeiAutomatonTest {
   private static final String SIMPLE_ARBITER = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
     + "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
     + "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
@@ -27,40 +27,46 @@ public class SplitterTest {
 
   @Test
   public void splitSimpleArbiter() {
-    Splitter.split(LtlParser.syntax(SIMPLE_ARBITER), false, NEVER);
+    JniEmersonLeiAutomaton.of(LtlParser.syntax(SIMPLE_ARBITER), true, false, NEVER, true);
   }
 
   @Test
   public void splitFg() {
-    Splitter.split(LtlParser.syntax("F G a"), false, ALWAYS);
+    JniEmersonLeiAutomaton.of(LtlParser.syntax("F G a"), true, true, ALWAYS, true);
   }
 
   @Test
   public void splitBuechi() {
-    Splitter.split(LtlParser.syntax("G (a | X F a)"), false, AUTO);
+    JniEmersonLeiAutomaton.of(LtlParser.syntax("G (a | X F a)"), true, true, AUTO, true);
   }
 
   @Test
   public void testCoSafetySplitting() {
-    LabelledTree<?, ?> tree1 = Splitter.split(LtlParser.syntax(CO_SAFETY), false, ALWAYS);
+    LabelledTree<?, ?> tree1 =
+      JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, ALWAYS, false).structure;
     assertEquals(4, ((Node<?, ?>) tree1).getChildren().size());
 
-    LabelledTree<?, ?> tree2 = Splitter.split(LtlParser.syntax(CO_SAFETY), false, AUTO);
+    LabelledTree<?, ?> tree2 =
+      JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, AUTO, false).structure;
     assertEquals(2, ((Node<?, ?>) tree2).getChildren().size());
 
-    LabelledTree<?, ?> tree3 = Splitter.split(LtlParser.syntax(CO_SAFETY), false, NEVER);
+    LabelledTree<?, ?> tree3 =
+      JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, NEVER, false).structure;
     assertEquals(1, ((Node<?, ?>) tree3).getChildren().size());
   }
 
   @Test
   public void testSafetySplitting() {
-    LabelledTree<?, ?> tree1 = Splitter.split(LtlParser.syntax(SAFETY), false, ALWAYS);
+    LabelledTree<?, ?> tree1 =
+      JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, ALWAYS, false).structure;
     assertEquals(4, ((Node<?, ?>) tree1).getChildren().size());
 
-    LabelledTree<?, ?> tree2 = Splitter.split(LtlParser.syntax(SAFETY), false, AUTO);
+    LabelledTree<?, ?> tree2 =
+      JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, AUTO, false).structure;
     assertEquals(3, ((Node<?, ?>) tree2).getChildren().size());
 
-    LabelledTree<?, ?> tree3 = Splitter.split(LtlParser.syntax(SAFETY), false, NEVER);
+    LabelledTree<?, ?> tree3 =
+      JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, NEVER, false).structure;
     assertEquals(1, ((Node<?, ?>) tree3).getChildren().size());
   }
 }
