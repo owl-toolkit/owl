@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 
+#include "owl-base.h"
+
 #ifndef OWL_FORMULA_H
 #define OWL_FORMULA_H
 
@@ -22,21 +24,19 @@ namespace owl {
         MOperator,
     };
 
-    class Formula {
+    class Formula : public ManagedJObject {
     private:
-        JNIEnv* env;
-        jobject formula;
-        Formula(JNIEnv *env, jobject formula);
+        Formula(JNIEnv *env, jobject handle) : ManagedJObject(env, handle) {}
 
         friend class Automaton;
         friend class FormulaFactory;
         friend class FormulaRewriter;
         friend class OwlThread;
+        friend class copy_from_java;
 
     public:
-        Formula(const Formula &obj);
-        Formula(const Formula &&obj) noexcept;
-        ~Formula();
+        Formula(const Formula &formula) = default;
+        Formula(Formula &&formula) noexcept : ManagedJObject(std::move(formula)) {};
 
         void print() const;
     };
@@ -46,9 +46,9 @@ namespace owl {
         JNIEnv* env;
         jclass classes[MOperator + 1];
         jmethodID methodIDs[MOperator + 1];
-        jclass parser;
+        jclass ltlParser;
         jclass tlsfParser;
-        jmethodID parseID;
+        jmethodID ltlParseID;
         jmethodID tlsfParseID;
 
         void bind_static(int index, const char *className, const char *methodName, const char *signature);
@@ -113,7 +113,6 @@ namespace owl {
         ~FormulaRewriter();
 
         std::vector<Formula> split(const Formula& input, int numberOfInputVariables, std::map<int, bool>& map);
-        Formula shift_literals(const Formula& formula, std::map<int, int>& map);
         Formula simplify(const Formula& formula);
     };
 }

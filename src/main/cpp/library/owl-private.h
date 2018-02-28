@@ -8,11 +8,13 @@
 #ifndef OWL_PRIVATE_H
 #define OWL_PRIVATE_H
 
-inline void check_exception(JNIEnv *env, const char *message) {
+inline bool check_exception(JNIEnv *env, const char *message) {
     if (env->ExceptionCheck()) {
         env->ExceptionDescribe();
         throw std::runtime_error(message);
     }
+
+    return false;
 }
 
 template<typename T1>
@@ -53,6 +55,10 @@ inline void deref(JNIEnv* env, jobject globalRef) {
 
 template<typename T>
 inline T make_global(JNIEnv* env, T local_ref) {
+    if (local_ref == nullptr) {
+        return nullptr;
+    }
+
     T globalRef = ref(env, local_ref);
     env->DeleteLocalRef(local_ref);
     check_exception(env, "Failed to release local reference.");
@@ -94,11 +100,6 @@ inline jfieldID get_fieldID(JNIEnv *env, jclass clazz, const char *name, const c
     return methodID;
 }
 
-inline jfieldID get_fieldID(JNIEnv *env, jobject object, jclass& clazz, const char *name, const char *signature) {
-    clazz = get_class(env, object);
-    return get_fieldID(env, clazz, name, signature);
-}
-
 inline jmethodID get_static_methodID(JNIEnv *env, jclass clazz, const char *name, const char *signature) {
     jmethodID methodID = env->GetStaticMethodID(clazz, name, signature);
     check_exception(env, "Failed to acquire static methodID");
@@ -114,10 +115,15 @@ inline T call_method(JNIEnv *env, jobject object, jmethodID methodID, Args... ar
 }
 
 template<typename T, typename... Args>
+inline T call_method(JNIEnv *env, jclass clazz, jobject object, const char *name, const char *signature, Args... args) {
+    jmethodID method_id = get_methodID(env, clazz, name, signature);
+    return call_method<T, Args...>(env, object, method_id, args...);
+}
+
+template<typename T, typename... Args>
 inline T call_method(JNIEnv *env, jobject object, const char *name, const char *signature, Args... args) {
     jclass clazz = get_class(env, object);
-    jmethodID method_id = get_methodID(env, clazz, name, signature);
-    T result = call_method<T, Args...>(env, object, method_id, args...);
+    T result = call_method<T, Args...>(env, clazz, object, name, signature, args...);
     deref(env, clazz);
     return result;
 }
@@ -134,6 +140,15 @@ template<typename... Args>
 inline jboolean call_bool_method(JNIEnv *env, jobject object, jmethodID methodID, Args... args) {
     jboolean result = env->CallBooleanMethod(object, methodID, args...);
     check_exception(env, "Failed to call int method.");
+    return result;
+}
+
+template<typename... Args>
+inline jboolean call_bool_method(JNIEnv *env, jobject object, const char *name, const char *signature, Args... args) {
+    jclass clazz = get_class(env, object);
+    jmethodID method_id = get_methodID(env, clazz, name, signature);
+    jboolean result = call_bool_method<Args...>(env, object, method_id, args...);
+    deref(env, clazz);
     return result;
 }
 
@@ -184,13 +199,40 @@ inline void bind_static_method(JNIEnv *env, const char *className, const char *m
 }
 
 template<typename T>
-inline T get_object_field(JNIEnv *env, jobject object, const char *fieldName, const char *signature) {
-    jclass clazz = nullptr;
-    jfieldID fieldID = get_fieldID(env, object, clazz, fieldName, signature);
+inline T get_object_field(JNIEnv *env, jclass clazz, jobject object, const char *fieldName, const char *signature) {
+    jfieldID fieldID = get_fieldID(env, clazz, fieldName, signature);
     auto field = reinterpret_cast<T>(env->GetObjectField(object, fieldID));
     check_exception(env, "Failed to access field.");
-    deref(env, clazz);
     return make_global(env, field);
+}
+
+template<typename T>
+inline T get_object_field(JNIEnv *env, jobject object, const char *fieldName, const char *signature) {
+    jclass clazz = get_class(env, object);
+    auto field = get_object_field<T>(env, clazz, object, fieldName, signature);
+    deref(env, clazz);
+    return field;
+}
+
+inline int get_int_field(JNIEnv *env, jclass clazz, jobject object, const char *fieldName) {
+    jfieldID fieldID = get_fieldID(env, clazz, fieldName, "I");
+    int field = env->GetIntField(object, fieldID);
+    check_exception(env, "Failed to access field.");
+    return field;
+}
+
+inline bool is_instance_of(JNIEnv *env, jobject object, const char *className) {
+    jclass clazz = lookup_class(env, className);
+    bool is_instance_of = env->IsInstanceOf(object, clazz);
+    check_exception(env, "Failed to check instance of");
+    deref(env, clazz);
+    return is_instance_of;
+}
+
+inline void assert_instance_of(JNIEnv *env, jobject object, const char *className) {
+    if (object == nullptr || !is_instance_of(env, object, className)) {
+        throw std::runtime_error("Expected class " + std::string(className));
+    }
 }
 
 inline jstring copy_to_java(JNIEnv *env, const std::string& string) {
@@ -216,43 +258,35 @@ inline jobject copy_to_java(JNIEnv *env, const std::vector<T>& vector) {
     return list;
 }
 
-inline bool is_instance_of(JNIEnv *env, jobject object, const char *className) {
-    jclass clazz = lookup_class(env, className);
-    bool is_instance_of = env->IsInstanceOf(object, clazz);
-    check_exception(env, "Failed to check instance of");
-    deref(env, clazz);
-    return is_instance_of;
-}
-
 namespace owl {
-    class copy_from_java
-    {
+
+    /**
+     * copy_from_java swallows the passed reference. Calling deref() on the passed value is not necessary.
+     */
+    class copy_from_java {
     private:
-        JNIEnv *env {nullptr};
-        jobject value {nullptr};
+        JNIEnv *env;
+        jobject value;
 
     public:
-        copy_from_java(JNIEnv *_env, jobject _value) : env(_env), value(_value) {};
-        copy_from_java(const copy_from_java& o) : env(o.env), value(ref(o.env, o.value)) {};
+        copy_from_java(JNIEnv *env, jobject value) : env(env), value(value) {};
+        copy_from_java(const copy_from_java& object) = delete;
+        copy_from_java(copy_from_java&& object) = delete;
 
         ~copy_from_java() {
             deref(env, value);
         }
 
+        // java.lang
+
         operator bool() const {
-            jclass clazz = lookup_class(env, "java/lang/Boolean");
-            jmethodID methodID = get_methodID(env, clazz, "booleanValue", "()Z");
-            bool result = call_bool_method(env, value, methodID);
-            deref(env, clazz);
-            return result;
+            assert_instance_of(env, value, "java/lang/Boolean");
+            return call_bool_method(env, value, "booleanValue", "()Z");
         }
 
         operator int() const {
-            jclass clazz = lookup_class(env, "java/lang/Integer");
-            jmethodID methodID = get_methodID(env, clazz, "intValue", "()I");
-            int result = call_int_method(env, value, methodID);
-            deref(env, clazz);
-            return result;
+            assert_instance_of(env, value, "java/lang/Integer");
+            return call_int_method(env, value, "intValue", "()I");
         }
 
         operator std::string() const {
@@ -262,57 +296,7 @@ namespace owl {
             return result;
         }
 
-        operator owl::Tag() const {
-            jclass clazz = lookup_class(env, "java/lang/Enum");
-            jmethodID methodID = get_methodID(env, clazz, "ordinal", "()I");
-            int result = call_int_method(env, value, methodID);
-            deref(env, clazz);
-            return owl::Tag(result);
-        }
-
-        operator owl::Automaton() const {
-            return owl::Automaton(env, value);
-        }
-
-        template<typename T1, typename T2>
-        operator owl::LabelledTree<T1, T2>() const {
-            bool leaf = is_instance_of(env, value, "owl/collections/LabelledTree$Leaf");
-            jclass clazz;
-
-            if (leaf) {
-                jmethodID get_labelId = get_methodID(env, value, clazz, "getLabel", "()Ljava/lang/Object;");
-                T2 label2 = copy_from_java(env, call_method<jobject>(env, value, get_labelId));
-                deref(env, clazz);
-                return owl::LabelledTree<T1, T2>(label2);
-            } else {
-                jmethodID get_labelId = get_methodID(env, value, clazz, "getLabel", "()Ljava/lang/Object;");
-                jmethodID get_childrenId = get_methodID(env, value, clazz, "getChildren", "()Ljava/util/List;");
-                T1 label1 = copy_from_java(env, call_method<jobject>(env, value, get_labelId));
-                std::vector<owl::LabelledTree<T1, T2>> children = copy_from_java(env, call_method<jobject>(env, value, get_childrenId));
-                deref(env, clazz);
-                return owl::LabelledTree<T1, T2>(label1, std::move(children));
-            }
-        }
-
-        template<typename T>
-        operator std::vector<T>() const {
-            std::vector<T> vector = std::vector<T>();
-            jclass list_class = lookup_class(env, "java/util/List");
-            jclass iterator_class = lookup_class(env, "java/util/Iterator");
-
-            auto iterator = call_method<jobject>(env, value, get_methodID(env, list_class, "iterator", "()Ljava/util/Iterator;"));
-
-            jmethodID next = get_methodID(env, iterator_class, "next", "()Ljava/lang/Object;");
-            jmethodID has_next = get_methodID(env, iterator_class, "hasNext", "()Z");
-
-            while (call_bool_method(env, iterator, has_next)) {
-                vector.push_back(copy_from_java(env, call_method<jobject>(env, iterator, next)));
-            }
-
-            deref(env, list_class, iterator_class, iterator);
-            return vector;
-        }
-
+        // java.util
 
         template<typename T1, typename T2>
         operator std::map<T1, T2>() const {
@@ -341,6 +325,91 @@ namespace owl {
 
             deref(env, map_class, set_class, iterator_class, entry_class, entry_set, iterator);
             return map;
+        }
+
+        template<typename T>
+        operator std::vector<T>() const {
+            std::vector<T> vector = std::vector<T>();
+            jclass list_class = lookup_class(env, "java/util/List");
+            jclass iterator_class = lookup_class(env, "java/util/Iterator");
+
+            auto iterator = call_method<jobject>(env, value, get_methodID(env, list_class, "iterator", "()Ljava/util/Iterator;"));
+
+            jmethodID next = get_methodID(env, iterator_class, "next", "()Ljava/lang/Object;");
+            jmethodID has_next = get_methodID(env, iterator_class, "hasNext", "()Z");
+
+            while (call_bool_method(env, iterator, has_next)) {
+                vector.push_back(copy_from_java(env, call_method<jobject>(env, iterator, next)));
+            }
+
+            deref(env, list_class, iterator_class, iterator);
+            return vector;
+        }
+
+        // owl
+
+        operator Automaton() const {
+            return Automaton(env, value);
+        }
+
+        operator EmersonLeiAutomaton() const {
+            return EmersonLeiAutomaton(env, value);
+        }
+
+        operator Formula() const {
+            return Formula(env, value);
+        }
+
+        template<typename T1, typename T2>
+        operator std::unique_ptr<owl::LabelledTree<T1, T2>>() const {
+            bool leaf = is_instance_of(env, value, "owl/collections/LabelledTree$Leaf");
+            jclass clazz;
+
+            if (leaf) {
+                jmethodID get_labelId = get_methodID(env, value, clazz, "getLabel", "()Ljava/lang/Object;");
+                T2 label = copy_from_java(env, call_method<jobject>(env, value, get_labelId));
+                deref(env, clazz);
+                return std::unique_ptr<owl::LabelledTree<T1, T2>>(new Leaf<T1, T2>(label));
+            } else {
+                jmethodID get_labelId = get_methodID(env, value, clazz, "getLabel", "()Ljava/lang/Object;");
+                jmethodID get_childrenId = get_methodID(env, value, clazz, "getChildren", "()Ljava/util/List;");
+                T1 label = copy_from_java(env, call_method<jobject>(env, value, get_labelId));
+                std::vector<std::unique_ptr<owl::LabelledTree<T1, T2>>> children = copy_from_java(env, call_method<jobject>(env, value, get_childrenId));
+                deref(env, clazz);
+                return std::unique_ptr<owl::LabelledTree<T1, T2>>(new Node<T1, T2>(label, std::move(children)));
+            }
+        }
+
+        operator Reference() const {
+            jclass reference_class = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton$Reference");
+
+            Formula formula = Formula(env, get_object_field<jobject>(env, reference_class, value, "formula", "Lowl/ltl/Formula;"));
+            int index = get_int_field(env, reference_class, value, "index");
+
+            std::map<int, int> mapping = std::map<int, int>();
+            auto java_mapping = call_method<jintArray>(env, reference_class, value, "alphabetMapping", "()[I");
+
+            jsize length = env->GetArrayLength(java_mapping);
+
+            for (int i = 0; i < length; ++i) {
+                int j;
+                env->GetIntArrayRegion(java_mapping, i, 1, &j);
+
+                if (j != -1) {
+                    mapping[i] = j;
+                }
+            }
+
+            deref(env, java_mapping);
+            return Reference(formula, index, mapping);
+        }
+
+        operator Tag() const {
+            jclass clazz = lookup_class(env, "java/lang/Enum");
+            jmethodID methodID = get_methodID(env, clazz, "ordinal", "()I");
+            int result = call_int_method(env, value, methodID);
+            deref(env, clazz);
+            return owl::Tag(result);
         }
     };
 }

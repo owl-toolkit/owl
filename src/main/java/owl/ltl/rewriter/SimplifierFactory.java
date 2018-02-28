@@ -24,6 +24,10 @@ import owl.ltl.LabelledFormula;
 public final class SimplifierFactory {
   private SimplifierFactory() {}
 
+  public static Formula applyDefault(Formula formula) {
+    return apply(formula, Mode.SYNTACTIC_FIXPOINT);
+  }
+
   public static Formula apply(Formula formula, Mode mode) {
     return mode.operation.apply(formula);
   }

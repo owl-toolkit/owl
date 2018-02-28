@@ -7,7 +7,7 @@
 
 using namespace owl;
 
-Formula parse_formula(const OwlThread& owl) {
+Formula parse_ltl(const OwlThread &owl) {
     FormulaFactory factory = owl.createFormulaFactory();
     FormulaRewriter rewriter = owl.createFormulaRewriter();
 
@@ -21,7 +21,6 @@ Formula parse_formula(const OwlThread& owl) {
     // Use the standard simplifier on the formula
     Formula simplifiedFormula = rewriter.simplify(parsedFormula);
     simplifiedFormula.print();
-
     return simplifiedFormula;
 }
 
@@ -99,17 +98,6 @@ Formula create_formula(const OwlThread& owl) {
     for (Formula formula : rewriter.split(imp2, 2, removed)) {
         std::cout << i << ": "; i++;
         formula.print();
-
-        std::cout << "Shifted formula: " << std::endl;
-        // We now shift literals to close gaps.
-        std::map<int, int> mapping = std::map<int, int>();
-        rewriter.shift_literals(formula, mapping).print();
-
-        std::cout << "Shifted literals:" << std::endl;
-
-        for (const auto & entry : mapping) {
-            std::cout << entry.first << " -> " << entry.second << std::endl;
-        }
     }
 
     std::cout << "Removed literals with fixed valuation:" << std::endl;
@@ -122,7 +110,10 @@ Formula create_formula(const OwlThread& owl) {
 }
 
 void dpa_example(const OwlThread& owl, const Formula& formula) {
-    Automaton dpa = owl.createAutomaton(formula, false);
+    EmersonLeiAutomaton automaton = owl.createAutomaton(formula, false, true, NEVER, true);
+    std::cout << "# Automata constructed: " << automaton.automata().size() << std::endl;
+
+    Automaton dpa = automaton.automata()[0];
 
     std::cout << "Automaton constructed with ";
 
@@ -176,22 +167,22 @@ void dpa_example(const OwlThread& owl, const Formula& formula) {
     }
 }
 
-void visit_tree(const LabelledTree<Tag, Automaton>& tree, int indent) {
+void visit_tree(const std::vector<Automaton>& automta, const std::unique_ptr<LabelledTree<Tag, Reference>>& tree, int indent) {
     for (int i = 0; i < indent; i++) {
         std::cout << "  ";
     }
 
-    if (tree.type == LEAF) {
-        std::cout << "* Automaton with Acceptance Index: " << tree.getLabel2().acceptance() << std::endl;
+    if (tree->is_leaf()) {
+        std::cout << "* Automaton (" << tree->label2().index << ") with Acceptance Index: " << automta[tree->label2().index].acceptance() << std::endl;
     } else {
-        if (tree.getLabel1() == CONJUNCTION) {
+        if (tree->label1() == CONJUNCTION) {
             std::cout << "* Conjunction" << std::endl;
         } else {
             std::cout << "* Disjunction" << std::endl;
         }
 
-        for (auto const& child : tree.getChildren()) {
-            visit_tree(child, indent + 1);
+        for (auto const& child : tree->children()) {
+            visit_tree(automta, child, indent + 1);
         }
     }
 }
@@ -200,33 +191,26 @@ void visit_tree(const LabelledTree<Tag, Automaton>& tree, int indent) {
 void simple_arbiter_example(const OwlThread& owl) {
     Formula formula = owl.createFormulaFactory().parse("G (!g_0) && !g_0 R !g_1 && G (! g_0 && ! g_1 && (! g_2 && true || (true && (! g_3))) || (! g_0 && true || (true && (! g_1)) && (! g_2 && ! g_3))) && G (r_0 -> F g_0) && G (r_1 -> F g_1) && G (r_2 -> F g_2) && G (r_3 -> F g_3)", std::vector<std::string>());
 
-    LabelledTree<Tag, Automaton> tree1 = owl.createAutomatonTree(formula, true, NEVER);
-    visit_tree(tree1, 0);
+    EmersonLeiAutomaton tree1 = owl.createAutomaton(formula, false, false, NEVER, true);
+    visit_tree(tree1.automata(), tree1.structure(), 0);
 
-    LabelledTree<Tag, Automaton> tree2 = owl.createAutomatonTree(formula, false, AUTO);
-    visit_tree(tree2, 0);
+    EmersonLeiAutomaton tree2 = owl.createAutomaton(formula, false, false, AUTO, true);
+    visit_tree(tree2.automata(), tree2.structure(), 0);
 
-    LabelledTree<Tag, Automaton> tree3 = owl.createAutomatonTree(formula, false, ALWAYS);
-    visit_tree(tree3, 0);
+    EmersonLeiAutomaton tree3 = owl.createAutomaton(formula, false, false, ALWAYS, true);
+    visit_tree(tree3.automata(), tree3.structure(), 0);
 }
 
 int main(int argc, char** argv) {
-    const char* classpath = "-Djava.class.path="
-            "../../../build/lib/owl-1.2.0-SNAPSHOT.jar:"
-            "../../../build/lib/jhoafparser-1.1.1-patched.jar:"
-            "../../../build/lib/jbdd-0.2.0.jar:"
-            "../../../build/lib/guava-23.4-jre.jar:"
-            "../../../build/lib/naturals-util-0.7.0.jar:"
-            "../../../build/lib/fastutil-8.1.0.jar:"
-            "../../../build/lib/commons-cli-1.4.jar:"
-            "../../../build/lib/antlr4-runtime-4.7.jar";
+    // Execute `./gradlew smallDistTar -Pfull` to obtain the right jar!
+    const char* classpath = "-Djava.class.path=../../../build/libs/owl.jar";
 
     // Set the second argument to true to obtain additional debugging output.
     OwlJavaVM owlJavaVM = OwlJavaVM(classpath, true);
     OwlThread owl = owlJavaVM.attachCurrentThread();
 
     std::cout << "Parse Formula Example: " << std::endl << std::endl;
-    Formula parsed_formula_1 = parse_formula(owl);
+    Formula parsed_formula_1 = parse_ltl(owl);
 
     std::cout << "Parse TLSF Example: " << std::endl << std::endl;
     Formula parsed_formula_2 = parse_tlsf(owl);

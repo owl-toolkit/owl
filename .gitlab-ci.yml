@@ -15,6 +15,7 @@ Build:
     - ./gradlew --no-daemon build
   artifacts:
     paths:
+    - build/tmp/
     - build/reports/
     when: on_failure
     expire_in: 1 week

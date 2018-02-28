@@ -63,12 +63,9 @@ public abstract class LabelledFormula {
 
 
   ImmutableSet<String> player2Variables() {
-    ImmutableList<String> all = variables();
+    ImmutableSet<String> all = ImmutableSet.copyOf(variables());
     ImmutableSet<String> player1 = player1Variables();
-    ImmutableSet<String> player2 =
-      ImmutableSet.copyOf(Sets.difference(ImmutableSet.copyOf(all), player1));
-    assert player2.size() + player1.size() == all.size();
-    return player2;
+    return Sets.difference(all, player1).immutableCopy();
   }
 
   public int accept(IntVisitor visitor) {
