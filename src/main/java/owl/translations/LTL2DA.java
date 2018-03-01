@@ -20,6 +20,7 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 public final class LTL2DA {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("ltl2da")
+    .description("Translates LTL to some deterministic automaton")
     .parser(settings -> environment ->
       Transformers.instanceFromFunction(LabelledFormula.class,
         formula -> translate(environment, formula)))

@@ -220,6 +220,8 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *
    * @param states
    *     The states to be removed.
+   * @return whether some states have been removed.
+   * @see #removeStates(Predicate)
    */
   default boolean removeStates(Collection<? extends S> states) {
     return removeStates(states::contains);
@@ -230,6 +232,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *
    * @param states
    *     The states to be removed.
+   * @return whether some states have been removed.
    */
   boolean removeStates(Predicate<? super S> states);
 

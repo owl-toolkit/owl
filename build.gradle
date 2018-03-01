@@ -110,6 +110,15 @@ jar {
     // exclude('**.java') // Generated .java files
 }
 
+//noinspection GroovyAssignabilityCheck
+tasks.withType(Javadoc) {
+    options.encoding = defaultEncoding
+    options.docEncoding = defaultEncoding
+    options.charSet = defaultEncoding
+    // https://github.com/gradle/gradle/issues/2553 Disables some superfluous warnings of javadoc
+    options.addStringOption 'Xdoclint:syntax,reference', '-quiet'
+}
+
 //noinspection GroovyAssignabilityCheck,UnnecessaryQualifiedReference
 def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuardTask) {
     if (minimize)
@@ -141,7 +150,7 @@ def scripts = [
     'delag'     : 'owl.translations.delag.DelagBuilder',
     'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
     'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPAModule',
+    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPAFunction',
     'owl-server': 'owl.run.ServerCli'
 ]
 

@@ -17,26 +17,30 @@ import owl.run.modules.Transformers;
 
 public final class SimplifierTransformer extends Transformers.SimpleTransformer {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("simplifier")
+    .key("simplify-ltl")
+    .description("Rewrites / simplifies LTL formulas")
     .optionsBuilder(() -> {
       Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "
-        + "comma separated list. Possible values are: syntactic, syntactic-fairness, "
-        + "syntactic-fixpoint, pullup-X, pushdown-X");
-      modeOption.setRequired(true);
+        + "comma separated list. Possible values are: simple, fairness, fixpoint. By default, "
+        + "the \"fixpoint\" mode is chosen.");
+      modeOption.setRequired(false);
       modeOption.setArgs(Option.UNLIMITED_VALUES);
       modeOption.setValueSeparator(',');
       return new Options().addOption(modeOption);
     }).parser(settings -> {
-      List<Mode> rewrites = new ArrayList<>();
+      if (!settings.hasOption("mode")) {
+        return new SimplifierTransformer(List.of(Mode.SYNTACTIC_FIXPOINT));
+      }
+
       String[] modes = settings.getOptionValues("mode");
+      List<Mode> rewrites = new ArrayList<>(modes.length);
 
       for (String mode : modes) {
         rewrites.add(parseMode(mode));
       }
 
       return new SimplifierTransformer(rewrites);
-    })
-    .build();
+    }).build();
 
   private final List<Mode> rewrites;
 
@@ -46,15 +50,11 @@ public final class SimplifierTransformer extends Transformers.SimpleTransformer 
 
   private static Mode parseMode(String mode) throws ParseException {
     switch (mode) {
-      case "syntactic":
+      case "simple":
         return Mode.SYNTACTIC;
-      case "syntactic-fixpoint":
+      case "fixpoint":
         return Mode.SYNTACTIC_FIXPOINT;
-      case "pullup-X":
-        return Mode.PULLUP_X;
-      case "pushdown-X":
-        return Mode.PUSHDOWN_X;
-      case "syntactic-fairness":
+      case "fairness":
         return Mode.SYNTACTIC_FAIRNESS;
       default:
         throw new ParseException("Unknown mode " + mode);

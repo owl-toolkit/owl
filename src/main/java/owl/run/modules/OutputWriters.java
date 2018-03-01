@@ -33,6 +33,7 @@ import owl.run.modules.OwlModuleParser.WriterParser;
 public final class OutputWriters {
   public static final WriterParser AUTOMATON_STATS_CLI = ImmutableWriterParser.builder()
     .key("aut-stat")
+    .description("Writes several stats of a given automaton to the given format string")
     .optionsBuilder(() -> {
       Option format = new Option("f", "format", true,
         "The format string. Uses a reduced set of the spot syntax\n"
@@ -82,12 +83,12 @@ public final class OutputWriters {
     writer.write(object.toString());
     writer.write(System.lineSeparator());
   };
-
-  public static final WriterParser STRING_CLI = ImmutableWriterParser.builder()
+  public static final WriterParser TO_STRING_CLI = ImmutableWriterParser.builder()
     .key("string")
     .description("Prints the toString() representation of all passed objects")
     .parser(settings -> TO_STRING)
     .build();
+
   public static final OutputWriter HOA = ToHoa.DEFAULT;
 
   private OutputWriters() {

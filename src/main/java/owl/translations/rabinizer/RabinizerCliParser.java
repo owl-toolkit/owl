@@ -19,6 +19,12 @@ public final class RabinizerCliParser implements TransformerParser {
   }
 
   @Override
+  public String getDescription() {
+    return "Translates LTL to deterministic generalized Rabin automata, using the Rabinizer "
+      + "construction";
+  }
+
+  @Override
   public Options getOptions() {
     return new Options()
       .addOption("ne", "noeager", false, "Disable eager construction")

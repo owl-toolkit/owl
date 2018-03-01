@@ -97,6 +97,11 @@ public final class LTL2LDBACliParser implements TransformerParser {
   }
 
   @Override
+  public String getDescription() {
+    return "Translates LTL to limit-deterministic Büchi automata";
+  }
+
+  @Override
   public Options getOptions() {
     Options options = new Options();
     List.of(DEGENERALISE, EPSILON, NON_DETERMINISTIC, guessF(), simple())

@@ -50,6 +50,7 @@ import owl.run.parser.PartialModuleConfiguration;
 public final class IARBuilder<R> {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("dra2dpa")
+    .description("Converts a Rabin automaton into a parity automaton")
     .parser(settings -> Transformers.RABIN_TO_PARITY)
     .build();
 

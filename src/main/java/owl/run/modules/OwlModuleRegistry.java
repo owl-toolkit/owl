@@ -1,16 +1,23 @@
 package owl.run.modules;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static owl.run.modules.OwlModuleParser.TransformerParser;
 
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.transformations.RabinDegeneralization;
@@ -44,12 +51,14 @@ public class OwlModuleRegistry {
    */
   public static final OwlModuleRegistry DEFAULT_REGISTRY;
 
+  private final Table<Type, String, OwlModuleParser<?>> registeredModules = HashBasedTable.create();
+
   static {
     DEFAULT_REGISTRY = new OwlModuleRegistry();
 
     // I/O
     DEFAULT_REGISTRY.register(InputReaders.LTL_CLI, InputReaders.HOA_CLI, InputReaders.TLSF_CLI,
-      OutputWriters.STRING_CLI, OutputWriters.AUTOMATON_STATS_CLI, OutputWriters.NULL_CLI,
+      OutputWriters.TO_STRING_CLI, OutputWriters.AUTOMATON_STATS_CLI, OutputWriters.NULL_CLI,
       OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI);
 
     // Transformer
@@ -63,18 +72,31 @@ public class OwlModuleRegistry {
       LTL2DRACliParser.INSTANCE);
   }
 
-  private final Table<Type, String, OwlModuleParser<?>> registeredModules = HashBasedTable.create();
-
-  public ReaderParser getReaderParser(String name) throws OwlModuleNotFoundException {
+  public ReaderParser reader(String name) throws OwlModuleNotFoundException {
     return (ReaderParser) getWithType(Type.READER, name);
   }
 
-  public Collection<OwlModuleParser<?>> getSettings(Type type) {
+  public TransformerParser transformer(String name) throws OwlModuleNotFoundException {
+    if (registeredModules.contains(Type.TRANSFORMER, name)) {
+      return (TransformerParser) getWithType(Type.TRANSFORMER, name);
+    }
+    if (registeredModules.contains(Type.WRITER, name)) {
+      WriterParser parser = (WriterParser) getWithType(Type.WRITER, name);
+      return new AsTransformer(parser);
+    }
+    throw new OwlModuleNotFoundException(Type.TRANSFORMER, name);
+  }
+
+  public WriterParser writer(String name) throws OwlModuleNotFoundException {
+    return (WriterParser) getWithType(Type.WRITER, name);
+  }
+
+  public Collection<OwlModuleParser<?>> getAllOfType(Type type) {
     return registeredModules.row(type).values();
   }
 
-  public TransformerParser getTransformerParser(String name) throws OwlModuleNotFoundException {
-    return (TransformerParser) getWithType(Type.TRANSFORMER, name);
+  public Map<Type, OwlModuleParser<?>> getAllWithName(String name) {
+    return registeredModules.columnMap().get(name);
   }
 
   private OwlModuleParser<?> getWithType(Type type, String name) throws OwlModuleNotFoundException {
@@ -87,29 +109,20 @@ public class OwlModuleRegistry {
     return owlModuleParser;
   }
 
-  public WriterParser getWriterParser(String name) throws OwlModuleNotFoundException {
-    return (WriterParser) getWithType(Type.WRITER, name);
-  }
-
   public void register(OwlModuleParser<?>... parser) {
     Stream.of(parser).forEach(this::register);
   }
 
   public void register(OwlModuleParser<?> parser) {
-    Collection<Type> types = Type.getTypes(parser);
-    if (types.isEmpty()) {
-      throw new IllegalArgumentException("Unknown settings type " + parser.getClass());
-    }
+    Type type = Type.of(parser);
 
     String name = parser.getKey();
-    for (Type type : types) {
-      if (registeredModules.contains(type, name)) {
-        throw new IllegalArgumentException(
-          String.format("Some module with name %s and type %s is already registered", name, type));
-      }
+    if (registeredModules.contains(type, name)) {
+      throw new IllegalArgumentException(
+        String.format("Some module with name %s and type %s is already registered", name, type));
     }
 
-    types.forEach(type -> registeredModules.put(type, name, parser));
+    registeredModules.put(type, name, parser);
   }
 
   public Set<OwlModuleParser<?>> remove(String name) {
@@ -129,10 +142,12 @@ public class OwlModuleRegistry {
       this.name = name;
     }
 
-    public static Collection<Type> getTypes(OwlModuleParser<?> object) {
-      return Arrays.stream(Type.values())
+    public static Type of(OwlModuleParser<?> object) {
+      List<Type> types = Arrays.stream(Type.values())
         .filter(type -> type.typeClass.isInstance(object))
         .collect(Collectors.toList());
+      checkArgument(types.size() == 1);
+      return Iterables.getOnlyElement(types);
     }
   }
 
@@ -143,6 +158,34 @@ public class OwlModuleRegistry {
     OwlModuleNotFoundException(OwlModuleRegistry.Type type, String name) {
       this.type = type;
       this.name = name;
+    }
+  }
+
+  private static class AsTransformer implements TransformerParser {
+    private final WriterParser parser;
+
+    public AsTransformer(WriterParser parser) {
+      this.parser = parser;
+    }
+
+    @Override
+    public String getKey() {
+      return parser.getKey();
+    }
+
+    @Override
+    public String getDescription() {
+      return parser.getDescription();
+    }
+
+    @Override
+    public Options getOptions() {
+      return parser.getOptions();
+    }
+
+    @Override
+    public Transformer parse(CommandLine commandLine) throws ParseException {
+      return Transformers.fromWriter(parser.parse(commandLine));
     }
   }
 }

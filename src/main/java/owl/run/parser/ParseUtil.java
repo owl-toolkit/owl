@@ -1,5 +1,7 @@
 package owl.run.parser;
 
+import static owl.run.modules.OwlModuleRegistry.Type;
+
 import com.google.common.base.Strings;
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -32,46 +34,70 @@ final class ParseUtil {
     return args.length == 1 && List.of("help", "--help", "-h").contains(args[0]);
   }
 
-  static Collection<OwlModuleParser<?>> getSortedSettings(OwlModuleRegistry registry,
-    OwlModuleRegistry.Type type) {
-    return registry.getSettings(type).stream()
+  @Nullable
+  static String isSpecificHelp(String[] args) {
+    if (args.length == 2 && List.of("help", "--help", "-h").contains(args[0])) {
+      return args[1];
+    }
+    return null;
+  }
+
+  static Collection<OwlModuleParser<?>> getSortedSettings(OwlModuleRegistry registry, Type type) {
+    return registry.getAllOfType(type).stream()
       .sorted(MODULE_COMPARATOR)
       .collect(Collectors.toList());
   }
 
-  static void printList(OwlModuleRegistry.Type type,
-    Collection<OwlModuleParser<?>> settingsCollection,
-    @Nullable String invalidName) {
+  static void printList(Collection<OwlModuleParser<?>> settingsCollection,
+    @Nullable Type type, @Nullable String invalidName) {
     printGuarded(writer -> {
       if (invalidName == null) {
-        formatter.printWrapped(writer, formatter.getWidth(), "All " + type.name + " modules: ");
+        if (type == null) {
+          formatter.printWrapped(writer, formatter.getWidth(), "All modules: ");
+        } else {
+          formatter.printWrapped(writer, formatter.getWidth(), "All " + type.name + "s: ");
+        }
       } else {
-        formatter.printWrapped(writer, formatter.getWidth(), "No module of type "
-          + type.name + " with name " + invalidName + " found. Available:");
+        if (type == null) {
+          formatter.printWrapped(writer, formatter.getWidth(), "No module with name "
+            + invalidName + " found. Available:");
+        } else {
+          formatter.printWrapped(writer, formatter.getWidth(), "No " + type.name + " with name "
+            + invalidName + " found. Available:");
+        }
       }
 
       for (OwlModuleParser<?> settings : settingsCollection) {
+        String name = settings.getKey();
         String description = settings.getDescription();
         if (Strings.isNullOrEmpty(description)) {
-          formatter.printWrapped(writer, formatter.getWidth(), settings.getKey());
+          formatter.printWrapped(writer, formatter.getWidth(), name);
         } else {
-          formatter.printWrapped(writer, formatter.getWidth(), 4,
-            settings.getKey() + ": " + description);
+          formatter.printWrapped(writer, formatter.getWidth(), 4, name + ": " + description);
         }
       }
     });
   }
 
   static void printModuleHelp(OwlModuleParser<?> settings, @Nullable String reason) {
+    Type type = Type.of(settings);
     printGuarded(writer -> {
+      String moduleName = settings.getKey();
       if (reason != null) {
-        formatter.printWrapped(writer, formatter.getWidth(), "Failed to parse settings for "
-          + "module " + settings.getKey() + ". Reason: " + reason);
+        formatter.printWrapped(writer, formatter.getWidth(), "Failed to parse settings for the "
+          + type.name + ' ' + moduleName + ". Reason: " + reason);
       }
-      formatter.printWrapped(writer, formatter.getWidth(),
-        "Available settings for " + settings.getKey() + " are:");
-      formatter.printHelp(writer, formatter.getWidth(), settings.getKey(), "    "
-        + settings.getDescription(), settings.getOptions(), 4, 2, null, true);
+
+      Options options = settings.getOptions();
+      if (options.getOptions().isEmpty()) {
+        formatter.printWrapped(writer, formatter.getWidth(), "The " + type.name + ' ' + moduleName
+          + " has no settings.");
+      } else {
+        formatter.printWrapped(writer, formatter.getWidth(),
+          "Available settings for the " + type.name + ' ' + moduleName + " are:");
+        formatter.printHelp(writer, formatter.getWidth(), moduleName, "    "
+          + settings.getDescription(), options, 4, 2, null, true);
+      }
     });
   }
 

@@ -41,6 +41,8 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
   LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2ldba")
+    .description("Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
+      + "automaton")
     .parser(settings -> {
       NBA2LDBA<Object> function =
         new NBA2LDBA<>(EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));

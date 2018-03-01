@@ -1,36 +1,76 @@
 # Setup
 
-A working Intelji IDEA development environment can be obtained by typing:
+A working Intelji IDEA development environment can be obtained by `./gradlew idea` and then importing the generated project (`owl.ipr`) to IDEA.
 
-`./gradlew idea`
+If you instead want to work with the IDEA Gradle plugin, import the project as usual ("Open Project" > `build.gradle`) and perform the following configuration:
 
-and then importing the generated project (`owl.ipr`) to IDEA.
-
-If you instead want to work with the IDEA gradle plugin, import the project as usual ("Open Project" > `build.gradle`) and perform the following configuration:
-
- * "Annotation Processors":
-   * Enable annotation processing
-   * Store generated sources relative to module content root
-   * Production sources directory: `build/generated-src/annot/main`
-   * Test sources directory: `build/generated-src/annot/test`
  * "Code Style": Import from `config/idea-codestyle.xml`
  * "Inspections": Import from `config/idea-inspection-profile.xml`
+
 
 # Checks
 
 Before submitting code please executed `./gradlew check` locally to run all code checks.
-Apart from jUnit tests, static code analysis is performed by [PMD](https://pmd.github.io/) and [FindBugs](http://findbugs.sourceforge.net/) (rules are located in the `config` folder).
+Apart from jUnit tests, static code analysis is performed using [PMD](https://pmd.github.io/) and [ErrorProne](http://errorprone.info/) (rules are located in the `config` folder).
 Further, [checkstyle](http://checkstyle.sourceforge.net/) is used to check compliance with the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 Passing all these tests is mandatory for submitted code.
 
+
 # Coding Conventions
 
-## UnsupportedOperationException
+In general, features of Java 8 / 9, like Lambdas, Streams, `Collections.of`, `forEach`-style, etc., can and should be used frequently.
+Streams should only be used for prototypes or in non-performance critical code, since they do add noticeable overhead.
+Typical "best practises" like KISS and DRY should be adhered to, some performance can be sacrificed for clear and concise code.
+Nevertheless, performance must not be neglected.
 
-If a method does not support a particular operation, but could be implemented then use an UnsupportedOperationException.
+## Exceptions and Checks
 
-## IllegalArgumentException
+ * Use `assert` and Guavas `Precondition` methods frequently, it drastically simplifies debugging and even can help reading code.
+   Usually, asserts should only be used for internal consistency checks, i.e. double-checking your own implementation.
+   For owl, `assert` can also be used to check arguments if the check is extremely costly or in a very critical code section.
+ * Always provide some useful message for exceptions, since this will be printed to the user.
 
-If a method will never support this.
+The following conventions should be followed:
 
+ * If some operation is currently not implemented:
+   * `UnsupportedOperationException`: The operation is not supported yet, but this could change in the future.
+   * `IllegalArgumentException`: This operation will never be supported (for the given input).
 
+## Utilities
+
+Where applicable, JDK functionality should be preferred (e.g., JDK `List.of` over Guava `ImmutableList.of`).
+If the JDK does not offer some particular functionality, Guava usually provides it and that should be used.
+Before implementing your own methods, double check that none of owl's utility libraries provide it already.
+
+ * See `Collections3` for some specific collection methods.
+ * Where applicable, use the primitive versions of collections provided by `fastutil`.
+ * For anything related to natural numbers, see `naturals-util` for more specific implementations (e.g., index maps).
+
+## Immutable tuples
+
+For classes which are nothing more than immutable structs, i.e. data containers / tuples, [Immutables](http://immutables.github.io/) should be used.
+See `@Tuple` / `@HashedTuple` and their usages for examples.
+Hiding the implementation class (by, e.g., giving it package visibility) is recommended, since Java may support value types natively in the near future.
+Finally, for performance critical code, double-check that the generated code is doing what you expect from it (e.g., no superfluous copies are performed).
+
+## Naming
+
+In general, everything should have self-explanatory, english names.
+Also, the following naming schemes should be followed:
+
+ * formulas (instead of formulae)
+ * -ize (instead of -ise)
+
+## Sorting
+
+Members of a class can be sorted alphabetically (adhering to the general order), but a logical structure is preferred.
+For example, one can keep setters and getter together or group methods by their type (e.g., simple property accessor, complex mutation, ...).
+For tuples (see above), the convention is the following: "fields", derived fields, factory methods ("`of`"), constructor-like methods ("`with...`"), other methods.
+
+## Javadoc
+
+Javadoc isn't required everywhere, but strongly encouraged. 
+Code without any documentation is not accepted.
+The [Oracle](http://www.oracle.com/technetwork/java/javase/tech/index-137868.html) and [Google](https://google.github.io/styleguide/javaguide.html#s7-javadoc) style guides apply.
+Specifically, block tags (like `@throws`, `@return`, etc.) should be continued by a lower-case sentence.
+For example, `@throws IllegalArgumentException if the argument is not allowed` or `@return the thing`.

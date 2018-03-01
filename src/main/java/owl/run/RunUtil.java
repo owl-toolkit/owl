@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
@@ -39,12 +38,21 @@ public final class RunUtil {
    * as possible, since {@link System#exit(int)} does not return, but the compiler doesn't know
    * about this.
    */
-  public static AssertionError failWithMessage(String message, @Nullable Throwable cause) {
+  public static AssertionError failWithMessage(String message) {
     System.err.println(message); // NOPMD
-    if (cause != null) {
-      logger.log(Level.FINE, "Stacktrace:", cause);
-    }
+    System.exit(1);
+    return new AssertionError("Unreachable");
+  }
 
+  /**
+   * Prints given {@code message} on standard error and calls {@link System#exit(int)} with 1 and
+   * logs the given {@code cause}.
+   *
+   * @see #failWithMessage(String)
+   */
+  public static AssertionError failWithMessage(String message, Throwable cause) {
+    System.err.println(message); // NOPMD
+    logger.log(Level.FINE, "Stacktrace:", cause);
     System.exit(1);
     return new AssertionError("Unreachable", cause);
   }

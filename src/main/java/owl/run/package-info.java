@@ -18,10 +18,10 @@
 /**
  * This package (and it's sub-packages) contains a flexible infrastructure for executing various
  * translation chains and obtaining these translation chains from the command line. Executions are
- * modeled as a pipeline, starting with an input parser (e.g. an
- * {@link owl.run.modules.InputReaders#LTL LTL parser}), followed by multiple transformers (e.g. an
+ * modeled as a pipeline, starting with an input parser (e.g., an
+ * {@link owl.run.modules.InputReaders#LTL LTL parser}), followed by multiple transformers (e.g., an
  * {@link owl.translations.ltl2dpa.LTL2DPAFunction LTL to DPA translation}), and an output writer
- * at the end (e.g. a {@link owl.run.modules.OutputWriters#HOA HOA printer}). To allow for high
+ * at the end (e.g., a {@link owl.run.modules.OutputWriters#HOA HOA printer}). To allow for high
  * flexibility, various other concepts accompany this central model. In general, the structure is
  * as follows:
  *
@@ -56,6 +56,29 @@
  * most cases and may serve as starting point for custom implementations. Note that the provided
  * implementations may satisfy stricter conditions than the ones imposed by the general design.
  * Refer to each interface for the actual method contracts.
+ *
+ * The command-line parser is completely pluggable and written without explicitly referencing any
+ * of our implementations. New modules can be added by simply specifying a name, the set of options,
+ * and a way to obtain a configured instance based on some options. For example, the module
+ * {@literal ltl2nba} with a {@literal --fast} flag can be specified as follows
+ * <pre>
+ * {@code
+ * TransformerSettings settings = ImmutableTransformerSettings.builder()
+ *   .key("ltl2nba")
+ *   .optionsDirect(new Options()
+ *   .addOption("f", "fast", false, "Turn on ludicrous speed!"))
+ *   .transformerSettingsParser(settings -> {
+ *     boolean fast = settings.hasOption("fast");
+ *     return environment -> (input, context) ->
+ *       LTL2NBA.apply((LabelledFormula) input, fast, environment);
+ *   })
+ *   .build();
+ * }</pre>
+ * These settings now only have to be added to the
+ * {@link owl.run.modules.OwlModuleRegistry registry} to be usable with the extended command line
+ * syntax. Also, a dedicated {@code main} method can be created by delegating to the
+ * {@link owl.run.parser.PartialConfigurationParser partial configuration parser}. See, e.g., the
+ * {@link owl.translations.rabinizer.RabinizerMain rabinizer main} for an example.
  */
 
 @EverythingIsNonnullByDefault

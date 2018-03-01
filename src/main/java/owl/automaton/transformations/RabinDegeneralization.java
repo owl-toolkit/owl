@@ -48,7 +48,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("dgra2dra")
-    .description("Converts a generalized rabin automaton into a regular one")
+    .description("Converts a generalized Rabin automaton into a regular one")
     .parser(settings -> environment -> INSTANCE)
     .build();
 

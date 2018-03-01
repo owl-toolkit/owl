@@ -16,9 +16,9 @@
  */
 
 /**
- * This package and its subpackages contain the infrastructure for omega automata.
+ * This package and its subpackages contains various
  */
 @EverythingIsNonnullByDefault
-package owl.automaton;
+package owl;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

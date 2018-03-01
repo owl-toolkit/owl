@@ -42,7 +42,7 @@ public final class PipelineParser {
 
     // Input specification
     ModuleDescription readerDescription = iterator.next();
-    ReaderParser readerParser = registry.getReaderParser(readerDescription.name);
+    ReaderParser readerParser = registry.reader(readerDescription.name);
     InputReader reader = parseModule(parser, readerParser, readerDescription);
     pipelineSpecificationBuilder.input(reader);
 
@@ -55,8 +55,7 @@ public final class PipelineParser {
     // Now parse the remaining arguments
     ModuleDescription currentDescription = iterator.next();
     while (iterator.hasNext()) {
-      TransformerParser transformerParser =
-        registry.getTransformerParser(currentDescription.name);
+      TransformerParser transformerParser = registry.transformer(currentDescription.name);
       Transformer transformer = parseModule(parser, transformerParser, currentDescription);
       pipelineSpecificationBuilder.addTransformers(transformer);
       currentDescription = iterator.next();
@@ -64,7 +63,7 @@ public final class PipelineParser {
 
     // Finally, get the output
     ModuleDescription output = currentDescription;
-    WriterParser writerParser = registry.getWriterParser(output.name);
+    WriterParser writerParser = registry.writer(output.name);
     OutputWriter writer = parseModule(parser, writerParser, currentDescription);
     pipelineSpecificationBuilder.output(writer);
 
@@ -111,8 +110,8 @@ public final class PipelineParser {
 
       List<String> argList = commandLine.getArgList();
       if (!argList.isEmpty()) {
-        throw new ModuleParseException(new ParseException("Unmatched arguments " + argList),
-          settings);
+        ParseException parseException = new ParseException("Unmatched arguments " + argList);
+        throw new ModuleParseException(parseException, settings);
       }
     } catch (ParseException e) {
       throw new ModuleParseException(e, settings);

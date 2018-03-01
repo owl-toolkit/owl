@@ -49,6 +49,8 @@ import owl.translations.nba2ldba.NBA2LDBA;
 public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPrintable> {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2dpa")
+    .description("Converts a non-deterministic Büchi automaton into a deterministic parity "
+      + "automaton")
     .parser(settings -> environment -> {
       NBA2DPAFunction<Object> function = new NBA2DPAFunction<>();
       return (input, context) ->

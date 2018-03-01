@@ -62,7 +62,8 @@ public final class GameViews {
 
   public static final TransformerParser AUTOMATON_TO_GAME_CLI =
     ImmutableTransformerParser.builder()
-      .key("aut2arena")
+      .key("aut2game")
+      .description("Converts an automaton into a game by splitting the transitions")
       .optionsBuilder(() -> {
         Option environmentPropositions = new Option("e", "environment", true,
           "List of atomic propositions controlled by the environment");
