@@ -11,13 +11,8 @@ import owl.util.annotation.HashedTuple;
 abstract class MonitorState {
   abstract List<EquivalenceClass> formulaRanking();
 
-
   static MonitorState of(EquivalenceClass initialClass) {
     return MonitorStateTuple.create(ImmutableList.of(initialClass));
-  }
-
-  static MonitorState of(EquivalenceClass[] ranking) {
-    return MonitorStateTuple.create(ImmutableList.copyOf(ranking));
   }
 
   static MonitorState of(List<EquivalenceClass> ranking) {

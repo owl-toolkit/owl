@@ -5,10 +5,10 @@ import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import de.tum.in.naturals.Arrays2;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.booleans.BooleanArrays;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
@@ -248,7 +248,7 @@ final class MonitorBuilder {
     // Construct the successor ranking. At most one new class can be introduced (if the initial
     // formula is not ranked, it is re-created as youngest). If there are less, the array is shrunk
     // afterwards.
-    EquivalenceClass[] successorRanking = new EquivalenceClass[currentRankingSize + 1];
+    List<EquivalenceClass> successorRanking = new ArrayList<>(currentRankingSize + 1);
     int[] successorSources = new int[currentRankingSize];
 
     int successorRankingSize = 0;
@@ -299,7 +299,7 @@ final class MonitorBuilder {
         boolean merged = false;
         for (int olderIndex = 0; olderIndex < successorRankingSize; olderIndex++) {
           // Iterate over all previous (older) classes and check for equality
-          EquivalenceClass olderSuccessorClass = successorRanking[olderIndex];
+          EquivalenceClass olderSuccessorClass = successorRanking.get(olderIndex);
           assert olderSuccessorClass != null && !isSink(olderSuccessorClass);
 
           if (successorClass.equals(olderSuccessorClass)) {
@@ -388,7 +388,7 @@ final class MonitorBuilder {
       }
 
       // This is a genuine successor - add it to the ranking
-      successorRanking[successorRankingSize] = successorClass;
+      successorRanking.add(successorClass);
       successorSources[successorRankingSize] = currentRank;
       successorRankingSize += 1;
     }
@@ -397,19 +397,14 @@ final class MonitorBuilder {
     // and update the automata
 
     // If there is no initial state in the array, we need to recreate it as youngest token
-    assert successorContainsInitial == Arrays.asList(successorRanking).contains(initialClass);
+    assert successorContainsInitial == successorRanking.contains(initialClass);
+
     if (!successorContainsInitial) {
-      successorRanking[successorRankingSize] = initialClass;
-      successorRankingSize += 1;
+      successorRanking.add(initialClass);
     }
 
-    // If there were some removed classes, compact the array, otherwise take it as is
-    successorRanking = Arrays2.trim(successorRanking, successorRankingSize);
-
-    assert Arrays.stream(successorRanking).noneMatch(MonitorStateFactory::isSink);
-    assert Arrays.stream(successorRanking)
-      .filter(state -> state.equals(initialClass))
-      .count() == 1;
+    assert successorRanking.stream().noneMatch(MonitorStateFactory::isSink);
+    assert successorRanking.stream().filter(state -> state.equals(initialClass)).count() == 1;
 
     return MonitorState.of(successorRanking);
   }
