@@ -5,7 +5,7 @@ import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import de.tum.in.naturals.Arrays2;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -118,15 +118,14 @@ final class MonitorBuilderNoAcceptance {
     // Construct the successor ranking. At most one new class can be introduced (if the initial
     // formula is not ranked, it is re-created as youngest). If there are less, the array is shrunk
     // afterwards.
-    EquivalenceClass[] successorRanking = new EquivalenceClass[currentRankingSize + 1];
+    List<EquivalenceClass> successorRanking = new ArrayList<>(currentRankingSize + 1);
 
-    int successorRankingSize = 0;
     boolean successorContainsInitial = false;
 
     //noinspection LabeledStatement
     rank:
     for (int rank = 0; rank < currentRankingSize; rank++) {
-      assert successorRankingSize <= rank;
+      assert successorRanking.size() <= rank;
 
       // Perform one step of "af_G(currentClass)" - we unfold all temporal operators except G
       EquivalenceClass currentClass = currentRanking.get(rank);
@@ -137,10 +136,9 @@ final class MonitorBuilderNoAcceptance {
       }
 
       // Now, check if we already have this successor class
-      for (int j = 0; j < successorRankingSize; j++) {
+      for (EquivalenceClass olderSuccessorClass : successorRanking) {
         // Iterate over all previous (older) classes and check for equality - in that case a merge
-        // happened
-        EquivalenceClass olderSuccessorClass = successorRanking[j];
+        // happened;
         assert olderSuccessorClass != null && !isSink(olderSuccessorClass);
 
         if (successorClass.equals(olderSuccessorClass)) {
@@ -150,23 +148,20 @@ final class MonitorBuilderNoAcceptance {
       }
 
       // This is a genuine successor - add it to the ranking
-      successorContainsInitial = successorContainsInitial || initialClass.equals(successorClass);
-      successorRanking[successorRankingSize] = successorClass;
-      successorRankingSize += 1;
+      successorContainsInitial |= initialClass.equals(successorClass);
+      successorRanking.add(successorClass);
     }
 
     // We updated all rankings and computed some acceptance information. Now, do bookkeeping
     // and update the automata
 
     // If there is no initial state in the array, we need to recreate it as youngest token
-    assert successorContainsInitial == List.of(successorRanking).contains(initialClass);
+    assert successorContainsInitial == successorRanking.contains(initialClass);
+
     if (!successorContainsInitial) {
-      successorRanking[successorRankingSize] = initialClass;
-      successorRankingSize += 1;
+      successorRanking.add(initialClass);
     }
 
-    // If there were some removed classes, compact the array, otherwise take it as is
-    successorRanking = Arrays2.trim(successorRanking, successorRankingSize);
     return Edge.of(MonitorState.of(successorRanking));
   }
 
