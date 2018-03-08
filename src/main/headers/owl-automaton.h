@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <utility>
 #include <vector>
@@ -5,9 +7,6 @@
 #include <jni.h>
 
 #include "owl-formula.h"
-
-#ifndef OWL_AUTOMATON_H
-#define OWL_AUTOMATON_H
 
 namespace owl {
     // LabelledTrees
@@ -149,5 +148,3 @@ namespace owl {
         std::unique_ptr<LabelledTree<Tag, Reference>> structure();
     };
 }
-
-#endif // OWL_AUTOMATON_H

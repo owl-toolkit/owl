@@ -2,11 +2,6 @@
 #include "owl-private.h"
 
 namespace owl {
-    OwlThread::~OwlThread() {
-        // Detach from JavaVM.
-        vm->DetachCurrentThread();
-    }
-
     FormulaFactory OwlThread::createFormulaFactory() const {
         return FormulaFactory(env);
     }

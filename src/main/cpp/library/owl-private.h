@@ -1,12 +1,11 @@
+#pragma once
+
 #include <jni.h>
 #include <vector>
 #include <string>
 #include <iostream>
 
 #include "owl.h"
-
-#ifndef OWL_PRIVATE_H
-#define OWL_PRIVATE_H
 
 inline bool check_exception(JNIEnv *env, const char *message) {
     if (env->ExceptionCheck()) {
@@ -413,5 +412,3 @@ namespace owl {
         }
     };
 }
-
-#endif // OWL_PRIVATE_H
