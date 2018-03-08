@@ -1,7 +1,6 @@
-#include <jni.h>
+#pragma once
 
-#ifndef OWL_BASE_H
-#define OWL_BASE_H
+#include <jni.h>
 
 namespace owl {
     class ManagedJObject {
@@ -21,5 +20,3 @@ namespace owl {
         friend class FormulaRewriter;
     };
 }
-
-#endif // OWL_BASE_H

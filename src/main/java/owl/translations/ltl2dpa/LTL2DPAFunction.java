@@ -164,7 +164,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     }
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION)) {
-      return  automaton != null && complement != null;
+      return automaton != null && complement != null;
     }
 
     return automaton != null;

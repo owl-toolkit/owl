@@ -1,11 +1,10 @@
+#pragma once
+
 #include <jni.h>
 #include <vector>
 #include <map>
 
 #include "owl-base.h"
-
-#ifndef OWL_FORMULA_H
-#define OWL_FORMULA_H
 
 namespace owl {
     enum FormulaType {
@@ -116,5 +115,3 @@ namespace owl {
         Formula simplify(const Formula& formula);
     };
 }
-
-#endif // OWL_FORMULA_H

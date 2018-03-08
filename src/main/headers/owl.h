@@ -1,11 +1,10 @@
+#pragma once
+
 #include <jni.h>
 #include <vector>
 
 #include "owl-automaton.h"
 #include "owl-formula.h"
-
-#ifndef OWL_H
-#define OWL_H
 
 namespace owl {
     class OwlThread {
@@ -18,8 +17,18 @@ namespace owl {
 
     public:
         OwlThread(const OwlThread &owl) = delete;
-        OwlThread(const OwlThread &&owl) noexcept : vm(owl.vm), env(owl.env) {};
-        ~OwlThread();
+
+        OwlThread(OwlThread &&owl) noexcept : vm(owl.vm), env(owl.env) {
+            owl.vm = nullptr;
+            owl.env = nullptr;
+        };
+
+        ~OwlThread() {
+            if (vm != nullptr) {
+                // Detach thread from JVM.
+                vm->DetachCurrentThread();
+            }
+        }
 
         Formula adoptFormula(const Formula &formula) const;
         Automaton adoptAutomaton(const Automaton &automaton) const;
@@ -40,5 +49,3 @@ namespace owl {
         OwlThread attachCurrentThread() const;
     };
 }
-
-#endif // OWL_H
