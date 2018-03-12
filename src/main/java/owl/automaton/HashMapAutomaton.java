@@ -25,7 +25,6 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,6 +47,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
@@ -84,7 +84,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     Map<Edge<S>, ValuationSet> map = transitions.computeIfAbsent(makeUnique(source), mapSupplier);
     Edge<S> uniqueEdge = makeUnique(edge);
     transitions.computeIfAbsent(uniqueEdge.getSuccessor(), mapSupplier);
-    ValuationSetMapUtil.add(map, uniqueEdge, valuations);
+    map.merge(uniqueEdge, valuations, ValuationSet::union);
   }
 
   @Override
@@ -114,7 +114,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
     // No "outgoing" edges
     transitions.forEach((state, edges) -> {
-      Set<S> successorStates = Sets.newHashSet(ValuationSetMapUtil.viewSuccessors(edges));
+      Set<S> successorStates = Collections3.transformUnique(edges.keySet(), Edge::getSuccessor);
       checkState(transitions.keySet().containsAll(successorStates));
       successors.putAll(state, successorStates);
       for (S successor : successorStates) {
@@ -185,8 +185,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-    return Collections.unmodifiableCollection(Collections2.transform(getEdgeMap(state).entrySet(),
-      LabelledEdge::of));
+    return Collections.unmodifiableCollection(
+      Collections2.transform(getEdgeMap(state).entrySet(), LabelledEdge::of));
   }
 
   @Override
@@ -196,7 +196,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public Set<S> getSuccessors(S state) {
-    return new HashSet<>(ValuationSetMapUtil.viewSuccessors(transitions.get(makeUnique(state))));
+    return Collections3.transformUnique(getEdgeMap(state).keySet(), Edge::getSuccessor);
   }
 
   @Override
@@ -277,7 +277,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
       if (removeState) {
         edges.clear();
       } else {
-        ValuationSetMapUtil.remove(edges, filter);
+        edges.entrySet().removeIf(e -> filter.test(e.getKey().getSuccessor()));
       }
 
       return removeState;

@@ -232,7 +232,6 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
 
   private BddValuationSet create(int bdd) {
-    // summonReaper();
     return canonicalize(bdd, new BddValuationSet(this, bdd));
   }
 

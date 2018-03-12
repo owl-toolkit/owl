@@ -19,28 +19,19 @@ package owl.collections;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Collections2;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
-import owl.factories.ValuationSetFactory;
 
 public final class ValuationSetMapUtil {
 
   private ValuationSetMapUtil() {
-  }
-
-  public static <K> void add(Map<K, ValuationSet> map, K key, ValuationSet valuations) {
-    ValuationSetFactory factory = valuations.getFactory();
-    map.merge(key, valuations, factory::union);
   }
 
   public static <K> Set<K> findAll(Map<K, ValuationSet> map, BitSet valuation) {
@@ -82,10 +73,6 @@ public final class ValuationSetMapUtil {
     return key;
   }
 
-  public static <S> void remove(Map<Edge<S>, ValuationSet> map, Predicate<? super S> predicate) {
-    map.entrySet().removeIf(entry -> predicate.test(entry.getKey().getSuccessor()));
-  }
-
   public static <S> void remove(Map<Edge<S>, ValuationSet> map, S state, ValuationSet valuations) {
     ValuationSet complement = valuations.complement();
 
@@ -102,23 +89,6 @@ public final class ValuationSetMapUtil {
     });
   }
 
-  public static <S> void remove(Map<Edge<S>, ValuationSet> map, Edge<S> edge,
-    ValuationSet valuations) {
-    ValuationSet complement = valuations.complement();
-
-    map.computeIfPresent(edge, (key, value) ->
-      value.intersects(complement) ? value.intersection(complement) : null);
-  }
-
-  public static <S> void remove(Map<Edge<S>, ValuationSet> map, ValuationSet valuations) {
-    ValuationSet complement = valuations.complement();
-
-    map.entrySet().removeIf(entry -> {
-      entry.setValue(entry.getValue().intersection(complement));
-      return entry.getValue().isEmpty();
-    });
-  }
-
   public static <K> void update(Map<K, ValuationSet> map, Function<K, K> keyUpdater) {
     Map<K, ValuationSet> secondMap = new HashMap<>();
 
@@ -131,16 +101,12 @@ public final class ValuationSetMapUtil {
       }
 
       if (newKey != null) {
-        add(secondMap, newKey, entry.getValue());
+        secondMap.merge(newKey, entry.getValue(), ValuationSet::union);
       }
 
       return true;
     });
 
-    secondMap.forEach((edge, valuations) -> add(map, edge, valuations));
-  }
-
-  public static <S> Collection<S> viewSuccessors(Map<Edge<S>, ValuationSet> map) {
-    return Collections2.transform(map.keySet(), Edge::getSuccessor);
+    secondMap.forEach((edge, valuations) -> map.merge(edge, valuations, ValuationSet::union));
   }
 }

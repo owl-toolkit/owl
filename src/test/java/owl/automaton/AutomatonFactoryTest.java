@@ -51,7 +51,7 @@ public class AutomatonFactoryTest {
 
     assertThat(AutomatonUtil.getIncompleteStates(singleton).entrySet(), empty());
     assertThat(AutomatonUtil.getReachableStates(singleton), contains(singletonState));
-    assertThat(singleton.getSuccessorMap(singletonState).entrySet(), iterableWithSize(1));
+    assertThat(singleton.getLabelledEdges(singletonState), iterableWithSize(1));
     LabelledEdge<Object> selfLoop = LabelledEdge.of(singletonState,
       factory.universe());
     assertThat(singleton.getLabelledEdges(singletonState), hasItem(selfLoop));

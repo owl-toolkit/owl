@@ -14,7 +14,6 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.GOperator;
 
@@ -72,8 +71,8 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
     Map<MonitorState, ValuationSet> successors = new HashMap<>(labelledEdges.size());
 
     for (LabelledEdge<MonitorState> labelledEdge : labelledEdges) {
-      ValuationSetMapUtil.add(successors, labelledEdge.edge.getSuccessor(),
-        labelledEdge.valuations);
+      successors.merge(labelledEdge.edge.getSuccessor(), labelledEdge.valuations,
+        ValuationSet::union);
     }
 
     return Collections2.transform(successors.entrySet(),
