@@ -40,7 +40,6 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 
 public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
@@ -79,7 +78,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
       Edge<S> edge = successors.apply(state, valuation);
 
       if (edge != null) {
-        ValuationSetMapUtil.add(edgeMap, edge, factory.of(valuation));
+        edgeMap.merge(edge, factory.of(valuation), ValuationSet::union);
       }
     }
 

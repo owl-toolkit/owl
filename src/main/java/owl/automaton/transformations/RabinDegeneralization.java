@@ -36,7 +36,6 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetMapUtil;
 import owl.run.PipelineExecutionContext;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
@@ -107,15 +106,14 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         S state = Iterables.getOnlyElement(scc);
         assert !stateMap.containsKey(state);
 
-        DegeneralizedRabinState<S> degeneralizedState =
-          DegeneralizedRabinState.of(state);
+        DegeneralizedRabinState<S> degeneralizedState = DegeneralizedRabinState.of(state);
         // This catches corner cases, where there are transient states with no successors
         resultAutomaton.addState(degeneralizedState);
         stateMap.put(state, degeneralizedState);
 
         Map<S, ValuationSet> successors = transientEdgesTable.row(degeneralizedState);
-        automaton.forEachLabelledEdge(state, (edge, valuations) ->
-          ValuationSetMapUtil.add(successors, edge.getSuccessor(), valuations));
+        automaton.forEachLabelledEdge(state, (edge, valuations)
+        -> successors.merge(edge.getSuccessor(), valuations, ValuationSet::union));
         continue;
       }
 
@@ -154,8 +152,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             S generalizedSuccessor = edge.getSuccessor();
             if (!scc.contains(generalizedSuccessor)) {
               // This is a transient edge, add to the table and ignore it
-              ValuationSetMapUtil.add(transientSuccessors, generalizedSuccessor,
-                labelledEdge.valuations);
+              transientSuccessors.merge(generalizedSuccessor, labelledEdge.valuations,
+                ValuationSet::union);
               continue;
             }
 

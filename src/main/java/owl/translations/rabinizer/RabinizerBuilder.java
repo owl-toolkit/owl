@@ -46,7 +46,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetMapUtil;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
@@ -617,17 +616,8 @@ public class RabinizerBuilder {
       assert currentState.monitorStates().size() == relevantFormulaCount;
       assert !transitionSystem.containsKey(currentState);
 
-      Map<EquivalenceClass, ValuationSet> masterSuccessors =
-        masterAutomaton.getSuccessorMap(currentState.masterState());
-
-      if (masterSuccessors.isEmpty()) {
-        transitionSystem.put(currentState, Map.of());
-        continue;
-      }
-
       Map<RabinizerProductEdge, ValuationSet> rabinizerSuccessors = new HashMap<>();
       transitionSystem.put(currentState, rabinizerSuccessors);
-
       List<MonitorState> monitorStates = currentState.monitorStates();
 
       // Compute the successor matrix for all monitors. Basically, we assign a arbitrary ordering
@@ -638,15 +628,17 @@ public class RabinizerBuilder {
 
       for (int monitorIndex = 0; monitorIndex < relevantFormulaCount; monitorIndex++) {
         MonitorState monitorState = monitorStates.get(monitorIndex);
-        Map<MonitorState, ValuationSet> monitorSuccessorMap =
-          monitors[monitorIndex].getSuccessorMap(monitorState);
 
-        int monitorSuccessorCount = monitorSuccessorMap.size();
+        Map<MonitorState, ValuationSet> successors = new HashMap<>();
+        monitors[monitorIndex].forEachLabelledEdge(monitorState, (edge, valuations)
+        -> successors.merge(edge.getSuccessor(), valuations, ValuationSet::union));
+
+        int monitorSuccessorCount = successors.size();
         successorCounts[monitorIndex] = monitorSuccessorCount - 1;
 
         MonitorState[] successorStates = new MonitorState[monitorSuccessorCount];
         ValuationSet[] successorValuations = new ValuationSet[monitorSuccessorCount];
-        Indices.forEachIndexed(monitorSuccessorMap.entrySet(), (successorIndex, entry) -> {
+        Indices.forEachIndexed(successors.entrySet(), (successorIndex, entry) -> {
           successorStates[successorIndex] = entry.getKey();
           successorValuations[successorIndex] = entry.getValue();
         });
@@ -658,7 +650,7 @@ public class RabinizerBuilder {
       BitSet sensitiveAlphabet = productStateFactory.getSensitiveAlphabet(currentState);
       long powerSetSize = (1L << (sensitiveAlphabet.size() + 2));
       // This is an over-approximation, since a lot of branches might be "empty"
-      long totalSuccessorCounts = masterSuccessors.size()
+      long totalSuccessorCounts = masterAutomaton.getSuccessors(currentState.masterState()).size()
         * NatCartesianProductSet.numberOfElements(successorCounts);
 
       if (totalSuccessorCounts > (1L << (powerSetSize + 2))) {
@@ -691,8 +683,9 @@ public class RabinizerBuilder {
           // Create product successor
           RabinizerState rabinizerSuccessor = RabinizerState.of(masterSuccessor, monitorSuccessors);
 
-          ValuationSetMapUtil.add(rabinizerSuccessors, new RabinizerProductEdge(rabinizerSuccessor),
-            vsFactory.of(valuation, sensitiveAlphabet));
+          rabinizerSuccessors.merge(new RabinizerProductEdge(rabinizerSuccessor),
+            vsFactory.of(valuation, sensitiveAlphabet), ValuationSet::union);
+
 
           // Update exploration queue
           if (exploredStates.add(rabinizerSuccessor)) {
@@ -702,10 +695,9 @@ public class RabinizerBuilder {
       } else {
         // Approach 2: Use the partition of the monitors to avoid computation if monitors aren't too
         // "fragmented".
-
-        masterSuccessors.forEach((masterSuccessor, masterSuccessorValuation) -> {
-          if (!stateSubset.contains(masterSuccessor)) {
-            // The successor is not part of this partition
+        masterAutomaton.forEachLabelledEdge(currentState.masterState(), (edge, valuationSet) -> {
+          // The successor is not part of this partition
+          if (!stateSubset.contains(edge.getSuccessor())) {
             return;
           }
 
@@ -716,7 +708,7 @@ public class RabinizerBuilder {
           product:
           while (productIterator.hasNext()) {
             int[] successorSelection = productIterator.next();
-            ValuationSet productValuation = masterSuccessorValuation;
+            ValuationSet productValuation = valuationSet;
 
             // Evolve each monitor
             MonitorState[] monitorSuccessors = new MonitorState[monitorStates.size()];
@@ -738,9 +730,9 @@ public class RabinizerBuilder {
             }
 
             // Create product successor
-            RabinizerState successor = RabinizerState.of(masterSuccessor, monitorSuccessors);
-            RabinizerProductEdge edge = new RabinizerProductEdge(successor);
-            ValuationSetMapUtil.add(rabinizerSuccessors, edge, productValuation);
+            RabinizerState successor = RabinizerState.of(edge.getSuccessor(), monitorSuccessors);
+            rabinizerSuccessors.merge(new RabinizerProductEdge(successor), productValuation,
+              ValuationSet::union);
 
             // Update exploration queue
             if (exploredStates.add(successor)) {

@@ -21,10 +21,8 @@ import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -38,7 +36,6 @@ import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 import owl.util.TriConsumer;
 
@@ -203,13 +200,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   @Nullable
   default S getSuccessor(S state, BitSet valuation) {
     return Iterables.getOnlyElement(getSuccessors(state, valuation), null);
-  }
-
-  default Map<S, ValuationSet> getSuccessorMap(S state) {
-    Map<S, ValuationSet> successorMap = new HashMap<>();
-    forEachLabelledEdge(state,
-      (edge, valuations) -> ValuationSetMapUtil.add(successorMap, edge.getSuccessor(), valuations));
-    return successorMap;
   }
 
   default Set<S> getSuccessors(S state) {
