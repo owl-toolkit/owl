@@ -49,7 +49,6 @@ import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetMapUtil;
 import owl.factories.ValuationSetFactory;
 import owl.util.TriConsumer;
 
@@ -154,7 +153,13 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Nullable
   @Override
   public Edge<S> getEdge(S state, BitSet valuation) {
-    return ValuationSetMapUtil.findFirst(getEdgeMap(state), valuation);
+    for (Map.Entry<Edge<S>, ValuationSet> entry : getEdgeMap(state).entrySet()) {
+      if (entry.getValue().contains(valuation)) {
+        return entry.getKey();
+      }
+    }
+
+    return null;
   }
 
   private Map<Edge<S>, ValuationSet> getEdgeMap(S state) {
@@ -170,7 +175,15 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    return ValuationSetMapUtil.findAll(getEdgeMap(state), valuation);
+    Set<Edge<S>> edges = new HashSet<>();
+
+    getEdgeMap(state).forEach((key, valuations) -> {
+      if (valuations.contains(valuation)) {
+        edges.add(key);
+      }
+    });
+
+    return edges;
   }
 
   @Override
@@ -233,20 +246,27 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
     assert containsStates(states);
 
     for (S state : states) {
-      ValuationSetMapUtil.update(getEdgeMap(state), edge -> {
-        Edge<S> newEdge = f.apply(state, edge);
+      Map<Edge<S>, ValuationSet> map = getEdgeMap(state);
+      Map<Edge<S>, ValuationSet> secondMap = new HashMap<>();
+
+      map.entrySet().removeIf(entry -> {
+        Edge<S> oldEdge = entry.getKey();
+        Edge<S> newEdge = f.apply(state, oldEdge);
 
         if (newEdge == null) {
-          return null;
+          return true;
         }
 
-        if (newEdge == edge) {
-          return edge;
+        if (Objects.equals(oldEdge, newEdge)) {
+          return false;
         }
 
-        assert containsState(edge.getSuccessor());
-        return makeUnique(newEdge);
+        newEdge = makeUnique(newEdge);
+        secondMap.merge(newEdge, entry.getValue(), ValuationSet::union);
+        return true;
       });
+
+      secondMap.forEach((edge1, valuations) -> map.merge(edge1, valuations, ValuationSet::union));
     }
   }
 
@@ -258,7 +278,17 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
 
   @Override
   public void removeEdge(S source, ValuationSet valuations, S destination) {
-    ValuationSetMapUtil.remove(getEdgeMap(source), destination, valuations);
+    ValuationSet complement = valuations.complement();
+
+    getEdgeMap(source).entrySet().removeIf(entry -> {
+      if (!Objects.equals(destination, entry.getKey().getSuccessor())) {
+        return false;
+      }
+
+      ValuationSet edgeValuation = entry.getValue();
+      entry.setValue(edgeValuation.intersection(complement));
+      return edgeValuation.isEmpty();
+    });
   }
 
   @Override
