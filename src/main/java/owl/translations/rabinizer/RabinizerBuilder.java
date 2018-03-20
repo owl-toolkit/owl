@@ -616,9 +616,17 @@ public class RabinizerBuilder {
       assert currentState.monitorStates().size() == relevantFormulaCount;
       assert !transitionSystem.containsKey(currentState);
 
+      EquivalenceClass masterState = currentState.masterState();
+      List<MonitorState> monitorStates = currentState.monitorStates();
+
+      Set<EquivalenceClass> masterSuccessors = masterAutomaton.getSuccessors(masterState);
+      if (masterSuccessors.isEmpty()) {
+        transitionSystem.put(currentState, Map.of());
+        continue;
+      }
+
       Map<RabinizerProductEdge, ValuationSet> rabinizerSuccessors = new HashMap<>();
       transitionSystem.put(currentState, rabinizerSuccessors);
-      List<MonitorState> monitorStates = currentState.monitorStates();
 
       // Compute the successor matrix for all monitors. Basically, we assign a arbitrary ordering
       // on all successors for each monitor.
@@ -650,7 +658,7 @@ public class RabinizerBuilder {
       BitSet sensitiveAlphabet = productStateFactory.getSensitiveAlphabet(currentState);
       long powerSetSize = (1L << (sensitiveAlphabet.size() + 2));
       // This is an over-approximation, since a lot of branches might be "empty"
-      long totalSuccessorCounts = masterAutomaton.getSuccessors(currentState.masterState()).size()
+      long totalSuccessorCounts = masterSuccessors.size()
         * NatCartesianProductSet.numberOfElements(successorCounts);
 
       if (totalSuccessorCounts > (1L << (powerSetSize + 2))) {
@@ -658,8 +666,7 @@ public class RabinizerBuilder {
 
         for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
           // Get the edge in the master automaton
-          Edge<EquivalenceClass> masterEdge =
-            masterAutomaton.getEdge(currentState.masterState(), valuation);
+          Edge<EquivalenceClass> masterEdge = masterAutomaton.getEdge(masterState, valuation);
           if (masterEdge == null) {
             // A null master edge means the master automaton moves into the "ff" state - a sure
             // failure and we don't need to investigate further.
@@ -695,7 +702,7 @@ public class RabinizerBuilder {
       } else {
         // Approach 2: Use the partition of the monitors to avoid computation if monitors aren't too
         // "fragmented".
-        masterAutomaton.forEachLabelledEdge(currentState.masterState(), (edge, valuationSet) -> {
+        masterAutomaton.forEachLabelledEdge(masterState, (edge, valuationSet) -> {
           // The successor is not part of this partition
           if (!stateSubset.contains(edge.getSuccessor())) {
             return;
