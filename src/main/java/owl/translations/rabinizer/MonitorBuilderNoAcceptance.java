@@ -2,7 +2,6 @@ package owl.translations.rabinizer;
 
 import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ final class MonitorBuilderNoAcceptance {
       new Object[] {formula, relevantSets, isSafety, noSubFormula});
 
     this.stateFactory = new MonitorStateFactory(eager, noSubFormula);
-    this.relevantSets = ImmutableSet.copyOf(relevantSets);
+    this.relevantSets = Set.copyOf(relevantSets);
 
     initialClass = stateFactory.getInitialState(formula);
   }

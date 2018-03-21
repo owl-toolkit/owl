@@ -1,6 +1,5 @@
 package owl.automaton.minimizations;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -16,7 +15,7 @@ public class ExplicitMinimizeTransformer<S, A extends OmegaAcceptance>
 
   public ExplicitMinimizeTransformer(List<Minimization<S, A>> minimizationList,
     Class<S> stateClass, Class<A> acceptanceClass) {
-    this.minimizationList = ImmutableList.copyOf(minimizationList);
+    this.minimizationList = List.copyOf(minimizationList);
     this.stateClass = stateClass;
     this.acceptanceClass = acceptanceClass;
   }

@@ -22,8 +22,8 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
@@ -155,12 +155,12 @@ public class HashMapAutomatonTest {
       : Edge.of(edge.getSuccessor(), 1));
 
     for (LabelledEdge<String> successorEdge : automaton.getLabelledEdges("1")) {
-      assertThat(ImmutableList.copyOf(successorEdge.edge.acceptanceSetIterator()),
+      assertThat(Lists.newArrayList(successorEdge.edge.acceptanceSetIterator()),
         containsInAnyOrder(0));
     }
 
     for (LabelledEdge<String> successorEdge : automaton.getLabelledEdges("2")) {
-      assertThat(ImmutableList.copyOf(successorEdge.edge.acceptanceSetIterator()),
+      assertThat(Lists.newArrayList(successorEdge.edge.acceptanceSetIterator()),
         containsInAnyOrder(1));
     }
 

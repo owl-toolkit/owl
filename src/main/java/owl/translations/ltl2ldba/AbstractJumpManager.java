@@ -1,6 +1,5 @@
 package owl.translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -23,11 +22,10 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(Set.of());
 
   protected final EquivalenceClassFactory factory;
-  protected final ImmutableSet<Configuration> configuration;
+  protected final Set<Configuration> configuration;
 
-  public AbstractJumpManager(ImmutableSet<Configuration> configuration,
-    EquivalenceClassFactory factory) {
-    this.configuration = configuration;
+  public AbstractJumpManager(Set<Configuration> configuration, EquivalenceClassFactory factory) {
+    this.configuration = Set.copyOf(configuration);
     this.factory = factory;
   }
 

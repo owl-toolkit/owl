@@ -17,10 +17,11 @@
 
 package owl.automaton;
 
-import com.google.common.collect.ImmutableList;
 import de.tum.in.naturals.bitset.BitSets;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -101,13 +102,12 @@ public final class AutomatonFactory {
       this.factory = factory;
       this.acceptance = acceptance;
 
-      ImmutableList.Builder<LabelledEdge<S>> builder = ImmutableList.builder();
+      List<LabelledEdge<S>> builder = new ArrayList<>();
       acceptances.forEach((edgeAcceptance, valuations) -> {
         Edge<S> edge = Edge.of(singletonState, BitSets.of(edgeAcceptance));
         builder.add(LabelledEdge.of(edge, valuations));
       });
-
-      this.selfLoopEdges = builder.build();
+      this.selfLoopEdges = List.copyOf(builder);
     }
 
     @Override

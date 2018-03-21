@@ -1,22 +1,23 @@
 package owl.translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.Set;
 
 final class AnalysisResult<U extends RecurringObligation> {
-  final ImmutableSet<Jump<U>> jumps;
+  final Set<Jump<U>> jumps;
   final TYPE type;
 
-  private AnalysisResult(TYPE type, ImmutableSet<Jump<U>> jumps) {
+  private AnalysisResult(TYPE type, Set<Jump<U>> jumps) {
     this.type = type;
     this.jumps = jumps;
   }
 
-  static <U extends RecurringObligation> AnalysisResult<U> buildMay(Iterable<Jump<U>> jumps) {
-    return new AnalysisResult<>(TYPE.MAY, ImmutableSet.copyOf(jumps));
+  static <U extends RecurringObligation> AnalysisResult<U> buildMay(Collection<Jump<U>> jumps) {
+    return new AnalysisResult<>(TYPE.MAY, Set.copyOf(jumps));
   }
 
   static <U extends RecurringObligation> AnalysisResult<U> buildMust(Jump<U> jump) {
-    return new AnalysisResult<>(TYPE.MUST, ImmutableSet.of(jump));
+    return new AnalysisResult<>(TYPE.MUST, Set.of(jump));
   }
 
   enum TYPE {

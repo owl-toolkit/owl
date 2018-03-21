@@ -2,7 +2,6 @@ package owl.translations.dra2dpa;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Table;
@@ -52,13 +51,13 @@ final class SccIARBuilder<R> {
   private static final Logger logger = Logger.getLogger(SccIARBuilder.class.getName());
   private final Table<R, IntPreOrder, IARState<R>> iarStates;
   private final RabinPair[] indexToPair;
-  private final ImmutableSet<R> initialRabinStates;
+  private final Set<R> initialRabinStates;
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
   private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
   private final BitSet usedPriorities;
 
   private SccIARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton,
-    ImmutableSet<R> initialRabinStates, ImmutableSet<RabinPair> trackedPairs) {
+    Set<R> initialRabinStates, Set<RabinPair> trackedPairs) {
     assert SccDecomposition.computeSccs(rabinAutomaton, initialRabinStates).size() == 1;
     assert rabinAutomaton.containsStates(initialRabinStates);
 
@@ -85,7 +84,7 @@ final class SccIARBuilder<R> {
   static <R> SccIARBuilder<R> from(Automaton<R, RabinAcceptance> rabinAutomaton,
     Set<R> initialStates, Set<R> restriction, Set<RabinPair> trackedPairs) {
     return new SccIARBuilder<>(Views.filter(rabinAutomaton, restriction),
-      ImmutableSet.copyOf(initialStates), ImmutableSet.copyOf(trackedPairs));
+      Set.copyOf(initialStates), Set.copyOf(trackedPairs));
   }
 
   Automaton<IARState<R>, ParityAcceptance> build() {
@@ -164,7 +163,7 @@ final class SccIARBuilder<R> {
     IntPreOrder initialRecord = IntPreOrder.coarsest(numberOfTrackedPairs());
     return initialRabinStates.stream()
       .map(initialRabinState -> IARState.active(initialRabinState, initialRecord))
-      .collect(ImmutableSet.toImmutableSet());
+      .collect(Collectors.toUnmodifiableSet());
   }
 
   private int getMaximalUsedPriority() {
@@ -343,7 +342,7 @@ final class SccIARBuilder<R> {
           IARState<R> refinedInitialState =
             refinementTable.get(initialState.state(), initialState.record());
           return Objects.requireNonNullElse(refinedInitialState, initialState);
-        }).collect(ImmutableSet.toImmutableSet()));
+        }).collect(Collectors.toUnmodifiableSet()));
 
       // Update edges
       resultAutomaton.updateEdges((state, edge) -> {

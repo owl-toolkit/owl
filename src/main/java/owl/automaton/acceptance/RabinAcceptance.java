@@ -19,7 +19,7 @@ package owl.automaton.acceptance;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -107,7 +107,7 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   }
 
   public static final class Builder {
-    private final ImmutableList.Builder<RabinPair> pairs = new ImmutableList.Builder<>(); // NOPMD
+    private final List<RabinPair> pairs = new ArrayList<>(); // NOPMD
     private int sets = 0;
 
     public RabinPair add() {
@@ -118,7 +118,7 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
     }
 
     public RabinAcceptance build() {
-      return of(pairs.build());
+      return of(pairs);
     }
   }
 }

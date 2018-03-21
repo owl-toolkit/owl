@@ -20,7 +20,6 @@ package owl.ltl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.ImmutableList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +47,7 @@ public class FormulaTest {
 
   static {
     // TODO: Provide central Formula Database.
-    FORMULAS = ImmutableList.of(
+    FORMULAS = List.of(
       LtlParser.syntax("true"),
       LtlParser.syntax("false"),
       LtlParser.syntax("a"),

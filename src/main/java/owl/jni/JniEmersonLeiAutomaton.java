@@ -2,7 +2,6 @@ package owl.jni;
 
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class JniEmersonLeiAutomaton {
   private JniEmersonLeiAutomaton(LabelledTree<Tag, Reference> structure,
     List<JniAutomaton> automata) {
     this.structure = structure;
-    this.automata = ImmutableList.copyOf(automata);
+    this.automata = automata;
   }
 
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
@@ -53,7 +52,7 @@ public class JniEmersonLeiAutomaton {
       ? builder.defaultAction(processedFormula)
       : processedFormula.accept(builder);
 
-    return new JniEmersonLeiAutomaton(structure, builder.automata.build());
+    return new JniEmersonLeiAutomaton(structure, List.copyOf(builder.automata));
   }
 
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
@@ -96,7 +95,7 @@ public class JniEmersonLeiAutomaton {
     private final Environment environment = DefaultEnvironment.standard();
 
     private int counter = 0;
-    private final ImmutableList.Builder<JniAutomaton> automata = ImmutableList.builder();
+    private final List<JniAutomaton> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
 
     public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly) {

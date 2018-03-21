@@ -17,8 +17,6 @@
 
 package owl.factories.jbdd;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
@@ -29,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +54,7 @@ import owl.ltl.visitors.SubstitutionVisitor;
 final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEquivalenceClass>
   implements EquivalenceClassFactory {
 
-  private final ImmutableList<String> alphabet;
+  private final List<String> alphabet;
   private final int alphabetSize;
   private final boolean keepRepresentatives;
   private final BddVisitor visitor;
@@ -74,7 +73,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     super(factory);
 
     this.alphabetSize = alphabet.size();
-    this.alphabet = ImmutableList.copyOf(alphabet);
+    this.alphabet = List.copyOf(alphabet);
     this.keepRepresentatives = keepRepresentatives;
 
     mapping = new Object2IntOpenHashMap<>();
@@ -112,7 +111,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
   @Override
-  public ImmutableList<String> variables() {
+  public List<String> variables() {
     return alphabet;
   }
 
@@ -150,9 +149,9 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
   public Set<Formula> getSupport(EquivalenceClass clazz) {
     int bdd = getBdd(clazz);
     BitSet support = factory.support(bdd);
-    ImmutableSet.Builder<Formula> builder = ImmutableSet.builder();
-    BitSets.forEach(support, i -> builder.add(reverseMapping[i]));
-    return builder.build();
+    Set<Formula> set = new HashSet<>();
+    BitSets.forEach(support, i -> set.add(reverseMapping[i]));
+    return set;
   }
 
   @Override

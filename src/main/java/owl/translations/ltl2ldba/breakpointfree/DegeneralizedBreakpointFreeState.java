@@ -38,7 +38,7 @@ public final class DegeneralizedBreakpointFreeState {
 
   DegeneralizedBreakpointFreeState(@Nonnegative int index, @Nullable EquivalenceClass safety,
     @Nullable EquivalenceClass liveness, @Nullable FGObligations obligations) {
-    assert 0 == index || (0 < index && index < obligations.liveness.length);
+    assert 0 == index || (0 < index && index < obligations.liveness.size());
 
     this.index = index;
     this.liveness = liveness;

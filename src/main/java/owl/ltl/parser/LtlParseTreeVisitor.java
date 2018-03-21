@@ -1,6 +1,5 @@
 package owl.ltl.parser;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -40,30 +39,33 @@ import owl.ltl.XOperator;
 final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   private final List<Literal> literalCache;
   private final List<String> variables;
+  private final boolean fixedVariables;
 
   LtlParseTreeVisitor() {
     literalCache = new ArrayList<>();
     variables = new ArrayList<>();
+    fixedVariables = false;
   }
 
   LtlParseTreeVisitor(List<String> literals) {
     ListIterator<String> literalIterator = literals.listIterator();
-    ImmutableList.Builder<Literal> literalBuilder = ImmutableList.builder();
-    ImmutableList.Builder<String> variableBuilder = ImmutableList.builder();
+    List<Literal> literalList = new ArrayList<>();
+    List<String> variableList = new ArrayList<>();
 
     while (literalIterator.hasNext()) {
       int index = literalIterator.nextIndex();
       String name = literalIterator.next();
-      literalBuilder.add(new Literal(index));
-      variableBuilder.add(name);
+      literalList.add(new Literal(index));
+      variableList.add(name);
     }
 
-    literalCache = literalBuilder.build();
-    variables = variableBuilder.build();
+    literalCache = List.copyOf(literalList);
+    variables = List.copyOf(variableList);
+    fixedVariables = true;
   }
 
-  public ImmutableList<String> variables() {
-    return ImmutableList.copyOf(variables);
+  public List<String> variables() {
+    return List.copyOf(variables);
   }
 
   @Override
@@ -271,10 +273,11 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     int index = variables.indexOf(name);
 
     if (index == -1) {
-      if (variables instanceof ImmutableList) {
-        throw new IllegalStateException(
-          String.format("Encountered unknown variable %s with fixed set %s", name, variables));
+      if (fixedVariables) {
+        throw new IllegalStateException("Encountered unknown variable " + name
+          + " with fixed set " + variables);
       }
+
       int newIndex = variables.size();
       Literal literal = new Literal(newIndex);
       variables.add(name);

@@ -1,11 +1,10 @@
 package owl.translations.rabinizer;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -19,21 +18,21 @@ import owl.ltl.GOperator;
 
 class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
-  private final ImmutableMap<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
+  private final Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;
   private final GOperator formula;
 
   @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
   MonitorAutomaton(GOperator formula,
     Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
-    this.automata = ImmutableMap.copyOf(automata);
+    this.automata = Map.copyOf(automata);
     this.formula = formula;
 
-    ImmutableSet.Builder<GOperator> baseBuilder = ImmutableSet.builder();
+    Set<GOperator> baseBuilder = new HashSet<>();
     for (GSet relevantSet : this.automata.keySet()) {
       baseBuilder.addAll(relevantSet);
     }
-    this.base = new GSet(baseBuilder.build());
+    this.base = new GSet(baseBuilder);
 
     anyAutomaton = automata.values().iterator().next();
   }
@@ -43,7 +42,7 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
     return NoneAcceptance.INSTANCE;
   }
 
-  ImmutableMap<GSet, Automaton<MonitorState, ParityAcceptance>> getAutomata() {
+  Map<GSet, Automaton<MonitorState, ParityAcceptance>> getAutomata() {
     return automata;
   }
 

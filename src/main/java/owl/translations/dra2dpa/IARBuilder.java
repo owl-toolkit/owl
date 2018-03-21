@@ -3,7 +3,6 @@ package owl.translations.dra2dpa;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -22,6 +21,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -79,7 +79,7 @@ public final class IARBuilder<R> {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
     logger.log(Level.FINEST, () -> "Input automaton is\n" + AutomatonUtil.toHoa(rabinAutomaton));
 
-    Set<RabinPair> rabinPairs = ImmutableSet.copyOf(rabinAutomaton.getAcceptance().getPairs());
+    Set<RabinPair> rabinPairs = Set.copyOf(rabinAutomaton.getAcceptance().getPairs());
     if (rabinPairs.isEmpty()) {
       IARState<R> state = IARState.trivial(rabinAutomaton.getInitialStates().iterator().next());
       return AutomatonFactory.singleton(state, rabinAutomaton.getFactory(),
@@ -157,7 +157,7 @@ public final class IARBuilder<R> {
 
     resultAutomaton.setInitialStates(rabinAutomaton.getInitialStates().stream()
       .map(rabinToIarStateMap::get)
-      .collect(ImmutableSet.toImmutableSet()));
+      .collect(Collectors.toUnmodifiableSet()));
     int sets = maximalSubAutomatonPriority + 1;
     resultAutomaton.updateAcceptance(x -> x.setAcceptanceSets(sets));
     assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
@@ -229,7 +229,7 @@ public final class IARBuilder<R> {
     Set<RabinPair> activeRabinPairs;
 
     if (seenAllInfSets.get()) {
-      activeRabinPairs = ImmutableSet.copyOf(rabinPairs);
+      activeRabinPairs = Set.copyOf(rabinPairs);
     } else {
       activeRabinPairs = Sets.difference(rabinPairs, remainingPairsToCheck).immutableCopy();
     }

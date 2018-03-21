@@ -19,7 +19,6 @@ package owl.collections;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import java.util.AbstractList;
@@ -140,18 +139,11 @@ public final class Collections3 {
     return union;
   }
 
-  public static <E> Set<E> immutableUnion(Collection<? extends Collection<E>> elements) {
-    ImmutableSet.Builder<E> builder = ImmutableSet.builder();
-    elements.forEach(builder::addAll);
-    return builder.build();
-  }
-
   public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {
     Set<E> union = ConcurrentHashMap.newKeySet(elements.size());
     elements.parallelStream().forEach(union::addAll);
     return union;
   }
-
 
   public static <E1, E2> void zip(Iterable<E1> iterable1, Iterable<E2> iterable2,
     BiConsumer<E1, E2> action) {

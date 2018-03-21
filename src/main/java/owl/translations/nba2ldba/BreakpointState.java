@@ -17,7 +17,6 @@
 
 package owl.translations.nba2ldba;
 
-import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.HashSet;
 import java.util.Objects;
@@ -28,13 +27,13 @@ public class BreakpointState<S> {
 
   @Nonnegative
   final int ix;
-  final ImmutableSet<S> mx;
-  final ImmutableSet<S> nx;
+  final Set<S> mx;
+  final Set<S> nx;
 
   BreakpointState(@Nonnegative int i, Set<S> m, Set<S> n) {
     this.ix = i;
-    this.mx = ImmutableSet.copyOf(m);
-    this.nx = ImmutableSet.copyOf(n);
+    this.mx = Set.copyOf(m);
+    this.nx = Set.copyOf(n);
   }
 
   public static <S> BreakpointState<S> getSink() {

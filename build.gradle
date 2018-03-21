@@ -25,35 +25,37 @@ buildscript {
 }
 
 plugins {
-    // https://github.com/tbroyer/gradle-errorprone-plugin
-    id 'net.ltgt.errorprone' version '0.0.13'
-    // http://imperceptiblethoughts.com/shadow/
-    // id 'com.github.johnrengelman.shadow' version '2.0.2'
-    id 'net.ltgt.apt-idea' version '0.14'
+    // https://github.com/tbroyer/gradle-apt-plugin
+    id 'net.ltgt.apt-idea' version '0.15'
+    // https://github.com/tbroyer/gradle-errorprone-javacplugin-plugin
+    id 'net.ltgt.errorprone-javacplugin' version '0.1'
 }
 
+// Languages
+apply plugin: 'antlr'
 apply plugin: 'c'
 apply plugin: 'cpp'
 apply plugin: 'java'
 
-apply plugin: 'antlr'
-
+// Static Analysis
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 
+// IDE Support
 apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
 project.version = '1.2.0-SNAPSHOT'
 
-project.sourceCompatibility = '1.9'
-project.targetCompatibility = '1.9'
+project.sourceCompatibility = JavaVersion.VERSION_1_10
+project.targetCompatibility = JavaVersion.VERSION_1_10
 project.archivesBaseName = 'owl'
 
 mainClassName = "owl.run.DefaultCli"
 def minimize = !project.hasProperty("full")
 def buildNatives = !project.hasProperty("disable-native")
+def enableProGuard = !project.hasProperty("disable-proguard")
 
 def defaultEncoding = 'UTF-8'
 //noinspection GroovyAssignabilityCheck
@@ -67,9 +69,9 @@ repositories {
 
 dependencies {
     // https://immutables.github.io/
-    compileOnly 'org.immutables:value:2.5.5:annotations' 
+    compileOnly 'org.immutables:value:2.5.6:annotations'
 
-    compile 'com.google.guava:guava:24.0-jre'
+    compile 'com.google.guava:guava:24.1-jre'
     compile 'it.unimi.dsi:fastutil:8.1.1'
     compile 'org.antlr:antlr4-runtime:4.7.1'
     compile 'de.tum.in:jbdd:0.3.2'
@@ -78,12 +80,12 @@ dependencies {
     compile files('lib/jhoafparser-1.1.1-patched.jar')
 
     testCompileOnly 'org.immutables:value:2.5.5:annotations'
-    
+
     testCompile 'junit:junit:4+'
     testCompile 'org.hamcrest:hamcrest-library:1.3'
 
     antlr 'org.antlr:antlr4:4.7.1' // Introduces unused runtime dependencies
-    annotationProcessor 'org.immutables:value:2.5.5'
+    annotationProcessor 'org.immutables:value:2.5.6'
     errorprone 'com.google.errorprone:error_prone_core:2.2.0'
 }
 
@@ -105,7 +107,6 @@ jar {
             "Main-Class": project.mainClassName,
             "Implementation-Version": version)
     }
-    // exclude('**.java') // Generated .java files
 }
 
 //noinspection GroovyAssignabilityCheck
@@ -115,6 +116,8 @@ tasks.withType(Javadoc) {
     options.charSet = defaultEncoding
     // https://github.com/gradle/gradle/issues/2553 Disables some superfluous warnings of javadoc
     options.addStringOption 'Xdoclint:syntax,reference', '-quiet'
+    // Generate HTML5
+    options.addStringOption '-html5'
 }
 
 //noinspection GroovyAssignabilityCheck,UnnecessaryQualifiedReference
@@ -132,7 +135,9 @@ def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuar
     dontwarn 'org.checkerframework.checker.**'
     dontwarn 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings'
 
+    //noinspection GroovyAssignabilityCheck
     injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
+    //noinspection GrUnresolvedAccess,GroovyAssignabilityCheck
     injars files(jar)
     outjars new File(project.buildDir, 'libs/owl.jar')
 }
@@ -187,6 +192,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
 distributions {
     // TODO The distribution plugin is stupid: The "main" distribution always contains all runtime
     // dependencies - we can't specify only the minimized jar.
+    //noinspection GroovyAssignabilityCheck
     main {
         baseName = 'owl'
 
@@ -202,28 +208,31 @@ distributions {
             }
         }
     }
-    small {
-        baseName = 'owl'
+}
+if (enableProGuard) {
+    distributions.create("small", {
+            baseName = 'owl'
 
-        contents {
-            into("bin") {
-                //noinspection GroovyAssignabilityCheck
-                from proGuardStartScripts
-            }
-            into("lib") {
-                from proGuardTask
-            }
-            into("doc") {
-                from "AUTHORS"
-                from "LICENSE"
-                from compileMarkdown
-                from javadoc
-            }
-            into("src") {
-                from "src"
+            contents {
+                into("bin") {
+                    //noinspection GroovyAssignabilityCheck
+                    from proGuardStartScripts
+                }
+                into("lib") {
+                    from proGuardTask
+                }
+                into("doc") {
+                    from "AUTHORS"
+                    from "LICENSE"
+                    from compileMarkdown
+                    from javadoc
+                }
+                into("src") {
+                    from "src"
+                }
             }
         }
-    }
+    )
 }
 
 // Task to create a minimal running jar
@@ -231,13 +240,24 @@ def binTask = tasks.create(name: "buildBin", type: Copy) {
     destinationDir = project.buildDir
     into('bin') {
         // Copy all start-scripts and make them executable
-        from(proGuardStartScripts) {
-            exclude "*.bat"
+        if (enableProGuard) {
+            from(proGuardStartScripts) {
+                exclude "*.bat"
+            }
+        } else {
+            from(startScripts) {
+                exclude "*.bat"
+            }
         }
         fileMode = 0755
     }
     into('lib') {
-        from(proGuardTask)
+        if (enableProGuard) {
+            from(proGuardTask)
+        } else {
+            from(jar) // Copy the jar itself
+            from([project.configurations.runtime]) // Copy the dependencies
+        }
     }
 }
 
@@ -246,6 +266,7 @@ if (buildNatives) {
 }
 
 // ProGuard dead code detection
+//noinspection UnnecessaryQualifiedReference
 tasks.create(name: "reportDeadCode", type: proguard.gradle.ProGuardTask) {
     injars files(jar)
 

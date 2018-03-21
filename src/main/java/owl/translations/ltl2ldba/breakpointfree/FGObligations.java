@@ -19,9 +19,8 @@ package owl.translations.ltl2ldba.breakpointfree;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -43,30 +42,29 @@ import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.translations.ltl2ldba.RecurringObligation;
 
 public final class FGObligations implements RecurringObligation {
-  final ImmutableSet<FOperator> fOperators;
-  final ImmutableSet<GOperator> gOperators;
-  final EquivalenceClass[] liveness;
-  final ImmutableSet<UnaryModalOperator> rewrittenOperators;
+  final Set<FOperator> fOperators;
+  final Set<GOperator> gOperators;
+  final List<EquivalenceClass> liveness;
+  final Set<UnaryModalOperator> rewrittenOperators;
   final EquivalenceClass safety;
 
-  @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-  private FGObligations(ImmutableSet<FOperator> fOperators, ImmutableSet<GOperator> gOperators,
-    EquivalenceClass safety, EquivalenceClass[] liveness,
-    ImmutableSet<UnaryModalOperator> rewrittenOperators) {
+  private FGObligations(Set<FOperator> fOperators, Set<GOperator> gOperators,
+    EquivalenceClass safety, List<EquivalenceClass> liveness,
+    Set<UnaryModalOperator> rewrittenOperators) {
     this.safety = safety;
-    this.liveness = liveness;
-    this.gOperators = gOperators;
-    this.fOperators = fOperators;
-    this.rewrittenOperators = rewrittenOperators;
+    this.liveness = List.copyOf(liveness);
+    this.gOperators = Set.copyOf(gOperators);
+    this.fOperators = Set.copyOf(fOperators);
+    this.rewrittenOperators = Set.copyOf(rewrittenOperators);
   }
 
   @Nullable
   static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
     EquivalenceClassFactory factory) {
 
-    ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(fOperators1);
-    ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(gOperators1);
-    ImmutableSet.Builder<UnaryModalOperator> builder = ImmutableSet.builder();
+    Set<FOperator> fOperators = Set.copyOf(fOperators1);
+    Set<GOperator> gOperators = Set.copyOf(gOperators1);
+    Set<UnaryModalOperator> builder = new HashSet<>();
 
     // TODO: prune gOper/fOperatos (Gset, Fset)
 
@@ -129,9 +127,7 @@ public final class FGObligations implements RecurringObligation {
       livenessList.add(liveness);
     }
 
-    return new FGObligations(fOperators, gOperators, safety,
-      livenessList.toArray(EquivalenceClass.EMPTY_ARRAY),
-      builder.build());
+    return new FGObligations(fOperators, gOperators, safety, livenessList, builder);
   }
 
   @Override
@@ -161,7 +157,7 @@ public final class FGObligations implements RecurringObligation {
     return Objects.equals(fOperators, that.fOperators)
       && Objects.equals(gOperators, that.gOperators)
       && Objects.equals(safety, that.safety)
-      && Arrays.equals(liveness, that.liveness);
+      && Objects.equals(liveness, that.liveness);
   }
 
   @Override
@@ -182,7 +178,7 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public int hashCode() {
-    return Objects.hash(fOperators, gOperators, safety, Arrays.hashCode(liveness));
+    return Objects.hash(fOperators, gOperators, safety, liveness);
   }
 
   boolean isPureLiveness() {
@@ -190,7 +186,7 @@ public final class FGObligations implements RecurringObligation {
   }
 
   boolean isPureSafety() {
-    return liveness.length == 0;
+    return liveness.isEmpty();
   }
 
   @Override

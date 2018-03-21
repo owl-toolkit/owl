@@ -20,8 +20,6 @@ package owl.translations.ltl2ldba.breakpointfree;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -65,16 +63,16 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class FGObligationsJumpManager extends AbstractJumpManager<FGObligations> {
 
-  private final Table<ImmutableSet<FOperator>, ImmutableSet<GOperator>, FGObligations> cache;
+  private final Table<Set<FOperator>, Set<GOperator>, FGObligations> cache;
 
   private FGObligationsJumpManager(EquivalenceClassFactory factories,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
     super(optimisations, factories);
     cache = HashBasedTable.create();
   }
 
   public static FGObligationsJumpManager build(EquivalenceClass initialState,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
     return new FGObligationsJumpManager(initialState.getFactory(), optimisations);
   }
 
@@ -102,8 +100,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   // TODO: also use GOps Information
-  static Formula replaceFOperators(ImmutableSet<FOperator> trueFOperators,
-    ImmutableSet<GOperator> trueGOperators, GOperator formula) {
+  static Formula replaceFOperators(Set<FOperator> trueFOperators,
+    Set<GOperator> trueGOperators, GOperator formula) {
     ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(trueFOperators, trueGOperators);
     return GOperator.of(formula.operand.accept(visitor));
   }
@@ -114,8 +112,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     return formula.accept(visitor);
   }
 
-  static Formula replaceGOperators(ImmutableSet<GOperator> trueGOperators,
-    ImmutableSet<FOperator> trueFOperators, Formula formula) {
+  static Formula replaceGOperators(Set<GOperator> trueGOperators,
+    Set<FOperator> trueFOperators, Formula formula) {
     ReplaceGOperatorsVisitor visitor = new ReplaceGOperatorsVisitor(trueGOperators, trueFOperators);
     return formula.accept(visitor);
   }
@@ -159,8 +157,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     Set<Jump<FGObligations>> fgObligations = new HashSet<>();
 
     createDisjunctionStream(state, FGObligationsJumpManager::createFGSetStream).forEach(entry -> {
-      ImmutableSet<FOperator> fOperators = ImmutableSet.copyOf(entry.getKey());
-      ImmutableSet<GOperator> gOperators = ImmutableSet.copyOf(entry.getValue());
+      Set<FOperator> fOperators = Set.copyOf(entry.getKey());
+      Set<GOperator> gOperators = Set.copyOf(entry.getValue());
 
       FGObligations obligations = cache.get(fOperators, gOperators);
 
@@ -232,17 +230,18 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       return and(List.of(conjunct1, conjunct2));
     }
 
-    private static <T> List<Set<T>> and(Iterable<List<Set<T>>> conjuncts) {
+    private static <T> List<Set<T>> and(Collection<List<Set<T>>> conjuncts) {
       List<Set<T>> intersection = new ArrayList<>();
 
-      for (List<Set<T>> sets : Lists.cartesianProduct(ImmutableList.copyOf(conjuncts))) {
+      for (List<Set<T>> sets : Lists.cartesianProduct(List.copyOf(conjuncts))) {
         Collections3.addDistinct(intersection, Collections3.parallelUnion(sets));
       }
 
       return intersection;
     }
 
-    protected static <T> List<Set<T>> or(Iterable<List<Set<T>>> disjuncts, boolean upwardClosure) {
+    protected static <T> List<Set<T>> or(Collection<List<Set<T>>> disjuncts,
+      boolean upwardClosure) {
       List<Set<T>> union = new ArrayList<>();
 
       if (!upwardClosure) {
@@ -250,12 +249,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
         return union;
       }
 
-      for (List<Set<T>> sets : Lists.cartesianProduct(ImmutableList.copyOf(disjuncts))) {
+      for (List<Set<T>> sets : Lists.cartesianProduct(List.copyOf(disjuncts))) {
         for (Set<T> activeSet : sets) {
           Set<T> otherSetsUnion = sets.stream()
             .filter(x -> activeSet != x)
             .flatMap(Collection::stream)
-            .collect(ImmutableSet.toImmutableSet());
+            .collect(Collectors.toUnmodifiableSet());
 
           for (Set<T> x : Sets.powerSet(otherSetsUnion)) {
             Set<T> upwardClosedSet = Sets.newHashSet(Iterables.concat(activeSet, x));
@@ -431,14 +430,13 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   static class ReplaceFOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
-    private final ImmutableSet<FOperator> foperators;
-    private final ImmutableSet<GOperator> goperators;
+    private final Set<FOperator> foperators;
+    private final Set<GOperator> goperators;
 
-    ReplaceFOperatorsVisitor(ImmutableSet<FOperator> foperators,
-      ImmutableSet<GOperator> goperators) {
-      this.foperators = foperators;
-      this.goperators = ImmutableSet.copyOf(Iterables.concat(goperators,
-        Collections2.transform(foperators, GOperator::new)));
+    ReplaceFOperatorsVisitor(Set<FOperator> foperators, Set<GOperator> goperators) {
+      this.foperators = Set.copyOf(foperators);
+      this.goperators = Set.copyOf(Sets.newHashSet(Iterables.concat(goperators,
+        Collections2.transform(foperators, GOperator::new))));
     }
 
     private boolean isTrueFOperator(FOperator fOperator) {
@@ -490,13 +488,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   static class ReplaceGOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
-    private final ImmutableSet<FOperator> foperators;
-    private final ImmutableSet<GOperator> goperators;
+    private final Set<FOperator> foperators;
+    private final Set<GOperator> goperators;
 
-    ReplaceGOperatorsVisitor(ImmutableSet<GOperator> goperators,
-      ImmutableSet<FOperator> foperators) {
-      this.goperators = goperators;
-      this.foperators = foperators;
+    ReplaceGOperatorsVisitor(Set<GOperator> goperators, Set<FOperator> foperators) {
+      this.goperators = Set.copyOf(goperators);
+      this.foperators = Set.copyOf(foperators);
     }
 
     private boolean isTrueGOperator(GOperator gOperator) {

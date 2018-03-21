@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import java.util.BitSet;
 import java.util.Collection;
@@ -192,8 +191,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   }
 
   @Override
-  public ImmutableSet<S> getInitialStates() {
-    return ImmutableSet.copyOf(initialStates);
+  public Set<S> getInitialStates() {
+    return Set.copyOf(initialStates);
   }
 
   @Override
@@ -354,7 +353,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      acceptance, ImmutableSet.copyOf(initialStates), options,
+      acceptance, Set.copyOf(initialStates), options,
       is(Property.DETERMINISTIC), getName());
 
     transitions.forEach((state, edges) -> {

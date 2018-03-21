@@ -17,13 +17,12 @@
 
 package owl.game;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableValueGraph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -49,14 +48,14 @@ public final class GameFactory {
     private final A acceptance;
     private final ValuationSetFactory factory;
     private final ImmutableValueGraph<S, ValueEdge> graph;
-    private final ImmutableSet<S> initialStates;
-    private final ImmutableSet<S> player1Nodes;
-    private final ImmutableList<String> variablesPlayer1;
-    private final ImmutableList<String> variablesPlayer2;
+    private final Set<S> initialStates;
+    private final Set<S> player1Nodes;
+    private final List<String> variablesPlayer1;
+    private final List<String> variablesPlayer2;
     private final BiFunction<S, Owner, BitSet> choice;
 
     ImmutableGame(Game<S, A> game) {
-      ImmutableSet.Builder<S> player1NodesBuilder = ImmutableSet.builder();
+      Set<S> player1NodesBuilder = new HashSet<>();
       MutableValueGraph<S, ValueEdge> graph =
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
@@ -72,10 +71,10 @@ public final class GameFactory {
       this.acceptance = game.getAcceptance();
       this.factory = game.getFactory();
       this.graph = ImmutableValueGraph.copyOf(graph);
-      this.initialStates = ImmutableSet.copyOf(game.getInitialStates());
-      this.player1Nodes = player1NodesBuilder.build();
-      this.variablesPlayer1 = ImmutableList.copyOf(game.getVariables(Owner.PLAYER_1));
-      this.variablesPlayer2 = ImmutableList.copyOf(game.getVariables(Owner.PLAYER_2));
+      this.initialStates = Set.copyOf(game.getInitialStates());
+      this.player1Nodes = Set.copyOf(player1NodesBuilder);
+      this.variablesPlayer1 = List.copyOf(game.getVariables(Owner.PLAYER_1));
+      this.variablesPlayer2 = List.copyOf(game.getVariables(Owner.PLAYER_2));
       this.choice = game::getChoice;
     }
 

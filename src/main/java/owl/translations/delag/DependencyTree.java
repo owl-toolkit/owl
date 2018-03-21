@@ -17,7 +17,6 @@
 
 package owl.translations.delag;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import java.util.BitSet;
@@ -385,10 +384,10 @@ abstract class DependencyTree<T> {
   }
 
   abstract static class Node<T> extends DependencyTree<T> {
-    final ImmutableList<DependencyTree<T>> children;
+    final List<DependencyTree<T>> children;
 
     Node(List<DependencyTree<T>> children) {
-      this.children = ImmutableList.copyOf(children);
+      this.children = List.copyOf(children);
     }
 
     @Override

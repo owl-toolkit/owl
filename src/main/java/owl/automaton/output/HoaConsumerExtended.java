@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.IntConsumer;
@@ -72,11 +73,8 @@ public final class HoaConsumerExtended<S> {
       consumer.setTool("owl", "* *"); // Owl in a cave.
 
       if (options.contains(HoaOption.ANNOTATIONS)) {
-        if (name == null) {
-          consumer.setName("Automaton for " + initialStates);
-        } else {
-          consumer.setName(name);
-        }
+        consumer
+          .setName(Objects.requireNonNullElseGet(name, () -> "Automaton for " + initialStates));
       }
 
       if (initialStates.isEmpty()) {

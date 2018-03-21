@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -33,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import owl.factories.EquivalenceClassFactory;
@@ -41,11 +41,11 @@ import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 
 public abstract class EquivalenceClassTest {
-  private static final List<String> formulaStrings = ImmutableList
+  private static final List<String> formulaStrings = List
     .of("G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b");
   private static final List<LabelledFormula> formulas = formulaStrings.stream()
     .map(LtlParser::parse)
-    .collect(ImmutableList.toImmutableList());
+    .collect(Collectors.toUnmodifiableList());
   private Formula contradiction;
   private EquivalenceClassFactory factory;
   private Formula literal;
@@ -202,7 +202,7 @@ public abstract class EquivalenceClassTest {
     assertFalse(tautologyClass.implies(contradictionClass));
     assertFalse(tautologyClass.implies(literalClass));
   }
-  
+
   @Test
   public void testSubstitute() {
     EquivalenceClass[] formulas = {

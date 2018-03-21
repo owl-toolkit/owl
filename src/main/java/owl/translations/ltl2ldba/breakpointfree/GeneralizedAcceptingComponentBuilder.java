@@ -17,9 +17,9 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.automaton.MutableAutomaton;
@@ -38,7 +38,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   private int acceptanceSets;
 
   public GeneralizedAcceptingComponentBuilder(Factories factories,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
     super(optimisations, factories);
     acceptanceSets = 1;
   }
@@ -53,10 +53,10 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   protected GeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
     FGObligations obligations) {
     EquivalenceClass safety = remainder.and(obligations.safety);
-    EquivalenceClass[] liveness = new EquivalenceClass[obligations.liveness.length];
+    EquivalenceClass[] liveness = new EquivalenceClass[obligations.liveness.size()];
 
     for (int i = 0; i < liveness.length; i++) {
-      liveness[i] = factory.getInitial(obligations.liveness[i]);
+      liveness[i] = factory.getInitial(obligations.liveness.get(i));
     }
 
     // If it is necessary, increase the number of acceptance conditions.
@@ -91,7 +91,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
       if (livenessSuccessor[i].isTrue()) {
         bs.set(i);
-        livenessSuccessor[i] = factory.getInitial(state.obligations.liveness[i]);
+        livenessSuccessor[i] = factory.getInitial(state.obligations.liveness.get(i));
       }
     }
 

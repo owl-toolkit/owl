@@ -2,7 +2,6 @@ package owl.translations.rabinizer;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -24,8 +23,8 @@ final class GSet extends AbstractSet<GOperator> {
   @Nullable
   private final EquivalenceClass operatorConjunction;
 
-  GSet(Iterable<GOperator> elements, EquivalenceClassFactory factory) {
-    this.elements = ImmutableSet.copyOf(elements);
+  GSet(Collection<GOperator> elements, EquivalenceClassFactory factory) {
+    this.elements = Set.copyOf(elements);
     this.conjunction = factory.of(Conjunction.of(elements));
     this.operatorConjunction = factory
       .of(Conjunction.of(Iterables.transform(elements, GOperator::getOperand)));
@@ -84,9 +83,6 @@ final class GSet extends AbstractSet<GOperator> {
 
   @Override
   public Iterator<GOperator> iterator() {
-    if (elements instanceof ImmutableSet) {
-      return elements.iterator();
-    }
     return Iterators.unmodifiableIterator(elements.iterator());
   }
 

@@ -17,10 +17,13 @@
 
 package owl.ltl;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -28,16 +31,16 @@ import owl.ltl.visitors.Visitor;
 
 public final class Conjunction extends PropositionalFormula {
 
-  public Conjunction(Iterable<? extends Formula> conjuncts) {
+  public Conjunction(Collection<? extends Formula> conjuncts) {
     super(conjuncts);
   }
 
   public Conjunction(Formula... conjuncts) {
-    this(ImmutableSet.copyOf(conjuncts));
+    this(Set.of(conjuncts));
   }
 
   public Conjunction(Stream<? extends Formula> formulaStream) {
-    this(ImmutableSet.copyOf(formulaStream.iterator()));
+    this(formulaStream.collect(Collectors.toUnmodifiableSet()));
   }
 
   public static Formula of(Formula left, Formula right) {
@@ -57,7 +60,7 @@ public final class Conjunction extends PropositionalFormula {
   }
 
   public static Formula of(Iterator<? extends Formula> iterator) {
-    ImmutableSet.Builder<Formula> builder = ImmutableSet.builder();
+    Set<Formula> set = new HashSet<>();
 
     while (iterator.hasNext()) {
       Formula child = iterator.next();
@@ -72,13 +75,11 @@ public final class Conjunction extends PropositionalFormula {
       }
 
       if (child instanceof Conjunction) {
-        builder.addAll(((Conjunction) child).children);
+        set.addAll(((Conjunction) child).children);
       } else {
-        builder.add(child);
+        set.add(child);
       }
     }
-
-    ImmutableSet<Formula> set = builder.build();
 
     if (set.isEmpty()) {
       return BooleanConstant.TRUE;

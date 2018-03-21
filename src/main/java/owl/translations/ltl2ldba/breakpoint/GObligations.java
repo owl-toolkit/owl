@@ -19,9 +19,9 @@ package owl.translations.ltl2ldba.breakpoint;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -69,8 +69,8 @@ public abstract class GObligations implements RecurringObligation {
    * @return This methods returns null, if the Gset is inconsistent.
    */
   @Nullable
-  static GObligations build(Set<GOperator> gOperatorsSet,
-    EquivalenceClassFactory factory, ImmutableSet<Configuration> optimisations) {
+  static GObligations build(Set<GOperator> gOperatorsSet, EquivalenceClassFactory factory,
+    Set<Configuration> optimisations) {
     // Fields for GObligations
     EquivalenceClass safety = factory.getTrue();
     List<EquivalenceClass> liveness = new ArrayList<>(gOperatorsSet.size());
@@ -78,7 +78,7 @@ public abstract class GObligations implements RecurringObligation {
 
     List<GOperator> gOperators = gOperatorsSet.stream().sorted(rankingComparator)
       .collect(Collectors.toList());
-    ImmutableSet.Builder<GOperator> builder = ImmutableSet.builder();
+    Set<GOperator> builder = new HashSet<>();
 
     for (int i = 0; i < gOperators.size(); i++) {
       GOperator gOperator = gOperators.get(i);
@@ -122,8 +122,8 @@ public abstract class GObligations implements RecurringObligation {
       return null;
     }
 
-    return GObligationsTuple.create(ImmutableSet.copyOf(gOperators), liveness, obligations,
-      builder.build(), safety);
+    return GObligationsTuple.create(Set.copyOf(gOperators), liveness, obligations,
+      Set.copyOf(builder), safety);
   }
 
 
