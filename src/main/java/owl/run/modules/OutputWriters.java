@@ -41,6 +41,7 @@ public final class OutputWriters {
           + "%S, %s   Number of states\n"
           + "%H, %h   The automaton in HOA format on a single line\n"
           + "%M, %m   Name of the automaton\n"
+          + "%n       Newline\n"
           + "%X, %x   Number of atomic propositions");
       format.setRequired(true);
       return new Options().addOption(format);
@@ -127,7 +128,10 @@ public final class OutputWriters {
 
       // Number of SCCs
       Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(SccDecomposition.computeSccs(automaton).size()));
+      automaton -> String.valueOf(SccDecomposition.computeSccs(automaton).size()),
+
+      Pattern.compile("%n", Pattern.LITERAL),
+      automaton -> "\n");
 
     private final String formatString;
     private final Writer writer;

@@ -24,6 +24,7 @@ import owl.automaton.transformations.RabinDegeneralization;
 import owl.game.GameUtil;
 import owl.game.GameViews;
 import owl.ltl.rewriter.SimplifierTransformer;
+import owl.ltl.robust.RobustLtlInputReader;
 import owl.run.modules.OwlModuleParser.ReaderParser;
 import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.parser.PipelineParser;
@@ -59,7 +60,7 @@ public class OwlModuleRegistry {
     // I/O
     DEFAULT_REGISTRY.register(InputReaders.LTL_CLI, InputReaders.HOA_CLI, InputReaders.TLSF_CLI,
       OutputWriters.TO_STRING_CLI, OutputWriters.AUTOMATON_STATS_CLI, OutputWriters.NULL_CLI,
-      OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI);
+      OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI, RobustLtlInputReader.INSTANCE);
 
     // Transformer
     DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,

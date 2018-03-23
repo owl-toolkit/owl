@@ -66,10 +66,12 @@ public final class Conjunction extends PropositionalFormula {
       Formula child = iterator.next();
       assert child != null;
 
+      //noinspection ObjectEquality
       if (child == BooleanConstant.FALSE) {
         return BooleanConstant.FALSE;
       }
 
+      //noinspection ObjectEquality
       if (child == BooleanConstant.TRUE) {
         continue;
       }
