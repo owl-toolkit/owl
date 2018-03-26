@@ -20,7 +20,6 @@ package owl.factories.jbdd;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.ImmutableList;
 import de.tum.in.jbdd.BddFactory;
 import java.util.BitSet;
 import java.util.List;
@@ -34,7 +33,7 @@ public class BddValuationSetFactoryTest {
 
   @Before
   public void setUp() {
-    alphabet = ImmutableList.of("a", "b", "c", "d", "e");
+    alphabet = List.of("a", "b", "c", "d", "e");
     factory = new ValuationFactory(BddFactory.buildBdd(1024), alphabet);
   }
 

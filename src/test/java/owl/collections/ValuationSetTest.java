@@ -25,8 +25,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -45,7 +43,7 @@ public abstract class ValuationSetTest {
 
   @Before
   public void setUp() {
-    List<String> aliases = ImmutableList.of("a", "b", "c", "d");
+    List<String> aliases = List.of("a", "b", "c", "d");
     ValuationSetFactory factory = setUpFactory(aliases);
 
     empty = factory.empty();
@@ -72,7 +70,7 @@ public abstract class ValuationSetTest {
 
   @Test
   public void testForEach() {
-    for (ValuationSet set : ImmutableSet.of(abcd, containsA, empty, universe)) {
+    for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
       set.forEach(solution -> forEach.add(BitSets.copyOf(solution)));
 
@@ -91,7 +89,7 @@ public abstract class ValuationSetTest {
     restriction.set(1);
     restriction.set(3);
 
-    for (ValuationSet set : ImmutableSet.of(abcd, containsA, empty, universe)) {
+    for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
       set.forEach(restriction, solution -> forEach.add(BitSets.copyOf(solution)));
 

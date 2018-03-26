@@ -21,11 +21,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -90,9 +90,9 @@ public final class Views {
     Automaton<S, NoneAcceptance> automaton) {
     return AutomatonFactory.createStreamingAutomaton(NoneAcceptance.INSTANCE,
       automaton.getInitialStates(), automaton.getFactory(), (x, y) -> {
-        ImmutableSet.Builder<S> builder = ImmutableSet.builder();
+        Set<S> builder = new HashSet<>();
         x.forEach(s -> builder.addAll(automaton.getSuccessors(s, y)));
-        return Edge.of(builder.build());
+        return Edge.of(Set.copyOf(builder));
       });
   }
 
@@ -117,7 +117,7 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(
     Automaton<S, A> automaton, Set<S> initialStates) {
-    Set<S> immutableInitialStates = ImmutableSet.copyOf(initialStates);
+    Set<S> immutableInitialStates = Set.copyOf(initialStates);
     return new ForwardingAutomaton<>(automaton) {
       @Override
       public A getAcceptance() {
@@ -192,12 +192,11 @@ public final class Views {
     extends ForwardingAutomaton<S, A, A, Automaton<S, A>> {
 
     private final Predicate<LabelledEdge<S>> edgeFilter;
-    private final ImmutableSet<S> states;
+    private final Set<S> states;
 
-    FilteredAutomaton(Automaton<S, A> automaton, Set<S> states,
-      Predicate<Edge<S>> edgeFilter) {
+    FilteredAutomaton(Automaton<S, A> automaton, Set<S> states, Predicate<Edge<S>> edgeFilter) {
       super(automaton);
-      this.states = ImmutableSet.copyOf(states);
+      this.states = Set.copyOf(states);
       this.edgeFilter = x -> states.contains(x.edge.getSuccessor()) && edgeFilter.test(x.edge);
     }
 

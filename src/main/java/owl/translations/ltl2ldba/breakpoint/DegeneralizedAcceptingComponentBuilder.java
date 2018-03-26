@@ -17,10 +17,10 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,7 +38,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   <DegeneralizedBreakpointState, BuchiAcceptance, GObligations> {
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
     super(optimisations, factories);
   }
 
@@ -76,7 +76,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations().size()];
 
     if (current.isTrue()) {
-      if (obligations.obligations().size() > 0) {
+      if (!obligations.obligations().isEmpty()) {
         nextBuilder[0] = current;
         current = factory.getInitial(obligations.obligations().get(0), environment);
       } else {
@@ -89,7 +89,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     }
 
     return new DegeneralizedBreakpointState(
-      obligations.obligations().size() > 0 ? 0 : -obligations.liveness().size(), safety,
+      !obligations.obligations().isEmpty() ? 0 : -obligations.liveness().size(), safety,
       current, nextBuilder, obligations);
   }
 

@@ -3,7 +3,7 @@ package owl.ltl.parser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -259,7 +259,7 @@ public class TlsfParserTest {
   public void testParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);
     LabelledFormula expectedFormula = LtlParser.parse(LILY_LTL, lily.toFormula().variables());
-    assertEquals(expectedFormula.split(ImmutableSet.of("go", "cancel", "req")), lily.toFormula());
+    assertEquals(expectedFormula.split(Set.of("go", "cancel", "req")), lily.toFormula());
   }
 
   @Test

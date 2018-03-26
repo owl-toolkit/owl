@@ -18,7 +18,6 @@
 package owl.automaton;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
@@ -115,7 +114,7 @@ public class StreamingAutomaton<S, A extends OmegaAcceptance> implements Automat
       }
     }
 
-    return ImmutableSet.copyOf(exploredStates);
+    return Set.copyOf(exploredStates);
   }
 
   @Override

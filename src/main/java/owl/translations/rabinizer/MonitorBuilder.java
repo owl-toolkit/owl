@@ -3,7 +3,6 @@ package owl.translations.rabinizer;
 import static owl.translations.rabinizer.MonitorStateFactory.isAccepting;
 import static owl.translations.rabinizer.MonitorStateFactory.isSink;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.booleans.BooleanArrays;
@@ -12,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -192,8 +193,8 @@ final class MonitorBuilder {
       optimizeInitialState();
     }
 
-    ImmutableMap.Builder<GSet, Automaton<MonitorState, ParityAcceptance>> builder
-      = ImmutableMap.builder();
+    Map<GSet, Automaton<MonitorState, ParityAcceptance>> builder = new HashMap<>();
+
     for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = monitorAutomata[contextIndex];
       int sets = maximalPriority[contextIndex];
@@ -204,7 +205,7 @@ final class MonitorBuilder {
         "%s monitor for %s is not deterministic", relevantSets[contextIndex], initialClass);
     }
 
-    return new MonitorAutomaton(gOperator, builder.build());
+    return new MonitorAutomaton(gOperator, builder);
   }
 
   private MonitorState getSuccessor(MonitorState currentState, BitSet valuation, int[] priorities,

@@ -19,7 +19,6 @@ package owl.translations.ltl2ldba;
 
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import java.util.ArrayDeque;
@@ -52,7 +51,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
   private final SetMultimap<EquivalenceClass, Jump<K>> jumps;
   private final Set<EquivalenceClass> patientStates;
 
-  InitialComponentBuilder(Factories factories, ImmutableSet<Configuration> configuration,
+  InitialComponentBuilder(Factories factories, Set<Configuration> configuration,
     AbstractJumpManager<K> jumpFactory) {
     this.factories = factories;
     this.jumpFactory = jumpFactory;

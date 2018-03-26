@@ -17,7 +17,6 @@
 
 package owl.factories.jbdd;
 
-import com.google.common.collect.ImmutableList;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
@@ -36,19 +35,16 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
   private static final BitSet EMPTY = new BitSet(0);
 
-  private final int alphabetSize;
-  private final ImmutableList<String> alphabet;
+  private final List<String> alphabet;
   private final BddValuationSet empty;
   private final BddValuationSet universe;
 
   ValuationFactory(Bdd factory, List<String> alphabet) {
     super(factory);
-    this.alphabet = ImmutableList.copyOf(alphabet);
+    this.alphabet = List.copyOf(alphabet);
 
-    alphabetSize = alphabet.size();
-    factory.createVariables(alphabetSize);
-
-    assert factory.numberOfVariables() == alphabetSize;
+    factory.createVariables(this.alphabet.size());
+    assert factory.numberOfVariables() == this.alphabet.size();
 
     universe = create(factory.getTrueNode());
     empty = create(factory.getFalseNode());
@@ -56,7 +52,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
   @Override
   public int alphabetSize() {
-    return alphabetSize;
+    return alphabet.size();
   }
 
   @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
@@ -236,7 +232,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
   private int createBdd(BitSet set, BitSet base) {
-    assert base.length() <= alphabetSize;
+    assert base.length() <= alphabet.size();
     int bdd = factory.getTrueNode();
 
     for (int i = base.nextSetBit(0); i != -1; i = base.nextSetBit(i + 1)) {
@@ -249,7 +245,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   private int createBdd(BitSet set) {
     int bdd = factory.getTrueNode();
 
-    for (int i = 0; i < alphabetSize; i++) {
+    for (int i = 0; i < alphabet.size(); i++) {
       bdd = createBddUpdateHelper(set, i, bdd);
     }
 

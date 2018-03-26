@@ -25,11 +25,11 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
@@ -40,7 +40,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(Theories.class)
 public class EdgeTest {
-  private static final ImmutableList<TestCase> testCases;
+  private static final List<TestCase> testCases;
 
   static {
     int[][] acceptanceSets = {
@@ -62,7 +62,7 @@ public class EdgeTest {
       "1", "2", "3"
     };
 
-    ImmutableList.Builder<TestCase> testCasesBuilder = ImmutableList.builder();
+    List<TestCase> testCaseList = new ArrayList<>();
     for (Object successor : successors) {
       for (int[] acceptanceSetArray : acceptanceSets) {
         BitSet acceptanceSet = new BitSet();
@@ -70,18 +70,18 @@ public class EdgeTest {
           acceptanceSet.set(acceptance);
         }
 
-        ImmutableList.Builder<Edge<?>> representatives = ImmutableList.builder();
+        List<Edge<?>> representatives = new ArrayList<>();
         representatives.add(Edge.of(successor, acceptanceSet));
         if (acceptanceSetArray.length == 0) {
           representatives.add(Edge.of(successor));
         } else if (acceptanceSetArray.length == 1) {
           representatives.add(Edge.of(successor, acceptanceSetArray[0]));
         }
-        testCasesBuilder.add(new TestCase(representatives.build(), successor, acceptanceSet));
+        testCaseList.add(new TestCase(representatives, successor, acceptanceSet));
       }
     }
 
-    testCases = testCasesBuilder.build();
+    testCases = List.copyOf(testCaseList);
   }
 
   @DataPoints
@@ -175,11 +175,11 @@ public class EdgeTest {
 
   private static final class TestCase {
     final IntList acceptance;
-    final ImmutableList<Edge<?>> edges;
+    final List<Edge<?>> edges;
     final Object successor;
 
     TestCase(List<Edge<?>> edges, Object successor, BitSet acceptance) {
-      this.edges = ImmutableList.copyOf(edges);
+      this.edges = List.copyOf(edges);
       this.successor = successor;
       this.acceptance = new IntArrayList(acceptance.cardinality());
       acceptance.stream().forEachOrdered(this.acceptance::add);
@@ -190,7 +190,7 @@ public class EdgeTest {
       return acceptance;
     }
 
-    ImmutableList<Edge<?>> getEdges() {
+    List<Edge<?>> getEdges() {
       return edges;
     }
 

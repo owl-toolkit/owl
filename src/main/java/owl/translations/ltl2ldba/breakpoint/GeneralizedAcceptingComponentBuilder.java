@@ -17,9 +17,9 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   private int acceptanceSets;
 
   public GeneralizedAcceptingComponentBuilder(Factories factories,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
     super(optimisations, factories);
     acceptanceSets = 1;
   }

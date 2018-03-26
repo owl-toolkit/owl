@@ -23,7 +23,6 @@ import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
 import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
 import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
 
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.ArrayList;
@@ -51,7 +50,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   private final int setCount;
 
   GeneralizedRabinAcceptance(List<RabinPair> pairs) {
-    this.pairs = ImmutableList.copyOf(pairs);
+    this.pairs = List.copyOf(pairs);
     this.setCount = computeSetCount(this.pairs);
 
     // Check consistency.
@@ -299,7 +298,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   public static final class Builder {
-    private final ImmutableList.Builder<RabinPair> pairs = new ImmutableList.Builder<>();
+    private final List<RabinPair> pairs = new ArrayList<>();
     private int sets = 0;
 
     public RabinPair add(@Nonnegative int infSets) {
@@ -310,7 +309,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     }
 
     public GeneralizedRabinAcceptance build() {
-      return of(pairs.build());
+      return of(pairs);
     }
   }
 }

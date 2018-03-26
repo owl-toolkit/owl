@@ -1,6 +1,6 @@
 package owl.translations.ldba2dpa;
 
-import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,10 +32,10 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
                            : null;
     this.lattice = lattice;
     this.ldba = ldba;
-    sortingOrder = ImmutableList.copyOf(ldba.getComponents());
+    sortingOrder = List.copyOf(ldba.getComponents());
 
     // Identify  safety components.
-    ImmutableList.Builder<A> safetyBuilder = ImmutableList.builder();
+    List<A> safetyBuilder = new ArrayList<>();
 
     for (A value : sortingOrder) {
       if (lattice.isSafetyAnnotation(value)) {
@@ -43,7 +43,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
       }
     }
 
-    safetyComponents = safetyBuilder.build();
+    safetyComponents = List.copyOf(safetyBuilder);
     this.isAcceptingState = isAcceptingState;
   }
 

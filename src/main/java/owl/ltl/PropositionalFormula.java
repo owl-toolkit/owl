@@ -17,19 +17,20 @@
 
 package owl.ltl;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public abstract class PropositionalFormula extends AbstractFormula {
-  public final ImmutableSet<Formula> children;
+  public final Set<Formula> children;
 
-  PropositionalFormula(Iterable<? extends Formula> children) {
-    this.children = ImmutableSet.copyOf(children);
+  PropositionalFormula(Collection<? extends Formula> children) {
+    this.children = Set.copyOf(children);
   }
 
   public static Formula shortCircuit(Formula formula) {

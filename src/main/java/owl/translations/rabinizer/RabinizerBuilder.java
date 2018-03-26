@@ -3,8 +3,6 @@ package owl.translations.rabinizer;
 import static owl.automaton.AutomatonUtil.toHoa;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -33,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -274,9 +273,9 @@ public class RabinizerBuilder {
     Indices.forEachIndexed(masterSccPartition.sccs, (index, stateSubset) ->
       sccRelevantGList[index] = stateSubset.stream()
         .map(this::relevantSubFormulas).flatMap(Collection::stream)
-        .collect(ImmutableSet.toImmutableSet()));
+        .collect(Collectors.toUnmodifiableSet()));
     Set<GOperator> allRelevantGFormulas =
-      Collections3.immutableUnion(Arrays.asList(sccRelevantGList));
+      Set.copyOf(Collections3.union(Arrays.asList(sccRelevantGList)));
 
     logger.log(Level.FINE, "Identified relevant sub-formulas: {0}", allRelevantGFormulas);
 
@@ -340,7 +339,7 @@ public class RabinizerBuilder {
 
     // Process each subset separately
     // TODO Parallel
-    ImmutableList<Set<EquivalenceClass>> partition = masterSccPartition.sccs;
+    List<Set<EquivalenceClass>> partition = masterSccPartition.sccs;
     for (int sccIndex = 0; sccIndex < partition.size(); sccIndex++) {
       // Preliminary work: Only some sub-formulas are relevant a particular SCC (consider again
       // the previous example of "a & X G b | !a & X G c"). While in the SCC, all indexing is done

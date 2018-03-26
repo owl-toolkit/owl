@@ -17,8 +17,8 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
+import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,7 +35,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   <DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations> {
 
   public DegeneralizedAcceptingComponentBuilder(Factories factories,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
     super(optimisations, factories);
   }
 
@@ -57,8 +57,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     EquivalenceClass liveness;
 
-    if (obligations.liveness.length > 0) {
-      liveness = factory.getInitial(obligations.liveness[0]);
+    if (obligations.liveness.size() > 0) {
+      liveness = factory.getInitial(obligations.liveness.get(0));
     } else {
       liveness = factories.eqFactory.getTrue();
     }
@@ -90,7 +90,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       return null;
     }
 
-    int livenessLength = state.obligations.liveness.length;
+    int livenessLength = state.obligations.liveness.size();
 
     boolean acceptingEdge = false;
     boolean obtainNewGoal = false;
@@ -115,8 +115,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       j = state.index;
     }
 
-    if (obtainNewGoal && j < state.obligations.liveness.length) {
-      livenessSuccessor = factory.getInitial(state.obligations.liveness[j]);
+    if (obtainNewGoal && j < state.obligations.liveness.size()) {
+      livenessSuccessor = factory.getInitial(state.obligations.liveness.get(j));
     }
 
     assert !livenessSuccessor.isFalse() : "Liveness property cannot be false.";
@@ -129,11 +129,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Nonnegative
   private int scan(DegeneralizedBreakpointFreeState state, @Nonnegative int i, BitSet valuation) {
     int index = i;
-    int livenessLength = state.obligations.liveness.length;
+    int livenessLength = state.obligations.liveness.size();
 
     while (index < livenessLength) {
       EquivalenceClass successor = factory
-        .getSuccessor(factory.getInitial(state.obligations.liveness[index]), valuation);
+        .getSuccessor(factory.getInitial(state.obligations.liveness.get(index)), valuation);
 
       if (successor.isTrue()) {
         index++;

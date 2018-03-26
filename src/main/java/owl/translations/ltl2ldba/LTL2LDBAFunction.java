@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.EnumSet;
@@ -57,13 +56,13 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   private final Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor;
   private final Environment env;
   private final Function<S, C> getAnnotation;
-  private final ImmutableSet<Configuration> configuration;
+  private final Set<Configuration> configuration;
   private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
 
   private LTL2LDBAFunction(Environment env,
     Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor,
-    ImmutableSet<Configuration> configuration, Function<S, C> getAnnotation) {
+    Set<Configuration> configuration, Function<S, C> getAnnotation) {
     this.env = env;
     this.selectorConstructor = selectorConstructor;
     this.builderConstructor = builderConstructor;
@@ -76,7 +75,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
   createDegeneralizedBreakpointFreeLDBABuilder(Environment env,
     Set<Configuration> configuration) {
-    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
       x -> FGObligationsJumpManager.build(x, configuration2),
       x -> new DegeneralizedAcceptingComponentBuilder(x, configuration2),
@@ -88,7 +87,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>>
   createDegeneralizedBreakpointLDBABuilder(Environment env, Set<Configuration> configuration) {
-    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
       x -> GObligationsJumpManager.build(x, configuration2),
       x -> new owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder(x,
@@ -100,7 +99,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
   createGeneralizedBreakpointFreeLDBABuilder(Environment env, Set<Configuration> configuration) {
-    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
       x -> FGObligationsJumpManager.build(x, configuration2),
       x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
@@ -114,7 +113,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     GeneralizedBreakpointState, GeneralizedBuchiAcceptance, GObligations>>
   createGeneralizedBreakpointLDBABuilder(Environment env, Set<Configuration> configuration) {
-    ImmutableSet<Configuration> configuration2 = ImmutableSet.copyOf(configuration);
+    Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
       x -> GObligationsJumpManager.build(x, configuration2),
       x -> new GeneralizedAcceptingComponentBuilder(x, configuration2),

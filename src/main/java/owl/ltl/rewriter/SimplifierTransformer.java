@@ -2,7 +2,6 @@ package owl.ltl.rewriter;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.cli.Option;
@@ -45,7 +44,7 @@ public final class SimplifierTransformer extends Transformers.SimpleTransformer 
   private final List<Mode> rewrites;
 
   private SimplifierTransformer(List<Mode> rewrites) {
-    this.rewrites = ImmutableList.copyOf(rewrites);
+    this.rewrites = List.copyOf(rewrites);
   }
 
   private static Mode parseMode(String mode) throws ParseException {

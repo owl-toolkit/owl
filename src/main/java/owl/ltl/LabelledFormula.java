@@ -2,11 +2,10 @@ package owl.ltl;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -23,9 +22,9 @@ import owl.util.annotation.HashedTuple;
 public abstract class LabelledFormula {
   public abstract Formula formula();
 
-  public abstract ImmutableList<String> variables();
+  public abstract List<String> variables();
 
-  public abstract ImmutableSet<String> player1Variables();
+  public abstract Set<String> player1Variables();
 
   @Value.Check
   void check() {
@@ -43,9 +42,9 @@ public abstract class LabelledFormula {
   }
 
   public static LabelledFormula of(Formula formula, List<String> variables, BitSet player1) {
-    ImmutableSet.Builder<String> player1Variables = ImmutableSet.builder();
+    Set<String> player1Variables = new HashSet<>();
     BitSets.forEach(player1, i -> player1Variables.add(variables.get(i)));
-    return LabelledFormulaTuple.create(formula, variables, player1Variables.build());
+    return LabelledFormulaTuple.create(formula, variables, Set.copyOf(player1Variables));
   }
 
 
@@ -62,10 +61,9 @@ public abstract class LabelledFormula {
   }
 
 
-  ImmutableSet<String> player2Variables() {
-    ImmutableSet<String> all = ImmutableSet.copyOf(variables());
-    ImmutableSet<String> player1 = player1Variables();
-    return Sets.difference(all, player1).immutableCopy();
+  Set<String> player2Variables() {
+    Set<String> player1 = player1Variables();
+    return Set.copyOf(Sets.difference(Set.copyOf(variables()), player1));
   }
 
   public int accept(IntVisitor visitor) {

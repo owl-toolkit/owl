@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
@@ -27,6 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
@@ -54,30 +54,29 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class GObligationsJumpManager extends AbstractJumpManager<GObligations> {
   private static final Logger logger = Logger.getLogger(GObligationsJumpManager.class.getName());
-  private final ImmutableSet<GObligations> obligations;
+  private final Set<GObligations> obligations;
 
   private GObligationsJumpManager(EquivalenceClassFactory factory,
-    ImmutableSet<Configuration> optimisations, ImmutableSet<GObligations> obligations) {
+    Set<Configuration> optimisations, Set<GObligations> obligations) {
     super(optimisations, factory);
-    this.obligations = obligations;
+    this.obligations = Set.copyOf(obligations);
     logger.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
   }
 
   public static GObligationsJumpManager build(EquivalenceClass initialState,
-    ImmutableSet<Configuration> optimisations) {
+    Set<Configuration> optimisations) {
 
     if (initialState.testSupport(Fragments::isCoSafety) || initialState
       .testSupport(Fragments::isSafety)) {
-      return new GObligationsJumpManager(initialState.getFactory(), optimisations,
-        ImmutableSet.of());
+      return new GObligationsJumpManager(initialState.getFactory(), optimisations, Set.of());
     }
 
     // Compute resulting GObligations. -> Same GObligations; Different Associated Sets; what to do?
-    ImmutableSet<GObligations> jumps = createDisjunctionStream(initialState,
+    Set<GObligations> jumps = createDisjunctionStream(initialState,
       GObligationsJumpManager::createGSetStream)
       .map(Gs -> GObligations.build(Gs, initialState.getFactory(), optimisations))
       .filter(Objects::nonNull)
-      .collect(ImmutableSet.toImmutableSet());
+      .collect(Collectors.toUnmodifiableSet());
 
     return new GObligationsJumpManager(initialState.getFactory(), optimisations, jumps);
   }

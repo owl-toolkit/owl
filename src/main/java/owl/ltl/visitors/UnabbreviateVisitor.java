@@ -17,9 +17,7 @@
 
 package owl.ltl.visitors;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -42,8 +40,7 @@ public class UnabbreviateVisitor extends DefaultConverter {
       .addOption("r", "release", false, "Remove R operator")
       .addOption("m", "strong-release", false, "Remove M operator")
     ).parser(settings -> {
-      ImmutableList.Builder<Class<? extends Formula>> classes =
-        ImmutableList.builder();
+      Set<Class<? extends Formula>> classes = new HashSet<>();
       if (settings.hasOption("weak-until")) {
         classes.add(WOperator.class);
       }
@@ -56,25 +53,23 @@ public class UnabbreviateVisitor extends DefaultConverter {
         classes.add(MOperator.class);
       }
 
-      ImmutableList<Class<? extends Formula>> classList = classes.build();
-      if (classList.isEmpty()) {
+      if (classes.isEmpty()) {
         throw new ParseException("No operation specified");
       }
 
-      return DefaultConverter.asTransformer(new UnabbreviateVisitor(classList));
+      return DefaultConverter.asTransformer(new UnabbreviateVisitor(classes));
     })
     .build();
 
-  // TODO Support for more operators
   private final Set<Class<? extends Formula>> classes;
 
   @SafeVarargs
   public UnabbreviateVisitor(Class<? extends Formula>... classes) {
-    this.classes = ImmutableSet.copyOf(classes);
+    this.classes = Set.of(classes);
   }
 
-  public UnabbreviateVisitor(List<Class<? extends Formula>> classes) {
-    this.classes = ImmutableSet.copyOf(classes);
+  private UnabbreviateVisitor(Set<Class<? extends Formula>> classes) {
+    this.classes = Set.copyOf(classes);
   }
 
   @Override
@@ -86,8 +81,7 @@ public class UnabbreviateVisitor extends DefaultConverter {
     Formula left = rOperator.left.accept(this);
     Formula right = rOperator.right.accept(this);
 
-    return Disjunction
-      .of(GOperator.of(right), UOperator.of(right, Conjunction.of(left, right)));
+    return Disjunction.of(GOperator.of(right), UOperator.of(right, Conjunction.of(left, right)));
   }
 
   @Override

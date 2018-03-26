@@ -2,9 +2,10 @@ package owl.run.modules;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
@@ -53,11 +54,9 @@ public final class Transformers {
   }
 
   public static List<Transformer.Instance> build(List<Transformer> transformers, Environment env) {
-    ImmutableList.Builder<Transformer.Instance> instanceBuilder = ImmutableList.builder();
-    for (Transformer transformer : transformers) {
-      instanceBuilder.add(transformer.create(env));
-    }
-    return instanceBuilder.build();
+    return transformers.stream()
+      .map(transformer -> transformer.create(env))
+      .collect(Collectors.toUnmodifiableList());
   }
 
   public abstract static class SimpleTransformer implements Transformer.Instance, Transformer {

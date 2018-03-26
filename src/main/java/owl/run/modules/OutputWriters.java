@@ -2,9 +2,6 @@ package owl.run.modules;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.EnumSet;
@@ -99,33 +96,38 @@ public final class OutputWriters {
   }
 
   public static class AutomatonStats {
-    private static final Map<Pattern, Function<Automaton<?, ?>, String>> patterns =
-      ImmutableMap.<Pattern, Function<Automaton<?, ?>, String>>builder()
-        // Acceptance condition
-        .put(Pattern.compile("%G", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> automaton.getAcceptance().getBooleanExpression().toString())
-        // Acceptance set count
-        .put(Pattern.compile("%A", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> String.valueOf(automaton.getAcceptance().getAcceptanceSets()))
-        // Is deterministic
-        .put(Pattern.compile("%D", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> automaton.is(Property.DETERMINISTIC) ? "1" : "0")
-        // Single line HOA
-        .put(Pattern.compile("%H", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> AutomatonUtil.toHoa(automaton).replace('\n', ' '))
-        // Name
-        .put(Pattern.compile("%M", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          HoaPrintable::getName)
-        // State count
-        .put(Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> String.valueOf(automaton.size()))
-        // Number of propositions
-        .put(Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> String.valueOf(automaton.getVariables().size()))
-        // Number of SCCs
-        .put(Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-          automaton -> String.valueOf(SccDecomposition.computeSccs(automaton).size()))
-        .build();
+    private static final Map<Pattern, Function<Automaton<?, ?>, String>> patterns = Map.of(
+      // Acceptance condition
+      Pattern.compile("%G", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> automaton.getAcceptance().getBooleanExpression().toString(),
+
+      // Acceptance set count
+      Pattern.compile("%A", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> String.valueOf(automaton.getAcceptance().getAcceptanceSets()),
+
+      // Is deterministic
+      Pattern.compile("%D", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> automaton.is(Property.DETERMINISTIC) ? "1" : "0",
+
+      // Single line HOA
+      Pattern.compile("%H", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> AutomatonUtil.toHoa(automaton).replace('\n', ' '),
+
+      // Name
+      Pattern.compile("%M", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      HoaPrintable::getName,
+
+      // State count
+      Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> String.valueOf(automaton.size()),
+
+      // Number of propositions
+      Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> String.valueOf(automaton.getVariables().size()),
+
+      // Number of SCCs
+      Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
+      automaton -> String.valueOf(SccDecomposition.computeSccs(automaton).size()));
 
     private final String formatString;
     private final Writer writer;
@@ -162,12 +164,12 @@ public final class OutputWriters {
     public static final ToHoa DEFAULT = new ToHoa(EnumSet.noneOf(Setting.class), List.of());
     private static final StoredAutomatonManipulator[] EMPTY = new StoredAutomatonManipulator[0];
 
-    final Set<Setting> hoaSettings;
-    final ImmutableList<StoredAutomatonManipulator> manipulations;
+    private final Set<Setting> hoaSettings;
+    private final List<StoredAutomatonManipulator> manipulations;
 
     public ToHoa(EnumSet<Setting> hoaSettings, List<StoredAutomatonManipulator> manipulations) {
-      this.hoaSettings = ImmutableSet.copyOf(hoaSettings);
-      this.manipulations = ImmutableList.copyOf(manipulations);
+      this.hoaSettings = Set.copyOf(hoaSettings);
+      this.manipulations = List.copyOf(manipulations);
     }
 
     private EnumSet<HoaOption> getOptions(boolean annotations) {

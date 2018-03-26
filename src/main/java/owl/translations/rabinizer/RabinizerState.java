@@ -1,6 +1,5 @@
 package owl.translations.rabinizer;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
@@ -15,7 +14,7 @@ public abstract class RabinizerState {
 
 
   static RabinizerState of(EquivalenceClass masterState, MonitorState[] monitorStates) {
-    return RabinizerStateTuple.create(masterState, ImmutableList.copyOf(monitorStates));
+    return RabinizerStateTuple.create(masterState, List.of(monitorStates));
   }
 
   static RabinizerState of(EquivalenceClass masterState, List<MonitorState> monitorStates) {

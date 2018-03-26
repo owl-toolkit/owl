@@ -17,9 +17,9 @@
 
 package owl.translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
@@ -35,8 +35,7 @@ public class EquivalenceClassStateFactory {
   private final EquivalenceClassFactory factory;
   private final boolean removeRedundantObligations;
 
-  EquivalenceClassStateFactory(EquivalenceClassFactory factory,
-    ImmutableSet<Configuration> configuration) {
+  EquivalenceClassStateFactory(EquivalenceClassFactory factory, Set<Configuration> configuration) {
     this(factory, configuration.contains(Configuration.EAGER_UNFOLD),
       configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE));
   }

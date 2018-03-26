@@ -17,7 +17,6 @@
 
 package owl.factories;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
@@ -31,7 +30,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
 public interface EquivalenceClassFactory {
-  ImmutableList<String> variables();
+  List<String> variables();
 
 
   EquivalenceClass of(Formula formula);

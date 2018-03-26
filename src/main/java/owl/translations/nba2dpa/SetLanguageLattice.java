@@ -3,7 +3,6 @@ package owl.translations.nba2dpa;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
     assert automaton.is(Property.DETERMINISTIC) : "Only deterministic automata supported.";
 
     bottom = new SetLanguage(Set.of());
-    top = new SetLanguage(ImmutableSet.copyOf(automaton.getStates()));
+    top = new SetLanguage(Set.copyOf(automaton.getStates()));
     greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500000)
       .expireAfterAccess(60, TimeUnit.SECONDS).build(new Loader<>(automaton));
   }

@@ -17,7 +17,6 @@
 
 package owl.automaton.algorithms;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -230,23 +229,22 @@ public final class SccDecomposition<S> {
         assert !explorationStack.isEmpty();
 
         // Gather all states in this SCC by popping the stack until we find the back-link
-        ImmutableSet<S> scc;
+        Set<S> scc;
         S stackNode = explorationStack.pop();
         if (stackNode == node) { // NOPMD
           // Singleton SCC
-          scc = ImmutableSet.of(node);
+          scc = Set.of(node);
           assert !isTransient(successorFunction, scc);
         } else {
-          ImmutableSet.Builder<S> builder = ImmutableSet.builder();
-          builder.add(stackNode);
+          scc = new HashSet<>();
+          scc.add(stackNode);
           do {
             // Pop the stack until we find our node
             stackNode = explorationStack.pop();
-            builder.add(stackNode);
+            scc.add(stackNode);
           } while (stackNode != node); // NOPMD
-          scc = builder.build();
         }
-        sccs.add(scc);
+        sccs.add(Set.copyOf(scc));
 
         // Remove all information about the popped states - retain the indices information since
         // we need to know which states have been processed.

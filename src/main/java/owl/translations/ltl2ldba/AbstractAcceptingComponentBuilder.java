@@ -17,9 +17,9 @@
 
 package owl.translations.ltl2ldba;
 
-import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.ldba.MutableAutomatonBuilder;
@@ -34,7 +34,7 @@ public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAccept
   protected final Factories factories;
   protected final EquivalenceClassStateFactory factory;
 
-  protected AbstractAcceptingComponentBuilder(ImmutableSet<Configuration> optimisations,
+  protected AbstractAcceptingComponentBuilder(Set<Configuration> optimisations,
     Factories factories) {
     this.factory = new EquivalenceClassStateFactory(factories.eqFactory, optimisations);
     this.factories = factories;

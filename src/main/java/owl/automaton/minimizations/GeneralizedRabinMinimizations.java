@@ -19,7 +19,6 @@ package owl.automaton.minimizations;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -350,7 +349,7 @@ public final class GeneralizedRabinMinimizations {
     GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
     List<RabinPair> pairs = acceptance.getPairs().stream()
       .filter(RabinPair::hasInfSet)
-      .collect(ImmutableList.toImmutableList());
+      .collect(Collectors.toUnmodifiableList());
     if (pairs.isEmpty()) {
       return;
     }

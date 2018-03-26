@@ -1,6 +1,5 @@
 package owl.ltl.parser;
 
-import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -106,7 +105,7 @@ public final class TlsfParser {
 
     builder.inputs(inputs);
     builder.outputs(outputs);
-    builder.variables(ImmutableList.copyOf(variables));
+    builder.variables(List.copyOf(variables));
 
     // Specifications
     List<Formula> initial = new ArrayList<>();
@@ -160,8 +159,8 @@ public final class TlsfParser {
     builder.preset(Conjunction.of(preset));
     builder.require(Conjunction.of(require));
     builder.assume(Conjunction.of(assume));
-    builder.assert_(ImmutableList.copyOf(assert_));
-    builder.guarantee(ImmutableList.copyOf(guarantee));
+    builder.assert_(List.copyOf(assert_));
+    builder.guarantee(List.copyOf(guarantee));
     return builder.build();
   }
 

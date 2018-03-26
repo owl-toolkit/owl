@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
 import static owl.automaton.Automaton.Property.DETERMINISTIC;
 
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
@@ -12,6 +11,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
@@ -163,12 +163,12 @@ public final class AutomatonOperations {
       return Stream.of(all, coBuchi, buchi)
         .flatMap(List::stream)
         .map(Automaton::getInitialState)
-        .collect(ImmutableList.toImmutableList());
+        .collect(Collectors.toUnmodifiableList());
     }
 
     @Nullable
     Edge<List<S>> successor(List<S> list, BitSet valuation) {
-      ImmutableList.Builder<S> successor = ImmutableList.builderWithExpectedSize(list.size());
+      List<S> successor = new ArrayList<>(list.size());
       BitSet acceptanceSets = new BitSet();
 
       for (int i = 0; i < list.size(); i++) {
@@ -203,7 +203,7 @@ public final class AutomatonOperations {
         }
       }
 
-      return Edge.of(successor.build(), acceptanceSets);
+      return Edge.of(List.copyOf(successor), acceptanceSets);
     }
   }
 }
