@@ -51,9 +51,9 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.util.TriConsumer;
 
-// TODO: use Cofoja to ensure invariants.
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
-final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAutomaton<S, A> {
+final class HashMapAutomaton<S, A extends OmegaAcceptance>
+  implements MutableAutomaton<S, A>, BulkOperationAutomaton {
   private A acceptance;
   private final Set<S> initialStates;
   private final Function<S, Map<Edge<S>, ValuationSet>> mapSupplier = x -> new LinkedHashMap<>();
@@ -348,21 +348,6 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements MutableAut
   @Override
   public void setName(String name) {
     this.name = name;
-  }
-
-  @Override
-  public void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
-    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      acceptance, Set.copyOf(initialStates), options,
-      is(Property.DETERMINISTIC), getName());
-
-    transitions.forEach((state, edges) -> {
-      hoa.addState(state);
-      edges.forEach(hoa::addEdge);
-      hoa.notifyEndOfState();
-    });
-
-    hoa.notifyEnd();
   }
 
   @Override

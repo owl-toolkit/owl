@@ -1,7 +1,13 @@
 package owl.translations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Collections2;
+import java.util.BitSet;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -10,10 +16,8 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.LabelledEdge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.factories.EquivalenceClassFactory;
-import owl.factories.FactorySupplier;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
@@ -47,47 +51,68 @@ public final class SimpleTranslations {
       DegeneralizedBreakpointState.createSink()), CoBuchiAcceptance.class);
   }
 
-  public static Automaton<EquivalenceClass, BuchiAcceptance> buildCoSafety(
-    LabelledFormula labelledFormula, Environment env) {
-    Preconditions.checkArgument(Fragments.isCoSafety(labelledFormula.formula()),
+  public static Automaton<EquivalenceClass, BuchiAcceptance> buildCoSafety(LabelledFormula formula,
+    Environment env) {
+    Preconditions.checkArgument(Fragments.isCoSafety(formula.formula()),
       "Formula is not from the syntactic co-safety fragment.");
 
-    FactorySupplier supplier = env.factorySupplier();
-    EquivalenceClassFactory eqFactory = supplier.getEquivalenceClassFactory(labelledFormula);
-    ValuationSetFactory vsFactory = supplier.getValuationSetFactory(labelledFormula.variables());
-    EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(eqFactory, true, false);
+    var supplier = env.factorySupplier();
+    var eqFactory = supplier.getEquivalenceClassFactory(formula.variables(), false);
+    var vsFactory = supplier.getValuationSetFactory(formula.variables());
+    var factory = new EquivalenceClassStateFactory(eqFactory, true, false);
 
-    return AutomatonFactory.createStreamingAutomaton(BuchiAcceptance.INSTANCE,
-      factory.getInitial(labelledFormula.formula()), vsFactory,
-      (x, y) -> {
-        EquivalenceClass successor = factory.getSuccessor(x, y);
+    BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
+      EquivalenceClass successor = factory.getSuccessor(x, y);
 
-        if (successor.isFalse()) {
-          return null;
-        }
+      if (successor.isFalse()) {
+        return Set.of();
+      }
+
+      if (successor.isTrue()) {
+        return Set.of(Edge.of(successor, 0));
+      }
+
+      return Set.of(Edge.of(successor));
+    };
+
+    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = (x) -> {
+      var successors = factory.getSuccessors(x, vsFactory).entrySet();
+      return Collections2.transform(successors, y -> {
+        var successor = y.getKey();
+
         if (successor.isTrue()) {
-          return Edge.of(successor, 0);
+          return LabelledEdge.of(Edge.of(successor, 0), y.getValue());
         }
 
-        return Edge.of(successor);
+        return LabelledEdge.of(successor, y.getValue());
       });
+    };
+
+    return AutomatonFactory.create(factory.getInitial(formula.formula()), vsFactory,
+      single, bulk, BuchiAcceptance.INSTANCE);
   }
 
-  public static Automaton<EquivalenceClass, AllAcceptance> buildSafety(
-    LabelledFormula labelledFormula, Environment env) {
-    Preconditions.checkArgument(Fragments.isSafety(labelledFormula.formula()),
+  public static Automaton<EquivalenceClass, AllAcceptance> buildSafety(LabelledFormula formula,
+    Environment env) {
+    Preconditions.checkArgument(Fragments.isSafety(formula.formula()),
       "Formula is not from the syntactic safety fragment.");
 
-    FactorySupplier supplier = env.factorySupplier();
-    EquivalenceClassFactory eqFactory = supplier.getEquivalenceClassFactory(labelledFormula);
-    ValuationSetFactory vsFactory = supplier.getValuationSetFactory(labelledFormula.variables());
-    EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(eqFactory, true, false);
+    var supplier = env.factorySupplier();
+    var eqFactory = supplier.getEquivalenceClassFactory(formula.variables(), false);
+    var vsFactory = supplier.getValuationSetFactory(formula.variables());
+    var factory = new EquivalenceClassStateFactory(eqFactory, true, false);
 
-    return AutomatonFactory.createStreamingAutomaton(AllAcceptance.INSTANCE,
-      factory.getInitial(labelledFormula.formula()), vsFactory,
-      (x, y) -> {
-        EquivalenceClass successor = factory.getSuccessor(x, y);
-        return successor.isFalse() ? null : Edge.of(successor);
-      });
+    BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
+      EquivalenceClass successor = factory.getSuccessor(x, y);
+      return successor.isFalse() ? Set.of() : Set.of(Edge.of(successor));
+    };
+
+    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = (x) -> {
+      var successors = factory.getSuccessors(x, vsFactory).entrySet();
+      return Collections2.transform(successors, y -> LabelledEdge.of(y.getKey(), y.getValue()));
+    };
+
+    return AutomatonFactory.create(factory.getInitial(formula.formula()), vsFactory, single, bulk,
+      AllAcceptance.INSTANCE);
   }
 }

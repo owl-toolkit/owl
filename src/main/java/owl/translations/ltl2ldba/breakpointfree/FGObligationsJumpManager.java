@@ -66,19 +66,20 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   private final Table<Set<FOperator>, Set<GOperator>, FGObligations> cache;
 
   private FGObligationsJumpManager(EquivalenceClassFactory factories,
-    Set<Configuration> optimisations) {
-    super(optimisations, factories);
+    Set<Configuration> optimisations, Set<Formula> modalOperators, Formula initialFormula) {
+    super(optimisations, factories, modalOperators, initialFormula);
     cache = HashBasedTable.create();
   }
 
-  public static FGObligationsJumpManager build(EquivalenceClass initialState,
+  public static FGObligationsJumpManager build(Formula formula, EquivalenceClassFactory factory,
     Set<Configuration> optimisations) {
-    return new FGObligationsJumpManager(initialState.getFactory(), optimisations);
+    return new FGObligationsJumpManager(factory, optimisations,
+      factory.of(formula).modalOperators(), formula);
   }
 
   private static Stream<Map.Entry<Set<FOperator>, Set<GOperator>>> createFGSetStream(
-    EquivalenceClass state) {
-    Set<GOperator> gOperators = Collector.collectTransformedGOperators(state.getSupport());
+    Formula state) {
+    Set<GOperator> gOperators = Collector.collectTransformedGOperators(state);
     Set<FOperator> fOperators = Collector.collectTransformedFOperators(gOperators);
 
     // Prefilter
@@ -125,7 +126,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       .hashSetValues()
       .build();
 
-    Formula formula = state.getRepresentative();
+    Formula formula = state.representative();
     boolean delayJump = false;
 
     for (Set<UnaryModalOperator> obligations : formula.accept(ToplevelSelectVisitor.INSTANCE)) {
@@ -187,7 +188,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
   private EquivalenceClass evaluate(EquivalenceClass clazz, FGObligations obligation) {
     // TODO: use substitute
-    Formula formula = clazz.getRepresentative();
+    Formula formula = clazz.representative();
     Formula fFreeFormula = replaceFOperators(obligation, formula);
     Formula evaluated = SimplifierFactory.apply(fFreeFormula, Mode.SYNTACTIC);
     Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated

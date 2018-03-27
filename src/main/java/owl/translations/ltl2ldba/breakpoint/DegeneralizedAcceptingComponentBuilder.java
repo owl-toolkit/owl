@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +27,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.Collections3;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Fragments;
@@ -51,7 +51,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   public DegeneralizedBreakpointState createState(EquivalenceClass remainder,
     GObligations obligations) {
-    assert remainder.testSupport(Fragments::isCoSafety);
+    assert remainder.modalOperators().stream().allMatch(Fragments::isCoSafety);
 
     int length = obligations.obligations().size() + obligations.liveness().size();
 
@@ -60,13 +60,13 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass safety = obligations.safety();
     EquivalenceClass current = remainder;
 
-    if (remainder.testSupport(Fragments::isFinite)) {
+    if (remainder.modalOperators().stream().allMatch(Fragments::isSafety)) {
       safety = current.and(safety);
       current = factories.eqFactory.getTrue();
     }
 
     EquivalenceClass environment = factories.eqFactory.conjunction(
-      Iterables.concat(List.of(safety), obligations.liveness()));
+      Collections3.concat(List.of(safety), obligations.liveness()));
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,

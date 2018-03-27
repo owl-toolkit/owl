@@ -21,9 +21,8 @@ public final class BuchiDegeneralization {
     checkArgument(automaton.is(Property.DETERMINISTIC));
     int sets = automaton.getAcceptance().getAcceptanceSets();
 
-    return AutomatonFactory.createStreamingAutomaton(BuchiAcceptance.INSTANCE,
-      DegeneralizedBuchiState.of(automaton.getInitialState()), automaton.getFactory(),
-      (state, valuation) -> {
+    return AutomatonFactory.create(DegeneralizedBuchiState.of(automaton.getInitialState()),
+      automaton.getFactory(), (state, valuation) -> {
         Edge<S> edge = automaton.getEdge(state.state(), valuation);
 
         if (edge == null) {
@@ -41,7 +40,8 @@ public final class BuchiDegeneralization {
         }
 
         return Edge.of(DegeneralizedBuchiState.of(edge.getSuccessor(), nextSet));
-      });
+      }, BuchiAcceptance.INSTANCE
+    );
   }
 
   @Value.Immutable

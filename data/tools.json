@@ -11,7 +11,10 @@
                 "guess-f": "-f",
                 "non-deterministic": "-n",
                 "simple": "-s"
-            }
+            },
+            "pre": [
+            	"simplify-ltl"
+            ]
         },
         "ltl2dpa": {
             "type": "owl",

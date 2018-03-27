@@ -58,8 +58,8 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       return Edge.of(new Counter<>(edge.getSuccessor(), counters));
     };
 
-    return AutomatonFactory.createStreamingAutomaton(AllAcceptance.INSTANCE, initialState,
-      automaton.getFactory(), successor);
+    return AutomatonFactory.create(initialState, automaton.getFactory(), successor,
+      AllAcceptance.INSTANCE);
   }
 
   static final class Counter<X> {

@@ -33,7 +33,6 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -42,23 +41,20 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
 import owl.factories.EquivalenceClassFactory;
-import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
-import owl.ltl.visitors.Collector;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
 import owl.translations.ldba2dpa.FlatRankingAutomaton;
 import owl.translations.ldba2dpa.FlatRankingState;
-import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
@@ -76,7 +72,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
     COMPRESS_COLOURS);
 
-  private static final int GREEDY_TIME_MS = 10;
+  private static final int GREEDY_WAITING_TIME_SEC = 3;
 
   private final EnumSet<Configuration> configuration;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
@@ -107,10 +103,13 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    ExecutorService executor = Executors.newCachedThreadPool(
+    LabelledFormula formula2 = SimplifierFactory
+      .apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+
+    var executor = Executors.newCachedThreadPool(
       new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
-    Future<Result<?>> automatonFuture = executor.submit(callable(formula, false));
-    Future<Result<?>> complementFuture = executor.submit(callable(formula, true));
+    var automatonFuture = executor.submit(callable(formula2, false));
+    var complementFuture = executor.submit(callable(formula2, true));
 
     try {
       Automaton<?, ParityAcceptance> automaton = null;
@@ -177,7 +176,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     }
 
     try {
-      return future.get(GREEDY_TIME_MS, TimeUnit.MILLISECONDS);
+      return future.get(GREEDY_WAITING_TIME_SEC, TimeUnit.SECONDS);
     } catch (InterruptedException | TimeoutException e) {
       // Swallow exception
       return null;
@@ -187,7 +186,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   @Nullable
   private Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
     throws ExecutionException {
-    Result<?> result = getResult(future);
+    var result = getResult(future);
 
     if (result == null) {
       return null;
@@ -203,7 +202,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   @Nullable
   private Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
     throws ExecutionException {
-    Result<?> result = getResult(future);
+    var result = getResult(future);
     return result == null ? null : result.complement();
   }
 
@@ -224,8 +223,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   private Result<?> applyBreakpoint(LabelledFormula formula) {
-    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointState,
-      BuchiAcceptance, GObligations> ldba = translatorBreakpoint.apply(formula);
+    var ldba = translatorBreakpoint.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
@@ -235,21 +233,19 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().getFactory();
+    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().factory();
 
-    LanguageLattice<DegeneralizedBreakpointState, GObligations, EquivalenceClass> oracle =
-      new EquivalenceClassLanguageLattice(factory);
-
-    Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointState>, ParityAcceptance>
-      automaton = FlatRankingAutomaton.of(ldba, oracle, this::hasSafetyCore, true,
+    var automaton = FlatRankingAutomaton.of(ldba,
+      new EquivalenceClassLanguageLattice(factory),
+      x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
+      true,
       configuration.contains(OPTIMISE_INITIAL_STATE));
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));
   }
 
   private Result<?> applyBreakpointFree(LabelledFormula formula) {
-    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
-      BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
+    var ldba = translatorBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
@@ -259,38 +255,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().getFactory();
+    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().factory();
 
-    Automaton<FlatRankingState<EquivalenceClass, DegeneralizedBreakpointFreeState>,
-      ParityAcceptance> automaton = FlatRankingAutomaton.of(ldba, new BooleanLattice(),
-      this::hasSafetyCore, true, configuration.contains(OPTIMISE_INITIAL_STATE));
+    var automaton = FlatRankingAutomaton.of(ldba,
+      new BooleanLattice(),
+      x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
+      true,
+      configuration.contains(OPTIMISE_INITIAL_STATE));
+
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));
-  }
-
-  private boolean hasSafetyCore(EquivalenceClass state) {
-    if (state.testSupport(Fragments::isSafety)) {
-      return true;
-    }
-
-    // Check if the state has an independent safety core.
-    if (configuration.contains(EXISTS_SAFETY_CORE)) {
-      BitSet nonSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
-
-      EquivalenceClass core = state.substitute(x -> {
-        if (!Fragments.isSafety(x)) {
-          return BooleanConstant.FALSE;
-        }
-
-        BitSet ap = Collector.collectAtoms(x);
-        assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return ap.intersects(nonSafety) ? x : BooleanConstant.TRUE;
-      });
-
-      return core.isTrue();
-    }
-
-    return false;
   }
 
   public enum Configuration {
@@ -313,7 +287,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     }
 
     Automaton<T, ParityAcceptance> complete() {
-      MutableAutomaton<T, ParityAcceptance> automaton = AutomatonUtil.asMutable(this.automaton);
+      var automaton = AutomatonUtil.asMutable(this.automaton);
       BitSet reject = new BitSet();
       reject.set(0);
       AutomatonUtil.complete(automaton, sinkState, reject);

@@ -21,8 +21,8 @@ import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -30,13 +30,11 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.MutableAutomatonBuilder;
+import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.run.Environment;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
@@ -57,10 +55,11 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   private final Environment env;
   private final Function<S, C> getAnnotation;
   private final Set<Configuration> configuration;
-  private final Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor;
+  private final BiFunction<Formula, EquivalenceClassFactory, AbstractJumpManager<C>>
+    selectorConstructor;
 
   private LTL2LDBAFunction(Environment env,
-    Function<EquivalenceClass, AbstractJumpManager<C>> selectorConstructor,
+    BiFunction<Formula, EquivalenceClassFactory, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor,
     Set<Configuration> configuration, Function<S, C> getAnnotation) {
     this.env = env;
@@ -77,7 +76,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     Set<Configuration> configuration) {
     Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
-      x -> FGObligationsJumpManager.build(x, configuration2),
+      (x, y) -> FGObligationsJumpManager.build(x, y, configuration2),
       x -> new DegeneralizedAcceptingComponentBuilder(x, configuration2),
       configuration2, DegeneralizedBreakpointFreeState::getObligations);
   }
@@ -89,7 +88,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   createDegeneralizedBreakpointLDBABuilder(Environment env, Set<Configuration> configuration) {
     Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
-      x -> GObligationsJumpManager.build(x, configuration2),
+      (x, y) -> GObligationsJumpManager.build(x, y, configuration2),
       x -> new owl.translations.ltl2ldba.breakpoint.DegeneralizedAcceptingComponentBuilder(x,
         configuration2), configuration2, DegeneralizedBreakpointState::getObligations);
   }
@@ -101,7 +100,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   createGeneralizedBreakpointFreeLDBABuilder(Environment env, Set<Configuration> configuration) {
     Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
-      x -> FGObligationsJumpManager.build(x, configuration2),
+      (x, y) -> FGObligationsJumpManager.build(x, y, configuration2),
       x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
         configuration2),
       configuration2,
@@ -115,7 +114,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   createGeneralizedBreakpointLDBABuilder(Environment env, Set<Configuration> configuration) {
     Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
-      x -> GObligationsJumpManager.build(x, configuration2),
+      (x, y) -> GObligationsJumpManager.build(x, y, configuration2),
       x -> new GeneralizedAcceptingComponentBuilder(x, configuration2),
       configuration2,
       GeneralizedBreakpointState::getObligations);
@@ -124,17 +123,11 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
-    LabelledFormula rewritten = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
-    Factories factories = env.factorySupplier().getFactories(rewritten, true);
+    Factories factories = env.factorySupplier().getFactories(formula.variables(), true);
+    var factory = selectorConstructor.apply(formula.formula(), factories.eqFactory);
+    var builder = createBuilder(factories, factory);
 
-    Formula processedFormula = rewritten.formula();
-    AbstractJumpManager<C> factory = selectorConstructor.apply(factories.eqFactory
-      .of(processedFormula));
-
-    LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
-      builder = createBuilder(factories, factory);
-
-    for (EquivalenceClass initialClass : createInitialClasses(factories, processedFormula)) {
+    for (EquivalenceClass initialClass : createInitialClasses(factories, formula.formula())) {
       AnalysisResult<C> obligations = factory.analyse(initialClass);
 
       if (obligations.type == TYPE.MUST) {
@@ -144,7 +137,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
       }
     }
 
-    LimitDeterministicAutomaton<EquivalenceClass, S, B, C> ldba = builder.build();
+    var ldba = builder.build();
 
     // HACK:
     //
@@ -160,19 +153,16 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
     initialComponent.updateEdges((state, x) -> {
       assert !state.isFalse();
-      return state.testSupport(Fragments::isSafety) ? x.withAcceptance(bitSet) : x;
+      return SafetyDetector.hasSafetyCore(state, false) ? x.withAcceptance(bitSet) : x;
     });
+
     return ldba;
   }
 
   private LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
   createBuilder(Factories factories, AbstractJumpManager<C> selector) {
-    MutableAutomatonBuilder<Jump<C>, S, B> acceptingComponentBuilder = builderConstructor
-      .apply(factories);
-    InitialComponentBuilder<C> initialComponentBuilder = new InitialComponentBuilder<>(factories,
-      configuration, selector);
-
-    Predicate<EquivalenceClass> isSafety = x -> x.testSupport(Fragments::isSafety);
+    var initialComponentBuilder = new InitialComponentBuilder<>(factories, configuration, selector);
+    var acceptingComponentBuilder = builderConstructor.apply(factories);
 
     if (configuration.contains(Configuration.EPSILON_TRANSITIONS)) {
       return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
@@ -181,7 +171,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
         getAnnotation,
         EnumSet.of(
           LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
-        isSafety);
+        x -> SafetyDetector.hasSafetyCore(x, false));
     } else {
       return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
         acceptingComponentBuilder,
@@ -190,7 +180,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
         EnumSet.of(
           LimitDeterministicAutomatonBuilder.Configuration.REMOVE_EPSILON_TRANSITIONS,
           LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
-        isSafety);
+        x -> SafetyDetector.hasSafetyCore(x, false));
     }
   }
 

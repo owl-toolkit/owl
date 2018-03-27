@@ -17,7 +17,9 @@
 
 package owl.ltl;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -25,13 +27,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,34 +100,6 @@ public abstract class EquivalenceClassTest {
   }
 
   @Test
-  public void testExistsAndSat() {
-    Predicate<Formula> predicate = ((Predicate<Formula>) GOperator.class::isInstance).negate();
-
-    Formula[] formulas = {
-      LtlParser.syntax("a"),
-      LtlParser.syntax("G a"),
-      LtlParser.syntax("G a | G b | a"),
-      LtlParser.syntax("G a & G b & a"),
-    };
-
-    EquivalenceClass classA = factory.of(formulas[0]);
-    EquivalenceClass classExistsA = classA.exists(predicate);
-    assertEquals(factory.getTrue(), classExistsA);
-
-    EquivalenceClass classB = factory.of(formulas[1]);
-    EquivalenceClass classExistsB = classB.exists(predicate);
-    assertEquals(classB, classExistsB);
-
-    EquivalenceClass classC = factory.of(formulas[2]);
-    EquivalenceClass classExistsC = classC.exists(predicate);
-    assertEquals(factory.getTrue(), classExistsC);
-
-    EquivalenceClass classD = factory.of(formulas[3]);
-    EquivalenceClass classExistsD = classD.exists(predicate);
-    assertEquals(factory.of(LtlParser.syntax("G a & G b")), classExistsD);
-  }
-
-  @Test
   public void testFrequencyGNotFalse() {
     LabelledFormula formula = LtlParser.parse("G { >= 0.4} a");
     EquivalenceClassFactory factory = setUpFactory(formula);
@@ -142,9 +114,9 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass clazz = factory.of(formula.formula());
     BitSet atoms = new BitSet();
     atoms.set(0);
-    assertThat(clazz.getAtoms(), is(atoms));
+    assertThat(clazz.atomicPropositions(), is(atoms));
     atoms.set(2);
-    assertThat(clazz.unfold().getAtoms(), is(atoms));
+    assertThat(clazz.unfold().atomicPropositions(), is(atoms));
   }
 
   @Test
@@ -154,7 +126,7 @@ public abstract class EquivalenceClassTest {
     EquivalenceClass clazz = factory.of(formula.formula());
     BitSet atoms = new BitSet();
     atoms.set(0, 3);
-    assertEquals(atoms, clazz.getAtoms());
+    assertEquals(atoms, clazz.atomicPropositions());
   }
 
   @Test
@@ -163,26 +135,25 @@ public abstract class EquivalenceClassTest {
     EquivalenceClassFactory factory = setUpFactory(formula);
     EquivalenceClass clazz = factory.of(formula.formula());
     BitSet atoms = new BitSet();
-    assertEquals(atoms, clazz.getAtoms());
+    assertEquals(atoms, clazz.atomicPropositions());
     atoms.set(0);
-    assertEquals(atoms, clazz.unfold().getAtoms());
+    assertEquals(atoms, clazz.unfold().atomicPropositions());
   }
 
   @Test
-  public void testGetRepresentative() {
-    assertEquals(contradiction, factory.of(contradiction).getRepresentative());
+  public void testRepresentative() {
+    assertEquals(contradiction, factory.of(contradiction).representative());
   }
 
   @Test
-  public void testGetSupport() {
-    Formula[] formulas = {
+  public void testModalOperators() {
+    List<Formula> formulas = List.of(
       LtlParser.syntax("a"),
       LtlParser.syntax("F a"),
-      LtlParser.syntax("G a")
-    };
+      LtlParser.syntax("G a"));
 
-    EquivalenceClass clazz = factory.of(Conjunction.of(Arrays.asList(formulas)));
-    assertEquals(Set.of(formulas), clazz.getSupport());
+    EquivalenceClass clazz = factory.of(Conjunction.of(formulas));
+    assertThat(clazz.modalOperators(), is(Set.copyOf(formulas.subList(1, 3))));
   }
 
   @Test
@@ -262,27 +233,20 @@ public abstract class EquivalenceClassTest {
 
   @Test
   public void testRewrite() {
-    Formula formula = LtlParser.syntax("G (a | X!b) | F c");
+    Formula formula = LtlParser.syntax("G (a | X!b) | F c | c");
     EquivalenceClass clazz = factory.of(formula).unfold();
 
     Function<Formula, Formula> substitution = x -> {
+      assertThat(x, is(not(instanceOf(Literal.class))));
+
       if (x instanceof FOperator) {
         return BooleanConstant.FALSE;
-      }
-
-      if (x instanceof Literal) {
-        return ((Literal) x).getAtom() == 2 ? x : BooleanConstant.TRUE;
       }
 
       return BooleanConstant.TRUE;
     };
 
     EquivalenceClass core = clazz.substitute(substitution);
-    assertThat(core, is(factory.getTrue()));
-
-    clazz = clazz.temporalStepUnfold(new BitSet());
-
-    core = clazz.substitute(substitution);
     assertThat(core, is(factory.getTrue()));
   }
 }

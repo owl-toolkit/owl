@@ -99,8 +99,8 @@ public final class AutomatonOperations {
     }
 
     ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));
-    return AutomatonFactory.createStreamingAutomaton(acceptance, builder.init(), factory,
-      builder::successor);
+    return AutomatonFactory.create(builder.init(), factory, builder::successor, acceptance
+    );
   }
 
   public static <S> Automaton<List<S>, BuchiAcceptance> union(
@@ -112,8 +112,8 @@ public final class AutomatonOperations {
     ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));
     builder.buchi.addAll(automata);
 
-    return AutomatonFactory.createStreamingAutomaton(BuchiAcceptance.INSTANCE, builder.init(),
-      factory, builder::successor);
+    return AutomatonFactory.create(builder.init(), factory, builder::successor,
+      BuchiAcceptance.INSTANCE);
   }
 
   private static final class ListAutomatonBuilder<S> {

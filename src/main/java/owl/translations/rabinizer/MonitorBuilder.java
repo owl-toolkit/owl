@@ -38,8 +38,6 @@ import owl.ltl.Fragments;
 import owl.ltl.GOperator;
 
 final class MonitorBuilder {
-  private static final Predicate<Formula> NO_G_SUB_FORMULA = formula ->
-    formula.allMatch(sub -> !(sub instanceof GOperator));
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
   private static final GSet[] EMPTY = new GSet[0];
 
@@ -56,11 +54,12 @@ final class MonitorBuilder {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    boolean noSubFormula = operand.testSupport(NO_G_SUB_FORMULA);
-    if (noSubFormula && gOperator.operand instanceof FOperator) {
-      // TODO breaks for GF(a1 & !(a2 U b2)) if "noSubFormula" test is removed
+    Set<Formula> modalOperators = operand.modalOperators();
+    boolean isCoSafety = modalOperators.stream().allMatch(Fragments::isCoSafety);
+
+    if (isCoSafety && gOperator.operand instanceof FOperator) {
       fragment = Fragment.EVENTUAL;
-    } else if (operand.testSupport(Fragments::isFinite)) {
+    } else if (modalOperators.stream().allMatch(Fragments::isFinite)) {
       fragment = Fragment.FINITE;
     } else {
       fragment = Fragment.FULL;
@@ -68,11 +67,11 @@ final class MonitorBuilder {
 
     logger.log(Level.FINE, "Creating builder for formula {0} and relevant sets {1}; "
         + "fragment: {2}, no G-sub: {3}",
-      new Object[] {operand, relevantSets, fragment, noSubFormula});
+      new Object[] {operand, relevantSets, fragment, isCoSafety});
 
-    this.stateFactory = new MonitorStateFactory(eager, noSubFormula);
+    this.stateFactory = new MonitorStateFactory(eager, isCoSafety);
     this.relevantSets = relevantSets.toArray(EMPTY);
-    assert !noSubFormula || this.relevantSets.length == 1;
+    assert !isCoSafety || this.relevantSets.length == 1;
 
     //noinspection unchecked,rawtypes
     this.monitorAutomata = new MutableAutomaton[this.relevantSets.length];

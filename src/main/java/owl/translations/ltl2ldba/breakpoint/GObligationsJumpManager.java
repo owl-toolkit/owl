@@ -20,7 +20,6 @@ package owl.translations.ltl2ldba.breakpoint;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -30,25 +29,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
-import owl.ltl.Literal;
-import owl.ltl.MOperator;
-import owl.ltl.ROperator;
-import owl.ltl.UOperator;
-import owl.ltl.WOperator;
-import owl.ltl.XOperator;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.DefaultConverter;
 import owl.translations.ltl2ldba.AbstractJumpManager;
+import owl.translations.ltl2ldba.FGSubstitution;
 import owl.translations.ltl2ldba.Jump;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
@@ -56,55 +43,48 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
   private static final Logger logger = Logger.getLogger(GObligationsJumpManager.class.getName());
   private final Set<GObligations> obligations;
 
-  private GObligationsJumpManager(EquivalenceClassFactory factory,
-    Set<Configuration> optimisations, Set<GObligations> obligations) {
-    super(optimisations, factory);
+  private GObligationsJumpManager(EquivalenceClassFactory factory, Set<Configuration> optimisations,
+    Set<GObligations> obligations, Set<Formula> modalOperators, Formula initialFormula) {
+    super(optimisations, factory, modalOperators, initialFormula);
     this.obligations = Set.copyOf(obligations);
     logger.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
   }
 
-  public static GObligationsJumpManager build(EquivalenceClass initialState,
+  public static GObligationsJumpManager build(Formula formula, EquivalenceClassFactory factory,
     Set<Configuration> optimisations) {
+    EquivalenceClass initialState = factory.of(formula);
+    Set<Formula> modalOperators = initialState.modalOperators();
 
-    if (initialState.testSupport(Fragments::isCoSafety) || initialState
-      .testSupport(Fragments::isSafety)) {
-      return new GObligationsJumpManager(initialState.getFactory(), optimisations, Set.of());
+    if (modalOperators.stream().allMatch(Fragments::isCoSafety)
+      || modalOperators.stream().allMatch(Fragments::isSafety)) {
+      return new GObligationsJumpManager(initialState.factory(), optimisations, Set.of(), Set.of(),
+        BooleanConstant.TRUE);
     }
 
-    // Compute resulting GObligations. -> Same GObligations; Different Associated Sets; what to do?
     Set<GObligations> jumps = createDisjunctionStream(initialState,
       GObligationsJumpManager::createGSetStream)
-      .map(Gs -> GObligations.build(Gs, initialState.getFactory(), optimisations))
+      .map(Gs -> GObligations.build(Gs, initialState.factory(), optimisations))
       .filter(Objects::nonNull)
       .collect(Collectors.toUnmodifiableSet());
 
-    return new GObligationsJumpManager(initialState.getFactory(), optimisations, jumps);
+    return new GObligationsJumpManager(initialState.factory(), optimisations, jumps,
+      initialState.modalOperators(), formula);
   }
 
-  private static boolean containsAllPropositions(Collection<? extends Formula> set1,
-    Collection<? extends Formula> set2) {
-    BitSet obligationAtoms = Collector.collectAtoms(set1);
-    BitSet supportAtoms = Collector.collectAtoms(set2);
-    return BitSets.isSubset(obligationAtoms, supportAtoms);
-  }
-
-  private static Stream<Set<GOperator>> createGSetStream(EquivalenceClass state) {
-    return Sets.powerSet(Collector.collectTransformedGOperators(state.getSupport())).stream();
+  private static Stream<Set<GOperator>> createGSetStream(Formula formula) {
+    return Sets.powerSet(Collector.collectTransformedGOperators(formula)).stream();
   }
 
   private static boolean dependsOnExternalAtoms(EquivalenceClass remainder,
     GObligations obligation) {
-    BitSet externalAtoms = Collector.collectAtoms(remainder.getSupport());
-    BitSet internalAtoms = new BitSet();
-    obligation.forEach(x -> internalAtoms.or(Collector.collectAtoms(x.getSupport())));
+    BitSet remainderAP = remainder.atomicPropositions();
+    remainderAP.or(Collector.collectAtoms(remainder.modalOperators()));
+    BitSet obligationAP = Collector.collectAtoms(obligation.gOperatorsRewritten());
 
-    // Check if external atoms are non-empty and disjoint.
-    if (!externalAtoms.isEmpty()) {
-      externalAtoms.and(internalAtoms);
-      return externalAtoms.isEmpty();
-    }
+    assert !remainderAP.isEmpty();
+    assert !obligationAP.isEmpty();
 
-    return false;
+    return !remainderAP.intersects(obligationAP);
   }
 
   @Override
@@ -112,11 +92,14 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     EquivalenceClass state2 = configuration.contains(Configuration.EAGER_UNFOLD)
       ? state
       : state.unfold();
-    Set<Formula> support = state2.getSupport();
     Set<GObligations> availableObligations = new HashSet<>();
 
     for (GObligations x : obligations) {
-      if (containsAllPropositions(x.goperators(), support)) {
+      BitSet obligationAtoms = Collector.collectAtoms(x.gOperators());
+      BitSet supportAtoms = Collector.collectAtoms(state2.modalOperators());
+      supportAtoms.or(state2.atomicPropositions());
+
+      if (BitSets.isSubset(obligationAtoms, supportAtoms)) {
         availableObligations.add(x);
       }
     }
@@ -124,149 +107,21 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     Set<Jump<GObligations>> jumps = new HashSet<>();
 
     for (GObligations obligation : availableObligations) {
-      EquivalenceClass remainder = evaluate(state, obligation);
+      FGSubstitution evaluateVisitor = new FGSubstitution(obligation.gOperators());
+      EquivalenceClass remainder = state.substitute(x -> x.accept(evaluateVisitor));
 
       if (remainder.isFalse()) {
         continue;
       }
 
-      if (configuration.contains(Configuration.SUPPRESS_JUMPS)
-        && dependsOnExternalAtoms(remainder, obligation)) {
-        continue;
+      if (obligation.getObligation().implies(remainder)) {
+        jumps.add(buildJump(factory.getTrue(), obligation));
+      } else if (!configuration.contains(Configuration.SUPPRESS_JUMPS)
+        || !dependsOnExternalAtoms(remainder, obligation)) {
+        jumps.add(buildJump(remainder, obligation));
       }
-
-      jumps.add(buildJump(remainder, obligation));
     }
 
     return jumps;
-  }
-
-  private static Formula evaluate(Formula formula, GObligations keys) {
-    EvaluateVisitor evaluateVisitor =
-      new EvaluateVisitor(keys.goperators(), keys.getObligation());
-    Formula subst = formula.accept(evaluateVisitor);
-    return SimplifierFactory.apply(subst, Mode.SYNTACTIC);
-  }
-
-  EquivalenceClass evaluate(EquivalenceClass clazz, GObligations keys) {
-    Formula formula = clazz.getRepresentative();
-
-    if (formula != null) {
-      return factory.of(evaluate(formula, keys)); // NOPMD - Generates a synthetic accessor
-    }
-
-    return clazz.substitute(x -> evaluate(x, keys));
-  }
-
-  static final class EvaluateVisitor extends DefaultConverter {
-    private final EquivalenceClass environment;
-    private final EquivalenceClassFactory factory;
-
-    EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
-      this.factory = label.getFactory();
-      this.environment = label.and(factory.of(
-        Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));
-    }
-
-    private boolean isImplied(Formula formula) {
-      EquivalenceClass clazz = factory.of(formula);
-      return environment.implies(clazz);
-    }
-
-    @Override
-    public Formula visit(Conjunction conjunction) {
-      // Implication check not necessary for conjunctions.
-      return Conjunction.of(conjunction.children.stream().map(e -> e.accept(this)));
-    }
-
-    @Override
-    public Formula visit(Disjunction disjunction) {
-      if (isImplied(disjunction)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return Disjunction.of(disjunction.children.stream().map(e -> e.accept(this)));
-    }
-
-    @Override
-    public Formula visit(FOperator fOperator) {
-      if (isImplied(fOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return FOperator.of(fOperator.operand.accept(this));
-    }
-
-    @Override
-    public Formula visit(FrequencyG freq) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Formula visit(GOperator gOperator) {
-      if (isImplied(gOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return BooleanConstant.of(gOperator.operand.accept(this) == BooleanConstant.TRUE);
-    }
-
-    @Override
-    public Formula visit(Literal literal) {
-      return isImplied(literal) ? BooleanConstant.TRUE : literal;
-    }
-
-    @Override
-    public Formula visit(MOperator mOperator) {
-      if (isImplied(mOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
-    }
-
-    @Override
-    public Formula visit(ROperator rOperator) {
-      if (isImplied(rOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      if (rOperator.right.accept(this) == BooleanConstant.TRUE) {
-        return BooleanConstant.TRUE;
-      }
-
-      return MOperator.of(rOperator.left, rOperator.right).accept(this);
-    }
-
-    @Override
-    public Formula visit(UOperator uOperator) {
-      if (isImplied(uOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
-    }
-
-    @Override
-    public Formula visit(WOperator wOperator) {
-      if (isImplied(wOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      if (wOperator.left.accept(this) == BooleanConstant.TRUE) {
-        return BooleanConstant.TRUE;
-      }
-
-      return UOperator.of(wOperator.left, wOperator.right).accept(this);
-    }
-
-    @Override
-    public Formula visit(XOperator xOperator) {
-      if (isImplied(xOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return XOperator.of(xOperator.operand.accept(this));
-    }
   }
 }

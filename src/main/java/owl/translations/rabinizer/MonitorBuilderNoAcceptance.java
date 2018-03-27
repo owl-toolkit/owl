@@ -27,15 +27,12 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.GOperator;
-import owl.ltl.visitors.Collector;
 
 final class MonitorBuilderNoAcceptance {
-  private static final Predicate<Formula> NO_SUB_FORMULA = formula ->
-    Collector.collectGOperators(formula).isEmpty();
   private static final Logger logger = Logger.getLogger(MonitorBuilderNoAcceptance.class.getName());
   private final GOperator gOperator;
   private final EquivalenceClass initialClass;
-  private final boolean isSafety;
+  private final boolean isFinite;
   private final Set<GSet> relevantSets;
   private final MonitorStateFactory stateFactory;
   private final ValuationSetFactory vsFactory;
@@ -45,15 +42,15 @@ final class MonitorBuilderNoAcceptance {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    isSafety = formula.testSupport(Fragments::isFinite);
-    boolean noSubFormula = isSafety || formula.testSupport(NO_SUB_FORMULA);
-    assert !isSafety || formula.testSupport(NO_SUB_FORMULA);
+    Set<Formula> modalOperators = formula.modalOperators();
+    isFinite = modalOperators.stream().allMatch(Fragments::isFinite);
+    boolean isCoSafety = modalOperators.stream().allMatch(Fragments::isCoSafety);
 
     logger.log(Level.FINE, "Creating builder for formula {0} and relevant sets {1}; "
         + "safety: {2}, no G-sub: {3}",
-      new Object[] {formula, relevantSets, isSafety, noSubFormula});
+      new Object[] {formula, relevantSets, isFinite, isCoSafety});
 
-    this.stateFactory = new MonitorStateFactory(eager, noSubFormula);
+    this.stateFactory = new MonitorStateFactory(eager, isCoSafety);
     this.relevantSets = Set.copyOf(relevantSets);
 
     initialClass = stateFactory.getInitialState(formula);
@@ -99,11 +96,11 @@ final class MonitorBuilderNoAcceptance {
     monitor.setInitialState(initialState);
 
     BiFunction<MonitorState, BitSet, Edge<MonitorState>> successorFunction =
-      isSafety ? this::getSuccessorSafety : this::getSuccessor;
+      isFinite ? this::getSuccessorSafety : this::getSuccessor;
     AutomatonUtil.exploreDeterministic(monitor, Set.of(initialState),
       successorFunction, new AtomicInteger(0));
 
-    if (!isSafety) {
+    if (!isFinite) {
       optimizeInitialState(monitor);
     }
 

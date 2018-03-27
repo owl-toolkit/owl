@@ -20,15 +20,21 @@ package owl.factories;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import owl.collections.LabelledTree;
+import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.UnaryModalOperator;
 
+// Design and performance notes: literals are different from unary and binary modal operators,
+// due to performance and consistency issues
 public interface EquivalenceClassFactory {
   List<String> variables();
 
@@ -44,15 +50,18 @@ public interface EquivalenceClassFactory {
   }
 
 
-  BitSet getAtoms(EquivalenceClass clazz);
+  /**
+   * Collects all literals used in the bdd and stores the corresponding atomic propositions in
+   * the BitSet.
+   */
+  BitSet atomicPropositions(EquivalenceClass clazz);
 
-  Set<Formula> getSupport(EquivalenceClass clazz);
-
-  default Set<Formula> getSupport(EquivalenceClass clazz, Predicate<Formula> predicate) {
-    return Sets.filter(getSupport(clazz), predicate::test);
-  }
-
-  boolean testSupport(EquivalenceClass clazz, Predicate<Formula> predicate);
+  /**
+   * Compute the support of the EquivalenceClass.
+   *
+   * @return All modal operators this equivalence class depends on.
+   */
+  Set<Formula> modalOperators(EquivalenceClass clazz);
 
   boolean implies(EquivalenceClass clazz, EquivalenceClass other);
 
@@ -65,7 +74,7 @@ public interface EquivalenceClassFactory {
     return conjunction(Iterators.forArray(classes));
   }
 
-  default EquivalenceClass conjunction(Iterable<EquivalenceClass> classes) {
+  default EquivalenceClass conjunction(Collection<EquivalenceClass> classes) {
     return conjunction(classes.iterator());
   }
 
@@ -80,18 +89,14 @@ public interface EquivalenceClassFactory {
     return disjunction(Iterators.forArray(classes));
   }
 
-  default EquivalenceClass disjunction(Iterable<EquivalenceClass> classes) {
+  default EquivalenceClass disjunction(Collection<EquivalenceClass> classes) {
     return disjunction(classes.iterator());
   }
 
   EquivalenceClass disjunction(Iterator<EquivalenceClass> classes);
 
 
-  EquivalenceClass exists(EquivalenceClass clazz, Predicate<Formula> predicate);
-
-  EquivalenceClass substitute(EquivalenceClass clazz,
-    Function<? super Formula, ? extends Formula> substitution);
-
+  EquivalenceClass substitute(EquivalenceClass clazz, Function<Formula, Formula> substitution);
 
   EquivalenceClass temporalStep(EquivalenceClass clazz, BitSet valuation);
 
@@ -103,4 +108,6 @@ public interface EquivalenceClassFactory {
 
 
   String toString(EquivalenceClass clazz);
+
+  LabelledTree<Integer, EquivalenceClass> temporalStepTree(EquivalenceClass clazz);
 }

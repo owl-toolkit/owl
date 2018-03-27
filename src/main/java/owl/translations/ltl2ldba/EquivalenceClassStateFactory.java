@@ -17,12 +17,20 @@
 
 package owl.translations.ltl2ldba;
 
+import de.tum.in.naturals.bitset.BitSets;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.collections.LabelledTree;
+import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
+import owl.factories.ValuationSetFactory;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -48,10 +56,10 @@ public class EquivalenceClassStateFactory {
   }
 
   public EquivalenceClass getInitial(Formula... formulas) {
-    return getInitial(List.of(formulas));
+    return getInitial(Arrays.asList(formulas));
   }
 
-  private EquivalenceClass getInitial(Iterable<Formula> formulas) {
+  private EquivalenceClass getInitial(Collection<Formula> formulas) {
     return getInitial(factory.of(Conjunction.of(formulas)));
   }
 
@@ -66,9 +74,9 @@ public class EquivalenceClassStateFactory {
 
   public BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
     if (eagerUnfold) {
-      return clazz.getAtoms();
+      return clazz.atomicPropositions();
     } else {
-      return clazz.unfold().getAtoms();
+      return clazz.unfold().atomicPropositions();
     }
   }
 
@@ -78,6 +86,40 @@ public class EquivalenceClassStateFactory {
       ? clazz.temporalStepUnfold(valuation)
       : clazz.unfoldTemporalStep(valuation);
     return removeRedundantObligations(successor, environmentArray);
+  }
+
+  public Map<EquivalenceClass, ValuationSet> getSuccessors(EquivalenceClass clazz,
+    ValuationSetFactory factory) {
+    var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
+    return getSuccessorsRecursive(tree, factory);
+  }
+
+  private Map<EquivalenceClass, ValuationSet> getSuccessorsRecursive(
+    LabelledTree<Integer, EquivalenceClass> tree, ValuationSetFactory factory) {
+    if (tree instanceof LabelledTree.Leaf) {
+      var label = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
+      return !label.isFalse()
+        ? Map.of(eagerUnfold ? label.unfold() : label, factory.universe())
+        : Map.of();
+    }
+
+    var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
+    var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
+    var map = new HashMap<EquivalenceClass, ValuationSet>();
+
+    {
+      var mask = factory.of(literal, literal);
+      getSuccessorsRecursive(children.get(0), factory).forEach(
+        ((clazz, set) -> map.merge(clazz, set.intersection(mask), ValuationSet::union)));
+    }
+
+    {
+      var mask = factory.of(new BitSet(), literal);
+      getSuccessorsRecursive(children.get(1), factory).forEach(
+        ((clazz, set) -> map.merge(clazz, set.intersection(mask), ValuationSet::union)));
+    }
+
+    return map;
   }
 
   @Nullable
@@ -110,8 +152,8 @@ public class EquivalenceClassStateFactory {
   }
 
   public List<EquivalenceClass> splitEquivalenceClass(EquivalenceClass clazz) {
-    assert clazz.getRepresentative() != null;
-    List<EquivalenceClass> successors = NormalForms.toDnf(clazz.getRepresentative())
+    assert clazz.representative() != null;
+    List<EquivalenceClass> successors = NormalForms.toDnf(clazz.representative())
       .stream()
       .map(this::getInitial)
       .collect(Collectors.toList());

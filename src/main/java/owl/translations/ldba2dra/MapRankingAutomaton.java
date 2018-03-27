@@ -41,8 +41,8 @@ public final class MapRankingAutomaton {
        : GeneralizedRabinAcceptance.class));
 
     Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton = AutomatonFactory
-      .createStreamingAutomaton(builder.acceptance, builder.initialState,
-        ldba.getAcceptingComponent().getFactory(), builder::getSuccessor);
+      .create(builder.initialState, ldba.getAcceptingComponent().getFactory(),
+        builder::getSuccessor, builder.acceptance);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
   }

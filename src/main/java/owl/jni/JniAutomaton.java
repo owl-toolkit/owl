@@ -17,21 +17,26 @@
 
 package owl.jni;
 
+import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.BulkOperationAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.LabelledEdge;
 import owl.ltl.EquivalenceClass;
 
 // This is a JNI entry point. No touching.
@@ -69,7 +74,7 @@ public final class JniAutomaton {
     // Fix accepting sink to id 1.
     if (acceptance == Acceptance.CO_SAFETY) {
       EquivalenceClass trueClass =
-        ((EquivalenceClass) this.automaton.getInitialState()).getFactory().getTrue();
+        ((EquivalenceClass) this.automaton.getInitialState()).factory().getTrue();
       int index = lookup(trueClass);
       assert index == 1;
     }
@@ -123,8 +128,18 @@ public final class JniAutomaton {
     int size = automaton.getFactory().alphabetSize();
     int[] edges = new int[2 << size];
 
+    var labelledEdges = automaton instanceof BulkOperationAutomaton
+      ? List.copyOf(automaton.getLabelledEdges(o))
+      : null;
+
     for (BitSet valuation : BitSets.powerSet(size)) {
-      Edge<?> edge = automaton.getEdge(o, valuation);
+      Edge<?> edge;
+
+      if (labelledEdges == null) {
+        edge = automaton.getEdge(o, valuation);
+      } else {
+        edge = lookup(labelledEdges, valuation);
+      }
 
       if (edge == null) {
         edges[i] = NO_STATE;
@@ -147,8 +162,20 @@ public final class JniAutomaton {
     int size = automaton.getFactory().alphabetSize();
     int[] successors = new int[1 << size];
 
+    var labelledEdges = automaton instanceof BulkOperationAutomaton
+      ? List.copyOf(automaton.getLabelledEdges(o))
+      : null;
+
     for (BitSet valuation : BitSets.powerSet(size)) {
-      Object successor = automaton.getSuccessor(o, valuation);
+      Object successor;
+
+      if (labelledEdges == null) {
+        successor = automaton.getSuccessor(o, valuation);
+      } else {
+        var edge = lookup(labelledEdges, valuation);
+        successor = edge != null ? edge.getSuccessor() : null;
+      }
+
       successors[i] = successor == null ? NO_STATE : lookup(successor);
       i += 1;
     }
@@ -168,8 +195,46 @@ public final class JniAutomaton {
     return index;
   }
 
+  @Nullable
+  private static Edge<?> lookup(Collection<LabelledEdge<Object>> labelledEdges, BitSet valuation) {
+    for (var labelledEdge : labelledEdges) {
+      if (labelledEdge.valuations.contains(valuation)) {
+        return labelledEdge.edge;
+      }
+    }
+
+    return null;
+  }
+
+  // For the tree annotation "non-existing" or generic types are needed: PARITY, WEAK, BOTTOM
   enum Acceptance {
-    BUCHI, CO_BUCHI, CO_SAFETY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD,
-    SAFETY
+    BUCHI, CO_BUCHI, CO_SAFETY, PARITY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN,
+    PARITY_MIN_ODD, SAFETY, WEAK, BOTTOM;
+
+    Acceptance lub(Acceptance other) {
+      if (this == BOTTOM || this == other) {
+        return other;
+      }
+
+      switch (this) {
+        case CO_SAFETY:
+          return other == SAFETY ? WEAK : other;
+
+        case SAFETY:
+          return other == CO_SAFETY ? WEAK : other;
+
+        case WEAK:
+          return (other == SAFETY || other == CO_SAFETY) ? this : other;
+
+        case BUCHI:
+          return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
+
+        case CO_BUCHI:
+          return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
+
+        default:
+          return PARITY;
+      }
+    }
   }
 }

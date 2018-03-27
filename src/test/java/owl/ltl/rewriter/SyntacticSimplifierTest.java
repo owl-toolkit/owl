@@ -81,7 +81,12 @@ public class SyntacticSimplifierTest {
     List.of("G (F (a & X F (b & X F c)))", "(G F a) & (G F b) & (G F c)"),
     List.of("F G (a | (b & X F b))", "F G (a | b)"),
     List.of("F G (a <-> (F b))", "! ((G F b & G F !a) | (F G !b & G F a))"),
-    List.of("G (X ((X a) U (X b)))", "G (X ((X a) U (X b)))")
+    List.of("G (X ((X a) U (X b)))", "G (X ((X a) U (X b)))"),
+    List.of("G (F (a & (F b)))", "(G F a) & (G F b)"),
+    List.of("G F (b & G b)", "(F G b)"),
+
+    // Negations
+    List.of("a | !a", "true")
   );
 
   @Test

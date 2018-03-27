@@ -71,6 +71,6 @@ public class LTL2DPAFunctionTest {
   @Test
   public void testRegression3() {
     String ltl = "F ((a | (G b)) & (c | (G d)) & (e | (G f)))";
-    testOutput(ltl, 32, 2);
+    testOutput(ltl, 213, 3);
   }
 }

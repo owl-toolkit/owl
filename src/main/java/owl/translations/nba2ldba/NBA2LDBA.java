@@ -19,6 +19,8 @@ package owl.translations.nba2ldba;
 
 import com.google.common.collect.Sets;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
@@ -75,8 +77,7 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
       = AcceptingComponentBuilder.createScc(nba);
 
     return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder, Sets::newHashSet,
-      (Function<BreakpointState<S>, Void>) x -> null, configuration).build();
+      acceptingComponentBuilder, Set::of, x -> (Void) null, configuration).build();
   }
 
   public static void main(String... args) {

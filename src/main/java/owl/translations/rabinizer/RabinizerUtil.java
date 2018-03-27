@@ -3,7 +3,6 @@ package owl.translations.rabinizer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.EquivalenceClass;
@@ -13,8 +12,6 @@ import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.Collector;
 
 final class RabinizerUtil {
-  private static final Predicate<Formula> modalOperators = formula ->
-    formula instanceof UnaryModalOperator || formula instanceof BinaryModalOperator;
 
   private RabinizerUtil() {}
 
@@ -29,7 +26,7 @@ final class RabinizerUtil {
 
     // TODO Can we optimize for eager?
 
-    for (Formula temporalOperator : equivalenceClass.getSupport(modalOperators)) {
+    for (Formula temporalOperator : equivalenceClass.modalOperators()) {
       if (temporalOperator instanceof GOperator) {
         action.accept((GOperator) temporalOperator);
       } else {
@@ -43,7 +40,7 @@ final class RabinizerUtil {
           }
         }
 
-        EquivalenceClassFactory factory = equivalenceClass.getFactory();
+        EquivalenceClassFactory factory = equivalenceClass.factory();
 
         if (unwrapped instanceof GOperator) {
           action.accept((GOperator) unwrapped);
@@ -59,14 +56,14 @@ final class RabinizerUtil {
   }
 
   public static Set<GOperator> getRelevantSubFormulas(EquivalenceClass equivalenceClass) {
-    Formula representative = equivalenceClass.getRepresentative();
+    Formula representative = equivalenceClass.representative();
 
     if (representative != null) {
       return Collector.collectGOperators(representative);
     }
 
     Set<GOperator> operators = new HashSet<>();
-    equivalenceClass.getSupport().forEach(formula ->
+    equivalenceClass.modalOperators().forEach(formula ->
       operators.addAll(Collector.collectGOperators(formula)));
 
     return operators;

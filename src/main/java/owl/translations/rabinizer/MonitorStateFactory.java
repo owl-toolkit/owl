@@ -38,7 +38,8 @@ final class MonitorStateFactory extends RabinizerStateFactory {
     // temporal step will not change the formula substantially. Note that if the equivalence class
     // is tt or ff, this also returns true, since the support is empty (hence the "for all"
     // trivially holds).
-    return equivalenceClass.testSupport(GOperator.class::isInstance);
+    return equivalenceClass.atomicPropositions().isEmpty()
+      && equivalenceClass.modalOperators().stream().allMatch(GOperator.class::isInstance);
   }
 
   EquivalenceClass getInitialState(EquivalenceClass formula) {

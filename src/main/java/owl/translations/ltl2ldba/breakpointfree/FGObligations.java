@@ -162,7 +162,7 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety.getFactory()
+    return safety.factory()
       .of(Conjunction.of(Collections3.transformUnique(rewrittenOperators, GOperator::of)));
   }
 
