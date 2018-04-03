@@ -24,33 +24,33 @@ import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
 
 import java.util.EnumSet;
+import java.util.Set;
 import org.junit.Test;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.DefaultEnvironment;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 public class LTL2LDGBATest {
 
   private static void testGenOutput(String ltl, int size) {
-    EnumSet<LTL2LDBAFunction.Configuration> opts = EnumSet.of(
-      EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
-    LabelledFormula formula = LtlParser.parse(ltl);
-    LimitDeterministicAutomaton<?, ?, ?, ?> automaton =
-      LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(), opts)
-        .apply(formula);
+    var opts = Set.of(EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
+    var formula = SimplifierFactory.apply(LtlParser.parse(ltl),
+      SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+    var automaton = LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(
+      DefaultEnvironment.annotated(), opts).apply(formula);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
   }
 
   private static void testDegenOutput(String ltl, int size) {
-    EnumSet<LTL2LDBAFunction.Configuration> opts = EnumSet.of(
-      EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
-    LabelledFormula formula = LtlParser.parse(ltl);
-    LimitDeterministicAutomaton<?, ?, ?, ?> automaton =
-      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(),
-        opts).apply(formula);
+    var opts = Set.of(EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
+    var formula = SimplifierFactory.apply(LtlParser.parse(ltl),
+      SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+    var automaton = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(
+      DefaultEnvironment.annotated(), opts).apply(formula);
     String hoaString = automaton.toString();
     assertEquals(hoaString, size, automaton.size());
   }
@@ -59,7 +59,7 @@ public class LTL2LDGBATest {
   public void regressionTestStack() {
     String ltl = "!(G((!(a)) | (((!(b)) | (((c) & (X((!(d)) U (e)))) M (!(d)))) U ((d) | "
       + "(G((!(b)) | ((c) & (X(F(e))))))))))";
-    testGenOutput(ltl, 46);
+    testGenOutput(ltl, 43);
   }
 
   @Test
@@ -70,9 +70,9 @@ public class LTL2LDGBATest {
     String ltl2 = "G(F(p0 & (G(F(p1))) | (G(!(p1)))))";
     testGenOutput(ltl2, 3);
 
-    //String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & "
-    //  + "((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
-    //testOutput(ltl3, 4);
+    String ltl3 = "F(G(F(((p0) & (G(F(p1))) & (((!(p0)) & (p2)) | (F(p0)))) | ((F(G(!(p1)))) & "
+      + "((!(p0)) | (((p0) | (!(p2))) & (G(!(p0)))))))))";
+    testGenOutput(ltl3, 4);
   }
 
   @Test
@@ -142,7 +142,7 @@ public class LTL2LDGBATest {
   @Test
   public void testOptimisations3() {
     String ltl = "G((a & !X a) | (X (a U (a & !b & (X(a & b & (a U (a & !b & (X(a & b))))))))))";
-    testGenOutput(ltl, 9);
+    testGenOutput(ltl, 8);
   }
 
   @Test
@@ -156,11 +156,7 @@ public class LTL2LDGBATest {
 
   @Test
   public void testRelease() {
-    String ltl1 = "a R b";
-    testGenOutput(ltl1, 2);
-
-    String ltl2 = "(b U a) | (G b)";
-    testGenOutput(ltl2, 3);
+    testGenOutput("(b U a) | (G b)", 3);
   }
 
   @Test
@@ -240,26 +236,8 @@ public class LTL2LDGBATest {
   }
 
   @Test
-  public void testTrivial() {
-    testGenOutput("true", 1);
-    testGenOutput("false", 0);
-    testGenOutput("a | !a", 1);
-    testGenOutput("a & !a", 0);
-  }
-
-  @Test
-  public void testLivenessRegression() {
-    // TODO: Move to rewriter tests.
-    String ltl = "G (F (a & (F b)))";
-    testDegenOutput(ltl, 2);
-
-    ltl = "G (F a & F b)";
-    testDegenOutput(ltl, 2);
-  }
-
-  @Test
   public void testObligationSizeRegression() {
-    String ltl = "G F (b & G b)";
+    String ltl = "(G F b) & (F G b)";
     testDegenOutput(ltl, 2);
   }
 

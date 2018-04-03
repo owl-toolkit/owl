@@ -146,7 +146,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
           return;
         }
 
-        LabelledFormula formula = LtlParser.parse(formulaString);
+        LabelledFormula formula = SimplifierFactory
+          .apply(LtlParser.parse(formulaString), Mode.SYNTACTIC_FIXPOINT);
         int[] sizes = readSpecification(sizeString);
         assertSizes(formula, translator.apply(formula), sizes[0], sizes[1], index, errorMessages);
         formula = formula.not();

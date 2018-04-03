@@ -20,12 +20,10 @@ package owl.translations.ltl2ldba.breakpoint;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.immutables.value.Value;
 import owl.factories.EquivalenceClassFactory;
@@ -35,18 +33,18 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.translations.ltl2ldba.FGSubstitution;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
-import owl.translations.ltl2ldba.RankingComparator;
 import owl.translations.ltl2ldba.RecurringObligation;
-import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager.EvaluateVisitor;
 import owl.util.annotation.HashedTuple;
 
 @Value.Immutable
 @HashedTuple
 public abstract class GObligations implements RecurringObligation {
-  private static final Comparator<GOperator> rankingComparator = new RankingComparator();
 
-  abstract Set<GOperator> goperators();
+  abstract Set<GOperator> gOperators();
+
+  abstract Set<GOperator> gOperatorsRewritten();
 
   // G(liveness[]) is a liveness language.
   abstract List<EquivalenceClass> liveness();
@@ -54,43 +52,36 @@ public abstract class GObligations implements RecurringObligation {
   // obligations[] are co-safety languages.
   abstract List<EquivalenceClass> obligations();
 
-  abstract Set<GOperator> rewrittenGOperators();
-
   // G(safety) is a safety language.
   abstract EquivalenceClass safety();
-
 
   /**
    * Construct the recurring obligations for a Gset.
    *
-   * @param gOperatorsSet
+   * @param gOperators
    *     The GOperators that have to be checked often.
    *
    * @return This methods returns null, if the Gset is inconsistent.
    */
   @Nullable
-  static GObligations build(Set<GOperator> gOperatorsSet, EquivalenceClassFactory factory,
+  static GObligations build(Set<GOperator> gOperators, EquivalenceClassFactory factory,
     Set<Configuration> optimisations) {
-    // Fields for GObligations
+
+    // FG-Advice
+    FGSubstitution evaluateVisitor = new FGSubstitution(gOperators);
+
+    // Builders
+    Set<GOperator> gOperatorsRewritten = new HashSet<>();
     EquivalenceClass safety = factory.getTrue();
-    List<EquivalenceClass> liveness = new ArrayList<>(gOperatorsSet.size());
-    List<EquivalenceClass> obligations = new ArrayList<>(gOperatorsSet.size());
+    List<EquivalenceClass> liveness = new ArrayList<>(gOperators.size());
+    List<EquivalenceClass> obligations = new ArrayList<>(gOperators.size());
 
-    List<GOperator> gOperators = gOperatorsSet.stream().sorted(rankingComparator)
-      .collect(Collectors.toList());
-    Set<GOperator> builder = new HashSet<>();
-
-    for (int i = 0; i < gOperators.size(); i++) {
-      GOperator gOperator = gOperators.get(i);
-
-      // We only propagate information from already constructed G-monitors.
-      EvaluateVisitor evaluateVisitor = new EvaluateVisitor(gOperators.subList(0, i),
-        factory.getTrue());
-
+    for (GOperator gOperator : gOperators) {
       Formula formula = gOperator.operand.accept(evaluateVisitor);
 
+      // Skip trivial formulas
       if (!(formula instanceof BooleanConstant) && !(formula instanceof GOperator)) {
-        builder.add(new GOperator(formula));
+        gOperatorsRewritten.add(new GOperator(formula));
       }
 
       EquivalenceClass clazz = factory.of(formula);
@@ -100,12 +91,20 @@ public abstract class GObligations implements RecurringObligation {
       }
 
       if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
-        if (clazz.testSupport(Fragments::isFinite)) {
+        Set<Formula> modalOperators = clazz.modalOperators();
+
+        if (modalOperators.stream().allMatch(Fragments::isSafety)) {
           safety = safety.and(clazz);
+
+          if (safety.isFalse()) {
+            return null;
+          }
+
           continue;
         }
 
-        if (clazz.testSupport(Formula::isPureEventual)) {
+        if (clazz.atomicPropositions().isEmpty()
+          && modalOperators.stream().allMatch(Formula::isPureEventual)) {
           liveness.add(clazz);
           continue;
         }
@@ -118,20 +117,15 @@ public abstract class GObligations implements RecurringObligation {
       return null;
     }
 
-    if (safety.isFalse()) {
-      return null;
-    }
-
-    return GObligationsTuple.create(Set.copyOf(gOperators), liveness, obligations,
-      Set.copyOf(builder), safety);
+    return GObligationsTuple.create(Set.copyOf(gOperators), Set.copyOf(gOperatorsRewritten),
+      liveness, obligations, safety);
   }
-
 
   @Override
   public boolean containsLanguageOf(RecurringObligation other) {
     checkArgument(other instanceof GObligations);
 
-    return ((GObligations) other).rewrittenGOperators().containsAll(rewrittenGOperators())
+    return ((GObligations) other).gOperatorsRewritten().containsAll(gOperatorsRewritten())
       || ((GObligations) other).getObligation().implies(getObligation());
   }
 
@@ -149,7 +143,7 @@ public abstract class GObligations implements RecurringObligation {
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety().getFactory().of(Conjunction.of(rewrittenGOperators()));
+    return safety().factory().of(Conjunction.of(gOperatorsRewritten()));
   }
 
   EquivalenceClass getObligation() {
@@ -164,25 +158,6 @@ public abstract class GObligations implements RecurringObligation {
     }
 
     return obligation;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || hashCode() != o.hashCode() || getClass() != o.getClass()) {
-      return false;
-    }
-
-    GObligations that = (GObligations) o;
-    return getObligation().equals(that.getObligation());
-  }
-
-  @Override
-  public int hashCode() {
-    return getObligation().hashCode();
   }
 
   @Override

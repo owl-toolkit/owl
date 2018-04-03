@@ -12,12 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import owl.collections.LabelledTree;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
+import owl.ltl.PropositionalFormula;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.util.FormulaIsomorphism;
@@ -46,7 +48,8 @@ public class JniEmersonLeiAutomaton {
       ? SimplifierFactory.apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
       : formula;
 
-    Builder builder = new Builder(mode, onTheFly);
+    Builder builder = new Builder(mode, onTheFly,
+      processedFormula.accept(AcceptanceAnnotator.INSTANCE));
 
     LabelledTree<Tag, Reference> structure = monolithic
       ? builder.defaultAction(processedFormula)
@@ -97,10 +100,13 @@ public class JniEmersonLeiAutomaton {
     private int counter = 0;
     private final List<JniAutomaton> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
+    private final Map<Formula, JniAutomaton.Acceptance> annotatedTree;
 
-    public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly) {
+    public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly,
+      Map<Formula, JniAutomaton.Acceptance> annotatedTree) {
       this.onTheFly = onTheFly;
       this.safetySplittingMode = safetySplittingMode;
+      this.annotatedTree = annotatedTree;
     }
 
     private LabelledTree<Tag, Reference> createLeaf(Formula formula) {
@@ -216,10 +222,16 @@ public class JniEmersonLeiAutomaton {
       partition.dba.forEach(x -> children.add(createLeaf(x)));
       partition.dca.forEach(x -> children.add(createLeaf(x)));
 
-      if (partition.mixed.size() == 1) {
-        children.add(Iterables.getOnlyElement(partition.mixed).accept(this));
-      } else if (partition.mixed.size() > 1) {
+      List<Formula> parityRequired = partition.mixed.stream()
+        .filter(x -> annotatedTree.get(x) == JniAutomaton.Acceptance.PARITY)
+        .collect(Collectors.toList());
+
+      if (parityRequired.size() > 1) {
         children.add(createLeaf(merger.apply(partition.mixed)));
+      } else {
+        for (Formula child : partition.mixed) {
+          children.add(child.accept(this));
+        }
       }
 
       return children;
@@ -240,6 +252,57 @@ public class JniEmersonLeiAutomaton {
     public LabelledTree<Tag, Reference> visit(Disjunction disjunction) {
       FormulaPartition partition = FormulaPartition.of(disjunction.children);
       return new LabelledTree.Node<>(Tag.DISJUNCTION, createLeaves(partition, Disjunction::of));
+    }
+  }
+
+  private static class AcceptanceAnnotator
+    extends DefaultVisitor<Map<Formula, JniAutomaton.Acceptance>> {
+    static final AcceptanceAnnotator INSTANCE = new AcceptanceAnnotator();
+
+    @Override
+    protected Map<Formula, JniAutomaton.Acceptance> defaultAction(Formula formula) {
+      if (Fragments.isSafety(formula)) {
+        return Map.of(formula, JniAutomaton.Acceptance.SAFETY);
+      }
+
+      if (Fragments.isCoSafety(formula)) {
+        return Map.of(formula, JniAutomaton.Acceptance.CO_SAFETY);
+      }
+
+      if (Fragments.isDetBuchiRecognisable(formula)) {
+        return Map.of(formula, JniAutomaton.Acceptance.BUCHI);
+      }
+
+      if (Fragments.isDetCoBuchiRecognisable(formula)) {
+        return Map.of(formula, JniAutomaton.Acceptance.CO_BUCHI);
+      }
+
+      return Map.of(formula, JniAutomaton.Acceptance.PARITY);
+    }
+
+    @Override
+    public Map<Formula, JniAutomaton.Acceptance> visit(Conjunction conjunction) {
+      return visitPropositional(conjunction);
+    }
+
+    @Override
+    public Map<Formula, JniAutomaton.Acceptance> visit(Disjunction disjunction) {
+      return visitPropositional(disjunction);
+    }
+
+    private Map<Formula, JniAutomaton.Acceptance>
+      visitPropositional(PropositionalFormula propositionalFormula) {
+      JniAutomaton.Acceptance acceptance = JniAutomaton.Acceptance.BOTTOM;
+      Map<Formula, JniAutomaton.Acceptance> acceptanceMap = new HashMap<>();
+
+      for (Formula child : propositionalFormula.children) {
+        Map<Formula, JniAutomaton.Acceptance> childDecisions = child.accept(this);
+        acceptanceMap.putAll(childDecisions);
+        acceptance = acceptance.lub(acceptanceMap.get(child));
+      }
+
+      acceptanceMap.put(propositionalFormula, acceptance);
+      return acceptanceMap;
     }
   }
 }

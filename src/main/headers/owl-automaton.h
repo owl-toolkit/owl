@@ -111,7 +111,7 @@ namespace owl {
     };
 
     enum Acceptance {
-        BUCHI, CO_BUCHI, CO_SAFETY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD, SAFETY
+        BUCHI, CO_BUCHI, CO_SAFETY, PARITY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD, SAFETY, WEAK
     };
 
     class Automaton : public owl::ManagedJObject {

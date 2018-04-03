@@ -17,7 +17,6 @@
 
 package owl.translations.ltl2dra;
 
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -31,14 +30,13 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.minimizations.MinimizationUtil;
 import owl.automaton.minimizations.MinimizationUtil.MinimizationLevel;
-import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
-import owl.ltl.visitors.Collector;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
 import owl.translations.ldba2dra.MapRankingAutomaton;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
@@ -75,18 +73,19 @@ public class LTL2DRAFunction
 
   @Override
   public Automaton<?, ? extends GeneralizedRabinAcceptance> apply(LabelledFormula formula) {
-    Automaton<?, ? extends GeneralizedRabinAcceptance> automaton =
-      configuration.contains(Configuration.DEGENERALIZE)
-      ? applyDegeneralized(formula)
-      : applyGeneralized(formula);
+    LabelledFormula formula2 = SimplifierFactory
+      .apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+
+    var automaton = configuration.contains(Configuration.DEGENERALIZE)
+      ? applyDegeneralized(formula2)
+      : applyGeneralized(formula2);
 
     return MinimizationUtil.minimizeDefault(AutomatonUtil.asMutable(automaton),
       MinimizationLevel.ALL);
   }
 
   private Automaton<?, RabinAcceptance> applyDegeneralized(LabelledFormula formula) {
-    LimitDeterministicAutomaton<EquivalenceClass, DegeneralizedBreakpointFreeState,
-      BuchiAcceptance, FGObligations> ldba = translatorBreakpointFree.apply(formula);
+    var ldba = translatorBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
       return Views.viewAs(ldba.getAcceptingComponent(), RabinAcceptance.class);
@@ -95,15 +94,16 @@ public class LTL2DRAFunction
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba, new BooleanLattice(),
-      this::hasSafetyCore, true,
+    return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
+      new BooleanLattice(),
+      (EquivalenceClass x)
+      -> SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
+      true,
       configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
   }
 
   private Automaton<?, GeneralizedRabinAcceptance> applyGeneralized(LabelledFormula formula) {
-    LimitDeterministicAutomaton<EquivalenceClass, GeneralizedBreakpointFreeState,
-      GeneralizedBuchiAcceptance, FGObligations> ldba = translatorGeneralizedBreakpointFree
-      .apply(formula);
+    var ldba = translatorGeneralizedBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
       return Views.viewAs(ldba.getAcceptingComponent(), GeneralizedRabinAcceptance.class);
@@ -112,35 +112,14 @@ public class LTL2DRAFunction
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba, new BooleanLattice(),
-      this::hasSafetyCore, true,
+    return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
+      new BooleanLattice(),
+      (EquivalenceClass x)
+      -> SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
+      true,
       configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
   }
 
-  private boolean hasSafetyCore(EquivalenceClass state) {
-    if (state.testSupport(Fragments::isSafety)) {
-      return true;
-    }
-
-    // Check if the state has an independent safety core.
-    if (configuration.contains(Configuration.EXISTS_SAFETY_CORE)) {
-      BitSet nonSafety = Collector.collectAtoms(state.getSupport(x -> !Fragments.isSafety(x)));
-
-      EquivalenceClass core = state.substitute(x -> {
-        if (!Fragments.isSafety(x)) {
-          return BooleanConstant.FALSE;
-        }
-
-        BitSet ap = Collector.collectAtoms(x);
-        assert !ap.isEmpty() : "Formula " + x + " has empty AP.";
-        return ap.intersects(nonSafety) ? x : BooleanConstant.TRUE;
-      });
-
-      return core.isTrue();
-    }
-
-    return false;
-  }
 
   public enum Configuration {
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE, DEGENERALIZE

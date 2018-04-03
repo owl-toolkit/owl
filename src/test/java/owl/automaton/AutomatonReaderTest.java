@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import java.util.BitSet;
 import java.util.Collection;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
@@ -26,7 +27,6 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.run.DefaultEnvironment;
-import owl.util.BitSets;
 
 public class AutomatonReaderTest {
 
@@ -185,7 +185,7 @@ public class AutomatonReaderTest {
     assertThat(automaton.getInitialState(), is(states.get(1)));
 
     LabelledEdge<HoaState> successorEdge = LabelledEdge.of(states.get(0),
-      valuationSetFactory.of(BitSets.createBitSet(true)));
+      valuationSetFactory.of(createBitSet(true)));
     assertThat(automaton.getLabelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
 
     LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edge.of(states.get(0), 0),
@@ -217,19 +217,19 @@ public class AutomatonReaderTest {
     assertThat(acceptance.getParity(), is(Parity.MIN_ODD));
 
     HoaState initialState = automaton.getInitialState();
-    HoaState successor = automaton.getSuccessor(initialState, BitSets.createBitSet(false, false));
+    HoaState successor = automaton.getSuccessor(initialState, createBitSet(false, false));
     assertThat(successor, notNullValue());
 
     Edge<HoaState> initialToSucc = automaton.getEdge(initialState,
-      BitSets.createBitSet(false, false));
+      createBitSet(false, false));
     assertThat(initialToSucc, notNullValue());
     assertThat(initialToSucc.acceptanceSetIterator().nextInt(), is(2));
 
-    Edge<HoaState> succToInitial = automaton.getEdge(successor, BitSets.createBitSet(true, false));
+    Edge<HoaState> succToInitial = automaton.getEdge(successor, createBitSet(true, false));
     assertThat(succToInitial, notNullValue());
     assertThat(succToInitial.acceptanceSetIterator().nextInt(), is(1));
 
-    Edge<HoaState> succToSucc = automaton.getEdge(successor, BitSets.createBitSet(false, true));
+    Edge<HoaState> succToSucc = automaton.getEdge(successor, createBitSet(false, true));
     assertThat(succToSucc, notNullValue());
     assertThat(succToSucc.acceptanceSetIterator().hasNext(), is(false));
   }
@@ -246,13 +246,13 @@ public class AutomatonReaderTest {
     HoaState initialState = automaton.getInitialState();
     assertThat(initialState.id, is(0));
 
-    assertThat(automaton.getSuccessor(initialState, BitSets.createBitSet(true)), is(initialState));
+    assertThat(automaton.getSuccessor(initialState, createBitSet(true)), is(initialState));
 
-    HoaState successor = automaton.getSuccessor(initialState, BitSets.createBitSet(false));
+    HoaState successor = automaton.getSuccessor(initialState, createBitSet(false));
     assertThat(successor, notNullValue());
     assertThat(successor.id, is(1));
-    assertThat(automaton.getSuccessor(successor, BitSets.createBitSet(false)), is(initialState));
-    assertThat(automaton.getSuccessor(successor, BitSets.createBitSet(true)), nullValue());
+    assertThat(automaton.getSuccessor(successor, createBitSet(false)), is(initialState));
+    assertThat(automaton.getSuccessor(successor, createBitSet(true)), nullValue());
   }
 
   @Test
@@ -301,5 +301,15 @@ public class AutomatonReaderTest {
     assertThat(automaton.getAcceptance(), instanceOf(RabinAcceptance.class));
     RabinAcceptance acceptance = (RabinAcceptance) automaton.getAcceptance();
     assertThat(acceptance.getAcceptanceSets(), is(2));
+  }
+
+  private static BitSet createBitSet(boolean... indices) {
+    BitSet bitSet = new BitSet(indices.length);
+    for (int i = 0; i < indices.length; i++) {
+      if (indices[i]) {
+        bitSet.set(i);
+      }
+    }
+    return bitSet;
   }
 }

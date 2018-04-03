@@ -9,6 +9,7 @@ import org.junit.Test;
 import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.parser.TlsfParser;
 
 public class JniEmersonLeiAutomatonTest {
   private static final String SIMPLE_ARBITER = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
@@ -69,4 +70,88 @@ public class JniEmersonLeiAutomatonTest {
       JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, NEVER, false).structure;
     assertEquals(1, ((Node<?, ?>) tree3).getChildren().size());
   }
+
+  @Test
+  public void testAbsenceOfAssertionError() {
+    JniEmersonLeiAutomaton
+      .of(LtlParser.syntax("G (a | F a | F !b)"), false, false, AUTO, true);
+  }
+
+  @Test
+  public void testAbsenceOfAssertionError2() {
+    JniEmersonLeiAutomaton
+      .of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, AUTO, true);
+  }
+
+  @Test
+  public void testPerformance() {
+    String tlsf = "INFO {\n"
+      + "  TITLE:       \"Amba AHB - Decomposed - Encode\"\n"
+      + "  DESCRIPTION: \"Encode component of the decomposed Amba AHB Arbiter\"\n"
+      + "  SEMANTICS:   Mealy\n"
+      + "  TARGET:      Mealy\n"
+      + "}\n"
+      + "\n"
+      + "MAIN {\n"
+      + "  INPUTS {\n"
+      + "    HREADY;\n"
+      + "    HGRANT_0;\n"
+      + "    HGRANT_1;\n"
+      + "    HGRANT_2;\n"
+      + "    HGRANT_3;\n"
+      + "    HGRANT_4;\n"
+      + "    HGRANT_5;\n"
+      + "  }\n"
+      + "  OUTPUTS {\n"
+      + "    HMASTER_0;\n"
+      + "    HMASTER_1;\n"
+      + "    HMASTER_2;\n"
+      + "  }\n"
+      + "  ASSUME {\n"
+      + "    (G (((((! (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && ((((! (HGRANT_3)) && "
+      + "(! (HGRANT_4))) && (true)) || ((((! (HGRANT_3)) && (true)) || ((true) && (! (HGRANT_4)))"
+      + ") && (! (HGRANT_5))))) || (((((! (HGRANT_0)) && (! (HGRANT_1))) && (true)) || ((((! "
+      + "(HGRANT_0)) && (true)) || ((true) && (! (HGRANT_1)))) && (! (HGRANT_2)))) && (((! "
+      + "(HGRANT_3)) && (! (HGRANT_4))) && (! (HGRANT_5))))));\n"
+      + "    (G ((((((HGRANT_0) || (HGRANT_1)) || (HGRANT_2)) || (HGRANT_3)) || (HGRANT_4)) || "
+      + "(HGRANT_5)));\n"
+      + "  }\n"
+      + "  ASSERT {\n"
+      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (! (HMASTER_0)"
+      + "))) <-> (HGRANT_0)));\n"
+      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (HMASTER_0))) "
+      + "<-> (HGRANT_1)));\n"
+      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (! (HMASTER_0)))) "
+      + "<-> (HGRANT_2)));\n"
+      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (HMASTER_0))) <-> "
+      + "(HGRANT_3)));\n"
+      + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (! (HMASTER_0)))) "
+      + "<-> (HGRANT_4)));\n"
+      + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (HMASTER_0))) <-> "
+      + "(HGRANT_5)));\n"
+      + "    ((! (HREADY)) -> ((((X (HMASTER_0)) <-> (HMASTER_0)) && ((X (HMASTER_1)) <-> "
+      + "(HMASTER_1))) && ((X (HMASTER_2)) <-> (HMASTER_2))));\n"
+      + "  }\n"
+      + "}";
+
+    JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
+      TlsfParser.parse(tlsf).toFormula().formula(), true, false, AUTO, true);
+    JniAutomaton first = automaton.automata.get(0);
+    first.successors(0);
+  }
+
+  @Test
+  public void testPerformance2() {
+    String ltl =
+      "(G(X!p12|X(!p6&!p13)|!p0|X(p13&p6))&G(X!p8|X(p2&p13)|X(!p13&!p2)|!p0)&G(X(p5&p13)|!p0"
+        + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
+        + "&G(X(p1&p13)|X(!p13&!p1)|X!p7|!p0)&G(X(p3&p13)|X(!p13&!p3)|!p0|X!p9))";
+
+    JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
+      LtlParser.parse(ltl).formula(), true, false, AUTO, true);
+    JniAutomaton first = automaton.automata.get(0);
+    first.successors(0);
+  }
+
+
 }

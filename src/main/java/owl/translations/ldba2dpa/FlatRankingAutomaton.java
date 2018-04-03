@@ -34,9 +34,9 @@ public final class FlatRankingAutomaton {
     Builder<S, T, A, L> builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking);
 
     // TODO: add getSensitiveAlphabet Method
-    Automaton<FlatRankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory
-      .createStreamingAutomaton(builder.acceptance, builder.initialState,
-        builder.ldba.getAcceptingComponent().getFactory(), builder::getSuccessor);
+    Automaton<FlatRankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory.create(
+      builder.initialState, builder.ldba.getAcceptingComponent().getFactory(),
+      builder::getSuccessor, builder.acceptance);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
   }

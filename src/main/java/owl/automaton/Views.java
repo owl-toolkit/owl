@@ -88,12 +88,12 @@ public final class Views {
 
   public static <S> Automaton<Set<S>, NoneAcceptance> createPowerSetAutomaton(
     Automaton<S, NoneAcceptance> automaton) {
-    return AutomatonFactory.createStreamingAutomaton(NoneAcceptance.INSTANCE,
-      automaton.getInitialStates(), automaton.getFactory(), (x, y) -> {
-        Set<S> builder = new HashSet<>();
-        x.forEach(s -> builder.addAll(automaton.getSuccessors(s, y)));
-        return Edge.of(Set.copyOf(builder));
-      });
+    return AutomatonFactory.create(automaton.getInitialStates(), automaton.getFactory(), (x, y) -> {
+      Set<S> builder = new HashSet<>();
+      x.forEach(s -> builder.addAll(automaton.getSuccessors(s, y)));
+      return Edge.of(Set.copyOf(builder));
+    }, NoneAcceptance.INSTANCE
+    );
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
@@ -110,9 +110,9 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
     IntUnaryOperator remappingOperator) {
-    return AutomatonFactory.createStreamingAutomaton(automaton.getAcceptance(),
-      automaton.getInitialState(), automaton.getFactory(), (state, valuation) ->
-        automaton.getEdge(state, valuation).withAcceptance(remappingOperator));
+    return AutomatonFactory.create(automaton.getInitialState(), automaton.getFactory(),
+      (state, valuation) -> automaton.getEdge(state, valuation).withAcceptance(remappingOperator),
+      automaton.getAcceptance());
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(

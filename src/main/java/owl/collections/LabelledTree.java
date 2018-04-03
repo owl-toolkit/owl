@@ -10,7 +10,7 @@ public abstract class LabelledTree<L1, L2> {
       this.label = label;
     }
 
-    L2 getLabel() {
+    public L2 getLabel() {
       return label;
     }
   }
@@ -21,7 +21,7 @@ public abstract class LabelledTree<L1, L2> {
 
     public Node(L1 label, List<LabelledTree<L1, L2>> children) {
       this.label = label;
-      this.children = children;
+      this.children = List.copyOf(children);
     }
 
     public L1 getLabel() {

@@ -18,12 +18,16 @@
 package owl.automaton;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import de.tum.in.naturals.bitset.BitSets;
+import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -248,11 +252,39 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
       getAcceptance(), getInitialStates(), options, is(Property.DETERMINISTIC), getName());
 
-    forEachState(state -> {
-      hoa.addState(state);
-      forEachLabelledEdge(state, hoa::addEdge);
-      hoa.notifyEndOfState();
-    });
+    if (this instanceof BulkOperationAutomaton) {
+      forEachState(state -> {
+        hoa.addState(state);
+        forEachLabelledEdge(state, hoa::addEdge);
+        hoa.notifyEndOfState();
+      });
+    } else {
+      Set<S> exploredStates = Sets.newHashSet(getInitialStates());
+      Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+
+      while (!workQueue.isEmpty()) {
+        S state = workQueue.poll();
+        hoa.addState(state);
+
+        for (BitSet valuation : BitSets.powerSet(getFactory().alphabetSize())) {
+          Edge<S> edge = this.getEdge(state, valuation);
+
+          if (edge == null) {
+            continue;
+          }
+
+          S successorState = edge.getSuccessor();
+
+          if (exploredStates.add(successorState)) {
+            workQueue.add(successorState);
+          }
+
+          hoa.addEdge(edge, valuation);
+        }
+
+        hoa.notifyEndOfState();
+      }
+    }
 
     hoa.notifyEnd();
   }

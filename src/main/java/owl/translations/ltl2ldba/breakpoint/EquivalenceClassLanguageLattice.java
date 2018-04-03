@@ -23,7 +23,7 @@ public class EquivalenceClassLanguageLattice implements
   @Override
   public boolean acceptsLivenessLanguage(DegeneralizedBreakpointState state) {
     return isLivenessLanguage(state.obligations) && state.next.length == 0 && state.safety.isTrue()
-      && state.current.testSupport(Fragments::isCoSafety);
+      && state.current.modalOperators().stream().allMatch(Fragments::isCoSafety);
   }
 
   @Override
@@ -34,7 +34,7 @@ public class EquivalenceClassLanguageLattice implements
   @Override
   public boolean acceptsSafetyLanguage(DegeneralizedBreakpointState state) {
     return isSafetyAnnotation(state.obligations) && state.next.length == 0 && state.current
-      .testSupport(Fragments::isSafety);
+      .modalOperators().stream().allMatch(Fragments::isSafety);
   }
 
   @Override

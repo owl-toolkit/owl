@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -35,10 +36,41 @@ import owl.factories.ValuationSetFactory;
 public final class AutomatonFactory {
   private AutomatonFactory() {}
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> createStreamingAutomaton(
-    A acceptance, S initialState, ValuationSetFactory factory,
-    BiFunction<S, BitSet, Edge<S>> transitions) {
-    return new StreamingAutomaton<>(initialState, transitions, acceptance, factory);
+  /**
+   * Creates a deterministic on-the-fly constructed automaton.
+   *
+   * @param <S> The type of the state.
+   * @param <A> The type of the acceptance conditions.
+   * @param initialState The initial state.
+   * @param factory The alphabet.
+   * @param transitions The transition function.
+   * @param acceptance The acceptance condition.
+   * @return
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,
+    ValuationSetFactory factory, BiFunction<S, BitSet, Edge<S>> transitions, A acceptance) {
+    return new OnTheFlyAutomaton.Simple<>(initialState, factory, transitions, acceptance);
+  }
+
+  /**
+   * Creates a non-deterministic on-the-fly constructed automaton with support for bulk creation of
+   * edges.
+   *
+   * @param <S> The type of the state.
+   * @param <A> The type of the acceptance conditions.
+   * @param initialState The initial state.
+   * @param factory The alphabet.
+   * @param transitions The transition function.
+   * @param bulkTransitions
+   *    A bulk transition function, needs to be consistent with transitions.
+   * @param acceptance The acceptance condition.
+   * @return
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,
+    ValuationSetFactory factory, BiFunction<S, BitSet, Set<Edge<S>>> transitions,
+    Function<S, Collection<LabelledEdge<S>>> bulkTransitions, A acceptance) {
+    return new OnTheFlyAutomaton.Bulk<>(initialState, factory, transitions, bulkTransitions,
+      acceptance);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
@@ -56,7 +88,8 @@ public final class AutomatonFactory {
       factory.universe()), acceptance);
   }
 
-  private static final class EmptyAutomaton<S> implements Automaton<S, NoneAcceptance> {
+  private static final class EmptyAutomaton<S>
+    implements Automaton<S, NoneAcceptance>, BulkOperationAutomaton {
     private final ValuationSetFactory factory;
 
     EmptyAutomaton(ValuationSetFactory factory) {
@@ -90,7 +123,7 @@ public final class AutomatonFactory {
   }
 
   private static final class SingletonAutomaton<S, A extends OmegaAcceptance>
-    implements Automaton<S, A> {
+    implements Automaton<S, A>, BulkOperationAutomaton {
     private final A acceptance;
     private final ValuationSetFactory factory;
     private final Collection<LabelledEdge<S>> selfLoopEdges;

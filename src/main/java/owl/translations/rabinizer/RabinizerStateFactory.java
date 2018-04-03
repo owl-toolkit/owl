@@ -13,7 +13,9 @@ class RabinizerStateFactory {
   }
 
   BitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
-    return eager ? equivalenceClass.getAtoms() : equivalenceClass.unfold().getAtoms();
+    return eager
+      ? equivalenceClass.atomicPropositions()
+      : equivalenceClass.unfold().atomicPropositions();
   }
 
   static final class ProductStateFactory extends RabinizerStateFactory {

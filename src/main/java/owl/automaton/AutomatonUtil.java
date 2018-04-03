@@ -19,6 +19,7 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
@@ -29,6 +30,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,6 +88,10 @@ public final class AutomatonUtil {
   }
 
   private static <S> boolean checkStateClass(Automaton<S, ?> automaton, Class<?> clazz) {
+    if (Object.class.equals(clazz)) {
+      return true;
+    }
+
     checkArgument(Iterables.all(automaton.getStates(), clazz::isInstance),
       "Expected states of type %s", clazz.getName());
     return true;
@@ -359,7 +365,7 @@ public final class AutomatonUtil {
    */
   public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(Automaton<S, A> automaton,
     Collection<? extends S> start) {
-    Set<S> exploredStates = Sets.newHashSet(start);
+    Set<S> exploredStates = new HashSet<>(start);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {

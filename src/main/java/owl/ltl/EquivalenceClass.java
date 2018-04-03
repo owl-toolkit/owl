@@ -20,8 +20,8 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import javax.annotation.Nullable;
+import owl.collections.LabelledTree;
 import owl.factories.EquivalenceClassFactory;
 
 /**
@@ -40,16 +40,14 @@ public class EquivalenceClass {
     this.representative = representative;
   }
 
-
   @Nullable
-  public final Formula getRepresentative() {
+  public final Formula representative() {
     return representative;
   }
 
-  public final EquivalenceClassFactory getFactory() {
+  public final EquivalenceClassFactory factory() {
     return factory;
   }
-
 
   public final boolean isFalse() {
     return equals(factory.getFalse());
@@ -59,65 +57,103 @@ public class EquivalenceClass {
     return equals(factory.getTrue());
   }
 
-
   /**
-   * Collects all literals used in the bdd and stores the corresponding atoms in the BitSet.
-   */
-  public final BitSet getAtoms() {
-    return factory.getAtoms(this);
-  }
-
-  /**
-   * Compute the support of the EquivalenceClass.
+   * See {@link EquivalenceClassFactory#atomicPropositions(EquivalenceClass)}.
    *
-   * @return All literals and modal operators this equivalence class depends on.
+   * @return
    */
-  public final Set<Formula> getSupport() {
-    return factory.getSupport(this);
+  public final BitSet atomicPropositions() {
+    return factory.atomicPropositions(this);
   }
 
-  public final Set<Formula> getSupport(Predicate<Formula> predicate) {
-    return factory.getSupport(this, predicate);
+  /**
+   * See {@link EquivalenceClassFactory#modalOperators(EquivalenceClass)}.
+   *
+   * @return
+   */
+  public final Set<Formula> modalOperators() {
+    return factory.modalOperators(this);
   }
 
-  public final boolean testSupport(Predicate<Formula> predicate) {
-    return factory.testSupport(this, predicate);
-  }
-
+  /**
+   * See {@link EquivalenceClassFactory#implies(EquivalenceClass, EquivalenceClass)}.
+   *
+   * @param other the conclusion
+   * @return
+   */
   public final boolean implies(EquivalenceClass other) {
     return factory.implies(this, other);
   }
 
-
+  /**
+   * See {@link EquivalenceClassFactory#conjunction(EquivalenceClass, EquivalenceClass)}.
+   *
+   * @param other the other class
+   * @return
+   */
   public final EquivalenceClass and(EquivalenceClass other) {
     return factory.conjunction(this, other);
   }
 
+  /**
+   * See {@link EquivalenceClassFactory#disjunction(EquivalenceClass, EquivalenceClass)}.
+   *
+   * @param other the other class
+   * @return
+   */
   public final EquivalenceClass or(EquivalenceClass other) {
     return factory.disjunction(this, other);
   }
 
-  public final EquivalenceClass exists(Predicate<Formula> predicate) {
-    return factory.exists(this, predicate);
-  }
-
-  public final EquivalenceClass substitute(
-    Function<? super Formula, ? extends Formula> substitution) {
+  /**
+   * See {@link EquivalenceClassFactory#substitute(EquivalenceClass, Function)}.
+   *
+   * @param substitution the substitution function. It is only called on modal operators.
+   * @return
+   */
+  public final EquivalenceClass substitute(Function<Formula, Formula> substitution) {
     return factory.substitute(this, substitution);
   }
 
+  /**
+   * See {@link EquivalenceClassFactory#temporalStep(EquivalenceClass, BitSet)}.
+   *
+   * @param valuation the assignment for the atomic propositions
+   * @return
+   */
   public final EquivalenceClass temporalStep(BitSet valuation) {
     return factory.temporalStep(this, valuation);
   }
 
+  public final LabelledTree<Integer, EquivalenceClass> temporalStepTree() {
+    return factory.temporalStepTree(this);
+  }
+
+  /**
+   * See {@link EquivalenceClassFactory#temporalStepUnfold(EquivalenceClass, BitSet)}.
+   *
+   * @param valuation the assignment for the atomic propositions
+   * @return
+   */
   public final EquivalenceClass temporalStepUnfold(BitSet valuation) {
     return factory.temporalStepUnfold(this, valuation);
   }
 
+  /**
+   * See {@link EquivalenceClassFactory#unfold(EquivalenceClass)}.
+   *
+   * @return
+   */
   public final EquivalenceClass unfold() {
     return factory.unfold(this);
   }
 
+  /**
+   * See {@link EquivalenceClassFactory#unfoldTemporalStep(EquivalenceClass, BitSet)}.
+   *
+   * @param valuation the assignment for the atomic propositions
+   * @return
+   */
   public final EquivalenceClass unfoldTemporalStep(BitSet valuation) {
     return factory.unfoldTemporalStep(this, valuation);
   }

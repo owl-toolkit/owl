@@ -94,8 +94,10 @@ public class RabinizerBuilder {
 
     this.configuration = configuration;
     this.initialClass = initialClass;
-    boolean fairnessFragment = configuration.eager() && initialClass.testSupport(support ->
-      Fragments.isInfinitelyOften(support) || Fragments.isAlmostAll(support));
+    boolean fairnessFragment = configuration.eager()
+      && initialClass.atomicPropositions().isEmpty()
+      && initialClass.modalOperators().stream()
+      .allMatch(support -> Fragments.isInfinitelyOften(support) || Fragments.isAlmostAll(support));
 
     vsFactory = factories.vsFactory;
     eqFactory = factories.eqFactory;
@@ -158,7 +160,9 @@ public class RabinizerBuilder {
     for (EquivalenceClass state : scc) {
       EvaluateVisitor visitor = new EvaluateVisitor(relevantOperators, state);
       EquivalenceClass substitute = state.substitute(visitor);
-      BitSet externalAtoms = Collector.collectAtoms(substitute.getSupport());
+      BitSet externalAtoms = Collector.collectAtoms(substitute.modalOperators());
+      externalAtoms.or(substitute.atomicPropositions());
+
       // Check if external atoms are non-empty and disjoint.
       if (externalAtoms.isEmpty() || externalAtoms.intersects(internalAtoms)) {
         return false;
@@ -998,7 +1002,7 @@ public class RabinizerBuilder {
     private final EquivalenceClassFactory factory;
 
     EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
-      this.factory = label.getFactory();
+      this.factory = label.factory();
       this.environment = label.and(factory.of(
         Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));
     }
