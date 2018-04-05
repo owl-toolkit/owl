@@ -130,10 +130,10 @@ def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuar
     libraryjars "${System.getProperty('java.home')}/jmods"
     libraryjars "${System.getProperty('java.home')}/lib"
 
+    dontwarn 'com.oracle.jmc.**'
     dontwarn 'org.immutables.**'
     dontwarn 'afu.org.checkerframework.checker.**'
     dontwarn 'org.checkerframework.checker.**'
-    dontwarn 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings'
 
     //noinspection GroovyAssignabilityCheck
     injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
