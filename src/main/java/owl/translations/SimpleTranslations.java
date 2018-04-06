@@ -42,7 +42,7 @@ public final class SimpleTranslations {
       LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, configuration)
         .apply(formula);
     assert ldba.isDeterministic();
-    return ldba.getAcceptingComponent();
+    return ldba.acceptingComponent();
   }
 
   public static Automaton<DegeneralizedBreakpointState, CoBuchiAcceptance> buildCoBuchi(

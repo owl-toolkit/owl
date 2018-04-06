@@ -60,7 +60,7 @@ public final class GameFactory {
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
       game.forEachLabelledEdge((state, edge, valuations) -> {
-        graph.putEdgeValue(state, edge.getSuccessor(),
+        graph.putEdgeValue(state, edge.successor(),
           ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations));
 
         if (Owner.PLAYER_1 == game.getOwner(state)) {
@@ -68,10 +68,10 @@ public final class GameFactory {
         }
       });
 
-      this.acceptance = game.getAcceptance();
-      this.factory = game.getFactory();
+      this.acceptance = game.acceptance();
+      this.factory = game.factory();
       this.graph = ImmutableValueGraph.copyOf(graph);
-      this.initialStates = Set.copyOf(game.getInitialStates());
+      this.initialStates = Set.copyOf(game.initialStates());
       this.player1Nodes = Set.copyOf(player1NodesBuilder);
       this.variablesPlayer1 = List.copyOf(game.getVariables(Owner.PLAYER_1));
       this.variablesPlayer2 = List.copyOf(game.getVariables(Owner.PLAYER_2));
@@ -84,22 +84,22 @@ public final class GameFactory {
     }
 
     @Override
-    public A getAcceptance() {
+    public A acceptance() {
       return acceptance;
     }
 
     @Override
-    public ValuationSetFactory getFactory() {
+    public ValuationSetFactory factory() {
       return factory;
     }
 
     @Override
-    public Set<S> getInitialStates() {
+    public Set<S> initialStates() {
       return initialStates;
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
       return graph.edges().stream().filter(x -> x.source().equals(state)).map(x -> {
         //noinspection ConstantConditions
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
@@ -118,17 +118,17 @@ public final class GameFactory {
     }
 
     @Override
-    public Set<S> getPredecessors(S state) {
+    public Set<S> predecessors(S state) {
       return graph.predecessors(state);
     }
 
     @Override
-    public Set<S> getStates() {
+    public Set<S> states() {
       return graph.nodes();
     }
 
     @Override
-    public Set<S> getSuccessors(S state) {
+    public Set<S> successors(S state) {
       return graph.successors(state);
     }
 

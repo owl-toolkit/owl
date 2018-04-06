@@ -88,8 +88,8 @@ public final class ParityUtil {
         return environment -> (input, context) -> {
           Automaton<Object, ParityAcceptance> automaton =
             AutomatonUtil.cast(input, ParityAcceptance.class);
-          ParityAcceptance acceptance = automaton.getAcceptance();
-          Parity target = acceptance.getParity();
+          ParityAcceptance acceptance = automaton.acceptance();
+          Parity target = acceptance.parity();
           if (toEven != null) {
             target = target.setEven(toEven);
           }
@@ -106,16 +106,16 @@ public final class ParityUtil {
 
   public static <S> MutableAutomaton<S, ParityAcceptance> complement(
     MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
-    ParityAcceptance acceptance = automaton.getAcceptance();
+    ParityAcceptance acceptance = automaton.acceptance();
 
-    if (acceptance.getAcceptanceSets() == 0) {
+    if (acceptance.acceptanceSets() == 0) {
       if (!acceptance.emptyIsAccepting()) {
         // Automaton currently accepts nothing
-        return MutableAutomatonFactory.singleton(sinkState, automaton.getFactory(),
+        return MutableAutomatonFactory.singleton(sinkState, automaton.factory(),
           acceptance.complement());
       }
 
-      acceptance = acceptance.setAcceptanceSets(1);
+      acceptance = acceptance.withAcceptanceSets(1);
       BitSet bitSet = new BitSet(1);
       bitSet.set(0);
 
@@ -123,26 +123,26 @@ public final class ParityUtil {
 
       if (!completionState.isPresent()) {
         // Automaton accepted everything
-        return MutableAutomatonFactory.singleton(sinkState, automaton.getFactory(),
+        return MutableAutomatonFactory.singleton(sinkState, automaton.factory(),
           acceptance.complement());
       }
 
       // Automaton accepted everything which does not end up in the completion state
-      automaton.setAcceptance(new ParityAcceptance(1, Parity.MAX_EVEN));
+      automaton.acceptance(new ParityAcceptance(1, Parity.MAX_EVEN));
       return automaton;
     }
 
-    int rejectingAcceptance = acceptance.getParity().even() ? 1 : 0;
+    int rejectingAcceptance = acceptance.parity().even() ? 1 : 0;
     BitSet set = new BitSet(rejectingAcceptance + 1);
     set.set(rejectingAcceptance);
 
     Optional<S> completionState = AutomatonUtil.complete(automaton, sinkState, set);
 
-    if (completionState.isPresent() && acceptance.getAcceptanceSets() <= rejectingAcceptance) {
-      acceptance = acceptance.setAcceptanceSets(rejectingAcceptance + 1);
+    if (completionState.isPresent() && acceptance.acceptanceSets() <= rejectingAcceptance) {
+      acceptance = acceptance.withAcceptanceSets(rejectingAcceptance + 1);
     }
 
-    automaton.setAcceptance(acceptance.complement());
+    automaton.acceptance(acceptance.complement());
     return automaton;
   }
 
@@ -162,8 +162,8 @@ public final class ParityUtil {
      * eliminate "gaps". For example, when [0, 2, 4, 5] are used, we actually only need to consider
      * [0, 1]. Furthermore, edges between SCCs are set to an arbitrary priority. */
 
-    ParityAcceptance acceptance = automaton.getAcceptance();
-    int acceptanceSets = acceptance.getAcceptanceSets();
+    ParityAcceptance acceptance = automaton.acceptance();
+    int acceptanceSets = acceptance.acceptanceSets();
     // Gather the priorities used _after_ the reduction - cheap and can be used for verification
     BitSet globallyUsedPriorities = new BitSet(acceptanceSets);
 
@@ -180,8 +180,8 @@ public final class ParityUtil {
 
       // Determine the used priorities
       for (S state : scc) {
-        for (Edge<S> edge : automaton.getEdges(state)) {
-          if (scc.contains(edge.getSuccessor())) {
+        for (Edge<S> edge : automaton.edges(state)) {
+          if (scc.contains(edge.successor())) {
             PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
             if (acceptanceSetIterator.hasNext()) {
               usedPriorities.set(acceptanceSetIterator.nextInt());
@@ -216,16 +216,16 @@ public final class ParityUtil {
       automaton.updateEdges(scc, (state, edge) -> edge.withAcceptance(reductionMapping));
     }
 
-    automaton.setAcceptance(acceptance.setAcceptanceSets(usedAcceptanceSets));
+    automaton.acceptance(acceptance.withAcceptanceSets(usedAcceptanceSets));
     return automaton;
   }
 
   public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
     Parity toParity) {
     // TODO Check for "colored" property
-    ParityAcceptance acceptance = automaton.getAcceptance();
+    ParityAcceptance acceptance = automaton.acceptance();
 
-    if (acceptance.getParity().equals(toParity)) {
+    if (acceptance.parity().equals(toParity)) {
       return automaton;
     }
 
@@ -242,28 +242,28 @@ public final class ParityUtil {
       int newAcceptance = mapping.applyAsInt(edge.smallestAcceptanceSet());
 
       if (newAcceptance == -1) {
-        return Edge.of(edge.getSuccessor());
+        return Edge.of(edge.successor());
       }
 
       if (maximalNewAcceptance.get() < newAcceptance) {
         maximalNewAcceptance.set(newAcceptance);
       }
 
-      return Edge.of(edge.getSuccessor(), newAcceptance);
+      return Edge.of(edge.successor(), newAcceptance);
     });
 
-    mutable.setAcceptance(new ParityAcceptance(maximalNewAcceptance.get() + 1, toParity));
+    mutable.acceptance(new ParityAcceptance(maximalNewAcceptance.get() + 1, toParity));
     return mutable;
   }
 
   private static IntUnaryOperator getEdgeMapping(ParityAcceptance fromAcceptance, Parity toParity) {
-    Parity fromParity = fromAcceptance.getParity();
+    Parity fromParity = fromAcceptance.parity();
 
     if (fromParity.max() == toParity.max()) {
       assert fromParity.even() != toParity.even();
       return i -> i + 1;
     } else {
-      int acceptanceSets = fromAcceptance.getAcceptanceSets();
+      int acceptanceSets = fromAcceptance.acceptanceSets();
       int leastImportantColor = fromParity.max() ? 0 : acceptanceSets - 1;
       int offset;
 

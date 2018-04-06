@@ -54,18 +54,18 @@ public final class JniAutomaton {
   }
 
   JniAutomaton(Automaton<?, ?> automaton, Acceptance acceptance) {
-    if (automaton.getInitialStates().isEmpty()) {
-      this.automaton = AutomatonFactory.singleton(new Object(), automaton.getFactory(),
+    if (automaton.initialStates().isEmpty()) {
+      this.automaton = AutomatonFactory.singleton(new Object(), automaton.factory(),
         BuchiAcceptance.INSTANCE);
     } else {
       this.automaton = AutomatonUtil.cast(automaton, Object.class, OmegaAcceptance.class);
     }
 
     int2StateMap = new ArrayList<>();
-    int2StateMap.add(this.automaton.getInitialState());
+    int2StateMap.add(this.automaton.initialState());
 
     state2intMap = new Object2IntOpenHashMap<>();
-    state2intMap.put(this.automaton.getInitialState(), 0);
+    state2intMap.put(this.automaton.initialState(), 0);
     state2intMap.defaultReturnValue(NO_STATE);
 
     this.acceptance = acceptance;
@@ -73,14 +73,14 @@ public final class JniAutomaton {
     // Fix accepting sink to id 1.
     if (acceptance == Acceptance.CO_SAFETY) {
       EquivalenceClass trueClass =
-        ((EquivalenceClass) this.automaton.getInitialState()).factory().getTrue();
+        ((EquivalenceClass) this.automaton.initialState()).factory().getTrue();
       int index = lookup(trueClass);
       assert index == 1;
     }
   }
 
   private static JniAutomaton.Acceptance detectAcceptance(Automaton<?, ?> automaton) {
-    OmegaAcceptance acceptance = automaton.getAcceptance();
+    OmegaAcceptance acceptance = automaton.acceptance();
 
     if (acceptance instanceof AllAcceptance) {
       return Acceptance.SAFETY;
@@ -95,7 +95,7 @@ public final class JniAutomaton {
     }
 
     if (acceptance instanceof ParityAcceptance) {
-      switch (((ParityAcceptance) acceptance).getParity()) {
+      switch (((ParityAcceptance) acceptance).parity()) {
         case MAX_EVEN:
           return Acceptance.PARITY_MAX_EVEN;
         case MAX_ODD:
@@ -117,25 +117,25 @@ public final class JniAutomaton {
   }
 
   public int acceptanceSetCount() {
-    return automaton.getAcceptance().getAcceptanceSets();
+    return automaton.acceptance().acceptanceSets();
   }
 
   public int[] edges(int state) {
     Object o = int2StateMap.get(state);
 
     int i = 0;
-    int size = automaton.getFactory().alphabetSize();
+    int size = automaton.factory().alphabetSize();
     int[] edges = new int[2 << size];
 
     var labelledEdges = automaton instanceof BulkOperationAutomaton
-      ? List.copyOf(automaton.getLabelledEdges(o))
+      ? List.copyOf(automaton.labelledEdges(o))
       : null;
 
     for (BitSet valuation : BitSets.powerSet(size)) {
       Edge<?> edge;
 
       if (labelledEdges == null) {
-        edge = automaton.getEdge(o, valuation);
+        edge = automaton.edge(o, valuation);
       } else {
         edge = lookup(labelledEdges, valuation);
       }
@@ -144,7 +144,7 @@ public final class JniAutomaton {
         edges[i] = NO_STATE;
         edges[i + 1] = NO_COLOUR;
       } else {
-        edges[i] = lookup(edge.getSuccessor());
+        edges[i] = lookup(edge.successor());
         edges[i + 1] = edge.largestAcceptanceSet();
       }
 
@@ -158,21 +158,21 @@ public final class JniAutomaton {
     Object o = int2StateMap.get(state);
 
     int i = 0;
-    int size = automaton.getFactory().alphabetSize();
+    int size = automaton.factory().alphabetSize();
     int[] successors = new int[1 << size];
 
     var labelledEdges = automaton instanceof BulkOperationAutomaton
-      ? List.copyOf(automaton.getLabelledEdges(o))
+      ? List.copyOf(automaton.labelledEdges(o))
       : null;
 
     for (BitSet valuation : BitSets.powerSet(size)) {
       Object successor;
 
       if (labelledEdges == null) {
-        successor = automaton.getSuccessor(o, valuation);
+        successor = automaton.successor(o, valuation);
       } else {
         var edge = lookup(labelledEdges, valuation);
-        successor = edge != null ? edge.getSuccessor() : null;
+        successor = edge != null ? edge.successor() : null;
       }
 
       successors[i] = successor == null ? NO_STATE : lookup(successor);

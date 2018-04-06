@@ -42,44 +42,44 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
   }
 
   @Override
-  public Automaton<T, U> getAcceptingComponent() {
-    return ldba.getAcceptingComponent();
+  public Automaton<T, U> acceptingComponent() {
+    return ldba.acceptingComponent();
   }
 
   @Override
-  public V getAnnotation(T key) {
-    return ldba.getAnnotation(key);
+  public V annotation(T key) {
+    return ldba.annotation(key);
   }
 
   @Override
-  public Set<V> getComponents() {
-    return ldba.getComponents();
+  public Set<V> components() {
+    return ldba.components();
   }
 
   @Override
-  public Set<T> getEpsilonJumps(Set<S> state) {
+  public Set<T> epsilonJumps(Set<S> state) {
     Set<T> set = new HashSet<>();
-    state.forEach(s -> set.addAll(ldba.getEpsilonJumps(s)));
+    state.forEach(s -> set.addAll(ldba.epsilonJumps(s)));
     return set;
   }
 
   @Override
-  public Automaton<Set<S>, NoneAcceptance> getInitialComponent() {
+  public Automaton<Set<S>, NoneAcceptance> initialComponent() {
     return MutableAutomatonFactory.create(Views.createPowerSetAutomaton(
-      ldba.getInitialComponent()));
+      ldba.initialComponent()));
   }
 
   @Override
-  public Map<ValuationSet, Set<T>> getValuationSetJumps(Set<S> state) {
+  public Map<ValuationSet, Set<T>> valuationSetJumps(Set<S> state) {
     Map<ValuationSet, Set<T>> jumps = new HashMap<>();
-    state.forEach(s -> ldba.getValuationSetJumps(s)
+    state.forEach(s -> ldba.valuationSetJumps(s)
       .forEach((k, v) -> jumps.merge(k, v, Sets::union)));
     return jumps;
   }
 
   @Override
-  public List<String> getVariables() {
-    return ldba.getVariables();
+  public List<String> variables() {
+    return ldba.variables();
   }
 
   @Override

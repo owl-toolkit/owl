@@ -37,13 +37,13 @@ public class GameFactoryTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
 
-    for (Node<Object> state : game.getStates()) {
-      for (Node<Object> predecessor : game.getPredecessors(state)) {
-        assertThat(state, isIn(game.getSuccessors(predecessor)));
+    for (Node<Object> state : game.states()) {
+      for (Node<Object> predecessor : game.predecessors(state)) {
+        assertThat(state, isIn(game.successors(predecessor)));
       }
 
-      for (Node<Object> successors : game.getSuccessors(state)) {
-        assertThat(state, isIn(game.getPredecessors(successors)));
+      for (Node<Object> successors : game.successors(state)) {
+        assertThat(state, isIn(game.predecessors(successors)));
       }
     }
   }
@@ -58,7 +58,7 @@ public class GameFactoryTest {
     Game<Node<AnnotatedState>, ParityAcceptance> game =
       GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
 
-    Set<Node<AnnotatedState>> winningStates = game.getStates().stream()
+    Set<Node<AnnotatedState>> winningStates = game.states().stream()
       .filter(x -> {
         @SuppressWarnings("unchecked")
         AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state();
@@ -68,10 +68,10 @@ public class GameFactoryTest {
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_2),
-      hasItem(game.getInitialState()));
+      hasItem(game.initialState()));
 
     // Player 1 can never win...
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
-      not(hasItem(game.getInitialState())));
+      not(hasItem(game.initialState())));
   }
 }

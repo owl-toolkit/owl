@@ -174,14 +174,14 @@ abstract class DependencyTree<T> {
         return Boolean.FALSE;
       }
 
-      Edge<T> edge = automaton.getEdge(fallbackState, valuation);
+      Edge<T> edge = automaton.edge(fallbackState, valuation);
 
       if (edge == null) {
         builder.addFinished(this, Boolean.FALSE);
         return Boolean.FALSE;
       }
 
-      builder.addFallback(formula, edge.getSuccessor());
+      builder.addFallback(formula, edge.successor());
       return null;
     }
 
@@ -200,7 +200,7 @@ abstract class DependencyTree<T> {
 
     @Override
     BooleanExpression<AtomAcceptance> getAcceptanceExpression() {
-      return shift(automaton.getAcceptance().getBooleanExpression());
+      return shift(automaton.acceptance().booleanExpression());
     }
 
     @Nullable
@@ -211,7 +211,7 @@ abstract class DependencyTree<T> {
         return null;
       }
 
-      return automaton.getEdge(stateT, valuation);
+      return automaton.edge(stateT, valuation);
     }
 
     @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
@@ -251,7 +251,7 @@ abstract class DependencyTree<T> {
     @Override
     public String toString() {
       return String.format("Fallback{%s, %s %d}",
-        PrintVisitor.toString(formula, automaton.getVariables()), acceptance, acceptanceSet);
+        PrintVisitor.toString(formula, automaton.variables()), acceptance, acceptanceSet);
     }
   }
 

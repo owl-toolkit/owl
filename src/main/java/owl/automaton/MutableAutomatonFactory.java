@@ -60,7 +60,7 @@ public final class MutableAutomatonFactory {
     BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
     MutableAutomaton<S, A> automaton = create(acceptance, valuationSetFactory);
     AutomatonUtil.exploreDeterministic(automaton, initialStates, successors, alphabet);
-    automaton.setInitialStates(initialStates);
+    automaton.initialStates(initialStates);
     return automaton;
   }
 
@@ -69,8 +69,8 @@ public final class MutableAutomatonFactory {
     Preconditions.checkArgument(automaton.is(Property.DETERMINISTIC),
       "Only deterministic automata supported");
     // TODO Efficient copy of HashMapAutomaton
-    return create(automaton.getAcceptance(),
-      automaton.getFactory(), automaton.getInitialStates(), automaton::getEdge,
+    return create(automaton.acceptance(),
+      automaton.factory(), automaton.initialStates(), automaton::edge,
       (x) -> null);
   }
 

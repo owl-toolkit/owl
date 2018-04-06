@@ -1,7 +1,6 @@
 package owl.automaton;
 
 import com.google.common.collect.Collections2;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,22 +32,22 @@ public abstract class OnTheFlyAutomaton<S, A extends OmegaAcceptance> implements
   }
 
   @Override
-  public A getAcceptance() {
+  public A acceptance() {
     return acceptance;
   }
 
   @Override
-  public ValuationSetFactory getFactory() {
+  public ValuationSetFactory factory() {
     return factory;
   }
 
   @Override
-  public Set<S> getInitialStates() {
+  public Set<S> initialStates() {
     return Set.of(initialState);
   }
 
   @Override
-  public Set<S> getStates() {
+  public Set<S> states() {
     if (cachedStates != null) {
       return cachedStates;
     }
@@ -66,41 +65,39 @@ public abstract class OnTheFlyAutomaton<S, A extends OmegaAcceptance> implements
     }
 
     private void edges(S state, BiConsumer<BitSet, Edge<S>> consumer) {
-      for (BitSet valuation : BitSets.powerSet(getFactory().alphabetSize())) {
+      factory().forEach(valuation -> {
         Edge<S> edge = successors.apply(state, valuation);
 
-        if (edge == null) {
-          continue;
+        if (edge != null) {
+          consumer.accept(valuation, edge);
         }
-
-        consumer.accept(valuation, edge);
-      }
+      });
     }
 
     @Override
-    public Set<S> getSuccessors(S state) {
+    public Set<S> successors(S state) {
       Set<S> successors = new HashSet<>();
-      edges(state, (valuation, edge) -> successors.add(edge.getSuccessor()));
+      edges(state, (valuation, edge) -> successors.add(edge.successor()));
       return successors;
     }
 
     @Override
-    public Set<Edge<S>> getEdges(S state) {
+    public Set<Edge<S>> edges(S state) {
       Set<Edge<S>> edges = new HashSet<>();
       edges(state, (valuation, edge) -> edges.add(edge));
       return edges;
     }
 
     @Override
-    public Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
       Edge<S> edge = successors.apply(state, valuation);
       return edge == null ? Set.of() : Set.of(edge);
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
       Map<Edge<S>, ValuationSet> map = new HashMap<>();
-      edges(state, (val, edge) -> map.merge(edge, getFactory().of(val), ValuationSet::union));
+      edges(state, (val, edge) -> map.merge(edge, factory().of(val), ValuationSet::union));
       return Collections2.transform(map.entrySet(), LabelledEdge::of);
     }
 
@@ -124,12 +121,12 @@ public abstract class OnTheFlyAutomaton<S, A extends OmegaAcceptance> implements
     }
 
     @Override
-    public Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
       return successors.apply(state, valuation);
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
       return bulkSuccessors.apply(state);
     }
   }

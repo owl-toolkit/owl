@@ -76,8 +76,8 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     if (leaf instanceof FallbackLeaf) {
       assert piggyback == null;
       FallbackLeaf<T> fallbackLeaf = (FallbackLeaf<T>) leaf;
-      setNumber += fallbackLeaf.automaton.getAcceptance().getAcceptanceSets();
-      T initialState = Iterables.getOnlyElement(fallbackLeaf.automaton.getInitialStates(), null);
+      setNumber += fallbackLeaf.automaton.acceptance().acceptanceSets();
+      T initialState = Iterables.getOnlyElement(fallbackLeaf.automaton.initialStates(), null);
 
       if (initialState == null) {
         builder.addFinished(fallbackLeaf, Boolean.FALSE);

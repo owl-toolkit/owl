@@ -148,8 +148,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
         return complement;
       }
 
-      return automaton.getAcceptance().getAcceptanceSets()
-        <= complement.getAcceptance().getAcceptanceSets() ? automaton : complement;
+      return automaton.acceptance().acceptanceSets()
+        <= complement.acceptance().acceptanceSets() ? automaton : complement;
     } catch (ExecutionException ex) {
       // The translation broke down, it is unsafe to continue...
       automatonFuture.cancel(true);
@@ -231,14 +231,14 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     var ldba = translatorBreakpoint.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
+      return new Result<>(Views.viewAs(ldba.acceptingComponent(), ParityAcceptance.class),
         DegeneralizedBreakpointState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
 
-    assert ldba.getInitialComponent().getInitialStates().size() == 1;
-    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
+    assert ldba.initialComponent().initialStates().size() == 1;
+    assert ldba.acceptingComponent().initialStates().isEmpty();
 
-    var factory = ldba.getInitialComponent().getInitialState().factory();
+    var factory = ldba.initialComponent().initialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new EquivalenceClassLanguageLattice(factory),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
@@ -253,14 +253,14 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     var ldba = translatorBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return new Result<>(Views.viewAs(ldba.getAcceptingComponent(), ParityAcceptance.class),
+      return new Result<>(Views.viewAs(ldba.acceptingComponent(), ParityAcceptance.class),
         DegeneralizedBreakpointFreeState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
 
-    assert ldba.getInitialComponent().getInitialStates().size() == 1;
-    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
+    assert ldba.initialComponent().initialStates().size() == 1;
+    assert ldba.acceptingComponent().initialStates().isEmpty();
 
-    var factory = ldba.getInitialComponent().getInitialState().factory();
+    var factory = ldba.initialComponent().initialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new BooleanLattice(),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
@@ -300,11 +300,11 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     Automaton<T, ParityAcceptance> complement() {
       if (automaton instanceof MutableAutomaton
-        || automaton.getAcceptance().getParity() != ParityAcceptance.Parity.MIN_ODD) {
+        || automaton.acceptance().parity() != ParityAcceptance.Parity.MIN_ODD) {
         return ParityUtil.complement(AutomatonUtil.asMutable(automaton), sinkState);
       }
 
-      assert automaton.getAcceptance().getParity() == ParityAcceptance.Parity.MIN_ODD;
+      assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD;
       return AutomatonUtil.cast(Views.complement(automaton, sinkState), ParityAcceptance.class);
     }
   }

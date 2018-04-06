@@ -17,9 +17,7 @@
 
 package owl.translations.nba2ldba;
 
-import com.google.common.collect.Sets;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
@@ -64,12 +62,12 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
     Automaton<S, GeneralizedBuchiAcceptance> nba;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
-    if (automaton.getAcceptance() instanceof AllAcceptance) {
+    if (automaton.acceptance() instanceof AllAcceptance) {
       nba = new GeneralizedBuchiView<>((Automaton<S, AllAcceptance>) automaton).build();
-    } else if (automaton.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
+    } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
       nba = (Automaton<S, GeneralizedBuchiAcceptance>) automaton;
     } else {
-      throw new UnsupportedOperationException(automaton.getAcceptance() + " is unsupported.");
+      throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
     }
 
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);

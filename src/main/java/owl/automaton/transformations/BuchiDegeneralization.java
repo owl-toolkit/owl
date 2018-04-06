@@ -19,11 +19,11 @@ public final class BuchiDegeneralization {
   public static <S> Automaton<? extends AnnotatedState<S>, BuchiAcceptance> degeneralize(
     Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton) {
     checkArgument(automaton.is(Property.DETERMINISTIC));
-    int sets = automaton.getAcceptance().getAcceptanceSets();
+    int sets = automaton.acceptance().acceptanceSets();
 
-    return AutomatonFactory.create(DegeneralizedBuchiState.of(automaton.getInitialState()),
-      automaton.getFactory(), (state, valuation) -> {
-        Edge<S> edge = automaton.getEdge(state.state(), valuation);
+    return AutomatonFactory.create(DegeneralizedBuchiState.of(automaton.initialState()),
+      automaton.factory(), (state, valuation) -> {
+        Edge<S> edge = automaton.edge(state.state(), valuation);
 
         if (edge == null) {
           return null;
@@ -36,10 +36,10 @@ public final class BuchiDegeneralization {
         }
 
         if (nextSet == sets) {
-          return Edge.of(DegeneralizedBuchiState.of(edge.getSuccessor()), 0);
+          return Edge.of(DegeneralizedBuchiState.of(edge.successor()), 0);
         }
 
-        return Edge.of(DegeneralizedBuchiState.of(edge.getSuccessor(), nextSet));
+        return Edge.of(DegeneralizedBuchiState.of(edge.successor(), nextSet));
       }, BuchiAcceptance.INSTANCE
     );
   }

@@ -19,7 +19,6 @@ package owl.automaton;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
@@ -51,29 +50,20 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   // Parameters
 
-  @Override
-  @Nullable
-  default String getName() {
-    return null;
-  }
-
   /**
    * Returns the acceptance condition of this automaton.
    *
    * @return The acceptance.
    */
-  A getAcceptance();
+  A acceptance();
 
-  ValuationSetFactory getFactory();
+  ValuationSetFactory factory();
 
   @Override
-  default List<String> getVariables() {
-    return getFactory().alphabet();
+  default List<String> variables() {
+    return factory().alphabet();
   }
 
-  default void forEachValuation(Consumer<BitSet> action) {
-    getFactory().universe().forEach(action);
-  }
 
   // Initial states
 
@@ -87,10 +77,10 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *     If there is no initial state.
    * @throws IllegalArgumentException
    *     If there is no unique initial state.
-   * @see #getInitialStates()
+   * @see #initialStates()
    */
-  default S getInitialState() {
-    return Iterables.getOnlyElement(getInitialStates());
+  default S initialState() {
+    return Iterables.getOnlyElement(initialStates());
   }
 
   /**
@@ -98,7 +88,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The set of initial states.
    */
-  Set<S> getInitialStates();
+  Set<S> initialStates();
 
 
   // State-set properties
@@ -111,7 +101,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return the number of elements in this set (its cardinality)
    */
   default int size() {
-    return getStates().size();
+    return states().size();
   }
 
   /**
@@ -119,36 +109,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return All states of the automaton
    */
-  Set<S> getStates();
-
-  /**
-   * Determines whether the automaton contains the given {@code state}.
-   *
-   * @param state
-   *     The state to be checked.
-   *
-   * @return Whether the state is in the automaton.
-   */
-  default boolean containsState(S state) {
-    return containsStates(Set.of(state));
-  }
-
-  /**
-   * Determines whether the automaton contains all the given {@code states}.
-   *
-   * @param states
-   *     The states to be checked.
-   *
-   * @return Whether all of the states are in the automaton.
-   */
-  default boolean containsStates(Collection<? extends S> states) {
-    return getStates().containsAll(states);
-  }
+  Set<S> states();
 
   default void forEachState(Consumer<S> action) {
-    getStates().forEach(action);
+    states().forEach(action);
   }
-
 
   // Transition function - Single
 
@@ -162,8 +127,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The successor edges, possibly empty.
    */
-  default Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    return Collections3.transformUnique(getLabelledEdges(state),
+  default Set<Edge<S>> edges(S state, BitSet valuation) {
+    return Collections3.transformUnique(labelledEdges(state),
       x -> x.valuations.contains(valuation) ? x.edge : null);
   }
 
@@ -181,11 +146,11 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return A successor edge or {@code null} if none.
    *
-   * @see #getLabelledEdges(Object)
+   * @see #labelledEdges(Object)
    */
   @Nullable
-  default Edge<S> getEdge(S state, BitSet valuation) {
-    return Iterables.getFirst(getEdges(state, valuation), null);
+  default Edge<S> edge(S state, BitSet valuation) {
+    return Iterables.getFirst(edges(state, valuation), null);
   }
 
   /**
@@ -196,8 +161,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The set of edges originating from {@code state}
    */
-  default Set<Edge<S>> getEdges(S state) {
-    return Collections3.transformUnique(getLabelledEdges(state), x -> x.edge);
+  default Set<Edge<S>> edges(S state) {
+    return Collections3.transformUnique(labelledEdges(state), x -> x.edge);
   }
 
   default void forEachEdge(BiConsumer<S, Edge<S>> action) {
@@ -209,8 +174,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default void forEachEdge(S state, BiConsumer<Edge<S>, BitSet> action) {
-    forEachValuation(valuation ->
-      getEdges(state, valuation).forEach(edge -> action.accept(edge, valuation)));
+    factory().forEach(valuation ->
+      edges(state, valuation).forEach(edge -> action.accept(edge, valuation)));
   }
 
   default void forEachEdge(TriConsumer<S, Edge<S>, BitSet> action) {
@@ -229,10 +194,10 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return All labelled edges of the state.
    */
-  Collection<LabelledEdge<S>> getLabelledEdges(S state);
+  Collection<LabelledEdge<S>> labelledEdges(S state);
 
   default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    getLabelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
+    labelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
   }
 
   default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
@@ -243,8 +208,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   // Derived state functions
 
-  default Set<S> getSuccessors(S state, BitSet valuation) {
-    return Collections3.transformUnique(getEdges(state, valuation), Edge::getSuccessor);
+  default Set<S> successors(S state, BitSet valuation) {
+    return Collections3.transformUnique(edges(state, valuation), Edge::successor);
   }
 
   /**
@@ -262,19 +227,19 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    * @return A successor or {@code null} if none.
    */
   @Nullable
-  default S getSuccessor(S state, BitSet valuation) {
-    return Iterables.getFirst(getSuccessors(state, valuation), null);
+  default S successor(S state, BitSet valuation) {
+    return Iterables.getFirst(successors(state, valuation), null);
   }
 
-  default Set<S> getSuccessors(S state) {
-    return Collections3.transformUnique(getEdges(state), Edge::getSuccessor);
+  default Set<S> successors(S state) {
+    return Collections3.transformUnique(edges(state), Edge::successor);
   }
 
-  default Set<S> getPredecessors(S state) {
+  default Set<S> predecessors(S state) {
     Set<S> predecessors = new HashSet<>();
 
-    forEachEdge((predecessor, edge) -> {
-      if (state.equals(edge.getSuccessor())) {
+    forEachState((predecessor) -> {
+      if (successors(predecessor).contains(state)) {
         predecessors.add(predecessor);
       }
     });
@@ -305,8 +270,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
-    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, getVariables(),
-      getAcceptance(), getInitialStates(), options, is(Property.DETERMINISTIC), getName());
+    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, variables(),
+      acceptance(), initialStates(), options, is(Property.DETERMINISTIC), name());
 
     if (this instanceof BulkOperationAutomaton) {
       forEachState(state -> {
@@ -315,28 +280,28 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
         hoa.notifyEndOfState();
       });
     } else {
-      Set<S> exploredStates = Sets.newHashSet(getInitialStates());
+      Set<S> exploredStates = Sets.newHashSet(initialStates());
       Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
       while (!workQueue.isEmpty()) {
         S state = workQueue.poll();
         hoa.addState(state);
 
-        for (BitSet valuation : BitSets.powerSet(getFactory().alphabetSize())) {
-          Edge<S> edge = this.getEdge(state, valuation);
+        factory().forEach(valuation -> {
+          Edge<S> edge = this.edge(state, valuation);
 
           if (edge == null) {
-            continue;
+            return;
           }
 
-          S successorState = edge.getSuccessor();
+          S successorState = edge.successor();
 
           if (exploredStates.add(successorState)) {
             workQueue.add(successorState);
           }
 
           hoa.addEdge(edge, valuation);
-        }
+        });
 
         hoa.notifyEndOfState();
       }

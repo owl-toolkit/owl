@@ -40,17 +40,17 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws UnsupportedOperationException
    *     if the automaton does not support setting a name.
    */
-  default void setName(String name) {
+  default void name(String name) {
     throw new UnsupportedOperationException();
   }
 
 
   // Acceptance
 
-  void setAcceptance(A acceptance);
+  void acceptance(A acceptance);
 
   default void updateAcceptance(Function<? super A, ? extends A> updater) {
-    setAcceptance(updater.apply(getAcceptance()));
+    acceptance(updater.apply(acceptance()));
   }
 
 
@@ -66,7 +66,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If any of the specified {@code states} is not part of the automaton.
    */
-  void setInitialStates(Collection<? extends S> states);
+  void initialStates(Collection<? extends S> states);
 
   /**
    * Set the initial state of the automaton. Requires the specified state to be present.
@@ -77,35 +77,8 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If the {@code state} is not part of the automaton.
    */
-  default void setInitialState(S state) {
-    setInitialStates(Set.of(state));
-  }
-
-  /**
-   * Adds given {@code states} to the set of initial states. Requires the states to be present in
-   * the automaton.
-   *
-   * @param states
-   *     The states to be added.
-   *
-   * @throws IllegalArgumentException
-   *     If any of the specified states is not part of the automaton.
-   */
-  void addInitialStates(Collection<? extends S> states);
-
-  /**
-   * Adds a {@code state} to the set of initial states. Requires this state to be present in the
-   * automaton.
-   *
-   * @param state
-   *     The state to be added.
-   *
-   * @throws IllegalArgumentException
-   *     If the specified state is not part of the automaton.
-   * @see #addInitialStates(Collection)
-   */
-  default void addInitialState(S state) {
-    addInitialStates(Set.of(state));
+  default void initialState(S state) {
+    initialStates(Set.of(state));
   }
 
 
@@ -191,7 +164,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     The respective edge, containing destination and acceptance information.
    */
   default void addEdge(S source, Edge<? extends S> edge) {
-    addEdge(source, getFactory().universe(), edge);
+    addEdge(source, factory().universe(), edge);
   }
 
   /**
@@ -205,7 +178,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     The respective edge, containing destination and acceptance information.
    */
   default void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
-    addEdge(source, getFactory().of(valuation), edge);
+    addEdge(source, factory().of(valuation), edge);
   }
 
   /**
@@ -254,7 +227,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    *     If either {@code source} or {@code destination} are not present in the automaton.
    */
   default void removeEdges(S source, S destination) {
-    removeEdge(source, getFactory().universe(), destination);
+    removeEdge(source, factory().universe(), destination);
   }
 
   /**
@@ -285,16 +258,11 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @see #updateEdges(Set, BiFunction)
    */
   default void updateEdges(BiFunction<? super S, Edge<S>, Edge<S>> updater) {
-    updateEdges(getStates(), updater);
+    updateEdges(states(), updater);
   }
 
 
   // Convenience operations
-
-  default void addAll(Automaton<S, ?> automaton) {
-    addStates(automaton.getStates());
-    automaton.forEachLabelledEdge((x, y, z) -> addEdge(x, z, y));
-  }
 
   /**
    * Removes all states which are not reachable from the initial states and returns all removed
@@ -305,7 +273,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @see #removeUnreachableStates(Collection, Consumer)
    */
   default Set<S> removeUnreachableStates() {
-    return removeUnreachableStates(getInitialStates());
+    return removeUnreachableStates(initialStates());
   }
 
   /**

@@ -106,7 +106,7 @@ public interface Edge<S> {
    *
    * @return The state the edge points to.
    */
-  S getSuccessor();
+  S successor();
 
   /**
    * Returns whether this edge has any acceptance set.
@@ -135,24 +135,24 @@ public interface Edge<S> {
   int smallestAcceptanceSet();
 
   default Edge<S> withAcceptance(int i) {
-    return of(getSuccessor(), i);
+    return of(successor(), i);
   }
 
   default Edge<S> withAcceptance(BitSet acceptance) {
-    return of(getSuccessor(), acceptance);
+    return of(successor(), acceptance);
   }
 
   default Edge<S> withAcceptance(IntUnaryOperator transformer) {
     PrimitiveIterator.OfInt iter = new NaturalsTransformer(acceptanceSetIterator(), transformer);
 
     if (!iter.hasNext()) {
-      return Edge.of(getSuccessor());
+      return Edge.of(successor());
     }
 
     int first = iter.nextInt();
 
     if (!iter.hasNext()) {
-      return Edge.of(getSuccessor(), first);
+      return Edge.of(successor(), first);
     }
 
     BitSet acceptanceSet = BitSets.of(iter);

@@ -89,7 +89,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
         factory::getSensitiveAlphabet);
     }
 
-    automaton.setInitialStates(constructionQueue);
+    automaton.initialStates(constructionQueue);
 
     return automaton;
   }

@@ -29,19 +29,19 @@ public final class MapRankingAutomaton {
     LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch,
     boolean optimizeInitialState) {
     checkArgument(lattice instanceof BooleanLattice, "Only the Boolean lattice is supported.");
-    checkArgument(ldba.getAcceptingComponent().getInitialStates().isEmpty()
-        && ldba.getInitialComponent().getInitialStates().size() == 1,
+    checkArgument(ldba.acceptingComponent().initialStates().isEmpty()
+        && ldba.initialComponent().initialStates().size() == 1,
       "Exactly one initial state expected.");
 
 
     Builder<S, T, A, L, ?, ?> builder = new Builder<>(ldba, resetAfterSccSwitch, lattice,
       isAcceptingState, (Class)
-      (ldba.getAcceptingComponent().getAcceptance().getAcceptanceSets() == 1
+      (ldba.acceptingComponent().acceptance().acceptanceSets() == 1
        ? RabinAcceptance.class
        : GeneralizedRabinAcceptance.class));
 
     Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton = AutomatonFactory
-      .create(builder.initialState, ldba.getAcceptingComponent().getFactory(),
+      .create(builder.initialState, ldba.acceptingComponent().factory(),
         builder::getSuccessor, builder.acceptance);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
@@ -70,7 +70,7 @@ public final class MapRankingAutomaton {
         acceptance = (R) builder.build();
       } else if (acceptanceClass.equals(GeneralizedRabinAcceptance.class)) {
         GeneralizedRabinAcceptance.Builder builder = new GeneralizedRabinAcceptance.Builder();
-        int infSets = ldba.getAcceptingComponent().getAcceptance().getAcceptanceSets();
+        int infSets = ldba.acceptingComponent().acceptance().acceptanceSets();
         sortingOrder.forEach(x -> pairs.put(x, builder.add(infSets)));
         truePair = builder.add(0);
         acceptance = (R) builder.build();
@@ -78,8 +78,8 @@ public final class MapRankingAutomaton {
         throw new AssertionError();
       }
 
-      initialState = buildEdge(ldba.getInitialComponent().getInitialState(), Map.of(), null)
-        .getSuccessor();
+      initialState = buildEdge(ldba.initialComponent().initialState(), Map.of(), null)
+        .successor();
     }
 
     Edge<MapRankingState<S, A, T>> buildEdge(S state, Map<A, T> previousRanking,
@@ -93,20 +93,20 @@ public final class MapRankingAutomaton {
       }
 
       Map<A, T> ranking = new HashMap<>();
-      ldba.getEpsilonJumps(state).forEach(x -> ranking.put(ldba.getAnnotation(x), x));
+      ldba.epsilonJumps(state).forEach(x -> ranking.put(ldba.annotation(x), x));
 
       BitSet acceptance = new BitSet();
       acceptance.set(truePair.finSet());
 
       previousRanking.forEach((annotation, x) -> {
         assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
-        Edge<T> edge = ldba.getAcceptingComponent().getEdge(x, valuation);
+        Edge<T> edge = ldba.acceptingComponent().edge(x, valuation);
         RabinPair pair = pairs.get(annotation);
 
         if (edge == null || !ranking.containsKey(annotation)) {
           acceptance.set(pair.finSet());
         } else {
-          ranking.put(annotation, edge.getSuccessor());
+          ranking.put(annotation, edge.successor());
           edge.acceptanceSetIterator().forEachRemaining((int i) -> acceptance.set(pair.infSet(i)));
         }
       });
@@ -123,19 +123,19 @@ public final class MapRankingAutomaton {
       S successor;
 
       { // We obtain the successor of the state in the initial component.
-        Edge<S> edge = ldba.getInitialComponent().getEdge(state.state(), valuation);
+        Edge<S> edge = ldba.initialComponent().edge(state.state(), valuation);
 
         // The initial component moved to a rejecting sink. Thus all runs die.
         if (edge == null) {
           return null;
         }
 
-        successor = edge.getSuccessor();
+        successor = edge.successor();
       }
 
       // If a SCC switch occurs, the componentMap and the safety progress is reset.
       if (sccSwitchOccurred(state.state(), successor)) {
-        return Edge.of(buildEdge(successor, Map.of(), valuation).getSuccessor());
+        return Edge.of(buildEdge(successor, Map.of(), valuation).successor());
       }
 
       return buildEdge(successor, state.componentMap(), valuation);

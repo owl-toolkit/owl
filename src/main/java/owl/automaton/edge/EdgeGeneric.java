@@ -56,7 +56,7 @@ final class EdgeGeneric<S> implements Edge<S> {
   }
 
   @Override
-  public S getSuccessor() {
+  public S successor() {
     return successor;
   }
 

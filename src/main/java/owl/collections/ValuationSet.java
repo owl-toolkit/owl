@@ -60,11 +60,11 @@ public class ValuationSet {
     return factory.intersects(this, other);
   }
 
-  public final void forEach(Consumer<? super BitSet> action) {
+  public final void forEach(Consumer<BitSet> action) {
     factory.forEach(this, action);
   }
 
-  public final void forEach(BitSet restriction, Consumer<? super BitSet> action) {
+  public final void forEach(BitSet restriction, Consumer<BitSet> action) {
     factory.forEach(this, restriction, action);
   }
 

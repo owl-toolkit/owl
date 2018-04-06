@@ -27,7 +27,6 @@ import com.google.common.collect.Multimap;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -41,11 +40,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
-import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.output.HoaConsumerExtended;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
@@ -81,15 +78,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
     Map<Edge<S>, ValuationSet> map = transitions.computeIfAbsent(makeUnique(source), mapSupplier);
     Edge<S> uniqueEdge = makeUnique(edge);
-    transitions.computeIfAbsent(uniqueEdge.getSuccessor(), mapSupplier);
+    transitions.computeIfAbsent(uniqueEdge.successor(), mapSupplier);
     map.merge(uniqueEdge, valuations, ValuationSet::union);
-  }
-
-  @Override
-  public void addInitialStates(Collection<? extends S> states) {
-    assert states.stream().allMatch(Objects::nonNull);
-    addStates(states);
-    states.stream().map(this::makeUnique).forEach(initialStates::add);
   }
 
   @Override
@@ -112,7 +102,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
     // No "outgoing" edges
     transitions.forEach((state, edges) -> {
-      Set<S> successorStates = Collections3.transformUnique(edges.keySet(), Edge::getSuccessor);
+      Set<S> successorStates = Collections3.transformUnique(edges.keySet(), Edge::successor);
       checkState(transitions.keySet().containsAll(successorStates));
       successors.putAll(state, successorStates);
       for (S successor : successorStates) {
@@ -124,18 +114,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public boolean containsState(S state) {
-    return uniqueStates.containsKey(state);
-  }
-
-  @Override
-  public boolean containsStates(Collection<? extends S> states) {
-    return uniqueStates.keySet().containsAll(states);
-  }
-
-  @Override
   public void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    getEdgeMap(state).forEach(action);
+    edgeMap(state).forEach(action);
   }
 
   @Override
@@ -145,14 +125,14 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public A getAcceptance() {
+  public A acceptance() {
     return acceptance;
   }
 
   @Nullable
   @Override
-  public Edge<S> getEdge(S state, BitSet valuation) {
-    for (Map.Entry<Edge<S>, ValuationSet> entry : getEdgeMap(state).entrySet()) {
+  public Edge<S> edge(S state, BitSet valuation) {
+    for (Map.Entry<Edge<S>, ValuationSet> entry : edgeMap(state).entrySet()) {
       if (entry.getValue().contains(valuation)) {
         return entry.getKey();
       }
@@ -161,22 +141,22 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
     return null;
   }
 
-  private Map<Edge<S>, ValuationSet> getEdgeMap(S state) {
+  private Map<Edge<S>, ValuationSet> edgeMap(S state) {
     Map<Edge<S>, ValuationSet> successors = transitions.get(makeUnique(state));
     checkArgument(successors != null, "State %s not in automaton", state);
     return successors;
   }
 
   @Override
-  public Set<Edge<S>> getEdges(S state) {
-    return Collections.unmodifiableSet(getEdgeMap(state).keySet());
+  public Set<Edge<S>> edges(S state) {
+    return Collections.unmodifiableSet(edgeMap(state).keySet());
   }
 
   @Override
-  public Set<Edge<S>> getEdges(S state, BitSet valuation) {
+  public Set<Edge<S>> edges(S state, BitSet valuation) {
     Set<Edge<S>> edges = new HashSet<>();
 
-    getEdgeMap(state).forEach((key, valuations) -> {
+    edgeMap(state).forEach((key, valuations) -> {
       if (valuations.contains(valuation)) {
         edges.add(key);
       }
@@ -186,37 +166,39 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public ValuationSetFactory getFactory() {
+  public ValuationSetFactory factory() {
     return valuationSetFactory;
   }
 
   @Override
-  public Set<S> getInitialStates() {
+  public Set<S> initialStates() {
     return Set.copyOf(initialStates);
   }
 
   @Override
-  public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+  public Collection<LabelledEdge<S>> labelledEdges(S state) {
     return Collections.unmodifiableCollection(
-      Collections2.transform(getEdgeMap(state).entrySet(), LabelledEdge::of));
+      Collections2.transform(edgeMap(state).entrySet(), LabelledEdge::of));
   }
 
   @Override
-  public String getName() {
-    return name == null ? String.format("Automaton for %s", getInitialStates()) : name;
+  public String name() {
+    return name == null ? String.format("Automaton for %s", initialStates()) : name;
   }
 
   @Override
-  public Set<S> getSuccessors(S state) {
-    return Collections3.transformUnique(getEdgeMap(state).keySet(), Edge::getSuccessor);
+  public Set<S> successors(S state) {
+    return Collections3.transformUnique(edgeMap(state).keySet(), Edge::successor);
   }
 
   @Override
-  public Set<S> getStates() {
+  public Set<S> states() {
     return Collections.unmodifiableSet(uniqueStates.keySet());
   }
 
   private S makeUnique(S state) {
+    Objects.requireNonNull(state);
+
     // TODO Maybe we shouldn't always put?
     S uniqueState = uniqueStates.putIfAbsent(state, state);
     if (uniqueState == null) {
@@ -231,7 +213,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @SuppressWarnings("unchecked")
   private Edge<S> makeUnique(Edge<? extends S> edge) {
-    S successor = edge.getSuccessor();
+    S successor = edge.successor();
     S uniqueSuccessor = makeUnique(successor);
 
     Edge<S> castedEdge = (Edge<S>) edge;
@@ -242,10 +224,10 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   @Override
   public void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
-    assert containsStates(states);
+    assert states().containsAll(states);
 
     for (S state : states) {
-      Map<Edge<S>, ValuationSet> map = getEdgeMap(state);
+      Map<Edge<S>, ValuationSet> map = edgeMap(state);
       Map<Edge<S>, ValuationSet> secondMap = new HashMap<>();
 
       map.entrySet().removeIf(entry -> {
@@ -279,8 +261,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   public void removeEdge(S source, ValuationSet valuations, S destination) {
     ValuationSet complement = valuations.complement();
 
-    getEdgeMap(source).entrySet().removeIf(entry -> {
-      if (!Objects.equals(destination, entry.getKey().getSuccessor())) {
+    edgeMap(source).entrySet().removeIf(entry -> {
+      if (!Objects.equals(destination, entry.getKey().successor())) {
         return false;
       }
 
@@ -306,7 +288,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
       if (removeState) {
         edges.clear();
       } else {
-        edges.entrySet().removeIf(e -> filter.test(e.getKey().getSuccessor()));
+        edges.entrySet().removeIf(e -> filter.test(e.getKey().successor()));
       }
 
       return removeState;
@@ -317,7 +299,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   public void removeUnreachableStates(Collection<? extends S> start,
     Consumer<? super S> removedStatesConsumer) {
     Set<S> reachableStates = AutomatonUtil.getReachableStates(this, start);
-    assert containsStates(reachableStates) : "Internal inconsistency";
+    assert states().containsAll(reachableStates) : "Internal inconsistency";
 
     if (retainStates(reachableStates)) {
       for (S state : transitions.keySet()) {
@@ -329,7 +311,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public void setAcceptance(A acceptance) {
+  public void acceptance(A acceptance) {
     this.acceptance = acceptance;
   }
 
@@ -340,13 +322,14 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public void setInitialStates(Collection<? extends S> states) {
+  public void initialStates(Collection<? extends S> states) {
+    addStates(states);
     initialStates.clear();
-    addInitialStates(states);
+    states.stream().map(this::makeUnique).forEach(initialStates::add);
   }
 
   @Override
-  public void setName(String name) {
+  public void name(String name) {
     this.name = name;
   }
 

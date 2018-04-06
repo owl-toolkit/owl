@@ -59,7 +59,7 @@ final class SccIARBuilder<R> {
   private SccIARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton,
     Set<R> initialRabinStates, Set<RabinPair> trackedPairs) {
     assert SccDecomposition.computeSccs(rabinAutomaton, initialRabinStates).size() == 1;
-    assert rabinAutomaton.containsStates(initialRabinStates);
+    assert rabinAutomaton.states().containsAll(initialRabinStates);
 
     this.rabinAutomaton = rabinAutomaton;
     this.initialRabinStates = initialRabinStates;
@@ -76,7 +76,7 @@ final class SccIARBuilder<R> {
       pairIndex += 1;
     }
 
-    ValuationSetFactory vsFactory = rabinAutomaton.getFactory();
+    ValuationSetFactory vsFactory = rabinAutomaton.factory();
     this.resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD),
       vsFactory);
   }
@@ -88,11 +88,11 @@ final class SccIARBuilder<R> {
   }
 
   Automaton<IARState<R>, ParityAcceptance> build() {
-    assert initialRabinStates.stream().allMatch(rabinAutomaton::containsState);
+    assert rabinAutomaton.states().containsAll(initialRabinStates);
     logger.log(Level.FINE, "Building IAR automaton");
 
     Set<IARState<R>> initialStates = getInitialStates();
-    resultAutomaton.setInitialStates(initialStates);
+    resultAutomaton.initialStates(initialStates);
     logger.log(Level.FINEST, "Starting state space generation from {0}", initialStates);
 
     AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, initialStates, state -> {
@@ -115,7 +115,7 @@ final class SccIARBuilder<R> {
     optimizeInitialStates();
 
     int maximalUsedPriority = getMaximalUsedPriority();
-    resultAutomaton.updateAcceptance(x -> x.setAcceptanceSets(maximalUsedPriority + 1));
+    resultAutomaton.updateAcceptance(x -> x.withAcceptanceSets(maximalUsedPriority + 1));
     logger.log(Level.FINER, "Built automaton with {0} states and {1} priorities for input "
       + "automaton with {2} states and {3} pairs", new Object[] {resultAutomaton.size(),
       maximalUsedPriority, rabinAutomaton.size(), numberOfTrackedPairs()});
@@ -123,8 +123,8 @@ final class SccIARBuilder<R> {
   }
 
   private boolean checkGeneratedStates() {
-    Set<R> stateSet = rabinAutomaton.getStates();
-    Set<R> exploredRabinStates = resultAutomaton.getStates().stream()
+    Set<R> stateSet = rabinAutomaton.states();
+    Set<R> exploredRabinStates = resultAutomaton.states().stream()
       .map(IARState::state)
       .collect(Collectors.toSet());
     assert stateSet.equals(exploredRabinStates) :
@@ -133,7 +133,7 @@ final class SccIARBuilder<R> {
   }
 
   private Edge<IARState<R>> computeSuccessorEdge(IntPreOrder currentRecord, Edge<R> rabinEdge) {
-    R rabinSuccessor = rabinEdge.getSuccessor();
+    R rabinSuccessor = rabinEdge.successor();
     IntSet visitedFinSetIndices = new IntOpenHashSet();
 
     int classes = currentRecord.classes();
@@ -194,7 +194,7 @@ final class SccIARBuilder<R> {
     Map<R, IARState<R>> potentialInitialStates = new HashMap<>();
 
     for (Set<IARState<R>> scc : sccs) {
-      if (SccDecomposition.isTransient(resultAutomaton::getSuccessors, scc)) {
+      if (SccDecomposition.isTransient(resultAutomaton::successors, scc)) {
         continue;
       }
       rabinStatesInScc.clear();
@@ -232,7 +232,7 @@ final class SccIARBuilder<R> {
     }
     assert initialStateCandidate.size() == initialRabinStates.size();
 
-    resultAutomaton.setInitialStates(initialStateCandidate.values());
+    resultAutomaton.initialStates(initialStateCandidate.values());
     resultAutomaton.removeUnreachableStates();
   }
 
@@ -337,7 +337,7 @@ final class SccIARBuilder<R> {
       }
 
       // Update initial states, for each initial state, pick its refinement (if there is any)
-      resultAutomaton.setInitialStates(resultAutomaton.getInitialStates().stream()
+      resultAutomaton.initialStates(resultAutomaton.initialStates().stream()
         .map(initialState -> {
           IARState<R> refinedInitialState =
             refinementTable.get(initialState.state(), initialState.record());
@@ -347,7 +347,7 @@ final class SccIARBuilder<R> {
       // Update edges
       resultAutomaton.updateEdges((state, edge) -> {
         // For each edge, pick the refined successor (if there is a refinement)
-        IARState<R> successor = edge.getSuccessor();
+        IARState<R> successor = edge.successor();
         R rabinSuccessor = successor.state();
         IARState<R> refinedSuccessor = refinementTable.get(rabinSuccessor, successor.record());
         return refinedSuccessor == null ? edge : edge.withSuccessor(refinedSuccessor);

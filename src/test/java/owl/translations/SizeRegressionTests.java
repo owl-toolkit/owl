@@ -89,11 +89,11 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   }
 
   static int getAcceptanceSetsSize(Automaton<?, ?> automaton) {
-    return automaton.getAcceptance().getAcceptanceSets();
+    return automaton.acceptance().acceptanceSets();
   }
 
   static int getAcceptanceSetsSize(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
-    return getAcceptanceSetsSize(automaton.getAcceptingComponent());
+    return getAcceptanceSetsSize(automaton.acceptingComponent());
   }
 
   private static int[] readSpecification(String specificationString) {

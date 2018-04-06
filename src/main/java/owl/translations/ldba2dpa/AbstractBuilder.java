@@ -28,11 +28,11 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
   protected AbstractBuilder(LimitDeterministicAutomaton<S, T, B, A> ldba,
     LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch) {
     initialComponentSccs = resetAfterSccSwitch
-                           ? SccDecomposition.computeSccs(ldba.getInitialComponent())
+                           ? SccDecomposition.computeSccs(ldba.initialComponent())
                            : null;
     this.lattice = lattice;
     this.ldba = ldba;
-    sortingOrder = List.copyOf(ldba.getComponents());
+    sortingOrder = List.copyOf(ldba.components());
 
     // Identify  safety components.
     List<A> safetyBuilder = new ArrayList<>();
@@ -49,7 +49,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
   public static <S, A extends OmegaAcceptance, S2 extends AnnotatedState<S>>
     Automaton<S2, A> optimizeInitialState(Automaton<S2, A> readOnly) {
-    S originalInitialState = readOnly.getInitialState().state();
+    S originalInitialState = readOnly.initialState().state();
 
     if (originalInitialState == null) {
       return readOnly;
@@ -57,7 +57,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
     MutableAutomaton<S2, A> automaton = AutomatonUtil.asMutable(readOnly);
 
-    S2 potentialInitialState = automaton.getInitialState();
+    S2 potentialInitialState = automaton.initialState();
     int size = automaton.size();
 
     for (Set<S2> scc : SccDecomposition.computeSccs(automaton, false)) {
@@ -75,7 +75,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
       }
     }
 
-    automaton.setInitialState(potentialInitialState);
+    automaton.initialState(potentialInitialState);
     automaton.removeUnreachableStates();
     return automaton;
   }
@@ -86,7 +86,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
       for (T state : availableJumps) {
         assert lattice.acceptsSafetyLanguage(state);
 
-        A stateAnnotation = ldba.getAnnotation(state);
+        A stateAnnotation = ldba.annotation(state);
 
         if (annotation.equals(stateAnnotation)) {
           return state;
@@ -98,7 +98,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
   }
 
   protected boolean insertableToRanking(T state, Map<A, Language<L>> existingLanguages) {
-    Language<L> existingClass = existingLanguages.get(ldba.getAnnotation(state));
+    Language<L> existingClass = existingLanguages.get(ldba.annotation(state));
     Language<L> stateClass = lattice.getLanguage(state);
     return existingClass == null || !existingClass.greaterOrEqual(stateClass);
   }

@@ -120,7 +120,7 @@ public final class MinimizationUtil {
   @SuppressWarnings("unchecked")
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> minimizeDefault(
     MutableAutomaton<S, A> automaton, MinimizationLevel level) {
-    OmegaAcceptance acceptance = automaton.getAcceptance();
+    OmegaAcceptance acceptance = automaton.acceptance();
 
     if (acceptance instanceof RabinAcceptance) {
       applyMinimization((MutableAutomaton<Object, RabinAcceptance>) automaton,
@@ -151,7 +151,7 @@ public final class MinimizationUtil {
       return;
     }
 
-    int acceptanceSets = automaton.getAcceptance().getAcceptanceSets();
+    int acceptanceSets = automaton.acceptance().acceptanceSets();
     Int2IntMap remapping = new Int2IntAVLTreeMap();
     remapping.defaultReturnValue(Integer.MAX_VALUE);
 
@@ -170,14 +170,14 @@ public final class MinimizationUtil {
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
-    removeDeadStates(automaton, automaton.getInitialStates(), s -> false, s -> {
+    removeDeadStates(automaton, automaton.initialStates(), s -> false, s -> {
     });
   }
 
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
     Predicate<? super S> isProtected,
     Consumer<? super S> removedStatesConsumer) {
-    removeDeadStates(automaton, automaton.getInitialStates(), isProtected, removedStatesConsumer);
+    removeDeadStates(automaton, automaton.initialStates(), isProtected, removedStatesConsumer);
   }
 
   /**
@@ -199,9 +199,9 @@ public final class MinimizationUtil {
     Set<S> initialStates,
     Predicate<? super S> isProtected,
     Consumer<? super S> removedStatesConsumer) {
-    assert automaton.containsStates(initialStates) :
+    assert automaton.states().containsAll(initialStates) :
       String.format("States %s not part of the automaton",
-        Sets.filter(initialStates, state -> !automaton.containsState(state)));
+        Sets.filter(initialStates, state -> !automaton.states().containsAll(Set.of(state))));
 
     automaton.removeUnreachableStates(initialStates, removedStatesConsumer);
 

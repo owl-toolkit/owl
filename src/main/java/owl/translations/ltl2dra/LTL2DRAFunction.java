@@ -88,11 +88,11 @@ public class LTL2DRAFunction
     var ldba = translatorBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return Views.viewAs(ldba.getAcceptingComponent(), RabinAcceptance.class);
+      return Views.viewAs(ldba.acceptingComponent(), RabinAcceptance.class);
     }
 
-    assert ldba.getInitialComponent().getInitialStates().size() == 1;
-    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
+    assert ldba.initialComponent().initialStates().size() == 1;
+    assert ldba.acceptingComponent().initialStates().isEmpty();
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
       new BooleanLattice(),
@@ -106,11 +106,11 @@ public class LTL2DRAFunction
     var ldba = translatorGeneralizedBreakpointFree.apply(formula);
 
     if (ldba.isDeterministic()) {
-      return Views.viewAs(ldba.getAcceptingComponent(), GeneralizedRabinAcceptance.class);
+      return Views.viewAs(ldba.acceptingComponent(), GeneralizedRabinAcceptance.class);
     }
 
-    assert ldba.getInitialComponent().getInitialStates().size() == 1;
-    assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
+    assert ldba.initialComponent().initialStates().size() == 1;
+    assert ldba.acceptingComponent().initialStates().isEmpty();
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
       new BooleanLattice(),

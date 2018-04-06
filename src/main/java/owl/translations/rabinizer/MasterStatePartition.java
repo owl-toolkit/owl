@@ -38,11 +38,11 @@ final class MasterStatePartition {
     for (Set<EquivalenceClass> scc : masterSccs) {
       // Compute all outgoing transitions
       scc.forEach(state -> masterAutomaton.forEachLabelledEdge(state, (edge, valuations) -> {
-        if (!scc.contains(edge.getSuccessor())) {
-          outgoingTransitionsBuilder.put(state, edge.getSuccessor(), valuations);
+        if (!scc.contains(edge.successor())) {
+          outgoingTransitionsBuilder.put(state, edge.successor(), valuations);
         }
       }));
-      if (SccDecomposition.isTransient(masterAutomaton::getSuccessors, scc)) {
+      if (SccDecomposition.isTransient(masterAutomaton::successors, scc)) {
         transientStatesBuilder.add(Iterables.getOnlyElement(scc));
       } else {
         sccListBuilder.add(Set.copyOf(scc));

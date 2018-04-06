@@ -35,8 +35,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(0));
-    assertThat(minEven.getBooleanExpression(), is(new BooleanExpression<>(false)));
+    assertThat(minEven.acceptanceSets(), is(0));
+    assertThat(minEven.booleanExpression(), is(new BooleanExpression<>(false)));
   }
 
   @Test
@@ -45,8 +45,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(1));
-    assertThat(minEven.getBooleanExpression(), is(mkFin(0)));
+    assertThat(minEven.acceptanceSets(), is(1));
+    assertThat(minEven.booleanExpression(), is(mkFin(0)));
   }
 
   @Test
@@ -55,8 +55,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(2));
-    assertThat(minEven.getBooleanExpression(), is(mkFin(0).and(mkInf(1))));
+    assertThat(minEven.acceptanceSets(), is(2));
+    assertThat(minEven.booleanExpression(), is(mkFin(0).and(mkInf(1))));
   }
 
   @Test
@@ -65,8 +65,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(3));
-    assertThat(minEven.getBooleanExpression(), is(mkFin(0).and(mkInf(1).or(mkFin(2)))));
+    assertThat(minEven.acceptanceSets(), is(3));
+    assertThat(minEven.booleanExpression(), is(mkFin(0).and(mkInf(1).or(mkFin(2)))));
   }
 
   @Test
@@ -75,8 +75,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(4));
-    assertThat(minEven.getBooleanExpression(),
+    assertThat(minEven.acceptanceSets(), is(4));
+    assertThat(minEven.booleanExpression(),
       is(mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3))))));
   }
 
@@ -86,8 +86,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(5));
-    assertThat(minEven.getBooleanExpression(),
+    assertThat(minEven.acceptanceSets(), is(5));
+    assertThat(minEven.booleanExpression(),
       is(mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3).or(mkFin(4)))))));
   }
 
@@ -97,8 +97,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(0));
-    assertThat(minEven.getBooleanExpression(), is(new BooleanExpression<>(true)));
+    assertThat(minEven.acceptanceSets(), is(0));
+    assertThat(minEven.booleanExpression(), is(new BooleanExpression<>(true)));
   }
 
   @Test
@@ -107,8 +107,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(1));
-    assertThat(minEven.getBooleanExpression(), is(mkInf(0)));
+    assertThat(minEven.acceptanceSets(), is(1));
+    assertThat(minEven.booleanExpression(), is(mkInf(0)));
   }
 
   @Test
@@ -117,8 +117,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(2));
-    assertThat(minEven.getBooleanExpression(), is(mkInf(0).or(mkFin(1))));
+    assertThat(minEven.acceptanceSets(), is(2));
+    assertThat(minEven.booleanExpression(), is(mkInf(0).or(mkFin(1))));
   }
 
   @Test
@@ -127,8 +127,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(3));
-    assertThat(minEven.getBooleanExpression(), is(mkInf(0).or(mkFin(1).and(mkInf(2)))));
+    assertThat(minEven.acceptanceSets(), is(3));
+    assertThat(minEven.booleanExpression(), is(mkInf(0).or(mkFin(1).and(mkInf(2)))));
   }
 
   @Test
@@ -137,8 +137,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(4));
-    assertThat(minEven.getBooleanExpression(),
+    assertThat(minEven.acceptanceSets(), is(4));
+    assertThat(minEven.booleanExpression(),
       is(mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3))))));
   }
 
@@ -148,8 +148,8 @@ public class ParityAcceptanceTest {
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.getAcceptanceSets(), is(5));
-    assertThat(minEven.getBooleanExpression(),
+    assertThat(minEven.acceptanceSets(), is(5));
+    assertThat(minEven.booleanExpression(),
       is(mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3).and(mkInf(4)))))));
   }
 
@@ -159,8 +159,8 @@ public class ParityAcceptanceTest {
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.getAcceptanceSets(), is(0));
-    assertThat(maxOdd.getBooleanExpression(), is(new BooleanExpression<>(true)));
+    assertThat(maxOdd.acceptanceSets(), is(0));
+    assertThat(maxOdd.booleanExpression(), is(new BooleanExpression<>(true)));
   }
 
   @Test
@@ -169,8 +169,8 @@ public class ParityAcceptanceTest {
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.getAcceptanceSets(), is(1));
-    assertThat(maxOdd.getBooleanExpression(), is(mkFin(0)));
+    assertThat(maxOdd.acceptanceSets(), is(1));
+    assertThat(maxOdd.booleanExpression(), is(mkFin(0)));
   }
 
   @Test
@@ -179,8 +179,8 @@ public class ParityAcceptanceTest {
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.getAcceptanceSets(), is(2));
-    assertThat(maxOdd.getBooleanExpression(), is(mkInf(1).or(mkFin(0))));
+    assertThat(maxOdd.acceptanceSets(), is(2));
+    assertThat(maxOdd.booleanExpression(), is(mkInf(1).or(mkFin(0))));
   }
 
   @Test
@@ -189,8 +189,8 @@ public class ParityAcceptanceTest {
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.getAcceptanceSets(), is(3));
-    assertThat(maxOdd.getBooleanExpression(), is(mkFin(2).and(mkInf(1).or(mkFin(0)))));
+    assertThat(maxOdd.acceptanceSets(), is(3));
+    assertThat(maxOdd.booleanExpression(), is(mkFin(2).and(mkInf(1).or(mkFin(0)))));
   }
 
   @Test
@@ -199,8 +199,8 @@ public class ParityAcceptanceTest {
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.getAcceptanceSets(), is(4));
-    assertThat(maxOdd.getBooleanExpression(),
+    assertThat(maxOdd.acceptanceSets(), is(4));
+    assertThat(maxOdd.booleanExpression(),
       is(mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0))))));
   }
 
@@ -210,8 +210,8 @@ public class ParityAcceptanceTest {
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.getAcceptanceSets(), is(5));
-    assertThat(maxOdd.getBooleanExpression(),
+    assertThat(maxOdd.acceptanceSets(), is(5));
+    assertThat(maxOdd.booleanExpression(),
       is(mkFin(4).and(mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0)))))));
   }
 
@@ -221,8 +221,8 @@ public class ParityAcceptanceTest {
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.getAcceptanceSets(), is(0));
-    assertThat(maxEven.getBooleanExpression(), is(new BooleanExpression<>(false)));
+    assertThat(maxEven.acceptanceSets(), is(0));
+    assertThat(maxEven.booleanExpression(), is(new BooleanExpression<>(false)));
   }
 
   @Test
@@ -231,8 +231,8 @@ public class ParityAcceptanceTest {
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.getAcceptanceSets(), is(1));
-    assertThat(maxEven.getBooleanExpression(), is(mkInf(0)));
+    assertThat(maxEven.acceptanceSets(), is(1));
+    assertThat(maxEven.booleanExpression(), is(mkInf(0)));
   }
 
   @Test
@@ -241,8 +241,8 @@ public class ParityAcceptanceTest {
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.getAcceptanceSets(), is(2));
-    assertThat(maxEven.getBooleanExpression(), is(mkFin(1).and(mkInf(0))));
+    assertThat(maxEven.acceptanceSets(), is(2));
+    assertThat(maxEven.booleanExpression(), is(mkFin(1).and(mkInf(0))));
   }
 
   @Test
@@ -251,8 +251,8 @@ public class ParityAcceptanceTest {
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.getAcceptanceSets(), is(3));
-    assertThat(maxEven.getBooleanExpression(), is(mkInf(2).or(mkFin(1).and(mkInf(0)))));
+    assertThat(maxEven.acceptanceSets(), is(3));
+    assertThat(maxEven.booleanExpression(), is(mkInf(2).or(mkFin(1).and(mkInf(0)))));
   }
 
   @Test
@@ -261,8 +261,8 @@ public class ParityAcceptanceTest {
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.getAcceptanceSets(), is(4));
-    assertThat(maxEven.getBooleanExpression(),
+    assertThat(maxEven.acceptanceSets(), is(4));
+    assertThat(maxEven.booleanExpression(),
       is(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0))))));
   }
 
@@ -272,17 +272,17 @@ public class ParityAcceptanceTest {
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.getAcceptanceSets(), is(5));
-    assertThat(maxEven.getBooleanExpression(),
+    assertThat(maxEven.acceptanceSets(), is(5));
+    assertThat(maxEven.booleanExpression(),
       is(mkInf(4).or(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0)))))));
   }
 
   private static void checkName(OmegaAcceptance acceptance) {
-    assertThat(acceptance.getName(), is("parity"));
+    assertThat(acceptance.name(), is("parity"));
   }
 
   private static void checkNameExtraTypes(OmegaAcceptance acceptance) {
-    List<Object> extra = acceptance.getNameExtra();
+    List<Object> extra = acceptance.nameExtra();
 
     // Check types
     assertThat(extra.get(0), instanceOf(String.class));

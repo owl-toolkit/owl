@@ -180,17 +180,17 @@ public class AutomatonReaderTest {
       DefaultEnvironment.annotated().factorySupplier(), BuchiAcceptance.class);
     assertThat(automaton.size(), is(2));
     Int2ObjectMap<HoaState> states = getStates(automaton);
-    ValuationSetFactory valuationSetFactory = automaton.getFactory();
+    ValuationSetFactory valuationSetFactory = automaton.factory();
 
-    assertThat(automaton.getInitialState(), is(states.get(1)));
+    assertThat(automaton.initialState(), is(states.get(1)));
 
     LabelledEdge<HoaState> successorEdge = LabelledEdge.of(states.get(0),
       valuationSetFactory.of(createBitSet(true)));
-    assertThat(automaton.getLabelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
+    assertThat(automaton.labelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
 
     LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edge.of(states.get(0), 0),
       valuationSetFactory.universe());
-    assertThat(automaton.getLabelledEdges(states.get(0)), containsInAnyOrder(loopEdge));
+    assertThat(automaton.labelledEdges(states.get(0)), containsInAnyOrder(loopEdge));
   }
 
   @Test(expected = ParseException.class)
@@ -211,25 +211,25 @@ public class AutomatonReaderTest {
       DefaultEnvironment.annotated().factorySupplier());
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
-    assertThat(automaton.getAcceptance(), instanceOf(ParityAcceptance.class));
-    ParityAcceptance acceptance = (ParityAcceptance) automaton.getAcceptance();
-    assertThat(acceptance.getAcceptanceSets(), is(3));
-    assertThat(acceptance.getParity(), is(Parity.MIN_ODD));
+    assertThat(automaton.acceptance(), instanceOf(ParityAcceptance.class));
+    ParityAcceptance acceptance = (ParityAcceptance) automaton.acceptance();
+    assertThat(acceptance.acceptanceSets(), is(3));
+    assertThat(acceptance.parity(), is(Parity.MIN_ODD));
 
-    HoaState initialState = automaton.getInitialState();
-    HoaState successor = automaton.getSuccessor(initialState, createBitSet(false, false));
+    HoaState initialState = automaton.initialState();
+    HoaState successor = automaton.successor(initialState, createBitSet(false, false));
     assertThat(successor, notNullValue());
 
-    Edge<HoaState> initialToSucc = automaton.getEdge(initialState,
+    Edge<HoaState> initialToSucc = automaton.edge(initialState,
       createBitSet(false, false));
     assertThat(initialToSucc, notNullValue());
     assertThat(initialToSucc.acceptanceSetIterator().nextInt(), is(2));
 
-    Edge<HoaState> succToInitial = automaton.getEdge(successor, createBitSet(true, false));
+    Edge<HoaState> succToInitial = automaton.edge(successor, createBitSet(true, false));
     assertThat(succToInitial, notNullValue());
     assertThat(succToInitial.acceptanceSetIterator().nextInt(), is(1));
 
-    Edge<HoaState> succToSucc = automaton.getEdge(successor, createBitSet(false, true));
+    Edge<HoaState> succToSucc = automaton.edge(successor, createBitSet(false, true));
     assertThat(succToSucc, notNullValue());
     assertThat(succToSucc.acceptanceSetIterator().hasNext(), is(false));
   }
@@ -241,18 +241,18 @@ public class AutomatonReaderTest {
     assertThat(automata.size(), is(1));
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
     assertThat(automaton.size(), is(2));
-    assertThat(automaton.getAcceptance(), instanceOf(AllAcceptance.class));
+    assertThat(automaton.acceptance(), instanceOf(AllAcceptance.class));
 
-    HoaState initialState = automaton.getInitialState();
+    HoaState initialState = automaton.initialState();
     assertThat(initialState.id, is(0));
 
-    assertThat(automaton.getSuccessor(initialState, createBitSet(true)), is(initialState));
+    assertThat(automaton.successor(initialState, createBitSet(true)), is(initialState));
 
-    HoaState successor = automaton.getSuccessor(initialState, createBitSet(false));
+    HoaState successor = automaton.successor(initialState, createBitSet(false));
     assertThat(successor, notNullValue());
     assertThat(successor.id, is(1));
-    assertThat(automaton.getSuccessor(successor, createBitSet(false)), is(initialState));
-    assertThat(automaton.getSuccessor(successor, createBitSet(true)), nullValue());
+    assertThat(automaton.successor(successor, createBitSet(false)), is(initialState));
+    assertThat(automaton.successor(successor, createBitSet(true)), nullValue());
   }
 
   @Test
@@ -262,9 +262,9 @@ public class AutomatonReaderTest {
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.size(), is(1));
-    assertThat(automaton.getAcceptance(), instanceOf(GeneralizedBuchiAcceptance.class));
-    GeneralizedBuchiAcceptance acceptance = (GeneralizedBuchiAcceptance) automaton.getAcceptance();
-    assertThat(acceptance.getAcceptanceSets(), is(2));
+    assertThat(automaton.acceptance(), instanceOf(GeneralizedBuchiAcceptance.class));
+    GeneralizedBuchiAcceptance acceptance = (GeneralizedBuchiAcceptance) automaton.acceptance();
+    assertThat(acceptance.acceptanceSets(), is(2));
   }
 
   @Test
@@ -274,9 +274,9 @@ public class AutomatonReaderTest {
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.size(), is(2));
-    assertThat(automaton.getAcceptance(), instanceOf(GeneralizedRabinAcceptance.class));
-    GeneralizedRabinAcceptance acceptance = (GeneralizedRabinAcceptance) automaton.getAcceptance();
-    assertThat(acceptance.getAcceptanceSets(), is(5));
+    assertThat(automaton.acceptance(), instanceOf(GeneralizedRabinAcceptance.class));
+    GeneralizedRabinAcceptance acceptance = (GeneralizedRabinAcceptance) automaton.acceptance();
+    assertThat(acceptance.acceptanceSets(), is(5));
   }
 
   @Test
@@ -286,9 +286,9 @@ public class AutomatonReaderTest {
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.size(), is(3));
-    assertThat(automaton.getAcceptance(), instanceOf(EmersonLeiAcceptance.class));
-    EmersonLeiAcceptance acceptance = (EmersonLeiAcceptance) automaton.getAcceptance();
-    assertThat(acceptance.getAcceptanceSets(), is(2));
+    assertThat(automaton.acceptance(), instanceOf(EmersonLeiAcceptance.class));
+    EmersonLeiAcceptance acceptance = (EmersonLeiAcceptance) automaton.acceptance();
+    assertThat(acceptance.acceptanceSets(), is(2));
   }
 
   @Test
@@ -298,9 +298,9 @@ public class AutomatonReaderTest {
     Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
 
     assertThat(automaton.size(), is(3));
-    assertThat(automaton.getAcceptance(), instanceOf(RabinAcceptance.class));
-    RabinAcceptance acceptance = (RabinAcceptance) automaton.getAcceptance();
-    assertThat(acceptance.getAcceptanceSets(), is(2));
+    assertThat(automaton.acceptance(), instanceOf(RabinAcceptance.class));
+    RabinAcceptance acceptance = (RabinAcceptance) automaton.acceptance();
+    assertThat(acceptance.acceptanceSets(), is(2));
   }
 
   private static BitSet createBitSet(boolean... indices) {

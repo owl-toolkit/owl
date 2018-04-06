@@ -99,11 +99,11 @@ public final class OutputWriters {
     private static final Map<Pattern, Function<Automaton<?, ?>, String>> patterns = Map.of(
       // Acceptance condition
       Pattern.compile("%G", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> automaton.getAcceptance().getBooleanExpression().toString(),
+      automaton -> automaton.acceptance().booleanExpression().toString(),
 
       // Acceptance set count
       Pattern.compile("%A", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(automaton.getAcceptance().getAcceptanceSets()),
+      automaton -> String.valueOf(automaton.acceptance().acceptanceSets()),
 
       // Is deterministic
       Pattern.compile("%D", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
@@ -115,7 +115,7 @@ public final class OutputWriters {
 
       // Name
       Pattern.compile("%M", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      HoaPrintable::getName,
+      HoaPrintable::name,
 
       // State count
       Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
@@ -123,7 +123,7 @@ public final class OutputWriters {
 
       // Number of propositions
       Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(automaton.getVariables().size()),
+      automaton -> String.valueOf(automaton.variables().size()),
 
       // Number of SCCs
       Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),

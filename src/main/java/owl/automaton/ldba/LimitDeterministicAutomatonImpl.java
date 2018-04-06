@@ -57,38 +57,38 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
   }
 
   @Override
-  public Automaton<T, U> getAcceptingComponent() {
+  public Automaton<T, U> acceptingComponent() {
     return acceptingComponent;
   }
 
   @Override
-  public V getAnnotation(T key) {
+  public V annotation(T key) {
     return componentAnnotation.apply(key);
   }
 
   @Override
-  public Set<V> getComponents() {
+  public Set<V> components() {
     return components;
   }
 
   @Override
-  public Set<T> getEpsilonJumps(S state) {
+  public Set<T> epsilonJumps(S state) {
     return Collections.unmodifiableSet(epsilonJumps.get(state));
   }
 
   @Override
-  public Automaton<S, NoneAcceptance> getInitialComponent() {
+  public Automaton<S, NoneAcceptance> initialComponent() {
     return initialComponent;
   }
 
   @Override
-  public Map<ValuationSet, Set<T>> getValuationSetJumps(S state) {
+  public Map<ValuationSet, Set<T>> valuationSetJumps(S state) {
     return Collections.unmodifiableMap(valuationSetJumps.row(state));
   }
 
   @Override
-  public List<String> getVariables() {
-    return acceptingComponent.getVariables();
+  public List<String> variables() {
+    return acceptingComponent.variables();
   }
 
   @Override

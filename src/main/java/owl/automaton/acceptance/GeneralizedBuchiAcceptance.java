@@ -39,22 +39,22 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public final int getAcceptanceSets() {
+  public final int acceptanceSets() {
     return size;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
     return createConjunction(IntStream.range(0, size).mapToObj(BooleanExpressions::mkInf));
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "generalized-Buchi";
   }
 
   @Override
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     return List.of(size);
   }
 
