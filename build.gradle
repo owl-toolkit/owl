@@ -115,9 +115,8 @@ tasks.withType(Javadoc) {
     options.docEncoding = defaultEncoding
     options.charSet = defaultEncoding
     // https://github.com/gradle/gradle/issues/2553 Disables some superfluous warnings of javadoc
-    options.addStringOption 'Xdoclint:syntax,reference', '-quiet'
     // Generate HTML5
-    options.addStringOption '-html5'
+    options.optionFiles << file('config/javadoc.options')
 }
 
 //noinspection GroovyAssignabilityCheck,UnnecessaryQualifiedReference
