@@ -45,7 +45,6 @@ public final class AutomatonFactory {
    * @param factory The alphabet.
    * @param transitions The transition function.
    * @param acceptance The acceptance condition.
-   * @return
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,
     ValuationSetFactory factory, BiFunction<S, BitSet, Edge<S>> transitions, A acceptance) {
@@ -64,7 +63,6 @@ public final class AutomatonFactory {
    * @param bulkTransitions
    *    A bulk transition function, needs to be consistent with transitions.
    * @param acceptance The acceptance condition.
-   * @return
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,
     ValuationSetFactory factory, BiFunction<S, BitSet, Set<Edge<S>>> transitions,

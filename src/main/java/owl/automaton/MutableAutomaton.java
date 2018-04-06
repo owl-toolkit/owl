@@ -30,10 +30,157 @@ import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
 
 public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automaton<S, A> {
-  default void addAll(Automaton<S, ?> automaton) {
-    addStates(automaton.getStates());
-    automaton.forEachLabelledEdge((x, y, z) -> addEdge(x, z, y));
+
+  /**
+   * Sets the name of the automaton (optional operation).
+   *
+   * @param name
+   *     The new name of the automaton.
+   *
+   * @throws UnsupportedOperationException
+   *     if the automaton does not support setting a name.
+   */
+  default void setName(String name) {
+    throw new UnsupportedOperationException();
   }
+
+
+  // Acceptance
+
+  void setAcceptance(A acceptance);
+
+  default void updateAcceptance(Function<? super A, ? extends A> updater) {
+    setAcceptance(updater.apply(getAcceptance()));
+  }
+
+
+  // Initial states
+
+  /**
+   * Sets the set of initial states of the automaton. Requires that each state is present in the
+   * automaton.
+   *
+   * @param states
+   *     The new set of initial states (potentially empty)
+   *
+   * @throws IllegalArgumentException
+   *     If any of the specified {@code states} is not part of the automaton.
+   */
+  void setInitialStates(Collection<? extends S> states);
+
+  /**
+   * Set the initial state of the automaton. Requires the specified state to be present.
+   *
+   * @param state
+   *     The new initial state.
+   *
+   * @throws IllegalArgumentException
+   *     If the {@code state} is not part of the automaton.
+   */
+  default void setInitialState(S state) {
+    setInitialStates(Set.of(state));
+  }
+
+  /**
+   * Adds given {@code states} to the set of initial states. Requires the states to be present in
+   * the automaton.
+   *
+   * @param states
+   *     The states to be added.
+   *
+   * @throws IllegalArgumentException
+   *     If any of the specified states is not part of the automaton.
+   */
+  void addInitialStates(Collection<? extends S> states);
+
+  /**
+   * Adds a {@code state} to the set of initial states. Requires this state to be present in the
+   * automaton.
+   *
+   * @param state
+   *     The state to be added.
+   *
+   * @throws IllegalArgumentException
+   *     If the specified state is not part of the automaton.
+   * @see #addInitialStates(Collection)
+   */
+  default void addInitialState(S state) {
+    addInitialStates(Set.of(state));
+  }
+
+
+  // States
+
+  /**
+   * Adds {@code states} without outgoing edges to the set of states. For already present states,
+   * nothing is changed.
+   *
+   * @param states
+   *     The states to be added.
+   */
+  void addStates(Collection<? extends S> states);
+
+  /**
+   * Adds a {@code state} without outgoing edges to the set of states. If the state is already
+   * present, nothing is changed.
+   *
+   * @param state
+   *     The state to be added.
+   *
+   * @see #addStates(Collection)
+   */
+  default void addState(S state) {
+    addStates(Set.of(state));
+  }
+
+  /**
+   * Removes the specified {@code states} and all transitions involving them from the automaton.
+   *
+   * @param states
+   *     The states to be removed.
+   * @return whether some states have been removed.
+   */
+  boolean removeStates(Predicate<? super S> states);
+
+  /**
+   * Removes a state and all transitions involving it from the automaton. If the automaton does not
+   * contain the specified state, nothing is changed.
+   *
+   * @param state
+   *     The state to be removed.
+   *
+   * @see #removeStates(Collection)
+   */
+  default void removeState(S state) {
+    removeStates(Set.of(state));
+  }
+
+  /**
+   * Removes the specified {@code states} and all transitions involving them from the automaton.
+   *
+   * @param states
+   *     The states to be removed.
+   * @return whether some states have been removed.
+   * @see #removeStates(Predicate)
+   */
+  default boolean removeStates(Collection<? extends S> states) {
+    return removeStates(states::contains);
+  }
+
+
+  // Transition function
+
+  /**
+   * Adds transitions from the {@code source} state under {@code valuations}.
+   *
+   * @param source
+   *     The source state. If is not already present, it gets added to the transition table.
+   * @param valuations
+   *     The valuations under which this transition is possible.
+   * @param edge
+   *     The respective edge, containing destination and acceptance information.
+   */
+  void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge);
 
   /**
    * Adds a transition from the {@code source} state under any valuation.
@@ -60,98 +207,6 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   default void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
     addEdge(source, getFactory().of(valuation), edge);
   }
-
-  /**
-   * Adds transitions from the {@code source} state under {@code valuations}.
-   *
-   * @param source
-   *     The source state. If is not already present, it gets added to the transition table.
-   * @param valuations
-   *     The valuations under which this transition is possible.
-   * @param edge
-   *     The respective edge, containing destination and acceptance information.
-   */
-  void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge);
-
-  /**
-   * Adds a {@code state} to the set of initial states. Requires this state to be present in the
-   * automaton.
-   *
-   * @param state
-   *     The state to be added.
-   *
-   * @throws IllegalArgumentException
-   *     If the specified state is not part of the automaton.
-   * @see #addInitialStates(Collection)
-   */
-  default void addInitialState(S state) {
-    addInitialStates(Set.of(state));
-  }
-
-  /**
-   * Adds given {@code states} to the set of initial states. Requires the states to be present in
-   * the automaton.
-   *
-   * @param states
-   *     The states to be added.
-   *
-   * @throws IllegalArgumentException
-   *     If any of the specified states is not part of the automaton.
-   */
-  void addInitialStates(Collection<? extends S> states);
-
-  /**
-   * Adds a {@code state} without outgoing edges to the set of states. If the state is already
-   * present, nothing is changed.
-   *
-   * @param state
-   *     The state to be added.
-   *
-   * @see #addStates(Collection)
-   */
-  default void addState(S state) {
-    addStates(Set.of(state));
-  }
-
-  /**
-   * Adds {@code states} without outgoing edges to the set of states. For already present states,
-   * nothing is changed.
-   *
-   * @param states
-   *     The states to be added.
-   */
-  void addStates(Collection<? extends S> states);
-
-  /**
-   * Remaps each edge of the automaton according to {@code updater}.
-   *
-   * <p>The function is allowed to return {@code null} which indicates that the edge should be
-   * removed.</p>
-   *
-   * @param updater
-   *     The remapping function.
-   *
-   * @see #updateEdges(Set, BiFunction)
-   */
-  default void updateEdges(BiFunction<? super S, Edge<S>, Edge<S>> updater) {
-    updateEdges(getStates(), updater);
-  }
-
-  /**
-   * Remaps each outgoing edge of the specified {@code states} according to {@code updater}.
-   *
-   * <p> The function is allowed to return {@code null} which indicates that the edge should be
-   * removed. Requires all {@code states} to be present in the automaton.</p>
-   *
-   * @param states
-   *     The states whose outgoing edges are to be remapped.
-   * @param updater
-   *     The remapping function.
-   *
-   * @throws IllegalArgumentException
-   *     If any state specified is not present in the automaton.
-   */
-  void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> updater);
 
   /**
    * Removes all transition from {@code source} under {@code valuation} to {@code destination}.
@@ -203,38 +258,43 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   }
 
   /**
-   * Removes a state and all transitions involving it from the automaton. If the automaton does not
-   * contain the specified state, nothing is changed.
+   * Remaps each outgoing edge of the specified {@code states} according to {@code updater}.
    *
-   * @param state
-   *     The state to be removed.
-   *
-   * @see #removeStates(Collection)
-   */
-  default void removeState(S state) {
-    removeStates(Set.of(state));
-  }
-
-  /**
-   * Removes the specified {@code states} and all transitions involving them from the automaton.
+   * <p> The function is allowed to return {@code null} which indicates that the edge should be
+   * removed. Requires all {@code states} to be present in the automaton.</p>
    *
    * @param states
-   *     The states to be removed.
-   * @return whether some states have been removed.
-   * @see #removeStates(Predicate)
+   *     The states whose outgoing edges are to be remapped.
+   * @param updater
+   *     The remapping function.
+   *
+   * @throws IllegalArgumentException
+   *     If any state specified is not present in the automaton.
    */
-  default boolean removeStates(Collection<? extends S> states) {
-    return removeStates(states::contains);
-  }
+  void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> updater);
 
   /**
-   * Removes the specified {@code states} and all transitions involving them from the automaton.
+   * Remaps each edge of the automaton according to {@code updater}.
    *
-   * @param states
-   *     The states to be removed.
-   * @return whether some states have been removed.
+   * <p>The function is allowed to return {@code null} which indicates that the edge should be
+   * removed.</p>
+   *
+   * @param updater
+   *     The remapping function.
+   *
+   * @see #updateEdges(Set, BiFunction)
    */
-  boolean removeStates(Predicate<? super S> states);
+  default void updateEdges(BiFunction<? super S, Edge<S>, Edge<S>> updater) {
+    updateEdges(getStates(), updater);
+  }
+
+
+  // Convenience operations
+
+  default void addAll(Automaton<S, ?> automaton) {
+    addStates(automaton.getStates());
+    automaton.forEachLabelledEdge((x, y, z) -> addEdge(x, z, y));
+  }
 
   /**
    * Removes all states which are not reachable from the initial states and returns all removed
@@ -271,48 +331,4 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    */
   void removeUnreachableStates(Collection<? extends S> start,
     Consumer<? super S> removedStatesConsumer);
-
-  void setAcceptance(A acceptance);
-
-  default void updateAcceptance(Function<? super A, ? extends A> updater) {
-    setAcceptance(updater.apply(getAcceptance()));
-  }
-
-  /**
-   * Set the initial state of the automaton. Requires the specified state to be present.
-   *
-   * @param state
-   *     The new initial state.
-   *
-   * @throws IllegalArgumentException
-   *     If the {@code state} is not part of the automaton.
-   */
-  default void setInitialState(S state) {
-    setInitialStates(Set.of(state));
-  }
-
-  /**
-   * Sets the set of initial states of the automaton. Requires that each state is present in the
-   * automaton.
-   *
-   * @param states
-   *     The new set of initial states (potentially empty)
-   *
-   * @throws IllegalArgumentException
-   *     If any of the specified {@code states} is not part of the automaton.
-   */
-  void setInitialStates(Collection<? extends S> states);
-
-  /**
-   * Sets the name of the automaton (optional operation).
-   *
-   * @param name
-   *     The new name of the automaton.
-   *
-   * @throws UnsupportedOperationException
-   *     if the automaton does not support setting a name.
-   */
-  default void setName(String name) {
-    throw new UnsupportedOperationException();
-  }
 }

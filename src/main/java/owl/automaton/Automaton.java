@@ -48,6 +48,79 @@ import owl.util.TriConsumer;
  * should only call methods from one layer below: Successors -&gt; Edges -&gt; LabelledEdges
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
+
+  // Parameters
+
+  @Override
+  @Nullable
+  default String getName() {
+    return null;
+  }
+
+  /**
+   * Returns the acceptance condition of this automaton.
+   *
+   * @return The acceptance.
+   */
+  A getAcceptance();
+
+  ValuationSetFactory getFactory();
+
+  @Override
+  default List<String> getVariables() {
+    return getFactory().alphabet();
+  }
+
+  default void forEachValuation(Consumer<BitSet> action) {
+    getFactory().universe().forEach(action);
+  }
+
+  // Initial states
+
+  /**
+   * Returns the initial state. Throws an {@link IllegalStateException} if there a no or multiple
+   * initial states.
+   *
+   * @return The unique initial state.
+   *
+   * @throws NoSuchElementException
+   *     If there is no initial state.
+   * @throws IllegalArgumentException
+   *     If there is no unique initial state.
+   * @see #getInitialStates()
+   */
+  default S getInitialState() {
+    return Iterables.getOnlyElement(getInitialStates());
+  }
+
+  /**
+   * Returns the set of initial states, which can potentially be empty.
+   *
+   * @return The set of initial states.
+   */
+  Set<S> getInitialStates();
+
+
+  // State-set properties
+
+  /**
+   * Returns the number of states of this automaton (its cardinality). If this
+   * set contains more than {@code Integer.MAX_VALUE} elements, returns
+   * {@code Integer.MAX_VALUE}.
+   *
+   * @return the number of elements in this set (its cardinality)
+   */
+  default int size() {
+    return getStates().size();
+  }
+
+  /**
+   * Returns all states in this automaton.
+   *
+   * @return All states of the automaton
+   */
+  Set<S> getStates();
+
   /**
    * Determines whether the automaton contains the given {@code state}.
    *
@@ -72,37 +145,32 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return getStates().containsAll(states);
   }
 
-  default void forEachEdge(S state, Consumer<Edge<S>> action) {
-    getEdges(state).forEach(action);
-  }
-
-  default void forEachEdge(BiConsumer<S, Edge<S>> action) {
-    forEachState(state -> forEachEdge(state, edge -> action.accept(state, edge)));
-  }
-
-  default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    getLabelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
-  }
-
-  default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
-    forEachState(state -> forEachLabelledEdge(state, (y, z) -> action.accept(state, y, z)));
-  }
-
   default void forEachState(Consumer<S> action) {
     getStates().forEach(action);
   }
 
-  /**
-   * Returns the acceptance condition of this automaton.
-   *
-   * @return The acceptance.
-   */
-  A getAcceptance();
+
+  // Transition function - Single
 
   /**
-   * <p>Returns the successor edge of the specified {@code state} under the given {@code valuation}.
+   * Returns the successor edges of the specified {@code state} under the given {@code valuation}.
+   *
+   * @param state
+   *     The starting state of the transition.
+   * @param valuation
+   *     The valuation.
+   *
+   * @return The successor edges, possibly empty.
+   */
+  default Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    return Collections3.transformUnique(getLabelledEdges(state),
+      x -> x.valuations.contains(valuation) ? x.edge : null);
+  }
+
+  /**
+   * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
    * Returns some edge if there is a non-deterministic choice in this state for the specified
-   * valuation.</p>
+   * valuation.
    *
    * <p>If you want to check if this is the unique edge use the getEdges() method.</p>
    *
@@ -132,60 +200,80 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return Collections3.transformUnique(getLabelledEdges(state), x -> x.edge);
   }
 
+  default void forEachEdge(BiConsumer<S, Edge<S>> action) {
+    forEachState(state -> forEachEdge(state, edge -> action.accept(state, edge)));
+  }
+
+  default void forEachEdge(S state, Consumer<Edge<S>> action) {
+    forEachEdge(state, (edge, bitSet) -> action.accept(edge));
+  }
+
+  default void forEachEdge(S state, BiConsumer<Edge<S>, BitSet> action) {
+    forEachValuation(valuation ->
+      getEdges(state, valuation).forEach(edge -> action.accept(edge, valuation)));
+  }
+
+  default void forEachEdge(TriConsumer<S, Edge<S>, BitSet> action) {
+    forEachState(state ->
+      forEachEdge(state, (edge, valuation) -> action.accept(state, edge, valuation)));
+  }
+
+
+  // Transition function - Bulk
+
   /**
-   * Returns the successor edges of the specified {@code state} under the given {@code valuation}.
+   * Returns all labelled edges of the specified {@code state}.
+   *
+   * @param state
+   *     The state.
+   *
+   * @return All labelled edges of the state.
+   */
+  Collection<LabelledEdge<S>> getLabelledEdges(S state);
+
+  default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
+    getLabelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
+  }
+
+  default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
+    forEachState(state ->
+      forEachLabelledEdge(state, (edge, valuations) -> action.accept(state, edge, valuations)));
+  }
+
+
+  // Derived state functions
+
+  default Set<S> getSuccessors(S state, BitSet valuation) {
+    return Collections3.transformUnique(getEdges(state, valuation), Edge::getSuccessor);
+  }
+
+  /**
+   * <p>Returns the successor of the specified {@code state} under the given {@code valuation}.
+   * Returns some state if there is a non-deterministic choice in this state for the specified
+   * valuation.</p>
+   *
+   * <p>If you want to check if this is the unique edge use the getSuccessors() method.</p>
    *
    * @param state
    *     The starting state of the transition.
    * @param valuation
    *     The valuation.
    *
-   * @return The successor edges, possibly empty.
+   * @return A successor or {@code null} if none.
    */
-  default Set<Edge<S>> getEdges(S state, BitSet valuation) {
-    return Collections3.transformUnique(getLabelledEdges(state),
-      x -> x.valuations.contains(valuation) ? x.edge : null);
+  @Nullable
+  default S getSuccessor(S state, BitSet valuation) {
+    return Iterables.getFirst(getSuccessors(state, valuation), null);
   }
 
-  ValuationSetFactory getFactory();
-
-  /**
-   * Returns the initial state. Throws an {@link IllegalStateException} if there a no or multiple
-   * initial states.
-   *
-   * @return The unique initial state.
-   *
-   * @throws NoSuchElementException
-   *     If there is no initial state.
-   * @throws IllegalArgumentException
-   *     If there is no unique initial state.
-   * @see #getInitialStates()
-   */
-  default S getInitialState() {
-    return Iterables.getOnlyElement(getInitialStates());
+  default Set<S> getSuccessors(S state) {
+    return Collections3.transformUnique(getEdges(state), Edge::getSuccessor);
   }
-
-  /**
-   * Returns the set of initial states, which can potentially be empty.
-   *
-   * @return The set of initial states.
-   */
-  Set<S> getInitialStates();
-
-  /**
-   * Returns all successors of the specified {@code state}.
-   *
-   * @param state
-   *     The state.
-   *
-   * @return All successors of the state.
-   */
-  Collection<LabelledEdge<S>> getLabelledEdges(S state);
 
   default Set<S> getPredecessors(S state) {
     Set<S> predecessors = new HashSet<>();
 
-    forEachLabelledEdge((predecessor, edge, valuationSet) -> {
+    forEachEdge((predecessor, edge) -> {
       if (state.equals(edge.getSuccessor())) {
         predecessors.add(predecessor);
       }
@@ -194,30 +282,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return predecessors;
   }
 
-  /**
-   * Returns all states in this automaton.
-   *
-   * @return All states of the automaton
-   */
-  Set<S> getStates();
 
-  @Nullable
-  default S getSuccessor(S state, BitSet valuation) {
-    return Iterables.getOnlyElement(getSuccessors(state, valuation), null);
-  }
-
-  default Set<S> getSuccessors(S state) {
-    return Collections3.transformUnique(getEdges(state), Edge::getSuccessor);
-  }
-
-  default Set<S> getSuccessors(S state, BitSet valuation) {
-    return Collections3.transformUnique(getEdges(state, valuation), Edge::getSuccessor);
-  }
-
-  @Override
-  default List<String> getVariables() {
-    return getFactory().alphabet();
-  }
+  // Transition properties
 
   default boolean is(Property property) {
     switch (property) {
@@ -236,16 +302,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     }
   }
 
-  /**
-   * Returns the number of states of this automaton (its cardinality). If this
-   * set contains more than {@code Integer.MAX_VALUE} elements, returns
-   * {@code Integer.MAX_VALUE}.
-   *
-   * @return the number of elements in this set (its cardinality)
-   */
-  default int size() {
-    return getStates().size();
-  }
 
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {

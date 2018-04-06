@@ -1,0 +1,3 @@
+-Xdoclint:syntax,reference -quiet
+-notimestamp
+-html5
