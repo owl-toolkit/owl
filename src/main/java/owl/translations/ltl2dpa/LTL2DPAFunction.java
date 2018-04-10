@@ -41,12 +41,13 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
-import owl.factories.EquivalenceClassFactory;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory;
@@ -72,7 +73,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
     COMPRESS_COLOURS);
 
-  private static final int GREEDY_WAITING_TIME_SEC = 3;
+  private static final int GREEDY_WAITING_TIME_SEC = 7;
 
   private final EnumSet<Configuration> configuration;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
@@ -132,6 +133,10 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
       if (automaton == null) {
         return complement;
+      }
+
+      if (configuration.contains(GREEDY)) {
+        return (formula2.formula() instanceof Conjunction) ? complement : automaton;
       }
 
       // Select smaller automaton.
@@ -233,13 +238,13 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().factory();
-
+    var factory = ldba.getInitialComponent().getInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new EquivalenceClassLanguageLattice(factory),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
       true,
       configuration.contains(OPTIMISE_INITIAL_STATE));
+
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));
   }
@@ -255,8 +260,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.getInitialComponent().getInitialStates().size() == 1;
     assert ldba.getAcceptingComponent().getInitialStates().isEmpty();
 
-    EquivalenceClassFactory factory = ldba.getInitialComponent().getInitialState().factory();
-
+    var factory = ldba.getInitialComponent().getInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new BooleanLattice(),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
@@ -295,7 +299,13 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     }
 
     Automaton<T, ParityAcceptance> complement() {
-      return ParityUtil.complement(AutomatonUtil.asMutable(this.automaton), sinkState);
+      if (automaton instanceof MutableAutomaton
+        || automaton.getAcceptance().getParity() != ParityAcceptance.Parity.MIN_ODD) {
+        return ParityUtil.complement(AutomatonUtil.asMutable(automaton), sinkState);
+      }
+
+      assert automaton.getAcceptance().getParity() == ParityAcceptance.Parity.MIN_ODD;
+      return AutomatonUtil.cast(Views.complement(automaton, sinkState), ParityAcceptance.class);
     }
   }
 }

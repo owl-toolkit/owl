@@ -15,7 +15,7 @@ final class EdgeLong<S> implements Edge<S> {
 
   private EdgeLong(S successor, long store) {
     this.store = store;
-    this.successor = successor;
+    this.successor = Objects.requireNonNull(successor);
   }
 
   EdgeLong(S successor, BitSet bitSet) {

@@ -19,7 +19,9 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
+import static owl.automaton.Automaton.Property.DETERMINISTIC;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
@@ -60,10 +62,13 @@ public final class Views {
 
   public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton,
     @Nullable S trapState) {
-    Automaton<S, ?> completeAutomaton =
-      trapState == null ? automaton : complete(automaton, trapState);
-    assert completeAutomaton.is(COMPLETE) : "Automaton is not complete.";
-    OmegaAcceptance acceptance = completeAutomaton.getAcceptance();
+    var completeAutomaton = trapState == null ? automaton : complete(automaton, trapState);
+    checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
+    checkArgument(!completeAutomaton.getInitialStates().isEmpty(), "Automaton is empty.");
+    // Check is too costly.
+    // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
+
+    var acceptance = completeAutomaton.getAcceptance();
 
     if (acceptance instanceof BuchiAcceptance) {
       return new ReplaceAcceptance<>(completeAutomaton, CoBuchiAcceptance.INSTANCE);
@@ -73,12 +78,26 @@ public final class Views {
       return new ReplaceAcceptance<>(completeAutomaton, BuchiAcceptance.INSTANCE);
     }
 
+    if (acceptance instanceof ParityAcceptance) {
+      var parityAcceptance = (ParityAcceptance) automaton.getAcceptance();
+      return new ReplaceAcceptance<>(completeAutomaton, parityAcceptance.complement());
+    }
+
     throw new UnsupportedOperationException();
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> complete(Automaton<S, A> automaton,
     S trapState) {
-    return new Complete<>(automaton, Edge.of(trapState), automaton.getAcceptance());
+    var edge = Edge.of(trapState);
+
+    // Patching parity automata
+    if (automaton.getAcceptance() instanceof ParityAcceptance) {
+      checkArgument(((ParityAcceptance) automaton.getAcceptance()).getParity() == Parity.MIN_ODD);
+      checkArgument(automaton.getAcceptance().getAcceptanceSets() >= 1);
+      edge = edge.withAcceptance(0);
+    }
+
+    return new Complete<>(automaton, edge, automaton.getAcceptance());
   }
 
   public static <S> Automaton<S, CoBuchiAcceptance> completeAllAcceptance(
@@ -180,6 +199,11 @@ public final class Views {
       }
 
       return edges;
+    }
+
+    @Override
+    public boolean is(Property property) {
+      return property == COMPLETE || super.is(property);
     }
 
     @Override

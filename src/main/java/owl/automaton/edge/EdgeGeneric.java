@@ -31,9 +31,8 @@ final class EdgeGeneric<S> implements Edge<S> {
 
   EdgeGeneric(S successor, BitSet acceptance) {
     assert acceptance.cardinality() > 1;
-
-    this.successor = successor;
-    this.acceptance = acceptance;
+    this.acceptance = Objects.requireNonNull(acceptance);
+    this.successor = Objects.requireNonNull(successor);
   }
 
   @Override
@@ -75,19 +74,16 @@ final class EdgeGeneric<S> implements Edge<S> {
 
   @Override
   public boolean inSet(@Nonnegative int i) {
-    assert i >= 0;
     return acceptance.get(i);
   }
 
   @Override
   public int largestAcceptanceSet() {
-    assert !acceptance.isEmpty();
     return acceptance.length() - 1;
   }
 
   @Override
   public int smallestAcceptanceSet() {
-    assert !acceptance.isEmpty();
     return acceptance.nextSetBit(0);
   }
 
