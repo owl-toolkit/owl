@@ -27,17 +27,17 @@ public final class AllAcceptance extends OmegaAcceptance {
   private AllAcceptance() {}
 
   @Override
-  public int getAcceptanceSets() {
+  public int acceptanceSets() {
     return 0;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
     return new BooleanExpression<>(true);
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "all";
   }
 

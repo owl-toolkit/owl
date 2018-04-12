@@ -38,7 +38,7 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
     super(pairs);
 
     // Check consistency.
-    checkArgument(getAcceptanceSets() == 2 * this.pairs.size());
+    checkArgument(acceptanceSets() == 2 * this.pairs.size());
     for (RabinPair pair : this.pairs) {
       checkArgument(pair.finSet() + 1 == pair.infSet());
     }
@@ -92,12 +92,12 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "Rabin";
   }
 
   @Override
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     return List.of(pairs.size());
   }
 

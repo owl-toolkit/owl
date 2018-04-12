@@ -66,9 +66,9 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeComplementaryInf(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
 
-    List<RabinPair> pairs = acceptance.getPairs().stream()
+    List<RabinPair> pairs = acceptance.pairs().stream()
       .filter(RabinPair::hasInfSet)
       .collect(Collectors.toList());
     int pairCount = pairs.size();
@@ -109,8 +109,8 @@ public final class GeneralizedRabinMinimizations {
     logger.log(Level.FINER, "Removing complementary indices {0}", indicesToRemove);
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
-    assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
+    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
   /**
@@ -118,9 +118,9 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeEdgeImplications(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-    int acceptanceSets = acceptance.getAcceptanceSets();
-    Collection<RabinPair> pairs = acceptance.getPairs();
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
+    int acceptanceSets = acceptance.acceptanceSets();
+    Collection<RabinPair> pairs = acceptance.pairs();
 
     // For each index, store which indices are implied by this index. First, we assume that
     // all pairs imply each other and successively refine this.
@@ -180,8 +180,8 @@ public final class GeneralizedRabinMinimizations {
     logger.log(Level.FINEST, "Implication removal: {0}", indicesToRemove);
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
-    assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
+    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
   /**
@@ -189,8 +189,8 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeGloballyIrrelevant(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-    int acceptanceSets = acceptance.getAcceptanceSets();
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
+    int acceptanceSets = acceptance.acceptanceSets();
 
     IntSet indicesOnEveryEdge = new IntOpenHashSet(acceptanceSets);
     IntIterators.fromTo(0, acceptanceSets).forEachRemaining((IntConsumer) indicesOnEveryEdge::add);
@@ -203,7 +203,7 @@ public final class GeneralizedRabinMinimizations {
 
     Set<RabinPair> impossiblePairs = new HashSet<>();
 
-    for (RabinPair pair : acceptance.getPairs()) {
+    for (RabinPair pair : acceptance.pairs()) {
       if (indicesOnEveryEdge.contains(pair.finSet())) {
         impossiblePairs.add(pair);
         continue;
@@ -229,8 +229,8 @@ public final class GeneralizedRabinMinimizations {
     impossiblePairs.forEach(pair -> pair.forEachIndex(indicesToRemove::add));
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
-    assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
+    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
   /**
@@ -238,7 +238,7 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeMergePairs(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    List<RabinPair> pairs = automaton.getAcceptance().getPairs().stream().filter(
+    List<RabinPair> pairs = automaton.acceptance().pairs().stream().filter(
       RabinPair::hasInfSet)
       .collect(Collectors.toList());
 
@@ -330,15 +330,15 @@ public final class GeneralizedRabinMinimizations {
           }
         });
 
-      return Edge.of(edge.getSuccessor(), newAcceptance);
+      return Edge.of(edge.successor(), newAcceptance);
     });
 
     // Delete the now superfluous indices
     IntSet indicesToRemove = new IntAVLTreeSet(remapping.keySet());
     remapping.values().forEach(indicesToRemove::removeAll);
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.setAcceptance(automaton.getAcceptance().filter(indicesToRemove::contains));
-    assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
+    automaton.acceptance(automaton.acceptance().filter(indicesToRemove::contains));
+    assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
   /**
@@ -346,8 +346,8 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeOverlap(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-    List<RabinPair> pairs = acceptance.getPairs().stream()
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
+    List<RabinPair> pairs = acceptance.pairs().stream()
       .filter(RabinPair::hasInfSet)
       .collect(Collectors.toUnmodifiableList());
     if (pairs.isEmpty()) {
@@ -383,7 +383,7 @@ public final class GeneralizedRabinMinimizations {
         }
       }
 
-      return Edge.of(edge.getSuccessor(), modifiedAcceptance);
+      return Edge.of(edge.successor(), modifiedAcceptance);
     });
   }
 
@@ -392,9 +392,9 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizePairImplications(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-    int acceptanceSets = acceptance.getAcceptanceSets();
-    List<RabinPair> pairs = new ArrayList<>(acceptance.getPairs());
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
+    int acceptanceSets = acceptance.acceptanceSets();
+    List<RabinPair> pairs = new ArrayList<>(acceptance.pairs());
     List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
     List<Multimap<RabinPair, RabinPair>> sccImplicationList = new ArrayList<>(sccs.size());
 
@@ -556,8 +556,8 @@ public final class GeneralizedRabinMinimizations {
     toRemove.forEach(pair -> pair.forEachIndex(indicesToRemove::add));
 
     MinimizationUtil.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.setAcceptance(acceptance.filter(indicesToRemove::contains));
-    assert automaton.getAcceptance().isWellFormedAutomaton(automaton);
+    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
   /**
@@ -566,14 +566,14 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeSccIrrelevant(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, false)) {
       IntSet indicesInScc = new IntAVLTreeSet();
       Views.filter(automaton, scc).forEachEdge((state, edge) ->
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indicesInScc::add));
 
       IntSet indicesToRemove = new IntAVLTreeSet();
-      for (RabinPair pair : acceptance.getPairs()) {
+      for (RabinPair pair : acceptance.pairs()) {
         boolean finOccurring = indicesInScc.contains(pair.finSet());
         boolean infOccurring = false;
         boolean impossibleIndexFound = false;
@@ -607,7 +607,7 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeTrivial(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    Collection<RabinPair> pairs = Collections2.filter(automaton.getAcceptance().getPairs(),
+    Collection<RabinPair> pairs = Collections2.filter(automaton.acceptance().pairs(),
       pair -> !pair.hasInfSet());
 
     if (pairs.isEmpty()) {

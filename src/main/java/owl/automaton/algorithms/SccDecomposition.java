@@ -73,11 +73,11 @@ public final class SccDecomposition<S> {
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState) {
-    return computeSccs(Set.of(initialState), automaton::getSuccessors, true);
+    return computeSccs(Set.of(initialState), automaton::successors, true);
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, boolean includeTransient) {
-    return computeSccs(automaton.getInitialStates(), automaton::getSuccessors, includeTransient);
+    return computeSccs(automaton.initialStates(), automaton::successors, includeTransient);
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> initialStates) {
@@ -86,13 +86,13 @@ public final class SccDecomposition<S> {
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState,
     boolean includeTransient) {
-    return computeSccs(Set.of(initialState), automaton::getSuccessors,
+    return computeSccs(Set.of(initialState), automaton::successors,
       includeTransient);
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> initialStates,
     boolean includeTransient) {
-    return computeSccs(initialStates, automaton::getSuccessors, includeTransient);
+    return computeSccs(initialStates, automaton::successors, includeTransient);
   }
 
   // Return Condensation Graph?
@@ -135,8 +135,8 @@ public final class SccDecomposition<S> {
    * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
    */
   public static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
-    assert automaton.containsStates(trap);
-    return trap.stream().allMatch(s -> trap.containsAll(automaton.getSuccessors(s)));
+    assert automaton.states().containsAll(trap);
+    return trap.stream().allMatch(s -> trap.containsAll(automaton.successors(s)));
   }
 
   private TarjanState<S> create(S node) {

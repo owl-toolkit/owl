@@ -35,20 +35,20 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "parity";
   }
 
   @Override
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     return List.of(parity.maxString(), parity.evenString(), colours);
   }
 
-  public Parity getParity() {
+  public Parity parity() {
     return parity;
   }
 
-  public ParityAcceptance setParity(Parity parity) {
+  public ParityAcceptance withParity(Parity parity) {
     return new ParityAcceptance(colours, parity);
   }
 
@@ -61,12 +61,12 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public int getAcceptanceSets() {
+  public int acceptanceSets() {
     return colours;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
     if (colours == 0) {
       return new BooleanExpression<>(emptyIsAccepting());
     }
@@ -105,7 +105,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
       && edge.largestAcceptanceSet() < colours);
   }
 
-  public ParityAcceptance setAcceptanceSets(@Nonnegative int colours) {
+  public ParityAcceptance withAcceptanceSets(@Nonnegative int colours) {
     return new ParityAcceptance(colours, parity);
   }
 

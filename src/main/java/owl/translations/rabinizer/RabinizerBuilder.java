@@ -116,7 +116,7 @@ public class RabinizerBuilder {
       // Get the corresponding monitor for this gSet.
       Automaton<MonitorState, ParityAcceptance> monitor =
         monitors[relevantIndex].getAutomaton(activeSet);
-      int monitorAcceptanceSets = monitor.getAcceptance().getAcceptanceSets();
+      int monitorAcceptanceSets = monitor.acceptance().acceptanceSets();
 
       // Cache the priorities of the edge
       ValuationSet[] edgePriorities = new ValuationSet[monitorAcceptanceSets];
@@ -203,7 +203,7 @@ public class RabinizerBuilder {
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
       new RabinizerBuilder(configuration, factories, phi).build();
-    rabinizerAutomaton.setName("Rabinizer automaton for " + formulaString);
+    rabinizerAutomaton.name("Rabinizer automaton for " + formulaString);
     return rabinizerAutomaton;
   }
 
@@ -507,20 +507,20 @@ public class RabinizerBuilder {
         });
       });
     // Properly choose the initial state
-    rabinizerAutomaton.setInitialState(getAnyState.apply(initialClass));
+    rabinizerAutomaton.initialState(getAnyState.apply(initialClass));
 
     // Handle the |G| = {} case
     // TODO: Piggyback on an existing RabinPair.
     RabinizerState trueState = RabinizerState.empty(eqFactory.getTrue());
-    if (rabinizerAutomaton.containsState(trueState)) {
-      assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.getSuccessors(trueState)),
+    if (rabinizerAutomaton.states().contains(trueState)) {
+      assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.successors(trueState)),
         trueState);
 
       RabinPair truePair = builder.add(1);
       rabinizerAutomaton.removeEdges(trueState, trueState);
       rabinizerAutomaton.addEdge(trueState, vsFactory.universe(),
         Edge.of(trueState, truePair.infSet()));
-      rabinizerAutomaton.setAcceptance(builder.build());
+      rabinizerAutomaton.acceptance(builder.build());
     }
 
     // If the initial states of the monitors are not optimized, there might be unreachable states
@@ -602,7 +602,7 @@ public class RabinizerBuilder {
     int relevantFormulaCount = monitors.length;
     EquivalenceClass masterInitialState = stateSubset.iterator().next();
     MonitorState[] monitorInitialStates = new MonitorState[relevantFormulaCount];
-    Arrays.setAll(monitorInitialStates, i -> monitors[i].getInitialState());
+    Arrays.setAll(monitorInitialStates, i -> monitors[i].initialState());
 
     RabinizerState initialState = RabinizerState.of(masterInitialState, monitorInitialStates);
 
@@ -622,7 +622,7 @@ public class RabinizerBuilder {
       EquivalenceClass masterState = currentState.masterState();
       List<MonitorState> monitorStates = currentState.monitorStates();
 
-      Set<EquivalenceClass> masterSuccessors = masterAutomaton.getSuccessors(masterState);
+      Set<EquivalenceClass> masterSuccessors = masterAutomaton.successors(masterState);
       if (masterSuccessors.isEmpty()) {
         transitionSystem.put(currentState, Map.of());
         continue;
@@ -642,7 +642,7 @@ public class RabinizerBuilder {
 
         Map<MonitorState, ValuationSet> successors = new HashMap<>();
         monitors[monitorIndex].forEachLabelledEdge(monitorState, (edge, valuations)
-        -> successors.merge(edge.getSuccessor(), valuations, ValuationSet::union));
+        -> successors.merge(edge.successor(), valuations, ValuationSet::union));
 
         int monitorSuccessorCount = successors.size();
         successorCounts[monitorIndex] = monitorSuccessorCount - 1;
@@ -669,14 +669,14 @@ public class RabinizerBuilder {
 
         for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
           // Get the edge in the master automaton
-          Edge<EquivalenceClass> masterEdge = masterAutomaton.getEdge(masterState, valuation);
+          Edge<EquivalenceClass> masterEdge = masterAutomaton.edge(masterState, valuation);
           if (masterEdge == null) {
             // A null master edge means the master automaton moves into the "ff" state - a sure
             // failure and we don't need to investigate further.
             continue;
           }
 
-          EquivalenceClass masterSuccessor = masterEdge.getSuccessor();
+          EquivalenceClass masterSuccessor = masterEdge.successor();
           if (!stateSubset.contains(masterSuccessor)) {
             // The successor is not part of this partition
             continue;
@@ -687,7 +687,7 @@ public class RabinizerBuilder {
           Arrays.setAll(monitorSuccessors, relevantIndex -> {
             MonitorState currentMonitorState = monitorStates.get(relevantIndex);
             MonitorAutomaton monitor = monitors[relevantIndex];
-            return monitor.getSuccessor(currentMonitorState, valuation);
+            return monitor.successor(currentMonitorState, valuation);
           });
 
           // Create product successor
@@ -707,7 +707,7 @@ public class RabinizerBuilder {
         // "fragmented".
         masterAutomaton.forEachLabelledEdge(masterState, (edge, valuationSet) -> {
           // The successor is not part of this partition
-          if (!stateSubset.contains(edge.getSuccessor())) {
+          if (!stateSubset.contains(edge.successor())) {
             return;
           }
 
@@ -740,7 +740,7 @@ public class RabinizerBuilder {
             }
 
             // Create product successor
-            RabinizerState successor = RabinizerState.of(edge.getSuccessor(), monitorSuccessors);
+            RabinizerState successor = RabinizerState.of(edge.successor(), monitorSuccessors);
             rabinizerSuccessors.merge(new RabinizerProductEdge(successor), productValuation,
               ValuationSet::union);
 
@@ -792,7 +792,7 @@ public class RabinizerBuilder {
         // Acceptance sets = n means priorities range from 0 to n-1 inclusive
         // When interpreting the parity automaton as Rabin automaton, each Rabin pair is
         // represented by two priorities.
-        int acceptanceSets = gSetMonitor.getAcceptance().getAcceptanceSets();
+        int acceptanceSets = gSetMonitor.acceptance().acceptanceSets();
         // TODO If acceptanceSets == 0 this monitor can't accept - can we use this?
         maximalRanks[relevantIndex] = acceptanceSets == 0 ? 0 : (acceptanceSets - 1) / 2;
         relevantIndex += 1;

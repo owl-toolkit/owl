@@ -30,7 +30,7 @@ class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
     assert automaton.is(Property.DETERMINISTIC) : "Only deterministic automata supported.";
 
     bottom = new SetLanguage(Set.of());
-    top = new SetLanguage(Set.copyOf(automaton.getStates()));
+    top = new SetLanguage(Set.copyOf(automaton.states()));
     greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500000)
       .expireAfterAccess(60, TimeUnit.SECONDS).build(new Loader<>(automaton));
   }

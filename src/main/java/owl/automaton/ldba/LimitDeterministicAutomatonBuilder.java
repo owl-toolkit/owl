@@ -122,7 +122,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Table<S, ValuationSet, Set<T>> valuationSetJumps = HashBasedTable.create();
     generateJumps(initialComponent, epsilonJumps);
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
-    acceptingComponent.setInitialStates(Set.of());
+    acceptingComponent.initialStates(Set.of());
 
     // Preprocess:
     // Remove dead states in the accepting component. Note that the .values() collection is backed
@@ -138,7 +138,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
         initialStates.remove(x);
       });
 
-    assert acceptingComponent.containsStates(epsilonJumps.values());
+    assert acceptingComponent.states().containsAll(epsilonJumps.values());
 
     Predicate<S> initialComponentProtectedStates = x -> isProtected.test(x)
       || epsilonJumps.keySet().contains(x) || valuationSetJumps.rowKeySet().contains(x);
@@ -147,11 +147,11 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
       Set<T> reachableStates = new HashSet<>(initialStates);
 
       initialComponent.forEachState(state -> {
-        Iterable<LabelledEdge<S>> successors = initialComponent.getLabelledEdges(state);
+        Iterable<LabelledEdge<S>> successors = initialComponent.labelledEdges(state);
         Map<ValuationSet, Set<T>> successorJumps = valuationSetJumps.row(state);
 
         successors.forEach(labelledEdge -> {
-          Collection<T> targets = epsilonJumps.get(labelledEdge.edge.getSuccessor());
+          Collection<T> targets = epsilonJumps.get(labelledEdge.edge.successor());
 
           reachableStates.addAll(targets);
           successorJumps.compute(labelledEdge.valuations, (x, existingJumpTargets) -> {
@@ -175,7 +175,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
       });
     }
 
-    acceptingComponent.setInitialStates(initialStates);
+    acceptingComponent.initialStates(initialStates);
     return new LimitDeterministicAutomatonImpl<>(initialComponent, acceptingComponent,
       epsilonJumps, valuationSetJumps, components, getComponent);
   }
@@ -185,14 +185,14 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     // Decompose into SCCs
     List<Set<S>> sccs = optimisations.contains(Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES)
       ? SccDecomposition.computeSccs(initialComponent, true)
-      : List.of(initialComponent.getStates());
+      : List.of(initialComponent.states());
 
     for (Set<S> scc : sccs) {
       // Skip transient SCCs
       if (scc.size() == 1) {
         S state = Iterables.getOnlyElement(scc);
 
-        Set<S> successors = initialComponent.getSuccessors(state);
+        Set<S> successors = initialComponent.successors(state);
 
         if (!successors.contains(state) && !successors.isEmpty()) {
           continue;

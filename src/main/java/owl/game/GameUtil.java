@@ -39,9 +39,9 @@ public final class GameUtil {
       return (Binding) input -> {
         checkArgument(input instanceof Game);
         Game<?, ?> game = (Game<?, ?>) input;
-        checkArgument(game.getAcceptance() instanceof ParityAcceptance);
-        ParityAcceptance acceptance = (ParityAcceptance) game.getAcceptance();
-        checkArgument(acceptance.getParity() == Parity.MAX_EVEN);
+        checkArgument(game.acceptance() instanceof ParityAcceptance);
+        ParityAcceptance acceptance = (ParityAcceptance) game.acceptance();
+        checkArgument(acceptance.parity() == Parity.MAX_EVEN);
         GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, names);
       };
     }).build();
@@ -51,18 +51,18 @@ public final class GameUtil {
   public static <S> void toPgSolver(Game<S, ParityAcceptance> game, PrintWriter output,
     boolean names) {
     assert game.is(Automaton.Property.COMPLETE);
-    ParityAcceptance acceptance = game.getAcceptance();
-    checkArgument(acceptance.getParity() == Parity.MAX_EVEN, "Invalid acceptance");
+    ParityAcceptance acceptance = game.acceptance();
+    checkArgument(acceptance.parity() == Parity.MAX_EVEN, "Invalid acceptance");
     // TODO Support it by adding a pseudo state
-    checkArgument(game.getInitialStates().size() == 1, "Multiple initial states not supported");
+    checkArgument(game.initialStates().size() == 1, "Multiple initial states not supported");
 
     // The format does not support transition acceptance, thus acceptance is encoded into states
     Object2IntMap<PriorityState<S>> stateNumbering = new Object2IntLinkedOpenHashMap<>();
     stateNumbering.defaultReturnValue(-1);
 
-    int highestPriority = acceptance.getAcceptanceSets() - 1;
+    int highestPriority = acceptance.acceptanceSets() - 1;
 
-    S initialState = game.getInitialState();
+    S initialState = game.initialState();
     stateNumbering.put(PriorityState.of(initialState, highestPriority), 0);
 
     Set<S> reachedStates = new HashSet<>(List.of(initialState));
@@ -76,11 +76,11 @@ public final class GameUtil {
     // Explore the reachable states of the state-acceptance game
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Set<Edge<S>> edges = game.getEdges(state);
+      Set<Edge<S>> edges = game.edges(state);
       checkArgument(!edges.isEmpty(), "Provided game is not complete");
       for (Edge<S> edge : edges) {
         assert acceptance.isWellFormedEdge(edge);
-        S successor = edge.getSuccessor();
+        S successor = edge.successor();
         int stateAcceptance = getAcceptance.applyAsInt(edge);
 
         PriorityState<S> prioritySuccessor = PriorityState.of(successor, stateAcceptance);
@@ -105,7 +105,7 @@ public final class GameUtil {
       // TODO Here the semantics might be important?
       output.print(game.getOwner(priorityState.state()) == Game.Owner.PLAYER_1 ? 0 : 1);
 
-      Iterator<Edge<S>> iterator = game.getEdges(priorityState.state()).iterator();
+      Iterator<Edge<S>> iterator = game.edges(priorityState.state()).iterator();
       if (iterator.hasNext()) {
         output.print(' ');
       }
@@ -113,7 +113,7 @@ public final class GameUtil {
         Edge<S> edge = iterator.next();
         assert acceptance.isWellFormedEdge(edge);
 
-        S successor = edge.getSuccessor();
+        S successor = edge.successor();
         int stateAcceptance = getAcceptance.applyAsInt(edge);
 
         int successorIndex = stateNumbering.getInt(PriorityState.of(successor, stateAcceptance));

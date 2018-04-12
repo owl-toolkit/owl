@@ -79,22 +79,22 @@ public final class HoaConsumerExtended<S> {
 
       if (initialStates.isEmpty()) {
         OmegaAcceptance noneAcceptance = NoneAcceptance.INSTANCE;
-        consumer.provideAcceptanceName(noneAcceptance.getName(), noneAcceptance.getNameExtra());
-        consumer.setAcceptanceCondition(noneAcceptance.getAcceptanceSets(),
-          noneAcceptance.getBooleanExpression());
+        consumer.provideAcceptanceName(noneAcceptance.name(), noneAcceptance.nameExtra());
+        consumer.setAcceptanceCondition(noneAcceptance.acceptanceSets(),
+          noneAcceptance.booleanExpression());
       } else {
         for (S state : initialStates) {
           consumer.addStartStates(List.of(getStateId(state)));
         }
 
-        String accName = acceptance.getName();
+        String accName = acceptance.name();
 
         if (accName != null) {
-          consumer.provideAcceptanceName(accName, acceptance.getNameExtra());
+          consumer.provideAcceptanceName(accName, acceptance.nameExtra());
         }
 
-        consumer.setAcceptanceCondition(acceptance.getAcceptanceSets(),
-          acceptance.getBooleanExpression());
+        consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
+          acceptance.booleanExpression());
 
         // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
         // states deterministic, the serializer will throw an exception.
@@ -148,11 +148,11 @@ public final class HoaConsumerExtended<S> {
   public void addEdge(Edge<? extends S> edge, BitSet label) {
     IntArrayList accSets = new IntArrayList();
     edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
-    addEdgeBackend(toLabel(label), edge.getSuccessor(), accSets);
+    addEdgeBackend(toLabel(label), edge.successor(), accSets);
   }
 
   public void addEdge(Edge<? extends S> edge, ValuationSet label) {
-    addEdge(label, edge.getSuccessor(), edge.acceptanceSetIterator());
+    addEdge(label, edge.successor(), edge.acceptanceSetIterator());
   }
 
   private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {

@@ -52,7 +52,7 @@ final class EdgeLong<S> implements Edge<S> {
   }
 
   @Override
-  public S getSuccessor() {
+  public S successor() {
     return successor;
   }
 

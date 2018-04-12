@@ -107,9 +107,9 @@ final class MonitorBuilder {
     for (int i = 0; i < monitorAutomata.length; i++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
         .create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
-      monitor.setName(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
+      monitor.name(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addState(initialState);
-      monitor.setInitialState(initialState);
+      monitor.initialState(initialState);
       monitorAutomata[i] = monitor;
     }
 
@@ -197,7 +197,7 @@ final class MonitorBuilder {
     for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = monitorAutomata[contextIndex];
       int sets = maximalPriority[contextIndex];
-      monitor.updateAcceptance(x -> x.setAcceptanceSets(sets + 1));
+      monitor.updateAcceptance(x -> x.withAcceptanceSets(sets + 1));
       builder.put(relevantSets[contextIndex], monitor);
 
       assert monitor.is(Property.DETERMINISTIC) : String.format(
@@ -450,7 +450,7 @@ final class MonitorBuilder {
     // TODO We actually can use this to only compute the successors until we reach a BSCC
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
-    MonitorState initialState = anyMonitor.getInitialState();
+    MonitorState initialState = anyMonitor.initialState();
 
     BitSet emptyBitSet = new BitSet(0);
     MonitorState optimizedInitialState = initialState;
@@ -458,7 +458,7 @@ final class MonitorBuilder {
       sccs.parallelStream().noneMatch(scc -> scc.contains(state));
     while (isTransient.test(optimizedInitialState)) {
       assert optimizedInitialState != null;
-      optimizedInitialState = anyMonitor.getSuccessor(optimizedInitialState, emptyBitSet);
+      optimizedInitialState = anyMonitor.successor(optimizedInitialState, emptyBitSet);
     }
 
     assert optimizedInitialState != null;
@@ -467,10 +467,10 @@ final class MonitorBuilder {
     } else {
       logger.log(Level.FINER, "Updating initial state from {0} to {1}",
         new Object[] {initialState, optimizedInitialState});
-      anyMonitor.setInitialState(optimizedInitialState);
+      anyMonitor.initialState(optimizedInitialState);
       Set<MonitorState> unreachableStates = anyMonitor.removeUnreachableStates();
       for (MutableAutomaton<MonitorState, ParityAcceptance> monitor : monitorAutomata) {
-        monitor.setInitialState(optimizedInitialState);
+        monitor.initialState(optimizedInitialState);
         monitor.removeStates(unreachableStates);
       }
     }

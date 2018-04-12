@@ -146,10 +146,10 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     // more cleanly!
 
     BitSet bitSet = new BitSet();
-    bitSet.set(0, ldba.getAcceptingComponent().getAcceptance().size);
+    bitSet.set(0, ldba.acceptingComponent().acceptance().size);
 
     MutableAutomaton<EquivalenceClass, NoneAcceptance> initialComponent =
-      (MutableAutomaton<EquivalenceClass, NoneAcceptance>) ldba.getInitialComponent();
+      (MutableAutomaton<EquivalenceClass, NoneAcceptance>) ldba.initialComponent();
 
     initialComponent.updateEdges((state, x) -> {
       assert !state.isFalse();

@@ -37,7 +37,7 @@ public final class GenericMinimizations {
 
     automaton.updateEdges((state, edge) -> {
       int sccIndex = stateToSccMap.getInt(state);
-      S successor = edge.getSuccessor();
+      S successor = edge.successor();
       int successorSccIndex = stateToSccMap.getInt(successor);
 
       assert sccIndex != -1;

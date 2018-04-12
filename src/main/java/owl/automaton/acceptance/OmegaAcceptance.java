@@ -26,17 +26,17 @@ import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 
 public abstract class OmegaAcceptance {
-  public abstract int getAcceptanceSets();
+  public abstract int acceptanceSets();
 
   /**
    * Builds the canonical representation as {@link BooleanExpression}.
    */
-  public abstract BooleanExpression<AtomAcceptance> getBooleanExpression();
+  public abstract BooleanExpression<AtomAcceptance> booleanExpression();
 
   @Nullable
-  public abstract String getName();
+  public abstract String name();
 
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     return List.of();
   }
 
@@ -53,14 +53,14 @@ public abstract class OmegaAcceptance {
   public abstract boolean isWellFormedEdge(Edge<?> edge);
 
   public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
-    return Iterables.all(automaton.getStates(),
-      x -> Iterables.all(automaton.getEdges(x), this::isWellFormedEdge));
+    return Iterables.all(automaton.states(),
+      x -> Iterables.all(automaton.edges(x), this::isWellFormedEdge));
   }
 
   @Override
   public String toString() {
-    String name = getName();
-    return (name == null ? getClass().getSimpleName() : name + ' ' + getNameExtra()) + ": "
-      + getAcceptanceSets() + ' ' + getBooleanExpression();
+    String name = name();
+    return (name == null ? getClass().getSimpleName() : name + ' ' + nameExtra()) + ": "
+      + acceptanceSets() + ' ' + booleanExpression();
   }
 }

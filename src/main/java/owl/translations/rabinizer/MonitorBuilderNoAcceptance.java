@@ -67,7 +67,7 @@ final class MonitorBuilderNoAcceptance {
     // Since the monitors handle "F G <psi>", we can skip non-repeating prefixes
     logger.log(Level.FINER, "Optimizing initial state");
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(monitor, false);
-    MonitorState initialState = monitor.getInitialState();
+    MonitorState initialState = monitor.initialState();
 
     BitSet emptyBitSet = new BitSet(0);
     MonitorState optimizedInitialState = initialState;
@@ -75,12 +75,12 @@ final class MonitorBuilderNoAcceptance {
       sccs.parallelStream().noneMatch(scc -> scc.contains(state));
     while (isTransient.test(optimizedInitialState)) {
       assert optimizedInitialState != null;
-      optimizedInitialState = monitor.getSuccessor(optimizedInitialState, emptyBitSet);
+      optimizedInitialState = monitor.successor(optimizedInitialState, emptyBitSet);
     }
 
     assert optimizedInitialState != null;
     if (!Objects.equals(optimizedInitialState, initialState)) {
-      monitor.setInitialState(optimizedInitialState);
+      monitor.initialState(optimizedInitialState);
       monitor.removeUnreachableStates();
     }
   }
@@ -91,9 +91,9 @@ final class MonitorBuilderNoAcceptance {
 
     MutableAutomaton<MonitorState, ParityAcceptance> monitor =
       MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
-    monitor.setName(String.format("Monitor for %s", initialClass));
+    monitor.name(String.format("Monitor for %s", initialClass));
     monitor.addState(initialState);
-    monitor.setInitialState(initialState);
+    monitor.initialState(initialState);
 
     BiFunction<MonitorState, BitSet, Edge<MonitorState>> successorFunction =
       isFinite ? this::getSuccessorSafety : this::getSuccessor;

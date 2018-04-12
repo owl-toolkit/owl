@@ -45,7 +45,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
     // Add states that owner controls;
     for (S predecessor : getPredecessors(states)) {
-      if (owner == getOwner(predecessor) || states.containsAll(getSuccessors(predecessor))) {
+      if (owner == getOwner(predecessor) || states.containsAll(successors(predecessor))) {
         attractor.add(predecessor);
       }
     }
@@ -67,7 +67,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
   Owner getOwner(S state);
 
   default Set<S> getStates(Owner owner) {
-    return Sets.filter(getStates(), x -> getOwner(x) == owner);
+    return Sets.filter(states(), x -> getOwner(x) == owner);
   }
 
   BitSet getChoice(S state, Owner owner);
@@ -123,7 +123,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
       // we do the same for all set indices in the representation
       // of the successor state
-      encoding.get(Iterables.getOnlyElement(getSuccessors(player2State))).stream().forEach(
+      encoding.get(Iterables.getOnlyElement(successors(player2State))).stream().forEach(
         i -> latches.set(i, factory.disjunction(latches.get(i), stateAndInputAig)));
     }
 
@@ -141,7 +141,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
   default Set<S> getPredecessors(Iterable<S> states) {
     Set<S> predecessors = new HashSet<>();
-    states.forEach(x -> predecessors.addAll(getPredecessors(x)));
+    states.forEach(x -> predecessors.addAll(predecessors(x)));
     return predecessors;
   }
 
@@ -155,7 +155,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
   default Set<S> getSuccessors(Iterable<S> states) {
     Set<S> successors = new HashSet<>();
-    states.forEach(x -> successors.addAll(getSuccessors(x)));
+    states.forEach(x -> successors.addAll(successors(x)));
     return successors;
   }
 

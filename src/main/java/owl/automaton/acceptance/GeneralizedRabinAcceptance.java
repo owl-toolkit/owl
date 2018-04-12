@@ -121,22 +121,22 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public int getAcceptanceSets() {
+  public int acceptanceSets() {
     return setCount;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
-    return createDisjunction(pairs.stream().map(RabinPair::getBooleanExpression));
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
+    return createDisjunction(pairs.stream().map(RabinPair::booleanExpression));
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "generalized-Rabin";
   }
 
   @Override
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     // <pair_count> <inf_pairs_of_1> <inf_pairs_of_2> <...>
     List<Object> extra = new ArrayList<>(pairs.size() + 1);
     extra.add(pairs.size());
@@ -153,7 +153,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
    *
    * @return The rabin pairs of this acceptance condition
    */
-  public List<RabinPair> getPairs() {
+  public List<RabinPair> pairs() {
     return pairs;
   }
 
@@ -248,7 +248,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
       }
     }
 
-    private BooleanExpression<AtomAcceptance> getBooleanExpression() {
+    private BooleanExpression<AtomAcceptance> booleanExpression() {
       BooleanExpression<AtomAcceptance> acceptance = BooleanExpressions.mkFin(finIndex);
 
       for (int index = finIndex + 1; index <= infIndex; index++) {

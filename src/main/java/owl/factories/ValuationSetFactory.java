@@ -43,6 +43,10 @@ public interface ValuationSetFactory {
 
   ValuationSet complement(ValuationSet set);
 
+  default void forEach(Consumer<BitSet> action) {
+    universe().forEach(action);
+  }
+
 
   BitSet any(ValuationSet set);
 
@@ -52,9 +56,9 @@ public interface ValuationSetFactory {
 
   boolean intersects(ValuationSet set, ValuationSet other);
 
-  void forEach(ValuationSet set, Consumer<? super BitSet> action);
+  void forEach(ValuationSet set, Consumer<BitSet> action);
 
-  void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action);
+  void forEach(ValuationSet set, BitSet restriction, Consumer<BitSet> action);
 
 
   ValuationSet intersection(ValuationSet set1, ValuationSet set2);

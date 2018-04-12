@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.logging.Level;
@@ -55,7 +54,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
   public static <S> Automaton<?, RabinAcceptance> degeneralize(
     Automaton<S, ? extends GeneralizedRabinAcceptance> automaton) {
-    if (automaton.getAcceptance() instanceof RabinAcceptance) {
+    if (automaton.acceptance() instanceof RabinAcceptance) {
       return AutomatonUtil.cast(automaton, RabinAcceptance.class);
     }
 
@@ -66,8 +65,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     // This means the condition translates to "don't visit the Fin set". Hence, as long as a
     // transition is not contained in the fin set, it's a good transition. We don't need to
     // track that index at all then and can save some space.
-    GeneralizedRabinAcceptance acceptance = automaton.getAcceptance();
-    Collection<RabinPair> pairs = acceptance.getPairs();
+    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
+    Collection<RabinPair> pairs = acceptance.pairs();
 
     // Filter out the obviously irrelevant pairs
     List<RabinPair> trackedPairs = new ArrayList<>();
@@ -97,11 +96,11 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
-      MutableAutomatonFactory.create(builder.build(), automaton.getFactory());
+      MutableAutomatonFactory.create(builder.build(), automaton.factory());
 
     // Build the transition structure for each SCC separately
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, true)) {
-      if (SccDecomposition.isTransient(automaton::getSuccessors, scc)) {
+      if (SccDecomposition.isTransient(automaton::successors, scc)) {
         // Transient SCCs never accept - ignore potential acceptance
         S state = Iterables.getOnlyElement(scc);
         assert !stateMap.containsKey(state);
@@ -113,7 +112,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
         Map<S, ValuationSet> successors = transientEdgesTable.row(degeneralizedState);
         automaton.forEachLabelledEdge(state, (edge, valuations) ->
-          successors.merge(edge.getSuccessor(), valuations, ValuationSet::union));
+          successors.merge(edge.successor(), valuations, ValuationSet::union));
         continue;
       }
 
@@ -141,7 +140,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       Set<DegeneralizedRabinState<S>> exploredStates =
         AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, Set.of(initialSccState), state -> {
           S generalizedState = state.state();
-          Collection<LabelledEdge<S>> labelledEdges = automaton.getLabelledEdges(generalizedState);
+          Collection<LabelledEdge<S>> labelledEdges = automaton.labelledEdges(generalizedState);
 
           Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
           Collection<LabelledEdge<DegeneralizedRabinState<S>>> successors =
@@ -149,7 +148,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
           for (LabelledEdge<S> labelledEdge : labelledEdges) {
             Edge<S> edge = labelledEdge.edge;
-            S generalizedSuccessor = edge.getSuccessor();
+            S generalizedSuccessor = edge.successor();
             if (!scc.contains(generalizedSuccessor)) {
               // This is a transient edge, add to the table and ignore it
               transientSuccessors.merge(generalizedSuccessor, labelledEdge.valuations,
@@ -230,7 +229,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       resultBscc.forEach(state -> stateMap.putIfAbsent(state.state(), state));
     }
 
-    assert Objects.equals(stateMap.keySet(), automaton.getStates());
+    assert stateMap.keySet().equals(automaton.states());
 
     // Add transient edges
     transientEdgesTable.rowMap().forEach((state, successors) ->
@@ -240,8 +239,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       }));
 
     // Set initial states
-    resultAutomaton.setInitialStates(automaton.getInitialStates().stream()
-      .map(stateMap::get).collect(Collectors.toSet()));
+    resultAutomaton.initialStates(automaton.initialStates().stream()
+      .map(stateMap::get).collect(Collectors.toUnmodifiableSet()));
 
     return resultAutomaton;
   }

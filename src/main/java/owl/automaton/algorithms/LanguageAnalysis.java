@@ -77,7 +77,7 @@ public final class LanguageAnalysis {
       Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
       if (isOnlyAccepting(filteredAutomaton)
-        && scc.stream().anyMatch(x -> automaton.getSuccessors(x)
+        && scc.stream().anyMatch(x -> automaton.successors(x)
         .stream().anyMatch(nonAccepting::contains))) {
         return false;
       }
@@ -87,13 +87,13 @@ public final class LanguageAnalysis {
   }
 
   private static <S> boolean isOnlyAccepting(Automaton<S, BuchiAcceptance> automaton) {
-    return automaton.getStates().stream()
-      .allMatch(state -> automaton.getEdges(state).stream().allMatch(Edge::hasAcceptanceSets));
+    return automaton.states().stream()
+      .allMatch(state -> automaton.edges(state).stream().allMatch(Edge::hasAcceptanceSets));
   }
 
   private static <S> boolean isOnlyNonAccepting(Automaton<S, BuchiAcceptance> automaton) {
-    return automaton.getStates().stream()
-      .noneMatch(state -> automaton.getEdges(state).stream().anyMatch(Edge::hasAcceptanceSets));
+    return automaton.states().stream()
+      .noneMatch(state -> automaton.edges(state).stream().anyMatch(Edge::hasAcceptanceSets));
   }
 
   public static <S> boolean isSafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
@@ -126,7 +126,7 @@ public final class LanguageAnalysis {
       Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
 
       if (isOnlyNonAccepting(filteredAutomaton) && scc.stream()
-        .anyMatch(x -> automaton.getSuccessors(x).stream().anyMatch(accepting::contains))) {
+        .anyMatch(x -> automaton.successors(x).stream().anyMatch(accepting::contains))) {
         return false;
       }
     }

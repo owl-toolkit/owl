@@ -27,17 +27,17 @@ public final class NoneAcceptance extends OmegaAcceptance {
   private NoneAcceptance() {}
 
   @Override
-  public int getAcceptanceSets() {
+  public int acceptanceSets() {
     return 0;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
     return new BooleanExpression<>(false);
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "none";
   }
 

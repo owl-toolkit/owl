@@ -19,7 +19,6 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
@@ -82,8 +81,8 @@ public final class AutomatonUtil {
   }
 
   private static <S> boolean checkAcceptanceClass(Automaton<S, ?> automaton, Class<?> clazz) {
-    checkArgument(clazz.isInstance(automaton.getAcceptance()),
-      "Expected acceptance type %s, got %s", clazz.getName(), automaton.getAcceptance().getClass());
+    checkArgument(clazz.isInstance(automaton.acceptance()),
+      "Expected acceptance type %s, got %s", clazz.getName(), automaton.acceptance().getClass());
     return true;
   }
 
@@ -92,7 +91,7 @@ public final class AutomatonUtil {
       return true;
     }
 
-    checkArgument(Iterables.all(automaton.getStates(), clazz::isInstance),
+    checkArgument(Iterables.all(automaton.states(), clazz::isInstance),
       "Expected states of type %s", clazz.getName());
     return true;
   }
@@ -147,11 +146,11 @@ public final class AutomatonUtil {
     }
 
     Edge<S> sinkEdge = Edge.of(sinkState, rejectingAcceptance);
-    automaton.addEdge(sinkState, automaton.getFactory().universe(), sinkEdge);
+    automaton.addEdge(sinkState, automaton.factory().universe(), sinkEdge);
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
 
-    if (automaton.getInitialStates().isEmpty()) {
-      automaton.addInitialState(sinkState);
+    if (automaton.initialStates().isEmpty()) {
+      automaton.initialState(sinkState);
     }
 
     return Optional.of(sinkState);
@@ -221,7 +220,7 @@ public final class AutomatonUtil {
     BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
     Function<S, BitSet> sensitiveAlphabetOracle, AtomicInteger sizeCounter) {
 
-    int alphabetSize = automaton.getFactory().alphabetSize();
+    int alphabetSize = automaton.factory().alphabetSize();
     Set<S> exploredStates = Sets.newHashSet(states);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
     sizeCounter.lazySet(exploredStates.size());
@@ -238,12 +237,12 @@ public final class AutomatonUtil {
           ValuationSet valuationSet;
 
           if (sensitiveAlphabet == null) {
-            valuationSet = automaton.getFactory().of(valuation);
+            valuationSet = automaton.factory().of(valuation);
           } else {
-            valuationSet = automaton.getFactory().of(valuation, sensitiveAlphabet);
+            valuationSet = automaton.factory().of(valuation, sensitiveAlphabet);
           }
 
-          S successorState = edge.getSuccessor();
+          S successorState = edge.successor();
 
           if (exploredStates.add(successorState)) {
             workQueue.add(successorState);
@@ -293,7 +292,7 @@ public final class AutomatonUtil {
 
       for (LabelledEdge<S> labelledEdge : labelledEdges) {
         automaton.addEdge(state, labelledEdge.valuations, labelledEdge.edge);
-        S successorState = labelledEdge.edge.getSuccessor();
+        S successorState = labelledEdge.edge.successor();
         if (exploredStates.add(successorState)) {
           workQueue.add(successorState);
         }
@@ -325,10 +324,10 @@ public final class AutomatonUtil {
   public static <S, A extends OmegaAcceptance> Map<S, ValuationSet> getIncompleteStates(
     Automaton<S, A> automaton) {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
-    ValuationSetFactory factory = automaton.getFactory();
+    ValuationSetFactory factory = automaton.factory();
 
     automaton.forEachState(state -> {
-      Collection<LabelledEdge<S>> edges = automaton.getLabelledEdges(state);
+      Collection<LabelledEdge<S>> edges = automaton.labelledEdges(state);
       ValuationSet union = factory.union(LabelledEdge.valuations(edges));
 
       if (!union.isUniverse()) {
@@ -352,7 +351,7 @@ public final class AutomatonUtil {
    */
   public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(
     Automaton<S, A> automaton) {
-    return getReachableStates(automaton, automaton.getInitialStates());
+    return getReachableStates(automaton, automaton.initialStates());
   }
 
   /**
@@ -369,7 +368,7 @@ public final class AutomatonUtil {
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
-      automaton.getSuccessors(workQueue.poll()).forEach(successor -> {
+      automaton.successors(workQueue.poll()).forEach(successor -> {
         if (exploredStates.add(successor)) {
           workQueue.add(successor);
         }

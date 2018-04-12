@@ -72,17 +72,17 @@ public final class AutomatonOperations {
     for (Automaton<S, ? extends OmegaAcceptance> automaton : automata) {
       checkArgument(automaton.is(DETERMINISTIC), "Only deterministic automata supported");
 
-      if (automaton.getAcceptance() instanceof AllAcceptance) {
+      if (automaton.acceptance() instanceof AllAcceptance) {
         builder.all.add(AutomatonUtil.cast(automaton, AllAcceptance.class));
-      } else if (automaton.getAcceptance() instanceof CoBuchiAcceptance) {
+      } else if (automaton.acceptance() instanceof CoBuchiAcceptance) {
         builder.coBuchi.add(AutomatonUtil.cast(automaton, CoBuchiAcceptance.class));
-      } else if (automaton.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
+      } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
         builder.buchi.add(AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class));
         builder.acceptanceRemapping.add(offset);
-        offset += automaton.getAcceptance().getAcceptanceSets();
+        offset += automaton.acceptance().acceptanceSets();
       } else {
         throw new IllegalArgumentException(
-          "Unsupported Acceptance Type " + automaton.getAcceptance());
+          "Unsupported Acceptance Type " + automaton.acceptance());
       }
     }
 
@@ -98,7 +98,7 @@ public final class AutomatonOperations {
       acceptance = GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, offset - 1));
     }
 
-    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));
+    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::factory));
     return AutomatonFactory.create(builder.init(), factory, builder::successor, acceptance
     );
   }
@@ -109,7 +109,7 @@ public final class AutomatonOperations {
     assert automata.stream().allMatch(x -> x.is(COMPLETE) && x.is(DETERMINISTIC));
 
     ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(true);
-    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::getFactory));
+    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::factory));
     builder.buchi.addAll(automata);
 
     return AutomatonFactory.create(builder.init(), factory, builder::successor,
@@ -162,7 +162,7 @@ public final class AutomatonOperations {
     List<S> init() {
       return Stream.of(all, coBuchi, buchi)
         .flatMap(List::stream)
-        .map(Automaton::getInitialState)
+        .map(Automaton::initialState)
         .collect(Collectors.toUnmodifiableList());
     }
 
@@ -172,13 +172,13 @@ public final class AutomatonOperations {
       BitSet acceptanceSets = new BitSet();
 
       for (int i = 0; i < list.size(); i++) {
-        Edge<S> edge = getAutomaton(i).getEdge(list.get(i), valuation);
+        Edge<S> edge = getAutomaton(i).edge(list.get(i), valuation);
 
         if (edge == null) {
           return null;
         }
 
-        successor.add(edge.getSuccessor());
+        successor.add(edge.successor());
 
         if (collapseBuchi) {
           assert all.isEmpty();

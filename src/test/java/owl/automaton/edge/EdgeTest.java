@@ -147,7 +147,7 @@ public class EdgeTest {
   @Theory
   public void testSuccessor(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
-      assertEquals(edge.getSuccessor(), testCase.getSuccessor());
+      assertEquals(edge.successor(), testCase.getSuccessor());
     }
   }
 

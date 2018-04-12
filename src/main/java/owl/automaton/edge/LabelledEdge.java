@@ -47,7 +47,7 @@ public final class LabelledEdge<S> {
   }
 
   public static <S> Iterable<S> successors(Iterable<LabelledEdge<S>> iterable) {
-    return Iterables.transform(iterable, l -> l.edge.getSuccessor());
+    return Iterables.transform(iterable, l -> l.edge.successor());
   }
 
   private LabelledEdge(Edge<S> edge, ValuationSet valuations) {

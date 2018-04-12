@@ -226,7 +226,7 @@ public final class AutomatonReader {
       automaton = new HashMapAutomaton<>(this.vsFactory, acceptance);
       String name = storedAutomaton.getStoredHeader().getName();
       if (name != null) {
-        automaton.setName(name);
+        automaton.name(name);
       }
       states = new Int2ObjectLinkedOpenHashMap<>(storedAutomaton.getNumberOfStates());
     }
@@ -266,7 +266,7 @@ public final class AutomatonReader {
       Edge<HoaState> edge = storedEdgeAcceptance == null
         ? Edge.of(successor)
         : Edge.of(successor, BitSets.of(storedEdgeAcceptance));
-      check(automaton.getAcceptance().isWellFormedEdge(edge));
+      check(automaton.acceptance().isWellFormedEdge(edge));
       automaton.addEdge(source, valuationSet, edge);
     }
 
@@ -430,7 +430,7 @@ public final class AutomatonReader {
         check(startState.size() == 1, "Universal initial states not supported");
         initialStates.add(states.get(Iterables.getOnlyElement(startState).intValue()));
       }
-      automaton.setInitialStates(initialStates);
+      automaton.initialStates(initialStates);
       return automaton;
     }
   }

@@ -51,7 +51,7 @@ public final class EmptinessCheck {
   }
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
-    return automaton.getInitialStates().stream().allMatch(state -> isEmpty(automaton, state));
+    return automaton.initialStates().stream().allMatch(state -> isEmpty(automaton, state));
   }
 
   static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
@@ -63,8 +63,8 @@ public final class EmptinessCheck {
       visitedStates.add(q);
     }
 
-    for (Edge<S> edge : automaton.getEdges(q)) {
-      S successor = edge.getSuccessor();
+    for (Edge<S> edge : automaton.edges(q)) {
+      S successor = edge.successor();
       if ((infIndex == -1 || edge.inSet(infIndex))
         && (!inSet(edge, finIndex, allFinIndicesBelow))) {
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
@@ -86,8 +86,8 @@ public final class EmptinessCheck {
     int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
     visitedStatesLasso.add(q);
 
-    for (Edge<S> edge : automaton.getEdges(q)) {
-      S successor = edge.getSuccessor();
+    for (Edge<S> edge : automaton.edges(q)) {
+      S successor = edge.successor();
 
       if ((infIndex == -1 || edge.inSet(infIndex)) && !inSet(edge, finIndex, allFinIndicesBelow)
         && successor.equals(seed)) {
@@ -109,8 +109,8 @@ public final class EmptinessCheck {
     Set<S> visitedStates = new HashSet<>();
     Set<S> visitedAcceptingStates = new HashSet<>();
 
-    for (Edge<S> edge : automaton.getEdges(initialState)) {
-      S successor = edge.getSuccessor();
+    for (Edge<S> edge : automaton.edges(initialState)) {
+      S successor = edge.successor();
       if ((infIndex == -1 || edge.inSet(infIndex)) && !inSet(edge, finIndex, allFinIndicesBelow)) {
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
           visitedStates, visitedAcceptingStates, infIndex, finIndex, true,
@@ -135,14 +135,14 @@ public final class EmptinessCheck {
   }
 
   static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
-    OmegaAcceptance acceptance = automaton.getAcceptance();
+    OmegaAcceptance acceptance = automaton.acceptance();
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
     if (acceptance instanceof AllAcceptance) {
       return !hasAcceptingLasso(automaton, initialState, -1, -1, false);
     }
 
-    if (automaton.getAcceptance() instanceof BuchiAcceptance) {
+    if (automaton.acceptance() instanceof BuchiAcceptance) {
       Automaton<S, BuchiAcceptance> casted = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
 
       /* assert Buchi.containsAcceptingLasso(casted, initialState)
@@ -185,7 +185,7 @@ public final class EmptinessCheck {
     }
 
     throw new UnsupportedOperationException(
-      String.format("Emptiness check for %s not yet implemented.", acceptance.getName()));
+      String.format("Emptiness check for %s not yet implemented.", acceptance.name()));
   }
 
   private static final class Buchi {
@@ -199,12 +199,12 @@ public final class EmptinessCheck {
     static <S> boolean containsAcceptingScc(
       Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton, initialState)) {
-        BitSet remaining = new BitSet(automaton.getAcceptance().size);
-        remaining.set(0, automaton.getAcceptance().size);
+        BitSet remaining = new BitSet(automaton.acceptance().size);
+        remaining.set(0, automaton.acceptance().size);
 
         for (S state : scc) {
-          for (Edge<S> successorEdge : automaton.getEdges(state)) {
-            if (!scc.contains(successorEdge.getSuccessor())) {
+          for (Edge<S> successorEdge : automaton.edges(state)) {
+            if (!scc.contains(successorEdge.successor())) {
               continue;
             }
 
@@ -226,13 +226,13 @@ public final class EmptinessCheck {
 
     static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
       S initialState) {
-      if (automaton.getAcceptance().getParity().max()) {
+      if (automaton.acceptance().parity().max()) {
         throw new UnsupportedOperationException("Only min-{even,odd} conditions supported.");
       }
 
-      int sets = automaton.getAcceptance().getAcceptanceSets();
+      int sets = automaton.acceptance().acceptanceSets();
 
-      if (automaton.getAcceptance().getParity().even()) {
+      if (automaton.acceptance().parity().even()) {
         for (int inf = 0; inf < sets; inf += 2) {
           int fin = inf - 1;
 
@@ -265,13 +265,13 @@ public final class EmptinessCheck {
       S initialState) {
       Queue<AnalysisResult<S>> queue = new ArrayDeque<>();
 
-      int initialPriority = automaton.getAcceptance().getParity().even() ? 0 : 1;
+      int initialPriority = automaton.acceptance().parity().even() ? 0 : 1;
       SccDecomposition.computeSccs(automaton, Set.of(initialState), false)
         .forEach(scc -> queue.add(new AnalysisResult<>(scc, initialPriority - 1)));
 
       while (!queue.isEmpty()) {
         AnalysisResult<S> result = queue.poll();
-        assert !automaton.getAcceptance().isAccepting(result.minimalPriority);
+        assert !automaton.acceptance().isAccepting(result.minimalPriority);
 
         Collection<Set<S>> subSccs;
 
@@ -295,8 +295,8 @@ public final class EmptinessCheck {
 
           for (S state : subScc) {
             // For each state, get the lowest priority of all edges inside the scc
-            for (Edge<S> edge : automaton.getEdges(state)) {
-              if (!subScc.contains(edge.getSuccessor())) {
+            for (Edge<S> edge : automaton.edges(state)) {
+              if (!subScc.contains(edge.successor())) {
                 continue;
               }
 
@@ -306,7 +306,7 @@ public final class EmptinessCheck {
             if (min == result.minimalPriority + 1) {
               // sccMinimalPriority is the minimal priority not filtered, there won't be anything
               // smaller than this. Furthermore, it is accepting by invariant.
-              assert automaton.getAcceptance().isAccepting(min);
+              assert automaton.acceptance().isAccepting(min);
               return true;
             }
           }
@@ -316,7 +316,7 @@ public final class EmptinessCheck {
             continue;
           }
 
-          if (automaton.getAcceptance().isAccepting(min)) {
+          if (automaton.acceptance().isAccepting(min)) {
             // This SCC contains an accepting cycle: Since each state has at least one cycle
             // containing it (by definition of SCC) and we found an accepting edge where a) the
             // successor is contained in the SCC (hence there is a cycle containing this edge)
@@ -351,7 +351,7 @@ public final class EmptinessCheck {
 
     static <S> boolean containsAcceptingLasso(Automaton<S, RabinAcceptance> automaton,
       S initialState) {
-      for (RabinPair pair : automaton.getAcceptance().getPairs()) {
+      for (RabinPair pair : automaton.acceptance().pairs()) {
         if (hasAcceptingLasso(automaton, initialState, pair.infSet(),
           pair.finSet(), false)) {
           return true;
@@ -364,7 +364,7 @@ public final class EmptinessCheck {
     static <S> boolean containsAcceptingScc(Automaton<S, RabinAcceptance> automaton,
       S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton, initialState)) {
-        List<RabinPair> finitePairs = new ArrayList<>(automaton.getAcceptance().getPairs());
+        List<RabinPair> finitePairs = new ArrayList<>(automaton.acceptance().pairs());
 
         for (RabinPair pair : finitePairs) {
           // Compute all SCCs after removing the finite edges of the current finite pair
@@ -375,8 +375,8 @@ public final class EmptinessCheck {
             .stream().anyMatch(subScc -> {
               // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
               for (S state : subScc) {
-                for (Edge<S> edge : filteredAutomaton.getEdges(state)) {
-                  if (!subScc.contains(edge.getSuccessor()) || edge.inSet(pair.finSet())) {
+                for (Edge<S> edge : filteredAutomaton.edges(state)) {
+                  if (!subScc.contains(edge.successor()) || edge.inSet(pair.finSet())) {
                     // This edge does not qualify for an accepting cycle
                     continue;
                   }

@@ -15,17 +15,17 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public int getAcceptanceSets() {
+  public int acceptanceSets() {
     return sets;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
     return expression;
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return null;
   }
 

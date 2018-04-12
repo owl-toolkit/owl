@@ -39,48 +39,48 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
     return new CutDeterministicAutomaton<>(this);
   }
 
-  Automaton<T, U> getAcceptingComponent();
+  Automaton<T, U> acceptingComponent();
 
   @Nullable
-  V getAnnotation(T key);
+  V annotation(T key);
 
-  Set<V> getComponents();
+  Set<V> components();
 
-  Set<T> getEpsilonJumps(S state);
+  Set<T> epsilonJumps(S state);
 
-  Automaton<S, NoneAcceptance> getInitialComponent();
+  Automaton<S, NoneAcceptance> initialComponent();
 
-  Map<ValuationSet, Set<T>> getValuationSetJumps(S state);
+  Map<ValuationSet, Set<T>> valuationSetJumps(S state);
 
   default boolean isDeterministic() {
-    return getInitialComponent().size() == 0
-      && getAcceptingComponent().getInitialStates().size() <= 1;
+    return initialComponent().size() == 0
+      && acceptingComponent().initialStates().size() <= 1;
   }
 
   default int size() {
-    return getInitialComponent().size() + getAcceptingComponent().size();
+    return initialComponent().size() + acceptingComponent().size();
   }
 
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
     HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
-      getAcceptingComponent().getVariables(),
-      getAcceptingComponent().getAcceptance(),
-      Sets.union(getInitialComponent().getInitialStates(),
-        getAcceptingComponent().getInitialStates()),
-      options, false, getName());
+      acceptingComponent().variables(),
+      acceptingComponent().acceptance(),
+      Sets.union(initialComponent().initialStates(),
+        acceptingComponent().initialStates()),
+      options, false, name());
 
-    getInitialComponent().forEachState(state -> {
+    initialComponent().forEachState(state -> {
       consumerExt.addState(state);
-      getInitialComponent().forEachLabelledEdge(state, consumerExt::addEdge);
-      getEpsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
-      getValuationSetJumps(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
+      initialComponent().forEachLabelledEdge(state, consumerExt::addEdge);
+      epsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
+      valuationSetJumps(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
       consumerExt.notifyEndOfState();
     });
 
-    getAcceptingComponent().forEachState(state -> {
+    acceptingComponent().forEachState(state -> {
       consumerExt.addState(state);
-      getAcceptingComponent().forEachLabelledEdge(state, consumerExt::addEdge);
+      acceptingComponent().forEachLabelledEdge(state, consumerExt::addEdge);
       consumerExt.notifyEndOfState();
     });
 

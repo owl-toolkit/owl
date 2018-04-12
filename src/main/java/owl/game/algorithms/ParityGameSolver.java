@@ -38,7 +38,7 @@ public final class ParityGameSolver {
     Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
 
-      return winning.player2.contains(x.getInitialState())
+      return winning.player2.contains(x.initialState())
         ? "The specification is REALISABLE"
         : "The specification is UNREALISABLE";
     });
@@ -49,11 +49,11 @@ public final class ParityGameSolver {
   // that is, get a minimal colour appearing infinitely often to be accepting.
   // Also, player 1 chooses actions BEFORE player 2 does
   private static <S> WinningRegions<S> recursiveZielonka(Game<S, ParityAcceptance> game) {
-    Set<S> states = game.getStates();
-    ParityAcceptance acceptance = game.getAcceptance();
+    Set<S> states = game.states();
+    ParityAcceptance acceptance = game.acceptance();
 
     // get the minimal colour in the game
-    AtomicInteger minimalColour = new AtomicInteger(acceptance.getAcceptanceSets());
+    AtomicInteger minimalColour = new AtomicInteger(acceptance.acceptanceSets());
 
     game.forEachEdge((state, edge) ->
       minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
@@ -62,7 +62,7 @@ public final class ParityGameSolver {
     // if the min did not change, we have a winner
     Game.Owner ourHorse = acceptance.isAccepting(theMinimalColour) ? PLAYER_2 : PLAYER_1;
 
-    if (theMinimalColour == acceptance.getAcceptanceSets()) {
+    if (theMinimalColour == acceptance.acceptanceSets()) {
       return new WinningRegions<>(states, ourHorse);
     }
 
@@ -78,9 +78,9 @@ public final class ParityGameSolver {
       }
 
       if (PLAYER_2 == ourHorse) {
-        return game.getEdges(x).stream().anyMatch(hasMinCol);
+        return game.edges(x).stream().anyMatch(hasMinCol);
       }
-      return game.getEdges(x).stream().allMatch(hasMinCol);
+      return game.edges(x).stream().allMatch(hasMinCol);
     });
 
     // NOTE: winningStates may be empty! this is because it is actually
@@ -97,7 +97,7 @@ public final class ParityGameSolver {
     WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
     // if in the subgame our horse wins everywhere, then he's the winner
-    if (subWinning.winningRegion(ourHorse).containsAll(subGame.getStates())) {
+    if (subWinning.winningRegion(ourHorse).containsAll(subGame.states())) {
       return new WinningRegions<>(states, ourHorse);
     }
 
@@ -113,7 +113,7 @@ public final class ParityGameSolver {
   }
 
   public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
-    return recursiveZielonka(game).player2.contains(game.getInitialState());
+    return recursiveZielonka(game).player2.contains(game.initialState());
   }
 
   private static final class WinningRegions<S> {

@@ -37,12 +37,12 @@ public class SimpleTranslationsTest {
     assertThat(formula.variables().size(), is(29));
 
     var automaton = SimpleTranslations.buildSafety(formula, DefaultEnvironment.annotated());
-    var state = automaton.getInitialState();
+    var state = automaton.initialState();
 
     // Check null successor.
     BitSet empty = new BitSet();
-    assertThat(automaton.getEdge(state, empty), is(nullValue()));
-    assertTrue(automaton.getLabelledEdges(state).stream()
+    assertThat(automaton.edge(state, empty), is(nullValue()));
+    assertTrue(automaton.labelledEdges(state).stream()
       .noneMatch(x -> x.valuations.contains(empty)));
   }
 
@@ -52,14 +52,14 @@ public class SimpleTranslationsTest {
     assertThat(formula.variables().size(), is(29));
 
     var automaton = SimpleTranslations.buildCoSafety(formula, DefaultEnvironment.annotated());
-    var state = automaton.getInitialState().factory().getTrue();
+    var state = automaton.initialState().factory().getTrue();
     var edge = Edge.of(state, 0);
 
     // Check true sink.
     BitSet empty = new BitSet();
 
-    assertThat(automaton.getEdge(state, empty), is(edge));
-    assertThat(automaton.getLabelledEdges(state),
-      contains(LabelledEdge.of(edge, automaton.getFactory().universe())));
+    assertThat(automaton.edge(state, empty), is(edge));
+    assertThat(automaton.labelledEdges(state),
+      contains(LabelledEdge.of(edge, automaton.factory().universe())));
   }
 }

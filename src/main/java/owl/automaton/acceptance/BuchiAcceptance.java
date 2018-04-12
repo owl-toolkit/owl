@@ -27,12 +27,12 @@ public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "Buchi";
   }
 
   @Override
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     return List.of();
   }
 }

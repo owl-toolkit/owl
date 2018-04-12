@@ -24,11 +24,11 @@ import jhoafparser.consumer.HOAConsumer;
 
 public interface HoaPrintable {
   @Nullable
-  default String getName() {
+  default String name() {
     return null;
   }
 
-  List<String> getVariables();
+  List<String> variables();
 
   // rename feedTo...
   default void toHoa(HOAConsumer consumer) {

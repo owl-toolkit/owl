@@ -108,11 +108,11 @@ public final class GameViews {
         return environment -> (input, context) -> {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
-          List<String> environmentAp = automaton.getVariables().stream()
+          List<String> environmentAp = automaton.variables().stream()
             .filter(isEnvironmentAp).collect(toImmutableList());
           logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
             new Object[] {environmentAp,
-              Collections2.filter(automaton.getVariables(), x -> !isEnvironmentAp.test(x))});
+              Collections2.filter(automaton.variables(), x -> !isEnvironmentAp.test(x))});
           return GameViews
             .split(AutomatonUtil.cast(automaton, ParityAcceptance.class), environmentAp);
         };
@@ -157,18 +157,18 @@ public final class GameViews {
     }
 
     @Override
-    public A getAcceptance() {
-      return filteredAutomaton.getAcceptance();
+    public A acceptance() {
+      return filteredAutomaton.acceptance();
     }
 
     @Override
-    public Set<S> getInitialStates() {
-      return filteredAutomaton.getInitialStates();
+    public Set<S> initialStates() {
+      return filteredAutomaton.initialStates();
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return filteredAutomaton.getLabelledEdges(state);
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      return filteredAutomaton.labelledEdges(state);
     }
 
     @Override
@@ -182,23 +182,23 @@ public final class GameViews {
     }
 
     @Override
-    public ValuationSetFactory getFactory() {
-      return filteredAutomaton.getFactory();
+    public ValuationSetFactory factory() {
+      return filteredAutomaton.factory();
     }
 
     @Override
-    public Set<S> getPredecessors(S state) {
-      return filteredAutomaton.getPredecessors(state);
+    public Set<S> predecessors(S state) {
+      return filteredAutomaton.predecessors(state);
     }
 
     @Override
-    public Set<S> getSuccessors(S state) {
-      return filteredAutomaton.getSuccessors(state);
+    public Set<S> successors(S state) {
+      return filteredAutomaton.successors(state);
     }
 
     @Override
-    public Set<S> getStates() {
-      return filteredAutomaton.getStates();
+    public Set<S> states() {
+      return filteredAutomaton.states();
     }
   }
 
@@ -218,28 +218,28 @@ public final class GameViews {
     ForwardingGame(Automaton<S, A> automaton, List<String> firstPlayer) {
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
-      firstPlayer.forEach(x -> this.firstPlayer.set(automaton.getVariables().indexOf(x)));
+      firstPlayer.forEach(x -> this.firstPlayer.set(automaton.variables().indexOf(x)));
       secondPlayer = BitSets.copyOf(this.firstPlayer);
-      secondPlayer.flip(0, automaton.getFactory().alphabetSize());
+      secondPlayer.flip(0, automaton.factory().alphabetSize());
     }
 
     @Override
-    public A getAcceptance() {
-      return automaton.getAcceptance();
+    public A acceptance() {
+      return automaton.acceptance();
     }
 
     @Override
-    public ValuationSetFactory getFactory() {
-      return automaton.getFactory();
+    public ValuationSetFactory factory() {
+      return automaton.factory();
     }
 
     @Override
-    public Set<Node<S>> getInitialStates() {
-      return Collections3.transformUnique(automaton.getInitialStates(), Node::of);
+    public Set<Node<S>> initialStates() {
+      return Collections3.transformUnique(automaton.initialStates(), Node::of);
     }
 
     @Override
-    public Collection<LabelledEdge<Node<S>>> getLabelledEdges(Node<S> node) {
+    public Collection<LabelledEdge<Node<S>>> labelledEdges(Node<S> node) {
       /*
        * In order obtain a complete game, each players transitions are labeled
        * with his choice and all valuations of the other players APs. This is
@@ -247,7 +247,7 @@ public final class GameViews {
        */
 
       List<LabelledEdge<Node<S>>> edges = new ArrayList<>();
-      ValuationSetFactory factory = automaton.getFactory();
+      ValuationSetFactory factory = automaton.factory();
 
       if (node.isFirstPlayersTurn()) {
         // First player chooses his part of the valuation
@@ -264,12 +264,12 @@ public final class GameViews {
 
           BitSet joined = BitSets.copyOf(valuation);
           joined.or(node.firstPlayerChoice());
-          Edge<S> edge = automaton.getEdge(node.state(), joined);
+          Edge<S> edge = automaton.edge(node.state(), joined);
           checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
             node.state(), joined);
 
           // Lift the automaton edge to the game
-          edges.add(LabelledEdge.of(edge.withSuccessor(Node.of(edge.getSuccessor())), vs));
+          edges.add(LabelledEdge.of(edge.withSuccessor(Node.of(edge.successor())), vs));
         }
       }
 
@@ -282,7 +282,7 @@ public final class GameViews {
     }
 
     @Override
-    public Set<Node<S>> getPredecessors(Node<S> node) {
+    public Set<Node<S>> predecessors(Node<S> node) {
       if (!node.isFirstPlayersTurn()) {
         return Set.of(Node.of(node.state()));
       }
@@ -290,7 +290,7 @@ public final class GameViews {
       Set<Node<S>> predecessors = new HashSet<>();
 
       automaton.forEachLabelledEdge((predecessor, edge, valuationSet) -> {
-        if (!node.state().equals(edge.getSuccessor())) {
+        if (!node.state().equals(edge.successor())) {
           return;
         }
 
@@ -307,11 +307,11 @@ public final class GameViews {
     @Override
     public Set<Node<S>> getPredecessors(Node<S> state, Owner owner) {
       // Alternation
-      return owner == getOwner(state) ? Set.of() : getPredecessors(state);
+      return owner == getOwner(state) ? Set.of() : predecessors(state);
     }
 
     @Override
-    public Set<Node<S>> getStates() {
+    public Set<Node<S>> states() {
       Set<Node<S>> states = new HashSet<>();
 
       automaton.forEachState(state -> {
@@ -330,7 +330,7 @@ public final class GameViews {
     public List<String> getVariables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
-      Indices.forEachIndexed(getVariables(), (i, s) -> {
+      Indices.forEachIndexed(variables(), (i, s) -> {
         if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
           variables.add(s);
         }
@@ -354,7 +354,7 @@ public final class GameViews {
         return BitSets.copyOf(choice);
       }
 
-      return Iterables.getOnlyElement(getLabelledEdges(state)).valuations.any();
+      return Iterables.getOnlyElement(labelledEdges(state)).valuations.any();
     }
   }
 

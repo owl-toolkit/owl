@@ -38,7 +38,7 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   }
 
   @Override
-  public NoneAcceptance getAcceptance() {
+  public NoneAcceptance acceptance() {
     return NoneAcceptance.INSTANCE;
   }
 
@@ -55,22 +55,22 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
   }
 
   @Override
-  public ValuationSetFactory getFactory() {
-    return anyAutomaton.getFactory();
+  public ValuationSetFactory factory() {
+    return anyAutomaton.factory();
   }
 
   @Override
-  public Set<MonitorState> getInitialStates() {
-    return anyAutomaton.getInitialStates();
+  public Set<MonitorState> initialStates() {
+    return anyAutomaton.initialStates();
   }
 
   @Override
-  public Collection<LabelledEdge<MonitorState>> getLabelledEdges(MonitorState state) {
-    Collection<LabelledEdge<MonitorState>> labelledEdges = anyAutomaton.getLabelledEdges(state);
+  public Collection<LabelledEdge<MonitorState>> labelledEdges(MonitorState state) {
+    Collection<LabelledEdge<MonitorState>> labelledEdges = anyAutomaton.labelledEdges(state);
     Map<MonitorState, ValuationSet> successors = new HashMap<>(labelledEdges.size());
 
     for (LabelledEdge<MonitorState> labelledEdge : labelledEdges) {
-      successors.merge(labelledEdge.edge.getSuccessor(), labelledEdge.valuations,
+      successors.merge(labelledEdge.edge.successor(), labelledEdge.valuations,
         ValuationSet::union);
     }
 
@@ -80,23 +80,23 @@ class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
 
   @Nullable
   @Override
-  public String getName() {
+  public String name() {
     return "Monitor for " + formula + " with base " + base;
   }
 
   @Override
-  public Set<MonitorState> getStates() {
-    return anyAutomaton.getStates();
+  public Set<MonitorState> states() {
+    return anyAutomaton.states();
   }
 
   @Nullable
   @Override
-  public MonitorState getSuccessor(MonitorState state, BitSet valuation) {
-    return anyAutomaton.getSuccessor(state, valuation);
+  public MonitorState successor(MonitorState state, BitSet valuation) {
+    return anyAutomaton.successor(state, valuation);
   }
 
   @Override
-  public Set<MonitorState> getSuccessors(MonitorState state) {
-    return anyAutomaton.getSuccessors(state);
+  public Set<MonitorState> successors(MonitorState state) {
+    return anyAutomaton.successors(state);
   }
 }

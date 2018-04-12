@@ -72,12 +72,12 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     Automaton<Object, GeneralizedBuchiAcceptance> nbaGBA;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
-    if (nba.getAcceptance() instanceof AllAcceptance) {
+    if (nba.acceptance() instanceof AllAcceptance) {
       nbaGBA = new GeneralizedBuchiView<>((Automaton<Object, AllAcceptance>) nba).build();
-    } else if (nba.getAcceptance() instanceof GeneralizedBuchiAcceptance) {
+    } else if (nba.acceptance() instanceof GeneralizedBuchiAcceptance) {
       nbaGBA = (Automaton<Object, GeneralizedBuchiAcceptance>) nba;
     } else {
-      throw new UnsupportedOperationException(nba.getAcceptance() + " is unsupported.");
+      throw new UnsupportedOperationException(nba.acceptance() + " is unsupported.");
     }
 
     nbaGBA = Views.complete(nbaGBA, new Object());
@@ -87,10 +87,10 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     LimitDeterministicAutomaton<Set<Object>, BreakpointState<Object>, BuchiAcceptance, Void>
       ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
-      .getAcceptingComponent(), BreakpointState.getSink(), new BitSet());
+      .acceptingComponent(), BreakpointState.getSink(), new BitSet());
 
     LanguageLattice<BreakpointState<Object>, Void, Set<BreakpointState<Object>>> oracle =
-      new SetLanguageLattice<>(ldbaCutDet.getAcceptingComponent());
+      new SetLanguageLattice<>(ldbaCutDet.acceptingComponent());
 
     return ParityUtil.minimizePriorities(AutomatonUtil.asMutable(
       FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true)));

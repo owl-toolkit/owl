@@ -61,7 +61,7 @@ public final class IARBuilder<R> {
 
   public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
     this.rabinAutomaton = rabinAutomaton;
-    vsFactory = rabinAutomaton.getFactory();
+    vsFactory = rabinAutomaton.factory();
     ParityAcceptance acceptance = new ParityAcceptance(0, Parity.MIN_ODD);
     resultAutomaton = MutableAutomatonFactory.create(acceptance, vsFactory);
   }
@@ -79,10 +79,10 @@ public final class IARBuilder<R> {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
     logger.log(Level.FINEST, () -> "Input automaton is\n" + AutomatonUtil.toHoa(rabinAutomaton));
 
-    Set<RabinPair> rabinPairs = Set.copyOf(rabinAutomaton.getAcceptance().getPairs());
+    Set<RabinPair> rabinPairs = Set.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {
-      IARState<R> state = IARState.trivial(rabinAutomaton.getInitialStates().iterator().next());
-      return AutomatonFactory.singleton(state, rabinAutomaton.getFactory(),
+      IARState<R> state = IARState.trivial(rabinAutomaton.initialStates().iterator().next());
+      return AutomatonFactory.singleton(state, rabinAutomaton.factory(),
         new ParityAcceptance(1, Parity.MIN_ODD), Collections.singleton(0));
     }
 
@@ -126,13 +126,14 @@ public final class IARBuilder<R> {
       }
 
       Automaton<IARState<R>, ?> subAutomaton = result.subAutomaton;
-      OmegaAcceptance subAutomatonAcceptance = subAutomaton.getAcceptance();
+      OmegaAcceptance subAutomatonAcceptance = subAutomaton.acceptance();
       if (subAutomatonAcceptance instanceof ParityAcceptance) {
         maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
-          subAutomatonAcceptance.getAcceptanceSets() - 1);
+          subAutomatonAcceptance.acceptanceSets() - 1);
       }
       interSccConnectionsBuilder.putAll(result.interSccConnections);
-      resultAutomaton.addAll(subAutomaton);
+      resultAutomaton.addStates(subAutomaton.states());
+      subAutomaton.forEachLabelledEdge((x, y, z) -> resultAutomaton.addEdge(x, z, y));
       completedSccs += 1;
     }
 
@@ -142,24 +143,24 @@ public final class IARBuilder<R> {
     Map<R, IARState<R>> rabinToIarStateMap = Maps.newHashMapWithExpectedSize(rabinAutomaton.size());
     resultAutomaton.forEachState(iarState ->
       rabinToIarStateMap.put(iarState.state(), iarState));
-    assert Objects.equals(rabinToIarStateMap.keySet(), rabinAutomaton.getStates());
+    assert Objects.equals(rabinToIarStateMap.keySet(), rabinAutomaton.states());
 
     logger.log(Level.FINE, "Connecting the SCCs");
 
     // Connect all SCCs back together
     resultAutomaton.forEachState(iarState ->
       interSccConnections.get(iarState.state()).forEach(labelledEdge -> {
-        IARState<R> successor = rabinToIarStateMap.get(labelledEdge.edge.getSuccessor());
+        IARState<R> successor = rabinToIarStateMap.get(labelledEdge.edge.successor());
         // TODO instead of 0 we should use any which is actually used
         Edge<IARState<R>> iarEdge = Edge.of(successor, 0);
         resultAutomaton.addEdge(iarState, labelledEdge.valuations, iarEdge);
       }));
 
-    resultAutomaton.setInitialStates(rabinAutomaton.getInitialStates().stream()
+    resultAutomaton.initialStates(rabinAutomaton.initialStates().stream()
       .map(rabinToIarStateMap::get)
       .collect(Collectors.toUnmodifiableSet()));
     int sets = maximalSubAutomatonPriority + 1;
-    resultAutomaton.updateAcceptance(x -> x.setAcceptanceSets(sets));
+    resultAutomaton.updateAcceptance(x -> x.withAcceptanceSets(sets));
     assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
 
     return resultAutomaton;
@@ -173,14 +174,13 @@ public final class IARBuilder<R> {
 
     Views.filter(rabinAutomaton, simpleScc).forEachLabelledEdge((rabinState, edge, valuations) -> {
       IARState<R> iarState = IARState.trivial(rabinState);
-      R successor = edge.getSuccessor();
+      R successor = edge.successor();
       Edge<IARState<R>> iarEdge = Edge.of(IARState.trivial(successor), 0);
       resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
     });
 
     // Arbitrary initial state to have nice logging
-    resultTransitionSystem.setInitialState(resultTransitionSystem.getStates().iterator().next());
-
+    resultTransitionSystem.initialState(resultTransitionSystem.states().iterator().next());
     return new SccProcessingResult<>(interSccConnections, resultTransitionSystem);
   }
 
@@ -197,7 +197,7 @@ public final class IARBuilder<R> {
     // Analyse the SCC
     // TODO This could be done while doing Tarjan
     scc.forEach(state -> rabinAutomaton.forEachLabelledEdge(state, (edge, valuations) -> {
-      if (scc.contains(edge.getSuccessor())) {
+      if (scc.contains(edge.successor())) {
         // This transition is inside this scc
         sccHasALoop.lazySet(true);
         if (remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infSet()))) {

@@ -26,22 +26,22 @@ public final class CoBuchiAcceptance extends OmegaAcceptance {
   public static final CoBuchiAcceptance INSTANCE = new CoBuchiAcceptance();
 
   @Override
-  public int getAcceptanceSets() {
+  public int acceptanceSets() {
     return 1;
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> getBooleanExpression() {
+  public BooleanExpression<AtomAcceptance> booleanExpression() {
     return BooleanExpressions.mkFin(0);
   }
 
   @Override
-  public String getName() {
+  public String name() {
     return "co-Buchi";
   }
 
   @Override
-  public List<Object> getNameExtra() {
+  public List<Object> nameExtra() {
     return List.of();
   }
 

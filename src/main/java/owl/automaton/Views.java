@@ -19,9 +19,7 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
-import static owl.automaton.Automaton.Property.DETERMINISTIC;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
@@ -64,11 +62,11 @@ public final class Views {
     @Nullable S trapState) {
     var completeAutomaton = trapState == null ? automaton : complete(automaton, trapState);
     checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
-    checkArgument(!completeAutomaton.getInitialStates().isEmpty(), "Automaton is empty.");
+    checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
 
-    var acceptance = completeAutomaton.getAcceptance();
+    var acceptance = completeAutomaton.acceptance();
 
     if (acceptance instanceof BuchiAcceptance) {
       return new ReplaceAcceptance<>(completeAutomaton, CoBuchiAcceptance.INSTANCE);
@@ -79,7 +77,7 @@ public final class Views {
     }
 
     if (acceptance instanceof ParityAcceptance) {
-      var parityAcceptance = (ParityAcceptance) automaton.getAcceptance();
+      var parityAcceptance = (ParityAcceptance) automaton.acceptance();
       return new ReplaceAcceptance<>(completeAutomaton, parityAcceptance.complement());
     }
 
@@ -91,13 +89,13 @@ public final class Views {
     var edge = Edge.of(trapState);
 
     // Patching parity automata
-    if (automaton.getAcceptance() instanceof ParityAcceptance) {
-      checkArgument(((ParityAcceptance) automaton.getAcceptance()).getParity() == Parity.MIN_ODD);
-      checkArgument(automaton.getAcceptance().getAcceptanceSets() >= 1);
+    if (automaton.acceptance() instanceof ParityAcceptance) {
+      checkArgument(((ParityAcceptance) automaton.acceptance()).parity() == Parity.MIN_ODD);
+      checkArgument(automaton.acceptance().acceptanceSets() >= 1);
       edge = edge.withAcceptance(0);
     }
 
-    return new Complete<>(automaton, edge, automaton.getAcceptance());
+    return new Complete<>(automaton, edge, automaton.acceptance());
   }
 
   public static <S> Automaton<S, CoBuchiAcceptance> completeAllAcceptance(
@@ -107,9 +105,9 @@ public final class Views {
 
   public static <S> Automaton<Set<S>, NoneAcceptance> createPowerSetAutomaton(
     Automaton<S, NoneAcceptance> automaton) {
-    return AutomatonFactory.create(automaton.getInitialStates(), automaton.getFactory(), (x, y) -> {
+    return AutomatonFactory.create(automaton.initialStates(), automaton.factory(), (x, y) -> {
       Set<S> builder = new HashSet<>();
-      x.forEach(s -> builder.addAll(automaton.getSuccessors(s, y)));
+      x.forEach(s -> builder.addAll(automaton.successors(s, y)));
       return Edge.of(Set.copyOf(builder));
     }, NoneAcceptance.INSTANCE
     );
@@ -129,9 +127,9 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
     IntUnaryOperator remappingOperator) {
-    return AutomatonFactory.create(automaton.getInitialState(), automaton.getFactory(),
-      (state, valuation) -> automaton.getEdge(state, valuation).withAcceptance(remappingOperator),
-      automaton.getAcceptance());
+    return AutomatonFactory.create(automaton.initialState(), automaton.factory(),
+      (state, valuation) -> automaton.edge(state, valuation).withAcceptance(remappingOperator),
+      automaton.acceptance());
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(
@@ -139,12 +137,12 @@ public final class Views {
     Set<S> immutableInitialStates = Set.copyOf(initialStates);
     return new ForwardingAutomaton<>(automaton) {
       @Override
-      public A getAcceptance() {
-        return automaton.getAcceptance();
+      public A acceptance() {
+        return automaton.acceptance();
       }
 
       @Override
-      public Set<S> getInitialStates() {
+      public Set<S> initialStates() {
         return immutableInitialStates;
       }
     };
@@ -158,23 +156,23 @@ public final class Views {
 
     Complete(Automaton<S, A> automaton, Edge<S> loop, B acceptance) {
       super(automaton);
-      this.sink = loop.getSuccessor();
+      this.sink = loop.successor();
       this.loop = loop;
       this.acceptance = acceptance;
     }
 
     @Override
-    public B getAcceptance() {
+    public B acceptance() {
       return acceptance;
     }
 
     @Override
-    public Set<Edge<S>> getEdges(S state, BitSet valuation) {
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
       if (sink.equals(state)) {
         return Set.of(loop);
       }
 
-      Set<Edge<S>> edges = automaton.getEdges(state, valuation);
+      Set<Edge<S>> edges = automaton.edges(state, valuation);
 
       if (edges.isEmpty()) {
         return Set.of(loop);
@@ -184,14 +182,14 @@ public final class Views {
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      ValuationSetFactory factory = getFactory();
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      ValuationSetFactory factory = factory();
 
       if (sink.equals(state)) {
         return Set.of(LabelledEdge.of(loop, factory.universe()));
       }
 
-      List<LabelledEdge<S>> edges = new ArrayList<>(automaton.getLabelledEdges(state));
+      List<LabelledEdge<S>> edges = new ArrayList<>(automaton.labelledEdges(state));
       ValuationSet complement = factory.union(LabelledEdge.valuations(edges)).complement();
 
       if (!complement.isEmpty()) {
@@ -207,7 +205,7 @@ public final class Views {
     }
 
     @Override
-    public Set<S> getStates() {
+    public Set<S> states() {
       return AutomatonUtil.getReachableStates(this);
     }
   }
@@ -221,28 +219,28 @@ public final class Views {
     FilteredAutomaton(Automaton<S, A> automaton, Set<S> states, Predicate<Edge<S>> edgeFilter) {
       super(automaton);
       this.states = Set.copyOf(states);
-      this.edgeFilter = x -> states.contains(x.edge.getSuccessor()) && edgeFilter.test(x.edge);
+      this.edgeFilter = x -> states.contains(x.edge.successor()) && edgeFilter.test(x.edge);
     }
 
     @Override
-    public A getAcceptance() {
-      return automaton.getAcceptance();
+    public A acceptance() {
+      return automaton.acceptance();
     }
 
     @Override
-    public Set<S> getInitialStates() {
-      return Sets.intersection(automaton.getInitialStates(), states);
+    public Set<S> initialStates() {
+      return Sets.intersection(automaton.initialStates(), states);
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
       checkArgument(states.contains(state), "State %s not in set", state);
-      return Collections2.filter(automaton.getLabelledEdges(state), edgeFilter::test);
+      return Collections2.filter(automaton.labelledEdges(state), edgeFilter::test);
     }
 
     @Override
-    public Set<S> getStates() {
-      return Sets.filter(states, automaton::containsState);
+    public Set<S> states() {
+      return Sets.intersection(states, automaton.states());
     }
   }
 
@@ -255,23 +253,23 @@ public final class Views {
     }
 
     @Override
-    public ValuationSetFactory getFactory() {
-      return automaton.getFactory();
+    public ValuationSetFactory factory() {
+      return automaton.factory();
     }
 
     @Override
-    public Set<S> getInitialStates() {
-      return automaton.getInitialStates();
+    public Set<S> initialStates() {
+      return automaton.initialStates();
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return automaton.getLabelledEdges(state);
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      return automaton.labelledEdges(state);
     }
 
     @Override
-    public Set<S> getStates() {
-      return automaton.getStates();
+    public Set<S> states() {
+      return automaton.states();
     }
   }
 
@@ -292,11 +290,6 @@ public final class Views {
     @Override
     public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
       automaton.addEdge(source, valuations, edge);
-    }
-
-    @Override
-    public void addInitialStates(Collection<? extends S> states) {
-      automaton.addInitialStates(states);
     }
 
     @Override
@@ -336,8 +329,8 @@ public final class Views {
     }
 
     @Override
-    public void setInitialStates(Collection<? extends S> states) {
-      automaton.setInitialStates(states);
+    public void initialStates(Collection<? extends S> states) {
+      automaton.initialStates(states);
     }
   }
 
@@ -352,7 +345,7 @@ public final class Views {
     }
 
     @Override
-    public A getAcceptance() {
+    public A acceptance() {
       return acceptance;
     }
   }
@@ -361,19 +354,19 @@ public final class Views {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> viewAs(Automaton<S, ?> automaton,
     Class<A> acceptanceClazz) {
     if (ParityAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
+      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
       return AutomatonUtil.cast(new Buchi2Parity<>(
         AutomatonUtil.cast(automaton, BuchiAcceptance.class)), acceptanceClazz);
     }
 
     if (RabinAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.getAcceptance() instanceof BuchiAcceptance);
+      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
       return AutomatonUtil.cast(new Buchi2Rabin<>(
         AutomatonUtil.cast(automaton, BuchiAcceptance.class)), acceptanceClazz);
     }
 
     if (GeneralizedRabinAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.getAcceptance() instanceof GeneralizedBuchiAcceptance);
+      checkArgument(automaton.acceptance() instanceof GeneralizedBuchiAcceptance);
       return AutomatonUtil.cast(new GenBuchi2GenRabin<>(
         AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class)), acceptanceClazz);
     }
@@ -391,29 +384,29 @@ public final class Views {
     }
 
     private Edge<S> convertBuchiToParity(Edge<S> edge) {
-      return edge.inSet(0) ? edge : Edge.of(edge.getSuccessor(), 1);
+      return edge.inSet(0) ? edge : Edge.of(edge.successor(), 1);
     }
 
     @Override
-    public ParityAcceptance getAcceptance() {
+    public ParityAcceptance acceptance() {
       return acceptance;
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      return Collections2.transform(super.labelledEdges(state), labelledEdge ->
         LabelledEdge.of(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
     }
 
     @Nullable
     @Override
-    public S getSuccessor(S state, BitSet valuation) {
-      return automaton.getSuccessor(state, valuation);
+    public S successor(S state, BitSet valuation) {
+      return automaton.successor(state, valuation);
     }
 
     @Override
-    public Set<S> getSuccessors(S state) {
-      return automaton.getSuccessors(state);
+    public Set<S> successors(S state) {
+      return automaton.successors(state);
     }
 
     @Override
@@ -436,25 +429,25 @@ public final class Views {
     }
 
     @Override
-    public RabinAcceptance getAcceptance() {
+    public RabinAcceptance acceptance() {
       return acceptance;
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return Collections2.transform(super.getLabelledEdges(state), labelledEdge ->
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      return Collections2.transform(super.labelledEdges(state), labelledEdge ->
         LabelledEdge.of(convertBuchiToRabin(labelledEdge.edge), labelledEdge.valuations));
     }
 
     @Nullable
     @Override
-    public S getSuccessor(S state, BitSet valuation) {
-      return automaton.getSuccessor(state, valuation);
+    public S successor(S state, BitSet valuation) {
+      return automaton.successor(state, valuation);
     }
 
     @Override
-    public Set<S> getSuccessors(S state) {
-      return automaton.getSuccessors(state);
+    public Set<S> successors(S state) {
+      return automaton.successors(state);
     }
   }
 
@@ -465,31 +458,31 @@ public final class Views {
 
     GenBuchi2GenRabin(Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton) {
       super(backingAutomaton);
-      int sets = backingAutomaton.getAcceptance().getAcceptanceSets();
+      int sets = backingAutomaton.acceptance().acceptanceSets();
       acceptance = GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, sets));
     }
 
     @Override
-    public GeneralizedRabinAcceptance getAcceptance() {
+    public GeneralizedRabinAcceptance acceptance() {
       return acceptance;
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
-      return Collections2.transform(super.getLabelledEdges(state),
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      return Collections2.transform(super.labelledEdges(state),
         labelledEdge -> LabelledEdge
           .of(labelledEdge.edge.withAcceptance(x -> x + 1), labelledEdge.valuations));
     }
 
     @Nullable
     @Override
-    public S getSuccessor(S state, BitSet valuation) {
-      return automaton.getSuccessor(state, valuation);
+    public S successor(S state, BitSet valuation) {
+      return automaton.successor(state, valuation);
     }
 
     @Override
-    public Set<S> getSuccessors(S state) {
-      return automaton.getSuccessors(state);
+    public Set<S> successors(S state) {
+      return automaton.successors(state);
     }
   }
 }

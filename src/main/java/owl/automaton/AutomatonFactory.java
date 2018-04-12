@@ -95,27 +95,27 @@ public final class AutomatonFactory {
     }
 
     @Override
-    public NoneAcceptance getAcceptance() {
+    public NoneAcceptance acceptance() {
       return NoneAcceptance.INSTANCE;
     }
 
     @Override
-    public ValuationSetFactory getFactory() {
+    public ValuationSetFactory factory() {
       return factory;
     }
 
     @Override
-    public Set<S> getInitialStates() {
+    public Set<S> initialStates() {
       return Set.of();
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
       return Set.of();
     }
 
     @Override
-    public Set<S> getStates() {
+    public Set<S> states() {
       return Set.of();
     }
   }
@@ -142,27 +142,27 @@ public final class AutomatonFactory {
     }
 
     @Override
-    public A getAcceptance() {
+    public A acceptance() {
       return acceptance;
     }
 
     @Override
-    public ValuationSetFactory getFactory() {
+    public ValuationSetFactory factory() {
       return factory;
     }
 
     @Override
-    public Set<S> getInitialStates() {
+    public Set<S> initialStates() {
       return Set.of(singletonState);
     }
 
     @Override
-    public Collection<LabelledEdge<S>> getLabelledEdges(S state) {
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
       return selfLoopEdges;
     }
 
     @Override
-    public Set<S> getStates() {
+    public Set<S> states() {
       return Set.of(singletonState);
     }
   }
