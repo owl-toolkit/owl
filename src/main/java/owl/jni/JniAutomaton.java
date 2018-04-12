@@ -17,7 +17,6 @@
 
 package owl.jni;
 
-import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -183,6 +182,10 @@ public final class JniAutomaton {
     return successors;
   }
 
+  int size() {
+    return automaton.size();
+  }
+
   private int lookup(Object o) {
     int index = state2intMap.getInt(o);
 
@@ -235,6 +238,11 @@ public final class JniAutomaton {
         default:
           return PARITY;
       }
+    }
+
+    boolean isLessThanParity() {
+      return this == BUCHI || this == CO_BUCHI || this == CO_SAFETY || this == SAFETY
+        || this == WEAK || this == BOTTOM;
     }
   }
 }

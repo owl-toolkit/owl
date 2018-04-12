@@ -31,13 +31,13 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   EdgeSingleton(S successor) {
     this.acceptance = EMPTY_ACCEPTANCE;
-    this.successor = successor;
+    this.successor = Objects.requireNonNull(successor);
   }
 
   EdgeSingleton(S successor, @Nonnegative int acceptance) {
     assert acceptance >= 0;
-    this.successor = successor;
     this.acceptance = acceptance;
+    this.successor = Objects.requireNonNull(successor);
   }
 
   @Override

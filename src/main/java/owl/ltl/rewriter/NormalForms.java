@@ -17,18 +17,14 @@
 
 package owl.ltl.rewriter;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
+import owl.ltl.PropositionalFormula;
 import owl.ltl.visitors.DefaultVisitor;
 
 public final class NormalForms {
@@ -37,94 +33,122 @@ public final class NormalForms {
 
   private NormalForms() {}
 
-  public static List<Set<Formula>> toCnf(Formula formula) {
+  public static Set<Set<Formula>> toCnf(Formula formula) {
     return formula.accept(CNF);
   }
 
-  public static List<Set<Formula>> toDnf(Formula formula) {
+  public static Formula toCnfFormula(Formula formula) {
+    return formula.accept(CNF).stream()
+      .map(Disjunction::of)
+      .reduce(BooleanConstant.TRUE, Conjunction::of);
+  }
+
+  public static Set<Set<Formula>> toDnf(Formula formula) {
     return formula.accept(DNF);
   }
 
+  public static Formula toDnfFormula(Formula formula) {
+    return formula.accept(DNF).stream()
+      .map(Conjunction::of)
+      .reduce(BooleanConstant.FALSE, Disjunction::of);
+  }
+
   private static final class ConjunctiveNormalFormVisitor
-    extends DefaultVisitor<List<Set<Formula>>> {
-    ConjunctiveNormalFormVisitor() {
-      // Empty.
-    }
+    extends DefaultVisitor<Set<Set<Formula>>> {
 
-    private static void minimise(List<Set<Formula>> cnf) {
-      cnf.removeIf(x -> cnf.stream().anyMatch(y -> x != y && y.containsAll(x)));
+    private static void minimise(Set<Set<Formula>> cnf) {
+      cnf.removeIf(x -> cnf.stream().anyMatch(y -> x.size() < y.size() && y.containsAll(x)));
     }
 
     @Override
-    protected List<Set<Formula>> defaultAction(Formula formula) {
-      return List.of(Sets.newHashSet(formula));
+    protected Set<Set<Formula>> defaultAction(Formula formula) {
+      return Set.of(Set.of(formula));
     }
 
     @Override
-    public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value ? List.of() : List.of(new HashSet<>());
+    public Set<Set<Formula>> visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value ? Set.of() : Set.of(Set.of());
     }
 
     @Override
-    public List<Set<Formula>> visit(Conjunction conjunction) {
-      List<Set<Formula>> cnf = new ArrayList<>();
+    public Set<Set<Formula>> visit(Conjunction conjunction) {
+      Set<Set<Formula>> cnf = new HashSet<>();
       conjunction.children.forEach(x -> cnf.addAll(x.accept(this)));
       minimise(cnf);
       return cnf;
     }
 
     @Override
-    public List<Set<Formula>> visit(Disjunction disjunction) {
-      List<Set<Formula>> cnf = new ArrayList<>();
-      List<List<Set<Formula>>> allCnf = disjunction.children.stream().map(x -> x.accept(this))
-        .collect(Collectors.toList());
-
-      for (List<Set<Formula>> union : Lists.cartesianProduct(allCnf)) {
-        cnf.add(Collections3.parallelUnion(union));
+    public Set<Set<Formula>> visit(Disjunction disjunction) {
+      if (disjunction.children.stream().noneMatch(PropositionalFormula.class::isInstance)) {
+        return Set.of(disjunction.children);
       }
 
-      minimise(cnf);
+      Set<Set<Formula>> cnf = Set.of(Set.of());
+
+      for (Formula child : disjunction.children) {
+        Set<Set<Formula>> childCnf = child.accept(this);
+        Set<Set<Formula>> newCnf = new HashSet<>(cnf.size() * childCnf.size());
+
+        for (Set<Formula> clause1 : cnf) {
+          for (Set<Formula> clause2 : childCnf) {
+            newCnf.add(Sets.union(clause1, clause2).immutableCopy());
+          }
+        }
+
+        minimise(newCnf);
+        cnf = newCnf;
+      }
+
       return cnf;
     }
   }
 
   private static final class DisjunctiveNormalFormVisitor
-    extends DefaultVisitor<List<Set<Formula>>> {
-    DisjunctiveNormalFormVisitor() {
-      // Empty.
-    }
+    extends DefaultVisitor<Set<Set<Formula>>> {
 
-    private static void minimise(List<Set<Formula>> dnf) {
-      dnf.removeIf(x -> dnf.stream().anyMatch(y -> x != y && x.containsAll(y)));
+    private static void minimise(Set<Set<Formula>> dnf) {
+      dnf.removeIf(x -> dnf.stream().anyMatch(y -> x.size() > y.size() && x.containsAll(y)));
     }
 
     @Override
-    protected List<Set<Formula>> defaultAction(Formula formula) {
-      return List.of(Sets.newHashSet(formula));
+    protected Set<Set<Formula>> defaultAction(Formula formula) {
+      return Set.of(Set.of(formula));
     }
 
     @Override
-    public List<Set<Formula>> visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value ? List.of(new HashSet<>()) : List.of();
+    public Set<Set<Formula>> visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value ? Set.of(Set.of()) : Set.of();
     }
 
     @Override
-    public List<Set<Formula>> visit(Conjunction conjunction) {
-      List<Set<Formula>> dnf = new ArrayList<>();
-      List<List<Set<Formula>>> allDnf = conjunction.children.stream().map(x -> x.accept(this))
-        .collect(Collectors.toList());
-
-      for (List<Set<Formula>> union : Lists.cartesianProduct(allDnf)) {
-        dnf.add(Collections3.parallelUnion(union));
+    public Set<Set<Formula>> visit(Conjunction conjunction) {
+      if (conjunction.children.stream().noneMatch(PropositionalFormula.class::isInstance)) {
+        return Set.of(conjunction.children);
       }
 
-      minimise(dnf);
+      Set<Set<Formula>> dnf = Set.of(Set.of());
+
+      for (Formula child : conjunction.children) {
+        Set<Set<Formula>> childDnf = child.accept(this);
+        Set<Set<Formula>> newDnf = new HashSet<>(dnf.size() * childDnf.size());
+
+        for (Set<Formula> clause1 : dnf) {
+          for (Set<Formula> clause2 : childDnf) {
+            newDnf.add(Sets.union(clause1, clause2).immutableCopy());
+          }
+        }
+
+        minimise(newDnf);
+        dnf = newDnf;
+      }
+
       return dnf;
     }
 
     @Override
-    public List<Set<Formula>> visit(Disjunction disjunction) {
-      List<Set<Formula>> dnf = new ArrayList<>();
+    public Set<Set<Formula>> visit(Disjunction disjunction) {
+      Set<Set<Formula>> dnf = new HashSet<>();
       disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
       minimise(dnf);
       return dnf;

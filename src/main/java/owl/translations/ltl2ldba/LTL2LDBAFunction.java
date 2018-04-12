@@ -123,12 +123,12 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   @Override
   public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
-    Factories factories = env.factorySupplier().getFactories(formula.variables(), true);
-    var factory = selectorConstructor.apply(formula.formula(), factories.eqFactory);
-    var builder = createBuilder(factories, factory);
+    var factories = env.factorySupplier().getFactories(formula.variables(), true);
+    var jumpManager = selectorConstructor.apply(formula.formula(), factories.eqFactory);
+    var builder = createBuilder(factories, jumpManager);
 
     for (EquivalenceClass initialClass : createInitialClasses(factories, formula.formula())) {
-      AnalysisResult<C> obligations = factory.analyse(initialClass);
+      AnalysisResult<C> obligations = jumpManager.analyse(initialClass);
 
       if (obligations.type == TYPE.MUST) {
         builder.addAccepting(Iterables.getOnlyElement(obligations.jumps));

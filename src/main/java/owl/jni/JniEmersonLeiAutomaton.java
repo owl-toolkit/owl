@@ -2,7 +2,6 @@ package owl.jni;
 
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 
-import com.google.common.collect.Iterables;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import owl.collections.LabelledTree;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -21,6 +19,7 @@ import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
 import owl.ltl.PropositionalFormula;
 import owl.ltl.rewriter.LiteralMapper;
+import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.DefaultVisitor;
@@ -93,7 +92,6 @@ public class JniEmersonLeiAutomaton {
   }
 
   static final class Builder extends DefaultVisitor<LabelledTree<Tag, Reference>> {
-    private final boolean onTheFly;
     private final SafetySplittingMode safetySplittingMode;
     private final Environment environment = DefaultEnvironment.standard();
 
@@ -101,12 +99,22 @@ public class JniEmersonLeiAutomaton {
     private final List<JniAutomaton> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
     private final Map<Formula, JniAutomaton.Acceptance> annotatedTree;
+    private final LTL2DPAFunction translator;
 
     public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly,
       Map<Formula, JniAutomaton.Acceptance> annotatedTree) {
-      this.onTheFly = onTheFly;
       this.safetySplittingMode = safetySplittingMode;
-      this.annotatedTree = annotatedTree;
+      this.annotatedTree = new HashMap<>(annotatedTree);
+
+      var configuration = EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
+
+      if (onTheFly) {
+        configuration.add(LTL2DPAFunction.Configuration.GREEDY);
+        configuration.remove(LTL2DPAFunction.Configuration.COMPRESS_COLOURS);
+        configuration.remove(LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE);
+      }
+
+      translator = new LTL2DPAFunction(environment, configuration);
     }
 
     private LabelledTree<Tag, Reference> createLeaf(Formula formula) {
@@ -169,17 +177,7 @@ public class JniEmersonLeiAutomaton {
       }
 
       // Fallback to DPA
-      Set<LTL2DPAFunction.Configuration> configuration = EnumSet
-        .copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
-
-      if (onTheFly) {
-        configuration.add(LTL2DPAFunction.Configuration.GREEDY);
-        configuration.remove(LTL2DPAFunction.Configuration.COMPRESS_COLOURS);
-        configuration.remove(LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE);
-      }
-
-      return new JniAutomaton(
-        new LTL2DPAFunction(environment, configuration).apply(labelledFormula));
+      return new JniAutomaton(translator.apply(labelledFormula));
     }
 
     private List<LabelledTree<Tag, Reference>> createLeaves(FormulaPartition partition,
@@ -222,16 +220,48 @@ public class JniEmersonLeiAutomaton {
       partition.dba.forEach(x -> children.add(createLeaf(x)));
       partition.dca.forEach(x -> children.add(createLeaf(x)));
 
-      List<Formula> parityRequired = partition.mixed.stream()
-        .filter(x -> annotatedTree.get(x) == JniAutomaton.Acceptance.PARITY)
-        .collect(Collectors.toList());
+      List<Formula> lessThanParityRequired = new ArrayList<>();
+      List<Formula> parityRequired = new ArrayList<>();
 
-      if (parityRequired.size() > 1) {
-        children.add(createLeaf(merger.apply(partition.mixed)));
-      } else {
-        for (Formula child : partition.mixed) {
-          children.add(child.accept(this));
+      partition.mixed.forEach(x -> {
+        if (annotatedTree.get(x) == JniAutomaton.Acceptance.PARITY) {
+          parityRequired.add(x);
+        } else {
+          assert annotatedTree.get(x).isLessThanParity();
+          lessThanParityRequired.add(x);
         }
+      });
+
+      for (Formula child : lessThanParityRequired) {
+        children.add(child.accept(this));
+      }
+
+      if (parityRequired.size() == 1) {
+        children.add(parityRequired.get(0).accept(this));
+      } else if (parityRequired.size() > 1) {
+        var mergedFormula = merger.apply(parityRequired);
+
+        if (mergedFormula instanceof Disjunction) {
+          var dnfNormalForm = NormalForms.toDnfFormula(mergedFormula);
+
+          if (!mergedFormula.equals(dnfNormalForm)) {
+            annotatedTree.putAll(dnfNormalForm.accept(AcceptanceAnnotator.INSTANCE));
+            children.add(dnfNormalForm.accept(this));
+            return children;
+          }
+        }
+
+        if (mergedFormula instanceof Conjunction) {
+          var cnfNormalForm = NormalForms.toCnfFormula(mergedFormula);
+
+          if (!mergedFormula.equals(cnfNormalForm)) {
+            annotatedTree.putAll(cnfNormalForm.accept(AcceptanceAnnotator.INSTANCE));
+            children.add(cnfNormalForm.accept(this));
+            return children;
+          }
+        }
+
+        children.add(createLeaf(mergedFormula));
       }
 
       return children;
@@ -244,14 +274,16 @@ public class JniEmersonLeiAutomaton {
 
     @Override
     public LabelledTree<Tag, Reference> visit(Conjunction conjunction) {
-      FormulaPartition partition = FormulaPartition.of(conjunction.children);
-      return new LabelledTree.Node<>(Tag.CONJUNCTION, createLeaves(partition, Conjunction::of));
+      var partition = FormulaPartition.of(conjunction.children);
+      var leaves = createLeaves(partition, Conjunction::of);
+      return leaves.size() == 1 ? leaves.get(0) : new LabelledTree.Node<>(Tag.CONJUNCTION, leaves);
     }
 
     @Override
     public LabelledTree<Tag, Reference> visit(Disjunction disjunction) {
-      FormulaPartition partition = FormulaPartition.of(disjunction.children);
-      return new LabelledTree.Node<>(Tag.DISJUNCTION, createLeaves(partition, Disjunction::of));
+      var partition = FormulaPartition.of(disjunction.children);
+      var leaves = createLeaves(partition, Disjunction::of);
+      return leaves.size() == 1 ? leaves.get(0) : new LabelledTree.Node<>(Tag.DISJUNCTION, leaves);
     }
   }
 
