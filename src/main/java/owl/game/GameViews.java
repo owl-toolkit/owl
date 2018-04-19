@@ -45,6 +45,7 @@ import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -74,6 +75,9 @@ public final class GameViews {
         Option systemPrefixes = new Option(null, "sysprefix", true,
           "Prefixes of system APs");
 
+        Option complete = new Option("c", "complete", false,
+          "Make automaton complete (may decrease performance)");
+
         OptionGroup apGroup = new OptionGroup()
           .addOption(environmentPropositions)
           .addOption(environmentPrefixes)
@@ -81,7 +85,9 @@ public final class GameViews {
           .addOption(systemPrefixes);
         apGroup.getOptions().forEach(option -> option.setArgs(Option.UNLIMITED_VALUES));
 
-        return new Options().addOptionGroup(apGroup);
+        return new Options()
+          .addOptionGroup(apGroup)
+          .addOption(complete);
       })
       .parser(settings -> {
         // At most one of those is non-null
@@ -105,6 +111,8 @@ public final class GameViews {
           isEnvironmentAp = ap -> ap.charAt(0) == 'i';
         }
 
+        boolean wrapComplete = settings.hasOption("complete");
+
         return environment -> (input, context) -> {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
@@ -113,8 +121,13 @@ public final class GameViews {
           logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
             new Object[] {environmentAp,
               Collections2.filter(automaton.variables(), x -> !isEnvironmentAp.test(x))});
-          return GameViews
-            .split(AutomatonUtil.cast(automaton, ParityAcceptance.class), environmentAp);
+
+          var parityAutomaton = AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class);
+          if (wrapComplete) {
+            parityAutomaton = Views.complete(parityAutomaton, new Object());
+          }
+
+          return GameViews.split(parityAutomaton, environmentAp);
         };
       }).build();
 
