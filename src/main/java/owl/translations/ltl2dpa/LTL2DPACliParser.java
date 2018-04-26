@@ -2,6 +2,7 @@ package owl.translations.ltl2dpa;
 
 import static owl.run.modules.OwlModuleParser.TransformerParser;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
@@ -35,8 +36,10 @@ public final class LTL2DPACliParser implements TransformerParser {
   @Override
   public Options getOptions() {
     return new Options()
-      .addOption("c", "complement", false,
+      .addOption(null, "complement", false,
         "Compute the automaton also for the negation and return the smaller.")
+      .addOption("c", "complete", false,
+        "Output a complete automaton")
       .addOption(LTL2LDBACliParser.guessF())
       .addOption(LTL2LDBACliParser.simple());
   }
@@ -54,6 +57,9 @@ public final class LTL2DPACliParser implements TransformerParser {
 
     if (commandLine.hasOption("complement")) {
       configuration.add(COMPLEMENT_CONSTRUCTION);
+    }
+    if (commandLine.hasOption("complete")) {
+      configuration.add(COMPLETE);
     }
 
     if (commandLine.hasOption(LTL2LDBACliParser.guessF().getOpt())) {

@@ -162,20 +162,22 @@ ext.createStartScriptTasks = { name, cp, map ->
             type: CreateStartScripts) {
             mainClassName = className
             applicationName = scriptName
-            outputDir = new File(project.buildDir, 'scripts')
+            // CreateStartScripts is stupid; it.outputs.files = outputDir, not the created scripts.
+            outputDir = new File(project.buildDir, 'scripts/' + scriptName)
             //noinspection GroovyAccessibility
             classpath = cp
         }
     }
 }
 
+startScripts.outputDir = new File(project.buildDir, 'scripts/owl')
 createStartScriptTasks("", jar.outputs.files + project.configurations.runtime, scripts).each() {
     it.dependsOn(jar)
     startScripts.dependsOn(it)
 }
 
 def proGuardStartScripts = createStartScriptTasks("ProGuard", proGuardTask.outputs.files,
-    scripts + ['owl' : mainClassName])
+    scripts + ['owl': mainClassName])
 proGuardStartScripts.each() { it.dependsOn(proGuardTask) }
 
 // Compile the markdown files
@@ -208,18 +210,19 @@ distributions {
         }
     }
 }
+
 if (enableProGuard) {
     distributions.create("small", {
-            baseName = 'owl'
-
-            contents {
-                into("bin") {
-                    //noinspection GroovyAssignabilityCheck
-                    from proGuardStartScripts
-                }
-                into("lib") {
-                    from proGuardTask
-                }
+        baseName = 'owl'
+        contents {
+            into("bin") {
+                //noinspection GroovyAssignabilityCheck
+                from proGuardStartScripts
+            }
+            into("lib") {
+                from proGuardTask
+            }
+            if (!minimize) {
                 into("doc") {
                     from "AUTHORS"
                     from "LICENSE"
@@ -231,7 +234,7 @@ if (enableProGuard) {
                 }
             }
         }
-    )
+    })
 }
 
 // Task to create a minimal running jar

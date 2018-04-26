@@ -22,9 +22,9 @@
             "output": "hoa",
             "name": "ltl2dpa",
             "flags": {
-               "complement": "-c",
-               "guess-f": "-f",
-               "simple": "-s"
+               "complement": "--complement",
+               "guess-f": "--guess-f",
+               "simple": "--simple"
             }
         },
         "ltl2dra": {
@@ -34,7 +34,7 @@
             "name": "ltl2dra",
             "flags": {
                "degeneralise": "-d",
-               "simple": "-s"
+               "simple": "--simple"
             }
         },
         "ltl2da": {
