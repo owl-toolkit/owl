@@ -35,6 +35,7 @@ import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
+import owl.ltl.SyntacticFragment;
 import owl.run.Environment;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
@@ -122,7 +123,9 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   // CSON: Indentation
 
   @Override
-  public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula formula) {
+  public LimitDeterministicAutomaton<EquivalenceClass, S, B, C> apply(LabelledFormula input) {
+    LabelledFormula formula = SyntacticFragment.normalize(input, SyntacticFragment.NNF);
+
     var factories = env.factorySupplier().getFactories(formula.variables(), true);
     var jumpManager = selectorConstructor.apply(formula.formula(), factories.eqFactory);
     var builder = createBuilder(factories, jumpManager);

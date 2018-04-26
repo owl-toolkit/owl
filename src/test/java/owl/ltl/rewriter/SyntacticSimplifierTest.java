@@ -100,13 +100,13 @@ public class SyntacticSimplifierTest {
   public void testSyntacticSimplifier(List<String> pair) {
     Formula actual = LtlParser.syntax(pair.get(0), variables);
     Formula expected = LtlParser.syntax(pair.get(1), variables);
-    assertThat(SimplifierFactory.apply(actual, Mode.SYNTACTIC), Matchers.is(expected));
+    assertThat(SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC), Matchers.is(expected));
   }
 
   @Theory
   public void testSyntacticSimplifierNegation(List<String> pair) {
     Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
     Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
-    assertThat(SimplifierFactory.apply(actual, Mode.SYNTACTIC), Matchers.is(expected));
+    assertThat(SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC), Matchers.is(expected));
   }
 }

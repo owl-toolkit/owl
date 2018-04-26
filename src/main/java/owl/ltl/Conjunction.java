@@ -118,27 +118,32 @@ public final class Conjunction extends PropositionalFormula {
   }
 
   @Override
+  public Formula nnf() {
+    return new Conjunction(map(Formula::nnf));
+  }
+
+  @Override
   public Formula not() {
-    return new Disjunction(children.stream().map(Formula::not));
+    return new Disjunction(map(Formula::not));
   }
 
   @Override
   public Formula temporalStep(BitSet valuation) {
-    return of(children.stream().map(c -> c.temporalStep(valuation)));
+    return of(map(c -> c.temporalStep(valuation)));
   }
 
   @Override
   public Formula temporalStepUnfold(BitSet valuation) {
-    return of(children.stream().map(c -> c.temporalStepUnfold(valuation)));
+    return of(map(c -> c.temporalStepUnfold(valuation)));
   }
 
   @Override
   public Formula unfold() {
-    return of(children.stream().map(Formula::unfold));
+    return of(map(Formula::unfold));
   }
 
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
-    return of(children.stream().map(c -> c.unfoldTemporalStep(valuation)));
+    return of(map(c -> c.unfoldTemporalStep(valuation)));
   }
 }

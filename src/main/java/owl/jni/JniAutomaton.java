@@ -244,5 +244,9 @@ public final class JniAutomaton {
       return this == BUCHI || this == CO_BUCHI || this == CO_SAFETY || this == SAFETY
         || this == WEAK || this == BOTTOM;
     }
+
+    boolean isLessOrEqualWeak() {
+      return this == CO_SAFETY || this == SAFETY || this == WEAK || this == BOTTOM;
+    }
   }
 }

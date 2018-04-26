@@ -170,19 +170,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
   default void forEachEdge(S state, Consumer<Edge<S>> action) {
-    forEachEdge(state, (edge, bitSet) -> action.accept(edge));
+    factory().forEach(valuation -> edges(state, valuation).forEach(action));
   }
-
-  default void forEachEdge(S state, BiConsumer<Edge<S>, BitSet> action) {
-    factory().forEach(valuation ->
-      edges(state, valuation).forEach(edge -> action.accept(edge, valuation)));
-  }
-
-  default void forEachEdge(TriConsumer<S, Edge<S>, BitSet> action) {
-    forEachState(state ->
-      forEachEdge(state, (edge, valuation) -> action.accept(state, edge, valuation)));
-  }
-
 
   // Transition function - Bulk
 

@@ -1,11 +1,13 @@
 package owl.ltl.visitors;
 
 import java.util.function.Function;
+import owl.ltl.Biconditional;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 
-public final class SubstitutionVisitor extends DefaultVisitor<Formula> {
+public final class SubstitutionVisitor extends PropositionalVisitor<Formula> {
   private final Function<? super Formula, ? extends Formula> substitutionFunction;
 
   public SubstitutionVisitor(Function<? super Formula, ? extends Formula> substitutionFunction) {
@@ -13,8 +15,18 @@ public final class SubstitutionVisitor extends DefaultVisitor<Formula> {
   }
 
   @Override
-  protected Formula defaultAction(Formula formula) {
+  protected Formula modalOperatorAction(Formula formula) {
     return substitutionFunction.apply(formula);
+  }
+
+  @Override
+  public Formula visit(BooleanConstant booleanConstant) {
+    return booleanConstant;
+  }
+
+  @Override
+  public Formula visit(Biconditional biconditional) {
+    return Biconditional.of(biconditional.left.accept(this), biconditional.right.accept(this));
   }
 
   @Override

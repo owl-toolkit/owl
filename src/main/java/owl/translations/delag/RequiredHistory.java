@@ -25,7 +25,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultIntVisitor;
+import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 
 final class RequiredHistory {
@@ -57,7 +57,7 @@ final class RequiredHistory {
     return history;
   }
 
-  private static class Extractor extends DefaultIntVisitor {
+  private static class Extractor implements IntVisitor {
     final long[] past;
     @Nonnegative
     private int index;

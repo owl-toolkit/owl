@@ -25,8 +25,8 @@ import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.ltl.SyntacticFragment;
 
 final class MonitorBuilderNoAcceptance {
   private static final Logger logger = Logger.getLogger(MonitorBuilderNoAcceptance.class.getName());
@@ -43,8 +43,8 @@ final class MonitorBuilderNoAcceptance {
     this.vsFactory = vsFactory;
 
     Set<Formula> modalOperators = formula.modalOperators();
-    isFinite = modalOperators.stream().allMatch(Fragments::isFinite);
-    boolean isCoSafety = modalOperators.stream().allMatch(Fragments::isCoSafety);
+    isFinite = modalOperators.stream().allMatch(SyntacticFragment.FINITE::contains);
+    boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains);
 
     logger.log(Level.FINE, "Creating builder for formula {0} and relevant sets {1}; "
         + "safety: {2}, no G-sub: {3}",

@@ -4,20 +4,22 @@ import java.util.HashSet;
 import java.util.Set;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
-import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.Converter;
 
-public class FGSubstitution extends DefaultConverter {
+public class FGSubstitution extends Converter {
   private final Set<GOperator> gOperators;
   private final Set<ROperator> rOperators;
   private final Set<WOperator> wOperators;
 
   public FGSubstitution(Iterable<? extends Formula> y) {
+    super(SyntacticFragment.NNF.classes());
+
     Set<GOperator> gOperators = new HashSet<>();
     Set<ROperator> rOperators = new HashSet<>();
     Set<WOperator> wOperators = new HashSet<>();
@@ -37,11 +39,6 @@ public class FGSubstitution extends DefaultConverter {
     this.gOperators = Set.copyOf(gOperators);
     this.rOperators = Set.copyOf(rOperators);
     this.wOperators = Set.copyOf(wOperators);
-  }
-
-  @Override
-  public Formula visit(FrequencyG freq) {
-    throw new UnsupportedOperationException();
   }
 
   @Override

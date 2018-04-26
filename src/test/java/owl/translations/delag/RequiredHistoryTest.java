@@ -66,7 +66,7 @@ public class RequiredHistoryTest {
 
   @Test
   public void getRequiredHistoryXOperator() {
-    Formula formula = new XOperator(new Literal(0));
+    Formula formula = XOperator.of(new Literal(0));
     History oneStepHistory = new History(new long[1]);
     assertEquals(oneStepHistory, new History(RequiredHistory.getRequiredHistory(formula)));
   }

@@ -17,10 +17,12 @@
 
 package owl.ltl.visitors;
 
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Formula;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
@@ -30,30 +32,23 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
+@SuppressWarnings("checkstyle:all")
 public interface IntVisitor {
+  default int visit(Biconditional biconditional)     { throw uoe(biconditional);   }
+  default int visit(BooleanConstant booleanConstant) { throw uoe(booleanConstant); }
+  default int visit(Conjunction conjunction)         { throw uoe(conjunction);     }
+  default int visit(Disjunction disjunction)         { throw uoe(disjunction);     }
+  default int visit(FOperator fOperator)             { throw uoe(fOperator);       }
+  default int visit(FrequencyG freq)                 { throw uoe(freq);            }
+  default int visit(GOperator gOperator)             { throw uoe(gOperator);       }
+  default int visit(Literal literal)                 { throw uoe(literal);         }
+  default int visit(MOperator mOperator)             { throw uoe(mOperator);       }
+  default int visit(ROperator rOperator)             { throw uoe(rOperator);       }
+  default int visit(UOperator uOperator)             { throw uoe(uOperator);       }
+  default int visit(WOperator wOperator)             { throw uoe(wOperator);       }
+  default int visit(XOperator xOperator)             { throw uoe(xOperator);       }
 
-  int visit(BooleanConstant booleanConstant);
-
-  int visit(Conjunction conjunction);
-
-  int visit(Disjunction disjunction);
-
-  int visit(FOperator fOperator);
-
-  int visit(FrequencyG freq);
-
-  int visit(GOperator gOperator);
-
-  int visit(Literal literal);
-
-  int visit(MOperator mOperator);
-
-  int visit(ROperator rOperator);
-
-  int visit(UOperator uOperator);
-
-  int visit(WOperator wOperator);
-
-  int visit(XOperator xOperator);
-
+  private static UnsupportedOperationException uoe(Formula formula) {
+    return new UnsupportedOperationException("No action defined for " + formula.getClass());
+  }
 }

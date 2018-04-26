@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
+import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -149,7 +150,7 @@ public final class Collector {
   }
 
   @Nullable
-  public static FOperator transformToFOperator(@Nullable Formula formula) {
+  private static FOperator transformToFOperator(@Nullable Formula formula) {
     if (formula instanceof FOperator) {
       return (FOperator) formula;
     }
@@ -166,7 +167,7 @@ public final class Collector {
   }
 
   @Nullable
-  public static GOperator transformToGOperator(@Nullable Formula formula) {
+  private static GOperator transformToGOperator(@Nullable Formula formula) {
     if (formula instanceof GOperator) {
       return (GOperator) formula;
     }
@@ -207,6 +208,13 @@ public final class Collector {
       }
 
       return false;
+    }
+
+    @Override
+    public int visit(Biconditional biconditional) {
+      biconditional.left.accept(this);
+      biconditional.right.accept(this);
+      return 0;
     }
 
     @Override

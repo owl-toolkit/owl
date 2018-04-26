@@ -46,7 +46,14 @@ public class GOperator extends UnaryModalOperator {
     }
 
     if (operand instanceof Conjunction) {
-      return Conjunction.of(((Conjunction) operand).children.stream().map(GOperator::of));
+      return Conjunction.of(((Conjunction) operand).map(GOperator::of));
+    }
+
+    if (operand instanceof Biconditional) {
+      Biconditional biconditional = (Biconditional) operand;
+      return Conjunction.of(
+        GOperator.of(Disjunction.of(biconditional.left.not(), biconditional.right)),
+        GOperator.of(Disjunction.of(biconditional.left, biconditional.right.not())));
     }
 
     if (operand instanceof GOperator) {
@@ -103,6 +110,11 @@ public class GOperator extends UnaryModalOperator {
   @Override
   public boolean isSuspendable() {
     return operand.isPureEventual() || operand.isSuspendable();
+  }
+
+  @Override
+  public Formula nnf() {
+    return GOperator.of(operand.nnf());
   }
 
   @Override

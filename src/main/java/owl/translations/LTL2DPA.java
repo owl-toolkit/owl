@@ -15,20 +15,19 @@ public final class LTL2DPA {
   public static void main(String... args) {
     PartialModuleConfiguration ldba = PartialModuleConfiguration.builder("ltl2dpa")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
+      .addTransformer(Transformers.SIMPLIFIER)
       .addTransformer(LTL2DPACliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build();
     PartialModuleConfiguration rabinizerIar = PartialModuleConfiguration.builder("ltl2dpa")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER, Transformers.UNABBREVIATE_RW)
+      .addTransformer(Transformers.SIMPLIFIER)
       .addTransformer(RabinizerCliParser.INSTANCE)
-      .addTransformer(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION,
-        Transformers.RABIN_TO_PARITY)
+      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.RABIN_DEGENERALIZATION, Transformers.RABIN_TO_PARITY)
       .writer(OutputWriters.HOA)
       .build();
-    Map<String, PartialModuleConfiguration> map = Map.of("ldba", ldba, "rabinizer", rabinizerIar);
-    PartialConfigurationParser.run(args, map, ldba);
+    PartialConfigurationParser.run(args, Map.of("ldba", ldba, "rabinizer", rabinizerIar), ldba);
   }
 }

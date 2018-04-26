@@ -21,6 +21,7 @@ import owl.grammar.LTLParser.UnaryOpContext;
 import owl.grammar.LTLParser.UnaryOperationContext;
 import owl.grammar.LTLParser.VariableContext;
 import owl.grammar.LTLParserBaseVisitor;
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -87,8 +88,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     Formula right = visit(ctx.right);
 
     if (binaryOp.BIIMP() != null) {
-      return Disjunction.of(Conjunction.of(left, right),
-        Conjunction.of(left.not(), right.not()));
+      return Biconditional.of(left, right);
     }
 
     if (binaryOp.IMP() != null) {
@@ -96,8 +96,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     }
 
     if (binaryOp.XOR() != null) {
-      return Disjunction.of(Conjunction.of(left, right.not()),
-        Conjunction.of(left.not(), right));
+      return Biconditional.of(left.not(), right);
     }
 
     if (binaryOp.UNTIL() != null) {

@@ -22,14 +22,14 @@ import java.util.Set;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.Collector;
 
 public class SafetyDetector {
   public static boolean hasSafetyCore(EquivalenceClass state, boolean substitutionAnalysis) {
     Set<Formula> modalOperators = state.modalOperators();
 
-    if (modalOperators.stream().allMatch(Fragments::isSafety)) {
+    if (modalOperators.stream().allMatch(formula -> SyntacticFragment.SAFETY.contains(formula))) {
       return true;
     }
 
@@ -37,7 +37,7 @@ public class SafetyDetector {
     if (substitutionAnalysis) {
       Set<Formula> coreComplement = new HashSet<>();
       modalOperators.forEach(x -> {
-        if (!Fragments.isSafety(x)) {
+        if (!SyntacticFragment.SAFETY.contains(x)) {
           coreComplement.add(x);
         }
       });

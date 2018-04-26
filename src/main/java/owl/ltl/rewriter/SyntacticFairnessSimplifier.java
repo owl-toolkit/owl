@@ -29,18 +29,17 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultBinaryVisitor;
-import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.Visitor;
 
 class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
@@ -77,19 +76,13 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     return null;
   }
 
-  static IllegalArgumentException getUnsupportedFormulaException(Formula formula) {
-    return new IllegalArgumentException(
-      "The fairness simplifier does not support formulas outside of the (F,G,X)-Fragment, but "
-        + formula + " was given.");
-  }
-
   public static boolean isApplicable(Formula formula) {
-    return Fragments.isFgx(formula) && (getAlmostAllOperand(formula) != null
+    return SyntacticFragment.FGX.contains(formula) && (getAlmostAllOperand(formula) != null
       || getInfinitelyOftenOperand(formula) != null);
   }
 
   public static boolean isApplicable2(Formula formula) {
-    if (!Fragments.isFgx(formula)) {
+    if (!SyntacticFragment.FGX.contains(formula)) {
       return false;
     }
 
@@ -136,7 +129,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     throw new AssertionError("Unreachable");
   }
 
-  private static final class AlmostAllVisitor extends DefaultVisitor<Formula> {
+  private static final class AlmostAllVisitor implements Visitor<Formula> {
 
     private static Formula wrap(Formula formula) {
       if (formula instanceof BooleanConstant) {
@@ -147,18 +140,13 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
 
     @Override
-    protected Formula defaultAction(Formula formula) {
-      throw getUnsupportedFormulaException(formula);
-    }
-
-    @Override
     public Formula visit(BooleanConstant booleanConstant) {
       return booleanConstant;
     }
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (Fragments.isFinite(conjunction)) {
+      if (SyntacticFragment.FINITE.contains(conjunction)) {
         return wrap(PropositionalFormula.shortCircuit(conjunction));
       }
 
@@ -168,7 +156,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (Fragments.isFinite(disjunction)) {
+      if (SyntacticFragment.FINITE.contains(disjunction)) {
         return wrap(PropositionalFormula.shortCircuit(disjunction));
       }
 
@@ -181,7 +169,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
           disjuncts.add(((FOperator) child).operand.accept(INFINITELY_OFTEN_VISITOR));
         } else if (child instanceof GOperator) {
           disjuncts.add(((GOperator) child).operand.accept(this));
-        } else if (Fragments.isFinite(child)) {
+        } else if (SyntacticFragment.FINITE.contains(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Conjunction;
@@ -218,7 +206,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
   }
 
-  private static final class InfinitelyOftenVisitor extends DefaultVisitor<Formula> {
+  private static final class InfinitelyOftenVisitor implements Visitor<Formula> {
 
     private static Formula wrap(Formula formula) {
       if (formula instanceof BooleanConstant) {
@@ -229,18 +217,13 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
 
     @Override
-    protected Formula defaultAction(Formula formula) {
-      throw getUnsupportedFormulaException(formula);
-    }
-
-    @Override
     public Formula visit(BooleanConstant booleanConstant) {
       return booleanConstant;
     }
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (Fragments.isFinite(conjunction)) {
+      if (SyntacticFragment.FINITE.contains(conjunction)) {
         return wrap(PropositionalFormula.shortCircuit(conjunction));
       }
 
@@ -253,7 +236,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
           conjuncts.add(((FOperator) child).operand.accept(this));
         } else if (child instanceof GOperator) {
           conjuncts.add(((GOperator) child).operand.accept(ALMOST_ALL_VISITOR));
-        } else if (Fragments.isFinite(child)) {
+        } else if (SyntacticFragment.FINITE.contains(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Disjunction;
@@ -271,7 +254,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (Fragments.isFinite(disjunction)) {
+      if (SyntacticFragment.FINITE.contains(disjunction)) {
         return wrap(PropositionalFormula.shortCircuit(disjunction));
       }
 
@@ -300,8 +283,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
   }
 
-  static final class NormaliseX extends DefaultBinaryVisitor<Integer, Formula> implements
-    UnaryOperator<Formula> {
+  static final class NormaliseX implements BinaryVisitor<Integer, Formula>, UnaryOperator<Formula> {
 
     static final UnaryOperator<Formula> INSTANCE =
       new TraverseRewriter(new NormaliseX(), SyntacticFairnessSimplifier::isApplicable);
@@ -314,18 +296,13 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
 
     @Override
-    protected Formula defaultAction(Formula formula, Integer depth) {
-      throw getUnsupportedFormulaException(formula);
-    }
-
-    @Override
     public Formula visit(BooleanConstant booleanConstant, Integer depth) {
       return booleanConstant;
     }
 
     @Override
     public Formula visit(Conjunction conjunction, Integer depth) {
-      if (Fragments.isFinite(conjunction)) {
+      if (SyntacticFragment.FINITE.contains(conjunction)) {
         return XOperator.of(conjunction, depth);
       }
 
@@ -334,7 +311,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction, Integer depth) {
-      if (Fragments.isFinite(disjunction)) {
+      if (SyntacticFragment.FINITE.contains(disjunction)) {
         return XOperator.of(disjunction, depth);
       }
 

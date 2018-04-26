@@ -2,7 +2,6 @@ package owl.translations.rabinizer;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.EquivalenceClass;
@@ -16,7 +15,7 @@ final class RabinizerUtil {
   private RabinizerUtil() {}
 
   private static void findSupportingSubFormulas(EquivalenceClass equivalenceClass,
-    Consumer<GOperator> action) {
+    Set<GOperator> gOperators) {
     // Due to the BDD representation, we have to do a somewhat weird construction. The problem is
     // that we can't simply do a class.getSupport(G) to determine the relevant G operators in the
     // formula. For example, to the BDD "X G a" and "G a" have no relation, hence the G-support
@@ -28,7 +27,7 @@ final class RabinizerUtil {
 
     for (Formula temporalOperator : equivalenceClass.modalOperators()) {
       if (temporalOperator instanceof GOperator) {
-        action.accept((GOperator) temporalOperator);
+        gOperators.add((GOperator) temporalOperator);
       } else {
         Formula unwrapped = temporalOperator;
 
@@ -43,19 +42,19 @@ final class RabinizerUtil {
         EquivalenceClassFactory factory = equivalenceClass.factory();
 
         if (unwrapped instanceof GOperator) {
-          action.accept((GOperator) unwrapped);
+          gOperators.add((GOperator) unwrapped);
         } else if (unwrapped instanceof BinaryModalOperator) {
           BinaryModalOperator binaryOperator = (BinaryModalOperator) unwrapped;
-          findSupportingSubFormulas(factory.of(binaryOperator.left), action);
-          findSupportingSubFormulas(factory.of(binaryOperator.right), action);
+          findSupportingSubFormulas(factory.of(binaryOperator.left), gOperators);
+          findSupportingSubFormulas(factory.of(binaryOperator.right), gOperators);
         } else {
-          findSupportingSubFormulas(factory.of(unwrapped), action);
+          findSupportingSubFormulas(factory.of(unwrapped), gOperators);
         }
       }
     }
   }
 
-  public static Set<GOperator> getRelevantSubFormulas(EquivalenceClass equivalenceClass) {
+  static Set<GOperator> getRelevantSubFormulas(EquivalenceClass equivalenceClass) {
     Formula representative = equivalenceClass.representative();
 
     if (representative != null) {
@@ -69,13 +68,13 @@ final class RabinizerUtil {
     return operators;
   }
 
-  public static Set<GOperator> getSupportSubFormulas(EquivalenceClass equivalenceClass) {
+  static Set<GOperator> getSupportSubFormulas(EquivalenceClass equivalenceClass) {
     if (equivalenceClass.isTrue() || equivalenceClass.isFalse()) {
       return Set.of();
     }
 
     Set<GOperator> operators = new HashSet<>();
-    findSupportingSubFormulas(equivalenceClass, operators::add);
+    findSupportingSubFormulas(equivalenceClass, operators);
     return operators;
   }
 

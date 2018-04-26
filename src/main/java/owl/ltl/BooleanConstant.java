@@ -87,6 +87,11 @@ public final class BooleanConstant implements Formula {
     return true;
   }
 
+  @Override
+  public Formula nnf() {
+    return this;
+  }
+
   @Nonnull
   @Override
   public BooleanConstant not() {

@@ -30,9 +30,10 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.Converter;
 
 @SuppressWarnings("ReferenceEquality")
 @Value.Immutable
@@ -169,22 +170,30 @@ public abstract class Tlsf {
     }
   }
 
-  private final class MealyToMooreConverter extends DefaultConverter {
+  private final class MealyToMooreConverter extends Converter {
+    private MealyToMooreConverter() {
+      super(SyntacticFragment.ALL.classes());
+    }
+
     @Override
     public Formula visit(Literal literal) {
       if (outputs().get(literal.getAtom())) {
-        return new XOperator(literal);
+        return XOperator.of(literal);
       }
 
       return literal;
     }
   }
 
-  private final class MooreToMealyConverter extends DefaultConverter {
+  private final class MooreToMealyConverter extends Converter {
+    private MooreToMealyConverter() {
+      super(SyntacticFragment.ALL.classes());
+    }
+
     @Override
     public Formula visit(Literal literal) {
       if (inputs().get(literal.getAtom())) {
-        return new XOperator(literal);
+        return XOperator.of(literal);
       }
 
       return literal;

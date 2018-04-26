@@ -15,23 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl.parser;
+package owl.ltl;
 
-import static org.junit.Assert.assertEquals;
-
+import org.junit.Assert;
 import org.junit.Test;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
-import owl.ltl.FOperator;
-import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
-import owl.ltl.GOperator;
-import owl.ltl.Literal;
-import owl.ltl.MOperator;
-import owl.ltl.ROperator;
-import owl.ltl.UOperator;
-import owl.ltl.WOperator;
-import owl.ltl.XOperator;
+import owl.ltl.parser.LtlParser;
 
 public class LtlParserTest {
   private static final String[] INPUT = {
@@ -68,7 +56,7 @@ public class LtlParserTest {
   @Test
   public void testSyntax() {
     for (int i = 0; i < INPUT.length; i++) {
-      assertEquals(INPUT[i], OUTPUT[i], LtlParser.syntax(INPUT[i]));
+      Assert.assertEquals(INPUT[i], OUTPUT[i], LtlParser.syntax(INPUT[i]));
     }
   }
 }

@@ -27,13 +27,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
-import owl.ltl.FrequencyG;
-import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.SyntacticFragment;
+import owl.ltl.visitors.PropositionalVisitor;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public abstract class AbstractJumpManager<X extends RecurringObligation> {
@@ -128,8 +128,8 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
     // infinite behaviour and simply build the left-derivative of the formula.
-    if (modalOperators.stream().allMatch(Fragments::isCoSafety)
-      || modalOperators.stream().allMatch(Fragments::isSafety)) {
+    if (modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains)
+      || modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
       logger.log(Level.FINE, () -> state + " is (co)safety. Suppressing jump.");
       return (AnalysisResult<X>) EMPTY;
     }
@@ -149,20 +149,25 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     return set.stream().anyMatch(x -> !x.equals(formula) && x.anyMatch(formula::equals));
   }
 
-  static class BlockingModalOperatorsVisitor extends DefaultVisitor<Set<Formula>> {
+  static class BlockingModalOperatorsVisitor extends PropositionalVisitor<Set<Formula>> {
 
     static final BlockingModalOperatorsVisitor INSTANCE = new BlockingModalOperatorsVisitor();
 
     @Override
-    protected Set<Formula> defaultAction(Formula formula) {
-      if (Fragments.isFinite(formula)) {
+    protected Set<Formula> modalOperatorAction(Formula formula) {
+      if (SyntacticFragment.FINITE.contains(formula)) {
         return Set.of();
       }
 
-      if (Fragments.isCoSafety(formula)) {
+      if (SyntacticFragment.CO_SAFETY.contains(formula)) {
         return Set.of(formula);
       }
 
+      return Set.of();
+    }
+
+    @Override
+    public Set<Formula> visit(BooleanConstant booleanConstant) {
       return Set.of();
     }
 
@@ -172,7 +177,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
       for (Formula child : conjunction.children) {
         // Only consider non-finite LTL formulas.
-        if (!Fragments.isFinite(child)) {
+        if (!SyntacticFragment.FINITE.contains(child)) {
           blockingOperators.addAll(child.accept(this));
         }
       }
@@ -186,7 +191,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
       for (Formula child : disjunction.children) {
         // Only consider non-finite LTL formulas.
-        if (!Fragments.isFinite(child)) {
+        if (!SyntacticFragment.FINITE.contains(child)) {
           if (blockingOperators == null) {
             blockingOperators = new HashSet<>(child.accept(this));
           } else {
@@ -196,11 +201,6 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       }
 
       return blockingOperators == null ? Set.of() : blockingOperators;
-    }
-
-    @Override
-    public Set<Formula> visit(FrequencyG freq) {
-      throw new UnsupportedOperationException();
     }
   }
 }

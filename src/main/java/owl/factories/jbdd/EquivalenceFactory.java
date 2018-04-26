@@ -49,8 +49,8 @@ import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultIntVisitor;
 import owl.ltl.visitors.PrintVisitor;
+import owl.ltl.visitors.PropositionalIntVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 import owl.ltl.visitors.Visitor;
 
@@ -482,9 +482,16 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     }
   }
 
-  private final class BddVisitor extends DefaultIntVisitor {
+  private final class BddVisitor extends PropositionalIntVisitor {
     @Override
-    protected int defaultAction(Formula formula) {
+    protected int modalOperatorAction(Formula formula) {
+      if (formula instanceof Literal) {
+        Literal literal = (Literal) formula;
+        checkLiteralAlphabetRange(List.of(literal));
+        int bdd = factory.getVariableNode(literal.getAtom());
+        return literal.isNegated() ? factory.not(bdd) : bdd;
+      }
+
       assert formula instanceof UnaryModalOperator || formula instanceof BinaryModalOperator;
 
       int value = mapping.getInt(formula);
@@ -522,13 +529,6 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
         x = factory.consume(factory.or(x, y), x, y);
       }
       return x;
-    }
-
-    @Override
-    public int visit(Literal literal) {
-      checkLiteralAlphabetRange(List.of(literal));
-      int bdd = factory.getVariableNode(literal.getAtom());
-      return literal.isNegated() ? factory.not(bdd) : bdd;
     }
   }
 

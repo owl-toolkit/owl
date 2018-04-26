@@ -18,6 +18,7 @@
 package owl.ltl.rewriter;
 
 import java.util.function.Function;
+import javax.annotation.concurrent.Immutable;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 
@@ -32,30 +33,35 @@ public final class SimplifierFactory {
     return mode.operation.apply(formula);
   }
 
-  public static LabelledFormula apply(LabelledFormula formula, Mode mode) {
-    return formula.wrap(apply(formula.formula(), mode));
-  }
-
-  public static LabelledFormula apply(LabelledFormula formula, Mode... modes) {
-    Formula result = formula.formula();
+  public static Formula apply(Formula formula, Mode... modes) {
+    Formula result = formula;
 
     for (Mode mode : modes) {
       result = apply(result, mode);
     }
 
-    return formula.wrap(result);
+    return result;
   }
 
+  public static LabelledFormula apply(LabelledFormula formula, Mode mode) {
+    return formula.wrap(apply(formula.formula(), mode));
+  }
+
+  public static LabelledFormula apply(LabelledFormula formula, Mode... modes) {
+    return formula.wrap(apply(formula.formula(), modes));
+  }
+
+  @Immutable
   public enum Mode {
     SYNTACTIC(new SyntacticSimplifier()),
     SYNTACTIC_FAIRNESS(SyntacticFairnessSimplifier.NormaliseX.INSTANCE
       .andThen(SyntacticFairnessSimplifier.INSTANCE)),
     SYNTACTIC_FIXPOINT(new Fixpoint(SyntacticSimplifier.INSTANCE, PullUpXVisitor.INSTANCE)),
     PULLUP_X(PullUpXVisitor.INSTANCE),
-    PUSHDOWN_X(PushDownXVisitor.INSTANCE);
+    PUSHDOWN_X(PushDownXVisitor.INSTANCE),
+    NNF(Formula::nnf);
 
-    @SuppressWarnings("ImmutableEnumChecker")
-    final Function<Formula, Formula> operation;
+    private final Function<Formula, Formula> operation;
 
     Mode(Function<Formula, Formula> operation) {
       this.operation = operation;

@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import owl.ltl.parser.LtlParser;
 
-public class FragmentsTest {
+public class SyntacticFragmentTest {
 
   @DataPoints
   public static final List<Formula> FORMULAS;
@@ -29,18 +29,18 @@ public class FragmentsTest {
 
   @Test
   public void isCoSafety() {
-    assertTrue(Fragments.isCoSafety(FORMULAS.get(0)));
+    assertTrue(SyntacticFragment.CO_SAFETY.contains(FORMULAS.get(0)));
   }
 
   @Test
   public void isX() {
-    assertTrue(Fragments.isFinite(FORMULAS.get(0)));
-    assertTrue(Fragments.isFinite(FORMULAS.get(1)));
-    assertTrue(Fragments.isFinite(FORMULAS.get(2)));
-    assertFalse(Fragments.isFinite(FORMULAS.get(3)));
-    assertFalse(Fragments.isFinite(FORMULAS.get(4)));
-    assertTrue(Fragments.isFinite(FORMULAS.get(5)));
-    assertFalse(Fragments.isFinite(FORMULAS.get(8)));
+    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(0)));
+    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(1)));
+    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(2)));
+    assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(3)));
+    assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(4)));
+    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(5)));
+    assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(8)));
   }
 
 }

@@ -35,6 +35,7 @@ import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
+import owl.ltl.SyntacticFragment;
 import owl.run.Environment;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
@@ -86,14 +87,15 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
+      .addTransformer(Transformers.SIMPLIFIER)
       .addTransformer(CLI)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
   }
 
   @Override
-  public Automaton<State<T>, ?> apply(LabelledFormula formula) {
+  public Automaton<State<T>, ?> apply(LabelledFormula inputFormula) {
+    LabelledFormula formula = SyntacticFragment.normalize(inputFormula, SyntacticFragment.NNF);
     Factories factories = env.factorySupplier().getFactories(formula.variables());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {

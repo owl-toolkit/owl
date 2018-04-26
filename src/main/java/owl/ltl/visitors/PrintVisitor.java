@@ -3,6 +3,7 @@ package owl.ltl.visitors;
 import java.util.List;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -30,7 +31,7 @@ public final class PrintVisitor implements Visitor<String> {
     this.parenthesize = parenthesize;
   }
 
-  public static String toString(Formula formula, List<String> variableMapping) {
+  public static String toString(Formula formula, @Nullable List<String> variableMapping) {
     return toString(formula, variableMapping, false);
   }
 
@@ -46,20 +47,26 @@ public final class PrintVisitor implements Visitor<String> {
   }
 
   @Override
+  public String visit(Biconditional biconditional) {
+    return "(" + visitParenthesized(biconditional.left)
+      + " <-> " + visitParenthesized(biconditional.right) + ")";
+  }
+
+  @Override
   public String visit(BooleanConstant booleanConstant) {
     return booleanConstant.toString();
   }
 
   @Override
   public String visit(Conjunction conjunction) {
-    return '(' + String.join(" & ", () -> conjunction.children.stream()
-      .map((Function<Formula, CharSequence>) this::visitParenthesized).iterator()) + ')';
+    return '(' + String.join(" & ", () -> conjunction.map(
+      (Function<Formula, CharSequence>) this::visitParenthesized).iterator()) + ')';
   }
 
   @Override
   public String visit(Disjunction disjunction) {
-    return '(' + String.join(" | ", () -> disjunction.children.stream()
-      .map((Function<Formula, CharSequence>) this::visitParenthesized).iterator()) + ')';
+    return '(' + String.join(" | ", () -> disjunction.map(
+      (Function<Formula, CharSequence>) this::visitParenthesized).iterator()) + ')';
   }
 
   @Override
@@ -80,7 +87,7 @@ public final class PrintVisitor implements Visitor<String> {
   @Override
   public String visit(Literal literal) {
     String name = variableMapping == null
-      ? literal.toString()
+      ? "p" + literal.getAtom()
       : variableMapping.get(literal.getAtom());
     return literal.isNegated() ? '!' + name : name;
   }
@@ -115,7 +122,7 @@ public final class PrintVisitor implements Visitor<String> {
   }
 
   private String visit(BinaryModalOperator operator) {
-    return "((" + visitParenthesized(operator.left) + ") "
+    return "((" + operator.left.accept(this) + ") "
       + operator.getOperator()
       + " (" + operator.right.accept(this) + "))";
   }

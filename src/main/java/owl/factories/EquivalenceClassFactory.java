@@ -18,20 +18,16 @@
 package owl.factories;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import owl.collections.LabelledTree;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.UnaryModalOperator;
 
 // Design and performance notes: literals are different from unary and binary modal operators,
 // due to performance and consistency issues

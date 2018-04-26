@@ -46,7 +46,13 @@ public class FOperator extends UnaryModalOperator {
     }
 
     if (operand instanceof Disjunction) {
-      return Disjunction.of(((Disjunction) operand).children.stream().map(FOperator::of));
+      return Disjunction.of(((Disjunction) operand).map(FOperator::of));
+    }
+
+    if (operand instanceof Biconditional) {
+      Biconditional biconditional = (Biconditional) operand;
+      return Disjunction.of(FOperator.of(Conjunction.of(biconditional.left, biconditional.right)),
+        FOperator.of(Conjunction.of(biconditional.left.not(), biconditional.right.not())));
     }
 
     if (operand instanceof FOperator) {
@@ -103,6 +109,11 @@ public class FOperator extends UnaryModalOperator {
   @Override
   public boolean isSuspendable() {
     return operand.isPureUniversal() || operand.isSuspendable();
+  }
+
+  @Override
+  public Formula nnf() {
+    return FOperator.of(operand.nnf());
   }
 
   @Override

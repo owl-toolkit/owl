@@ -17,10 +17,12 @@
 
 package owl.ltl.visitors;
 
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -29,28 +31,23 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
+@SuppressWarnings("checkstyle:all")
 public interface BinaryVisitor<P, R> {
 
-  R visit(BooleanConstant booleanConstant, P parameter);
+  default R visit(Biconditional biconditional, P parameter)     { throw uoe(biconditional);   }
+  default R visit(BooleanConstant booleanConstant, P parameter) { throw uoe(booleanConstant); }
+  default R visit(Conjunction conjunction, P parameter)         { throw uoe(conjunction);     }
+  default R visit(Disjunction disjunction, P parameter)         { throw uoe(disjunction);     }
+  default R visit(FOperator fOperator, P parameter)             { throw uoe(fOperator);       }
+  default R visit(GOperator gOperator, P parameter)             { throw uoe(gOperator);       }
+  default R visit(Literal literal, P parameter)                 { throw uoe(literal);         }
+  default R visit(MOperator mOperator, P parameter)             { throw uoe(mOperator);       }
+  default R visit(UOperator uOperator, P parameter)             { throw uoe(uOperator);       }
+  default R visit(ROperator rOperator, P parameter)             { throw uoe(rOperator);       }
+  default R visit(WOperator wOperator, P parameter)             { throw uoe(wOperator);       }
+  default R visit(XOperator xOperator, P parameter)             { throw uoe(xOperator);       }
 
-  R visit(Conjunction conjunction, P parameter);
-
-  R visit(Disjunction disjunction, P parameter);
-
-  R visit(FOperator fOperator, P parameter);
-
-  R visit(GOperator gOperator, P parameter);
-
-  R visit(Literal literal, P parameter);
-
-  R visit(MOperator mOperator, P parameter);
-
-  R visit(UOperator uOperator, P parameter);
-
-  R visit(ROperator rOperator, P parameter);
-
-  R visit(WOperator wOperator, P parameter);
-
-  R visit(XOperator xOperator, P parameter);
-
+  private static UnsupportedOperationException uoe(Formula formula) {
+    return new UnsupportedOperationException("No action defined for " + formula.getClass());
+  }
 }

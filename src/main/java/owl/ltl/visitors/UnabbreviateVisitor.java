@@ -17,59 +17,25 @@
 
 package owl.ltl.visitors;
 
-import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser.TransformerParser;
 
-public class UnabbreviateVisitor extends DefaultConverter {
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("unabbreviate")
-    .optionsDirect(new Options()
-      .addOption("w", "weak-until", false, "Remove W operator")
-      .addOption("r", "release", false, "Remove R operator")
-      .addOption("m", "strong-release", false, "Remove M operator")
-    ).parser(settings -> {
-      Set<Class<? extends Formula>> classes = new HashSet<>();
-      if (settings.hasOption("weak-until")) {
-        classes.add(WOperator.class);
-      }
-
-      if (settings.hasOption("release")) {
-        classes.add(ROperator.class);
-      }
-
-      if (settings.hasOption("strong-release")) {
-        classes.add(MOperator.class);
-      }
-
-      if (classes.isEmpty()) {
-        throw new ParseException("No operation specified");
-      }
-
-      return DefaultConverter.asTransformer(new UnabbreviateVisitor(classes));
-    })
-    .build();
+public class UnabbreviateVisitor extends Converter {
 
   private final Set<Class<? extends Formula>> classes;
 
   @SafeVarargs
   public UnabbreviateVisitor(Class<? extends Formula>... classes) {
+    super(SyntacticFragment.NNF.classes());
     this.classes = Set.of(classes);
-  }
-
-  private UnabbreviateVisitor(Set<Class<? extends Formula>> classes) {
-    this.classes = Set.copyOf(classes);
   }
 
   @Override

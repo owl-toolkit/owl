@@ -17,6 +17,7 @@
 
 package owl.ltl;
 
+import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -27,15 +28,34 @@ import owl.ltl.visitors.Visitor;
  */
 public final class XOperator extends UnaryModalOperator {
 
-  public XOperator(Formula f) {
-    super(f);
+  public XOperator(Formula operand) {
+    super(operand);
   }
 
+  /**
+   * Construct a LTL-equivalent formula for X(operand). The method examines the operand and might
+   * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
+   * In order to syntactically construct X(operand) use the constructor.
+   *
+   * @param operand the operand of the X-operator
+   * @return a formula equivalent to X(operand)
+   */
   public static Formula of(Formula operand) {
     return of(operand, 1);
   }
 
+  /**
+   * Construct a LTL-equivalent formula for X^n(operand). The method examines the operand and might
+   * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
+   * In order to syntactically construct X^n(operand) use the constructor.
+   *
+   * @param operand the operand of the X-operator
+   * @param n the number of X-operators to add
+   * @return a formula equivalent to X^n(operand)
+   */
   public static Formula of(Formula operand, int n) {
+    Preconditions.checkArgument(n >= 0, "n must be non-negative.");
+
     if (operand instanceof BooleanConstant) {
       return operand;
     }
@@ -82,6 +102,11 @@ public final class XOperator extends UnaryModalOperator {
   @Override
   public boolean isSuspendable() {
     return operand.isSuspendable();
+  }
+
+  @Override
+  public Formula nnf() {
+    return XOperator.of(operand.nnf());
   }
 
   @Override

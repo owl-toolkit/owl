@@ -6,6 +6,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Booleans;
 import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.set.NatCartesianProductIterator;
@@ -54,19 +55,15 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
-import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PrintVisitor;
-import owl.run.Environment;
 import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
 import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
 import owl.util.IntBiConsumer;
@@ -80,7 +77,7 @@ public class RabinizerBuilder {
   private static final MonitorAutomaton[] EMPTY_MONITORS = new MonitorAutomaton[0];
   private static final GOperator[] EMPTY_G_OPERATORS = new GOperator[0];
 
-  static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
+  private static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
 
   private final RabinizerConfiguration configuration;
   private final EquivalenceClassFactory eqFactory;
@@ -89,7 +86,8 @@ public class RabinizerBuilder {
   private final ProductStateFactory productStateFactory;
   private final ValuationSetFactory vsFactory;
 
-  RabinizerBuilder(RabinizerConfiguration configuration, Factories factories, Formula formula) {
+  private RabinizerBuilder(RabinizerConfiguration configuration, Factories factories,
+    Formula formula) {
     EquivalenceClass initialClass = factories.eqFactory.of(formula);
 
     this.configuration = configuration;
@@ -97,7 +95,8 @@ public class RabinizerBuilder {
     boolean fairnessFragment = configuration.eager()
       && initialClass.atomicPropositions().isEmpty()
       && initialClass.modalOperators().stream()
-      .allMatch(support -> Fragments.isInfinitelyOften(support) || Fragments.isAlmostAll(support));
+      .allMatch(support -> SyntacticFragment.isInfinitelyOften(support)
+        || SyntacticFragment.isAlmostAll(support));
 
     vsFactory = factories.vsFactory;
     eqFactory = factories.eqFactory;
@@ -137,16 +136,6 @@ public class RabinizerBuilder {
       monitorPriorities[relevantIndex] = edgePriorities;
     }
     return monitorPriorities;
-  }
-
-  private static int entries(boolean[] array) {
-    int count = 0;
-    for (boolean val : array) {
-      if (val) {
-        count += 1;
-      }
-    }
-    return count;
   }
 
   private static boolean isSuspendableScc(Set<EquivalenceClass> scc,
@@ -194,15 +183,15 @@ public class RabinizerBuilder {
   }
 
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinize(
-    Formula phi, Factories factories, RabinizerConfiguration configuration,
-    Environment env) {
+    Formula phi, Factories factories, RabinizerConfiguration configuration) {
+    Formula phiNormalized = SyntacticFragment.normalize(phi, SyntacticFragment.FGMU);
+
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
-
-    String formulaString = PrintVisitor.toString(phi, factories.eqFactory.variables());
+    String formulaString = PrintVisitor.toString(phiNormalized, factories.eqFactory.variables());
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      new RabinizerBuilder(configuration, factories, phi).build();
+      new RabinizerBuilder(configuration, factories, phiNormalized).build();
     rabinizerAutomaton.name("Rabinizer automaton for " + formulaString);
     return rabinizerAutomaton;
   }
@@ -409,7 +398,7 @@ public class RabinizerBuilder {
         BitSet sensitiveAlphabet = productStateFactory.getSensitiveAlphabet(state);
         PowerSetIterator activeSubFormulasIterator = new PowerSetIterator(relevantFormulas);
         boolean[] empty = activeSubFormulasIterator.next(); // Empty set is handled separately
-        assert entries(empty) == 0;
+        assert Booleans.countTrue(empty) == 0;
 
         while (activeSubFormulasIterator.hasNext()) {
           boolean[] activeSubFormulas = activeSubFormulasIterator.next();
@@ -430,7 +419,7 @@ public class RabinizerBuilder {
           while (rankingIterator.hasNext()) {
             rankingIndex += 1;
             int[] ranking = rankingIterator.next();
-            assert ranking.length == entries(activeSubFormulas);
+            assert ranking.length == Booleans.countTrue(activeSubFormulas);
             RabinPair pair = activeSet.getPairForRanking(rankingIndex);
 
             GSetRanking rankingPair = new GSetRanking(relevantFormulas, activeSubFormulas,
@@ -997,11 +986,12 @@ public class RabinizerBuilder {
     }
   }
 
-  static final class EvaluateVisitor extends DefaultConverter {
+  static final class EvaluateVisitor extends Converter {
     private final EquivalenceClass environment;
     private final EquivalenceClassFactory factory;
 
     EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
+      super(SyntacticFragment.FGMU.classes());
       this.factory = label.factory();
       this.environment = label.and(factory.of(
         Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));
@@ -1012,18 +1002,12 @@ public class RabinizerBuilder {
     }
 
     @Override
-    public Formula visit(Conjunction conjunction) {
-      // Implication check not necessary for conjunctions.
-      return Conjunction.of(conjunction.children.stream().map(e -> e.accept(this)));
-    }
-
-    @Override
     public Formula visit(Disjunction disjunction) {
       if (isImplied(disjunction)) {
         return BooleanConstant.TRUE;
       }
 
-      return Disjunction.of(disjunction.children.stream().map(e -> e.accept(this)));
+      return Disjunction.of(disjunction.map(e -> e.accept(this)));
     }
 
     @Override
@@ -1036,15 +1020,11 @@ public class RabinizerBuilder {
     }
 
     @Override
-    public Formula visit(FrequencyG freq) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Formula visit(GOperator gOperator) {
       if (isImplied(gOperator)) {
         return BooleanConstant.TRUE;
       }
+
       return BooleanConstant.of(BooleanConstant.TRUE == gOperator.operand.accept(this));
     }
 
@@ -1063,38 +1043,12 @@ public class RabinizerBuilder {
     }
 
     @Override
-    public Formula visit(ROperator rOperator) {
-      if (isImplied(rOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      if (BooleanConstant.TRUE == rOperator.right.accept(this)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return MOperator.of(rOperator.left, rOperator.right).accept(this);
-    }
-
-    @Override
     public Formula visit(UOperator uOperator) {
       if (isImplied(uOperator)) {
         return BooleanConstant.TRUE;
       }
 
       return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
-    }
-
-    @Override
-    public Formula visit(WOperator wOperator) {
-      if (isImplied(wOperator)) {
-        return BooleanConstant.TRUE;
-      }
-
-      if (BooleanConstant.TRUE == wOperator.left.accept(this)) {
-        return BooleanConstant.TRUE;
-      }
-
-      return UOperator.of(wOperator.left, wOperator.right).accept(this);
     }
 
     @Override

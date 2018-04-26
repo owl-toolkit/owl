@@ -17,15 +17,14 @@
 
 package owl.ltl.rewriter;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -53,6 +52,11 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
   }
 
   @Override
+  public Formula visit(Biconditional biconditional) {
+    return Biconditional.of(biconditional.left.accept(this), biconditional.right.accept(this));
+  }
+
+  @Override
   public Formula visit(BooleanConstant booleanConstant) {
     return booleanConstant;
   }
@@ -69,8 +73,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    Set<Formula> newConjunction = conjunction.children.stream().map(x -> x.accept(this))
-      .collect(Collectors.toSet());
+    Set<Formula> newConjunction = conjunction.map(x -> x.accept(this)).collect(Collectors.toSet());
 
     // Short-circuit conjunction if it contains x and !x.
     if (newConjunction.stream().anyMatch(x -> newConjunction.contains(x.not()))) {
@@ -120,8 +123,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
   @Override
   public Formula visit(Disjunction disjunction) {
-    Set<Formula> newDisjunction = disjunction.children.stream().map(x -> x.accept(this))
-      .collect(Collectors.toSet());
+    Set<Formula> newDisjunction = disjunction.map(x -> x.accept(this)).collect(Collectors.toSet());
 
     // Short-circuit disjunction if it contains x and !x.
     if (newDisjunction.stream().anyMatch(x -> newDisjunction.contains(x.not()))) {
@@ -207,12 +209,12 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       });
 
       if (!suspendable.isEmpty()) {
-        return Conjunction.of(Iterables.concat(suspendable,
-          List.of(FOperator.of(Conjunction.of(others)))));
+        suspendable.add(FOperator.of(Conjunction.of(others)));
+        return Conjunction.of(suspendable).accept(this);
       }
 
       if (others.stream().allMatch(Formula::isPureUniversal)) {
-        return Conjunction.of(others.stream().map(FOperator::of));
+        return Conjunction.of(others.stream().map(FOperator::of)).accept(this);
       }
     }
 
@@ -266,12 +268,12 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       });
 
       if (!suspendable.isEmpty()) {
-        return Disjunction.of(Iterables.concat(suspendable,
-          List.of(GOperator.of(Disjunction.of(others)))));
+        suspendable.add(GOperator.of(Disjunction.of(others)));
+        return Disjunction.of(suspendable).accept(this);
       }
 
       if (others.stream().allMatch(Formula::isPureEventual)) {
-        return Disjunction.of(others.stream().map(GOperator::of));
+        return Disjunction.of(others.stream().map(GOperator::of)).accept(this);
       }
     }
 
@@ -398,7 +400,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       return xOperator;
     }
 
-    return new XOperator(operand);
+    return XOperator.of(operand);
   }
 
   private static <T> Set<T> filter(Collection<Formula> collection, Class<T> clazz) {

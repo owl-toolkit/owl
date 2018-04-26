@@ -2,7 +2,7 @@ package owl.translations.ltl2ldba.breakpoint;
 
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Fragments;
+import owl.ltl.SyntacticFragment;
 import owl.translations.ldba2dpa.Language;
 import owl.translations.ldba2dpa.LanguageLattice;
 
@@ -23,7 +23,8 @@ public class EquivalenceClassLanguageLattice implements
   @Override
   public boolean acceptsLivenessLanguage(DegeneralizedBreakpointState state) {
     return isLivenessLanguage(state.obligations) && state.next.length == 0 && state.safety.isTrue()
-      && state.current.modalOperators().stream().allMatch(Fragments::isCoSafety);
+      && state.current.modalOperators().stream().allMatch(
+      formula -> SyntacticFragment.CO_SAFETY.contains(formula));
   }
 
   @Override
@@ -34,7 +35,7 @@ public class EquivalenceClassLanguageLattice implements
   @Override
   public boolean acceptsSafetyLanguage(DegeneralizedBreakpointState state) {
     return isSafetyAnnotation(state.obligations) && state.next.length == 0 && state.current
-      .modalOperators().stream().allMatch(Fragments::isSafety);
+      .modalOperators().stream().allMatch(formula -> SyntacticFragment.SAFETY.contains(formula));
   }
 
   @Override

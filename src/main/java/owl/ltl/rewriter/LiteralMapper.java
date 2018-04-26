@@ -4,11 +4,12 @@ import java.util.Arrays;
 import java.util.BitSet;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.Converter;
 
 public final class LiteralMapper {
-  static final int UNDEFINED = -1;
+  private static final int UNDEFINED = -1;
 
   private LiteralMapper() {}
 
@@ -28,11 +29,12 @@ public final class LiteralMapper {
     return new ShiftedFormula(formula.accept(new LiteralShifter(mapping)), mapping);
   }
 
-  static class LiteralShifter extends DefaultConverter {
+  private static class LiteralShifter extends Converter {
     private final int[] mapping;
 
     @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     LiteralShifter(int[] mapping) { // NOPMD
+      super(SyntacticFragment.ALL.classes());
       this.mapping = mapping;
     }
 

@@ -75,12 +75,7 @@
                 "noeager": "--noeager"
             },
             "pre": [
-                "simplify-ltl",
-                [
-                    "unabbreviate",
-                    "--release",
-                    "--weak-until"
-                ]
+                "simplify-ltl"
             ],
             "post": [
                 "minimize-aut"
@@ -92,12 +87,7 @@
             "output": "hoa",
             "name": "ltl2dgra",
             "pre": [
-                "simplify-ltl",
-                [
-                    "unabbreviate",
-                    "--release",
-                    "--weak-until"
-                ]
+                "simplify-ltl"
             ],
             "post": [
                 "minimize-aut",
@@ -112,11 +102,6 @@
             "name": "dra2dpa",
             "pre": [
                 "simplify-ltl",
-                [
-                    "unabbreviate",
-                    "--release",
-                    "--weak-until"
-                ],
                 "ltl2dgra",
                 "minimize-aut",
                 "dgra2dra"

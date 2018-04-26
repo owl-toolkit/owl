@@ -90,7 +90,7 @@ public class LiteralTest {
   }
 
   @SuppressWarnings("ResultOfObjectAllocationIgnored")
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IndexOutOfBoundsException.class)
   public void testConstructor() {
     new Literal(-1);
   }
