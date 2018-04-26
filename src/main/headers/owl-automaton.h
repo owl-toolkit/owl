@@ -99,7 +99,7 @@ namespace owl {
         Formula formula;
         std::map<int, int> alphabet_mapping;
 
-        Reference(Formula _formula, int _index, std::map<int, int> _alphabet_mapping) : formula(std::move(_formula)), index(_index), alphabet_mapping(std::move(_alphabet_mapping)) {};
+        Reference(Formula _formula, int _index, std::map<int, int> _alphabet_mapping) : index(_index), formula(std::move(_formula)), alphabet_mapping(std::move(_alphabet_mapping)) {};
     };
 
     enum Tag {
