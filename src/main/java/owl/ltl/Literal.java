@@ -17,10 +17,8 @@
 
 package owl.ltl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
+import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
@@ -46,7 +44,7 @@ public final class Literal extends AbstractFormula {
   }
 
   public Literal(@Nonnegative int index, boolean negate) {
-    checkArgument(index >= 0);
+    Objects.checkIndex(index, Integer.MAX_VALUE);
     this.index = negate ? -(index + 1) : index + 1;
     this.negation = new Literal(this);
   }
@@ -88,7 +86,7 @@ public final class Literal extends AbstractFormula {
 
   @Override
   protected int hashCodeOnce() {
-    return HashCommon.mix(index);
+    return Integer.hashCode(index);
   }
 
   public boolean isNegated() {
@@ -108,6 +106,11 @@ public final class Literal extends AbstractFormula {
   @Override
   public boolean isSuspendable() {
     return false;
+  }
+
+  @Override
+  public Formula nnf() {
+    return this;
   }
 
   @Override

@@ -32,14 +32,14 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
-import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.SyntacticFragment;
+import owl.ltl.visitors.PropositionalVisitor;
 import owl.translations.delag.DependencyTree.FallbackLeaf;
 import owl.translations.delag.DependencyTree.Leaf;
 import owl.translations.delag.DependencyTree.Type;
 
-class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
+class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
 
   private final ProductState.Builder<T> builder;
   private final Function<Formula, ? extends Automaton<T, ?>> constructor;
@@ -61,11 +61,11 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
   }
 
   @Override
-  protected DependencyTree<T> defaultAction(Formula formula) {
+  protected DependencyTree<T> modalOperatorAction(Formula formula) {
     return defaultAction(formula, null);
   }
 
-  protected DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
+  private DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
     Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber, () -> constructor.apply(formula),
       piggyback);
 
@@ -108,17 +108,17 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     List<DependencyTree<T>> children = new ArrayList<>();
 
     formulas.forEach(x -> {
-      if (Fragments.isFinite(x)) {
+      if (SyntacticFragment.FINITE.contains(x)) {
         finite.add(x);
         return;
       }
 
-      if (Fragments.isCoSafety(x)) {
+      if (SyntacticFragment.CO_SAFETY.contains(x)) {
         coSafety.add(x);
         return;
       }
 
-      if (Fragments.isSafety(x)) {
+      if (SyntacticFragment.SAFETY.contains(x)) {
         safety.add(x);
         return;
       }
@@ -148,7 +148,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     }
 
     if (!coSafety.isEmpty()) {
-      children.add(defaultAction(Disjunction.of(coSafety)));
+      children.add(modalOperatorAction(Disjunction.of(coSafety)));
     }
 
     return DependencyTree.createOr(children);
@@ -174,7 +174,7 @@ class DependencyTreeFactory<T> extends DefaultVisitor<DependencyTree<T>> {
     }
 
     if (!safety.isEmpty()) {
-      children.add(defaultAction(Conjunction.of(safety)));
+      children.add(modalOperatorAction(Conjunction.of(safety)));
     }
 
     if (!coSafety.isEmpty()) {

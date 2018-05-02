@@ -23,11 +23,8 @@ import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUM
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
 
-import java.util.EnumSet;
 import java.util.Set;
 import org.junit.Test;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.DefaultEnvironment;

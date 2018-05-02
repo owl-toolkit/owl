@@ -148,25 +148,17 @@ public class FormulaTest {
     Formula f4 = new UOperator(f3, f2);
 
     Formula f5 = SimplifierFactory.apply(new Disjunction(f2,
-      new FOperator(SimplifierFactory.apply(new Conjunction(new XOperator(f2), f3), Mode.SYNTACTIC
+      new FOperator(SimplifierFactory.apply(new Conjunction(XOperator.of(f2), f3), Mode.SYNTACTIC
       ))), Mode.SYNTACTIC
     );
     assertNotEquals(f4, f5);
   }
 
   @Test
-  public void testFormulaFactory7() {
-    Formula f1 = new Literal(0, false);
-    Formula f2 = new XOperator(f1);
-    Formula f3 = new FOperator(f2);
-    assertNotEquals("XFp1", f3.toString());
-  }
-
-  @Test
   public void testSimplifyAggressively1() {
     Formula f1 = new Literal(1, false);
     Formula f2 = new GOperator(new FOperator(f1));
-    Formula f3 = new XOperator(f1);
+    Formula f3 = XOperator.of(f1);
     Formula f4 = new GOperator(new FOperator(f3));
     assertEquals(SimplifierFactory.apply(f4, Mode.SYNTACTIC_FIXPOINT), f2);
   }
@@ -204,8 +196,8 @@ public class FormulaTest {
   public void testSimplifyForEntails2() {
     Formula f1 = new Literal(1, false);
 
-    Formula f4 = new XOperator(f1);
-    Formula f5 = new XOperator(new FOperator(f1));
+    Formula f4 = XOperator.of(f1);
+    Formula f5 = XOperator.of(new FOperator(f1));
     Formula f6 = SimplifierFactory.apply(new Disjunction(f4, f5), Mode.SYNTACTIC);
     assertNotEquals(f6,
       new XOperator(SimplifierFactory.apply(new Disjunction(f1, new FOperator(f1)), Mode.SYNTACTIC

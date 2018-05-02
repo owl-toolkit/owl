@@ -31,8 +31,8 @@ import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.Collector;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.FGSubstitution;
@@ -55,8 +55,8 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     EquivalenceClass initialState = factory.of(formula);
     Set<Formula> modalOperators = initialState.modalOperators();
 
-    if (modalOperators.stream().allMatch(Fragments::isCoSafety)
-      || modalOperators.stream().allMatch(Fragments::isSafety)) {
+    if (modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains)
+      || modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
       return new GObligationsJumpManager(initialState.factory(), optimisations, Set.of(), Set.of(),
         BooleanConstant.TRUE);
     }

@@ -30,7 +30,7 @@ import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Fragments;
+import owl.ltl.SyntacticFragment;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
@@ -51,7 +51,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   public DegeneralizedBreakpointState createState(EquivalenceClass remainder,
     GObligations obligations) {
-    assert remainder.modalOperators().stream().allMatch(Fragments::isCoSafety);
+    assert remainder.modalOperators().stream().allMatch(
+      SyntacticFragment.CO_SAFETY::contains);
 
     int length = obligations.obligations().size() + obligations.liveness().size();
 
@@ -60,7 +61,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass safety = obligations.safety();
     EquivalenceClass current = remainder;
 
-    if (remainder.modalOperators().stream().allMatch(Fragments::isSafety)) {
+    if (remainder.modalOperators().stream().allMatch(SyntacticFragment.SAFETY::contains)) {
       safety = current.and(safety);
       current = factories.eqFactory.getTrue();
     }

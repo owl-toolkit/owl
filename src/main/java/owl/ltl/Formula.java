@@ -42,10 +42,14 @@ public interface Formula {
 
   boolean isSuspendable();
 
+  Formula nnf();
+
   /**
    * Syntactically negate this formula.
    *
-   * @return The negation of this formula in NNF.
+   * <p>If this formula is in NNF, the returned negation will also be in NNF.</p>
+   *
+   * @return the negation of this formula.
    */
   Formula not();
 

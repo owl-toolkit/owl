@@ -92,6 +92,11 @@ public final class ROperator extends BinaryModalOperator {
   }
 
   @Override
+  public Formula nnf() {
+    return ROperator.of(left.nnf(), right.nnf());
+  }
+
+  @Override
   public Formula not() {
     return UOperator.of(left.not(), right.not());
   }

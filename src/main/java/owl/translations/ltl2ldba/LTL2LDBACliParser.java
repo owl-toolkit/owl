@@ -45,7 +45,7 @@ public final class LTL2LDBACliParser implements TransformerParser {
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2ldba")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFY_MODAL_ITER)
+      .addTransformer(Transformers.SIMPLIFIER)
       .addTransformer(INSTANCE)
       .writer(OutputWriters.HOA)
       .build());

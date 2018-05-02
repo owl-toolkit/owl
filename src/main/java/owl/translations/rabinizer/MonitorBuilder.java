@@ -34,8 +34,8 @@ import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.ltl.SyntacticFragment;
 
 final class MonitorBuilder {
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
@@ -55,11 +55,11 @@ final class MonitorBuilder {
     this.vsFactory = vsFactory;
 
     Set<Formula> modalOperators = operand.modalOperators();
-    boolean isCoSafety = modalOperators.stream().allMatch(Fragments::isCoSafety);
+    boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains);
 
     if (isCoSafety && gOperator.operand instanceof FOperator) {
       fragment = Fragment.EVENTUAL;
-    } else if (modalOperators.stream().allMatch(Fragments::isFinite)) {
+    } else if (modalOperators.stream().allMatch(SyntacticFragment.FINITE::contains)) {
       fragment = Fragment.FINITE;
     } else {
       fragment = Fragment.FULL;

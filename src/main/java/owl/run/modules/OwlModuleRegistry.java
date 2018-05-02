@@ -24,7 +24,6 @@ import owl.automaton.transformations.RabinDegeneralization;
 import owl.game.GameUtil;
 import owl.game.GameViews;
 import owl.ltl.rewriter.SimplifierTransformer;
-import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.modules.OwlModuleParser.ReaderParser;
 import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.parser.PipelineParser;
@@ -63,7 +62,7 @@ public class OwlModuleRegistry {
 
     // Transformer
     DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
-      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI, UnabbreviateVisitor.CLI);
+      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI);
 
     // Advanced constructions
     DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI, LTL2DA.CLI, NBA2LDBA.CLI,

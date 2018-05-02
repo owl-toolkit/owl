@@ -13,7 +13,7 @@ import owl.ltl.Literal;
 import owl.ltl.PropositionalFormula;
 import owl.ltl.XOperator;
 
-public class XDepthVisitor extends DefaultIntVisitor {
+public class XDepthVisitor implements IntVisitor {
 
   private static final Object2IntMap<Formula> CACHE = new Object2IntOpenHashMap<>();
   private static final XDepthVisitor INSTANCE = new XDepthVisitor();
@@ -26,13 +26,7 @@ public class XDepthVisitor extends DefaultIntVisitor {
 
     return CACHE.computeIfAbsent(formula, x -> x.accept(INSTANCE));
   }
-
-  @Nonnegative
-  @Override
-  protected int defaultAction(Formula formula) {
-    throw new UnsupportedOperationException();
-  }
-
+  
   @Nonnegative
   @Override
   public int visit(FOperator fOperator) {

@@ -18,6 +18,7 @@
 package owl.ltl.rewriter;
 
 import java.util.function.UnaryOperator;
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -42,18 +43,24 @@ class PushDownXVisitor implements BinaryVisitor<Integer, Formula>, UnaryOperator
   }
 
   @Override
+  public Formula visit(Biconditional biconditional, Integer parameter) {
+    return Biconditional.of(biconditional.left.accept(this, parameter),
+      biconditional.right.accept(this, parameter));
+  }
+
+  @Override
   public Formula visit(BooleanConstant booleanConstant, Integer parameter) {
     return booleanConstant;
   }
 
   @Override
   public Formula visit(Conjunction conjunction, Integer parameter) {
-    return Conjunction.of(conjunction.children.stream().map(x -> x.accept(this, parameter)));
+    return Conjunction.of(conjunction.map(x -> x.accept(this, parameter)));
   }
 
   @Override
   public Formula visit(Disjunction disjunction, Integer parameter) {
-    return Disjunction.of(disjunction.children.stream().map(x -> x.accept(this, parameter)));
+    return Disjunction.of(disjunction.map(x -> x.accept(this, parameter)));
   }
 
   @Override

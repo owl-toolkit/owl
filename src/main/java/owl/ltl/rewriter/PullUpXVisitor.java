@@ -17,18 +17,18 @@
 
 package owl.ltl.rewriter;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -49,34 +49,36 @@ class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<
   }
 
   @Override
+  public XFormula visit(Biconditional biconditional) {
+    XFormula right = biconditional.right.accept(this);
+    XFormula left = biconditional.left.accept(this);
+    left.formula = Biconditional.of(left.toFormula(right.depth), right.toFormula(left.depth));
+    left.depth = Math.min(left.depth, right.depth);
+    return left;
+  }
+
+  @Override
   public XFormula visit(BooleanConstant booleanConstant) {
     return new XFormula(0, booleanConstant);
   }
 
   @Override
   public XFormula visit(Conjunction conjunction) {
-    Collection<XFormula> children = conjunction.children.stream().map(c -> c.accept(this))
-      .collect(Collectors.toList());
+    List<XFormula> children = conjunction.map(c -> c.accept(this)).collect(Collectors.toList());
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
-    return new XFormula(depth, new Conjunction(children.stream().map(c -> c.toFormula(depth))));
+    return new XFormula(depth, Conjunction.of(children.stream().map(c -> c.toFormula(depth))));
   }
 
   @Override
   public XFormula visit(Disjunction disjunction) {
-    Collection<XFormula> children = disjunction.children.stream().map(c -> c.accept(this))
-      .collect(Collectors.toList());
+    List<XFormula> children = disjunction.map(c -> c.accept(this)).collect(Collectors.toList());
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
-    return new XFormula(depth, new Disjunction(children.stream().map(c -> c.toFormula(depth))));
+    return new XFormula(depth, Disjunction.of(children.stream().map(c -> c.toFormula(depth))));
   }
 
   @Override
   public XFormula visit(FOperator fOperator) {
     return visit(fOperator, FOperator::of);
-  }
-
-  @Override
-  public XFormula visit(FrequencyG freq) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -144,7 +146,7 @@ class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<
       int i = depth - newDepth;
 
       for (; i > 0; i--) {
-        formula = new XOperator(formula);
+        formula = XOperator.of(formula);
       }
 
       return formula;

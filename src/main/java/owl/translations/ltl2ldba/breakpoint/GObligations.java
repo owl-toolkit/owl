@@ -31,8 +31,8 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
 import owl.ltl.GOperator;
+import owl.ltl.SyntacticFragment;
 import owl.translations.ltl2ldba.FGSubstitution;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.RecurringObligation;
@@ -93,7 +93,7 @@ public abstract class GObligations implements RecurringObligation {
       if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
         Set<Formula> modalOperators = clazz.modalOperators();
 
-        if (modalOperators.stream().allMatch(Fragments::isSafety)) {
+        if (modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
           safety = safety.and(clazz);
 
           if (safety.isFalse()) {

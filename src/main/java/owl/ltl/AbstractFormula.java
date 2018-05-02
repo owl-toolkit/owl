@@ -9,6 +9,7 @@ public abstract class AbstractFormula implements Formula {
     if (this == o) {
       return true;
     }
+
     if (o == null || !getClass().equals(o.getClass())) {
       return false;
     }
@@ -22,6 +23,7 @@ public abstract class AbstractFormula implements Formula {
     if (hashCode == 0) {
       hashCode = hashCodeOnce();
     }
+
     return hashCode;
   }
 

@@ -9,14 +9,12 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.MOperator;
-import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
-import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.Visitor;
 
 final class MonitorStateFactory extends RabinizerStateFactory {
@@ -72,7 +70,10 @@ final class MonitorStateFactory extends RabinizerStateFactory {
     return sensitiveAlphabet;
   }
 
-  private static final class MonitorUnfoldVisitor extends DefaultConverter {
+  private static final class MonitorUnfoldVisitor extends Converter {
+    private MonitorUnfoldVisitor() {
+      super(SyntacticFragment.FGMU.classes());
+    }
     /*
      * This (currently) is needed to do monitor state unfolding. A substitution visitor akin to
      * f -> f instanceof GOperator ? f : f.unfold() is not sufficient, as the G operators get
@@ -104,21 +105,6 @@ final class MonitorStateFactory extends RabinizerStateFactory {
     public Formula visit(MOperator mOperator) {
       return Conjunction.of(mOperator.right.accept(this),
         Disjunction.of(mOperator.left.accept(this), mOperator));
-    }
-
-    @Override
-    public Formula visit(FrequencyG freq) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Formula visit(WOperator wOperator) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Formula visit(ROperator rOperator) {
-      throw new UnsupportedOperationException();
     }
   }
 }

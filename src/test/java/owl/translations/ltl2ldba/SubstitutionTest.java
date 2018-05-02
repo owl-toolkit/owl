@@ -6,14 +6,9 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
-import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.ltl.GOperator;
-import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
-import owl.translations.ltl2ldba.FGSubstitution;
 
 public class SubstitutionTest {
 

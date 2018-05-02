@@ -78,6 +78,11 @@ public class FrequencyG extends GOperator {
   }
 
   @Override
+  public Formula nnf() {
+    return new FrequencyG(operand.nnf(), bound, cmp, limes);
+  }
+
+  @Override
   public FrequencyG not() {
     return new FrequencyG(operand.not(), 1.0 - bound, cmp.theOther(), limes.theOther());
   }

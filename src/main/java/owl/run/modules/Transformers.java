@@ -1,8 +1,9 @@
 package owl.run.modules;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.ltl.rewriter.SimplifierFactory.Mode;
+import static owl.ltl.rewriter.SimplifierFactory.apply;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -11,19 +12,12 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
-import owl.ltl.ROperator;
-import owl.ltl.WOperator;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.Environment;
 import owl.translations.dra2dpa.IARBuilder;
 
 public final class Transformers {
-  public static final Transformer SIMPLIFY_MODAL_ITER =
-    Transformers.fromFunction(LabelledFormula.class,
-      x -> SimplifierFactory.apply(x, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
-  public static final Transformer UNABBREVIATE_RW = Transformers.fromFunction(LabelledFormula.class,
-    x -> x.convert(new UnabbreviateVisitor(ROperator.class, WOperator.class)));
+  public static final Transformer SIMPLIFIER = Transformers.fromFunction(
+    LabelledFormula.class, x -> apply(x, Mode.SYNTACTIC_FIXPOINT));
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();
   public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();
   public static final Transformer RABIN_TO_PARITY = environment -> (input, context) ->

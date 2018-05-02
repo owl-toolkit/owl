@@ -6,7 +6,6 @@ import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.ALWAYS;
 import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.AUTO;
 import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.NEVER;
 
-import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.collections.LabelledTree;
@@ -188,7 +187,8 @@ public class JniEmersonLeiAutomatonTest {
 
     var automaton = JniEmersonLeiAutomaton.of(
       specification.toFormula().formula(), true, false, AUTO, true);
+    assertThat(automaton.automata.size(), Matchers.is(2));
     assertThat(automaton.automata.get(0).size(), Matchers.is(1));
-    assertThat(automaton.automata.get(1).size(), Matchers.isIn(List.of(67, 99)));
+    assertThat(automaton.automata.get(1).size(), Matchers.is(2));
   }
 }

@@ -29,7 +29,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Fragments;
+import owl.ltl.SyntacticFragment;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
@@ -64,7 +64,8 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     EquivalenceClass safety = obligations.safety();
 
-    if (theRemainder.modalOperators().stream().allMatch(Fragments::isFinite)) {
+    if (theRemainder.modalOperators().stream().allMatch(
+      formula -> SyntacticFragment.FINITE.contains(formula))) {
       safety = theRemainder.and(safety);
       theRemainder = factories.eqFactory.getTrue();
     }

@@ -29,13 +29,13 @@ public class RealizabilityRewriterTest {
       }
     });
 
-    List<Formula> split1 = RealizabilityRewriter.split(formula.formula(), inputMask);
-    Formula f1 = LtlParser.syntax("G (i3 <-> o3)", formula.variables());
-    Formula f2 = LtlParser.syntax("G (i3 <-> o4)", formula.variables());
+    List<Formula> split1 = RealizabilityRewriter.split(formula.formula().nnf(), inputMask);
+    Formula f1 = LtlParser.syntax("G (i3 <-> o3)", formula.variables()).nnf();
+    Formula f2 = LtlParser.syntax("G (i3 <-> o4)", formula.variables()).nnf();
     assertThat(split1, Matchers.containsInAnyOrder(f1, f2));
 
-    Formula before = LtlParser.syntax("(G (x <-> y)) & z");
-    Formula after = LtlParser.syntax("G (x <-> y)");
+    Formula before = LtlParser.syntax("(G (x <-> y)) & z").nnf();
+    Formula after = LtlParser.syntax("G (x <-> y)").nnf();
     Map<Integer, Boolean> map = new HashMap<>();
     Formula[] split2 = RealizabilityRewriter.split(before, 1, map);
     assertThat(split2, Matchers.is(new Formula[] {after}));

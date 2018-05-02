@@ -20,12 +20,13 @@ package owl.ltl.rewriter;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.PropositionalFormula;
-import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NormalForms {
   private static final ConjunctiveNormalFormVisitor CNF = new ConjunctiveNormalFormVisitor();
@@ -54,15 +55,20 @@ public final class NormalForms {
   }
 
   private static final class ConjunctiveNormalFormVisitor
-    extends DefaultVisitor<Set<Set<Formula>>> {
+    extends PropositionalVisitor<Set<Set<Formula>>> {
 
     private static void minimise(Set<Set<Formula>> cnf) {
       cnf.removeIf(x -> cnf.stream().anyMatch(y -> x.size() < y.size() && y.containsAll(x)));
     }
 
     @Override
-    protected Set<Set<Formula>> defaultAction(Formula formula) {
+    protected Set<Set<Formula>> modalOperatorAction(Formula formula) {
       return Set.of(Set.of(formula));
+    }
+
+    @Override
+    public Set<Set<Formula>> visit(Biconditional biconditional) {
+      return biconditional.nnf().accept(this);
     }
 
     @Override
@@ -105,15 +111,20 @@ public final class NormalForms {
   }
 
   private static final class DisjunctiveNormalFormVisitor
-    extends DefaultVisitor<Set<Set<Formula>>> {
+    extends PropositionalVisitor<Set<Set<Formula>>> {
 
     private static void minimise(Set<Set<Formula>> dnf) {
       dnf.removeIf(x -> dnf.stream().anyMatch(y -> x.size() > y.size() && x.containsAll(y)));
     }
 
     @Override
-    protected Set<Set<Formula>> defaultAction(Formula formula) {
+    protected Set<Set<Formula>> modalOperatorAction(Formula formula) {
       return Set.of(Set.of(formula));
+    }
+
+    @Override
+    public Set<Set<Formula>> visit(Biconditional biconditional) {
+      return biconditional.nnf().accept(this);
     }
 
     @Override

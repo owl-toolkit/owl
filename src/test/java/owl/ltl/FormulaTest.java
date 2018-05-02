@@ -18,6 +18,7 @@
 package owl.ltl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.BitSet;
@@ -35,7 +36,36 @@ import owl.ltl.visitors.Collector;
 @RunWith(Theories.class)
 public class FormulaTest {
   @DataPoints
-  public static final List<Formula> FORMULAS;
+  public static final List<Formula> FORMULAS = List.of(
+    LtlParser.syntax("true"),
+    LtlParser.syntax("false"),
+    LtlParser.syntax("a"),
+
+    LtlParser.syntax("! a"),
+    LtlParser.syntax("a & b"),
+    LtlParser.syntax("a | b"),
+    LtlParser.syntax("a -> b"),
+    LtlParser.syntax("a <-> b"),
+    LtlParser.syntax("a xor b"),
+
+    LtlParser.syntax("F a"),
+    LtlParser.syntax("G a"),
+    LtlParser.syntax("X a"),
+
+    LtlParser.syntax("a U b"),
+    LtlParser.syntax("a R b"),
+    LtlParser.syntax("a W b"),
+    LtlParser.syntax("a M b"),
+
+    LtlParser.syntax("F ((a W b) & c)"),
+    LtlParser.syntax("F ((a R b) & c)"),
+    LtlParser.syntax("G ((a M b) | c)"),
+    LtlParser.syntax("G ((a U b) | c)"),
+
+    LtlParser.syntax("G (X (a <-> b))"),
+    LtlParser.syntax("G (X (a xor b))"),
+    LtlParser.syntax("(a <-> b) xor (c <-> d)"));
+
   @DataPoint
   public static final BitSet ONE = new BitSet();
   @DataPoint
@@ -46,34 +76,6 @@ public class FormulaTest {
   public static final BitSet ZERO = new BitSet();
 
   static {
-    // TODO: Provide central Formula Database.
-    FORMULAS = List.of(
-      LtlParser.syntax("true"),
-      LtlParser.syntax("false"),
-      LtlParser.syntax("a"),
-
-      LtlParser.syntax("! a"),
-      LtlParser.syntax("a & b"),
-      LtlParser.syntax("a | b"),
-      LtlParser.syntax("a -> b"),
-      LtlParser.syntax("a xor b"),
-
-      LtlParser.syntax("F a"),
-      LtlParser.syntax("G a"),
-      LtlParser.syntax("X a"),
-
-      LtlParser.syntax("a U b"),
-      LtlParser.syntax("a R b"),
-      LtlParser.syntax("a W b"),
-      LtlParser.syntax("a M b"),
-
-      LtlParser.syntax("F ((a W b) & c)"),
-      LtlParser.syntax("F ((a R b) & c)"),
-      LtlParser.syntax("G ((a M b) | c)"),
-      LtlParser.syntax("G ((a U b) | c)"));
-  }
-
-  static {
     ONE.set(0);
     TWO.set(1);
     THREE.set(0, 2);
@@ -82,7 +84,7 @@ public class FormulaTest {
   @Theory
   public void allMatch(Formula formula) {
     Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
-    assertTrue(formula.allMatch(x -> x instanceof BooleanConstant
+    assertTrue(formula.allMatch(x -> x instanceof Biconditional || x instanceof BooleanConstant
       || x instanceof PropositionalFormula || subformulas.contains(x)));
   }
 
@@ -99,6 +101,16 @@ public class FormulaTest {
   public void isSuspendable(Formula formula) {
     assertTrue(!formula.isSuspendable() || formula.isPureUniversal());
     assertTrue(!formula.isSuspendable() || formula.isPureEventual());
+  }
+
+  @Theory
+  public void nnf(Formula formula) {
+    if (SyntacticFragment.NNF.contains(formula)) {
+      assertEquals(formula, formula.nnf());
+    } else {
+      assertNotEquals(formula, formula.nnf());
+      assertEquals(formula.nnf(), formula.nnf().nnf());
+    }
   }
 
   @Theory

@@ -19,8 +19,8 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.EquivalenceClass;
-import owl.ltl.Fragments;
 import owl.ltl.LabelledFormula;
+import owl.ltl.SyntacticFragment;
 import owl.run.Environment;
 import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
@@ -53,7 +53,7 @@ public final class SimpleTranslations {
 
   public static Automaton<EquivalenceClass, BuchiAcceptance> buildCoSafety(LabelledFormula formula,
     Environment env) {
-    Preconditions.checkArgument(Fragments.isCoSafety(formula.formula()),
+    Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula.formula()),
       "Formula is not from the syntactic co-safety fragment.");
 
     var supplier = env.factorySupplier();
@@ -94,7 +94,7 @@ public final class SimpleTranslations {
 
   public static Automaton<EquivalenceClass, AllAcceptance> buildSafety(LabelledFormula formula,
     Environment env) {
-    Preconditions.checkArgument(Fragments.isSafety(formula.formula()),
+    Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula.formula()),
       "Formula is not from the syntactic safety fragment.");
 
     var supplier = env.factorySupplier();

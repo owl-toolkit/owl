@@ -103,7 +103,7 @@ namespace owl {
     };
 
     enum Tag {
-        CONJUNCTION, DISJUNCTION
+        BICONDITIONAL, CONJUNCTION, DISJUNCTION
     };
 
     enum SafetySplitting {

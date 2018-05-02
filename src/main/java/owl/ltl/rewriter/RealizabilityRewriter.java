@@ -13,8 +13,9 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.DefaultConverter;
+import owl.ltl.visitors.Converter;
 
 public final class RealizabilityRewriter {
   private static final Formula[] EMPTY = new Formula[0];
@@ -93,7 +94,7 @@ public final class RealizabilityRewriter {
     return var.toArray(EMPTY);
   }
 
-  static class AtomSimplifier extends DefaultConverter {
+  static class AtomSimplifier extends Converter {
     final BooleanConstant constant;
     final BitSet singleAtoms;
     final Map<Integer, Boolean> fixedValuations;
@@ -101,6 +102,7 @@ public final class RealizabilityRewriter {
     @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     AtomSimplifier(BooleanConstant constant, BitSet singleAtoms,
       Map<Integer, Boolean> fixedValuations) {
+      super(SyntacticFragment.ALL.classes());
       this.constant = constant;
       this.singleAtoms = singleAtoms;
       this.fixedValuations = fixedValuations;

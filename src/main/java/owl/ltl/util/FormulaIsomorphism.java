@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.collections.Collections3;
+import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -64,9 +65,18 @@ public final class FormulaIsomorphism {
   private static class ValidationVisitor implements BinaryVisitor<Formula, Boolean> {
     private final int[] mapping;
 
-    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    ValidationVisitor(int[] mapping) {
+    private ValidationVisitor(int[] mapping) {
       this.mapping = mapping;
+    }
+
+    @Override
+    public Boolean visit(Biconditional biconditional, Formula formula) {
+      if (!(formula instanceof Biconditional)) {
+        return Boolean.FALSE;
+      }
+
+      return biconditional.left.accept(this, ((Biconditional) formula).left)
+        && biconditional.right.accept(this, ((Biconditional) formula).right);
     }
 
     @Override

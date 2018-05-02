@@ -33,7 +33,7 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.Fragments;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.XDepthVisitor;
@@ -53,7 +53,7 @@ abstract class DependencyTree<T> {
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
     Supplier<Automaton<T, ?>> fallback,
     @Nullable AtomAcceptance piggyback) {
-    if (Fragments.isCoSafety(formula)) {
+    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
       if (piggyback == null) {
         return new Leaf<>(formula, Type.CO_SAFETY, acceptanceSet);
       } else {
@@ -61,7 +61,7 @@ abstract class DependencyTree<T> {
       }
     }
 
-    if (Fragments.isSafety(formula)) {
+    if (SyntacticFragment.SAFETY.contains(formula)) {
       if (piggyback == null) {
         return new Leaf<>(formula, Type.SAFETY, acceptanceSet);
       } else {
@@ -69,12 +69,12 @@ abstract class DependencyTree<T> {
       }
     }
 
-    if (Fragments.isFgx(formula)) {
-      if (Fragments.isAlmostAll(formula)) {
+    if (SyntacticFragment.FGX.contains(formula)) {
+      if (SyntacticFragment.isAlmostAll(formula)) {
         return new Leaf<>(formula, Type.LIMIT_FG, acceptanceSet);
       }
 
-      if (Fragments.isInfinitelyOften(formula)) {
+      if (SyntacticFragment.isInfinitelyOften(formula)) {
         return new Leaf<>(formula, Type.LIMIT_GF, acceptanceSet);
       }
     }
@@ -140,7 +140,7 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety().containsKey(leaf.formula)
-        && (Fragments.isFinite(leaf.formula) || leaf.type == Type.CO_SAFETY);
+        && (SyntacticFragment.FINITE.contains(leaf.formula) || leaf.type == Type.CO_SAFETY);
     }
 
     @Override
@@ -513,7 +513,7 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety().containsKey(leaf.formula)
-        && (Fragments.isFinite(leaf.formula) || leaf.type == Type.SAFETY);
+        && (SyntacticFragment.FINITE.contains(leaf.formula) || leaf.type == Type.SAFETY);
     }
 
     @Override

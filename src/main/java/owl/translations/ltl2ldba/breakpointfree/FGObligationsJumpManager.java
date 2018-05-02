@@ -56,7 +56,7 @@ import owl.ltl.XOperator;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.visitors.Collector;
-import owl.ltl.visitors.DefaultVisitor;
+import owl.ltl.visitors.Visitor;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
@@ -196,7 +196,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     return factory.of(evaluated);
   }
 
-  abstract static class AbstractReplaceOperatorsVisitor extends DefaultVisitor<Formula> {
+  abstract static class AbstractReplaceOperatorsVisitor implements Visitor<Formula> {
     @Override
     public Formula visit(BooleanConstant booleanConstant) {
       return booleanConstant;
@@ -224,9 +224,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   @VisibleForTesting
-  abstract static class AbstractSelectVisitor
-    extends DefaultVisitor<List<Set<UnaryModalOperator>>> {
-
+  abstract static class AbstractSelectVisitor implements Visitor<List<Set<UnaryModalOperator>>> {
     protected static <T> List<Set<T>> and(List<Set<T>> conjunct1, List<Set<T>> conjunct2) {
       return and(List.of(conjunct1, conjunct2));
     }
@@ -557,8 +555,33 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     static final ToplevelSelectVisitor INSTANCE = new ToplevelSelectVisitor();
 
     @Override
-    protected List<Set<UnaryModalOperator>> defaultAction(Formula formula) {
-      return formula.accept(FScopedSelectVisitor.INSTANCE);
+    public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {
+      return fOperator.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(GOperator gOperator) {
+      return gOperator.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(MOperator mOperator) {
+      return mOperator.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(ROperator rOperator) {
+      return rOperator.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(UOperator uOperator) {
+      return uOperator.accept(FScopedSelectVisitor.INSTANCE);
+    }
+
+    @Override
+    public List<Set<UnaryModalOperator>> visit(WOperator wOperator) {
+      return wOperator.accept(FScopedSelectVisitor.INSTANCE);
     }
 
     @Override

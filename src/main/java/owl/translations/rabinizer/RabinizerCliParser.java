@@ -51,7 +51,7 @@ public final class RabinizerCliParser implements TransformerParser {
 
     return environment -> Transformers.instanceFromFunction(LabelledFormula.class, formula -> {
       Factories factories = environment.factorySupplier().getFactories(formula.variables());
-      return RabinizerBuilder.rabinize(formula.formula(), factories, configuration, environment);
+      return RabinizerBuilder.rabinize(formula.formula(), factories, configuration);
     });
   }
 }

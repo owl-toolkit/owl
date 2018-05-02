@@ -25,7 +25,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.DefaultIntVisitor;
+import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 
 final class SatisfactionRelation {
@@ -48,7 +48,7 @@ final class SatisfactionRelation {
     return xDepth <= past.size() && formula.accept(new Evaluator(past, present, xDepth)) == 1;
   }
 
-  private static class Evaluator extends DefaultIntVisitor {
+  private static class Evaluator implements IntVisitor {
 
     private final History past;
     private final BitSet present;

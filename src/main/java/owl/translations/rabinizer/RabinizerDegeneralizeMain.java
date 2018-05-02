@@ -12,7 +12,7 @@ public final class RabinizerDegeneralizeMain {
   public static void main(String... args) {
     PartialConfigurationParser.run(args,  PartialModuleConfiguration.builder("ltl2dra")
       .reader(InputReaders.LTL)
-      .addTransformer(RabinizerMain.SIMPLIFIER, Transformers.UNABBREVIATE_RW)
+      .addTransformer(Transformers.SIMPLIFIER)
       .addTransformer(RabinizerCliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION)
       .writer(OutputWriters.HOA)
