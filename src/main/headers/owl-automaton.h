@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <limits>
 
 #include <jni.h>
 
@@ -90,7 +91,7 @@ namespace owl {
         int successor;
         int colour;
 
-        Edge() : successor(-1), colour(-1) {};
+        Edge() : successor(std::numeric_limits<int>::min()), colour(std::numeric_limits<int>::min()) {};
         Edge(int _successor, int _colour) : successor(_successor), colour(_colour) {};
     };
 

@@ -29,7 +29,7 @@ public class SafetyDetector {
   public static boolean hasSafetyCore(EquivalenceClass state, boolean substitutionAnalysis) {
     Set<Formula> modalOperators = state.modalOperators();
 
-    if (modalOperators.stream().allMatch(formula -> SyntacticFragment.SAFETY.contains(formula))) {
+    if (modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
       return true;
     }
 

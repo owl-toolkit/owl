@@ -17,6 +17,7 @@ import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.PropositionalFormula;
@@ -30,6 +31,7 @@ import owl.ltl.visitors.SubstitutionVisitor;
 import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.SimpleTranslations;
+import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 // This is a JNI entry point. No touching.
@@ -157,23 +159,34 @@ public class JniEmersonLeiAutomaton {
       }
 
       LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
-      JniAutomaton automaton;
-
       LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
 
+      JniAutomaton<?> automaton;
+
       if (SyntacticFragment.SAFETY.contains(shiftedFormula.formula)) {
-        automaton = new JniAutomaton(SimpleTranslations.buildSafety(labelledFormula, environment));
+        automaton = new JniAutomaton<>(SimpleTranslations.buildSafety(labelledFormula, environment),
+          EquivalenceClass::isTrue);
       } else if (SyntacticFragment.CO_SAFETY.contains(shiftedFormula.formula)) {
         // Acceptance needs to be overridden, since detection does not work in this case.
-        automaton = new JniAutomaton(SimpleTranslations.buildCoSafety(labelledFormula, environment),
+        automaton = new JniAutomaton<>(
+          SimpleTranslations.buildCoSafety(labelledFormula, environment), EquivalenceClass::isTrue,
           Acceptance.CO_SAFETY);
       } else if (SyntacticFragment.isDetBuchiRecognisable(shiftedFormula.formula)) {
-        automaton = new JniAutomaton(SimpleTranslations.buildBuchi(labelledFormula, environment));
+        automaton = new JniAutomaton<>(SimpleTranslations.buildBuchi(labelledFormula, environment),
+        x -> false);
       } else if (SyntacticFragment.isDetCoBuchiRecognisable(shiftedFormula.formula)) {
-        automaton = new JniAutomaton(SimpleTranslations.buildCoBuchi(labelledFormula, environment));
+        automaton = new JniAutomaton<>(
+          SimpleTranslations.buildCoBuchi(labelledFormula, environment), x -> false);
       } else {
         // Fallback to DPA
-        automaton = new JniAutomaton(translator.apply(labelledFormula));
+        automaton = new JniAutomaton<>(translator.apply(labelledFormula), x -> {
+          if (x instanceof FlatRankingState) {
+            FlatRankingState y = (FlatRankingState) x;
+            return y.state() instanceof EquivalenceClass && ((EquivalenceClass) y.state()).isTrue();
+          } else {
+            return false;
+          }
+        });
       }
 
       automata.add(automaton);

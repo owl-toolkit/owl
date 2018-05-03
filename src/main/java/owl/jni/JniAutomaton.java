@@ -17,6 +17,7 @@
 
 package owl.jni;
 
+import com.google.common.base.Preconditions;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -24,6 +25,7 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
@@ -40,14 +42,21 @@ import owl.ltl.EquivalenceClass;
 
 // This is a JNI entry point. No touching.
 @SuppressWarnings({"unused"})
-public final class JniAutomaton {
-  private static final int NO_COLOUR = -1;
-  private static final int NO_STATE = -1;
+public final class JniAutomaton<S> {
+
+  private static final int ACCEPTING_COLOUR = -2;
+  private static final int ACCEPTING_STATE = -2;
+
+  private static final int REJECTING_COLOUR = -1;
+  private static final int REJECTING_STATE = -1;
+
+  private static final int UNKNOWN_STATE = Integer.MIN_VALUE;
 
   private final Acceptance acceptance;
-  private final Automaton<Object, ?> automaton;
-  private final List<Object> int2StateMap;
-  private final Object2IntMap<Object> state2intMap;
+  private final Predicate<S> acceptingSink;
+  private final Automaton<S, ?> automaton;
+  private final List<S> int2StateMap;
+  private final Object2IntMap<S> state2intMap;
 
   @Nullable
   private SoftReference<int[]> edgesCache;
@@ -55,34 +64,23 @@ public final class JniAutomaton {
   @Nullable
   private SoftReference<int[]> successorsCache;
 
-  JniAutomaton(Automaton<?, ?> automaton) {
-    this(automaton, detectAcceptance(automaton));
+  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink) {
+    this(automaton, acceptingSink, detectAcceptance(automaton));
   }
 
-  JniAutomaton(Automaton<?, ?> automaton, Acceptance acceptance) {
-    if (automaton.initialStates().isEmpty()) {
-      this.automaton = AutomatonFactory.singleton(new Object(), automaton.factory(),
-        BuchiAcceptance.INSTANCE);
-    } else {
-      this.automaton = AutomatonUtil.cast(automaton, Object.class, OmegaAcceptance.class);
-    }
+  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink, Acceptance acceptance) {
+    Preconditions.checkArgument(automaton.initialStates().size() == 1);
+
+    this.automaton = automaton;
+    this.acceptance = acceptance;
+    this.acceptingSink = acceptingSink;
 
     int2StateMap = new ArrayList<>();
     int2StateMap.add(this.automaton.initialState());
 
     state2intMap = new Object2IntOpenHashMap<>();
     state2intMap.put(this.automaton.initialState(), 0);
-    state2intMap.defaultReturnValue(NO_STATE);
-
-    this.acceptance = acceptance;
-
-    // Fix accepting sink to id 1.
-    if (acceptance == Acceptance.CO_SAFETY) {
-      EquivalenceClass trueClass =
-        ((EquivalenceClass) this.automaton.initialState()).factory().getTrue();
-      int index = lookup(trueClass);
-      assert index == 1;
-    }
+    state2intMap.defaultReturnValue(UNKNOWN_STATE);
   }
 
   private static JniAutomaton.Acceptance detectAcceptance(Automaton<?, ?> automaton) {
@@ -151,7 +149,7 @@ public final class JniAutomaton {
   }
 
   public int[] edges(int state) {
-    Object o = int2StateMap.get(state);
+    S o = int2StateMap.get(state);
 
     int i = 0;
     int[] edges = edgeBuffer();
@@ -161,7 +159,7 @@ public final class JniAutomaton {
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
-      Edge<?> edge;
+      Edge<S> edge;
 
       if (labelledEdges == null) {
         edge = automaton.edge(o, valuation);
@@ -170,8 +168,11 @@ public final class JniAutomaton {
       }
 
       if (edge == null) {
-        edges[i] = NO_STATE;
-        edges[i + 1] = NO_COLOUR;
+        edges[i] = REJECTING_STATE;
+        edges[i + 1] = REJECTING_COLOUR;
+      } else if (acceptingSink.test(edge.successor())) {
+        edges[i] = ACCEPTING_STATE;
+        edges[i + 1] = ACCEPTING_COLOUR;
       } else {
         edges[i] = lookup(edge.successor());
         edges[i + 1] = edge.largestAcceptanceSet();
@@ -184,7 +185,7 @@ public final class JniAutomaton {
   }
 
   public int[] successors(int state) {
-    Object o = int2StateMap.get(state);
+    S o = int2StateMap.get(state);
 
     int i = 0;
     int[] successors = successorBuffer();
@@ -194,7 +195,7 @@ public final class JniAutomaton {
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
-      Object successor;
+      S successor;
 
       if (labelledEdges == null) {
         successor = automaton.successor(o, valuation);
@@ -203,7 +204,14 @@ public final class JniAutomaton {
         successor = edge != null ? edge.successor() : null;
       }
 
-      successors[i] = successor == null ? NO_STATE : lookup(successor);
+      if (successor == null) {
+        successors[i] = REJECTING_STATE;
+      } else if (acceptingSink.test(successor)) {
+        successors[i] = ACCEPTING_STATE;
+      } else {
+        successors[i] = lookup(successor);
+      }
+
       i += 1;
     }
 
@@ -214,10 +222,10 @@ public final class JniAutomaton {
     return automaton.size();
   }
 
-  private int lookup(Object o) {
+  private int lookup(S o) {
     int index = state2intMap.getInt(o);
 
-    if (index == NO_STATE) {
+    if (index == UNKNOWN_STATE) {
       int2StateMap.add(o);
       state2intMap.put(o, int2StateMap.size() - 1);
       index = int2StateMap.size() - 1;
@@ -227,7 +235,7 @@ public final class JniAutomaton {
   }
 
   @Nullable
-  private static Edge<?> lookup(List<LabelledEdge<Object>> labelledEdges, BitSet valuation) {
+  private <T> Edge<T> lookup(List<LabelledEdge<T>> labelledEdges, BitSet valuation) {
     // Use get() instead of iterator on RandomAccess list for enhanced performance.
     for (int i = 0; i < labelledEdges.size(); i++) {
       var labelledEdge = labelledEdges.get(i);

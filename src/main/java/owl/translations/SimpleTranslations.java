@@ -17,7 +17,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
@@ -38,10 +37,18 @@ public final class SimpleTranslations {
       Configuration.FORCE_JUMPS,
       Configuration.OPTIMISED_STATE_STRUCTURE);
 
-    LimitDeterministicAutomaton<?, DegeneralizedBreakpointState, BuchiAcceptance, ?> ldba =
-      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, configuration)
-        .apply(formula);
+    var builder = LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, configuration);
+    var ldba = builder.apply(formula);
+    var acceptingComponent = ldba.acceptingComponent();
+
     assert ldba.isDeterministic();
+
+    if (acceptingComponent.initialStates().isEmpty()) {
+      return AutomatonFactory.singleton(DegeneralizedBreakpointState.createSink(),
+        env.factorySupplier().getValuationSetFactory(formula.variables()),
+        BuchiAcceptance.INSTANCE);
+    }
+
     return ldba.acceptingComponent();
   }
 
@@ -62,7 +69,7 @@ public final class SimpleTranslations {
     var factory = new EquivalenceClassStateFactory(eqFactory, true, false);
 
     BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
-      EquivalenceClass successor = factory.getSuccessor(x, y);
+      var successor = factory.getSuccessor(x, y);
 
       if (successor.isFalse()) {
         return Set.of();
@@ -75,7 +82,7 @@ public final class SimpleTranslations {
       return Set.of(Edge.of(successor));
     };
 
-    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = (x) -> {
+    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = x -> {
       var successors = factory.getSuccessors(x, vsFactory).entrySet();
       return Collections2.transform(successors, y -> {
         var successor = y.getKey();
@@ -88,8 +95,8 @@ public final class SimpleTranslations {
       });
     };
 
-    return AutomatonFactory.create(factory.getInitial(formula.formula()), vsFactory,
-      single, bulk, BuchiAcceptance.INSTANCE);
+    return AutomatonFactory.create(factory.getInitial(formula.formula()), vsFactory, single, bulk,
+      BuchiAcceptance.INSTANCE);
   }
 
   public static Automaton<EquivalenceClass, AllAcceptance> buildSafety(LabelledFormula formula,
@@ -103,11 +110,11 @@ public final class SimpleTranslations {
     var factory = new EquivalenceClassStateFactory(eqFactory, true, false);
 
     BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
-      EquivalenceClass successor = factory.getSuccessor(x, y);
+      var successor = factory.getSuccessor(x, y);
       return successor.isFalse() ? Set.of() : Set.of(Edge.of(successor));
     };
 
-    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = (x) -> {
+    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = x -> {
       var successors = factory.getSuccessors(x, vsFactory).entrySet();
       return Collections2.transform(successors, y -> LabelledEdge.of(y.getKey(), y.getValue()));
     };

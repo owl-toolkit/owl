@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 
 import org.junit.Test;
 import owl.ltl.BooleanConstant;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.SimpleTranslations;
@@ -15,17 +16,17 @@ public class JniAutomatonTest {
 
   @Test
   public void testEdges() {
-    JniAutomaton instance = new JniAutomaton(SimpleTranslations.buildSafety(
+    JniAutomaton instance = new JniAutomaton<>(SimpleTranslations.buildSafety(
       Hacks.attachDummyAlphabet(BooleanConstant.TRUE),
-      DefaultEnvironment.standard()));
+      DefaultEnvironment.standard()), x -> false);
     instance.edges(0);
   }
 
   @Test
   public void testSuccessors() {
-    JniAutomaton instance = new JniAutomaton(SimpleTranslations.buildSafety(
+    JniAutomaton instance = new JniAutomaton<>(SimpleTranslations.buildSafety(
       Hacks.attachDummyAlphabet(BooleanConstant.FALSE),
-      DefaultEnvironment.standard()));
+      DefaultEnvironment.standard()), x -> false);
     instance.successors(0);
   }
 
@@ -35,7 +36,7 @@ public class JniAutomatonTest {
     assertThat(formula.variables().size(), is(25));
 
     var automaton = SimpleTranslations.buildSafety(formula, DefaultEnvironment.annotated());
-    JniAutomaton instance = new JniAutomaton(automaton);
+    JniAutomaton instance = new JniAutomaton<>(automaton, EquivalenceClass::isTrue);
     instance.edges(0);
   }
 
@@ -45,7 +46,7 @@ public class JniAutomatonTest {
     assertThat(formula.variables().size(), is(25));
 
     var automaton = SimpleTranslations.buildCoSafety(formula, DefaultEnvironment.annotated());
-    JniAutomaton instance = new JniAutomaton(automaton);
+    JniAutomaton instance = new JniAutomaton<>(automaton, EquivalenceClass::isTrue);
     instance.successors(0);
   }
 }
