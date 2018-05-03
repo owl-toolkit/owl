@@ -126,7 +126,7 @@
                 "delag",
                 "delag#fallback-spot"
             ],
-            "data": "full"
+            "data": "medium"
         },
         "delag-strict": {
             "tools": "delag#strict",

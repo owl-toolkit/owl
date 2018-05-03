@@ -17,10 +17,15 @@
 
 package owl.translations.delag;
 
+import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
+import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
+import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.OPTIMISE_INITIAL_STATE;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -45,7 +50,7 @@ import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2dra.LTL2DRAFunction;
 
 public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -64,8 +69,10 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
             + " outside of supported fragment");
         };
       } else {
+        var configuration =
+          EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
         fallback = fallbackTool == null
-          ? new LTL2DPAFunction(environment, LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG)
+          ? new LTL2DRAFunction(environment, configuration)
           : new ExternalTranslator(environment, fallbackTool);
       }
 
@@ -78,8 +85,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   @Nullable
   private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 
-  public DelagBuilder(Environment env,
-    Function<LabelledFormula, ? extends Automaton<T, ?>> fallback) {
+  public DelagBuilder(Environment env, Function<LabelledFormula, Automaton<T, ?>> fallback) {
     this.env = env;
     this.fallback = fallback;
   }
