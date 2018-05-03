@@ -91,34 +91,47 @@ public class EquivalenceClassStateFactory {
   public Map<EquivalenceClass, ValuationSet> getSuccessors(EquivalenceClass clazz,
     ValuationSetFactory factory) {
     var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
-    return getSuccessorsRecursive(tree, factory);
+    return getSuccessorsRecursive(tree, factory, new HashMap<>());
   }
 
   private Map<EquivalenceClass, ValuationSet> getSuccessorsRecursive(
-    LabelledTree<Integer, EquivalenceClass> tree, ValuationSetFactory factory) {
+    LabelledTree<Integer, EquivalenceClass> tree, ValuationSetFactory factory,
+    Map<LabelledTree<Integer, EquivalenceClass>, Map<EquivalenceClass, ValuationSet>> cache) {
+    var map = cache.get(tree);
+
+    if (map != null) {
+      return map;
+    }
+
     if (tree instanceof LabelledTree.Leaf) {
-      var label = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
-      return !label.isFalse()
-        ? Map.of(eagerUnfold ? label.unfold() : label, factory.universe())
-        : Map.of();
+      var clazz = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
+
+      if (!clazz.isFalse()) {
+        map = Map.of(eagerUnfold ? clazz.unfold() : clazz, factory.universe());
+      } else {
+        map = Map.of();
+      }
+    } else {
+      var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
+      var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
+      var finalMap = new HashMap<EquivalenceClass, ValuationSet>();
+
+      {
+        var mask = factory.of(literal, literal);
+        getSuccessorsRecursive(children.get(0), factory, cache).forEach(
+          ((clazz, set) -> finalMap.merge(clazz, set.intersection(mask), ValuationSet::union)));
+      }
+
+      {
+        var mask = factory.of(new BitSet(), literal);
+        getSuccessorsRecursive(children.get(1), factory, cache).forEach(
+          ((clazz, set) -> finalMap.merge(clazz, set.intersection(mask), ValuationSet::union)));
+      }
+
+      map = finalMap;
     }
 
-    var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
-    var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
-    var map = new HashMap<EquivalenceClass, ValuationSet>();
-
-    {
-      var mask = factory.of(literal, literal);
-      getSuccessorsRecursive(children.get(0), factory).forEach(
-        ((clazz, set) -> map.merge(clazz, set.intersection(mask), ValuationSet::union)));
-    }
-
-    {
-      var mask = factory.of(new BitSet(), literal);
-      getSuccessorsRecursive(children.get(1), factory).forEach(
-        ((clazz, set) -> map.merge(clazz, set.intersection(mask), ValuationSet::union)));
-    }
-
+    cache.put(tree, map);
     return map;
   }
 

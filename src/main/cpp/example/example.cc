@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
     const char* classpath = "-Djava.class.path=../../../build/libs/owl.jar";
 
     // Set the second argument to true to obtain additional debugging output.
-    OwlJavaVM owlJavaVM = OwlJavaVM(classpath, true);
+    OwlJavaVM owlJavaVM = OwlJavaVM(classpath, true, 4, true);
     OwlThread owl = owlJavaVM.attachCurrentThread();
 
     std::cout << "Parse Formula Example: " << std::endl << std::endl;

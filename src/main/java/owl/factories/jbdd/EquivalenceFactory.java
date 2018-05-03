@@ -27,8 +27,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -292,6 +294,17 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @Override
   public LabelledTree<Integer, EquivalenceClass> temporalStepTree(EquivalenceClass clazz) {
+    return temporalStepTree(clazz, new HashMap<>());
+  }
+
+  private LabelledTree<Integer, EquivalenceClass> temporalStepTree(EquivalenceClass clazz,
+    Map<EquivalenceClass, LabelledTree<Integer, EquivalenceClass>> cache) {
+    var tree = cache.get(clazz);
+
+    if (tree != null) {
+      return tree;
+    }
+
     int pivot = clazz.atomicPropositions().nextSetBit(0);
 
     if (pivot == -1) {
@@ -299,32 +312,35 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
         temporalStepSubstitution[i] = -1;
       }
 
-      return new LabelledTree.Leaf<>(transform(clazz,
+      tree = new LabelledTree.Leaf<>(transform(clazz,
         x -> factory.compose(x, temporalStepSubstitution),
         x -> x.accept(REMOVE_X)));
+    } else {
+      int[] substitution = temporalStepSubstitution.clone();
+
+      for (int i = 0; i < pivot; i++) {
+        substitution[i] = -1;
+      }
+
+      for (int i = pivot + 1; i < substitution.length; i++) {
+        substitution[i] = -1;
+      }
+
+      substitution[pivot] = factory.getTrueNode();
+      var trueSubTree = temporalStepTree(transform(clazz,
+        x -> factory.compose(getBdd(clazz), substitution),
+        x -> x.accept(replaceLiteralByTrue(pivot))), cache);
+
+      substitution[pivot] = factory.getFalseNode();
+      var falseSubTree = temporalStepTree(transform(clazz,
+        x -> factory.compose(getBdd(clazz), substitution),
+        x -> x.accept(replaceLiteralByFalse(pivot))), cache);
+
+      tree = new LabelledTree.Node<>(pivot, List.of(trueSubTree, falseSubTree));
     }
 
-    int[] substitution = temporalStepSubstitution.clone();
-
-    for (int i = 0; i < pivot; i++) {
-      substitution[i] = -1;
-    }
-
-    for (int i = pivot + 1; i < substitution.length; i++) {
-      substitution[i] = -1;
-    }
-
-    substitution[pivot] = factory.getTrueNode();
-    var trueSubTree = temporalStepTree(transform(clazz,
-      x -> factory.compose(getBdd(clazz), substitution),
-      x -> x.accept(replaceLiteralByTrue(pivot))));
-
-    substitution[pivot] = factory.getFalseNode();
-    var falseSubTree = temporalStepTree(transform(clazz,
-      x -> factory.compose(getBdd(clazz), substitution),
-      x -> x.accept(replaceLiteralByFalse(pivot))));
-
-    return new LabelledTree.Node<>(pivot, List.of(trueSubTree, falseSubTree));
+    cache.put(clazz, tree);
+    return tree;
   }
 
   private static Visitor<Formula> REMOVE_X =

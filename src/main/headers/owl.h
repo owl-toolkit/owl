@@ -43,7 +43,7 @@ namespace owl {
         JavaVM* vm;
 
     public:
-        OwlJavaVM(const char* classpath, bool debug);
+        explicit OwlJavaVM(const char *classpath, bool debug, int max_heap_size_gb, bool aggressive_heap_optimisation);
         ~OwlJavaVM();
 
         OwlThread attachCurrentThread() const;

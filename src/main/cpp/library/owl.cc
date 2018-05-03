@@ -1,6 +1,9 @@
 #include "owl.h"
 #include "owl-private.h"
 
+#include <sstream>
+#include <string>
+
 namespace owl {
     FormulaFactory OwlThread::createFormulaFactory() const {
         return FormulaFactory(env);
@@ -29,23 +32,37 @@ namespace owl {
         return Automaton(env, automaton.handle);
     }
 
-    OwlJavaVM::OwlJavaVM(const char *classpath, bool debug) {
+    OwlJavaVM::OwlJavaVM(const char *classpath, bool debug, int max_heap_size_gb, bool aggressive_heap_optimisation) {
         JavaVMInitArgs vm_args = JavaVMInitArgs();
         JavaVMOption *options;
-        std::string string_classpath = std::string(classpath);
+
+        std::vector<std::string> args = std::vector<std::string>();
+        args.emplace_back(std::string(classpath));
 
         if (debug) {
-            options = new JavaVMOption[2];
-            options[0].optionString = const_cast<char *>(string_classpath.c_str());
-            options[1].optionString = const_cast<char *>("-Xcheck:jni");
-            vm_args.nOptions = 2;
-        } else {
-            options = new JavaVMOption[1];
-            options[0].optionString = const_cast<char *>(string_classpath.c_str());
-            vm_args.nOptions = 1;
+            args.emplace_back(std::string("-Xcheck:jni"));
         }
 
-        vm_args.version = JNI_VERSION_9;
+        if (aggressive_heap_optimisation) {
+            args.emplace_back(std::string("-XX:MaxHeapFreeRatio=20"));
+            args.emplace_back(std::string("-XX:MinHeapFreeRatio=10"));
+            args.emplace_back(std::string("-XX:-ShrinkHeapInSteps"));
+        }
+
+        if (max_heap_size_gb > 0) {
+            std::stringstream ss;
+            ss << "-XX:MaxHeapSize=" << max_heap_size_gb << "G";
+            args.emplace_back(ss.str());
+        }
+
+        options = new JavaVMOption[args.size()];
+
+        for (size_t i = 0; i < args.size(); i++) {
+            options[i].optionString = const_cast<char *>(args[i].c_str());
+        }
+
+        vm_args.nOptions = static_cast<jint>(args.size());
+        vm_args.version = JNI_VERSION_10;
         vm_args.options = options;
         vm_args.ignoreUnrecognized = JNI_FALSE;
 

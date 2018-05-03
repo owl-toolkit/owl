@@ -20,9 +20,9 @@ package owl.jni;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -48,6 +48,12 @@ public final class JniAutomaton {
   private final Automaton<Object, ?> automaton;
   private final List<Object> int2StateMap;
   private final Object2IntMap<Object> state2intMap;
+
+  @Nullable
+  private SoftReference<int[]> edgesCache;
+
+  @Nullable
+  private SoftReference<int[]> successorsCache;
 
   JniAutomaton(Automaton<?, ?> automaton) {
     this(automaton, detectAcceptance(automaton));
@@ -120,18 +126,41 @@ public final class JniAutomaton {
     return automaton.acceptance().acceptanceSets();
   }
 
+  private int[] edgeBuffer() {
+    int[] buffer = edgesCache != null ? edgesCache.get() : null;
+
+    if (buffer != null) {
+      return buffer;
+    }
+
+    buffer = new int[2 << automaton.factory().alphabetSize()];
+    edgesCache = new SoftReference<>(buffer);
+    return buffer;
+  }
+
+  private int[] successorBuffer() {
+    int[] buffer = successorsCache != null ? successorsCache.get() : null;
+
+    if (buffer != null) {
+      return buffer;
+    }
+
+    buffer = new int[1 << automaton.factory().alphabetSize()];
+    successorsCache = new SoftReference<>(buffer);
+    return buffer;
+  }
+
   public int[] edges(int state) {
     Object o = int2StateMap.get(state);
 
     int i = 0;
-    int size = automaton.factory().alphabetSize();
-    int[] edges = new int[2 << size];
+    int[] edges = edgeBuffer();
 
     var labelledEdges = automaton instanceof BulkOperationAutomaton
       ? List.copyOf(automaton.labelledEdges(o))
       : null;
 
-    for (BitSet valuation : BitSets.powerSet(size)) {
+    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
       Edge<?> edge;
 
       if (labelledEdges == null) {
@@ -158,14 +187,13 @@ public final class JniAutomaton {
     Object o = int2StateMap.get(state);
 
     int i = 0;
-    int size = automaton.factory().alphabetSize();
-    int[] successors = new int[1 << size];
+    int[] successors = successorBuffer();
 
     var labelledEdges = automaton instanceof BulkOperationAutomaton
       ? List.copyOf(automaton.labelledEdges(o))
       : null;
 
-    for (BitSet valuation : BitSets.powerSet(size)) {
+    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
       Object successor;
 
       if (labelledEdges == null) {
@@ -199,8 +227,11 @@ public final class JniAutomaton {
   }
 
   @Nullable
-  private static Edge<?> lookup(Collection<LabelledEdge<Object>> labelledEdges, BitSet valuation) {
-    for (var labelledEdge : labelledEdges) {
+  private static Edge<?> lookup(List<LabelledEdge<Object>> labelledEdges, BitSet valuation) {
+    // Use get() instead of iterator on RandomAccess list for enhanced performance.
+    for (int i = 0; i < labelledEdges.size(); i++) {
+      var labelledEdge = labelledEdges.get(i);
+
       if (labelledEdge.valuations.contains(valuation)) {
         return labelledEdge.edge;
       }

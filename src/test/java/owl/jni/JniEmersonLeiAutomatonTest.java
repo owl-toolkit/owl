@@ -191,4 +191,86 @@ public class JniEmersonLeiAutomatonTest {
     assertThat(automaton.automata.get(0).size(), Matchers.is(1));
     assertThat(automaton.automata.get(1).size(), Matchers.is(2));
   }
+
+  @Test
+  // This should finish within 20 seconds.
+  public void testAmbaDecLock12Leak() {
+    Tlsf specification = TlsfParser.parse("INFO {\n"
+      + "  TITLE:       \"Amba AHB - Decomposed - Lock\"\n"
+      + "  DESCRIPTION: \"Lock component of the decomposed Amba AHB Arbiter\"\n"
+      + "  SEMANTICS:   Mealy\n"
+      + "  TARGET:      Mealy\n"
+      + "}\n"
+      + "\n"
+      + "MAIN {\n"
+      + "  INPUTS {\n"
+      + "    DECIDE;\n"
+      + "    HLOCK_0;\n"
+      + "    HLOCK_1;\n"
+      + "    HLOCK_2;\n"
+      + "    HLOCK_3;\n"
+      + "    HLOCK_4;\n"
+      + "    HLOCK_5;\n"
+      + "    HLOCK_6;\n"
+      + "    HLOCK_7;\n"
+      + "    HLOCK_8;\n"
+      + "    HLOCK_9;\n"
+      + "    HLOCK_10;\n"
+      + "    HLOCK_11;\n"
+      + "    HGRANT_0;\n"
+      + "    HGRANT_1;\n"
+      + "    HGRANT_2;\n"
+      + "    HGRANT_3;\n"
+      + "    HGRANT_4;\n"
+      + "    HGRANT_5;\n"
+      + "    HGRANT_6;\n"
+      + "    HGRANT_7;\n"
+      + "    HGRANT_8;\n"
+      + "    HGRANT_9;\n"
+      + "    HGRANT_10;\n"
+      + "    HGRANT_11;\n"
+      + "  }\n"
+      + "  OUTPUTS {\n"
+      + "    LOCKED;\n"
+      + "  }\n"
+      + "  ASSUME {\n"
+      + "    (G ((((((((! (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && (! (HGRANT_3))) && "
+      + "(! (HGRANT_4))) && (! (HGRANT_5))) && (((((! (HGRANT_6)) && (! (HGRANT_7))) && (! "
+      + "(HGRANT_8))) && ((((! (HGRANT_9)) && (! (HGRANT_10))) && (true)) || ((((! (HGRANT_9)) && "
+      + "(true)) || ((true) && (! (HGRANT_10)))) && (! (HGRANT_11))))) || (((((! (HGRANT_6)) && (! "
+      + "(HGRANT_7))) && (true)) || ((((! (HGRANT_6)) && (true)) || ((true) && (! (HGRANT_7)))) && "
+      + "(! (HGRANT_8)))) && (((! (HGRANT_9)) && (! (HGRANT_10))) && (! (HGRANT_11)))))) || ((((((!"
+      + " (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && ((((! (HGRANT_3)) && (! (HGRANT_4)))"
+      + " && (true)) || ((((! (HGRANT_3)) && (true)) || ((true) && (! (HGRANT_4)))) && (! "
+      + "(HGRANT_5))))) || (((((! (HGRANT_0)) && (! (HGRANT_1))) && (true)) || ((((! (HGRANT_0)) &&"
+      + " (true)) || ((true) && (! (HGRANT_1)))) && (! (HGRANT_2)))) && (((! (HGRANT_3)) && (! "
+      + "(HGRANT_4))) && (! (HGRANT_5))))) && ((((((! (HGRANT_6)) && (! (HGRANT_7))) && (! "
+      + "(HGRANT_8))) && (! (HGRANT_9))) && (! (HGRANT_10))) && (! (HGRANT_11))))));\n"
+      + "    (G ((((((((((((HGRANT_0) || (HGRANT_1)) || (HGRANT_2)) || (HGRANT_3)) || (HGRANT_4)) "
+      + "|| (HGRANT_5)) || (HGRANT_6)) || (HGRANT_7)) || (HGRANT_8)) || (HGRANT_9)) || (HGRANT_10))"
+      + " || (HGRANT_11)));\n"
+      + "  }\n"
+      + "  ASSERT {\n"
+      + "    (((DECIDE) && (X (HGRANT_0))) -> ((X (LOCKED)) <-> (X (HLOCK_0))));\n"
+      + "    (((DECIDE) && (X (HGRANT_1))) -> ((X (LOCKED)) <-> (X (HLOCK_1))));\n"
+      + "    (((DECIDE) && (X (HGRANT_2))) -> ((X (LOCKED)) <-> (X (HLOCK_2))));\n"
+      + "    (((DECIDE) && (X (HGRANT_3))) -> ((X (LOCKED)) <-> (X (HLOCK_3))));\n"
+      + "    (((DECIDE) && (X (HGRANT_4))) -> ((X (LOCKED)) <-> (X (HLOCK_4))));\n"
+      + "    (((DECIDE) && (X (HGRANT_5))) -> ((X (LOCKED)) <-> (X (HLOCK_5))));\n"
+      + "    (((DECIDE) && (X (HGRANT_6))) -> ((X (LOCKED)) <-> (X (HLOCK_6))));\n"
+      + "    (((DECIDE) && (X (HGRANT_7))) -> ((X (LOCKED)) <-> (X (HLOCK_7))));\n"
+      + "    (((DECIDE) && (X (HGRANT_8))) -> ((X (LOCKED)) <-> (X (HLOCK_8))));\n"
+      + "    (((DECIDE) && (X (HGRANT_9))) -> ((X (LOCKED)) <-> (X (HLOCK_9))));\n"
+      + "    (((DECIDE) && (X (HGRANT_10))) -> ((X (LOCKED)) <-> (X (HLOCK_10))));\n"
+      + "    (((DECIDE) && (X (HGRANT_11))) -> ((X (LOCKED)) <-> (X (HLOCK_11))));\n"
+      + "    ((! (DECIDE)) -> ((X (LOCKED)) <-> (LOCKED)));\n"
+      + "  }\n"
+      + "}\n");
+
+    var automaton = JniEmersonLeiAutomaton.of(
+      specification.toFormula().formula(), true, false, AUTO, true);
+    assertThat(automaton.automata.size(), Matchers.is(2));
+    assertThat(automaton.automata.get(0).size(), Matchers.is(4));
+    assertThat(automaton.automata.get(1).size(), Matchers.is(2));
+  }
 }
