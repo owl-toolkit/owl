@@ -60,6 +60,7 @@ import owl.run.DefaultEnvironment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
+import owl.translations.ltl2dra.LTL2DRAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 @SuppressWarnings("PMD.UseUtilityClass")
@@ -256,10 +257,12 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Delag(FormulaSet selectedClass) {
       super(selectedClass, formula -> new DelagBuilder(DefaultEnvironment.annotated(),
-          new LTL2DPAFunction(DefaultEnvironment.annotated(),
-            LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG))
+          new LTL2DRAFunction(DefaultEnvironment.annotated(), EnumSet.of(
+            LTL2DRAFunction.Configuration.OPTIMISE_INITIAL_STATE,
+            LTL2DRAFunction.Configuration.OPTIMISED_STATE_STRUCTURE,
+            LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE)))
           .apply(SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT)),
-      x -> x.size(),
+        Automaton::size,
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }
 
