@@ -113,20 +113,15 @@ public class EquivalenceClassStateFactory {
       }
     } else {
       var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
+      var posMask = factory.of(literal, literal);
+      var negMask = posMask.complement();
       var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
       var finalMap = new HashMap<EquivalenceClass, ValuationSet>();
 
-      {
-        var mask = factory.of(literal, literal);
-        getSuccessorsRecursive(children.get(0), factory, cache).forEach(
-          ((clazz, set) -> finalMap.merge(clazz, set.intersection(mask), ValuationSet::union)));
-      }
-
-      {
-        var mask = factory.of(new BitSet(), literal);
-        getSuccessorsRecursive(children.get(1), factory, cache).forEach(
-          ((clazz, set) -> finalMap.merge(clazz, set.intersection(mask), ValuationSet::union)));
-      }
+      getSuccessorsRecursive(children.get(0), factory, cache).forEach(
+        ((clazz, set) -> finalMap.merge(clazz, set.intersection(posMask), ValuationSet::union)));
+      getSuccessorsRecursive(children.get(1), factory, cache).forEach(
+        ((clazz, set) -> finalMap.merge(clazz, set.intersection(negMask), ValuationSet::union)));
 
       map = finalMap;
     }

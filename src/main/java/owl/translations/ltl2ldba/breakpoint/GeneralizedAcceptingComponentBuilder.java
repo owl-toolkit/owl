@@ -64,8 +64,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     EquivalenceClass safety = obligations.safety();
 
-    if (theRemainder.modalOperators().stream().allMatch(
-      formula -> SyntacticFragment.FINITE.contains(formula))) {
+    if (theRemainder.modalOperators().stream().allMatch(SyntacticFragment.FINITE::contains)) {
       safety = theRemainder.and(safety);
       theRemainder = factories.eqFactory.getTrue();
     }
