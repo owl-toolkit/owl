@@ -47,6 +47,7 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.edge.LabelledEdges;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
@@ -190,7 +191,7 @@ public final class Views {
       }
 
       List<LabelledEdge<S>> edges = new ArrayList<>(automaton.labelledEdges(state));
-      ValuationSet complement = factory.union(LabelledEdge.valuations(edges)).complement();
+      ValuationSet complement = factory.union(LabelledEdges.valuations(edges)).complement();
 
       if (!complement.isEmpty()) {
         return Collections3.concat(edges, List.of(LabelledEdge.of(loop, complement)));

@@ -39,9 +39,6 @@ import owl.collections.Collections3;
  *     The type of the (successor) state.
  */
 public interface Edge<S> {
-  static <S> Set<S> successors(Collection<Edge<S>> iterable) {
-    return Collections3.transformUnique(iterable, Edge::successor);
-  }
 
   /**
    * Creates an edge which belongs to no delegate set.

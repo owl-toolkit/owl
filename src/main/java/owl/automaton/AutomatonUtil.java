@@ -46,6 +46,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.edge.LabelledEdges;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.collections.ValuationSet;
@@ -328,7 +329,7 @@ public final class AutomatonUtil {
 
     automaton.forEachState(state -> {
       Collection<LabelledEdge<S>> edges = automaton.labelledEdges(state);
-      ValuationSet union = factory.union(LabelledEdge.valuations(edges));
+      ValuationSet union = factory.union(LabelledEdges.valuations(edges));
 
       if (!union.isUniverse()) {
         // State is incomplete.

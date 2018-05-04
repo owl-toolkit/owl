@@ -17,7 +17,6 @@
 
 package owl.automaton.edge;
 
-import com.google.common.collect.Iterables;
 import java.util.Map;
 import java.util.Objects;
 import owl.collections.ValuationSet;
@@ -38,18 +37,6 @@ public final class LabelledEdge<S> {
     return LabelledEdge.of(entry.getKey(), entry.getValue());
   }
 
-  public static <S> Iterable<ValuationSet> valuations(Iterable<LabelledEdge<S>> iterable) {
-    return Iterables.transform(iterable, LabelledEdge::getValuations);
-  }
-
-  public static <S> Iterable<Edge<S>> edges(Iterable<LabelledEdge<S>> iterable) {
-    return Iterables.transform(iterable, LabelledEdge::getEdge);
-  }
-
-  public static <S> Iterable<S> successors(Iterable<LabelledEdge<S>> iterable) {
-    return Iterables.transform(iterable, l -> l.edge.successor());
-  }
-
   private LabelledEdge(Edge<S> edge, ValuationSet valuations) {
     this.edge = edge;
     this.valuations = valuations;
@@ -68,11 +55,11 @@ public final class LabelledEdge<S> {
       && Objects.equals(valuations, that.valuations);
   }
 
-  public Edge<S> getEdge() {
+  public Edge<S> edge() {
     return edge;
   }
 
-  public ValuationSet getValuations() {
+  public ValuationSet valuations() {
     return valuations;
   }
 

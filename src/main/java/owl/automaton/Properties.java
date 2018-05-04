@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.edge.LabelledEdges;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationSetUtil;
 
@@ -36,7 +37,7 @@ final class Properties {
    */
   private static <S> boolean isComplete(Collection<LabelledEdge<S>> labelledEdges) {
     return !labelledEdges.isEmpty()
-      && ValuationSetUtil.union(LabelledEdge.valuations(labelledEdges))
+      && ValuationSetUtil.union(LabelledEdges.valuations(labelledEdges))
       .orElseThrow(AssertionError::new).isUniverse();
   }
 
