@@ -13,7 +13,7 @@
                 "simple": "-s"
             },
             "pre": [
-            	"simplify-ltl"
+                "simplify-ltl"
             ]
         },
         "ltl2dpa": {
@@ -170,6 +170,23 @@
                 "complement-parity",
                 "minimize-aut",
                 "complement-parity"
+            ]
+        },
+        "safra": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "safra",
+            "pre": [
+                "simplify-ltl",
+                [
+                    "ltl2aut-ext",
+                    "-t",
+                    "ltl2tgba -B"
+                ]
+            ],
+            "post": [
+                "minimize-aut"
             ]
         }
     },

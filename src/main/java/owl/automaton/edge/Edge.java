@@ -21,9 +21,12 @@ import de.tum.in.naturals.NaturalsTransformer;
 import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.bitset.ImmutableBitSet;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.PrimitiveIterator;
+import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
+import owl.collections.Collections3;
 
 /**
  * This interface represents edges of automata including their acceptance membership.
@@ -36,6 +39,10 @@ import javax.annotation.Nonnegative;
  *     The type of the (successor) state.
  */
 public interface Edge<S> {
+  static <S> Set<S> successors(Collection<Edge<S>> iterable) {
+    return Collections3.transformUnique(iterable, Edge::successor);
+  }
+
   /**
    * Creates an edge which belongs to no delegate set.
    *

@@ -37,6 +37,7 @@ import owl.translations.ltl2ldba.LTL2LDBACliParser;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 import owl.translations.nba2ldba.NBA2LDBA;
 import owl.translations.rabinizer.RabinizerCliParser;
+import owl.translations.safra.SafraBuilder;
 
 /**
  * A registry holding all modules used to parse the command line. These can be dynamically
@@ -68,7 +69,7 @@ public class OwlModuleRegistry {
     DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI, LTL2DA.CLI, NBA2LDBA.CLI,
       LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE, DelagBuilder.CLI, NBA2DPAFunction.CLI,
       ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI,
-      LTL2DRACliParser.INSTANCE);
+      LTL2DRACliParser.INSTANCE, SafraBuilder.CLI);
   }
 
   public ReaderParser reader(String name) throws OwlModuleNotFoundException {
