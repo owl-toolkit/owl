@@ -44,6 +44,14 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
     }
   }
 
+  public static RabinAcceptance of(int count) {
+    List<RabinPair> pairs = new ArrayList<>(count);
+    for (int index = 0; index < count; index++) {
+      pairs.add(RabinPair.of(index * 2));
+    }
+    return new RabinAcceptance(pairs);
+  }
+
   public static RabinAcceptance of(List<RabinPair> pairs) {
     return new RabinAcceptance(pairs);
   }

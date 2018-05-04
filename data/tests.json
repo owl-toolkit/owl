@@ -152,6 +152,10 @@
                 "ltl2dpa-convert#min,odd"
             ],
             "data": "small"
+        },
+        "safra": {
+            "tools": "safra",
+            "data": "small"
         }
     }
 }
