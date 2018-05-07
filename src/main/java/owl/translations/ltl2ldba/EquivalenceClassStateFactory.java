@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import owl.collections.LabelledTree;
 import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
@@ -40,17 +41,17 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 public class EquivalenceClassStateFactory {
 
   private final boolean eagerUnfold;
-  private final EquivalenceClassFactory factory;
+  private final Factories factories;
   private final boolean removeRedundantObligations;
 
-  EquivalenceClassStateFactory(EquivalenceClassFactory factory, Set<Configuration> configuration) {
-    this(factory, configuration.contains(Configuration.EAGER_UNFOLD),
+  EquivalenceClassStateFactory(Factories factories, Set<Configuration> configuration) {
+    this(factories, configuration.contains(Configuration.EAGER_UNFOLD),
       configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE));
   }
 
-  public EquivalenceClassStateFactory(EquivalenceClassFactory factory, boolean eagerUnfold,
+  public EquivalenceClassStateFactory(Factories factories, boolean eagerUnfold,
     boolean removeRedundantObligations) {
-    this.factory = factory;
+    this.factories = factories;
     this.eagerUnfold = eagerUnfold;
     this.removeRedundantObligations = removeRedundantObligations;
   }
@@ -60,7 +61,7 @@ public class EquivalenceClassStateFactory {
   }
 
   private EquivalenceClass getInitial(Collection<Formula> formulas) {
-    return getInitial(factory.of(Conjunction.of(formulas)));
+    return getInitial(factories.eqFactory.of(Conjunction.of(formulas)));
   }
 
   public EquivalenceClass getInitial(EquivalenceClass clazz, EquivalenceClass... environmentArray) {
@@ -88,14 +89,13 @@ public class EquivalenceClassStateFactory {
     return removeRedundantObligations(successor, environmentArray);
   }
 
-  public Map<EquivalenceClass, ValuationSet> getSuccessors(EquivalenceClass clazz,
-    ValuationSetFactory factory) {
+  public Map<EquivalenceClass, ValuationSet> getSuccessors(EquivalenceClass clazz) {
     var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
-    return getSuccessorsRecursive(tree, factory, new HashMap<>());
+    return getSuccessorsRecursive(tree, new HashMap<>());
   }
 
   private Map<EquivalenceClass, ValuationSet> getSuccessorsRecursive(
-    LabelledTree<Integer, EquivalenceClass> tree, ValuationSetFactory factory,
+    LabelledTree<Integer, EquivalenceClass> tree,
     Map<LabelledTree<Integer, EquivalenceClass>, Map<EquivalenceClass, ValuationSet>> cache) {
     var map = cache.get(tree);
 
@@ -104,23 +104,19 @@ public class EquivalenceClassStateFactory {
     }
 
     if (tree instanceof LabelledTree.Leaf) {
-      var clazz = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
-
-      if (!clazz.isFalse()) {
-        map = Map.of(eagerUnfold ? clazz.unfold() : clazz, factory.universe());
-      } else {
-        map = Map.of();
-      }
+      var label = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
+      var clazz = eagerUnfold ? label.unfold() : label;
+      map = clazz.isFalse() ? Map.of() : Map.of(clazz, factories.vsFactory.universe());
     } else {
       var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
-      var posMask = factory.of(literal, literal);
+      var posMask = factories.vsFactory.of(literal, literal);
       var negMask = posMask.complement();
       var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
       var finalMap = new HashMap<EquivalenceClass, ValuationSet>();
 
-      getSuccessorsRecursive(children.get(0), factory, cache).forEach(
+      getSuccessorsRecursive(children.get(0), cache).forEach(
         ((clazz, set) -> finalMap.merge(clazz, set.intersection(posMask), ValuationSet::union)));
-      getSuccessorsRecursive(children.get(1), factory, cache).forEach(
+      getSuccessorsRecursive(children.get(1), cache).forEach(
         ((clazz, set) -> finalMap.merge(clazz, set.intersection(negMask), ValuationSet::union)));
 
       map = finalMap;
@@ -149,10 +145,10 @@ public class EquivalenceClassStateFactory {
   private EquivalenceClass removeRedundantObligations(EquivalenceClass state,
     EquivalenceClass... environmentArray) {
     if (removeRedundantObligations && environmentArray.length > 0) {
-      EquivalenceClass environment = factory.conjunction(environmentArray);
+      EquivalenceClass environment = factories.eqFactory.conjunction(environmentArray);
 
       if (environment.implies(state)) {
-        return factory.getTrue();
+        return factories.eqFactory.getTrue();
       }
     }
 

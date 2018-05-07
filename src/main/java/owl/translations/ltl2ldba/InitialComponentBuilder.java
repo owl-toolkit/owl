@@ -27,20 +27,24 @@ import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.LabelledEdge;
 import owl.automaton.ldba.MutableAutomatonBuilder;
+import owl.collections.ValuationSet;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
-public class InitialComponentBuilder<K extends RecurringObligation>
+class InitialComponentBuilder<K extends RecurringObligation>
   implements MutableAutomatonBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
 
   private final boolean constructDeterministic;
@@ -56,7 +60,7 @@ public class InitialComponentBuilder<K extends RecurringObligation>
     this.factories = factories;
     this.jumpFactory = jumpFactory;
 
-    factory = new EquivalenceClassStateFactory(factories.eqFactory, configuration);
+    factory = new EquivalenceClassStateFactory(factories, configuration);
     constructionQueue = new ArrayDeque<>();
     constructDeterministic = !configuration.contains(NON_DETERMINISTIC_INITIAL_COMPONENT);
 
@@ -82,15 +86,15 @@ public class InitialComponentBuilder<K extends RecurringObligation>
       MutableAutomatonFactory.create(NoneAcceptance.INSTANCE, factories.vsFactory);
 
     if (constructDeterministic) {
-      AutomatonUtil.exploreDeterministic(automaton, constructionQueue,
-        this::getDeterministicSuccessor, factory::getSensitiveAlphabet);
+      AutomatonUtil.exploreWithLabelledEdge(automaton, constructionQueue,
+        this::getDeterministicSuccessor);
+      assert automaton.is(Automaton.Property.DETERMINISTIC);
     } else {
       AutomatonUtil.explore(automaton, constructionQueue, this::getNondeterministicSuccessors,
         factory::getSensitiveAlphabet);
     }
 
     automaton.initialStates(constructionQueue);
-
     return automaton;
   }
 
@@ -107,23 +111,20 @@ public class InitialComponentBuilder<K extends RecurringObligation>
     }
   }
 
-  @Nullable
-  private Edge<EquivalenceClass> getDeterministicSuccessor(EquivalenceClass state,
-    BitSet valuation) {
-    EquivalenceClass successor = factory.getSuccessor(state, valuation);
-
+  private List<LabelledEdge<EquivalenceClass>> getDeterministicSuccessor(EquivalenceClass state) {
     generateJumps(state);
 
-    if (successor.isTrue()) {
-      return Edge.of(successor, 0);
+    // Suppress edges, if the state is impatient (e.g. G a)
+    if (!patientStates.contains(state)) {
+      return List.of();
     }
 
-    // Suppress edge, if successor is a non-accepting state or this state is impatient (e.g. G a)
-    if (successor.isFalse() || !patientStates.contains(state)) {
-      return null;
-    }
-
-    return Edge.of(successor);
+    Map<EquivalenceClass, ValuationSet> successors = factory.getSuccessors(state);
+    // There shouldn't be any rejecting sinks in the successor map.
+    assert successors.entrySet().stream().noneMatch(x -> x.getKey().isFalse());
+    List<LabelledEdge<EquivalenceClass>> edges = new ArrayList<>(successors.size());
+    successors.forEach((successor, set) -> edges.add(LabelledEdge.of(successor, set)));
+    return edges;
   }
 
   Set<Jump<K>> getJumps(EquivalenceClass state) {

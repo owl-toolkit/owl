@@ -63,10 +63,8 @@ public final class SimpleTranslations {
     Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula.formula()),
       "Formula is not from the syntactic co-safety fragment.");
 
-    var supplier = env.factorySupplier();
-    var eqFactory = supplier.getEquivalenceClassFactory(formula.variables(), false);
-    var vsFactory = supplier.getValuationSetFactory(formula.variables());
-    var factory = new EquivalenceClassStateFactory(eqFactory, true, false);
+    var factories = env.factorySupplier().getFactories(formula.variables(), false);
+    var factory = new EquivalenceClassStateFactory(factories, true, false);
 
     BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
       var successor = factory.getSuccessor(x, y);
@@ -83,7 +81,7 @@ public final class SimpleTranslations {
     };
 
     Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = x -> {
-      var successors = factory.getSuccessors(x, vsFactory).entrySet();
+      var successors = factory.getSuccessors(x).entrySet();
       return Collections2.transform(successors, y -> {
         var successor = y.getKey();
 
@@ -95,8 +93,8 @@ public final class SimpleTranslations {
       });
     };
 
-    return AutomatonFactory.create(factory.getInitial(formula.formula()), vsFactory, single, bulk,
-      BuchiAcceptance.INSTANCE);
+    return AutomatonFactory.create(factory.getInitial(formula.formula()), factories.vsFactory,
+      single, bulk, BuchiAcceptance.INSTANCE);
   }
 
   public static Automaton<EquivalenceClass, AllAcceptance> buildSafety(LabelledFormula formula,
@@ -104,10 +102,8 @@ public final class SimpleTranslations {
     Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula.formula()),
       "Formula is not from the syntactic safety fragment.");
 
-    var supplier = env.factorySupplier();
-    var eqFactory = supplier.getEquivalenceClassFactory(formula.variables(), false);
-    var vsFactory = supplier.getValuationSetFactory(formula.variables());
-    var factory = new EquivalenceClassStateFactory(eqFactory, true, false);
+    var factories = env.factorySupplier().getFactories(formula.variables(), false);
+    var factory = new EquivalenceClassStateFactory(factories, true, false);
 
     BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
       var successor = factory.getSuccessor(x, y);
@@ -115,11 +111,11 @@ public final class SimpleTranslations {
     };
 
     Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = x -> {
-      var successors = factory.getSuccessors(x, vsFactory).entrySet();
+      var successors = factory.getSuccessors(x).entrySet();
       return Collections2.transform(successors, y -> LabelledEdge.of(y.getKey(), y.getValue()));
     };
 
-    return AutomatonFactory.create(factory.getInitial(formula.formula()), vsFactory, single, bulk,
-      AllAcceptance.INSTANCE);
+    return AutomatonFactory.create(factory.getInitial(formula.formula()), factories.vsFactory,
+      single, bulk, AllAcceptance.INSTANCE);
   }
 }
