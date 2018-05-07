@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -176,11 +175,11 @@ public final class AutomatonUtil {
    * @param explorationFunction
    *     The function describing the transition relation.
    *
-   * @see #explore(MutableAutomaton, Iterable, BiFunction, Function, AtomicInteger)
+   * @see #explore(MutableAutomaton, Iterable, BiFunction, Function)
    */
   public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
     BiFunction<S, BitSet, Iterable<Edge<S>>> explorationFunction) {
-    explore(automaton, states, explorationFunction, s -> null, new AtomicInteger());
+    explore(automaton, states, explorationFunction, s -> null);
   }
 
   /**
@@ -200,31 +199,10 @@ public final class AutomatonUtil {
   public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
     BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
     Function<S, BitSet> sensitiveAlphabetOracle) {
-    explore(automaton, states, explorationFunction, sensitiveAlphabetOracle, new AtomicInteger());
-  }
-
-  /**
-   * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive alphabet
-   * of a particular state, which reduces the number of calls to the exploration function. The
-   * oracle is allowed to return {@code null} values, indicating that no alphabet restriction can be
-   * obtained. <p> Note that if some reachable state is already present, the specified transitions
-   * still get added, potentially introducing non-determinism. If two states of the given {@code
-   * states} can reach a particular state, the resulting transitions only get added once. </p>
-   *
-   * @param states
-   *     The starting states of the exploration.
-   * @param explorationFunction
-   *     The function describing the transition relation.
-   */
-  public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
-    Function<S, BitSet> sensitiveAlphabetOracle, AtomicInteger sizeCounter) {
 
     int alphabetSize = automaton.factory().alphabetSize();
     Set<S> exploredStates = Sets.newHashSet(states);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
-    sizeCounter.lazySet(exploredStates.size());
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
@@ -258,42 +236,32 @@ public final class AutomatonUtil {
       if (Thread.interrupted()) {
         throw new CancellationException();
       }
-
-      sizeCounter.lazySet(exploredStates.size());
     }
   }
 
   public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, Edge<S>> explorationFunction, AtomicInteger sizeCounter) {
-    exploreDeterministic(automaton, states, explorationFunction, s -> null, sizeCounter);
+    BiFunction<S, BitSet, Edge<S>> explorationFunction) {
+    exploreDeterministic(automaton, states, explorationFunction, s -> null);
   }
 
   public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
     BiFunction<S, BitSet, Edge<S>> explorationFunction,
     Function<S, BitSet> sensitiveAlphabetOracle) {
-    exploreDeterministic(automaton, states, explorationFunction, sensitiveAlphabetOracle,
-      new AtomicInteger());
-  }
-
-  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, Edge<S>> explorationFunction,
-    Function<S, BitSet> sensitiveAlphabetOracle,
-    AtomicInteger sizeCounter) {
-    explore(automaton, states, embed(explorationFunction), sensitiveAlphabetOracle, sizeCounter);
+    explore(automaton, states, embed(explorationFunction), sensitiveAlphabetOracle);
   }
 
   public static <S> Set<S> exploreWithLabelledEdge(MutableAutomaton<S, ?> automaton,
-    Iterable<S> states, Function<S, Iterable<LabelledEdge<S>>> successorFunction) {
-    Set<S> exploredStates = Sets.newHashSet(states);
+    Collection<S> states, Function<S, Collection<LabelledEdge<S>>> successorFunction) {
+    Set<S> exploredStates = new HashSet<>(states);
     Queue<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Iterable<LabelledEdge<S>> labelledEdges = successorFunction.apply(state);
 
-      for (LabelledEdge<S> labelledEdge : labelledEdges) {
+      for (LabelledEdge<S> labelledEdge : successorFunction.apply(state)) {
         automaton.addEdge(state, labelledEdge.valuations, labelledEdge.edge);
         S successorState = labelledEdge.edge.successor();
+
         if (exploredStates.add(successorState)) {
           workQueue.add(successorState);
         }

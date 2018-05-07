@@ -188,8 +188,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   }
 
   private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
-    EquivalenceClassStateFactory factory = new EquivalenceClassStateFactory(
-      factories.eqFactory, configuration);
+    var factory = new EquivalenceClassStateFactory(factories, configuration);
 
     if (configuration.contains(Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT)) {
       EquivalenceClass clazz = factories.eqFactory.of(formula);
