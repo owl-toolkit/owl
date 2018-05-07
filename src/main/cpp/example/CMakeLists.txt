@@ -1,5 +1,16 @@
 # Define Executable
 
+find_package(JNI REQUIRED)
+
+# Check JNI
+
+message("JNI Headers:")
+message(${JNI_INCLUDE_DIRS})
+message("JNI Libraries:")
+message(${JNI_LIBRARIES})
+
+include_directories(${JNI_INCLUDE_DIRS} "../../headers")
+
 add_executable(owl-example example.cc)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
