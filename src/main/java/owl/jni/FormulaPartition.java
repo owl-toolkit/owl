@@ -3,8 +3,8 @@ package owl.jni;
 import static owl.ltl.SyntacticFragment.CO_SAFETY;
 import static owl.ltl.SyntacticFragment.SAFETY;
 import static owl.ltl.SyntacticFragment.SINGLE_STEP;
-import static owl.ltl.SyntacticFragment.isDetBuchiRecognisable;
-import static owl.ltl.SyntacticFragment.isDetCoBuchiRecognisable;
+import static owl.ltl.SyntacticFragments.isDetBuchiRecognisable;
+import static owl.ltl.SyntacticFragments.isDetCoBuchiRecognisable;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;

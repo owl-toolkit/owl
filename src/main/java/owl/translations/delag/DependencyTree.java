@@ -34,6 +34,7 @@ import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.XDepthVisitor;
@@ -70,11 +71,11 @@ abstract class DependencyTree<T> {
     }
 
     if (SyntacticFragment.FGX.contains(formula)) {
-      if (SyntacticFragment.isAlmostAll(formula)) {
+      if (SyntacticFragments.isAlmostAll(formula)) {
         return new Leaf<>(formula, Type.LIMIT_FG, acceptanceSet);
       }
 
-      if (SyntacticFragment.isInfinitelyOften(formula)) {
+      if (SyntacticFragments.isInfinitelyOften(formula)) {
         return new Leaf<>(formula, Type.LIMIT_GF, acceptanceSet);
       }
     }

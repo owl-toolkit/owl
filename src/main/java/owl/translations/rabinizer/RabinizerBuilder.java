@@ -59,6 +59,7 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
@@ -95,8 +96,8 @@ public class RabinizerBuilder {
     boolean fairnessFragment = configuration.eager()
       && initialClass.atomicPropositions().isEmpty()
       && initialClass.modalOperators().stream()
-      .allMatch(support -> SyntacticFragment.isInfinitelyOften(support)
-        || SyntacticFragment.isAlmostAll(support));
+      .allMatch(support -> SyntacticFragments.isInfinitelyOften(support)
+        || SyntacticFragments.isAlmostAll(support));
 
     vsFactory = factories.vsFactory;
     eqFactory = factories.eqFactory;
@@ -184,7 +185,7 @@ public class RabinizerBuilder {
 
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinize(
     Formula phi, Factories factories, RabinizerConfiguration configuration) {
-    Formula phiNormalized = SyntacticFragment.normalize(phi, SyntacticFragment.FGMU);
+    Formula phiNormalized = SyntacticFragments.normalize(phi, SyntacticFragment.FGMU);
 
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?

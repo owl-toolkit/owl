@@ -13,6 +13,7 @@ import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
+import owl.run.PipelineExecutionContext;
 import owl.translations.dra2dpa.IARBuilder;
 
 public final class Transformers {
@@ -40,6 +41,10 @@ public final class Transformers {
     };
   }
 
+  /**
+   * Creates a {@link Transformer transformer} from a {@link OutputWriter writer} by redirecting
+   * the output to the {@link PipelineExecutionContext#getMetaWriter() meta writer}.
+   */
   public static Transformer fromWriter(OutputWriter writer) {
     return environment -> (input, context) -> {
       writer.bind(context.getMetaWriter(), environment).write(input);

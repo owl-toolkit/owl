@@ -25,15 +25,15 @@ public final class LabelledEdges {
   private LabelledEdges() {
   }
 
-  public static <S> Collection<ValuationSet> valuations(Collection<LabelledEdge<S>> iterable) {
-    return Collections2.transform(iterable, LabelledEdge::valuations);
+  public static <S> Collection<ValuationSet> valuations(Collection<LabelledEdge<S>> labelledEdges) {
+    return Collections2.transform(labelledEdges, LabelledEdge::valuations);
   }
 
-  public static <S> Collection<Edge<S>> edges(Collection<LabelledEdge<S>> iterable) {
-    return Collections2.transform(iterable, LabelledEdge::edge);
+  public static <S> Collection<Edge<S>> edges(Collection<LabelledEdge<S>> labelledEdges) {
+    return Collections2.transform(labelledEdges, LabelledEdge::edge);
   }
 
-  public static <S> Collection<S> successors(Collection<LabelledEdge<S>> iterable) {
-    return Collections2.transform(iterable, l -> l.edge.successor());
+  public static <S> Collection<S> successors(Collection<LabelledEdge<S>> labelledEdges) {
+    return Collections2.transform(labelledEdges, l -> l.edge.successor());
   }
 }

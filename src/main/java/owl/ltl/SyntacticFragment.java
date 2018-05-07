@@ -18,11 +18,11 @@
 package owl.ltl;
 
 import java.util.Set;
-import java.util.function.Function;
-import owl.ltl.visitors.UnabbreviateVisitor;
-import owl.ltl.visitors.Visitor;
 
-@SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")
+// Deliberately go against the advice from
+// https://github.com/google/error-prone/blob/master/docs/bugpattern/ImmutableEnumChecker.md
+// Field clazzes is immutable
+@SuppressWarnings("ImmutableEnumChecker")
 public enum SyntacticFragment {
 
   ALL(Set.of(
@@ -90,65 +90,14 @@ public enum SyntacticFragment {
   private final Set<Class<? extends Formula>> clazzes;
 
   SyntacticFragment(Set<Class<? extends Formula>> clazzes) {
-    this.clazzes = clazzes;
+    this.clazzes = Set.copyOf(clazzes);
   }
 
   public Set<Class<? extends Formula>> classes() {
-    return Set.copyOf(clazzes);
+    return clazzes;
   }
 
   public boolean contains(Formula formula) {
     return formula.allMatch(x -> clazzes.contains(x.getClass()));
-  }
-
-  public static boolean isAlmostAll(Formula formula) {
-    return formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator;
-  }
-
-  public static boolean isDetBuchiRecognisable(Formula formula) {
-    return formula instanceof GOperator && CO_SAFETY.contains(((GOperator) formula).operand);
-  }
-
-  public static boolean isDetCoBuchiRecognisable(Formula formula) {
-    return formula instanceof FOperator && SAFETY.contains(((FOperator) formula).operand);
-  }
-
-  public static boolean isInfinitelyOften(Formula formula) {
-    return formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator;
-  }
-
-  private static Formula normalize(Formula formula, SyntacticFragment fragment,
-    Function<Formula, Formula> normalizer) {
-    Formula normalizedFormula = normalizer.apply(formula);
-
-    if (!fragment.contains(normalizedFormula)) {
-      throw new IllegalArgumentException("Unsupported formula object found in " + normalizedFormula
-        + ". Supported classes are: " + fragment.classes());
-    }
-
-    return normalizedFormula;
-  }
-
-  private static final Visitor<Formula> UNABBREVIATE_VISITOR =
-    new UnabbreviateVisitor(WOperator.class, ROperator.class);
-
-  public static Formula normalize(Formula formula, SyntacticFragment fragment) {
-    switch (fragment) {
-      case ALL:
-        return formula;
-
-      case NNF:
-        return normalize(formula, NNF, Formula::nnf);
-
-      case FGMU:
-        return normalize(formula, FGMU, x -> x.nnf().accept(UNABBREVIATE_VISITOR));
-
-      default:
-        throw new UnsupportedOperationException();
-    }
-  }
-
-  public static LabelledFormula normalize(LabelledFormula formula, SyntacticFragment fragment) {
-    return formula.wrap(normalize(formula.formula(), fragment));
   }
 }

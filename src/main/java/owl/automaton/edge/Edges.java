@@ -25,7 +25,7 @@ public final class Edges {
   private Edges() {
   }
 
-  public static <S> Set<S> successors(Collection<Edge<S>> iterable) {
-    return Collections3.transformUnique(iterable, Edge::successor);
+  public static <S> Set<S> successors(Collection<Edge<S>> edges) {
+    return Collections3.transformUnique(edges, Edge::successor);
   }
 }

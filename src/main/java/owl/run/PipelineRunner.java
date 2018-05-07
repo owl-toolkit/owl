@@ -100,6 +100,11 @@ public final class PipelineRunner {
       if (earlyStop.get()) {
         return null;
       }
+      // TODO Proper implementation for the meta information business
+      String meta = context.getWrittenString();
+      if (!meta.isEmpty()) {
+        System.err.print(meta);
+      }
     }
 
     long executionTime = System.nanoTime() - startTime;

@@ -31,7 +31,8 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-@SuppressWarnings("checkstyle:all")
+@SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
+                    "checkstyle:EmptyLineSeparator"})
 public interface BinaryVisitor<P, R> {
 
   default R visit(Biconditional biconditional, P parameter)     { throw uoe(biconditional);   }

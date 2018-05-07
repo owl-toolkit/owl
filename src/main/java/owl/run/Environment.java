@@ -1,12 +1,11 @@
 package owl.run;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import owl.factories.FactorySupplier;
 
 /**
  * The environment makes global configuration available to all parts of the pipeline. For example,
- * it provides an {@link ListeningExecutorService executor} that is supposed to be used by all
- * implementations if they support parallelism.
+ * it provides an {@link FactorySupplier factory supplier} that is supposed to be used by all
+ * implementations.
  */
 public interface Environment {
   /**
@@ -35,7 +34,16 @@ public interface Environment {
    */
   boolean parallel();
 
+  // TODO Add shutdown hooks
+
+  /**
+   * Called exactly one by the runner, indicating that the computation has ended due to, e.g.,
+   * input exhaustion or an error.
+   */
   void shutdown();
 
+  /**
+   * Whether the computation has finished.
+   */
   boolean isShutdown();
 }
