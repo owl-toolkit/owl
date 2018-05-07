@@ -32,8 +32,10 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-@SuppressWarnings("checkstyle:all")
+@SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
+                    "checkstyle:EmptyLineSeparator"})
 public interface IntVisitor {
+
   default int visit(Biconditional biconditional)     { throw uoe(biconditional);   }
   default int visit(BooleanConstant booleanConstant) { throw uoe(booleanConstant); }
   default int visit(Conjunction conjunction)         { throw uoe(conjunction);     }

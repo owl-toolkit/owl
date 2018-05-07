@@ -41,6 +41,7 @@ import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.run.Environment;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
@@ -101,7 +102,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
 
   @Override
   public Automaton<State<T>, ?> apply(LabelledFormula inputFormula) {
-    LabelledFormula formula = SyntacticFragment.normalize(inputFormula, SyntacticFragment.NNF);
+    LabelledFormula formula = SyntacticFragments.normalize(inputFormula, SyntacticFragment.NNF);
     Factories factories = env.factorySupplier().getFactories(formula.variables());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {

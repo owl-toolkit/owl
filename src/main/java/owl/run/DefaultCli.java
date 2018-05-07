@@ -58,7 +58,7 @@ public final class DefaultCli {
     if (settings.hasOption("filein")) {
       String[] sources = settings.getOptionValues("filein");
       if (sources.length != 1) {
-        throw RunUtil.failWithMessage("Multiple sources specified", null);
+        throw RunUtil.failWithMessage("Multiple sources specified");
       }
       reader = createReaderFromPath(sources[0]);
     } else if (!Strings.isNullOrEmpty(System.getenv("OWL_INPUT"))) {
@@ -76,7 +76,7 @@ public final class DefaultCli {
       ? Integer.parseInt(settings.getOptionValue("worker"))
       : 0;
     if (workers < 0) {
-      throw RunUtil.failWithMessage("Negative worker count", null);
+      throw RunUtil.failWithMessage("Negative worker count");
     }
 
     String destination = settings.getOptionValue("fileout");

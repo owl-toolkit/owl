@@ -18,7 +18,6 @@
 package owl.ltl.rewriter;
 
 import java.util.function.Function;
-import javax.annotation.concurrent.Immutable;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 
@@ -51,7 +50,10 @@ public final class SimplifierFactory {
     return formula.wrap(apply(formula.formula(), modes));
   }
 
-  @Immutable
+  // Deliberately go against the advice from
+  // https://github.com/google/error-prone/blob/master/docs/bugpattern/ImmutableEnumChecker.md
+  // We only need Formula -> Formula here
+  @SuppressWarnings("ImmutableEnumChecker")
   public enum Mode {
     SYNTACTIC(new SyntacticSimplifier()),
     SYNTACTIC_FAIRNESS(SyntacticFairnessSimplifier.NormaliseX.INSTANCE

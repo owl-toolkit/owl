@@ -22,6 +22,7 @@ import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.PropositionalFormula;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
@@ -171,10 +172,10 @@ public class JniEmersonLeiAutomaton {
         automaton = new JniAutomaton<>(
           SimpleTranslations.buildCoSafety(labelledFormula, environment), EquivalenceClass::isTrue,
           Acceptance.CO_SAFETY);
-      } else if (SyntacticFragment.isDetBuchiRecognisable(shiftedFormula.formula)) {
+      } else if (SyntacticFragments.isDetBuchiRecognisable(shiftedFormula.formula)) {
         automaton = new JniAutomaton<>(SimpleTranslations.buildBuchi(labelledFormula, environment),
         x -> false);
-      } else if (SyntacticFragment.isDetCoBuchiRecognisable(shiftedFormula.formula)) {
+      } else if (SyntacticFragments.isDetCoBuchiRecognisable(shiftedFormula.formula)) {
         automaton = new JniAutomaton<>(
           SimpleTranslations.buildCoBuchi(labelledFormula, environment), x -> false);
       } else {
@@ -334,11 +335,11 @@ public class JniEmersonLeiAutomaton {
         return Map.of(formula, Acceptance.CO_SAFETY);
       }
 
-      if (SyntacticFragment.isDetBuchiRecognisable(formula)) {
+      if (SyntacticFragments.isDetBuchiRecognisable(formula)) {
         return Map.of(formula, Acceptance.BUCHI);
       }
 
-      if (SyntacticFragment.isDetCoBuchiRecognisable(formula)) {
+      if (SyntacticFragments.isDetCoBuchiRecognisable(formula)) {
         return Map.of(formula, Acceptance.CO_BUCHI);
       }
 
