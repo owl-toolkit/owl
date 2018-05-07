@@ -6,73 +6,105 @@ import static owl.ltl.SyntacticFragment.SINGLE_STEP;
 import static owl.ltl.SyntacticFragments.isDetBuchiRecognisable;
 import static owl.ltl.SyntacticFragments.isDetCoBuchiRecognisable;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import owl.ltl.BinaryModalOperator;
+import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.UnaryModalOperator;
+import owl.ltl.XOperator;
+import owl.ltl.rewriter.PullUpXVisitor;
 import owl.ltl.visitors.Collector;
 
 final class FormulaPartition {
-  final List<Set<Formula>> cosafety = new ArrayList<>();
+  final Clusters cosafetyClusters = new Clusters();
   final List<Formula> dba = new ArrayList<>();
   final List<Formula> dca = new ArrayList<>();
-  final List<Formula> mixed = new ArrayList<>();
-  final List<Set<Formula>> safety = new ArrayList<>();
-  final List<Formula> singleStepSafety = new ArrayList<>();
+  final List<Formula> dpa = new ArrayList<>();
+  final Clusters safetyClusters = new Clusters();
+  final Map<Integer, Clusters> singleStepSafetyClusters = new HashMap<>();
 
   Set<Formula> safety() {
-    return Sets.newHashSet(Iterables.concat(singleStepSafety, Iterables.concat(safety)));
+    Set<Formula> safety = new HashSet<>();
+    safetyClusters.clusterList.forEach(safety::addAll);
+    singleStepSafetyClusters.forEach((z, x) -> x.clusterList.forEach(safety::addAll));
+    return safety;
   }
 
   Set<Formula> cosafety() {
-    return Sets.newHashSet(Iterables.concat(cosafety));
+    Set<Formula> cosafety = new HashSet<>();
+    cosafetyClusters.clusterList.forEach(cosafety::addAll);
+    return cosafety;
   }
 
-  static FormulaPartition of(Set<Formula> input) {
+  static FormulaPartition of(Collection<Formula> input) {
     FormulaPartition partition = new FormulaPartition();
 
-    input.forEach(x -> {
+    for (Formula x : input) {
       if (SAFETY.contains(x)) {
-        if (x instanceof GOperator && SINGLE_STEP.contains(((GOperator) x).operand)) {
-          partition.singleStepSafety.add(x);
+        PullUpXVisitor.XFormula rewrittenX = x.accept(PullUpXVisitor.INSTANCE);
+
+        if (isSingleStep(rewrittenX.rawFormula())) {
+          partition.singleStepSafetyClusters
+            .computeIfAbsent(rewrittenX.depth(), ignore -> new Clusters())
+            .insert(XOperator.of(rewrittenX.rawFormula(), rewrittenX.depth()));
         } else {
-          partition.safety.add(merge(partition.safety, x));
+          partition.safetyClusters.insert(x);
         }
       } else if (CO_SAFETY.contains(x)) {
-        partition.cosafety.add(merge(partition.cosafety, x));
+        partition.cosafetyClusters.insert(x);
       } else if (isDetBuchiRecognisable(x)) {
         partition.dba.add(x);
       } else if (isDetCoBuchiRecognisable(x)) {
         partition.dca.add(x);
       } else {
-        partition.mixed.add(x);
+        partition.dpa.add(x);
       }
-    });
+    }
 
     return partition;
   }
 
-  private static Set<Formula> merge(List<Set<Formula>> formulas, Formula formula) {
-    Set<Formula> toBeMerged = new HashSet<>();
-    toBeMerged.add(formula);
+  private static boolean isSingleStep(Formula formula) {
+    if (formula instanceof Conjunction) {
+      return ((Conjunction) formula).children.stream().allMatch(FormulaPartition::isSingleStep);
+    }
 
-    formulas.removeIf(x -> {
-      if (isIndependent(x, formula)) {
-        return false;
-      }
-
-      toBeMerged.addAll(x);
-      return true;
-    });
-
-    return toBeMerged;
+    return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand);
   }
 
-  private static boolean isIndependent(Iterable<Formula> x, Formula y) {
-    return !Collector.collectAtoms(x).intersects(Collector.collectAtoms(y));
+  static class Clusters {
+    private static final Predicate<Formula> INTERESTING_OPERATOR = o -> (!(o instanceof XOperator))
+      && (o instanceof UnaryModalOperator || o instanceof BinaryModalOperator);
+
+    List<Set<Formula>> clusterList = new ArrayList<>();
+
+    void insert(Formula formula) {
+      Set<Formula> cluster = new HashSet<>();
+      cluster.add(formula);
+
+      clusterList.removeIf(x -> {
+        boolean addToCluster = !Collections.disjoint(
+          Collector.collect(INTERESTING_OPERATOR, x),
+          Collector.collect(INTERESTING_OPERATOR, formula));
+
+        if (addToCluster) {
+          cluster.addAll(x);
+          return true;
+        }
+
+        return false;
+      });
+
+      clusterList.add(cluster);
+    }
   }
 }

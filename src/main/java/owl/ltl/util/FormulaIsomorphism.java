@@ -42,6 +42,12 @@ public final class FormulaIsomorphism {
       return null;
     }
 
+    ValidationVisitor preValidationVisitor = new ValidationVisitor(null);
+
+    if (!formula1.accept(preValidationVisitor, formula2)) {
+      return null;
+    }
+
     List<Integer> atomsList1 = atoms1.stream().boxed().collect(Collectors.toList());
     List<Integer> atomsList2 = atoms2.stream().boxed().collect(Collectors.toList());
 
@@ -63,9 +69,10 @@ public final class FormulaIsomorphism {
   }
 
   private static class ValidationVisitor implements BinaryVisitor<Formula, Boolean> {
+    @Nullable
     private final int[] mapping;
 
-    private ValidationVisitor(int[] mapping) {
+    private ValidationVisitor(@Nullable int[] mapping) {
       this.mapping = mapping;
     }
 
@@ -116,7 +123,7 @@ public final class FormulaIsomorphism {
         return Boolean.FALSE;
       }
 
-      return mapping[literal.getAtom()] == otherLiteral.getAtom();
+      return mapping == null ? Boolean.TRUE : mapping[literal.getAtom()] == otherLiteral.getAtom();
     }
 
     @Override

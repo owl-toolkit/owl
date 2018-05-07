@@ -41,6 +41,9 @@ namespace owl {
 
         if (debug) {
             args.emplace_back(std::string("-Xcheck:jni"));
+            args.emplace_back(std::string("-enableassertions"));
+        } else {
+            args.emplace_back(std::string("-disableassertions"));
         }
 
         if (aggressive_heap_optimisation) {
