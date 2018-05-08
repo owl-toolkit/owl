@@ -26,10 +26,11 @@ public class JniEmersonLeiAutomatonTest {
     + "(r_7) -> (F (g_7)))))";
 
   private static final String CO_SAFETY = "(F (grant_1 && grant_2)) && (release_1 U grant_1) "
-    + "&& (release_2 U grant_2) && (F (x -> X y))";
+    + "&& X (release_1 U grant_1) && (release_2 U grant_2) && (F (x -> X y)) && F x";
 
   private static final String SAFETY = "(G (grant_1 || grant_2)) && (release_1 R grant_1) "
-    + "&& (release_2 R grant_2) && (G (request_1 -> X grant_1))";
+    + "&& X (release_1 R grant_1) && (release_2 R grant_2) && (G (request_1 -> X grant_1)) "
+    + "&& G grant_1";
 
   @Test
   public void splitSimpleArbiter() {
@@ -50,11 +51,11 @@ public class JniEmersonLeiAutomatonTest {
   public void testCoSafetySplitting() {
     LabelledTree<?, ?> tree1 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, ALWAYS, false).structure;
-    assertEquals(4, ((Node<?, ?>) tree1).getChildren().size());
+    assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
 
     LabelledTree<?, ?> tree2 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, AUTO, false).structure;
-    assertEquals(2, ((Node<?, ?>) tree2).getChildren().size());
+    assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
 
     LabelledTree<?, ?> tree3 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, NEVER, false).structure;
@@ -65,11 +66,11 @@ public class JniEmersonLeiAutomatonTest {
   public void testSafetySplitting() {
     LabelledTree<?, ?> tree1 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, ALWAYS, false).structure;
-    assertEquals(4, ((Node<?, ?>) tree1).getChildren().size());
+    assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
 
     LabelledTree<?, ?> tree2 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, AUTO, false).structure;
-    assertEquals(3, ((Node<?, ?>) tree2).getChildren().size());
+    assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
 
     LabelledTree<?, ?> tree3 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, NEVER, false).structure;
@@ -185,7 +186,7 @@ public class JniEmersonLeiAutomatonTest {
       + "  }\n"
       + "}");
 
-    var automaton = JniEmersonLeiAutomaton.of(
+    JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       specification.toFormula().formula(), true, false, AUTO, true);
     assertThat(automaton.automata.size(), Matchers.is(2));
     assertThat(automaton.automata.get(0).size(), Matchers.is(1));
@@ -267,10 +268,113 @@ public class JniEmersonLeiAutomatonTest {
       + "  }\n"
       + "}\n");
 
-    var automaton = JniEmersonLeiAutomaton.of(
+    JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       specification.toFormula().formula(), true, false, AUTO, true);
-    assertThat(automaton.automata.size(), Matchers.is(2));
+
+    assertThat(automaton.automata.size(), Matchers.is(3));
     assertThat(automaton.automata.get(0).size(), Matchers.is(4));
     assertThat(automaton.automata.get(1).size(), Matchers.is(2));
+  }
+
+  @Test
+  public void testLoadBalancer() {
+    Tlsf specification = TlsfParser.parse("INFO {\n"
+      + "  TITLE:       \"Parameterized Load Balancer\"\n"
+      + "  DESCRIPTION: \"Parameterized Load Balancer (generalized version of the Acacia+ "
+      + "benchmark)\"\n"
+      + "  SEMANTICS:   Mealy\n"
+      + "  TARGET:      Mealy\n"
+      + "}\n"
+      + "\n"
+      + "MAIN {\n"
+      + "  INPUTS {\n"
+      + "    idle;\n"
+      + "    request_0;\n"
+      + "    request_1;\n"
+      + "    request_2;\n"
+      + "    request_3;\n"
+      + "    request_4;\n"
+      + "    request_5;\n"
+      + "    request_6;\n"
+      + "    request_7;\n"
+      + "    request_8;\n"
+      + "    request_9;\n"
+      + "  }\n"
+      + "  OUTPUTS {\n"
+      + "    grant_0;\n"
+      + "    grant_1;\n"
+      + "    grant_2;\n"
+      + "    grant_3;\n"
+      + "    grant_4;\n"
+      + "    grant_5;\n"
+      + "    grant_6;\n"
+      + "    grant_7;\n"
+      + "    grant_8;\n"
+      + "    grant_9;\n"
+      + "  }\n"
+      + "  ASSUME {\n"
+      + "    (G (F (idle)));\n"
+      + "    (G (((idle) && (X ((((((((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! "
+      + "(grant_3))) && (! (grant_4))) && (! (grant_5))) && (! (grant_6))) && (! (grant_7))) && "
+      + "(! (grant_8))) && (! (grant_9))))) -> (X (idle))));\n"
+      + "    (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && "
+      + "(idle))))));\n"
+      + "  }\n"
+      + "  ASSERT {\n"
+      + "    (X (((((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3))) && (! "
+      + "(grant_4))) && (((((! (grant_5)) && (! (grant_6))) && (! (grant_7))) && (((! (grant_8)) "
+      + "&& (true)) || ((true) && (! (grant_9))))) || (((((! (grant_5)) && (! (grant_6))) && "
+      + "(true)) || ((((! (grant_5)) && (true)) || ((true) && (! (grant_6)))) && (! (grant_7)))) "
+      + "&& ((! (grant_8)) && (! (grant_9)))))) || ((((((! (grant_0)) && (! (grant_1))) && (! "
+      + "(grant_2))) && (((! (grant_3)) && (true)) || ((true) && (! (grant_4))))) || (((((! "
+      + "(grant_0)) && (! (grant_1))) && (true)) || ((((! (grant_0)) && (true)) || ((true) && (! "
+      + "(grant_1)))) && (! (grant_2)))) && ((! (grant_3)) && (! (grant_4))))) && (((((! "
+      + "(grant_5)) && (! (grant_6))) && (! (grant_7))) && (! (grant_8))) && (! (grant_9))))));\n"
+      + "    ((X (grant_0)) -> (request_0));\n"
+      + "    ((X (grant_1)) -> (request_1));\n"
+      + "    ((X (grant_2)) -> (request_2));\n"
+      + "    ((X (grant_3)) -> (request_3));\n"
+      + "    ((X (grant_4)) -> (request_4));\n"
+      + "    ((X (grant_5)) -> (request_5));\n"
+      + "    ((X (grant_6)) -> (request_6));\n"
+      + "    ((X (grant_7)) -> (request_7));\n"
+      + "    ((X (grant_8)) -> (request_8));\n"
+      + "    ((X (grant_9)) -> (request_9));\n"
+      + "    ((request_0) -> (grant_1));\n"
+      + "    ((request_0) -> (grant_2));\n"
+      + "    ((request_0) -> (grant_3));\n"
+      + "    ((request_0) -> (grant_4));\n"
+      + "    ((request_0) -> (grant_5));\n"
+      + "    ((request_0) -> (grant_6));\n"
+      + "    ((request_0) -> (grant_7));\n"
+      + "    ((request_0) -> (grant_8));\n"
+      + "    ((request_0) -> (grant_9));\n"
+      + "    ((! (idle)) -> (X ((((((((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! "
+      + "(grant_3))) && (! (grant_4))) && (! (grant_5))) && (! (grant_6))) && (! (grant_7))) && "
+      + "(! (grant_8))) && (! (grant_9)))));\n"
+      + "  }\n"
+      + "  GUARANTEE {\n"
+      + "    (! (F (G ((request_0) && (X (! (grant_0)))))));\n"
+      + "    (! (F (G ((request_1) && (X (! (grant_1)))))));\n"
+      + "    (! (F (G ((request_2) && (X (! (grant_2)))))));\n"
+      + "    (! (F (G ((request_3) && (X (! (grant_3)))))));\n"
+      + "    (! (F (G ((request_4) && (X (! (grant_4)))))));\n"
+      + "    (! (F (G ((request_5) && (X (! (grant_5)))))));\n"
+      + "    (! (F (G ((request_6) && (X (! (grant_6)))))));\n"
+      + "    (! (F (G ((request_7) && (X (! (grant_7)))))));\n"
+      + "    (! (F (G ((request_8) && (X (! (grant_8)))))));\n"
+      + "    (! (F (G ((request_9) && (X (! (grant_9)))))));\n"
+      + "  }\n"
+      + "}\n"
+      + "\n");
+
+    JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
+      specification.toFormula().formula(), true, false, AUTO, true);
+
+    assertThat(automaton.automata.size(), Matchers.is(9));
+
+    for (JniAutomaton jniAutomaton : automaton.automata) {
+      assertThat(jniAutomaton.size(), Matchers.lessThanOrEqualTo(4));
+    }
   }
 }

@@ -39,9 +39,9 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
-class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<Formula> {
+public class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<Formula> {
 
-  static final UnaryOperator<Formula> INSTANCE = new PullUpXVisitor();
+  public static final PullUpXVisitor INSTANCE = new PullUpXVisitor();
 
   @Override
   public Formula apply(Formula formula) {
@@ -133,7 +133,7 @@ class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<
     return formula;
   }
 
-  static final class XFormula {
+  public static final class XFormula {
     int depth;
     Formula formula;
 
@@ -143,6 +143,7 @@ class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<
     }
 
     Formula toFormula(int newDepth) {
+      Formula formula = this.formula;
       int i = depth - newDepth;
 
       for (; i > 0; i--) {
@@ -154,6 +155,14 @@ class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<
 
     Formula toFormula() {
       return toFormula(0);
+    }
+
+    public Formula rawFormula() {
+      return formula;
+    }
+
+    public int depth() {
+      return depth;
     }
   }
 }

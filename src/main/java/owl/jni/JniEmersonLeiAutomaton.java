@@ -32,7 +32,6 @@ import owl.ltl.visitors.SubstitutionVisitor;
 import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.SimpleTranslations;
-import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 // This is a JNI entry point. No touching.
@@ -75,7 +74,7 @@ public class JniEmersonLeiAutomaton {
     BICONDITIONAL, CONJUNCTION, DISJUNCTION
   }
 
-  enum SafetySplittingMode {
+  public enum SafetySplittingMode {
     NEVER, AUTO, ALWAYS
   }
 
@@ -180,14 +179,7 @@ public class JniEmersonLeiAutomaton {
           SimpleTranslations.buildCoBuchi(labelledFormula, environment), x -> false);
       } else {
         // Fallback to DPA
-        automaton = new JniAutomaton<>(translator.apply(labelledFormula), x -> {
-          if (x instanceof FlatRankingState) {
-            FlatRankingState y = (FlatRankingState) x;
-            return y.state() instanceof EquivalenceClass && ((EquivalenceClass) y.state()).isTrue();
-          } else {
-            return false;
-          }
-        });
+        automaton = new JniAutomaton<>(translator.apply(labelledFormula), x -> false);
       }
 
       automata.add(automaton);
@@ -217,12 +209,12 @@ public class JniEmersonLeiAutomaton {
           break;
 
         case AUTO:
-          if (!partition.singleStepSafety.isEmpty()) {
-            children.add(createLeaf(merger.apply(partition.singleStepSafety)));
-          }
-
-          partition.safety.forEach(x -> children.add(createLeaf(merger.apply(x))));
-          partition.cosafety.forEach(x -> children.add(createLeaf(merger.apply(x))));
+          partition.singleStepSafetyClusters.values()
+            .forEach(x -> x.clusterList.forEach(y -> children.add(createLeaf(merger.apply(y)))));
+          partition.safetyClusters.clusterList
+            .forEach(x -> children.add(createLeaf(merger.apply(x))));
+          partition.cosafetyClusters.clusterList
+            .forEach(x -> children.add(createLeaf(merger.apply(x))));
           break;
 
         case ALWAYS:
@@ -240,7 +232,7 @@ public class JniEmersonLeiAutomaton {
       List<Formula> lessThanParityRequired = new ArrayList<>();
       List<Formula> parityRequired = new ArrayList<>();
 
-      partition.mixed.forEach(x -> {
+      partition.dpa.forEach(x -> {
         if (annotatedTree.get(x) == Acceptance.PARITY) {
           parityRequired.add(x);
         } else {

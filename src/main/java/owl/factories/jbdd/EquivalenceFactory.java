@@ -316,15 +316,8 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
         x -> factory.compose(x, temporalStepSubstitution),
         x -> x.accept(REMOVE_X)));
     } else {
-      int[] substitution = temporalStepSubstitution.clone();
-
-      for (int i = 0; i < pivot; i++) {
-        substitution[i] = -1;
-      }
-
-      for (int i = pivot + 1; i < substitution.length; i++) {
-        substitution[i] = -1;
-      }
+      int[] substitution = new int[pivot + 1];
+      Arrays.fill(substitution, 0, pivot, -1);
 
       substitution[pivot] = factory.getTrueNode();
       var trueSubTree = temporalStepTree(transform(clazz,

@@ -187,10 +187,6 @@ public final class FlatRankingAutomaton {
 
     @Nullable
     Edge<FlatRankingState<S, T>> getSuccessor(FlatRankingState<S, T> state, BitSet valuation) {
-      if (state.state() == null) {
-        return null;
-      }
-
       S successor;
 
       { // We obtain the successor of the state in the initial component.
