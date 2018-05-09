@@ -138,38 +138,4 @@ namespace owl {
         deref(env, tlsf, labelled_formula);
         return copy_from_java(env, formula);
     }
-
-    FormulaRewriter::FormulaRewriter(JNIEnv *env) : env(env) {
-        bind_static_method(env, "owl/ltl/rewriter/LiteralMapper", "shiftLiterals",
-                           "(Lowl/ltl/Formula;)Lowl/ltl/rewriter/LiteralMapper$ShiftedFormula;", shift_rewriter,
-                           shift_literalsID);
-        bind_static_method(env, "owl/ltl/rewriter/RealizabilityRewriter", "split",
-                           "(Lowl/ltl/Formula;ILjava/util/Map;)[Lowl/ltl/Formula;", realizability_rewriter, splitID);
-        bind_static_method(env, "owl/ltl/rewriter/SimplifierFactory", "applyDefault", "(Lowl/ltl/Formula;)Lowl/ltl/Formula;", simplifier, simplifyID);
-    }
-
-    std::vector<Formula> FormulaRewriter::split(const Formula &input, int numberOfInputVariables, std::map<int, bool>& map) {
-        auto java_map = new_object<jobject>(env, "java/util/HashMap", "()V");
-        auto array = call_static_method<jobjectArray>(env, realizability_rewriter, splitID, input.handle, numberOfInputVariables, java_map);
-        map = copy_from_java(env, java_map);
-
-        jsize length = env->GetArrayLength(array);
-        std::vector<Formula> formulas = std::vector<Formula>();
-
-        for (int i = 0; i < length; ++i) {
-            jobject output = make_global(env, env->GetObjectArrayElement(array, i));
-            formulas.emplace_back(Formula(env, output));
-        }
-
-        deref(env, array);
-        return formulas;
-    }
-
-    Formula FormulaRewriter::simplify(const Formula &formula) {
-        return copy_from_java(env, call_static_method<jobject, jobject>(env, simplifier, simplifyID, formula.handle));
-    }
-
-    FormulaRewriter::~FormulaRewriter() {
-        deref(env, shift_rewriter, realizability_rewriter, simplifier);
-    }
 }

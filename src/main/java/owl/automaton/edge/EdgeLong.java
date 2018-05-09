@@ -70,6 +70,7 @@ final class EdgeLong<S> implements Edge<S> {
 
   @Override
   public boolean inSet(@Nonnegative int i) {
+    Objects.checkIndex(i, Integer.MAX_VALUE);
     return i < Long.SIZE && ((store >>> i) & 1L) != 0L;
   }
 

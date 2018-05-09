@@ -62,7 +62,6 @@ final class EdgeGeneric<S> implements Edge<S> {
 
   @Override
   public boolean hasAcceptanceSets() {
-    assert !acceptance.isEmpty();
     return true;
   }
 

@@ -67,10 +67,6 @@ final class AcceptingComponentBuilder<S>
     }
   }
 
-  static <S> AcceptingComponentBuilder<S> create(Automaton<S, GeneralizedBuchiAcceptance> nba) {
-    return new AcceptingComponentBuilder<>(nba, false);
-  }
-
   static <S> AcceptingComponentBuilder<S> createScc(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     return new AcceptingComponentBuilder<>(nba, true);
   }

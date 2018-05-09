@@ -194,12 +194,11 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     @Nonnegative
     final int finIndex;
 
-    @Nonnegative
     // All indices in the interval ]finIndex, infIndex] are considered inf.
+    @Nonnegative
     final int infIndex;
 
     RabinPair(@Nonnegative int finIndex, int infIndex) {
-      assert finIndex >= 0;
       assert infIndex >= finIndex;
       this.finIndex = finIndex;
       this.infIndex = infIndex;

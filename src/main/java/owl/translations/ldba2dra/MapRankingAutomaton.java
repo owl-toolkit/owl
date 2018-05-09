@@ -116,10 +116,6 @@ public final class MapRankingAutomaton {
 
     @Nullable
     Edge<MapRankingState<S, A, T>> getSuccessor(MapRankingState<S, A, T> state, BitSet valuation) {
-      if (state.state() == null) {
-        return null;
-      }
-
       S successor;
 
       { // We obtain the successor of the state in the initial component.
