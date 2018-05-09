@@ -642,7 +642,6 @@ public final class GeneralizedRabinMinimizations {
       representativeFin = pair.finSet();
       representativeInf = new IntAVLTreeSet();
       pair.forEachInfSet(representativeInf::add);
-      assert representativeFin >= 0;
     }
 
     @Override

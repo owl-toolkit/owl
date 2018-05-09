@@ -91,27 +91,4 @@ namespace owl {
             return createDisjunction(disjunction, args...);
         }
     };
-
-    class FormulaRewriter {
-    private:
-        JNIEnv* env;
-
-        jclass realizability_rewriter;
-        jmethodID splitID;
-
-        jclass shift_rewriter;
-        jmethodID shift_literalsID;
-
-        jclass simplifier;
-        jmethodID simplifyID;
-
-        explicit FormulaRewriter(JNIEnv* env);
-        friend class OwlThread;
-
-    public:
-        ~FormulaRewriter();
-
-        std::vector<Formula> split(const Formula& input, int numberOfInputVariables, std::map<int, bool>& map);
-        Formula simplify(const Formula& formula);
-    };
 }

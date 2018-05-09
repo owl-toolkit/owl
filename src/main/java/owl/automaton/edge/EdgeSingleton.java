@@ -35,7 +35,7 @@ final class EdgeSingleton<S> implements Edge<S> {
   }
 
   EdgeSingleton(S successor, @Nonnegative int acceptance) {
-    assert acceptance >= 0;
+    Objects.checkIndex(acceptance, Integer.MAX_VALUE);
     this.acceptance = acceptance;
     this.successor = Objects.requireNonNull(successor);
   }
@@ -81,7 +81,7 @@ final class EdgeSingleton<S> implements Edge<S> {
 
   @Override
   public boolean inSet(@Nonnegative int i) {
-    assert i >= 0;
+    Objects.checkIndex(i, Integer.MAX_VALUE);
     return i == acceptance;
   }
 

@@ -201,7 +201,7 @@ public final class MinimizationUtil {
     Consumer<? super S> removedStatesConsumer) {
     assert automaton.states().containsAll(initialStates) :
       String.format("States %s not part of the automaton",
-        Sets.filter(initialStates, state -> !automaton.states().containsAll(Set.of(state))));
+        Sets.filter(initialStates, state -> !automaton.states().contains(state)));
 
     automaton.removeUnreachableStates(initialStates, removedStatesConsumer);
 

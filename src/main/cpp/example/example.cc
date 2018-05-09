@@ -9,19 +9,12 @@ using namespace owl;
 
 Formula parse_ltl(const OwlThread &owl) {
     FormulaFactory factory = owl.createFormulaFactory();
-    FormulaRewriter rewriter = owl.createFormulaRewriter();
 
     // Create mapping from string to [0,n[ for the parser.
     std::vector<std::string> mapping = std::vector<std::string>({"a", "b", "c"});
 
     // Parse with provided mapping
-    Formula parsedFormula = factory.parse("X a & (G F G c) | b | (G F a & F G ! a)", mapping);
-    parsedFormula.print();
-
-    // Use the standard simplifier on the formula
-    Formula simplifiedFormula = rewriter.simplify(parsedFormula);
-    simplifiedFormula.print();
-    return simplifiedFormula;
+    return factory.parse("X a & (G F G c) | b | (G F a & F G ! a)", mapping);
 }
 
 Formula parse_tlsf(const OwlThread& owl) {
@@ -56,21 +49,19 @@ Formula parse_tlsf(const OwlThread& owl) {
        "// TEST COMMENT\n"
        "}", mapping, num_inputs);
 
-    parsed_formula.print();
-
-    std::cout << "Vars: " << std::endl;
+    std::cout << "Variables: " << std::endl;
 
     for (const auto & entry : mapping) {
         std::cout << entry << std::endl;
     }
 
-    std::cout << "Inputs: " << num_inputs << std::endl;
+    std::cout << "Number of Inputs: " << num_inputs << std::endl;
+
     return parsed_formula;
 }
 
 Formula create_formula(const OwlThread& owl) {
     FormulaFactory factory = owl.createFormulaFactory();
-    FormulaRewriter rewriter = owl.createFormulaRewriter();
 
     Formula literal = factory.createLiteral(2);
     Formula gOperator = factory.createGOperator(literal);
@@ -85,27 +76,7 @@ Formula create_formula(const OwlThread& owl) {
     Formula iff2 = factory.createGOperator(factory.createBiimplication(input0, factory.createConjunction(output0, output1)));
     Formula imp2 = factory.createConjunction(iff1, imp, iff2);
 
-    std::cout << "Presplit formula: ";
     imp2.print();
-
-    std::cout << "Split formulae: " << std::endl;
-
-    // Split formula using the realizibilty rewriter.
-    std::map<int, bool> removed = std::map<int, bool>();
-
-    int i = 1;
-
-    for (Formula formula : rewriter.split(imp2, 2, removed)) {
-        std::cout << i << ": "; i++;
-        formula.print();
-    }
-
-    std::cout << "Removed literals with fixed valuation:" << std::endl;
-
-    for (const auto &entry : removed) {
-        std::cout << entry.first << " -> " << entry.second << std::endl;
-    }
-
     return imp2;
 }
 
@@ -211,12 +182,15 @@ int main(int argc, char** argv) {
 
     std::cout << "Parse Formula Example: " << std::endl << std::endl;
     Formula parsed_formula_1 = parse_ltl(owl);
+    parsed_formula_1.print();
 
     std::cout << "Parse TLSF Example: " << std::endl << std::endl;
     Formula parsed_formula_2 = parse_tlsf(owl);
+    parsed_formula_2.print();
 
     std::cout << std::endl << "Built Formula Example: " << std::endl << std::endl;
     Formula built_formula = create_formula(owl);
+    built_formula.print();
 
     std::cout << std::endl << "Automaton Example 1: " << std::endl << std::endl;
     dpa_example(owl, parsed_formula_1);

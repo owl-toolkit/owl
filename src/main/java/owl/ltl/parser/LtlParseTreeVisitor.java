@@ -260,8 +260,8 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
 
       return new FrequencyG(finalFormula, finalValue, comparison, limes);
     }
-    assert false;
-    return null;
+
+    throw new AssertionError("Unreachable Code");
   }
 
   @Override
@@ -284,7 +284,6 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
       return literal;
     }
 
-    assert index >= 0;
     return literalCache.get(index);
   }
 }

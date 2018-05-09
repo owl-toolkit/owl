@@ -9,10 +9,6 @@ namespace owl {
         return FormulaFactory(env);
     }
 
-    FormulaRewriter OwlThread::createFormulaRewriter() const {
-        return FormulaRewriter(env);
-    }
-
     EmersonLeiAutomaton OwlThread::createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, bool on_the_fly) const {
         jclass clazz = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton");
         jmethodID split_method = get_static_methodID(env, clazz, "of",
