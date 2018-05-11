@@ -94,7 +94,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFIER)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(CLI)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());

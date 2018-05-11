@@ -31,7 +31,7 @@ public final class LTL2DA {
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2da")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFIER)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(CLI)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)

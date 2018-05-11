@@ -15,7 +15,7 @@ public final class Synthesis {
   public static void main(String... args) {
     PartialModuleConfiguration builder = PartialModuleConfiguration.builder("synth")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFIER)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(LTL2DPACliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .addTransformer(GameViews.AUTOMATON_TO_GAME_CLI)

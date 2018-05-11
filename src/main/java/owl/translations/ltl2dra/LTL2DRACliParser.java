@@ -10,11 +10,16 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.ltl.LabelledFormula;
+import owl.run.modules.InputReaders;
+import owl.run.modules.OutputWriters;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ltl2dra.LTL2DRAFunction.Configuration;
 import owl.translations.ltl2ldba.LTL2LDBACliParser;
 
+// Kept separate from LTL2DRAFunction so that it can be used by JNI without loading the run package
 public final class LTL2DRACliParser implements TransformerParser {
   public static final LTL2DRACliParser INSTANCE = new LTL2DRACliParser();
   private static final Option DEGENERALIZE = new Option("d", "degeneralize", false,
@@ -57,5 +62,16 @@ public final class LTL2DRACliParser implements TransformerParser {
 
     return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
       new LTL2DRAFunction(environment, configuration));
+  }
+
+
+  public static void main(String... args) {
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dra")
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
+      .addTransformer(INSTANCE)
+      .addTransformer(Transformers.MINIMIZER)
+      .writer(OutputWriters.HOA)
+      .build());
   }
 }

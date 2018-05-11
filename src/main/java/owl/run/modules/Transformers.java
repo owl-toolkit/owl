@@ -17,7 +17,7 @@ import owl.run.PipelineExecutionContext;
 import owl.translations.dra2dpa.IARBuilder;
 
 public final class Transformers {
-  public static final Transformer SIMPLIFIER = Transformers.fromFunction(
+  public static final Transformer LTL_SIMPLIFIER = Transformers.fromFunction(
     LabelledFormula.class, x -> apply(x, Mode.SYNTACTIC_FIXPOINT));
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();
   public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();

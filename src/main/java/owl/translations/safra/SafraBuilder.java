@@ -1,6 +1,5 @@
 package owl.translations.safra;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
@@ -20,26 +19,25 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.util.annotation.Tuple;
 
-public class SafraBuilder<S> {
+public final class SafraBuilder {
   private static final Logger logger = Logger.getLogger(SafraBuilder.class.getName());
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("safra")
     .description("Translates NBA to DRA using Safra's construction")
     .parser(settings -> environment -> (input, context) ->
-      new SafraBuilder<>(AutomatonUtil.cast(input, Object.class, BuchiAcceptance.class)).build())
+      SafraBuilder.build(AutomatonUtil.cast(input, BuchiAcceptance.class)))
     .build();
-  private final Automaton<S, BuchiAcceptance> nba;
 
-  SafraBuilder(Automaton<S, BuchiAcceptance> nba) {
-    this.nba = nba;
-  }
+  private SafraBuilder() {}
 
-  Automaton<Tree<Label<S>>, RabinAcceptance> build() {
+  public static <S> Automaton<Tree<Label<S>>, RabinAcceptance>
+  build(Automaton<S, BuchiAcceptance> nba) {
     int nbaSize = nba.size();
     int pairCount = nbaSize * 2;
     RabinAcceptance acceptance = RabinAcceptance.of(pairCount);
@@ -59,7 +57,7 @@ public class SafraBuilder<S> {
           return Tree.of(father.with(Set.of()));
         }
 
-        Label<S> newFather = father.with(Collections2.transform(fatherEdges, Edge::successor));
+        Label<S> newFather = father.with(Edges.successors(fatherEdges));
         Set<S> newChildStates = fatherEdges.stream().filter(edge -> edge.inSet(0))
           .map(Edge::successor).collect(Collectors.toUnmodifiableSet());
 

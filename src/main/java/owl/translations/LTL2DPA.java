@@ -15,14 +15,14 @@ public final class LTL2DPA {
   public static void main(String... args) {
     PartialModuleConfiguration ldba = PartialModuleConfiguration.builder("ltl2dpa")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFIER)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(LTL2DPACliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build();
     PartialModuleConfiguration rabinizerIar = PartialModuleConfiguration.builder("ltl2dpa")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFIER)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(RabinizerCliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .addTransformer(Transformers.RABIN_DEGENERALIZATION, Transformers.RABIN_TO_PARITY)

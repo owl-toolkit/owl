@@ -12,7 +12,7 @@ public final class RabinizerMain {
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")
       .reader(InputReaders.LTL)
-      .addTransformer(Transformers.SIMPLIFIER)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(RabinizerCliParser.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
