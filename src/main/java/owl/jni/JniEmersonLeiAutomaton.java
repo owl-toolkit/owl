@@ -1,7 +1,6 @@
 package owl.jni;
 
 import static owl.jni.JniAutomaton.Acceptance;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
@@ -12,6 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import owl.automaton.Automaton;
+import owl.automaton.AutomatonUtil;
+import owl.automaton.acceptance.AllAcceptance;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.LabelledTree;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
@@ -30,9 +33,7 @@ import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 import owl.run.DefaultEnvironment;
-import owl.run.Environment;
-import owl.translations.SimpleTranslations;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.LTL2DAFunction;
 
 // This is a JNI entry point. No touching.
 @SuppressWarnings("unused")
@@ -101,30 +102,22 @@ public class JniEmersonLeiAutomaton {
 
   static final class Builder extends PropositionalVisitor<LabelledTree<Tag, Reference>> {
     private final SafetySplittingMode safetySplittingMode;
-    private final Environment environment = DefaultEnvironment.standard();
-
-    private int counter = 0;
     private final List<JniAutomaton<?>> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
-
-    // TODO make it a loading cache.
     private final Map<Formula, Acceptance> annotatedTree;
-    private final LTL2DPAFunction translator;
+    private final LTL2DAFunction translator;
 
     public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly,
       Map<Formula, Acceptance> annotatedTree) {
       this.safetySplittingMode = safetySplittingMode;
       this.annotatedTree = new HashMap<>(annotatedTree);
 
-      var configuration = EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
-
-      if (onTheFly) {
-        configuration.add(LTL2DPAFunction.Configuration.GREEDY);
-        configuration.remove(LTL2DPAFunction.Configuration.COMPRESS_COLOURS);
-        configuration.remove(LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE);
-      }
-
-      translator = new LTL2DPAFunction(environment, configuration);
+      translator = new LTL2DAFunction(DefaultEnvironment.standard(), onTheFly, EnumSet.of(
+        LTL2DAFunction.Constructions.SAFETY,
+        LTL2DAFunction.Constructions.CO_SAFETY,
+        LTL2DAFunction.Constructions.BUCHI,
+        LTL2DAFunction.Constructions.CO_BUCHI,
+        LTL2DAFunction.Constructions.PARITY));
     }
 
     private LabelledTree<Tag, Reference> createLeaf(Formula formula) {
@@ -161,30 +154,22 @@ public class JniEmersonLeiAutomaton {
       LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
       LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
 
-      JniAutomaton<?> automaton;
+      Automaton<?, ?> automaton = translator.apply(labelledFormula);
+      JniAutomaton<?> jniAutomaton;
 
       if (SyntacticFragment.SAFETY.contains(shiftedFormula.formula)) {
-        automaton = new JniAutomaton<>(SimpleTranslations.buildSafety(labelledFormula, environment),
-          EquivalenceClass::isTrue);
+        jniAutomaton = new JniAutomaton<>(AutomatonUtil.cast(automaton, EquivalenceClass.class,
+          AllAcceptance.class), EquivalenceClass::isTrue);
       } else if (SyntacticFragment.CO_SAFETY.contains(shiftedFormula.formula)) {
         // Acceptance needs to be overridden, since detection does not work in this case.
-        automaton = new JniAutomaton<>(
-          SimpleTranslations.buildCoSafety(labelledFormula, environment), EquivalenceClass::isTrue,
-          Acceptance.CO_SAFETY);
-      } else if (SyntacticFragments.isDetBuchiRecognisable(shiftedFormula.formula)) {
-        automaton = new JniAutomaton<>(
-          SimpleTranslations.buildBuchi(labelledFormula, environment), x -> false);
-      } else if (SyntacticFragments.isDetCoBuchiRecognisable(shiftedFormula.formula)) {
-        automaton = new JniAutomaton<>(
-          SimpleTranslations.buildCoBuchi(labelledFormula, environment), x -> false);
+        jniAutomaton = new JniAutomaton<>(AutomatonUtil.cast(automaton, EquivalenceClass.class,
+          BuchiAcceptance.class), EquivalenceClass::isTrue, Acceptance.CO_SAFETY);
       } else {
-        // Fallback to DPA
-        automaton = new JniAutomaton<>(translator.apply(labelledFormula), x -> false);
+        jniAutomaton = new JniAutomaton<>(automaton, x -> false);
       }
 
-      automata.add(automaton);
-      Reference newReference = new Reference(formula, counter, shiftedFormula.mapping);
-      counter++;
+      Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);
+      automata.add(jniAutomaton);
       lookup.put(formula, newReference);
       return new LabelledTree.Leaf<>(newReference);
     }

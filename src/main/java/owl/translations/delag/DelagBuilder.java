@@ -55,6 +55,10 @@ import owl.translations.ltl2dra.LTL2DRAFunction;
 
 public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
   @SuppressWarnings({"unchecked", "rawtypes"})
+  private static final Function<LabelledFormula, ? extends Automaton<?, ?>> FAIL = formula -> {
+    throw new IllegalArgumentException("Not supported: " + formula);
+  };
+
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("delag")
     .description("Translates LTL to deterministic Emerson-Lei automata")
@@ -63,19 +67,14 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
     .parser(settings -> environment -> {
       String fallbackTool = settings.getOptionValue("fallback");
 
-      Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
-      if ("none".equals(fallbackTool)) {
-        fallback = formula -> {
-          throw new IllegalArgumentException("Formula " + formula
-            + " outside of supported fragment");
-        };
-      } else {
-        var configuration =
-          EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
-        fallback = fallbackTool == null
-          ? new LTL2DRAFunction(environment, configuration)
-          : new ExternalTranslator(environment, fallbackTool);
+      if (fallbackTool == null) {
+        return Transformers.instanceFromFunction(LabelledFormula.class,
+          new DelagBuilder(environment));
       }
+
+      Function<LabelledFormula, ? extends Automaton<?, ?>> fallback = "none".equals(fallbackTool)
+        ? FAIL
+        : new ExternalTranslator(environment, fallbackTool);
 
       return Transformers.instanceFromFunction(LabelledFormula.class,
         new DelagBuilder(environment, fallback));
@@ -86,8 +85,14 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   @Nullable
   private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 
-  public DelagBuilder(Environment env, Function<LabelledFormula, Automaton<T, ?>> fallback) {
-    this.env = env;
+  public DelagBuilder(Environment environment) {
+    this(environment, (Function) new LTL2DRAFunction(environment,
+      EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE)));
+  }
+
+  public DelagBuilder(Environment environment,
+    Function<LabelledFormula, ? extends Automaton<T, ?>> fallback) {
+    this.env = environment;
     this.fallback = fallback;
   }
 
