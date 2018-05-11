@@ -17,52 +17,36 @@
 
 package owl.translations.nba2ldba;
 
-import it.unimi.dsi.fastutil.HashCommon;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnegative;
+import org.immutables.value.Value;
+import owl.util.annotation.HashedTuple;
 
-public class BreakpointState<S> {
+@HashedTuple
+@Value.Immutable
+public abstract class BreakpointState<S> {
 
   @Nonnegative
-  final int ix;
-  final Set<S> mx;
-  final Set<S> nx;
+  abstract int ix();
 
-  BreakpointState(@Nonnegative int i, Set<S> m, Set<S> n) {
-    this.ix = i;
-    this.mx = Set.copyOf(m);
-    this.nx = Set.copyOf(n);
+  abstract Set<S> mx();
+
+  abstract Set<S> nx();
+
+
+  public static <S> BreakpointState<S> of(@Nonnegative int i, Set<S> m, Set<S> n) {
+    return BreakpointStateTuple.create(i, m, n);
   }
 
-  public static <S> BreakpointState<S> getSink() {
-    return new BreakpointState<>(-1, new HashSet<>(), new HashSet<>());
+
+  public static <S> BreakpointState<S> sink() {
+    return BreakpointStateTuple.create(-1, new HashSet<>(), new HashSet<>());
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    BreakpointState<?> that = (BreakpointState<?>) o;
-    return ix == that.ix
-      && Objects.equals(mx, that.mx)
-      && Objects.equals(nx, that.nx);
-  }
-
-  @Override
-  public int hashCode() {
-    return mx.hashCode() ^ nx.hashCode() ^ HashCommon.mix(ix);
-  }
 
   @Override
   public String toString() {
-    return "(" + ix + ", " + this.mx + ", " + this.nx + ')';
+    return "(" + ix() + ", " + mx() + ", " + nx() + ')';
   }
 }

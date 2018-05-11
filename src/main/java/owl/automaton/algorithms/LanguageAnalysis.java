@@ -49,7 +49,7 @@ public final class LanguageAnalysis {
   }
 
   public static <S> boolean isCosafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
-    if (BreakpointState.getSink().equals(state)) {
+    if (BreakpointState.sink().equals(state)) { // TODO Dependency on translation package!
       return true;
     }
 
@@ -97,7 +97,7 @@ public final class LanguageAnalysis {
   }
 
   public static <S> boolean isSafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
-    if (BreakpointState.getSink().equals(state)) {
+    if (BreakpointState.sink().equals(state)) { // TODO Dependency on translation package
       return false;
     }
 

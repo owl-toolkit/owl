@@ -73,7 +73,7 @@ final class AcceptingComponentBuilder<S>
 
   @Override
   public BreakpointState<S> add(S stateKey) {
-    BreakpointState<S> state = new BreakpointState<>(0, Set.of(stateKey), Set.of());
+    BreakpointState<S> state = BreakpointState.of(0, Set.of(stateKey), Set.of());
     initialStates.add(state);
     return state;
   }
@@ -86,14 +86,15 @@ final class AcceptingComponentBuilder<S>
 
   @Nullable
   private Edge<BreakpointState<S>> explore(BreakpointState<S> ldbaState, BitSet valuation) {
-    Optional<Set<S>> optionalScc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx)).findAny();
+    Optional<Set<S>> optionalScc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx()))
+      .findAny();
 
     if (!optionalScc.isPresent()) {
       return null;
     }
 
     Set<S> scc = optionalScc.get();
-    Set<Edge<S>> outEdgesM = ldbaState.mx.stream().flatMap(x -> nba.edges(x, valuation)
+    Set<Edge<S>> outEdgesM = ldbaState.mx().stream().flatMap(x -> nba.edges(x, valuation)
       .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.successor()))
       .collect(Collectors.toSet());
 
@@ -101,12 +102,12 @@ final class AcceptingComponentBuilder<S>
       return null;
     }
 
-    Set<Edge<S>> outEdgesN = ldbaState.nx.stream().flatMap(x -> nba.edges(x, valuation)
+    Set<Edge<S>> outEdgesN = ldbaState.nx().stream().flatMap(x -> nba.edges(x, valuation)
       .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.successor()))
       .collect(Collectors.toSet());
 
     Set<Edge<S>> intersection = outEdgesM.stream()
-      .filter(x -> finEdges.get(ldbaState.ix % max).contains(x)).collect(Collectors.toSet());
+      .filter(x -> finEdges.get(ldbaState.ix() % max).contains(x)).collect(Collectors.toSet());
 
     outEdgesN.addAll(intersection);
 
@@ -114,22 +115,18 @@ final class AcceptingComponentBuilder<S>
     int i1;
 
     if (outEdgesM.equals(outEdgesN)) {
-      i1 = (ldbaState.ix + 1) % max;
+      i1 = (ldbaState.ix() + 1) % max;
       Set<Edge<S>> intersection2 = outEdgesM.stream()
         .filter(x -> finEdges.get(i1).contains(x)).collect(Collectors.toSet());
       n1 = intersection2.stream().map(Edge::successor).collect(Collectors.toSet());
     } else {
       n1 = outEdgesN.stream().map(Edge::successor).collect(Collectors.toSet());
-      i1 = ldbaState.ix;
+      i1 = ldbaState.ix();
     }
 
-    BreakpointState<S> successor = new BreakpointState<>(i1, outEdgesM.stream().map(
+    BreakpointState<S> successor = BreakpointState.of(i1, outEdgesM.stream().map(
       Edge::successor).collect(Collectors.toSet()), n1);
 
-    if (i1 == 0 && outEdgesM.equals(outEdgesN)) {
-      return Edge.of(successor, 0);
-    }
-
-    return Edge.of(successor);
+    return i1 == 0 && outEdgesM.equals(outEdgesN) ? Edge.of(successor, 0) : Edge.of(successor);
   }
 }

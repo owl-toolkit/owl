@@ -84,6 +84,7 @@ public class LTL2DRAFunction
       MinimizationLevel.ALL);
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   private Automaton<?, RabinAcceptance> applyDegeneralized(LabelledFormula formula) {
     var ldba = translatorBreakpointFree.apply(formula);
 
@@ -96,12 +97,13 @@ public class LTL2DRAFunction
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
       new BooleanLattice(),
-      (EquivalenceClass x)
-      -> SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
+      (EquivalenceClass x) ->
+        SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
       true,
       configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   private Automaton<?, GeneralizedRabinAcceptance> applyGeneralized(LabelledFormula formula) {
     var ldba = translatorGeneralizedBreakpointFree.apply(formula);
 
@@ -114,12 +116,11 @@ public class LTL2DRAFunction
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
       new BooleanLattice(),
-      (EquivalenceClass x)
-      -> SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
+      (EquivalenceClass x) ->
+        SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
       true,
       configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
   }
-
 
   public enum Configuration {
     OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE, DEGENERALIZE
