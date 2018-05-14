@@ -133,7 +133,7 @@ class InitialComponentBuilder<K extends RecurringObligation>
 
   private Iterable<Edge<EquivalenceClass>> getNondeterministicSuccessors(EquivalenceClass state,
     BitSet valuation) {
-    EquivalenceClass successorClass = factory.getNondetSuccessor(state, valuation);
+    EquivalenceClass successorClass = factory.getNondeterministicSuccessor(state, valuation);
 
     generateJumps(state);
 

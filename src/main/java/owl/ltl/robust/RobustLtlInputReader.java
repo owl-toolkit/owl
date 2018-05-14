@@ -43,7 +43,7 @@ public final class RobustLtlInputReader implements OwlModuleParser.ReaderParser 
 
     EnumSet<Robustness> robustness = EnumSet.noneOf(Robustness.class);
 
-    for (int i = 0, n = string.length(); i < n; ++i) {
+    for (int i = 0; i < string.length(); ++i) {
       char chr = string.charAt(i);
       if (chr == '0') {
         robustness.add(Robustness.NEVER);

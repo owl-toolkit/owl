@@ -93,7 +93,7 @@ public class SyntacticSimplifierTest {
   public void testPullupX() {
     Formula f1 = LtlParser.syntax("G F X b");
     Formula f2 = LtlParser.syntax("X G F b");
-    assertEquals(SimplifierFactory.apply(f1, Mode.PULLUP_X), f2);
+    assertEquals(SimplifierFactory.apply(f1, Mode.PULL_UP_X), f2);
   }
 
   @Theory

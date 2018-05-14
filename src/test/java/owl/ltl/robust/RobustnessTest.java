@@ -9,7 +9,8 @@ public class RobustnessTest {
   @Test
   public void testIterationOrder() {
     Robustness[] values = Robustness.values();
-    assert values[0] == Robustness.NEVER && values[values.length - 1] == Robustness.ALWAYS;
+    assertThat(values[0], is(Robustness.NEVER));
+    assertThat(values[values.length - 1], is(Robustness.ALWAYS));
     for (int i = 0; i < values.length - 1; i++) {
       assertThat(values[i].stronger(), is(values[i + 1]));
       assertThat(values[i + 1].weaker(), is(values[i]));

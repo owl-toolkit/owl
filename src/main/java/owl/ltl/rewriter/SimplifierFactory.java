@@ -59,8 +59,8 @@ public final class SimplifierFactory {
     SYNTACTIC_FAIRNESS(SyntacticFairnessSimplifier.NormaliseX.INSTANCE
       .andThen(SyntacticFairnessSimplifier.INSTANCE)),
     SYNTACTIC_FIXPOINT(new Fixpoint(SyntacticSimplifier.INSTANCE, PullUpXVisitor.INSTANCE)),
-    PULLUP_X(PullUpXVisitor.INSTANCE),
-    PUSHDOWN_X(PushDownXVisitor.INSTANCE),
+    PULL_UP_X(PullUpXVisitor.INSTANCE),
+    PUSH_DOWN_X(PushDownXVisitor.INSTANCE),
     NNF(Formula::nnf);
 
     private final Function<Formula, Formula> operation;

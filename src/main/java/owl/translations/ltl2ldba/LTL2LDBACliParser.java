@@ -21,7 +21,7 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 public final class LTL2LDBACliParser implements TransformerParser {
   public static final LTL2LDBACliParser INSTANCE = new LTL2LDBACliParser();
 
-  private static final Option DEGENERALISE = new Option("d", "degeneralise", false,
+  private static final Option DEGENERALIZE = new Option("d", "degeneralize", false,
     "Construct a Büchi automaton instead of a generalised-Büchi automaton.");
   private static final Option EPSILON = new Option("e", "epsilon", false,
     "Do not remove generated epsilon-transitions. Note: The generated output is not valid HOA, "
@@ -69,7 +69,7 @@ public final class LTL2LDBACliParser implements TransformerParser {
     Function<Environment, Function<LabelledFormula, ? extends
       LimitDeterministicAutomaton<?, ?, ?, ?>>> translatorProvider;
 
-    if (commandLine.hasOption(DEGENERALISE.getOpt())) {
+    if (commandLine.hasOption(DEGENERALIZE.getOpt())) {
       if (commandLine.hasOption(guessF().getOpt())) {
         translatorProvider = environment ->
           LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(environment, configuration);
@@ -104,7 +104,7 @@ public final class LTL2LDBACliParser implements TransformerParser {
   @Override
   public Options getOptions() {
     Options options = new Options();
-    List.of(DEGENERALISE, EPSILON, NON_DETERMINISTIC, guessF(), simple())
+    List.of(DEGENERALIZE, EPSILON, NON_DETERMINISTIC, guessF(), simple())
       .forEach(options::addOption);
     return options;
   }

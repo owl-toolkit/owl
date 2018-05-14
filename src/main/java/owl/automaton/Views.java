@@ -110,8 +110,7 @@ public final class Views {
       Set<S> builder = new HashSet<>();
       x.forEach(s -> builder.addAll(automaton.successors(s, y)));
       return Edge.of(Set.copyOf(builder));
-    }, NoneAcceptance.INSTANCE
-    );
+    }, NoneAcceptance.INSTANCE);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,

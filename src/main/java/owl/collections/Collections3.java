@@ -33,6 +33,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("PMD.ClassNamingConventions")
 public final class Collections3 {
   private Collections3() {}
 

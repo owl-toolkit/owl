@@ -87,6 +87,7 @@ public final class PipelineRunner {
   }
 
   @Nullable
+  @SuppressWarnings("PMD.SystemPrintln")
   private static Object doTransform(Object input, List<Transformer.Instance> transformers,
     Supplier<Boolean> earlyStop) throws Exception {
     logger.log(Level.FINEST, "Handling input {0}", input);

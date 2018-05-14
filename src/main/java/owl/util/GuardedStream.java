@@ -16,8 +16,10 @@ import java.nio.charset.StandardCharsets;
  */
 @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
 public final class GuardedStream {
+  @SuppressWarnings("SpellCheckingInspection")
   public static final Writer syserr = guard(new OutputStreamWriter(System.err,
     StandardCharsets.UTF_8));
+  @SuppressWarnings("SpellCheckingInspection")
   public static final OutputStream sysout = guard(System.out);
 
   private GuardedStream() {}
@@ -54,10 +56,9 @@ public final class GuardedStream {
     }
 
     @Override
-    public void write(char[] cbuf, int off, int len) throws IOException {
-      delegate.write(cbuf, off, len);
+    public void write(char[] buffer, int off, int len) throws IOException {
+      delegate.write(buffer, off, len);
     }
-
   }
 
   private static final class SafeOutputStream extends OutputStream {

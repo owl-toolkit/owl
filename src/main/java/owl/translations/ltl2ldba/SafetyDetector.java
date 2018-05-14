@@ -25,7 +25,9 @@ import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.Collector;
 
-public class SafetyDetector {
+public final class SafetyDetector {
+  private SafetyDetector() {}
+
   public static boolean hasSafetyCore(EquivalenceClass state, boolean substitutionAnalysis) {
     Set<Formula> modalOperators = state.modalOperators();
 

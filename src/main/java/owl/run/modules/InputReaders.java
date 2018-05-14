@@ -37,7 +37,7 @@ public final class InputReaders {
       return new HoaReader(hoafParserSettings);
     }).build();
 
-  
+
   public static final InputReader TLSF = (reader, env, callback) -> {
     Tlsf tlsf = TlsfParser.parse(reader);
     LabelledFormula formula = tlsf.toFormula();
@@ -83,7 +83,7 @@ public final class InputReaders {
     .parser(settings -> LTL).build();
 
 
-  @SuppressWarnings({"ProhibitedExceptionThrown","PMD.AvoidCatchingGenericException",
+  @SuppressWarnings({"ProhibitedExceptionThrown", "PMD.AvoidCatchingGenericException",
                       "PMD.AvoidThrowingRawExceptionTypes"})
   public static Consumer<Object> checkedCallback(CheckedCallback consumer) {
     return input -> {

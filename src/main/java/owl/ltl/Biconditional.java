@@ -42,8 +42,9 @@ public class Biconditional extends AbstractFormula {
    * syntax tree is not increased. In order to syntactically construct
    * (leftOperand)&lt;-&gt;(rightOperand) use the constructor.
    *
-   * @param leftOperand the left operand of the biconditional
-   * @param rightOperand the right operand of the biconditional
+   * @param leftOperand The left operand of the biconditional
+   * @param rightOperand The right operand of the biconditional
+   *
    * @return a formula equivalent to (leftOperand)&lt;-&gt;(rightOperand)
    */
   public static Formula of(Formula leftOperand, Formula rightOperand) {

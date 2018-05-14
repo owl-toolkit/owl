@@ -96,7 +96,7 @@ public final class FGObligations implements RecurringObligation {
       Formula formula = FGObligationsJumpManager
         .replaceGOperators(gOperators, fOperators, fOperator);
       formula = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
-      formula = SimplifierFactory.apply(formula, Mode.PULLUP_X);
+      formula = SimplifierFactory.apply(formula, Mode.PULL_UP_X);
 
       while (formula instanceof XOperator) {
         formula = ((UnaryModalOperator) formula).operand;

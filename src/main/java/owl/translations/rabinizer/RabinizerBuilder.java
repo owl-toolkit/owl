@@ -130,8 +130,8 @@ public class RabinizerBuilder {
         assert priority == edge.largestAcceptanceSet();
 
         edgePriorities[priority] = edgePriorities[priority] == null
-            ? valuations
-            : valuations.union(edgePriorities[priority]);
+          ? valuations
+          : valuations.union(edgePriorities[priority]);
       });
 
       monitorPriorities[relevantIndex] = edgePriorities;
@@ -183,7 +183,7 @@ public class RabinizerBuilder {
     return tableBuilder.toString();
   }
 
-  public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinize(
+  public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> build(
     Formula phi, Factories factories, RabinizerConfiguration configuration) {
     Formula phiNormalized = SyntacticFragments.normalize(phi, SyntacticFragment.FGMU);
 
@@ -631,8 +631,8 @@ public class RabinizerBuilder {
         MonitorState monitorState = monitorStates.get(monitorIndex);
 
         Map<MonitorState, ValuationSet> successors = new HashMap<>();
-        monitors[monitorIndex].forEachLabelledEdge(monitorState, (edge, valuations)
-        -> successors.merge(edge.successor(), valuations, ValuationSet::union));
+        monitors[monitorIndex].forEachLabelledEdge(monitorState, (edge, valuations) ->
+          successors.merge(edge.successor(), valuations, ValuationSet::union));
 
         int monitorSuccessorCount = successors.size();
         successorCounts[monitorIndex] = monitorSuccessorCount - 1;

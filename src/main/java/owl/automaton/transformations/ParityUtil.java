@@ -45,61 +45,61 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 
 public final class ParityUtil {
   public static final TransformerParser COMPLEMENT_CLI = ImmutableTransformerParser.builder()
-      .key("complement-parity")
-      .description("Complements a parity automaton")
-      .parser(settings -> environment -> (input, context) -> {
-        Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
-          ParityAcceptance.class);
-        return ParityUtil.complement(AutomatonUtil.asMutable(automaton),
-          AutomatonUtil.defaultSinkSupplier().get());
-      }).build();
+    .key("complement-parity")
+    .description("Complements a parity automaton")
+    .parser(settings -> environment -> (input, context) -> {
+      Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
+        ParityAcceptance.class);
+      return ParityUtil.complement(AutomatonUtil.asMutable(automaton),
+        AutomatonUtil.defaultSinkSupplier().get());
+    }).build();
 
   public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
-      .key("convert-parity")
-      .optionsDirect(new Options()
-        .addOptionGroup(new OptionGroup()
-          .addOption(new Option(null, "max", false, null))
-          .addOption(new Option(null, "min", false, null)))
-        .addOptionGroup(new OptionGroup()
-          .addOption(new Option(null, "even", false, null))
-          .addOption(new Option(null, "odd", false, null))))
-      .description("Converts a parity automaton into the desired type")
-      .parser(settings -> {
-        @Nullable
-        Boolean toMax;
-        if (settings.hasOption("max")) {
-          toMax = Boolean.TRUE;
-        } else if (settings.hasOption("min")) {
-          toMax = Boolean.FALSE;
-        } else {
-          toMax = null;
+    .key("convert-parity")
+    .optionsDirect(new Options()
+      .addOptionGroup(new OptionGroup()
+        .addOption(new Option(null, "max", false, null))
+        .addOption(new Option(null, "min", false, null)))
+      .addOptionGroup(new OptionGroup()
+        .addOption(new Option(null, "even", false, null))
+        .addOption(new Option(null, "odd", false, null))))
+    .description("Converts a parity automaton into the desired type")
+    .parser(settings -> {
+      @Nullable
+      Boolean toMax;
+      if (settings.hasOption("max")) {
+        toMax = Boolean.TRUE;
+      } else if (settings.hasOption("min")) {
+        toMax = Boolean.FALSE;
+      } else {
+        toMax = null;
+      }
+
+      @Nullable
+      Boolean toEven;
+      if (settings.hasOption("even")) {
+        toEven = Boolean.TRUE;
+      } else if (settings.hasOption("odd")) {
+        toEven = Boolean.FALSE;
+      } else {
+        toEven = null;
+      }
+
+      return environment -> (input, context) -> {
+        Automaton<Object, ParityAcceptance> automaton =
+          AutomatonUtil.cast(input, ParityAcceptance.class);
+        ParityAcceptance acceptance = automaton.acceptance();
+        Parity target = acceptance.parity();
+        if (toEven != null) {
+          target = target.setEven(toEven);
+        }
+        if (toMax != null) {
+          target = target.setMax(toMax);
         }
 
-        @Nullable
-        Boolean toEven;
-        if (settings.hasOption("even")) {
-          toEven = Boolean.TRUE;
-        } else if (settings.hasOption("odd")) {
-          toEven = Boolean.FALSE;
-        } else {
-          toEven = null;
-        }
-
-        return environment -> (input, context) -> {
-          Automaton<Object, ParityAcceptance> automaton =
-            AutomatonUtil.cast(input, ParityAcceptance.class);
-          ParityAcceptance acceptance = automaton.acceptance();
-          Parity target = acceptance.parity();
-          if (toEven != null) {
-            target = target.setEven(toEven);
-          }
-          if (toMax != null) {
-            target = target.setMax(toMax);
-          }
-
-          return ParityUtil.convert(automaton, target);
-        };
-      }).build();
+        return ParityUtil.convert(automaton, target);
+      };
+    }).build();
 
   private ParityUtil() {
   }

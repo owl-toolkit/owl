@@ -96,12 +96,12 @@ public final class ParityGameSolver {
     Game<S, ParityAcceptance> subGame = GameViews.filter(game, losingSet, hasMinCol.negate());
     WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
-    // if in the subgame our horse wins everywhere, then he's the winner
+    // if in the sub-game our horse wins everywhere, then he's the winner
     if (subWinning.winningRegion(ourHorse).containsAll(subGame.states())) {
       return new WinningRegions<>(states, ourHorse);
     }
 
-    // otherwise, we have to test a different subgame
+    // otherwise, we have to test a different sub-game
     Set<S> opponentAttractor =
       game.getAttractorFixpoint(subWinning.winningRegion(ourHorse.opponent()), ourHorse.opponent());
 

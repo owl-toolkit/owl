@@ -61,6 +61,7 @@ import owl.util.annotation.HashedTuple;
 public final class GameViews {
   private static final Logger logger = Logger.getLogger(GameViews.class.getName());
 
+  @SuppressWarnings("SpellCheckingInspection")
   public static final TransformerParser AUTOMATON_TO_GAME_CLI =
     ImmutableTransformerParser.builder()
       .key("aut2game")
@@ -158,7 +159,7 @@ public final class GameViews {
     private final BiFunction<S, Owner, BitSet> choice;
 
     FilteredGame(Game<S, A> game, Set<S> states, Predicate<Edge<S>> edgeFilter) {
-      this.filteredAutomaton = owl.automaton.Views.filter(game, states, edgeFilter);
+      this.filteredAutomaton = Views.filter(game, states, edgeFilter);
       this.ownership = game::getOwner;
       this.variableOwnership = game::getVariables;
       this.choice = game::getChoice;

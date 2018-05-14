@@ -109,7 +109,7 @@ public final class SccDecomposition<S> {
 
     for (S state : states) {
       if (!decomposition.stateMap.containsKey(state)
-          && !decomposition.processedNodes.contains(state)) {
+        && !decomposition.processedNodes.contains(state)) {
         decomposition.run(state);
       }
     }

@@ -24,6 +24,7 @@ public final class RabinizerCliParser implements TransformerParser {
       + "construction";
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   @Override
   public Options getOptions() {
     return new Options()
@@ -34,6 +35,7 @@ public final class RabinizerCliParser implements TransformerParser {
       .addOption("c", "complete", false, "Build complete automaton");
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   @Override
   public Transformer parse(CommandLine commandLine) {
     boolean eager = !commandLine.hasOption("noeager");
@@ -51,7 +53,7 @@ public final class RabinizerCliParser implements TransformerParser {
 
     return environment -> Transformers.instanceFromFunction(LabelledFormula.class, formula -> {
       Factories factories = environment.factorySupplier().getFactories(formula.variables());
-      return RabinizerBuilder.rabinize(formula.formula(), factories, configuration);
+      return RabinizerBuilder.build(formula.formula(), factories, configuration);
     });
   }
 }

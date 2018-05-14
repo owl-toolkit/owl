@@ -12,7 +12,7 @@ import owl.run.Environment;
  * <p>To allow for a wide range of implementations, these readers are modeled in a
  * provider-with-callback fashion, i.e. an instance parsing a particular stream is created with that
  * stream and a callback which accepts the parsed inputs. The instance then is called once to read
- * the whole input stream. This enables the use of libraries modeled in a similar fasion, see for
+ * the whole input stream. This enables the use of libraries modeled in a similar fashion, see for
  * example the {@link jhoafparser.parser.HOAFParser HOA parser}).</p>
  */
 @FunctionalInterface

@@ -34,14 +34,15 @@ public final class MapRankingAutomaton {
       "Exactly one initial state expected.");
 
 
-    Builder<S, T, A, L, ?, ?> builder = new Builder<>(ldba, resetAfterSccSwitch, lattice,
-      isAcceptingState, (Class)
-      (ldba.acceptingComponent().acceptance().acceptanceSets() == 1
-       ? RabinAcceptance.class
-       : GeneralizedRabinAcceptance.class));
+    int acceptanceSets = ldba.acceptingComponent().acceptance().acceptanceSets();
+    Class<? extends GeneralizedRabinAcceptance> acceptanceClass =
+      acceptanceSets == 1 ? RabinAcceptance.class : GeneralizedRabinAcceptance.class;
 
-    Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton = AutomatonFactory
-      .create(builder.initialState, ldba.acceptingComponent().factory(),
+    Builder<S, T, A, L, ?, ?> builder =
+      new Builder<>(ldba, resetAfterSccSwitch, lattice, isAcceptingState, acceptanceClass);
+
+    Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton =
+      AutomatonFactory.create(builder.initialState, ldba.acceptingComponent().factory(),
         builder::getSuccessor, builder.acceptance);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;

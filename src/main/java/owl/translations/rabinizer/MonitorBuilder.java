@@ -225,9 +225,9 @@ final class MonitorBuilder {
      *   2) qi was not accepting and moved to an accepting state.
      *   3) q0 is accepting and has rank i in the source ranking.
      * merge(i):
-     *   4) There exist q, q1 and q2 (with rank(q1) < i and succ(q2) != null)) such that
-     *      succ(q1) == q == succ(q2) and q is not accepting.
-     *   5) q0 is not accepting and there exists q with succ(q) = q0 and sr(q) < i.
+     *   4) There exist q, q1 and q2 (with rank(q1) < i and successor(q2) != null)) such that
+     *      successor(q1) == q == successor(q2) and q is not accepting.
+     *   5) q0 is not accepting and there exists q with successor(q) = q0 and sr(q) < i.
      *
      * Note that since this is an appearance-record type construction, we only need to compute the
      * smallest event index - if the transition is failed, we don't need to compute anything else.

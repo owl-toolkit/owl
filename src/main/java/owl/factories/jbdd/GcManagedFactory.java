@@ -20,6 +20,7 @@ class GcManagedFactory<V> {
     this.factory = factory;
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   V canonicalize(int bdd, V object) {
     // This is not thread safe!
 

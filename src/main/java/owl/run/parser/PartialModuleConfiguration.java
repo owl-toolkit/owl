@@ -30,7 +30,7 @@ public abstract class PartialModuleConfiguration {
   abstract String name();
 
   // Delegating builder which wraps the modules into container objects. If this object is named
-  // "Builder", Immutables will emit a warning.
+  // "Builder", the Immutable framework will emit a warning.
   public static final class Constructor {
     private final PartialModuleConfigurationBuilder builder;
 

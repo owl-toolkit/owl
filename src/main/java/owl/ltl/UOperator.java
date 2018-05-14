@@ -37,8 +37,9 @@ public final class UOperator extends BinaryModalOperator {
    * is not increased. In order to syntactically construct (leftOperand)U(rightOperand) use the
    * constructor.
    *
-   * @param leftOperand the left operand of the U-operator
-   * @param rightOperand the right operand of the U-operator
+   * @param leftOperand The left operand of the U-operator
+   * @param rightOperand The right operand of the U-operator
+   *
    * @return a formula equivalent to (leftOperand)U(rightOperand)
    */
   public static Formula of(Formula leftOperand, Formula rightOperand) {

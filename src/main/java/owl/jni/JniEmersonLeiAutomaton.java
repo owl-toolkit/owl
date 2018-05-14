@@ -35,14 +35,14 @@ import owl.translations.SimpleTranslations;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 // This is a JNI entry point. No touching.
-@SuppressWarnings({"unused"})
+@SuppressWarnings("unused")
 public class JniEmersonLeiAutomaton {
 
   public final LabelledTree<Tag, Reference> structure;
-  public final List<JniAutomaton> automata;
+  public final List<JniAutomaton<?>> automata;
 
   private JniEmersonLeiAutomaton(LabelledTree<Tag, Reference> structure,
-    List<JniAutomaton> automata) {
+    List<JniAutomaton<?>> automata) {
     this.structure = structure;
     this.automata = automata;
   }
@@ -104,7 +104,7 @@ public class JniEmersonLeiAutomaton {
     private final Environment environment = DefaultEnvironment.standard();
 
     private int counter = 0;
-    private final List<JniAutomaton> automata = new ArrayList<>();
+    private final List<JniAutomaton<?>> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
 
     // TODO make it a loading cache.
@@ -172,8 +172,8 @@ public class JniEmersonLeiAutomaton {
           SimpleTranslations.buildCoSafety(labelledFormula, environment), EquivalenceClass::isTrue,
           Acceptance.CO_SAFETY);
       } else if (SyntacticFragments.isDetBuchiRecognisable(shiftedFormula.formula)) {
-        automaton = new JniAutomaton<>(SimpleTranslations.buildBuchi(labelledFormula, environment),
-        x -> false);
+        automaton = new JniAutomaton<>(
+          SimpleTranslations.buildBuchi(labelledFormula, environment), x -> false);
       } else if (SyntacticFragments.isDetCoBuchiRecognisable(shiftedFormula.formula)) {
         automaton = new JniAutomaton<>(
           SimpleTranslations.buildCoBuchi(labelledFormula, environment), x -> false);
@@ -183,10 +183,10 @@ public class JniEmersonLeiAutomaton {
       }
 
       automata.add(automaton);
-      reference = new Reference(formula, counter, shiftedFormula.mapping);
+      Reference newReference = new Reference(formula, counter, shiftedFormula.mapping);
       counter++;
-      lookup.put(formula, reference);
-      return new LabelledTree.Leaf<>(reference);
+      lookup.put(formula, newReference);
+      return new LabelledTree.Leaf<>(newReference);
     }
 
     private List<LabelledTree<Tag, Reference>> createLeaves(FormulaPartition partition,

@@ -77,11 +77,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations().size()];
 
     if (current.isTrue()) {
-      if (!obligations.obligations().isEmpty()) {
+      if (obligations.obligations().isEmpty()) {
+        current = factory.getInitial(obligations.liveness().get(0));
+      } else {
         nextBuilder[0] = current;
         current = factory.getInitial(obligations.obligations().get(0), environment);
-      } else {
-        current = factory.getInitial(obligations.liveness().get(0));
       }
     }
 
@@ -89,9 +89,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       nextBuilder[i] = factory.getInitial(obligations.obligations().get(i), current);
     }
 
-    return new DegeneralizedBreakpointState(
-      !obligations.obligations().isEmpty() ? 0 : -obligations.liveness().size(), safety,
-      current, nextBuilder, obligations);
+    int index = obligations.obligations().isEmpty() ? -obligations.liveness().size() : 0;
+    return new DegeneralizedBreakpointState(index, safety, current, nextBuilder, obligations);
   }
 
   @Nonnull
@@ -114,15 +113,15 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Nullable
   private Edge<DegeneralizedBreakpointState> getSuccessor(DegeneralizedBreakpointState state,
     BitSet valuation) {
-    EquivalenceClass safetySuccessor = factory.getSuccessor(state.safety, valuation)
-      .and(state.obligations.safety());
+    EquivalenceClass safetySuccessor =
+      factory.getSuccessor(state.safety, valuation).and(state.obligations.safety());
 
     if (safetySuccessor.isFalse()) {
       return null;
     }
 
-    EquivalenceClass currentSuccessor = factory
-      .getSuccessor(state.current, valuation, safetySuccessor);
+    EquivalenceClass currentSuccessor =
+      factory.getSuccessor(state.current, valuation, safetySuccessor);
 
     if (currentSuccessor.isFalse()) {
       return null;
@@ -148,7 +147,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     int j;
 
     // Scan for new index if currentSuccessor currentSuccessor is true.
-    // In this way we can skip several fullfilled break-points at a time and are not bound to
+    // In this way we can skip several fulfilled break-points at a time and are not bound to
     // slowly check one by one.
     if (currentSuccessor.isTrue()) {
       obtainNewGoal = true;

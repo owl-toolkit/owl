@@ -304,7 +304,7 @@ public final class AutomatonReader {
               max = false;
               break;
             default:
-              throw new HOAConsumerException("Unkown priority " + stringPriority);
+              throw new HOAConsumerException("Unknown priority " + stringPriority);
           }
 
           String stringParity = acceptanceExtra.get(1).toString();

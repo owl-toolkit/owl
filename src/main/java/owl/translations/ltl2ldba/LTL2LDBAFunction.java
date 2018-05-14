@@ -163,6 +163,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     return ldba;
   }
 
+  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
   private LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
   createBuilder(Factories factories, AbstractJumpManager<C> selector) {
     var initialComponentBuilder = new InitialComponentBuilder<>(factories, configuration, selector);
@@ -188,6 +189,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     }
   }
 
+  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
   private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
     var factory = new EquivalenceClassStateFactory(factories, configuration);
 

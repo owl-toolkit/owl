@@ -28,8 +28,8 @@ final class RabinizerProductEdge {
       successorAcceptance = Arrays.copyOf(successorAcceptance, acceptance + 1);
     }
     successorAcceptance[acceptance] = successorAcceptance[acceptance] == null
-        ? valuations
-        : valuations.union(successorAcceptance[acceptance]);
+      ? valuations
+      : valuations.union(successorAcceptance[acceptance]);
   }
 
   void addAcceptance(ValuationSet valuations, IntSet acceptanceSet) {

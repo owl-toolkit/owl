@@ -18,7 +18,7 @@ public class NullExecutionContext implements PipelineExecutionContext {
 
   private static final class NullWriter extends Writer {
     @Override
-    public void write(char[] cbuf, int off, int len) {
+    public void write(char[] buffer, int off, int len) {
       // Nop.
     }
 

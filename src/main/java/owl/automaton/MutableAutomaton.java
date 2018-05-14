@@ -97,8 +97,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * Adds a {@code state} without outgoing edges to the set of states. If the state is already
    * present, nothing is changed.
    *
-   * @param state
-   *     The state to be added.
+   * @param state The state to be added.
    *
    * @see #addStates(Collection)
    */
@@ -109,8 +108,8 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   /**
    * Removes the specified {@code states} and all transitions involving them from the automaton.
    *
-   * @param states
-   *     The states to be removed.
+   * @param states The states to be removed.
+   *
    * @return whether some states have been removed.
    */
   boolean removeStates(Predicate<? super S> states);
@@ -119,8 +118,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * Removes a state and all transitions involving it from the automaton. If the automaton does not
    * contain the specified state, nothing is changed.
    *
-   * @param state
-   *     The state to be removed.
+   * @param state The state to be removed.
    *
    * @see #removeStates(Collection)
    */
@@ -131,9 +129,10 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   /**
    * Removes the specified {@code states} and all transitions involving them from the automaton.
    *
-   * @param states
-   *     The states to be removed.
+   * @param states The states to be removed.
+   *
    * @return whether some states have been removed.
+   *
    * @see #removeStates(Predicate)
    */
   default boolean removeStates(Collection<? extends S> states) {

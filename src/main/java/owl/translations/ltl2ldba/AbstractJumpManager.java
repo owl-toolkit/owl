@@ -134,13 +134,10 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       return (AnalysisResult<X>) EMPTY;
     }
 
-    if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
-      if (state.modalOperators().stream().anyMatch(blockingModalOperators::contains)) {
-        return (AnalysisResult<X>) EMPTY;
-      }
-    }
-
-    return null;
+    return configuration.contains(Configuration.SUPPRESS_JUMPS)
+      && state.modalOperators().stream().anyMatch(blockingModalOperators::contains)
+      ? (AnalysisResult<X>) EMPTY
+      : null;
   }
 
   protected abstract Set<Jump<X>> computeJumps(EquivalenceClass state);

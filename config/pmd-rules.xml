@@ -6,6 +6,7 @@
     <description>RuleSet for owl</description>
 
     <rule ref="category/java/bestpractices.xml">
+        <exclude name="AccessorClassGeneration"/>
         <exclude name="AccessorMethodGeneration"/>
         <exclude name="UseVarargs"/>
         <exclude name="GuardLogStatement"/>
@@ -13,6 +14,7 @@
         <exclude name="JUnitAssertionsShouldIncludeMessage"/>
         <exclude name="JUnitTestContainsTooManyAsserts"/>
         <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <exclude name="MissingOverride" /> <!-- Bug: Static methods -->
     </rule>
 
     <rule ref="category/java/codestyle.xml">
@@ -32,11 +34,35 @@
         <exclude name="VariableNamingConventions"/>
         <exclude name="UselessParentheses"/>
         <exclude name="AtLeastOneConstructor"/>
+        <exclude name="PrematureDeclaration" />
+        <exclude name="UnnecessaryConstructor" /> <!-- Flags private constructors -->
     </rule>
     <rule ref="category/java/codestyle.xml/ConfusingTernary">
         <properties>
             <property name="ignoreElseIf">
                 <value>true</value>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/ClassNamingConventions" >
+        <properties>
+            <property name="classPattern">
+                <value>[A-Z][a-zA-Z2]+</value>
+            </property>
+            <property name="abstractClassPattern">
+                <value>[A-Z][a-zA-Z2]+</value>
+            </property>
+            <property name="interfacePattern">
+                <value>[A-Z][a-zA-Z]+</value>
+            </property>
+            <property name="enumPattern">
+                <value>[A-Z][a-zA-Z]+</value>
+            </property>
+            <property name="annotationPattern">
+                <value>[A-Z][a-zA-Z]+</value>
+            </property>
+            <property name="utilityClassPattern">
+                <value>[A-Z][a-zA-Z2]+</value>
             </property>
         </properties>
     </rule>
@@ -70,6 +96,7 @@
         <exclude name="UseLocaleWithCaseConversions"/>
         <exclude name="AvoidDuplicateLiterals"/>
         <exclude name="DoNotCallSystemExit"/>
+        <exclude name="MissingStaticMethodInNonInstantiatableClass" /> <!-- Bug: Abstract class -->
     </rule>
     <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
         <properties>

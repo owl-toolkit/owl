@@ -68,10 +68,11 @@ public final class FormulaIsomorphism {
     return null;
   }
 
-  private static class ValidationVisitor implements BinaryVisitor<Formula, Boolean> {
+  private static final class ValidationVisitor implements BinaryVisitor<Formula, Boolean> {
     @Nullable
     private final int[] mapping;
 
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
     private ValidationVisitor(@Nullable int[] mapping) {
       this.mapping = mapping;
     }

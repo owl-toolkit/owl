@@ -37,8 +37,9 @@ public final class WOperator extends BinaryModalOperator {
    * is not increased. In order to syntactically construct (leftOperand)W(rightOperand) use the
    * constructor.
    *
-   * @param leftOperand the left operand of the W-operator
-   * @param rightOperand the right operand of the W-operator
+   * @param leftOperand The left operand of the W-operator
+   * @param rightOperand The right operand of the W-operator
+   *
    * @return a formula equivalent to (leftOperand)W(rightOperand)
    */
   public static Formula of(Formula leftOperand, Formula rightOperand) {

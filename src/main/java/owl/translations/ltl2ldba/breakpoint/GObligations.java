@@ -56,12 +56,12 @@ public abstract class GObligations implements RecurringObligation {
   abstract EquivalenceClass safety();
 
   /**
-   * Construct the recurring obligations for a Gset.
+   * Construct the recurring obligations for a G-set.
    *
    * @param gOperators
    *     The GOperators that have to be checked often.
    *
-   * @return This methods returns null, if the Gset is inconsistent.
+   * @return This methods returns null, if the G-set is inconsistent.
    */
   @Nullable
   static GObligations build(Set<GOperator> gOperators, EquivalenceClassFactory factory,
@@ -96,7 +96,7 @@ public abstract class GObligations implements RecurringObligation {
         if (modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
           safety = safety.and(clazz);
 
-          if (safety.isFalse()) {
+          if (safety.isFalse()) { // NOPMD Deeply nested if
             return null;
           }
 
