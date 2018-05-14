@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,7 +83,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     Set<GOperator> gOperators = Collector.collectTransformedGOperators(state);
     Set<FOperator> fOperators = Collector.collectTransformedFOperators(gOperators);
 
-    // Prefilter
+    // Pre-filter
     gOperators.removeIf(x -> x.operand instanceof FOperator);
     fOperators.removeIf(x -> x.operand instanceof GOperator);
 
@@ -119,17 +120,16 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     return formula.accept(visitor);
   }
 
-  static Multimap<Set<FOperator>, Set<GOperator>> selectReducedMonitors(
-    EquivalenceClass state) {
+  static Multimap<Set<FOperator>, Set<GOperator>> selectReducedMonitors(EquivalenceClass state) {
     SetMultimap<Set<FOperator>, Set<GOperator>> multimap = MultimapBuilder
       .hashKeys()
       .hashSetValues()
       .build();
 
-    Formula formula = state.representative();
+    Formula formula = Objects.requireNonNull(state.representative());
     boolean delayJump = false;
 
-    for (Set<UnaryModalOperator> obligations : formula.accept(ToplevelSelectVisitor.INSTANCE)) {
+    for (Set<UnaryModalOperator> obligations : formula.accept(TopLevelSelectVisitor.INSTANCE)) {
       Set<FOperator> fOperators = obligations.stream()
         .filter(FOperator.class::isInstance)
         .map(FOperator.class::cast)
@@ -550,9 +550,9 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   }
 
   @VisibleForTesting
-  static class ToplevelSelectVisitor extends AbstractSelectVisitor {
+  static class TopLevelSelectVisitor extends AbstractSelectVisitor {
 
-    static final ToplevelSelectVisitor INSTANCE = new ToplevelSelectVisitor();
+    static final TopLevelSelectVisitor INSTANCE = new TopLevelSelectVisitor();
 
     @Override
     public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {

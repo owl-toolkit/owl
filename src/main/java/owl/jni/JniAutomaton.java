@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.BulkOperationAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -38,10 +36,9 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.ltl.EquivalenceClass;
 
 // This is a JNI entry point. No touching.
-@SuppressWarnings({"unused"})
+@SuppressWarnings("unused")
 public final class JniAutomaton<S> {
 
   private static final int ACCEPTING_COLOUR = -2;
@@ -125,27 +122,27 @@ public final class JniAutomaton<S> {
   }
 
   private int[] edgeBuffer() {
-    int[] buffer = edgesCache != null ? edgesCache.get() : null;
+    int[] buffer = edgesCache == null ? null : edgesCache.get();
 
     if (buffer != null) {
       return buffer;
     }
 
-    buffer = new int[2 << automaton.factory().alphabetSize()];
-    edgesCache = new SoftReference<>(buffer);
-    return buffer;
+    int[] newBuffer = new int[2 << automaton.factory().alphabetSize()];
+    edgesCache = new SoftReference<>(newBuffer);
+    return newBuffer;
   }
 
   private int[] successorBuffer() {
-    int[] buffer = successorsCache != null ? successorsCache.get() : null;
+    int[] buffer = successorsCache == null ? null : successorsCache.get();
 
     if (buffer != null) {
       return buffer;
     }
 
-    buffer = new int[1 << automaton.factory().alphabetSize()];
-    successorsCache = new SoftReference<>(buffer);
-    return buffer;
+    int[] newBuffer = new int[1 << automaton.factory().alphabetSize()];
+    successorsCache = new SoftReference<>(newBuffer);
+    return newBuffer;
   }
 
   public int[] edges(int state) {
@@ -195,13 +192,14 @@ public final class JniAutomaton<S> {
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
+      @Nullable
       S successor;
 
       if (labelledEdges == null) {
         successor = automaton.successor(o, valuation);
       } else {
         var edge = lookup(labelledEdges, valuation);
-        successor = edge != null ? edge.successor() : null;
+        successor = edge == null ? null : edge.successor();
       }
 
       if (successor == null) {
@@ -235,9 +233,11 @@ public final class JniAutomaton<S> {
   }
 
   @Nullable
-  private <T> Edge<T> lookup(List<LabelledEdge<T>> labelledEdges, BitSet valuation) {
+  @SuppressWarnings({"PMD.ForLoopCanBeForeach", "ForLoopReplaceableByForEach"})
+  private static <T> Edge<T> lookup(List<LabelledEdge<T>> labelledEdges, BitSet valuation) {
     // Use get() instead of iterator on RandomAccess list for enhanced performance.
-    for (int i = 0; i < labelledEdges.size(); i++) {
+    int size = labelledEdges.size();
+    for (int i = 0; i < size; i++) {
       var labelledEdge = labelledEdges.get(i);
 
       if (labelledEdge.valuations.contains(valuation)) {

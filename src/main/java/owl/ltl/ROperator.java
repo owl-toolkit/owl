@@ -37,8 +37,9 @@ public final class ROperator extends BinaryModalOperator {
    * is not increased. In order to syntactically construct (leftOperand)R(rightOperand) use the
    * constructor.
    *
-   * @param leftOperand the left operand of the R-operator
-   * @param rightOperand the right operand of the R-operator
+   * @param leftOperand The left operand of the R-operator
+   * @param rightOperand The right operand of the R-operator
+   *
    * @return a formula equivalent to (leftOperand)R(rightOperand)
    */
   public static Formula of(Formula leftOperand, Formula rightOperand) {

@@ -116,7 +116,7 @@ class RobustLtlVisitor extends LTLParserBaseVisitor<Split> {
     return ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit)
-      .reduce(Split.FALSE, Split.combiner(owl.ltl.Disjunction::of));
+      .reduce(Split.FALSE, Split.combiner(Disjunction::of));
   }
 
 

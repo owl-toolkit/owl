@@ -28,8 +28,8 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
   protected AbstractBuilder(LimitDeterministicAutomaton<S, T, B, A> ldba,
     LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch) {
     initialComponentSccs = resetAfterSccSwitch
-                           ? SccDecomposition.computeSccs(ldba.initialComponent())
-                           : null;
+      ? SccDecomposition.computeSccs(ldba.initialComponent())
+      : null;
     this.lattice = lattice;
     this.ldba = ldba;
     sortingOrder = List.copyOf(ldba.components());
@@ -48,7 +48,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
   }
 
   public static <S, A extends OmegaAcceptance, S2 extends AnnotatedState<S>>
-    Automaton<S2, A> optimizeInitialState(Automaton<S2, A> readOnly) {
+  Automaton<S2, A> optimizeInitialState(Automaton<S2, A> readOnly) {
     S originalInitialState = readOnly.initialState().state();
 
     if (originalInitialState == null) {

@@ -37,7 +37,8 @@ public final class XOperator extends UnaryModalOperator {
    * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
    * In order to syntactically construct X(operand) use the constructor.
    *
-   * @param operand the operand of the X-operator
+   * @param operand The operand of the X-operator
+   *
    * @return a formula equivalent to X(operand)
    */
   public static Formula of(Formula operand) {
@@ -49,8 +50,9 @@ public final class XOperator extends UnaryModalOperator {
    * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
    * In order to syntactically construct X^n(operand) use the constructor.
    *
-   * @param operand the operand of the X-operator
-   * @param n the number of X-operators to add
+   * @param operand The operand of the X-operator
+   * @param n The number of X-operators to add
+   *
    * @return a formula equivalent to X^n(operand)
    */
   public static Formula of(Formula operand, int n) {

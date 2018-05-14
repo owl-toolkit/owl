@@ -61,7 +61,7 @@ public final class AutomatonFactory {
    * @param factory The alphabet.
    * @param transitions The transition function.
    * @param bulkTransitions
-   *    A bulk transition function, needs to be consistent with transitions.
+   *     A bulk transition function, needs to be consistent with transitions.
    * @param acceptance The acceptance condition.
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,

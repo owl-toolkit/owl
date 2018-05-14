@@ -58,6 +58,8 @@ import owl.ltl.visitors.Visitor;
 
 final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEquivalenceClass>
   implements EquivalenceClassFactory {
+  private static final Visitor<Formula> REMOVE_X =
+    new SubstitutionVisitor(x -> (x instanceof XOperator) ? ((XOperator) x).operand : x);
 
   private final List<String> alphabet;
   private final boolean keepRepresentatives;
@@ -335,9 +337,6 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     cache.put(clazz, tree);
     return tree;
   }
-
-  private static Visitor<Formula> REMOVE_X =
-    new SubstitutionVisitor(x -> (x instanceof XOperator) ? ((XOperator) x).operand : x);
 
   private static Visitor<Formula> replaceLiteralByTrue(int literal) {
     return new SubstitutionVisitor(x -> {

@@ -4,7 +4,7 @@ import java.util.function.Function;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.ltl.visitors.Visitor;
 
-public class SyntacticFragments {
+public final class SyntacticFragments {
   private static final Visitor<Formula> UNABBREVIATE_VISITOR =
     new UnabbreviateVisitor(WOperator.class, ROperator.class);
 

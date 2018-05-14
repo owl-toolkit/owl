@@ -13,6 +13,7 @@ public final class Synthesis {
   private Synthesis() {}
 
   public static void main(String... args) {
+    @SuppressWarnings("SpellCheckingInspection")
     PartialModuleConfiguration builder = PartialModuleConfiguration.builder("synth")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)

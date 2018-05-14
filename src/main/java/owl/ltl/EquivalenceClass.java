@@ -95,7 +95,7 @@ public class EquivalenceClass {
   /**
    * See {@link EquivalenceClassFactory#substitute(EquivalenceClass, Function)}.
    *
-   * @param substitution the substitution function. It is only called on modal operators.
+   * @param substitution The substitution function. It is only called on modal operators.
    */
   public final EquivalenceClass substitute(Function<Formula, Formula> substitution) {
     return factory.substitute(this, substitution);
@@ -104,7 +104,7 @@ public class EquivalenceClass {
   /**
    * See {@link EquivalenceClassFactory#temporalStep(EquivalenceClass, BitSet)}.
    *
-   * @param valuation the assignment for the atomic propositions.
+   * @param valuation The assignment for the atomic propositions.
    */
   public final EquivalenceClass temporalStep(BitSet valuation) {
     return factory.temporalStep(this, valuation);
@@ -117,7 +117,7 @@ public class EquivalenceClass {
   /**
    * See {@link EquivalenceClassFactory#temporalStepUnfold(EquivalenceClass, BitSet)}.
    *
-   * @param valuation the assignment for the atomic propositions.
+   * @param valuation The assignment for the atomic propositions.
    */
   public final EquivalenceClass temporalStepUnfold(BitSet valuation) {
     return factory.temporalStepUnfold(this, valuation);
@@ -133,7 +133,7 @@ public class EquivalenceClass {
   /**
    * See {@link EquivalenceClassFactory#unfoldTemporalStep(EquivalenceClass, BitSet)}.
    *
-   * @param valuation the assignment for the atomic propositions.
+   * @param valuation The assignment for the atomic propositions.
    */
   public final EquivalenceClass unfoldTemporalStep(BitSet valuation) {
     return factory.unfoldTemporalStep(this, valuation);

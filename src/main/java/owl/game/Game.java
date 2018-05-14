@@ -104,7 +104,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
       iState += 1;
     }
 
-    // create a list of LabelledAigs for the latches and outputs
+    // create a list of LabelledAig for the latches and outputs
     List<LabelledAig> latches = Lists.newArrayList(
       Collections.nCopies(nLatches, factory.getFalse()));
     List<LabelledAig> outputs = Lists.newArrayList(

@@ -29,9 +29,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.collections.LabelledTree;
 import owl.collections.ValuationSet;
-import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -69,7 +67,7 @@ public class EquivalenceClassStateFactory {
     return removeRedundantObligations(initial, environmentArray);
   }
 
-  public EquivalenceClass getNondetSuccessor(EquivalenceClass clazz, BitSet valuation) {
+  public EquivalenceClass getNondeterministicSuccessor(EquivalenceClass clazz, BitSet valuation) {
     return eagerUnfold ? clazz.temporalStep(valuation) : clazz.unfoldTemporalStep(valuation);
   }
 
@@ -94,6 +92,7 @@ public class EquivalenceClassStateFactory {
     return getSuccessorsRecursive(tree, new HashMap<>());
   }
 
+  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
   private Map<EquivalenceClass, ValuationSet> getSuccessorsRecursive(
     LabelledTree<Integer, EquivalenceClass> tree,
     Map<LabelledTree<Integer, EquivalenceClass>, Map<EquivalenceClass, ValuationSet>> cache) {

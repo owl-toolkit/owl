@@ -19,7 +19,7 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.visitors.Collector;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.FScopedSelectVisitor;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.GScopedSelectVisitor;
-import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.ToplevelSelectVisitor;
+import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.TopLevelSelectVisitor;
 
 @SuppressWarnings("unchecked")
 public class SelectVisitorTest {
@@ -33,7 +33,7 @@ public class SelectVisitorTest {
   }
 
   private static List<Set<UnaryModalOperator>> getToplevel(Formula formula) {
-    return formula.accept(ToplevelSelectVisitor.INSTANCE);
+    return formula.accept(TopLevelSelectVisitor.INSTANCE);
   }
 
   @Test

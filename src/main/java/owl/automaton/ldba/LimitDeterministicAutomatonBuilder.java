@@ -58,7 +58,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder,
     MutableAutomatonBuilder<KeyT, T, B> acceptingComponentBuilder,
     Function<S, Iterable<KeyT>> jumpGenerator,
-    Function<T, C> annot,
+    Function<T, C> annotations,
     EnumSet<Configuration> optimisations, Predicate<S> isProtected) {
     this.initialComponentBuilder = initialComponentBuilder;
     this.acceptingComponentBuilder = acceptingComponentBuilder;
@@ -66,7 +66,7 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     this.jumpGenerator = jumpGenerator;
     initialStates = new HashSet<>();
     components = new HashSet<>();
-    getComponent = annot;
+    getComponent = annotations;
     this.isProtected = isProtected;
   }
 
@@ -75,10 +75,10 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     MutableAutomatonBuilder<X, S, NoneAcceptance> initialComponentBuilder,
     MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
-    Function<T, X3> annot,
+    Function<T, X3> annotations,
     EnumSet<Configuration> optimisations) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-      acceptingComponentBuilder, jumpGenerator, annot, optimisations, x -> false);
+      acceptingComponentBuilder, jumpGenerator, annotations, optimisations, x -> false);
   }
 
   public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
@@ -86,11 +86,11 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     MutableAutomatonBuilder<X, S, NoneAcceptance> initialComponentBuilder,
     MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
-    Function<T, X3> annot,
+    Function<T, X3> annotations,
     EnumSet<Configuration> optimisations,
     Predicate<S> isProtected) {
     return new LimitDeterministicAutomatonBuilder<>(initialComponentBuilder,
-      acceptingComponentBuilder, jumpGenerator, annot, optimisations, isProtected);
+      acceptingComponentBuilder, jumpGenerator, annotations, optimisations, isProtected);
   }
 
   @Nullable

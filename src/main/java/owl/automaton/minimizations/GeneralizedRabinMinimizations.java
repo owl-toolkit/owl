@@ -143,7 +143,7 @@ public final class GeneralizedRabinMinimizations {
       StringBuilder builder = new StringBuilder(30 * impliesMap.length);
       builder.append("Implication map:");
 
-      for (int index = 0; index < acceptanceSets; index++)  {
+      for (int index = 0; index < acceptanceSets; index++) {
         builder.append("\n  ").append(index).append(" => ");
         BitSet antecedent = impliesMap[index];
         int i = index;

@@ -254,7 +254,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
   @RunWith(Parameterized.class)
   public static class Delag extends SizeRegressionTests<Automaton<?, ?>> {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "PMD.UnnecessaryFullyQualifiedName"})
     public Delag(FormulaSet selectedClass) {
       super(selectedClass, formula -> new DelagBuilder(DefaultEnvironment.annotated(),
           new LTL2DRAFunction(DefaultEnvironment.annotated(), EnumSet.of(

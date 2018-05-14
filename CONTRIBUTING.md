@@ -6,6 +6,7 @@ If you instead want to work with the IDEA Gradle plugin, import the project as u
 
  * "Code Style": Import from `config/idea-codestyle.xml`
  * "Inspections": Import from `config/idea-inspection-profile.xml`
+ * "Dictionary": Add from `config/dictionary.dic`
 
 
 # Checks

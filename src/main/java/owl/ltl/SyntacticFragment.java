@@ -43,6 +43,7 @@ public enum SyntacticFragment {
     FOperator.class, UOperator.class, MOperator.class,
     GOperator.class, WOperator.class, ROperator.class)),
 
+  @SuppressWarnings("SpellCheckingInspection")
   FGMU(Set.of(
     // Boolean Operators
     BooleanConstant.class, Conjunction.class, Disjunction.class,

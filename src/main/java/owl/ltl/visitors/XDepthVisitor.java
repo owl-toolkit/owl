@@ -26,7 +26,7 @@ public class XDepthVisitor implements IntVisitor {
 
     return CACHE.computeIfAbsent(formula, x -> x.accept(INSTANCE));
   }
-  
+
   @Nonnegative
   @Override
   public int visit(FOperator fOperator) {

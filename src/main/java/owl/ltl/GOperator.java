@@ -36,7 +36,7 @@ public class GOperator extends UnaryModalOperator {
    * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
    * In order to syntactically construct G(operand) use the constructor.
    *
-   * @param operand the operand of the G-operator
+   * @param operand The operand of the G-operator
    *
    * @return a formula equivalent to G(operand)
    */

@@ -21,12 +21,9 @@ import de.tum.in.naturals.NaturalsTransformer;
 import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.bitset.ImmutableBitSet;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.PrimitiveIterator;
-import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
-import owl.collections.Collections3;
 
 /**
  * This interface represents edges of automata including their acceptance membership.

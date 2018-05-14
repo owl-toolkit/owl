@@ -132,8 +132,8 @@ public class AigerPrinter implements AigConsumer {
     comments.add(comment);
   }
 
-  public void print(OutputStream ostream) {
-    PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(ostream,
+  public void print(OutputStream os) {
+    PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(os,
       StandardCharsets.UTF_8)));
     print(writer);
     writer.flush();
@@ -164,9 +164,7 @@ public class AigerPrinter implements AigConsumer {
       maxIndex = visitAig(index, maxIndex, output.aig());
     }
 
-    /*
-     * Printing is different for binary and nonbinary formats
-     */
+    // Printing is different for binary and non-binary formats
     if (binaryOutput) {
       writer.println("aig "
         + ((maxIndex - 2) / 2) + ' '

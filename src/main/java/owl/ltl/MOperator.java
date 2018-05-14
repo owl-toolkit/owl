@@ -37,8 +37,9 @@ public final class MOperator extends BinaryModalOperator {
    * is not increased. In order to syntactically construct (leftOperand)M(rightOperand) use the
    * constructor.
    *
-   * @param leftOperand the left operand of the M-operator
-   * @param rightOperand the right operand of the M-operator
+   * @param leftOperand The left operand of the M-operator
+   * @param rightOperand The right operand of the M-operator
+   *
    * @return a formula equivalent to (leftOperand)M(rightOperand)
    */
   public static Formula of(Formula leftOperand, Formula rightOperand) {

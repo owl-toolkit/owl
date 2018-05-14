@@ -36,7 +36,7 @@ public class FOperator extends UnaryModalOperator {
    * choose to construct a simpler formula. However, the size of the syntax tree is not increased.
    * In order to syntactically construct F(operand) use the constructor.
    *
-   * @param operand the operand of the F-operator
+   * @param operand The operand of the F-operator
    *
    * @return a formula equivalent to F(operand)
    */

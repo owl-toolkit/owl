@@ -7,6 +7,7 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import org.junit.Test;
 
+@SuppressWarnings("PMD.ClassNamingConventions")
 public class Collections3Test {
   @Test
   public void isSubset() {

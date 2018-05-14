@@ -189,6 +189,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   @Nullable
+  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
   private Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
     throws ExecutionException {
     var result = getResult(future);
@@ -205,6 +206,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   @Nullable
+  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
   private Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
     throws ExecutionException {
     var result = getResult(future);
