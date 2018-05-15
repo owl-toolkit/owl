@@ -29,7 +29,7 @@ import owl.run.modules.OwlModuleParser.ReaderParser;
 import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
-import owl.translations.LTL2DA;
+import owl.translations.LTL2DAModule;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dpa.LTL2DPACliParser;
@@ -67,10 +67,10 @@ public class OwlModuleRegistry {
       ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI);
 
     // Advanced constructions
-    DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI, LTL2DA.CLI, NBA2LDBA.CLI,
-      LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE, DelagBuilder.CLI, NBA2DPAFunction.CLI,
-      ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI,
-      LTL2DRACliParser.INSTANCE, SafraBuilder.CLI);
+    DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, IARBuilder.CLI, LTL2DAModule.CLI,
+      NBA2LDBA.CLI, LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE, DelagBuilder.CLI,
+      NBA2DPAFunction.CLI, ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI,
+      ParityUtil.CONVERSION_CLI, LTL2DRACliParser.INSTANCE, SafraBuilder.CLI);
   }
 
   public ReaderParser reader(String name) throws OwlModuleNotFoundException {

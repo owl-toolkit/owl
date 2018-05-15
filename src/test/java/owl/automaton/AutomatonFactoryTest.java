@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.iterableWithSize;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,9 +18,10 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
-import owl.translations.SimpleTranslations;
+import owl.translations.LTL2DAFunction;
 
 public class AutomatonFactoryTest {
 
@@ -62,9 +64,9 @@ public class AutomatonFactoryTest {
 
   @Test
   public void create() {
-    var automaton = SimpleTranslations.buildSafety(
-      LtlParser.parse("G a | b R c"),
-      DefaultEnvironment.annotated());
+    var automaton = AutomatonUtil.cast((new LTL2DAFunction(DefaultEnvironment.annotated(), true,
+      EnumSet.of(LTL2DAFunction.Constructions.SAFETY))).apply(LtlParser.parse("G a | b R c")),
+      EquivalenceClass.class, AllAcceptance.class);
 
     var initialState = automaton.initialState();
     var labelledEdges = automaton.labelledEdges(automaton.initialState());

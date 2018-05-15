@@ -101,4 +101,8 @@ public enum SyntacticFragment {
   public boolean contains(Formula formula) {
     return formula.allMatch(x -> clazzes.contains(x.getClass()));
   }
+
+  public boolean contains(LabelledFormula formula) {
+    return contains(formula.formula());
+  }
 }
