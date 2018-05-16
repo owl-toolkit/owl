@@ -48,7 +48,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
-project.version = '1.2.0-SNAPSHOT'
+project.version = '18.06-snapshot'
 
 project.sourceCompatibility = JavaVersion.VERSION_1_10
 project.targetCompatibility = JavaVersion.VERSION_1_10

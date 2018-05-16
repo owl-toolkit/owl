@@ -70,7 +70,7 @@ public final class HoaConsumerExtended<S> {
 
     try {
       consumer.notifyHeaderStart("v1");
-      consumer.setTool("owl", "* *"); // Owl in a cave.
+      consumer.setTool("owl", "18.06-snapshot"); // Owl in a cave.
 
       if (options.contains(HoaOption.ANNOTATIONS)) {
         consumer
