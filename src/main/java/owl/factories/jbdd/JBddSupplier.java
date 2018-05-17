@@ -6,6 +6,7 @@ import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.List;
 import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.factories.FactorySupplier;
 import owl.factories.ValuationSetFactory;
 
@@ -44,6 +45,13 @@ public final class JBddSupplier implements FactorySupplier {
     boolean keepRepresentatives) {
     Bdd eqFactoryBdd = create(1024 * (alphabet.size() + 1));
     return new EquivalenceFactory(eqFactoryBdd, alphabet, keepRepresentatives);
+  }
+
+  @Override
+  public Factories getFactories(List<String> alphabet) {
+    return new Factories(
+      getEquivalenceClassFactory(alphabet, keepRepresentativesDefault),
+      getValuationSetFactory(alphabet));
   }
 
   @Override
