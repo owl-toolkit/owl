@@ -38,6 +38,8 @@ unaryExpression
 atomExpression
   : constant=bool # boolean
   | variable=VARIABLE # variable
+  | LSQUOTE variable=SINGLE_QUOTED_VARIABLE RSQUOTE # singleQuotedVariable
+  | LDQUOTE variable=DOUBLE_QUOTED_VARIABLE RDQUOTE # doubleQuotedVariable
   | LPAREN nested=expression RPAREN # nested
   ;
 

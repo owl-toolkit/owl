@@ -61,6 +61,8 @@ public final class InputReaders {
           return true;
         }
 
+        logger.log(Level.FINEST, "Parsing formula {0}", line);
+
         LabelledFormula formula;
         try {
           formula = LtlParser.parse(line);
