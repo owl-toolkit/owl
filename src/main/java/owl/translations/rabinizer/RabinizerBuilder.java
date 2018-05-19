@@ -56,6 +56,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.SyntacticFragment;
@@ -65,6 +66,7 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PrintVisitor;
+import owl.run.Environment;
 import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
 import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
 import owl.util.IntBiConsumer;
@@ -74,7 +76,7 @@ import owl.util.IntBiConsumer;
  *
  * @see owl.translations.rabinizer
  */
-public class RabinizerBuilder {
+public final class RabinizerBuilder {
   private static final MonitorAutomaton[] EMPTY_MONITORS = new MonitorAutomaton[0];
   private static final GOperator[] EMPTY_G_OPERATORS = new GOperator[0];
 
@@ -184,8 +186,9 @@ public class RabinizerBuilder {
   }
 
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> build(
-    Formula phi, Factories factories, RabinizerConfiguration configuration) {
-    Formula phiNormalized = SyntacticFragments.normalize(phi, SyntacticFragment.FGMU);
+    LabelledFormula formula, Environment environment, RabinizerConfiguration configuration) {
+    Factories factories = environment.factorySupplier().getFactories(formula.variables());
+    Formula phiNormalized = SyntacticFragments.normalize(formula.formula(), SyntacticFragment.FGMU);
 
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?

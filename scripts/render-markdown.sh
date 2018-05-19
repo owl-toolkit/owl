@@ -3,25 +3,21 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+[ ${#} -eq 1 ] || (echo "No destination path given"; exit 1)
+
 source "$(dirname $0)/vars.sh"
 
-FILES="LTL_GRAMMAR
-README
-CHANGELOG"
+files=("README.md" "CONTRIBUTING.md" "CHANGELOG.md" "doc/"*)
+destination="$1"
 
-if [[ ${#} -eq 0 ]]; then
-  DESTINATION="$PROJECT_FOLDER/build/html"
-else
-  DESTINATION="$1"
-fi
-
-mkdir -p ${DESTINATION}
-for FILE in ${FILES}; do
-  SOURCE_PATH="$PROJECT_FOLDER/$FILE.md"
-  if [ ! -f "$SOURCE_PATH" ]; then
-    echo "$FILE not found in $PROJECT_FOLDER"
+for file_path in ${files[@]}; do
+  source_path="${PROJECT_FOLDER}/$file_path"
+  if [ ! -f "$source_path" ]; then
+    echo "File $source_path does not exist"
     exit 1
   fi
+  destination_path="$destination/$file_path.html"
+  mkdir -p $(dirname ${destination_path})
 
-  pandoc --standalone -f markdown_github -t html5 -o "$DESTINATION/$FILE.html" "$SOURCE_PATH" || true
+  pandoc --standalone -f markdown_github -t html5 -o "$destination_path" "$source_path" || true
 done

@@ -290,7 +290,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
     Formula representative = clazz.representative();
     return representative == null
-      ? String.format("(%d)", bdd)
+      ? String.format("%d", bdd)
       : PrintVisitor.toString(representative, alphabet, false);
   }
 
@@ -324,12 +324,12 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       substitution[pivot] = factory.getTrueNode();
       var trueSubTree = temporalStepTree(transform(clazz,
         x -> factory.compose(getBdd(clazz), substitution),
-        x -> x.accept(replaceLiteralByTrue(pivot))), cache);
+        x -> x.accept(replaceLiteralBy(pivot, true))), cache);
 
       substitution[pivot] = factory.getFalseNode();
       var falseSubTree = temporalStepTree(transform(clazz,
         x -> factory.compose(getBdd(clazz), substitution),
-        x -> x.accept(replaceLiteralByFalse(pivot))), cache);
+        x -> x.accept(replaceLiteralBy(pivot, false))), cache);
 
       tree = new LabelledTree.Node<>(pivot, List.of(trueSubTree, falseSubTree));
     }
@@ -338,35 +338,14 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     return tree;
   }
 
-  private static Visitor<Formula> replaceLiteralByTrue(int literal) {
+  private static Visitor<Formula> replaceLiteralBy(int literal, boolean value) {
     return new SubstitutionVisitor(x -> {
       if (!(x instanceof Literal)) {
         return x;
       }
 
       Literal castedX = (Literal) x;
-
-      if (castedX.getAtom() != literal) {
-        return x;
-      }
-
-      return BooleanConstant.of(!castedX.isNegated());
-    });
-  }
-
-  private static Visitor<Formula> replaceLiteralByFalse(int literal) {
-    return new SubstitutionVisitor(x -> {
-      if (!(x instanceof Literal)) {
-        return x;
-      }
-
-      Literal castedX = (Literal) x;
-
-      if (castedX.getAtom() != literal) {
-        return x;
-      }
-
-      return BooleanConstant.of(castedX.isNegated());
+      return castedX.getAtom() == literal ? BooleanConstant.of(castedX.isNegated() != value) : x;
     });
   }
 

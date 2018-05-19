@@ -191,6 +191,8 @@ tasks.create(name: "compileMarkdown", type: Exec) {
     buildNatives
 } // ... if native compilation is enabled (pandoc isn't available everywhere)
 
+// TODO Include testing framework scripts in distribution -> split scripts directory in two dirs
+
 // Configure the distribution to include the documentation etc.
 distributions {
     // TODO The distribution plugin is stupid: The "main" distribution always contains all runtime
@@ -200,10 +202,13 @@ distributions {
         baseName = 'owl'
 
         contents {
+            from "AUTHORS"
+            from "LICENSE"
+
             into("doc") {
-                from "AUTHORS"
-                from "LICENSE"
                 from compileMarkdown
+            }
+            into("jdoc") {
                 from javadoc
             }
             into("src") {
@@ -224,11 +229,14 @@ if (enableProGuard) {
             into("lib") {
                 from proGuardTask
             }
+            from "AUTHORS"
+            from "LICENSE"
+
             if (!minimize) {
                 into("doc") {
-                    from "AUTHORS"
-                    from "LICENSE"
                     from compileMarkdown
+                }
+                into("jdoc") {
                     from javadoc
                 }
                 into("src") {

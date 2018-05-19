@@ -10,11 +10,7 @@ public interface FactorySupplier {
   EquivalenceClassFactory getEquivalenceClassFactory(List<String> alphabet,
     boolean keepRepresentatives);
 
-  default Factories getFactories(List<String> alphabet) {
-    return new Factories(
-      getEquivalenceClassFactory(alphabet, false),
-      getValuationSetFactory(alphabet));
-  }
+  Factories getFactories(List<String> alphabet);
 
   default Factories getFactories(List<String> alphabet, boolean keepRepresentatives) {
     return new Factories(

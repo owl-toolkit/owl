@@ -2,7 +2,6 @@ package owl.translations.rabinizer;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import owl.factories.Factories;
 import owl.ltl.LabelledFormula;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformer;
@@ -51,9 +50,7 @@ public final class RabinizerCliParser implements TransformerParser {
       .suspendableFormulaDetection(suspend)
       .build();
 
-    return environment -> Transformers.instanceFromFunction(LabelledFormula.class, formula -> {
-      Factories factories = environment.factorySupplier().getFactories(formula.variables());
-      return RabinizerBuilder.build(formula.formula(), factories, configuration);
-    });
+    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+      formula -> RabinizerBuilder.build(formula, environment, configuration));
   }
 }
