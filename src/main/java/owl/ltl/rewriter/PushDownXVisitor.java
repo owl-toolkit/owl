@@ -35,14 +35,10 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.BinaryVisitor;
 
-class PushDownXVisitor implements BinaryVisitor<Integer, Formula>, UnaryOperator<Formula> {
+final class PushDownXVisitor implements BinaryVisitor<Integer, Formula> {
+  private static final PushDownXVisitor INSTANCE = new PushDownXVisitor();
+  static final UnaryOperator<Formula> OPERATOR = f -> f.accept(INSTANCE, 0);
 
-  static final UnaryOperator<Formula> INSTANCE = new PushDownXVisitor();
-
-  @Override
-  public Formula apply(Formula formula) {
-    return formula.accept(this, 0);
-  }
 
   @Override
   public Formula visit(Biconditional biconditional, Integer parameter) {

@@ -41,6 +41,7 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.rewriter.SyntacticFairnessSimplifier.NormaliseX;
 import owl.ltl.visitors.Visitor;
 
 class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
@@ -173,7 +174,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
     // Remove XF/XG contained in a FG scope.
     if (SyntacticFairnessSimplifier.isApplicable2(fOperator)) {
-      Formula formula = SyntacticFairnessSimplifier.NormaliseX.UNGUARDED_INSTANCE.apply(fOperator);
+      Formula formula = NormaliseX.UNGUARDED_OPERATOR.apply(fOperator);
       assert formula instanceof FOperator;
       operand = ((FOperator) formula).operand;
     }
@@ -220,8 +221,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     if (SyntacticFairnessSimplifier.isApplicable(formula)) {
       Formula almostAllOperand = SyntacticFairnessSimplifier.getAlmostAllOperand(formula);
       assert almostAllOperand != null;
-      Formula normalisedX = SyntacticFairnessSimplifier.NormaliseX.UNGUARDED_INSTANCE
-        .apply(almostAllOperand);
+      Formula normalisedX = NormaliseX.UNGUARDED_OPERATOR.apply(almostAllOperand);
       return normalisedX.accept(SyntacticFairnessSimplifier.ALMOST_ALL_VISITOR);
     }
 
@@ -234,7 +234,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
     // Remove XF/XG contained in a GF scope.
     if (SyntacticFairnessSimplifier.isApplicable2(gOperator)) {
-      Formula formula = SyntacticFairnessSimplifier.NormaliseX.UNGUARDED_INSTANCE.apply(gOperator);
+      Formula formula = NormaliseX.UNGUARDED_OPERATOR.apply(gOperator);
       assert formula instanceof GOperator;
       operand = ((GOperator) formula).operand;
     }
@@ -282,8 +282,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       Formula infinitelyOftenOperand = SyntacticFairnessSimplifier
         .getInfinitelyOftenOperand(formula);
       assert infinitelyOftenOperand != null;
-      Formula normalisedX = SyntacticFairnessSimplifier.NormaliseX.UNGUARDED_INSTANCE
-        .apply(infinitelyOftenOperand);
+      Formula normalisedX = NormaliseX.UNGUARDED_OPERATOR.apply(infinitelyOftenOperand);
       return normalisedX.accept(SyntacticFairnessSimplifier.INFINITELY_OFTEN_VISITOR);
     }
 

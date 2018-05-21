@@ -32,7 +32,7 @@ import owl.util.annotation.CEntryPoint;
 
 public final class Conjunction extends PropositionalFormula {
 
-  private Conjunction(Formula... conjuncts) {
+  private Conjunction(Formula[] conjuncts) {
     super(Conjunction.class, Set.of(conjuncts));
   }
 
@@ -84,6 +84,7 @@ public final class Conjunction extends PropositionalFormula {
       return set.iterator().next();
     }
 
+    // Set.copyOf is stupid if given a Set<>, hence this hack
     return new Conjunction(set.toArray(Formula[]::new));
   }
 

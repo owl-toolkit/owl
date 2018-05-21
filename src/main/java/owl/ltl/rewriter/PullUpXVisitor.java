@@ -41,14 +41,10 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
-public class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula>, UnaryOperator<Formula> {
-
+public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
   public static final PullUpXVisitor INSTANCE = new PullUpXVisitor();
+  public static final UnaryOperator<Formula> OPERATOR = f -> f.accept(INSTANCE).toFormula();
 
-  @Override
-  public Formula apply(Formula formula) {
-    return formula.accept(this).toFormula();
-  }
 
   @Override
   public XFormula visit(Biconditional biconditional) {

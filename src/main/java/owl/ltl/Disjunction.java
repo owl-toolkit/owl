@@ -31,7 +31,7 @@ import owl.ltl.visitors.Visitor;
 
 public final class Disjunction extends PropositionalFormula {
 
-  private Disjunction(Formula... disjuncts) {
+  private Disjunction(Formula[] disjuncts) {
     super(Disjunction.class, Set.of(disjuncts));
   }
 
@@ -82,6 +82,7 @@ public final class Disjunction extends PropositionalFormula {
       return set.iterator().next();
     }
 
+    // Set.copyOf is stupid if given a Set<>, hence this hack
     return new Disjunction(set.toArray(Formula[]::new));
   }
 

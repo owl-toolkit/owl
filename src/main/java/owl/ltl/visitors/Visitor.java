@@ -19,6 +19,7 @@
 
 package owl.ltl.visitors;
 
+import java.util.function.Function;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -34,8 +35,13 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-@SuppressWarnings("checkstyle:all")
-public interface Visitor<R> {
+@SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
+                    "checkstyle:EmptyLineSeparator"})
+public interface Visitor<R> extends Function<Formula, R> {
+
+  @Override
+  default R apply(Formula formula)                 { return formula.accept(this); }
+
   default R visit(Biconditional biconditional)     { throw uoe(biconditional);   }
   default R visit(BooleanConstant booleanConstant) { throw uoe(booleanConstant); }
   default R visit(Conjunction conjunction)         { throw uoe(conjunction);     }

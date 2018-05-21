@@ -19,6 +19,7 @@
 
 package owl.ltl.visitors;
 
+import java.util.function.BiFunction;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -35,7 +36,10 @@ import owl.ltl.XOperator;
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})
-public interface BinaryVisitor<P, R> {
+public interface BinaryVisitor<P, R> extends BiFunction<Formula, P, R> {
+
+  @Override
+  default R apply(Formula formula, P p)                         { return formula.accept(this, p); }
 
   default R visit(Biconditional biconditional, P parameter)     { throw uoe(biconditional);   }
   default R visit(BooleanConstant booleanConstant, P parameter) { throw uoe(booleanConstant); }
