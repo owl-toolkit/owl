@@ -182,7 +182,7 @@ public class AutomatonReaderTest {
     Int2ObjectMap<HoaState> states = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.factory();
 
-    assertThat(automaton.initialState(), is(states.get(1)));
+    assertThat(automaton.onlyInitialState(), is(states.get(1)));
 
     LabelledEdge<HoaState> successorEdge = LabelledEdge.of(states.get(0),
       valuationSetFactory.of(createBitSet(true)));
@@ -216,7 +216,7 @@ public class AutomatonReaderTest {
     assertThat(acceptance.acceptanceSets(), is(3));
     assertThat(acceptance.parity(), is(Parity.MIN_ODD));
 
-    HoaState initialState = automaton.initialState();
+    HoaState initialState = automaton.onlyInitialState();
     HoaState successor = automaton.successor(initialState, createBitSet(false, false));
     assertThat(successor, notNullValue());
 
@@ -243,7 +243,7 @@ public class AutomatonReaderTest {
     assertThat(automaton.size(), is(2));
     assertThat(automaton.acceptance(), instanceOf(AllAcceptance.class));
 
-    HoaState initialState = automaton.initialState();
+    HoaState initialState = automaton.onlyInitialState();
     assertThat(initialState.id, is(0));
 
     assertThat(automaton.successor(initialState, createBitSet(true)), is(initialState));

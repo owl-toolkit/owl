@@ -17,7 +17,9 @@
 
 package owl.automaton;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static owl.automaton.AutomatonUtil.exploreDeterministic;
+
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import java.util.BitSet;
@@ -39,35 +41,34 @@ public final class MutableAutomatonFactory {
    * Creates an empty automaton with given acceptance condition. The {@code valuationSetFactory} is
    * used as transition backend.
    *
-   * @param acceptance
-   *     The acceptance of the new automaton.
-   * @param valuationSetFactory
-   *     The transition valuation set factory
-   * @param <S>
-   *     The states of the automaton.
-   * @param <A>
-   *     The acceptance condition of the automaton.
+   * @param acceptance The acceptance of the new automaton.
+   * @param vsFactory The alphabet.
+   * @param <S> The states of the automaton.
+   * @param <A> The acceptance condition of the automaton.
    *
    * @return Empty automaton with the specified parameters.
    */
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
-    ValuationSetFactory valuationSetFactory) {
-    return new HashMapAutomaton<>(valuationSetFactory, acceptance);
+    ValuationSetFactory vsFactory) {
+    return new HashMapAutomaton<>(vsFactory, acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
-    ValuationSetFactory valuationSetFactory, Collection<S> initialStates,
+    ValuationSetFactory vsFactory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
-    MutableAutomaton<S, A> automaton = create(acceptance, valuationSetFactory);
-    AutomatonUtil.exploreDeterministic(automaton, initialStates, successors, alphabet);
+    MutableAutomaton<S, A> automaton = create(acceptance, vsFactory);
+    if (initialStates.isEmpty()) {
+      return automaton;
+    }
+
+    exploreDeterministic(automaton, initialStates, successors, alphabet);
     automaton.initialStates(initialStates);
     return automaton;
   }
 
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(
     Automaton<S, A> automaton) {
-    Preconditions.checkArgument(automaton.is(Property.DETERMINISTIC),
-      "Only deterministic automata supported");
+    checkArgument(automaton.is(Property.DETERMINISTIC), "Only deterministic automata supported");
     // TODO Efficient copy of HashMapAutomaton
     return create(automaton.acceptance(),
       automaton.factory(), automaton.initialStates(), automaton::edge,

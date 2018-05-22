@@ -34,7 +34,6 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.Views.ForwardingMutableAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
@@ -154,10 +153,6 @@ public final class ParityUtil {
 
   private static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
     MutableAutomaton<S, ParityAcceptance> automaton, List<Set<S>> sccs) {
-    if (automaton instanceof ForwardingMutableAutomaton) {
-      return automaton;
-    }
-
     /* This optimization simply determines all priorities used in each SCC and then tries to
      * eliminate "gaps". For example, when [0, 2, 4, 5] are used, we actually only need to consider
      * [0, 1]. Furthermore, edges between SCCs are set to an arbitrary priority. */

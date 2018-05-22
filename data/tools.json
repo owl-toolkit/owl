@@ -143,6 +143,9 @@
                     "ltl2tgba -H"
                 ]
             ],
+            "post": [
+                "minimize-aut"
+            ],
             "flags": {
                 "nosafety": "--nosafety"
             }

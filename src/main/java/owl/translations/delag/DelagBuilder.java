@@ -115,7 +115,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
-      return AutomatonFactory.singleton(new State<>(), factories.vsFactory, AllAcceptance.INSTANCE,
+      return AutomatonFactory.singleton(factories.vsFactory, new State<>(), AllAcceptance.INSTANCE,
         Set.of());
     }
 
@@ -133,9 +133,8 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
       getHistory(null, new BitSet(), initialProduct));
 
     EmersonLeiAcceptance acceptance = new EmersonLeiAcceptance(sets, expression);
-    return AutomatonFactory.create(initialState, factories.vsFactory,
-      (x, y) -> this.getSuccessor(tree, x, y), acceptance
-    );
+    return AutomatonFactory.create(factories.vsFactory, initialState,
+      acceptance, (x, y) -> this.getSuccessor(tree, x, y));
   }
 
   private History getHistory(@Nullable History past, BitSet present, ProductState<T> state) {

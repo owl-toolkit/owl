@@ -306,12 +306,12 @@ public final class SafetyAutomaton {
     });
 
     Automaton<State, ParityAcceptance> reducedAutomaton =
-      AutomatonFactory.create(reductionMap.get(initialState), factories.vsFactory,
-        (state, valuation) -> {
+      AutomatonFactory.create(factories.vsFactory, reductionMap.get(initialState),
+        acceptance, (state, valuation) -> {
           State successor = automaton.successor(state, valuation);
           assert successor != null;
           return Edge.of(reductionMap.get(successor), successor.priority());
-        }, acceptance);
+        });
 
     return AutomatonUtil.asMutable(reducedAutomaton);
   }

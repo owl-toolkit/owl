@@ -41,32 +41,31 @@ public final class AutomatonFactory {
    *
    * @param <S> The type of the state.
    * @param <A> The type of the acceptance conditions.
-   * @param initialState The initial state.
    * @param factory The alphabet.
-   * @param transitions The transition function.
+   * @param initialState The initial state.
    * @param acceptance The acceptance condition.
+   * @param transitions The transition function.
    */
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,
-    ValuationSetFactory factory, BiFunction<S, BitSet, Edge<S>> transitions, A acceptance) {
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
+    S initialState, A acceptance, BiFunction<S, BitSet, Edge<S>> transitions) {
     return new OnTheFlyAutomaton.Simple<>(initialState, factory, transitions, acceptance);
   }
 
   /**
    * Creates a non-deterministic on-the-fly constructed automaton with support for bulk creation of
    * edges.
-   *
-   * @param <S> The type of the state.
+   *  @param <S> The type of the state.
    * @param <A> The type of the acceptance conditions.
-   * @param initialState The initial state.
    * @param factory The alphabet.
+   * @param initialState The initial state.
+   * @param acceptance The acceptance condition.
    * @param transitions The transition function.
    * @param bulkTransitions
-   *     A bulk transition function, needs to be consistent with transitions.
-   * @param acceptance The acceptance condition.
+*     A bulk transition function, needs to be consistent with {@code transitions}.
    */
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(S initialState,
-    ValuationSetFactory factory, BiFunction<S, BitSet, Set<Edge<S>>> transitions,
-    Function<S, Collection<LabelledEdge<S>>> bulkTransitions, A acceptance) {
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
+    S initialState, A acceptance, BiFunction<S, BitSet, Set<Edge<S>>> transitions,
+    Function<S, Collection<LabelledEdge<S>>> bulkTransitions) {
     return new OnTheFlyAutomaton.Bulk<>(initialState, factory, transitions, bulkTransitions,
       acceptance);
   }
@@ -75,13 +74,13 @@ public final class AutomatonFactory {
     return new EmptyAutomaton<>(factory);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
-    ValuationSetFactory factory, A acceptance) {
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(
+    ValuationSetFactory factory, S state, A acceptance) {
     return new SingletonAutomaton<>(state, factory, Map.of(), acceptance);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(S state,
-    ValuationSetFactory factory, A acceptance, Set<Integer> acceptanceSet) {
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(
+    ValuationSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
     return new SingletonAutomaton<>(state, factory, Map.of(acceptanceSet,
       factory.universe()), acceptance);
   }

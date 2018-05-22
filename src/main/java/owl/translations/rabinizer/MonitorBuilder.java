@@ -450,7 +450,7 @@ final class MonitorBuilder {
     // TODO We actually can use this to only compute the successors until we reach a BSCC
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
-    MonitorState initialState = anyMonitor.initialState();
+    MonitorState initialState = anyMonitor.onlyInitialState();
 
     BitSet emptyBitSet = new BitSet(0);
     MonitorState optimizedInitialState = initialState;

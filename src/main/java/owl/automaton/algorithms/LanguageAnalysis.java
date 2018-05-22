@@ -39,10 +39,8 @@ public final class LanguageAnalysis {
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
       "Second argument needs to be deterministic.");
 
-    Automaton<Object, BuchiAcceptance> casted1 = AutomatonUtil
-      .cast(automaton1, Object.class, BuchiAcceptance.class);
-    Automaton<Object, BuchiAcceptance> casted2 = AutomatonUtil
-      .cast(automaton2, Object.class, BuchiAcceptance.class);
+    var casted1 = AutomatonUtil.cast(automaton1, Object.class, BuchiAcceptance.class);
+    var casted2 = AutomatonUtil.cast(automaton2, Object.class, BuchiAcceptance.class);
 
     return EmptinessCheck.isEmpty(AutomatonOperations.intersection(List.of(casted1,
       AutomatonUtil.cast(Views.complement(casted2, new Object()), CoBuchiAcceptance.class))));

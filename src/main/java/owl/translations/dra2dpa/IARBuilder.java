@@ -82,7 +82,7 @@ public final class IARBuilder<R> {
     Set<RabinPair> rabinPairs = Set.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {
       IARState<R> state = IARState.trivial(rabinAutomaton.initialStates().iterator().next());
-      return AutomatonFactory.singleton(state, rabinAutomaton.factory(),
+      return AutomatonFactory.singleton(rabinAutomaton.factory(), state,
         new ParityAcceptance(1, Parity.MIN_ODD), Collections.singleton(0));
     }
 
@@ -218,7 +218,7 @@ public final class IARBuilder<R> {
       R transientSccState = scc.iterator().next();
       IARState<R> iarState = IARState.trivial(transientSccState);
       return new SccProcessingResult<>(interSccConnections,
-        AutomatonFactory.singleton(iarState, vsFactory, NoneAcceptance.INSTANCE));
+        AutomatonFactory.singleton(vsFactory, iarState, NoneAcceptance.INSTANCE));
     }
 
     if (!seenAnyInfSet.get()) {

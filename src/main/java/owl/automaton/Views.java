@@ -87,7 +87,7 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> complete(Automaton<S, A> automaton,
     S trapState) {
-    var edge = Edge.of(trapState);
+    Edge<S> edge = Edge.of(trapState);
 
     // Patching parity automata
     if (automaton.acceptance() instanceof ParityAcceptance) {
@@ -106,11 +106,12 @@ public final class Views {
 
   public static <S> Automaton<Set<S>, NoneAcceptance> createPowerSetAutomaton(
     Automaton<S, NoneAcceptance> automaton) {
-    return AutomatonFactory.create(automaton.initialStates(), automaton.factory(), (x, y) -> {
+    return AutomatonFactory.create(automaton.factory(), automaton.initialStates(),
+      NoneAcceptance.INSTANCE, (x, y) -> {
       Set<S> builder = new HashSet<>();
       x.forEach(s -> builder.addAll(automaton.successors(s, y)));
       return Edge.of(Set.copyOf(builder));
-    }, NoneAcceptance.INSTANCE);
+    });
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
@@ -127,9 +128,13 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
     IntUnaryOperator remappingOperator) {
-    return AutomatonFactory.create(automaton.initialState(), automaton.factory(),
-      (state, valuation) -> automaton.edge(state, valuation).withAcceptance(remappingOperator),
-      automaton.acceptance());
+    ValuationSetFactory vsFactory = automaton.factory();
+    S initialState = automaton.onlyInitialState();
+    A acceptance = automaton.acceptance();
+    return AutomatonFactory.create(vsFactory, initialState, acceptance, (state, valuation) -> {
+      Edge<S> edge = automaton.edge(state, valuation);
+      return edge == null ? null : edge.withAcceptance(remappingOperator);
+    });
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(

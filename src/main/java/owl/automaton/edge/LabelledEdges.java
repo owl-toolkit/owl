@@ -19,6 +19,7 @@ package owl.automaton.edge;
 
 import com.google.common.collect.Collections2;
 import java.util.Collection;
+import java.util.Map;
 import owl.collections.ValuationSet;
 
 public final class LabelledEdges {
@@ -35,5 +36,9 @@ public final class LabelledEdges {
 
   public static <S> Collection<S> successors(Collection<LabelledEdge<S>> labelledEdges) {
     return Collections2.transform(labelledEdges, l -> l.edge.successor());
+  }
+
+  public static <S> Collection<LabelledEdge<S>> asCollection(Map<Edge<S>, ValuationSet> map) {
+    return Collections2.transform(map.entrySet(), LabelledEdge::of);
   }
 }

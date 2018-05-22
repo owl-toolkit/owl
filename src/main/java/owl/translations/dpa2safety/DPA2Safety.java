@@ -26,7 +26,7 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       d = automaton.acceptance().acceptanceSets();
     }
 
-    Counter<S> initialState = new Counter<>(automaton.initialState(), d / 2 + 1);
+    Counter<S> initialState = new Counter<>(automaton.onlyInitialState(), d / 2 + 1);
 
     IntPredicate isAcceptingColour = x -> automaton.acceptance().isAccepting(x);
 
@@ -58,8 +58,8 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       return Edge.of(new Counter<>(edge.successor(), counters));
     };
 
-    return AutomatonFactory.create(initialState, automaton.factory(), successor,
-      AllAcceptance.INSTANCE);
+    return AutomatonFactory.create(automaton.factory(), initialState, AllAcceptance.INSTANCE,
+      successor);
   }
 
   static final class Counter<X> {

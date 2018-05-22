@@ -73,10 +73,10 @@ public final class JniAutomaton<S> {
     this.acceptingSink = acceptingSink;
 
     int2StateMap = new ArrayList<>();
-    int2StateMap.add(this.automaton.initialState());
+    int2StateMap.add(this.automaton.onlyInitialState());
 
     state2intMap = new Object2IntOpenHashMap<>();
-    state2intMap.put(this.automaton.initialState(), 0);
+    state2intMap.put(this.automaton.onlyInitialState(), 0);
     state2intMap.defaultReturnValue(UNKNOWN_STATE);
   }
 

@@ -100,6 +100,7 @@ public final class MinimizationUtil {
 
   private MinimizationUtil() {}
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public static <S, A extends OmegaAcceptance> void applyMinimization(
     MutableAutomaton<S, ? extends A> automaton, List<Minimization<S, A>> minimizationList) {
     if (minimizationList.isEmpty()) {
@@ -126,16 +127,14 @@ public final class MinimizationUtil {
       applyMinimization((MutableAutomaton<Object, RabinAcceptance>) automaton,
         rabinDefaultAllList);
     } else if (acceptance instanceof GeneralizedRabinAcceptance) {
-      MutableAutomaton<Object, GeneralizedRabinAcceptance> dgra =
-        (MutableAutomaton<Object, GeneralizedRabinAcceptance>) automaton;
+      var dgra = (MutableAutomaton<Object, GeneralizedRabinAcceptance>) automaton;
       if (level == MinimizationLevel.ALL) {
         applyMinimization(dgra, generalizedRabinDefaultAllList);
       } else {
         applyMinimization(dgra, generalizedRabinDefaultLightList);
       }
     } else if (acceptance instanceof ParityAcceptance) {
-      MutableAutomaton<Object, ParityAcceptance> dpa =
-        (MutableAutomaton<Object, ParityAcceptance>) automaton;
+      var dpa = (MutableAutomaton<Object, ParityAcceptance>) automaton;
       applyMinimization(dpa, parityDefaultList);
     } else {
       // removeDeadStates(automaton);

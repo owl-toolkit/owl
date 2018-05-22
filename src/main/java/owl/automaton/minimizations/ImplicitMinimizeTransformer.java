@@ -59,9 +59,8 @@ public class ImplicitMinimizeTransformer extends Transformers.SimpleTransformer 
 
   @Override
   public Object transform(Object object, PipelineExecutionContext context) {
-    checkArgument(object instanceof Automaton, "Expected automaton, got %s",
-      object.getClass());
-    MutableAutomaton<?, ?> automaton = AutomatonUtil.asMutable((Automaton) object);
+    checkArgument(object instanceof Automaton, "Expected automaton, got %s", object.getClass());
+    MutableAutomaton<?, ?> automaton = AutomatonUtil.asMutable((Automaton<?, ?>) object);
     MinimizationUtil.minimizeDefault(automaton, level);
     return automaton;
   }

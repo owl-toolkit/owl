@@ -68,10 +68,10 @@ public class GameFactoryTest {
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_2),
-      hasItem(game.initialState()));
+      hasItem(game.onlyInitialState()));
 
     // Player 1 can never win...
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
-      not(hasItem(game.initialState())));
+      not(hasItem(game.onlyInitialState())));
   }
 }

@@ -396,7 +396,9 @@ public final class GameViews {
 
     @Override
     public String toString() {
-      return isFirstPlayersTurn() ? "1:" + state() : "2" + firstPlayerChoice() + ':' + state();
+      return isFirstPlayersTurn()
+        ? String.format("1:%s", state())
+        : String.format("2%s:%s", firstPlayerChoice(), state());
     }
 
     boolean isFirstPlayersTurn() {
