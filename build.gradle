@@ -146,7 +146,7 @@ def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuar
 // Create startup scripts for each tool
 def scripts = [
     'synth'     : 'owl.translations.Synthesis',
-    'ltl2da'    : 'owl.translations.LTL2DA',
+    'ltl2da'    : 'owl.translations.LTL2DAModule',
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
     'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBACliParser',
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',

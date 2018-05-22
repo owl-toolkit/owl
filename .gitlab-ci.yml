@@ -43,6 +43,13 @@ Build:
   when: manual
   dependencies: []
 
+
+Binaries:
+  stage: test
+  script:
+    - ./gradlew --no-daemon -Pfull buildBin
+    - scripts/check_binaries.sh
+
 # LTL to Automaton
 
 LTL2LDBA:
