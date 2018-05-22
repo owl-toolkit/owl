@@ -148,6 +148,7 @@ def scripts = [
     'synth'     : 'owl.translations.Synthesis',
     'ltl2da'    : 'owl.translations.LTL2DAModule',
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
+    'fgx2dpa'   : 'owl.translations.fgx2dpa.FGX2DPA',
     'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBACliParser',
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',

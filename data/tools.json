@@ -1,5 +1,11 @@
 {
     "tools": {
+        "fgx2dpa": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "fgx2dpa"
+        },
         "ltl2ldba": {
             "type": "owl",
             "input": "ltl",

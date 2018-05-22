@@ -70,6 +70,10 @@
             },
             "data": "small"
         },
+        "fgx2dpa": {
+            "tools": "fgx2dpa",
+            "data": "fgx"
+        },
         "ltl2ldgba": {
             "tools": {
                 "default": "ltl2ldba#",
