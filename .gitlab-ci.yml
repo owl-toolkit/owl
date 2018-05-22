@@ -70,6 +70,13 @@ LTL2DPA:
     TEST_NAME: "ltl2dpa-small;ltl2dpa"
   <<: *ltlcross_template
 
+FGX2DPA:
+  stage: test
+  variables:
+    TEST_NAME: "fgx2dpa"
+  <<: *ltlcross_template
+
+
 LTL2DRA:
   stage: test
   variables:
