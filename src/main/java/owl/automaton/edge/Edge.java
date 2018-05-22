@@ -38,21 +38,21 @@ import javax.annotation.Nonnegative;
 public interface Edge<S> {
 
   /**
-   * Creates an edge which belongs to no delegate set.
+   * Creates an edge which belongs to no acceptance set.
    *
    * @param successor
    *     Successor of this edge.
    * @param <S>
    *     Type of the successor.
    *
-   * @return An edge leading to {@code successor} with no delegate.
+   * @return An edge leading to {@code successor} with no acceptance.
    */
   static <S> Edge<S> of(S successor) {
     return new EdgeSingleton<>(successor);
   }
 
   /**
-   * Creates an edge which belongs to a single delegate set.
+   * Creates an edge which belongs to a single acceptance set.
    *
    * @param successor
    *     Successor of this edge.
@@ -61,14 +61,14 @@ public interface Edge<S> {
    * @param acceptance
    *     The delegate set this edge should belong to.
    *
-   * @return An edge leading to {@code successor} with given delegate.
+   * @return An edge leading to {@code successor} with given acceptance.
    */
   static <S> Edge<S> of(S successor, @Nonnegative int acceptance) {
     return new EdgeSingleton<>(successor, acceptance);
   }
 
   /**
-   * Creates an edge which belongs to the specified delegate sets.
+   * Creates an edge which belongs to the specified acceptance sets.
    *
    * @param successor
    *     Successor of this edge.
@@ -77,7 +77,7 @@ public interface Edge<S> {
    * @param acceptance
    *     The delegate sets this edge should belong to.
    *
-   * @return An edge leading to {@code successor} with given delegate.
+   * @return An edge leading to {@code successor} with given acceptance.
    */
   static <S> Edge<S> of(S successor, BitSet acceptance) {
     if (acceptance.isEmpty()) {
@@ -94,6 +94,7 @@ public interface Edge<S> {
 
     return new EdgeGeneric<>(successor, ImmutableBitSet.copyOf(acceptance));
   }
+
 
   /**
    * An iterator containing all acceptance sets this edge is a member of in ascending order.
@@ -134,6 +135,7 @@ public interface Edge<S> {
    * none.
    */
   int smallestAcceptanceSet();
+
 
   default Edge<S> withAcceptance(int i) {
     return of(successor(), i);

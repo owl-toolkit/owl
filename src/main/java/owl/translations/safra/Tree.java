@@ -1,6 +1,7 @@
 package owl.translations.safra;
 
 import com.google.common.collect.Lists;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -21,7 +22,7 @@ public abstract class Tree<L> {
     return TreeTuple.create(label, List.of());
   }
 
-  static <L> Tree<L> of(L label, List<Tree<L>> children) {
+  static <L> Tree<L> of(L label, Collection<Tree<L>> children) {
     return TreeTuple.create(label, children);
   }
 

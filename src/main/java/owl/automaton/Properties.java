@@ -49,7 +49,7 @@ final class Properties {
    *
    * @see Properties#isComplete(Collection)
    */
-  static <S> boolean isComplete(Automaton<S, ?> automaton) {
+  public static <S> boolean isComplete(Automaton<S, ?> automaton) {
     Set<S> states = automaton.states();
     return !states.isEmpty()
       && Iterables.all(states, s -> isComplete(automaton.labelledEdges(s)));
@@ -91,7 +91,7 @@ final class Properties {
    *
    * @see Properties#isDeterministic(Collection)
    */
-  static <S> boolean isDeterministic(Automaton<S, ?> automaton) {
+  public static <S> boolean isDeterministic(Automaton<S, ?> automaton) {
     return automaton.initialStates().size() <= 1
       && Iterables.all(automaton.states(), s -> isDeterministic(automaton.labelledEdges(s)));
   }

@@ -17,13 +17,22 @@
 
 package owl.automaton.edge;
 
+import java.util.BitSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import owl.collections.ValuationSet;
 
 public final class LabelledEdge<S> {
   public final Edge<S> edge;
   public final ValuationSet valuations;
+
+  private LabelledEdge(Edge<S> edge, ValuationSet valuations) {
+    this.edge = edge;
+    this.valuations = valuations;
+  }
+
 
   public static <S> LabelledEdge<S> of(S state, ValuationSet valuations) {
     return LabelledEdge.of(Edge.of(state), valuations);
@@ -37,10 +46,28 @@ public final class LabelledEdge<S> {
     return LabelledEdge.of(entry.getKey(), entry.getValue());
   }
 
-  private LabelledEdge(Edge<S> edge, ValuationSet valuations) {
-    this.edge = edge;
-    this.valuations = valuations;
+
+  public Edge<S> edge() {
+    return edge;
   }
+
+  public ValuationSet valuations() {
+    return valuations;
+  }
+
+  public S successor() {
+    return edge.successor();
+  }
+
+
+  public <T> LabelledEdge<T> map(Function<Edge<S>, Edge<T>> map) {
+    return of(map.apply(edge), valuations);
+  }
+
+  public void forEach(BiConsumer<Edge<S>, BitSet> action) {
+    valuations.forEach(valuation -> action.accept(edge, valuation));
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -55,19 +82,11 @@ public final class LabelledEdge<S> {
       && Objects.equals(valuations, that.valuations);
   }
 
-  public Edge<S> edge() {
-    return edge;
-  }
-
-  public ValuationSet valuations() {
-    return valuations;
-  }
-
   @Override
   public int hashCode() {
-    // Not using Objects.hash to avoid var-ags array instantiation
-    return 31 * edge.hashCode() + valuations.hashCode();
+    return edge.hashCode() ^ valuations.hashCode();
   }
+
 
   @Override
   public String toString() {

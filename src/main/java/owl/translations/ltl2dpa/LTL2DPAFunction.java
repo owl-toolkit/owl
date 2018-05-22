@@ -240,7 +240,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.initialComponent().initialStates().size() == 1;
     assert ldba.acceptingComponent().initialStates().isEmpty();
 
-    var factory = ldba.initialComponent().initialState().factory();
+    var factory = ldba.initialComponent().onlyInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new EquivalenceClassLanguageLattice(factory),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
@@ -262,7 +262,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     assert ldba.initialComponent().initialStates().size() == 1;
     assert ldba.acceptingComponent().initialStates().isEmpty();
 
-    var factory = ldba.initialComponent().initialState().factory();
+    var factory = ldba.initialComponent().onlyInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new BooleanLattice(),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),

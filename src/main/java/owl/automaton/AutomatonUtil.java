@@ -27,13 +27,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.function.BiConsumer;
@@ -202,10 +202,10 @@ public final class AutomatonUtil {
 
     int alphabetSize = automaton.factory().alphabetSize();
     Set<S> exploredStates = Sets.newHashSet(states);
-    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
-      S state = workQueue.poll();
+      S state = workQueue.remove();
       BitSet sensitiveAlphabet = sensitiveAlphabetOracle.apply(state);
       Set<BitSet> bitSets = sensitiveAlphabet == null
         ? BitSets.powerSet(alphabetSize)
@@ -253,10 +253,10 @@ public final class AutomatonUtil {
   public static <S> Set<S> exploreWithLabelledEdge(MutableAutomaton<S, ?> automaton,
     Collection<S> states, Function<S, Collection<LabelledEdge<S>>> successorFunction) {
     Set<S> exploredStates = new HashSet<>(states);
-    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
-      S state = workQueue.poll();
+      S state = workQueue.remove();
 
       for (LabelledEdge<S> labelledEdge : successorFunction.apply(state)) {
         automaton.addEdge(state, labelledEdge.valuations, labelledEdge.edge);
@@ -334,10 +334,10 @@ public final class AutomatonUtil {
   public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(Automaton<S, A> automaton,
     Collection<? extends S> start) {
     Set<S> exploredStates = new HashSet<>(start);
-    Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
-      automaton.successors(workQueue.poll()).forEach(successor -> {
+      automaton.successors(workQueue.remove()).forEach(successor -> {
         if (exploredStates.add(successor)) {
           workQueue.add(successor);
         }

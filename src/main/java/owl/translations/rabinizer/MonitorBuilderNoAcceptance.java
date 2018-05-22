@@ -66,7 +66,7 @@ final class MonitorBuilderNoAcceptance {
     // Since the monitors handle "F G <psi>", we can skip non-repeating prefixes
     logger.log(Level.FINER, "Optimizing initial state");
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(monitor, false);
-    MonitorState initialState = monitor.initialState();
+    MonitorState initialState = monitor.onlyInitialState();
 
     BitSet emptyBitSet = new BitSet(0);
     MonitorState optimizedInitialState = initialState;

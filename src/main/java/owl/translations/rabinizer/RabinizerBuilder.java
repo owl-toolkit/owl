@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -595,7 +595,7 @@ public final class RabinizerBuilder {
     int relevantFormulaCount = monitors.length;
     EquivalenceClass masterInitialState = stateSubset.iterator().next();
     MonitorState[] monitorInitialStates = new MonitorState[relevantFormulaCount];
-    Arrays.setAll(monitorInitialStates, i -> monitors[i].initialState());
+    Arrays.setAll(monitorInitialStates, i -> monitors[i].onlyInitialState());
 
     RabinizerState initialState = RabinizerState.of(masterInitialState, monitorInitialStates);
 
@@ -604,10 +604,10 @@ public final class RabinizerBuilder {
 
     // BFS work list
     Set<RabinizerState> exploredStates = Sets.newHashSet(initialState);
-    Queue<RabinizerState> workQueue = new ArrayDeque<>(exploredStates);
+    Deque<RabinizerState> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
-      RabinizerState currentState = workQueue.poll();
+      RabinizerState currentState = workQueue.remove();
       logger.log(Level.FINEST, "Exploring {0}", currentState);
       assert currentState.monitorStates().size() == relevantFormulaCount;
       assert !transitionSystem.containsKey(currentState);

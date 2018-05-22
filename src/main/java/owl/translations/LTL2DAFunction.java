@@ -117,8 +117,8 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     assert ldba.isDeterministic();
 
     if (acceptingComponent.initialStates().isEmpty()) {
-      return AutomatonFactory.singleton(DegeneralizedBreakpointState.createSink(),
-        environment.factorySupplier().getValuationSetFactory(formula.variables()),
+      var vsFactory = environment.factorySupplier().getValuationSetFactory(formula.variables());
+      return AutomatonFactory.singleton(vsFactory, DegeneralizedBreakpointState.createSink(),
         BuchiAcceptance.INSTANCE);
     }
 
@@ -165,8 +165,8 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       });
     };
 
-    return AutomatonFactory.create(factory.getInitial(formula.formula()), factories.vsFactory,
-      single, bulk, BuchiAcceptance.INSTANCE);
+    return AutomatonFactory.create(factories.vsFactory, factory.getInitial(formula.formula()),
+      BuchiAcceptance.INSTANCE, single, bulk);
   }
 
   private Automaton<EquivalenceClass, AllAcceptance> safety(LabelledFormula formula) {
@@ -186,7 +186,7 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return Collections2.transform(successors, y -> LabelledEdge.of(y.getKey(), y.getValue()));
     };
 
-    return AutomatonFactory.create(factory.getInitial(formula.formula()), factories.vsFactory,
-      single, bulk, AllAcceptance.INSTANCE);
+    return AutomatonFactory.create(factories.vsFactory, factory.getInitial(formula.formula()),
+      AllAcceptance.INSTANCE, single, bulk);
   }
 }

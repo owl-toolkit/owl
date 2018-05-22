@@ -43,8 +43,11 @@ import owl.factories.ValuationSetFactory;
 import owl.util.TriConsumer;
 
 /**
- * Note: Every implementation should support concurrent read-access. Note: Default implementation
- * should only call methods from one layer below: Successors -&gt; Edges -&gt; LabelledEdges
+ * Note: Every implementation should support concurrent read-access. Further, every state-related
+ * operation (e.g., {@link #successors(Object)}) should be unique, while edge-related operations
+ * may yield duplicates. For example, {@link #forEachState(Consumer)} should pass a state to the
+ * action exactly once, while {@link #forEachEdge(BiConsumer)} may yield the same state-edge pair
+ * multiple times.
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
@@ -79,7 +82,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *     If there is no unique initial state.
    * @see #initialStates()
    */
-  default S initialState() {
+  default S onlyInitialState() {
     return Iterables.getOnlyElement(initialStates());
   }
 
@@ -224,6 +227,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return Collections3.transformUnique(edges(state), Edge::successor);
   }
 
+
   default Set<S> predecessors(S state) {
     Set<S> predecessors = new HashSet<>();
 
@@ -237,7 +241,7 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   }
 
 
-  // Transition properties
+  // Properties
 
   default boolean is(Property property) {
     switch (property) {

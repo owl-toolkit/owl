@@ -21,7 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import java.util.AbstractList;
+import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -66,19 +66,21 @@ public final class Collections3 {
     return true;
   }
 
-
-  public static <E> List<E> concat(List<E> list1, List<E> list2) {
-    if (list1.isEmpty()) {
-      return Collections.unmodifiableList(list2);
+  /**
+   * Creates an unmodifiable view of the concatenation of the two given collections.
+   */
+  public static <E> Collection<E> concat(Collection<E> col1, Collection<E> col2) {
+    if (col1.isEmpty()) {
+      return Collections.unmodifiableCollection(col2);
     }
-    if (list2.isEmpty()) {
-      return Collections.unmodifiableList(list1);
+    if (col2.isEmpty()) {
+      return Collections.unmodifiableCollection(col1);
     }
 
-    return new AbstractList<>() {
+    return new AbstractCollection<>() {
       @Override
       public boolean contains(Object o) {
-        return list1.contains(o) || list2.contains(o);
+        return col1.contains(o) || col2.contains(o);
       }
 
       @Override
@@ -87,22 +89,13 @@ public final class Collections3 {
       }
 
       @Override
-      public E get(int index) {
-        if (list1.size() > index) {
-          return list1.get(index);
-        }
-
-        return list2.get(index - list1.size());
-      }
-
-      @Override
       public Iterator<E> iterator() {
-        return Iterators.concat(list1.iterator(), list2.iterator());
+        return Iterators.concat(col1.iterator(), col2.iterator());
       }
 
       @Override
       public int size() {
-        return list1.size() + list2.size();
+        return col1.size() + col2.size();
       }
     };
   }

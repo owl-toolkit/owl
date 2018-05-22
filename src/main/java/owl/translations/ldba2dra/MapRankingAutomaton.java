@@ -42,8 +42,8 @@ public final class MapRankingAutomaton {
       new Builder<>(ldba, resetAfterSccSwitch, lattice, isAcceptingState, acceptanceClass);
 
     Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton =
-      AutomatonFactory.create(builder.initialState, ldba.acceptingComponent().factory(),
-        builder::getSuccessor, builder.acceptance);
+      AutomatonFactory.create(ldba.acceptingComponent().factory(), builder.initialState,
+        builder.acceptance, builder::getSuccessor);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
   }
@@ -79,8 +79,8 @@ public final class MapRankingAutomaton {
         throw new AssertionError();
       }
 
-      initialState = buildEdge(ldba.initialComponent().initialState(), Map.of(), null)
-        .successor();
+      S ldbaInitialState = ldba.initialComponent().onlyInitialState();
+      initialState = buildEdge(ldbaInitialState, Map.of(), null).successor();
     }
 
     Edge<MapRankingState<S, A, T>> buildEdge(S state, Map<A, T> previousRanking,

@@ -115,7 +115,7 @@ public final class SafraBuilder {
       return Edge.of(successorTree, edgeAcceptance);
     };
 
-    return AutomatonFactory.create(initialState, nba.factory(), successor, acceptance);
+    return AutomatonFactory.create(nba.factory(), initialState, acceptance, successor);
   }
 
   @Tuple

@@ -100,7 +100,7 @@ public class HashMapAutomatonTest {
     assertThat(AutomatonUtil.getReachableStates(automaton), empty());
 
     automaton.initialState("1");
-    assertThat(automaton.initialState(), is("1"));
+    assertThat(automaton.onlyInitialState(), is("1"));
     assertThat(automaton.initialStates(), containsInAnyOrder("1"));
     assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1"));
 
@@ -137,7 +137,7 @@ public class HashMapAutomatonTest {
     assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("1", "2"));
 
     automaton.initialStates(Set.of("2"));
-    assertThat(automaton.initialState(), is("2"));
+    assertThat(automaton.onlyInitialState(), is("2"));
     assertThat(automaton.initialStates(), containsInAnyOrder("2"));
     assertThat(AutomatonUtil.getReachableStates(automaton), containsInAnyOrder("2"));
 

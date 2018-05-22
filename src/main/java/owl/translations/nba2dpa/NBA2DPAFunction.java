@@ -19,7 +19,6 @@ package owl.translations.nba2dpa;
 
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
@@ -30,10 +29,8 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrintable;
-import owl.automaton.transformations.ParityUtil;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -41,7 +38,6 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ldba2dpa.FlatRankingAutomaton;
-import owl.translations.ldba2dpa.LanguageLattice;
 import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.GeneralizedBuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
@@ -84,15 +80,12 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
 
     NBA2LDBA<Object> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
 
-    LimitDeterministicAutomaton<Set<Object>, BreakpointState<Object>, BuchiAcceptance, Void>
-      ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
+    var ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
       .acceptingComponent(), BreakpointState.sink(), new BitSet());
 
-    LanguageLattice<BreakpointState<Object>, Void, Set<BreakpointState<Object>>> oracle =
-      new SetLanguageLattice<>(ldbaCutDet.acceptingComponent());
+    var oracle = new SetLanguageLattice<>(ldbaCutDet.acceptingComponent());
 
-    return ParityUtil.minimizePriorities(AutomatonUtil.asMutable(
-      FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true)));
+    return FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true);
   }
 }

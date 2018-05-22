@@ -32,7 +32,7 @@ public class AutomatonFactoryTest {
       .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, NoneAcceptance> singleton =
-      AutomatonFactory.singleton(singletonState, factory, NoneAcceptance.INSTANCE, Set.of());
+      AutomatonFactory.singleton(factory, singletonState, NoneAcceptance.INSTANCE, Set.of());
 
     assertThat(singleton.states(), contains(singletonState));
     assertThat(singleton.acceptance(), is(NoneAcceptance.INSTANCE));
@@ -47,7 +47,7 @@ public class AutomatonFactoryTest {
       .getValuationSetFactory(List.of("a"));
     Object singletonState = new Object();
     Automaton<Object, AllAcceptance> singleton =
-      AutomatonFactory.singleton(singletonState, factory, AllAcceptance.INSTANCE, Set.of());
+      AutomatonFactory.singleton(factory, singletonState, AllAcceptance.INSTANCE, Set.of());
 
     assertThat(singleton.states(), contains(singletonState));
     assertThat(singleton.acceptance(), is(AllAcceptance.INSTANCE));
@@ -68,8 +68,8 @@ public class AutomatonFactoryTest {
       EnumSet.of(LTL2DAFunction.Constructions.SAFETY))).apply(LtlParser.parse("G a | b R c")),
       EquivalenceClass.class, AllAcceptance.class);
 
-    var initialState = automaton.initialState();
-    var labelledEdges = automaton.labelledEdges(automaton.initialState());
+    var initialState = automaton.onlyInitialState();
+    var labelledEdges = automaton.labelledEdges(automaton.onlyInitialState());
 
     automaton.factory().forEach(valuation -> {
       var edge = automaton.edge(initialState, valuation);

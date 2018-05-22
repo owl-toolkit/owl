@@ -59,7 +59,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     }
 
     // TODO parallel
-    logger.log(Level.FINER, "De-generalising automaton with {0} states", automaton.size());
+    if (logger.isLoggable(Level.FINER)) {
+      logger.log(Level.FINER, "De-generalising automaton with " + automaton.size() + " states");
+    }
 
     // Generalized Rabin pair condition is Fin & /\ Inf(i), if the big AND is empty, it's true.
     // This means the condition translates to "don't visit the Fin set". Hence, as long as a
@@ -90,7 +92,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     }
 
     // Arbitrary correspondence map for each original state
-    Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>(automaton.size());
+    Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>();
     // Table containing all transient edges
     Table<DegeneralizedRabinState<S>, S, ValuationSet> transientEdgesTable =
       HashBasedTable.create();

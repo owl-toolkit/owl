@@ -49,7 +49,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
   public static <S, A extends OmegaAcceptance, S2 extends AnnotatedState<S>>
   Automaton<S2, A> optimizeInitialState(Automaton<S2, A> readOnly) {
-    S originalInitialState = readOnly.initialState().state();
+    S originalInitialState = readOnly.onlyInitialState().state();
 
     if (originalInitialState == null) {
       return readOnly;
@@ -57,7 +57,7 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
     MutableAutomaton<S2, A> automaton = AutomatonUtil.asMutable(readOnly);
 
-    S2 potentialInitialState = automaton.initialState();
+    S2 potentialInitialState = automaton.onlyInitialState();
     int size = automaton.size();
 
     for (Set<S2> scc : SccDecomposition.computeSccs(automaton, false)) {

@@ -38,7 +38,7 @@ public final class ParityGameSolver {
     Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
 
-      return winning.player2.contains(x.initialState())
+      return winning.player2.contains(x.onlyInitialState())
         ? "The specification is REALISABLE"
         : "The specification is UNREALISABLE";
     });
@@ -113,7 +113,7 @@ public final class ParityGameSolver {
   }
 
   public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
-    return recursiveZielonka(game).player2.contains(game.initialState());
+    return recursiveZielonka(game).player2.contains(game.onlyInitialState());
   }
 
   private static final class WinningRegions<S> {

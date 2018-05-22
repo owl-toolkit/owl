@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -62,7 +63,7 @@ public final class GameUtil {
 
     int highestPriority = acceptance.acceptanceSets() - 1;
 
-    S initialState = game.initialState();
+    S initialState = game.onlyInitialState();
     stateNumbering.put(PriorityState.of(initialState, highestPriority), 0);
 
     Set<S> reachedStates = new HashSet<>(List.of(initialState));
@@ -76,7 +77,7 @@ public final class GameUtil {
     // Explore the reachable states of the state-acceptance game
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Set<Edge<S>> edges = game.edges(state);
+      Collection<Edge<S>> edges = game.edges(state);
       checkArgument(!edges.isEmpty(), "Provided game is not complete");
       for (Edge<S> edge : edges) {
         assert acceptance.isWellFormedEdge(edge);

@@ -35,8 +35,8 @@ public final class FlatRankingAutomaton {
 
     // TODO: add getSensitiveAlphabet Method
     Automaton<FlatRankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory.create(
-      builder.initialState, builder.ldba.acceptingComponent().factory(),
-      builder::getSuccessor, builder.acceptance);
+      builder.ldba.acceptingComponent().factory(), builder.initialState, builder.acceptance,
+      builder::getSuccessor);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
   }
@@ -56,8 +56,8 @@ public final class FlatRankingAutomaton {
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);
       this.resetRanking = resetRanking;
-      initialState = buildEdge(ldba.initialComponent().initialState(), List.of(), -1, null)
-        .successor();
+      S ldbaInitialState = ldba.initialComponent().onlyInitialState();
+      initialState = buildEdge(ldbaInitialState, List.of(), -1, null).successor();
     }
 
     Edge<FlatRankingState<S, T>> buildEdge(S state, List<T> previousRanking,
