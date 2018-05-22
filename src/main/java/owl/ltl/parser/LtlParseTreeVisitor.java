@@ -10,6 +10,7 @@ import owl.grammar.LTLParser.BinaryOpContext;
 import owl.grammar.LTLParser.BinaryOperationContext;
 import owl.grammar.LTLParser.BoolContext;
 import owl.grammar.LTLParser.BooleanContext;
+import owl.grammar.LTLParser.DoubleQuotedVariableContext;
 import owl.grammar.LTLParser.ExpressionContext;
 import owl.grammar.LTLParser.FormulaContext;
 import owl.grammar.LTLParser.FractionContext;
@@ -17,6 +18,7 @@ import owl.grammar.LTLParser.FrequencyOpContext;
 import owl.grammar.LTLParser.NestedContext;
 import owl.grammar.LTLParser.OrExpressionContext;
 import owl.grammar.LTLParser.ProbabilityContext;
+import owl.grammar.LTLParser.SingleQuotedVariableContext;
 import owl.grammar.LTLParser.UnaryOpContext;
 import owl.grammar.LTLParser.UnaryOperationContext;
 import owl.grammar.LTLParser.VariableContext;
@@ -267,8 +269,23 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitVariable(VariableContext ctx) {
     assert ctx.getChildCount() == 1;
+    return createVariable(ctx.getText());
+  }
+
+  @Override
+  public Formula visitSingleQuotedVariable(SingleQuotedVariableContext ctx) {
+    assert ctx.getChildCount() == 3;
+    return createVariable(ctx.variable.getText());
+  }
+
+  @Override
+  public Formula visitDoubleQuotedVariable(DoubleQuotedVariableContext ctx) {
+    assert ctx.getChildCount() == 3;
+    return createVariable(ctx.variable.getText());
+  }
+
+  private Formula createVariable(String name) {
     assert variables.size() == literalCache.size();
-    String name = ctx.getText();
     int index = variables.indexOf(name);
 
     if (index == -1) {

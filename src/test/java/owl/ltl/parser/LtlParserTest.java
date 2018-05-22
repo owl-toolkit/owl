@@ -15,11 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl;
+package owl.ltl.parser;
 
-import org.junit.Assert;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Test;
-import owl.ltl.parser.LtlParser;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.FrequencyG;
+import owl.ltl.GOperator;
+import owl.ltl.LabelledFormula;
+import owl.ltl.Literal;
+import owl.ltl.MOperator;
+import owl.ltl.ROperator;
+import owl.ltl.UOperator;
+import owl.ltl.WOperator;
+import owl.ltl.XOperator;
 
 public class LtlParserTest {
   private static final String[] INPUT = {
@@ -33,7 +49,7 @@ public class LtlParserTest {
     "G { >= 0.5} F a",
     "a R b",
     "!(a R b)",
-    "a W b U c R a"
+    "a W b U c R a",
   };
 
   private static final Formula[] OUTPUT = {
@@ -56,7 +72,21 @@ public class LtlParserTest {
   @Test
   public void testSyntax() {
     for (int i = 0; i < INPUT.length; i++) {
-      Assert.assertEquals(INPUT[i], OUTPUT[i], LtlParser.syntax(INPUT[i]));
+      assertEquals(INPUT[i], OUTPUT[i], LtlParser.syntax(INPUT[i]));
     }
+  }
+
+  @Test
+  public void testSingleQuotedLiteralParsing() {
+    LabelledFormula formula = LtlParser.parse("'a b c'");
+    assertThat(formula.variables(), contains("a b c"));
+    assertThat(formula.formula(), is(new Literal(0)));
+  }
+
+  @Test
+  public void testDoubleQuotedLiteralParsing() {
+    LabelledFormula formula = LtlParser.parse("\"a b c\"");
+    assertThat(formula.variables(), contains("a b c"));
+    assertThat(formula.formula(), is(new Literal(0)));
   }
 }

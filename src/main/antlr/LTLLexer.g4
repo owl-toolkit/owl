@@ -34,17 +34,29 @@ SRELEASE   : 'M';
 // MISC
 LPAREN     : '(';
 RPAREN     : ')';
+LDQUOTE     : '"' -> mode(DOUBLE_QUOTED);
+LSQUOTE     : '\'' -> mode(SINGLE_QUOTED);
 
 LCPAREN    : '{' -> mode(FREQUENCY_SPEC);
 
 // Need to be at the bottom because of precedence rules
 // Include capital L for PRISM
-VARIABLE   : [a-zL_][a-zA-Z_0-9]* ;
+VARIABLE   : [a-zL_][a-zA-Z_0-9]*;
 
 fragment
 WHITESPACE : [ \t\n\r\f]+;
 
 SKIP_DEF   : WHITESPACE -> skip;
+
+
+mode DOUBLE_QUOTED;
+RDQUOTE : '"' -> mode(DEFAULT_MODE);
+DOUBLE_QUOTED_VARIABLE : ~["]+;
+
+mode SINGLE_QUOTED;
+RSQUOTE : '\'' -> mode(DEFAULT_MODE);
+SINGLE_QUOTED_VARIABLE : ~[']+;
+
 
 mode FREQUENCY_SPEC;
 

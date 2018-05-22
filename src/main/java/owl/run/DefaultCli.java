@@ -95,13 +95,13 @@ public final class DefaultCli {
     };
   }
 
+  @SuppressWarnings("resource")
   private static Callable<ReadableByteChannel> createReader(List<String> inputs) {
-    return () -> {
-      StringJoiner joiner = new StringJoiner(System.lineSeparator());
-      inputs.forEach(joiner::add);
-      byte[] bytes = joiner.toString().getBytes(StandardCharsets.UTF_8);
-      return Channels.newChannel(new ByteArrayInputStream(bytes));
-    };
+    // Build the byte array now, since the inputs list may get cleared after this call.
+    StringJoiner joiner = new StringJoiner(System.lineSeparator());
+    inputs.forEach(joiner::add);
+    byte[] bytes = joiner.toString().getBytes(StandardCharsets.UTF_8);
+    return () -> Channels.newChannel(new ByteArrayInputStream(bytes));
   }
 
   @SuppressWarnings("resource")
