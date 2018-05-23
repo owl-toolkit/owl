@@ -13,7 +13,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -384,11 +383,15 @@ public final class AutomatonReader {
         states.put(stateId, state);
       }
 
+      for (List<Integer> startState : storedHeader.getStartStates()) {
+        check(startState.size() == 1, "Universal initial states not supported");
+        automaton.addInitialState(states.get(Iterables.getOnlyElement(startState).intValue()));
+      }
+
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
         int stateId = storedState.getStateId();
         HoaState state = states.get(stateId);
-
-        assert state != null;
+        automaton.addState(state);
         assert storedState.getAccSignature() == null || storedState.getAccSignature().isEmpty();
 
         if (storedAutomaton.hasEdgesImplicit(stateId)) {
@@ -424,13 +427,7 @@ public final class AutomatonReader {
         }
       }
 
-      List<List<Integer>> startStates = storedHeader.getStartStates();
-      Collection<HoaState> initialStates = new ArrayList<>(startStates.size());
-      for (List<Integer> startState : startStates) {
-        check(startState.size() == 1, "Universal initial states not supported");
-        initialStates.add(states.get(Iterables.getOnlyElement(startState).intValue()));
-      }
-      automaton.initialStates(initialStates);
+      automaton.trim();
       return automaton;
     }
   }

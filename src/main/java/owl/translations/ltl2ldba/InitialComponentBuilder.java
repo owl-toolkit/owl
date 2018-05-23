@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -85,16 +85,17 @@ class InitialComponentBuilder<K extends RecurringObligation>
     MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
       MutableAutomatonFactory.create(NoneAcceptance.INSTANCE, factories.vsFactory);
 
+    constructionQueue.forEach(automaton::addInitialState);
+
     if (constructDeterministic) {
-      AutomatonUtil.exploreWithLabelledEdge(automaton, constructionQueue,
+      MutableAutomatonUtil.exploreWithLabelledEdge(automaton, constructionQueue,
         this::getDeterministicSuccessor);
       assert automaton.is(Automaton.Property.DETERMINISTIC);
     } else {
-      AutomatonUtil.explore(automaton, constructionQueue, this::getNondeterministicSuccessors,
-        factory::getSensitiveAlphabet);
+      MutableAutomatonUtil.explore(automaton, constructionQueue,
+        this::getNondeterministicSuccessors, factory::getSensitiveAlphabet);
     }
 
-    automaton.initialStates(constructionQueue);
     return automaton;
   }
 
@@ -131,14 +132,14 @@ class InitialComponentBuilder<K extends RecurringObligation>
     return jumps.get(state);
   }
 
-  private Iterable<Edge<EquivalenceClass>> getNondeterministicSuccessors(EquivalenceClass state,
+  private List<Edge<EquivalenceClass>> getNondeterministicSuccessors(EquivalenceClass state,
     BitSet valuation) {
     EquivalenceClass successorClass = factory.getNondeterministicSuccessor(state, valuation);
 
     generateJumps(state);
 
     if (successorClass.isTrue()) {
-      return Set.of(Edge.of(successorClass, 0));
+      return List.of(Edge.of(successorClass, 0));
     }
 
     // Suppress edge, if successor is a non-accepting state or this state is impatient (e.g. G a)

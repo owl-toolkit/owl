@@ -7,8 +7,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
@@ -47,36 +48,28 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
     this.isAcceptingState = isAcceptingState;
   }
 
-  public static <S, A extends OmegaAcceptance, S2 extends AnnotatedState<S>>
-  Automaton<S2, A> optimizeInitialState(Automaton<S2, A> readOnly) {
-    S originalInitialState = readOnly.onlyInitialState().state();
-
-    if (originalInitialState == null) {
-      return readOnly;
-    }
-
-    MutableAutomaton<S2, A> automaton = AutomatonUtil.asMutable(readOnly);
-
-    S2 potentialInitialState = automaton.onlyInitialState();
+  public static <S extends AnnotatedState<?>, A extends OmegaAcceptance> Automaton<S, A>
+    optimizeInitialState(Automaton<S, A> readOnly) {
+    var originalInitialState = readOnly.onlyInitialState().state();
+    MutableAutomaton<S, A> automaton = MutableAutomatonUtil.asMutable(readOnly);
     int size = automaton.size();
 
-    for (Set<S2> scc : SccDecomposition.computeSccs(automaton, false)) {
-      for (S2 state : scc) {
-        if (!originalInitialState.equals(state.state())) {
+    for (Set<S> scc : SccDecomposition.computeSccs(automaton, false)) {
+      for (S state : scc) {
+        if (!originalInitialState.equals(state.state()) || !automaton.states().contains(state)) {
           continue;
         }
 
-        int newSize = AutomatonUtil.getReachableStates(automaton, Set.of(state)).size();
+        int newSize = Views.replaceInitialState(automaton, Set.of(state)).size();
 
         if (newSize < size) {
           size = newSize;
-          potentialInitialState = state;
+          automaton.initialStates(Set.of(state));
+          automaton.trim();
         }
       }
     }
 
-    automaton.initialState(potentialInitialState);
-    automaton.removeUnreachableStates();
     return automaton;
   }
 

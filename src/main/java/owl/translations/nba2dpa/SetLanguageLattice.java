@@ -27,7 +27,7 @@ class SetLanguageLattice<S> implements LanguageLattice<S, Void, Set<S>> {
 
   SetLanguageLattice(Automaton<S, BuchiAcceptance> automaton) {
     assert automaton.is(Property.COMPLETE) : "Only complete automata supported.";
-    assert automaton.is(Property.DETERMINISTIC) : "Only deterministic automata supported.";
+    assert automaton.is(Property.SEMI_DETERMINISTIC) : "Only deterministic automata supported.";
 
     bottom = new SetLanguage(Set.of());
     top = new SetLanguage(Set.copyOf(automaton.states()));

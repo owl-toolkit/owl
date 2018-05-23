@@ -2,7 +2,6 @@ package owl.translations.fgx2dpa;
 
 import java.util.List;
 import java.util.Set;
-
 import org.immutables.value.Value;
 import owl.ltl.BooleanConstant;
 import owl.ltl.FOperator;

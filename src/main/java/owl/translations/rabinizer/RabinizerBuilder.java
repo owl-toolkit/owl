@@ -197,6 +197,7 @@ public final class RabinizerBuilder {
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
       new RabinizerBuilder(configuration, factories, phiNormalized).build();
     rabinizerAutomaton.name("Rabinizer automaton for " + formulaString);
+    rabinizerAutomaton.trim();
     return rabinizerAutomaton;
   }
 
@@ -242,6 +243,7 @@ public final class RabinizerBuilder {
       MutableAutomatonFactory.create(AllAcceptance.INSTANCE, vsFactory,
         Set.of(initialClass), masterStateFactory::getSuccessor,
         masterStateFactory::getClassSensitiveAlphabet);
+
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "Master automaton for {0}:\n{1}",
         new Object[] {this.initialClass, toHoa(masterAutomaton)});
@@ -337,6 +339,8 @@ public final class RabinizerBuilder {
     // Process each subset separately
     // TODO Parallel
     List<Set<EquivalenceClass>> partition = masterSccPartition.sccs;
+    Multimap<EquivalenceClass, RabinizerState> statesPerClass = HashMultimap.create();
+
     for (int sccIndex = 0; sccIndex < partition.size(); sccIndex++) {
       // Preliminary work: Only some sub-formulas are relevant a particular SCC (consider again
       // the previous example of "a & X G b | !a & X G c"). While in the SCC, all indexing is done
@@ -349,6 +353,7 @@ public final class RabinizerBuilder {
 
       boolean[] relevantFormulas;
       MonitorAutomaton[] sccMonitors;
+
       if (suspendable) {
         sccMonitors = EMPTY_MONITORS;
         relevantFormulas = BooleanArrays.EMPTY_ARRAY;
@@ -378,8 +383,11 @@ public final class RabinizerBuilder {
       // TODO Some state space analysis / optimization is possible here?
 
       if (!computeAcceptance || sccRelevantOperators.isEmpty()) {
-        transitionSystem.forEach((state, successors) ->
-          createEdges(state, successors, rabinizerAutomaton));
+        transitionSystem.forEach((state, successors) -> {
+          statesPerClass.put(state.masterState(), state);
+          createEdges(state, successors, rabinizerAutomaton);
+        });
+
         continue;
       }
 
@@ -458,6 +466,9 @@ public final class RabinizerBuilder {
           }
         }
 
+        // Which rabinizer states belong to which master state
+        statesPerClass.put(state.masterState(), state);
+
         // Create the edges in the result automaton. The successors now contain for each edge in the
         // product system the partition of the sensitive alphabet according to the acceptance -
         // exactly what we need to create edges.
@@ -471,9 +482,6 @@ public final class RabinizerBuilder {
      */
 
     logger.log(Level.FINE, "Connecting the SCCs");
-    // Which rabinizer states belong to which master state
-    Multimap<EquivalenceClass, RabinizerState> statesPerClass = HashMultimap.create();
-    rabinizerAutomaton.forEachState(state -> statesPerClass.put(state.masterState(), state));
     masterSccPartition.transientStates.forEach(state ->
       statesPerClass.put(state, RabinizerState.empty(state)));
 
@@ -489,18 +497,22 @@ public final class RabinizerBuilder {
     masterSccPartition.outgoingTransitions.rowMap().forEach(
       (masterState, masterSuccessors) -> {
         assert !masterSuccessors.isEmpty();
-
         Collection<RabinizerState> rabinizerStates = statesPerClass.get(masterState);
+
         masterSuccessors.forEach((masterSuccessor, valuations) -> {
           assert configuration.completeAutomaton() || !masterSuccessor.isFalse();
+          Edge<RabinizerState> edge = Edge.of(getAnyState.apply(masterSuccessor));
 
-          RabinizerState rabinizerSuccessor = getAnyState.apply(masterSuccessor);
-          Edge<RabinizerState> edge = Edge.of(rabinizerSuccessor);
-          rabinizerStates.forEach(state -> rabinizerAutomaton.addEdge(state, valuations, edge));
+          for (RabinizerState state : rabinizerStates) {
+            rabinizerAutomaton.addState(state);
+            rabinizerAutomaton.addEdge(state, valuations, edge);
+          }
         });
       });
+
     // Properly choose the initial state
-    rabinizerAutomaton.initialState(getAnyState.apply(initialClass));
+    rabinizerAutomaton.initialStates(Set.of(getAnyState.apply(initialClass)));
+    rabinizerAutomaton.trim();
 
     // Handle the |G| = {} case
     // TODO: Piggyback on an existing RabinPair.
@@ -510,15 +522,13 @@ public final class RabinizerBuilder {
         trueState);
 
       RabinPair truePair = builder.add(1);
-      rabinizerAutomaton.removeEdges(trueState, trueState);
+      rabinizerAutomaton.removeEdge(trueState, rabinizerAutomaton.factory().universe(), trueState);
       rabinizerAutomaton.addEdge(trueState, vsFactory.universe(),
         Edge.of(trueState, truePair.infSet()));
       rabinizerAutomaton.acceptance(builder.build());
+      rabinizerAutomaton.trim();
     }
 
-    // If the initial states of the monitors are not optimized, there might be unreachable states
-    Set<RabinizerState> unreachableStates = rabinizerAutomaton.removeUnreachableStates();
-    logger.log(Level.FINER, "Removed unreachable states: {0}", unreachableStates);
     logger.log(Level.FINER, () -> String.format("Result:%n%s", toHoa(rabinizerAutomaton)));
     if (activeSets != null) {
       logger.log(Level.FINER, () -> printOperatorSets(activeSets));
@@ -553,11 +563,7 @@ public final class RabinizerBuilder {
 
   private void createEdges(RabinizerState state, Map<RabinizerProductEdge, ValuationSet>
     successors, MutableAutomaton<RabinizerState, ?> rabinizerAutomaton) {
-    if (successors.isEmpty()) {
-      // Needed for corner cases (states without outgoing transitions)
-      rabinizerAutomaton.addState(state);
-      return;
-    }
+    rabinizerAutomaton.addState(state);
 
     BitSet sensitiveAlphabet = productStateFactory.getSensitiveAlphabet(state);
     successors.forEach((cache, valuations) -> {
@@ -745,6 +751,7 @@ public final class RabinizerBuilder {
         });
       }
     }
+
     return transitionSystem;
   }
 

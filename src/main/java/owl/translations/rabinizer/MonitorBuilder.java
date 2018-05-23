@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -108,8 +107,7 @@ final class MonitorBuilder {
       MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
         .create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
       monitor.name(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
-      monitor.addState(initialState);
-      monitor.initialState(initialState);
+      monitor.addInitialState(initialState);
       monitorAutomata[i] = monitor;
     }
 
@@ -450,28 +448,33 @@ final class MonitorBuilder {
     // TODO We actually can use this to only compute the successors until we reach a BSCC
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
     List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
-    MonitorState initialState = anyMonitor.onlyInitialState();
 
-    BitSet emptyBitSet = new BitSet(0);
-    MonitorState optimizedInitialState = initialState;
+    BitSet valuation = new BitSet(0);
     Predicate<MonitorState> isTransient = state ->
       sccs.parallelStream().noneMatch(scc -> scc.contains(state));
-    while (isTransient.test(optimizedInitialState)) {
-      assert optimizedInitialState != null;
-      optimizedInitialState = anyMonitor.successor(optimizedInitialState, emptyBitSet);
-    }
 
-    assert optimizedInitialState != null;
-    if (Objects.equals(optimizedInitialState, initialState)) {
+    MonitorState optimizedInitialState;
+    MonitorState nextOptimizedInitialState = anyMonitor.onlyInitialState();
+
+    // Search for another initial state.
+    do {
+      optimizedInitialState = nextOptimizedInitialState;
+
+      if (isTransient.test(optimizedInitialState)) {
+        nextOptimizedInitialState = anyMonitor.successor(optimizedInitialState, valuation);
+      } else {
+        nextOptimizedInitialState = null;
+      }
+    } while (nextOptimizedInitialState != null);
+
+    if (optimizedInitialState.equals(anyMonitor.onlyInitialState())) {
       logger.log(Level.FINER, "No better initial state found");
     } else {
       logger.log(Level.FINER, "Updating initial state from {0} to {1}",
-        new Object[] {initialState, optimizedInitialState});
-      anyMonitor.initialState(optimizedInitialState);
-      Set<MonitorState> unreachableStates = anyMonitor.removeUnreachableStates();
+        new Object[] {anyMonitor.onlyInitialState(), optimizedInitialState});
       for (MutableAutomaton<MonitorState, ParityAcceptance> monitor : monitorAutomata) {
-        monitor.initialState(optimizedInitialState);
-        monitor.removeStates(unreachableStates);
+        monitor.initialStates(Set.of(optimizedInitialState));
+        monitor.trim();
       }
     }
   }

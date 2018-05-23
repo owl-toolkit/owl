@@ -18,6 +18,7 @@
 package owl.automaton.ldba;
 
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import java.io.IOException;
 import java.util.Collections;
@@ -36,24 +37,35 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
   implements LimitDeterministicAutomaton<S, T, U, V> {
 
   private final MutableAutomaton<T, U> acceptingComponent;
+  private final Set<T> acceptingComponentInitialStates;
   private final Function<T, V> componentAnnotation;
   private final Set<V> components;
   private final SetMultimap<S, T> epsilonJumps;
   private final MutableAutomaton<S, NoneAcceptance> initialComponent;
   private final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
-  public LimitDeterministicAutomatonImpl(MutableAutomaton<S, NoneAcceptance> initialComponent,
+  LimitDeterministicAutomatonImpl(MutableAutomaton<S, NoneAcceptance> initialComponent,
     MutableAutomaton<T, U> acceptingComponent,
     SetMultimap<S, T> epsilonJumps,
     Table<S, ValuationSet, Set<T>> valuationSetJumps,
     Set<V> component,
-    Function<T, V> componentAnnotation) {
-    this.initialComponent = initialComponent;
+    Function<T, V> componentAnnotation,
+    Set<T> acceptingComponentInitialStates) {
     this.acceptingComponent = acceptingComponent;
-    this.epsilonJumps = epsilonJumps;
-    this.valuationSetJumps = valuationSetJumps;
-    components = component;
+    this.acceptingComponentInitialStates = Set.copyOf(acceptingComponentInitialStates);
     this.componentAnnotation = componentAnnotation;
+    this.components = component;
+    this.epsilonJumps = epsilonJumps;
+    this.initialComponent = initialComponent;
+    this.valuationSetJumps = valuationSetJumps;
+
+    assert this.acceptingComponent.states().containsAll(this.acceptingComponentInitialStates);
+    assert this.acceptingComponent.is(Automaton.Property.SEMI_DETERMINISTIC);
+  }
+
+  @Override
+  public Set<Object> initialStates() {
+    return Sets.union(initialComponent.initialStates(), acceptingComponentInitialStates);
   }
 
   @Override

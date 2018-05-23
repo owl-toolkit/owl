@@ -29,8 +29,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import org.immutables.value.Value;
 import owl.automaton.Automaton.Property;
+import owl.automaton.LabelledEdgesAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
@@ -44,7 +44,8 @@ public final class GameFactory {
     return new ImmutableGame<>(game);
   }
 
-  static final class ImmutableGame<S, A extends OmegaAcceptance> implements Game<S, A> {
+  static final class ImmutableGame<S, A extends OmegaAcceptance> implements Game<S, A>,
+    LabelledEdgesAutomatonMixin<S, A> {
     private final A acceptance;
     private final ValuationSetFactory factory;
     private final ImmutableValueGraph<S, ValueEdge> graph;
@@ -59,14 +60,15 @@ public final class GameFactory {
       MutableValueGraph<S, ValueEdge> graph =
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
 
-      game.forEachLabelledEdge((state, edge, valuations) -> {
-        graph.putEdgeValue(state, edge.successor(),
-          ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations));
-
+      for (S state : game.states()) {
         if (Owner.PLAYER_1 == game.getOwner(state)) {
           player1NodesBuilder.add(state);
         }
-      });
+
+        game.forEachLabelledEdge(state, (edge, valuations) ->
+          graph.putEdgeValue(state, edge.successor(),
+            ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations)));
+      }
 
       this.acceptance = game.acceptance();
       this.factory = game.factory();
@@ -107,7 +109,7 @@ public final class GameFactory {
         if (valueEdge.colour() == -1) {
           return LabelledEdge.of(x.target(), valueEdge.valuationSet());
         } else {
-          return LabelledEdge.of(Edge.of(x.target(), valueEdge.colour()), valueEdge.valuationSet());
+          return LabelledEdge.of(x.target(), valueEdge.colour(), valueEdge.valuationSet());
         }
       }).collect(Collectors.toSet());
     }

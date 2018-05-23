@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import owl.automaton.Automaton;
+import owl.automaton.SuccessorFunction;
 
 /**
  * Finds the SCCs of a given graph / transition system using Tarjan's algorithm.
@@ -47,10 +47,10 @@ public final class SccDecomposition<S> {
   private final Set<S> processedNodes = new HashSet<>();
   private final List<Set<S>> sccs = new ArrayList<>();
   private final Map<S, TarjanState<S>> stateMap = new HashMap<>();
-  private final Function<S, Iterable<S>> successorFunction;
+  private final SuccessorFunction<S> successorFunction;
   private int index = 0;
 
-  private SccDecomposition(Function<S, Iterable<S>> successorFunction, boolean includeTransient) {
+  private SccDecomposition(SuccessorFunction<S> successorFunction, boolean includeTransient) {
     this.successorFunction = successorFunction;
     this.includeTransient = includeTransient;
   }
@@ -72,62 +72,53 @@ public final class SccDecomposition<S> {
     return computeSccs(automaton, true);
   }
 
-  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState) {
-    return computeSccs(Set.of(initialState), automaton::successors, true);
-  }
-
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, boolean includeTransient) {
-    return computeSccs(automaton.initialStates(), automaton::successors, includeTransient);
-  }
-
-  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> initialStates) {
-    return computeSccs(automaton, initialStates, true);
-  }
-
-  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, S initialState,
-    boolean includeTransient) {
-    return computeSccs(Set.of(initialState), automaton::successors,
+    return computeSccs((SuccessorFunction<S>) automaton::successors, automaton.initialStates(),
       includeTransient);
   }
 
-  public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, Set<S> initialStates,
-    boolean includeTransient) {
-    return computeSccs(initialStates, automaton::successors, includeTransient);
+  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, S initialState) {
+    return computeSccs(function, Set.of(initialState), true);
   }
 
-  // Return Condensation Graph?
-  private static <S> List<Set<S>> computeSccs(Set<S> states,
-    Function<S, Iterable<S>> successorFunction,
-    boolean includeTransient) {
+  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, Set<S> initialStates) {
+    return computeSccs(function, initialStates, true);
+  }
 
+  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, S initialState,
+    boolean includeTransient) {
+    return computeSccs(function, Set.of(initialState), includeTransient);
+  }
+
+  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, Set<S> initialStates,
+    boolean includeTransient) {
     // No need to initialize all the data-structures
-    if (states.isEmpty()) {
+    if (initialStates.isEmpty()) {
       return List.of();
     }
 
-    SccDecomposition<S> decomposition = new SccDecomposition<>(successorFunction, includeTransient);
+    SccDecomposition<S> decomposition = new SccDecomposition<>(function, includeTransient);
 
-    for (S state : states) {
-      if (!decomposition.stateMap.containsKey(state)
-        && !decomposition.processedNodes.contains(state)) {
-        decomposition.run(state);
+    for (S initialState : initialStates) {
+      if (!decomposition.stateMap.containsKey(initialState)
+        && !decomposition.processedNodes.contains(initialState)) {
+        decomposition.run(initialState);
       }
     }
 
-    assert includeTransient || decomposition.sccs.stream()
-      .noneMatch(scc -> isTransient(successorFunction, scc));
+    assert includeTransient
+      || decomposition.sccs.stream().noneMatch(scc -> isTransient(function, scc));
 
     return decomposition.sccs;
   }
 
-  public static <S> boolean isTransient(Function<S, ? extends Iterable<S>> successorFunction,
-    Set<S> scc) {
+  public static <S> boolean isTransient(SuccessorFunction<S> successorFunction, Set<S> scc) {
     if (scc.size() > 1) {
       return false;
     }
 
     S state = Iterables.getOnlyElement(scc);
-    return !Iterables.contains(successorFunction.apply(state), state);
+    return !successorFunction.apply(state).contains(state);
   }
 
   /**
@@ -135,7 +126,6 @@ public final class SccDecomposition<S> {
    * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
    */
   public static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
-    assert automaton.states().containsAll(trap);
     return trap.stream().allMatch(s -> trap.containsAll(automaton.successors(s)));
   }
 
@@ -254,7 +244,7 @@ public final class SccDecomposition<S> {
         // If this state is not a root, update the predecessor (which has to exist)
         assert !path.isEmpty() && lowLink < nodeIndex;
 
-        TarjanState<S> predecessorState = path.peek();
+        TarjanState<S> predecessorState = path.getFirst();
         // Since the current state has a "true" low-link, it is a possible low-link for the
         // predecessor, too. By invariant, it points to a non-finished state, i.e. a state in some
         // not yet found SCC.

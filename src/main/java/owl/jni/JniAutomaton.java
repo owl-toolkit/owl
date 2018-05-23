@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.BulkOperationAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -152,7 +151,7 @@ public final class JniAutomaton<S> {
     int[] edges = edgeBuffer();
 
     @Nullable
-    var labelledEdges = automaton instanceof BulkOperationAutomaton
+    var labelledEdges = automaton.prefersLabelled()
       ? List.copyOf(automaton.labelledEdges(state))
       : null;
 
@@ -189,7 +188,7 @@ public final class JniAutomaton<S> {
     int[] successors = successorBuffer();
 
     @Nullable
-    var labelledEdges = automaton instanceof BulkOperationAutomaton
+    var labelledEdges = automaton.prefersLabelled()
       ? List.copyOf(automaton.labelledEdges(state))
       : null;
 

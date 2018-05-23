@@ -17,7 +17,6 @@
 
 package owl.automaton.ldba;
 
-import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
@@ -35,9 +34,6 @@ import owl.collections.ValuationSet;
 
 public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
   extends HoaPrintable {
-  default CutDeterministicAutomaton<S, T, U, V> asCutDeterministicAutomaton() {
-    return new CutDeterministicAutomaton<>(this);
-  }
 
   Automaton<T, U> acceptingComponent();
 
@@ -49,6 +45,8 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
   Set<T> epsilonJumps(S state);
 
   Automaton<S, NoneAcceptance> initialComponent();
+
+  Set<?> initialStates();
 
   Map<ValuationSet, Set<T>> valuationSetJumps(S state);
 
@@ -66,11 +64,10 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
     HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
       acceptingComponent().variables(),
       acceptingComponent().acceptance(),
-      Sets.union(initialComponent().initialStates(),
-        acceptingComponent().initialStates()),
+      initialStates(),
       options, false, name());
 
-    initialComponent().forEachState(state -> {
+    initialComponent().states().forEach(state -> {
       consumerExt.addState(state);
       initialComponent().forEachLabelledEdge(state, consumerExt::addEdge);
       epsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
@@ -78,7 +75,7 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
       consumerExt.notifyEndOfState();
     });
 
-    acceptingComponent().forEachState(state -> {
+    acceptingComponent().states().forEach(state -> {
       consumerExt.addState(state);
       acceptingComponent().forEachLabelledEdge(state, consumerExt::addEdge);
       consumerExt.notifyEndOfState();

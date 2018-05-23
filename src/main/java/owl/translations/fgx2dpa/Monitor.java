@@ -1,13 +1,10 @@
 package owl.translations.fgx2dpa;
 
 import com.google.common.collect.Sets;
-
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.immutables.value.Value;
-
 import owl.ltl.Formula;
 import owl.ltl.UnaryModalOperator;
 import owl.util.annotation.HashedTuple;

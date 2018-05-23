@@ -17,82 +17,36 @@
 
 package owl.automaton;
 
-import com.google.common.collect.Iterables;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
-import owl.automaton.edge.LabelledEdge;
-import owl.automaton.edge.LabelledEdges;
-import owl.collections.ValuationSet;
-import owl.collections.ValuationSetUtil;
-
 final class Properties {
   private Properties() {}
-
-  /**
-   * Returns true if this successor set is complete, i.e. there is at least one transition in this
-   * set for each valuation.
-   *
-   * @return Whether this successor set is complete.
-   */
-  private static <S> boolean isComplete(Collection<LabelledEdge<S>> labelledEdges) {
-    return !labelledEdges.isEmpty()
-      && ValuationSetUtil.union(LabelledEdges.valuations(labelledEdges))
-      .orElseThrow(AssertionError::new).isUniverse();
-  }
 
   /**
    * Determines whether the automaton is complete, i.e. every state has at least one successor for
    * each valuation.
    *
+   * @param automaton the automaton
+   *
    * @return Whether the automaton is complete.
    *
-   * @see Properties#isComplete(Collection)
    */
-  public static <S> boolean isComplete(Automaton<S, ?> automaton) {
-    Set<S> states = automaton.states();
-    return !states.isEmpty()
-      && Iterables.all(states, s -> isComplete(automaton.labelledEdges(s)));
-  }
-
-  /**
-   * Determines if this successor set is deterministic, i.e. there is at most one transition in this
-   * set for each valuation.
-   *
-   * @return Whether this successor set is deterministic.
-   */
-  private static <S> boolean isDeterministic(Collection<LabelledEdge<S>> labelledEdges) {
-    Iterator<LabelledEdge<S>> iterator = labelledEdges.iterator();
-
-    if (!iterator.hasNext()) {
-      return true;
-    }
-
-    ValuationSet seenValuations = iterator.next().valuations;
-
-    while (iterator.hasNext()) {
-      ValuationSet nextEdge = iterator.next().valuations;
-
-      if (seenValuations.intersects(nextEdge)) {
-        return false;
-      }
-
-      seenValuations = seenValuations.union(nextEdge);
-    }
-
-    return true;
+  static <S> boolean isComplete(Automaton<S, ?> automaton) {
+    return automaton.size() >= 1
+      && AutomatonUtil.getIncompleteStates(automaton).isEmpty();
   }
 
   /**
    * Determines whether the automaton is deterministic, i.e. there is at most one initial state and
    * every state has at most one successor under each valuation.
    *
-   * @return Whether the automaton is deterministic.
+   * @param automaton the automaton
    *
-   * @see Properties#isDeterministic(Collection)
+   * @return Whether the automaton is deterministic.
    */
-  public static <S> boolean isDeterministic(Automaton<S, ?> automaton) {
-    return automaton.initialStates().size() <= 1
-      && Iterables.all(automaton.states(), s -> isDeterministic(automaton.labelledEdges(s)));
+  static <S> boolean isDeterministic(Automaton<S, ?> automaton) {
+    return automaton.initialStates().size() <= 1 && isSemiDeterministic(automaton);
+  }
+
+  static <S> boolean isSemiDeterministic(Automaton<S, ?> automaton) {
+    return AutomatonUtil.getNondeterministicStates(automaton).isEmpty();
   }
 }

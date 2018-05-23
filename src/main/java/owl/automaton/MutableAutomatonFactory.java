@@ -17,20 +17,20 @@
 
 package owl.automaton;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.AutomatonUtil.exploreDeterministic;
-
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.ints.IntSets;
+import de.tum.in.naturals.bitset.BitSets;
+import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
-import owl.automaton.Automaton.Property;
+import javax.annotation.Nullable;
+import owl.automaton.Automaton.HybridVisitor;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class MutableAutomatonFactory {
@@ -56,35 +56,94 @@ public final class MutableAutomatonFactory {
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
     ValuationSetFactory vsFactory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
-    MutableAutomaton<S, A> automaton = create(acceptance, vsFactory);
-    if (initialStates.isEmpty()) {
-      return automaton;
+    MutableAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
+    initialStates.forEach(automaton::addInitialState);
+    Set<S> exploredStates = new HashSet<>(initialStates);
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    int alphabetSize = vsFactory.alphabetSize();
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.remove();
+
+      BitSet sensitiveAlphabet = alphabet.apply(state);
+      Set<BitSet> bitSets = sensitiveAlphabet == null
+        ? BitSets.powerSet(alphabetSize)
+        : BitSets.powerSet(sensitiveAlphabet);
+
+      for (BitSet valuation : bitSets) {
+        Edge<S> edge = successors.apply(state, valuation);
+
+        if (edge == null) {
+          continue;
+        }
+
+        ValuationSet valuationSet;
+
+        if (sensitiveAlphabet == null) {
+          valuationSet = vsFactory.of(valuation);
+        } else {
+          valuationSet = vsFactory.of(valuation, sensitiveAlphabet);
+        }
+
+        S successorState = edge.successor();
+
+        if (exploredStates.add(successorState)) {
+          workQueue.add(successorState);
+        }
+
+        automaton.addEdge(state, valuationSet, edge);
+      }
     }
 
-    exploreDeterministic(automaton, initialStates, successors, alphabet);
-    automaton.initialStates(initialStates);
     return automaton;
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(
-    Automaton<S, A> automaton) {
-    checkArgument(automaton.is(Property.DETERMINISTIC), "Only deterministic automata supported");
-    // TODO Efficient copy of HashMapAutomaton
-    return create(automaton.acceptance(),
-      automaton.factory(), automaton.initialStates(), automaton::edge,
-      (x) -> null);
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> copy(Automaton<S, A> source) {
+    MutableAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
+    target.initialStates(source.initialStates());
+    source.accept(new CopyVisitor<>(target));
+    target.trim(); // Cannot predict iteration order, thus we need to trim().
+    assert source.states().equals(target.states());
+    return target;
   }
 
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> singleton(S state,
     ValuationSetFactory factory, A acceptance) {
-    return singleton(state, factory, acceptance, IntSets.EMPTY_SET);
+    var edge = Edge.of(state);
+    return create(acceptance, factory, Set.of(state), (s, vs) -> edge, s -> new BitSet(0));
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> singleton(S state,
-    ValuationSetFactory factory, A acceptance, IntSet acceptanceSet) {
-    BitSet loopAcceptance = new BitSet();
-    acceptanceSet.forEach((IntConsumer) loopAcceptance::set);
-    return create(acceptance, factory, Set.of(state),
-      (s, vs) -> Edge.of(state, loopAcceptance), s -> new BitSet(0));
+  private static class CopyVisitor<S> implements HybridVisitor<S> {
+    @Nullable
+    private S currentState = null;
+    private final MutableAutomaton<S, ?> target;
+
+    private CopyVisitor(MutableAutomaton<S, ?> target) {
+      this.target = target;
+    }
+
+    @Override
+    public void visitEdge(Edge<S> edge, BitSet valuation) {
+      assert currentState != null;
+      target.addEdge(currentState, valuation, edge);
+    }
+
+    @Override
+    public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+      assert currentState != null;
+      target.addEdge(currentState, valuationSet, edge);
+    }
+
+    @Override
+    public void enter(S state) {
+      currentState = state;
+      target.addState(state);
+    }
+
+    @Override
+    public void exit(S state) {
+      currentState = null;
+    }
   }
 }

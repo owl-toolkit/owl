@@ -28,19 +28,14 @@ public final class MapRankingAutomaton {
     LimitDeterministicAutomaton<S, T, GeneralizedBuchiAcceptance, A> ldba,
     LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch,
     boolean optimizeInitialState) {
-    checkArgument(lattice instanceof BooleanLattice, "Only the Boolean lattice is supported.");
-    checkArgument(ldba.acceptingComponent().initialStates().isEmpty()
-        && ldba.initialComponent().initialStates().size() == 1,
-      "Exactly one initial state expected.");
-
+    checkArgument(lattice instanceof BooleanLattice);
+    checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
     int acceptanceSets = ldba.acceptingComponent().acceptance().acceptanceSets();
     Class<? extends GeneralizedRabinAcceptance> acceptanceClass =
       acceptanceSets == 1 ? RabinAcceptance.class : GeneralizedRabinAcceptance.class;
-
     Builder<S, T, A, L, ?, ?> builder =
       new Builder<>(ldba, resetAfterSccSwitch, lattice, isAcceptingState, acceptanceClass);
-
     Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton =
       AutomatonFactory.create(ldba.acceptingComponent().factory(), builder.initialState,
         builder.acceptance, builder::getSuccessor);

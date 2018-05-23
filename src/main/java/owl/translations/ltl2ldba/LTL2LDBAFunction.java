@@ -160,6 +160,8 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
       return SafetyDetector.hasSafetyCore(state, false) ? x.withAcceptance(bitSet) : x;
     });
 
+    initialComponent.trim();
+
     return ldba;
   }
 

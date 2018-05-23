@@ -164,7 +164,7 @@ public class AutomatonReaderTest {
   private static Int2ObjectMap<HoaState> getStates(Automaton<HoaState, ?> automaton) {
     Int2ObjectMap<HoaState> states = new Int2ObjectLinkedOpenHashMap<>(
       automaton.size());
-    automaton.forEachState(state ->  {
+    automaton.states().forEach(state ->  {
       int stateId = state.id;
       assertThat(states.containsKey(stateId), is(false));
       states.put(stateId, state);

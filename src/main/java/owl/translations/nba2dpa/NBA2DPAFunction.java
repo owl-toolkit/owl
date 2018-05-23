@@ -23,6 +23,7 @@ import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -69,7 +70,7 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (automaton.acceptance() instanceof AllAcceptance) {
-      var buchi = new BuchiView<>(AutomatonUtil.cast(automaton, AllAcceptance.class)).build();
+      var buchi = BuchiView.build(AutomatonUtil.cast(automaton, AllAcceptance.class));
       nba = AutomatonUtil.cast(buchi, Object.class, GeneralizedBuchiAcceptance.class);
     } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
       nba = AutomatonUtil.cast(automaton, Object.class, GeneralizedBuchiAcceptance.class);
@@ -81,9 +82,10 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
 
     NBA2LDBA<Object> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
 
-    var ldbaCutDet = nba2ldba.apply(nba).asCutDeterministicAutomaton();
-    AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
-      .acceptingComponent(), BreakpointState.sink(), new BitSet());
+    var ldbaCutDet = new CutDeterministicAutomaton<>(nba2ldba.apply(nba));
+    MutableAutomatonUtil.complete((
+      MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet.acceptingComponent(),
+      BreakpointState.sink(), new BitSet());
 
     var oracle = new SetLanguageLattice<>(ldbaCutDet.acceptingComponent());
 

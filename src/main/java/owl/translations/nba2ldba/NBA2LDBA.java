@@ -63,7 +63,7 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (automaton.acceptance() instanceof AllAcceptance) {
-      var buchi = new BuchiView<>(AutomatonUtil.cast(automaton, AllAcceptance.class)).build();
+      var buchi = BuchiView.build(AutomatonUtil.cast(automaton, AllAcceptance.class));
       nba = AutomatonUtil.cast(buchi, GeneralizedBuchiAcceptance.class);
     } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
       nba = AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class);
@@ -73,7 +73,7 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
 
     InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
     MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
-      = AcceptingComponentBuilder.createScc(nba);
+      = new AcceptingComponentBuilder<>(nba);
 
     return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
       acceptingComponentBuilder, Set::of, x -> (Void) null, configuration).build();

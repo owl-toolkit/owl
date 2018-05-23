@@ -45,6 +45,7 @@ import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.LabelledEdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -151,8 +152,8 @@ public final class GameViews {
     return new ForwardingGame<>(automaton, firstPropositions);
   }
 
-  private static final class
-  FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A> {
+  private static final class FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A>,
+    LabelledEdgesAutomatonMixin<S, A> {
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
@@ -216,6 +217,73 @@ public final class GameViews {
     }
   }
 
+  public static <S, A extends OmegaAcceptance> Game<S, A> replaceInitialStates(
+    Game<S, A> game, Set<S> initialStates) {
+    Set<S> immutableInitialStates = Set.copyOf(initialStates);
+    return new Game<>() {
+
+      @Override
+      public A acceptance() {
+        return game.acceptance();
+      }
+
+      @Override
+      public ValuationSetFactory factory() {
+        return game.factory();
+      }
+
+      @Override
+      public Set<S> initialStates() {
+        return immutableInitialStates;
+      }
+
+      @Override
+      public Set<S> states() {
+        return game.states();
+      }
+
+      @Override
+      public Collection<Edge<S>> edges(S state, BitSet valuation) {
+        return game.edges(state, valuation);
+      }
+
+      @Override
+      public Collection<Edge<S>> edges(S state) {
+        return game.edges(state);
+      }
+
+      @Override
+      public Collection<LabelledEdge<S>> labelledEdges(S state) {
+        return game.labelledEdges(state);
+      }
+
+      @Override
+      public Set<S> successors(S state) {
+        return game.successors(state);
+      }
+
+      @Override
+      public boolean prefersLabelled() {
+        return game.prefersLabelled();
+      }
+
+      @Override
+      public Owner getOwner(S state) {
+        return game.getOwner(state);
+      }
+
+      @Override
+      public BitSet getChoice(S state, Owner owner) {
+        return game.getChoice(state, owner);
+      }
+
+      @Override
+      public List<String> getVariables(Owner owner) {
+        return game.getVariables(owner);
+      }
+    };
+  }
+
   /**
    * A game based on an automaton and a splitting of its variables. The game is
    * constructed by first letting player one choose his part of the variables,
@@ -224,7 +292,7 @@ public final class GameViews {
    * corresponding acceptance.
    */
   static final class ForwardingGame<S, A extends OmegaAcceptance>
-    implements Game<Node<S>, A> {
+    implements Game<Node<S>, A>, LabelledEdgesAutomatonMixin<Node<S>, A> {
     private final Automaton<S, A> automaton;
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
@@ -303,17 +371,17 @@ public final class GameViews {
 
       Set<Node<S>> predecessors = new HashSet<>();
 
-      automaton.forEachLabelledEdge((predecessor, edge, valuationSet) -> {
-        if (!node.state().equals(edge.successor())) {
-          return;
-        }
-
-        valuationSet.forEach(set -> {
-          BitSet localSet = BitSets.copyOf(set);
-          localSet.and(firstPlayer);
-          predecessors.add(Node.of(predecessor, localSet));
+      for (S predecessor : automaton.states()) {
+        automaton.forEachLabelledEdge(predecessor, (edge, valuations) -> {
+          if (node.state().equals(edge.successor())) {
+            valuations.forEach(set -> {
+              BitSet localSet = BitSets.copyOf(set);
+              localSet.and(firstPlayer);
+              predecessors.add(Node.of(predecessor, localSet));
+            });
+          }
         });
-      });
+      }
 
       return predecessors;
     }
@@ -328,7 +396,7 @@ public final class GameViews {
     public Set<Node<S>> states() {
       Set<Node<S>> states = new HashSet<>();
 
-      automaton.forEachState(state -> {
+      automaton.states().forEach(state -> {
         Node<S> node = Node.of(state);
         states.add(node);
 

@@ -19,10 +19,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
+import owl.automaton.Automaton.LabelledEdgeVisitor;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -151,15 +151,11 @@ public final class SafetyAutomaton {
       initialPriority = initialPermutation.size() * 2 + 1;
     }
 
-    State initialState =
-      State.of(unfolded, monitorsG, monitorsF, initialPriority, initialPermutation);
-
+    State initialState = State.of(unfolded, monitorsG, monitorsF, initialPriority,
+      initialPermutation);
     ParityAcceptance acceptance = new ParityAcceptance(initialPermutation.size() * 2 + 2, parity);
-
-    MutableAutomaton<State, ParityAcceptance> automaton =
-      MutableAutomatonFactory.create(acceptance, factories.vsFactory);
-
-    AutomatonUtil.exploreDeterministic(automaton, Set.of(initialState), (state, valuation) -> {
+    Automaton<State, ParityAcceptance> automaton = AutomatonFactory.create(factories.vsFactory,
+      initialState, acceptance, (state, valuation) -> {
       Formula successor = state.formula().temporalStepUnfold(valuation);
       if (successor instanceof BooleanConstant) {
         return Edge.of(State.of((BooleanConstant) successor), state.priority());
@@ -287,19 +283,32 @@ public final class SafetyAutomaton {
         State.of(successor, newMonitorsG, newMonitorsF, priority, currentPermutation);
       return Edge.of(newState, state.priority());
     });
-    automaton.initialState(initialState);
 
     Map<StateReduction, State> reduction = new HashMap<>();
     Map<State, State> reductionMap = new HashMap<>();
 
-    automaton.forEachState(state -> {
+    LabelledEdgeVisitor<State> visitor = new LabelledEdgeVisitor<>() {
       Map<State, ValuationSet> successors = new HashMap<>();
-      automaton.labelledEdges(state).forEach(labelledEdge ->
-        successors.merge(labelledEdge.edge.successor(), labelledEdge.valuations,
-          ValuationSet::union));
-      reductionMap.put(state, reduction.computeIfAbsent(StateReduction.of(state, successors),
-        k -> state));
-    });
+
+      @Override
+      public void visitLabelledEdge(Edge<State> edge, ValuationSet valuationSet) {
+        successors.merge(edge.successor(), valuationSet, ValuationSet::union);
+      }
+
+      @Override
+      public void enter(State state) {
+        // NOP.
+      }
+
+      @Override
+      public void exit(State state) {
+        reductionMap.put(state, reduction.computeIfAbsent(StateReduction.of(state, successors),
+          k -> state));
+        successors = new HashMap<>();
+      }
+    };
+
+    automaton.accept(visitor);
 
     Automaton<State, ParityAcceptance> reducedAutomaton =
       AutomatonFactory.create(factories.vsFactory, reductionMap.get(initialState),
@@ -309,7 +318,7 @@ public final class SafetyAutomaton {
           return Edge.of(reductionMap.get(successor), successor.priority());
         });
 
-    return AutomatonUtil.asMutable(reducedAutomaton);
+    return MutableAutomatonUtil.asMutable(reducedAutomaton);
   }
 
   static final class FinalStateVisitor extends PropositionalVisitor<Boolean> {

@@ -27,16 +27,11 @@ public final class FlatRankingAutomaton {
   public static <S, T, A, L> Automaton<FlatRankingState<S, T>, ParityAcceptance> of(
     LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba, LanguageLattice<T, A, L> lattice,
     Predicate<S> isAcceptingState, boolean resetRanking, boolean optimizeInitialState) {
-    checkArgument(//ldba.getAcceptingComponent().getInitialStates().isEmpty()
-      ldba.initialComponent().initialStates().size() == 1,
-      "Exactly one initial state expected.");
+    checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
-    Builder<S, T, A, L> builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking);
-
-    // TODO: add getSensitiveAlphabet Method
-    Automaton<FlatRankingState<S, T>, ParityAcceptance> automaton = AutomatonFactory.create(
-      builder.ldba.acceptingComponent().factory(), builder.initialState, builder.acceptance,
-      builder::getSuccessor);
+    var builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking);
+    var automaton = AutomatonFactory.create(builder.ldba.acceptingComponent().factory(),
+      builder.initialState, builder.acceptance, builder::getSuccessor);
 
     return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
   }

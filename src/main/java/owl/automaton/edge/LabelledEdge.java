@@ -39,6 +39,14 @@ public final class LabelledEdge<S> {
     return LabelledEdge.of(Edge.of(state), valuations);
   }
 
+  public static <S> LabelledEdge<S> of(S state, int acceptance, ValuationSet valuations) {
+    return LabelledEdge.of(Edge.of(state, acceptance), valuations);
+  }
+
+  public static <S> LabelledEdge<S> of(S state, BitSet acceptance, ValuationSet valuations) {
+    return LabelledEdge.of(Edge.of(state, acceptance), valuations);
+  }
+
   public static <S> LabelledEdge<S> of(Edge<S> edge, ValuationSet valuations) {
     return new LabelledEdge<>(edge, valuations);
   }
@@ -79,8 +87,7 @@ public final class LabelledEdge<S> {
       return false;
     }
     LabelledEdge<?> that = (LabelledEdge<?>) o;
-    return Objects.equals(edge, that.edge)
-      && Objects.equals(valuations, that.valuations);
+    return Objects.equals(edge, that.edge) && Objects.equals(valuations, that.valuations);
   }
 
   @Override

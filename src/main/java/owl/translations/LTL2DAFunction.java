@@ -158,7 +158,7 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
         var successor = y.getKey();
 
         if (successor.isTrue()) {
-          return LabelledEdge.of(Edge.of(successor, 0), y.getValue());
+          return LabelledEdge.of(successor, 0, y.getValue());
         }
 
         return LabelledEdge.of(successor, y.getValue());

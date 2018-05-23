@@ -19,37 +19,25 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.Collection;
-import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.IntConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
+import owl.automaton.Automaton.LabelledEdgeVisitor;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
-import owl.automaton.edge.LabelledEdges;
 import owl.automaton.output.HoaPrintable;
 import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 
 public final class AutomatonUtil {
 
@@ -91,184 +79,12 @@ public final class AutomatonUtil {
       return true;
     }
 
-    checkArgument(Iterables.all(automaton.states(), clazz::isInstance),
-      "Expected states of type %s", clazz.getName());
+    for (Object state : automaton.states()) {
+      checkArgument(clazz.isInstance(state),
+        "Expected states of type %s but got %s.", clazz.getName(), state.getClass().getName());
+    }
+
     return true;
-  }
-
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A>
-  castMutable(Object automaton, Class<S> stateClass, Class<A> acceptanceClass) {
-    Automaton<S, A> castedAutomaton = cast(automaton, stateClass, acceptanceClass);
-    checkArgument(automaton instanceof MutableAutomaton<?, ?>, "Expected automaton, got %s",
-      automaton.getClass().getName());
-    return (MutableAutomaton<S, A>) castedAutomaton;
-  }
-
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> asMutable(
-    Automaton<S, A> automaton) {
-    if (automaton instanceof MutableAutomaton) {
-      return (MutableAutomaton<S, A>) automaton;
-    }
-
-    return MutableAutomatonFactory.create(automaton);
-  }
-
-  public static Supplier<Object> defaultSinkSupplier() {
-    return () -> Sink.INSTANCE;
-  }
-
-  public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton,
-    BitSet rejectingAcceptance) {
-    return complete(automaton, Sink.INSTANCE, rejectingAcceptance);
-  }
-
-  /**
-   * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
-   * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once, if
-   * and only if a sink is added. This state will be returned wrapped in an {@link Optional}, if
-   * instead no state was added {@link Optional#empty()} is returned. After adding the sink state,
-   * the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop. <p> Note:
-   * The completion process considers unreachable states. </p>
-   *
-   * @param sinkState
-   *     A sink state.
-   * @param rejectingAcceptance
-   *     A rejecting acceptance.
-   *
-   * @return The added state or {@code empty} if none was added.
-   */
-  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, S sinkState,
-    BitSet rejectingAcceptance) {
-    Map<S, ValuationSet> incompleteStates = getIncompleteStates(automaton);
-
-    if (automaton.size() != 0 && incompleteStates.isEmpty()) {
-      return Optional.empty();
-    }
-
-    Edge<S> sinkEdge = Edge.of(sinkState, rejectingAcceptance);
-    automaton.addEdge(sinkState, automaton.factory().universe(), sinkEdge);
-    incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
-
-    if (automaton.initialStates().isEmpty()) {
-      automaton.initialState(sinkState);
-    }
-
-    return Optional.of(sinkState);
-  }
-
-  private static <S, T, U> BiFunction<S, T, Iterable<U>> embed(BiFunction<S, T, U> function) {
-    return (x, y) -> {
-      U z = function.apply(x, y);
-      return z == null ? List.of() : List.of(z);
-    };
-  }
-
-  /**
-   * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton. <p> Note that if some reachable state is already present, the specified
-   * transitions still get added, potentially introducing non-determinism. If two states of the
-   * given {@code states} can reach a particular state, the resulting transitions only get added
-   * once. </p>
-   *
-   * @param states
-   *     The starting states of the exploration.
-   * @param explorationFunction
-   *     The function describing the transition relation.
-   *
-   * @see #explore(MutableAutomaton, Iterable, BiFunction, Function)
-   */
-  public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, Iterable<Edge<S>>> explorationFunction) {
-    explore(automaton, states, explorationFunction, s -> null);
-  }
-
-  /**
-   * Adds the given states and all states transitively reachable through {@code explorationFunction}
-   * to the automaton. The {@code sensitiveAlphabetOracle} is used to obtain the sensitive alphabet
-   * of a particular state, which reduces the number of calls to the exploration function. The
-   * oracle is allowed to return {@code null} values, indicating that no alphabet restriction can be
-   * obtained. <p> Note that if some reachable state is already present, the specified transitions
-   * still get added, potentially introducing non-determinism. If two states of the given {@code
-   * states} can reach a particular state, the resulting transitions only get added once. </p>
-   *
-   * @param states
-   *     The starting states of the exploration.
-   * @param explorationFunction
-   *     The function describing the transition relation.
-   */
-  public static <S> void explore(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, ? extends Iterable<Edge<S>>> explorationFunction,
-    Function<S, BitSet> sensitiveAlphabetOracle) {
-
-    int alphabetSize = automaton.factory().alphabetSize();
-    Set<S> exploredStates = Sets.newHashSet(states);
-    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
-
-    while (!workQueue.isEmpty()) {
-      S state = workQueue.remove();
-      BitSet sensitiveAlphabet = sensitiveAlphabetOracle.apply(state);
-      Set<BitSet> bitSets = sensitiveAlphabet == null
-        ? BitSets.powerSet(alphabetSize)
-        : BitSets.powerSet(sensitiveAlphabet);
-
-      for (BitSet valuation : bitSets) {
-        for (Edge<S> edge : explorationFunction.apply(state, valuation)) {
-          ValuationSet valuationSet;
-
-          if (sensitiveAlphabet == null) {
-            valuationSet = automaton.factory().of(valuation);
-          } else {
-            valuationSet = automaton.factory().of(valuation, sensitiveAlphabet);
-          }
-
-          S successorState = edge.successor();
-
-          if (exploredStates.add(successorState)) {
-            workQueue.add(successorState);
-          }
-
-          automaton.addEdge(state, valuationSet, edge);
-        }
-      }
-
-      // Generating the automaton is a long-running task. If the thread gets interrupted, we
-      // just cancel everything. Warning: All data structures are now inconsistent!
-      if (Thread.interrupted()) {
-        throw new CancellationException();
-      }
-    }
-  }
-
-  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, Edge<S>> explorationFunction) {
-    exploreDeterministic(automaton, states, explorationFunction, s -> null);
-  }
-
-  public static <S> void exploreDeterministic(MutableAutomaton<S, ?> automaton, Iterable<S> states,
-    BiFunction<S, BitSet, Edge<S>> explorationFunction,
-    Function<S, BitSet> sensitiveAlphabetOracle) {
-    explore(automaton, states, embed(explorationFunction), sensitiveAlphabetOracle);
-  }
-
-  public static <S> Set<S> exploreWithLabelledEdge(MutableAutomaton<S, ?> automaton,
-    Collection<S> states, Function<S, Collection<LabelledEdge<S>>> successorFunction) {
-    Set<S> exploredStates = new HashSet<>(states);
-    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
-
-    while (!workQueue.isEmpty()) {
-      S state = workQueue.remove();
-
-      for (LabelledEdge<S> labelledEdge : successorFunction.apply(state)) {
-        automaton.addEdge(state, labelledEdge.valuations, labelledEdge.edge);
-        S successorState = labelledEdge.edge.successor();
-
-        if (exploredStates.add(successorState)) {
-          workQueue.add(successorState);
-        }
-      }
-    }
-
-    return exploredStates;
   }
 
   public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
@@ -276,75 +92,89 @@ public final class AutomatonUtil {
     List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
 
     for (Set<S> scc : sccs) {
-      Automaton<S, ?> filteredAutomaton = Views.filter(automaton, scc);
-      filteredAutomaton.forEachLabelledEdge((x, y, z) -> action.accept(x, y));
+      for (S state : scc) {
+        automaton.forEachEdge(state, edge -> {
+          if (scc.contains(edge.successor())) {
+            action.accept(state, edge);
+          }
+        });
+      }
     }
   }
 
   /**
-   * Determines all states which are incomplete, i.e. there are valuations for which the state has
-   * no successor. The valuations sets have to be free'd after use.
+   * Determines all states which are incomplete, i.e. there are valuations for which the
+   * state has no successor.
    *
    * @param automaton
    *     The automaton.
    *
    * @return The set of incomplete states and the missing valuations.
    */
-  public static <S, A extends OmegaAcceptance> Map<S, ValuationSet> getIncompleteStates(
-    Automaton<S, A> automaton) {
+  public static <S> Map<S, ValuationSet> getIncompleteStates(Automaton<S, ?> automaton) {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
-    ValuationSetFactory factory = automaton.factory();
 
-    automaton.forEachState(state -> {
-      Collection<LabelledEdge<S>> edges = automaton.labelledEdges(state);
-      ValuationSet union = factory.union(LabelledEdges.valuations(edges));
+    LabelledEdgeVisitor<S> visitor = new LabelledEdgeVisitor<>() {
+      private final ValuationSet emptyValuationSet = automaton.factory().empty();
+      private ValuationSet valuationSet = emptyValuationSet;
 
-      if (!union.isUniverse()) {
-        // State is incomplete.
-        incompleteStates.put(state, union.complement());
+      @Override
+      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+        this.valuationSet = this.valuationSet.union(valuationSet);
       }
-    });
 
+      @Override
+      public void enter(S state) {
+        this.valuationSet = emptyValuationSet;
+      }
+
+      @Override
+      public void exit(S state) {
+        if (!valuationSet.isUniverse()) {
+          incompleteStates.put(state, valuationSet.complement());
+        }
+
+        this.valuationSet = emptyValuationSet;
+      }
+    };
+
+    automaton.accept(visitor);
     return incompleteStates;
   }
 
-  /**
-   * Returns all states reachable from the initial states.
-   *
-   * @param automaton
-   *     The automaton.
-   *
-   * @return All reachable states.
-   *
-   * @see #getReachableStates(Automaton, Collection)
-   */
-  public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(
-    Automaton<S, A> automaton) {
-    return getReachableStates(automaton, automaton.initialStates());
-  }
+  public static <S> Set<S> getNondeterministicStates(Automaton<S, ?> automaton) {
+    Set<S> nondeterministicStates = new HashSet<>();
 
-  /**
-   * Returns all states reachable from the given set of states.
-   *
-   * @param automaton
-   *     The automaton
-   * @param start
-   *     Starting states for the reachable states search.
-   */
-  public static <S, A extends OmegaAcceptance> Set<S> getReachableStates(Automaton<S, A> automaton,
-    Collection<? extends S> start) {
-    Set<S> exploredStates = new HashSet<>(start);
-    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
+    LabelledEdgeVisitor<S> visitor = new LabelledEdgeVisitor<>() {
+      private final ValuationSet emptyValuationSet = automaton.factory().empty();
+      private ValuationSet valuationSet = emptyValuationSet;
+      private boolean nondeterministicState = false;
 
-    while (!workQueue.isEmpty()) {
-      automaton.successors(workQueue.remove()).forEach(successor -> {
-        if (exploredStates.add(successor)) {
-          workQueue.add(successor);
+      @Override
+      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+        if (nondeterministicState || this.valuationSet.intersects(valuationSet)) {
+          nondeterministicState = true;
+        } else {
+          this.valuationSet = valuationSet.union(valuationSet);
         }
-      });
-    }
+      }
 
-    return exploredStates;
+      @Override
+      public void enter(S state) {
+        this.nondeterministicState = false;
+        this.valuationSet = emptyValuationSet;
+      }
+
+      @Override
+      public void exit(S state) {
+        if (nondeterministicState) {
+          nondeterministicStates.add(state);
+        }
+      }
+    };
+
+    automaton.accept(visitor);
+    return nondeterministicStates;
   }
 
   public static String toHoa(HoaPrintable printable) {
@@ -354,24 +184,25 @@ public final class AutomatonUtil {
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 
-  private static final class Sink {
-    private static final Sink INSTANCE = new Sink();
+  /**
+   * Collect all acceptance sets occurring on transitions within the given state set.
+   *
+   * @param automaton the automaton
+   * @param states the state set
+   * @param <S> the type of the states
+   * @return a set containing all acceptance indices
+   */
+  public static <S> BitSet getAcceptanceSets(Automaton<S, ?> automaton, Set<S> states) {
+    BitSet set = new BitSet();
 
-    private Sink() {}
-
-    @Override
-    public String toString() {
-      return "SINK";
+    for (S state : states) {
+      automaton.forEachEdge(state, edge -> {
+        if (states.contains(edge.successor())) {
+          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) set::set);
+        }
+      });
     }
 
-    @Override
-    public boolean equals(Object obj) {
-      return obj == this;
-    }
-
-    @Override
-    public int hashCode() {
-      return Sink.class.hashCode();
-    }
+    return set;
   }
 }

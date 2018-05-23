@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.ldba;
+package owl.translations.nba2dpa;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -30,9 +30,10 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.collections.ValuationSet;
 
-public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
+class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
   implements LimitDeterministicAutomaton<Set<S>, T, U, V> {
 
   private final LimitDeterministicAutomaton<S, T, U, V> ldba;
@@ -65,8 +66,13 @@ public class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptanc
 
   @Override
   public Automaton<Set<S>, NoneAcceptance> initialComponent() {
-    return MutableAutomatonFactory.create(Views.createPowerSetAutomaton(
+    return MutableAutomatonFactory.copy(Views.createPowerSetAutomaton(
       ldba.initialComponent()));
+  }
+
+  @Override
+  public Set<?> initialStates() {
+    return initialComponent().initialStates();
   }
 
   @Override

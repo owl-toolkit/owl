@@ -42,6 +42,7 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -237,9 +238,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
         DegeneralizedBreakpointState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
 
-    assert ldba.initialComponent().initialStates().size() == 1;
-    assert ldba.acceptingComponent().initialStates().isEmpty();
-
     var factory = ldba.initialComponent().onlyInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
       new EquivalenceClassLanguageLattice(factory),
@@ -258,9 +256,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       return new Result<>(Views.viewAs(ldba.acceptingComponent(), ParityAcceptance.class),
         DegeneralizedBreakpointFreeState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
-
-    assert ldba.initialComponent().initialStates().size() == 1;
-    assert ldba.acceptingComponent().initialStates().isEmpty();
 
     var factory = ldba.initialComponent().onlyInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
@@ -286,24 +281,24 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       this.sinkState = sinkState;
 
       if (compressColours) {
-        this.automaton = ParityUtil.minimizePriorities(AutomatonUtil.asMutable(automaton));
+        this.automaton = ParityUtil.minimizePriorities(MutableAutomatonUtil.asMutable(automaton));
       } else {
         this.automaton = automaton;
       }
     }
 
     Automaton<T, ParityAcceptance> complete() {
-      var automaton = AutomatonUtil.asMutable(this.automaton);
+      var automaton = MutableAutomatonUtil.asMutable(this.automaton);
       BitSet reject = new BitSet();
       reject.set(0);
-      AutomatonUtil.complete(automaton, sinkState, reject);
+      MutableAutomatonUtil.complete(automaton, sinkState, reject);
       return automaton;
     }
 
     Automaton<T, ParityAcceptance> complement() {
       if (automaton instanceof MutableAutomaton
         || automaton.acceptance().parity() != ParityAcceptance.Parity.MIN_ODD) {
-        return ParityUtil.complement(AutomatonUtil.asMutable(automaton), sinkState);
+        return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton), sinkState);
       }
 
       assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD;

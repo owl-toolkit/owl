@@ -19,14 +19,17 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -36,9 +39,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -46,19 +49,20 @@ import owl.automaton.edge.LabelledEdge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.util.TriConsumer;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
-final class HashMapAutomaton<S, A extends OmegaAcceptance>
-  implements MutableAutomaton<S, A>, BulkOperationAutomaton {
+final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
+  LabelledEdgesAutomatonMixin<S, A>, MutableAutomaton<S, A> {
+  private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
+
   private A acceptance;
   private final Set<S> initialStates;
-  private final Function<S, Map<Edge<S>, ValuationSet>> mapSupplier = x -> new LinkedHashMap<>();
-  private final IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
-  private final Map<S, S> uniqueStates;
+  private IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
+  private Map<S, S> uniqueStates;
   private final ValuationSetFactory valuationSetFactory;
   @Nullable
   private String name = null;
+  private State state = State.READ;
 
   HashMapAutomaton(ValuationSetFactory valuationSetFactory, A acceptance) {
     this.valuationSetFactory = valuationSetFactory;
@@ -70,26 +74,301 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
     initialStates = new HashSet<>();
   }
 
+
+  // Acceptance
+
   @Override
-  public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
-    if (valuations.isEmpty()) {
-      return;
+  public A acceptance() {
+    return acceptance;
+  }
+
+  @Override
+  public void acceptance(A acceptance) {
+    this.acceptance = acceptance;
+  }
+
+
+  // Initial States
+
+  @Override
+  public Set<S> initialStates() {
+    readMode();
+    return Collections.unmodifiableSet(initialStates);
+  }
+
+  @Override
+  public void initialStates(Collection<? extends S> initialStates) {
+    writeMode();
+
+    // If we have to remove an initial state, we need to clear and rebuild.
+    if (!initialStates.containsAll(this.initialStates)) {
+      state = State.WRITE_REBUILD;
+      this.initialStates.clear();
     }
 
-    Map<Edge<S>, ValuationSet> map = transitions.computeIfAbsent(makeUnique(source), mapSupplier);
-    Edge<S> uniqueEdge = makeUnique(edge);
-    transitions.computeIfAbsent(uniqueEdge.successor(), mapSupplier);
-    map.merge(uniqueEdge, valuations, ValuationSet::union);
+    initialStates.forEach(this::addInitialState);
+  }
+
+  @Override
+  public void addInitialState(S initialState) {
+    // Insert into state set and mark as initial.
+    initialStates.add(makeUnique(initialState));
+  }
+
+  @Override
+  public void removeInitialState(S initialState) {
+    state = State.WRITE_REBUILD;
+    initialStates.remove(initialState);
+  }
+
+
+  // States
+
+  @Override
+  public Set<S> states() {
+    readMode();
+    return Collections.unmodifiableSet(uniqueStates.keySet());
   }
 
   @Override
   public void addState(S state) {
-    transitions.putIfAbsent(makeUnique(state), new LinkedHashMap<>());
+    writeMode();
+
+    if (!uniqueStates.containsKey(state)) {
+      this.state = State.WRITE_REBUILD;
+      makeUnique(state);
+    }
   }
 
   @Override
-  public void addStates(Collection<? extends S> states) {
-    states.forEach(this::addState);
+  public void removeStateIf(Predicate<? super S> stateFilter) {
+    writeMode();
+
+    if (!uniqueStates.keySet().removeIf(stateFilter)) {
+      // There is no matching state. We can leave all data structures as they are.
+      return;
+    }
+
+    state = State.WRITE_REBUILD;
+    initialStates.removeIf(stateFilter);
+    Predicate<Edge<S>> edgeFilter = edge -> stateFilter.test(edge.successor());
+    transitions.entrySet().removeIf(entry -> {
+      boolean removeState = stateFilter.test(entry.getKey());
+
+      if (!removeState) {
+        entry.getValue().keySet().removeIf(edgeFilter);
+      }
+
+      return removeState;
+    });
+  }
+
+
+  // Edges
+
+  @Nullable
+  @Override
+  public Edge<S> edge(S state, BitSet valuation) {
+    readMode();
+
+    for (Map.Entry<Edge<S>, ValuationSet> entry : edgeMap(state).entrySet()) {
+      if (entry.getValue().contains(valuation)) {
+        return entry.getKey();
+      }
+    }
+
+    return null;
+  }
+
+  @Override
+  public Set<Edge<S>> edges(S state, BitSet valuation) {
+    readMode();
+
+    Set<Edge<S>> edges = new HashSet<>();
+
+    edgeMap(state).forEach((key, valuations) -> {
+      if (valuations.contains(valuation)) {
+        edges.add(key);
+      }
+    });
+
+    return edges;
+  }
+
+  @Override
+  public Set<Edge<S>> edges(S state) {
+    readMode();
+    return Collections.unmodifiableSet(edgeMap(state).keySet());
+  }
+
+  @Override
+  public Collection<LabelledEdge<S>> labelledEdges(S state) {
+    readMode();
+    return Collections.unmodifiableCollection(
+      Collections2.transform(edgeMap(state).entrySet(), LabelledEdge::of));
+  }
+
+  @Override
+  public void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
+    readMode();
+    edgeMap(state).forEach(action);
+  }
+
+  @Override
+  public Set<S> successors(S state) {
+    readMode();
+    return Collections3.transformUnique(edgeMap(state).keySet(), Edge::successor);
+  }
+
+  @Override
+  public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
+    edgeMap(source).merge(makeUnique(edge), valuations, ValuationSet::union);
+  }
+
+  @Override
+  public void removeEdge(S source, ValuationSet valuations, S destination) {
+    writeMode();
+
+    ValuationSet complement = valuations.complement();
+    boolean edgeRemoved = edgeMap(source).entrySet().removeIf(entry -> {
+      if (!destination.equals(entry.getKey().successor())) {
+        return false;
+      }
+
+      ValuationSet edgeValuation = entry.getValue().intersection(complement);
+      entry.setValue(edgeValuation);
+      return edgeValuation.isEmpty();
+    });
+
+    // Rebuild transition table only if the removed edge is not a self-loop and something was
+    // removed.
+    if (!source.equals(destination) && edgeRemoved) {
+      state = State.WRITE_REBUILD;
+    }
+  }
+
+  @Override
+  public void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
+    writeMode();
+
+    for (S state : states) {
+      Map<Edge<S>, ValuationSet> map = edgeMap(state);
+      Map<Edge<S>, ValuationSet> secondMap = new HashMap<>();
+
+      map.entrySet().removeIf(entry -> {
+        Edge<S> oldEdge = entry.getKey();
+        Edge<S> newEdge = f.apply(state, oldEdge);
+
+        if (newEdge == null) {
+          if (!state.equals(oldEdge.successor())) {
+            // Rebuild transition table only if the removed edge is not a self-loop.
+            this.state = State.WRITE_REBUILD;
+          }
+
+          return true;
+        }
+
+        if (oldEdge.equals(newEdge)) {
+          return false;
+        }
+
+        if (!oldEdge.successor().equals(newEdge.successor())) {
+          // There is a new successor, thus the reachable state set might have changed.
+          this.state = State.WRITE_REBUILD;
+        }
+
+        newEdge = makeUnique(newEdge);
+        secondMap.merge(newEdge, entry.getValue(), ValuationSet::union);
+        return true;
+      });
+
+      secondMap.forEach((edge, valuations) -> map.merge(edge, valuations, ValuationSet::union));
+    }
+  }
+
+  @Override
+  public void updateEdges(BiFunction<S, Edge<S>, Edge<S>> updater) {
+    updateEdges(transitions.keySet(), updater);
+  }
+
+
+  // Visitors
+
+  @Override
+  public void accept(EdgeVisitor<S> visitor) {
+    readMode();
+    transitions.forEach((state, edges) -> {
+      visitor.enter(state);
+      edges.forEach((edge, valuations) ->
+        valuations.forEach((valuation) -> visitor.visitEdge(edge, valuation)));
+      visitor.exit(state);
+    });
+  }
+
+  @Override
+  public void accept(LabelledEdgeVisitor<S> visitor) {
+    readMode();
+    transitions.forEach((state, edges) -> {
+      visitor.enter(state);
+      edges.forEach(visitor::visitLabelledEdge);
+      visitor.exit(state);
+    });
+  }
+
+
+  // Misc.
+
+  @Override
+  public ValuationSetFactory factory() {
+    return valuationSetFactory;
+  }
+
+  @Override
+  public String name() {
+    return name == null ? String.format("Automaton for %s", initialStates()) : name;
+  }
+
+  @Override
+  public void name(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public String toString() {
+    return name == null ? super.toString() : name;
+  }
+
+  @Override
+  public void trim() {
+    if (state != State.WRITE_REBUILD) {
+      state = State.READ;
+      return;
+    }
+
+    state = State.READ;
+    Set<S> exploredStates = new HashSet<>(initialStates());
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    Map<S, Map<Edge<S>, ValuationSet>> oldTransitions = transitions;
+    transitions = new IdentityHashMap<>(oldTransitions.size());
+    uniqueStates = new HashMap<>(uniqueStates.size());
+
+    // Ensure that the initial states are in the unique map.
+    initialStates.forEach(this::makeUnique);
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.remove();
+      oldTransitions.get(state).forEach((edge, valuationSet) -> {
+        addEdge(state, valuationSet, edge);
+
+        if (exploredStates.add(edge.successor())) {
+          workQueue.add(edge.successor());
+        }
+      });
+    }
+
+    logger.log(Level.FINEST, "Cleared {0} states", oldTransitions.size() - transitions.size());
+    verify(state == State.READ, "Concurrent modification.");
   }
 
   @VisibleForTesting
@@ -113,96 +392,30 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
     return true;
   }
 
-  @Override
-  public void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    edgeMap(state).forEach(action);
+  private void readMode() {
+    checkState(state == State.READ, "trim() must be called.");
   }
 
-  @Override
-  public void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
-    transitions.forEach((state, map) ->
-      map.forEach((edge, valuationSet) -> action.accept(state, edge, valuationSet)));
-  }
-
-  @Override
-  public A acceptance() {
-    return acceptance;
-  }
-
-  @Nullable
-  @Override
-  public Edge<S> edge(S state, BitSet valuation) {
-    for (Map.Entry<Edge<S>, ValuationSet> entry : edgeMap(state).entrySet()) {
-      if (entry.getValue().contains(valuation)) {
-        return entry.getKey();
-      }
+  private void writeMode() {
+    if (state == State.READ) {
+      state = State.WRITE;
     }
-
-    return null;
   }
 
   private Map<Edge<S>, ValuationSet> edgeMap(S state) {
-    Map<Edge<S>, ValuationSet> successors = transitions.get(makeUnique(state));
-    checkArgument(successors != null, "State %s not in automaton", state);
+    S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
+    checkArgument(uniqueState != null, "State %s not in automaton", state);
+    Map<Edge<S>, ValuationSet> successors = transitions.get(uniqueState);
+    assert successors.values().stream().noneMatch(ValuationSet::isEmpty);
     return successors;
-  }
-
-  @Override
-  public Set<Edge<S>> edges(S state) {
-    return Collections.unmodifiableSet(edgeMap(state).keySet());
-  }
-
-  @Override
-  public Set<Edge<S>> edges(S state, BitSet valuation) {
-    Set<Edge<S>> edges = new HashSet<>();
-
-    edgeMap(state).forEach((key, valuations) -> {
-      if (valuations.contains(valuation)) {
-        edges.add(key);
-      }
-    });
-
-    return edges;
-  }
-
-  @Override
-  public ValuationSetFactory factory() {
-    return valuationSetFactory;
-  }
-
-  @Override
-  public Set<S> initialStates() {
-    return Set.copyOf(initialStates);
-  }
-
-  @Override
-  public Collection<LabelledEdge<S>> labelledEdges(S state) {
-    return Collections.unmodifiableCollection(
-      Collections2.transform(edgeMap(state).entrySet(), LabelledEdge::of));
-  }
-
-  @Override
-  public String name() {
-    return name == null ? String.format("Automaton for %s", initialStates()) : name;
-  }
-
-  @Override
-  public Set<S> successors(S state) {
-    return Collections3.transformUnique(edgeMap(state).keySet(), Edge::successor);
-  }
-
-  @Override
-  public Set<S> states() {
-    return Collections.unmodifiableSet(uniqueStates.keySet());
   }
 
   private S makeUnique(S state) {
     Objects.requireNonNull(state);
 
-    // TODO Maybe we shouldn't always put?
     S uniqueState = uniqueStates.putIfAbsent(state, state);
     if (uniqueState == null) {
-      // This state was added to the mapping
+      transitions.put(state, new LinkedHashMap<>());
       return state;
     }
 
@@ -222,120 +435,10 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
       : castedEdge.withSuccessor(uniqueSuccessor);
   }
 
-  @Override
-  public void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
-    assert states().containsAll(states);
-
-    for (S state : states) {
-      Map<Edge<S>, ValuationSet> map = edgeMap(state);
-      Map<Edge<S>, ValuationSet> secondMap = new HashMap<>();
-
-      map.entrySet().removeIf(entry -> {
-        Edge<S> oldEdge = entry.getKey();
-        Edge<S> newEdge = f.apply(state, oldEdge);
-
-        if (newEdge == null) {
-          return true;
-        }
-
-        if (Objects.equals(oldEdge, newEdge)) {
-          return false;
-        }
-
-        newEdge = makeUnique(newEdge);
-        secondMap.merge(newEdge, entry.getValue(), ValuationSet::union);
-        return true;
-      });
-
-      secondMap.forEach((edge1, valuations) -> map.merge(edge1, valuations, ValuationSet::union));
-    }
-  }
-
-  @Override
-  public void removeEdge(S source, BitSet valuation, S destination) {
-    ValuationSet valuationSet = valuationSetFactory.of(valuation);
-    removeEdge(source, valuationSet, destination);
-  }
-
-  @Override
-  public void removeEdge(S source, ValuationSet valuations, S destination) {
-    ValuationSet complement = valuations.complement();
-
-    edgeMap(source).entrySet().removeIf(entry -> {
-      if (!Objects.equals(destination, entry.getKey().successor())) {
-        return false;
-      }
-
-      ValuationSet edgeValuation = entry.getValue().intersection(complement);
-      entry.setValue(edgeValuation);
-      return edgeValuation.isEmpty();
-    });
-  }
-
-  @Override
-  public boolean removeStates(Predicate<? super S> filter) {
-    initialStates.removeIf(filter);
-    uniqueStates.keySet().removeIf(filter);
-    return removeTransitionsIf(filter);
-  }
-
-  private boolean removeTransitionsIf(Predicate<? super S> filter) {
-    return transitions.entrySet().removeIf(entry -> {
-      boolean removeState = filter.test(entry.getKey());
-
-      Map<Edge<S>, ValuationSet> edges = entry.getValue();
-
-      if (removeState) {
-        edges.clear();
-      } else {
-        edges.entrySet().removeIf(e -> filter.test(e.getKey().successor()));
-      }
-
-      return removeState;
-    });
-  }
-
-  @Override
-  public void removeUnreachableStates(Collection<? extends S> start,
-    Consumer<? super S> removedStatesConsumer) {
-    Set<S> reachableStates = AutomatonUtil.getReachableStates(this, start);
-    assert states().containsAll(reachableStates) : "Internal inconsistency";
-
-    if (retainStates(reachableStates)) {
-      for (S state : transitions.keySet()) {
-        if (!reachableStates.contains(state)) {
-          removedStatesConsumer.accept(state);
-        }
-      }
-    }
-  }
-
-  @Override
-  public void acceptance(A acceptance) {
-    this.acceptance = acceptance;
-  }
-
-  private boolean retainStates(Collection<? extends S> states) {
-    initialStates.retainAll(states);
-    uniqueStates.keySet().retainAll(states);
-    return removeTransitionsIf(state -> !states.contains(state));
-  }
-
-  @Override
-  public void initialStates(Collection<? extends S> states) {
-    addStates(states);
-    initialStates.clear();
-    states.stream().map(this::makeUnique).forEach(initialStates::add);
-  }
-
-  @Override
-  public void name(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    return name == null ? super.toString() : name;
+  private enum State {
+    READ, // Read operations are allowed.
+    WRITE, // Write operation happened, but no rebuild is required.
+    WRITE_REBUILD // Write operation happened and a rebuild is required.
   }
 }
 
