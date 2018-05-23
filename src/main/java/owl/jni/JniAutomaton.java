@@ -145,21 +145,22 @@ public final class JniAutomaton<S> {
     return newBuffer;
   }
 
-  public int[] edges(int state) {
-    S o = int2StateMap.get(state);
+  public int[] edges(int stateIndex) {
+    S state = int2StateMap.get(stateIndex);
 
     int i = 0;
     int[] edges = edgeBuffer();
 
+    @Nullable
     var labelledEdges = automaton instanceof BulkOperationAutomaton
-      ? List.copyOf(automaton.labelledEdges(o))
+      ? List.copyOf(automaton.labelledEdges(state))
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
       Edge<S> edge;
 
       if (labelledEdges == null) {
-        edge = automaton.edge(o, valuation);
+        edge = automaton.edge(state, valuation);
       } else {
         edge = lookup(labelledEdges, valuation);
       }
@@ -181,14 +182,15 @@ public final class JniAutomaton<S> {
     return edges;
   }
 
-  public int[] successors(int state) {
-    S o = int2StateMap.get(state);
+  public int[] successors(int stateIndex) {
+    S state = int2StateMap.get(stateIndex);
 
     int i = 0;
     int[] successors = successorBuffer();
 
+    @Nullable
     var labelledEdges = automaton instanceof BulkOperationAutomaton
-      ? List.copyOf(automaton.labelledEdges(o))
+      ? List.copyOf(automaton.labelledEdges(state))
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
@@ -196,7 +198,7 @@ public final class JniAutomaton<S> {
       S successor;
 
       if (labelledEdges == null) {
-        successor = automaton.successor(o, valuation);
+        successor = automaton.successor(state, valuation);
       } else {
         var edge = lookup(labelledEdges, valuation);
         successor = edge == null ? null : edge.successor();
