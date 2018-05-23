@@ -266,8 +266,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance>
         return false;
       }
 
-      ValuationSet edgeValuation = entry.getValue();
-      entry.setValue(edgeValuation.intersection(complement));
+      ValuationSet edgeValuation = entry.getValue().intersection(complement);
+      entry.setValue(edgeValuation);
       return edgeValuation.isEmpty();
     });
   }

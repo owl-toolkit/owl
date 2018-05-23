@@ -29,6 +29,7 @@ public final class LabelledEdge<S> {
   public final ValuationSet valuations;
 
   private LabelledEdge(Edge<S> edge, ValuationSet valuations) {
+    assert !valuations.isEmpty();
     this.edge = edge;
     this.valuations = valuations;
   }
