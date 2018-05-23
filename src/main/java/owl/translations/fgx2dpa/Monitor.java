@@ -14,8 +14,8 @@ import owl.util.annotation.HashedTuple;
 
 @Value.Immutable
 @HashedTuple
-public abstract class Monitor {
-  abstract UnaryModalOperator formula();
+public abstract class Monitor<F extends UnaryModalOperator> {
+  abstract F formula();
 
   abstract Set<Formula> currentTokens();
 
@@ -23,7 +23,7 @@ public abstract class Monitor {
   @Value.Auxiliary
   Set<Formula> finalStates() {
     return Sets.filter(currentTokens(), t ->
-      t.accept(SafetyAutomaton.FINAL_STATE_VISITOR));
+      t.accept(SafetyAutomaton.FinalStateVisitor.INSTANCE));
   }
 
   @Value.Derived
@@ -32,15 +32,17 @@ public abstract class Monitor {
     return Sets.difference(currentTokens(), finalStates());
   }
 
-  public static Monitor of(UnaryModalOperator formula, Set<Formula> currentTokens) {
+
+  public static <F extends UnaryModalOperator> Monitor<F>
+  of(F formula, Set<Formula> currentTokens) {
     return MonitorTuple.create(formula, currentTokens);
   }
 
-  public static Monitor of(UnaryModalOperator formula) {
+  public static <F extends UnaryModalOperator> Monitor<F> of(F formula) {
     return of(formula, Set.of(formula.operand));
   }
 
-  public Monitor temporalStep(BitSet valuation) {
+  public Monitor<F> temporalStep(BitSet valuation) {
     Set<Formula> currentTokens = new HashSet<>(Set.of(formula().operand));
     nonFinalStates().forEach(t -> currentTokens.add(t.temporalStep(valuation)));
     return of(formula(), currentTokens);

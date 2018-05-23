@@ -49,9 +49,6 @@ import owl.ltl.visitors.Visitor;
 import owl.run.Environment;
 
 public final class SafetyAutomaton {
-  static final FinalStateVisitor FINAL_STATE_VISITOR = new FinalStateVisitor();
-  private static final OutsideGVisitor OUTSIDE_G_VISITOR = new OutsideGVisitor();
-
   private SafetyAutomaton() {}
 
   public static MutableAutomaton<State, ParityAcceptance>
@@ -61,7 +58,7 @@ public final class SafetyAutomaton {
       "Formula is not from the syntactic fgx and nnf fragment.");
 
     Set<Set<UnaryModalOperator>> promisedSetsFormula =
-      labelledFormula.formula().accept(OUTSIDE_G_VISITOR);
+      labelledFormula.formula().accept(OutsideGVisitor.INSTANCE);
     int promisedSetCount = promisedSetsFormula.size();
 
     if (promisedSetCount == 1
@@ -71,7 +68,7 @@ public final class SafetyAutomaton {
 
     LabelledFormula labelledFormulaNegation = labelledFormula.not();
     Set<Set<UnaryModalOperator>> promisedSetsNegation =
-      labelledFormulaNegation.formula().accept(OUTSIDE_G_VISITOR);
+      labelledFormulaNegation.formula().accept(OutsideGVisitor.INSTANCE);
     int negationPromisedSetCount = promisedSetsNegation.size();
 
     if (negationPromisedSetCount == 1
@@ -92,10 +89,10 @@ public final class SafetyAutomaton {
     BigInteger estimatedPermutations = BigInteger.ONE;
 
     long nonFinalG = promisedSets.stream().filter(l -> l.stream().anyMatch(g ->
-      g instanceof GOperator && !(g.operand.accept(FINAL_STATE_VISITOR)))).count();
+      g instanceof GOperator && !(g.operand.accept(FinalStateVisitor.INSTANCE)))).count();
     for (Set<UnaryModalOperator> list : promisedSets) {
       long count = list.stream().filter(f -> f instanceof FOperator
-        && !(f.operand.accept(FINAL_STATE_VISITOR))).count();
+        && !(f.operand.accept(FinalStateVisitor.INSTANCE))).count();
       if (count > 1) {
         estimatedPermutations = estimatedPermutations.multiply(BigInteger.valueOf(count));
       }
@@ -124,16 +121,16 @@ public final class SafetyAutomaton {
       }
     }
 
-    Set<Monitor> monitorsG = Collections3.transformUnique(gFormulae, Monitor::of);
-    Set<Monitor> monitorsF = Collections3.transformUnique(fFormulae, Monitor::of);
+    Set<Monitor<GOperator>> monitorsG = Collections3.transformUnique(gFormulae, Monitor::of);
+    Set<Monitor<FOperator>> monitorsF = Collections3.transformUnique(fFormulae, Monitor::of);
 
     List<PromisedSet> initialPermutation = new ArrayList<>(promisedSets.size());
     for (Set<UnaryModalOperator> set : promisedSets) {
       Set<GOperator> formulaeG = set.stream().filter(GOperator.class::isInstance)
         .map(GOperator.class::cast).collect(Collectors.toUnmodifiableSet());
       List<FOperator> formulaeF = set.stream().filter(FOperator.class::isInstance)
-        .map(FOperator.class::cast).sorted(Comparator.comparingInt(
-          f -> f.operand.accept(FINAL_STATE_VISITOR) ? 1 : 0))
+        .map(FOperator.class::cast)
+        .sorted(Comparator.comparingInt(f -> f.operand.accept(FinalStateVisitor.INSTANCE) ? 1 : 0))
         .collect(Collectors.toUnmodifiableList());
       initialPermutation.add(PromisedSet.of(formulaeG, formulaeF));
     }
@@ -154,8 +151,8 @@ public final class SafetyAutomaton {
       initialPriority = initialPermutation.size() * 2 + 1;
     }
 
-    State initialState = State.of(unfolded, monitorsG, monitorsF, initialPriority,
-      initialPermutation);
+    State initialState =
+      State.of(unfolded, monitorsG, monitorsF, initialPriority, initialPermutation);
 
     ParityAcceptance acceptance = new ParityAcceptance(initialPermutation.size() * 2 + 2, parity);
 
@@ -168,8 +165,8 @@ public final class SafetyAutomaton {
         return Edge.of(State.of((BooleanConstant) successor), state.priority());
       }
 
-      Set<Monitor> newMonitorsG;
-      Set<Monitor> newMonitorsF;
+      Set<Monitor<GOperator>> newMonitorsG;
+      Set<Monitor<FOperator>> newMonitorsF;
       List<PromisedSet> previousPermutation;
 
       if (successor.equals(state.formula())) {
@@ -186,15 +183,13 @@ public final class SafetyAutomaton {
         }
 
         Set<UnaryModalOperator> formulas = Sets.union(gOperators, fOperators);
-        //noinspection RedundantCast
         newMonitorsG = state.monitorsG().stream()
-          .filter(s -> gOperators.contains((GOperator) s.formula()))
+          .filter(s -> gOperators.contains(s.formula()))
           .map(s -> s.temporalStep(valuation))
           .collect(Collectors.toUnmodifiableSet());
 
-        //noinspection RedundantCast
         newMonitorsF = state.monitorsF().stream()
-          .filter(s -> fOperators.contains((FOperator) s.formula()))
+          .filter(s -> fOperators.contains(s.formula()))
           .map(s -> s.temporalStep(valuation))
           .collect(Collectors.toUnmodifiableSet());
 
@@ -218,7 +213,7 @@ public final class SafetyAutomaton {
         var violationVisitor = new PromisedSetAcceptanceVisitor(promisedSet, false);
         boolean violation = false;
         for (Formula g : promisedSet.formulaeG()) {
-          Monitor monitor = newMonitorsG.stream()
+          Monitor<GOperator> monitor = newMonitorsG.stream()
             .filter(s -> s.formula().equals(g))
             .findFirst().orElseThrow();
 
@@ -274,6 +269,7 @@ public final class SafetyAutomaton {
                   break;
                 }
               } while (!currentFirstF.equals(deque.peekFirst()));
+
               goodOrNeutral.add(0, PromisedSet.of(promisedSet.formulaeG(),
                 Lists.newArrayList(deque), promisedSet.firstF()));
 
@@ -287,8 +283,8 @@ public final class SafetyAutomaton {
         }
       }
       currentPermutation.addAll(goodOrNeutral);
-      State newState = State.of(successor, newMonitorsG, newMonitorsF, priority,
-        currentPermutation);
+      State newState =
+        State.of(successor, newMonitorsG, newMonitorsF, priority, currentPermutation);
       return Edge.of(newState, state.priority());
     });
     automaton.initialState(initialState);
@@ -316,9 +312,13 @@ public final class SafetyAutomaton {
     return AutomatonUtil.asMutable(reducedAutomaton);
   }
 
-  private static class FinalStateVisitor extends PropositionalVisitor<Boolean> {
+  static final class FinalStateVisitor extends PropositionalVisitor<Boolean> {
+    static final FinalStateVisitor INSTANCE = new FinalStateVisitor();
+
+    private FinalStateVisitor() {}
+
     @Override
-    protected Boolean modalOperatorAction(Formula formula) {
+    public Boolean modalOperatorAction(Formula formula) {
       return !(formula instanceof Literal || formula instanceof XOperator);
     }
 
@@ -344,6 +344,7 @@ public final class SafetyAutomaton {
 
   private abstract static class PromisedSetVisitor
     implements Visitor<Set<Set<UnaryModalOperator>>> {
+
     @Override
     public Set<Set<UnaryModalOperator>> visit(BooleanConstant booleanConstant) {
       return Set.of(new HashSet<>());
@@ -383,7 +384,10 @@ public final class SafetyAutomaton {
     }
   }
 
-  private static class OutsideGVisitor extends PromisedSetVisitor {
+  private static final class OutsideGVisitor extends PromisedSetVisitor {
+    static final OutsideGVisitor INSTANCE = new OutsideGVisitor();
+
+    private OutsideGVisitor() {}
 
     @Override
     public Set<Set<UnaryModalOperator>> visit(FOperator fOperator) {
