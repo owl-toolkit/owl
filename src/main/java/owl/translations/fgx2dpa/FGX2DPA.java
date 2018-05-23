@@ -16,9 +16,7 @@
 
 package owl.translations.fgx2dpa;
 
-import owl.automaton.output.HoaPrintable;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -32,7 +30,7 @@ public final class FGX2DPA {
     .key("fgx2dpa")
     .description("Translates LTL to a deterministic parity automaton")
     .parser(settings -> environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-      formula -> translate(environment, formula)))
+      formula -> SafetyAutomaton.build(environment, formula)))
     .build();
 
   private FGX2DPA() {}
@@ -43,9 +41,5 @@ public final class FGX2DPA {
       .addTransformer(CLI)
       .writer(OutputWriters.HOA)
       .build());
-  }
-
-  private static HoaPrintable translate(Environment env, LabelledFormula formula) {
-    return SafetyAutomaton.build(env, formula);
   }
 }
