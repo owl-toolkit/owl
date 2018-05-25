@@ -7,35 +7,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <errno.h>
 
-#define BUFFER_SIZE 1024
-#define END_STRING "--END--"
+#define BUFFER_SIZE 8192
 
 void error(const char *msg)
 {
     perror(msg);
     exit(1);
-}
-
-int read_and_print(int sockfd, char *buffer, int len) {
-    int n = read(sockfd, buffer, len);
-    if (n < 0)
-        error("Read");
-    if (n == 0)
-        return 0;
-    printf("%s", buffer);
-    return 1;
-}
-
-int check_and_rotate(char *read_buffer, char *buffer, int offset) {
-    if (strstr(buffer, END_STRING) != NULL)
-        return 0;
-
-    // Copy last <offset> bytes to the beginning
-    strncpy(buffer, read_buffer + BUFFER_SIZE - offset - 1, offset);
-    // Zero everything in the read buffer
-    bzero(read_buffer, BUFFER_SIZE);
-    return 1;
 }
 
 int main(int argc, char *argv[])
@@ -72,27 +51,28 @@ int main(int argc, char *argv[])
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
         error("Connect");
 
-    // Write the spec
-    if (write(sockfd, argv[3], strlen(argv[3])) < 0)
-         error("Write");
-    if (write(sockfd, "\n", strlen("\n")) < 0)
-         error("Write");
+    // Send request
+    if (send(sockfd, argv[3], strlen(argv[3]), 0) < 0 || send(sockfd, "\n", strlen("\n"), 0) < 0)
+        error("Write");
+    
+    // Close send channel
+    if (shutdown(sockfd, SHUT_WR) < 0)
+        error("Close Send");
+    
+    // Recieve response
+    char buffer[BUFFER_SIZE];
+    int recv_bytes = 0;
+    
+    do {
+        recv_bytes = recv(sockfd, buffer, sizeof(char) * BUFFER_SIZE, MSG_WAITALL);
+        
+        if (recv_bytes < 0)
+            error("Read");
 
-    // Create cyclic read buffers. To be able to always detect the termination string, even if it is
-    // chopped by buffer boundary, we copy the last few bits at the beginning of the buffer
-    int offset = strlen(END_STRING);
-    char buffer[BUFFER_SIZE + offset];
-    char *read_buffer = buffer + offset;
-    bzero(buffer, BUFFER_SIZE + offset);
-
-    // Read the full buffer at the beginning
-    if (read_and_print(sockfd, buffer, BUFFER_SIZE + offset - 1)
-        && check_and_rotate(read_buffer, buffer, offset))
-        // Now we only read into the read_buffer
-        while (read_and_print(sockfd, read_buffer, BUFFER_SIZE - 1)
-            && check_and_rotate(read_buffer, buffer, offset))
-            ;
-
+        fwrite(buffer, sizeof(char), recv_bytes, stdout);
+    } while (recv_bytes > 0);
+    
+    // No need to shutdown the recieve channel, since the server shutdowns that.
     close(sockfd);
     return 0;
 }
