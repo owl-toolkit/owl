@@ -20,7 +20,7 @@ def _test(args):
     test_names = args[0].split(";")
     test_set_override = None
 
-    if len(args) == 2:
+    if len(args) is 2:
         test_set_override = args[1]
 
     test_config = owl_defaults.load_json(database)
@@ -85,6 +85,7 @@ def _test(args):
         enable_server = True
         port = 6060
         servers = []
+        server_ports = []
         for test_tool in loaded_tools:
             if type(test_tool) is tuple:
                 tool_test_name, loaded_tool = test_tool
@@ -99,8 +100,9 @@ def _test(args):
             if type(loaded_tool) is owl_tool.OwlTool:
                 if enable_server:
                     servers.append(loaded_tool.get_server_execution(port))
-                    test_arguments.append("\"build/exe/owlClient/owl-client\""
+                    test_arguments.append("\"build/bin/owl-client\""
                                           + " localhost " + str(port) + " %f")
+                    server_ports.append(port)
                     port += 1
                 else:
                     test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
@@ -158,10 +160,15 @@ def _test(args):
                                                   stderr=None, env=sub_env)
                 server_processes.append(server_process)
 
-        if servers:
-            # TODO Rather check that all sockets are open
+            import socket
             import time
-            time.sleep(1 + len(servers) * 0.5)
+            from contextlib import closing
+            for port in server_ports:
+                while True:
+                    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                        if sock.connect_ex(('localhost', port)) == 0:
+                            break
+                        time.sleep(0.25)
 
         process = subprocess.run(test_arguments, env=sub_env)
 
@@ -221,15 +228,11 @@ def _tool(args):
 
 
 def _benchmark(args):
-    if len(args) > 2:
-        print("Usage: util.py bench <database>? <benchmark name>")
+    if len(args) > 1:
+        print("Usage: util.py bench <benchmark name>")
 
-    if len(args) == 2:
-        database = args[0]
-        benchmark_name = args[1]
-    else:
-        database = owl_defaults.get_benchmark_path()
-        benchmark_name = args[0]
+    database = owl_defaults.get_benchmark_path()
+    benchmark_name = args[0]
 
     benchmarks = owl_defaults.load_json(database)
     defaults_json = benchmarks["defaults"]
@@ -287,7 +290,7 @@ def _benchmark(args):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
+    if len(sys.argv) is 1:
         print("Usage: util.py <type> <args>")
         sys.exit(1)
 
