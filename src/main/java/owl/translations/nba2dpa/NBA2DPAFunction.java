@@ -39,7 +39,7 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ldba2dpa.FlatRankingAutomaton;
 import owl.translations.nba2ldba.BreakpointState;
-import owl.translations.nba2ldba.GeneralizedBuchiView;
+import owl.translations.nba2ldba.BuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPrintable> {
@@ -64,23 +64,24 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
 
   @SuppressWarnings("unchecked")
   @Override
-  public Automaton<?, ParityAcceptance> apply(Automaton<S, ?> nba) {
-    Automaton<Object, GeneralizedBuchiAcceptance> nbaGBA;
+  public Automaton<?, ParityAcceptance> apply(Automaton<S, ?> automaton) {
+    Automaton<Object, GeneralizedBuchiAcceptance> nba;
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
-    if (nba.acceptance() instanceof AllAcceptance) {
-      nbaGBA = new GeneralizedBuchiView<>((Automaton<Object, AllAcceptance>) nba).build();
-    } else if (nba.acceptance() instanceof GeneralizedBuchiAcceptance) {
-      nbaGBA = (Automaton<Object, GeneralizedBuchiAcceptance>) nba;
+    if (automaton.acceptance() instanceof AllAcceptance) {
+      var buchi = new BuchiView<>(AutomatonUtil.cast(automaton, AllAcceptance.class)).build();
+      nba = AutomatonUtil.cast(buchi, Object.class, GeneralizedBuchiAcceptance.class);
+    } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
+      nba = AutomatonUtil.cast(automaton, Object.class, GeneralizedBuchiAcceptance.class);
     } else {
-      throw new UnsupportedOperationException(nba.acceptance() + " is unsupported.");
+      throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
     }
 
-    nbaGBA = Views.complete(nbaGBA, new Object());
+    nba = Views.complete(nba, new Object());
 
     NBA2LDBA<Object> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
 
-    var ldbaCutDet = nba2ldba.apply(nbaGBA).asCutDeterministicAutomaton();
+    var ldbaCutDet = nba2ldba.apply(nba).asCutDeterministicAutomaton();
     AutomatonUtil.complete((MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet
       .acceptingComponent(), BreakpointState.sink(), new BitSet());
 

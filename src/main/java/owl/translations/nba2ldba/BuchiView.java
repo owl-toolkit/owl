@@ -6,17 +6,16 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.ldba.MutableAutomatonBuilder;
 
 // TODO: Convert this to a View.
-public final class GeneralizedBuchiView<S>
-  implements MutableAutomatonBuilder<S, S, GeneralizedBuchiAcceptance> {
+public final class BuchiView<S> implements MutableAutomatonBuilder<S, S, BuchiAcceptance> {
 
   private final Automaton<S, AllAcceptance> nba;
 
-  public GeneralizedBuchiView(Automaton<S, AllAcceptance> nba) {
+  public BuchiView(Automaton<S, AllAcceptance> nba) {
     this.nba = nba;
   }
 
@@ -26,9 +25,9 @@ public final class GeneralizedBuchiView<S>
   }
 
   @Override
-  public MutableAutomaton<S, GeneralizedBuchiAcceptance> build() {
-    MutableAutomaton<S, GeneralizedBuchiAcceptance> automaton =
-      MutableAutomatonFactory.create(GeneralizedBuchiAcceptance.of(1), nba.factory());
+  public MutableAutomaton<S, BuchiAcceptance> build() {
+    MutableAutomaton<S, BuchiAcceptance> automaton =
+      MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, nba.factory());
 
     AutomatonUtil.explore(automaton, nba.initialStates(), (state, valuation) ->
       Collections2.transform(nba.successors(state, valuation), x -> Edge.of(x, 0)));

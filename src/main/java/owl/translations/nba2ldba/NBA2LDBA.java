@@ -63,9 +63,10 @@ public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
 
     // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (automaton.acceptance() instanceof AllAcceptance) {
-      nba = new GeneralizedBuchiView<>((Automaton<S, AllAcceptance>) automaton).build();
+      var buchi = new BuchiView<>(AutomatonUtil.cast(automaton, AllAcceptance.class)).build();
+      nba = AutomatonUtil.cast(buchi, GeneralizedBuchiAcceptance.class);
     } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
-      nba = (Automaton<S, GeneralizedBuchiAcceptance>) automaton;
+      nba = AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class);
     } else {
       throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
     }
