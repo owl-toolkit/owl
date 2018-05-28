@@ -1,5 +1,7 @@
 package owl.translations.safra;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
@@ -23,6 +26,7 @@ import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.translations.nba2ldba.BuchiView;
 import owl.util.annotation.Tuple;
 
 public final class SafraBuilder {
@@ -30,8 +34,20 @@ public final class SafraBuilder {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("safra")
     .description("Translates NBA to DRA using Safra's construction")
-    .parser(settings -> environment -> (input, context) ->
-      SafraBuilder.build(AutomatonUtil.cast(input, BuchiAcceptance.class)))
+    .parser(settings -> environment -> (input, context) -> {
+      checkArgument(input instanceof Automaton<?, ?>);
+      Automaton<?, ?> automaton = (Automaton<?, ?>) input;
+
+      Automaton<?, BuchiAcceptance> nba;
+      if (automaton.acceptance() instanceof AllAcceptance) {
+        nba = new BuchiView<>(AutomatonUtil.cast(automaton, AllAcceptance.class)).build();
+      } else if (automaton.acceptance() instanceof BuchiAcceptance) {
+        nba = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
+      } else {
+        throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
+      }
+      return SafraBuilder.build(nba);
+    })
     .build();
 
   private SafraBuilder() {}
