@@ -249,7 +249,8 @@ if (enableProGuard) {
 }
 
 // Task to create a minimal running jar
-def binTask = tasks.create(name: "buildBin", type: Copy) {
+tasks.create(name: "buildBin", type: Copy) {
+    dependsOn 'owlClientExecutable'
     destinationDir = project.buildDir
     into('bin') {
         // Copy all start-scripts and make them executable
@@ -262,6 +263,9 @@ def binTask = tasks.create(name: "buildBin", type: Copy) {
                 exclude "*.bat"
             }
         }
+        if (buildNatives) {
+            from('build/exe/owlClient') // Can't declare 'owlClientExecutable' here?
+        }
         fileMode = 0755
     }
     into('lib') {
@@ -272,10 +276,6 @@ def binTask = tasks.create(name: "buildBin", type: Copy) {
             from([project.configurations.runtime]) // Copy the dependencies
         }
     }
-}
-
-if (buildNatives) {
-    binTask.dependsOn("owlClientExecutable")
 }
 
 // ProGuard dead code detection

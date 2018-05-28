@@ -16,7 +16,7 @@
         "data": "full",
         "repeat": 3,
         "perf": false,
-        "update": true
+        "update": false
     },
     "benchmark": {
         "ltl2ldba": "ltl2ldba",

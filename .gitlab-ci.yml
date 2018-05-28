@@ -6,30 +6,70 @@ before_script:
 stages:
   - build
   - test
+  - deploy
   - bench
+
+variables:
+  GRADLE: ./.gradle
+  GRADLE_HOME: $GRADLE
+  GRADLE_USER_HOME: $GRADLE
+
+
+# Building
 
 Build:
   stage:
     build
+  cache:
+    paths:
+    - $GRADLE
   script:
-    - ./gradlew --no-daemon build
+    - ./gradlew --no-daemon -Pfull check buildBin
+    - scripts/check_binaries.sh
   artifacts:
     paths:
     - build/tmp/
     - build/reports/
     when: on_failure
     expire_in: 1 week
+  artifacts:
+    paths:
+    - build/bin/
+    - build/lib/
+    when: on_success
+    expire_in: 2 hours
+
+
+# Artifact
+
+Assemble:
+  stage:
+    deploy
+  cache:
+    paths:
+    - $GRADLE
+  script:
+    - ./gradlew --no-daemon distZip
+  dependencies:
+  - Build
+  artifacts:
+    paths:
+    - build/distibutions/
+    expire_in: 1 hour # should be longer
+
+
+# Templates
 
 .ltlcross: &ltlcross_template
   script:
-    - ./gradlew --no-daemon -Pfull buildBin
     - python3 scripts/util.py test $TEST_NAME
   artifacts:
     paths:
     - build/results/
     when: always
     expire_in: 1 week
-  dependencies: []
+  dependencies:
+  - Build
 
 .benchmark: &benchmark_template
   stage: bench
@@ -41,16 +81,13 @@ Build:
     when: always
     expire_in: 1 week
   when: manual
-  dependencies: []
+  dependencies:
+  - Build
 
 
-Binaries:
-  stage: test
-  script:
-    - ./gradlew --no-daemon -Pfull buildBin
-    - scripts/check_binaries.sh
+# Tests
 
-# LTL to Automaton
+## LTL to Automaton
 
 LTL2LDBA:
   stage: test
@@ -75,7 +112,6 @@ FGX2DPA:
   variables:
     TEST_NAME: "fgx2dpa"
   <<: *ltlcross_template
-
 
 LTL2DRA:
   stage: test
@@ -119,7 +155,7 @@ NBA2DRA:
     TEST_NAME: "safra"
   <<: *ltlcross_template
 
-# Conversions
+## Conversions
 
 DPA Conversion:
   stage: test
@@ -127,7 +163,7 @@ DPA Conversion:
     TEST_NAME: "ltl2dpa-convert"
   <<: *ltlcross_template
 
-# Benchmarks
+## Benchmarks
 
 LTL2LDBA Benchmark:
   variables:
