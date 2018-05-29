@@ -109,4 +109,12 @@ public class SyntacticSimplifierTest {
     Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
     assertThat(SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC), Matchers.is(expected));
   }
+
+  @Test
+  public void testIssue189() {
+    // Test that there is no assert error.
+    String formulaString = "GF(G!b & (XG!b U ((a & XG!b))))";
+    SimplifierFactory.apply(LtlParser.syntax(formulaString), Mode.SYNTACTIC);
+    SimplifierFactory.apply(LtlParser.syntax("!" + formulaString), Mode.SYNTACTIC);
+  }
 }
