@@ -224,7 +224,9 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     if (SyntacticFairnessSimplifier.isApplicable(formula)) {
       Formula almostAllOperand = SyntacticFairnessSimplifier.getAlmostAllOperand(formula);
       assert almostAllOperand != null;
-      return almostAllOperand.accept(SyntacticFairnessSimplifier.ALMOST_ALL_VISITOR);
+      Formula normalisedX = SyntacticFairnessSimplifier.NormaliseX.UNGUARDED_INSTANCE
+        .apply(almostAllOperand);
+      return normalisedX.accept(SyntacticFairnessSimplifier.ALMOST_ALL_VISITOR);
     }
 
     return formula;
@@ -284,7 +286,9 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       Formula infinitelyOftenOperand = SyntacticFairnessSimplifier
         .getInfinitelyOftenOperand(formula);
       assert infinitelyOftenOperand != null;
-      return infinitelyOftenOperand.accept(SyntacticFairnessSimplifier.INFINITELY_OFTEN_VISITOR);
+      Formula normalisedX = SyntacticFairnessSimplifier.NormaliseX.UNGUARDED_INSTANCE
+        .apply(infinitelyOftenOperand);
+      return normalisedX.accept(SyntacticFairnessSimplifier.INFINITELY_OFTEN_VISITOR);
     }
 
     return formula;
