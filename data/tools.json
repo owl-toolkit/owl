@@ -150,6 +150,36 @@
                 "nosafety": "--nosafety"
             }
         },
+        "ldba-complement-spot": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ldba-complement",
+            "pre": [
+                "ltl-negate",
+                "simplify-ltl",
+                [
+                    "ltl2aut-ext",
+                    "-t",
+                    "ltl2tgba -H"
+                ],
+                "nba2ldba"
+            ]
+        },
+        "ldba-complement-ltl2ldba": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ldba-complement",
+            "pre": [
+                "ltl-negate",
+                "simplify-ltl",
+                [
+                    "ltl2ldba",
+                    "--degeneralize"
+                ]
+            ]
+        },
         "ltl2tgba": {
             "type": "spot",
             "executable": "ltl2tgba",

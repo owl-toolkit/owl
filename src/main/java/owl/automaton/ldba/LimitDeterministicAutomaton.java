@@ -17,10 +17,10 @@
 
 package owl.automaton.ldba;
 
-import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -63,17 +63,25 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
 
   @Override
   default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
+    Set<Object> initialStates = new HashSet<>(initialComponent().initialStates());
+    initialStates.addAll(acceptingComponent().initialStates());
+    for (S initialState : initialComponent().initialStates()) {
+      initialStates.addAll(epsilonJumps(initialState));
+    }
+
     HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
       acceptingComponent().variables(),
       acceptingComponent().acceptance(),
-      Sets.union(initialComponent().initialStates(),
-        acceptingComponent().initialStates()),
+      initialStates,
       options, false, name());
 
     initialComponent().forEachState(state -> {
       consumerExt.addState(state);
-      initialComponent().forEachLabelledEdge(state, consumerExt::addEdge);
-      epsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
+      initialComponent().forEachLabelledEdge(state, (edge, label) -> {
+        consumerExt.addEdge(edge, label);
+        epsilonJumps(edge.successor()).forEach(epsilonSuccessor ->
+          consumerExt.addEdge(edge.withSuccessor(epsilonSuccessor), label));
+      });
       valuationSetJumps(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
       consumerExt.notifyEndOfState();
     });

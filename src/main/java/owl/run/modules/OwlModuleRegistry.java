@@ -38,6 +38,7 @@ import owl.translations.ltl2dra.LTL2DRACliParser;
 import owl.translations.ltl2ldba.LTL2LDBACliParser;
 import owl.translations.nba2dpa.NBA2DPAFunction;
 import owl.translations.nba2ldba.NBA2LDBA;
+import owl.translations.ncsb.NCSBFunction;
 import owl.translations.rabinizer.RabinizerCliParser;
 import owl.translations.safra.SafraBuilder;
 
@@ -65,13 +66,14 @@ public class OwlModuleRegistry {
 
     // Transformer
     DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
-      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI);
+      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI, Transformers.LTL_NEGATE_CLI);
 
     // Advanced constructions
     DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, FGX2DPA.CLI, IARBuilder.CLI,
       LTL2DAModule.CLI, NBA2LDBA.CLI, LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE,
       DelagBuilder.CLI, NBA2DPAFunction.CLI, ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI,
-      ParityUtil.CONVERSION_CLI, LTL2DRACliParser.INSTANCE, SafraBuilder.CLI);
+      ParityUtil.CONVERSION_CLI, LTL2DRACliParser.INSTANCE, SafraBuilder.CLI,
+      NCSBFunction.CLI);
 
   }
 

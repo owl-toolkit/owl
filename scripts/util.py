@@ -169,6 +169,9 @@ def _test(args):
                         if sock.connect_ex(('localhost', port)) == 0:
                             break
                         time.sleep(0.25)
+                    for server_process in server_processes:
+                        if server_process.poll() and server_process.returncode:
+                            sys.exit(server_process.returncode)
 
         process = subprocess.run(test_arguments, env=sub_env)
 

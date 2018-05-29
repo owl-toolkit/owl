@@ -14,15 +14,26 @@ import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.run.PipelineExecutionContext;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.translations.dra2dpa.IARBuilder;
 
 public final class Transformers {
   public static final Transformer LTL_SIMPLIFIER = Transformers.fromFunction(
     LabelledFormula.class, x -> apply(x, Mode.SYNTACTIC_FIXPOINT));
+  public static final Transformer LTL_NEGATE = Transformers.fromFunction(
+    LabelledFormula.class, LabelledFormula::not);
+  public static final TransformerParser LTL_NEGATE_CLI = ImmutableTransformerParser.builder()
+    .key("ltl-negate")
+    .description("Negates an LTL formula")
+    .parser(settings -> LTL_NEGATE)
+    .build();
+
   public static final Transformer MINIMIZER = new ImplicitMinimizeTransformer();
+
   public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();
   public static final Transformer RABIN_TO_PARITY = environment -> (input, context) ->
     new IARBuilder<>(AutomatonUtil.cast(input, RabinAcceptance.class)).build();
+
 
   private Transformers() {
   }

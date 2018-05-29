@@ -38,6 +38,12 @@
                 "determinize": true
             },
             "random"
+        ],
+        "mini": [
+            {
+                "name": "base",
+                "determinize": true
+            }
         ]
     },
     "defaults": {
@@ -160,6 +166,10 @@
         "safra": {
             "tools": "safra",
             "data": "small"
+        },
+        "ldba-complement": {
+            "tools": "ldba-complement-spot",
+            "data": "mini"
         }
     }
 }

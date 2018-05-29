@@ -8,7 +8,7 @@
     <!-- Suppress everything for generated files -->
     <suppress files="owl[\\/]grammar[\\/]" checks=".*"/>
 
-    <suppress files="FG.*|.+2.+" checks="AbbreviationAsWordInName"/>
+    <suppress files="FG.*|.+2.+|NCSB.*" checks="AbbreviationAsWordInName"/>
 
     <!-- Soon we will doc everything ... -->
     <suppress checks="JavadocMethod" files=".*"/>
