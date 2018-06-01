@@ -49,5 +49,7 @@ public final class GenericMinimizations {
 
       return Edge.of(successor);
     });
+
+    automaton.trim();
   }
 }

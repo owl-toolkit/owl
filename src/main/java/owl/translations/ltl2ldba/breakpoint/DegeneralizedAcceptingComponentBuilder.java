@@ -18,7 +18,6 @@
 package owl.translations.ltl2ldba.breakpoint;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -67,7 +66,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     }
 
     EquivalenceClass environment = factories.eqFactory.conjunction(
-      Collections3.concat(List.of(safety), obligations.liveness()));
+      Collections3.append(obligations.liveness(), safety));
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,

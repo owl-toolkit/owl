@@ -42,10 +42,8 @@ final class AcceptingComponentBuilder<S>
   private final int max;
   private final Automaton<S, GeneralizedBuchiAcceptance> nba;
   private final List<Set<S>> sccs;
-  private final boolean traverseOnlySccs;
 
-  private AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba,
-    boolean traverseOnlySccs) {
+  AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba) {
     this.nba = nba;
     initialStates = new ArrayList<>();
     max = Math.max(nba.acceptance().acceptanceSets(), 1);
@@ -55,20 +53,11 @@ final class AcceptingComponentBuilder<S>
       finEdges.add(new HashSet<>());
     }
 
-    nba.forEachEdge((state, edge) ->
-      edge.acceptanceSetIterator().forEachRemaining((int x) -> finEdges.get(x).add(edge)));
+    nba.states().forEach(state -> nba.forEachEdge(state, edge ->
+      edge.acceptanceSetIterator().forEachRemaining((int x) -> finEdges.get(x).add(edge))));
 
     assert finEdges.get(0) != null;
-    this.traverseOnlySccs = traverseOnlySccs;
-    if (traverseOnlySccs) {
-      sccs = SccDecomposition.computeSccs(nba, false);
-    } else {
-      sccs = List.of();
-    }
-  }
-
-  static <S> AcceptingComponentBuilder<S> createScc(Automaton<S, GeneralizedBuchiAcceptance> nba) {
-    return new AcceptingComponentBuilder<>(nba, true);
+    sccs = SccDecomposition.computeSccs(nba, false);
   }
 
   @Override
@@ -95,7 +84,7 @@ final class AcceptingComponentBuilder<S>
 
     Set<S> scc = optionalScc.get();
     Set<Edge<S>> outEdgesM = ldbaState.mx().stream().flatMap(x -> nba.edges(x, valuation)
-      .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.successor()))
+      .stream()).filter(x -> scc.contains(x.successor()))
       .collect(Collectors.toSet());
 
     if (outEdgesM.isEmpty()) {
@@ -103,7 +92,7 @@ final class AcceptingComponentBuilder<S>
     }
 
     Set<Edge<S>> outEdgesN = ldbaState.nx().stream().flatMap(x -> nba.edges(x, valuation)
-      .stream()).filter(x -> !traverseOnlySccs || scc.contains(x.successor()))
+      .stream()).filter(x -> scc.contains(x.successor()))
       .collect(Collectors.toSet());
 
     Set<Edge<S>> intersection = outEdgesM.stream()

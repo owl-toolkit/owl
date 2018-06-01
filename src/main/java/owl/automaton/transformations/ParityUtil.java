@@ -34,6 +34,7 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
@@ -49,8 +50,8 @@ public final class ParityUtil {
     .parser(settings -> environment -> (input, context) -> {
       Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
         ParityAcceptance.class);
-      return ParityUtil.complement(AutomatonUtil.asMutable(automaton),
-        AutomatonUtil.defaultSinkSupplier().get());
+      return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton),
+        MutableAutomatonUtil.defaultSinkSupplier().get());
     }).build();
 
   public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
@@ -118,7 +119,7 @@ public final class ParityUtil {
       BitSet bitSet = new BitSet(1);
       bitSet.set(0);
 
-      Optional<S> completionState = AutomatonUtil.complete(automaton, sinkState, bitSet);
+      Optional<S> completionState = MutableAutomatonUtil.complete(automaton, sinkState, bitSet);
 
       if (!completionState.isPresent()) {
         // Automaton accepted everything
@@ -135,7 +136,7 @@ public final class ParityUtil {
     BitSet set = new BitSet(rejectingAcceptance + 1);
     set.set(rejectingAcceptance);
 
-    Optional<S> completionState = AutomatonUtil.complete(automaton, sinkState, set);
+    Optional<S> completionState = MutableAutomatonUtil.complete(automaton, sinkState, set);
 
     if (completionState.isPresent() && acceptance.acceptanceSets() <= rejectingAcceptance) {
       acceptance = acceptance.withAcceptanceSets(rejectingAcceptance + 1);
@@ -209,6 +210,7 @@ public final class ParityUtil {
       // This remaps _all_ outgoing edges of the states in the SCC - including transient edges.
       // Since these are only taken finitely often by any run, their value does not matter.
       automaton.updateEdges(scc, (state, edge) -> edge.withAcceptance(reductionMapping));
+      automaton.trim();
     }
 
     automaton.acceptance(acceptance.withAcceptanceSets(usedAcceptanceSets));
@@ -226,7 +228,7 @@ public final class ParityUtil {
 
     IntUnaryOperator mapping = getEdgeMapping(acceptance, toParity);
 
-    MutableAutomaton<S, ParityAcceptance> mutable = AutomatonUtil.asMutable(automaton);
+    MutableAutomaton<S, ParityAcceptance> mutable = MutableAutomatonUtil.asMutable(automaton);
     AtomicInteger maximalNewAcceptance = new AtomicInteger(0);
 
     mutable.updateEdges((state, edge) -> {
@@ -244,9 +246,10 @@ public final class ParityUtil {
         maximalNewAcceptance.set(newAcceptance);
       }
 
-      return Edge.of(edge.successor(), newAcceptance);
+      return edge.withAcceptance(newAcceptance);
     });
 
+    mutable.trim();
     mutable.acceptance(new ParityAcceptance(maximalNewAcceptance.get() + 1, toParity));
     return mutable;
   }

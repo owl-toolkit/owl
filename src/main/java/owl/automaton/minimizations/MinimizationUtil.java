@@ -19,15 +19,13 @@ package owl.automaton.minimizations;
 
 import static owl.automaton.AutomatonUtil.toHoa;
 
-import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.MutableAutomaton;
@@ -112,6 +110,7 @@ public final class MinimizationUtil {
       logger.log(Level.FINEST, () -> String.format("Current automaton: %s", toHoa(automaton)));
       logger.log(Level.FINER, "Applying {0}", minimization);
       minimization.minimize((MutableAutomaton) automaton);
+      automaton.trim();
     }
 
     logger.log(Level.FINEST, () -> String.format("Automaton after optimization:%n%s",
@@ -147,6 +146,7 @@ public final class MinimizationUtil {
   public static <S> void removeAndRemapIndices(MutableAutomaton<S, ?> automaton,
     IntSet indicesToRemove) {
     if (indicesToRemove.isEmpty()) {
+      automaton.trim();
       return;
     }
 
@@ -166,78 +166,47 @@ public final class MinimizationUtil {
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
     automaton.updateEdges((state, edge) -> edge.withAcceptance(remapping));
-  }
-
-  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
-    removeDeadStates(automaton, automaton.initialStates(), s -> false, s -> {
-    });
-  }
-
-  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
-    Predicate<? super S> isProtected,
-    Consumer<? super S> removedStatesConsumer) {
-    removeDeadStates(automaton, automaton.initialStates(), isProtected, removedStatesConsumer);
+    automaton.trim();
   }
 
   /**
-   * Remove states from the automaton which are unreachable from the set of initial states or that
-   * cannot belong to an infinite accepting path.
+   * Remove states from the automaton that cannot belong to an infinite accepting path.
    *
    * @param automaton
    *     The automaton considered by the analysis.
-   * @param initialStates
-   *     The set of states that are the initial states for the reachability analysis. Required to be
-   *     part of the automaton.
-   * @param isProtected
-   *     If a state is marked as protected and reachable, it won't be removed.
-   * @param removedStatesConsumer
-   *     A consumer called exactly once for each state removed from the automaton in no particular
-   *     order.
+   *
    */
-  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
-    Set<S> initialStates,
-    Predicate<? super S> isProtected,
-    Consumer<? super S> removedStatesConsumer) {
-    assert automaton.states().containsAll(initialStates) :
-      String.format("States %s not part of the automaton",
-        Sets.filter(initialStates, state -> !automaton.states().contains(state)));
-
-    automaton.removeUnreachableStates(initialStates, removedStatesConsumer);
-
+  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
     // We start from the bottom of the condensation graph.
     // Check for transient thingies...
-    List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, initialStates);
+    List<Set<S>> sccs = SccDecomposition.computeSccs(automaton);
 
     for (Set<S> scc : sccs) {
-      if (scc.stream().anyMatch(isProtected)) {
-        // The SCC contains protected states.
-        continue;
-      }
-
-      // The SCC is not a BSCC. Thus we can reach either an accepting SCC or a SCC with a protected
-      // state
+      // The SCC is not a BSCC. Thus we can reach an accepting SCC.
       if (!SccDecomposition.isTrap(automaton, scc)) {
         continue;
       }
 
       // There are no accepting runs.
-      if (EmptinessCheck.isRejectingScc(automaton, scc)) {
+      if (EmptinessCheck.isEmpty(automaton, scc.iterator().next())) {
         logger.log(Level.FINER, "Removing scc {0}", scc);
-        automaton.removeStates(scc);
-        scc.forEach(removedStatesConsumer);
+        automaton.removeStateIf(scc::contains);
+        // Ensure readable automaton.
+        automaton.trim();
       }
     }
   }
 
   static <S> void removeIndices(MutableAutomaton<S, ?> automaton, Set<S> states,
-    IntSet indicesToRemove) {
+    BitSet indicesToRemove) {
     if (indicesToRemove.isEmpty() || states.isEmpty()) {
       return;
     }
 
     logger.log(Level.FINER, "Removing acceptance indices {0} on subset", indicesToRemove);
-    IntUnaryOperator transformer = index -> indicesToRemove.contains(index) ? -1 : index;
+    IntUnaryOperator transformer = index -> indicesToRemove.get(index) ? -1 : index;
     automaton.updateEdges(states, (state, edge) -> edge.withAcceptance(transformer));
+    automaton.trim();
   }
 
   public enum MinimizationLevel {

@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -32,18 +31,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.edge.LabelledEdge;
 import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.ValuationSet;
 
 public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   B extends GeneralizedBuchiAcceptance, C> {
+
+  private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
 
   private final MutableAutomatonBuilder<KeyT, T, B> acceptingComponentBuilder;
   private final Set<C> components;
@@ -122,39 +124,28 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     Table<S, ValuationSet, Set<T>> valuationSetJumps = HashBasedTable.create();
     generateJumps(initialComponent, epsilonJumps);
     MutableAutomaton<T, B> acceptingComponent = acceptingComponentBuilder.build();
-    acceptingComponent.initialStates(Set.of());
 
     // Preprocess:
     // Remove dead states in the accepting component. Note that the .values() collection is backed
     // by the internal map of the epsilonJumps, hence removal is forwarded.
-    Set<T> jumpTargetsSet = Sets.newHashSet(epsilonJumps.values());
-
-    MinimizationUtil.removeDeadStates(acceptingComponent,
-      Sets.union(initialStates, jumpTargetsSet), x -> false,
-      x -> {
-        jumpTargetsSet.remove(x);
-        // Warning: SetMultimap is broken. DO NOT CHANGE THIS!
-        epsilonJumps.values().removeIf(x::equals);
-        initialStates.remove(x);
-      });
-
-    assert acceptingComponent.states().containsAll(epsilonJumps.values());
+    MinimizationUtil.removeDeadStates(acceptingComponent);
+    Set<T> acceptingComponentStates = acceptingComponent.states();
+    epsilonJumps.values().retainAll(acceptingComponentStates);
+    initialStates.retainAll(acceptingComponentStates);
 
     Predicate<S> initialComponentProtectedStates = x -> isProtected.test(x)
       || epsilonJumps.keySet().contains(x) || valuationSetJumps.rowKeySet().contains(x);
 
     if (optimisations.contains(Configuration.REMOVE_EPSILON_TRANSITIONS)) {
-      Set<T> reachableStates = new HashSet<>(initialStates);
+      Set<T> extendedInitialStates = new HashSet<>(initialStates);
 
-      initialComponent.forEachState(state -> {
-        Iterable<LabelledEdge<S>> successors = initialComponent.labelledEdges(state);
+      for (S state : initialComponent.states()) {
         Map<ValuationSet, Set<T>> successorJumps = valuationSetJumps.row(state);
 
-        successors.forEach(labelledEdge -> {
-          Collection<T> targets = epsilonJumps.get(labelledEdge.edge.successor());
-
-          reachableStates.addAll(targets);
-          successorJumps.compute(labelledEdge.valuations, (x, existingJumpTargets) -> {
+        initialComponent.forEachLabelledEdge(state, (edge, valuations) -> {
+          Collection<T> targets = epsilonJumps.get(edge.successor());
+          extendedInitialStates.addAll(targets);
+          successorJumps.compute(valuations, (x, existingJumpTargets) -> {
             if (existingJumpTargets == null) {
               return new HashSet<>(targets);
             }
@@ -163,21 +154,31 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
             return existingJumpTargets;
           });
         });
-      });
+      }
 
       epsilonJumps.clear();
-      MinimizationUtil.removeDeadStates(initialComponent, initialComponentProtectedStates, x -> {
-      });
-      MinimizationUtil
-        .removeDeadStates(acceptingComponent, reachableStates, x -> false, initialStates::remove);
+      removeUnprotectedStates(initialComponent, initialComponentProtectedStates);
+      acceptingComponent.initialStates(extendedInitialStates);
+      acceptingComponent.trim();
+      MinimizationUtil.removeDeadStates(acceptingComponent);
+      initialStates.retainAll(acceptingComponent.states());
     } else {
-      MinimizationUtil.removeDeadStates(initialComponent, initialComponentProtectedStates, x -> {
-      });
+      removeUnprotectedStates(initialComponent, initialComponentProtectedStates);
     }
 
-    acceptingComponent.initialStates(initialStates);
     return new LimitDeterministicAutomatonImpl<>(initialComponent, acceptingComponent,
-      epsilonJumps, valuationSetJumps, components, getComponent);
+      epsilonJumps, valuationSetJumps, components, getComponent, initialStates);
+  }
+
+  private void removeUnprotectedStates(MutableAutomaton<S, ?> automaton, Predicate<S> isProtected) {
+    for (Set<S> scc : SccDecomposition.computeSccs(automaton)) {
+      if (scc.stream().noneMatch(isProtected) && SccDecomposition.isTrap(automaton, scc)) {
+        // The is a BSCC without protected states. Safe to remove.
+        logger.log(Level.FINER, "Removing scc {0}", scc);
+        automaton.removeStateIf(scc::contains);
+        automaton.trim();
+      }
+    }
   }
 
   private void generateJumps(Automaton<S, NoneAcceptance> initialComponent,

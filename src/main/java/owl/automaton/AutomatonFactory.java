@@ -17,20 +17,19 @@
 
 package owl.automaton;
 
+import com.google.common.base.Preconditions;
 import de.tum.in.naturals.bitset.BitSets;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class AutomatonFactory {
@@ -48,7 +47,7 @@ public final class AutomatonFactory {
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     S initialState, A acceptance, BiFunction<S, BitSet, Edge<S>> transitions) {
-    return new OnTheFlyAutomaton.Simple<>(initialState, factory, transitions, acceptance);
+    return new ImplicitDeterministicAutomaton<>(factory, initialState, acceptance, transitions);
   }
 
   /**
@@ -59,15 +58,16 @@ public final class AutomatonFactory {
    * @param factory The alphabet.
    * @param initialState The initial state.
    * @param acceptance The acceptance condition.
-   * @param transitions The transition function.
-   * @param bulkTransitions
+   * @param edgesFunction The transition function.
+   * @param labelledEdgesFunction
 *     A bulk transition function, needs to be consistent with {@code transitions}.
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
-    S initialState, A acceptance, BiFunction<S, BitSet, Set<Edge<S>>> transitions,
-    Function<S, Collection<LabelledEdge<S>>> bulkTransitions) {
-    return new OnTheFlyAutomaton.Bulk<>(initialState, factory, transitions, bulkTransitions,
-      acceptance);
+    S initialState, A acceptance,
+    BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
+    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    return new ImplicitLabelledAutomaton<>(factory, Set.of(initialState), acceptance, edgesFunction,
+      labelledEdgesFunction);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
@@ -76,21 +76,20 @@ public final class AutomatonFactory {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(
     ValuationSetFactory factory, S state, A acceptance) {
-    return new SingletonAutomaton<>(state, factory, Map.of(), acceptance);
+    return new SingletonAutomaton<>(state, factory, null, acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(
     ValuationSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
-    return new SingletonAutomaton<>(state, factory, Map.of(acceptanceSet,
-      factory.universe()), acceptance);
+    return new SingletonAutomaton<>(state, factory, BitSets.of(acceptanceSet), acceptance);
   }
 
   private static final class EmptyAutomaton<S>
-    implements Automaton<S, NoneAcceptance>, BulkOperationAutomaton {
-    private final ValuationSetFactory factory;
+    extends ImplicitCachedStatesAutomaton<S, NoneAcceptance>
+    implements LabelledEdgesAutomatonMixin<S, NoneAcceptance> {
 
-    EmptyAutomaton(ValuationSetFactory factory) {
-      this.factory = factory;
+    private EmptyAutomaton(ValuationSetFactory factory) {
+      super(factory);
     }
 
     @Override
@@ -99,45 +98,32 @@ public final class AutomatonFactory {
     }
 
     @Override
-    public ValuationSetFactory factory() {
-      return factory;
-    }
-
-    @Override
     public Set<S> initialStates() {
       return Set.of();
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      return Set.of();
-    }
-
-    @Override
-    public Set<S> states() {
-      return Set.of();
+    public Set<LabelledEdge<S>> labelledEdges(S state) {
+      throw new IllegalArgumentException("There are no states in this automaton.");
     }
   }
 
   private static final class SingletonAutomaton<S, A extends OmegaAcceptance>
-    implements Automaton<S, A>, BulkOperationAutomaton {
+    extends ImplicitCachedStatesAutomaton<S, A>
+    implements LabelledEdgesAutomatonMixin<S, A> {
+
     private final A acceptance;
-    private final ValuationSetFactory factory;
-    private final Collection<LabelledEdge<S>> selfLoopEdges;
+    private final List<LabelledEdge<S>> selfLoopEdges;
     private final S singletonState;
 
-    SingletonAutomaton(S singletonState, ValuationSetFactory factory,
-      Map<Set<Integer>, ValuationSet> acceptances, A acceptance) {
-      this.singletonState = singletonState;
-      this.factory = factory;
+    private SingletonAutomaton(S singletonState, ValuationSetFactory factory,
+      @Nullable BitSet acceptanceSets, A acceptance) {
+      super(factory);
       this.acceptance = acceptance;
-
-      List<LabelledEdge<S>> builder = new ArrayList<>();
-      acceptances.forEach((edgeAcceptance, valuations) -> {
-        Edge<S> edge = Edge.of(singletonState, BitSets.of(edgeAcceptance));
-        builder.add(LabelledEdge.of(edge, valuations));
-      });
-      this.selfLoopEdges = List.copyOf(builder);
+      this.singletonState = singletonState;
+      this.selfLoopEdges = acceptanceSets == null
+        ? List.of()
+        : List.of(LabelledEdge.of(singletonState, acceptanceSets, factory.universe()));
     }
 
     @Override
@@ -146,23 +132,15 @@ public final class AutomatonFactory {
     }
 
     @Override
-    public ValuationSetFactory factory() {
-      return factory;
-    }
-
-    @Override
     public Set<S> initialStates() {
       return Set.of(singletonState);
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+    public List<LabelledEdge<S>> labelledEdges(S state) {
+      Preconditions.checkArgument(state.equals(singletonState),
+        "This state is not in the automaton");
       return selfLoopEdges;
-    }
-
-    @Override
-    public Set<S> states() {
-      return Set.of(singletonState);
     }
   }
 }

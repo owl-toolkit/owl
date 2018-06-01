@@ -27,13 +27,14 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
-import javax.annotation.Nonnull;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.immutables.value.Value;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -62,6 +63,7 @@ public final class Views {
   public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton,
     @Nullable S trapState) {
     var completeAutomaton = trapState == null ? automaton : complete(automaton, trapState);
+
     checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
     checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
     // Check is too costly.
@@ -70,16 +72,19 @@ public final class Views {
     var acceptance = completeAutomaton.acceptance();
 
     if (acceptance instanceof BuchiAcceptance) {
-      return new ReplaceAcceptance<>(completeAutomaton, CoBuchiAcceptance.INSTANCE);
+      return createView(completeAutomaton, Views.<S, OmegaAcceptance>builder()
+        .acceptance(CoBuchiAcceptance.INSTANCE).build());
     }
 
     if (acceptance instanceof CoBuchiAcceptance) {
-      return new ReplaceAcceptance<>(completeAutomaton, BuchiAcceptance.INSTANCE);
+      return createView(completeAutomaton, Views.<S, OmegaAcceptance>builder()
+        .acceptance(BuchiAcceptance.INSTANCE).build());
     }
 
     if (acceptance instanceof ParityAcceptance) {
       var parityAcceptance = (ParityAcceptance) automaton.acceptance();
-      return new ReplaceAcceptance<>(completeAutomaton, parityAcceptance.complement());
+      return createView(completeAutomaton, Views.<S, OmegaAcceptance>builder()
+        .acceptance(parityAcceptance.complement()).build());
     }
 
     throw new UnsupportedOperationException();
@@ -90,6 +95,7 @@ public final class Views {
     Edge<S> edge = Edge.of(trapState);
 
     // Patching parity automata
+    // TODO More generic approach - acceptance.createRejectingEdge(trap)?
     if (automaton.acceptance() instanceof ParityAcceptance) {
       checkArgument(((ParityAcceptance) automaton.acceptance()).parity() == Parity.MIN_ODD);
       checkArgument(automaton.acceptance().acceptanceSets() >= 1);
@@ -107,62 +113,100 @@ public final class Views {
   public static <S> Automaton<Set<S>, NoneAcceptance> createPowerSetAutomaton(
     Automaton<S, NoneAcceptance> automaton) {
     return AutomatonFactory.create(automaton.factory(), automaton.initialStates(),
-      NoneAcceptance.INSTANCE, (x, y) -> {
-      Set<S> builder = new HashSet<>();
-      x.forEach(s -> builder.addAll(automaton.successors(s, y)));
-      return Edge.of(Set.copyOf(builder));
-    });
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
-    Set<S> states) {
-    // TODO Add option to pass initial states too - maybe FilterBuilder pattern?
-    // Note: FilteredAutomaton always adds the "successor is in states"-edge-filter.
-    return new FilteredAutomaton<>(automaton, states, e -> true);
+      NoneAcceptance.INSTANCE, (states, valuation) -> Edge.of(states.stream()
+        .flatMap(x -> automaton.successors(x, valuation).stream())
+        .collect(Collectors.toUnmodifiableSet()))
+    );
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
-    return new FilteredAutomaton<>(automaton, states, edgeFilter);
+    return createView(automaton, Views.<S, A>builder()
+      .edgeFilter(edgeFilter)
+      .stateFilter(states::contains)
+      .build());
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
     IntUnaryOperator remappingOperator) {
-    ValuationSetFactory vsFactory = automaton.factory();
-    S initialState = automaton.onlyInitialState();
-    A acceptance = automaton.acceptance();
-    return AutomatonFactory.create(vsFactory, initialState, acceptance, (state, valuation) -> {
-      Edge<S> edge = automaton.edge(state, valuation);
-      return edge == null ? null : edge.withAcceptance(remappingOperator);
-    });
+    return createView(automaton, Views.<S, A>builder()
+      .edgeRewriter(edge -> edge.withAcceptance(remappingOperator)).build());
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(
     Automaton<S, A> automaton, Set<S> initialStates) {
-    Set<S> immutableInitialStates = Set.copyOf(initialStates);
-    return new ForwardingAutomaton<>(automaton) {
-      @Override
-      public A acceptance() {
-        return automaton.acceptance();
-      }
+    return createView(automaton, Views.<S, A>builder().initialStates(initialStates).build());
+  }
 
-      @Override
-      public Set<S> initialStates() {
-        return immutableInitialStates;
-      }
-    };
+  private static <S, A extends OmegaAcceptance> Automaton<S, A> createView(
+    Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
+    return new AutomatonView<>(automaton, settings);
+  }
+
+  private static <S, A extends OmegaAcceptance> ImmutableViewSettings.Builder<S, A> builder() {
+    return ImmutableViewSettings.builder();
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> viewAs(Automaton<S, ?> automaton,
+    Class<A> acceptanceClazz) {
+    if (ParityAcceptance.class.equals(acceptanceClazz)) {
+      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
+      var buchiAutomaton = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
+      ParityAcceptance acceptance = new ParityAcceptance(2, Parity.MIN_EVEN);
+
+      var remapping = Views.<S, ParityAcceptance>builder()
+        .acceptance(acceptance)
+        .edgeRewriter(edge -> edge.inSet(0) ? edge : Edge.of(edge.successor(), 1))
+        .build();
+
+      return AutomatonUtil.cast(createView(buchiAutomaton, remapping), acceptanceClazz);
+    }
+
+    if (RabinAcceptance.class.equals(acceptanceClazz)) {
+      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
+      var buchiAutomaton = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
+      RabinAcceptance acceptance = RabinAcceptance.of(RabinPair.of(0));
+
+      var remapping = Views.<S, RabinAcceptance>builder()
+        .acceptance(acceptance)
+        .edgeRewriter(edge -> edge.withAcceptance(x -> x + 1))
+        .build();
+
+      return AutomatonUtil.cast(createView(buchiAutomaton, remapping), acceptanceClazz);
+    }
+
+    if (GeneralizedRabinAcceptance.class.equals(acceptanceClazz)) {
+      checkArgument(automaton.acceptance() instanceof GeneralizedBuchiAcceptance);
+      var buchiAutomaton = AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class);
+      int sets = buchiAutomaton.acceptance().acceptanceSets();
+      var acceptance = GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, sets));
+
+      var remapping = Views.<S, GeneralizedRabinAcceptance>builder()
+        .acceptance(acceptance)
+        .edgeRewriter(edge -> edge.withAcceptance(x -> x + 1))
+        .build();
+
+      return AutomatonUtil.cast(createView(buchiAutomaton, remapping), acceptanceClazz);
+    }
+
+    throw new UnsupportedOperationException();
   }
 
   static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
-    extends ForwardingAutomaton<S, B, A, Automaton<S, A>> {
-    private final Edge<S> loop;
+    implements Automaton<S, B> {
+
+    private final Edge<S> sinkEdge;
+    private final Automaton<S, A> automaton;
     private final S sink;
     private final B acceptance;
 
-    Complete(Automaton<S, A> automaton, Edge<S> loop, B acceptance) {
-      super(automaton);
-      this.sink = loop.successor();
-      this.loop = loop;
+    @Nullable
+    private Map<S, ValuationSet> incompleteStates;
+
+    Complete(Automaton<S, A> automaton, Edge<S> sinkEdge, B acceptance) {
+      this.automaton = automaton;
+      this.sink = sinkEdge.successor();
+      this.sinkEdge = sinkEdge;
       this.acceptance = acceptance;
     }
 
@@ -172,94 +216,13 @@ public final class Views {
     }
 
     @Override
-    public Set<Edge<S>> edges(S state, BitSet valuation) {
-      if (sink.equals(state)) {
-        return Set.of(loop);
-      }
-
-      Set<Edge<S>> edges = automaton.edges(state, valuation);
-
-      if (edges.isEmpty()) {
-        return Set.of(loop);
-      }
-
-      return edges;
-    }
-
-    @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      ValuationSetFactory factory = factory();
-
-      if (sink.equals(state)) {
-        return Set.of(LabelledEdge.of(loop, factory.universe()));
-      }
-
-      List<LabelledEdge<S>> edges = new ArrayList<>(automaton.labelledEdges(state));
-      ValuationSet complement = factory.union(LabelledEdges.valuations(edges)).complement();
-
-      if (!complement.isEmpty()) {
-        return Collections3.concat(edges, List.of(LabelledEdge.of(loop, complement)));
-      }
-
-      return edges;
-    }
-
-    @Override
-    public boolean is(Property property) {
-      return property == COMPLETE || super.is(property);
-    }
-
-    @Override
-    public Set<S> states() {
-      return AutomatonUtil.getReachableStates(this);
-    }
-  }
-
-  private static final class FilteredAutomaton<S, A extends OmegaAcceptance>
-    extends ForwardingAutomaton<S, A, A, Automaton<S, A>> {
-
-    private final Predicate<LabelledEdge<S>> edgeFilter;
-    private final Set<S> states;
-
-    FilteredAutomaton(Automaton<S, A> automaton, Set<S> states, Predicate<Edge<S>> edgeFilter) {
-      super(automaton);
-      this.states = Set.copyOf(states);
-      this.edgeFilter = x -> states.contains(x.edge.successor()) && edgeFilter.test(x.edge);
-    }
-
-    @Override
-    public A acceptance() {
-      return automaton.acceptance();
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return Sets.intersection(automaton.initialStates(), states);
-    }
-
-    @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      checkArgument(states.contains(state), "State %s not in set", state);
-      return Collections2.filter(automaton.labelledEdges(state), edgeFilter::test);
-    }
-
-    @Override
-    public Set<S> states() {
-      return Sets.intersection(states, automaton.states());
-    }
-  }
-
-  public abstract static class ForwardingAutomaton<S, A extends OmegaAcceptance,
-    B extends OmegaAcceptance, T extends Automaton<S, B>> implements Automaton<S, A> {
-    protected final T automaton;
-
-    protected ForwardingAutomaton(T automaton) {
-      this.automaton = automaton;
-    }
-
-    @Override
     public ValuationSetFactory factory() {
       return automaton.factory();
+    }
+
+    @Override
+    public boolean prefersLabelled() {
+      return automaton.prefersLabelled();
     }
 
     @Override
@@ -268,226 +231,188 @@ public final class Views {
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      return automaton.labelledEdges(state);
-    }
-
-    @Override
     public Set<S> states() {
-      return automaton.states();
+      if (incompleteStates == null) {
+        incompleteStates = AutomatonUtil.getIncompleteStates(automaton);
+      }
+
+      if (incompleteStates.isEmpty()) {
+        return automaton.states();
+      } else {
+        return Sets.union(automaton.states(), Set.of(sink));
+      }
+    }
+
+    @Override
+    public Set<S> successors(S state) {
+      if (sink.equals(state)) {
+        return Set.of(sink);
+      }
+
+      if (incompleteStates != null && incompleteStates.containsKey(state)) {
+        return Sets.union(automaton.states(), Set.of(sink));
+      }
+
+      return new HashSet<>(LabelledEdges.successors(labelledEdges(state)));
+    }
+
+    @Override
+    public Collection<Edge<S>> edges(S state, BitSet valuation) {
+      if (sink.equals(state)) {
+        return List.of(sinkEdge);
+      }
+
+      Collection<Edge<S>> edges = automaton.edges(state, valuation);
+      return edges.isEmpty() ? List.of(sinkEdge) : edges;
+    }
+
+    @Override
+    public Collection<Edge<S>> edges(S state) {
+      if (sink.equals(state)) {
+        return List.of(sinkEdge);
+      }
+
+      if (incompleteStates != null && incompleteStates.containsKey(state)) {
+        return Collections3.append(automaton.edges(state), sinkEdge);
+      }
+
+      return LabelledEdges.edges(labelledEdges(state));
+    }
+
+    @Override
+    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      ValuationSetFactory factory = automaton.factory();
+
+      if (sink.equals(state)) {
+        return List.of(LabelledEdge.of(sinkEdge, factory.universe()));
+      }
+
+      if (incompleteStates != null && incompleteStates.containsKey(state)) {
+        return Collections3.append(automaton.labelledEdges(state),
+          LabelledEdge.of(sinkEdge, incompleteStates.get(state)));
+      }
+
+      List<LabelledEdge<S>> edges = new ArrayList<>(automaton.labelledEdges(state));
+      ValuationSet complement = factory.union(LabelledEdges.valuations(edges)).complement();
+
+      if (!complement.isEmpty()) {
+        edges.add(LabelledEdge.of(sinkEdge, complement));
+      }
+
+      return edges;
+    }
+
+    @Override
+    public boolean is(Property property) {
+      return property == COMPLETE || automaton.is(property);
     }
   }
 
-  public abstract static class ForwardingMutableAutomaton<S, A extends OmegaAcceptance,
-    B extends OmegaAcceptance>
-    extends ForwardingAutomaton<S, A, B, MutableAutomaton<S, B>>
-    implements MutableAutomaton<S, A> {
+  @Value.Immutable
+  abstract static class ViewSettings<S, A extends OmegaAcceptance> {
+    @Nullable
+    abstract A acceptance();
 
-    protected ForwardingMutableAutomaton(MutableAutomaton<S, B> automaton) {
-      super(automaton);
-    }
+    @Nullable
+    abstract Set<S> initialStates();
 
-    @Override
-    public void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
-      automaton.addEdge(source, valuation, edge);
-    }
+    @Nullable
+    abstract Predicate<S> stateFilter();
 
-    @Override
-    public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
-      automaton.addEdge(source, valuations, edge);
-    }
+    @Nullable
+    abstract Predicate<Edge<S>> edgeFilter();
 
-    @Override
-    public void addStates(Collection<? extends S> states) {
-      automaton.addStates(states);
-    }
+    @Nullable
+    abstract Function<Edge<S>, Edge<S>> edgeRewriter();
 
-    @Override
-    public void updateEdges(Set<? extends S> states, BiFunction<? super S, Edge<S>, Edge<S>> f) {
-      automaton.updateEdges(states, f);
-    }
-
-    @Override
-    public void removeEdge(S source, BitSet valuation, S destination) {
-      automaton.removeEdge(source, valuation, destination);
-    }
-
-    @Override
-    public void removeEdge(S source, ValuationSet valuations, S destination) {
-      automaton.removeEdge(source, valuations, destination);
-    }
-
-    @Override
-    public void removeEdges(S source, S destination) {
-      automaton.removeEdges(source, destination);
-    }
-
-    @Override
-    public boolean removeStates(Predicate<? super S> states) {
-      return automaton.removeStates(states);
-    }
-
-    @Override
-    public void removeUnreachableStates(Collection<? extends S> start,
-      Consumer<? super S> removedStatesConsumer) {
-      automaton.removeUnreachableStates(start, removedStatesConsumer);
-    }
-
-    @Override
-    public void initialStates(Collection<? extends S> states) {
-      automaton.initialStates(states);
+    @Value.Default
+    Map<Automaton.Property, Boolean> properties() {
+      return Map.of();
     }
   }
 
-  static class ReplaceAcceptance<S, A extends OmegaAcceptance,
-    B extends OmegaAcceptance> extends ForwardingAutomaton<S, A,
-    B, Automaton<S, B>> {
-    private final A acceptance;
+  public static class AutomatonView<S, A extends OmegaAcceptance>
+    extends ImplicitCachedStatesAutomaton<S, A> {
 
-    ReplaceAcceptance(Automaton<S, B> automaton, A acceptance) {
-      super(automaton);
-      this.acceptance = acceptance;
+    private final Automaton<S, ?> delegateAutomaton;
+    private final ViewSettings<S, A> settings;
+
+    private AutomatonView(Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
+      super(automaton.factory());
+      this.delegateAutomaton = automaton;
+      this.settings = settings;
+    }
+
+    private boolean stateFilter(S state) {
+      var filter = settings.stateFilter();
+      return filter == null || filter.test(state);
+    }
+
+    private boolean edgeFilter(Edge<S> edge) {
+      var filter = settings.edgeFilter();
+      return (filter == null || filter.test(edge)) && stateFilter(edge.successor());
     }
 
     @Override
     public A acceptance() {
-      return acceptance;
-    }
-  }
-
-  // TODO: Merge with cast?
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> viewAs(Automaton<S, ?> automaton,
-    Class<A> acceptanceClazz) {
-    if (ParityAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
-      return AutomatonUtil.cast(new Buchi2Parity<>(
-        AutomatonUtil.cast(automaton, BuchiAcceptance.class)), acceptanceClazz);
-    }
-
-    if (RabinAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
-      return AutomatonUtil.cast(new Buchi2Rabin<>(
-        AutomatonUtil.cast(automaton, BuchiAcceptance.class)), acceptanceClazz);
-    }
-
-    if (GeneralizedRabinAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof GeneralizedBuchiAcceptance);
-      return AutomatonUtil.cast(new GenBuchi2GenRabin<>(
-        AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class)), acceptanceClazz);
-    }
-
-    throw new UnsupportedOperationException();
-  }
-
-  private static final class Buchi2Parity<S> extends
-    ForwardingAutomaton<S, ParityAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
-    private final ParityAcceptance acceptance;
-
-    Buchi2Parity(Automaton<S, BuchiAcceptance> backingAutomaton) {
-      super(backingAutomaton);
-      acceptance = new ParityAcceptance(2, Parity.MIN_EVEN);
-    }
-
-    private Edge<S> convertBuchiToParity(Edge<S> edge) {
-      return edge.inSet(0) ? edge : Edge.of(edge.successor(), 1);
+      A acceptance = settings.acceptance();
+      return acceptance == null ? (A) delegateAutomaton.acceptance() : acceptance;
     }
 
     @Override
-    public ParityAcceptance acceptance() {
-      return acceptance;
+    public Set<S> initialStates() {
+      Set<S> initialStates = settings.initialStates();
+      return initialStates == null
+        ? Sets.filter(delegateAutomaton.initialStates(), this::stateFilter)
+        : initialStates;
+    }
+
+    @Override
+    public boolean prefersLabelled() {
+      return delegateAutomaton.prefersLabelled();
+    }
+
+    @Override
+    public Collection<Edge<S>> edges(S state, BitSet valuation) {
+      checkArgument(stateFilter(state));
+      var filteredEdges = Collections2.filter(
+        delegateAutomaton.edges(state, valuation), this::edgeFilter);
+      var edgeRewriter = settings.edgeRewriter();
+      return edgeRewriter == null
+        ? filteredEdges
+        : Collections2.transform(filteredEdges, edgeRewriter::apply);
+    }
+
+    @Override
+    public Collection<Edge<S>> edges(S state) {
+      checkArgument(stateFilter(state));
+      var filteredEdges = Collections2.filter(delegateAutomaton.edges(state), this::edgeFilter);
+      var edgeRewriter = settings.edgeRewriter();
+      return edgeRewriter == null
+        ? filteredEdges
+        : Collections2.transform(filteredEdges, edgeRewriter::apply);
     }
 
     @Override
     public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      return Collections2.transform(super.labelledEdges(state), labelledEdge ->
-        LabelledEdge.of(convertBuchiToParity(labelledEdge.edge), labelledEdge.valuations));
-    }
-
-    @Nullable
-    @Override
-    public S successor(S state, BitSet valuation) {
-      return automaton.successor(state, valuation);
-    }
-
-    @Override
-    public Set<S> successors(S state) {
-      return automaton.successors(state);
-    }
-
-    @Override
-    public boolean is(@Nonnull Property property) {
-      return property.equals(Property.COLOURED) || super.is(property);
-    }
-  }
-
-  private static final class Buchi2Rabin<S> extends
-    ForwardingAutomaton<S, RabinAcceptance, BuchiAcceptance, Automaton<S, BuchiAcceptance>> {
-    private final RabinAcceptance acceptance;
-
-    Buchi2Rabin(Automaton<S, BuchiAcceptance> backingAutomaton) {
-      super(backingAutomaton);
-      acceptance = RabinAcceptance.of(RabinPair.of(0));
-    }
-
-    private Edge<S> convertBuchiToRabin(Edge<S> edge) {
-      return edge.withAcceptance(x -> x + 1);
-    }
-
-    @Override
-    public RabinAcceptance acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      return Collections2.transform(super.labelledEdges(state), labelledEdge ->
-        LabelledEdge.of(convertBuchiToRabin(labelledEdge.edge), labelledEdge.valuations));
-    }
-
-    @Nullable
-    @Override
-    public S successor(S state, BitSet valuation) {
-      return automaton.successor(state, valuation);
+      checkArgument(stateFilter(state));
+      var filteredEdges = Collections2.filter(
+        delegateAutomaton.labelledEdges(state), x -> edgeFilter(x.edge));
+      var edgeRewriter = settings.edgeRewriter();
+      return edgeRewriter == null
+        ? filteredEdges
+        : Collections2.transform(filteredEdges, labelledEdge -> labelledEdge.map(edgeRewriter));
     }
 
     @Override
     public Set<S> successors(S state) {
-      return automaton.successors(state);
-    }
-  }
-
-  private static final class GenBuchi2GenRabin<S> extends
-    ForwardingAutomaton<S, GeneralizedRabinAcceptance, GeneralizedBuchiAcceptance,
-      Automaton<S, GeneralizedBuchiAcceptance>> {
-    private final GeneralizedRabinAcceptance acceptance;
-
-    GenBuchi2GenRabin(Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton) {
-      super(backingAutomaton);
-      int sets = backingAutomaton.acceptance().acceptanceSets();
-      acceptance = GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, sets));
+      return edges(state).stream().map(Edge::successor).collect(Collectors.toSet());
     }
 
     @Override
-    public GeneralizedRabinAcceptance acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      return Collections2.transform(super.labelledEdges(state),
-        labelledEdge -> LabelledEdge
-          .of(labelledEdge.edge.withAcceptance(x -> x + 1), labelledEdge.valuations));
-    }
-
-    @Nullable
-    @Override
-    public S successor(S state, BitSet valuation) {
-      return automaton.successor(state, valuation);
-    }
-
-    @Override
-    public Set<S> successors(S state) {
-      return automaton.successors(state);
+    public boolean is(Property property) {
+      Boolean value = settings.properties().get(property);
+      return value == null ? super.is(property) : value;
     }
   }
 }

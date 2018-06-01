@@ -26,6 +26,7 @@ import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -210,6 +211,10 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
     public static RabinPair ofGeneralized(@Nonnegative int finIndex, @Nonnegative int infSets) {
       return new RabinPair(finIndex, finIndex + infSets);
+    }
+
+    public boolean contains(BitSet indices) {
+      return !indices.get(finIndex, infIndex + 1).isEmpty();
     }
 
     public boolean contains(Edge<?> edge) {

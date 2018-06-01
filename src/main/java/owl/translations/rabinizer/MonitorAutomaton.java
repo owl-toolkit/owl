@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.LabelledEdgesAutomatonMixin;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.LabelledEdge;
@@ -16,7 +17,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.GOperator;
 
-class MonitorAutomaton implements Automaton<MonitorState, NoneAcceptance> {
+class MonitorAutomaton implements LabelledEdgesAutomatonMixin<MonitorState, NoneAcceptance> {
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
   private final Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;

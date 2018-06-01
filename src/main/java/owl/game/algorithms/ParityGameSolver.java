@@ -55,8 +55,11 @@ public final class ParityGameSolver {
     // get the minimal colour in the game
     AtomicInteger minimalColour = new AtomicInteger(acceptance.acceptanceSets());
 
-    game.forEachEdge((state, edge) ->
-      minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
+    for (S state : states) {
+      game.forEachEdge(state, edge ->
+        minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
+    }
+
     int theMinimalColour = minimalColour.get();
 
     // if the min did not change, we have a winner
@@ -113,7 +116,8 @@ public final class ParityGameSolver {
   }
 
   public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
-    return recursiveZielonka(game).player2.contains(game.onlyInitialState());
+    return recursiveZielonka(GameViews.replaceInitialStates(game, game.states()))
+      .player2.contains(game.onlyInitialState());
   }
 
   private static final class WinningRegions<S> {

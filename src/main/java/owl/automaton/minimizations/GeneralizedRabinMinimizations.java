@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,7 +49,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.algorithms.SccDecomposition;
@@ -238,8 +236,8 @@ public final class GeneralizedRabinMinimizations {
    */
   public static <S> void minimizeMergePairs(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    List<RabinPair> pairs = automaton.acceptance().pairs().stream().filter(
-      RabinPair::hasInfSet)
+    List<RabinPair> pairs = automaton.acceptance().pairs().stream()
+      .filter(RabinPair::hasInfSet)
       .collect(Collectors.toList());
 
     if (pairs.isEmpty()) {
@@ -248,14 +246,12 @@ public final class GeneralizedRabinMinimizations {
 
     Map<RabinPair, IntSet> pairActiveSccs = new HashMap<>();
     Indices.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
-      Set<RabinPair> pairsInScc = new HashSet<>();
-      Views.filter(automaton, scc).forEachLabelledEdge((x, y, z) -> pairs.forEach(pair -> {
-        if (pair.contains(y)) {
-          pairsInScc.add(pair);
+      BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
+      pairs.forEach(pair -> {
+        if (pair.contains(indices)) {
+          pairActiveSccs.computeIfAbsent(pair, k -> new IntOpenHashSet()).add(sccIndex);
         }
-      }));
-      pairsInScc.forEach(pair ->
-        pairActiveSccs.computeIfAbsent(pair, k -> new IntOpenHashSet()).add(sccIndex));
+      });
     });
 
     List<MergeClass> mergeClasses = new ArrayList<>(pairs.size());
@@ -413,17 +409,18 @@ public final class GeneralizedRabinMinimizations {
       Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
 
       // Build implication matrix on this SCC, including vacuous implications (!)
-      BiConsumer<S, Edge<S>> action = (state, edge) ->
-        edge.acceptanceSetIterator().forEachRemaining((int index) -> {
-          BitSet consequences = impliesMap[index];
-          IntConsumer consumer = consequent -> {
-            if (!edge.inSet(consequent)) {
-              consequences.clear(consequent);
-            }
-          };
-          BitSets.forEach(consequences, consumer);
-        });
-      Views.filter(automaton, scc).forEachEdge(action);
+      for (S state : scc) {
+        for (Edge<S> edge : automaton.edges(state)) {
+          if (scc.contains(edge.successor())) {
+            edge.acceptanceSetIterator().forEachRemaining((int index) ->
+              BitSets.forEach(impliesMap[index], consequent -> {
+                if (!edge.inSet(consequent)) {
+                  impliesMap[index].clear(consequent);
+                }
+              }));
+          }
+        }
+      }
 
       Multimap<RabinPair, RabinPair> sccImplications =
         HashMultimap.create(pairs.size(), pairs.size() / 2 + 1);
@@ -547,8 +544,8 @@ public final class GeneralizedRabinMinimizations {
       // In the case of SCC implication, we can only remove the Inf sets. Consider, for example,
       // a single state SCC with a single transition and acceptance Fin(0) | Fin(1). Even though
       // the pairs (trivially) imply each other on this SCC, we can't remove either index.
-      IntSet indicesToRemoveInScc = new IntAVLTreeSet();
-      pairsToRemoveInScc.forEach(pair -> pair.forEachInfSet(indicesToRemoveInScc::add));
+      BitSet indicesToRemoveInScc = new BitSet();
+      pairsToRemoveInScc.forEach(pair -> pair.forEachInfSet(indicesToRemoveInScc::set));
       MinimizationUtil.removeIndices(automaton, scc, indicesToRemoveInScc);
     }
 
@@ -568,19 +565,17 @@ public final class GeneralizedRabinMinimizations {
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
     GeneralizedRabinAcceptance acceptance = automaton.acceptance();
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, false)) {
-      IntSet indicesInScc = new IntAVLTreeSet();
-      Views.filter(automaton, scc).forEachEdge((state, edge) ->
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indicesInScc::add));
+      BitSet indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
 
-      IntSet indicesToRemove = new IntAVLTreeSet();
+      BitSet indicesToRemove = new BitSet();
       for (RabinPair pair : acceptance.pairs()) {
-        boolean finOccurring = indicesInScc.contains(pair.finSet());
+        boolean finOccurring = indicesInScc.get(pair.finSet());
         boolean infOccurring = false;
         boolean impossibleIndexFound = false;
 
         for (int number = 0; number < pair.infSetCount()
           && !(impossibleIndexFound && infOccurring); number++) {
-          if (indicesInScc.contains(pair.infSet(number))) {
+          if (indicesInScc.get(pair.infSet(number))) {
             infOccurring = true;
           } else {
             impossibleIndexFound = true;
@@ -589,11 +584,11 @@ public final class GeneralizedRabinMinimizations {
 
         if (infOccurring || finOccurring) {
           if (impossibleIndexFound) {
-            pair.forEachIndex(indicesToRemove::add);
+            pair.forEachIndex(indicesToRemove::set);
           }
 
           if (!finOccurring) {
-            indicesToRemove.add(pair.finSet());
+            indicesToRemove.set(pair.finSet());
           }
         }
       }
@@ -615,14 +610,12 @@ public final class GeneralizedRabinMinimizations {
     }
 
     SccDecomposition.computeSccs(automaton, false).forEach(scc -> {
-      IntSet usedIndices = new IntAVLTreeSet();
-      Views.filter(automaton, scc).forEachEdge((state, edge) ->
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) usedIndices::add));
+      BitSet usedIndices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       pairs.stream()
-        .filter(pair -> !usedIndices.contains(pair.finSet()))
+        .filter(pair -> !usedIndices.get(pair.finSet()))
         .findAny()
         .ifPresent(pair -> {
-          usedIndices.remove(pair.finSet());
+          usedIndices.clear(pair.finSet());
           MinimizationUtil.removeIndices(automaton, scc, usedIndices);
         });
     });

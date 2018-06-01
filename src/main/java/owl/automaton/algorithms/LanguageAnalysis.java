@@ -1,10 +1,7 @@
 package owl.automaton.algorithms;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonOperations;
@@ -12,8 +9,6 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.edge.Edge;
-import owl.translations.nba2ldba.BreakpointState;
 
 public final class LanguageAnalysis {
 
@@ -44,91 +39,5 @@ public final class LanguageAnalysis {
 
     return EmptinessCheck.isEmpty(AutomatonOperations.intersection(List.of(casted1,
       AutomatonUtil.cast(Views.complement(casted2, new Object()), CoBuchiAcceptance.class))));
-  }
-
-  public static <S> boolean isCosafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
-    if (BreakpointState.sink().equals(state)) { // TODO Dependency on translation package!
-      return true;
-    }
-
-    List<Set<S>> sccs = Lists.reverse(SccDecomposition.computeSccs(
-      automaton, state, false));
-
-    for (Set<S> s : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, s);
-
-      if (!isOnlyAccepting(filteredAutomaton) && !isOnlyNonAccepting(filteredAutomaton)) {
-        return false;
-      }
-    }
-
-    Set<S> nonAccepting = new HashSet<>();
-    for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
-
-      if (isOnlyNonAccepting(filteredAutomaton)) {
-        nonAccepting.addAll(scc);
-      }
-    }
-
-    for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
-
-      if (isOnlyAccepting(filteredAutomaton)
-        && scc.stream().anyMatch(x -> automaton.successors(x)
-        .stream().anyMatch(nonAccepting::contains))) {
-        return false;
-      }
-    }
-
-    return nonAccepting.isEmpty();
-  }
-
-  private static <S> boolean isOnlyAccepting(Automaton<S, BuchiAcceptance> automaton) {
-    return automaton.states().stream()
-      .allMatch(state -> automaton.edges(state).stream().allMatch(Edge::hasAcceptanceSets));
-  }
-
-  private static <S> boolean isOnlyNonAccepting(Automaton<S, BuchiAcceptance> automaton) {
-    return automaton.states().stream()
-      .noneMatch(state -> automaton.edges(state).stream().anyMatch(Edge::hasAcceptanceSets));
-  }
-
-  public static <S> boolean isSafetyLanguage(S state, Automaton<S, BuchiAcceptance> automaton) {
-    if (BreakpointState.sink().equals(state)) { // TODO Dependency on translation package
-      return false;
-    }
-
-    List<Set<S>> sccs = Lists.reverse(SccDecomposition.computeSccs(automaton, Set.of(state),
-      false));
-
-    for (Set<S> s : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, s);
-
-      if (!isOnlyAccepting(filteredAutomaton) && !isOnlyNonAccepting(filteredAutomaton)) {
-        return false;
-      }
-    }
-
-    Set<S> accepting = new HashSet<>();
-
-    for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
-
-      if (isOnlyAccepting(filteredAutomaton)) {
-        accepting.addAll(scc);
-      }
-    }
-
-    for (Set<S> scc : sccs) {
-      Automaton<S, BuchiAcceptance> filteredAutomaton = Views.filter(automaton, scc);
-
-      if (isOnlyNonAccepting(filteredAutomaton) && scc.stream()
-        .anyMatch(x -> automaton.successors(x).stream().anyMatch(accepting::contains))) {
-        return false;
-      }
-    }
-
-    return !accepting.isEmpty();
   }
 }

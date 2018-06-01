@@ -5,19 +5,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
 import de.tum.in.naturals.Indices;
-import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,7 +22,8 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.Views;
+import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -63,18 +60,16 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       logger.log(Level.FINER, "De-generalising automaton with " + automaton.size() + " states");
     }
 
-    // Generalized Rabin pair condition is Fin & /\ Inf(i), if the big AND is empty, it's true.
-    // This means the condition translates to "don't visit the Fin set". Hence, as long as a
-    // transition is not contained in the fin set, it's a good transition. We don't need to
-    // track that index at all then and can save some space.
-    GeneralizedRabinAcceptance acceptance = automaton.acceptance();
-    Collection<RabinPair> pairs = acceptance.pairs();
-
     // Filter out the obviously irrelevant pairs
     List<RabinPair> trackedPairs = new ArrayList<>();
     List<RabinPair> noInfPairs = new ArrayList<>();
 
-    pairs.forEach(pair -> {
+    // Generalized Rabin pair condition is Fin & /\ Inf(i), if the big AND is empty, it's true.
+    // This means the condition translates to "don't visit the Fin set". Hence, as long as a
+    // transition is not contained in the fin set, it's a good transition. We don't need to
+    // track that index at all then and can save some space.
+
+    automaton.acceptance().pairs().forEach(pair -> {
       if (pair.hasInfSet()) {
         trackedPairs.add(pair);
       } else {
@@ -85,11 +80,8 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     // General setup, allocate used pairs, the result automaton, etc.
     int trackedPairsCount = trackedPairs.size();
     int rabinCount = trackedPairsCount + noInfPairs.size();
-    RabinAcceptance.Builder builder = new RabinAcceptance.Builder();
-    RabinPair[] rabinPairs = new RabinPair[rabinCount];
-    for (int i = 0; i < rabinPairs.length; i++) {
-      rabinPairs[i] = builder.add();
-    }
+
+    RabinAcceptance rabinAcceptance = RabinAcceptance.of(rabinCount);
 
     // Arbitrary correspondence map for each original state
     Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>();
@@ -98,7 +90,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
-      MutableAutomatonFactory.create(builder.build(), automaton.factory());
+      MutableAutomatonFactory.create(rabinAcceptance, automaton.factory());
 
     // Build the transition structure for each SCC separately
     for (Set<S> scc : SccDecomposition.computeSccs(automaton, true)) {
@@ -109,7 +101,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
         DegeneralizedRabinState<S> degeneralizedState = DegeneralizedRabinState.of(state);
         // This catches corner cases, where there are transient states with no successors
-        resultAutomaton.addState(degeneralizedState);
+        resultAutomaton.addInitialState(degeneralizedState);
         stateMap.put(state, degeneralizedState);
 
         Map<S, ValuationSet> successors = transientEdgesTable.row(degeneralizedState);
@@ -120,15 +112,11 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
       // Determine the pairs which can accept in this SCC (i.e. those which have all their Inf in
       // this SCC)
-      IntSet indices = new IntAVLTreeSet();
-
-      Views.filter(automaton, scc).forEachLabelledEdge((state, edge, valuations) ->
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::add));
-
+      BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
       Indices.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfSet();
-        if (IntIterators.all(pair.infSetIterator(), indices::contains)) {
+        if (IntIterators.all(pair.infSetIterator(), indices::get)) {
           sccTrackedPairs.add(pairIndex);
         }
       });
@@ -138,17 +126,15 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       // Pick an arbitrary starting state for the exploration
       DegeneralizedRabinState<S> initialSccState =
         DegeneralizedRabinState.of(Iterables.get(scc, 0), new int[sccTrackedPairs.size()]);
-
+      resultAutomaton.addInitialState(initialSccState);
+      var start = Set.of(initialSccState);
       Set<DegeneralizedRabinState<S>> exploredStates =
-        AutomatonUtil.exploreWithLabelledEdge(resultAutomaton, Set.of(initialSccState), state -> {
+        MutableAutomatonUtil.exploreWithLabelledEdge(resultAutomaton, start, state -> {
           S generalizedState = state.state();
-          Collection<LabelledEdge<S>> labelledEdges = automaton.labelledEdges(generalizedState);
-
           Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
-          Collection<LabelledEdge<DegeneralizedRabinState<S>>> successors =
-            new ArrayList<>(labelledEdges.size());
+          List<LabelledEdge<DegeneralizedRabinState<S>>> successors = new ArrayList<>();
 
-          for (LabelledEdge<S> labelledEdge : labelledEdges) {
+          for (LabelledEdge<S> labelledEdge : automaton.labelledEdges(generalizedState)) {
             Edge<S> edge = labelledEdge.edge;
             S generalizedSuccessor = edge.successor();
             if (!scc.contains(generalizedSuccessor)) {
@@ -177,7 +163,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                 // We have seen the fin set, put this transition into the fin set and restart
                 // the wait
                 awaitedInfSet = 0;
-                edgeAcceptance.set(rabinPairs[currentPairIndex].finSet());
+                edgeAcceptance.set(rabinAcceptance.pairs().get(currentPairIndex).finSet());
               } else {
                 // We did not see the fin set, check which inf sets have been seen
                 // Check all inf sets of the rabin pair, starting from the awaited index.
@@ -189,11 +175,10 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
                   if (!edge.inSet(currentInfIndex)) {
                     break;
                   }
+
                   if (currentInfNumber == infiniteIndexCount - 1) {
                     // We reached a breakpoint and can add the transition to the inf set
-                    RabinPair rabinPair = rabinPairs[currentPairIndex];
-                    int infiniteIndex = rabinPair.infSet();
-                    edgeAcceptance.set(infiniteIndex);
+                    edgeAcceptance.set(rabinAcceptance.pairs().get(currentPairIndex).infSet());
                   }
                 }
                 awaitedInfSet = currentInfNumber;
@@ -204,7 +189,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
             // Deal with sets which have no Fin set separately
             Indices.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
               int currentPairIndex = trackedPairsCount + noInfIndex;
-              RabinPair currentPair = rabinPairs[currentPairIndex];
+              RabinPair currentPair = rabinAcceptance.pairs().get(currentPairIndex);
 
               edgeAcceptance.set(edge.inSet(pair.finSet())
                 ? currentPair.finSet()
@@ -213,21 +198,21 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
             DegeneralizedRabinState<S> successor =
               DegeneralizedRabinState.of(generalizedSuccessor, successorAwaitedIndices);
-            successors.add(LabelledEdge.of(Edge.of(successor, edgeAcceptance),
-              labelledEdge.valuations));
+            successors.add(LabelledEdge.of(successor, edgeAcceptance, labelledEdge.valuations));
           }
           return successors;
         });
 
+      exploredStates.forEach(resultAutomaton::addInitialState);
       List<Set<DegeneralizedRabinState<S>>> resultSccs = SccDecomposition.computeSccs(
-        Views.filter((Automaton<DegeneralizedRabinState<S>, ?>) resultAutomaton,
-          exploredStates), exploredStates, false);
+        SuccessorFunction.filter(resultAutomaton, exploredStates), exploredStates, false);
       Set<DegeneralizedRabinState<S>> resultBscc = resultSccs.stream()
         .filter(resultScc -> SccDecomposition.isTrap(resultAutomaton, resultScc))
-        .findAny().orElseThrow(AssertionError::new);
+        .findAny().orElseThrow();
 
-      resultAutomaton.removeStates(state ->
-        exploredStates.contains(state) && !resultBscc.contains(state));
+      resultAutomaton.removeStateIf(
+        state -> exploredStates.contains(state) && !resultBscc.contains(state));
+      resultAutomaton.trim();
       resultBscc.forEach(state -> stateMap.putIfAbsent(state.state(), state));
     }
 
@@ -242,7 +227,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
     // Set initial states
     resultAutomaton.initialStates(automaton.initialStates().stream()
-      .map(stateMap::get).collect(Collectors.toUnmodifiableSet()));
+      .map(stateMap::get)
+      .collect(Collectors.toList()));
+    resultAutomaton.trim();
 
     return resultAutomaton;
   }

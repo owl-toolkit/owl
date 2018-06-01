@@ -132,8 +132,12 @@ public final class IARBuilder<R> {
           subAutomatonAcceptance.acceptanceSets() - 1);
       }
       interSccConnectionsBuilder.putAll(result.interSccConnections);
-      resultAutomaton.addStates(subAutomaton.states());
-      subAutomaton.forEachLabelledEdge((x, y, z) -> resultAutomaton.addEdge(x, z, y));
+
+      Set<IARState<R>> iarStates = subAutomaton.states();
+      iarStates.forEach(resultAutomaton::addInitialState);
+      iarStates.forEach(state -> subAutomaton.forEachLabelledEdge(state,
+        (edge, valuations) -> resultAutomaton.addEdge(state, valuations, edge)));
+
       completedSccs += 1;
     }
 
@@ -141,14 +145,13 @@ public final class IARBuilder<R> {
 
     // Arbitrary correspondence map
     Map<R, IARState<R>> rabinToIarStateMap = Maps.newHashMapWithExpectedSize(rabinAutomaton.size());
-    resultAutomaton.forEachState(iarState ->
-      rabinToIarStateMap.put(iarState.state(), iarState));
+    resultAutomaton.states().forEach(state -> rabinToIarStateMap.put(state.state(), state));
     assert Objects.equals(rabinToIarStateMap.keySet(), rabinAutomaton.states());
 
     logger.log(Level.FINE, "Connecting the SCCs");
 
     // Connect all SCCs back together
-    resultAutomaton.forEachState(iarState ->
+    resultAutomaton.states().forEach(iarState ->
       interSccConnections.get(iarState.state()).forEach(labelledEdge -> {
         IARState<R> successor = rabinToIarStateMap.get(labelledEdge.edge.successor());
         // TODO instead of 0 we should use any which is actually used
@@ -158,7 +161,9 @@ public final class IARBuilder<R> {
 
     resultAutomaton.initialStates(rabinAutomaton.initialStates().stream()
       .map(rabinToIarStateMap::get)
-      .collect(Collectors.toUnmodifiableSet()));
+      .collect(Collectors.toSet()));
+    resultAutomaton.trim();
+
     int sets = maximalSubAutomatonPriority + 1;
     resultAutomaton.updateAcceptance(x -> x.withAcceptanceSets(sets));
     assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
@@ -172,15 +177,19 @@ public final class IARBuilder<R> {
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
       MutableAutomatonFactory.create(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
 
-    Views.filter(rabinAutomaton, simpleScc).forEachLabelledEdge((rabinState, edge, valuations) -> {
-      IARState<R> iarState = IARState.trivial(rabinState);
-      R successor = edge.successor();
-      Edge<IARState<R>> iarEdge = Edge.of(IARState.trivial(successor), 0);
-      resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
-    });
+    for (R state : simpleScc) {
+      IARState<R> iarState = IARState.trivial(state);
+      // We ensure that the state is reachable and not removed from the automaton. We're not
+      // interested in the language, only in the transition system!
+      resultTransitionSystem.addInitialState(iarState);
+      rabinAutomaton.forEachLabelledEdge(state, (edge, valuations) -> {
+        if (simpleScc.contains(edge.successor())) {
+          Edge<IARState<R>> iarEdge = Edge.of(IARState.trivial(edge.successor()), 0);
+          resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
+        }
+      });
+    }
 
-    // Arbitrary initial state to have nice logging
-    resultTransitionSystem.initialState(resultTransitionSystem.states().iterator().next());
     return new SccProcessingResult<>(interSccConnections, resultTransitionSystem);
   }
 
@@ -226,19 +235,15 @@ public final class IARBuilder<R> {
       return getTrivialSccResult(scc, interSccConnections);
     }
 
-    Set<RabinPair> activeRabinPairs;
-
-    if (seenAllInfSets.get()) {
-      activeRabinPairs = Set.copyOf(rabinPairs);
-    } else {
-      activeRabinPairs = Sets.difference(rabinPairs, remainingPairsToCheck).immutableCopy();
-    }
+    Set<RabinPair> activeRabinPairs = seenAllInfSets.get()
+      ? Set.copyOf(rabinPairs)
+      : Set.copyOf(Sets.difference(rabinPairs, remainingPairsToCheck));
 
     // TODO This might access the factory in parallel... Maybe we can return a lazy-explore type
     // of automaton that can be evaluated by the main thread?
-    // TODO Filtered automaton?
-    Automaton<IARState<R>, ParityAcceptance> subAutomaton = SccIARBuilder.from(rabinAutomaton,
-      Set.of(scc.iterator().next()), scc, activeRabinPairs).build();
+    var subAutomaton = new SccIARBuilder<>(Views.filter(
+      Views.replaceInitialState(rabinAutomaton, Set.of(scc.iterator().next())), scc, e -> true),
+      activeRabinPairs).build();
     return new SccProcessingResult<>(interSccConnections, subAutomaton);
   }
 

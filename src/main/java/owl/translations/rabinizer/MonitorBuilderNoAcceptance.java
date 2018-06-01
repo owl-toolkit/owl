@@ -14,7 +14,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import owl.automaton.AutomatonUtil;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -78,25 +78,22 @@ final class MonitorBuilderNoAcceptance {
     }
 
     assert optimizedInitialState != null;
+
     if (!Objects.equals(optimizedInitialState, initialState)) {
-      monitor.initialState(optimizedInitialState);
-      monitor.removeUnreachableStates();
+      monitor.initialStates(Set.of(optimizedInitialState));
+      monitor.trim();
     }
   }
 
   private MonitorAutomaton build() {
     // We start with the (q0, bot, bot, ...) ranking
     MonitorState initialState = MonitorState.of(initialClass);
-
-    MutableAutomaton<MonitorState, ParityAcceptance> monitor =
-      MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
-    monitor.name(String.format("Monitor for %s", initialClass));
-    monitor.addState(initialState);
-    monitor.initialState(initialState);
-
     BiFunction<MonitorState, BitSet, Edge<MonitorState>> successorFunction =
       isFinite ? this::getSuccessorSafety : this::getSuccessor;
-    AutomatonUtil.exploreDeterministic(monitor, Set.of(initialState), successorFunction);
+    MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
+      .copy(AutomatonFactory.create(vsFactory, initialState,
+        new ParityAcceptance(0, Parity.MIN_ODD), successorFunction));
+    monitor.name(String.format("Monitor for %s", initialClass));
 
     if (!isFinite) {
       optimizeInitialState(monitor);

@@ -19,9 +19,9 @@ package owl.translations.nba2ldba;
 
 import com.google.common.collect.Collections2;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
@@ -49,10 +49,11 @@ final class InitialComponentBuilder<S> implements MutableAutomatonBuilder<S, S, 
     MutableAutomaton<S, NoneAcceptance> automaton = MutableAutomatonFactory
       .create(NoneAcceptance.INSTANCE, nba.factory());
 
-    AutomatonUtil.explore(automaton, nba.initialStates(), (state, valuation) ->
-      Collections2.transform(nba.successors(state, valuation), Edge::of));
-
     automaton.initialStates(nba.initialStates());
+    MutableAutomatonUtil.explore(automaton, nba.initialStates(), (state, valuation) ->
+      Collections2.transform(nba.successors(state, valuation), Edge::of), s -> null);
+    automaton.trim();
+
     return automaton;
   }
 }

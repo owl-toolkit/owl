@@ -21,7 +21,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -80,7 +80,7 @@ public class LTL2DRAFunction
       ? applyDegeneralized(formula2)
       : applyGeneralized(formula2);
 
-    return MinimizationUtil.minimizeDefault(AutomatonUtil.asMutable(automaton),
+    return MinimizationUtil.minimizeDefault(MutableAutomatonUtil.asMutable(automaton),
       MinimizationLevel.ALL);
   }
 
@@ -91,9 +91,6 @@ public class LTL2DRAFunction
     if (ldba.isDeterministic()) {
       return Views.viewAs(ldba.acceptingComponent(), RabinAcceptance.class);
     }
-
-    assert ldba.initialComponent().initialStates().size() == 1;
-    assert ldba.acceptingComponent().initialStates().isEmpty();
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
       new BooleanLattice(),
@@ -110,9 +107,6 @@ public class LTL2DRAFunction
     if (ldba.isDeterministic()) {
       return Views.viewAs(ldba.acceptingComponent(), GeneralizedRabinAcceptance.class);
     }
-
-    assert ldba.initialComponent().initialStates().size() == 1;
-    assert ldba.acceptingComponent().initialStates().isEmpty();
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
       new BooleanLattice(),

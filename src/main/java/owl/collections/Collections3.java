@@ -22,11 +22,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import java.util.AbstractCollection;
+import java.util.AbstractList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -66,21 +67,16 @@ public final class Collections3 {
     return true;
   }
 
-  /**
-   * Creates an unmodifiable view of the concatenation of the two given collections.
-   */
-  public static <E> Collection<E> concat(Collection<E> col1, Collection<E> col2) {
-    if (col1.isEmpty()) {
-      return Collections.unmodifiableCollection(col2);
-    }
-    if (col2.isEmpty()) {
-      return Collections.unmodifiableCollection(col1);
+
+  public static <E> Collection<E> append(Collection<E> list, E element) {
+    if (list.isEmpty()) {
+      return List.of(element);
     }
 
     return new AbstractCollection<>() {
       @Override
       public boolean contains(Object o) {
-        return col1.contains(o) || col2.contains(o);
+        return list.contains(o) || element.equals(o);
       }
 
       @Override
@@ -90,16 +86,45 @@ public final class Collections3 {
 
       @Override
       public Iterator<E> iterator() {
-        return Iterators.concat(col1.iterator(), col2.iterator());
+        return Iterators.concat(list.iterator(), Iterators.singletonIterator(element));
       }
 
       @Override
       public int size() {
-        return col1.size() + col2.size();
+        return list.size() + 1;
       }
     };
   }
 
+  public static <E> List<E> append(List<E> list, E element) {
+    if (list.isEmpty()) {
+      return List.of(element);
+    }
+
+    return new AbstractList<>() {
+      @Override
+      public boolean contains(Object o) {
+        return list.contains(o) || element.equals(o);
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return false;
+      }
+
+      @Override
+      public E get(int index) {
+        int size = list.size();
+        Objects.checkIndex(index, size + 1);
+        return index == size ? element : list.get(index);
+      }
+
+      @Override
+      public int size() {
+        return list.size() + 1;
+      }
+    };
+  }
 
   public static <F, T> Set<T> transformUnique(Collection<F> collection,
     Function<F, T> transformer) {

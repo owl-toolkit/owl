@@ -17,18 +17,13 @@
 
 package owl.automaton.algorithms;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.IntConsumer;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.Views;
+import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -43,12 +38,6 @@ import owl.automaton.transformations.RabinDegeneralization;
 
 public final class EmptinessCheck {
   private EmptinessCheck() {}
-
-  public static <S> boolean isRejectingScc(Automaton<S, ?> automaton, Set<S> scc) {
-    Automaton<S, ?> filteredAutomaton = Views.filter(automaton, scc);
-    assert SccDecomposition.isTrap(filteredAutomaton, scc);
-    return isEmpty(filteredAutomaton, scc.iterator().next());
-  }
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
     return automaton.initialStates().stream().allMatch(state -> isEmpty(automaton, state));
@@ -134,7 +123,7 @@ public final class EmptinessCheck {
     return index >= 0 && edge.inSet(index);
   }
 
-  static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
+  public static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
     OmegaAcceptance acceptance = automaton.acceptance();
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
@@ -142,7 +131,7 @@ public final class EmptinessCheck {
       return !hasAcceptingLasso(automaton, initialState, -1, -1, false);
     }
 
-    if (automaton.acceptance() instanceof BuchiAcceptance) {
+    if (acceptance instanceof BuchiAcceptance) {
       Automaton<S, BuchiAcceptance> casted = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
 
       /* assert Buchi.containsAcceptingLasso(casted, initialState)
@@ -198,7 +187,7 @@ public final class EmptinessCheck {
 
     static <S> boolean containsAcceptingScc(
       Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, S initialState) {
-      for (Set<S> scc : SccDecomposition.computeSccs(automaton, initialState)) {
+      for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
         BitSet remaining = new BitSet(automaton.acceptance().size);
         remaining.set(0, automaton.acceptance().size);
 
@@ -260,90 +249,6 @@ public final class EmptinessCheck {
 
       return false;
     }
-
-    static <S> boolean containsAcceptingScc(Automaton<S, ParityAcceptance> automaton,
-      S initialState) {
-      Queue<AnalysisResult<S>> queue = new ArrayDeque<>();
-
-      int initialPriority = automaton.acceptance().parity().even() ? 0 : 1;
-      SccDecomposition.computeSccs(automaton, Set.of(initialState), false)
-        .forEach(scc -> queue.add(new AnalysisResult<>(scc, initialPriority - 1)));
-
-      while (!queue.isEmpty()) {
-        AnalysisResult<S> result = queue.poll();
-        assert !automaton.acceptance().isAccepting(result.minimalPriority);
-
-        Collection<Set<S>> subSccs;
-
-        if (result.minimalPriority == -1) {
-          // First run with EVEN acceptance - don't need to filter / refine SCC.
-          subSccs = List.of(result.scc);
-        } else {
-          // Remove all the edges rejecting at a higher priority - there can't be an accepting one
-          // with priority less than minimalPriorityInScc, since otherwise the search would have
-          // terminated before adding this sub-SCC.
-
-          Automaton<S, ParityAcceptance> filteredAutomaton = Views.filter(automaton,
-            result.scc, edge -> edge.smallestAcceptanceSet() > result.minimalPriority);
-          subSccs = SccDecomposition.computeSccs(filteredAutomaton, result.scc, false);
-        }
-
-        assert subSccs.stream().allMatch(result.scc::containsAll);
-
-        for (Set<S> subScc : subSccs) {
-          int min = Integer.MAX_VALUE;
-
-          for (S state : subScc) {
-            // For each state, get the lowest priority of all edges inside the scc
-            for (Edge<S> edge : automaton.edges(state)) {
-              if (!subScc.contains(edge.successor())) {
-                continue;
-              }
-
-              min = Math.min(edge.smallestAcceptanceSet(), min);
-            }
-
-            if (min == result.minimalPriority + 1) {
-              // sccMinimalPriority is the minimal priority not filtered, there won't be anything
-              // smaller than this. Furthermore, it is accepting by invariant.
-              assert automaton.acceptance().isAccepting(min);
-              return true;
-            }
-          }
-
-          if (min == Integer.MAX_VALUE) {
-            // No internal transitions with priorities
-            continue;
-          }
-
-          if (automaton.acceptance().isAccepting(min)) {
-            // This SCC contains an accepting cycle: Since each state has at least one cycle
-            // containing it (by definition of SCC) and we found an accepting edge where a) the
-            // successor is contained in the SCC (hence there is a cycle containing this edge)
-            // and b) the cycle contains no edge with a priority smaller than the
-            // minimalCyclePriority, since we pruned away all smaller ones.
-            return true;
-          }
-
-          // The scc is not accepting, add it to the work stack
-          queue.add(new AnalysisResult<>(subScc, min));
-        }
-      }
-
-      return false;
-    }
-
-    @SuppressWarnings("PackageVisibleField")
-    private static final class AnalysisResult<S> {
-      final int minimalPriority;
-      final Set<S> scc;
-
-      AnalysisResult(Set<S> scc, int minimalPriority) {
-        //noinspection AssignmentToCollectionOrArrayFieldFromParameter
-        this.scc = scc;
-        this.minimalPriority = minimalPriority;
-      }
-    }
   }
 
   private static final class Rabin {
@@ -363,32 +268,29 @@ public final class EmptinessCheck {
 
     static <S> boolean containsAcceptingScc(Automaton<S, RabinAcceptance> automaton,
       S initialState) {
-      for (Set<S> scc : SccDecomposition.computeSccs(automaton, initialState)) {
-        List<RabinPair> finitePairs = new ArrayList<>(automaton.acceptance().pairs());
-
-        for (RabinPair pair : finitePairs) {
+      for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
+        for (RabinPair pair : automaton.acceptance().pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair
-          Automaton<S, RabinAcceptance> filteredAutomaton = Views.filter(automaton, scc,
+          SuccessorFunction<S> successorFunction = SuccessorFunction.filter(automaton, scc,
             edge -> !edge.inSet(pair.finSet()));
 
-          if (SccDecomposition.computeSccs(filteredAutomaton, scc)
-            .stream().anyMatch(subScc -> {
-              // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
-              for (S state : subScc) {
-                for (Edge<S> edge : filteredAutomaton.edges(state)) {
-                  if (!subScc.contains(edge.successor()) || edge.inSet(pair.finSet())) {
-                    // This edge does not qualify for an accepting cycle
-                    continue;
-                  }
-                  if (edge.inSet(pair.infSet())) {
-                    // This edge yields an accepting cycle
-                    return true;
-                  }
+          if (SccDecomposition.computeSccs(successorFunction, scc).stream().anyMatch(subScc -> {
+            // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
+            for (S state : subScc) {
+              for (Edge<S> edge : automaton.edges(state)) {
+                if (!subScc.contains(edge.successor()) || edge.inSet(pair.finSet())) {
+                  // This edge does not qualify for an accepting cycle
+                  continue;
+                }
+                if (edge.inSet(pair.infSet())) {
+                  // This edge yields an accepting cycle
+                  return true;
                 }
               }
-              // No accepting edge was found in this sub-SCC
-              return false;
-            })) {
+            }
+            // No accepting edge was found in this sub-SCC
+            return false;
+          })) {
             return true;
           }
         }

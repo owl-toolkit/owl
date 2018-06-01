@@ -17,16 +17,15 @@
 
 package owl.automaton;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -37,17 +36,31 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaConsumerExtended;
 import owl.automaton.output.HoaPrintable;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.util.TriConsumer;
 
 /**
- * Note: Every implementation should support concurrent read-access. Further, every state-related
- * operation (e.g., {@link #successors(Object)}) should be unique, while edge-related operations
- * may yield duplicates. For example, {@link #forEachState(Consumer)} should pass a state to the
- * action exactly once, while {@link #forEachEdge(BiConsumer)} may yield the same state-edge pair
- * multiple times.
+ * The base interface providing read access to an automaton. If mutation is required either the
+ * {@link MutableAutomaton} interface or an on-the-fly view from {@link Views} can be used.
+ *
+ * <p>The methods of the interface are always referring to the set of states reachable from
+ * the initial states, especially {@link Automaton#size}, {@link Automaton#states()},
+ * {@link Automaton#accept(EdgeVisitor)}, {@link Automaton#accept(HybridVisitor)},
+ * {@link Automaton#accept(HybridVisitor)}, {@link Automaton#predecessors(Object)} only refer to
+ * the from the initial states reachable set.</p>
+ *
+ * <p>All methods throw an {@link IllegalArgumentException} on a best-effort basis if they detect
+ * that a state given as an argument is not reachable from the initial states. Note that this
+ * behavior cannot be guaranteed, as it is, generally speaking, extremely expensive to check this
+ * for on-the-fly constructed automata. Therefore, it would be wrong to write a program that
+ * depended on this exception for its correctness: this should be only used to detect bugs.</p>
+ *
+ * <p>Further, every state-related operation (e.g., {@link #successors(Object)}) should be unique,
+ * while edge-related operations may yield duplicates. For example,
+ * {@link #forEachEdge(Object, Consumer)} may yield the same state-edge pair multiple times.</p>
+ *
+ * @param <S> the type of the states of the automaton
+ * @param <A> the type of the omega-acceptance condition of the automaton
  */
 public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
 
@@ -71,19 +84,27 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   // Initial states
 
   /**
-   * Returns the initial state. Throws an {@link IllegalStateException} if there a no or multiple
-   * initial states.
+   * Returns the initial state. Throws an {@link NoSuchElementException} if there is no and
+   * {@link IllegalStateException} if there are multiple initial states.
    *
    * @return The unique initial state.
    *
    * @throws NoSuchElementException
    *     If there is no initial state.
-   * @throws IllegalArgumentException
-   *     If there is no unique initial state.
+   * @throws IllegalStateException
+   *     If there are multiple initial states.
+   *
    * @see #initialStates()
    */
   default S onlyInitialState() {
-    return Iterables.getOnlyElement(initialStates());
+    Iterator<S> iterator = initialStates().iterator();
+    S first = iterator.next();
+
+    if (!iterator.hasNext()) {
+      return first;
+    }
+
+    throw new IllegalStateException("Multiple initial states: " + initialStates().toString());
   }
 
   /**
@@ -97,26 +118,24 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   // State-set properties
 
   /**
-   * Returns the number of states of this automaton (its cardinality). If this
-   * set contains more than {@code Integer.MAX_VALUE} elements, returns
+   * Returns the number of reachable states of this automaton (its cardinality). If this
+   * set contains more than {@code Integer.MAX_VALUE} elements, it returns
    * {@code Integer.MAX_VALUE}.
    *
    * @return the number of elements in this set (its cardinality)
+   *
+   * @see #states()
    */
   default int size() {
     return states().size();
   }
 
   /**
-   * Returns all states in this automaton.
+   * The set of all from the initial states reachable states in this automaton.
    *
-   * @return All states of the automaton
+   * @return All reachable states
    */
   Set<S> states();
-
-  default void forEachState(Consumer<S> action) {
-    states().forEach(action);
-  }
 
   // Transition function - Single
 
@@ -130,17 +149,15 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The successor edges, possibly empty.
    */
-  default Set<Edge<S>> edges(S state, BitSet valuation) {
-    return Collections3.transformUnique(labelledEdges(state),
-      x -> x.valuations.contains(valuation) ? x.edge : null);
-  }
+  Collection<Edge<S>> edges(S state, BitSet valuation);
 
   /**
    * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
    * Returns some edge if there is a non-deterministic choice in this state for the specified
    * valuation.
    *
-   * <p>If you want to check if this is the unique edge use the getEdges() method.</p>
+   * <p>If you want to check if this is the unique edge use the {@link #edges(Object, BitSet)}
+   * method.</p>
    *
    * @param state
    *     The starting state of the transition.
@@ -164,16 +181,10 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
    *
    * @return The set of edges originating from {@code state}
    */
-  default Set<Edge<S>> edges(S state) {
-    return Collections3.transformUnique(labelledEdges(state), x -> x.edge);
-  }
-
-  default void forEachEdge(BiConsumer<S, Edge<S>> action) {
-    forEachState(state -> forEachEdge(state, edge -> action.accept(state, edge)));
-  }
+  Collection<Edge<S>> edges(S state);
 
   default void forEachEdge(S state, Consumer<Edge<S>> action) {
-    factory().forEach(valuation -> edges(state, valuation).forEach(action));
+    edges(state).forEach(action);
   }
 
   // Transition function - Bulk
@@ -192,22 +203,27 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     labelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
   }
 
-  default void forEachLabelledEdge(TriConsumer<S, Edge<S>, ValuationSet> action) {
-    forEachState(state ->
-      forEachLabelledEdge(state, (edge, valuations) -> action.accept(state, edge, valuations)));
-  }
-
 
   // Derived state functions
 
+  /**
+   * Returns the successors of the specified {@code state} under the given {@code valuation}.
+   *
+   * @param state
+   *     The starting state of the transition.
+   * @param valuation
+   *     The valuation.
+   *
+   * @return The successor set.
+   */
   default Set<S> successors(S state, BitSet valuation) {
-    return Collections3.transformUnique(edges(state, valuation), Edge::successor);
+    return new HashSet<>(Collections2.transform(edges(state, valuation), Edge::successor));
   }
 
   /**
-   * <p>Returns the successor of the specified {@code state} under the given {@code valuation}.
+   * Returns the successor of the specified {@code state} under the given {@code valuation}.
    * Returns some state if there is a non-deterministic choice in this state for the specified
-   * valuation.</p>
+   * valuation.
    *
    * <p>If you want to check if this is the unique edge use the getSuccessors() method.</p>
    *
@@ -223,25 +239,95 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     return Iterables.getFirst(successors(state, valuation), null);
   }
 
-  default Set<S> successors(S state) {
-    return Collections3.transformUnique(edges(state), Edge::successor);
-  }
+  /**
+   * Returns all successors of the specified {@code state}.
+   *
+   * @param state
+   *     The starting state of the transition.
+   *
+   * @return The successor set.
+   */
+  Set<S> successors(S state);
 
-
+  /**
+   * Returns the predecessors of the specified {@code state}.
+   *
+   * @param state
+   *     The starting state of the transition.
+   *
+   * @return The predecessor set.
+   */
   default Set<S> predecessors(S state) {
     Set<S> predecessors = new HashSet<>();
 
-    forEachState((predecessor) -> {
-      if (successors(predecessor).contains(state)) {
-        predecessors.add(predecessor);
-      }
-    });
+    HybridVisitor<S> visitor = new HybridVisitor<>() {
+      boolean isPredecessor = false;
 
+      @Override
+      public void enter(S state) {
+        isPredecessor = false;
+      }
+
+      @Override
+      public void exit(S state) {
+        if (isPredecessor) {
+          predecessors.add(state);
+        }
+      }
+
+      @Override
+      public void visitEdge(Edge<S> edge, BitSet valuation) {
+        if (!isPredecessor) {
+          isPredecessor = edge.successor().equals(state);
+        }
+      }
+
+      @Override
+      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+        if (!isPredecessor) {
+          isPredecessor = edge.successor().equals(state);
+        }
+      }
+    };
+
+    this.accept(visitor);
     return predecessors;
   }
 
+  // Automaton Visitor
+
+  default void accept(EdgeVisitor<S> visitor) {
+    DefaultImplementations.visit(this, visitor);
+  }
+
+  default void accept(LabelledEdgeVisitor<S> visitor) {
+    DefaultImplementations.visit(this, visitor);
+  }
+
+  /**
+   * Traverse all edges of the automaton using the preferred visitor style. The iteration order is
+   * not specified and can be arbitrary.
+   *
+   * @param visitor the visitor.
+   */
+  default void accept(HybridVisitor<S> visitor) {
+    if (prefersLabelled()) {
+      this.accept((LabelledEdgeVisitor<S>) visitor);
+    } else {
+      this.accept((EdgeVisitor<S>) visitor);
+    }
+  }
 
   // Properties
+
+  /**
+   * Indicate if the automaton implements a fast computation (e.g. symbolic) of labelled edges.
+   * Returns {@code true}, if the automaton advices to use {@link Automaton#labelledEdges(Object)}
+   * and {@link Automaton#accept(LabelledEdgeVisitor)} for accessing all outgoing edges of a state.
+   *
+   * @return The preferred traversal method.
+   */
+  boolean prefersLabelled();
 
   default boolean is(Property property) {
     switch (property) {
@@ -251,8 +337,8 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
       case DETERMINISTIC:
         return Properties.isDeterministic(this);
 
-      case NON_DETERMINISTIC:
-        return !Properties.isDeterministic(this);
+      case SEMI_DETERMINISTIC:
+        return Properties.isSemiDeterministic(this);
 
       default:
         throw new UnsupportedOperationException("Property detection for " + property
@@ -266,44 +352,50 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, variables(),
       acceptance(), initialStates(), options, is(Property.DETERMINISTIC), name());
 
-    if (this instanceof BulkOperationAutomaton) {
-      forEachState(state -> {
+    HybridVisitor<S> visitor = new HybridVisitor<>() {
+      @Override
+      public void enter(S state) {
         hoa.addState(state);
-        forEachLabelledEdge(state, hoa::addEdge);
-        hoa.notifyEndOfState();
-      });
-    } else {
-      Set<S> exploredStates = Sets.newHashSet(initialStates());
-      Queue<S> workQueue = new ArrayDeque<>(exploredStates);
+      }
 
-      while (!workQueue.isEmpty()) {
-        S state = workQueue.poll();
-        hoa.addState(state);
-
-        factory().forEach(valuation -> {
-          Edge<S> edge = this.edge(state, valuation);
-
-          if (edge == null) {
-            return;
-          }
-
-          S successorState = edge.successor();
-
-          if (exploredStates.add(successorState)) {
-            workQueue.add(successorState);
-          }
-
-          hoa.addEdge(edge, valuation);
-        });
-
+      @Override
+      public void exit(S state) {
         hoa.notifyEndOfState();
       }
-    }
 
+      @Override
+      public void visitEdge(Edge<S> edge, BitSet valuation) {
+        hoa.addEdge(edge, valuation);
+      }
+
+      @Override
+      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+        hoa.addEdge(edge, valuationSet);
+      }
+    };
+
+    this.accept(visitor);
     hoa.notifyEnd();
   }
 
   enum Property {
-    COMPLETE, DETERMINISTIC, LIMIT_DETERMINISTIC, NON_DETERMINISTIC, TERMINAL, WEAK, COLOURED
+    COMPLETE, DETERMINISTIC, SEMI_DETERMINISTIC, LIMIT_DETERMINISTIC
+  }
+
+  interface Visitor<S> {
+    void enter(S state);
+
+    void exit(S state);
+  }
+
+  interface LabelledEdgeVisitor<S> extends Visitor<S> {
+    void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet);
+  }
+
+  interface EdgeVisitor<S> extends Visitor<S> {
+    void visitEdge(Edge<S> edge, BitSet valuation);
+  }
+
+  interface HybridVisitor<S> extends EdgeVisitor<S>, LabelledEdgeVisitor<S> {
   }
 }

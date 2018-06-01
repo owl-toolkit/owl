@@ -40,7 +40,7 @@ public final class SafraBuilder {
 
       Automaton<?, BuchiAcceptance> nba;
       if (automaton.acceptance() instanceof AllAcceptance) {
-        nba = new BuchiView<>(AutomatonUtil.cast(automaton, AllAcceptance.class)).build();
+        nba = BuchiView.build(AutomatonUtil.cast(automaton, AllAcceptance.class));
       } else if (automaton.acceptance() instanceof BuchiAcceptance) {
         nba = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
       } else {
@@ -79,8 +79,8 @@ public final class SafraBuilder {
 
         int index = usedIndices.nextClearBit(0);
         usedIndices.set(index);
-        return Tree.of(newFather, Collections3.concat(children,
-          List.of(Tree.of(Label.of(newChildStates, index)))));
+        return Tree.of(newFather, Collections3.append(children,
+          Tree.of(Label.of(newChildStates, index))));
       }).map((father, children) -> {
         // Horizontal merge
         Set<S> olderStates = new HashSet<>();
