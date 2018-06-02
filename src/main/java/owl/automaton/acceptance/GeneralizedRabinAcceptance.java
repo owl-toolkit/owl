@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import javax.annotation.Nonnegative;
@@ -64,6 +65,24 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     }
 
     checkArgument(i == setCount);
+  }
+
+  @Override
+  public BitSet acceptingSet() {
+    if (pairs.isEmpty()) {
+      throw new NoSuchElementException();
+    }
+
+    BitSet set = new BitSet();
+    pairs.get(0).forEachInfSet(set::set);
+    return set;
+  }
+
+  @Override
+  public BitSet rejectingSet() {
+    BitSet set = new BitSet();
+    pairs.forEach(x -> set.set(x.finIndex));
+    return set;
   }
 
   private int computeSetCount(List<RabinPair> pairs) {

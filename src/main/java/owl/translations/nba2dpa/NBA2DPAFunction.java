@@ -17,7 +17,6 @@
 
 package owl.translations.nba2dpa;
 
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.Automaton;
@@ -85,7 +84,7 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPr
     var ldbaCutDet = new CutDeterministicAutomaton<>(nba2ldba.apply(nba));
     MutableAutomatonUtil.complete((
       MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet.acceptingComponent(),
-      BreakpointState.sink(), new BitSet());
+      BreakpointState.sink());
 
     var oracle = new SetLanguageLattice<>(ldbaCutDet.acceptingComponent());
 

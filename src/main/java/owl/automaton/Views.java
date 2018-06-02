@@ -92,17 +92,8 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> complete(Automaton<S, A> automaton,
     S trapState) {
-    Edge<S> edge = Edge.of(trapState);
-
-    // Patching parity automata
-    // TODO More generic approach - acceptance.createRejectingEdge(trap)?
-    if (automaton.acceptance() instanceof ParityAcceptance) {
-      checkArgument(((ParityAcceptance) automaton.acceptance()).parity() == Parity.MIN_ODD);
-      checkArgument(automaton.acceptance().acceptanceSets() >= 1);
-      edge = edge.withAcceptance(0);
-    }
-
-    return new Complete<>(automaton, edge, automaton.acceptance());
+    A acceptance = automaton.acceptance();
+    return new Complete<>(automaton, Edge.of(trapState, acceptance.rejectingSet()), acceptance);
   }
 
   public static <S> Automaton<S, CoBuchiAcceptance> completeAllAcceptance(

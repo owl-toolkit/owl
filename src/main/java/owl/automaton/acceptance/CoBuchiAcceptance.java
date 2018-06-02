@@ -17,6 +17,7 @@
 
 package owl.automaton.acceptance;
 
+import java.util.BitSet;
 import java.util.List;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -43,6 +44,18 @@ public final class CoBuchiAcceptance extends OmegaAcceptance {
   @Override
   public List<Object> nameExtra() {
     return List.of();
+  }
+
+  @Override
+  public BitSet acceptingSet() {
+    return new BitSet();
+  }
+
+  @Override
+  public BitSet rejectingSet() {
+    BitSet set = new BitSet();
+    set.set(0);
+    return set;
   }
 
   @Override

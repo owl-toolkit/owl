@@ -45,9 +45,8 @@ public final class MutableAutomatonUtil {
     return () -> Sink.INSTANCE;
   }
 
-  public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton,
-    BitSet rejectingAcceptance) {
-    return complete(automaton, Sink.INSTANCE, rejectingAcceptance);
+  public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton) {
+    return complete(automaton, Sink.INSTANCE);
   }
 
   /**
@@ -57,15 +56,14 @@ public final class MutableAutomatonUtil {
    * instead no state was added {@link Optional#empty()} is returned. After adding the sink state,
    * the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop.
    *
+   * @param automaton
+   *     The automaton to complete.
    * @param sinkState
    *     A sink state.
-   * @param rejectingAcceptance
-   *     A rejecting acceptance.
    *
    * @return The added state or {@code empty} if none was added.
    */
-  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, S sinkState,
-    BitSet rejectingAcceptance) {
+  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, S sinkState) {
     if (automaton.initialStates().isEmpty()) {
       automaton.addInitialState(sinkState);
     }
@@ -77,7 +75,7 @@ public final class MutableAutomatonUtil {
     }
 
     // Add edges to the sink state.
-    Edge<S> sinkEdge = Edge.of(sinkState, rejectingAcceptance);
+    Edge<S> sinkEdge = Edge.of(sinkState, automaton.acceptance().rejectingSet());
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
     automaton.addEdge(sinkState, automaton.factory().universe(), sinkEdge);
     return Optional.of(sinkState);

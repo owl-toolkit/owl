@@ -17,6 +17,8 @@
 
 package owl.automaton.acceptance;
 
+import java.util.BitSet;
+import java.util.NoSuchElementException;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.edge.Edge;
@@ -39,6 +41,16 @@ public final class AllAcceptance extends OmegaAcceptance {
   @Override
   public String name() {
     return "all";
+  }
+
+  @Override
+  public BitSet acceptingSet() {
+    return new BitSet();
+  }
+
+  @Override
+  public BitSet rejectingSet() {
+    throw new NoSuchElementException();
   }
 
   @Override
