@@ -19,7 +19,9 @@ package owl.automaton.acceptance;
 
 import static owl.automaton.acceptance.BooleanExpressions.createConjunction;
 
+import java.util.BitSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
@@ -56,6 +58,22 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   @Override
   public List<Object> nameExtra() {
     return List.of(size);
+  }
+
+  @Override
+  public BitSet acceptingSet() {
+    BitSet set = new BitSet();
+    set.set(0, size);
+    return set;
+  }
+
+  @Override
+  public BitSet rejectingSet() {
+    if (size == 0) {
+      throw new NoSuchElementException();
+    }
+
+    return new BitSet();
   }
 
   @Override

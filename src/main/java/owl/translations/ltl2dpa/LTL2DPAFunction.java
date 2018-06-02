@@ -28,7 +28,6 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_S
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
 import com.google.common.util.concurrent.Uninterruptibles;
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -289,9 +288,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     Automaton<T, ParityAcceptance> complete() {
       var automaton = MutableAutomatonUtil.asMutable(this.automaton);
-      BitSet reject = new BitSet();
-      reject.set(0);
-      MutableAutomatonUtil.complete(automaton, sinkState, reject);
+      MutableAutomatonUtil.complete(automaton, sinkState);
       return automaton;
     }
 

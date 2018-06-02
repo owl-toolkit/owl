@@ -18,6 +18,7 @@
 package owl.automaton.acceptance;
 
 import com.google.common.collect.Iterables;
+import java.util.BitSet;
 import java.util.List;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
@@ -39,6 +40,10 @@ public abstract class OmegaAcceptance {
   public List<Object> nameExtra() {
     return List.of();
   }
+
+  public abstract BitSet acceptingSet();
+
+  public abstract BitSet rejectingSet();
 
   /**
    * This method determines if the given edge is a well defined edge for this acceptance condition.

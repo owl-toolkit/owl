@@ -21,7 +21,6 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +30,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
@@ -108,40 +108,18 @@ public final class ParityUtil {
     MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
     ParityAcceptance acceptance = automaton.acceptance();
 
-    if (acceptance.acceptanceSets() == 0) {
-      if (!acceptance.emptyIsAccepting()) {
-        // Automaton currently accepts nothing
-        return MutableAutomatonFactory.singleton(sinkState, automaton.factory(),
-          acceptance.complement());
-      }
-
-      acceptance = acceptance.withAcceptanceSets(1);
-      BitSet bitSet = new BitSet(1);
-      bitSet.set(0);
-
-      Optional<S> completionState = MutableAutomatonUtil.complete(automaton, sinkState, bitSet);
-
-      if (!completionState.isPresent()) {
-        // Automaton accepted everything
-        return MutableAutomatonFactory.singleton(sinkState, automaton.factory(),
-          acceptance.complement());
-      }
-
-      // Automaton accepted everything which does not end up in the completion state
-      automaton.acceptance(new ParityAcceptance(1, Parity.MAX_EVEN));
-      return automaton;
+    if (acceptance.acceptanceSets() == 0 && !acceptance.emptyIsAccepting()) {
+      // Automaton currently accepts nothing
+      return MutableAutomatonFactory.copy(AutomatonFactory
+        .singleton(automaton.factory(), sinkState, acceptance.complement(), new BitSet()));
     }
 
-    int rejectingAcceptance = acceptance.parity().even() ? 1 : 0;
-    BitSet set = new BitSet(rejectingAcceptance + 1);
-    set.set(rejectingAcceptance);
-
-    Optional<S> completionState = MutableAutomatonUtil.complete(automaton, sinkState, set);
-
-    if (completionState.isPresent() && acceptance.acceptanceSets() <= rejectingAcceptance) {
-      acceptance = acceptance.withAcceptanceSets(rejectingAcceptance + 1);
+    if (acceptance.acceptanceSets() <= 1) {
+      acceptance = acceptance.withAcceptanceSets(2);
+      automaton.acceptance(acceptance);
     }
 
+    MutableAutomatonUtil.complete(automaton, sinkState);
     automaton.acceptance(acceptance.complement());
     return automaton;
   }

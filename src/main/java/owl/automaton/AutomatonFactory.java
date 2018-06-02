@@ -84,6 +84,11 @@ public final class AutomatonFactory {
     return new SingletonAutomaton<>(state, factory, BitSets.of(acceptanceSet), acceptance);
   }
 
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(
+    ValuationSetFactory factory, S state, A acceptance, BitSet acceptanceSet) {
+    return new SingletonAutomaton<>(state, factory, acceptanceSet, acceptance);
+  }
+
   private static final class EmptyAutomaton<S>
     extends ImplicitCachedStatesAutomaton<S, NoneAcceptance>
     implements LabelledEdgesAutomatonMixin<S, NoneAcceptance> {

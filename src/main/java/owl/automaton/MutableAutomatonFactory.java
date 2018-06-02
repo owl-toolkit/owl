@@ -108,12 +108,6 @@ public final class MutableAutomatonFactory {
     return target;
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> singleton(S state,
-    ValuationSetFactory factory, A acceptance) {
-    var edge = Edge.of(state);
-    return create(acceptance, factory, Set.of(state), (s, vs) -> edge, s -> new BitSet(0));
-  }
-
   private static class CopyVisitor<S> implements HybridVisitor<S> {
     @Nullable
     private S currentState = null;
