@@ -42,6 +42,15 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
   private final MutableAutomaton<S, NoneAcceptance> initialComponent;
   private final Table<S, ValuationSet, Set<T>> valuationSetJumps;
 
+  public LimitDeterministicAutomatonImpl(MutableAutomaton<S, NoneAcceptance> initialComponent,
+    MutableAutomaton<T, U> acceptingComponent,
+    SetMultimap<S, T> epsilonJumps,
+    Table<S, ValuationSet, Set<T>> valuationSetJumps,
+    Set<T> acceptingComponentInitialStates) {
+    this(initialComponent, acceptingComponent, epsilonJumps, valuationSetJumps, Set.of(), x -> null,
+      acceptingComponentInitialStates);
+  }
+
   LimitDeterministicAutomatonImpl(MutableAutomaton<S, NoneAcceptance> initialComponent,
     MutableAutomaton<T, U> acceptingComponent,
     SetMultimap<S, T> epsilonJumps,

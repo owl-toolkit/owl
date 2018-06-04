@@ -17,13 +17,13 @@
 
 package owl.translations.nba2ldba;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
@@ -37,27 +37,19 @@ import owl.automaton.ldba.MutableAutomatonBuilder;
 final class AcceptingComponentBuilder<S>
   implements MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> {
 
-  private final List<Set<Edge<S>>> finEdges;
   private final List<BreakpointState<S>> initialStates;
   private final int max;
   private final Automaton<S, GeneralizedBuchiAcceptance> nba;
   private final List<Set<S>> sccs;
+  @Nullable
+  private final Edge<BreakpointState<S>> sinkEdge;
 
-  AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba) {
+  AcceptingComponentBuilder(Automaton<S, GeneralizedBuchiAcceptance> nba, boolean complete) {
     this.nba = nba;
     initialStates = new ArrayList<>();
     max = Math.max(nba.acceptance().acceptanceSets(), 1);
-
-    this.finEdges = new ArrayList<>(max);
-    for (int i = 0; i < max; i++) {
-      finEdges.add(new HashSet<>());
-    }
-
-    nba.states().forEach(state -> nba.forEachEdge(state, edge ->
-      edge.acceptanceSetIterator().forEachRemaining((int x) -> finEdges.get(x).add(edge))));
-
-    assert finEdges.get(0) != null;
     sccs = SccDecomposition.computeSccs(nba, false);
+    sinkEdge = complete ? Edge.of(BreakpointState.sink()) : null;
   }
 
   @Override
@@ -79,24 +71,28 @@ final class AcceptingComponentBuilder<S>
       .findAny();
 
     if (!optionalScc.isPresent()) {
-      return null;
+      return sinkEdge;
     }
 
     Set<S> scc = optionalScc.get();
-    Set<Edge<S>> outEdgesM = ldbaState.mx().stream().flatMap(x -> nba.edges(x, valuation)
-      .stream()).filter(x -> scc.contains(x.successor()))
-      .collect(Collectors.toSet());
+    Set<Edge<S>> outEdgesM = ldbaState.mx()
+      .stream()
+      .flatMap(x -> nba.edges(x, valuation).stream())
+      .filter(x -> scc.contains(x.successor()))
+      .collect(toSet());
 
     if (outEdgesM.isEmpty()) {
-      return null;
+      return sinkEdge;
     }
 
-    Set<Edge<S>> outEdgesN = ldbaState.nx().stream().flatMap(x -> nba.edges(x, valuation)
-      .stream()).filter(x -> scc.contains(x.successor()))
-      .collect(Collectors.toSet());
+    Set<Edge<S>> outEdgesN = ldbaState.nx()
+      .stream()
+      .flatMap(x -> nba.edges(x, valuation).stream())
+      .filter(x -> scc.contains(x.successor()))
+      .collect(toSet());
 
     Set<Edge<S>> intersection = outEdgesM.stream()
-      .filter(x -> finEdges.get(ldbaState.ix() % max).contains(x)).collect(Collectors.toSet());
+      .filter(x -> x.inSet(ldbaState.ix() % max)).collect(toSet());
 
     outEdgesN.addAll(intersection);
 
@@ -105,16 +101,14 @@ final class AcceptingComponentBuilder<S>
 
     if (outEdgesM.equals(outEdgesN)) {
       i1 = (ldbaState.ix() + 1) % max;
-      Set<Edge<S>> intersection2 = outEdgesM.stream()
-        .filter(x -> finEdges.get(i1).contains(x)).collect(Collectors.toSet());
-      n1 = intersection2.stream().map(Edge::successor).collect(Collectors.toSet());
+      n1 = outEdgesM.stream().filter(x -> x.inSet(i1)).map(Edge::successor).collect(toSet());
     } else {
-      n1 = outEdgesN.stream().map(Edge::successor).collect(Collectors.toSet());
+      n1 = outEdgesN.stream().map(Edge::successor).collect(toSet());
       i1 = ldbaState.ix();
     }
 
     BreakpointState<S> successor = BreakpointState.of(i1, outEdgesM.stream().map(
-      Edge::successor).collect(Collectors.toSet()), n1);
+      Edge::successor).collect(toSet()), n1);
 
     return i1 == 0 && outEdgesM.equals(outEdgesN) ? Edge.of(successor, 0) : Edge.of(successor);
   }

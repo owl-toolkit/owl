@@ -48,7 +48,23 @@ public final class AutomatonFactory {
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     S initialState, A acceptance, BiFunction<S, BitSet, Edge<S>> transitions) {
-    return new ImplicitDeterministicAutomaton<>(factory, initialState, acceptance, transitions);
+    return create(factory, Set.of(initialState), acceptance, transitions);
+  }
+
+  /**
+   * Creates a semi-deterministic on-the-fly constructed automaton.
+   *
+   * @param <S> The type of the state.
+   * @param <A> The type of the acceptance conditions.
+   * @param factory The alphabet.
+   * @param initialStates The initial state.
+   * @param acceptance The acceptance condition.
+   * @param transitions The transition function.
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
+    Collection<S> initialStates, A acceptance, BiFunction<S, BitSet, Edge<S>> transitions) {
+    return new ImplicitSemiDeterministicEdgesAutomaton<>(factory, initialStates, acceptance,
+      transitions);
   }
 
   /**
@@ -104,8 +120,8 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     Collection<S> initialStates, A acceptance,
     Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
-    return new ImplicitLabelledAutomaton<>(factory, initialStates, acceptance, null,
-      labelledEdgesFunction);
+    return new ImplicitNonDeterministicLabelledEdgesAutomaton<>(factory, initialStates, acceptance,
+      null, labelledEdgesFunction);
   }
 
   /**
@@ -125,7 +141,7 @@ public final class AutomatonFactory {
     Collection<S> initialStates, A acceptance,
     BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
     Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
-    return new ImplicitLabelledAutomaton<>(factory, initialStates, acceptance,
+    return new ImplicitNonDeterministicLabelledEdgesAutomaton<>(factory, initialStates, acceptance,
       Objects.requireNonNull(edgesFunction), labelledEdgesFunction);
   }
 
@@ -153,21 +169,11 @@ public final class AutomatonFactory {
     implements LabelledEdgesAutomatonMixin<S, NoneAcceptance> {
 
     private EmptyAutomaton(ValuationSetFactory factory) {
-      super(factory);
+      super(factory, Set.of(), NoneAcceptance.INSTANCE);
     }
 
     @Override
-    public NoneAcceptance acceptance() {
-      return NoneAcceptance.INSTANCE;
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return Set.of();
-    }
-
-    @Override
-    public Set<LabelledEdge<S>> labelledEdges(S state) {
+    public List<LabelledEdge<S>> labelledEdges(S state) {
       throw new IllegalArgumentException("There are no states in this automaton.");
     }
   }
@@ -176,33 +182,19 @@ public final class AutomatonFactory {
     extends ImplicitCachedStatesAutomaton<S, A>
     implements LabelledEdgesAutomatonMixin<S, A> {
 
-    private final A acceptance;
     private final List<LabelledEdge<S>> selfLoopEdges;
-    private final S singletonState;
 
     private SingletonAutomaton(S singletonState, ValuationSetFactory factory,
       @Nullable BitSet acceptanceSets, A acceptance) {
-      super(factory);
-      this.acceptance = acceptance;
-      this.singletonState = singletonState;
+      super(factory, Set.of(singletonState), acceptance);
       this.selfLoopEdges = acceptanceSets == null
         ? List.of()
         : List.of(LabelledEdge.of(singletonState, acceptanceSets, factory.universe()));
     }
 
     @Override
-    public A acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return Set.of(singletonState);
-    }
-
-    @Override
     public List<LabelledEdge<S>> labelledEdges(S state) {
-      Preconditions.checkArgument(state.equals(singletonState),
+      Preconditions.checkArgument(initialStates.contains(state),
         "This state is not in the automaton");
       return selfLoopEdges;
     }

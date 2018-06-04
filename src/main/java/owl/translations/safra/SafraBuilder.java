@@ -18,6 +18,7 @@ import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -26,7 +27,6 @@ import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.translations.nba2ldba.BuchiView;
 import owl.util.annotation.Tuple;
 
 public final class SafraBuilder {
@@ -40,7 +40,8 @@ public final class SafraBuilder {
 
       Automaton<?, BuchiAcceptance> nba;
       if (automaton.acceptance() instanceof AllAcceptance) {
-        nba = BuchiView.build(AutomatonUtil.cast(automaton, AllAcceptance.class));
+        nba = Views
+          .viewAs(AutomatonUtil.cast(automaton, AllAcceptance.class), BuchiAcceptance.class);
       } else if (automaton.acceptance() instanceof BuchiAcceptance) {
         nba = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
       } else {

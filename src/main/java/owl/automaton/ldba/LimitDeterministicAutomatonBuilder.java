@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -42,7 +42,7 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.ValuationSet;
 
-public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
+public final class LimitDeterministicAutomatonBuilder<S, KeyT, T,
   B extends GeneralizedBuchiAcceptance, C> {
 
   private static final Logger logger = Logger.getLogger(MinimizationUtil.class.getName());
@@ -51,13 +51,13 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
   private final Set<C> components;
   private final Function<S, Iterable<KeyT>> jumpGenerator;
   private final Function<T, C> getComponent;
-  private final MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder;
+  private final Supplier<MutableAutomaton<S, NoneAcceptance>> initialComponentBuilder;
   private final Set<T> initialStates;
   private final Predicate<S> isProtected;
   private final EnumSet<Configuration> optimisations;
 
   private LimitDeterministicAutomatonBuilder(
-    MutableAutomatonBuilder<KeyS, S, NoneAcceptance> initialComponentBuilder,
+    Supplier<MutableAutomaton<S, NoneAcceptance>> initialComponentBuilder,
     MutableAutomatonBuilder<KeyT, T, B> acceptingComponentBuilder,
     Function<S, Iterable<KeyT>> jumpGenerator,
     Function<T, C> annotations,
@@ -72,9 +72,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     this.isProtected = isProtected;
   }
 
-  public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
-  LimitDeterministicAutomatonBuilder<X, S, X2, T, Acc, X3> create(
-    MutableAutomatonBuilder<X, S, NoneAcceptance> initialComponentBuilder,
+  public static <S, T, Acc extends GeneralizedBuchiAcceptance, X2, X3>
+  LimitDeterministicAutomatonBuilder<S, X2, T, Acc, X3> create(
+    Supplier<MutableAutomaton<S, NoneAcceptance>> initialComponentBuilder,
     MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annotations,
@@ -83,9 +83,9 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
       acceptingComponentBuilder, jumpGenerator, annotations, optimisations, x -> false);
   }
 
-  public static <S, T, Acc extends GeneralizedBuchiAcceptance, X, X2, X3>
-  LimitDeterministicAutomatonBuilder<X, S, X2, T, Acc, X3> create(
-    MutableAutomatonBuilder<X, S, NoneAcceptance> initialComponentBuilder,
+  public static <S, T, Acc extends GeneralizedBuchiAcceptance, X2, X3>
+  LimitDeterministicAutomatonBuilder<S, X2, T, Acc, X3> create(
+    Supplier<MutableAutomaton<S, NoneAcceptance>> initialComponentBuilder,
     MutableAutomatonBuilder<X2, T, Acc> acceptingComponentBuilder,
     Function<S, Iterable<X2>> jumpGenerator,
     Function<T, X3> annotations,
@@ -95,12 +95,11 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
       acceptingComponentBuilder, jumpGenerator, annotations, optimisations, isProtected);
   }
 
-  @Nullable
-  public T addAccepting(KeyT key) {
+  public void addInitialStateAcceptingComponent(KeyT key) {
     T state = acceptingComponentBuilder.add(key);
 
     if (state == null) {
-      return null;
+      return;
     }
 
     initialStates.add(state);
@@ -109,17 +108,10 @@ public final class LimitDeterministicAutomatonBuilder<KeyS, S, KeyT, T,
     if (component != null) {
       components.add(component);
     }
-
-    return state;
-  }
-
-  @Nullable
-  public S addInitial(KeyS key) {
-    return initialComponentBuilder.add(key);
   }
 
   public LimitDeterministicAutomaton<S, T, B, C> build() {
-    MutableAutomaton<S, NoneAcceptance> initialComponent = initialComponentBuilder.build();
+    MutableAutomaton<S, NoneAcceptance> initialComponent = initialComponentBuilder.get();
     SetMultimap<S, T> epsilonJumps = MultimapBuilder.hashKeys().hashSetValues().build();
     Table<S, ValuationSet, Set<T>> valuationSetJumps = HashBasedTable.create();
     generateJumps(initialComponent, epsilonJumps);

@@ -112,8 +112,7 @@ public class NBA2LDBATest {
   }
 
   private void runTest(String input) throws ParseException {
-    NBA2LDBA<HoaState> translation = new NBA2LDBA<>(
-      EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
+    var translation = new NBA2LDBA(false, EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
 
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
       DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);

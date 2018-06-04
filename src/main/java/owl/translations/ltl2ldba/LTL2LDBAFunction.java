@@ -129,15 +129,40 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
     var factories = env.factorySupplier().getFactories(formula.variables(), true);
     var jumpManager = selectorConstructor.apply(formula.formula(), factories.eqFactory);
-    var builder = createBuilder(factories, jumpManager);
+    var initialComponentBuilder = new InitialComponentBuilder<>(factories, configuration,
+      jumpManager);
+    var acceptingComponentBuilder = builderConstructor.apply(factories);
+
+    LimitDeterministicAutomatonBuilder<EquivalenceClass, Jump<C>, S, B, C> result;
+
+    if (configuration.contains(Configuration.EPSILON_TRANSITIONS)) {
+      result = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder::build,
+        acceptingComponentBuilder,
+        initialComponentBuilder::getJumps,
+        getAnnotation,
+        EnumSet.of(
+          LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
+        x1 -> SafetyDetector.hasSafetyCore(x1, false));
+    } else {
+      result = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder::build,
+        acceptingComponentBuilder,
+        initialComponentBuilder::getJumps,
+        getAnnotation,
+        EnumSet.of(
+          LimitDeterministicAutomatonBuilder.Configuration.REMOVE_EPSILON_TRANSITIONS,
+          LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
+        x1 -> SafetyDetector.hasSafetyCore(x1, false));
+    }
+
+    var builder = result;
 
     for (EquivalenceClass initialClass : createInitialClasses(factories, formula.formula())) {
       AnalysisResult<C> obligations = jumpManager.analyse(initialClass);
 
       if (obligations.type == TYPE.MUST) {
-        builder.addAccepting(Iterables.getOnlyElement(obligations.jumps));
+        builder.addInitialStateAcceptingComponent(Iterables.getOnlyElement(obligations.jumps));
       } else {
-        builder.addInitial(initialClass);
+        initialComponentBuilder.add(initialClass);
       }
     }
 
@@ -163,32 +188,6 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     initialComponent.trim();
 
     return ldba;
-  }
-
-  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
-  private LimitDeterministicAutomatonBuilder<EquivalenceClass, EquivalenceClass, Jump<C>, S, B, C>
-  createBuilder(Factories factories, AbstractJumpManager<C> selector) {
-    var initialComponentBuilder = new InitialComponentBuilder<>(factories, configuration, selector);
-    var acceptingComponentBuilder = builderConstructor.apply(factories);
-
-    if (configuration.contains(Configuration.EPSILON_TRANSITIONS)) {
-      return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-        acceptingComponentBuilder,
-        initialComponentBuilder::getJumps,
-        getAnnotation,
-        EnumSet.of(
-          LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
-        x -> SafetyDetector.hasSafetyCore(x, false));
-    } else {
-      return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-        acceptingComponentBuilder,
-        initialComponentBuilder::getJumps,
-        getAnnotation,
-        EnumSet.of(
-          LimitDeterministicAutomatonBuilder.Configuration.REMOVE_EPSILON_TRANSITIONS,
-          LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
-        x -> SafetyDetector.hasSafetyCore(x, false));
-    }
   }
 
   @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?

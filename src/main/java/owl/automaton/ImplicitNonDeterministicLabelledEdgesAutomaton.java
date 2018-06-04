@@ -11,33 +11,21 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 
-class ImplicitLabelledAutomaton<S, A extends OmegaAcceptance>
-  extends ImplicitCachedStatesAutomaton<S, A> implements LabelledEdgesAutomatonMixin<S, A> {
+class ImplicitNonDeterministicLabelledEdgesAutomaton<S, A extends OmegaAcceptance>
+  extends ImplicitCachedStatesAutomaton<S, A>
+  implements LabelledEdgesAutomatonMixin<S, A> {
 
-  private final Set<S> initialStates;
   @Nullable
   private final BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction;
   private final Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction;
-  private final A acceptance;
 
-  ImplicitLabelledAutomaton(ValuationSetFactory factory, Collection<S> initialStates, A acceptance,
+  ImplicitNonDeterministicLabelledEdgesAutomaton(ValuationSetFactory factory,
+    Collection<S> initialStates, A acceptance,
     @Nullable BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
     Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
-    super(factory);
-    this.initialStates = Set.copyOf(initialStates);
+    super(factory, Set.copyOf(initialStates), acceptance);
     this.edgesFunction = edgesFunction;
     this.labelledEdgesFunction = labelledEdgesFunction;
-    this.acceptance = acceptance;
-  }
-
-  @Override
-  public A acceptance() {
-    return acceptance;
-  }
-
-  @Override
-  public Set<S> initialStates() {
-    return initialStates;
   }
 
   @Override

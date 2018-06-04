@@ -156,7 +156,7 @@ def scripts = [
     'delag'     : 'owl.translations.delag.DelagBuilder',
     'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
     'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPAFunction',
+    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
     'owl-server': 'owl.run.ServerCli'
 ]
 

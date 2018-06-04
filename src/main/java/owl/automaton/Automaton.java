@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -333,6 +334,14 @@ public interface Automaton<S, A extends OmegaAcceptance> {
 
       case SEMI_DETERMINISTIC:
         return Properties.isSemiDeterministic(this);
+
+      case LIMIT_DETERMINISTIC:
+        if (acceptance() instanceof GeneralizedBuchiAcceptance) {
+          return AutomatonUtil.ldbaSplit(
+            AutomatonUtil.cast(this, GeneralizedBuchiAcceptance.class)).isPresent();
+        }
+
+        return false;
 
       default:
         throw new UnsupportedOperationException("Property detection for " + property

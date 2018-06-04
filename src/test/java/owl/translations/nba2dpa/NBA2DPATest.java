@@ -26,10 +26,10 @@ import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
-import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrinter;
+import owl.factories.FactorySupplier;
 import owl.run.DefaultEnvironment;
 
 public class NBA2DPATest {
@@ -271,62 +271,62 @@ public class NBA2DPATest {
 
   @Test
   public void testApply() throws ParseException {
-    runTest(INPUT, 6);
+    runTest(INPUT, 4);
   }
 
   @Test
   public void testApply2() throws ParseException {
-    runTest(INPUT2, 2);
+    runTest(INPUT2, 1);
   }
 
   @Test
   public void testApply3() throws ParseException {
-    runTest(INPUT3, 12);
+    runTest(INPUT3, 7);
   }
 
   @Test
   public void testApply4() throws ParseException {
-    runTest(INPUT4, 4);
+    runTest(INPUT4, 3);
   }
 
   @Test
   public void testApply5() throws ParseException {
-    runTest(INPUT5, 4);
+    runTest(INPUT5, 3);
   }
 
   @Test
   public void testApply6() throws ParseException {
-    runTest(INPUT6, 3);
+    runTest(INPUT6, 2);
   }
 
   @Test
   public void testApply7() throws ParseException {
-    runTest(INPUT7, 6);
+    runTest(INPUT7, 3);
   }
 
   @Test
   public void testApply8() throws ParseException {
-    runTest(INPUT8, 7);
+    runTest(INPUT8, 6);
   }
 
   @Test
   public void testApply9() throws ParseException {
-    runTest(INPUT9, 3);
+    runTest(INPUT9, 2);
   }
 
   @Test
   public void testApply10() throws ParseException {
-    runTest(INPUT10, 11);
+    runTest(INPUT10, 9);
   }
 
   @Test
   public void testApply15() throws ParseException {
-    runTest(INPUT15, 23);
+    runTest(INPUT15, 12);
   }
 
   @Test
   public void testApply16() throws ParseException {
-    runTest(INPUT16, 13);
+    runTest(INPUT16, 7);
   }
 
   @Test
@@ -335,11 +335,11 @@ public class NBA2DPATest {
   }
 
   private void runTest(String input, int size) throws ParseException {
-    Automaton<HoaState, GeneralizedBuchiAcceptance> nba = AutomatonReader.readHoa(input,
-      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
-    Automaton<?, ParityAcceptance> dpa = new NBA2DPAFunction<HoaState>().apply(nba);
+    FactorySupplier supplier = DefaultEnvironment.annotated().factorySupplier();
 
-    HoaPrinter.feedTo(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    Automaton<?, ParityAcceptance> dpa = new NBA2DPA().apply(
+      AutomatonReader.readHoa(input, supplier, GeneralizedBuchiAcceptance.class));
+
     HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertThat(dpa.size(), lessThanOrEqualTo(size));
   }

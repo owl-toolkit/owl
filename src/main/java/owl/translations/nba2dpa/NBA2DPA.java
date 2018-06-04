@@ -20,15 +20,11 @@ package owl.translations.nba2dpa;
 import java.util.EnumSet;
 import java.util.function.Function;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
-import owl.automaton.Views;
-import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
@@ -37,20 +33,20 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ldba2dpa.FlatRankingAutomaton;
-import owl.translations.nba2ldba.BreakpointState;
-import owl.translations.nba2ldba.BuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
 
-public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>,
-  Automaton<?, ParityAcceptance>> {
+public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {
+
+  private final NBA2LDBA nba2ldba =
+    new NBA2LDBA(true, EnumSet.of(Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES));
+
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2dpa")
     .description("Converts a non-deterministic Büchi automaton into a deterministic parity "
       + "automaton")
     .parser(settings -> environment -> {
-      NBA2DPAFunction<Object> function = new NBA2DPAFunction<>();
-      return (input, context) ->
-        function.apply(AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
+      NBA2DPA nba2dpa = new NBA2DPA();
+      return (input, context) -> nba2dpa.apply(AutomatonUtil.cast(input));
     })
     .build();
 
@@ -64,30 +60,16 @@ public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>,
 
   @SuppressWarnings("unchecked")
   @Override
-  public Automaton<?, ParityAcceptance> apply(Automaton<S, ?> automaton) {
-    Automaton<Object, GeneralizedBuchiAcceptance> nba;
+  public Automaton<?, ParityAcceptance> apply(Automaton<?, ?> automaton) {
+    LimitDeterministicAutomaton<?, ?, BuchiAcceptance, Void> ldba = nba2ldba.apply(automaton);
 
-    // TODO Module! Something like "transform-acc --to generalized-buchi"
-    if (automaton.acceptance() instanceof AllAcceptance) {
-      var buchi = BuchiView.build(AutomatonUtil.cast(automaton, AllAcceptance.class));
-      nba = AutomatonUtil.cast(buchi, Object.class, GeneralizedBuchiAcceptance.class);
-    } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
-      nba = AutomatonUtil.cast(automaton, Object.class, GeneralizedBuchiAcceptance.class);
-    } else {
-      throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
+    if (ldba.initialStates().isEmpty()) {
+      return AutomatonFactory.singleton(automaton.factory(), new Object(),
+        new ParityAcceptance(1, ParityAcceptance.Parity.MIN_ODD));
     }
 
-    nba = Views.complete(nba, new Object());
-
-    NBA2LDBA<Object> nba2ldba = new NBA2LDBA<>(EnumSet.noneOf(Configuration.class));
-
-    var ldbaCutDet = new CutDeterministicAutomaton<>(nba2ldba.apply(nba));
-    MutableAutomatonUtil.complete((
-      MutableAutomaton<BreakpointState<Object>, BuchiAcceptance>) ldbaCutDet.acceptingComponent(),
-      BreakpointState.sink());
-
-    var oracle = new SetLanguageLattice<>(ldbaCutDet.acceptingComponent());
-
-    return FlatRankingAutomaton.of(ldbaCutDet, oracle, s -> false, false, true);
+    assert ldba.initialStates().size() == 1;
+    SetLanguageLattice oracle = new SetLanguageLattice(ldba.acceptingComponent());
+    return FlatRankingAutomaton.of(ldba, oracle, x -> false, false, true);
   }
 }
