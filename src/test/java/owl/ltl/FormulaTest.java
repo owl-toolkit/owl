@@ -36,9 +36,9 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.visitors.Collector;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
-class FormulaTest {
+public class FormulaTest {
 
-  public static final List<Formula> FORMULAS = List.of(
+  private static final List<Formula> FORMULAS = List.of(
     LtlParser.syntax("true"),
     LtlParser.syntax("false"),
     LtlParser.syntax("a"),
@@ -83,7 +83,7 @@ class FormulaTest {
     THREE.set(0, 2);
   }
 
-  private static Stream<Arguments> formulaProvider() {
+  public static Stream<Arguments> formulaProvider() {
     return FORMULAS.stream().map(Arguments::of);
   }
 

@@ -87,8 +87,7 @@ class GcManagedFactory<V> {
 
     int count = 0;
     do {
-      @SuppressWarnings("unchecked")
-      int bdd = ((BddReference<V>) reference).bdd;
+      int bdd = ((BddReference<?>) reference).bdd;
       objects.remove(bdd);
       factory.dereference(bdd);
       count += 1;

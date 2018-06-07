@@ -22,7 +22,6 @@ package owl.translations;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static owl.util.Assertions.assertThat;
 
 import com.google.common.collect.Maps;
 import java.util.BitSet;
@@ -71,7 +70,7 @@ class LTL2DAModuleFunctionTest {
     // Check null successor.
     BitSet empty = new BitSet();
     assertNull(automaton.edge(state, empty));
-    assertThat(Maps.filterValues(automaton.edgeMap(state), x -> x.contains(empty)), Map::isEmpty);
+    assertEquals(Map.of(), Maps.filterValues(automaton.edgeMap(state), x -> x.contains(empty)));
   }
 
   @Test
