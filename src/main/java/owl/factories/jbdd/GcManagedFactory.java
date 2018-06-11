@@ -26,28 +26,34 @@ class GcManagedFactory<V> {
 
     // Root nodes and variables are exempt from GC.
     if (factory.isNodeRoot(bdd) || factory.isVariableOrNegated(bdd)) {
+      assert factory.getReferenceCount(bdd) == -1;
       return object;
     }
 
     BddReference<V> canonicalReference = objects.get(bdd);
 
     if (canonicalReference != null) {
+      assert factory.getReferenceCount(bdd) == 1;
       V canonicalObject = canonicalReference.get();
+
       if (canonicalObject == null) {
         // This object was GC'ed since the last run of clear(), but potentially wasn't added to the
         // ReferenceQueue by the GC yet. Make sure that the reference is queued and cleared to
         // avoid inconsistencies.
         canonicalReference.enqueue();
+
+        // Reference before clear so that the current bdd does not drop to zero references
+        factory.reference(bdd);
       } else {
-        assert factory.getReferenceCount(bdd) == 1;
         return canonicalObject;
       }
+    } else if (factory.getReferenceCount(bdd) == 0) {
+      // The BDD was created and needs a reference to be protected.
+      factory.reference(bdd);
     }
 
-    // Reference before clear so that the current bdd doesn't drop to zero references
-    factory.reference(bdd);
+    assert factory.getReferenceCount(bdd) > 0;
     clear();
-
     objects.put(bdd, new BddReference<>(bdd, object, queue));
     assert factory.getReferenceCount(bdd) == 1;
     return object;
@@ -74,9 +80,9 @@ class GcManagedFactory<V> {
   }
 
   private static final class BddReference<V> extends WeakReference<V> {
-    final int bdd;
+    private final int bdd;
 
-    BddReference(int bdd, V object, ReferenceQueue<? super V> queue) {
+    private BddReference(int bdd, V object, ReferenceQueue<? super V> queue) {
       super(object, queue);
       this.bdd = bdd;
     }
