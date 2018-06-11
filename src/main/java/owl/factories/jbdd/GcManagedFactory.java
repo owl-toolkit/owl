@@ -24,6 +24,7 @@ class GcManagedFactory<V> {
   V canonicalize(int bdd, V object) {
     // This is not thread safe!
 
+    // Root nodes and variables are exempt from GC.
     if (factory.isNodeRoot(bdd) || factory.isVariableOrNegated(bdd)) {
       return object;
     }
@@ -38,7 +39,7 @@ class GcManagedFactory<V> {
         // avoid inconsistencies.
         canonicalReference.enqueue();
       } else {
-        checkReference(bdd, canonicalObject);
+        assert factory.getReferenceCount(bdd) == 1;
         return canonicalObject;
       }
     }
@@ -46,15 +47,10 @@ class GcManagedFactory<V> {
     // Reference before clear so that the current bdd doesn't drop to zero references
     factory.reference(bdd);
     clear();
+
     objects.put(bdd, new BddReference<>(bdd, object, queue));
-
-    checkReference(bdd, object);
+    assert factory.getReferenceCount(bdd) == 1;
     return object;
-  }
-
-  private boolean hasReferences(int bdd, int count) {
-    int referenceCount = factory.getReferenceCount(bdd);
-    return referenceCount == -1 || referenceCount == count;
   }
 
   private void clear() {
@@ -75,10 +71,6 @@ class GcManagedFactory<V> {
     } while (reference != null);
 
     logger.log(Level.FINEST, "Cleared {0} references", count);
-  }
-
-  private void checkReference(int bdd, V object) {
-    assert hasReferences(bdd, 1) : factory.getReferenceCount(bdd) + " references on " + object;
   }
 
   private static final class BddReference<V> extends WeakReference<V> {
