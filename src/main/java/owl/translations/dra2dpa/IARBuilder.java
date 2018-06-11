@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.Views;
@@ -37,6 +36,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.output.HoaPrinter;
 import owl.factories.ValuationSetFactory;
 import owl.run.PipelineException;
 import owl.run.modules.ImmutableTransformerParser;
@@ -77,7 +77,7 @@ public final class IARBuilder<R> {
 
   public Automaton<IARState<R>, ParityAcceptance> build() {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
-    logger.log(Level.FINEST, () -> "Input automaton is\n" + AutomatonUtil.toHoa(rabinAutomaton));
+    logger.log(Level.FINEST, () -> "Input automaton is\n" + HoaPrinter.toString(rabinAutomaton));
 
     Set<RabinPair> rabinPairs = Set.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {

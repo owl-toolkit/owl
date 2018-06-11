@@ -17,23 +17,15 @@
 
 package owl.automaton.ldba;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerPrint;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
-import owl.automaton.output.HoaConsumerExtended;
-import owl.automaton.output.HoaPrintable;
 import owl.collections.ValuationSet;
 
-public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
-  extends HoaPrintable {
+public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V> {
 
   Automaton<T, U> acceptingComponent();
 
@@ -57,37 +49,5 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
 
   default int size() {
     return initialComponent().size() + acceptingComponent().size();
-  }
-
-  @Override
-  default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
-    HoaConsumerExtended<Object> consumerExt = new HoaConsumerExtended<>(consumer,
-      acceptingComponent().variables(),
-      acceptingComponent().acceptance(),
-      initialStates(),
-      options, false, name());
-
-    initialComponent().states().forEach(state -> {
-      consumerExt.addState(state);
-      initialComponent().forEachLabelledEdge(state, consumerExt::addEdge);
-      epsilonJumps(state).forEach(consumerExt::addEpsilonEdge);
-      valuationSetJumps(state).forEach((a, b) -> b.forEach(d -> consumerExt.addEdge(a, d)));
-      consumerExt.notifyEndOfState();
-    });
-
-    acceptingComponent().states().forEach(state -> {
-      consumerExt.addState(state);
-      acceptingComponent().forEachLabelledEdge(state, consumerExt::addEdge);
-      consumerExt.notifyEndOfState();
-    });
-
-    consumerExt.notifyEnd();
-  }
-
-  default String toString(EnumSet<HoaOption> options) throws IOException {
-    try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-      toHoa(new HOAConsumerPrint(stream), options);
-      return stream.toString("UTF8");
-    }
   }
 }

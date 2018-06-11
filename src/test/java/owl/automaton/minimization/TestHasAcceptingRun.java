@@ -16,6 +16,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
+import owl.automaton.output.HoaPrinter;
 import owl.automaton.transformations.ParityUtil;
 import owl.run.DefaultEnvironment;
 import owl.translations.nba2dpa.NBA2DPAFunction;
@@ -95,10 +96,11 @@ public class TestHasAcceptingRun {
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
       DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
-    automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    MutableAutomaton<Object, ParityAcceptance> result = (MutableAutomaton<Object, ParityAcceptance>)
-      translation.apply(automaton);
-    result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    MutableAutomaton<Object, ParityAcceptance> result =
+      (MutableAutomaton<Object, ParityAcceptance>) translation.apply(automaton);
+
+    HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrinter.feedTo(result, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
 
     assertThat(EmptinessCheck.isEmpty(result), is(!hasAcceptingRun));
     ParityUtil.complement(result, new Object());

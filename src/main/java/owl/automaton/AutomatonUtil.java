@@ -19,10 +19,7 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,13 +27,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
-import jhoafparser.consumer.HOAConsumerPrint;
 import owl.automaton.Automaton.LabelledEdgeVisitor;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaPrintable;
-import owl.automaton.output.HoaPrintable.HoaOption;
 import owl.collections.ValuationSet;
 
 public final class AutomatonUtil {
@@ -175,13 +169,6 @@ public final class AutomatonUtil {
 
     automaton.accept(visitor);
     return nondeterministicStates;
-  }
-
-  public static String toHoa(HoaPrintable printable) {
-    ByteArrayOutputStream writer = new ByteArrayOutputStream();
-    HOAConsumerPrint hoa = new HOAConsumerPrint(writer);
-    printable.toHoa(hoa, EnumSet.of(HoaOption.ANNOTATIONS));
-    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 
   /**

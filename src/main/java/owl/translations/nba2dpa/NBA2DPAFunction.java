@@ -30,7 +30,6 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
-import owl.automaton.output.HoaPrintable;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -42,7 +41,8 @@ import owl.translations.nba2ldba.BreakpointState;
 import owl.translations.nba2ldba.BuchiView;
 import owl.translations.nba2ldba.NBA2LDBA;
 
-public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>, HoaPrintable> {
+public final class NBA2DPAFunction<S> implements Function<Automaton<S, ?>,
+  Automaton<?, ParityAcceptance>> {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2dpa")
     .description("Converts a non-deterministic Büchi automaton into a deterministic parity "

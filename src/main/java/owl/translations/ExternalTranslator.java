@@ -36,8 +36,8 @@ import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.output.HoaPrinter;
 import owl.factories.FactorySupplier;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
@@ -143,7 +143,7 @@ public class ExternalTranslator
         Automaton<HoaState, OmegaAcceptance> automaton =
           AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
         logger.log(Level.FINEST, () -> String.format("Read automaton for %s:%n%s", formula,
-          AutomatonUtil.toHoa(automaton)));
+          HoaPrinter.toString(automaton)));
         return automaton;
       }
     } catch (IOException | ParseException e) {

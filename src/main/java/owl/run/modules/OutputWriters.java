@@ -20,10 +20,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.output.HoaPrintable;
-import owl.automaton.output.HoaPrintable.HoaOption;
+import owl.automaton.output.HoaPrinter;
+import owl.automaton.output.HoaPrinter.HoaOption;
 import owl.run.Environment;
 import owl.run.modules.OwlModuleParser.WriterParser;
 
@@ -112,11 +111,11 @@ public final class OutputWriters {
 
       // Single line HOA
       Pattern.compile("%H", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> AutomatonUtil.toHoa(automaton).replace('\n', ' '),
+      automaton -> HoaPrinter.toString(automaton).replace('\n', ' '),
 
       // Name
       Pattern.compile("%M", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      HoaPrintable::name,
+      Automaton::name,
 
       // State count
       Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
@@ -124,7 +123,7 @@ public final class OutputWriters {
 
       // Number of propositions
       Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(automaton.variables().size()),
+      automaton -> String.valueOf(automaton.factory().alphabet().size()),
 
       // Number of SCCs
       Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
@@ -161,7 +160,7 @@ public final class OutputWriters {
   }
 
   /**
-   * Converts any {@link HoaPrintable HOA printable} object to its corresponding <a
+   * Converts any {@link HoaPrinter HOA printable} object to its corresponding <a
    * href="http://adl.github.io/hoaf/">HOA</a> representation.
    */
   public static class ToHoa implements OutputWriter {
@@ -169,41 +168,31 @@ public final class OutputWriters {
     private static final StoredAutomatonManipulator[] EMPTY = new StoredAutomatonManipulator[0];
 
     private final Set<Setting> hoaSettings;
-    private final List<StoredAutomatonManipulator> manipulations;
+    private final List<StoredAutomatonManipulator> operations;
 
-    public ToHoa(EnumSet<Setting> hoaSettings, List<StoredAutomatonManipulator> manipulations) {
+    public ToHoa(EnumSet<Setting> hoaSettings, List<StoredAutomatonManipulator> operations) {
       this.hoaSettings = Set.copyOf(hoaSettings);
-      this.manipulations = List.copyOf(manipulations);
-    }
-
-    private EnumSet<HoaOption> getOptions(boolean annotations) {
-      EnumSet<HoaOption> options = EnumSet.noneOf(HoaOption.class);
-      if (annotations) {
-        options.add(HoaOption.ANNOTATIONS);
-      }
-      if (hoaSettings.contains(Setting.SIMPLE_TRANSITION_LABELS)) {
-        options.add(HoaOption.SIMPLE_TRANSITION_LABELS);
-      }
-      return options;
+      this.operations = List.copyOf(operations);
     }
 
     @Override
-    public Binding bind(Writer writer, Environment env) {
-      HOAConsumer consumer;
-      if (manipulations.isEmpty()) {
-        consumer = new HOAConsumerPrint(writer);
-      } else {
-        StoredAutomatonManipulator[] manipulators = manipulations.toArray(EMPTY);
-        consumer = new HOAIntermediateStoreAndManipulate(new HOAConsumerPrint(writer),
-          manipulators);
+    public Binding bind(Writer writer, Environment environment) {
+      HOAConsumer consumer = operations.isEmpty()
+        ? new HOAConsumerPrint(writer)
+        : new HOAIntermediateStoreAndManipulate(
+          new HOAConsumerPrint(writer), operations.toArray(EMPTY));
+
+      EnumSet<HoaOption> options = EnumSet.noneOf(HoaOption.class);
+
+      if (environment.annotations()) {
+        options.add(HoaOption.ANNOTATIONS);
       }
 
-      EnumSet<HoaOption> options = getOptions(env.annotations());
+      if (hoaSettings.contains(Setting.SIMPLE_TRANSITION_LABELS)) {
+        options.add(HoaOption.SIMPLE_TRANSITION_LABELS);
+      }
 
-      return input -> {
-        checkArgument(input instanceof HoaPrintable);
-        ((HoaPrintable) input).toHoa(consumer, options);
-      };
+      return input -> HoaPrinter.feedTo(input, consumer, options);
     }
 
     public enum Setting {

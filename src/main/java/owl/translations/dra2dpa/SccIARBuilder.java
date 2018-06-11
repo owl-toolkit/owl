@@ -22,7 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.MutableAutomatonUtil;
@@ -33,6 +32,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
+import owl.automaton.output.HoaPrinter;
 
 /**
  * Constructs the IAR parity automaton from the given Rabin automaton SCC.
@@ -318,7 +318,7 @@ final class SccIARBuilder<R> {
       });
       logger.log(Level.FINEST, stringBuilder.toString());
       logger.log(Level.FINEST, "Automaton before refinement:\n{0}",
-        AutomatonUtil.toHoa(resultAutomaton));
+        HoaPrinter.toString(resultAutomaton));
     }
 
     // Update initial states, for each initial state, pick its refinement (if there is any)
@@ -346,6 +346,6 @@ final class SccIARBuilder<R> {
     resultAutomaton.trim();
 
     logger.log(Level.FINEST, () -> String.format("Automaton after refinement:%n%s",
-      AutomatonUtil.toHoa(resultAutomaton)));
+      HoaPrinter.toString(resultAutomaton)));
   }
 }

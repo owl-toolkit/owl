@@ -27,7 +27,7 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
-import owl.automaton.output.HoaPrintable;
+import owl.automaton.output.HoaPrinter;
 import owl.run.DefaultEnvironment;
 
 public class NBA2LDBATest {
@@ -118,8 +118,8 @@ public class NBA2LDBATest {
     Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
       DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
 
-    automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    HoaPrintable result = translation.apply(automaton);
-    result.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrinter.feedTo(translation.apply(automaton),
+      new HOAIntermediateCheckValidity(new HOAConsumerNull()));
   }
 }

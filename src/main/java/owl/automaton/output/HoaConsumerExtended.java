@@ -18,7 +18,7 @@
 package owl.automaton.output;
 
 import static com.google.common.base.Preconditions.checkState;
-import static owl.automaton.output.HoaPrintable.HoaOption.SIMPLE_TRANSITION_LABELS;
+import static owl.automaton.output.HoaPrinter.HoaOption.SIMPLE_TRANSITION_LABELS;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.logging.Level;
@@ -40,15 +38,14 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
+import owl.automaton.Automaton;
 import owl.automaton.acceptance.BooleanExpressions;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
-import owl.automaton.output.HoaPrintable.HoaOption;
+import owl.automaton.output.HoaPrinter.HoaOption;
 import owl.collections.ValuationSet;
 
-public final class HoaConsumerExtended<S> {
+final class HoaConsumerExtended<S> {
   // TODO If --annotations is there, try to print the complex edge expressions in toHOA
 
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
@@ -59,10 +56,10 @@ public final class HoaConsumerExtended<S> {
   private final Object2IntMap<S> stateNumbers;
   @Nullable
   private S currentState = null;
+  final Automaton.HybridVisitor<S> visitor = new Visitor();
 
-  public HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
-    Set<? extends S> initialStates, EnumSet<HoaOption> options, boolean isDeterministic,
-    @Nullable String name) {
+  HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
+    Set<S> initialStates, EnumSet<HoaOption> options, boolean isDeterministic, String name) {
     this.consumer = consumer;
     this.options = EnumSet.copyOf(options);
     this.stateNumbers = new Object2IntOpenHashMap<>();
@@ -73,53 +70,38 @@ public final class HoaConsumerExtended<S> {
       consumer.setTool("owl", "18.06-snapshot"); // Owl in a cave.
 
       if (options.contains(HoaOption.ANNOTATIONS)) {
-        consumer
-          .setName(Objects.requireNonNullElseGet(name, () -> "Automaton for " + initialStates));
+        consumer.setName(name);
       }
 
-      if (initialStates.isEmpty()) {
-        OmegaAcceptance noneAcceptance = NoneAcceptance.INSTANCE;
-        consumer.provideAcceptanceName(noneAcceptance.name(), noneAcceptance.nameExtra());
-        consumer.setAcceptanceCondition(noneAcceptance.acceptanceSets(),
-          noneAcceptance.booleanExpression());
-      } else {
-        for (S state : initialStates) {
-          consumer.addStartStates(List.of(getStateId(state)));
-        }
-
-        String accName = acceptance.name();
-
-        if (accName != null) {
-          consumer.provideAcceptanceName(accName, acceptance.nameExtra());
-        }
-
-        consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
-          acceptance.booleanExpression());
-
-        // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
-        // states deterministic, the serializer will throw an exception.
-        if (isDeterministic) {
-          consumer.addProperties(List.of("deterministic"));
-        }
+      for (S state : initialStates) {
+        consumer.addStartStates(List.of(getStateId(state)));
       }
 
-      // TODO: Use Properties.java to derive properties.
+      String accName = acceptance.name();
 
-      // TODO: fix this.
+      if (accName != null) {
+        consumer.provideAcceptanceName(accName, acceptance.nameExtra());
+      }
+
+      consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
+        acceptance.booleanExpression());
+
+      // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
+      // states deterministic, the serializer will throw an exception.
+      if (!initialStates.isEmpty() && isDeterministic) {
+        consumer.addProperties(List.of("deterministic"));
+      }
+
+      // TODO: Use Properties.java to derive properties and fix this.
       consumer.addProperties(List.of("trans-acc", "trans-label"));
       consumer.setAPs(aliases);
-
       consumer.notifyBodyStart();
-
-      if (initialStates.isEmpty()) {
-        consumer.notifyEnd();
-      }
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
   }
 
-  public void addEdge(ValuationSet label, S end) {
+  void addEdge(ValuationSet label, S end) {
     if (label.isEmpty()) {
       return;
     }
@@ -127,93 +109,7 @@ public final class HoaConsumerExtended<S> {
     addEdgeBackend(label.toExpression(), end, IntLists.EMPTY_LIST);
   }
 
-  public void addEdge(ValuationSet label, S end, PrimitiveIterator.OfInt accSets) {
-    if (label.isEmpty()) {
-      return;
-    }
-
-    IntArrayList acceptanceSets = new IntArrayList();
-    accSets.forEachRemaining((IntConsumer) acceptanceSets::add);
-    if (options.contains(SIMPLE_TRANSITION_LABELS)) {
-      label.forEach(bitSet -> addEdgeBackend(toLabel(bitSet), end, acceptanceSets));
-    } else {
-      addEdgeBackend(label.toExpression(), end, acceptanceSets);
-    }
-  }
-
-  public void addEdge(LabelledEdge<? extends S> labelledEdge) {
-    addEdge(labelledEdge.edge, labelledEdge.valuations);
-  }
-
-  public void addEdge(Edge<? extends S> edge, BitSet label) {
-    IntArrayList accSets = new IntArrayList();
-    edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
-    addEdgeBackend(toLabel(label), edge.successor(), accSets);
-  }
-
-  public void addEdge(Edge<? extends S> edge, ValuationSet label) {
-    addEdge(label, edge.successor(), edge.acceptanceSetIterator());
-  }
-
-  private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {
-    checkState(currentState != null);
-
-    try {
-      consumer.addEdgeWithLabel(getStateId(currentState), label,
-        List.of(getStateId(end)), accSets.isEmpty() ? null : accSets);
-    } catch (HOAConsumerException ex) {
-      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
-    }
-  }
-
-  public void addEpsilonEdge(S successor) {
-    checkState(currentState != null);
-    log.log(Level.FINER, "HOA currently does not support epsilon-transitions. "
-      + "({0} -> {1})", new Object[] {currentState, successor});
-
-    try {
-      consumer.addEdgeWithLabel(getStateId(currentState), null,
-        List.of(getStateId(successor)), null);
-    } catch (HOAConsumerException ex) {
-      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
-    }
-  }
-
-  public void addState(S state) {
-    try {
-      currentState = state;
-      @Nullable
-      String label = options.contains(HoaOption.ANNOTATIONS) ? state.toString() : null;
-      consumer.addState(getStateId(state), label, null, null);
-    } catch (HOAConsumerException ex) {
-      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
-    }
-  }
-
-  private int getStateId(S state) {
-    return stateNumbers.computeIntIfAbsent(state, k -> stateNumbers.size());
-  }
-
-  public void notifyEnd() {
-    try {
-      if (!stateNumbers.isEmpty()) {
-        consumer.notifyEnd();
-      }
-    } catch (HOAConsumerException ex) {
-      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
-    }
-  }
-
-  public void notifyEndOfState() {
-    checkState(currentState != null);
-    try {
-      consumer.notifyEndOfState(getStateId(currentState));
-    } catch (HOAConsumerException ex) {
-      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
-    }
-  }
-
-  private BooleanExpression<AtomLabel> toLabel(BitSet label) {
+  private void addEdgeBackend(BitSet label, S end, IntList accSets) {
     List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
 
     for (int i = 0; i < alphabetSize; i++) {
@@ -226,6 +122,91 @@ public final class HoaConsumerExtended<S> {
       }
     }
 
-    return BooleanExpressions.createConjunction(conjuncts);
+    addEdgeBackend(BooleanExpressions.createConjunction(conjuncts), end, accSets);
+  }
+
+  private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {
+    try {
+      consumer.addEdgeWithLabel(getStateId(currentState), label, List.of(getStateId(end)),
+        accSets.isEmpty() ? null : accSets);
+    } catch (HOAConsumerException ex) {
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
+    }
+  }
+
+  void addEpsilonEdge(S successor) {
+    log.log(Level.FINER, "HOA currently does not support epsilon-transitions. "
+      + "({0} -> {1})", new Object[] {currentState, successor});
+
+    try {
+      consumer.addEdgeWithLabel(getStateId(currentState), null,
+        List.of(getStateId(successor)), null);
+    } catch (HOAConsumerException ex) {
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
+    }
+  }
+
+  private int getStateId(@Nullable S state) {
+    checkState(state != null);
+    return stateNumbers.computeIntIfAbsent(state, k -> stateNumbers.size());
+  }
+
+  void done() {
+    try {
+      consumer.notifyEnd();
+    } catch (HOAConsumerException ex) {
+      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
+    }
+  }
+
+  private class Visitor implements Automaton.HybridVisitor<S> {
+    @Override
+    public void enter(S state) {
+      currentState = state;
+      @Nullable
+      String label = options.contains(HoaOption.ANNOTATIONS) ? state.toString() : null;
+
+      try {
+        consumer.addState(getStateId(state), label, null, null);
+      } catch (HOAConsumerException ex) {
+        log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
+      }
+    }
+
+    @Override
+    public void exit(S state) {
+      checkState(state.equals(currentState));
+
+      try {
+        consumer.notifyEndOfState(getStateId(currentState));
+      } catch (HOAConsumerException ex) {
+        log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
+      }
+    }
+
+    @Override
+    public void visitEdge(Edge<S> edge, BitSet valuation) {
+      IntArrayList accSets = new IntArrayList();
+      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
+      addEdgeBackend(valuation, edge.successor(), accSets);
+    }
+
+    @Override
+    public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+      S end = edge.successor();
+
+      if (valuationSet.isEmpty()) {
+        return;
+      }
+
+      IntArrayList acceptanceSets = new IntArrayList();
+      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptanceSets::add);
+
+      if (options.contains(SIMPLE_TRANSITION_LABELS)) {
+        valuationSet.forEach(bitSet -> addEdgeBackend(bitSet, end, acceptanceSets));
+      } else {
+        addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
+      }
+    }
   }
 }
