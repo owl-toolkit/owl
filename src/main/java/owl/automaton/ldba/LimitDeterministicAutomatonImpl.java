@@ -20,9 +20,7 @@ package owl.automaton.ldba;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
-import java.io.IOException;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,17 +96,7 @@ public final class LimitDeterministicAutomatonImpl<S, T, U extends GeneralizedBu
     return Collections.unmodifiableMap(valuationSetJumps.row(state));
   }
 
-  @Override
   public List<String> variables() {
-    return acceptingComponent.variables();
-  }
-
-  @Override
-  public String toString() {
-    try {
-      return toString(EnumSet.allOf(HoaOption.class));
-    } catch (IOException ex) {
-      throw new IllegalStateException(ex.toString(), ex);
-    }
+    return acceptingComponent.factory().alphabet();
   }
 }

@@ -3,31 +3,20 @@ package owl.translations.fgx2dpa;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerPrint;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.ltl.LabelledFormula;
+import owl.automaton.output.HoaPrinter;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 
 public class SafetyAutomatonTest {
 
   private static void testOutput(String ltl, int size) {
-    LabelledFormula parseResult = LtlParser.parse(ltl);
     Automaton<State, ParityAcceptance> automaton =
-      SafetyAutomaton.build(DefaultEnvironment.standard(), parseResult);
-    try (OutputStream stream = new ByteArrayOutputStream()) {
-      HOAConsumer consumer = new HOAConsumerPrint(stream);
-      automaton.toHoa(consumer);
-      assertThat("Invalid size for automaton:\n" + stream, automaton.size(), is(size));
-    } catch (IOException ex) {
-      throw new AssertionError(ex);
-    }
+      SafetyAutomaton.build(DefaultEnvironment.standard(), LtlParser.parse(ltl));
+    assertThat("Invalid size for automaton:\n" + HoaPrinter.toString(automaton),
+      automaton.size(), is(size));
   }
 
   @Test

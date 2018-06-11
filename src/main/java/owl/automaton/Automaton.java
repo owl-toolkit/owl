@@ -21,21 +21,16 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
-import jhoafparser.consumer.HOAConsumer;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
-import owl.automaton.output.HoaConsumerExtended;
-import owl.automaton.output.HoaPrintable;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -62,9 +57,13 @@ import owl.factories.ValuationSetFactory;
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
  */
-public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
+public interface Automaton<S, A extends OmegaAcceptance> {
 
   // Parameters
+
+  default String name() {
+    return this.getClass() + " for " + this.initialStates();
+  }
 
   /**
    * Returns the acceptance condition of this automaton.
@@ -74,11 +73,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
   A acceptance();
 
   ValuationSetFactory factory();
-
-  @Override
-  default List<String> variables() {
-    return factory().alphabet();
-  }
 
 
   // Initial states
@@ -344,38 +338,6 @@ public interface Automaton<S, A extends OmegaAcceptance> extends HoaPrintable {
         throw new UnsupportedOperationException("Property detection for " + property
           + " is not implemented");
     }
-  }
-
-
-  @Override
-  default void toHoa(HOAConsumer consumer, EnumSet<HoaOption> options) {
-    HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, variables(),
-      acceptance(), initialStates(), options, is(Property.DETERMINISTIC), name());
-
-    HybridVisitor<S> visitor = new HybridVisitor<>() {
-      @Override
-      public void enter(S state) {
-        hoa.addState(state);
-      }
-
-      @Override
-      public void exit(S state) {
-        hoa.notifyEndOfState();
-      }
-
-      @Override
-      public void visitEdge(Edge<S> edge, BitSet valuation) {
-        hoa.addEdge(edge, valuation);
-      }
-
-      @Override
-      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
-        hoa.addEdge(edge, valuationSet);
-      }
-    };
-
-    this.accept(visitor);
-    hoa.notifyEnd();
   }
 
   enum Property {

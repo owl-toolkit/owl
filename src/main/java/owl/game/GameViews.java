@@ -118,11 +118,11 @@ public final class GameViews {
         return environment -> (input, context) -> {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
-          List<String> environmentAp = automaton.variables().stream()
+          List<String> environmentAp = automaton.factory().alphabet().stream()
             .filter(isEnvironmentAp).collect(toImmutableList());
           logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
             new Object[] {environmentAp,
-              Collections2.filter(automaton.variables(), x -> !isEnvironmentAp.test(x))});
+              Collections2.filter(automaton.factory().alphabet(), x -> !isEnvironmentAp.test(x))});
 
           var parityAutomaton = AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class);
           if (wrapComplete) {
@@ -300,7 +300,7 @@ public final class GameViews {
     ForwardingGame(Automaton<S, A> automaton, List<String> firstPlayer) {
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
-      firstPlayer.forEach(x -> this.firstPlayer.set(automaton.variables().indexOf(x)));
+      firstPlayer.forEach(x -> this.firstPlayer.set(automaton.factory().alphabet().indexOf(x)));
       secondPlayer = BitSets.copyOf(this.firstPlayer);
       secondPlayer.flip(0, automaton.factory().alphabetSize());
     }
@@ -412,7 +412,7 @@ public final class GameViews {
     public List<String> getVariables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
-      Indices.forEachIndexed(variables(), (i, s) -> {
+      Indices.forEachIndexed(factory().alphabet(), (i, s) -> {
         if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
           variables.add(s);
         }

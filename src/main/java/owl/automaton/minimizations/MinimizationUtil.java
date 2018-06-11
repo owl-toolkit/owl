@@ -17,8 +17,6 @@
 
 package owl.automaton.minimizations;
 
-import static owl.automaton.AutomatonUtil.toHoa;
-
 import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -35,6 +33,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.output.HoaPrinter;
 import owl.automaton.transformations.ParityUtil;
 
 public final class MinimizationUtil {
@@ -107,14 +106,15 @@ public final class MinimizationUtil {
     logger.log(Level.FINE, "Optimizing automaton with {0}", minimizationList);
 
     for (Minimization<S, ? extends A> minimization : minimizationList) {
-      logger.log(Level.FINEST, () -> String.format("Current automaton: %s", toHoa(automaton)));
+      logger.log(Level.FINEST,
+        () -> String.format("Current automaton: %s", HoaPrinter.toString(automaton)));
       logger.log(Level.FINER, "Applying {0}", minimization);
       minimization.minimize((MutableAutomaton) automaton);
       automaton.trim();
     }
 
     logger.log(Level.FINEST, () -> String.format("Automaton after optimization:%n%s",
-      toHoa(automaton)));
+      HoaPrinter.toString(automaton)));
   }
 
   @SuppressWarnings("unchecked")

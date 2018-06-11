@@ -18,11 +18,8 @@
 package owl.translations.nba2dpa;
 
 import com.google.common.collect.Sets;
-import java.io.IOException;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
@@ -81,19 +78,5 @@ class CutDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcceptance, V>
     state.forEach(s -> ldba.valuationSetJumps(s)
       .forEach((k, v) -> jumps.merge(k, v, Sets::union)));
     return jumps;
-  }
-
-  @Override
-  public List<String> variables() {
-    return ldba.variables();
-  }
-
-  @Override
-  public String toString() {
-    try {
-      return toString(EnumSet.allOf(HoaOption.class));
-    } catch (IOException ex) {
-      throw new IllegalStateException(ex.toString(), ex);
-    }
   }
 }

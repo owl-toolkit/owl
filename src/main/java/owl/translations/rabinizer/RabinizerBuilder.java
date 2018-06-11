@@ -1,7 +1,5 @@
 package owl.translations.rabinizer;
 
-import static owl.automaton.AutomatonUtil.toHoa;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -44,6 +42,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.Builder;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.output.HoaPrinter;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
@@ -246,7 +245,7 @@ public final class RabinizerBuilder {
 
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "Master automaton for {0}:\n{1}",
-        new Object[] {this.initialClass, toHoa(masterAutomaton)});
+        new Object[] {this.initialClass, HoaPrinter.toString(masterAutomaton)});
     } else {
       logger.log(Level.FINE, "Master automaton for {0} has {1} states",
         new Object[] {this.initialClass, masterAutomaton.size()});
@@ -529,7 +528,8 @@ public final class RabinizerBuilder {
       rabinizerAutomaton.trim();
     }
 
-    logger.log(Level.FINER, () -> String.format("Result:%n%s", toHoa(rabinizerAutomaton)));
+    logger.log(Level.FINER,
+      () -> String.format("Result:%n%s", HoaPrinter.toString(rabinizerAutomaton)));
     if (activeSets != null) {
       logger.log(Level.FINER, () -> printOperatorSets(activeSets));
     }
@@ -553,10 +553,11 @@ public final class RabinizerBuilder {
         configuration.eager());
 
     // Postprocessing and logging
-    logger.log(Level.FINER, () -> String.format("Monitor for %s:%n%s", gOperator, toHoa(monitor)));
+    logger.log(Level.FINER,
+      () -> String.format("Monitor for %s:%n%s", gOperator, HoaPrinter.toString(monitor)));
     if (logger.isLoggable(Level.FINEST)) {
       monitor.getAutomata().forEach((set, automaton) -> logger.log(Level.FINEST,
-        "For set {0}\n{1}", new Object[] {set, toHoa(automaton)}));
+        "For set {0}\n{1}", new Object[] {set, HoaPrinter.toString(automaton)}));
     }
     return monitor;
   }

@@ -20,17 +20,11 @@ package owl.translations.ltl2dpa;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.EnumSet;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerPrint;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.output.HoaPrintable;
+import owl.automaton.output.HoaPrinter;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
@@ -42,16 +36,10 @@ public class LTL2DPAFunctionTest {
     LTL2DPAFunction translation = new LTL2DPAFunction(DefaultEnvironment.annotated(),
       LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
-
-    try (OutputStream stream = new ByteArrayOutputStream()) {
-      HOAConsumer consumer = new HOAConsumerPrint(stream);
-      automaton.toHoa(consumer, EnumSet.allOf(HoaPrintable.HoaOption.class));
-      assertEquals(stream.toString(), size, automaton.size());
-      assertThat(stream.toString(), automaton.acceptance().acceptanceSets(),
-        Matchers.lessThanOrEqualTo(accSize));
-    } catch (IOException ex) {
-      throw new IllegalStateException(ex.toString(), ex);
-    }
+    String automatonString = HoaPrinter.toString(automaton);
+    assertEquals(automatonString, size, automaton.size());
+    assertThat(automatonString, automaton.acceptance().acceptanceSets(),
+      Matchers.lessThanOrEqualTo(accSize));
   }
 
   @Test

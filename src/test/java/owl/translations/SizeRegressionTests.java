@@ -51,7 +51,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.automaton.output.HoaPrintable;
+import owl.automaton.output.HoaPrinter;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.SimplifierFactory;
@@ -64,7 +64,7 @@ import owl.translations.ltl2dra.LTL2DRAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 @SuppressWarnings("PMD.UseUtilityClass")
-public abstract class SizeRegressionTests<T extends HoaPrintable> {
+public abstract class SizeRegressionTests<T> {
   static final String BASE_PATH = "data/formulas";
   static final Pattern DATA_SPLIT_PATTERN = Pattern.compile("[();]");
 
@@ -113,7 +113,8 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
     int actualAcceptanceSets = getAcceptanceSets.applyAsInt(automaton);
 
     // Check well-formed
-    automaton.toHoa(new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()),
+      EnumSet.noneOf(HoaPrinter.HoaOption.class));
 
     // Check size of the state space
     if (actualStateCount != expectedStateCount) {
@@ -208,7 +209,7 @@ public abstract class SizeRegressionTests<T extends HoaPrintable> {
 
 
     DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
-      super(selectedClass, translator, automaton -> automaton.size(),
+      super(selectedClass, translator, Automaton::size,
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2dpa." + configuration);
     }
 

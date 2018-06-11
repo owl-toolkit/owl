@@ -252,7 +252,7 @@ abstract class DependencyTree<T> {
     @Override
     public String toString() {
       return String.format("Fallback{%s, %s %d}",
-        PrintVisitor.toString(formula, automaton.variables()), acceptance, acceptanceSet);
+        PrintVisitor.toString(formula, automaton.factory().alphabet()), acceptance, acceptanceSet);
     }
   }
 
