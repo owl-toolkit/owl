@@ -22,6 +22,7 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -51,9 +52,28 @@ public final class AutomatonFactory {
   }
 
   /**
+   * Creates a non-deterministic on-the-fly constructed automaton with supporting only bulk creation
+   * of edges.
+   *
+   * @param <S> The type of the state.
+   * @param <A> The type of the acceptance conditions.
+   * @param factory The alphabet.
+   * @param initialState The initial state.
+   * @param acceptance The acceptance condition.
+   * @param labelledEdgesFunction
+   *     A bulk transition function, needs to be consistent with {@code transitions}.
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
+    S initialState, A acceptance,
+    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    return create(factory, Set.of(initialState), acceptance, labelledEdgesFunction);
+  }
+
+  /**
    * Creates a non-deterministic on-the-fly constructed automaton with support for bulk creation of
    * edges.
-   *  @param <S> The type of the state.
+   *
+   * @param <S> The type of the state.
    * @param <A> The type of the acceptance conditions.
    * @param factory The alphabet.
    * @param initialState The initial state.
@@ -66,8 +86,47 @@ public final class AutomatonFactory {
     S initialState, A acceptance,
     BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
     Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
-    return new ImplicitLabelledAutomaton<>(factory, Set.of(initialState), acceptance, edgesFunction,
+    return create(factory, Set.of(initialState), acceptance, edgesFunction, labelledEdgesFunction);
+  }
+
+  /**
+   * Creates a non-deterministic on-the-fly constructed automaton with supporting only bulk creation
+   * of edges.
+   *
+   * @param <S> The type of the state.
+   * @param <A> The type of the acceptance conditions.
+   * @param factory The alphabet.
+   * @param initialStates The initial states.
+   * @param acceptance The acceptance condition.
+   * @param labelledEdgesFunction
+   *     A bulk transition function, needs to be consistent with {@code transitions}.
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
+    Collection<S> initialStates, A acceptance,
+    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    return new ImplicitLabelledAutomaton<>(factory, initialStates, acceptance, null,
       labelledEdgesFunction);
+  }
+
+  /**
+   * Creates a non-deterministic on-the-fly constructed automaton with support for bulk creation of
+   * edges.
+   *
+   * @param <S> The type of the state.
+   * @param <A> The type of the acceptance conditions.
+   * @param factory The alphabet.
+   * @param initialStates The initial states.
+   * @param acceptance The acceptance condition.
+   * @param edgesFunction The transition function.
+   * @param labelledEdgesFunction
+   *     A bulk transition function, needs to be consistent with {@code transitions}.
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
+    Collection<S> initialStates, A acceptance,
+    BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
+    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    return new ImplicitLabelledAutomaton<>(factory, initialStates, acceptance,
+      Objects.requireNonNull(edgesFunction), labelledEdgesFunction);
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {

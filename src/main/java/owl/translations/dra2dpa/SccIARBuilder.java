@@ -1,6 +1,7 @@
 package owl.translations.dra2dpa;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
@@ -22,9 +23,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
@@ -72,24 +73,17 @@ final class SccIARBuilder<R> {
     logger.log(Level.FINE, "Building IAR automaton");
 
     Set<IARState<R>> initialStates = getInitialStates();
-    resultAutomaton.initialStates(initialStates);
-    resultAutomaton.trim();
 
     logger.log(Level.FINEST, "Starting state space generation from {0}", initialStates);
 
-    MutableAutomatonUtil.exploreWithLabelledEdge(resultAutomaton, initialStates, state -> {
-      // Compute the successors of the current state
-      R rabinState = state.state();
-      IntPreOrder currentRecord = state.record();
+    // Compute the successors of the current state
+    // Iterate over each edge
+    var sourceAutomaton = AutomatonFactory.create(resultAutomaton.factory(), initialStates,
+      resultAutomaton.acceptance(), (IARState<R> state) ->
+        Collections2.transform(rabinAutomaton.labelledEdges(state.state()),
+        edge -> LabelledEdge.of(computeSuccessorEdge(state.record(), edge.edge), edge.valuations)));
 
-      // Iterate over each edge
-      Set<LabelledEdge<IARState<R>>> successors = new HashSet<>();
-      rabinAutomaton.forEachLabelledEdge(rabinState, (rabinEdge, valuations) -> {
-        Edge<IARState<R>> iarEdge = computeSuccessorEdge(currentRecord, rabinEdge);
-        successors.add(LabelledEdge.of(iarEdge, valuations));
-      });
-      return successors;
-    });
+    MutableAutomatonFactory.copy(sourceAutomaton, resultAutomaton);
 
     assert checkGeneratedStates();
 

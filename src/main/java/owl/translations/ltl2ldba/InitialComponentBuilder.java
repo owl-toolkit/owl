@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
@@ -82,21 +82,15 @@ class InitialComponentBuilder<K extends RecurringObligation>
 
   @Override
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
-    MutableAutomaton<EquivalenceClass, NoneAcceptance> automaton =
-      MutableAutomatonFactory.create(NoneAcceptance.INSTANCE, factories.vsFactory);
-
-    constructionQueue.forEach(automaton::addInitialState);
-
     if (constructDeterministic) {
-      MutableAutomatonUtil.exploreWithLabelledEdge(automaton, constructionQueue,
-        this::getDeterministicSuccessor);
+      var automaton = AutomatonFactory.create(factories.vsFactory, constructionQueue,
+        NoneAcceptance.INSTANCE, this::getDeterministicSuccessor);
       assert automaton.is(Automaton.Property.DETERMINISTIC);
-    } else {
-      MutableAutomatonUtil.explore(automaton, constructionQueue,
-        this::getNondeterministicSuccessors, factory::getSensitiveAlphabet);
+      return MutableAutomatonFactory.copy(automaton);
     }
 
-    return automaton;
+    return MutableAutomatonFactory.create(NoneAcceptance.INSTANCE, factories.vsFactory,
+      constructionQueue, this::getNondeterministicSuccessors);
   }
 
   private void generateJumps(EquivalenceClass state) {
