@@ -37,6 +37,19 @@ public final class MutableAutomatonFactory {
   private MutableAutomatonFactory() {
   }
 
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> copy(Automaton<S, A> source) {
+    MutableAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
+    copy(source, target);
+    assert source.states().equals(target.states());
+    return target;
+  }
+
+  public static <S> void copy(Automaton<S, ?> source, MutableAutomaton<S, ?> target) {
+    source.initialStates().forEach(target::addInitialState);
+    source.accept(new CopyVisitor<>(target));
+    target.trim(); // Cannot depend on iteration order, thus we need to trim().
+  }
+
   /**
    * Creates an empty automaton with given acceptance condition. The {@code valuationSetFactory} is
    * used as transition backend.
@@ -99,13 +112,36 @@ public final class MutableAutomatonFactory {
     return automaton;
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> copy(Automaton<S, A> source) {
-    MutableAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
-    target.initialStates(source.initialStates());
-    source.accept(new CopyVisitor<>(target));
-    target.trim(); // Cannot predict iteration order, thus we need to trim().
-    assert source.states().equals(target.states());
-    return target;
+  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
+    ValuationSetFactory vsFactory, Collection<S> initialStates,
+    BiFunction<S, BitSet, ? extends Collection<Edge<S>>> successors) {
+
+    MutableAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
+    automaton.initialStates(initialStates);
+
+    int alphabetSize = automaton.factory().alphabetSize();
+    Set<S> exploredStates = new HashSet<>(initialStates);
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.remove();
+
+      for (BitSet valuation : BitSets.powerSet(alphabetSize)) {
+        for (Edge<S> edge : successors.apply(state, valuation)) {
+          ValuationSet valuationSet = automaton.factory().of(valuation);
+          S successorState = edge.successor();
+
+          if (exploredStates.add(successorState)) {
+            workQueue.add(successorState);
+          }
+
+          automaton.addEdge(state, valuationSet, edge);
+        }
+      }
+    }
+
+    automaton.trim();
+    return automaton;
   }
 
   private static class CopyVisitor<S> implements HybridVisitor<S> {

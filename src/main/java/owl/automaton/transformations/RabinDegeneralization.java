@@ -2,6 +2,7 @@ package owl.automaton.transformations;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
 import de.tum.in.naturals.Indices;
@@ -19,10 +20,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.immutables.value.Value;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
@@ -125,11 +126,10 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
       // Pick an arbitrary starting state for the exploration
       DegeneralizedRabinState<S> initialSccState =
-        DegeneralizedRabinState.of(Iterables.get(scc, 0), new int[sccTrackedPairs.size()]);
-      resultAutomaton.addInitialState(initialSccState);
-      var start = Set.of(initialSccState);
-      Set<DegeneralizedRabinState<S>> exploredStates =
-        MutableAutomatonUtil.exploreWithLabelledEdge(resultAutomaton, start, state -> {
+        DegeneralizedRabinState.of(scc.iterator().next(), new int[sccTrackedPairs.size()]);
+
+      Automaton<DegeneralizedRabinState<S>, ?> sourceAutomaton = AutomatonFactory.create(
+        resultAutomaton.factory(), initialSccState, resultAutomaton.acceptance(), state -> {
           S generalizedState = state.state();
           Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
           List<LabelledEdge<DegeneralizedRabinState<S>>> successors = new ArrayList<>();
@@ -203,15 +203,22 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
           return successors;
         });
 
-      exploredStates.forEach(resultAutomaton::addInitialState);
-      List<Set<DegeneralizedRabinState<S>>> resultSccs = SccDecomposition.computeSccs(
-        SuccessorFunction.filter(resultAutomaton, exploredStates), exploredStates, false);
-      Set<DegeneralizedRabinState<S>> resultBscc = resultSccs.stream()
+      MutableAutomatonFactory.copy(sourceAutomaton, resultAutomaton);
+
+      Set<DegeneralizedRabinState<S>> resultBscc = SccDecomposition
+        .computeSccs(SuccessorFunction
+          .filter(resultAutomaton, sourceAutomaton.states()), sourceAutomaton.states(), false)
+        .stream()
         .filter(resultScc -> SccDecomposition.isTrap(resultAutomaton, resultScc))
         .findAny().orElseThrow();
 
-      resultAutomaton.removeStateIf(
-        state -> exploredStates.contains(state) && !resultBscc.contains(state));
+      // Mark some state of the result BSCC initial.
+      if (!resultBscc.isEmpty()) {
+        resultAutomaton.addInitialState(resultBscc.iterator().next());
+      }
+
+      var transientStates = Sets.difference(sourceAutomaton.states(), resultBscc);
+      resultAutomaton.removeStateIf(transientStates::contains);
       resultAutomaton.trim();
       resultBscc.forEach(state -> stateMap.putIfAbsent(state.state(), state));
     }

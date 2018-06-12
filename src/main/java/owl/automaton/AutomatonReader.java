@@ -35,6 +35,7 @@ import jhoafparser.storage.StoredState;
 import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
@@ -336,7 +337,7 @@ public final class AutomatonReader {
         case "co-buchi":
           // acc-name: co-Buchi
           // Acceptance: 1 Fin(0)
-          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return CoBuchiAcceptance.INSTANCE;
 
         case "generalized-buchi":
           // acc-name: generalized-Buchi 3
