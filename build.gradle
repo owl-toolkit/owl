@@ -19,6 +19,7 @@ buildscript {
     repositories {
         flatDir dirs: 'lib/', name: 'proguard.jar'
     }
+
     dependencies {
         classpath ':proguard:'
     }
@@ -29,6 +30,7 @@ plugins {
     // https://plugins.gradle.org/plugin/net.ltgt.apt
     id 'net.ltgt.apt' version '0.15'
     id 'net.ltgt.apt-idea' version '0.15'
+
     // https://github.com/tbroyer/gradle-errorprone-javacplugin-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.errorprone-javacplugin
     id 'net.ltgt.errorprone-javacplugin' version '0.2'
@@ -51,20 +53,21 @@ apply plugin: 'application'
 project.group = 'de.tum.in'
 project.version = '18.06-snapshot'
 
+project.archivesBaseName = 'owl'
+project.mainClassName = 'owl.run.DefaultCli'
 project.sourceCompatibility = JavaVersion.VERSION_1_10
 project.targetCompatibility = JavaVersion.VERSION_1_10
-project.archivesBaseName = 'owl'
-
-mainClassName = "owl.run.DefaultCli"
-def minimize = !project.hasProperty("full")
-def buildNatives = !project.hasProperty("disable-native")
-def enableProGuard = !project.hasProperty("disable-proguard")
 
 def defaultEncoding = 'UTF-8'
-//noinspection GroovyAssignabilityCheck
+
 tasks.withType(JavaCompile) { options.encoding = defaultEncoding }
-//noinspection GroovyAssignabilityCheck
 tasks.withType(Javadoc) { options.encoding = defaultEncoding }
+
+def buildNatives = !project.hasProperty("disable-native")
+
+apply from: 'gradle/analysis.gradle'
+apply from: 'gradle/antlr.gradle'
+apply from: 'gradle/natives.gradle'
 
 repositories {
     mavenCentral()
@@ -92,43 +95,20 @@ dependencies {
     annotationProcessor 'org.immutables:value:2.6.1'
 }
 
-// Add resources directory for native libraries.
-//noinspection GroovyAssignabilityCheck
-tasks.withType(Test) {
-    systemProperty "java.library.path", "src/main/resources/"
-}
-
-apply from: 'gradle/analysis.gradle'
-apply from: 'gradle/antlr.gradle'
-if (buildNatives)
-    apply from: 'gradle/natives.gradle'
+// ---------------- Jars ----------------
 
 jar {
     manifest {
         attributes(
             "Implementation-Title": "owl",
             "Main-Class": project.mainClassName,
-            "Implementation-Version": version)
+            "Implementation-Version": project.version)
     }
 }
 
-//noinspection GroovyAssignabilityCheck
-tasks.withType(Javadoc) {
-    options.encoding = defaultEncoding
-    options.docEncoding = defaultEncoding
-    options.charSet = defaultEncoding
-    // https://github.com/gradle/gradle/issues/2553 Disables some superfluous warnings of javadoc
-    // Generate HTML5
-    options.optionFiles << file('config/javadoc.options')
-}
-
-//noinspection GroovyAssignabilityCheck,UnnecessaryQualifiedReference
-def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuardTask) {
-    if (minimize)
-        configuration 'config/proguard-min.txt'
-    else
-        configuration 'config/proguard.txt'
-
+def proGuardJar = task proguard(name: "proGuardJar", type: proguard.gradle.ProGuardTask) {
+    configuration 'config/proguard.txt'
+    
     libraryjars "${System.getProperty('java.home')}/jmods"
     libraryjars "${System.getProperty('java.home')}/lib"
 
@@ -137,12 +117,12 @@ def proGuardTask = task proguard(name: "proguard", type: proguard.gradle.ProGuar
     dontwarn 'afu.org.checkerframework.**'
     dontwarn 'org.checkerframework.**'
 
-    //noinspection GroovyAssignabilityCheck
     injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
-    //noinspection GrUnresolvedAccess,GroovyAssignabilityCheck
     injars files(jar)
     outjars new File(project.buildDir, 'libs/owl.jar')
 }
+
+// ---------------- Startup Scripts ----------------
 
 // Create startup scripts for each tool
 def scripts = [
@@ -162,27 +142,30 @@ def scripts = [
 
 ext.createStartScriptTasks = { name, cp, map ->
     map.collect { scriptName, className ->
-        tasks.create(name: scriptName + name.capitalize() + 'StartScript',
-            type: CreateStartScripts) {
+        tasks.create(name: scriptName + name.capitalize() + 'StartScript', type: CreateStartScripts) {
             mainClassName = className
             applicationName = scriptName
             // CreateStartScripts is stupid; it.outputs.files = outputDir, not the created scripts.
             outputDir = new File(project.buildDir, 'scripts/' + scriptName)
-            //noinspection GroovyAccessibility
             classpath = cp
         }
     }
 }
 
 startScripts.outputDir = new File(project.buildDir, 'scripts/owl')
-createStartScriptTasks("", jar.outputs.files + project.configurations.runtime, scripts).each() {
+
+def allStartScripts = createStartScriptTasks("", jar.outputs.files + project.configurations.runtime, scripts)
+allStartScripts.each() {
     it.dependsOn(jar)
     startScripts.dependsOn(it)
 }
 
-def proGuardStartScripts = createStartScriptTasks("ProGuard", proGuardTask.outputs.files,
-    scripts + ['owl': mainClassName])
-proGuardStartScripts.each() { it.dependsOn(proGuardTask) }
+def proGuardJarStartScripts = createStartScriptTasks("ProGuard", proGuardJar.outputs.files, scripts + ['owl': mainClassName])
+proGuardJarStartScripts.each() { 
+    it.dependsOn(proGuardJar) 
+}
+
+// ---------------- Documentation ----------------
 
 // Compile the markdown files
 tasks.create(name: "compileMarkdown", type: Exec) {
@@ -191,96 +174,77 @@ tasks.create(name: "compileMarkdown", type: Exec) {
     args = ["$project.docsDir/markdown"]
 }.onlyIf {
     buildNatives
-} // ... if native compilation is enabled (pandoc isn't available everywhere)
+} 
+
+
+tasks.withType(Javadoc) {
+    options.encoding = defaultEncoding
+    options.docEncoding = defaultEncoding
+    options.charSet = defaultEncoding
+    // https://github.com/gradle/gradle/issues/2553 Disables some superfluous warnings of javadoc
+    // Generate HTML5
+    options.optionFiles << file('config/javadoc.options')
+}
 
 // TODO Include testing framework scripts in distribution -> split scripts directory in two dirs
 
-// Configure the distribution to include the documentation etc.
+
+// ---------------- Distributions ----------------
+
+// Configure the distribution to include basic documentation. 
+// Javadoc is excluded and can be built from source release,
+// that is generated from the release tag.
+
 distributions {
-    // TODO The distribution plugin is stupid: The "main" distribution always contains all runtime
-    // dependencies - we can't specify only the minimized jar.
-    //noinspection GroovyAssignabilityCheck
     main {
         baseName = 'owl'
 
         contents {
             from "AUTHORS"
             from "LICENSE"
+            from compileMarkdown
 
-            into("doc") {
-                from compileMarkdown
-            }
-            into("jdoc") {
-                from javadoc
-            }
-            into("src") {
-                from "src"
+            into("bin") {
+                from allStartScripts
+
+                if (buildNatives) {
+                    from 'build/exe/owlClient/owl-client' 
+                }
             }
         }
     }
-}
 
-if (enableProGuard) {
-    distributions.create("small", {
+    minimized {
         baseName = 'owl'
+        
         contents {
-            into("bin") {
-                //noinspection GroovyAssignabilityCheck
-                from proGuardStartScripts
-            }
-            into("lib") {
-                from proGuardTask
-            }
             from "AUTHORS"
             from "LICENSE"
 
-            if (!minimize) {
-                into("doc") {
-                    from compileMarkdown
-                }
-                into("jdoc") {
-                    from javadoc
-                }
-                into("src") {
-                    from "src"
-                }
-            }
-        }
-    })
-}
+            into("bin") {
+                from proGuardJarStartScripts
 
-// Task to create a minimal running jar
-tasks.create(name: "buildBin", type: Copy) {
-    dependsOn 'owlClientExecutable'
-    destinationDir = project.buildDir
-    into('bin') {
-        // Copy all start-scripts and make them executable
-        if (enableProGuard) {
-            from(proGuardStartScripts) {
-                exclude "*.bat"
+                if (buildNatives) {
+                    from 'build/exe/owlClient/owl-client' 
+                }
             }
-        } else {
-            from(startScripts) {
-                exclude "*.bat"
+
+            into("lib") {
+                from proGuardJar
             }
-        }
-        if (buildNatives) {
-            from('build/exe/owlClient') // Can't declare 'owlClientExecutable' here?
-        }
-        fileMode = 0755
-    }
-    into('lib') {
-        if (enableProGuard) {
-            from(proGuardTask)
-        } else {
-            from(jar) // Copy the jar itself
-            from([project.configurations.runtime]) // Copy the dependencies
         }
     }
 }
 
-// ProGuard dead code detection
-//noinspection UnnecessaryQualifiedReference
+if (buildNatives) {
+    tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":owlClientExecutable"))
+    tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":owlClientExecutable"))
+    tasks.getByPath(":minimizedDistZip").dependsOn(tasks.getByPath(":owlClientExecutable"))
+    tasks.getByPath(":minimizedDistTar").dependsOn(tasks.getByPath(":owlClientExecutable"))
+}
+
+// ---------------- Dead Code Detection ----------------
+
 tasks.create(name: "reportDeadCode", type: proguard.gradle.ProGuardTask) {
     injars files(jar)
 

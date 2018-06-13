@@ -51,6 +51,7 @@ Additionally, the following set of common options is understood by all tools.
 Due to implementation details, grouping of the options is necessary, i.e. all global options have to be specified first, followed by all input options, and finally tool-specific options can be given.
 
 Global options:
+ * `-v` or `--version`: Print the name of the tool an the version.
  * `--annotations`: Gather additional, human-readable information where possible.
    For example, the `ltl2ldba` and `ltl2dgra` constructions will gather a readable representation of the semantic state labels created by the construction.
  * `--parallel`: Enable parallel processing where supported.

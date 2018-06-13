@@ -17,8 +17,10 @@
 
 package owl.util;
 
+import static org.hamcrest.CoreMatchers.is;
+
+import org.junit.Assume;
 import org.junit.Test;
-import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.ExternalTranslator;
@@ -39,10 +41,18 @@ public class ExternalTranslatorTest {
 
   @Test
   public void testApply() {
-    for (int i = 0; i < FORMULA.length; i++) {
-      LabelledFormula formula = LtlParser.parse(FORMULA[i]);
+    // Check if the tool is installed and available.
+    try {
+      ExternalTranslator tool = new ExternalTranslator(DefaultEnvironment.annotated(), TOOL[0]);
+      tool.apply(LtlParser.parse(FORMULA[0]));
+    } catch (IllegalStateException ex) {
+      // Assumption is always violated now.
+      Assume.assumeThat(true, is(false));
+    }
+
+    for (int i = 1; i < FORMULA.length; i++) {
       ExternalTranslator tool = new ExternalTranslator(DefaultEnvironment.annotated(), TOOL[i]);
-      tool.apply(formula);
+      tool.apply(LtlParser.parse(FORMULA[i]));
     }
   }
 }
