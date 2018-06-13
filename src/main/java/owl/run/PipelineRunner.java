@@ -42,7 +42,7 @@ import owl.util.DaemonThreadFactory;
                     "PMD.SignatureDeclareThrowsException", "PMD.AvoidCatchingGenericException",
                     "PMD.AvoidThrowingRawExceptionTypes"})
 public final class PipelineRunner {
-  static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
+  private static final Logger logger = Logger.getLogger(PipelineRunner.class.getName());
 
   private PipelineRunner() {}
 

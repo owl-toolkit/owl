@@ -43,11 +43,11 @@ public final class Transformers {
 
   /**
    * Creates a {@link Transformer transformer} from a {@link OutputWriter writer} by redirecting
-   * the output to the {@link PipelineExecutionContext#getMetaWriter() meta writer}.
+   * the output to the {@link PipelineExecutionContext#metaWriter() meta writer}.
    */
   public static Transformer fromWriter(OutputWriter writer) {
     return environment -> (input, context) -> {
-      writer.bind(context.getMetaWriter(), environment).write(input);
+      writer.bind(context.metaWriter(), environment).write(input);
       return input;
     };
   }

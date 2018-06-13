@@ -19,17 +19,6 @@ public interface Environment {
   FactorySupplier factorySupplier();
 
   /**
-   * Whether the constructions should try to recover from errors or fail-fast.
-   */
-  boolean lenient();
-
-  /**
-   * Returns whether meta information gathering is enabled.
-   */
-  // TODO Does this belong here? Or should this be put into the ExecutionContext?
-  boolean metaInformation();
-
-  /**
    * Whether computations should be parallel.
    */
   boolean parallel();

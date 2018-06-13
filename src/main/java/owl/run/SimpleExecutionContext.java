@@ -6,12 +6,12 @@ import java.io.Writer;
 final class SimpleExecutionContext implements PipelineExecutionContext {
   private final StringWriter writer;
 
-  public SimpleExecutionContext() {
+  SimpleExecutionContext() {
     this.writer = new StringWriter();
   }
 
   @Override
-  public Writer getMetaWriter() {
+  public Writer metaWriter() {
     return writer;
   }
 
