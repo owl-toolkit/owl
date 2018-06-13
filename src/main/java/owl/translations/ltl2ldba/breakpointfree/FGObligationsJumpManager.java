@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -233,7 +234,9 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       List<Set<T>> intersection = new ArrayList<>();
 
       for (List<Set<T>> sets : Lists.cartesianProduct(List.copyOf(conjuncts))) {
-        Collections3.addDistinct(intersection, Collections3.parallelUnion(sets));
+        Set<T> union = ConcurrentHashMap.newKeySet(sets.size());
+        sets.parallelStream().forEach(union::addAll);
+        Collections3.addDistinct(intersection, union);
       }
 
       return intersection;

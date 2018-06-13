@@ -43,7 +43,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaPrinter;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
@@ -272,8 +271,10 @@ public final class RabinizerBuilder {
       sccRelevantGList[index] = stateSubset.stream()
         .map(this::relevantSubFormulas).flatMap(Collection::stream)
         .collect(Collectors.toUnmodifiableSet()));
-    Set<GOperator> allRelevantGFormulas =
-      Set.copyOf(Collections3.union(Arrays.asList(sccRelevantGList)));
+    Set<GOperator> allRelevantGFormulas = Arrays
+      .stream(sccRelevantGList)
+      .flatMap(Collection::stream)
+      .collect(Collectors.toUnmodifiableSet());
 
     logger.log(Level.FINE, "Identified relevant sub-formulas: {0}", allRelevantGFormulas);
 

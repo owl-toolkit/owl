@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -149,19 +148,6 @@ public final class Collections3 {
     }
 
     return set;
-  }
-
-
-  public static <E> Set<E> union(Collection<? extends Collection<E>> elements) {
-    Set<E> union = new HashSet<>(elements.size());
-    elements.forEach(union::addAll);
-    return union;
-  }
-
-  public static <E> Set<E> parallelUnion(Collection<? extends Collection<E>> elements) {
-    Set<E> union = ConcurrentHashMap.newKeySet(elements.size());
-    elements.parallelStream().forEach(union::addAll);
-    return union;
   }
 
   public static <E1, E2> void zip(Iterable<E1> iterable1, Iterable<E2> iterable2,

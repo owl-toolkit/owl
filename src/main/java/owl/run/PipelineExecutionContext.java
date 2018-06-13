@@ -1,9 +1,6 @@
 package owl.run;
 
-import java.io.IOException;
 import java.io.Writer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import owl.run.modules.OutputWriters.AutomatonStats;
 
 /**
@@ -27,15 +24,5 @@ public interface PipelineExecutionContext {
    * Modules are guaranteed to have exclusive access to this writer without further synchronization.
    * IO exceptions on these writers may be silently ignored.</p>
    */
-  Writer getMetaWriter();
-
-  @SuppressWarnings("resource")
-  default void printMeta(String line) {
-    try {
-      getMetaWriter().write(line);
-    } catch (IOException e) {
-      Logger.getLogger(PipelineExecutionContext.class.getName()).log(Level.INFO,
-        "Error while writing to meta writer", e);
-    }
-  }
+  Writer metaWriter();
 }

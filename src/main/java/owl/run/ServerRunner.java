@@ -25,11 +25,10 @@ public class ServerRunner implements Callable<Void> {
   private final Pipeline execution;
   private final int port;
 
-  public ServerRunner(Pipeline execution, Supplier<Environment> environmentConstructor,
-    InetAddress address, int port) {
+  public ServerRunner(Pipeline execution, Supplier<Environment> environmentConstructor, int port) {
     this.execution = execution;
     this.environmentSupplier = environmentConstructor;
-    this.address = address;
+    this.address = InetAddress.getLoopbackAddress();
     this.port = port;
   }
 

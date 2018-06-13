@@ -24,16 +24,6 @@ abstract class AbstractDefaultEnvironment implements Environment {
     return JBddSupplier.async(annotations());
   }
 
-  @Value.Default
-  @Override
-  public boolean lenient() {
-    return false;
-  }
-
-  @Value.Parameter
-  @Override
-  public abstract boolean metaInformation();
-
   @Value.Parameter
   @Override
   public abstract boolean parallel();
@@ -49,10 +39,10 @@ abstract class AbstractDefaultEnvironment implements Environment {
   }
 
   public static Environment annotated() {
-    return DefaultEnvironment.of(true, false, false);
+    return DefaultEnvironment.of(true, false);
   }
 
   public static Environment standard() {
-    return DefaultEnvironment.of(false, false, false);
+    return DefaultEnvironment.of(false, false);
   }
 }

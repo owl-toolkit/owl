@@ -88,7 +88,7 @@ public final class DefaultCli {
 
     boolean annotations = RunUtil.checkDefaultAnnotationOption(settings);
     boolean parallel = RunUtil.checkDefaultParallelOption(settings);
-    DefaultEnvironment env = DefaultEnvironment.of(annotations, false, parallel);
+    DefaultEnvironment env = DefaultEnvironment.of(annotations, parallel);
     return () -> {
       PipelineRunner.run(pipeline, env, reader.call(), writer.call(), workers);
       return null;
