@@ -67,7 +67,7 @@ final class HoaConsumerExtended<S> {
 
     try {
       consumer.notifyHeaderStart("v1");
-      consumer.setTool("owl", "18.06-snapshot"); // Owl in a cave.
+      consumer.setTool(tool(), version());
 
       if (options.contains(HoaOption.ANNOTATIONS)) {
         consumer.setName(name);
@@ -99,6 +99,16 @@ final class HoaConsumerExtended<S> {
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
+  }
+
+  private static String tool() {
+    String title = HoaConsumerExtended.class.getPackage().getImplementationTitle();
+    return title == null ? "owl" : title;
+  }
+
+  private static String version() {
+    String version = HoaConsumerExtended.class.getPackage().getImplementationVersion();
+    return version == null ? "development" : version;
   }
 
   void addEdge(ValuationSet label, S end) {

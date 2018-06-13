@@ -31,6 +31,8 @@ public final class OwlParser {
   @Nullable
   public static OwlParser parse(String[] arguments, CommandLineParser cliParser,
     Options globalOptions, OwlModuleRegistry registry) {
+    RunUtil.checkForVersion(arguments);
+
     logger.log(Level.FINE, "Parsing arguments list {0}", Arrays.toString(arguments));
     if (arguments.length == 0 || ParseUtil.isHelp(arguments)) {
       ParseUtil.println("This is owl. Owl is a flexible "

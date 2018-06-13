@@ -1,6 +1,7 @@
 package owl.run;
 
 import com.google.common.base.Strings;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,6 +56,15 @@ public final class RunUtil {
     logger.log(Level.FINE, "Stacktrace:", cause);
     System.exit(1);
     return new AssertionError("Unreachable", cause);
+  }
+
+  @SuppressWarnings({"PMD.SystemPrintln"})
+  public static void checkForVersion(String[] args) {
+    if (Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version")) {
+      System.out.println("Name: " + RunUtil.class.getPackage().getImplementationTitle());
+      System.out.println("Version: " + RunUtil.class.getPackage().getImplementationVersion());
+      System.exit(0);
+    }
   }
 
   /**
