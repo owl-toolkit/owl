@@ -38,6 +38,8 @@ public final class PartialConfigurationParser {
 
   public static void run(String[] args, Map<String, PartialModuleConfiguration> modes,
     PartialModuleConfiguration defaultConfiguration) {
+    RunUtil.checkForVersion(args);
+
     if (args.length == 0) {
       run(args, defaultConfiguration);
       return;
@@ -83,6 +85,8 @@ public final class PartialConfigurationParser {
   }
 
   public static void run(String[] args, PartialModuleConfiguration configuration) {
+    RunUtil.checkForVersion(args);
+    
     HelpFormatter formatter = new HelpFormatter();
     formatter.setSyntaxPrefix("");
 
