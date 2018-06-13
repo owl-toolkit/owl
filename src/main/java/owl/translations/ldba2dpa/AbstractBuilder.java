@@ -20,14 +20,15 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
 
   @Nullable
   private final List<Set<S>> initialComponentSccs;
-  protected final Predicate<S> isAcceptingState;
+  protected final Predicate<? super S> isAcceptingState;
   protected final LanguageLattice<T, A, L> lattice;
   protected final LimitDeterministicAutomaton<S, T, B, A> ldba;
   protected final List<A> safetyComponents;
   protected final List<A> sortingOrder;
 
   protected AbstractBuilder(LimitDeterministicAutomaton<S, T, B, A> ldba,
-    LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch) {
+    LanguageLattice<T, A, L> lattice, Predicate<? super S> isAcceptingState,
+    boolean resetAfterSccSwitch) {
     initialComponentSccs = resetAfterSccSwitch
       ? SccDecomposition.computeSccs(ldba.initialComponent())
       : null;

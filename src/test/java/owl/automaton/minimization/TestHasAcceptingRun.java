@@ -3,23 +3,18 @@ package owl.automaton.minimization;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
-import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
-import owl.automaton.AutomatonReader.HoaState;
-import owl.automaton.MutableAutomaton;
+import owl.automaton.AutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
-import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrinter;
-import owl.automaton.transformations.ParityUtil;
 import owl.run.DefaultEnvironment;
-import owl.translations.nba2dpa.NBA2DPAFunction;
+import owl.translations.nba2dpa.NBA2DPA;
 
 public class TestHasAcceptingRun {
 
@@ -89,21 +84,15 @@ public class TestHasAcceptingRun {
 
   private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
-    EnumSet<Configuration> optimisations = EnumSet.allOf(Configuration.class);
-    optimisations.remove(Configuration.REMOVE_EPSILON_TRANSITIONS);
-    NBA2DPAFunction<HoaState> translation = new NBA2DPAFunction<>();
+    NBA2DPA translation = new NBA2DPA();
 
-    Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
-      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
-
-    MutableAutomaton<Object, ParityAcceptance> result =
-      (MutableAutomaton<Object, ParityAcceptance>) translation.apply(automaton);
-
+    var automaton = translation.apply(AutomatonReader.readHoa(input,
+      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class));
     HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    HoaPrinter.feedTo(result, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    assertThat(EmptinessCheck.isEmpty(automaton), is(!hasAcceptingRun));
 
-    assertThat(EmptinessCheck.isEmpty(result), is(!hasAcceptingRun));
-    ParityUtil.complement(result, new Object());
-    assertThat(EmptinessCheck.isEmpty(result), is(!complementHasAcceptingRun));
+    var complement = Views.complement(AutomatonUtil.cast(automaton), new Object());
+    HoaPrinter.feedTo(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    assertThat(EmptinessCheck.isEmpty(complement), is(!complementHasAcceptingRun));
   }
 }

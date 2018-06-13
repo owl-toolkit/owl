@@ -26,7 +26,7 @@ public final class FlatRankingAutomaton {
 
   public static <S, T, A, L> Automaton<FlatRankingState<S, T>, ParityAcceptance> of(
     LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba, LanguageLattice<T, A, L> lattice,
-    Predicate<S> isAcceptingState, boolean resetRanking, boolean optimizeInitialState) {
+    Predicate<? super S> isAcceptingState, boolean resetRanking, boolean optimizeInitialState) {
     checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
     var builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking);
@@ -45,7 +45,8 @@ public final class FlatRankingAutomaton {
     final FlatRankingState<S, T> initialState;
 
     Builder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba,
-      LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetRanking) {
+      LanguageLattice<T, A, L> lattice, Predicate<? super S> isAcceptingState,
+      boolean resetRanking) {
       super(ldba, lattice, isAcceptingState, resetRanking);
       logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),

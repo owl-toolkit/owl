@@ -36,7 +36,7 @@ import owl.translations.fgx2dpa.FGX2DPA;
 import owl.translations.ltl2dpa.LTL2DPACliParser;
 import owl.translations.ltl2dra.LTL2DRACliParser;
 import owl.translations.ltl2ldba.LTL2LDBACliParser;
-import owl.translations.nba2dpa.NBA2DPAFunction;
+import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
 import owl.translations.rabinizer.RabinizerCliParser;
 import owl.translations.safra.SafraBuilder;
@@ -70,7 +70,7 @@ public class OwlModuleRegistry {
     // Advanced constructions
     DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, FGX2DPA.CLI, IARBuilder.CLI,
       LTL2DAModule.CLI, NBA2LDBA.CLI, LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE,
-      DelagBuilder.CLI, NBA2DPAFunction.CLI, ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI,
+      DelagBuilder.CLI, NBA2DPA.CLI, ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI,
       ParityUtil.CONVERSION_CLI, LTL2DRACliParser.INSTANCE, SafraBuilder.CLI);
 
   }

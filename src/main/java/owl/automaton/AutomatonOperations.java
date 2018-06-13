@@ -1,13 +1,13 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.Automaton.Property.COMPLETE;
 import static owl.automaton.Automaton.Property.DETERMINISTIC;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
@@ -66,7 +66,7 @@ public final class AutomatonOperations {
     List<Automaton<S, ? extends OmegaAcceptance>> automata) {
     checkArgument(!automata.isEmpty(), "No automaton was passed.");
 
-    ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(false);
+    ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(false, true);
     int offset = 1;
 
     for (Automaton<S, ? extends OmegaAcceptance> automaton : automata) {
@@ -105,9 +105,9 @@ public final class AutomatonOperations {
   public static <S> Automaton<List<S>, BuchiAcceptance> union(
     List<Automaton<S, BuchiAcceptance>> automata) {
     checkArgument(!automata.isEmpty(), "No automaton was passed.");
-    assert automata.stream().allMatch(x -> x.is(COMPLETE) && x.is(DETERMINISTIC));
+    assert automata.stream().allMatch(x -> x.is(DETERMINISTIC));
 
-    ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(true);
+    ListAutomatonBuilder<S> builder = new ListAutomatonBuilder<>(true, false);
     ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::factory));
     builder.buchi.addAll(automata);
 
@@ -121,9 +121,11 @@ public final class AutomatonOperations {
     final List<Automaton<S, ? extends GeneralizedBuchiAcceptance>> buchi = new ArrayList<>();
     final List<Automaton<S, CoBuchiAcceptance>> coBuchi = new ArrayList<>();
     final boolean collapseBuchi;
+    final boolean fastNull;
 
-    ListAutomatonBuilder(boolean collapseBuchi) {
+    ListAutomatonBuilder(boolean collapseBuchi, boolean fastNull) {
       this.collapseBuchi = collapseBuchi;
+      this.fastNull = fastNull;
     }
 
     Automaton<S, ?> getAutomaton(int i) {
@@ -171,10 +173,23 @@ public final class AutomatonOperations {
       BitSet acceptanceSets = new BitSet();
 
       for (int i = 0; i < list.size(); i++) {
-        Edge<S> edge = getAutomaton(i).edge(list.get(i), valuation);
+        S state = list.get(i);
+
+        if (state == null) {
+          assert !fastNull;
+          successor.add(null);
+          continue;
+        }
+
+        Edge<S> edge = getAutomaton(i).edge(state, valuation);
 
         if (edge == null) {
-          return null;
+          if (fastNull) {
+            return null;
+          }
+
+          successor.add(null);
+          continue;
         }
 
         successor.add(edge.successor());
@@ -202,7 +217,7 @@ public final class AutomatonOperations {
         }
       }
 
-      return Edge.of(List.copyOf(successor), acceptanceSets);
+      return Edge.of(Collections.unmodifiableList(successor), acceptanceSets);
     }
   }
 }

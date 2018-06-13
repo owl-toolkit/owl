@@ -51,7 +51,7 @@ public final class ParityUtil {
       Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
         ParityAcceptance.class);
       return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton),
-        MutableAutomatonUtil.defaultSinkSupplier().get());
+        MutableAutomatonUtil.Sink.INSTANCE);
     }).build();
 
   public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
@@ -106,6 +106,7 @@ public final class ParityUtil {
 
   public static <S> MutableAutomaton<S, ParityAcceptance> complement(
     MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
+    assert automaton.is(Automaton.Property.DETERMINISTIC);
     ParityAcceptance acceptance = automaton.acceptance();
 
     if (acceptance.acceptanceSets() == 0 && !acceptance.emptyIsAccepting()) {

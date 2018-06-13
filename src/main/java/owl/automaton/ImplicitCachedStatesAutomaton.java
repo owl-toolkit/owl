@@ -6,19 +6,14 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ImplicitCachedStatesAutomaton<S, A extends OmegaAcceptance>
-  implements Automaton<S, A> {
+  extends AbstractAutomaton<S, A> {
 
-  protected final ValuationSetFactory factory;
   @Nullable
   private Set<S> statesCache;
 
-  public ImplicitCachedStatesAutomaton(ValuationSetFactory factory) {
-    this.factory = factory;
-  }
-
-  @Override
-  public final ValuationSetFactory factory() {
-    return factory;
+  public ImplicitCachedStatesAutomaton(ValuationSetFactory factory, Set<S> initialStates,
+    A acceptance) {
+    super(factory, acceptance, initialStates);
   }
 
   @Override
@@ -41,10 +36,14 @@ public abstract class ImplicitCachedStatesAutomaton<S, A extends OmegaAcceptance
 
   @Override
   public final void accept(LabelledEdgeVisitor<S> visitor) {
-    Set<S> exploredStates = DefaultImplementations.visit(this, visitor);
-
     if (statesCache == null) {
-      statesCache = Set.copyOf(exploredStates);
+      statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
+    } else {
+      for (S state : statesCache) {
+        visitor.enter(state);
+        this.forEachLabelledEdge(state, visitor::visitLabelledEdge);
+        visitor.exit(state);
+      }
     }
   }
 

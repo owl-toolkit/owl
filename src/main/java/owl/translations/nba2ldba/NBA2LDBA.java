@@ -17,19 +17,24 @@
 
 package owl.translations.nba2ldba;
 
+import static owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration.REMOVE_EPSILON_TRANSITIONS;
+import static owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES;
+
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
-import owl.automaton.ldba.MutableAutomatonBuilder;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -37,46 +42,65 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
-public final class NBA2LDBA<S> implements Function<Automaton<S, ?>,
-  LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void>> {
+public final class NBA2LDBA implements Function<Automaton<?, ?>,
+  LimitDeterministicAutomaton<?, ?, BuchiAcceptance, Void>> {
+
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("nba2ldba")
     .description("Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
       + "automaton")
     .parser(settings -> {
-      NBA2LDBA<Object> function =
-        new NBA2LDBA<>(EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
+      var ldbaConfiguration = EnumSet.of(
+        REMOVE_EPSILON_TRANSITIONS,
+        SUPPRESS_JUMPS_FOR_TRANSIENT_STATES);
+      var function = new NBA2LDBA(false, ldbaConfiguration);
       return environment -> (input, context) ->
         function.apply(AutomatonUtil.cast(input, Object.class, OmegaAcceptance.class));
     }).build();
-  private final EnumSet<Configuration> configuration;
 
-  public NBA2LDBA(EnumSet<Configuration> configuration) {
-    this.configuration = configuration;
+  private final boolean cutDeterministicAndComplete;
+  private final EnumSet<Configuration> ldbaConfiguration;
+
+  public NBA2LDBA(boolean cutDeterministicAndComplete, EnumSet<Configuration> ldbaConfiguration) {
+    this.cutDeterministicAndComplete = cutDeterministicAndComplete;
+    this.ldbaConfiguration = EnumSet.copyOf(ldbaConfiguration);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public LimitDeterministicAutomaton<S, BreakpointState<S>, BuchiAcceptance, Void> apply(
-    Automaton<S, ?> automaton) {
-    Automaton<S, GeneralizedBuchiAcceptance> nba;
+  public LimitDeterministicAutomaton<?, ?, BuchiAcceptance, Void> apply(
+    Automaton<?, ?> automaton) {
+    Automaton<Object, GeneralizedBuchiAcceptance> nba;
 
-    // TODO Module! Something like "transform-acc --to generalized-buchi"
     if (automaton.acceptance() instanceof AllAcceptance) {
-      var buchi = BuchiView.build(AutomatonUtil.cast(automaton, AllAcceptance.class));
-      nba = AutomatonUtil.cast(buchi, GeneralizedBuchiAcceptance.class);
+      var allAutomaton = Views.createPowerSetAutomaton(automaton, AllAcceptance.INSTANCE, true);
+      var castedAutomaton = AutomatonUtil.cast(allAutomaton, Object.class, AllAcceptance.class);
+      nba = Views.viewAs(castedAutomaton, GeneralizedBuchiAcceptance.class);
     } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
-      nba = AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class);
+      nba = AutomatonUtil.cast(automaton, Object.class, GeneralizedBuchiAcceptance.class);
     } else {
       throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
     }
 
-    InitialComponentBuilder<S> initialComponentBuilder = InitialComponentBuilder.create(nba);
-    MutableAutomatonBuilder<S, BreakpointState<S>, BuchiAcceptance> acceptingComponentBuilder
-      = new AcceptingComponentBuilder<>(nba);
+    if (cutDeterministicAndComplete) {
+      var initialComponent = MutableAutomatonFactory.copy(
+        Views.createPowerSetAutomaton(nba, NoneAcceptance.INSTANCE, false));
+      var acceptingComponentBuilder = new AcceptingComponentBuilder<>(nba, true);
+      return LimitDeterministicAutomatonBuilder.create(() -> initialComponent,
+        acceptingComponentBuilder, x -> x, x -> (Void) null, ldbaConfiguration).build();
+    } else {
+      var ldbaOptional = AutomatonUtil.ldbaSplit(nba);
 
-    return LimitDeterministicAutomatonBuilder.create(initialComponentBuilder,
-      acceptingComponentBuilder, Set::of, x -> (Void) null, configuration).build();
+      if (ldbaOptional.isPresent()
+        && ldbaOptional.get().acceptingComponent().acceptance() instanceof BuchiAcceptance) {
+        return (LimitDeterministicAutomaton<?, ?, BuchiAcceptance, Void>)
+          ((LimitDeterministicAutomaton) ldbaOptional.get());
+      }
+
+      var initialComponent = MutableAutomatonFactory.copy(Views.viewAsLts(nba));
+      var acceptingComponentBuilder = new AcceptingComponentBuilder<>(nba, false);
+      return LimitDeterministicAutomatonBuilder.create(() -> initialComponent,
+        acceptingComponentBuilder, Set::of, x -> (Void) null, ldbaConfiguration).build();
+    }
   }
 
   public static void main(String... args) {

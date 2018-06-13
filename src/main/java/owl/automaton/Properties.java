@@ -43,7 +43,8 @@ final class Properties {
    * @return Whether the automaton is deterministic.
    */
   static <S> boolean isDeterministic(Automaton<S, ?> automaton) {
-    return automaton.initialStates().size() <= 1 && isSemiDeterministic(automaton);
+    return automaton.initialStates().size() <= 1
+      && automaton.is(Automaton.Property.SEMI_DETERMINISTIC);
   }
 
   static <S> boolean isSemiDeterministic(Automaton<S, ?> automaton) {

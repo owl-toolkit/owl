@@ -30,10 +30,6 @@ public final class MutableAutomatonUtil {
     return MutableAutomatonFactory.copy(automaton);
   }
 
-  public static Supplier<Object> defaultSinkSupplier() {
-    return () -> Sink.INSTANCE;
-  }
-
   public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton) {
     return complete(automaton, Sink.INSTANCE);
   }
@@ -70,8 +66,8 @@ public final class MutableAutomatonUtil {
     return Optional.of(sinkState);
   }
 
-  private static final class Sink {
-    private static final Sink INSTANCE = new Sink();
+  public static final class Sink {
+    public static final Sink INSTANCE = new Sink();
 
     private Sink() {}
 

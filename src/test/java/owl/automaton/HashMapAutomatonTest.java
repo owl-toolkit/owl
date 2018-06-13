@@ -32,6 +32,7 @@ import java.util.Objects;
 import org.junit.Test;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
@@ -90,7 +91,8 @@ public class HashMapAutomatonTest {
   @Test
   public void testSimpleAutomaton() {
     // Test various parts of the implementation on a simple, two-state automaton
-    MutableAutomaton<String, ?> automaton = new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
+    MutableAutomaton<String, ?> automaton = new HashMapAutomaton<>(FACTORY,
+      BuchiAcceptance.INSTANCE);
 
     automaton.addState("1");
     automaton.addState("2");
@@ -114,10 +116,12 @@ public class HashMapAutomatonTest {
     assertThat(automaton.labelledEdges("1"), containsInAnyOrder(
       LabelledEdge.of("2", FACTORY.universe())));
     assertThat(automaton.edge("1", new BitSet()), is(Edge.of("2")));
-    assertThat(automaton.is(Property.DETERMINISTIC), is(true));
-
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
+
+    assertThat(automaton.is(Property.DETERMINISTIC), is(true));
+    assertThat(automaton.is(Property.SEMI_DETERMINISTIC), is(true));
+    assertThat(automaton.is(Property.LIMIT_DETERMINISTIC), is(true));
 
     // Add duplicate edge
     automaton.addEdge("1", FACTORY.of(new BitSet()), Edge.of("2"));
@@ -127,21 +131,33 @@ public class HashMapAutomatonTest {
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
 
+    assertThat(automaton.is(Property.DETERMINISTIC), is(true));
+    assertThat(automaton.is(Property.SEMI_DETERMINISTIC), is(true));
+    assertThat(automaton.is(Property.LIMIT_DETERMINISTIC), is(true));
+
     // Add edge with different acceptance
-    automaton.addEdge("1", FACTORY.of(new BitSet()), Edge.of("2", 1));
+    automaton.addEdge("1", FACTORY.of(new BitSet()), Edge.of("2", 0));
 
     assertThat(automaton.edges("1", new BitSet()),
-      containsInAnyOrder(Edge.of("2"), Edge.of("2", 1)));
+      containsInAnyOrder(Edge.of("2"), Edge.of("2", 0)));
     assertThat(Iterators.size(automaton.labelledEdges("1").iterator()), is(2));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
 
-    automaton.addEdge("1", FACTORY.universe(), Edge.of("1"));
+    assertThat(automaton.is(Property.DETERMINISTIC), is(false));
+    assertThat(automaton.is(Property.SEMI_DETERMINISTIC), is(false));
+    assertThat(automaton.is(Property.LIMIT_DETERMINISTIC), is(true));
+
+    automaton.addEdge("1", FACTORY.universe(), Edge.of("1", 0));
 
     assertThat(automaton.edges("1", new BitSet()),
-      containsInAnyOrder(Edge.of("1"), Edge.of("2"), Edge.of("2", 1)));
+      containsInAnyOrder(Edge.of("1", 0), Edge.of("2"), Edge.of("2", 0)));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
+
+    assertThat(automaton.is(Property.DETERMINISTIC), is(false));
+    assertThat(automaton.is(Property.SEMI_DETERMINISTIC), is(false));
+    assertThat(automaton.is(Property.LIMIT_DETERMINISTIC), is(false));
 
     automaton.addInitialState("2");
 
@@ -149,11 +165,15 @@ public class HashMapAutomatonTest {
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
     assertThat(AutomatonUtil.getIncompleteStates(automaton).keySet(), containsInAnyOrder("2"));
 
+    assertThat(automaton.is(Property.DETERMINISTIC), is(false));
+    assertThat(automaton.is(Property.SEMI_DETERMINISTIC), is(false));
+    assertThat(automaton.is(Property.LIMIT_DETERMINISTIC), is(false));
+
     automaton.updateEdges(automaton.states(), (state, edge) -> edge.withAcceptance(key -> 2));
     automaton.trim();
 
     assertThat(automaton.edges("1", new BitSet()),
-      containsInAnyOrder(Edge.of("1"), Edge.of("2"), Edge.of("2", 2)));
+      containsInAnyOrder(Edge.of("1", 2), Edge.of("2"), Edge.of("2", 2)));
     assertThat(automaton.edges("2", new BitSet()), empty());
 
     automaton.updateEdges((state, edge) -> Objects.equals(state, "1")
