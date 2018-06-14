@@ -21,16 +21,6 @@ If you want to contribute to `Owl`, read the [contribution guidelines](CONTRIBUT
 Read the javadoc of the respective packages of the infrastructure you plan to use, e.g., `owl.automaton`.
 It contains links to the relevant classes and typical use cases.
 
-## (Some) Publications
+## Publications
 
- * Zuzana Komárková, Jan Křetínský: 
-   Rabinizer 3: Safraless translation of LTL to small deterministic automata. ATVA 2014
-
- * Salomon Sickert, Javier Esparza, Stefan Jaax, Jan Kretínský: 
-   Limit-Deterministic Büchi Automata for Linear Temporal Logic. CAV 2016
-
- * Javier Esparza, Jan Křetínský, Jean-François Raskin, Salomon Sickert:
-   From LTL and Limit-Deterministic Büchi Automata to Deterministic Parity Automata. TACAS 2017
-
- * Jan Křetínský, Tobias Meggendorfer, Clara Waldmann, Maximilian Weininger:
-   Index appearance record for transforming Rabin automata into parity automata. TACAS 2017
+Please see the [citing section of the official website for an updated list](https://owl.model.in.tum.de/#citing).

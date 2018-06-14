@@ -24,20 +24,19 @@ Build:
     paths:
     - $GRADLE
   script:
-    - ./gradlew --no-daemon -Pfull check buildBin
+    - ./gradlew --no-daemon check minimizedDistZip
     - scripts/check_binaries.sh
   artifacts:
     paths:
     - build/tmp/
     - build/reports/
     when: on_failure
-    expire_in: 1 week
+    expire_in: 1 hour
   artifacts:
     paths:
-    - build/bin/
-    - build/lib/
+    - build/distributions/
     when: on_success
-    expire_in: 2 hours
+    expire_in: 1 week
 
 
 # Artifact
@@ -49,19 +48,22 @@ Assemble:
     paths:
     - $GRADLE
   script:
-    - ./gradlew --no-daemon distZip
+    - ./gradlew --no-daemon distZip javadoc
   dependencies:
   - Build
   artifacts:
     paths:
-    - build/distibutions/
-    expire_in: 1 hour # should be longer
+    - build/distributions/
+    expire_in: 1 week
 
 
 # Templates
 
 .ltlcross: &ltlcross_template
   script:
+    - unzip -d build/unzipped build/distributions/*.zip
+    - mv build/unzipped/owl-*/bin build
+    - mv build/unzipped/owl-*/lib build
     - python3 scripts/util.py test $TEST_NAME
   artifacts:
     paths:
@@ -74,6 +76,9 @@ Assemble:
 .benchmark: &benchmark_template
   stage: bench
   script:
+    - unzip -d build/unzipped build/distributions/*.zip
+    - mv build/unzipped/owl-*/bin build
+    - mv build/unzipped/owl-*/lib build
     - python3 scripts/util.py bench $BENCH_NAME | tee benchmark.txt
   artifacts:
     paths:

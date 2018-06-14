@@ -1,24 +1,43 @@
 # Building
 
-Owl is built with [Gradle](http://gradle.org/).
+## Prerequisites
 
-To build all Java tools, use the following command.
-All dependencies are downloaded automatically.
+Building the project from source requires an installed [JDK 10](http://jdk.java.net/10/) and an installed C++17 compiler. Furthermore to generate HTML documentation [pandoc](https://pandoc.org/) is needed.
 
-```
-$ ./gradlew buildBin
-```
-
-The tools are located in `build/bin`.
-
-To also build the included C and C++ tools, an appropriate compiler is required.
-A full build can be executed by
+Owl is built with [Gradle](http://gradle.org/), which is automatically bootstrapped. You can view the available tasks with:
 
 ```
-$ ./gradlew assemble
+$ ./gradlew tasks
 ```
 
-All resulting artifacts are located in `build/distributions`.
+## Standard Distribution
 
-By default, ProGuard is used to minimize the resulting jar.
-Specify `-Pfull` to disable the optimizations.
+The standard distribution can be obtained with:
+
+```
+$ ./gradlew distZip
+```
+
+The resulting `.zip` is located in `build/distributions`. In order to run all tests and checks please use:
+
+```
+$ ./gradlew check
+```
+
+## Minimized Distribution
+
+In order to save space and reduce load time of the application a minimized `jar` can be produced with:
+
+```
+$ ./gradlew minimizedDistZip
+```
+
+The minimization uses [ProGuard](https://www.guardsquare.com/en/products/proguard), removes unused `class`-files from the jar and does other minimizations.
+
+## Documentation
+
+The corresponding javadoc can be obtained with:
+
+```
+$ ./gradlew javadoc
+```

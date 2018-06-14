@@ -19,5 +19,5 @@ for file_path in ${files[@]}; do
   destination_path="$destination/$file_path.html"
   mkdir -p $(dirname ${destination_path})
 
-  pandoc --standalone -f markdown_github -t html5 -o "$destination_path" "$source_path" || true
+  pandoc --standalone -f markdown_github -t html5 -o "$destination_path" "$source_path"
 done
