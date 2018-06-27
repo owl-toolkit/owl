@@ -128,17 +128,30 @@ def proGuardJar = task proguard(name: "proGuardJar", type: proguard.gradle.ProGu
 
 // Create startup scripts for each tool
 def scripts = [
-    'synth'     : 'owl.translations.Synthesis',
-    'ltl2da'    : 'owl.translations.LTL2DAModule',
+    // LTL -> LDBA
+    'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBAModule',
+    'ltl2ldgba' : 'owl.translations.ltl2ldba.LTL2LDGBAModule',
+
+    // LTL -> DRA
+    'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
+    'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
+    
+    // LTL -> DPA
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
     'fgx2dpa'   : 'owl.translations.fgx2dpa.FGX2DPA',
-    'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBACliParser',
+    
+    // LTL -> DELA
+    'delag'     : 'owl.translations.delag.DelagBuilder',
+    
+    // LTL -> D*A
+    // TODO: Deprecate and replace by delag!
+    'ltl2da'    : 'owl.translations.LTL2DAModule',
+    
+    // Miscellaneous
+    'synth'     : 'owl.translations.Synthesis',
+    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',
-    'delag'     : 'owl.translations.delag.DelagBuilder',
-    'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
-    'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
     'owl-server': 'owl.run.ServerCli'
 ]
 

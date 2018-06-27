@@ -35,7 +35,7 @@ import owl.ltl.LabelledFormula;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
-import owl.translations.ltl2ldba.LTL2LDBACliParser;
+import owl.translations.ltl2ldba.AbstractLTL2LDBAModule;
 
 public final class LTL2DPACliParser implements TransformerParser {
   public static final LTL2DPACliParser INSTANCE = new LTL2DPACliParser();
@@ -59,15 +59,15 @@ public final class LTL2DPACliParser implements TransformerParser {
         "Compute the automaton also for the negation and return the smaller.")
       .addOption("c", "complete", false,
         "Output a complete automaton")
-      .addOption(LTL2LDBACliParser.guessF())
-      .addOption(LTL2LDBACliParser.simple());
+      .addOption(AbstractLTL2LDBAModule.guessF())
+      .addOption(AbstractLTL2LDBAModule.simple());
   }
 
   @Override
   public Transformer parse(CommandLine commandLine) {
     EnumSet<Configuration> configuration;
 
-    if (commandLine.hasOption(LTL2LDBACliParser.simple().getOpt())) {
+    if (commandLine.hasOption(AbstractLTL2LDBAModule.simple().getOpt())) {
       configuration = EnumSet.noneOf(Configuration.class);
     } else {
       configuration = EnumSet.of(EXISTS_SAFETY_CORE, OPTIMISED_STATE_STRUCTURE,
@@ -81,7 +81,7 @@ public final class LTL2DPACliParser implements TransformerParser {
       configuration.add(COMPLETE);
     }
 
-    if (commandLine.hasOption(LTL2LDBACliParser.guessF().getOpt())) {
+    if (commandLine.hasOption(AbstractLTL2LDBAModule.guessF().getOpt())) {
       configuration.add(GUESS_F);
     }
 

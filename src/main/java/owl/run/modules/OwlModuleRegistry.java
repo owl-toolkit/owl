@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -54,7 +53,8 @@ import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.fgx2dpa.FGX2DPA;
 import owl.translations.ltl2dpa.LTL2DPACliParser;
 import owl.translations.ltl2dra.LTL2DRACliParser;
-import owl.translations.ltl2ldba.LTL2LDBACliParser;
+import owl.translations.ltl2ldba.LTL2LDBAModule;
+import owl.translations.ltl2ldba.LTL2LDGBAModule;
 import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
 import owl.translations.rabinizer.RabinizerCliParser;
@@ -86,12 +86,22 @@ public class OwlModuleRegistry {
     DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
       ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI);
 
-    // Advanced constructions
-    DEFAULT_REGISTRY.register(RabinizerCliParser.INSTANCE, FGX2DPA.CLI, IARBuilder.CLI,
-      LTL2DAModule.CLI, NBA2LDBA.CLI, LTL2LDBACliParser.INSTANCE, LTL2DPACliParser.INSTANCE,
-      DelagBuilder.CLI, NBA2DPA.CLI, ExternalTranslator.CLI, ParityUtil.COMPLEMENT_CLI,
-      ParityUtil.CONVERSION_CLI, LTL2DRACliParser.INSTANCE, SafraBuilder.CLI);
+    // LTL translations
+    DEFAULT_REGISTRY.register(
+      // -> LD(G)BA
+      LTL2LDBAModule.INSTANCE, LTL2LDGBAModule.INSTANCE,
+      // -> D(G)RA
+      RabinizerCliParser.INSTANCE, LTL2DRACliParser.INSTANCE,
+      // -> DPA
+      LTL2DPACliParser.INSTANCE, FGX2DPA.CLI,
+      // -> DELA
+      DelagBuilder.CLI, LTL2DAModule.CLI,
+      // external
+      ExternalTranslator.CLI);
 
+    // Automaton translations
+    DEFAULT_REGISTRY.register(IARBuilder.CLI, NBA2LDBA.CLI, NBA2DPA.CLI, SafraBuilder.CLI,
+      ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI);
   }
 
   public ReaderParser reader(String name) throws OwlModuleNotFoundException {
@@ -132,13 +142,15 @@ public class OwlModuleRegistry {
   }
 
   public void register(OwlModuleParser<?>... parser) {
-    Stream.of(parser).forEach(this::register);
+    for (OwlModuleParser<?> owlModuleParser : parser) {
+      register(owlModuleParser);
+    }
   }
 
   public void register(OwlModuleParser<?> parser) {
     Type type = Type.of(parser);
-
     String name = parser.getKey();
+
     if (registeredModules.contains(type, name)) {
       throw new IllegalArgumentException(
         String.format("Some module with name %s and type %s is already registered", name, type));
