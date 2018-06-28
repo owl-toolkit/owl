@@ -36,7 +36,7 @@ import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ltl2dra.LTL2DRAFunction.Configuration;
-import owl.translations.ltl2ldba.LTL2LDBACliParser;
+import owl.translations.ltl2ldba.AbstractLTL2LDBAModule;
 
 // Kept separate from LTL2DRAFunction so that it can be used by JNI without loading the run package
 public final class LTL2DRACliParser implements TransformerParser {
@@ -61,14 +61,14 @@ public final class LTL2DRACliParser implements TransformerParser {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(LTL2LDBACliParser.simple()).addOption(DEGENERALIZE);
+    return new Options().addOption(AbstractLTL2LDBAModule.simple()).addOption(DEGENERALIZE);
   }
 
   @Override
   public Transformer parse(CommandLine commandLine) {
     EnumSet<LTL2DRAFunction.Configuration> configuration;
 
-    if (commandLine.hasOption(LTL2LDBACliParser.simple().getOpt())) {
+    if (commandLine.hasOption(AbstractLTL2LDBAModule.simple().getOpt())) {
       configuration = EnumSet.noneOf(LTL2DRAFunction.Configuration.class);
     } else {
       configuration = EnumSet.of(EXISTS_SAFETY_CORE, OPTIMISED_STATE_STRUCTURE,

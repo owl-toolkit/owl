@@ -12,7 +12,21 @@
             "output": "hoa",
             "name": "ltl2ldba",
             "flags": {
-                "degeneralise": "-d",
+                "epsilon": "-e",
+                "guess-f": "-f",
+                "non-deterministic": "-n",
+                "simple": "-s"
+            },
+            "pre": [
+                "simplify-ltl"
+            ]
+        },
+        "ltl2ldgba": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2ldgba",
+            "flags": {
                 "epsilon": "-e",
                 "guess-f": "-f",
                 "non-deterministic": "-n",
