@@ -32,7 +32,7 @@ In order to save space and reduce load time of the application a minimized `jar`
 $ ./gradlew minimizedDistZip
 ```
 
-The minimization uses [ProGuard](https://www.guardsquare.com/en/products/proguard), removes unused `class`-files from the jar and does other minimizations.
+The minimization uses [ProGuard](https://www.guardsquare.com/en/products/proguard), removes unused `class`-files from the jar and produces a single jar.
 
 ## Documentation
 
