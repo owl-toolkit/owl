@@ -228,14 +228,10 @@ tasks.create(name: "compileMarkdown", type: Exec) {
     buildNatives
 } 
 
-
-tasks.withType(Javadoc) {
-    options.encoding = defaultEncoding
-    options.docEncoding = defaultEncoding
-    options.charSet = defaultEncoding
-    // https://github.com/gradle/gradle/issues/2553 Disables some superfluous warnings of javadoc
-    // Generate HTML5
-    options.optionFiles << file('config/javadoc.options')
+javadoc {
+    options.addBooleanOption('html5', true)
+    options.setEncoding(defaultEncoding)
+    options.links('https://docs.oracle.com/javase/10/docs/api')
 }
 
 // TODO Include testing framework scripts in distribution -> split scripts directory in two dirs
@@ -262,6 +258,12 @@ distributions {
                 if (buildNatives) {
                     from 'build/exe/owlClient/owl-client' 
                 }
+
+                fileMode = 0755
+            }
+
+            into("javadoc") {
+                from javadoc
             }
         }
     }
@@ -279,6 +281,8 @@ distributions {
                 if (buildNatives) {
                     from 'build/exe/owlClient/owl-client' 
                 }
+
+                fileMode = 0755
             }
 
             into("lib") {

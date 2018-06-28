@@ -37,9 +37,9 @@ import owl.collections.ValuationSet;
  * the reachability (a list is given below) calling {@link MutableAutomaton#trim()} has no effect
  * and is not required.
  *
- * <p>Methods that <it>do</it> require calling {@link MutableAutomaton#trim()} afterwards:</p>
+ * <p>Methods that <em>do</em> require calling {@link MutableAutomaton#trim()} afterwards:</p>
  *
- * <p><ul>
+ * <ul>
  * <li>{@link MutableAutomaton#initialStates(Collection)}
  * <li>{@link MutableAutomaton#removeInitialState(Object)}
  * <li>{@link MutableAutomaton#addState(Object)}
@@ -49,11 +49,11 @@ import owl.collections.ValuationSet;
  * <li>{@link MutableAutomaton#removeEdge(Object, ValuationSet, Object)}
  * <li>{@link MutableAutomaton#updateEdges(BiFunction)}
  * <li>{@link MutableAutomaton#updateEdges(Set, BiFunction)}
- * </ul></p>
+ * </ul>
  *
- * <p>Methods that <it>do not</it> require calling {@link MutableAutomaton#trim()} afterwards:</p>
+ * <p>Methods that <em>do not</em> require calling {@link MutableAutomaton#trim()} afterwards:</p>
  *
- * <p><ul>
+ * <ul>
  * <li>{@link MutableAutomaton#name(String)}
  * <li>{@link MutableAutomaton#acceptance(OmegaAcceptance)}
  * <li>{@link MutableAutomaton#updateAcceptance(Function)}
@@ -61,7 +61,7 @@ import owl.collections.ValuationSet;
  * <li>{@link MutableAutomaton#addEdge(Object, BitSet, Edge)}
  * <li>{@link MutableAutomaton#addEdge(Object, ValuationSet, Edge)}
  * <li>{@link MutableAutomaton#trim()}
- * </ul></p>
+ * </ul>
  *
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
