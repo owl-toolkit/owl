@@ -20,4 +20,5 @@ for file_path in ${files[@]}; do
   mkdir -p $(dirname ${destination_path})
 
   pandoc --standalone -f markdown_github -t html5 -o "$destination_path" "$source_path"
+  sed -i -- 's/[.]md/.html/g' "$destination_path"
 done

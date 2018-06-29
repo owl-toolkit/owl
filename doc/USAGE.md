@@ -2,16 +2,18 @@
 
 ## Dedicated Tools
 
-`Owl` comes with a wide variety of dedicated tools, an non-exhaustive list is given below.
-Most tools provide some help which is displayed in case of an parsing error or when calling the tool with `--help` as only argument.
+Owl comes with a variety of dedicated command-line tools originating from Rabinizer and Delag. The tools include usage instructions that can be accessed with the `--help` argument. The following tools (besides other) are included: 
 
-  * `ltl2dra`, `ltl2dgra`: LTL to D(G)RA translations, based on the Rabinizer construction
-  * `ltl2ldba`, `ltl2ldgba`: LTL to LD(G)BA translations
-  * `ltl2dpa`: LTL to DPA translation. The intermediate construction (DRA or LDBA) can be selected with `--mode`
-  * `delag`: LTL to DELA translation, based on a dependency tree construction
-  * `nba2ldba`: NBA to LDBA translation
-  * `nba2dpa`: NBA to DPA translation, based on the LDBA construction
-  * `dra2dpa`: DRA to DPA translation, based on the index appearance record construction
+  * Rabinizer
+    * `ltl2dra`, `ltl2dgra`: LTL to D(G)RA translations, based on the Rabinizer construction
+    * `ltl2ldba`, `ltl2ldgba`: LTL to LD(G)BA translations
+    * `ltl2dpa`: LTL to DPA translation. The intermediate construction (DRA or LDBA) can be selected with `--mode`
+  * Delag
+    * `delag`: LTL to DELA translation, based on a dependency tree construction
+  * Miscellaneous
+    * `nba2ldba`: NBA to LDBA translation
+    * `nba2dpa`: NBA to DPA translation, based on the LDBA construction
+    * `dra2dpa`: DRA to DPA translation, based on the index appearance record construction
 
 The type abbreviations mean the following:
 
