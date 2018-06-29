@@ -55,20 +55,20 @@ public class LtlParserTest {
   };
 
   private static final Formula[] OUTPUT = {
-    new Literal(0, true),
-    new GOperator(new Literal(0)),
-    new Conjunction(new FOperator(new Literal(0)), new XOperator(new Literal(1))),
-    new UOperator(new Disjunction(new Literal(0, true), new Literal(1)), new Literal(2)),
-    new FOperator(new Literal(0)),
-    new MOperator(new Literal(0), new Literal(1)),
-    new FrequencyG(new GOperator(new Literal(0, true)), 0.5, FrequencyG.Comparison.GEQ,
+    Literal.of(0, true),
+    new GOperator(Literal.of(0)),
+    Conjunction.of(new FOperator(Literal.of(0)), new XOperator(Literal.of(1))),
+    new UOperator(Disjunction.of(Literal.of(0, true), Literal.of(1)), Literal.of(2)),
+    new FOperator(Literal.of(0)),
+    new MOperator(Literal.of(0), Literal.of(1)),
+    new FrequencyG(new GOperator(Literal.of(0, true)), 0.5, FrequencyG.Comparison.GEQ,
       FrequencyG.Limes.SUP),
-    new FrequencyG(new FOperator(new Literal(0)), 0.5, FrequencyG.Comparison.GEQ,
+    new FrequencyG(new FOperator(Literal.of(0)), 0.5, FrequencyG.Comparison.GEQ,
       FrequencyG.Limes.INF),
-    new ROperator(new Literal(0), new Literal(1)),
-    new UOperator(new Literal(0, true), new Literal(1, true)),
-    new WOperator(new Literal(0), new UOperator(new Literal(1),
-      new ROperator(new Literal(2), new Literal(0))))
+    new ROperator(Literal.of(0), Literal.of(1)),
+    new UOperator(Literal.of(0, true), Literal.of(1, true)),
+    new WOperator(Literal.of(0), new UOperator(Literal.of(1),
+      new ROperator(Literal.of(2), Literal.of(0))))
   };
 
   @Test
@@ -82,13 +82,13 @@ public class LtlParserTest {
   public void testSingleQuotedLiteralParsing() {
     LabelledFormula formula = LtlParser.parse("'a b c'");
     assertThat(formula.variables(), contains("a b c"));
-    assertThat(formula.formula(), is(new Literal(0)));
+    assertThat(formula.formula(), is(Literal.of(0)));
   }
 
   @Test
   public void testDoubleQuotedLiteralParsing() {
     LabelledFormula formula = LtlParser.parse("\"a b c\"");
     assertThat(formula.variables(), contains("a b c"));
-    assertThat(formula.formula(), is(new Literal(0)));
+    assertThat(formula.formula(), is(Literal.of(0)));
   }
 }

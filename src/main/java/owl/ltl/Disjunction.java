@@ -19,12 +19,10 @@
 
 package owl.ltl;
 
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,24 +32,20 @@ import owl.ltl.visitors.Visitor;
 
 public final class Disjunction extends PropositionalFormula {
 
-  public Disjunction(Collection<? extends Formula> disjuncts) {
-    super(disjuncts);
-  }
-
-  public Disjunction(Formula... disjuncts) {
-    this(Set.of(disjuncts));
+  private Disjunction(Formula... disjuncts) {
+    super(Disjunction.class, Set.of(disjuncts));
   }
 
   public Disjunction(Stream<? extends Formula> formulaStream) {
-    this(formulaStream.collect(Collectors.toUnmodifiableSet()));
+    super(Disjunction.class, formulaStream.collect(Collectors.toUnmodifiableSet()));
   }
 
   public static Formula of(Formula left, Formula right) {
-    return of(List.of(left, right));
+    return of(Arrays.asList(left, right));
   }
 
   public static Formula of(Formula... formulas) {
-    return of(Stream.of(formulas));
+    return of(Arrays.asList(formulas));
   }
 
   public static Formula of(Iterable<? extends Formula> iterable) {
@@ -92,7 +86,7 @@ public final class Disjunction extends PropositionalFormula {
       return set.iterator().next();
     }
 
-    return new Disjunction(set);
+    return new Disjunction(set.toArray(EMPTY_FORMULA_ARRAY));
   }
 
   @Override
@@ -113,11 +107,6 @@ public final class Disjunction extends PropositionalFormula {
   @Override
   protected char getOperator() {
     return '|';
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(Disjunction.class, children);
   }
 
   @Override

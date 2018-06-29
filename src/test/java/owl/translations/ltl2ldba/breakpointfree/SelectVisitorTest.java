@@ -66,7 +66,7 @@ public class SelectVisitorTest {
   @Test
   public void testFScopedSelectorR() {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a R b)").formula();
-    GOperator gOperator = new GOperator(new Literal(1));
+    GOperator gOperator = new GOperator(Literal.of(1));
 
     Set<UnaryModalOperator> choice1 = Set.of(fOperator);
     Set<UnaryModalOperator> choice2 = Set.of(fOperator, gOperator);
@@ -92,7 +92,7 @@ public class SelectVisitorTest {
   @Test
   public void testGScopedSelectorU() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a U b)").formula();
-    FOperator fOperator = new FOperator(new Literal(1));
+    FOperator fOperator = new FOperator(Literal.of(1));
 
     Set<UnaryModalOperator> choice = Set.of(gOperator, fOperator);
     assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
@@ -113,8 +113,8 @@ public class SelectVisitorTest {
 
     Set<GOperator> gOperators = (Set<GOperator>) ((Set) conjunction.children);
 
-    FOperator fOperatorA = new FOperator(new Literal(0));
-    FOperator fOperatorB = new FOperator(new Literal(1));
+    FOperator fOperatorA = new FOperator(Literal.of(0));
+    FOperator fOperatorB = new FOperator(Literal.of(1));
 
     Set<? extends UnaryModalOperator> baseChoiceConj = gOperators;
     Set<UnaryModalOperator> choiceA = Set.of(fOperatorA);
@@ -136,8 +136,8 @@ public class SelectVisitorTest {
     GOperator gOperatorConj =
       (GOperator) LtlParser.parse("G (((a | F b) & (b | F a)) | c)").formula();
     GOperator gOperatorDisj = (GOperator) LtlParser.parse("G ((a & F b) | (b & F a))").formula();
-    FOperator fOperatorA = new FOperator(new Literal(0));
-    FOperator fOperatorB = new FOperator(new Literal(1));
+    FOperator fOperatorA = new FOperator(Literal.of(0));
+    FOperator fOperatorB = new FOperator(Literal.of(1));
 
     Set<UnaryModalOperator> baseChoiceConj = Set.of(gOperatorConj);
     Set<UnaryModalOperator> baseChoiceDisj = Set.of(gOperatorDisj);

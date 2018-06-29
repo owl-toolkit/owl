@@ -20,7 +20,6 @@
 package owl.ltl;
 
 import com.google.common.collect.Iterables;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -28,11 +27,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class PropositionalFormula extends AbstractFormula {
+public abstract class PropositionalFormula extends Formula {
   public final Set<Formula> children;
 
-  PropositionalFormula(Collection<? extends Formula> children) {
-    this.children = Set.copyOf(children);
+  PropositionalFormula(Class<? extends PropositionalFormula> clazz, Set<Formula> children) {
+    super(Objects.hash(clazz, children));
+    this.children = children;
   }
 
   public static Formula shortCircuit(Formula formula) {
@@ -86,8 +86,8 @@ public abstract class PropositionalFormula extends AbstractFormula {
   }
 
   @Override
-  public boolean equals2(AbstractFormula o) {
-    PropositionalFormula that = (PropositionalFormula) o;
+  public boolean deepEquals(Formula other) {
+    PropositionalFormula that = (PropositionalFormula) other;
     return Objects.equals(children, that.children);
   }
 

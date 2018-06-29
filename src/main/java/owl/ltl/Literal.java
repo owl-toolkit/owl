@@ -27,28 +27,32 @@ import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public final class Literal extends AbstractFormula {
+public final class Literal extends Formula {
   private final int index;
   private final Literal negation;
 
+  public static Literal of(int index) {
+    return of(index, false);
+  }
+
   public static Literal of(int index, boolean negate) {
-    return new Literal(index, negate);
+    Literal positiveLiteral = new Literal(index);
+    return negate ? positiveLiteral.negation : positiveLiteral;
   }
 
   private Literal(Literal other) {
-    this.negation = other;
+    super(Integer.hashCode(-other.index));
     this.index = -other.index;
-    assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
+    this.negation = other;
+    assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
   }
 
-  public Literal(@Nonnegative int index) {
-    this(index, false);
-  }
-
-  public Literal(@Nonnegative int index, boolean negate) {
+  private Literal(@Nonnegative int index) {
+    super(Integer.hashCode(index + 1));
     Objects.checkIndex(index, Integer.MAX_VALUE);
-    this.index = negate ? -(index + 1) : index + 1;
+    this.index = index + 1;
     this.negation = new Literal(this);
+    assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
   }
 
   @Override
@@ -77,18 +81,13 @@ public final class Literal extends AbstractFormula {
   }
 
   @Override
-  protected boolean equals2(AbstractFormula o) {
+  protected boolean deepEquals(Formula o) {
     Literal literal = (Literal) o;
     return index == literal.index;
   }
 
   public int getAtom() {
     return Math.abs(index) - 1;
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Integer.hashCode(index);
   }
 
   public boolean isNegated() {

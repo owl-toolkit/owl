@@ -29,8 +29,8 @@ import owl.ltl.visitors.Visitor;
  */
 public class GOperator extends UnaryModalOperator {
 
-  public GOperator(Formula f) {
-    super(f);
+  public GOperator(Formula operand) {
+    super(GOperator.class, operand);
   }
 
   /**

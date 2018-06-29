@@ -57,7 +57,7 @@ public abstract class EquivalenceClassTest {
   public void setUp() {
     contradiction = BooleanConstant.FALSE;
     tautology = BooleanConstant.TRUE;
-    literal = new Literal(0);
+    literal = Literal.of(0);
 
     factory = setUpFactory(LtlParser.parse("a & b & c & d"));
   }
@@ -78,8 +78,8 @@ public abstract class EquivalenceClassTest {
     classes.add(factory.of(contradiction));
     classes.add(factory.of(tautology));
     classes.add(factory.of(literal));
-    classes.add(factory.of(new Disjunction(tautology, contradiction, literal)));
-    classes.add(factory.of(new Conjunction(tautology, contradiction, literal)));
+    classes.add(factory.of(Disjunction.of(tautology, contradiction, literal)));
+    classes.add(factory.of(Conjunction.of(tautology, contradiction, literal)));
 
     for (EquivalenceClass lhs : classes) {
       for (EquivalenceClass rhs : classes) {
@@ -98,7 +98,7 @@ public abstract class EquivalenceClassTest {
 
     assertEquals(equivalenceClass, equivalenceClass);
     assertEquals(equivalenceClass, factory.of(SimplifierFactory
-      .apply(new Conjunction(literal, new Literal(0, true)), Mode.SYNTACTIC_FIXPOINT)));
+      .apply(Conjunction.of(literal, Literal.of(0, true)), Mode.SYNTACTIC_FIXPOINT)));
   }
 
   @Test

@@ -31,7 +31,7 @@ import owl.ltl.Literal;
 public class CollectorTest {
   @Test
   public void testGSubFormulas() {
-    Formula f1 = new Literal(0, false);
+    Formula f1 = Literal.of(0, false);
     Formula f2 = new FOperator(new GOperator(f1));
 
     assertEquals(Set.of(new GOperator(f1)), Collector.collectGOperators(f2));

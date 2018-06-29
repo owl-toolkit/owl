@@ -27,10 +27,10 @@ import owl.ltl.visitors.Visitor;
 /**
  * Finally.
  */
-public class FOperator extends UnaryModalOperator {
+public final class FOperator extends UnaryModalOperator {
 
-  public FOperator(Formula f) {
-    super(f);
+  public FOperator(Formula operand) {
+    super(FOperator.class, operand);
   }
 
   /**

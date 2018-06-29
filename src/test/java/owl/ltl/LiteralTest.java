@@ -32,8 +32,8 @@ public class LiteralTest {
   @Test
   public void getAtom() {
     for (int atom = 0; atom < 42; atom++) {
-      Literal literal = new Literal(atom, false);
-      Literal notLiteral = new Literal(atom, true);
+      Literal literal = Literal.of(atom, false);
+      Literal notLiteral = Literal.of(atom, true);
       assertEquals(atom, literal.getAtom());
       assertEquals(atom, notLiteral.getAtom());
     }
@@ -41,8 +41,8 @@ public class LiteralTest {
 
   @Test
   public void isNegated() {
-    Literal literal = new Literal(1);
-    Literal notLiteral = new Literal(1, true);
+    Literal literal = Literal.of(1);
+    Literal notLiteral = Literal.of(1, true);
 
     assertFalse(literal.isNegated());
     assertTrue(notLiteral.isNegated());
@@ -50,26 +50,26 @@ public class LiteralTest {
 
   @Test
   public void isPureEventual() {
-    Literal literal = new Literal(0);
+    Literal literal = Literal.of(0);
     assertFalse(literal.isPureEventual());
   }
 
   @Test
   public void isPureUniversal() {
-    Literal literal = new Literal(0);
+    Literal literal = Literal.of(0);
     assertFalse(literal.isPureUniversal());
   }
 
   @Test
   public void isSuspendable() {
-    Literal literal = new Literal(0);
+    Literal literal = Literal.of(0);
     assertFalse(literal.isSuspendable());
   }
 
   @Test
   public void not() {
-    Literal literal = new Literal(1);
-    Literal notLiteral = new Literal(1, true);
+    Literal literal = Literal.of(1);
+    Literal notLiteral = Literal.of(1, true);
 
     assertEquals(notLiteral, literal.not());
     assertEquals(literal, literal.not().not());
@@ -79,7 +79,7 @@ public class LiteralTest {
 
   @Test
   public void temporalStep() {
-    Literal literal = new Literal(1);
+    Literal literal = Literal.of(1);
     BitSet valuation = new BitSet();
 
     assertEquals(BooleanConstant.FALSE, literal.temporalStep(valuation));
@@ -94,12 +94,12 @@ public class LiteralTest {
   @SuppressWarnings("ResultOfObjectAllocationIgnored")
   @Test(expected = IndexOutOfBoundsException.class)
   public void testConstructor() {
-    new Literal(-1);
+    Literal.of(-1);
   }
 
   @Test
   public void unfold() {
-    Literal literal = new Literal(1);
+    Literal literal = Literal.of(1);
     assertEquals(literal, literal.unfold());
   }
 }
