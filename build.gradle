@@ -269,7 +269,7 @@ distributions {
     }
 
     minimized {
-        baseName = 'owl'
+        baseName = 'owl-minimized'
         
         contents {
             from "AUTHORS"
@@ -300,6 +300,7 @@ distributions {
 
             into("bin") {
                 from rabinizerStartScripts
+                fileMode = 0755
             }
 
             into("lib") {
