@@ -24,6 +24,12 @@ The resulting `.zip` is located in `build/distributions`. In order to run all te
 $ ./gradlew check
 ```
 
+Lastly you can install the distribution to the default location using:
+
+```
+$ ./gradlew installDist
+```
+
 ## Minimized Distribution
 
 In order to save space and reduce load time of the application a minimized `jar` can be produced with:
