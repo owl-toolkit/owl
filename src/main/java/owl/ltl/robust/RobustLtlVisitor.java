@@ -104,7 +104,7 @@ class RobustLtlVisitor extends LTLParserBaseVisitor<Split> {
 
     if (index == -1) {
       int newIndex = variables.size();
-      Literal literal = new Literal(newIndex);
+      Literal literal = Literal.of(newIndex);
       variables.add(name);
 
       Split literalSplit = Split.of(literal, true);

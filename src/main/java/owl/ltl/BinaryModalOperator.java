@@ -24,11 +24,13 @@ import java.util.BitSet;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public abstract class BinaryModalOperator extends AbstractFormula {
+public abstract class BinaryModalOperator extends Formula {
   public final Formula left;
   public final Formula right;
 
-  BinaryModalOperator(Formula leftOperand, Formula rightOperand) {
+  BinaryModalOperator(Class<? extends BinaryModalOperator> clazz, Formula leftOperand,
+    Formula rightOperand) {
+    super(Objects.hash(clazz, leftOperand, rightOperand));
     this.left = leftOperand;
     this.right = rightOperand;
   }
@@ -44,12 +46,7 @@ public abstract class BinaryModalOperator extends AbstractFormula {
   }
 
   @Override
-  protected final int hashCodeOnce() {
-    return Objects.hash(getOperator(), left, right);
-  }
-
-  @Override
-  protected final boolean equals2(AbstractFormula o) {
+  protected final boolean deepEquals(Formula o) {
     assert this.getClass() == o.getClass();
     BinaryModalOperator that = (BinaryModalOperator) o;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);

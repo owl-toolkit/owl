@@ -23,10 +23,11 @@ import java.util.BitSet;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public abstract class UnaryModalOperator extends AbstractFormula {
+public abstract class UnaryModalOperator extends Formula {
   public final Formula operand;
 
-  UnaryModalOperator(Formula operand) {
+  UnaryModalOperator(Class<? extends UnaryModalOperator> clazz, Formula operand) {
+    super(Objects.hash(clazz, operand));
     this.operand = operand;
   }
 
@@ -41,12 +42,7 @@ public abstract class UnaryModalOperator extends AbstractFormula {
   }
 
   @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(getOperator(), operand);
-  }
-
-  @Override
-  protected boolean equals2(AbstractFormula o) {
+  protected boolean deepEquals(Formula o) {
     assert this.getClass() == o.getClass();
     UnaryModalOperator that = (UnaryModalOperator) o;
     return Objects.equals(operand, that.operand);

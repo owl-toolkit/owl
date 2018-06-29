@@ -23,15 +23,15 @@ import java.util.Objects;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.Visitor;
 
-public class FrequencyG extends GOperator {
+public final class FrequencyG extends GOperator {
   private static final double EPSILON = 1e-12;
 
   public final double bound;
   public final Comparison cmp;
   public final Limes limes;
 
-  public FrequencyG(Formula f, double bound, Comparison cmp, Limes limes) {
-    super(f);
+  public FrequencyG(Formula operand, double bound, Comparison cmp, Limes limes) {
+    super(operand);
     this.bound = bound;
     this.cmp = cmp;
     this.limes = limes;
@@ -48,20 +48,17 @@ public class FrequencyG extends GOperator {
   }
 
   @Override
-  protected boolean equals2(AbstractFormula o) {
-    FrequencyG that = (FrequencyG) o;
-    return Objects.equals(operand, that.operand) && Math.abs(this.bound - that.bound) < EPSILON
+  protected boolean deepEquals(Formula other) {
+    assert this.getClass() == other.getClass();
+    FrequencyG that = (FrequencyG) other;
+    return Objects.equals(operand, that.operand)
+      && Math.abs(this.bound - that.bound) < EPSILON
       && this.cmp == that.cmp && this.limes == that.limes;
   }
 
   @Override
   public String getOperator() {
     return "G{" + limes + ' ' + cmp + ' ' + bound + '}';
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(FrequencyG.class, operand, bound, cmp, limes);
   }
 
   @Override

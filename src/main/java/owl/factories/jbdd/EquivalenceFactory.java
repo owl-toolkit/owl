@@ -99,7 +99,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
     // Register literals.
     for (int i = 0; i < alphabetSize; i++) {
-      Literal literal = new Literal(i);
+      Literal literal = Literal.of(i);
       int bdd = factory.createVariable();
       assert factory.getVariable(bdd) == i;
       mapping.put(literal, i);

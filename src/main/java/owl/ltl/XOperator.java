@@ -31,7 +31,7 @@ import owl.ltl.visitors.Visitor;
 public final class XOperator extends UnaryModalOperator {
 
   public XOperator(Formula operand) {
-    super(operand);
+    super(XOperator.class, operand);
   }
 
   /**

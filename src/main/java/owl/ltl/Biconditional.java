@@ -29,11 +29,12 @@ import owl.ltl.visitors.Visitor;
 /**
  * Biconditional.
  */
-public class Biconditional extends AbstractFormula {
+public final class Biconditional extends Formula {
   public final Formula left;
   public final Formula right;
 
   public Biconditional(Formula leftOperand, Formula rightOperand) {
+    super(Objects.hash(Biconditional.class, leftOperand, rightOperand));
     this.left = leftOperand;
     this.right = rightOperand;
   }
@@ -155,15 +156,10 @@ public class Biconditional extends AbstractFormula {
   }
 
   @Override
-  protected boolean equals2(AbstractFormula o) {
-    assert this.getClass() == o.getClass();
-    Biconditional that = (Biconditional) o;
+  protected boolean deepEquals(Formula other) {
+    assert this.getClass() == other.getClass();
+    Biconditional that = (Biconditional) other;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
-  }
-
-  @Override
-  protected int hashCodeOnce() {
-    return Objects.hash(Biconditional.class, left, right);
   }
 
   @Override

@@ -19,9 +19,9 @@
 
 package owl.translations.fgx2dpa;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -35,7 +35,7 @@ public class SafetyAutomatonTest {
     Automaton<State, ParityAcceptance> automaton =
       SafetyAutomaton.build(DefaultEnvironment.standard(), LtlParser.parse(ltl));
     assertThat("Invalid size for automaton:\n" + HoaPrinter.toString(automaton),
-      automaton.size(), is(size));
+      automaton.size(), Matchers.lessThanOrEqualTo(size));
   }
 
   @Test

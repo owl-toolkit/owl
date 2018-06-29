@@ -25,26 +25,34 @@ import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public interface Formula {
+public abstract class Formula {
 
-  int accept(IntVisitor visitor);
+  static final Formula[] EMPTY_FORMULA_ARRAY = new Formula[0];
 
-  <R> R accept(Visitor<R> visitor);
+  private final int hashCode;
 
-  <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter);
+  Formula(int hashCode) {
+    this.hashCode = hashCode;
+  }
 
-  boolean allMatch(Predicate<Formula> predicate);
+  public abstract int accept(IntVisitor visitor);
 
-  boolean anyMatch(Predicate<Formula> predicate);
+  public abstract <R> R accept(Visitor<R> visitor);
+
+  public abstract <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter);
+
+  public abstract boolean allMatch(Predicate<Formula> predicate);
+
+  public abstract boolean anyMatch(Predicate<Formula> predicate);
 
   // Temporal Properties of an LTL Formula
-  boolean isPureEventual();
+  public abstract boolean isPureEventual();
 
-  boolean isPureUniversal();
+  public abstract boolean isPureUniversal();
 
-  boolean isSuspendable();
+  public abstract boolean isSuspendable();
 
-  Formula nnf();
+  public abstract Formula nnf();
 
   /**
    * Syntactically negate this formula.
@@ -53,23 +61,44 @@ public interface Formula {
    *
    * @return the negation of this formula.
    */
-  Formula not();
+  public abstract Formula not();
 
   /**
    * Do a single temporal step. This means that one layer of X-operators is removed and literals are
    * replaced by their valuations.
    */
-  Formula temporalStep(BitSet valuation);
+  public abstract Formula temporalStep(BitSet valuation);
 
   /**
    * Short-cut operation to avoid intermediate construction of formula ASTs.
    */
-  Formula temporalStepUnfold(BitSet valuation);
+  public abstract Formula temporalStepUnfold(BitSet valuation);
 
-  Formula unfold();
+  public abstract Formula unfold();
 
   /**
    * Short-cut operation to avoid intermediate construction of formula ASTs.
    */
-  Formula unfoldTemporalStep(BitSet valuation);
+  public abstract Formula unfoldTemporalStep(BitSet valuation);
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+
+    Formula other = (Formula) o;
+    return other.hashCode == hashCode && deepEquals(other);
+  }
+
+  protected abstract boolean deepEquals(Formula other);
+
+  @Override
+  public final int hashCode() {
+    return hashCode;
+  }
 }

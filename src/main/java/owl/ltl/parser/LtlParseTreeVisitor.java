@@ -77,7 +77,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     while (literalIterator.hasNext()) {
       int index = literalIterator.nextIndex();
       String name = literalIterator.next();
-      literalList.add(new Literal(index));
+      literalList.add(Literal.of(index));
       variableList.add(name);
     }
 
@@ -314,7 +314,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
       }
 
       int newIndex = variables.size();
-      Literal literal = new Literal(newIndex);
+      Literal literal = Literal.of(newIndex);
       variables.add(name);
       literalCache.add(literal);
       return literal;

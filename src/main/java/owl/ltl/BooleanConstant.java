@@ -26,7 +26,7 @@ import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public final class BooleanConstant implements Formula {
+public final class BooleanConstant extends Formula {
   public static final BooleanConstant FALSE = new BooleanConstant(false);
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
@@ -36,6 +36,7 @@ public final class BooleanConstant implements Formula {
   }
 
   private BooleanConstant(boolean value) {
+    super(Boolean.hashCode(value));
     this.value = value;
   }
 
@@ -64,14 +65,13 @@ public final class BooleanConstant implements Formula {
     return predicate.test(this);
   }
 
+  @SuppressWarnings("PMD.CompareObjectsWithEquals")
   @Override
-  public boolean equals(Object o) {
-    return this == o;
-  }
-
-  @Override
-  public int hashCode() {
-    return Boolean.hashCode(value);
+  protected boolean deepEquals(Formula other) {
+    assert other instanceof BooleanConstant;
+    assert other == FALSE || other == TRUE;
+    assert this != other;
+    return false;
   }
 
   @Override

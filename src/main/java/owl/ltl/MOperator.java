@@ -30,7 +30,7 @@ import owl.ltl.visitors.Visitor;
 public final class MOperator extends BinaryModalOperator {
 
   public MOperator(Formula leftOperand, Formula rightOperand) {
-    super(leftOperand, rightOperand);
+    super(MOperator.class, leftOperand, rightOperand);
   }
 
   /**

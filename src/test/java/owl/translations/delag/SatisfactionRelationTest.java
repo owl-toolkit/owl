@@ -69,7 +69,7 @@ public class SatisfactionRelationTest {
 
   @Test
   public void modelsLiteral() {
-    Literal literal = new Literal(0);
+    Literal literal = Literal.of(0);
     assertFalse(SatisfactionRelation.models(new History(), new BitSet(), literal));
 
     BitSet set = new BitSet();
