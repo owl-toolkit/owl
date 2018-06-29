@@ -53,7 +53,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
-project.version = '18.06-rc2'
+project.version = '18.06'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
