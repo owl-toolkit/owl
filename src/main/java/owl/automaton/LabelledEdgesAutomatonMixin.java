@@ -19,16 +19,14 @@
 
 package owl.automaton;
 
-import com.google.common.collect.Collections2;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
-import owl.collections.Collections3;
+import owl.automaton.edge.Edges;
 
 /**
  * Mixin interface for implementing an automaton by {@link Automaton#labelledEdges(Object)}.
@@ -44,18 +42,25 @@ public interface LabelledEdgesAutomatonMixin<S, A extends OmegaAcceptance> exten
 
   @Override
   default Set<S> successors(S state) {
-    return new HashSet<>(Collections2.transform(labelledEdges(state), LabelledEdge::successor));
+    return Edges.successors(edges(state));
   }
 
   @Override
-  default Collection<Edge<S>> edges(S state) {
-    return new ArrayList<>(Collections2.transform(labelledEdges(state), LabelledEdge::edge));
+  default Set<Edge<S>> edges(S state) {
+    return labelledEdges(state).keySet();
   }
 
   @Override
   default Collection<Edge<S>> edges(S state, BitSet valuation) {
-    return Collections3.transformUnique(labelledEdges(state),
-      x -> x.valuations.contains(valuation) ? x.edge : null);
+    List<Edge<S>> edges = new ArrayList<>();
+
+    forEachLabelledEdge(state, (edge, valuationSet) -> {
+      if (valuationSet.contains(valuation)) {
+        edges.add(edge);
+      }
+    });
+
+    return edges;
   }
 
   @Override

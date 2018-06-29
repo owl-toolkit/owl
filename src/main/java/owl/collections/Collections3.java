@@ -21,19 +21,20 @@ package owl.collections;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import java.util.AbstractCollection;
 import java.util.AbstractList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Collections3 {
@@ -127,29 +128,61 @@ public final class Collections3 {
     };
   }
 
-  public static <F, T> Set<T> transformUnique(Collection<F> collection,
-    Function<F, T> transformer) {
-    if (collection.isEmpty()) {
+  public static <K1, K2> Map<K2, ValuationSet> transformMap(Map<K1, ValuationSet> map,
+    Function<K1, K2> transformer) {
+    return transformMap(map, transformer, ValuationSet::union);
+  }
+
+  public static <K1, K2, V> Map<K2, V> transformMap(Map<K1, V> map, Function<K1, K2> transformer,
+    BiFunction<? super V, ? super V, ? extends V> valueMerger) {
+    Map<K2, V> transformedMap = new HashMap<>();
+    map.forEach((key, set) -> transformedMap.merge(transformer.apply(key), set, valueMerger));
+
+    if (transformedMap.isEmpty()) {
+      return Map.of();
+    }
+
+    if (transformedMap.size() == 1) {
+      var entry = transformedMap.entrySet().iterator().next();
+      return Map.of(entry.getKey(), entry.getValue());
+    }
+
+    return transformedMap;
+  }
+
+  /**
+   * Creates a new {@link Set} by applying the {@param transformer} on each element of
+   * {@param set}.
+   *
+   * @implNote
+   *     The implementation does not access {@link Collection#isEmpty()} or
+   *     {@link Collection#size()}), since computing these values on live views might be expensive
+   *     and cause a full traversal.
+   *
+   * @param set
+   *     the input set.
+   * @param transformer
+   *     the translator function. It is not allowed to return {@code null}, since the used
+   *     data-structures might be null-hostile.
+   *
+   * @param <E1> the element type of the input
+   * @param <E2> the element type of the return value
+   *
+   * @return a new set containing all transformed objects
+   */
+  public static <E1, E2> Set<E2> transformSet(Set<E1> set, Function<E1, E2> transformer) {
+    Set<E2> transformedSet = new HashSet<>();
+    set.forEach(x -> transformedSet.add(transformer.apply(x)));
+
+    if (transformedSet.isEmpty()) {
       return Set.of();
     }
 
-    int size = collection.size();
-
-    if (size == 1) {
-      @Nullable
-      T element = transformer.apply(Iterables.getOnlyElement(collection));
-      return element == null ? Set.of() : Set.of(element);
+    if (transformedSet.size() == 1) {
+      return Set.of(transformedSet.iterator().next());
     }
 
-    Set<T> set = new HashSet<>(size);
-    for (F element : collection) {
-      T transformed = transformer.apply(element);
-      if (transformed != null) {
-        set.add(transformed);
-      }
-    }
-
-    return set;
+    return transformedSet;
   }
 
   public static <E1, E2> void zip(Iterable<E1> iterable1, Iterable<E2> iterable2,

@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -52,7 +54,6 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
@@ -184,7 +185,7 @@ public final class GameViews {
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
       return filteredAutomaton.labelledEdges(state);
     }
 
@@ -255,7 +256,7 @@ public final class GameViews {
       }
 
       @Override
-      public Collection<LabelledEdge<S>> labelledEdges(S state) {
+      public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
         return game.labelledEdges(state);
       }
 
@@ -319,18 +320,18 @@ public final class GameViews {
 
     @Override
     public Set<Node<S>> initialStates() {
-      return Collections3.transformUnique(automaton.initialStates(), Node::of);
+      return Collections3.transformSet(automaton.initialStates(), Node::of);
     }
 
     @Override
-    public Collection<LabelledEdge<Node<S>>> labelledEdges(Node<S> node) {
+    public Map<Edge<Node<S>>, ValuationSet> labelledEdges(Node<S> node) {
       /*
        * In order obtain a complete game, each players transitions are labeled
        * with his choice and all valuations of the other players APs. This is
        * important when trying to recover a strategy from a sub-game.
        */
 
-      List<LabelledEdge<Node<S>>> edges = new ArrayList<>();
+      Map<Edge<Node<S>>, ValuationSet> edges = new HashMap<>();
       ValuationSetFactory factory = automaton.factory();
 
       if (node.isFirstPlayersTurn()) {
@@ -338,7 +339,7 @@ public final class GameViews {
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
           ValuationSet valuationSet = factory.of(valuation, firstPlayer);
-          edges.add(LabelledEdge.of(Node.of(node.state(), valuation), valuationSet));
+          edges.merge(Edge.of(Node.of(node.state(), valuation)), valuationSet, ValuationSet::union);
         }
       } else {
         // Second player completes the valuation, yielding a transition in the automaton
@@ -353,7 +354,7 @@ public final class GameViews {
             node.state(), joined);
 
           // Lift the automaton edge to the game
-          edges.add(LabelledEdge.of(edge.withSuccessor(Node.of(edge.successor())), vs));
+          edges.merge(edge.withSuccessor(Node.of(edge.successor())), vs, ValuationSet::union);
         }
       }
 
@@ -438,7 +439,7 @@ public final class GameViews {
         return BitSets.copyOf(choice);
       }
 
-      return Iterables.getOnlyElement(labelledEdges(state)).valuations.any();
+      return Iterables.getOnlyElement(labelledEdges(state).entrySet()).getValue().any();
     }
   }
 

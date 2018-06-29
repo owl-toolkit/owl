@@ -140,8 +140,8 @@ public final class SafetyAutomaton {
       }
     }
 
-    Set<Monitor<GOperator>> monitorsG = Collections3.transformUnique(gFormulae, Monitor::of);
-    Set<Monitor<FOperator>> monitorsF = Collections3.transformUnique(fFormulae, Monitor::of);
+    Set<Monitor<GOperator>> monitorsG = Collections3.transformSet(gFormulae, Monitor::of);
+    Set<Monitor<FOperator>> monitorsF = Collections3.transformSet(fFormulae, Monitor::of);
 
     List<PromisedSet> initialPermutation = new ArrayList<>(promisedSets.size());
     for (Set<UnaryModalOperator> set : promisedSets) {

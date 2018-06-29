@@ -25,13 +25,14 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
+import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.Map;
 import org.junit.Test;
 import owl.automaton.Automaton;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
@@ -71,8 +72,7 @@ public class LTL2DAModuleFunctionTest {
     // Check null successor.
     BitSet empty = new BitSet();
     assertThat(automaton.edge(state, empty), is(nullValue()));
-    assertTrue(automaton.labelledEdges(state).stream()
-      .noneMatch(x -> x.valuations.contains(empty)));
+    assertTrue(Maps.filterValues(automaton.labelledEdges(state), x -> x.contains(empty)).isEmpty());
   }
 
   @Test
@@ -88,7 +88,7 @@ public class LTL2DAModuleFunctionTest {
     BitSet empty = new BitSet();
 
     assertThat(automaton.edge(state, empty), is(edge));
-    assertThat(automaton.labelledEdges(state),
-      contains(LabelledEdge.of(edge, automaton.factory().universe())));
+    assertThat(automaton.labelledEdges(state).entrySet(),
+      contains(Map.entry(edge, automaton.factory().universe())));
   }
 }

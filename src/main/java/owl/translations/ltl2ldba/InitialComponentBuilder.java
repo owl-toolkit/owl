@@ -38,7 +38,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.automaton.ldba.MutableAutomatonBuilder;
 import owl.collections.ValuationSet;
 import owl.factories.Factories;
@@ -108,20 +107,19 @@ class InitialComponentBuilder<K extends RecurringObligation>
     }
   }
 
-  private List<LabelledEdge<EquivalenceClass>> getDeterministicSuccessor(EquivalenceClass state) {
+  private Map<Edge<EquivalenceClass>, ValuationSet> getDeterministicSuccessor(
+    EquivalenceClass state) {
     generateJumps(state);
 
     // Suppress edges, if the state is impatient (e.g. G a)
     if (!patientStates.contains(state)) {
-      return List.of();
+      return Map.of();
     }
 
-    Map<EquivalenceClass, ValuationSet> successors = factory.getSuccessors(state);
+    Map<Edge<EquivalenceClass>, ValuationSet> successors = factory.getEdges(state);
     // There shouldn't be any rejecting sinks in the successor map.
-    assert successors.entrySet().stream().noneMatch(x -> x.getKey().isFalse());
-    List<LabelledEdge<EquivalenceClass>> edges = new ArrayList<>(successors.size());
-    successors.forEach((successor, set) -> edges.add(LabelledEdge.of(successor, set)));
-    return edges;
+    assert !successors.containsKey(Edge.of(factories.eqFactory.getFalse()));
+    return successors;
   }
 
   Set<Jump<K>> getJumps(EquivalenceClass state) {

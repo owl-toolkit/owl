@@ -19,7 +19,6 @@
 
 package owl.automaton.edge;
 
-import java.util.Collection;
 import java.util.Set;
 import owl.collections.Collections3;
 
@@ -27,7 +26,7 @@ public final class Edges {
   private Edges() {
   }
 
-  public static <S> Set<S> successors(Collection<Edge<S>> edges) {
-    return Collections3.transformUnique(edges, Edge::successor);
+  public static <S> Set<S> successors(Set<Edge<S>> edges) {
+    return Collections3.transformSet(edges, Edge::successor);
   }
 }

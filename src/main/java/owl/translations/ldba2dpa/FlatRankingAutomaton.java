@@ -217,7 +217,7 @@ public final class FlatRankingAutomaton {
 
       // If a SCC switch occurs, the componentMap and the safety progress is reset.
       if (sccSwitchOccurred(state.state(), successor)) {
-        return Edge.of(buildEdge(successor, List.of(), -1, valuation).successor());
+        return buildEdge(successor, List.of(), -1, valuation).withoutAcceptance();
       }
 
       Edge<FlatRankingState<S, T>> edge = buildEdge(successor, state.ranking(),

@@ -24,7 +24,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import java.util.ArrayDeque;
@@ -39,7 +38,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -47,8 +45,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
-import owl.collections.Collections3;
+import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -183,43 +180,21 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   }
 
   @Override
-  public Set<Edge<S>> edges(S state, BitSet valuation) {
-    readMode();
-
-    Set<Edge<S>> edges = new HashSet<>();
-
-    edgeMap(state).forEach((key, valuations) -> {
-      if (valuations.contains(valuation)) {
-        edges.add(key);
-      }
-    });
-
-    return edges;
-  }
-
-  @Override
   public Set<Edge<S>> edges(S state) {
     readMode();
     return Collections.unmodifiableSet(edgeMap(state).keySet());
   }
 
   @Override
-  public Collection<LabelledEdge<S>> labelledEdges(S state) {
+  public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
     readMode();
-    return Collections.unmodifiableCollection(
-      Collections2.transform(edgeMap(state).entrySet(), LabelledEdge::of));
-  }
-
-  @Override
-  public void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    readMode();
-    edgeMap(state).forEach(action);
+    return Collections.unmodifiableMap(edgeMap(state));
   }
 
   @Override
   public Set<S> successors(S state) {
     readMode();
-    return Collections3.transformUnique(edgeMap(state).keySet(), Edge::successor);
+    return Edges.successors(edgeMap(state).keySet());
   }
 
   @Override
@@ -383,7 +358,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
 
     // No "outgoing" edges
     transitions.forEach((state, edges) -> {
-      Set<S> successorStates = Collections3.transformUnique(edges.keySet(), Edge::successor);
+      Set<S> successorStates = Edges.successors(edges.keySet());
       checkState(transitions.keySet().containsAll(successorStates));
       successors.putAll(state, successorStates);
       for (S successor : successorStates) {

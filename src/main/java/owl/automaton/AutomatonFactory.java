@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
+import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 public final class AutomatonFactory {
@@ -83,7 +83,7 @@ public final class AutomatonFactory {
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     S initialState, A acceptance,
-    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
     return create(factory, Set.of(initialState), acceptance, labelledEdgesFunction);
   }
 
@@ -103,7 +103,7 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     S initialState, A acceptance,
     BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
-    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
     return create(factory, Set.of(initialState), acceptance, edgesFunction, labelledEdgesFunction);
   }
 
@@ -121,7 +121,7 @@ public final class AutomatonFactory {
    */
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     Collection<S> initialStates, A acceptance,
-    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
     return new ImplicitNonDeterministicLabelledEdgesAutomaton<>(factory, initialStates, acceptance,
       null, labelledEdgesFunction);
   }
@@ -142,7 +142,7 @@ public final class AutomatonFactory {
   public static <S, A extends OmegaAcceptance> Automaton<S, A> create(ValuationSetFactory factory,
     Collection<S> initialStates, A acceptance,
     BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
-    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
     return new ImplicitNonDeterministicLabelledEdgesAutomaton<>(factory, initialStates, acceptance,
       Objects.requireNonNull(edgesFunction), labelledEdgesFunction);
   }
@@ -175,7 +175,7 @@ public final class AutomatonFactory {
     }
 
     @Override
-    public List<LabelledEdge<S>> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
       throw new IllegalArgumentException("There are no states in this automaton.");
     }
   }
@@ -184,18 +184,18 @@ public final class AutomatonFactory {
     extends ImplicitCachedStatesAutomaton<S, A>
     implements LabelledEdgesAutomatonMixin<S, A> {
 
-    private final List<LabelledEdge<S>> selfLoopEdges;
+    private final Map<Edge<S>, ValuationSet> selfLoopEdges;
 
     private SingletonAutomaton(S singletonState, ValuationSetFactory factory,
       @Nullable BitSet acceptanceSets, A acceptance) {
       super(factory, Set.of(singletonState), acceptance);
       this.selfLoopEdges = acceptanceSets == null
-        ? List.of()
-        : List.of(LabelledEdge.of(singletonState, acceptanceSets, factory.universe()));
+        ? Map.of()
+        : Map.of(Edge.of(singletonState, acceptanceSets), factory.universe());
     }
 
     @Override
-    public List<LabelledEdge<S>> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
       Preconditions.checkArgument(initialStates.contains(state),
         "This state is not in the automaton");
       return selfLoopEdges;

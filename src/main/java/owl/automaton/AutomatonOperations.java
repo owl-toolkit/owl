@@ -48,10 +48,6 @@ public final class AutomatonOperations {
 
   private AutomatonOperations() {}
 
-  private static <S> boolean isSublist(List<S> subList, List<S> list) {
-    return subList.size() <= list.size() && subList.equals(list.subList(0, subList.size()));
-  }
-
   private static ValuationSetFactory sharedAlphabet(Stream<ValuationSetFactory> factories) {
     Iterator<ValuationSetFactory> iterator = factories.iterator();
     ValuationSetFactory factory = iterator.next();
@@ -59,9 +55,9 @@ public final class AutomatonOperations {
     while (iterator.hasNext()) {
       ValuationSetFactory otherFactory = iterator.next();
 
-      if (isSublist(factory.alphabet(), otherFactory.alphabet())) {
+      if (Collections.indexOfSubList(otherFactory.alphabet(), factory.alphabet()) == 0) {
         factory = otherFactory;
-      } else if (!isSublist(otherFactory.alphabet(), factory.alphabet())) {
+      } else if (Collections.indexOfSubList(factory.alphabet(), otherFactory.alphabet()) != 0) {
         throw new IllegalArgumentException("Could not find shared alphabet.");
       }
     }

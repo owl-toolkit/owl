@@ -22,7 +22,6 @@ package owl.automaton;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -31,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Map;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.Test;
 import owl.automaton.AutomatonReader.HoaState;
@@ -43,7 +43,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.run.DefaultEnvironment;
 
@@ -202,14 +201,10 @@ public class AutomatonReaderTest {
     ValuationSetFactory valuationSetFactory = automaton.factory();
 
     assertThat(automaton.onlyInitialState(), is(states.get(1)));
-
-    LabelledEdge<HoaState> successorEdge = LabelledEdge.of(states.get(0),
-      valuationSetFactory.of(createBitSet(true)));
-    assertThat(automaton.labelledEdges(states.get(1)), containsInAnyOrder(successorEdge));
-
-    LabelledEdge<HoaState> loopEdge = LabelledEdge.of(Edge.of(states.get(0), 0),
-      valuationSetFactory.universe());
-    assertThat(automaton.labelledEdges(states.get(0)), containsInAnyOrder(loopEdge));
+    assertThat(automaton.labelledEdges(states.get(1)),
+      is(Map.of(Edge.of(states.get(0)), valuationSetFactory.of(createBitSet(true)))));
+    assertThat(automaton.labelledEdges(states.get(0)),
+      is(Map.of(Edge.of(states.get(0), 0), valuationSetFactory.universe())));
   }
 
   @Test(expected = ParseException.class)

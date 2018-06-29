@@ -24,7 +24,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.edge.Edge;
 
 public final class GenericMinimizations {
   private GenericMinimizations() {
@@ -39,8 +38,7 @@ public final class GenericMinimizations {
 
     automaton.updateEdges((state, edge) -> {
       int sccIndex = stateToSccMap.getInt(state);
-      S successor = edge.successor();
-      int successorSccIndex = stateToSccMap.getInt(successor);
+      int successorSccIndex = stateToSccMap.getInt(edge.successor());
 
       assert sccIndex != -1;
       assert successorSccIndex != -1;
@@ -49,7 +47,7 @@ public final class GenericMinimizations {
         return edge;
       }
 
-      return Edge.of(successor);
+      return edge.withoutAcceptance();
     });
 
     automaton.trim();

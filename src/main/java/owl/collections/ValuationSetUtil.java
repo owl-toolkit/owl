@@ -20,8 +20,6 @@
 package owl.collections;
 
 import java.util.BitSet;
-import java.util.Iterator;
-import java.util.Optional;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
@@ -72,14 +70,5 @@ public final class ValuationSetUtil {
     }
 
     throw new IllegalArgumentException("Unsupported Case: " + expression);
-  }
-
-  public static Optional<ValuationSet> union(Iterable<ValuationSet> sets) {
-    Iterator<ValuationSet> iterator = sets.iterator();
-    if (!iterator.hasNext()) {
-      return Optional.empty();
-    }
-    ValuationSetFactory vsFactory = iterator.next().getFactory();
-    return Optional.of(vsFactory.union(sets));
   }
 }

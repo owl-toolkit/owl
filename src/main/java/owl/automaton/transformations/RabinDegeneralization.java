@@ -49,7 +49,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.ValuationSet;
 import owl.run.PipelineExecutionContext;
@@ -151,16 +150,14 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
         resultAutomaton.factory(), initialSccState, resultAutomaton.acceptance(), state -> {
           S generalizedState = state.state();
           Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
-          List<LabelledEdge<DegeneralizedRabinState<S>>> successors = new ArrayList<>();
+          Map<Edge<DegeneralizedRabinState<S>>, ValuationSet> successors = new HashMap<>();
 
-          for (LabelledEdge<S> labelledEdge : automaton.labelledEdges(generalizedState)) {
-            Edge<S> edge = labelledEdge.edge;
+          automaton.labelledEdges(generalizedState).forEach((edge, valuation) -> {
             S generalizedSuccessor = edge.successor();
             if (!scc.contains(generalizedSuccessor)) {
               // This is a transient edge, add to the table and ignore it
-              transientSuccessors.merge(generalizedSuccessor, labelledEdge.valuations,
-                ValuationSet::union);
-              continue;
+              transientSuccessors.merge(generalizedSuccessor, valuation, ValuationSet::union);
+              return;
             }
 
             // The index of the next awaited inf set of each generalized pair in the successor
@@ -217,8 +214,9 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
 
             DegeneralizedRabinState<S> successor =
               DegeneralizedRabinState.of(generalizedSuccessor, successorAwaitedIndices);
-            successors.add(LabelledEdge.of(successor, edgeAcceptance, labelledEdge.valuations));
-          }
+            successors.merge(Edge.of(successor, edgeAcceptance), valuation, ValuationSet::union);
+          });
+
           return successors;
         });
 

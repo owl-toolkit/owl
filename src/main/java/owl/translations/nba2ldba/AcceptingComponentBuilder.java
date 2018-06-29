@@ -21,6 +21,7 @@ package owl.translations.nba2ldba;
 
 import static java.util.stream.Collectors.toSet;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -34,6 +35,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import owl.automaton.ldba.MutableAutomatonBuilder;
 
 final class AcceptingComponentBuilder<S>
@@ -103,15 +105,13 @@ final class AcceptingComponentBuilder<S>
 
     if (outEdgesM.equals(outEdgesN)) {
       i1 = (ldbaState.ix() + 1) % max;
-      n1 = outEdgesM.stream().filter(x -> x.inSet(i1)).map(Edge::successor).collect(toSet());
+      n1 = Edges.successors(Sets.filter(outEdgesM, x -> x.inSet(i1)));
     } else {
-      n1 = outEdgesN.stream().map(Edge::successor).collect(toSet());
       i1 = ldbaState.ix();
+      n1 = Edges.successors(outEdgesN);
     }
 
-    BreakpointState<S> successor = BreakpointState.of(i1, outEdgesM.stream().map(
-      Edge::successor).collect(toSet()), n1);
-
+    BreakpointState<S> successor = BreakpointState.of(i1, Edges.successors(outEdgesM), n1);
     return i1 == 0 && outEdgesM.equals(outEdgesN) ? Edge.of(successor, 0) : Edge.of(successor);
   }
 }
