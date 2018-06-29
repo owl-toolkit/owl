@@ -16,7 +16,7 @@ for file_path in ${files[@]}; do
     echo "File $source_path does not exist"
     exit 1
   fi
-  destination_path="$destination/$file_path.html"
+  destination_path="$destination/${file_path%.md}.html"
   mkdir -p $(dirname ${destination_path})
 
   pandoc --standalone -f markdown_github -t html5 -o "$destination_path" "$source_path"
