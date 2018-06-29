@@ -108,7 +108,7 @@ jar {
     }
 }
 
-def proGuardJar = task proguard(name: "proGuardJar", type: proguard.gradle.ProGuardTask) {
+def shadedJar = task shadedJar(name: "shadedJar", type: proguard.gradle.ProGuardTask) {
     configuration 'config/proguard.txt'
     
     libraryjars "${System.getProperty('java.home')}/jmods"
@@ -122,6 +122,22 @@ def proGuardJar = task proguard(name: "proGuardJar", type: proguard.gradle.ProGu
     injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
     injars files(jar)
     outjars new File(project.buildDir, 'libs/owl.jar')
+}
+
+def rabinizerJar = task rabinizerJar(name: "rabinizerJar", type: proguard.gradle.ProGuardTask) {
+    configuration 'config/proguard.txt'
+    
+    libraryjars "${System.getProperty('java.home')}/jmods"
+    libraryjars "${System.getProperty('java.home')}/lib"
+
+    dontwarn 'com.oracle.jmc.**'
+    dontwarn 'org.immutables.**'
+    dontwarn 'afu.org.checkerframework.**'
+    dontwarn 'org.checkerframework.**'
+
+    injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
+    injars files(jar)
+    outjars new File(project.buildDir, 'libs/rabinizer.jar')
 }
 
 // ---------------- Startup Scripts ----------------
@@ -155,6 +171,22 @@ def scripts = [
     'owl-server': 'owl.run.ServerCli'
 ]
 
+def rabinizerScripts = [
+    // LTL -> LDBA
+    'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBAModule',
+    'ltl2ldgba' : 'owl.translations.ltl2ldba.LTL2LDGBAModule',
+
+    // LTL -> DRA
+    'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
+    'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
+    
+    // LTL -> DPA
+    'ltl2dpa'   : 'owl.translations.LTL2DPA',
+
+    // DRA -> DPA
+    'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder'
+]
+
 ext.createStartScriptTasks = { name, cp, map ->
     map.collect { scriptName, className ->
         tasks.create(name: scriptName + name.capitalize() + 'StartScript', type: CreateStartScripts) {
@@ -175,9 +207,14 @@ allStartScripts.each() {
     startScripts.dependsOn(it)
 }
 
-def proGuardJarStartScripts = createStartScriptTasks("ProGuard", proGuardJar.outputs.files, scripts + ['owl': mainClassName])
-proGuardJarStartScripts.each() { 
-    it.dependsOn(proGuardJar) 
+def shadedJarStartScripts = createStartScriptTasks("ProGuard", shadedJar.outputs.files, scripts + ['owl': mainClassName])
+shadedJarStartScripts.each() { 
+    it.dependsOn(shadedJar) 
+}
+
+def rabinizerStartScripts = createStartScriptTasks("Rabinizer", rabinizerJar.outputs.files, rabinizerScripts)
+rabinizerStartScripts.each() {
+    it.dependsOn(rabinizerJar)
 }
 
 // ---------------- Documentation ----------------
@@ -237,7 +274,7 @@ distributions {
             from "LICENSE"
 
             into("bin") {
-                from proGuardJarStartScripts
+                from shadedJarStartScripts
 
                 if (buildNatives) {
                     from 'build/exe/owlClient/owl-client' 
@@ -245,7 +282,24 @@ distributions {
             }
 
             into("lib") {
-                from proGuardJar
+                from shadedJar
+            }
+        }
+    }
+
+    rabinizer {
+        baseName = 'rabinizer'
+
+        contents {
+            from "AUTHORS"
+            from "LICENSE"
+
+            into("bin") {
+                from rabinizerStartScripts
+            }
+
+            into("lib") {
+                from rabinizerJar
             }
         }
     }
