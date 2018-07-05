@@ -26,20 +26,20 @@ import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-final class EdgeSingleton<S> implements Edge<S> {
+final class EdgeSingleton<S> extends Edge<S> {
   private static final int EMPTY_ACCEPTANCE = -1;
+
   private final int acceptance;
-  private final S successor;
 
   EdgeSingleton(S successor) {
+    super(successor);
     this.acceptance = EMPTY_ACCEPTANCE;
-    this.successor = Objects.requireNonNull(successor);
   }
 
   EdgeSingleton(S successor, @Nonnegative int acceptance) {
+    super(successor);
     Objects.checkIndex(acceptance, Integer.MAX_VALUE);
     this.acceptance = acceptance;
-    this.successor = Objects.requireNonNull(successor);
   }
 
   @Override
@@ -54,20 +54,14 @@ final class EdgeSingleton<S> implements Edge<S> {
     if (this == o) {
       return true;
     }
-
+    
     if (!(o instanceof EdgeSingleton)) {
       // instanceof is false when o == null
       return false;
     }
 
     EdgeSingleton<?> other = (EdgeSingleton<?>) o;
-    return this.acceptance == other.acceptance
-      && Objects.equals(this.successor, other.successor);
-  }
-
-  @Override
-  public S successor() {
-    return successor;
+    return acceptance == other.acceptance && successor.equals(other.successor);
   }
 
   @Override

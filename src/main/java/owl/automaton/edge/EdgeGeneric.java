@@ -27,14 +27,13 @@ import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-final class EdgeGeneric<S> implements Edge<S> {
+final class EdgeGeneric<S> extends Edge<S> {
   private final BitSet acceptance;
-  private final S successor;
 
   EdgeGeneric(S successor, BitSet acceptance) {
+    super(successor);
     assert acceptance.cardinality() > 1;
     this.acceptance = Objects.requireNonNull(acceptance);
-    this.successor = Objects.requireNonNull(successor);
   }
 
   @Override
@@ -53,13 +52,7 @@ final class EdgeGeneric<S> implements Edge<S> {
     }
 
     EdgeGeneric<?> other = (EdgeGeneric<?>) o;
-    return Objects.equals(acceptance, other.acceptance)
-      && Objects.equals(successor, other.successor);
-  }
-
-  @Override
-  public S successor() {
-    return successor;
+    return successor.equals(other.successor) && acceptance.equals(other.acceptance);
   }
 
   @Override
@@ -91,14 +84,5 @@ final class EdgeGeneric<S> implements Edge<S> {
   @Override
   public <T> EdgeGeneric<T> withSuccessor(T successor) {
     return new EdgeGeneric<>(successor, acceptance);
-  }
-
-  @Override
-  public String toString() {
-    OfInt acceptanceSetIterator = acceptanceSetIterator();
-    StringBuilder builder = new StringBuilder(10);
-    builder.append(acceptanceSetIterator.nextInt());
-    acceptanceSetIterator.forEachRemaining((int x) -> builder.append(", ").append(x));
-    return "-> " + successor + " {" + builder + '}';
   }
 }
