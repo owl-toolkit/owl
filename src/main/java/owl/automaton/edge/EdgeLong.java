@@ -23,21 +23,21 @@ import java.util.BitSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
-import java.util.PrimitiveIterator.OfInt;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-final class EdgeLong<S> implements Edge<S> {
+final class EdgeLong<S> extends Edge<S> {
   private final long store;
-  private final S successor;
 
   private EdgeLong(S successor, long store) {
+    super(successor);
     this.store = store;
-    this.successor = Objects.requireNonNull(successor);
+    assert this.store != 0;
   }
 
   EdgeLong(S successor, BitSet bitSet) {
+    super(successor);
     assert bitSet.length() <= Long.SIZE && bitSet.cardinality() > 1;
     long store = 0L;
     for (int i = 0; i < Long.SIZE; i++) {
@@ -46,7 +46,6 @@ final class EdgeLong<S> implements Edge<S> {
       }
     }
     this.store = store;
-    this.successor = successor;
     assert this.store != 0;
   }
 
@@ -66,18 +65,11 @@ final class EdgeLong<S> implements Edge<S> {
     }
 
     EdgeLong<?> other = (EdgeLong<?>) o;
-    return this.store == other.store
-      && Objects.equals(this.successor, other.successor);
-  }
-
-  @Override
-  public S successor() {
-    return successor;
+    return store == other.store && successor.equals(other.successor);
   }
 
   @Override
   public boolean hasAcceptanceSets() {
-    assert store != 0;
     return true;
   }
 
@@ -101,15 +93,6 @@ final class EdgeLong<S> implements Edge<S> {
   @Override
   public int smallestAcceptanceSet() {
     return Long.numberOfTrailingZeros(store);
-  }
-
-  @Override
-  public String toString() {
-    OfInt acceptanceSetIterator = acceptanceSetIterator();
-    StringBuilder builder = new StringBuilder(10);
-    builder.append(acceptanceSetIterator.nextInt());
-    acceptanceSetIterator.forEachRemaining((int x) -> builder.append(", ").append(x));
-    return "-> " + successor + " {" + builder + '}';
   }
 
   @Override
