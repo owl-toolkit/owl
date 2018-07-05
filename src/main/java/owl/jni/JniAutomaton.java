@@ -21,43 +21,43 @@ package owl.jni;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import de.tum.in.naturals.bitset.BitSets;
+import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.Automaton.PreferredEdgeAccess;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.util.annotation.CEntryPoint;
+
 
 // This is a JNI entry point. No touching.
 @SuppressWarnings("unused")
 public final class JniAutomaton<S> {
 
-  private static final int ACCEPTING_COLOUR = -2;
-  private static final int ACCEPTING_STATE = -2;
-
-  private static final int REJECTING_COLOUR = -1;
-  private static final int REJECTING_STATE = -1;
-
-  private static final int UNKNOWN_STATE = Integer.MIN_VALUE;
+  private static final int ACCEPTING = -2;
+  private static final int REJECTING = -1;
+  private static final int UNKNOWN = Integer.MIN_VALUE;
 
   private final Acceptance acceptance;
   private final Predicate<S> acceptingSink;
   private final Automaton<S, ?> automaton;
-  private final List<S> int2StateMap;
-  private final Object2IntMap<S> state2intMap;
+  private final List<S> index2StateMap;
+  private final Object2IntMap<S> state2indexMap;
+  private final int alphabetSize;
+  boolean explicitBuild;
 
   @Nullable
   private SoftReference<int[]> edgesCache;
@@ -76,12 +76,14 @@ public final class JniAutomaton<S> {
     this.acceptance = acceptance;
     this.acceptingSink = acceptingSink;
 
-    int2StateMap = new ArrayList<>();
-    int2StateMap.add(this.automaton.onlyInitialState());
+    index2StateMap = new ArrayList<>();
+    index2StateMap.add(this.automaton.onlyInitialState());
 
-    state2intMap = new Object2IntOpenHashMap<>();
-    state2intMap.put(this.automaton.onlyInitialState(), 0);
-    state2intMap.defaultReturnValue(UNKNOWN_STATE);
+    state2indexMap = new Object2IntOpenHashMap<>();
+    state2indexMap.put(this.automaton.onlyInitialState(), 0);
+    state2indexMap.defaultReturnValue(UNKNOWN);
+
+    alphabetSize = automaton.factory().alphabetSize();
   }
 
   private static JniAutomaton.Acceptance detectAcceptance(Automaton<?, ?> automaton) {
@@ -153,37 +155,18 @@ public final class JniAutomaton<S> {
 
   @CEntryPoint
   public int[] edges(int stateIndex) {
-    S state = int2StateMap.get(stateIndex);
-
-    int i = 0;
+    S state = index2StateMap.get(stateIndex);
     int[] edges = edgeBuffer();
 
-    @Nullable
-    var labelledEdges = automaton.prefersLabelled()
-      ? List.copyOf(automaton.labelledEdges(state).entrySet())
-      : null;
-
-    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
-      Edge<S> edge;
-
-      if (labelledEdges == null) {
-        edge = automaton.edge(state, valuation);
-      } else {
-        edge = lookup(labelledEdges, valuation);
+    if (explicitBuild || automaton.preferredEdgeAccess().get(0) == PreferredEdgeAccess.EDGES) {
+      BitSet valuation = new BitSet();
+      for (int i = 0; i < edges.length; i += 2, increment(valuation)) {
+        Edge<S> edge = automaton.edge(state, valuation);
+        edges[i] = index(edge);
+        edges[i + 1] = colour(edge);
       }
-
-      if (edge == null) {
-        edges[i] = REJECTING_STATE;
-        edges[i + 1] = REJECTING_COLOUR;
-      } else if (acceptingSink.test(edge.successor())) {
-        edges[i] = ACCEPTING_STATE;
-        edges[i + 1] = ACCEPTING_COLOUR;
-      } else {
-        edges[i] = lookup(edge.successor());
-        edges[i + 1] = edge.largestAcceptanceSet();
-      }
-
-      i += 2;
+    } else {
+      flattenEdges(automaton.edgeTree(state), 0, edges, 0, edges.length);
     }
 
     return edges;
@@ -191,36 +174,17 @@ public final class JniAutomaton<S> {
 
   @CEntryPoint
   public int[] successors(int stateIndex) {
-    S state = int2StateMap.get(stateIndex);
-
-    int i = 0;
+    S state = index2StateMap.get(stateIndex);
     int[] successors = successorBuffer();
 
-    @Nullable
-    var labelledEdges = automaton.prefersLabelled()
-      ? List.copyOf(automaton.labelledEdges(state).entrySet())
-      : null;
-
-    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
-      @Nullable
-      S successor;
-
-      if (labelledEdges == null) {
-        successor = automaton.successor(state, valuation);
-      } else {
-        var edge = lookup(labelledEdges, valuation);
-        successor = edge == null ? null : edge.successor();
+    if (explicitBuild || automaton.preferredEdgeAccess().get(0) == PreferredEdgeAccess.EDGES) {
+      BitSet valuation = new BitSet();
+      for (int i = 0; i < successors.length; i += 1, increment(valuation)) {
+        Edge<S> edge = automaton.edge(state, valuation);
+        successors[i] = index(edge);
       }
-
-      if (successor == null) {
-        successors[i] = REJECTING_STATE;
-      } else if (acceptingSink.test(successor)) {
-        successors[i] = ACCEPTING_STATE;
-      } else {
-        successors[i] = lookup(successor);
-      }
-
-      i += 1;
+    } else {
+      flattenSuccessors(automaton.edgeTree(state), 0, successors, 0, successors.length);
     }
 
     return successors;
@@ -230,33 +194,87 @@ public final class JniAutomaton<S> {
     return automaton.size();
   }
 
-  private int lookup(S o) {
-    int index = state2intMap.getInt(o);
+  private int index(@Nullable S state) {
+    if (state == null) {
+      return REJECTING;
+    }
 
-    if (index == UNKNOWN_STATE) {
-      int2StateMap.add(o);
-      state2intMap.put(o, int2StateMap.size() - 1);
-      index = int2StateMap.size() - 1;
+    if (acceptingSink.test(state)) {
+      return ACCEPTING;
+    }
+
+    int index = state2indexMap.getInt(state);
+
+    if (index == UNKNOWN) {
+      index2StateMap.add(state);
+      state2indexMap.put(state, index2StateMap.size() - 1);
+      index = index2StateMap.size() - 1;
     }
 
     return index;
   }
 
-  @Nullable
-  @SuppressWarnings({"PMD.ForLoopCanBeForeach", "ForLoopReplaceableByForEach"})
-  private static <T> Edge<T> lookup(List<Map.Entry<Edge<T>, ValuationSet>> labelledEdges,
-    BitSet valuation) {
-    // Use get() instead of iterator on RandomAccess list for enhanced performance.
-    int size = labelledEdges.size();
-    for (int i = 0; i < size; i++) {
-      var labelledEdge = labelledEdges.get(i);
+  private int index(@Nullable Edge<S> edge) {
+    return edge == null ? REJECTING : index(edge.successor());
+  }
 
-      if (labelledEdge.getValue().contains(valuation)) {
-        return labelledEdge.getKey();
+  private int colour(@Nullable Edge<S> edge) {
+    return edge == null ? REJECTING : edge.largestAcceptanceSet();
+  }
+
+  private void flattenEdges(ValuationTree<Edge<S>> tree, int expectedVariable, int[] buffer,
+    int fromIndex, int toIndex) {
+    assert fromIndex < toIndex : "region empty";
+    assert ((toIndex - fromIndex) & 1) == 0 : "region is odd";
+
+    if (tree instanceof ValuationTree.Node) {
+      var node = (ValuationTree.Node<Edge<S>>) tree;
+      int midIndex = (fromIndex + toIndex) >>> 1;
+      assert midIndex - fromIndex == toIndex - midIndex : "region split unequal";
+
+      if (expectedVariable == node.variable) {
+        flattenEdges(node.falseChild, expectedVariable + 1, buffer, fromIndex, midIndex);
+        flattenEdges(node.trueChild, expectedVariable + 1, buffer, midIndex, toIndex);
+      } else {
+        assert expectedVariable < node.variable;
+        flattenEdges(node, expectedVariable + 1, buffer, fromIndex, midIndex);
+        System.arraycopy(buffer, fromIndex, buffer, midIndex, midIndex - fromIndex);
+      }
+    } else {
+      var terminalNode = (ValuationTree.Leaf<Edge<S>>) tree;
+      var edge = Iterables.getOnlyElement(terminalNode.value, null);
+      int index = index(edge);
+      int colour = colour(edge);
+
+      for (int i = fromIndex; i < toIndex; i = i + 2) {
+        buffer[i] = index;
+        buffer[i + 1] = colour;
       }
     }
+  }
 
-    return null;
+  private void flattenSuccessors(ValuationTree<Edge<S>> tree, int expectedVariable, int[] buffer,
+    int fromIndex, int toIndex) {
+    assert fromIndex < toIndex : "region empty";
+
+    if (tree instanceof ValuationTree.Node) {
+      var node = (ValuationTree.Node<Edge<S>>) tree;
+      int midIndex = (fromIndex + toIndex) >>> 1;
+      assert midIndex - fromIndex == toIndex - midIndex : "region split unequal";
+
+      if (expectedVariable == node.variable) {
+        flattenSuccessors(node.falseChild, expectedVariable + 1, buffer, fromIndex, midIndex);
+        flattenSuccessors(node.trueChild, expectedVariable + 1, buffer, midIndex, toIndex);
+      } else {
+        assert expectedVariable < node.variable;
+        flattenSuccessors(node, expectedVariable + 1, buffer, fromIndex, midIndex);
+        System.arraycopy(buffer, fromIndex, buffer, midIndex, midIndex - fromIndex);
+      }
+    } else {
+      var leaf = (ValuationTree.Leaf<Edge<S>>) tree;
+      var edge = Iterables.getOnlyElement(leaf.value, null);
+      Arrays.fill(buffer, fromIndex, toIndex, index(edge));
+    }
   }
 
   // For the tree annotation "non-existing" or generic types are needed: PARITY, WEAK, BOTTOM
@@ -297,6 +315,17 @@ public final class JniAutomaton<S> {
 
     boolean isLessOrEqualWeak() {
       return this == CO_SAFETY || this == SAFETY || this == WEAK || this == BOTTOM;
+    }
+  }
+
+  private void increment(BitSet bitSet) {
+    for (int index = alphabetSize - 1; index >= 0; index--) {
+      if (bitSet.get(index)) {
+        bitSet.clear(index);
+      } else {
+        bitSet.set(index);
+        return;
+      }
     }
   }
 }

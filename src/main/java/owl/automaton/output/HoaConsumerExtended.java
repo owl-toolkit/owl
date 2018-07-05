@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.logging.Level;
@@ -40,7 +41,8 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
-import owl.automaton.Automaton;
+import owl.automaton.Automaton.EdgeMapVisitor;
+import owl.automaton.Automaton.EdgeVisitor;
 import owl.automaton.acceptance.BooleanExpressions;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -58,7 +60,7 @@ final class HoaConsumerExtended<S> {
   private final Object2IntMap<S> stateNumbers;
   @Nullable
   private S currentState = null;
-  final Automaton.HybridVisitor<S> visitor = new Visitor();
+  final Visitor visitor = new Visitor();
 
   HoaConsumerExtended(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,
     Set<S> initialStates, EnumSet<HoaOption> options, boolean isDeterministic, String name) {
@@ -171,7 +173,7 @@ final class HoaConsumerExtended<S> {
     }
   }
 
-  private class Visitor implements Automaton.HybridVisitor<S> {
+  class Visitor implements EdgeVisitor<S>, EdgeMapVisitor<S> {
     @Override
     public void enter(S state) {
       currentState = state;
@@ -197,28 +199,30 @@ final class HoaConsumerExtended<S> {
     }
 
     @Override
-    public void visitEdge(Edge<S> edge, BitSet valuation) {
+    public void visit(Edge<S> edge, BitSet valuation) {
       IntArrayList accSets = new IntArrayList();
       edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
       addEdgeBackend(valuation, edge.successor(), accSets);
     }
 
     @Override
-    public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
-      S end = edge.successor();
+    public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+      edgeMap.forEach((edge, valuationSet) -> {
+        S end = edge.successor();
 
-      if (valuationSet.isEmpty()) {
-        return;
-      }
+        if (valuationSet.isEmpty()) {
+          return;
+        }
 
-      IntArrayList acceptanceSets = new IntArrayList();
-      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptanceSets::add);
+        IntArrayList acceptanceSets = new IntArrayList();
+        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptanceSets::add);
 
-      if (options.contains(SIMPLE_TRANSITION_LABELS)) {
-        valuationSet.forEach(bitSet -> addEdgeBackend(bitSet, end, acceptanceSets));
-      } else {
-        addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
-      }
+        if (options.contains(SIMPLE_TRANSITION_LABELS)) {
+          valuationSet.forEach(bitSet -> addEdgeBackend(bitSet, end, acceptanceSets));
+        } else {
+          addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
+        }
+      });
     }
   }
 }

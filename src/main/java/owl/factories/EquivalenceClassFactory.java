@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import owl.collections.LabelledTree;
+import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -107,5 +107,6 @@ public interface EquivalenceClassFactory {
 
   String toString(EquivalenceClass clazz);
 
-  LabelledTree<Integer, EquivalenceClass> temporalStepTree(EquivalenceClass clazz);
+  <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
+    Function<EquivalenceClass, Set<T>> mapper);
 }

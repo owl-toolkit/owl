@@ -21,47 +21,46 @@ package owl.automaton;
 
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
-class ImplicitNonDeterministicLabelledEdgesAutomaton<S, A extends OmegaAcceptance>
+public class ImplicitNonDeterministicEdgeTreeAutomaton<S, A extends OmegaAcceptance>
   extends ImplicitCachedStatesAutomaton<S, A>
-  implements LabelledEdgesAutomatonMixin<S, A> {
+  implements EdgeTreeAutomatonMixin<S, A> {
 
   @Nullable
-  private final BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction;
-  private final Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction;
+  private final BiFunction<S, BitSet, Set<Edge<S>>> edgesFunction;
+  private final Function<S, ValuationTree<Edge<S>>> edgeTreeFunction;
 
-  ImplicitNonDeterministicLabelledEdgesAutomaton(ValuationSetFactory factory,
+  public ImplicitNonDeterministicEdgeTreeAutomaton(ValuationSetFactory factory,
     Collection<S> initialStates, A acceptance,
-    @Nullable BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
-    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
+    @Nullable BiFunction<S, BitSet, Set<Edge<S>>> edgesFunction,
+    Function<S, ValuationTree<Edge<S>>> edgeTreeFunction) {
     super(factory, Set.copyOf(initialStates), acceptance);
     this.edgesFunction = edgesFunction;
-    this.labelledEdgesFunction = labelledEdgesFunction;
+    this.edgeTreeFunction = edgeTreeFunction;
   }
 
   @Override
-  public Collection<Edge<S>> edges(S state, BitSet valuation) {
+  public Set<Edge<S>> edges(S state, BitSet valuation) {
     assert cache() == null || cache().contains(state);
 
     if (edgesFunction != null) {
       return edgesFunction.apply(state, valuation);
     }
 
-    return LabelledEdgesAutomatonMixin.super.edges(state, valuation);
+    return EdgeTreeAutomatonMixin.super.edges(state, valuation);
   }
 
   @Override
-  public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
+  public ValuationTree<Edge<S>> edgeTree(S state) {
     assert cache() == null || cache().contains(state);
-    return labelledEdgesFunction.apply(state);
+    return edgeTreeFunction.apply(state);
   }
 }

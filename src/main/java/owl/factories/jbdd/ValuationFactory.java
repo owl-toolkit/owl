@@ -19,16 +19,22 @@
 
 package owl.factories.jbdd;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuationSet>
@@ -53,12 +59,6 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
   @Override
-  public int alphabetSize() {
-    return alphabet.size();
-  }
-
-  @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
-  @Override
   public List<String> alphabet() {
     return alphabet;
   }
@@ -67,6 +67,11 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   @Override
   public ValuationSet empty() {
     return empty;
+  }
+
+  @Override
+  public ValuationSet of(int literal) {
+    return create(factory.getVariableNode(literal));
   }
 
   @Override
@@ -190,6 +195,96 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   @Override
   public BooleanExpression<AtomLabel> toExpression(ValuationSet set) {
     return toExpression(getBdd(set));
+  }
+
+  @Override
+  public <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets) {
+    if (sets.isEmpty()) {
+      return ValuationTree.of(List.of());
+    }
+
+    int offset = alphabet.size();
+    int requiredVariables = sets.size() - (factory.numberOfVariables() - offset);
+
+    if (requiredVariables > 0) {
+      factory.createVariables(requiredVariables);
+    }
+
+    // Build BDD describing the tree:
+    int bdd = factory.getTrueNode();
+    var list = List.copyOf(sets.entrySet());
+
+    for (int i = 0; i < list.size(); i++) {
+      var entry = list.get(i);
+      int relation = factory.reference(factory.equivalence(
+        factory.getVariableNode(offset + i), getBdd(entry.getValue())));
+      bdd = factory.consume(factory.and(bdd, relation), bdd, relation);
+    }
+
+    ValuationTree<S> result = inverseMemoized(bdd, new HashMap<>(),
+      i -> list.get(i - offset).getKey(), offset + list.size());
+    factory.dereference(bdd);
+    return result;
+  }
+
+  private <S> ValuationTree<S> inverseMemoized(int bdd, Map<Integer, ValuationTree<S>> cache,
+    IntFunction<S> mapper, int maxSize) {
+    assert bdd != factory.getTrueNode();
+    assert bdd != factory.getFalseNode();
+
+    var tree = cache.get(Integer.valueOf(bdd));
+
+    if (tree != null) {
+      return tree;
+    }
+
+    int variable = factory.getVariable(bdd);
+
+    if (variable < alphabetSize()) {
+      tree = ValuationTree.of(variable,
+        inverseMemoized(factory.getHigh(bdd), cache, mapper, maxSize),
+        inverseMemoized(factory.getLow(bdd), cache, mapper, maxSize));
+    } else {
+      tree = ValuationTree.of(getOnlySatisfyingAssignment(bdd, maxSize - 1)
+        .stream().mapToObj(mapper).collect(toUnmodifiableSet()));
+    }
+
+    cache.put(Integer.valueOf(bdd), tree);
+    return tree;
+  }
+
+  private BitSet getOnlySatisfyingAssignment(int bdd, int largestVariable) {
+    assert bdd != factory.getTrueNode();
+    assert bdd != factory.getFalseNode();
+    int variable = factory.getVariable(bdd);
+
+    if (variable < largestVariable) {
+      int high = factory.getHigh(bdd);
+
+      if (high == factory.getFalseNode()) {
+        return getOnlySatisfyingAssignment(factory.getLow(bdd), largestVariable);
+      } else {
+        assert factory.getLow(bdd) == factory.getFalseNode();
+        assert high != factory.getTrueNode();
+        var assignment = getOnlySatisfyingAssignment(high, largestVariable);
+        assignment.set(variable);
+        return assignment;
+      }
+    } else {
+      assert variable == largestVariable;
+      assert factory.getTrueNode() == factory.getLow(bdd)
+        || factory.getFalseNode() == factory.getLow(bdd);
+      assert factory.getTrueNode() == factory.getHigh(bdd)
+        || factory.getFalseNode() == factory.getHigh(bdd);
+
+      if (factory.getHigh(bdd) == factory.getTrueNode()) {
+        var set = new BitSet();
+        set.set(variable);
+        return set;
+      } else {
+        return new BitSet();
+      }
+    }
   }
 
   private BooleanExpression<AtomLabel> toExpression(int bdd) {

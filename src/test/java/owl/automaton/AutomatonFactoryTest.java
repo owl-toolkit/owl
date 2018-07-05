@@ -72,7 +72,7 @@ public class AutomatonFactoryTest {
 
     assertThat(AutomatonUtil.getIncompleteStates(singleton).entrySet(), empty());
     assertThat(DefaultImplementations.getReachableStates(singleton), contains(singletonState));
-    assertThat(singleton.labelledEdges(singletonState),
+    assertThat(singleton.edgeMap(singletonState),
       is(Map.of(Edge.of(singletonState), factory.universe())));
   }
 
@@ -83,7 +83,7 @@ public class AutomatonFactoryTest {
       EquivalenceClass.class, AllAcceptance.class);
 
     var initialState = automaton.onlyInitialState();
-    var labelledEdges = automaton.labelledEdges(automaton.onlyInitialState());
+    var labelledEdges = automaton.edgeMap(automaton.onlyInitialState());
 
     automaton.factory().forEach(valuation -> {
       var edge = automaton.edge(initialState, valuation);

@@ -23,7 +23,7 @@ import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import owl.collections.LabelledTree;
+import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 
 /**
@@ -112,8 +112,12 @@ public class EquivalenceClass {
     return factory.temporalStep(this, valuation);
   }
 
-  public final LabelledTree<Integer, EquivalenceClass> temporalStepTree() {
-    return factory.temporalStepTree(this);
+  public final ValuationTree<EquivalenceClass> temporalStepTree() {
+    return temporalStepTree(Set::of);
+  }
+
+  public final <T> ValuationTree<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper) {
+    return factory.temporalStepTree(this, mapper);
   }
 
   /**

@@ -24,8 +24,11 @@ import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import owl.automaton.edge.Edge;
+import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 
 final class DefaultImplementations {
 
@@ -43,7 +46,7 @@ final class DefaultImplementations {
 
       for (BitSet valuation : powerSet) {
         for (Edge<S> edge : automaton.edges(state, valuation)) {
-          visitor.visitEdge(edge, valuation);
+          visitor.visit(edge, valuation);
 
           S successor = edge.successor();
 
@@ -59,17 +62,39 @@ final class DefaultImplementations {
     return exploredStates;
   }
 
-  static <S> Set<S> visit(Automaton<S, ?> automaton, Automaton.LabelledEdgeVisitor<S> visitor) {
+  static <S> Set<S> visit(Automaton<S, ?> automaton, Automaton.EdgeMapVisitor<S> visitor) {
     Set<S> exploredStates = new HashSet<>(automaton.initialStates());
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();
       visitor.enter(state);
+      Map<Edge<S>, ValuationSet> edges = automaton.edgeMap(state);
+      visitor.visit(edges);
+      edges.keySet().forEach((edge) -> {
+        S successor = edge.successor();
 
-      automaton.forEachLabelledEdge(state, (edge, valuation) -> {
-        visitor.visitLabelledEdge(edge, valuation);
+        if (exploredStates.add(successor)) {
+          workQueue.add(successor);
+        }
+      });
 
+      visitor.exit(state);
+    }
+
+    return exploredStates;
+  }
+
+  static <S> Set<S> visit(Automaton<S, ?> automaton, Automaton.EdgeTreeVisitor<S> visitor) {
+    Set<S> exploredStates = new HashSet<>(automaton.initialStates());
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.remove();
+      visitor.enter(state);
+      ValuationTree<Edge<S>> edges = automaton.edgeTree(state);
+      visitor.visit(edges);
+      edges.values().forEach((edge) -> {
         S successor = edge.successor();
 
         if (exploredStates.add(successor)) {

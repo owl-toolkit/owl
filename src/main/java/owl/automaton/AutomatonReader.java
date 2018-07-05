@@ -65,7 +65,6 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
-import owl.collections.ValuationSetUtil;
 import owl.factories.FactorySupplier;
 import owl.factories.ValuationSetFactory;
 
@@ -440,8 +439,7 @@ public final class AutomatonReader {
 
           for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
             HoaState successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
-            ValuationSet valuationSet =
-              ValuationSetUtil.toValuationSet(vsFactory, edgeWithLabel.getLabelExpr(), apMapping);
+            ValuationSet valuationSet = vsFactory.of(edgeWithLabel.getLabelExpr(), apMapping);
             addEdge(state, valuationSet, edgeWithLabel.getAccSignature(), successorState);
           }
         }

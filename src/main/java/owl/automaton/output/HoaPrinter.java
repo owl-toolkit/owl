@@ -23,8 +23,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
@@ -84,7 +84,7 @@ public final class HoaPrinter {
     HoaConsumerExtended<S> hoa = new HoaConsumerExtended<>(consumer, automaton.factory().alphabet(),
       automaton.acceptance(), automaton.initialStates(), options,
       automaton.is(Automaton.Property.DETERMINISTIC), automaton.name());
-    automaton.accept(hoa.visitor);
+    automaton.accept((Automaton.Visitor<S>) hoa.visitor);
     hoa.done();
   }
 
@@ -103,7 +103,7 @@ public final class HoaPrinter {
       acceptingComponent.factory().alphabet(), acceptingComponent.acceptance(),
       (Set<Object>) ldba.initialStates(), options, false, "LDBA");
 
-    var patchedVisitor = new Automaton.HybridVisitor<S>() {
+    var patchedVisitor = new Automaton.EdgeMapVisitor<S>() {
       @Override
       public void enter(S state) {
         hoa.visitor.enter(state);
@@ -117,18 +117,13 @@ public final class HoaPrinter {
       }
 
       @Override
-      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
-        hoa.visitor.visitLabelledEdge(TypeUtil.cast(edge), valuationSet);
-      }
-
-      @Override
-      public void visitEdge(Edge<S> edge, BitSet valuation) {
-        hoa.visitor.visitEdge(TypeUtil.cast(edge), valuation);
+      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+        hoa.visitor.visit(TypeUtil.cast(edgeMap));
       }
     };
 
     intialComponent.accept(patchedVisitor);
-    acceptingComponent.accept(hoa.visitor);
+    acceptingComponent.accept((Automaton.Visitor<Object>) hoa.visitor);
     hoa.done();
   }
 

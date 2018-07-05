@@ -104,14 +104,14 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
   @Nonnull
   private BitSet getSensitiveAlphabet(GeneralizedBreakpointState state) {
-    BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.safety);
+    BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.safety);
 
     for (EquivalenceClass clazz : state.current) {
-      sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(clazz));
     }
 
     for (EquivalenceClass clazz : state.next) {
-      sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(clazz));
     }
 
     return sensitiveAlphabet;
@@ -121,7 +121,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public Edge<GeneralizedBreakpointState> getSuccessor(
     GeneralizedBreakpointState state, BitSet valuation) {
     // Check the safety field first.
-    EquivalenceClass nextSafety = factory.getSuccessor(state.safety, valuation)
+    EquivalenceClass nextSafety = factory.successor(state.safety, valuation)
       .and(state.obligations.safety());
 
     if (nextSafety.isFalse()) {
@@ -142,14 +142,14 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     for (int i = 0; i < state.next.length; i++) {
       EquivalenceClass currentSuccessor = factory
-        .getSuccessor(state.current[i], valuation, nextSafety);
+        .successor(state.current[i], valuation, nextSafety);
 
       if (currentSuccessor.isFalse()) {
         return null;
       }
 
       EquivalenceClass assumptions = currentSuccessor.and(nextSafety);
-      EquivalenceClass nextSuccessor = factory.getSuccessor(state.next[i], valuation, assumptions);
+      EquivalenceClass nextSuccessor = factory.successor(state.next[i], valuation, assumptions);
 
       if (nextSuccessor.isFalse()) {
         return null;
@@ -171,7 +171,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
 
     for (int i = state.next.length; i < length; i++) {
       EquivalenceClass currentSuccessor = factory
-        .getSuccessor(state.current[i], valuation, nextSafety);
+        .successor(state.current[i], valuation, nextSafety);
 
       if (currentSuccessor.isFalse()) {
         return null;
@@ -195,7 +195,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     GeneralizedBreakpointState state, EquivalenceClass nextSafety, BitSet valuation) {
     // Take care of the remainder.
     if (state.current.length > 0) {
-      EquivalenceClass remainder = factory.getSuccessor(state.current[0], valuation, nextSafety);
+      EquivalenceClass remainder = factory.successor(state.current[0], valuation, nextSafety);
 
       if (remainder.isFalse()) {
         return null;

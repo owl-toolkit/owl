@@ -22,11 +22,9 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +50,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 public final class Views {
@@ -218,8 +217,10 @@ public final class Views {
     implements Automaton<S, B> {
 
     private final Edge<S> sinkEdge;
+    private final Set<Edge<S>> sinkEdgeSet;
     private final Automaton<S, A> automaton;
     private final S sink;
+    private final Set<S> sinkSet;
     private final B acceptance;
 
     @Nullable
@@ -228,7 +229,9 @@ public final class Views {
     Complete(Automaton<S, A> automaton, Edge<S> sinkEdge, B acceptance) {
       this.automaton = automaton;
       this.sink = sinkEdge.successor();
+      this.sinkSet = Set.of(sink);
       this.sinkEdge = sinkEdge;
+      this.sinkEdgeSet = Set.of(sinkEdge);
       this.acceptance = acceptance;
     }
 
@@ -243,8 +246,8 @@ public final class Views {
     }
 
     @Override
-    public boolean prefersLabelled() {
-      return automaton.prefersLabelled();
+    public List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return automaton.preferredEdgeAccess();
     }
 
     @Override
@@ -261,48 +264,48 @@ public final class Views {
       if (incompleteStates.isEmpty()) {
         return automaton.states();
       } else {
-        return Sets.union(automaton.states(), Set.of(sink));
+        return Sets.union(automaton.states(), sinkSet);
       }
     }
 
     @Override
     public Set<S> successors(S state) {
       if (sink.equals(state)) {
-        return Set.of(sink);
+        return sinkSet;
       }
 
       if (incompleteStates != null && incompleteStates.containsKey(state)) {
-        return Sets.union(automaton.states(), Set.of(sink));
+        return Sets.union(automaton.states(), sinkSet);
       }
 
-      return Edges.successors(labelledEdges(state).keySet());
+      return Edges.successors(edgeMap(state).keySet());
     }
 
     @Override
-    public Collection<Edge<S>> edges(S state, BitSet valuation) {
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
       if (sink.equals(state)) {
-        return List.of(sinkEdge);
+        return sinkEdgeSet;
       }
 
-      Collection<Edge<S>> edges = automaton.edges(state, valuation);
-      return edges.isEmpty() ? List.of(sinkEdge) : edges;
+      Set<Edge<S>> edges = automaton.edges(state, valuation);
+      return edges.isEmpty() ? sinkEdgeSet : edges;
     }
 
     @Override
-    public Collection<Edge<S>> edges(S state) {
+    public Set<Edge<S>> edges(S state) {
       if (sink.equals(state)) {
-        return List.of(sinkEdge);
+        return sinkEdgeSet;
       }
 
       if (incompleteStates != null && incompleteStates.containsKey(state)) {
-        return Collections3.append(automaton.edges(state), sinkEdge);
+        return Sets.union(automaton.edges(state), sinkEdgeSet);
       }
 
-      return labelledEdges(state).keySet();
+      return edgeMap(state).keySet();
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       ValuationSetFactory factory = automaton.factory();
 
       if (sink.equals(state)) {
@@ -310,10 +313,10 @@ public final class Views {
       }
 
       if (incompleteStates != null && !incompleteStates.containsKey(state)) {
-        return automaton.labelledEdges(state);
+        return automaton.edgeMap(state);
       }
 
-      Map<Edge<S>, ValuationSet> edges = new HashMap<>(automaton.labelledEdges(state));
+      Map<Edge<S>, ValuationSet> edges = new HashMap<>(automaton.edgeMap(state));
       ValuationSet valuationSet = incompleteStates == null
         ? factory.union(edges.values()).complement()
         : incompleteStates.get(state);
@@ -323,6 +326,21 @@ public final class Views {
       }
 
       return edges;
+    }
+
+    @Override
+    public ValuationTree<Edge<S>> edgeTree(S state) {
+      if (sink.equals(state)) {
+        return ValuationTree.of(sinkEdgeSet);
+      }
+
+      var valuationTree = automaton.edgeTree(state);
+
+      if (incompleteStates != null && !incompleteStates.containsKey(state)) {
+        return valuationTree;
+      }
+
+      return valuationTree.map(x -> x.isEmpty() ? sinkEdgeSet : x);
     }
 
     @Override
@@ -406,42 +424,42 @@ public final class Views {
     }
 
     @Override
-    public boolean prefersLabelled() {
-      return backingAutomaton.prefersLabelled();
+    public List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return backingAutomaton.preferredEdgeAccess();
     }
 
     @Override
-    public Collection<Edge<S>> edges(S state, BitSet valuation) {
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Collections2.filter(backingAutomaton.edges(state, valuation), this::edgeFilter)
+        ? Sets.filter(backingAutomaton.edges(state, valuation), this::edgeFilter)
         : backingAutomaton.edges(state, valuation);
 
       var edgeRewriter = settings.edgeRewriter();
       return edgeRewriter == null
         ? filteredEdges
-        : Collections2.transform(filteredEdges, edgeRewriter::apply);
+        : Collections3.transformSet(filteredEdges, edgeRewriter);
     }
 
     @Override
-    public Collection<Edge<S>> edges(S state) {
+    public Set<Edge<S>> edges(S state) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Collections2.filter(backingAutomaton.edges(state), this::edgeFilter)
+        ? Sets.filter(backingAutomaton.edges(state), this::edgeFilter)
         : backingAutomaton.edges(state);
 
       var edgeRewriter = settings.edgeRewriter();
       return edgeRewriter == null
         ? filteredEdges
-        : Collections2.transform(filteredEdges, edgeRewriter::apply);
+        : Collections3.transformSet(filteredEdges, edgeRewriter);
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Maps.filterKeys(backingAutomaton.labelledEdges(state), this::edgeFilter)
-        : backingAutomaton.labelledEdges(state);
+        ? Maps.filterKeys(backingAutomaton.edgeMap(state), this::edgeFilter)
+        : backingAutomaton.edgeMap(state);
 
       var edgeRewriter = settings.edgeRewriter();
       return edgeRewriter == null
@@ -450,8 +468,30 @@ public final class Views {
     }
 
     @Override
-    public Set<S> successors(S state) {
-      return edges(state).stream().map(Edge::successor).collect(Collectors.toSet());
+    public ValuationTree<Edge<S>> edgeTree(S state) {
+      checkArgument(stateFilter(state));
+
+      var edges = backingAutomaton.edgeTree(state);
+      var edgeRewriter = settings.edgeRewriter();
+
+      @Nullable
+      Function<Set<Edge<S>>, Set<Edge<S>>> mapper;
+
+      if (filterRequired()) {
+        if (edgeRewriter == null) {
+          mapper = x -> Sets.filter(x, this::edgeFilter);
+        } else {
+          mapper = x -> Collections3.transformSet(Sets.filter(x, this::edgeFilter), edgeRewriter);
+        }
+      } else {
+        if (edgeRewriter == null) {
+          mapper = null;
+        } else {
+          mapper = x -> Collections3.transformSet(x, edgeRewriter);
+        }
+      }
+
+      return mapper == null ? edges : edges.map(mapper);
     }
 
     @Override

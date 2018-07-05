@@ -37,8 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.Automaton.LabelledEdgeVisitor;
+import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
@@ -306,12 +307,14 @@ public final class SafetyAutomaton {
     Map<StateReduction, State> reduction = new HashMap<>();
     Map<State, State> reductionMap = new HashMap<>();
 
-    LabelledEdgeVisitor<State> visitor = new LabelledEdgeVisitor<>() {
-      Map<State, ValuationSet> successors = new HashMap<>();
+    EdgeMapVisitor<State> visitor = new EdgeMapVisitor<>() {
+      @Nullable
+      Map<State, ValuationSet> successors = null;
 
       @Override
-      public void visitLabelledEdge(Edge<State> edge, ValuationSet valuationSet) {
-        successors.merge(edge.successor(), valuationSet, ValuationSet::union);
+      public void visit(Map<Edge<State>, ValuationSet> edgeMap) {
+        assert successors == null;
+        successors = Collections3.transformMap(edgeMap, Edge::successor);
       }
 
       @Override
@@ -321,9 +324,10 @@ public final class SafetyAutomaton {
 
       @Override
       public void exit(State state) {
+        assert successors != null;
         reductionMap.put(state, reduction.computeIfAbsent(StateReduction.of(state, successors),
           k -> state));
-        successors = new HashMap<>();
+        successors = null;
       }
     };
 

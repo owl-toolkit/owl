@@ -19,21 +19,17 @@
 
 package owl.translations.ltl2ldba;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
-import owl.collections.LabelledTree;
-import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.Factories;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
@@ -72,11 +68,11 @@ public class EquivalenceClassStateFactory {
     return removeRedundantObligations(initial, environmentArray);
   }
 
-  public EquivalenceClass getNondeterministicSuccessor(EquivalenceClass clazz, BitSet valuation) {
+  public EquivalenceClass nondeterministicPreSuccessor(EquivalenceClass clazz, BitSet valuation) {
     return eagerUnfold ? clazz.temporalStep(valuation) : clazz.unfoldTemporalStep(valuation);
   }
 
-  public BitSet getSensitiveAlphabet(EquivalenceClass clazz) {
+  public BitSet sensitiveAlphabet(EquivalenceClass clazz) {
     if (eagerUnfold) {
       return clazz.atomicPropositions();
     } else {
@@ -84,7 +80,20 @@ public class EquivalenceClassStateFactory {
     }
   }
 
-  public EquivalenceClass getSuccessor(EquivalenceClass clazz, BitSet valuation,
+  public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
+    return eagerUnfold
+      ? clazz.temporalStepTree(this::successorToEdge)
+      : clazz.unfold().temporalStepTree(this::successorToEdge);
+  }
+
+  public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz,
+    Function<EquivalenceClass, OptionalInt> edgeLabel) {
+    return eagerUnfold
+      ? clazz.temporalStepTree(x -> successorToEdge(x, edgeLabel))
+      : clazz.unfold().temporalStepTree(x -> successorToEdge(x, edgeLabel));
+  }
+
+  public EquivalenceClass successor(EquivalenceClass clazz, BitSet valuation,
     EquivalenceClass... environmentArray) {
     EquivalenceClass successor = eagerUnfold
       ? clazz.temporalStepUnfold(valuation)
@@ -92,71 +101,35 @@ public class EquivalenceClassStateFactory {
     return removeRedundantObligations(successor, environmentArray);
   }
 
-  public Map<EquivalenceClass, ValuationSet> getSuccessors(EquivalenceClass clazz) {
-    var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
-    return getSuccessorsRecursive(tree, new HashMap<>(), x -> x);
+  private Set<Edge<EquivalenceClass>> successorToEdge(EquivalenceClass preSuccessor) {
+    EquivalenceClass successor = eagerUnfold ? preSuccessor.unfold() : preSuccessor;
+    return successor.isFalse() ? Set.of() : Set.of(Edge.of(successor));
   }
 
-  public Map<Edge<EquivalenceClass>, ValuationSet> getEdges(EquivalenceClass clazz) {
-    var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
-    return getSuccessorsRecursive(tree, new HashMap<>(), Edge::of);
-  }
-
-  public Map<Edge<EquivalenceClass>, ValuationSet> getEdges(EquivalenceClass clazz,
+  private Set<Edge<EquivalenceClass>> successorToEdge(EquivalenceClass preSuccessor,
     Function<EquivalenceClass, OptionalInt> edgeLabel) {
-    var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
+    EquivalenceClass successor = eagerUnfold ? preSuccessor.unfold() : preSuccessor;
 
-    Function<EquivalenceClass, Edge<EquivalenceClass>> constructor = x -> {
-      var optional = edgeLabel.apply(x);
-      return optional.isPresent() ? Edge.of(x, optional.getAsInt()) : Edge.of(x);
-    };
-
-    return getSuccessorsRecursive(tree, new HashMap<>(), constructor);
-  }
-
-  @SuppressWarnings("PMD.UnusedPrivateMethod")
-  private <T> Map<T, ValuationSet> getSuccessorsRecursive(
-    LabelledTree<Integer, EquivalenceClass> tree,
-    Map<LabelledTree<Integer, EquivalenceClass>, Map<T, ValuationSet>> cache,
-    Function<EquivalenceClass, T> constructor) {
-    var map = cache.get(tree);
-
-    if (map != null) {
-      return map;
+    if (successor.isFalse()) {
+      return Set.of();
     }
 
-    if (tree instanceof LabelledTree.Leaf) {
-      var label = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
-      var clazz = eagerUnfold ? label.unfold() : label;
-      map = clazz.isFalse()
-        ? Map.of()
-        : Map.of(constructor.apply(clazz), factories.vsFactory.universe());
+    OptionalInt optional = edgeLabel.apply(successor);
+
+    if (optional.isPresent()) {
+      return Set.of(Edge.of(successor, optional.getAsInt()));
     } else {
-      var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
-      var posMask = factories.vsFactory.of(literal, literal);
-      var negMask = posMask.complement();
-      var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
-      var finalMap = new HashMap<T, ValuationSet>();
-
-      getSuccessorsRecursive(children.get(0), cache, constructor).forEach(
-        ((clazz, set) -> finalMap.merge(clazz, set.intersection(posMask), ValuationSet::union)));
-      getSuccessorsRecursive(children.get(1), cache, constructor).forEach(
-        ((clazz, set) -> finalMap.merge(clazz, set.intersection(negMask), ValuationSet::union)));
-
-      map = finalMap;
+      return Set.of(Edge.of(successor));
     }
-
-    cache.put(tree, map);
-    return map;
   }
 
   @Nullable
-  public EquivalenceClass[] getSuccessors(EquivalenceClass[] clazz, BitSet valuation,
+  public EquivalenceClass[] successors(EquivalenceClass[] clazz, BitSet valuation,
     @Nullable EquivalenceClass environment) {
     EquivalenceClass[] successors = new EquivalenceClass[clazz.length];
 
     for (int i = clazz.length - 1; i >= 0; i--) {
-      successors[i] = getSuccessor(clazz[i], valuation, environment);
+      successors[i] = successor(clazz[i], valuation, environment);
 
       if (successors[i].isFalse()) {
         return null;

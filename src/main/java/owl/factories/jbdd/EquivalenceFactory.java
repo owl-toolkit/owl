@@ -41,7 +41,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.collections.LabelledTree;
+import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.PropositionVisitor;
 import owl.ltl.BinaryModalOperator;
@@ -297,28 +297,28 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
   }
 
   @Override
-  public LabelledTree<Integer, EquivalenceClass> temporalStepTree(EquivalenceClass clazz) {
-    return temporalStepTree(clazz, new HashMap<>());
+  public <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
+    Function<EquivalenceClass, Set<T>> mapper) {
+    return temporalStepTree(clazz, mapper, new HashMap<>());
   }
 
-  private LabelledTree<Integer, EquivalenceClass> temporalStepTree(EquivalenceClass clazz,
-    Map<EquivalenceClass, LabelledTree<Integer, EquivalenceClass>> cache) {
+  private <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
+    Function<EquivalenceClass, Set<T>> mapper, Map<EquivalenceClass, ValuationTree<T>> cache) {
     var tree = cache.get(clazz);
 
     if (tree != null) {
       return tree;
     }
 
-    int pivot = clazz.atomicPropositions().nextSetBit(0);
+    int bdd = getBdd(clazz);
+    int pivot = factory.isNodeRoot(bdd) ? alphabet.size() : factory.getVariable(bdd);
 
-    if (pivot == -1) {
-      for (int i = 0; i < alphabet.size(); i++) {
-        temporalStepSubstitution[i] = -1;
-      }
-
-      tree = new LabelledTree.Leaf<>(transform(clazz,
+    if (pivot >= alphabet.size()) {
+      Arrays.fill(temporalStepSubstitution, 0, alphabet.size(), -1);
+      Set<T> value = mapper.apply(transform(clazz,
         x -> factory.compose(x, temporalStepSubstitution),
         x -> x.accept(REMOVE_X)));
+      tree = ValuationTree.of(value);
     } else {
       int[] substitution = new int[pivot + 1];
       Arrays.fill(substitution, 0, pivot, -1);
@@ -326,14 +326,14 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       substitution[pivot] = factory.getTrueNode();
       var trueSubTree = temporalStepTree(transform(clazz,
         x -> factory.compose(getBdd(clazz), substitution),
-        x -> x.accept(replaceLiteralBy(pivot, true))), cache);
+        x -> x.accept(replaceLiteralBy(pivot, true))), mapper, cache);
 
       substitution[pivot] = factory.getFalseNode();
       var falseSubTree = temporalStepTree(transform(clazz,
         x -> factory.compose(getBdd(clazz), substitution),
-        x -> x.accept(replaceLiteralBy(pivot, false))), cache);
+        x -> x.accept(replaceLiteralBy(pivot, false))), mapper, cache);
 
-      tree = new LabelledTree.Node<>(pivot, List.of(trueSubTree, falseSubTree));
+      tree = ValuationTree.of(pivot, trueSubTree, falseSubTree);
     }
 
     cache.put(clazz, tree);

@@ -183,7 +183,7 @@ public final class Collections3 {
 
     return transformedSet;
   }
-
+  
   public static <E1, E2> void zip(Iterable<E1> iterable1, Iterable<E2> iterable2,
     BiConsumer<E1, E2> action) {
     Iterator<E1> iterator1 = iterable1.iterator();

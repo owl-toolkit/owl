@@ -19,7 +19,10 @@
 
 package owl.util;
 
+import java.util.Map;
 import owl.automaton.edge.Edge;
+import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 
 public final class TypeUtil {
   private TypeUtil() {}
@@ -27,5 +30,16 @@ public final class TypeUtil {
   @SuppressWarnings("unchecked")
   public static <S> Edge<S> cast(Edge<? extends S> edge) {
     return (Edge<S>) edge;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <S> Map<Edge<S>, ValuationSet> cast(
+    Map<? extends Edge<? extends S>, ValuationSet> edges) {
+    return (Map<Edge<S>, ValuationSet>) edges;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <S> ValuationTree<Edge<S>> cast(ValuationTree<? extends Edge<? extends S>> edges) {
+    return (ValuationTree<Edge<S>>) edges;
   }
 }

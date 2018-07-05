@@ -71,11 +71,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Nonnull
   public BitSet getSensitiveAlphabet(DegeneralizedBreakpointFreeState state) {
-    BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.liveness);
-    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.safety));
+    BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.liveness);
+    sensitiveAlphabet.or(factory.sensitiveAlphabet(state.safety));
 
     for (EquivalenceClass clazz : state.obligations.liveness) {
-      sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.getInitial(clazz)));
     }
 
     return sensitiveAlphabet;
@@ -84,9 +84,9 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Nullable
   public Edge<DegeneralizedBreakpointFreeState> getSuccessor(DegeneralizedBreakpointFreeState state,
     BitSet valuation) {
-    EquivalenceClass livenessSuccessor = factory.getSuccessor(state.liveness, valuation);
+    EquivalenceClass livenessSuccessor = factory.successor(state.liveness, valuation);
     EquivalenceClass safetySuccessor = factory
-      .getSuccessor(state.safety, valuation, livenessSuccessor);
+      .successor(state.safety, valuation, livenessSuccessor);
 
     if (safetySuccessor.isFalse()) {
       return null;
@@ -135,7 +135,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     while (index < livenessLength) {
       EquivalenceClass successor = factory
-        .getSuccessor(factory.getInitial(state.obligations.liveness.get(index)), valuation);
+        .successor(factory.getInitial(state.obligations.liveness.get(index)), valuation);
 
       if (successor.isTrue()) {
         index++;

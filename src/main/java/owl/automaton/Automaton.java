@@ -19,22 +19,22 @@
 
 package owl.automaton;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 /**
@@ -43,9 +43,9 @@ import owl.factories.ValuationSetFactory;
  *
  * <p>The methods of the interface are always referring to the set of states reachable from
  * the initial states, especially {@link Automaton#size}, {@link Automaton#states()},
- * {@link Automaton#accept(EdgeVisitor)}, {@link Automaton#accept(HybridVisitor)},
- * {@link Automaton#accept(HybridVisitor)}, {@link Automaton#predecessors(Object)} only refer to
- * the from the initial states reachable set.</p>
+ * {@link Automaton#accept(EdgeVisitor)}, {@link Automaton#accept(EdgeMapVisitor)},
+ * {@link Automaton#accept(EdgeTreeVisitor)}, {@link Automaton#predecessors(Object)} only refer
+ * to the from the initial states reachable set.</p>
  *
  * <p>All methods throw an {@link IllegalArgumentException} on a best-effort basis if they detect
  * that a state given as an argument is not reachable from the initial states. Note that this
@@ -54,8 +54,7 @@ import owl.factories.ValuationSetFactory;
  * depended on this exception for its correctness: this should be only used to detect bugs.</p>
  *
  * <p>Further, every state-related operation (e.g., {@link #successors(Object)}) should be unique,
- * while edge-related operations may yield duplicates. For example,
- * {@link #forEachEdge(Object, Consumer)} may yield the same state-edge pair multiple times.</p>
+ * while edge-related operations may yield duplicates. </p>
  *
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
@@ -146,7 +145,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return The successor edges, possibly empty.
    */
-  Collection<Edge<S>> edges(S state, BitSet valuation);
+  Set<Edge<S>> edges(S state, BitSet valuation);
 
   /**
    * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
@@ -163,7 +162,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return A successor edge or {@code null} if none.
    *
-   * @see #labelledEdges(Object)
+   * @see #edgeMap(Object)
    */
   @Nullable
   default Edge<S> edge(S state, BitSet valuation) {
@@ -178,40 +177,28 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return The set of edges originating from {@code state}
    */
-  Collection<Edge<S>> edges(S state);
+  Set<Edge<S>> edges(S state);
+
+  // Transition function - Symbolic versions
 
   /**
-   * This call is semantically equivalent to {@code edges(state).forEach(action)}.
-   *
-   * @param state state
-   * @param action action
-   */
-  default void forEachEdge(S state, Consumer<Edge<S>> action) {
-    edges(state).forEach(action);
-  }
-
-  // Transition function - Bulk
-
-  /**
-   * Returns all labelled edges of the specified {@code state}.
+   * Returns a mapping from all outgoing edges to their valuations of the specified {@code state}.
    *
    * @param state
    *     The state.
    *
    * @return All labelled edges of the state.
    */
-  Map<Edge<S>, ValuationSet> labelledEdges(S state);
+  Map<Edge<S>, ValuationSet> edgeMap(S state);
 
   /**
-   * This call is semantically equivalent to {@code labelledEdges(state).forEach(action)}.
+   * Returns a decision-tree with nodes labelled by literals and sets of edges as leaves.
    *
-   * @param state state
-   * @param action action
+   * @param state
+   *    The state.
+   * @return A tree.
    */
-  default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    labelledEdges(state).forEach(action);
-  }
-
+  ValuationTree<Edge<S>> edgeTree(S state);
 
   // Derived state functions
 
@@ -226,7 +213,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    * @return The successor set.
    */
   default Set<S> successors(S state, BitSet valuation) {
-    return new HashSet<>(Collections2.transform(edges(state, valuation), Edge::successor));
+    return Edges.successors(edges(state, valuation));
   }
 
   /**
@@ -256,7 +243,9 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return The successor set.
    */
-  Set<S> successors(S state);
+  default Set<S> successors(S state) {
+    return Edges.successors(edges(state));
+  }
 
   /**
    * Returns the predecessors of the specified {@code state}.
@@ -269,7 +258,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
   default Set<S> predecessors(S state) {
     Set<S> predecessors = new HashSet<>();
 
-    HybridVisitor<S> visitor = new HybridVisitor<>() {
+    var visitor = new EdgeMapVisitor<S>() {
       boolean isPredecessor = false;
 
       @Override
@@ -285,16 +274,9 @@ public interface Automaton<S, A extends OmegaAcceptance> {
       }
 
       @Override
-      public void visitEdge(Edge<S> edge, BitSet valuation) {
-        if (!isPredecessor) {
-          isPredecessor = edge.successor().equals(state);
-        }
-      }
-
-      @Override
-      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
-        if (!isPredecessor) {
-          isPredecessor = edge.successor().equals(state);
+      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+        if (edgeMap.keySet().stream().anyMatch(x -> x.successor().equals(state))) {
+          isPredecessor = true;
         }
       }
     };
@@ -309,7 +291,11 @@ public interface Automaton<S, A extends OmegaAcceptance> {
     DefaultImplementations.visit(this, visitor);
   }
 
-  default void accept(LabelledEdgeVisitor<S> visitor) {
+  default void accept(EdgeMapVisitor<S> visitor) {
+    DefaultImplementations.visit(this, visitor);
+  }
+
+  default void accept(EdgeTreeVisitor<S> visitor) {
     DefaultImplementations.visit(this, visitor);
   }
 
@@ -319,24 +305,76 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @param visitor the visitor.
    */
-  default void accept(HybridVisitor<S> visitor) {
-    if (prefersLabelled()) {
-      this.accept((LabelledEdgeVisitor<S>) visitor);
-    } else {
-      this.accept((EdgeVisitor<S>) visitor);
+  default void accept(Visitor<S> visitor) {
+    List<PreferredEdgeAccess> preferredEdgeAccesses = preferredEdgeAccess();
+
+    for (PreferredEdgeAccess mode : preferredEdgeAccesses) {
+      if (mode.matches(visitor)) {
+        mode.dispatch(this, visitor);
+        return;
+      }
     }
+
+    throw new IllegalArgumentException(String.format("No common access mode for %s and %s.",
+      preferredEdgeAccesses, Arrays.toString(visitor.getClass().getInterfaces())));
   }
 
   // Properties
 
   /**
-   * Indicate if the automaton implements a fast computation (e.g. symbolic) of labelled edges.
-   * Returns {@code true}, if the automaton advices to use {@link Automaton#labelledEdges(Object)}
-   * and {@link Automaton#accept(LabelledEdgeVisitor)} for accessing all outgoing edges of a state.
+   * Indicate if the automaton implements a fast (e.g. symbolic) computation of edges. Returns a
+   * {@code List} containing all supported {@code PreferredEdgeAccess} ordered by their preference.
+   * Meaning the element at first position (index 0) is the most preferred. Accordingly algorithms
+   * can change the use of {@link Automaton#edges(Object, BitSet)},
+   * {@link Automaton#edgeMap(Object)}, or {@link Automaton#edgeTree(Object)} for accessing all
+   * outgoing edges of a state. This information is also used to dispatch to the right visitor
+   * style.
    *
-   * @return The preferred traversal method.
+   * @return An ordered list of the traversal methods. It always contains a complete list
    */
-  boolean prefersLabelled();
+  List<PreferredEdgeAccess> preferredEdgeAccess();
+
+  enum PreferredEdgeAccess {
+    EDGES {
+      @Override
+      <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor) {
+        automaton.accept((EdgeVisitor<S>) visitor);
+      }
+
+      @Override
+      boolean matches(Visitor<?> visitor) {
+        return visitor instanceof Automaton.EdgeVisitor;
+      }
+    },
+
+    EDGE_MAP {
+      @Override
+      <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor) {
+        automaton.accept((EdgeMapVisitor<S>) visitor);
+      }
+
+      @Override
+      boolean matches(Visitor<?> visitor) {
+        return visitor instanceof Automaton.EdgeMapVisitor;
+      }
+    },
+
+    EDGE_TREE {
+      @Override
+      <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor) {
+        automaton.accept((EdgeTreeVisitor<S>) visitor);
+      }
+
+      @Override
+      boolean matches(Visitor<?> visitor) {
+        return visitor instanceof Automaton.EdgeTreeVisitor;
+      }
+    };
+
+    abstract boolean matches(Visitor<?> visitor);
+
+    abstract <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor);
+  }
 
   default boolean is(Property property) {
     switch (property) {
@@ -373,14 +411,15 @@ public interface Automaton<S, A extends OmegaAcceptance> {
     void exit(S state);
   }
 
-  interface LabelledEdgeVisitor<S> extends Visitor<S> {
-    void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet);
-  }
-
   interface EdgeVisitor<S> extends Visitor<S> {
-    void visitEdge(Edge<S> edge, BitSet valuation);
+    void visit(Edge<S> edge, BitSet valuation);
   }
 
-  interface HybridVisitor<S> extends EdgeVisitor<S>, LabelledEdgeVisitor<S> {
+  interface EdgeMapVisitor<S> extends Visitor<S> {
+    void visit(Map<Edge<S>, ValuationSet> edgeMap);
+  }
+
+  interface EdgeTreeVisitor<S> extends Visitor<S> {
+    void visit(ValuationTree<Edge<S>> edgeTree);
   }
 }

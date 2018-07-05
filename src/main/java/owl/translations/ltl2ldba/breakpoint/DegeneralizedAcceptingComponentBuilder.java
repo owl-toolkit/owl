@@ -96,16 +96,16 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
   @Nonnull
   private BitSet getSensitiveAlphabet(DegeneralizedBreakpointState state) {
-    BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.current);
-    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.safety));
-    sensitiveAlphabet.or(factory.getSensitiveAlphabet(state.obligations.safety()));
+    BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.current);
+    sensitiveAlphabet.or(factory.sensitiveAlphabet(state.safety));
+    sensitiveAlphabet.or(factory.sensitiveAlphabet(state.obligations.safety()));
 
     for (EquivalenceClass clazz : state.next) {
-      sensitiveAlphabet.or(factory.getSensitiveAlphabet(clazz));
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(clazz));
     }
 
     for (EquivalenceClass clazz : state.obligations.liveness()) {
-      sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.getInitial(clazz)));
     }
 
     return sensitiveAlphabet;
@@ -115,14 +115,14 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private Edge<DegeneralizedBreakpointState> getSuccessor(DegeneralizedBreakpointState state,
     BitSet valuation) {
     EquivalenceClass safetySuccessor =
-      factory.getSuccessor(state.safety, valuation).and(state.obligations.safety());
+      factory.successor(state.safety, valuation).and(state.obligations.safety());
 
     if (safetySuccessor.isFalse()) {
       return null;
     }
 
     EquivalenceClass currentSuccessor =
-      factory.getSuccessor(state.current, valuation, safetySuccessor);
+      factory.successor(state.current, valuation, safetySuccessor);
 
     if (currentSuccessor.isFalse()) {
       return null;
@@ -134,7 +134,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       return null;
     }
 
-    EquivalenceClass[] nextSuccessors = factory.getSuccessors(state.next, valuation, assumptions);
+    EquivalenceClass[] nextSuccessors = factory.successors(state.next, valuation, assumptions);
 
     if (nextSuccessors == null) {
       return null;
@@ -221,7 +221,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     int livenessLength = obligations.liveness().size();
 
     while (index < 0) {
-      EquivalenceClass successor = factory.getSuccessor(
+      EquivalenceClass successor = factory.successor(
         factory.getInitial(obligations.liveness().get(livenessLength + index)), valuation,
         environment);
 
