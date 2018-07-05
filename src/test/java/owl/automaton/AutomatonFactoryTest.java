@@ -19,23 +19,20 @@
 
 package owl.automaton;
 
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.iterableWithSize;
 
+import com.google.common.collect.Maps;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
@@ -75,10 +72,8 @@ public class AutomatonFactoryTest {
 
     assertThat(AutomatonUtil.getIncompleteStates(singleton).entrySet(), empty());
     assertThat(DefaultImplementations.getReachableStates(singleton), contains(singletonState));
-    assertThat(singleton.labelledEdges(singletonState), iterableWithSize(1));
-    LabelledEdge<Object> selfLoop = LabelledEdge.of(singletonState,
-      factory.universe());
-    assertThat(singleton.labelledEdges(singletonState), hasItem(selfLoop));
+    assertThat(singleton.labelledEdges(singletonState),
+      is(Map.of(Edge.of(singletonState), factory.universe())));
   }
 
   @Test
@@ -92,10 +87,7 @@ public class AutomatonFactoryTest {
 
     automaton.factory().forEach(valuation -> {
       var edge = automaton.edge(initialState, valuation);
-      var matchingEdges = labelledEdges.stream()
-        .filter(x -> x.valuations.contains(valuation))
-        .map(x -> x.edge)
-        .collect(Collectors.toUnmodifiableSet());
+      var matchingEdges = Maps.filterValues(labelledEdges, x -> x.contains(valuation)).keySet();
 
       if (edge == null) {
         assertThat(matchingEdges, empty());

@@ -56,7 +56,7 @@ final class MasterStatePartition {
     Set<EquivalenceClass> transientStatesBuilder = new HashSet<>();
     for (Set<EquivalenceClass> scc : masterSccs) {
       // Compute all outgoing transitions
-      scc.forEach(state -> masterAutomaton.forEachLabelledEdge(state, (edge, valuations) -> {
+      scc.forEach(state -> masterAutomaton.labelledEdges(state).forEach((edge, valuations) -> {
         if (!scc.contains(edge.successor())) {
           outgoingTransitionsBuilder.put(state, edge.successor(), valuations);
         }

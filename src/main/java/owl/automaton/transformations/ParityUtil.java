@@ -220,7 +220,7 @@ public final class ParityUtil {
       int newAcceptance = mapping.applyAsInt(edge.smallestAcceptanceSet());
 
       if (newAcceptance == -1) {
-        return Edge.of(edge.successor());
+        return edge.withoutAcceptance();
       }
 
       if (maximalNewAcceptance.get() < newAcceptance) {

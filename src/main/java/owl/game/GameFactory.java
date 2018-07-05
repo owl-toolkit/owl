@@ -23,17 +23,17 @@ import com.google.common.graph.ImmutableValueGraph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import java.util.BitSet;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 import org.immutables.value.Value;
 import owl.automaton.Automaton.Property;
 import owl.automaton.LabelledEdgesAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.edge.LabelledEdge;
+import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.util.annotation.Tuple;
@@ -103,17 +103,19 @@ public final class GameFactory {
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
-      return graph.edges().stream().filter(x -> x.source().equals(state)).map(x -> {
+    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
+      Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
+
+      graph.edges().stream().filter(x -> x.source().equals(state)).forEach(x -> {
         //noinspection ConstantConditions
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
+        Edge<S> edge = valueEdge.colour() == -1
+          ? Edge.of(x.target())
+          : Edge.of(x.target(), valueEdge.colour());
+        labelledEdges.merge(edge, valueEdge.valuationSet(), ValuationSet::union);
+      });
 
-        if (valueEdge.colour() == -1) {
-          return LabelledEdge.of(x.target(), valueEdge.valuationSet());
-        } else {
-          return LabelledEdge.of(x.target(), valueEdge.colour(), valueEdge.valuationSet());
-        }
-      }).collect(Collectors.toSet());
+      return labelledEdges;
     }
 
     @Override

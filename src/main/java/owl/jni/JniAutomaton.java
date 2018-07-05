@@ -27,6 +27,7 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -36,7 +37,7 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
+import owl.collections.ValuationSet;
 
 // This is a JNI entry point. No touching.
 @SuppressWarnings("unused")
@@ -154,7 +155,7 @@ public final class JniAutomaton<S> {
 
     @Nullable
     var labelledEdges = automaton.prefersLabelled()
-      ? List.copyOf(automaton.labelledEdges(state))
+      ? List.copyOf(automaton.labelledEdges(state).entrySet())
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
@@ -191,7 +192,7 @@ public final class JniAutomaton<S> {
 
     @Nullable
     var labelledEdges = automaton.prefersLabelled()
-      ? List.copyOf(automaton.labelledEdges(state))
+      ? List.copyOf(automaton.labelledEdges(state).entrySet())
       : null;
 
     for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
@@ -237,14 +238,15 @@ public final class JniAutomaton<S> {
 
   @Nullable
   @SuppressWarnings({"PMD.ForLoopCanBeForeach", "ForLoopReplaceableByForEach"})
-  private static <T> Edge<T> lookup(List<LabelledEdge<T>> labelledEdges, BitSet valuation) {
+  private static <T> Edge<T> lookup(List<Map.Entry<Edge<T>, ValuationSet>> labelledEdges,
+    BitSet valuation) {
     // Use get() instead of iterator on RandomAccess list for enhanced performance.
     int size = labelledEdges.size();
     for (int i = 0; i < size; i++) {
       var labelledEdge = labelledEdges.get(i);
 
-      if (labelledEdge.valuations.contains(valuation)) {
-        return labelledEdge.edge;
+      if (labelledEdge.getValue().contains(valuation)) {
+        return labelledEdge.getKey();
       }
     }
 

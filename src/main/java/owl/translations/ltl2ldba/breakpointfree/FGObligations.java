@@ -21,6 +21,7 @@ package owl.translations.ltl2ldba.breakpointfree;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.Collections2;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +30,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import owl.collections.Collections3;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -165,7 +165,7 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public EquivalenceClass getLanguage() {
     return safety.factory()
-      .of(Conjunction.of(Collections3.transformUnique(rewrittenOperators, GOperator::of)));
+      .of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
   }
 
   EquivalenceClass getObligation() {

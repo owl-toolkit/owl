@@ -26,17 +26,16 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static owl.automaton.DefaultImplementations.getReachableStates;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.junit.Test;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.factories.ValuationSetFactory;
 import owl.run.DefaultEnvironment;
 
@@ -85,8 +84,8 @@ public class HashMapAutomatonTest {
     });
     automaton.trim();
 
-    assertThat(automaton.labelledEdges("1"), containsInAnyOrder(
-      LabelledEdge.of(Edge.of("2"), FACTORY.universe())));
+    assertThat(automaton.labelledEdges("1").entrySet(),
+      containsInAnyOrder(Map.entry(Edge.of("2"), FACTORY.universe())));
   }
 
   @SuppressWarnings("unchecked")
@@ -115,8 +114,7 @@ public class HashMapAutomatonTest {
 
     assertThat(automaton.edge("1", new BitSet()), is(Edge.of("2")));
     assertThat(automaton.edges("1", new BitSet()), containsInAnyOrder(Edge.of("2")));
-    assertThat(automaton.labelledEdges("1"), containsInAnyOrder(
-      LabelledEdge.of("2", FACTORY.universe())));
+    assertThat(automaton.labelledEdges("1"), is(Map.of(Edge.of("2"), FACTORY.universe())));
     assertThat(automaton.edge("1", new BitSet()), is(Edge.of("2")));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
@@ -142,7 +140,7 @@ public class HashMapAutomatonTest {
 
     assertThat(automaton.edges("1", new BitSet()),
       containsInAnyOrder(Edge.of("2"), Edge.of("2", 0)));
-    assertThat(Iterators.size(automaton.labelledEdges("1").iterator()), is(2));
+    assertThat(automaton.labelledEdges("1").size(), is(2));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
 
@@ -183,15 +181,13 @@ public class HashMapAutomatonTest {
       : Edge.of(edge.successor(), 1));
     automaton.trim();
 
-    for (LabelledEdge<String> successorEdge : automaton.labelledEdges("1")) {
-      assertThat(Lists.newArrayList(successorEdge.edge.acceptanceSetIterator()),
-        containsInAnyOrder(0));
-    }
+    automaton.labelledEdges("1").forEach((edge, valuationSet) -> {
+      assertThat(Lists.newArrayList(edge.acceptanceSetIterator()), containsInAnyOrder(0));
+    });
 
-    for (LabelledEdge<String> successorEdge : automaton.labelledEdges("2")) {
-      assertThat(Lists.newArrayList(successorEdge.edge.acceptanceSetIterator()),
-        containsInAnyOrder(1));
-    }
+    automaton.labelledEdges("2").forEach((edge, valuationSet) -> {
+      assertThat(Lists.newArrayList(edge.acceptanceSetIterator()), containsInAnyOrder(1));
+    });
 
     assertThat("Automaton is inconsistent.",
       ((HashMapAutomaton<?, ?>) automaton).checkConsistency(), is(true));

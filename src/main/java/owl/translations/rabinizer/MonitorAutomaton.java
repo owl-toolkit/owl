@@ -19,10 +19,7 @@
 
 package owl.translations.rabinizer;
 
-import com.google.common.collect.Collections2;
 import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +28,8 @@ import owl.automaton.Automaton;
 import owl.automaton.LabelledEdgesAutomatonMixin;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.edge.LabelledEdge;
+import owl.automaton.edge.Edge;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.GOperator;
@@ -85,20 +83,10 @@ class MonitorAutomaton implements LabelledEdgesAutomatonMixin<MonitorState, None
   }
 
   @Override
-  public Collection<LabelledEdge<MonitorState>> labelledEdges(MonitorState state) {
-    Collection<LabelledEdge<MonitorState>> labelledEdges = anyAutomaton.labelledEdges(state);
-    Map<MonitorState, ValuationSet> successors = new HashMap<>(labelledEdges.size());
-
-    for (LabelledEdge<MonitorState> labelledEdge : labelledEdges) {
-      successors.merge(labelledEdge.edge.successor(), labelledEdge.valuations,
-        ValuationSet::union);
-    }
-
-    return Collections2.transform(successors.entrySet(),
-      x -> LabelledEdge.of(x.getKey(), x.getValue()));
+  public Map<Edge<MonitorState>, ValuationSet> labelledEdges(MonitorState state) {
+    return Collections3.transformMap(anyAutomaton.labelledEdges(state), Edge::withoutAcceptance);
   }
 
-  @Nullable
   @Override
   public String name() {
     return "Monitor for " + formula + " with base " + base;

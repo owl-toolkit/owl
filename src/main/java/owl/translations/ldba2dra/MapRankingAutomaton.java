@@ -146,7 +146,7 @@ public final class MapRankingAutomaton {
 
       // If a SCC switch occurs, the componentMap and the safety progress is reset.
       if (sccSwitchOccurred(state.state(), successor)) {
-        return Edge.of(buildEdge(successor, Map.of(), valuation).successor());
+        return buildEdge(successor, Map.of(), valuation).withoutAcceptance();
       }
 
       return buildEdge(successor, state.componentMap(), valuation);

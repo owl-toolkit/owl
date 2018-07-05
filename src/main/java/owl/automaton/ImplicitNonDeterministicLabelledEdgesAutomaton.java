@@ -21,13 +21,14 @@ package owl.automaton;
 
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
+import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 class ImplicitNonDeterministicLabelledEdgesAutomaton<S, A extends OmegaAcceptance>
@@ -36,12 +37,12 @@ class ImplicitNonDeterministicLabelledEdgesAutomaton<S, A extends OmegaAcceptanc
 
   @Nullable
   private final BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction;
-  private final Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction;
+  private final Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction;
 
   ImplicitNonDeterministicLabelledEdgesAutomaton(ValuationSetFactory factory,
     Collection<S> initialStates, A acceptance,
     @Nullable BiFunction<S, BitSet, ? extends Collection<Edge<S>>> edgesFunction,
-    Function<S, ? extends Collection<LabelledEdge<S>>> labelledEdgesFunction) {
+    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
     super(factory, Set.copyOf(initialStates), acceptance);
     this.edgesFunction = edgesFunction;
     this.labelledEdgesFunction = labelledEdgesFunction;
@@ -59,7 +60,7 @@ class ImplicitNonDeterministicLabelledEdgesAutomaton<S, A extends OmegaAcceptanc
   }
 
   @Override
-  public Collection<LabelledEdge<S>> labelledEdges(S state) {
+  public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
     assert cache() == null || cache().contains(state);
     return labelledEdgesFunction.apply(state);
   }

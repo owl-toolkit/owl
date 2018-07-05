@@ -25,10 +25,10 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CO
 import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Collections2;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -41,7 +41,7 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
+import owl.collections.ValuationSet;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
@@ -171,18 +171,8 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return Set.of(Edge.of(successor));
     };
 
-    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = x -> {
-      var successors = factory.getSuccessors(x).entrySet();
-      return Collections2.transform(successors, y -> {
-        var successor = y.getKey();
-
-        if (successor.isTrue()) {
-          return LabelledEdge.of(successor, 0, y.getValue());
-        }
-
-        return LabelledEdge.of(successor, y.getValue());
-      });
-    };
+    Function<EquivalenceClass, Map<Edge<EquivalenceClass>, ValuationSet>> bulk = x ->
+      factory.getEdges(x, y -> y.isTrue() ?  OptionalInt.of(0) : OptionalInt.empty());
 
     return AutomatonFactory.create(factories.vsFactory, factory.getInitial(formula.formula()),
       BuchiAcceptance.INSTANCE, single, bulk);
@@ -200,12 +190,7 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return successor.isFalse() ? Set.of() : Set.of(Edge.of(successor));
     };
 
-    Function<EquivalenceClass, Collection<LabelledEdge<EquivalenceClass>>> bulk = x -> {
-      var successors = factory.getSuccessors(x).entrySet();
-      return Collections2.transform(successors, y -> LabelledEdge.of(y.getKey(), y.getValue()));
-    };
-
     return AutomatonFactory.create(factories.vsFactory, factory.getInitial(formula.formula()),
-      AllAcceptance.INSTANCE, single, bulk);
+      AllAcceptance.INSTANCE, single, factory::getEdges);
   }
 }

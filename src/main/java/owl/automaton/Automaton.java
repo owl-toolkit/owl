@@ -25,6 +25,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -33,7 +34,6 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -180,6 +180,12 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    */
   Collection<Edge<S>> edges(S state);
 
+  /**
+   * This call is semantically equivalent to {@code edges(state).forEach(action)}.
+   *
+   * @param state state
+   * @param action action
+   */
   default void forEachEdge(S state, Consumer<Edge<S>> action) {
     edges(state).forEach(action);
   }
@@ -194,10 +200,16 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return All labelled edges of the state.
    */
-  Collection<LabelledEdge<S>> labelledEdges(S state);
+  Map<Edge<S>, ValuationSet> labelledEdges(S state);
 
+  /**
+   * This call is semantically equivalent to {@code labelledEdges(state).forEach(action)}.
+   *
+   * @param state state
+   * @param action action
+   */
   default void forEachLabelledEdge(S state, BiConsumer<Edge<S>, ValuationSet> action) {
-    labelledEdges(state).forEach(x -> action.accept(x.edge, x.valuations));
+    labelledEdges(state).forEach(action);
   }
 
 

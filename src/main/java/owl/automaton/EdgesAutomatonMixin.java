@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
-import owl.automaton.edge.LabelledEdges;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -63,7 +61,7 @@ public interface EdgesAutomatonMixin<S, A extends OmegaAcceptance> extends Autom
   }
 
   @Override
-  default Collection<LabelledEdge<S>> labelledEdges(S state) {
+  default Map<Edge<S>, ValuationSet> labelledEdges(S state) {
     ValuationSetFactory factory = factory();
     Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
 
@@ -73,7 +71,7 @@ public interface EdgesAutomatonMixin<S, A extends OmegaAcceptance> extends Autom
       }
     }
 
-    return LabelledEdges.asCollection(labelledEdges);
+    return labelledEdges;
   }
 
   @Override

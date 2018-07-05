@@ -151,7 +151,7 @@ public interface Edge<S> {
     PrimitiveIterator.OfInt iter = new NaturalsTransformer(acceptanceSetIterator(), transformer);
 
     if (!iter.hasNext()) {
-      return Edge.of(successor());
+      return this.withoutAcceptance();
     }
 
     int first = iter.nextInt();
@@ -163,6 +163,10 @@ public interface Edge<S> {
     BitSet acceptanceSet = BitSets.of(iter);
     acceptanceSet.set(first);
     return withAcceptance(acceptanceSet);
+  }
+
+  default Edge<S> withoutAcceptance() {
+    return Edge.of(successor());
   }
 
   /**

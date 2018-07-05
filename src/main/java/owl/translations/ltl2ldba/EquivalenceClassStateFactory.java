@@ -26,9 +26,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.automaton.edge.Edge;
 import owl.collections.LabelledTree;
 import owl.collections.ValuationSet;
 import owl.factories.Factories;
@@ -91,13 +94,31 @@ public class EquivalenceClassStateFactory {
 
   public Map<EquivalenceClass, ValuationSet> getSuccessors(EquivalenceClass clazz) {
     var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
-    return getSuccessorsRecursive(tree, new HashMap<>());
+    return getSuccessorsRecursive(tree, new HashMap<>(), x -> x);
   }
 
-  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
-  private Map<EquivalenceClass, ValuationSet> getSuccessorsRecursive(
+  public Map<Edge<EquivalenceClass>, ValuationSet> getEdges(EquivalenceClass clazz) {
+    var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
+    return getSuccessorsRecursive(tree, new HashMap<>(), Edge::of);
+  }
+
+  public Map<Edge<EquivalenceClass>, ValuationSet> getEdges(EquivalenceClass clazz,
+    Function<EquivalenceClass, OptionalInt> edgeLabel) {
+    var tree = eagerUnfold ? clazz.temporalStepTree() : clazz.unfold().temporalStepTree();
+
+    Function<EquivalenceClass, Edge<EquivalenceClass>> constructor = x -> {
+      var optional = edgeLabel.apply(x);
+      return optional.isPresent() ? Edge.of(x, optional.getAsInt()) : Edge.of(x);
+    };
+
+    return getSuccessorsRecursive(tree, new HashMap<>(), constructor);
+  }
+
+  @SuppressWarnings("PMD.UnusedPrivateMethod")
+  private <T> Map<T, ValuationSet> getSuccessorsRecursive(
     LabelledTree<Integer, EquivalenceClass> tree,
-    Map<LabelledTree<Integer, EquivalenceClass>, Map<EquivalenceClass, ValuationSet>> cache) {
+    Map<LabelledTree<Integer, EquivalenceClass>, Map<T, ValuationSet>> cache,
+    Function<EquivalenceClass, T> constructor) {
     var map = cache.get(tree);
 
     if (map != null) {
@@ -107,17 +128,19 @@ public class EquivalenceClassStateFactory {
     if (tree instanceof LabelledTree.Leaf) {
       var label = ((LabelledTree.Leaf<?, EquivalenceClass>) tree).getLabel();
       var clazz = eagerUnfold ? label.unfold() : label;
-      map = clazz.isFalse() ? Map.of() : Map.of(clazz, factories.vsFactory.universe());
+      map = clazz.isFalse()
+        ? Map.of()
+        : Map.of(constructor.apply(clazz), factories.vsFactory.universe());
     } else {
       var literal = BitSets.of(((LabelledTree.Node<Integer, ?>) tree).getLabel());
       var posMask = factories.vsFactory.of(literal, literal);
       var negMask = posMask.complement();
       var children = ((LabelledTree.Node<Integer, EquivalenceClass>) tree).getChildren();
-      var finalMap = new HashMap<EquivalenceClass, ValuationSet>();
+      var finalMap = new HashMap<T, ValuationSet>();
 
-      getSuccessorsRecursive(children.get(0), cache).forEach(
+      getSuccessorsRecursive(children.get(0), cache, constructor).forEach(
         ((clazz, set) -> finalMap.merge(clazz, set.intersection(posMask), ValuationSet::union)));
-      getSuccessorsRecursive(children.get(1), cache).forEach(
+      getSuccessorsRecursive(children.get(1), cache, constructor).forEach(
         ((clazz, set) -> finalMap.merge(clazz, set.intersection(negMask), ValuationSet::union)));
 
       map = finalMap;

@@ -23,11 +23,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
 
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,8 +49,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
-import owl.automaton.edge.LabelledEdges;
+import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
@@ -209,7 +208,7 @@ public final class Views {
   public static <S> Automaton<S, NoneAcceptance> viewAsLts(Automaton<S, ?> automaton) {
     var remapping = Views.<S, NoneAcceptance>builder()
       .acceptance(NoneAcceptance.INSTANCE)
-      .edgeRewriter(edge -> Edge.of(edge.successor()))
+      .edgeRewriter(Edge::withoutAcceptance)
       .build();
 
     return createView(automaton, remapping);
@@ -276,7 +275,7 @@ public final class Views {
         return Sets.union(automaton.states(), Set.of(sink));
       }
 
-      return new HashSet<>(LabelledEdges.successors(labelledEdges(state)));
+      return Edges.successors(labelledEdges(state).keySet());
     }
 
     @Override
@@ -299,27 +298,28 @@ public final class Views {
         return Collections3.append(automaton.edges(state), sinkEdge);
       }
 
-      return LabelledEdges.edges(labelledEdges(state));
+      return labelledEdges(state).keySet();
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
       ValuationSetFactory factory = automaton.factory();
 
       if (sink.equals(state)) {
-        return List.of(LabelledEdge.of(sinkEdge, factory.universe()));
+        return Map.of(sinkEdge, factory.universe());
       }
 
-      if (incompleteStates != null && incompleteStates.containsKey(state)) {
-        return Collections3.append(automaton.labelledEdges(state),
-          LabelledEdge.of(sinkEdge, incompleteStates.get(state)));
+      if (incompleteStates != null && !incompleteStates.containsKey(state)) {
+        return automaton.labelledEdges(state);
       }
 
-      List<LabelledEdge<S>> edges = new ArrayList<>(automaton.labelledEdges(state));
-      ValuationSet complement = factory.union(LabelledEdges.valuations(edges)).complement();
+      Map<Edge<S>, ValuationSet> edges = new HashMap<>(automaton.labelledEdges(state));
+      ValuationSet valuationSet = incompleteStates == null
+        ? factory.union(edges.values()).complement()
+        : incompleteStates.get(state);
 
-      if (!complement.isEmpty()) {
-        edges.add(LabelledEdge.of(sinkEdge, complement));
+      if (!valuationSet.isEmpty()) {
+        edges.put(sinkEdge, valuationSet);
       }
 
       return edges;
@@ -401,6 +401,10 @@ public final class Views {
       return (filter == null || filter.test(edge)) && stateFilter(edge.successor());
     }
 
+    private boolean filterRequired() {
+      return settings.stateFilter() != null || settings.edgeFilter() != null;
+    }
+
     @Override
     public boolean prefersLabelled() {
       return backingAutomaton.prefersLabelled();
@@ -409,8 +413,10 @@ public final class Views {
     @Override
     public Collection<Edge<S>> edges(S state, BitSet valuation) {
       checkArgument(stateFilter(state));
-      var filteredEdges = Collections2.filter(
-        backingAutomaton.edges(state, valuation), this::edgeFilter);
+      var filteredEdges = filterRequired()
+        ? Collections2.filter(backingAutomaton.edges(state, valuation), this::edgeFilter)
+        : backingAutomaton.edges(state, valuation);
+
       var edgeRewriter = settings.edgeRewriter();
       return edgeRewriter == null
         ? filteredEdges
@@ -420,7 +426,10 @@ public final class Views {
     @Override
     public Collection<Edge<S>> edges(S state) {
       checkArgument(stateFilter(state));
-      var filteredEdges = Collections2.filter(backingAutomaton.edges(state), this::edgeFilter);
+      var filteredEdges = filterRequired()
+        ? Collections2.filter(backingAutomaton.edges(state), this::edgeFilter)
+        : backingAutomaton.edges(state);
+
       var edgeRewriter = settings.edgeRewriter();
       return edgeRewriter == null
         ? filteredEdges
@@ -428,14 +437,16 @@ public final class Views {
     }
 
     @Override
-    public Collection<LabelledEdge<S>> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
       checkArgument(stateFilter(state));
-      var filteredEdges = Collections2.filter(
-        backingAutomaton.labelledEdges(state), x -> edgeFilter(x.edge));
+      var filteredEdges = filterRequired()
+        ? Maps.filterKeys(backingAutomaton.labelledEdges(state), this::edgeFilter)
+        : backingAutomaton.labelledEdges(state);
+
       var edgeRewriter = settings.edgeRewriter();
       return edgeRewriter == null
         ? filteredEdges
-        : Collections2.transform(filteredEdges, labelledEdge -> labelledEdge.map(edgeRewriter));
+        : Collections3.transformMap(filteredEdges, edgeRewriter);
     }
 
     @Override

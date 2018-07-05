@@ -20,7 +20,6 @@
 package owl.translations.dra2dpa;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
@@ -51,8 +50,8 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.LabelledEdge;
 import owl.automaton.output.HoaPrinter;
+import owl.collections.Collections3;
 
 /**
  * Constructs the IAR parity automaton from the given Rabin automaton SCC.
@@ -99,8 +98,8 @@ final class SccIARBuilder<R> {
     // Iterate over each edge
     var sourceAutomaton = AutomatonFactory.create(resultAutomaton.factory(), initialStates,
       resultAutomaton.acceptance(), (IARState<R> state) ->
-        Collections2.transform(rabinAutomaton.labelledEdges(state.state()),
-        edge -> LabelledEdge.of(computeSuccessorEdge(state.record(), edge.edge), edge.valuations)));
+        Collections3.transformMap(rabinAutomaton.labelledEdges(state.state()),
+        x -> computeSuccessorEdge(state.record(), x)));
 
     MutableAutomatonFactory.copy(sourceAutomaton, resultAutomaton);
 
