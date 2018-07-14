@@ -48,7 +48,6 @@ WHITESPACE : [ \t\n\r\f]+;
 
 SKIP_DEF   : WHITESPACE -> skip;
 
-
 mode DOUBLE_QUOTED;
 RDQUOTE : '"' -> mode(DEFAULT_MODE);
 DOUBLE_QUOTED_VARIABLE : ~["]+;
@@ -81,3 +80,7 @@ INF        : 'inf' | 'INF';
 RCPAREN    : '}' -> mode(DEFAULT_MODE);
 
 SKIP_FREQ  : WHITESPACE -> skip;
+
+mode DEFAULT_MODE;
+
+ERROR : . ;

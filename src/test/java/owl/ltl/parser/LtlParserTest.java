@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.junit.Test;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -90,5 +91,20 @@ public class LtlParserTest {
     LabelledFormula formula = LtlParser.parse("\"a b c\"");
     assertThat(formula.variables(), contains("a b c"));
     assertThat(formula.formula(), is(Literal.of(0)));
+  }
+
+  @Test(expected = ParseCancellationException.class)
+  public void testParseRegression1() {
+    LtlParser.parse("FF");
+  }
+
+  @Test(expected = ParseCancellationException.class)
+  public void testParseRegression2() {
+    LtlParser.parse("Fa!");
+  }
+
+  @Test(expected = ParseCancellationException.class)
+  public void testParseRegression3() {
+    LtlParser.parse("F+");
   }
 }
