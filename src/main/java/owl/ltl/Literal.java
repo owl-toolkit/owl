@@ -26,11 +26,13 @@ import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 public final class Literal extends Formula {
   private final int index;
   private final Literal negation;
 
+  @CEntryPoint
   public static Literal of(int index) {
     return of(index, false);
   }

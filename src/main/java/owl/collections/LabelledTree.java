@@ -20,6 +20,7 @@
 package owl.collections;
 
 import java.util.List;
+import owl.util.annotation.CEntryPoint;
 
 public abstract class LabelledTree<L1, L2> {
   public static class Leaf<L1, L2> extends LabelledTree<L1, L2> {
@@ -29,6 +30,7 @@ public abstract class LabelledTree<L1, L2> {
       this.label = label;
     }
 
+    @CEntryPoint
     public L2 getLabel() {
       return label;
     }
@@ -43,10 +45,12 @@ public abstract class LabelledTree<L1, L2> {
       this.children = List.copyOf(children);
     }
 
+    @CEntryPoint
     public L1 getLabel() {
       return label;
     }
 
+    @CEntryPoint
     public List<LabelledTree<L1, L2>> getChildren() {
       return children;
     }

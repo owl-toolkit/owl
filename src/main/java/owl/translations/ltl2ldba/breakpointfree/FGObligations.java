@@ -61,6 +61,7 @@ public final class FGObligations implements RecurringObligation {
   }
 
   @Nullable
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
     EquivalenceClassFactory factory) {
 
@@ -105,12 +106,10 @@ public final class FGObligations implements RecurringObligation {
       }
 
       // Checking this doesn't make any sense...
-      //noinspection ObjectEquality
       if (formula == BooleanConstant.FALSE) {
         return null;
       }
 
-      //noinspection ObjectEquality
       if (formula == BooleanConstant.TRUE) {
         Logger.getGlobal().log(Level.FINER, "Found true obligation.");
         continue;

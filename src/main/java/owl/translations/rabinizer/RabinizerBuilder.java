@@ -1057,7 +1057,7 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return BooleanConstant.of(BooleanConstant.TRUE == gOperator.operand.accept(this));
+      return BooleanConstant.of(gOperator.operand.accept(this).equals(BooleanConstant.TRUE));
     }
 
     @Override

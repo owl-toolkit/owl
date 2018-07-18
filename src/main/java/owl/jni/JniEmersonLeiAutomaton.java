@@ -53,10 +53,10 @@ import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.SubstitutionVisitor;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
+import owl.util.annotation.CEntryPoint;
 
 // This is a JNI entry point. No touching.
-@SuppressWarnings("unused")
-public class JniEmersonLeiAutomaton {
+public final class JniEmersonLeiAutomaton {
 
   public final LabelledTree<Tag, Reference> structure;
   public final List<JniAutomaton<?>> automata;
@@ -85,6 +85,7 @@ public class JniEmersonLeiAutomaton {
     return new JniEmersonLeiAutomaton(structure, List.copyOf(builder.automata));
   }
 
+  @CEntryPoint
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
     int mode, boolean onTheFly) {
     return of(formula, simplify, monolithic, SafetySplittingMode.values()[mode], onTheFly);
@@ -114,6 +115,7 @@ public class JniEmersonLeiAutomaton {
       this(formula, index, ImmutableIntArray.copyOf(alphabetMapping));
     }
 
+    @CEntryPoint
     public int[] alphabetMapping() {
       return alphabetMapping.toArray();
     }

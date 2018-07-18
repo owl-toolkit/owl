@@ -25,12 +25,14 @@ import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 public final class BooleanConstant extends Formula {
   public static final BooleanConstant FALSE = new BooleanConstant(false);
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
 
+  @CEntryPoint
   public static BooleanConstant of(boolean value) {
     return value ? TRUE : FALSE;
   }
@@ -65,7 +67,7 @@ public final class BooleanConstant extends Formula {
     return predicate.test(this);
   }
 
-  @SuppressWarnings("PMD.CompareObjectsWithEquals")
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   @Override
   protected boolean deepEquals(Formula other) {
     assert other instanceof BooleanConstant;

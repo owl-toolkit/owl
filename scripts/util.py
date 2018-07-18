@@ -84,8 +84,7 @@ def _test(args):
 
         enable_server = True
         port = 6060
-        servers = []
-        server_ports = []
+        servers = {}
         for test_tool in loaded_tools:
             if type(test_tool) is tuple:
                 tool_test_name, loaded_tool = test_tool
@@ -99,10 +98,9 @@ def _test(args):
             test_arguments.append(tool_test_name)
             if type(loaded_tool) is owl_tool.OwlTool:
                 if enable_server:
-                    servers.append(loaded_tool.get_server_execution(port))
+                    servers[port] = loaded_tool.get_server_execution(port)
                     test_arguments.append("\"build/bin/owl-client\""
                                           + " localhost " + str(port) + " %f")
-                    server_ports.append(port)
                     port += 1
                 else:
                     test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
@@ -144,37 +142,39 @@ def _test(args):
         sub_env = os.environ.copy()
         sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
 
-        server_processes = []
+        server_processes = {}
 
         if servers:
             print("Servers:")
-            for server in servers:
+            for server in servers.values():
                 print(" ".join(server))
             print()
             print()
             sys.stdout.flush()
 
-            for server in servers:
+            for port, server in servers.items():
                 server_process = subprocess.Popen(server, stdin=subprocess.DEVNULL,
                                                   stdout=subprocess.DEVNULL,
                                                   stderr=None, env=sub_env)
-                server_processes.append(server_process)
+                server_processes[port] = server_process
 
             import socket
             import time
             from contextlib import closing
-            for port in server_ports:
+            for port, process in server_processes.items():
                 while True:
                     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
                         if sock.connect_ex(('localhost', port)) == 0:
                             break
+                        if process.poll() is not None:
+                            sys.exit(1)
                         time.sleep(0.25)
 
         process = subprocess.run(test_arguments, env=sub_env)
 
-        for server_process in server_processes:
+        for server_process in server_processes.values():
             server_process.terminate()
-        for server_process in server_processes:
+        for server_process in server_processes.values():
             try:
                 server_process.wait(timeout=10)
             except subprocess.TimeoutExpired:

@@ -1,7 +1,0 @@
--keepattributes *
--dontobfuscate
--dontoptimize
-
--keep class owl.** {
-  *;
-}

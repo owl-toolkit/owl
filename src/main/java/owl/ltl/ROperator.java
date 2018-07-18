@@ -23,6 +23,7 @@ import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 /**
  * Weak Release.
@@ -44,6 +45,7 @@ public final class ROperator extends BinaryModalOperator {
    *
    * @return a formula equivalent to (leftOperand)R(rightOperand)
    */
+  @CEntryPoint
   public static Formula of(Formula leftOperand, Formula rightOperand) {
     if (rightOperand instanceof BooleanConstant
       || rightOperand instanceof GOperator

@@ -23,6 +23,7 @@ import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 /**
  * Weak Until.
@@ -44,6 +45,7 @@ public final class WOperator extends BinaryModalOperator {
    *
    * @return a formula equivalent to (leftOperand)W(rightOperand)
    */
+  @CEntryPoint
   public static Formula of(Formula leftOperand, Formula rightOperand) {
     if (leftOperand instanceof BooleanConstant
       || leftOperand instanceof GOperator

@@ -56,6 +56,7 @@ public final class Disjunction extends PropositionalFormula {
     return of(stream.iterator());
   }
 
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   public static Formula of(Iterator<? extends Formula> iterator) {
     Set<Formula> set = new HashSet<>();
 

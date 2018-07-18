@@ -46,10 +46,12 @@ import owl.ltl.tlsf.ImmutableTlsf;
 import owl.ltl.tlsf.ImmutableTlsf.Builder;
 import owl.ltl.tlsf.Tlsf;
 import owl.ltl.tlsf.Tlsf.Semantics;
+import owl.util.annotation.CEntryPoint;
 
 public final class TlsfParser {
   private TlsfParser() {}
 
+  @CEntryPoint
   public static Tlsf parse(String input) {
     return parse(CharStreams.fromString(input));
   }
