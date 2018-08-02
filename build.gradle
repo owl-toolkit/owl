@@ -30,8 +30,8 @@ buildscript {
 plugins {
     // https://github.com/tbroyer/gradle-apt-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.apt
-    id 'net.ltgt.apt' version '0.15'
-    id 'net.ltgt.apt-idea' version '0.15'
+    id 'net.ltgt.apt' version '0.17'
+    id 'net.ltgt.apt-idea' version '0.17'
 
     // https://github.com/tbroyer/gradle-errorprone-javacplugin-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.errorprone-javacplugin
@@ -97,49 +97,6 @@ dependencies {
     annotationProcessor 'org.immutables:value:2.6.1'
 }
 
-// ---------------- Jars ----------------
-
-jar {
-    manifest {
-        attributes(
-            "Implementation-Title": "owl",
-            "Main-Class": project.mainClassName,
-            "Implementation-Version": project.version)
-    }
-}
-
-def shadedJar = task shadedJar(name: "shadedJar", type: proguard.gradle.ProGuardTask) {
-    configuration 'config/proguard.txt'
-    
-    libraryjars "${System.getProperty('java.home')}/jmods"
-    libraryjars "${System.getProperty('java.home')}/lib"
-
-    dontwarn 'com.oracle.jmc.**'
-    dontwarn 'org.immutables.**'
-    dontwarn 'afu.org.checkerframework.**'
-    dontwarn 'org.checkerframework.**'
-
-    injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
-    injars files(jar)
-    outjars new File(project.buildDir, 'libs/owl.jar')
-}
-
-def rabinizerJar = task rabinizerJar(name: "rabinizerJar", type: proguard.gradle.ProGuardTask) {
-    configuration 'config/proguard.txt'
-    
-    libraryjars "${System.getProperty('java.home')}/jmods"
-    libraryjars "${System.getProperty('java.home')}/lib"
-
-    dontwarn 'com.oracle.jmc.**'
-    dontwarn 'org.immutables.**'
-    dontwarn 'afu.org.checkerframework.**'
-    dontwarn 'org.checkerframework.**'
-
-    injars configurations.findByName('runtimeClasspath').getFiles(), filter: '!META-INF/**,**.class'
-    injars files(jar)
-    outjars new File(project.buildDir, 'libs/rabinizer.jar')
-}
-
 // ---------------- Startup Scripts ----------------
 
 // Create startup scripts for each tool
@@ -151,18 +108,18 @@ def scripts = [
     // LTL -> DRA
     'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
-    
+
     // LTL -> DPA
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
     'fgx2dpa'   : 'owl.translations.fgx2dpa.FGX2DPA',
-    
+
     // LTL -> DELA
     'delag'     : 'owl.translations.delag.DelagBuilder',
-    
+
     // LTL -> D*A
     // TODO: Deprecate and replace by delag!
     'ltl2da'    : 'owl.translations.LTL2DAModule',
-    
+
     // Miscellaneous
     'synth'     : 'owl.translations.Synthesis',
     'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
@@ -179,7 +136,7 @@ def rabinizerScripts = [
     // LTL -> DRA
     'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
     'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
-    
+
     // LTL -> DPA
     'ltl2dpa'   : 'owl.translations.LTL2DPA',
 
@@ -190,6 +147,7 @@ def rabinizerScripts = [
 ext.createStartScriptTasks = { name, cp, map ->
     map.collect { scriptName, className ->
         tasks.create(name: scriptName + name.capitalize() + 'StartScript', type: CreateStartScripts) {
+            group 'build scripts'
             mainClassName = className
             applicationName = scriptName
             // CreateStartScripts is stupid; it.outputs.files = outputDir, not the created scripts.
@@ -201,6 +159,116 @@ ext.createStartScriptTasks = { name, cp, map ->
 
 startScripts.outputDir = new File(project.buildDir, 'scripts/owl')
 
+// ---------------- Jars ----------------
+
+jar {
+    manifest {
+        attributes(
+            "Implementation-Title": "owl",
+            "Main-Class": project.mainClassName,
+            "Implementation-Version": project.version)
+    }
+}
+
+ext.createProGuardTask = { name ->
+    tasks.create(name: name, type: proguard.gradle.ProGuardTask) {
+        group 'build'
+
+        dontobfuscate
+
+        optimizationpasses 10
+        allowaccessmodification
+
+        dontwarn 'com.oracle.jmc.**'
+        dontwarn 'org.immutables.**'
+        dontwarn 'afu.org.checkerframework.**'
+        dontwarn 'org.checkerframework.**'
+
+        keepclassmembers "enum * { \
+            <fields>; \
+            public static **[] values(); \
+            public static ** valueOf(java.lang.String); \
+        }"
+
+        libraryjars "${System.getProperty('java.home')}/jmods"
+        libraryjars "${System.getProperty('java.home')}/lib"
+
+        injars configurations.findByName('runtimeClasspath').getFiles(),
+            filter: '!META-INF/**,**.class'
+        injars files(jar)
+    }
+}
+
+def shadedJar = createProGuardTask("shadedJar").configure {
+    optimizations '!code/allocation/variable,!class/merging/*,!field/removal/writeonly'
+
+    keep "class " + project.mainClassName + " { public static void main(java.lang.String[]); }"
+    scripts.forEach { _, value ->
+        it.keep "class " + value + " { public static void main(java.lang.String[]); }"
+    }
+    outjars( new File(project.buildDir, 'libs/owl.jar'))
+}
+
+def rabinizerJar = createProGuardTask("rabinizerJar").configure {
+    optimizations '!code/allocation/variable,!class/merging/*,!field/removal/writeonly'
+
+    rabinizerScripts.forEach { _, value ->
+        it.keep "class " + value + " { public static void main(java.lang.String[]); }"
+    }
+    outjars new File(project.buildDir, 'libs/rabinizer.jar')
+}
+
+createProGuardTask("cppJar").configure {
+    optimizationpasses 20
+    optimizations '!code/allocation/variable,!class/merging/*,' +
+        '!field/removal/writeonly,!method/inlining/unique,*'
+
+    keep "@interface owl.util.annotation.CEntryPoint"
+    keepclasseswithmembers "class * { \
+        @owl.util.annotation.CEntryPoint <methods>; \
+    }"
+
+    assumenosideeffects "class java.util.Logging { \
+        public void log(***); \
+        public void entering(***); \
+        public void exiting(***); \
+        public void throwing(***); \
+        \
+        public void finest(***); \
+        public void finer(***); \
+        public void fine(***); \
+        public void info(***); \
+        public void warning(***); \
+        public void severe(***); \
+        public void config(***); \
+        \
+        public void logp(***); \
+        public void logrb(***); \
+        \
+        public boolean isLoggable(***); \
+        \
+        public static java.util.Logger getLogger(***); \
+        public static java.util.Logger getGlobal(); \
+    }"
+    assumenoexternalsideeffects "class java.lang.StringBuilder { \
+        public java.lang.StringBuilder(); \
+        public java.lang.StringBuilder(int); \
+        public java.lang.StringBuilder(java.lang.String); \
+        public java.lang.StringBuilder append(***); \
+        public java.lang.String toString(); \
+    }"
+
+    assumenoexternalreturnvalues "public final class java.lang.StringBuilder { \
+        public java.lang.StringBuilder append(***); \
+    }"
+
+    verbose // Run gradle with --info to see info
+
+    outjars( new File(project.buildDir, 'libs/owl-cpp.jar'))
+}
+
+// ---------------- Script Jobs ----------------
+
 def allStartScripts = createStartScriptTasks("", jar.outputs.files + project.configurations.runtime, scripts)
 allStartScripts.each() {
     it.dependsOn(jar)
@@ -208,8 +276,8 @@ allStartScripts.each() {
 }
 
 def shadedJarStartScripts = createStartScriptTasks("ProGuard", shadedJar.outputs.files, scripts + ['owl': mainClassName])
-shadedJarStartScripts.each() { 
-    it.dependsOn(shadedJar) 
+shadedJarStartScripts.each() {
+    it.dependsOn(shadedJar)
 }
 
 def rabinizerStartScripts = createStartScriptTasks("Rabinizer", rabinizerJar.outputs.files, rabinizerScripts)
@@ -226,7 +294,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
     args = ["$project.docsDir/markdown"]
 }.onlyIf {
     buildNatives
-} 
+}
 
 javadoc {
     options.addBooleanOption('html5', true)
@@ -239,7 +307,7 @@ javadoc {
 
 // ---------------- Distributions ----------------
 
-// Configure the distribution to include basic documentation. 
+// Configure the distribution to include basic documentation.
 // Javadoc is excluded and can be built from source release,
 // that is generated from the release tag.
 
@@ -256,7 +324,7 @@ distributions {
                 from allStartScripts
 
                 if (buildNatives) {
-                    from 'build/exe/owlClient/owl-client' 
+                    from 'build/exe/owlClient/owl-client'
                 }
 
                 fileMode = 0755
@@ -270,7 +338,7 @@ distributions {
 
     minimized {
         baseName = 'owl-minimized'
-        
+
         contents {
             from "AUTHORS"
             from "LICENSE"
@@ -279,7 +347,7 @@ distributions {
                 from shadedJarStartScripts
 
                 if (buildNatives) {
-                    from 'build/exe/owlClient/owl-client' 
+                    from 'build/exe/owlClient/owl-client'
                 }
 
                 fileMode = 0755
@@ -316,17 +384,5 @@ if (buildNatives) {
     tasks.getByPath(":minimizedDistZip").dependsOn(tasks.getByPath(":owlClientExecutable"))
     tasks.getByPath(":minimizedDistTar").dependsOn(tasks.getByPath(":owlClientExecutable"))
 }
-
-// ---------------- Dead Code Detection ----------------
-
-tasks.create(name: "reportDeadCode", type: proguard.gradle.ProGuardTask) {
-    injars files(jar)
-
-    configuration 'config/proguard-deadcode.txt'
-    dontwarn '**' // Don't care about missing dependencies - all entry points are here
-
-    // Write usage (or rather lack thereof) into deadcode.txt
-    printusage file("$project.buildDir/reports/deadcode.txt")
-}.doFirst { file("$project.buildDir/reports").mkdirs() }
 
 apply from: 'gradle/idea.gradle'

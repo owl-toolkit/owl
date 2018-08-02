@@ -25,7 +25,8 @@ Build:
     - $GRADLE
   script:
     - ./gradlew --no-daemon check minimizedDistZip
-    - scripts/check_binaries.sh
+    - unzip -d build/unzipped build/distributions/*.zip
+    - scripts/check_binaries.sh build/unzipped/owl-*/bin
   artifacts:
     paths:
     - build/tmp/

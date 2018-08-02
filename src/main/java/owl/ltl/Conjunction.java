@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 public final class Conjunction extends PropositionalFormula {
 
@@ -40,6 +41,7 @@ public final class Conjunction extends PropositionalFormula {
     super(Conjunction.class, formulaStream.collect(Collectors.toUnmodifiableSet()));
   }
 
+  @CEntryPoint
   public static Formula of(Formula left, Formula right) {
     return of(Arrays.asList(left, right));
   }
@@ -56,6 +58,7 @@ public final class Conjunction extends PropositionalFormula {
     return of(stream.iterator());
   }
 
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   public static Formula of(Iterator<? extends Formula> iterator) {
     Set<Formula> set = new HashSet<>();
 
@@ -63,12 +66,10 @@ public final class Conjunction extends PropositionalFormula {
       Formula child = iterator.next();
       assert child != null;
 
-      //noinspection ObjectEquality
       if (child == BooleanConstant.FALSE) {
         return BooleanConstant.FALSE;
       }
 
-      //noinspection ObjectEquality
       if (child == BooleanConstant.TRUE) {
         continue;
       }

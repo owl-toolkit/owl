@@ -23,6 +23,7 @@ import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 /**
  * Globally.
@@ -42,6 +43,7 @@ public class GOperator extends UnaryModalOperator {
    *
    * @return a formula equivalent to G(operand)
    */
+  @CEntryPoint
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant) {
       return operand;

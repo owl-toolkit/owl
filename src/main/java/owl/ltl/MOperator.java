@@ -23,6 +23,7 @@ import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 /**
  * Strong Release.
@@ -44,6 +45,8 @@ public final class MOperator extends BinaryModalOperator {
    *
    * @return a formula equivalent to (leftOperand)M(rightOperand)
    */
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
+  @CEntryPoint
   public static Formula of(Formula leftOperand, Formula rightOperand) {
     if (leftOperand instanceof BooleanConstant
       || leftOperand instanceof FOperator

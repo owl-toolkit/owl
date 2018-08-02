@@ -377,6 +377,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
   }
 
   @Override
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   public Formula visit(XOperator xOperator) {
     Formula operand = xOperator.operand.accept(this);
 

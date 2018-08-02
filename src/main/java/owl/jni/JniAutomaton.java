@@ -19,7 +19,8 @@
 
 package owl.jni;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -38,6 +39,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
+import owl.util.annotation.CEntryPoint;
 
 // This is a JNI entry point. No touching.
 @SuppressWarnings("unused")
@@ -68,7 +70,7 @@ public final class JniAutomaton<S> {
   }
 
   JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink, Acceptance acceptance) {
-    Preconditions.checkArgument(automaton.initialStates().size() == 1);
+    checkArgument(automaton.initialStates().size() == 1);
 
     this.automaton = automaton;
     this.acceptance = acceptance;
@@ -115,10 +117,12 @@ public final class JniAutomaton<S> {
     throw new AssertionError("Unreachable Code.");
   }
 
+  @CEntryPoint
   public int acceptance() {
     return acceptance.ordinal();
   }
 
+  @CEntryPoint
   public int acceptanceSetCount() {
     return automaton.acceptance().acceptanceSets();
   }
@@ -147,6 +151,7 @@ public final class JniAutomaton<S> {
     return newBuffer;
   }
 
+  @CEntryPoint
   public int[] edges(int stateIndex) {
     S state = int2StateMap.get(stateIndex);
 
@@ -184,6 +189,7 @@ public final class JniAutomaton<S> {
     return edges;
   }
 
+  @CEntryPoint
   public int[] successors(int stateIndex) {
     S state = int2StateMap.get(stateIndex);
 

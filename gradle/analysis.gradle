@@ -21,7 +21,7 @@
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Pmd.html
 
 pmd {
-    toolVersion = "6.3.0" // https://pmd.github.io/
+    toolVersion = "6.5.0" // https://pmd.github.io/
     reportsDir = file("$project.buildDir/reports/pmd")
     ruleSetFiles = files("$project.rootDir/config/pmd-rules.xml")
     ruleSets = [] // We specify all rules in rules.xml
@@ -40,7 +40,7 @@ tasks.withType(Pmd) {
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
 
 checkstyle {
-    toolVersion = "8.10" // http://checkstyle.sourceforge.net/releasenotes.html
+    toolVersion = "8.11" // http://checkstyle.sourceforge.net/releasenotes.html
     configFile = file("$project.rootDir/config/checkstyle.xml")
     ignoreFailures = false
     maxWarnings = 0

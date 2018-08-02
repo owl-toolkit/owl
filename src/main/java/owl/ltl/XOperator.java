@@ -24,6 +24,7 @@ import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
 /**
  * Next.
@@ -43,6 +44,7 @@ public final class XOperator extends UnaryModalOperator {
    *
    * @return a formula equivalent to X(operand)
    */
+  @CEntryPoint
   public static Formula of(Formula operand) {
     return of(operand, 1);
   }
