@@ -34,8 +34,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
+import javax.annotation.Nullable;
 import org.immutables.value.Value;
-import owl.automaton.Automaton.LabelledEdgeVisitor;
+import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -46,6 +47,7 @@ import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonImpl;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.ValuationSet;
+import owl.factories.ValuationSetFactory;
 import owl.util.annotation.Tuple;
 
 public final class AutomatonUtil {
@@ -106,7 +108,7 @@ public final class AutomatonUtil {
 
     for (Set<S> scc : sccs) {
       for (S state : scc) {
-        automaton.forEachEdge(state, edge -> {
+        automaton.edges(state).forEach(edge -> {
           if (scc.contains(edge.successor())) {
             action.accept(state, edge);
           }
@@ -127,27 +129,31 @@ public final class AutomatonUtil {
   public static <S> Map<S, ValuationSet> getIncompleteStates(Automaton<S, ?> automaton) {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
 
-    LabelledEdgeVisitor<S> visitor = new LabelledEdgeVisitor<>() {
-      private final ValuationSet emptyValuationSet = automaton.factory().empty();
-      private ValuationSet valuationSet = emptyValuationSet;
+    EdgeMapVisitor<S> visitor = new EdgeMapVisitor<>() {
+      private final ValuationSetFactory factory = automaton.factory();
+      @Nullable
+      private ValuationSet valuationSet = null;
 
       @Override
-      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
-        this.valuationSet = this.valuationSet.union(valuationSet);
+      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+        assert valuationSet == null;
+        this.valuationSet = factory.union(edgeMap.values());
       }
 
       @Override
       public void enter(S state) {
-        this.valuationSet = emptyValuationSet;
+        // NOP
       }
 
       @Override
       public void exit(S state) {
+        assert valuationSet != null;
+
         if (!valuationSet.isUniverse()) {
           incompleteStates.put(state, valuationSet.complement());
         }
 
-        this.valuationSet = emptyValuationSet;
+        this.valuationSet = null;
       }
     };
 
@@ -158,24 +164,26 @@ public final class AutomatonUtil {
   public static <S> Set<S> getNondeterministicStates(Automaton<S, ?> automaton) {
     Set<S> nondeterministicStates = new HashSet<>();
 
-    LabelledEdgeVisitor<S> visitor = new LabelledEdgeVisitor<>() {
+    EdgeMapVisitor<S> visitor = new EdgeMapVisitor<>() {
       private final ValuationSet emptyValuationSet = automaton.factory().empty();
-      private ValuationSet valuationSet = emptyValuationSet;
       private boolean nondeterministicState = false;
 
       @Override
-      public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
-        if (nondeterministicState || this.valuationSet.intersects(valuationSet)) {
-          nondeterministicState = true;
-        } else {
-          this.valuationSet = valuationSet.union(valuationSet);
+      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+        ValuationSet union = emptyValuationSet;
+
+        for (ValuationSet valuationSet : edgeMap.values()) {
+          if (nondeterministicState || union.intersects(valuationSet)) {
+            nondeterministicState = true;
+          } else {
+            union = valuationSet.union(valuationSet);
+          }
         }
       }
 
       @Override
       public void enter(S state) {
         this.nondeterministicState = false;
-        this.valuationSet = emptyValuationSet;
       }
 
       @Override
@@ -202,7 +210,7 @@ public final class AutomatonUtil {
     BitSet set = new BitSet();
 
     for (S state : states) {
-      automaton.forEachEdge(state, edge -> {
+      automaton.edges(state).forEach(edge -> {
         if (states.contains(edge.successor())) {
           edge.acceptanceSetIterator().forEachRemaining((IntConsumer) set::set);
         }
@@ -246,7 +254,8 @@ public final class AutomatonUtil {
     for (S state : Sets.difference(automaton.states(), acceptingComponent.states())) {
       var initialComponentState = InitialComponentState.of(state);
       initialComponent.addState(initialComponentState);
-      automaton.forEachLabelledEdge(state, (edge, valuation) -> {
+      // We jump to the accepting component.
+      automaton.edgeMap(state).forEach((edge, valuation) -> {
         S successor = edge.successor();
 
         if (acceptingComponent.states().contains(successor)) {

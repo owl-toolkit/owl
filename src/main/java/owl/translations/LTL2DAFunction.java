@@ -27,7 +27,6 @@ import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFE
 import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -36,12 +35,13 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
@@ -158,7 +158,7 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     var factory = new EquivalenceClassStateFactory(factories, true, false);
 
     BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
-      var successor = factory.getSuccessor(x, y);
+      var successor = factory.successor(x, y);
 
       if (successor.isFalse()) {
         return Set.of();
@@ -171,11 +171,11 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return Set.of(Edge.of(successor));
     };
 
-    Function<EquivalenceClass, Map<Edge<EquivalenceClass>, ValuationSet>> bulk = x ->
-      factory.getEdges(x, y -> y.isTrue() ?  OptionalInt.of(0) : OptionalInt.empty());
+    Function<EquivalenceClass, ValuationTree<Edge<EquivalenceClass>>> bulk = x ->
+      factory.edgeTree(x, y -> y.isTrue() ?  OptionalInt.of(0) : OptionalInt.empty());
 
-    return AutomatonFactory.create(factories.vsFactory, factory.getInitial(formula.formula()),
-      BuchiAcceptance.INSTANCE, single, bulk);
+    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
+      Set.of(factory.getInitial(formula.formula())), BuchiAcceptance.INSTANCE, single, bulk);
   }
 
   private Automaton<EquivalenceClass, AllAcceptance> safety(LabelledFormula formula) {
@@ -186,11 +186,12 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     var factory = new EquivalenceClassStateFactory(factories, true, false);
 
     BiFunction<EquivalenceClass, BitSet, Set<Edge<EquivalenceClass>>> single = (x, y) -> {
-      var successor = factory.getSuccessor(x, y);
+      var successor = factory.successor(x, y);
       return successor.isFalse() ? Set.of() : Set.of(Edge.of(successor));
     };
 
-    return AutomatonFactory.create(factories.vsFactory, factory.getInitial(formula.formula()),
-      AllAcceptance.INSTANCE, single, factory::getEdges);
+    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
+      Set.of(factory.getInitial(formula.formula())), AllAcceptance.INSTANCE, single,
+      factory::edgeTree);
   }
 }

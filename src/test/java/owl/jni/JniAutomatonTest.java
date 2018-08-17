@@ -21,10 +21,14 @@ package owl.jni;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 import org.junit.Test;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.BooleanConstant;
@@ -60,6 +64,40 @@ public class JniAutomatonTest {
   }
 
   @Test
+  public void testNodeSkippingRegression() {
+    var formula1 = LtlParser.parse("a & X b", List.of("a", "b"));
+    var formula2 = LtlParser.parse("b & X a", List.of("a", "b"));
+
+    var automaton1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula1),
+      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+
+    var automaton2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula2),
+      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+
+    assertThat(automaton1.successors(0), is(new int[]{-1, -1, 1, 1}));
+    assertThat(automaton2.successors(0), is(new int[]{-1, 1, -1, 1}));
+  }
+
+  @Test
+  public void testArbiterRegression() {
+    var formula = LtlParser.parse("G (r -> F g)", List.of("r", "g"));
+    var automaton1 = AutomatonUtil.cast(translator.apply(formula),
+      Object.class, BuchiAcceptance.class);
+    JniAutomaton instance1 = new JniAutomaton<>(automaton1, x -> false);
+
+    var automaton2 = Views.replaceInitialState(automaton1, automaton1.initialStates());
+    JniAutomaton instance2 = new JniAutomaton<>(automaton2, x -> false);
+    instance2.explicitBuild = true;
+
+    assertThat(instance1.successors(0), is(instance2.successors(0)));
+    assertThat(instance1.successors(1), is(instance2.successors(1)));
+
+    assertThat(instance1.edges(0), is(instance2.edges(0)));
+    assertThat(instance1.edges(1), is(instance2.edges(1)));
+  }
+
+  @Test
+  @SuppressWarnings("PMD.UseAssertEqualsInsteadOfAssertTrue")
   public void performanceSafetyEdges() {
     var formula = LtlParser.parse(LARGE_ALPHABET);
     assertThat(formula.variables().size(), is(25));
@@ -67,7 +105,12 @@ public class JniAutomatonTest {
     var automaton = AutomatonUtil.cast(translator.apply(formula), EquivalenceClass.class,
       AllAcceptance.class);
     JniAutomaton instance = new JniAutomaton<>(automaton, EquivalenceClass::isTrue);
-    instance.edges(0);
+
+    var automaton2 = Views.replaceInitialState(automaton, automaton.initialStates());
+    JniAutomaton instance2 = new JniAutomaton<>(automaton2, EquivalenceClass::isTrue);
+    instance2.explicitBuild = true;
+
+    assertTrue(Arrays.equals(instance.edges(0), instance2.edges(0)));
   }
 
   @Test

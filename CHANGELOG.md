@@ -1,3 +1,22 @@
+# 2018.10
+
+API:
+
+* Overhaul of the symbolic successor computation
+ 
+  In addition to provinding a mapping from `Edge<S>` to `ValuationSet` (renamed 
+  from `labelledEdges(S state)` to `edgeMap(S state)`) some automata can provide
+  a direct computation of a decision tree mapping from valuations to sets of 
+  edges (`edgeTree(S state)`). This enable optimisation in the JNI-access.
+  
+  This feature is mostly used by the direct translation of the safety and co-safety fragment of LTL 
+  to deterministic automata.
+
+Bugfixes:
+
+* Throw an exception on malformed LTL input such as `FF`, `Fa!` and `F+`. Thanks 
+  to Alexandre Duret-Lutz for reporting this issue.
+
 # 2018.06
 
 TBD

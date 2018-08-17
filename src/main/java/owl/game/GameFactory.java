@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import org.immutables.value.Value;
 import owl.automaton.Automaton.Property;
-import owl.automaton.LabelledEdgesAutomatonMixin;
+import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -47,7 +47,7 @@ public final class GameFactory {
   }
 
   static final class ImmutableGame<S, A extends OmegaAcceptance> implements Game<S, A>,
-    LabelledEdgesAutomatonMixin<S, A> {
+    EdgeMapAutomatonMixin<S, A> {
     private final A acceptance;
     private final ValuationSetFactory factory;
     private final ImmutableValueGraph<S, ValueEdge> graph;
@@ -67,9 +67,9 @@ public final class GameFactory {
           player1NodesBuilder.add(state);
         }
 
-        game.forEachLabelledEdge(state, (edge, valuations) ->
-          graph.putEdgeValue(state, edge.successor(),
-            ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations)));
+        game.edgeMap(state).forEach((edge, valuations) ->
+              graph.putEdgeValue(state, edge.successor(),
+                ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations)));
       }
 
       this.acceptance = game.acceptance();
@@ -103,7 +103,7 @@ public final class GameFactory {
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
+    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
 
       graph.edges().stream().filter(x -> x.source().equals(state)).forEach(x -> {

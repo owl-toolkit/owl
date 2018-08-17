@@ -116,7 +116,7 @@ class InitialComponentBuilder<K extends RecurringObligation>
       return Map.of();
     }
 
-    Map<Edge<EquivalenceClass>, ValuationSet> successors = factory.getEdges(state);
+    var successors = factory.edgeTree(state).inverse(factories.vsFactory);
     // There shouldn't be any rejecting sinks in the successor map.
     assert !successors.containsKey(Edge.of(factories.eqFactory.getFalse()));
     return successors;
@@ -128,7 +128,7 @@ class InitialComponentBuilder<K extends RecurringObligation>
 
   private List<Edge<EquivalenceClass>> getNondeterministicSuccessors(EquivalenceClass state,
     BitSet valuation) {
-    EquivalenceClass successorClass = factory.getNondeterministicSuccessor(state, valuation);
+    EquivalenceClass successorClass = factory.nondeterministicPreSuccessor(state, valuation);
 
     generateJumps(state);
 

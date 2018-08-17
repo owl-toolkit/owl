@@ -195,7 +195,7 @@ public final class IARBuilder<R> {
       // We ensure that the state is reachable and not removed from the automaton. We're not
       // interested in the language, only in the transition system!
       resultTransitionSystem.addInitialState(iarState);
-      rabinAutomaton.labelledEdges(state).forEach((edge, valuations) -> {
+      rabinAutomaton.edgeMap(state).forEach((edge, valuations) -> {
         if (simpleScc.contains(edge.successor())) {
           Edge<IARState<R>> iarEdge = Edge.of(IARState.trivial(edge.successor()), 0);
           resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
@@ -218,7 +218,7 @@ public final class IARBuilder<R> {
 
     // Analyse the SCC
     // TODO This could be done while doing Tarjan
-    scc.forEach(state -> rabinAutomaton.labelledEdges(state).forEach((edge, valuations) -> {
+    scc.forEach(state -> rabinAutomaton.edgeMap(state).forEach((edge, valuations) -> {
       if (scc.contains(edge.successor())) {
         // This transition is inside this scc
         sccHasALoop.lazySet(true);

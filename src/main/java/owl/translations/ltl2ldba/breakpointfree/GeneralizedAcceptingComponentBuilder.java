@@ -71,10 +71,10 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   }
 
   private BitSet getSensitiveAlphabet(GeneralizedBreakpointFreeState state) {
-    BitSet sensitiveAlphabet = factory.getSensitiveAlphabet(state.safety);
+    BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.safety);
 
     for (EquivalenceClass clazz : state.liveness) {
-      sensitiveAlphabet.or(factory.getSensitiveAlphabet(factory.getInitial(clazz)));
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.getInitial(clazz)));
     }
 
     return sensitiveAlphabet;
@@ -89,7 +89,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     bs.set(state.liveness.length, acceptanceSets);
 
     for (int i = 0; i < state.liveness.length; i++) {
-      livenessSuccessor[i] = factory.getSuccessor(state.liveness[i], valuation);
+      livenessSuccessor[i] = factory.successor(state.liveness[i], valuation);
 
       if (livenessSuccessor[i].isTrue()) {
         bs.set(i);
@@ -98,7 +98,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     }
 
     EquivalenceClass safetySuccessor = factory
-      .getSuccessor(state.safety, valuation, livenessSuccessor);
+      .successor(state.safety, valuation, livenessSuccessor);
 
     if (safetySuccessor.isFalse()) {
       return null;

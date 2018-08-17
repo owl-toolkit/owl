@@ -201,9 +201,9 @@ public class AutomatonReaderTest {
     ValuationSetFactory valuationSetFactory = automaton.factory();
 
     assertThat(automaton.onlyInitialState(), is(states.get(1)));
-    assertThat(automaton.labelledEdges(states.get(1)),
+    assertThat(automaton.edgeMap(states.get(1)),
       is(Map.of(Edge.of(states.get(0)), valuationSetFactory.of(createBitSet(true)))));
-    assertThat(automaton.labelledEdges(states.get(0)),
+    assertThat(automaton.edgeMap(states.get(0)),
       is(Map.of(Edge.of(states.get(0), 0), valuationSetFactory.universe())));
   }
 

@@ -23,7 +23,10 @@ import java.util.List;
 import owl.util.annotation.CEntryPoint;
 
 public abstract class LabelledTree<L1, L2> {
-  public static class Leaf<L1, L2> extends LabelledTree<L1, L2> {
+  private LabelledTree() {
+  }
+
+  public static final class Leaf<L1, L2> extends LabelledTree<L1, L2> {
     private final L2 label;
 
     public Leaf(L2 label) {
@@ -36,7 +39,7 @@ public abstract class LabelledTree<L1, L2> {
     }
   }
 
-  public static class Node<L1, L2> extends LabelledTree<L1, L2> {
+  public static final class Node<L1, L2> extends LabelledTree<L1, L2> {
     private final L1 label;
     private final List<LabelledTree<L1, L2>> children;
 

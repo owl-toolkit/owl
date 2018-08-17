@@ -25,11 +25,14 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import owl.automaton.Automaton.HybridVisitor;
+import owl.automaton.Automaton.EdgeMapVisitor;
+import owl.automaton.Automaton.EdgeVisitor;
+import owl.automaton.Automaton.Visitor;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -48,7 +51,7 @@ public final class MutableAutomatonFactory {
 
   public static <S> void copy(Automaton<S, ?> source, MutableAutomaton<S, ?> target) {
     source.initialStates().forEach(target::addInitialState);
-    source.accept(new CopyVisitor<>(target));
+    source.accept((Visitor<S>) new CopyVisitor<>(target));
     target.trim(); // Cannot depend on iteration order, thus we need to trim().
   }
 
@@ -146,7 +149,7 @@ public final class MutableAutomatonFactory {
     return automaton;
   }
 
-  private static class CopyVisitor<S> implements HybridVisitor<S> {
+  private static class CopyVisitor<S> implements EdgeVisitor<S>, EdgeMapVisitor<S> {
     @Nullable
     private S currentState = null;
     private final MutableAutomaton<S, ?> target;
@@ -156,15 +159,15 @@ public final class MutableAutomatonFactory {
     }
 
     @Override
-    public void visitEdge(Edge<S> edge, BitSet valuation) {
+    public void visit(Edge<S> edge, BitSet valuation) {
       assert currentState != null;
       target.addEdge(currentState, valuation, edge);
     }
 
     @Override
-    public void visitLabelledEdge(Edge<S> edge, ValuationSet valuationSet) {
+    public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
       assert currentState != null;
-      target.addEdge(currentState, valuationSet, edge);
+      edgeMap.forEach((x, y) -> target.addEdge(currentState, y, x));
     }
 
     @Override

@@ -54,13 +54,26 @@ public abstract class ImplicitCachedStatesAutomaton<S, A extends OmegaAcceptance
   }
 
   @Override
-  public final void accept(LabelledEdgeVisitor<S> visitor) {
+  public final void accept(EdgeMapVisitor<S> visitor) {
     if (statesCache == null) {
       statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
     } else {
       for (S state : statesCache) {
         visitor.enter(state);
-        this.forEachLabelledEdge(state, visitor::visitLabelledEdge);
+        visitor.visit(edgeMap(state));
+        visitor.exit(state);
+      }
+    }
+  }
+
+  @Override
+  public final void accept(EdgeTreeVisitor<S> visitor) {
+    if (statesCache == null) {
+      statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
+    } else {
+      for (S state : statesCache) {
+        visitor.enter(state);
+        visitor.visit(edgeTree(state));
         visitor.exit(state);
       }
     }

@@ -51,7 +51,7 @@ import owl.factories.ValuationSetFactory;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
 final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
-  LabelledEdgesAutomatonMixin<S, A>, MutableAutomaton<S, A> {
+  EdgeMapAutomatonMixin<S, A>, MutableAutomaton<S, A> {
   private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
 
   private A acceptance;
@@ -170,7 +170,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   public Edge<S> edge(S state, BitSet valuation) {
     readMode();
 
-    for (Map.Entry<Edge<S>, ValuationSet> entry : edgeMap(state).entrySet()) {
+    for (Map.Entry<Edge<S>, ValuationSet> entry : edgeMapInternal(state).entrySet()) {
       if (entry.getValue().contains(valuation)) {
         return entry.getKey();
       }
@@ -182,24 +182,24 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   @Override
   public Set<Edge<S>> edges(S state) {
     readMode();
-    return Collections.unmodifiableSet(edgeMap(state).keySet());
+    return Collections.unmodifiableSet(edgeMapInternal(state).keySet());
   }
 
   @Override
-  public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
+  public Map<Edge<S>, ValuationSet> edgeMap(S state) {
     readMode();
-    return Collections.unmodifiableMap(edgeMap(state));
+    return Collections.unmodifiableMap(edgeMapInternal(state));
   }
 
   @Override
   public Set<S> successors(S state) {
     readMode();
-    return Edges.successors(edgeMap(state).keySet());
+    return Edges.successors(edgeMapInternal(state).keySet());
   }
 
   @Override
   public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
-    edgeMap(source).merge(makeUnique(edge), valuations, ValuationSet::union);
+    edgeMapInternal(source).merge(makeUnique(edge), valuations, ValuationSet::union);
   }
 
   @Override
@@ -207,7 +207,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     writeMode();
 
     ValuationSet complement = valuations.complement();
-    boolean edgeRemoved = edgeMap(source).entrySet().removeIf(entry -> {
+    boolean edgeRemoved = edgeMapInternal(source).entrySet().removeIf(entry -> {
       if (!destination.equals(entry.getKey().successor())) {
         return false;
       }
@@ -229,7 +229,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     writeMode();
 
     for (S state : states) {
-      Map<Edge<S>, ValuationSet> map = edgeMap(state);
+      Map<Edge<S>, ValuationSet> map = edgeMapInternal(state);
       Map<Edge<S>, ValuationSet> secondMap = new HashMap<>();
 
       map.entrySet().removeIf(entry -> {
@@ -277,17 +277,17 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     transitions.forEach((state, edges) -> {
       visitor.enter(state);
       edges.forEach((edge, valuations) ->
-        valuations.forEach((valuation) -> visitor.visitEdge(edge, valuation)));
+        valuations.forEach((valuation) -> visitor.visit(edge, valuation)));
       visitor.exit(state);
     });
   }
 
   @Override
-  public void accept(LabelledEdgeVisitor<S> visitor) {
+  public void accept(EdgeMapVisitor<S> visitor) {
     readMode();
     transitions.forEach((state, edges) -> {
       visitor.enter(state);
-      edges.forEach(visitor::visitLabelledEdge);
+      visitor.visit(Collections.unmodifiableMap(edges));
       visitor.exit(state);
     });
   }
@@ -379,7 +379,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     }
   }
 
-  private Map<Edge<S>, ValuationSet> edgeMap(S state) {
+  private Map<Edge<S>, ValuationSet> edgeMapInternal(S state) {
     S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
     checkArgument(uniqueState != null, "State %s not in automaton", state);
     Map<Edge<S>, ValuationSet> successors = transitions.get(uniqueState);

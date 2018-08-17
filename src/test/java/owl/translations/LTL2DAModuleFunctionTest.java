@@ -72,7 +72,7 @@ public class LTL2DAModuleFunctionTest {
     // Check null successor.
     BitSet empty = new BitSet();
     assertThat(automaton.edge(state, empty), is(nullValue()));
-    assertTrue(Maps.filterValues(automaton.labelledEdges(state), x -> x.contains(empty)).isEmpty());
+    assertTrue(Maps.filterValues(automaton.edgeMap(state), x -> x.contains(empty)).isEmpty());
   }
 
   @Test
@@ -88,7 +88,7 @@ public class LTL2DAModuleFunctionTest {
     BitSet empty = new BitSet();
 
     assertThat(automaton.edge(state, empty), is(edge));
-    assertThat(automaton.labelledEdges(state).entrySet(),
+    assertThat(automaton.edgeMap(state).entrySet(),
       contains(Map.entry(edge, automaton.factory().universe())));
   }
 }

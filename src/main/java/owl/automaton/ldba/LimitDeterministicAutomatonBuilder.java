@@ -25,7 +25,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -136,8 +135,8 @@ public final class LimitDeterministicAutomatonBuilder<S, KeyT, T,
       for (S state : initialComponent.states()) {
         Map<ValuationSet, Set<T>> successorJumps = valuationSetJumps.row(state);
 
-        initialComponent.forEachLabelledEdge(state, (edge, valuations) -> {
-          Collection<T> targets = epsilonJumps.get(edge.successor());
+        initialComponent.edgeMap(state).forEach((edge, valuations) -> {
+          Set<T> targets = epsilonJumps.get(edge.successor());
           extendedInitialStates.addAll(targets);
           successorJumps.compute(valuations, (x, existingJumpTargets) -> {
             if (existingJumpTargets == null) {

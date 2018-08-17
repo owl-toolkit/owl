@@ -98,7 +98,7 @@ final class SccIARBuilder<R> {
     // Iterate over each edge
     var sourceAutomaton = AutomatonFactory.create(resultAutomaton.factory(), initialStates,
       resultAutomaton.acceptance(), (IARState<R> state) ->
-        Collections3.transformMap(rabinAutomaton.labelledEdges(state.state()),
+        Collections3.transformMap(rabinAutomaton.edgeMap(state.state()),
         x -> computeSuccessorEdge(state.record(), x)));
 
     MutableAutomatonFactory.copy(sourceAutomaton, resultAutomaton);

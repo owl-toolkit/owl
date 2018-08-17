@@ -58,8 +58,8 @@ public final class ParityGameSolver {
     AtomicInteger minimalColour = new AtomicInteger(acceptance.acceptanceSets());
 
     for (S state : states) {
-      game.forEachEdge(state, edge ->
-        minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
+      game.edges(state).forEach(edge ->
+          minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
     }
 
     int theMinimalColour = minimalColour.get();

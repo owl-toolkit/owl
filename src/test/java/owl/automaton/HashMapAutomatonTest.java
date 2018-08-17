@@ -84,7 +84,7 @@ public class HashMapAutomatonTest {
     });
     automaton.trim();
 
-    assertThat(automaton.labelledEdges("1").entrySet(),
+    assertThat(automaton.edgeMap("1").entrySet(),
       containsInAnyOrder(Map.entry(Edge.of("2"), FACTORY.universe())));
   }
 
@@ -114,7 +114,7 @@ public class HashMapAutomatonTest {
 
     assertThat(automaton.edge("1", new BitSet()), is(Edge.of("2")));
     assertThat(automaton.edges("1", new BitSet()), containsInAnyOrder(Edge.of("2")));
-    assertThat(automaton.labelledEdges("1"), is(Map.of(Edge.of("2"), FACTORY.universe())));
+    assertThat(automaton.edgeMap("1"), is(Map.of(Edge.of("2"), FACTORY.universe())));
     assertThat(automaton.edge("1", new BitSet()), is(Edge.of("2")));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
@@ -126,7 +126,7 @@ public class HashMapAutomatonTest {
     // Add duplicate edge
     automaton.addEdge("1", FACTORY.of(new BitSet()), Edge.of("2"));
 
-    assertThat(automaton.labelledEdges("1").size(), is(1));
+    assertThat(automaton.edgeMap("1").size(), is(1));
     assertThat(automaton.edge("1", new BitSet()), is(Edge.of("2")));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
@@ -140,7 +140,7 @@ public class HashMapAutomatonTest {
 
     assertThat(automaton.edges("1", new BitSet()),
       containsInAnyOrder(Edge.of("2"), Edge.of("2", 0)));
-    assertThat(automaton.labelledEdges("1").size(), is(2));
+    assertThat(automaton.edgeMap("1").size(), is(2));
     assertThat(automaton.states(), containsInAnyOrder("1", "2"));
     assertThat(automaton.states(), equalTo(getReachableStates(automaton)));
 
@@ -181,11 +181,11 @@ public class HashMapAutomatonTest {
       : Edge.of(edge.successor(), 1));
     automaton.trim();
 
-    automaton.labelledEdges("1").forEach((edge, valuationSet) -> {
+    automaton.edgeMap("1").forEach((edge, valuationSet) -> {
       assertThat(Lists.newArrayList(edge.acceptanceSetIterator()), containsInAnyOrder(0));
     });
 
-    automaton.labelledEdges("2").forEach((edge, valuationSet) -> {
+    automaton.edgeMap("2").forEach((edge, valuationSet) -> {
       assertThat(Lists.newArrayList(edge.acceptanceSetIterator()), containsInAnyOrder(1));
     });
 

@@ -21,7 +21,6 @@ package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -30,7 +29,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -49,7 +48,7 @@ import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.LabelledEdgesAutomatonMixin;
+import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -57,6 +56,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
@@ -122,7 +122,7 @@ public final class GameViews {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
           List<String> environmentAp = automaton.factory().alphabet().stream()
-            .filter(isEnvironmentAp).collect(toImmutableList());
+            .filter(isEnvironmentAp).collect(Collectors.toUnmodifiableList());
           logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
             new Object[] {environmentAp,
               Collections2.filter(automaton.factory().alphabet(), x -> !isEnvironmentAp.test(x))});
@@ -156,7 +156,7 @@ public final class GameViews {
   }
 
   private static final class FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A>,
-    LabelledEdgesAutomatonMixin<S, A> {
+    EdgeMapAutomatonMixin<S, A> {
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
@@ -185,8 +185,8 @@ public final class GameViews {
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
-      return filteredAutomaton.labelledEdges(state);
+    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+      return filteredAutomaton.edgeMap(state);
     }
 
     @Override
@@ -246,28 +246,28 @@ public final class GameViews {
       }
 
       @Override
-      public Collection<Edge<S>> edges(S state, BitSet valuation) {
+      public Set<Edge<S>> edges(S state, BitSet valuation) {
         return game.edges(state, valuation);
       }
 
       @Override
-      public Collection<Edge<S>> edges(S state) {
+      public Set<Edge<S>> edges(S state) {
         return game.edges(state);
       }
 
       @Override
-      public Map<Edge<S>, ValuationSet> labelledEdges(S state) {
-        return game.labelledEdges(state);
+      public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+        return game.edgeMap(state);
       }
 
       @Override
-      public Set<S> successors(S state) {
-        return game.successors(state);
+      public ValuationTree<Edge<S>> edgeTree(S state) {
+        throw new UnsupportedOperationException("Class deprecated.");
       }
 
       @Override
-      public boolean prefersLabelled() {
-        return game.prefersLabelled();
+      public List<PreferredEdgeAccess> preferredEdgeAccess() {
+        return game.preferredEdgeAccess();
       }
 
       @Override
@@ -295,7 +295,7 @@ public final class GameViews {
    * corresponding acceptance.
    */
   static final class ForwardingGame<S, A extends OmegaAcceptance>
-    implements Game<Node<S>, A>, LabelledEdgesAutomatonMixin<Node<S>, A> {
+    implements Game<Node<S>, A>, EdgeMapAutomatonMixin<Node<S>, A> {
     private final Automaton<S, A> automaton;
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
@@ -324,7 +324,7 @@ public final class GameViews {
     }
 
     @Override
-    public Map<Edge<Node<S>>, ValuationSet> labelledEdges(Node<S> node) {
+    public Map<Edge<Node<S>>, ValuationSet> edgeMap(Node<S> node) {
       /*
        * In order obtain a complete game, each players transitions are labeled
        * with his choice and all valuations of the other players APs. This is
@@ -375,7 +375,7 @@ public final class GameViews {
       Set<Node<S>> predecessors = new HashSet<>();
 
       for (S predecessor : automaton.states()) {
-        automaton.forEachLabelledEdge(predecessor, (edge, valuations) -> {
+        automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
           if (node.state().equals(edge.successor())) {
             valuations.forEach(set -> {
               BitSet localSet = BitSets.copyOf(set);
@@ -439,7 +439,7 @@ public final class GameViews {
         return BitSets.copyOf(choice);
       }
 
-      return Iterables.getOnlyElement(labelledEdges(state).entrySet()).getValue().any();
+      return Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue().any();
     }
   }
 

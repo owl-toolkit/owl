@@ -22,10 +22,14 @@ package owl.factories;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntUnaryOperator;
+import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 
 public interface ValuationSetFactory {
   List<String> alphabet();
@@ -34,10 +38,45 @@ public interface ValuationSetFactory {
     return alphabet().size();
   }
 
+  ValuationSet of(int literal);
 
   ValuationSet of(BitSet valuation);
 
   ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
+
+  default ValuationSet of(BooleanExpression<AtomLabel> expression,
+    @Nullable IntUnaryOperator mapping) {
+    if (expression.isFALSE()) {
+      return this.empty();
+    }
+
+    if (expression.isTRUE()) {
+      return this.universe();
+    }
+
+    if (expression.isAtom()) {
+      int apIndex = expression.getAtom().getAPIndex();
+      return this.of(mapping == null ? apIndex : mapping.applyAsInt(apIndex));
+    }
+
+    if (expression.isNOT()) {
+      return of(expression.getLeft(), mapping).complement();
+    }
+
+    if (expression.isAND()) {
+      ValuationSet left = of(expression.getLeft(), mapping);
+      ValuationSet right = of(expression.getRight(), mapping);
+      return left.intersection(right);
+    }
+
+    if (expression.isOR()) {
+      ValuationSet left = of(expression.getLeft(), mapping);
+      ValuationSet right = of(expression.getRight(), mapping);
+      return left.union(right);
+    }
+
+    throw new IllegalArgumentException("Unsupported Case: " + expression);
+  }
 
   ValuationSet empty();
 
@@ -87,4 +126,8 @@ public interface ValuationSetFactory {
 
 
   BooleanExpression<AtomLabel> toExpression(ValuationSet set);
+
+  <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets);
+
+
 }

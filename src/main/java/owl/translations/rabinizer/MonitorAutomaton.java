@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.LabelledEdgesAutomatonMixin;
+import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -34,7 +34,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.GOperator;
 
-class MonitorAutomaton implements LabelledEdgesAutomatonMixin<MonitorState, NoneAcceptance> {
+class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, NoneAcceptance> {
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
   private final Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;
@@ -83,8 +83,8 @@ class MonitorAutomaton implements LabelledEdgesAutomatonMixin<MonitorState, None
   }
 
   @Override
-  public Map<Edge<MonitorState>, ValuationSet> labelledEdges(MonitorState state) {
-    return Collections3.transformMap(anyAutomaton.labelledEdges(state), Edge::withoutAcceptance);
+  public Map<Edge<MonitorState>, ValuationSet> edgeMap(MonitorState state) {
+    return Collections3.transformMap(anyAutomaton.edgeMap(state), Edge::withoutAcceptance);
   }
 
   @Override

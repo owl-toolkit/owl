@@ -140,7 +140,7 @@ public final class RabinizerBuilder {
       // Cache the priorities of the edge
       ValuationSet[] edgePriorities = new ValuationSet[monitorAcceptanceSets];
 
-      monitor.forEachLabelledEdge(monitorState, (edge, valuations) -> {
+      monitor.edgeMap(monitorState).forEach((edge, valuations) -> {
         if (!edge.hasAcceptanceSets()) {
           return;
         }
@@ -661,7 +661,7 @@ public final class RabinizerBuilder {
         MonitorState monitorState = monitorStates.get(monitorIndex);
 
         Map<MonitorState, ValuationSet> successors = new HashMap<>();
-        monitors[monitorIndex].forEachLabelledEdge(monitorState, (edge, valuations) ->
+        monitors[monitorIndex].edgeMap(monitorState).forEach((edge, valuations) ->
           successors.merge(edge.successor(), valuations, ValuationSet::union));
 
         int monitorSuccessorCount = successors.size();
@@ -723,9 +723,9 @@ public final class RabinizerBuilder {
           }
         }
       } else {
-        // Approach 2: Use the partition of the monitors to avoid computation if monitors aren't too
-        // "fragmented".
-        masterAutomaton.forEachLabelledEdge(masterState, (edge, valuationSet) -> {
+        // Approach 2: Use the partition of the monitors to avoid computation if 
+        // monitors aren't too "fragmented".
+        masterAutomaton.edgeMap(masterState).forEach((edge, valuationSet) -> {
           // The successor is not part of this partition
           if (!stateSubset.contains(edge.successor())) {
             return;
