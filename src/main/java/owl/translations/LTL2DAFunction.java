@@ -24,13 +24,17 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
@@ -40,19 +44,22 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
+import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.XOperator;
 import owl.run.Environment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.LTL2DRAFunction;
 import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
-import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 
 public final class LTL2DAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
@@ -104,6 +111,10 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return coSafety(formula);
     }
 
+    if (formula.formula() instanceof XOperator) {
+      return delay(formula);
+    }
+
     if (allowedConstructions.contains(Constructions.BUCHI)
       && SyntacticFragments.isDetBuchiRecognisable(formula.formula())) {
       return buchi(formula);
@@ -121,12 +132,72 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     return fallback.apply(formula);
   }
 
+  private Automaton<Object, ?> delay(LabelledFormula formula) {
+    Automaton<Object, ?> automaton =
+      AutomatonUtil.cast(apply(formula.wrap(((XOperator) formula.formula()).operand)));
+
+    return new Automaton<>() {
+      private final Object initialState = new Object();
+      private final Set<Edge<Object>> initialStateEdges =
+        automaton.initialStates().stream().map(Edge::of).collect(Collectors.toUnmodifiableSet());
+
+      @Override
+      public OmegaAcceptance acceptance() {
+        return automaton.acceptance();
+      }
+
+      @Override
+      public ValuationSetFactory factory() {
+        return automaton.factory();
+      }
+
+      @Override
+      public Set<Object> initialStates() {
+        return Set.of(initialState);
+      }
+
+      @Override
+      public Set<Object> states() {
+        return Sets.union(initialStates(), automaton.states());
+      }
+
+      @Override
+      public Set<Edge<Object>> edges(Object state, BitSet valuation) {
+        return initialState.equals(state) ? initialStateEdges : automaton.edges(state, valuation);
+      }
+
+      @Override
+      public Set<Edge<Object>> edges(Object state) {
+        return initialState.equals(state) ? initialStateEdges : automaton.edges(state);
+      }
+
+      @Override
+      public Map<Edge<Object>, ValuationSet> edgeMap(Object state) {
+        return initialState.equals(state)
+          ? Maps.toMap(initialStateEdges, x -> factory().universe())
+          : automaton.edgeMap(state);
+      }
+
+      @Override
+      public ValuationTree<Edge<Object>> edgeTree(Object state) {
+        return initialState.equals(state)
+          ? ValuationTree.of(initialStateEdges)
+          : automaton.edgeTree(state);
+      }
+
+      @Override
+      public List<PreferredEdgeAccess> preferredEdgeAccess() {
+        return automaton.preferredEdgeAccess();
+      }
+    };
+  }
+
   private Automaton<DegeneralizedBreakpointState, BuchiAcceptance> buchi(LabelledFormula formula) {
-    EnumSet<Configuration> configuration = EnumSet.of(
-      Configuration.EAGER_UNFOLD,
-      Configuration.SUPPRESS_JUMPS,
-      Configuration.FORCE_JUMPS,
-      Configuration.OPTIMISED_STATE_STRUCTURE);
+    EnumSet<LTL2LDBAFunction.Configuration> configuration = EnumSet.of(
+      LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
+      LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS,
+      LTL2LDBAFunction.Configuration.FORCE_JUMPS,
+      LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE);
 
     var builder = LTL2LDBAFunction
       .createDegeneralizedBreakpointLDBABuilder(environment, configuration);
@@ -144,16 +215,12 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     return ldba.acceptingComponent();
   }
 
-  private Automaton<DegeneralizedBreakpointState, CoBuchiAcceptance> coBuchi(
-    LabelledFormula formula) {
+  private Automaton<?, ?> coBuchi(LabelledFormula formula) {
     return AutomatonUtil.cast(Views.complement(buchi(formula.not()),
       DegeneralizedBreakpointState.createSink()), CoBuchiAcceptance.class);
   }
 
   private Automaton<EquivalenceClass, BuchiAcceptance> coSafety(LabelledFormula formula) {
-    Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula.formula()),
-      "Formula is not from the syntactic co-safety fragment.");
-
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     var factory = new EquivalenceClassStateFactory(factories, true, false);
 
@@ -179,9 +246,6 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
   }
 
   private Automaton<EquivalenceClass, AllAcceptance> safety(LabelledFormula formula) {
-    Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula.formula()),
-      "Formula is not from the syntactic safety fragment.");
-
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     var factory = new EquivalenceClassStateFactory(factories, true, false);
 

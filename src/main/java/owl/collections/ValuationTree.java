@@ -24,7 +24,6 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -46,6 +45,10 @@ public abstract class ValuationTree<E> {
 
   public static <E> ValuationTree<E> of(int variable, ValuationTree<E> trueChild,
     ValuationTree<E> falseChild) {
+    if (trueChild.equals(falseChild)) {
+      return trueChild;
+    }
+
     return new Node<>(variable, trueChild, falseChild);
   }
 
@@ -54,11 +57,11 @@ public abstract class ValuationTree<E> {
   public abstract Set<E> values();
 
   public Map<E, ValuationSet> inverse(ValuationSetFactory factory) {
-    return memoizedInverse(factory, new IdentityHashMap<>());
+    return memoizedInverse(factory, new HashMap<>());
   }
 
   public <T> ValuationTree<T> map(Function<? super Set<E>, ? extends Collection<T>> mapper) {
-    return memoizedMap(mapper, new IdentityHashMap<>());
+    return memoizedMap(mapper, new HashMap<>());
   }
 
   protected abstract <T> ValuationTree<T> memoizedMap(

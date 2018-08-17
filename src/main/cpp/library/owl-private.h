@@ -152,6 +152,13 @@ inline jboolean call_bool_method(JNIEnv *env, jobject object, const char *name, 
 }
 
 template<typename... Args>
+inline jdouble call_double_method(JNIEnv *env, jobject object, jmethodID methodID, Args... args) {
+    jdouble result = env->CallDoubleMethod(object, methodID, args...);
+    check_exception(env, "Failed to call double method.");
+    return result;
+}
+
+template<typename... Args>
 inline jint call_int_method(JNIEnv *env, jobject object, jmethodID methodID, Args... args) {
     jint result = env->CallIntMethod(object, methodID, args...);
     check_exception(env, "Failed to call int method.");

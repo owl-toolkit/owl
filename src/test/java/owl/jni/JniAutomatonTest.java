@@ -20,18 +20,16 @@
 package owl.jni;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import org.junit.Test;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.ltl.BooleanConstant;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
@@ -46,81 +44,69 @@ public class JniAutomatonTest {
       LTL2DAFunction.Constructions.CO_BUCHI,
       LTL2DAFunction.Constructions.PARITY));
 
-  static final String LARGE_ALPHABET = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v)"
-    + "& X G (w | x | y)";
-
   @Test
-  public void testEdges() {
-    JniAutomaton instance = new JniAutomaton<>(translator.apply(
-      Hacks.attachDummyAlphabet(BooleanConstant.TRUE)), x -> false);
-    instance.edges(0);
-  }
+  public void testTreeSerialisation() {
+    var formula0 = LtlParser.parse("true", List.of());
+    var formula1 = LtlParser.parse("false", List.of());
+    var formula2 = LtlParser.parse("a & b", List.of("a", "b"));
+    var formula3 = LtlParser.parse("a & X b", List.of("a", "b"));
+    var formula4 = LtlParser.parse("b & X a", List.of("a", "b"));
+    var formula5 = LtlParser.parse("F (b & X (!a & X !a))", List.of("a", "b"));
+    var formula6 = LtlParser.parse("G (r -> F g)", List.of("r", "g"));
+    var formula7 = LtlParser.parse("(G F a) | (G F b)", List.of("a", "b"));
 
-  @Test
-  public void testSuccessors() {
-    JniAutomaton instance = new JniAutomaton<>(translator.apply(
-      Hacks.attachDummyAlphabet(BooleanConstant.FALSE)), x -> false);
-    instance.successors(0);
-  }
-
-  @Test
-  public void testNodeSkippingRegression() {
-    var formula1 = LtlParser.parse("a & X b", List.of("a", "b"));
-    var formula2 = LtlParser.parse("b & X a", List.of("a", "b"));
-
+    var automaton0 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula0),
+      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
     var automaton1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula1),
       EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-
     var automaton2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula2),
       EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+    var automaton3 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula3),
+      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+    var automaton4 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula4),
+      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+    var automaton5 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula5),
+      EquivalenceClass.class, BuchiAcceptance.class), EquivalenceClass::isTrue);
+    var automaton6 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula6),
+      Object.class, BuchiAcceptance.class));
+    var automaton7 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula7),
+      Object.class, ParityAcceptance.class));
 
-    assertThat(automaton1.successors(0), is(new int[]{-1, -1, 1, 1}));
-    assertThat(automaton2.successors(0), is(new int[]{-1, 1, -1, 1}));
+    assertThat(automaton0.edges(0),
+      is(new int[]{1, -2, -1}));
+    assertThat(automaton1.edges(0),
+      is(new int[]{1, -1, -1}));
+    assertThat(automaton2.edges(0),
+      is(new int[]{7, 0, 0, 4, 1, 0, -2, -1, -1, -2, -1}));
+    assertThat(automaton3.edges(0),
+      is(new int[]{4, 0, 0, -2, -1, -1, 1, -1}));
+    assertThat(automaton4.edges(0),
+      is(new int[]{4, 1, 0, -2, -1, -1, 1, -1}));
+    assertThat(automaton5.edges(0),
+      is(new int[]{4, 1, 0, -2, 0, -1, 1, -1}));
+    assertThat(automaton5.edges(1),
+      is(new int[]{7, 0, 0, 4, 1, -2, -4, 2, -1, 0, -1, 1, -1}));
+    assertThat(automaton6.edges(0),
+      is(new int[]{7, 0, 0, 4, 1, -2, 0, 0, 0, 1, -1}));
+    assertThat(automaton6.edges(1),
+      is(new int[]{4, 1, 0, -2, 1, -1, 0, 0}));
+    assertThat(automaton7.edges(0), anyOf(
+      is(new int[]{7, 0, 4, -4, 1, 0, -2, 0, 4, 0, 3, 0, 1}),
+      is(new int[]{10, 0, 4, 7, 1, 0, -2, 1, -4, -2, 0, 4, 0, 1, 0, 3})));
   }
 
   @Test
-  public void testArbiterRegression() {
-    var formula = LtlParser.parse("G (r -> F g)", List.of("r", "g"));
-    var automaton1 = AutomatonUtil.cast(translator.apply(formula),
-      Object.class, BuchiAcceptance.class);
-    JniAutomaton instance1 = new JniAutomaton<>(automaton1, x -> false);
-
-    var automaton2 = Views.replaceInitialState(automaton1, automaton1.initialStates());
-    JniAutomaton instance2 = new JniAutomaton<>(automaton2, x -> false);
-    instance2.explicitBuild = true;
-
-    assertThat(instance1.successors(0), is(instance2.successors(0)));
-    assertThat(instance1.successors(1), is(instance2.successors(1)));
-
-    assertThat(instance1.edges(0), is(instance2.edges(0)));
-    assertThat(instance1.edges(1), is(instance2.edges(1)));
-  }
-
-  @Test
-  @SuppressWarnings("PMD.UseAssertEqualsInsteadOfAssertTrue")
-  public void performanceSafetyEdges() {
-    var formula = LtlParser.parse(LARGE_ALPHABET);
+  public void testTreeSerialisationPerformance() {
+    var formula = LtlParser.parse("(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v)"
+      + "& X G (w | x | y)");
     assertThat(formula.variables().size(), is(25));
 
-    var automaton = AutomatonUtil.cast(translator.apply(formula), EquivalenceClass.class,
-      AllAcceptance.class);
-    JniAutomaton instance = new JniAutomaton<>(automaton, EquivalenceClass::isTrue);
+    var instance1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula),
+      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+    var instance2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula.not()),
+      EquivalenceClass.class, BuchiAcceptance.class), EquivalenceClass::isTrue);
 
-    var automaton2 = Views.replaceInitialState(automaton, automaton.initialStates());
-    JniAutomaton instance2 = new JniAutomaton<>(automaton2, EquivalenceClass::isTrue);
-    instance2.explicitBuild = true;
-
-    assertTrue(Arrays.equals(instance.edges(0), instance2.edges(0)));
-  }
-
-  @Test
-  public void performanceCoSafetySuccessors() {
-    var formula = LtlParser.parse(LARGE_ALPHABET).not();
-    assertThat(formula.variables().size(), is(25));
-
-    var automaton = AutomatonUtil.cast(translator.apply(formula), EquivalenceClass.class,
-      BuchiAcceptance.class);
-    JniAutomaton instance = new JniAutomaton<>(automaton, EquivalenceClass::isTrue);
-    instance.successors(0);
+    assertThat(instance1.edges(0).length, is(71));
+    assertThat(instance2.edges(0).length, is(71));
   }
 }

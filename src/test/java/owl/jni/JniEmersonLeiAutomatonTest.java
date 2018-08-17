@@ -162,7 +162,7 @@ public class JniEmersonLeiAutomatonTest {
     JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       TlsfParser.parse(tlsf).toFormula().formula(), true, false, AUTO, true);
     JniAutomaton first = automaton.automata.get(0);
-    first.successors(0);
+    first.edges(0);
   }
 
   @Test
@@ -175,7 +175,7 @@ public class JniEmersonLeiAutomatonTest {
     JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       LtlParser.parse(ltl).formula(), true, false, AUTO, true);
     JniAutomaton first = automaton.automata.get(0);
-    first.successors(0);
+    first.edges(0);
   }
 
   @Test

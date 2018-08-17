@@ -109,4 +109,6 @@ public interface EquivalenceClassFactory {
 
   <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
     Function<EquivalenceClass, Set<T>> mapper);
+
+  double trueness(EquivalenceClass clazz);
 }

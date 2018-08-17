@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -98,11 +98,11 @@ public final class IARBuilder<R> {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
     logger.log(Level.FINEST, () -> "Input automaton is\n" + HoaPrinter.toString(rabinAutomaton));
 
-    Set<RabinPair> rabinPairs = Set.copyOf(rabinAutomaton.acceptance().pairs());
+    List<RabinPair> rabinPairs = List.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {
       IARState<R> state = IARState.trivial(rabinAutomaton.initialStates().iterator().next());
       return AutomatonFactory.singleton(rabinAutomaton.factory(), state,
-        new ParityAcceptance(1, Parity.MIN_ODD), Collections.singleton(0));
+        new ParityAcceptance(1, Parity.MIN_ODD), Set.of(0));
     }
 
     // Start analysis
@@ -206,7 +206,7 @@ public final class IARBuilder<R> {
     return new SccProcessingResult<>(interSccConnections, resultTransitionSystem);
   }
 
-  private SccProcessingResult<R> processScc(Set<R> scc, Set<RabinPair> rabinPairs) {
+  private SccProcessingResult<R> processScc(Set<R> scc, Collection<RabinPair> rabinPairs) {
     assert !rabinPairs.isEmpty();
     Set<RabinPair> remainingPairsToCheck = new HashSet<>(rabinPairs);
     ImmutableTable.Builder<R, Edge<R>, ValuationSet> interSccConnectionsBuilder =
@@ -250,7 +250,7 @@ public final class IARBuilder<R> {
 
     Set<RabinPair> activeRabinPairs = seenAllInfSets.get()
       ? Set.copyOf(rabinPairs)
-      : Set.copyOf(Sets.difference(rabinPairs, remainingPairsToCheck));
+      : Set.copyOf(Sets.difference(Set.copyOf(rabinPairs), remainingPairsToCheck));
 
     // TODO This might access the factory in parallel... Maybe we can return a lazy-explore type
     // of automaton that can be evaluated by the main thread?

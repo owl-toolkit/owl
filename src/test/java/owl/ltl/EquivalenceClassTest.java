@@ -189,7 +189,25 @@ public abstract class EquivalenceClassTest {
       formulas[0]);
   }
 
-  @SuppressWarnings("ReuseOfLocalVariable")
+  @Test
+  public void testSubstitute2() {
+    Formula formula = LtlParser.syntax("G (a | X!b) | F c | c");
+    EquivalenceClass clazz = factory.of(formula).unfold();
+
+    Function<Formula, Formula> substitution = x -> {
+      assertThat(x, is(not(instanceOf(Literal.class))));
+
+      if (x instanceof FOperator) {
+        return BooleanConstant.FALSE;
+      }
+
+      return BooleanConstant.TRUE;
+    };
+
+    EquivalenceClass core = clazz.substitute(substitution);
+    assertThat(core, is(factory.getTrue()));
+  }
+
   @Test
   public void testTemporalStep() {
     BitSet stepSet = new BitSet();
@@ -234,21 +252,11 @@ public abstract class EquivalenceClassTest {
   }
 
   @Test
-  public void testRewrite() {
-    Formula formula = LtlParser.syntax("G (a | X!b) | F c | c");
-    EquivalenceClass clazz = factory.of(formula).unfold();
-
-    Function<Formula, Formula> substitution = x -> {
-      assertThat(x, is(not(instanceOf(Literal.class))));
-
-      if (x instanceof FOperator) {
-        return BooleanConstant.FALSE;
-      }
-
-      return BooleanConstant.TRUE;
-    };
-
-    EquivalenceClass core = clazz.substitute(substitution);
-    assertThat(core, is(factory.getTrue()));
+  public void testTruthness() {
+    assertEquals(1.0d, factory.getTrue().trueness(), 0.00000001d);
+    assertEquals(0.75d, factory.of(LtlParser.syntax("a | b")).trueness(), 0.00000001d);
+    assertEquals(0.5d, factory.of(LtlParser.syntax("a")).trueness(), 0.00000001d);
+    assertEquals(0.25d, factory.of(LtlParser.syntax("a & b")).trueness(), 0.00000001d);
+    assertEquals(0.0d, factory.getFalse().trueness(), 0.00000001d);
   }
 }

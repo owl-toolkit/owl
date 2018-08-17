@@ -22,17 +22,17 @@ package owl.jni;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.Iterables;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.Automaton.PreferredEdgeAccess;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -41,7 +41,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationTree;
 import owl.util.annotation.CEntryPoint;
-
 
 // This is a JNI entry point. No touching.
 @SuppressWarnings("unused")
@@ -56,25 +55,29 @@ public final class JniAutomaton<S> {
   private final Automaton<S, ?> automaton;
   private final List<S> index2StateMap;
   private final Object2IntMap<S> state2indexMap;
-  private final int alphabetSize;
-  boolean explicitBuild;
+  private final ToDoubleFunction<S> qualityScore;
 
-  @Nullable
-  private SoftReference<int[]> edgesCache;
-
-  @Nullable
-  private SoftReference<int[]> successorsCache;
-
-  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink) {
-    this(automaton, acceptingSink, detectAcceptance(automaton));
+  JniAutomaton(Automaton<S, ?> automaton) {
+    this(automaton, x -> false, x -> 0.5d, detectAcceptance(automaton));
   }
 
-  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink, Acceptance acceptance) {
+  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink) {
+    this(automaton, acceptingSink, x -> 0.5d, detectAcceptance(automaton));
+  }
+
+  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink,
+    ToDoubleFunction<S> qualityScore) {
+    this(automaton, acceptingSink, qualityScore, detectAcceptance(automaton));
+  }
+
+  JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink,
+    ToDoubleFunction<S> qualityScore, Acceptance acceptance) {
     checkArgument(automaton.initialStates().size() == 1);
 
     this.automaton = automaton;
     this.acceptance = acceptance;
     this.acceptingSink = acceptingSink;
+    this.qualityScore = qualityScore;
 
     index2StateMap = new ArrayList<>();
     index2StateMap.add(this.automaton.onlyInitialState());
@@ -82,8 +85,6 @@ public final class JniAutomaton<S> {
     state2indexMap = new Object2IntOpenHashMap<>();
     state2indexMap.put(this.automaton.onlyInitialState(), 0);
     state2indexMap.defaultReturnValue(UNKNOWN);
-
-    alphabetSize = automaton.factory().alphabetSize();
   }
 
   private static JniAutomaton.Acceptance detectAcceptance(Automaton<?, ?> automaton) {
@@ -129,65 +130,24 @@ public final class JniAutomaton<S> {
     return automaton.acceptance().acceptanceSets();
   }
 
-  private int[] edgeBuffer() {
-    int[] buffer = edgesCache == null ? null : edgesCache.get();
-
-    if (buffer != null) {
-      return buffer;
-    }
-
-    int[] newBuffer = new int[2 << automaton.factory().alphabetSize()];
-    edgesCache = new SoftReference<>(newBuffer);
-    return newBuffer;
-  }
-
-  private int[] successorBuffer() {
-    int[] buffer = successorsCache == null ? null : successorsCache.get();
-
-    if (buffer != null) {
-      return buffer;
-    }
-
-    int[] newBuffer = new int[1 << automaton.factory().alphabetSize()];
-    successorsCache = new SoftReference<>(newBuffer);
-    return newBuffer;
-  }
-
   @CEntryPoint
   public int[] edges(int stateIndex) {
     S state = index2StateMap.get(stateIndex);
-    int[] edges = edgeBuffer();
-
-    if (explicitBuild || automaton.preferredEdgeAccess().get(0) == PreferredEdgeAccess.EDGES) {
-      BitSet valuation = new BitSet();
-      for (int i = 0; i < edges.length; i += 2, increment(valuation)) {
-        Edge<S> edge = automaton.edge(state, valuation);
-        edges[i] = index(edge);
-        edges[i + 1] = colour(edge);
-      }
-    } else {
-      flattenEdges(automaton.edgeTree(state), 0, edges, 0, edges.length);
-    }
-
-    return edges;
+    IntArrayList nodes = new IntArrayList();
+    IntArrayList leaves = new IntArrayList();
+    // Reserve space for offset.
+    nodes.add(-1);
+    serialise(automaton.edgeTree(state), new HashMap<>(), nodes, leaves);
+    // Concatenate.
+    nodes.set(0, nodes.size());
+    nodes.addAll(leaves);
+    return nodes.toIntArray();
   }
 
   @CEntryPoint
-  public int[] successors(int stateIndex) {
+  public double qualityScore(int stateIndex) {
     S state = index2StateMap.get(stateIndex);
-    int[] successors = successorBuffer();
-
-    if (explicitBuild || automaton.preferredEdgeAccess().get(0) == PreferredEdgeAccess.EDGES) {
-      BitSet valuation = new BitSet();
-      for (int i = 0; i < successors.length; i += 1, increment(valuation)) {
-        Edge<S> edge = automaton.edge(state, valuation);
-        successors[i] = index(edge);
-      }
-    } else {
-      flattenSuccessors(automaton.edgeTree(state), 0, successors, 0, successors.length);
-    }
-
-    return successors;
+    return qualityScore.applyAsDouble(state);
   }
 
   int size() {
@@ -214,67 +174,31 @@ public final class JniAutomaton<S> {
     return index;
   }
 
-  private int index(@Nullable Edge<S> edge) {
-    return edge == null ? REJECTING : index(edge.successor());
-  }
+  private int serialise(ValuationTree<Edge<S>> tree, Map<ValuationTree<Edge<S>>, Integer> cache,
+    IntArrayList nodes, IntArrayList leaves) {
+    int index = cache.getOrDefault(tree, Integer.MIN_VALUE);
 
-  private int colour(@Nullable Edge<S> edge) {
-    return edge == null ? REJECTING : edge.largestAcceptanceSet();
-  }
-
-  private void flattenEdges(ValuationTree<Edge<S>> tree, int expectedVariable, int[] buffer,
-    int fromIndex, int toIndex) {
-    assert fromIndex < toIndex : "region empty";
-    assert ((toIndex - fromIndex) & 1) == 0 : "region is odd";
+    if (index != Integer.MIN_VALUE) {
+      return index;
+    }
 
     if (tree instanceof ValuationTree.Node) {
       var node = (ValuationTree.Node<Edge<S>>) tree;
-      int midIndex = (fromIndex + toIndex) >>> 1;
-      assert midIndex - fromIndex == toIndex - midIndex : "region split unequal";
-
-      if (expectedVariable == node.variable) {
-        flattenEdges(node.falseChild, expectedVariable + 1, buffer, fromIndex, midIndex);
-        flattenEdges(node.trueChild, expectedVariable + 1, buffer, midIndex, toIndex);
-      } else {
-        assert expectedVariable < node.variable;
-        flattenEdges(node, expectedVariable + 1, buffer, fromIndex, midIndex);
-        System.arraycopy(buffer, fromIndex, buffer, midIndex, midIndex - fromIndex);
-      }
+      index = nodes.size();
+      nodes.add(node.variable);
+      nodes.add(-1);
+      nodes.add(-1);
+      nodes.set(index + 1, serialise(node.falseChild, cache, nodes, leaves));
+      nodes.set(index + 2, serialise(node.trueChild, cache, nodes, leaves));
     } else {
-      var terminalNode = (ValuationTree.Leaf<Edge<S>>) tree;
-      var edge = Iterables.getOnlyElement(terminalNode.value, null);
-      int index = index(edge);
-      int colour = colour(edge);
-
-      for (int i = fromIndex; i < toIndex; i = i + 2) {
-        buffer[i] = index;
-        buffer[i + 1] = colour;
-      }
+      var edge = Iterables.getOnlyElement(((ValuationTree.Leaf<Edge<S>>) tree).value, null);
+      index = -leaves.size();
+      leaves.add(edge == null ? REJECTING : index(edge.successor()));
+      leaves.add(edge == null ? REJECTING : edge.largestAcceptanceSet());
     }
-  }
 
-  private void flattenSuccessors(ValuationTree<Edge<S>> tree, int expectedVariable, int[] buffer,
-    int fromIndex, int toIndex) {
-    assert fromIndex < toIndex : "region empty";
-
-    if (tree instanceof ValuationTree.Node) {
-      var node = (ValuationTree.Node<Edge<S>>) tree;
-      int midIndex = (fromIndex + toIndex) >>> 1;
-      assert midIndex - fromIndex == toIndex - midIndex : "region split unequal";
-
-      if (expectedVariable == node.variable) {
-        flattenSuccessors(node.falseChild, expectedVariable + 1, buffer, fromIndex, midIndex);
-        flattenSuccessors(node.trueChild, expectedVariable + 1, buffer, midIndex, toIndex);
-      } else {
-        assert expectedVariable < node.variable;
-        flattenSuccessors(node, expectedVariable + 1, buffer, fromIndex, midIndex);
-        System.arraycopy(buffer, fromIndex, buffer, midIndex, midIndex - fromIndex);
-      }
-    } else {
-      var leaf = (ValuationTree.Leaf<Edge<S>>) tree;
-      var edge = Iterables.getOnlyElement(leaf.value, null);
-      Arrays.fill(buffer, fromIndex, toIndex, index(edge));
-    }
+    cache.put(tree, index);
+    return index;
   }
 
   // For the tree annotation "non-existing" or generic types are needed: PARITY, WEAK, BOTTOM
@@ -315,17 +239,6 @@ public final class JniAutomaton<S> {
 
     boolean isLessOrEqualWeak() {
       return this == CO_SAFETY || this == SAFETY || this == WEAK || this == BOTTOM;
-    }
-  }
-
-  private void increment(BitSet bitSet) {
-    for (int index = alphabetSize - 1; index >= 0; index--) {
-      if (bitSet.get(index)) {
-        bitSet.clear(index);
-      } else {
-        bitSet.set(index);
-        return;
-      }
     }
   }
 }

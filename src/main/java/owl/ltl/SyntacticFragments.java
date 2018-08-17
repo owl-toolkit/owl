@@ -34,11 +34,19 @@ public final class SyntacticFragments {
   }
 
   public static boolean isDetBuchiRecognisable(Formula formula) {
+    if (formula instanceof XOperator) {
+      return isDetCoBuchiRecognisable(((XOperator) formula).operand);
+    }
+
     return formula instanceof GOperator && SyntacticFragment.CO_SAFETY
       .contains(((GOperator) formula).operand);
   }
 
   public static boolean isDetCoBuchiRecognisable(Formula formula) {
+    if (formula instanceof XOperator) {
+      return isDetBuchiRecognisable(((XOperator) formula).operand);
+    }
+
     return formula instanceof FOperator && SyntacticFragment.SAFETY
       .contains(((FOperator) formula).operand);
   }
