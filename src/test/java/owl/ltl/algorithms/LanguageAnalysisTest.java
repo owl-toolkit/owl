@@ -19,25 +19,25 @@
 
 package owl.ltl.algorithms;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
 
-public class LanguageAnalysisTest {
+class LanguageAnalysisTest {
 
   @Test
-  public void isSatisfiable() {
+  void isSatisfiable() {
     assertTrue(LanguageAnalysis.isSatisfiable(LtlParser.syntax("F a")));
   }
 
   @Test
-  public void isUnsatisfiable() {
+  void isUnsatisfiable() {
     assertTrue(LanguageAnalysis.isUnsatisfiable(LtlParser.syntax("F a & !a & X G !a")));
   }
 
   @Test
-  public void isUniversal() {
+  void isUniversal() {
     assertTrue(LanguageAnalysis.isUniversal(LtlParser.syntax("X X F a | X X F !a")));
   }
 }

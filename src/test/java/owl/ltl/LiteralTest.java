@@ -19,18 +19,19 @@
 
 package owl.ltl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.BitSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class LiteralTest {
+class LiteralTest {
 
   @Test
-  public void getAtom() {
+  void getAtom() {
     for (int atom = 0; atom < 42; atom++) {
       Literal literal = Literal.of(atom, false);
       Literal notLiteral = Literal.of(atom, true);
@@ -40,7 +41,7 @@ public class LiteralTest {
   }
 
   @Test
-  public void isNegated() {
+  void isNegated() {
     Literal literal = Literal.of(1);
     Literal notLiteral = Literal.of(1, true);
 
@@ -49,25 +50,25 @@ public class LiteralTest {
   }
 
   @Test
-  public void isPureEventual() {
+  void isPureEventual() {
     Literal literal = Literal.of(0);
     assertFalse(literal.isPureEventual());
   }
 
   @Test
-  public void isPureUniversal() {
+  void isPureUniversal() {
     Literal literal = Literal.of(0);
     assertFalse(literal.isPureUniversal());
   }
 
   @Test
-  public void isSuspendable() {
+  void isSuspendable() {
     Literal literal = Literal.of(0);
     assertFalse(literal.isSuspendable());
   }
 
   @Test
-  public void not() {
+  void not() {
     Literal literal = Literal.of(1);
     Literal notLiteral = Literal.of(1, true);
 
@@ -78,7 +79,7 @@ public class LiteralTest {
   }
 
   @Test
-  public void temporalStep() {
+  void temporalStep() {
     Literal literal = Literal.of(1);
     BitSet valuation = new BitSet();
 
@@ -91,14 +92,13 @@ public class LiteralTest {
     assertEquals(BooleanConstant.FALSE, literal.not().temporalStep(valuation));
   }
 
-  @SuppressWarnings("ResultOfObjectAllocationIgnored")
-  @Test(expected = IndexOutOfBoundsException.class)
-  public void testConstructor() {
-    Literal.of(-1);
+  @Test
+  void testConstructor() {
+    Assertions.assertThrows(IndexOutOfBoundsException.class, () -> Literal.of(-1));
   }
 
   @Test
-  public void unfold() {
+  void unfold() {
     Literal literal = Literal.of(1);
     assertEquals(literal, literal.unfold());
   }

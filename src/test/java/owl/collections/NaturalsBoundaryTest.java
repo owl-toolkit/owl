@@ -19,24 +19,22 @@
 
 package owl.collections;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import owl.util.Assertions;
 
-@SuppressWarnings("PMD.ClassNamingConventions")
-public class Collections3Test {
+class NaturalsBoundaryTest {
+
   @Test
-  public void isSubset() {
+  void isSubset() {
     BitSet set1 = new BitSet();
     BitSet set2 = new BitSet();
 
     set1.set(1);
     set2.set(1, 3);
 
-    assertTrue(BitSets.isSubset(set1, set2));
+    Assertions.assertThat(set1, x -> BitSets.isSubset(x, set2));
 
     set1.clear();
     set2.clear();
@@ -44,6 +42,6 @@ public class Collections3Test {
     set1.set(1);
     set2.set(0);
 
-    assertFalse(BitSets.isSubset(set1, set2));
+    Assertions.assertThat(set1, x -> !BitSets.isSubset(x, set2));
   }
 }

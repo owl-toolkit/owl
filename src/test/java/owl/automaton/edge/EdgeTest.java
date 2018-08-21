@@ -19,13 +19,9 @@
 
 package owl.automaton.edge;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -35,16 +31,17 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Theories.class)
-public class EdgeTest {
-  private static final List<TestCase> testCases;
+@SuppressWarnings("PMD.UnusedPrivateMethod")
+class EdgeTest {
 
-  static {
+  private static Stream<Arguments> edgeProvider() {
     int[][] acceptanceSets = {
       {},
       {0},
@@ -60,53 +57,53 @@ public class EdgeTest {
       {1, 2, 3, 5, 7, 11, 13, 17}
     };
 
-    Object[] successors = {
-      "1", "2", "3"
-    };
-
     List<TestCase> testCaseList = new ArrayList<>();
-    for (Object successor : successors) {
+
+    for (String successor : new String[] {"1", "2", "3"}) {
       for (int[] acceptanceSetArray : acceptanceSets) {
         BitSet acceptanceSet = new BitSet();
         for (int acceptance : acceptanceSetArray) {
           acceptanceSet.set(acceptance);
         }
 
-        List<Edge<?>> representatives = new ArrayList<>();
+        List<Edge<String>> representatives = new ArrayList<>();
         representatives.add(Edge.of(successor, acceptanceSet));
         if (acceptanceSetArray.length == 0) {
           representatives.add(Edge.of(successor));
         } else if (acceptanceSetArray.length == 1) {
           representatives.add(Edge.of(successor, acceptanceSetArray[0]));
         }
+        
         testCaseList.add(new TestCase(representatives, successor, acceptanceSet));
       }
     }
 
-    testCases = List.copyOf(testCaseList);
+    return testCaseList.stream().map(Arguments::of);
   }
 
-  @DataPoints
-  public static List<TestCase> dataPoints() {
-    return testCases;
+  private static Stream<Arguments> edgePairProvider() {
+    var arguments = edgeProvider().collect(Collectors.toList());
+    return IntStream.range(0, arguments.size()).mapToObj(i -> {
+      TestCase case1 = (TestCase) arguments.get(i).get()[0];
+      TestCase case2 = (TestCase) arguments.get(i + 1 < arguments.size() ? i + 1 : 0).get()[0];
+      return Arguments.of(case1, case2);
+    });
   }
 
-  @Theory
-  public void inSet(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void inSet(TestCase testCase) {
     IntList acceptance = testCase.getAcceptance();
     for (Edge<?> edge : testCase.getEdges()) {
       for (int i = 0; i < 200; i++) {
-        if (acceptance.contains(i)) {
-          assertTrue(edge.inSet(i));
-        } else {
-          assertFalse(edge.inSet(i));
-        }
+        assertEquals(acceptance.contains(i), edge.inSet(i));
       }
     }
   }
 
-  @Theory
-  public void inSetConsistent(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void inSetConsistent(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       OfInt iterator = edge.acceptanceSetIterator();
       while (iterator.hasNext()) {
@@ -115,8 +112,9 @@ public class EdgeTest {
     }
   }
 
-  @Theory
-  public void iterator(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void iterator(TestCase testCase) {
     IntList acceptance = testCase.getAcceptance();
 
     for (Edge<?> edge : testCase.getEdges()) {
@@ -125,10 +123,9 @@ public class EdgeTest {
     }
   }
 
-  @Theory
-  public void testEqualsAndHashCodeDifferent(TestCase first, TestCase second) {
-    assumeThat(first, not(sameInstance(second)));
-
+  @ParameterizedTest
+  @MethodSource("edgePairProvider")
+  void testEqualsAndHashCodeDifferent(TestCase first, TestCase second) {
     for (Edge<?> firstEdge : first.getEdges()) {
       for (Edge<?> secondEdge : second.getEdges()) {
         assertNotEquals(firstEdge, secondEdge);
@@ -136,8 +133,9 @@ public class EdgeTest {
     }
   }
 
-  @Theory
-  public void testEqualsAndHashCodeSame(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void testEqualsAndHashCodeSame(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       for (Edge<?> otherEdge : testCase.getEdges()) {
         assertEquals(edge, otherEdge);
@@ -146,15 +144,17 @@ public class EdgeTest {
     }
   }
 
-  @Theory
-  public void testSuccessor(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void testSuccessor(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       assertEquals(edge.successor(), testCase.getSuccessor());
     }
   }
 
-  @Theory
-  public void testLargestAcceptanceSet(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void testLargestAcceptanceSet(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       if (testCase.acceptance.isEmpty()) {
         assertEquals(-1, edge.largestAcceptanceSet());
@@ -164,8 +164,9 @@ public class EdgeTest {
     }
   }
 
-  @Theory
-  public void testSmallestAcceptanceSet(TestCase testCase) {
+  @ParameterizedTest
+  @MethodSource("edgeProvider")
+  void testSmallestAcceptanceSet(TestCase testCase) {
     for (Edge<?> edge : testCase.getEdges()) {
       if (testCase.acceptance.isEmpty()) {
         assertEquals(Integer.MAX_VALUE, edge.smallestAcceptanceSet());
@@ -180,7 +181,7 @@ public class EdgeTest {
     final List<Edge<?>> edges;
     final Object successor;
 
-    TestCase(List<Edge<?>> edges, Object successor, BitSet acceptance) {
+    TestCase(List<Edge<String>> edges, Object successor, BitSet acceptance) {
       this.edges = List.copyOf(edges);
       this.successor = successor;
       this.acceptance = new IntArrayList(acceptance.cardinality());

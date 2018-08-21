@@ -19,22 +19,23 @@
 
 package owl.translations.nba2dpa;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static owl.util.Assertions.assertThat;
 
+import java.util.stream.Stream;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.junit.Test;
-import owl.automaton.Automaton;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.AutomatonReader;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrinter;
-import owl.factories.FactorySupplier;
 import owl.run.DefaultEnvironment;
 
-public class NBA2DPATest {
+@SuppressWarnings("PMD.UnusedPrivateMethod")
+class NBA2DPATest {
 
   private static final String INPUT = "HOA: v1\n"
     + "States: 2\n"
@@ -271,78 +272,32 @@ public class NBA2DPATest {
     + "[0 & 1] 1\n"
     + "--END--";
 
-  @Test
-  public void testApply() throws ParseException {
-    runTest(INPUT, 4);
+  private static Stream<Arguments> testCases() {
+    return Stream.of(
+      Arguments.of(INPUT, 4),
+      Arguments.of(INPUT2, 1),
+      Arguments.of(INPUT3, 7),
+      Arguments.of(INPUT4, 3),
+      Arguments.of(INPUT5, 3),
+      Arguments.of(INPUT6, 2),
+      Arguments.of(INPUT7, 3),
+      Arguments.of(INPUT8, 6),
+      Arguments.of(INPUT9, 2),
+      Arguments.of(INPUT10, 9),
+      Arguments.of(INPUT15, 12),
+      Arguments.of(INPUT16, 7),
+      Arguments.of(INPUT17, 3));
   }
 
-  @Test
-  public void testApply2() throws ParseException {
-    runTest(INPUT2, 1);
-  }
+  @ParameterizedTest
+  @MethodSource("testCases")
+  void runTest(String input, int size) throws ParseException {
+    var nba = AutomatonReader.readHoa(input, DefaultEnvironment.annotated()
+      .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
+    var dpa = new NBA2DPA().apply(nba);
 
-  @Test
-  public void testApply3() throws ParseException {
-    runTest(INPUT3, 7);
-  }
-
-  @Test
-  public void testApply4() throws ParseException {
-    runTest(INPUT4, 3);
-  }
-
-  @Test
-  public void testApply5() throws ParseException {
-    runTest(INPUT5, 3);
-  }
-
-  @Test
-  public void testApply6() throws ParseException {
-    runTest(INPUT6, 2);
-  }
-
-  @Test
-  public void testApply7() throws ParseException {
-    runTest(INPUT7, 3);
-  }
-
-  @Test
-  public void testApply8() throws ParseException {
-    runTest(INPUT8, 6);
-  }
-
-  @Test
-  public void testApply9() throws ParseException {
-    runTest(INPUT9, 2);
-  }
-
-  @Test
-  public void testApply10() throws ParseException {
-    runTest(INPUT10, 9);
-  }
-
-  @Test
-  public void testApply15() throws ParseException {
-    runTest(INPUT15, 12);
-  }
-
-  @Test
-  public void testApply16() throws ParseException {
-    runTest(INPUT16, 7);
-  }
-
-  @Test
-  public void testApply17() throws ParseException {
-    runTest(INPUT17, 3);
-  }
-
-  private void runTest(String input, int size) throws ParseException {
-    FactorySupplier supplier = DefaultEnvironment.annotated().factorySupplier();
-
-    Automaton<?, ParityAcceptance> dpa = new NBA2DPA().apply(
-      AutomatonReader.readHoa(input, supplier, GeneralizedBuchiAcceptance.class));
-
+    assertThat(dpa.acceptance(), ParityAcceptance.class::isInstance);
+    assertThat(dpa.size(), x -> x <= size);
     HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertThat(dpa.size(), lessThanOrEqualTo(size));
   }
 }

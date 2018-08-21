@@ -19,22 +19,20 @@
 
 package owl.ltl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hamcrest.Matchers;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.parser.LtlParser;
 
-@RunWith(Theories.class)
-public class FormulaFactoryTest {
+@SuppressWarnings("PMD.UnusedPrivateMethod")
+class FormulaFactoryTest {
   private static final List<String> variables = List.of("a", "b");
 
-  @DataPoints
-  public static final List<List<String>> ofPairs = List.<List<String>>of(
+  private static final List<List<String>> ofPairs = List.<List<String>>of(
     // ** and / or **
     List.of("a & false", "false"),
     List.of("a & true", "a"),
@@ -112,17 +110,23 @@ public class FormulaFactoryTest {
     List.of("(G a) W b", "(G a) | b")
   );
 
-  @Theory
-  public void testOf(List<String> pair) {
-    Formula actual = LtlParser.syntax(pair.get(0), variables);
-    Formula expected = LtlParser.syntax(pair.get(1), variables);
-    assertThat(actual, Matchers.is(expected));
+  private static Stream<Arguments> pairProvider() {
+    return ofPairs.stream().map(Arguments::of);
   }
 
-  @Theory
-  public void testNegOf(List<String> pair) {
+  @ParameterizedTest
+  @MethodSource("pairProvider")
+  void testOf(List<String> pair) {
+    Formula actual = LtlParser.syntax(pair.get(0), variables);
+    Formula expected = LtlParser.syntax(pair.get(1), variables);
+    assertEquals(expected, actual);
+  }
+
+  @ParameterizedTest
+  @MethodSource("pairProvider")
+  void testNegOf(List<String> pair) {
     Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
     Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
-    assertThat(actual, Matchers.is(expected));
+    assertEquals(expected, actual);
   }
 }

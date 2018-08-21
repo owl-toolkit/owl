@@ -19,15 +19,15 @@
 
 package owl.translations.dpa2safety;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
-public class Dpa2SafetyTest {
+class Dpa2SafetyTest {
 
   @Test
-  public void test() {
+  void test() {
     LTL2DPAFunction dpaConstructor = new LTL2DPAFunction(DefaultEnvironment.standard(),
       LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     DPA2Safety safetyConstructor = new DPA2Safety<>();

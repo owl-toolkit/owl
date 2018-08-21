@@ -40,4 +40,5 @@ public interface FactorySupplier {
   default boolean isThreadSafe() {
     return false;
   }
+
 }

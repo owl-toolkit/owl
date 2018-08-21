@@ -19,7 +19,9 @@
 
 package owl.translations;
 
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
@@ -28,6 +30,7 @@ import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNF
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
+import static owl.util.Assertions.assertThat;
 
 import com.google.common.collect.Streams;
 import java.io.BufferedReader;
@@ -37,20 +40,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
-import org.hamcrest.Matchers;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import owl.automaton.Automaton;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.output.HoaPrinter;
@@ -65,21 +66,17 @@ import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 import owl.translations.ltl2dra.LTL2DRAFunction;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
-@SuppressWarnings("PMD.UseUtilityClass")
-public abstract class SizeRegressionTests<T> {
-  static final String BASE_PATH = "data/formulas";
-  static final Pattern DATA_SPLIT_PATTERN = Pattern.compile("[();]");
+abstract class SizeRegressionTests<T> {
+  private static final String BASE_PATH = "data/formulas";
+  private static final Pattern DATA_SPLIT_PATTERN = Pattern.compile("[();]");
 
   private final ToIntFunction<T> getAcceptanceSets;
   private final ToIntFunction<T> getStateCount;
-  private final FormulaSet selectedClass;
   private final String tool;
   private final Function<LabelledFormula, ? extends T> translator;
 
-  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  SizeRegressionTests(FormulaSet selectedClass, Function<LabelledFormula, ? extends T> translator,
+  SizeRegressionTests(Function<LabelledFormula, ? extends T> translator,
     ToIntFunction<T> getStateCount, ToIntFunction<T> getAcceptanceSets, String tool) {
-    this.selectedClass = selectedClass;
     this.translator = translator;
     this.getStateCount = getStateCount;
     this.getAcceptanceSets = getAcceptanceSets;
@@ -91,11 +88,11 @@ public abstract class SizeRegressionTests<T> {
     return String.format("%s (%s); %s (%s)", posStateCount, posAccSize, negStateCount, negAccSize);
   }
 
-  static int getAcceptanceSetsSize(Automaton<?, ?> automaton) {
+  private static int getAcceptanceSetsSize(Automaton<?, ?> automaton) {
     return automaton.acceptance().acceptanceSets();
   }
 
-  static int getAcceptanceSetsSize(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
+  private static int getAcceptanceSetsSize(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
     return getAcceptanceSetsSize(automaton.acceptingComponent());
   }
 
@@ -110,7 +107,7 @@ public abstract class SizeRegressionTests<T> {
   }
 
   private void assertSizes(LabelledFormula formula, T automaton, int expectedStateCount,
-    int expectedAcceptanceSets, int index, List<String> errorMessages) {
+    int expectedAcceptanceSets) {
     int actualStateCount = getStateCount.applyAsInt(automaton);
     int actualAcceptanceSets = getAcceptanceSets.applyAsInt(automaton);
 
@@ -118,53 +115,42 @@ public abstract class SizeRegressionTests<T> {
     HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()),
       EnumSet.noneOf(HoaPrinter.HoaOption.class));
 
-    // Check size of the state space
-    if (actualStateCount != expectedStateCount) {
-      String errorMessage = String.format("Formula %d: Expected %d states, got %d (%s)",
-        index, expectedStateCount, actualStateCount, formula);
-      System.err.println("Error: " + errorMessage); // NOPMD
-      errorMessages.add(errorMessage);
-    }
+    assertEquals(expectedStateCount, actualStateCount, () -> String.format(
+      "Formula %s: Expected %d states, got %d", formula, expectedStateCount, actualStateCount));
 
-    if (actualAcceptanceSets != expectedAcceptanceSets) {
-      String errorMessage = String.format("Formula %d: Expected %d acceptance sets, got %d (%s)",
-        index, expectedAcceptanceSets, actualAcceptanceSets, formula);
-      System.err.println("Error: " + errorMessage); // NOPMD
-      errorMessages.add(errorMessage);
-    }
+    assertEquals(expectedAcceptanceSets, actualAcceptanceSets, () ->
+      String.format("Formula %s: Expected %d acceptance sets, got %d",
+        formula, expectedAcceptanceSets, actualAcceptanceSets));
   }
 
-  @Test
-  public void test() throws IOException {
-    List<String> errorMessages = Collections.synchronizedList(new ArrayList<>());
-
+  @ParameterizedTest
+  @EnumSource(FormulaSet.class)
+  void test(FormulaSet selectedClass) throws IOException {
     try (BufferedReader formulasFile = Files.newBufferedReader(selectedClass.getFile());
          BufferedReader sizesFile = Files.newBufferedReader(selectedClass.getSizes(tool))) {
+      Stream<Executable> executableStream = Streams.zip(formulasFile.lines(), sizesFile.lines(),
+        (formulaString, sizeString) -> () -> {
+          if (formulaString.trim().isEmpty()) {
+            assertThat(sizeString.trim(), String::isEmpty);
+            return;
+          }
 
-      AtomicInteger lineIndex = new AtomicInteger(0);
+          var formula = SimplifierFactory
+            .apply(LtlParser.parse(formulaString), Mode.SYNTACTIC_FIXPOINT);
+          int[] sizes = readSpecification(sizeString);
+          assertSizes(formula, translator.apply(formula), sizes[0], sizes[1]);
+          formula = formula.not();
+          assertSizes(formula, translator.apply(formula), sizes[2], sizes[3]);
+        });
 
-      Streams.forEachPair(formulasFile.lines(), sizesFile.lines(), (formulaString, sizeString) -> {
-        int index = lineIndex.incrementAndGet();
-        if (formulaString.trim().isEmpty()) {
-          assertThat(sizeString.trim(), Matchers.isEmptyString());
-          return;
-        }
-
-        LabelledFormula formula = SimplifierFactory
-          .apply(LtlParser.parse(formulaString), Mode.SYNTACTIC_FIXPOINT);
-        int[] sizes = readSpecification(sizeString);
-        assertSizes(formula, translator.apply(formula), sizes[0], sizes[1], index, errorMessages);
-        formula = formula.not();
-        assertSizes(formula, translator.apply(formula), sizes[2], sizes[3], index, errorMessages);
-      });
+      assertAll(getClass().getSimpleName() + ' ' + selectedClass, executableStream);
     }
-
-    assertThat(getClass().getSimpleName() + ' ' + selectedClass, errorMessages,
-      Matchers.emptyCollectionOf(String.class));
   }
 
-  // @Test
-  public void train() throws IOException {
+  @Disabled
+  @ParameterizedTest
+  @EnumSource(FormulaSet.class)
+  void train(FormulaSet selectedClass) throws IOException {
     List<String> lines = new ArrayList<>();
     try (BufferedReader formulasFile = Files.newBufferedReader(selectedClass.getFile())) {
       formulasFile.lines().forEach((formulaString) -> {
@@ -202,64 +188,65 @@ public abstract class SizeRegressionTests<T> {
       return Paths.get(String.format("%s/%s.ltl", BASE_PATH, name));
     }
 
-    public Path getSizes(String tool) {
+    Path getSizes(String tool) {
       return Paths.get(String.format("%s/sizes/%s.%s.sizes", BASE_PATH, name, tool));
     }
   }
 
-  public abstract static class DPA extends SizeRegressionTests<Automaton<?, ?>> {
+  abstract static class DPA extends SizeRegressionTests<Automaton<?, ?>> {
 
-
-    DPA(FormulaSet selectedClass, LTL2DPAFunction translator, String configuration) {
-      super(selectedClass, translator, Automaton::size,
+    DPA(LTL2DPAFunction translator, String configuration) {
+      super(translator, Automaton::size,
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2dpa." + configuration);
     }
 
-    @RunWith(Parameterized.class)
-    public static class Breakpoint extends DPA {
+    static class Breakpoint extends DPA {
       static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(
         COMPRESS_COLOURS,
         OPTIMISE_INITIAL_STATE,
         Configuration.OPTIMISED_STATE_STRUCTURE, // NOPMD
         EXISTS_SAFETY_CORE);
 
-      public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL),
-          "breakpoint");
+      Breakpoint() {
+        super(new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL), "breakpoint");
       }
 
-      @Parameterized.Parameters(name = "Group: {0}")
-      public static Collection<FormulaSet> data() {
-        return EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE);
+      @ParameterizedTest
+      @EnumSource(FormulaSet.class)
+      @Override
+      void test(FormulaSet selectedClass) throws IOException {
+        assumeTrue(selectedClass == FormulaSet.BASE || selectedClass == FormulaSet.SIZE);
+        super.test(selectedClass);
       }
     }
 
-    @RunWith(Parameterized.class)
-    public static class BreakpointFree extends DPA {
+    static class BreakpointFree extends DPA {
       static final EnumSet<LTL2DPAFunction.Configuration> DPA_ALL = EnumSet.of(GUESS_F,
         COMPRESS_COLOURS,
         OPTIMISE_INITIAL_STATE,
         Configuration.OPTIMISED_STATE_STRUCTURE, // NOPMD
         EXISTS_SAFETY_CORE);
 
-      public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL),
-          "breakpointfree");
+      BreakpointFree() {
+        super(new LTL2DPAFunction(DefaultEnvironment.annotated(), DPA_ALL), "breakpointfree");
       }
 
-      @Parameterized.Parameters(name = "Group: {0}")
-      public static Collection<FormulaSet> data() {
-        return EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE);
+      @ParameterizedTest
+      @EnumSource(FormulaSet.class)
+      @Override
+      void test(FormulaSet selectedClass) throws IOException {
+        assumeTrue(selectedClass == FormulaSet.BASE || selectedClass == FormulaSet.SIZE);
+        super.test(selectedClass);
       }
     }
   }
 
-  @RunWith(Parameterized.class)
-  public static class Delag extends SizeRegressionTests<Automaton<?, ?>> {
+
+  static class Delag extends SizeRegressionTests<Automaton<?, ?>> {
 
     @SuppressWarnings({"unchecked", "rawtypes", "PMD.UnnecessaryFullyQualifiedName"})
-    public Delag(FormulaSet selectedClass) {
-      super(selectedClass, formula -> new DelagBuilder(DefaultEnvironment.annotated(),
+    Delag() {
+      super(formula -> new DelagBuilder(DefaultEnvironment.annotated(),
           new LTL2DRAFunction(DefaultEnvironment.annotated(), EnumSet.of(
             LTL2DRAFunction.Configuration.OPTIMISE_INITIAL_STATE,
             LTL2DRAFunction.Configuration.OPTIMISED_STATE_STRUCTURE,
@@ -268,86 +255,55 @@ public abstract class SizeRegressionTests<T> {
         Automaton::size,
         SizeRegressionTests::getAcceptanceSetsSize, "delag");
     }
-
-    @Parameterized.Parameters(name = "Group: {0}")
-    public static Collection<FormulaSet> data() {
-      return EnumSet.allOf(FormulaSet.class);
-    }
   }
 
-  public abstract static class LDBA
-    extends SizeRegressionTests<LimitDeterministicAutomaton<?, ?, ?, ?>> {
+  abstract static class LDBA extends SizeRegressionTests<LimitDeterministicAutomaton<?, ?, ?, ?>> {
 
-    static final EnumSet<LTL2LDBAFunction.Configuration> LDBA_ALL = EnumSet.of(
-      EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
+    static final EnumSet<LTL2LDBAFunction.Configuration> LDBA_ALL =
+      EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
 
-    LDBA(FormulaSet selectedClass, LTL2LDBAFunction<?, ?, ?> translator, String configuration) {
-      super(selectedClass, translator, LimitDeterministicAutomaton::size,
+    LDBA(LTL2LDBAFunction<?, ?, ?> translator, String configuration) {
+      super(translator, LimitDeterministicAutomaton::size,
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2ldba." + configuration);
     }
 
-    @RunWith(Parameterized.class)
-    public static class Breakpoint extends LDBA {
-      public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
+    static class Breakpoint extends LDBA {
+      Breakpoint() {
+        super((LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
             .createDegeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(), LDBA_ALL),
           "breakpoint");
       }
-
-      @Parameterized.Parameters(name = "Group: {0}")
-      public static Collection<FormulaSet> data() {
-        return EnumSet.allOf(FormulaSet.class);
-      }
     }
 
-    @RunWith(Parameterized.class)
-    public static class BreakpointFree extends LDBA {
-      public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
+    static class BreakpointFree extends LDBA {
+      BreakpointFree() {
+        super((LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
             .createDegeneralizedBreakpointFreeLDBABuilder(DefaultEnvironment.annotated(), LDBA_ALL),
           "breakpointfree");
-      }
-
-      @Parameterized.Parameters(name = "Group: {0}")
-      public static Collection<FormulaSet> data() {
-        return EnumSet.allOf(FormulaSet.class);
       }
     }
   }
 
-  public abstract static class LDGBA
-    extends SizeRegressionTests<LimitDeterministicAutomaton<?, ?, ?, ?>> {
+  abstract static class LDGBA extends SizeRegressionTests<LimitDeterministicAutomaton<?, ?, ?, ?>> {
 
-    LDGBA(FormulaSet selectedClass, LTL2LDBAFunction<?, ?, ?> translator, String configuration) {
-      super(selectedClass, translator, LimitDeterministicAutomaton::size,
+    LDGBA(LTL2LDBAFunction<?, ?, ?> translator, String configuration) {
+      super(translator, LimitDeterministicAutomaton::size,
         SizeRegressionTests::getAcceptanceSetsSize, "ltl2ldgba." + configuration);
     }
 
-    @RunWith(Parameterized.class)
-    public static class Breakpoint extends LDGBA {
-      public Breakpoint(FormulaSet selectedClass) {
-        super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
+    static class Breakpoint extends LDGBA {
+      Breakpoint() {
+        super((LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
             .createGeneralizedBreakpointLDBABuilder(DefaultEnvironment.annotated(), LDBA.LDBA_ALL),
           "breakpoint");
       }
-
-      @Parameterized.Parameters(name = "Group: {0}")
-      public static Collection<FormulaSet> data() {
-        return EnumSet.allOf(FormulaSet.class);
-      }
     }
 
-    @RunWith(Parameterized.class)
-    public static class BreakpointFree extends LDGBA {
-      public BreakpointFree(FormulaSet selectedClass) {
-        super(selectedClass, (LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
+    static class BreakpointFree extends LDGBA {
+      BreakpointFree() {
+        super((LTL2LDBAFunction<?, ?, ?>) LTL2LDBAFunction
             .createGeneralizedBreakpointFreeLDBABuilder(DefaultEnvironment.annotated(),
               LDBA.LDBA_ALL), "breakpointfree");
-      }
-
-      @Parameterized.Parameters(name = "Group: {0}")
-      public static Collection<FormulaSet> data() {
-        return EnumSet.allOf(FormulaSet.class);
       }
     }
   }

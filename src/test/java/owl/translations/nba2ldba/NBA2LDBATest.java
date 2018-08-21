@@ -23,16 +23,14 @@ import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.junit.Test;
-import owl.automaton.Automaton;
+import org.junit.jupiter.api.Test;
 import owl.automaton.AutomatonReader;
-import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
 import owl.automaton.output.HoaPrinter;
 import owl.run.DefaultEnvironment;
 
-public class NBA2LDBATest {
+class NBA2LDBATest {
 
   private static final String INPUT = "HOA: v1\n"
     + "States: 2\n"
@@ -94,30 +92,30 @@ public class NBA2LDBATest {
     + "--END--";
 
   @Test
-  public void testApply() throws ParseException {
+  void testApply() throws ParseException {
     runTest(INPUT);
   }
 
   @Test
-  public void testApply2() throws ParseException {
+  void testApply2() throws ParseException {
     runTest(INPUT2);
   }
 
   @Test
-  public void testApply3() throws ParseException {
+  void testApply3() throws ParseException {
     runTest(INPUT3);
   }
 
   @Test
-  public void testApply4() throws ParseException {
+  void testApply4() throws ParseException {
     runTest(INPUT4);
   }
 
   private void runTest(String input) throws ParseException {
     var translation = new NBA2LDBA(false, EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
 
-    Automaton<HoaState, GeneralizedBuchiAcceptance> automaton = AutomatonReader.readHoa(input,
-      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class);
+    var automaton = AutomatonReader.readHoa(input, DefaultEnvironment.annotated()
+      .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
 
     HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrinter.feedTo(translation.apply(automaton),

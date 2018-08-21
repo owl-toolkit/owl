@@ -19,30 +19,29 @@
 
 package owl.translations.ltl2ldba;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 
-public class SubstitutionTest {
+class SubstitutionTest {
 
   private static final List<String> ALPHABET = List.of("a", "b");
 
   @Test
-  public void testFgSubstitution() {
+  void testFgSubstitution() {
     Formula formula = LtlParser.syntax("a U (X((G(F(G(b)))) & (F(X(X(G(b)))))))");
 
     Formula operator1 = LtlParser.syntax("G b", ALPHABET);
     FGSubstitution visitor1 = new FGSubstitution(Set.of(operator1));
-    assertThat(formula.accept(visitor1), is(BooleanConstant.FALSE));
+    assertEquals(BooleanConstant.FALSE, formula.accept(visitor1));
 
     Formula operator2 = LtlParser.syntax("G F G b", ALPHABET);
     FGSubstitution visitor2 = new FGSubstitution(Set.of(operator1, operator2));
-    assertThat(formula.accept(visitor2), is(BooleanConstant.TRUE));
+    assertEquals(BooleanConstant.TRUE, formula.accept(visitor2));
   }
 }

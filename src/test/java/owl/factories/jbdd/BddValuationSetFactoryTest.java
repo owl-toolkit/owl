@@ -19,47 +19,47 @@
 
 package owl.factories.jbdd;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static owl.util.Assertions.assertThat;
 
 import de.tum.in.jbdd.BddFactory;
 import java.util.BitSet;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import owl.collections.ValuationSet;
 
-public class BddValuationSetFactoryTest {
-  private List<String> alphabet;
+class BddValuationSetFactoryTest {
+  private static final List<String> ALPHABET = List.of("a", "b", "c", "d", "e");
   private ValuationFactory factory;
 
-  @Before
-  public void setUp() {
-    alphabet = List.of("a", "b", "c", "d", "e");
-    factory = new ValuationFactory(BddFactory.buildBdd(1024), alphabet);
+  @BeforeEach
+  void beforeEach() {
+    factory = new ValuationFactory(BddFactory.buildBdd(1024), ALPHABET);
   }
 
   @Test
-  public void testCreateEmptyValuationSet() {
-    assertTrue(factory.empty().isEmpty());
+  void testCreateEmptyValuationSet() {
+    assertThat(factory.empty(), ValuationSet::isEmpty);
   }
 
   @Test
-  public void testCreateUniverseValuationSet() {
+  void testCreateUniverseValuationSet() {
     ValuationSet universe = factory.universe();
     ValuationSet empty = factory.empty();
-    BitSet alphabet = new BitSet(this.alphabet.size());
-    alphabet.set(0, this.alphabet.size());
+    BitSet alphabet = new BitSet(ALPHABET.size());
+    alphabet.set(0, ALPHABET.size());
     for (BitSet element : de.tum.in.naturals.bitset.BitSets.powerSet(alphabet)) {
-      assertTrue(universe.contains(element));
+      assertThat(universe, x -> x.contains(element));
       empty = factory.union(empty, factory.of(element));
     }
-    assertEquals(empty, universe);
+
+    assertEquals(universe, empty);
   }
 
   @Test
-  public void testGetAlphabet() {
-    assertEquals(alphabet.size(), factory.alphabetSize());
+  void testGetAlphabet() {
+    assertEquals(ALPHABET.size(), factory.alphabetSize());
   }
 }
 

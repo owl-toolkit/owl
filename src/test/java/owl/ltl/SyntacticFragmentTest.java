@@ -19,18 +19,16 @@
 
 package owl.ltl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.junit.Test;
-import org.junit.experimental.theories.DataPoints;
+import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
 
-public class SyntacticFragmentTest {
+class SyntacticFragmentTest {
 
-  @DataPoints
-  public static final List<Formula> FORMULAS;
+  private static final List<Formula> FORMULAS;
 
   static {
     FORMULAS = List.of(
@@ -47,12 +45,12 @@ public class SyntacticFragmentTest {
   }
 
   @Test
-  public void isCoSafety() {
+  void isCoSafety() {
     assertTrue(SyntacticFragment.CO_SAFETY.contains(FORMULAS.get(0)));
   }
 
   @Test
-  public void isX() {
+  void isX() {
     assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(0)));
     assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(1)));
     assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(2)));
@@ -61,5 +59,4 @@ public class SyntacticFragmentTest {
     assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(5)));
     assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(8)));
   }
-
 }

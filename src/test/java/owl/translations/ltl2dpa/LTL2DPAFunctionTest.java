@@ -19,11 +19,10 @@
 
 package owl.translations.ltl2dpa;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static owl.util.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrinter;
@@ -31,7 +30,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 
-public class LTL2DPAFunctionTest {
+class LTL2DPAFunctionTest {
 
   private static void testOutput(String ltl, int size, int accSize) {
     LabelledFormula parseResult = LtlParser.parse(ltl);
@@ -39,27 +38,26 @@ public class LTL2DPAFunctionTest {
       LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
     String automatonString = HoaPrinter.toString(automaton);
-    assertEquals(automatonString, size, automaton.size());
-    assertThat(automatonString, automaton.acceptance().acceptanceSets(),
-      Matchers.lessThanOrEqualTo(accSize));
+    assertEquals(size, automaton.size(), automatonString);
+    assertThat(automaton.acceptance().acceptanceSets(), x -> x <= accSize, automatonString);
   }
 
   @Test
-  public void testRegression1() {
+  void testRegression1() {
     String ltl = "G (F (a & (a U b)))";
     testOutput(ltl, 2, 3);
     testOutput("! " + ltl, 2, 4);
   }
 
   @Test
-  public void testRegression2() {
+  void testRegression2() {
     String ltl = "G (F (a & X (F b)))";
     testOutput(ltl, 2, 3);
     testOutput("! " + ltl, 2, 2);
   }
 
   @Test
-  public void testRegression3() {
+  void testRegression3() {
     String ltl = "F ((a | (G b)) & (c | (G d)) & (e | (G f)))";
     testOutput(ltl, 213, 3);
   }

@@ -19,87 +19,84 @@
 
 package owl.translations.fgx2dpa;
 
-import static org.junit.Assert.assertThat;
+import static owl.util.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.output.HoaPrinter;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 
-public class SafetyAutomatonTest {
+class SafetyAutomatonTest {
 
   private static void testOutput(String ltl, int size) {
     Automaton<State, ParityAcceptance> automaton =
       SafetyAutomaton.build(DefaultEnvironment.standard(), LtlParser.parse(ltl));
-    assertThat("Invalid size for automaton:\n" + HoaPrinter.toString(automaton),
-      automaton.size(), Matchers.lessThanOrEqualTo(size));
+    assertThat(automaton.size(), x -> x <= size);
   }
 
   @Test
-  public void testA() {
+  void testA() {
     testOutput("F(Ga|Gb|GFc)", 2);
     //Size for formula: 2, Size for negation: 2
   }
 
   @Test
-  public void testB() {
+  void testB() {
     testOutput("Fa|GFb",2);
     //Size for formula: 2, Size for negation: 2
   }
 
   @Test
-  public void testC() {
+  void testC() {
     testOutput("G(Xa&Gb)", 3);
     //Size for formula: 3, Size for negation: 3
   }
 
   @Test
-  public void testD() {
+  void testD() {
     testOutput("GFa&GFb", 2);
     //Size for formula: 2, Size for negation: 2
   }
 
   @Test
-  public void testE() {
+  void testE() {
     testOutput("G(F(a&Xb))", 2);
     //Size for formula: 2, Size for negation: 2
   }
 
   @Test
-  public void testF() {
+  void testF() {
     testOutput("F(Gb|GFc)", 1);
     //Size for formula: 1, Size for negation: 1
   }
 
   @Test
-  public void testG() {
+  void testG() {
     testOutput("F(GFc|Gc)", 1);
     //Size for formula: 1, Size for negation: 1
   }
 
   @Test
-  public void testH() {
+  void testH() {
     testOutput("F(Gb|GF(a|XXc))&F(GFc|G(d&X(a&Xb)))", 21);
     //Size for formula: 38, Size for negation: 21
   }
 
   @Test
-  public void testI() {
+  void testI() {
     testOutput("F(G(Xa|F(b|c)))", 4);
     //Size for formula: 4, Size for negation: 4
   }
 
   @Test
-  public void testJ() {
+  void testJ() {
     testOutput("FGF(a|b)", 1);
     //Size for formula: 1, Size for negation: 1
   }
 
   @Test
-  public void testK() {
+  void testK() {
     testOutput("F(Gc|GFd)&F(Ga|GFb)&F(Gh|GFk)", 6);
     //Size for formula: 1152, Size for negation: 6
   }
@@ -108,67 +105,67 @@ public class SafetyAutomatonTest {
   ///The Benchmarks 1 - 11 are extracted from the following paper:
   ///Deterministic Automata for the (F,G)-fragment of LTL, Section 8
   @Test
-  public void testBenchmark01() {
+  void testBenchmark01() {
     testOutput("(FGp0|GFp1)&(FGp2|GFp3)", 2);
     //Size for formula: 4, Size for negation: 2
   }
 
   @Test
-  public void testBenchmark02() {
+  void testBenchmark02() {
     testOutput("(GFp0&GFp1&GFp2&GFp3&GFp4)->GFp5", 5);
     //Size for formula: 120, Size for negation: 5
   }
 
   @Test
-  public void testBenchmark03() {
+  void testBenchmark03() {
     testOutput("FG(Fp0|GFp1|FG(p0|p1))", 1);
     //Size for formula: 1, Size for negation: 1
   }
 
   @Test
-  public void testBenchmark04() {
+  void testBenchmark04() {
     testOutput("FGp0|FGp1|GFp2", 2);
     //Size for formula: 2, Size for negation: 2
   }
 
   @Test
-  public void testBenchmark05() {
+  void testBenchmark05() {
     testOutput("GF(p0|p1)&GF(p1|p2)", 2);
     //Size for formula: 6, Size for negation: 2
   }
 
   @Test
-  public void testBenchmark06() {
+  void testBenchmark06() {
     testOutput("(G(p1|GFp0)&G(p2|GF!p0))|Gp1|Gp2", 8);
     //Size for formula: 28, Size for negation: 8
   }
 
   @Test
-  public void testBenchmark07() {
+  void testBenchmark07() {
     testOutput("(G(p1|FGp0)&G(p2|FG!p0))|Gp1|Gp2", 4);
     //Size for formula: 40, Size for negation: 4
   }
 
   @Test
-  public void testBenchmark08() {
+  void testBenchmark08() {
     testOutput("(F(p1&FGp0)|F(p2&FG!p0))&Fp1&Fp2", 8);
     //Size for formula: 8, Size for negation: 28
   }
 
   @Test
-  public void testBenchmark09() {
+  void testBenchmark09() {
     testOutput("(F(p1&GFp0)|F(p2&GF!p0))&Fp1&Fp2", 4);
     //Size for formula: 4, Size for negation: 40
   }
 
   @Test
-  public void testBenchmark10() {
+  void testBenchmark10() {
     testOutput("FG(Fp0|GFp1|FG(p0|p1)|FGp1)",  1);
     //Size for formula: 2, Size for negation: 1
   }
 
   @Test
-  public void testBenchmark11() {
+  void testBenchmark11() {
     testOutput("(GFp0->GFp1)&(GFp2->GFp3)&(GFp4->GFp5)", 6);
     //Size for formula: 1152, Size for negation: 6
   }
@@ -176,19 +173,19 @@ public class SafetyAutomatonTest {
   ///The Benchmarks 12 - 17 are extracted from the following paper:
   ///From LTL to Deterministic Automata, Section 9.
   @Test
-  public void testBenchmark12() {
+  void testBenchmark12() {
     testOutput("(GFp0->GFp1)&(GFp1->GFp2)&(GFp2->GFp3)", 6);
     //Size for formula: 388, Size for negation: 6
   }
 
   @Test
-  public void testBenchmark13() {
+  void testBenchmark13() {
     testOutput("G(p1|XGp0)&G(p2|XG!p0)", 5);
     //Size for formula: 5, Size for negation: 5
   }
 
   @Test
-  public void testBenchmark14() {
+  void testBenchmark14() {
     testOutput("(GF(p0&XXp1)|FGp1)&FG(p2|(Xp0&XXp1))", 12);
     //Size for formula: 12, Size for negation: 12
   }
@@ -200,13 +197,13 @@ public class SafetyAutomatonTest {
   }*/
 
   @Test
-  public void testBenchmark16() {
+  void testBenchmark16() {
     testOutput("(GFp0|FGp1)&(GFp1|FGp2)&(GFp2|FGp3)", 6);
     //Size for formula: 383, Size for negation: 6
   }
 
   @Test
-  public void testBenchmark17() {
+  void testBenchmark17() {
     testOutput("(GFp0|FGp1)&(GFp1|FGp2)&(GFp2|FGp3)&(GFp3|FGp4)", 24);
     //Size for formula: too large, Size for negation: 24
   }
@@ -214,19 +211,19 @@ public class SafetyAutomatonTest {
   ///The Benchmarks 18 - 25 are extracted from the following paper:
   ///Limit-Deterministic Büchi Automata for Linear Temporal Logic, Section 9
   @Test
-  public void testBenchmark18() {
+  void testBenchmark18() {
     testOutput("(GFp0)->(GFp1)", 1);
     //Size for formula: 1, Size for negation: 1
   }
 
   @Test
-  public void testBenchmark19() {
+  void testBenchmark19() {
     testOutput("(GFp0&GFp1)->(GFp2&GFp3)", 4);
     //Size for formula: 4, Size for negation: 8
   }
 
   @Test
-  public void testBenchmark20() {
+  void testBenchmark20() {
     testOutput("(GFp0&GFp1&GFp2)->(GFp3&GFp4&GFp5)", 18);
     //Size for formula: 18, Size for negation: 162
   }
@@ -238,7 +235,7 @@ public class SafetyAutomatonTest {
   }*/
 
   @Test
-  public void testBenchmark22() {
+  void testBenchmark22() {
     testOutput("(GFp0|FGp1)&(GFp2|FGp3)", 2);
     //Size for formula: 4, Size for negation: 2
   }
@@ -250,7 +247,7 @@ public class SafetyAutomatonTest {
   }*/
 
   @Test
-  public void testBenchmark24() {
+  void testBenchmark24() {
     testOutput("FG(Gp0|F!p1|GF(p0&Xp1))", 5);
     //Size for formula: 5, Size for negation: 5
   }
@@ -264,32 +261,32 @@ public class SafetyAutomatonTest {
   ///The Benchmarks 26 - 30 are extracted from the following paper:
   ///Small deterministic automata for LTL\GU, Section 3.
   @Test
-  public void testBenchmark26() {
+  void testBenchmark26() {
     testOutput("G(Fp0|F!p0) -> G(p1&Xp1&!p0&Xp0->(p2->Xp3))", 3);
     //Size for formula: 7, Size for negation: 3
   }
 
   @Test
-  public void testBenchmark27() {
+  void testBenchmark27() {
     testOutput("(Xp0&G((!p0&Xp0)->XXp0)&GF!p0&GFp1&GF!p1)->"
       + "(G(p2&p3&!p1&Xp1->X(p0|X(!p3|p0))))", 18);
     //Size for formula: 37, Size for negation: 18
   }
 
   @Test
-  public void testBenchmark28() {
+  void testBenchmark28() {
     testOutput("(GF(p0&XXp1)|FGp1)&FG(p2|(Xp1&XXp1))", 16);
     //Size for formula: 16, Size for negation: 16
   }
 
   @Test
-  public void testBenchmark29() {
+  void testBenchmark29() {
     testOutput("GF(XXXp0&XXXXp1)&GF(p1|Xp2)&GF(p2&XXp0)", 52);
     //Size for formula: 95, Size for negation: 52
   }
 
   @Test
-  public void testBenchmark30() {
+  void testBenchmark30() {
     testOutput("(GFp0|FGp1)&(GFp2|FG(p3|Xp4))", 4);
     //Size for formula: 8, Size for negation: 4
   }

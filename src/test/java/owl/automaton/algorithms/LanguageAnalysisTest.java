@@ -19,9 +19,11 @@
 
 package owl.automaton.algorithms;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.EnumSet;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.LabelledFormula;
@@ -29,10 +31,10 @@ import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 
-public class LanguageAnalysisTest {
+class LanguageAnalysisTest {
 
   @Test
-  public void contains() {
+  void contains() {
     LabelledFormula formula1 = LtlParser.parse("G F (a & b)");
     LabelledFormula formula2 = LtlParser.parse("G F a");
     LabelledFormula formula3 = LtlParser.parse("G F (X a & (a U X b))");
@@ -46,13 +48,13 @@ public class LanguageAnalysisTest {
     var infOftComplex
       = AutomatonUtil.cast(translation.apply(formula3), Object.class, BuchiAcceptance.class);
 
-    Assert.assertTrue(LanguageAnalysis.contains(infOftAandB, infOftA));
-    Assert.assertFalse(LanguageAnalysis.contains(infOftA, infOftAandB));
+    assertTrue(LanguageAnalysis.contains(infOftAandB, infOftA));
+    assertFalse(LanguageAnalysis.contains(infOftA, infOftAandB));
 
-    Assert.assertTrue(LanguageAnalysis.contains(infOftComplex, infOftA));
-    Assert.assertFalse(LanguageAnalysis.contains(infOftA, infOftComplex));
+    assertTrue(LanguageAnalysis.contains(infOftComplex, infOftA));
+    assertFalse(LanguageAnalysis.contains(infOftA, infOftComplex));
 
-    Assert.assertTrue(LanguageAnalysis.contains(infOftAandB, infOftComplex));
-    Assert.assertFalse(LanguageAnalysis.contains(infOftComplex, infOftAandB));
+    assertTrue(LanguageAnalysis.contains(infOftAandB, infOftComplex));
+    assertFalse(LanguageAnalysis.contains(infOftComplex, infOftAandB));
   }
 }

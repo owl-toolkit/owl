@@ -19,20 +19,20 @@
 
 package owl.ltl.robust;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class RobustnessTest {
+class RobustnessTest {
   @Test
-  public void testIterationOrder() {
+  void testIterationOrder() {
     Robustness[] values = Robustness.values();
-    assertThat(values[0], is(Robustness.NEVER));
-    assertThat(values[values.length - 1], is(Robustness.ALWAYS));
+    assertEquals(Robustness.NEVER, values[0]);
+    assertEquals(Robustness.ALWAYS, values[values.length - 1]);
+
     for (int i = 0; i < values.length - 1; i++) {
-      assertThat(values[i].stronger(), is(values[i + 1]));
-      assertThat(values[i + 1].weaker(), is(values[i]));
+      assertEquals(values[i].stronger(), values[i + 1]);
+      assertEquals(values[i + 1].weaker(), values[i]);
     }
   }
 }

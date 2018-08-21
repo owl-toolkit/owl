@@ -26,7 +26,7 @@ import owl.factories.ValuationSetFactory;
 
 public class BddValuationSetTest extends ValuationSetTest {
   @Override
-  public ValuationSetFactory setUpFactory(List<String> aliases) {
+  protected ValuationSetFactory setUpFactory(List<String> aliases) {
     return new ValuationFactory(BddFactory.buildBdd(1024), aliases);
   }
 }

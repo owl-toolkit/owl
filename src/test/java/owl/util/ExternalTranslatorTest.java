@@ -19,15 +19,14 @@
 
 package owl.util;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.ExternalTranslator;
 
-public class ExternalTranslatorTest {
+class ExternalTranslatorTest {
 
   private static final String[] FORMULA = {
     "(G F a) | (b U c)",
@@ -42,14 +41,14 @@ public class ExternalTranslatorTest {
   };
 
   @Test
-  public void testApply() {
+  void testApply() {
     // Check if the tool is installed and available.
     try {
       ExternalTranslator tool = new ExternalTranslator(DefaultEnvironment.annotated(), TOOL[0]);
       tool.apply(LtlParser.parse(FORMULA[0]));
     } catch (IllegalStateException ex) {
       // Assumption is always violated now.
-      Assume.assumeThat(true, is(false));
+      assumeTrue(false);
     }
 
     for (int i = 1; i < FORMULA.length; i++) {

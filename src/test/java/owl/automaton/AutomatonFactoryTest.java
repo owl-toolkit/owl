@@ -19,17 +19,16 @@
 
 package owl.automaton;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static owl.util.Assertions.assertThat;
 
 import com.google.common.collect.Maps;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
@@ -39,61 +38,71 @@ import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 
-public class AutomatonFactoryTest {
+class AutomatonFactoryTest {
 
-  @SuppressWarnings("unchecked")
-  @Test
-  public void testSingleton() {
-    ValuationSetFactory factory = DefaultEnvironment.annotated().factorySupplier()
-      .getValuationSetFactory(List.of("a"));
-    Object singletonState = new Object();
-    Automaton<Object, NoneAcceptance> singleton =
-      AutomatonFactory.singleton(factory, singletonState, NoneAcceptance.INSTANCE, Set.of());
-
-    assertThat(singleton.states(), contains(singletonState));
-    assertThat(singleton.acceptance(), is(NoneAcceptance.INSTANCE));
-    assertThat(singleton.edges(singletonState), contains(Edge.of(singletonState)));
-    assertThat(AutomatonUtil.getIncompleteStates(singleton), is(Map.of()));
-    assertThat(DefaultImplementations.getReachableStates(singleton), contains(singletonState));
-  }
+  private static final ValuationSetFactory factory = DefaultEnvironment.annotated()
+    .factorySupplier().getValuationSetFactory(List.of("a"));
 
   @Test
-  public void testUniverse() {
-    ValuationSetFactory factory = DefaultEnvironment.annotated().factorySupplier()
-      .getValuationSetFactory(List.of("a"));
-    Object singletonState = new Object();
-    Automaton<Object, AllAcceptance> singleton =
-      AutomatonFactory.singleton(factory, singletonState, AllAcceptance.INSTANCE, Set.of());
-
-    assertThat(singleton.states(), contains(singletonState));
-    assertThat(singleton.acceptance(), is(AllAcceptance.INSTANCE));
-    //noinspection unchecked
-    assertThat(singleton.edges(singletonState), contains(Edge.of(singletonState)));
-
-    assertThat(AutomatonUtil.getIncompleteStates(singleton).entrySet(), empty());
-    assertThat(DefaultImplementations.getReachableStates(singleton), contains(singletonState));
-    assertThat(singleton.edgeMap(singletonState),
-      is(Map.of(Edge.of(singletonState), factory.universe())));
-  }
-
-  @Test
-  public void create() {
-    var automaton = AutomatonUtil.cast((new LTL2DAFunction(DefaultEnvironment.annotated(), true,
-      EnumSet.of(LTL2DAFunction.Constructions.SAFETY))).apply(LtlParser.parse("G a | b R c")),
-      EquivalenceClass.class, AllAcceptance.class);
+  void testCopy() {
+    var automaton =
+      MutableAutomatonFactory.copy(AutomatonUtil.cast(
+        (new LTL2DAFunction(DefaultEnvironment.annotated(), true, EnumSet.of(
+          LTL2DAFunction.Constructions.SAFETY))).apply(LtlParser.parse("G a | b R c")),
+        EquivalenceClass.class, AllAcceptance.class));
 
     var initialState = automaton.onlyInitialState();
-    var labelledEdges = automaton.edgeMap(automaton.onlyInitialState());
+    var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
 
     automaton.factory().forEach(valuation -> {
       var edge = automaton.edge(initialState, valuation);
-      var matchingEdges = Maps.filterValues(labelledEdges, x -> x.contains(valuation)).keySet();
+      var matchingEdges = Maps.filterValues(edgeMap, x -> x.contains(valuation)).keySet();
 
       if (edge == null) {
-        assertThat(matchingEdges, empty());
+        assertThat(matchingEdges, Set::isEmpty);
       } else {
-        assertThat(matchingEdges, contains(edge));
+        assertThat(matchingEdges, x -> x.contains(edge));
       }
     });
+  }
+
+  @Test
+  void testAcceptingSingleton() {
+    var state = new Object();
+    var states = Set.of(state);
+    var edge = Edge.of(state);
+    var automaton = AutomatonFactory.singleton(factory, state, AllAcceptance.INSTANCE, Set.of());
+
+    assertAll(
+      () -> assertEquals(states, automaton.states()),
+      () -> assertEquals(states, automaton.initialStates()),
+      () -> assertEquals(states, DefaultImplementations.getReachableStates(automaton)),
+
+      () -> assertEquals(Set.of(edge), automaton.edges(state)),
+      () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
+      () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
+
+      () -> assertEquals(AllAcceptance.INSTANCE, automaton.acceptance())
+    );
+  }
+
+  @Test
+  void testRejectingSingleton() {
+    var state = new Object();
+    var states = Set.of(state);
+    var edge = Edge.of(state);
+    var automaton = AutomatonFactory.singleton(factory, state, NoneAcceptance.INSTANCE, Set.of());
+
+    assertAll(
+      () -> assertEquals(states, automaton.states()),
+      () -> assertEquals(states, automaton.initialStates()),
+      () -> assertEquals(states, DefaultImplementations.getReachableStates(automaton)),
+
+      () -> assertEquals(Set.of(edge), automaton.edges(state)),
+      () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
+      () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
+
+      () -> assertEquals(NoneAcceptance.INSTANCE, automaton.acceptance())
+    );
   }
 }

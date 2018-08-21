@@ -19,20 +19,19 @@
 
 package owl.automaton;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static owl.util.Assertions.assertThat;
 
-import com.google.common.collect.Iterables;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.BitSet;
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import jhoafparser.parser.generated.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import owl.automaton.AutomatonReader.HoaState;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -46,7 +45,10 @@ import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
 import owl.run.DefaultEnvironment;
 
-public class AutomatonReaderTest {
+class AutomatonReaderTest {
+
+  private static final Function<List<String>, ValuationSetFactory> FACTORY_SUPPLIER =
+    DefaultEnvironment.annotated().factorySupplier()::getValuationSetFactory;
 
   private static final String HOA_BUCHI = "HOA: v1\n"
     + "States: 2\n"
@@ -179,142 +181,122 @@ public class AutomatonReaderTest {
     + "[!0] 0\n"
     + "--END--\n";
 
-  private static Int2ObjectMap<HoaState> getStates(Automaton<HoaState, ?> automaton) {
-    Int2ObjectMap<HoaState> states = new Int2ObjectLinkedOpenHashMap<>(
-      automaton.size());
+  private static Map<Integer, HoaState> getStates(Automaton<HoaState, ?> automaton) {
+    Map<Integer, HoaState> states = new LinkedHashMap<>();
     automaton.states().forEach(state ->  {
       int stateId = state.id;
-      assertThat(states.containsKey(stateId), is(false));
+      assertFalse(states.containsKey(stateId));
       states.put(stateId, state);
     });
-    assertThat(states.size(), is(automaton.size()));
+    assertEquals(states.size(), automaton.size());
     return states;
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  public void readAutomatonBuchi() throws ParseException {
+  void readAutomatonBuchi() throws ParseException {
     Automaton<HoaState, BuchiAcceptance> automaton = AutomatonReader.readHoa(HOA_BUCHI,
-      DefaultEnvironment.annotated().factorySupplier(), BuchiAcceptance.class);
-    assertThat(automaton.size(), is(2));
-    Int2ObjectMap<HoaState> states = getStates(automaton);
+      FACTORY_SUPPLIER, BuchiAcceptance.class);
+    assertThat(automaton.size(), x -> x == 2);
+    var stateMap = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.factory();
 
-    assertThat(automaton.onlyInitialState(), is(states.get(1)));
-    assertThat(automaton.edgeMap(states.get(1)),
-      is(Map.of(Edge.of(states.get(0)), valuationSetFactory.of(createBitSet(true)))));
-    assertThat(automaton.edgeMap(states.get(0)),
-      is(Map.of(Edge.of(states.get(0), 0), valuationSetFactory.universe())));
-  }
-
-  @Test(expected = ParseException.class)
-  public void readAutomatonInvalid() throws ParseException {
-    AutomatonReader.readHoaCollection(HOA_INVALID,
-      DefaultEnvironment.annotated().factorySupplier());
-  }
-
-  @Test(expected = ParseException.class)
-  public void readAutomatonMissingAccName() throws ParseException {
-    AutomatonReader.readHoaCollection(HOA_MISSING_ACC_NAME,
-      DefaultEnvironment.annotated().factorySupplier());
+    assertThat(automaton.onlyInitialState(), stateMap.get(1)::equals);
+    assertThat(automaton.edgeMap(stateMap.get(1)),
+      Map.of(Edge.of(stateMap.get(0)), valuationSetFactory.of(0))::equals);
+    assertThat(automaton.edgeMap(stateMap.get(0)),
+      Map.of(Edge.of(stateMap.get(0), 0), valuationSetFactory.universe())::equals);
   }
 
   @Test
-  public void readAutomatonParity() throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(HOA_PARITY,
-      DefaultEnvironment.annotated().factorySupplier());
-    Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
+  void readAutomatonInvalid() {
+    Assertions.assertThrows(ParseException.class,
+      () -> AutomatonReader.readHoa(HOA_INVALID, FACTORY_SUPPLIER));
+  }
 
-    assertThat(automaton.acceptance(), instanceOf(ParityAcceptance.class));
-    ParityAcceptance acceptance = (ParityAcceptance) automaton.acceptance();
-    assertThat(acceptance.acceptanceSets(), is(3));
-    assertThat(acceptance.parity(), is(Parity.MIN_ODD));
+  @Test
+  void readAutomatonMissingAccName() {
+    Assertions.assertThrows(ParseException.class,
+      () -> AutomatonReader.readHoa(HOA_MISSING_ACC_NAME, FACTORY_SUPPLIER));
+  }
+
+  @Test
+  void readAutomatonParity() throws ParseException {
+    var automaton = AutomatonReader.readHoa(HOA_PARITY, FACTORY_SUPPLIER);
+
+    assertThat(automaton.acceptance(), ParityAcceptance.class::isInstance);
+
+    var acceptance = (ParityAcceptance) automaton.acceptance();
+    assertThat(acceptance.acceptanceSets(), x -> x == 3);
+    assertThat(acceptance.parity(), Parity.MIN_ODD::equals);
 
     HoaState initialState = automaton.onlyInitialState();
     HoaState successor = automaton.successor(initialState, createBitSet(false, false));
-    assertThat(successor, notNullValue());
+    assertThat(successor, Objects::nonNull);
 
-    Edge<HoaState> initialToSucc = automaton.edge(initialState,
-      createBitSet(false, false));
-    assertThat(initialToSucc, notNullValue());
-    assertThat(initialToSucc.acceptanceSetIterator().nextInt(), is(2));
+    Edge<HoaState> initialToSucc = automaton.edge(initialState, createBitSet(false, false));
+    assertThat(initialToSucc, Objects::nonNull);
+    assertThat(initialToSucc.acceptanceSetIterator().nextInt(), x -> x == 2);
 
     Edge<HoaState> succToInitial = automaton.edge(successor, createBitSet(true, false));
-    assertThat(succToInitial, notNullValue());
-    assertThat(succToInitial.acceptanceSetIterator().nextInt(), is(1));
+    assertThat(succToInitial, Objects::nonNull);
+    assertThat(succToInitial.acceptanceSetIterator().nextInt(), x -> x == 1);
 
     Edge<HoaState> succToSucc = automaton.edge(successor, createBitSet(false, true));
-    assertThat(succToSucc, notNullValue());
-    assertThat(succToSucc.acceptanceSetIterator().hasNext(), is(false));
+    assertThat(succToSucc, Objects::nonNull);
+    assertFalse(succToSucc.acceptanceSetIterator().hasNext());
   }
 
   @Test
-  public void readAutomatonSimple() throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(HOA_SIMPLE,
-      DefaultEnvironment.annotated().factorySupplier());
-    assertThat(automata.size(), is(1));
-    Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
-    assertThat(automaton.size(), is(2));
-    assertThat(automaton.acceptance(), instanceOf(AllAcceptance.class));
+  void readAutomatonSimple() throws ParseException {
+    var automaton = AutomatonReader.readHoa(HOA_SIMPLE, FACTORY_SUPPLIER);
+    assertThat(automaton.size(), x -> x == 2);
+    assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);
 
-    HoaState initialState = automaton.onlyInitialState();
-    assertThat(initialState.id, is(0));
+    var initialState = automaton.onlyInitialState();
+    assertThat(initialState.id, x -> x == 0);
+    assertThat(automaton.successor(initialState, createBitSet(true)), initialState::equals);
 
-    assertThat(automaton.successor(initialState, createBitSet(true)), is(initialState));
-
-    HoaState successor = automaton.successor(initialState, createBitSet(false));
-    assertThat(successor, notNullValue());
-    assertThat(successor.id, is(1));
-    assertThat(automaton.successor(successor, createBitSet(false)), is(initialState));
-    assertThat(automaton.successor(successor, createBitSet(true)), nullValue());
+    var successor = automaton.successor(initialState, createBitSet(false));
+    assertThat(successor, Objects::nonNull);
+    assertThat(successor.id, x -> x == 1);
+    assertThat(automaton.successor(successor, createBitSet(false)), initialState::equals);
+    assertThat(automaton.successor(successor, createBitSet(true)), Objects::isNull);
   }
 
   @Test
-  public void testAcceptanceGeneralizedBuchi() throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERALIZED_BUCHI, DefaultEnvironment.annotated().factorySupplier());
-    Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
+  void testAcceptanceGeneralizedBuchi() throws ParseException {
+    var automaton = AutomatonReader.readHoa(HOA_GENERALIZED_BUCHI, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), is(1));
-    assertThat(automaton.acceptance(), instanceOf(GeneralizedBuchiAcceptance.class));
-    GeneralizedBuchiAcceptance acceptance = (GeneralizedBuchiAcceptance) automaton.acceptance();
-    assertThat(acceptance.acceptanceSets(), is(2));
+    assertThat(automaton.size(), x -> x == 1);
+    assertThat(automaton.acceptance(), GeneralizedBuchiAcceptance.class::isInstance);
+    assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
 
   @Test
-  public void testAcceptanceGeneralizedRabin() throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERALIZED_RABIN, DefaultEnvironment.annotated().factorySupplier());
-    Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
+  void testAcceptanceGeneralizedRabin() throws ParseException {
+    var automaton = AutomatonReader.readHoa(HOA_GENERALIZED_RABIN, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), is(2));
-    assertThat(automaton.acceptance(), instanceOf(GeneralizedRabinAcceptance.class));
-    GeneralizedRabinAcceptance acceptance = (GeneralizedRabinAcceptance) automaton.acceptance();
-    assertThat(acceptance.acceptanceSets(), is(5));
+    assertThat(automaton.size(), x -> x == 2);
+    assertThat(automaton.acceptance(), GeneralizedRabinAcceptance.class::isInstance);
+    assertThat(automaton.acceptance().acceptanceSets(), x -> x == 5);
   }
 
   @Test
-  public void testAcceptanceGeneric() throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_GENERIC, DefaultEnvironment.annotated().factorySupplier());
-    Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
+  void testAcceptanceGeneric() throws ParseException {
+    var automaton = AutomatonReader.readHoa(HOA_GENERIC, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), is(3));
-    assertThat(automaton.acceptance(), instanceOf(EmersonLeiAcceptance.class));
-    EmersonLeiAcceptance acceptance = (EmersonLeiAcceptance) automaton.acceptance();
-    assertThat(acceptance.acceptanceSets(), is(2));
+    assertThat(automaton.size(), x -> x == 3);
+    assertThat(automaton.acceptance(), EmersonLeiAcceptance.class::isInstance);
+    assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
 
   @Test
-  public void testAcceptanceRabin() throws ParseException {
-    Collection<Automaton<HoaState, ?>> automata = AutomatonReader.readHoaCollection(
-      HOA_RABIN, DefaultEnvironment.annotated().factorySupplier());
-    Automaton<HoaState, ?> automaton = Iterables.getOnlyElement(automata);
+  void testAcceptanceRabin() throws ParseException {
+    var automaton = AutomatonReader.readHoa(HOA_RABIN, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), is(3));
-    assertThat(automaton.acceptance(), instanceOf(RabinAcceptance.class));
-    RabinAcceptance acceptance = (RabinAcceptance) automaton.acceptance();
-    assertThat(acceptance.acceptanceSets(), is(2));
+    assertThat(automaton.size(), x -> x == 3);
+    assertThat(automaton.acceptance(), RabinAcceptance.class::isInstance);
+    assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
 
   private static BitSet createBitSet(boolean... indices) {
@@ -324,6 +306,7 @@ public class AutomatonReaderTest {
         bitSet.set(i);
       }
     }
+
     return bitSet;
   }
 }
