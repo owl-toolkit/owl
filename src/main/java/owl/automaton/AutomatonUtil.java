@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
-import javax.annotation.Nullable;
 import org.immutables.value.Value;
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -131,29 +130,14 @@ public final class AutomatonUtil {
 
     EdgeMapVisitor<S> visitor = new EdgeMapVisitor<>() {
       private final ValuationSetFactory factory = automaton.factory();
-      @Nullable
-      private ValuationSet valuationSet = null;
 
       @Override
-      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
-        assert valuationSet == null;
-        this.valuationSet = factory.union(edgeMap.values());
-      }
+      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
+        ValuationSet set = factory.union(edgeMap.values());
 
-      @Override
-      public void enter(S state) {
-        // NOP
-      }
-
-      @Override
-      public void exit(S state) {
-        assert valuationSet != null;
-
-        if (!valuationSet.isUniverse()) {
-          incompleteStates.put(state, valuationSet.complement());
+        if (!set.isUniverse()) {
+          incompleteStates.put(state, set.complement());
         }
-
-        this.valuationSet = null;
       }
     };
 
@@ -166,30 +150,18 @@ public final class AutomatonUtil {
 
     EdgeMapVisitor<S> visitor = new EdgeMapVisitor<>() {
       private final ValuationSet emptyValuationSet = automaton.factory().empty();
-      private boolean nondeterministicState = false;
 
       @Override
-      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
         ValuationSet union = emptyValuationSet;
 
         for (ValuationSet valuationSet : edgeMap.values()) {
-          if (nondeterministicState || union.intersects(valuationSet)) {
-            nondeterministicState = true;
+          if (union.intersects(valuationSet)) {
+            nondeterministicStates.add(state);
+            return;
           } else {
             union = valuationSet.union(valuationSet);
           }
-        }
-      }
-
-      @Override
-      public void enter(S state) {
-        this.nondeterministicState = false;
-      }
-
-      @Override
-      public void exit(S state) {
-        if (nondeterministicState) {
-          nondeterministicStates.add(state);
         }
       }
     };

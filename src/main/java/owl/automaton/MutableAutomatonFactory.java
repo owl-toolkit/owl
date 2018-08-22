@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.Automaton.EdgeVisitor;
 import owl.automaton.Automaton.Visitor;
@@ -150,8 +149,6 @@ public final class MutableAutomatonFactory {
   }
 
   private static class CopyVisitor<S> implements EdgeVisitor<S>, EdgeMapVisitor<S> {
-    @Nullable
-    private S currentState = null;
     private final MutableAutomaton<S, ?> target;
 
     private CopyVisitor(MutableAutomaton<S, ?> target) {
@@ -159,26 +156,18 @@ public final class MutableAutomatonFactory {
     }
 
     @Override
-    public void visit(Edge<S> edge, BitSet valuation) {
-      assert currentState != null;
-      target.addEdge(currentState, valuation, edge);
+    public void visit(S state, BitSet valuation, Edge<S> edge) {
+      target.addEdge(state, valuation, edge);
     }
 
     @Override
-    public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
-      assert currentState != null;
-      edgeMap.forEach((x, y) -> target.addEdge(currentState, y, x));
+    public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
+      edgeMap.forEach((x, y) -> target.addEdge(state, y, x));
     }
 
     @Override
     public void enter(S state) {
-      currentState = state;
       target.addState(state);
-    }
-
-    @Override
-    public void exit(S state) {
-      currentState = null;
     }
   }
 }

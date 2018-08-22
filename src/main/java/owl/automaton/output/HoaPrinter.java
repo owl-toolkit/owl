@@ -117,8 +117,8 @@ public final class HoaPrinter {
       }
 
       @Override
-      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
-        hoa.visitor.visit(TypeUtil.cast(edgeMap));
+      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
+        hoa.visitor.visit(state, TypeUtil.cast(edgeMap));
       }
     };
 

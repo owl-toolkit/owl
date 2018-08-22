@@ -24,11 +24,8 @@ import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
-import owl.collections.ValuationTree;
 
 final class DefaultImplementations {
 
@@ -46,13 +43,13 @@ final class DefaultImplementations {
 
       for (BitSet valuation : powerSet) {
         for (Edge<S> edge : automaton.edges(state, valuation)) {
-          visitor.visit(edge, valuation);
-
           S successor = edge.successor();
 
           if (exploredStates.add(successor)) {
             workQueue.add(successor);
           }
+
+          visitor.visit(state, valuation, edge);
         }
       }
 
@@ -68,9 +65,8 @@ final class DefaultImplementations {
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();
-      visitor.enter(state);
-      Map<Edge<S>, ValuationSet> edges = automaton.edgeMap(state);
-      visitor.visit(edges);
+
+      var edges = automaton.edgeMap(state);
       edges.keySet().forEach((edge) -> {
         S successor = edge.successor();
 
@@ -79,6 +75,8 @@ final class DefaultImplementations {
         }
       });
 
+      visitor.enter(state);
+      visitor.visit(state, edges);
       visitor.exit(state);
     }
 
@@ -91,9 +89,8 @@ final class DefaultImplementations {
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();
-      visitor.enter(state);
-      ValuationTree<Edge<S>> edges = automaton.edgeTree(state);
-      visitor.visit(edges);
+
+      var edges = automaton.edgeTree(state);
       edges.values().forEach((edge) -> {
         S successor = edge.successor();
 
@@ -102,6 +99,8 @@ final class DefaultImplementations {
         }
       });
 
+      visitor.enter(state);
+      visitor.visit(state, edges);
       visitor.exit(state);
     }
 

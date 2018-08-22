@@ -199,14 +199,14 @@ final class HoaConsumerExtended<S> {
     }
 
     @Override
-    public void visit(Edge<S> edge, BitSet valuation) {
+    public void visit(S state, BitSet valuation, Edge<S> edge) {
       IntArrayList accSets = new IntArrayList();
       edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
       addEdgeBackend(valuation, edge.successor(), accSets);
     }
 
     @Override
-    public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
+    public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
       edgeMap.forEach((edge, valuationSet) -> {
         S end = edge.successor();
 

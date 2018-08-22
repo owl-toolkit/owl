@@ -19,8 +19,8 @@
 
 package owl.game.algorithms;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.List;
@@ -53,7 +53,7 @@ public class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("a"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(true));
+    assertTrue(ParityGameSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -68,7 +68,7 @@ public class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("r_0", "r_1"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(false));
+    assertFalse(ParityGameSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -84,7 +84,7 @@ public class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("go", "cancel", "req"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(false));
+    assertFalse(ParityGameSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -97,6 +97,6 @@ public class ParityGameSolverTest {
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("r_0", "r_1"));
 
-    assertThat(ParityGameSolver.zielonkaRealizability(game), equalTo(true));
+    assertTrue(ParityGameSolver.zielonkaRealizability(game));
   }
 }

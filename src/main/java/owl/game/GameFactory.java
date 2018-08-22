@@ -124,8 +124,8 @@ public final class GameFactory {
     }
 
     @Override
-    public Set<S> predecessors(S state) {
-      return graph.predecessors(state);
+    public Set<S> predecessors(S successor) {
+      return graph.predecessors(successor);
     }
 
     @Override

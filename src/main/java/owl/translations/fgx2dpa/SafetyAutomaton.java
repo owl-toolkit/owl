@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.AutomatonFactory;
@@ -46,7 +45,6 @@ import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
-import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
@@ -307,28 +305,10 @@ public final class SafetyAutomaton {
     Map<StateReduction, State> reduction = new HashMap<>();
     Map<State, State> reductionMap = new HashMap<>();
 
-    EdgeMapVisitor<State> visitor = new EdgeMapVisitor<>() {
-      @Nullable
-      Map<State, ValuationSet> successors = null;
-
-      @Override
-      public void visit(Map<Edge<State>, ValuationSet> edgeMap) {
-        assert successors == null;
-        successors = Collections3.transformMap(edgeMap, Edge::successor);
-      }
-
-      @Override
-      public void enter(State state) {
-        // NOP.
-      }
-
-      @Override
-      public void exit(State state) {
-        assert successors != null;
-        reductionMap.put(state, reduction.computeIfAbsent(StateReduction.of(state, successors),
-          k -> state));
-        successors = null;
-      }
+    EdgeMapVisitor<State> visitor = (state, edgeMap) -> {
+      var successors = Collections3.transformMap(edgeMap, Edge::successor);
+      reductionMap.put(state, reduction.computeIfAbsent(StateReduction.of(state, successors),
+        k -> state));
     };
 
     automaton.accept(visitor);
