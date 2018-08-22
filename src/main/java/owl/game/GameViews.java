@@ -205,8 +205,8 @@ public final class GameViews {
     }
 
     @Override
-    public Set<S> predecessors(S state) {
-      return filteredAutomaton.predecessors(state);
+    public Set<S> predecessors(S successor) {
+      return filteredAutomaton.predecessors(successor);
     }
 
     @Override
@@ -367,16 +367,16 @@ public final class GameViews {
     }
 
     @Override
-    public Set<Node<S>> predecessors(Node<S> node) {
-      if (!node.isFirstPlayersTurn()) {
-        return Set.of(Node.of(node.state()));
+    public Set<Node<S>> predecessors(Node<S> successor) {
+      if (!successor.isFirstPlayersTurn()) {
+        return Set.of(Node.of(successor.state()));
       }
 
       Set<Node<S>> predecessors = new HashSet<>();
 
       for (S predecessor : automaton.states()) {
         automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
-          if (node.state().equals(edge.successor())) {
+          if (successor.state().equals(edge.successor())) {
             valuations.forEach(set -> {
               BitSet localSet = BitSets.copyOf(set);
               localSet.and(firstPlayer);

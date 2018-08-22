@@ -248,35 +248,21 @@ public interface Automaton<S, A extends OmegaAcceptance> {
   }
 
   /**
-   * Returns the predecessors of the specified {@code state}.
+   * Returns the predecessors of the specified {@code successor}.
    *
-   * @param state
-   *     The starting state of the transition.
+   * @param successor
+   *     The successor for which the predecessor set needs to be computed.
    *
    * @return The predecessor set.
    */
-  default Set<S> predecessors(S state) {
+  default Set<S> predecessors(S successor) {
     Set<S> predecessors = new HashSet<>();
 
     var visitor = new EdgeMapVisitor<S>() {
-      boolean isPredecessor = false;
-
       @Override
-      public void enter(S state) {
-        isPredecessor = false;
-      }
-
-      @Override
-      public void exit(S state) {
-        if (isPredecessor) {
+      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
+        if (edgeMap.keySet().stream().anyMatch(x -> x.successor().equals(successor))) {
           predecessors.add(state);
-        }
-      }
-
-      @Override
-      public void visit(Map<Edge<S>, ValuationSet> edgeMap) {
-        if (edgeMap.keySet().stream().anyMatch(x -> x.successor().equals(state))) {
-          isPredecessor = true;
         }
       }
     };
@@ -406,20 +392,62 @@ public interface Automaton<S, A extends OmegaAcceptance> {
   }
 
   interface Visitor<S> {
-    void enter(S state);
 
-    void exit(S state);
+    /**
+     * Called when entering a state. The default implementation does nothing in order to allow
+     * subinterfaces to be functional interfaces.
+     *
+     * @param state the entered state.
+     */
+    default void enter(S state) {
+      // Default implementation does nothing.
+    }
+
+    /**
+     * Called when leaving a state. The default implementation does nothing in order to allow
+     * subinterfaces to be functional interfaces.
+     *
+     * @param state the left state.
+     */
+    default void exit(S state) {
+      // Default implementation does nothing.
+    }
   }
 
+  @FunctionalInterface
   interface EdgeVisitor<S> extends Visitor<S> {
-    void visit(Edge<S> edge, BitSet valuation);
+
+    /**
+     * An outgoing edge of the state, might be called several times.
+     *
+     * @param state the state
+     * @param valuation the valuation for the edge
+     * @param edge the edge
+     */
+    void visit(S state, BitSet valuation, Edge<S> edge);
   }
 
+  @FunctionalInterface
   interface EdgeMapVisitor<S> extends Visitor<S> {
-    void visit(Map<Edge<S>, ValuationSet> edgeMap);
+
+    /**
+     * The edge map associated with the state. Called exactly once for each state.
+     *
+     * @param state the state
+     * @param edgeMap the edge-tree
+     */
+    void visit(S state, Map<Edge<S>, ValuationSet> edgeMap);
   }
 
+  @FunctionalInterface
   interface EdgeTreeVisitor<S> extends Visitor<S> {
-    void visit(ValuationTree<Edge<S>> edgeTree);
+
+    /**
+     * The edge map associated with the state. Called exactly once for each state.
+     *
+     * @param state the state
+     * @param edgeTree the edge-tree
+     */
+    void visit(S state, ValuationTree<Edge<S>> edgeTree);
   }
 }

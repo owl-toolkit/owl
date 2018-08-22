@@ -277,7 +277,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     transitions.forEach((state, edges) -> {
       visitor.enter(state);
       edges.forEach((edge, valuations) ->
-        valuations.forEach((valuation) -> visitor.visit(edge, valuation)));
+        valuations.forEach((valuation) -> visitor.visit(state, valuation, edge)));
       visitor.exit(state);
     });
   }
@@ -287,7 +287,17 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     readMode();
     transitions.forEach((state, edges) -> {
       visitor.enter(state);
-      visitor.visit(Collections.unmodifiableMap(edges));
+      visitor.visit(state, Collections.unmodifiableMap(edges));
+      visitor.exit(state);
+    });
+  }
+
+  @Override
+  public void accept(EdgeTreeVisitor<S> visitor) {
+    readMode();
+    transitions.forEach((state, edges) -> {
+      visitor.enter(state);
+      visitor.visit(state, factory().inverse(edges));
       visitor.exit(state);
     });
   }

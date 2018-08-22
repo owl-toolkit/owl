@@ -60,7 +60,7 @@ public abstract class ImplicitCachedStatesAutomaton<S, A extends OmegaAcceptance
     } else {
       for (S state : statesCache) {
         visitor.enter(state);
-        visitor.visit(edgeMap(state));
+        visitor.visit(state, edgeMap(state));
         visitor.exit(state);
       }
     }
@@ -73,7 +73,7 @@ public abstract class ImplicitCachedStatesAutomaton<S, A extends OmegaAcceptance
     } else {
       for (S state : statesCache) {
         visitor.enter(state);
-        visitor.visit(edgeTree(state));
+        visitor.visit(state, edgeTree(state));
         visitor.exit(state);
       }
     }
