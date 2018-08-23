@@ -127,6 +127,18 @@ public abstract class ValuationTree<E> {
     public final ValuationTree<E> falseChild;
 
     private Node(int variable, ValuationTree<E> trueChild, ValuationTree<E> falseChild) {
+      if (variable < 0) {
+        throw new IndexOutOfBoundsException(variable);
+      }
+
+      if (trueChild instanceof Node) {
+        Objects.checkIndex(variable, ((Node) trueChild).variable);
+      }
+
+      if (falseChild instanceof Node) {
+        Objects.checkIndex(variable, ((Node) falseChild).variable);
+      }
+
       this.variable = variable;
       this.trueChild = trueChild;
       this.falseChild = falseChild;
