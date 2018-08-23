@@ -59,8 +59,8 @@ public final class GameUtil {
       return (Binding) input -> {
         checkArgument(input instanceof Game);
         Game<?, ?> game = (Game<?, ?>) input;
-        checkArgument(game.acceptance() instanceof ParityAcceptance);
-        ParityAcceptance acceptance = (ParityAcceptance) game.acceptance();
+        checkArgument(game.automaton().acceptance() instanceof ParityAcceptance);
+        ParityAcceptance acceptance = (ParityAcceptance) game.automaton().acceptance();
         checkArgument(acceptance.parity() == Parity.MAX_EVEN);
         GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, names);
       };
@@ -70,11 +70,12 @@ public final class GameUtil {
 
   public static <S> void toPgSolver(Game<S, ParityAcceptance> game, PrintWriter output,
     boolean names) {
-    assert game.is(Automaton.Property.COMPLETE);
-    ParityAcceptance acceptance = game.acceptance();
+    var automaton = game.automaton();
+    assert automaton.is(Automaton.Property.COMPLETE);
+    ParityAcceptance acceptance = automaton.acceptance();
     checkArgument(acceptance.parity() == Parity.MAX_EVEN, "Invalid acceptance");
     // TODO Support it by adding a pseudo state
-    checkArgument(game.initialStates().size() == 1, "Multiple initial states not supported");
+    checkArgument(automaton.initialStates().size() == 1, "Multiple initial states not supported");
 
     // The format does not support transition acceptance, thus acceptance is encoded into states
     Object2IntMap<PriorityState<S>> stateNumbering = new Object2IntLinkedOpenHashMap<>();
@@ -82,7 +83,7 @@ public final class GameUtil {
 
     int highestPriority = acceptance.acceptanceSets() - 1;
 
-    S initialState = game.onlyInitialState();
+    S initialState = automaton.onlyInitialState();
     stateNumbering.put(PriorityState.of(initialState, highestPriority), 0);
 
     Set<S> reachedStates = new HashSet<>(List.of(initialState));
@@ -96,8 +97,8 @@ public final class GameUtil {
     // Explore the reachable states of the state-acceptance game
     while (!workQueue.isEmpty()) {
       S state = workQueue.poll();
-      Collection<Edge<S>> edges = game.edges(state);
-      checkArgument(!edges.isEmpty(), "Provided game is not complete");
+      var edges = automaton.edges(state);
+      assert !edges.isEmpty() : "Provided game is not complete";
       for (Edge<S> edge : edges) {
         assert acceptance.isWellFormedEdge(edge);
         S successor = edge.successor();
@@ -123,9 +124,9 @@ public final class GameUtil {
       output.print(priorityState.acceptance());
       output.print(' ');
       // TODO Here the semantics might be important?
-      output.print(game.owner(priorityState.state()) == Game.Owner.PLAYER_1 ? 0 : 1);
+      output.print(game.owner(priorityState.state()) == Game.Owner.ENVIRONMENT ? 0 : 1);
 
-      Iterator<Edge<S>> iterator = game.edges(priorityState.state()).iterator();
+      Iterator<Edge<S>> iterator = automaton.edges(priorityState.state()).iterator();
       if (iterator.hasNext()) {
         output.print(' ');
       }

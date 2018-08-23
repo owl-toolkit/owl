@@ -1,6 +1,6 @@
 package owl.game.algorithms;
 
-import static owl.game.Game.Owner.PLAYER_1;
+import static owl.game.Game.Owner.ENVIRONMENT;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +11,7 @@ final class WinningRegions<S> {
   final Set<S> player2;
 
   WinningRegions(Set<S> s, Game.Owner o) {
-    if (PLAYER_1 == o) {
+    if (ENVIRONMENT == o) {
       this.player1 = new HashSet<>(s);
       this.player2 = new HashSet<>();
     } else {
@@ -21,7 +21,7 @@ final class WinningRegions<S> {
   }
 
   void addAll(Set<S> s, Game.Owner o) {
-    if (PLAYER_1 == o) {
+    if (ENVIRONMENT == o) {
       this.player1.addAll(s);
     } else {
       this.player2.addAll(s);
@@ -29,6 +29,6 @@ final class WinningRegions<S> {
   }
 
   Set<S> winningRegion(Game.Owner o) {
-    return PLAYER_1 == o ? this.player1 : this.player2;
+    return ENVIRONMENT == o ? this.player1 : this.player2;
   }
 }

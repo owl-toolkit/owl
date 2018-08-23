@@ -19,82 +19,63 @@
 
 package owl.game.algorithms;
 
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static owl.automaton.AutomatonUtil.cast;
 
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.game.Game;
-import owl.game.GameViews;
-import owl.game.GameViews.Node;
-import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
 class ZielonkaSolverTest {
-  private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
-    DefaultEnvironment.annotated(),
+  private static final LTL2DPAFunction ltl2dpa = new LTL2DPAFunction(DefaultEnvironment.annotated(),
     Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
   void ltl2zielonkaTest1() {
-    LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
-
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
-
-    Game<Node<Object>, ParityAcceptance> game =
-      GameViews.split(automaton, List.of("a"));
+    var formula = LtlParser.parse("F (a <-> X b)");
+    var automaton = cast(ltl2dpa.apply(formula), Object.class, ParityAcceptance.class);
+    var game = Game.of(automaton, List.of("a"));
 
     assertTrue(ZielonkaSolver.zielonkaRealizability(game));
+  }
 
   @Test
   void ltl2zielonkaTest2() {
-    LabelledFormula formula =
-      LtlParser.parse("((((G (F (r_0))) && (G (F (r_1)))) <-> "
-                      + "(G (F (g)))) && (G ((((r_0) && (r_1)) -> "
-                      + "(G (! (g)))) && (true))))");
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
-
-    Game<Node<Object>, ParityAcceptance> game =
-      GameViews.split(automaton, List.of("r_0", "r_1"));
+    var formula = LtlParser.parse("((((GF r_0) && (GF r_1)) <-> (GF g)) "
+      + "&& (G (((r_0 && r_1) -> (G !g)))))");
+    var automaton = cast(ltl2dpa.apply(formula), Object.class, ParityAcceptance.class);
+    var game = Game.of(automaton, List.of("r_0", "r_1"));
 
     assertFalse(ZielonkaSolver.zielonkaRealizability(game));
   }
 
   @Test
   void ltl2zielonkaTest3() {
-    LabelledFormula formula =
-      LtlParser.parse("(G ((((req) -> (X ((grant) && (X ((grant) "
+    var formula = LtlParser.parse("(G ((((req) -> (X ((grant) && (X ((grant) "
                       + "&& (X (grant))))))) && ((grant) -> "
                       + "(X (! (grant))))) && ((cancel) -> "
-                      + "(X ((! (grant)) U (go))))))");
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
-
-    Game<Node<Object>, ParityAcceptance> game =
-      GameViews.split(automaton, List.of("go", "cancel", "req"));
+                      + "(X ((! (grant)) U (go))))))", List.of("go", "cancel", "req", "grant"));
+    var automaton = cast(ltl2dpa.apply(formula), Object.class, ParityAcceptance.class);
+    var game = Game.of(automaton, List.of("go", "cancel", "req"));
 
     assertFalse(ZielonkaSolver.zielonkaRealizability(game));
   }
 
   @Test
   void ltl2zielonkaTest4() {
-    LabelledFormula formula =
-      LtlParser.parse("(((G (F (r_0))) && (G (F (r_1)))) <-> (G (F (g))))");
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
-
-    Game<Node<Object>, ParityAcceptance> game =
-      GameViews.split(automaton, List.of("r_0", "r_1"));
+    var formula = LtlParser.parse("(((G (F (r_0))) && (G (F (r_1)))) <-> (G (F (g))))");
+    var automaton = cast(ltl2dpa.apply(formula), Object.class, ParityAcceptance.class);
+    var game = Game.of(automaton, List.of("r_0", "r_1"));
 
     assertTrue(ZielonkaSolver.zielonkaRealizability(game));
   }

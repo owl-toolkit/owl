@@ -247,30 +247,6 @@ public interface Automaton<S, A extends OmegaAcceptance> {
     return Edges.successors(edges(state));
   }
 
-  /**
-   * Returns the predecessors of the specified {@code successor}.
-   *
-   * @param successor
-   *     The successor for which the predecessor set needs to be computed.
-   *
-   * @return The predecessor set.
-   */
-  default Set<S> predecessors(S successor) {
-    Set<S> predecessors = new HashSet<>();
-
-    var visitor = new EdgeMapVisitor<S>() {
-      @Override
-      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        if (edgeMap.keySet().stream().anyMatch(x -> x.successor().equals(successor))) {
-          predecessors.add(state);
-        }
-      }
-    };
-
-    this.accept(visitor);
-    return predecessors;
-  }
-
   // Automaton Visitor
 
   default void accept(EdgeVisitor<S> visitor) {

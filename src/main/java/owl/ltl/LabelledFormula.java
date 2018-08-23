@@ -74,7 +74,6 @@ public abstract class LabelledFormula {
     return wrap(formula().not());
   }
 
-
   @Override
   public String toString() {
     return PrintVisitor.toString(this, false);

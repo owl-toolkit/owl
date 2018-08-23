@@ -91,7 +91,7 @@ public class TLSF2ArenaFunction implements Function<Tlsf, Game<?, ParityAcceptan
     Automaton<?, ParityAcceptance> automaton = fun.apply(formula);
     System.out.println("The automaton is ready");
     // finally, split the automaton into an arena
-    return GameViews.split(automaton, getPlayer1Propositions(tlsfFormula));
+    return Game.of(automaton, getPlayer1Propositions(tlsfFormula));
   }
 
   private static List<String> getPlayer1Propositions(Tlsf tlsfFormula) {

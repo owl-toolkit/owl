@@ -19,141 +19,50 @@
 
 package owl.game;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
+import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.collections.Collections3;
-import owl.game.output.AigConsumer;
-import owl.game.output.AigFactory;
-import owl.game.output.AigPrintable;
-import owl.game.output.LabelledAig;
+import owl.util.annotation.Tuple;
 
-public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, AigPrintable {
+@Value.Immutable
+@Tuple
+public abstract class Game<S, A extends OmegaAcceptance> {
 
-  Owner owner(S state);
+  public abstract Automaton<S, A> automaton();
 
-  default Set<S> states(Owner owner) {
-    return Sets.filter(states(), x -> owner(x) == owner);
+  public abstract Owner owner(S state);
+
+  public final List<String> variables(Owner owner) {
+    return owner == Owner.ENVIRONMENT ? ENVIRONMENTvariables() : SYSTEMvariables();
   }
 
-  BitSet choice(S state, Owner owner);
+  public abstract List<String> ENVIRONMENTvariables();
 
-  @Override
-  default void feedTo(AigConsumer consumer) {
-    List<String> inputNames = variables(Owner.PLAYER_1);
-    List<String> outputNames = variables(Owner.PLAYER_2);
+  public abstract List<String> SYSTEMvariables();
 
-    AigFactory factory = new AigFactory();
-    inputNames.forEach(consumer::addInput);
-
-    // how many latches will we need?
-    int nStates = states(Owner.PLAYER_2).size();
-    int nLatches = (int) Math.ceil(Math.log(nStates) / Math.log(2));
-
-    // create mapping from states to bitsets of latches + inputs
-    // where the input bits are always set to 0
-    Map<S, BitSet> encoding = new HashMap<>();
-    int iState = inputNames.size() + 1;
-
-    for (S state : states(Owner.PLAYER_2)) {
-      int value = iState;
-      int index = inputNames.size();
-      BitSet b = new BitSet(inputNames.size() + nLatches);
-      while (value != 0) {
-        if (value % 2 != 0) {
-          b.set(index);
-        }
-        index++;
-        value >>>= 1;
-      }
-      encoding.put(state, b);
-      iState += 1;
-    }
-
-    // create a list of LabelledAig for the latches and outputs
-    List<LabelledAig> latches = Lists.newArrayList(
-      Collections.nCopies(nLatches, factory.getFalse()));
-    List<LabelledAig> outputs = Lists.newArrayList(
-      Collections.nCopies(outputNames.size(), factory.getFalse()));
-
-    // iterate through labelled edges to create latch and output formulas
-    for (S player2State : states(Owner.PLAYER_2)) {
-      BitSet stateAndInput = BitSets.copyOf(encoding.get(player2State));
-      stateAndInput.or(choice(player2State, Owner.PLAYER_1));
-      LabelledAig stateAndInputAig = factory.cube(stateAndInput);
-
-      // for all set indices in the output valuation
-      // we update their transition function
-      choice(player2State, Owner.PLAYER_2).stream().forEach(
-        i -> outputs.set(i, factory.disjunction(outputs.get(i), stateAndInputAig)));
-
-      // we do the same for all set indices in the representation
-      // of the successor state
-      encoding.get(Iterables.getOnlyElement(successors(player2State))).stream().forEach(
-        i -> latches.set(i, factory.disjunction(latches.get(i), stateAndInputAig)));
-    }
-
-    // we finish adding the information to the consumer
-    for (LabelledAig a : latches) {
-      consumer.addLatch("", a);
-    }
-
-    Collections3.zip(outputNames, outputs, consumer::addOutput);
+  public static <S, A extends OmegaAcceptance> Game<S, A> of(Automaton<S, A> automaton, List<String> envVariables) {
+    return null;
   }
 
-  default Set<S> predecessors(S state, Owner owner) {
-    return predecessors(Set.of(state), owner);
+  public <B extends OmegaAcceptance> Game<S, B> updateAutomaton(Function<Automaton<S, A>, Automaton<S, B>> updater) {
+    return of(updater.apply(automaton()), ENVIRONMENTvariables());
   }
 
-  default Set<S> predecessors(Collection<S> states) {
-    Set<S> predecessors = new HashSet<>();
-    states.forEach(x -> predecessors.addAll(predecessors(x)));
-    return predecessors;
-  }
-
-  default Set<S> predecessors(Collection<S> state, Owner owner) {
-    return Sets.filter(predecessors(state), x -> owner == owner(x));
-  }
-
-  default Set<S> successors(S state, Owner owner) {
-    return successors(Set.of(state), owner);
-  }
-
-  default Set<S> successors(Collection<S> states) {
-    Set<S> successors = new HashSet<>();
-    states.forEach(x -> successors.addAll(successors(x)));
-    return successors;
-  }
-
-  default Set<S> successors(Collection<S> states, Owner owner) {
-    return Sets.filter(successors(states), x -> owner == owner(x));
-  }
-
-  List<String> variables(Owner owner);
-
-  enum Owner {
+  public enum Owner {
     /**
      * This player wants to dissatisfy the acceptance condition.
      */
-    PLAYER_1,
+    ENVIRONMENT,
+
     /**
      * This player wants to satisfy the acceptance condition.
      */
-    PLAYER_2;
+    SYSTEM;
 
     public Owner opponent() {
-      return this == PLAYER_1 ? PLAYER_2 : PLAYER_1;
+      return this == ENVIRONMENT ? SYSTEM : ENVIRONMENT;
     }
   }
 }

@@ -1,6 +1,5 @@
 package owl.game.algorithms;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +18,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.transformations.BuchiDegeneralization;
 import owl.game.Game;
-import owl.game.GameFactory;
 import owl.game.GameViews;
 import owl.translations.dpa2safety.DPA2Safety;
 
@@ -50,14 +48,13 @@ public class CompositionalSolver {
 
         Automaton<Object, AllAcceptance> safetyAutomaton = AutomatonUtil
           .cast(dpa2safety.apply(parityAutomata.get(i), thresholds[i]), AllAcceptance.class);
-        Game<GameViews.Node<Object>, AllAcceptance> safetyGame = GameFactory
-          .copyOf(GameViews.split(safetyAutomaton, firstPropositions));
-        Set<GameViews.Node<Object>> unsafeStates = Sets
-          .filter(safetyGame.states(), x -> safetyGame.successors(x).isEmpty());
+        Game<Object, AllAcceptance> safetyGame = Game.of(safetyAutomaton, firstPropositions);
+        Set<Object> unsafeStates = Sets
+          .filter(safetyGame.automaton().states(), x -> safetyGame.automaton().successors(x).isEmpty());
         var unsafeStatesAttractor = AttractorSolver
-          .getAttractor(safetyGame, unsafeStates, Game.Owner.PLAYER_1);
+          .compute(safetyGame.automaton(), unsafeStates, true, safetyGame.variables(Game.Owner.ENVIRONMENT));
 
-        if (!unsafeStatesAttractor.contains(safetyGame.onlyInitialState())) {
+        if (!unsafeStatesAttractor.contains(safetyGame.automaton().onlyInitialState())) {
           winning[i] = true;
         } else {
           allWin = false;
@@ -89,13 +86,9 @@ public class CompositionalSolver {
         ? null
         : AutomatonOperations.intersection(safetyAutomatonList);
 
-      var safetyGame = GameFactory
-        .copyOf(GameViews.split(safetyProductAutomaton, firstPropositions));
-      var unsafeStates = Sets
-        .filter(safetyGame.states(), x -> safetyGame.successors(x).isEmpty());
-      var unsafeStatesAttractor = Set.copyOf(Collections2.transform(
-        AttractorSolver.getAttractor(safetyGame, unsafeStates, Game.Owner.PLAYER_1),
-        GameViews.Node::state));
+      var safetyGame = Game.of(safetyProductAutomaton, firstPropositions);
+      var unsafeStates = Sets.filter(safetyGame.automaton().states(), x -> safetyGame.automaton().successors(x).isEmpty());
+      var unsafeStatesAttractor = AttractorSolver.compute(safetyGame.automaton(), unsafeStates, true, safetyGame.variables(Game.Owner.ENVIRONMENT)));
 
       safetyProductAutomaton = Views.filter(safetyProductAutomaton,
         Sets.filter(safetyProductAutomaton.states(), x -> !unsafeStatesAttractor.contains(x)));
@@ -114,26 +107,24 @@ public class CompositionalSolver {
         }
 
         Automaton<?, OmegaAcceptance> product = AutomatonOperations.intersection(builder);
-        WinningRegions<GameViews.Node<Object>> winningRegions;
-        GameViews.Node<Object> initialState;
+        WinningRegions<Object> winningRegions;
+        Object initialState;
 
         if (product.acceptance() instanceof RabinAcceptance) {
-          var game = GameViews
-            .split(AutomatonUtil.cast(product, Object.class, RabinAcceptance.class),
+          var game = Game.of(AutomatonUtil.cast(product, Object.class, RabinAcceptance.class),
               firstPropositions);
           winningRegions = ZielonkaSolver.solveRabinPair(game);
-          initialState = game.onlyInitialState();
+          initialState = game.automaton().onlyInitialState();
         } else if (product.acceptance() instanceof AllAcceptance) {
-          var game = GameViews.split(AutomatonUtil.cast(product, Object.class, AllAcceptance.class),
+          var game = Game.of(AutomatonUtil.cast(product, Object.class, AllAcceptance.class),
             firstPropositions);
           winningRegions = AttractorSolver.solveSafety(game);
-          initialState = game.onlyInitialState();
+          initialState = game.automaton().onlyInitialState();
         } else {
-          var game = GameViews
-            .split(AutomatonUtil.cast(product, Object.class, BuchiAcceptance.class),
+          var game = Game.of(AutomatonUtil.cast(product, Object.class, BuchiAcceptance.class),
               firstPropositions);
           winningRegions = ZielonkaSolver.solveBuchi(game);
-          initialState = game.onlyInitialState();
+          initialState = game.automaton().onlyInitialState();
         }
 
         if (winningRegions.player2.contains(initialState)) {

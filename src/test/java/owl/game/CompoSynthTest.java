@@ -27,7 +27,7 @@ public class CompoSynthTest {
       translation.apply(specification.toFormula()), Object.class, ParityAcceptance.class);
 
     return ZielonkaSolver.zielonkaRealizability(
-      GameViews.split(automaton, specification.inputs()));
+      Game.of(automaton, specification.inputs()));
   }
 
   @DataPoint

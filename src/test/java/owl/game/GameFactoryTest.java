@@ -46,48 +46,24 @@ class GameFactoryTest {
     Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
-  void testTransform() {
-    LabelledFormula formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
-    Game<Node<Object>, ParityAcceptance> game =
-      GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
-
-    for (Node<Object> state : game.states()) {
-      for (Node<Object> predecessor : game.predecessors(state)) {
-        assertThat(state, game.successors(predecessor)::contains);
-      }
-
-      for (Node<Object> successors : game.successors(state)) {
-        assertThat(state, game.predecessors(successors)::contains);
-      }
-    }
-  }
-
-  @Test
-  void testAttractor() {
+  public void testAttractor() {
     LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
 
     Automaton<AnnotatedState, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), AnnotatedState.class, ParityAcceptance.class);
 
-    Game<Node<AnnotatedState>, ParityAcceptance> game =
-      GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
+    Game<AnnotatedState, ParityAcceptance> game = Game.of(automaton, List.of("a"));
 
-    Set<Node<AnnotatedState>> winningStates = game.states().stream()
-      .filter(x -> {
-        @SuppressWarnings("unchecked")
-        AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state();
-        return state.state() != null && state.state().isTrue();
-      }).collect(Collectors.toSet());
+    Set<AnnotatedState> winningStates = game.automaton().states().stream().filter(
+      x -> ((AnnotatedState<EquivalenceClass>) x.state()).state().isTrue()).collect(Collectors.toSet());
     assertThat(winningStates, x -> !x.isEmpty());
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
-    assertThat(AttractorSolver.getAttractor(winningStates, Owner.PLAYER_2),
+    assertThat(AttractorSolver.compute(game.automaton(), winningStates, false, game.variables(Owner.SYSTEM)),
       x -> x.contains(game.onlyInitialState()));
 
     // Player 1 can never win...
-    assertThat(AttractorSolver.getAttractor(winningStates, Owner.PLAYER_1),
+    assertThat(AttractorSolver.compute(game.automaton(), winningStates, true, game.variables(Owner.ENVIRONMENT)),
       x -> !x.contains(game.onlyInitialState()));
   }
 }

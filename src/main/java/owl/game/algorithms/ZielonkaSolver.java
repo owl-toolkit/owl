@@ -19,8 +19,8 @@
 
 package owl.game.algorithms;
 
-import static owl.game.Game.Owner.PLAYER_1;
-import static owl.game.Game.Owner.PLAYER_2;
+import static owl.game.Game.Owner.ENVIRONMENT;
+import static owl.game.Game.Owner.SYSTEM;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -32,7 +32,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.game.Game;
-import owl.game.GameFactory;
 import owl.game.GameViews;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
@@ -43,7 +42,7 @@ public final class ZielonkaSolver {
     Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
 
-      return winning.player2.contains(x.onlyInitialState())
+      return winning.player2.contains(x.automaton().onlyInitialState())
         ? "The specification is REALISABLE"
         : "The specification is UNREALISABLE";
     });
@@ -51,33 +50,34 @@ public final class ZielonkaSolver {
   private ZielonkaSolver() {}
 
   public static <S> WinningRegions<S> solveBuchi(Game<S, BuchiAcceptance> game) {
-    return recursiveZielonka(GameFactory.copyOf(GameViews.viewAs(game, ParityAcceptance.class)));
+    return recursiveZielonka(GameViews.viewAs(game, ParityAcceptance.class));
   }
 
   public static <S> WinningRegions<S> solveRabinPair(Game<S, RabinAcceptance> game) {
-    Preconditions.checkArgument(game.acceptance().pairs().size() == 1);
-    return recursiveZielonka(GameFactory.copyOf(GameViews.viewAs(game, ParityAcceptance.class)));
+    Preconditions.checkArgument(game.automaton().acceptance().pairs().size() == 1);
+    return recursiveZielonka(GameViews.viewAs(game, ParityAcceptance.class));
   }
 
   // The convention here is that player 2 wants to satisfy the parity condition
   // that is, get a minimal colour appearing infinitely often to be accepting.
   // Also, player 1 chooses actions BEFORE player 2 does
   private static <S> WinningRegions<S> recursiveZielonka(Game<S, ParityAcceptance> game) {
-    Set<S> states = game.states();
-    ParityAcceptance acceptance = game.acceptance();
+    var automaton = game.automaton();
+    Set<S> states = automaton.states();
+    ParityAcceptance acceptance = automaton.acceptance();
 
     // get the minimal colour in the game
     AtomicInteger minimalColour = new AtomicInteger(acceptance.acceptanceSets());
 
     for (S state : states) {
-      game.edges(state).forEach(edge ->
+      automaton.edges(state).forEach(edge ->
           minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
     }
 
     int theMinimalColour = minimalColour.get();
 
     // if the min did not change, we have a winner
-    Game.Owner ourHorse = acceptance.isAccepting(theMinimalColour) ? PLAYER_2 : PLAYER_1;
+    Game.Owner ourHorse = acceptance.isAccepting(theMinimalColour) ? SYSTEM : ENVIRONMENT;
 
     if (theMinimalColour == acceptance.acceptanceSets()) {
       return new WinningRegions<>(states, ourHorse);
@@ -90,38 +90,34 @@ public final class ZielonkaSolver {
     Predicate<Edge<S>> hasMinCol = y -> y.smallestAcceptanceSet() == theMinimalColour;
 
     Set<S> winningStates = Sets.filter(states, x -> {
-      if (game.owner(x) != PLAYER_2) {
+      if (game.owner(x) != SYSTEM) {
         return false;
       }
 
-      if (PLAYER_2 == ourHorse) {
-        return game.edges(x).stream().anyMatch(hasMinCol);
+      if (SYSTEM == ourHorse) {
+        return automaton.edges(x).stream().anyMatch(hasMinCol);
       }
 
-      return game.edges(x).stream().allMatch(hasMinCol);
+      return automaton.edges(x).stream().allMatch(hasMinCol);
     });
-
-    // NOTE: winningStates may be empty! this is because it is actually
-    // the second layer of the attractor fixpoint, with the coloured edges
-    // being the first layer
-    assert winningStates.stream().allMatch(x -> game.owner(x) == PLAYER_2);
 
     // we now compute the attractor of the winning states and get a filtered
     // game without the attractor states
     Set<S> losingSet = Sets.difference(states, AttractorSolver
-      .getAttractor(game, winningStates, ourHorse));
+      .compute(automaton, winningStates, ourHorse == ENVIRONMENT, game.variables(ourHorse)));
 
-    Game<S, ParityAcceptance> subGame = GameViews.filter(game, losingSet, hasMinCol.negate());
+    var subGame = GameViews.filter(game, losingSet, hasMinCol.negate());
     WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
     // if in the sub-game our horse wins everywhere, then he's the winner
-    if (subWinning.winningRegion(ourHorse).containsAll(subGame.states())) {
+    if (subWinning.winningRegion(ourHorse).containsAll(subGame.automaton().states())) {
       return new WinningRegions<>(states, ourHorse);
     }
 
     // otherwise, we have to test a different subgame
     Set<S> opponentAttractor = AttractorSolver
-      .getAttractor(game, subWinning.winningRegion(ourHorse.opponent()), ourHorse.opponent());
+      .compute(automaton, subWinning.winningRegion(ourHorse.opponent()), ENVIRONMENT == ourHorse.opponent(),
+        game.variables(ourHorse.opponent()));
 
     Set<S> difference = Sets.difference(states, opponentAttractor);
     WinningRegions<S> newSubWinning = recursiveZielonka(GameViews.filter(game, difference));
@@ -131,7 +127,7 @@ public final class ZielonkaSolver {
   }
 
   public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
-    return recursiveZielonka(GameViews.replaceInitialStates(game, game.states()))
-      .player2.contains(game.onlyInitialState());
+    var game2 = GameViews.replaceInitialStates(game, game.automaton().states());
+    return recursiveZielonka(game2).player2.contains(game.automaton().onlyInitialState());
   }
 }
