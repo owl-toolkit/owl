@@ -39,7 +39,7 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   }
 
   public static GeneralizedBuchiAcceptance of(int size) {
-    return new GeneralizedBuchiAcceptance(size);
+    return size == 1 ? BuchiAcceptance.INSTANCE : new GeneralizedBuchiAcceptance(size);
   }
 
   @Override

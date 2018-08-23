@@ -21,19 +21,14 @@ package owl.ltl;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import org.immutables.value.Value;
 import owl.collections.Collections3;
-import owl.ltl.visitors.BinaryVisitor;
-import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.PrintVisitor;
-import owl.ltl.visitors.Visitor;
 import owl.util.annotation.HashedTuple;
 
 @Value.Immutable
@@ -79,36 +74,6 @@ public abstract class LabelledFormula {
     return wrap(formula().not());
   }
 
-
-  Set<String> player2Variables() {
-    Set<String> player1 = player1Variables();
-    return Set.copyOf(Sets.difference(Set.copyOf(variables()), player1));
-  }
-
-  public int accept(IntVisitor visitor) {
-    return formula().accept(visitor);
-  }
-
-  public <R> R accept(Visitor<R> visitor) {
-    return formula().accept(visitor);
-  }
-
-  public <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter) {
-    return formula().accept(visitor, parameter);
-  }
-
-  public LabelledFormula convert(Visitor<Formula> visitor) {
-    return wrap(formula().accept(visitor));
-  }
-
-
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return formula().allMatch(predicate);
-  }
-
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return formula().anyMatch(predicate);
-  }
 
   @Override
   public String toString() {

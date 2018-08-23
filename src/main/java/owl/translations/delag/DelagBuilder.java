@@ -122,7 +122,7 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
     }
 
     DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories, fallback);
-    DependencyTree<T> tree = formula.accept(treeConverter);
+    DependencyTree<T> tree = formula.formula().accept(treeConverter);
     BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 
