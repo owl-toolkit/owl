@@ -4,13 +4,17 @@ API:
 
 * Overhaul of the symbolic successor computation
  
-  In addition to provinding a mapping from `Edge<S>` to `ValuationSet` (renamed 
+  In addition to providing a mapping from `Edge<S>` to `ValuationSet` (renamed 
   from `labelledEdges(S state)` to `edgeMap(S state)`) some automata can provide
   a direct computation of a decision tree mapping from valuations to sets of 
   edges (`edgeTree(S state)`). This enable optimisation in the JNI-access.
   
-  This feature is mostly used by the direct translation of the safety and co-safety fragment of LTL 
-  to deterministic automata.
+  This feature is mostly used by the direct translation of the safety and 
+  co-safety fragment of LTL to deterministic automata.
+  
+* EquivalenceClass offers a `trueness` value giving the percentage of satisfying 
+  assignments for an EquivalenceClass. This value is exposed via the JNI as the 
+  quality score.
 
 Bugfixes:
 

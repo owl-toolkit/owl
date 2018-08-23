@@ -124,17 +124,9 @@ void dpa_example(const OwlThread& owl, const Formula& formula) {
 
         std::cout << "State: " << currentState << "\n";
 
-        unsigned int letter = 0;
-
-        for (const auto &i : dpa.edges(currentState)) {
-            std::cout << " Letter: " << std::bitset<32>(letter) << " Successor: " << i.successor << " Colour: " << i.colour << std::endl;
-            letter++;
-
-            if (i.successor >= 0 && seenStates.find(i.successor) == seenStates.end()) {
-                seenStates.insert(i.successor);
-                stateQueue.push_back(i.successor);
-            }
-        }
+        std::vector<bool> letter = {true, false, true, false, false, true, false, true, false, true, false, false, false, false};
+        const auto &map = dpa.edges(currentState);
+        auto x = map.edge(letter);
     }
 }
 

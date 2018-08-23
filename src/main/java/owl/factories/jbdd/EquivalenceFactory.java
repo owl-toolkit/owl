@@ -302,6 +302,12 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     return temporalStepTree(clazz, mapper, new HashMap<>());
   }
 
+  @Override
+  public double trueness(EquivalenceClass clazz) {
+    return factory.countSatisfyingAssignments(getBdd(clazz))
+      / StrictMath.pow(2.0d, (double) factory.numberOfVariables());
+  }
+
   private <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
     Function<EquivalenceClass, Set<T>> mapper, Map<EquivalenceClass, ValuationTree<T>> cache) {
     var tree = cache.get(clazz);

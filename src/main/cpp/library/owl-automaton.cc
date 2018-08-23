@@ -7,14 +7,14 @@ namespace owl {
             acceptanceID(get_methodID(env, clazz, "acceptance", "()I")),
             acceptanceSetCountID(get_methodID(env, clazz, "acceptanceSetCount", "()I")),
             edgesID(get_methodID(env, clazz, "edges", "(I)[I")),
-            successorsID(get_methodID(env, clazz, "successors", "(I)[I")) {}
+            qualityScoreID(get_methodID(env, clazz, "qualityScore", "(I)D")) {}
 
     Automaton::Automaton(Automaton &&automaton) noexcept :
             ManagedJObject(std::move(automaton)),
             acceptanceID(automaton.acceptanceID),
             acceptanceSetCountID(automaton.acceptanceSetCountID),
             edgesID(automaton.edgesID),
-            successorsID(automaton.successorsID) {}
+            qualityScoreID(automaton.qualityScoreID) {}
 
     Acceptance Automaton::acceptance() const {
         return Acceptance(call_int_method<>(env, handle, acceptanceID));
@@ -24,28 +24,20 @@ namespace owl {
         return call_int_method<>(env, handle, acceptanceSetCountID);
     }
 
-    std::vector<Edge> Automaton::edges(int state) const {
+    EdgeTree Automaton::edges(int state) const {
         auto result = call_method<jintArray>(env, handle, edgesID, state);
 
         // Provide an array to copy into...
         jsize length = env->GetArrayLength(result);
-        std::vector<Edge> edges = std::vector<Edge>((size_t) length / 2);
-        env->GetIntArrayRegion(result, 0, length, reinterpret_cast<jint *>(&edges[0]));
+        std::vector<int32_t> edges = std::vector<int32_t>(static_cast<unsigned long>(length));
+        env->GetIntArrayRegion(result, 0, length, &edges[0]);
 
         deref(env, result);
         return edges;
     }
 
-    std::vector<int> Automaton::successors(int state) const {
-        auto result = call_method<jintArray>(env, handle, successorsID, state);
-
-        // Provide an array to copy into...
-        jsize length = env->GetArrayLength(result);
-        std::vector<int> successors = std::vector<int>((size_t) length);
-        env->GetIntArrayRegion(result, 0, length, &successors[0]);
-
-        deref(env, result);
-        return successors;
+    double Automaton::quality_score(int state) const {
+        return call_double_method<>(env, handle, qualityScoreID, state);
     }
 
     std::vector<Automaton> EmersonLeiAutomaton::automata() {

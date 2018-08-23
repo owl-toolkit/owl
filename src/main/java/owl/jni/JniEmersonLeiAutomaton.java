@@ -179,14 +179,16 @@ public final class JniEmersonLeiAutomaton {
       JniAutomaton<?> jniAutomaton;
 
       if (SyntacticFragment.SAFETY.contains(shiftedFormula.formula)) {
-        jniAutomaton = new JniAutomaton<>(AutomatonUtil.cast(automaton, EquivalenceClass.class,
-          AllAcceptance.class), EquivalenceClass::isTrue);
+        jniAutomaton = new JniAutomaton<>(
+          AutomatonUtil.cast(automaton, EquivalenceClass.class, AllAcceptance.class),
+          EquivalenceClass::isTrue, EquivalenceClass::trueness);
       } else if (SyntacticFragment.CO_SAFETY.contains(shiftedFormula.formula)) {
         // Acceptance needs to be overridden, since detection does not work in this case.
-        jniAutomaton = new JniAutomaton<>(AutomatonUtil.cast(automaton, EquivalenceClass.class,
-          BuchiAcceptance.class), EquivalenceClass::isTrue, Acceptance.CO_SAFETY);
+        jniAutomaton = new JniAutomaton<>(
+          AutomatonUtil.cast(automaton, EquivalenceClass.class, BuchiAcceptance.class),
+          EquivalenceClass::isTrue, EquivalenceClass::trueness, Acceptance.CO_SAFETY);
       } else {
-        jniAutomaton = new JniAutomaton<>(automaton, x -> false);
+        jniAutomaton = new JniAutomaton<>(automaton);
       }
 
       Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);

@@ -145,6 +145,10 @@ public class EquivalenceClass {
     return factory.unfoldTemporalStep(this, valuation);
   }
 
+  public final double trueness() {
+    return factory.trueness(this);
+  }
+
   @Override
   public final String toString() {
     return factory.toString(this);

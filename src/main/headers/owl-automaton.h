@@ -95,6 +95,29 @@ namespace owl {
         Edge(int _successor, int _colour) : successor(_successor), colour(_colour) {};
     };
 
+    struct EdgeTree {
+        const std::vector<int32_t> tree;
+
+        EdgeTree(const std::vector<int32_t> _tree) : tree(_tree) {};
+
+        Edge edge(const std::vector<bool> &bitmap) const {
+            int32_t i = 1;
+
+            while (i > 0) {
+                int32_t variable = tree[i];
+
+                if (bitmap[variable]) {
+                    i = tree[i + 2];
+                } else {
+                    i = tree[i + 1];
+                }
+            }
+
+            i = tree[0] - i;
+            return Edge(tree[i], tree[i + 1]);
+        }
+    };
+
     struct Reference {
         int index;
         Formula formula;
@@ -120,7 +143,7 @@ namespace owl {
         jmethodID acceptanceID;
         jmethodID acceptanceSetCountID;
         jmethodID edgesID;
-        jmethodID successorsID;
+        jmethodID qualityScoreID;
 
         Automaton(JNIEnv *env, jobject handle);
         friend class copy_from_java;
@@ -132,8 +155,8 @@ namespace owl {
 
         Acceptance acceptance() const;
         int acceptance_set_count() const;
-        std::vector<Edge> edges(int state) const;
-        std::vector<int> successors(int state) const;
+        EdgeTree edges(int state) const;
+        double quality_score(int state) const;
     };
 
     class EmersonLeiAutomaton : public owl::ManagedJObject {
