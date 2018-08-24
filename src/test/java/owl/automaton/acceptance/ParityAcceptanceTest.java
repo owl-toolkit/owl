@@ -19,276 +19,275 @@
 
 package owl.automaton.acceptance;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static owl.automaton.acceptance.BooleanExpressions.mkFin;
 import static owl.automaton.acceptance.BooleanExpressions.mkInf;
+import static owl.util.Assertions.assertThat;
 
 import java.util.List;
 import jhoafparser.ast.BooleanExpression;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 
-public class ParityAcceptanceTest {
+class ParityAcceptanceTest {
   @Test
-  public void testMinOddEmpty() {
+  void testMinOddEmpty() {
     ParityAcceptance minEven = new ParityAcceptance(0, Parity.MIN_ODD);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(0));
-    assertThat(minEven.booleanExpression(), is(new BooleanExpression<>(false)));
+    assertThat(minEven.acceptanceSets(), x -> x == 0);
+    assertThat(minEven.booleanExpression(), new BooleanExpression<>(false)::equals);
   }
 
   @Test
-  public void testMinOddOne() {
+  void testMinOddOne() {
     ParityAcceptance minEven = new ParityAcceptance(1, Parity.MIN_ODD);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(1));
-    assertThat(minEven.booleanExpression(), is(mkFin(0)));
+    assertThat(minEven.acceptanceSets(), x -> x == 1);
+    assertThat(minEven.booleanExpression(), mkFin(0)::equals);
   }
 
   @Test
-  public void testMinOddTwo() {
+  void testMinOddTwo() {
     ParityAcceptance minEven = new ParityAcceptance(2, Parity.MIN_ODD);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(2));
-    assertThat(minEven.booleanExpression(), is(mkFin(0).and(mkInf(1))));
+    assertThat(minEven.acceptanceSets(), x -> x == 2);
+    assertThat(minEven.booleanExpression(), mkFin(0).and(mkInf(1))::equals);
   }
 
   @Test
-  public void testMinOddThree() {
+  void testMinOddThree() {
     ParityAcceptance minEven = new ParityAcceptance(3, Parity.MIN_ODD);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(3));
-    assertThat(minEven.booleanExpression(), is(mkFin(0).and(mkInf(1).or(mkFin(2)))));
+    assertThat(minEven.acceptanceSets(), x -> x == 3);
+    assertThat(minEven.booleanExpression(), mkFin(0).and(mkInf(1).or(mkFin(2)))::equals);
   }
 
   @Test
-  public void testMinOddFour() {
+  void testMinOddFour() {
     ParityAcceptance minEven = new ParityAcceptance(4, Parity.MIN_ODD);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(4));
+    assertThat(minEven.acceptanceSets(), x -> x == 4);
     assertThat(minEven.booleanExpression(),
-      is(mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3))))));
+      mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3))))::equals);
   }
 
   @Test
-  public void testMinOddFive() {
+  void testMinOddFive() {
     ParityAcceptance minEven = new ParityAcceptance(5, Parity.MIN_ODD);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(5));
+    assertThat(minEven.acceptanceSets(), x -> x == 5);
     assertThat(minEven.booleanExpression(),
-      is(mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3).or(mkFin(4)))))));
+      mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3).or(mkFin(4)))))::equals);
   }
 
   @Test
-  public void testMinEvenEmpty() {
+  void testMinEvenEmpty() {
     ParityAcceptance minEven = new ParityAcceptance(0, Parity.MIN_EVEN);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(0));
-    assertThat(minEven.booleanExpression(), is(new BooleanExpression<>(true)));
+    assertThat(minEven.acceptanceSets(), x -> x == 0);
+    assertThat(minEven.booleanExpression(), new BooleanExpression<>(true)::equals);
   }
 
   @Test
-  public void testMinEvenOne() {
+  void testMinEvenOne() {
     ParityAcceptance minEven = new ParityAcceptance(1, Parity.MIN_EVEN);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(1));
-    assertThat(minEven.booleanExpression(), is(mkInf(0)));
+    assertThat(minEven.acceptanceSets(), x -> x == 1);
+    assertThat(minEven.booleanExpression(), mkInf(0)::equals);
   }
 
   @Test
-  public void testMinEvenTwo() {
+  void testMinEvenTwo() {
     ParityAcceptance minEven = new ParityAcceptance(2, Parity.MIN_EVEN);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(2));
-    assertThat(minEven.booleanExpression(), is(mkInf(0).or(mkFin(1))));
+    assertThat(minEven.acceptanceSets(), x -> x == 2);
+    assertThat(minEven.booleanExpression(), mkInf(0).or(mkFin(1))::equals);
   }
 
   @Test
-  public void testMinEvenThree() {
+  void testMinEvenThree() {
     ParityAcceptance minEven = new ParityAcceptance(3, Parity.MIN_EVEN);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(3));
-    assertThat(minEven.booleanExpression(), is(mkInf(0).or(mkFin(1).and(mkInf(2)))));
+    assertThat(minEven.acceptanceSets(), x -> x == 3);
+    assertThat(minEven.booleanExpression(), mkInf(0).or(mkFin(1).and(mkInf(2)))::equals);
   }
 
   @Test
-  public void testMinEvenFour() {
+  void testMinEvenFour() {
     ParityAcceptance minEven = new ParityAcceptance(4, Parity.MIN_EVEN);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(4));
+    assertThat(minEven.acceptanceSets(), x -> x == 4);
     assertThat(minEven.booleanExpression(),
-      is(mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3))))));
+      mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3))))::equals);
   }
 
   @Test
-  public void testMinEvenFive() {
+  void testMinEvenFive() {
     ParityAcceptance minEven = new ParityAcceptance(5, Parity.MIN_EVEN);
     checkName(minEven);
     checkNameExtraTypes(minEven);
 
-    assertThat(minEven.acceptanceSets(), is(5));
+    assertThat(minEven.acceptanceSets(), x -> x == 5);
     assertThat(minEven.booleanExpression(),
-      is(mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3).and(mkInf(4)))))));
+      mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3).and(mkInf(4)))))::equals);
   }
 
   @Test
-  public void testMaxOddEmpty() {
+  void testMaxOddEmpty() {
     ParityAcceptance maxOdd = new ParityAcceptance(0, Parity.MAX_ODD);
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.acceptanceSets(), is(0));
-    assertThat(maxOdd.booleanExpression(), is(new BooleanExpression<>(true)));
+    assertThat(maxOdd.acceptanceSets(), x -> x == 0);
+    assertThat(maxOdd.booleanExpression(), new BooleanExpression<>(true)::equals);
   }
 
   @Test
-  public void testMaxOddOne() {
+  void testMaxOddOne() {
     ParityAcceptance maxOdd = new ParityAcceptance(1, Parity.MAX_ODD);
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.acceptanceSets(), is(1));
-    assertThat(maxOdd.booleanExpression(), is(mkFin(0)));
+    assertThat(maxOdd.acceptanceSets(), x -> x == 1);
+    assertThat(maxOdd.booleanExpression(), mkFin(0)::equals);
   }
 
   @Test
-  public void testMaxOddTwo() {
+  void testMaxOddTwo() {
     ParityAcceptance maxOdd = new ParityAcceptance(2, Parity.MAX_ODD);
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.acceptanceSets(), is(2));
-    assertThat(maxOdd.booleanExpression(), is(mkInf(1).or(mkFin(0))));
+    assertThat(maxOdd.acceptanceSets(), x -> x == 2);
+    assertThat(maxOdd.booleanExpression(), mkInf(1).or(mkFin(0))::equals);
   }
 
   @Test
-  public void testMaxOddThree() {
+  void testMaxOddThree() {
     ParityAcceptance maxOdd = new ParityAcceptance(3, Parity.MAX_ODD);
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.acceptanceSets(), is(3));
-    assertThat(maxOdd.booleanExpression(), is(mkFin(2).and(mkInf(1).or(mkFin(0)))));
+    assertThat(maxOdd.acceptanceSets(), x -> x == 3);
+    assertThat(maxOdd.booleanExpression(), mkFin(2).and(mkInf(1).or(mkFin(0)))::equals);
   }
 
   @Test
-  public void testMaxOddFour() {
+  void testMaxOddFour() {
     ParityAcceptance maxOdd = new ParityAcceptance(4, Parity.MAX_ODD);
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.acceptanceSets(), is(4));
+    assertThat(maxOdd.acceptanceSets(), x -> x == 4);
     assertThat(maxOdd.booleanExpression(),
-      is(mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0))))));
+      mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0))))::equals);
   }
 
   @Test
-  public void testMaxOddFive() {
+  void testMaxOddFive() {
     ParityAcceptance maxOdd = new ParityAcceptance(5, Parity.MAX_ODD);
     checkName(maxOdd);
     checkNameExtraTypes(maxOdd);
 
-    assertThat(maxOdd.acceptanceSets(), is(5));
+    assertThat(maxOdd.acceptanceSets(), x -> x == 5);
     assertThat(maxOdd.booleanExpression(),
-      is(mkFin(4).and(mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0)))))));
+      mkFin(4).and(mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0)))))::equals);
   }
 
   @Test
-  public void testMaxEvenEmpty() {
+  void testMaxEvenEmpty() {
     ParityAcceptance maxEven = new ParityAcceptance(0, Parity.MAX_EVEN);
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.acceptanceSets(), is(0));
-    assertThat(maxEven.booleanExpression(), is(new BooleanExpression<>(false)));
+    assertThat(maxEven.acceptanceSets(), x -> x == 0);
+    assertThat(maxEven.booleanExpression(), new BooleanExpression<>(false)::equals);
   }
 
   @Test
-  public void testMaxEvenOne() {
+  void testMaxEvenOne() {
     ParityAcceptance maxEven = new ParityAcceptance(1, Parity.MAX_EVEN);
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.acceptanceSets(), is(1));
-    assertThat(maxEven.booleanExpression(), is(mkInf(0)));
+    assertThat(maxEven.acceptanceSets(), x -> x == 1);
+    assertThat(maxEven.booleanExpression(), mkInf(0)::equals);
   }
 
   @Test
-  public void testMaxEvenTwo() {
+  void testMaxEvenTwo() {
     ParityAcceptance maxEven = new ParityAcceptance(2, Parity.MAX_EVEN);
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.acceptanceSets(), is(2));
-    assertThat(maxEven.booleanExpression(), is(mkFin(1).and(mkInf(0))));
+    assertThat(maxEven.acceptanceSets(), x -> x == 2);
+    assertThat(maxEven.booleanExpression(), mkFin(1).and(mkInf(0))::equals);
   }
 
   @Test
-  public void testMaxEvenThree() {
+  void testMaxEvenThree() {
     ParityAcceptance maxEven = new ParityAcceptance(3, Parity.MAX_EVEN);
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.acceptanceSets(), is(3));
-    assertThat(maxEven.booleanExpression(), is(mkInf(2).or(mkFin(1).and(mkInf(0)))));
+    assertThat(maxEven.acceptanceSets(), x -> x == 3);
+    assertThat(maxEven.booleanExpression(), mkInf(2).or(mkFin(1).and(mkInf(0)))::equals);
   }
 
   @Test
-  public void testMaxEvenFour() {
+  void testMaxEvenFour() {
     ParityAcceptance maxEven = new ParityAcceptance(4, Parity.MAX_EVEN);
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.acceptanceSets(), is(4));
+    assertThat(maxEven.acceptanceSets(), x -> x == 4);
     assertThat(maxEven.booleanExpression(),
-      is(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0))))));
+      mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0))))::equals);
   }
 
   @Test
-  public void testMaxEvenFive() {
+  void testMaxEvenFive() {
     ParityAcceptance maxEven = new ParityAcceptance(5, Parity.MAX_EVEN);
     checkName(maxEven);
     checkNameExtraTypes(maxEven);
 
-    assertThat(maxEven.acceptanceSets(), is(5));
+    assertThat(maxEven.acceptanceSets(), x -> x == 5);
     assertThat(maxEven.booleanExpression(),
-      is(mkInf(4).or(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0)))))));
+      mkInf(4).or(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0)))))::equals);
   }
 
   private static void checkName(OmegaAcceptance acceptance) {
-    assertThat(acceptance.name(), is("parity"));
+    assertEquals("parity", acceptance.name());
   }
 
   private static void checkNameExtraTypes(OmegaAcceptance acceptance) {
     List<Object> extra = acceptance.nameExtra();
 
     // Check types
-    assertThat(extra.get(0), instanceOf(String.class));
-    assertThat(extra.get(1), instanceOf(String.class));
-    assertThat(extra.get(2), instanceOf(Integer.class));
+    assertThat(extra.get(0), String.class::isInstance);
+    assertThat(extra.get(1), String.class::isInstance);
+    assertThat(extra.get(2), Integer.class::isInstance);
   }
 }

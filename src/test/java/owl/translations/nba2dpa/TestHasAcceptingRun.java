@@ -17,15 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.minimization;
+package owl.translations.nba2dpa;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
@@ -33,9 +32,8 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithms.EmptinessCheck;
 import owl.automaton.output.HoaPrinter;
 import owl.run.DefaultEnvironment;
-import owl.translations.nba2dpa.NBA2DPA;
 
-public class TestHasAcceptingRun {
+class TestHasAcceptingRun {
 
   private static final String INPUT1 = "HOA: v1\n"
     + "States: 2\n"
@@ -87,31 +85,31 @@ public class TestHasAcceptingRun {
     + "--END--";
 
   @Test
-  public void testHasAcceptingRun() throws ParseException {
+  void testHasAcceptingRun() throws ParseException {
     testHasAcceptingRun(INPUT1, true, true);
   }
 
   @Test
-  public void testHasAcceptingRun2() throws ParseException {
+  void testHasAcceptingRun2() throws ParseException {
     testHasAcceptingRun(INPUT2, true, true);
   }
 
   @Test
-  public void testHasAcceptingRun3() throws ParseException {
+  void testHasAcceptingRun3() throws ParseException {
     testHasAcceptingRun(INPUT3, false, true);
   }
 
   private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
-    NBA2DPA translation = new NBA2DPA();
+    var nba = AutomatonReader.readHoa(input, DefaultEnvironment.annotated()
+      .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
+    var dpa = new NBA2DPA().apply(nba);
 
-    var automaton = translation.apply(AutomatonReader.readHoa(input,
-      DefaultEnvironment.annotated().factorySupplier(), GeneralizedBuchiAcceptance.class));
-    HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertThat(EmptinessCheck.isEmpty(automaton), is(!hasAcceptingRun));
+    HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    assertEquals(EmptinessCheck.isEmpty(dpa), !hasAcceptingRun);
 
-    var complement = Views.complement(AutomatonUtil.cast(automaton), new Object());
+    var complement = Views.complement(AutomatonUtil.cast(dpa), new Object());
     HoaPrinter.feedTo(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertThat(EmptinessCheck.isEmpty(complement), is(!complementHasAcceptingRun));
+    assertEquals(EmptinessCheck.isEmpty(complement), !complementHasAcceptingRun);
   }
 }

@@ -19,17 +19,17 @@
 
 package owl.ltl.parser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
 import java.util.Set;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.LabelledFormula;
 import owl.ltl.tlsf.Tlsf;
 
-public class TlsfParserTest {
+class TlsfParserTest {
 
   private static final String TLSF1 = "INFO {\n"
     + "  TITLE:       \"LTL -> DBA  -  Example 12\"\n"
@@ -249,7 +249,7 @@ public class TlsfParserTest {
     "((a1) -> ((b2) && ((((G (c3)) && (f6)) && (g7)) -> (((G ((d4) && (e5))) && (h8)) && (i9)))))";
 
   @Test
-  public void testParse1() {
+  void testParse1() {
     Tlsf tlsf = TlsfParser.parse(TLSF1);
 
     assertEquals(Tlsf.Semantics.MOORE, tlsf.semantics());
@@ -264,7 +264,7 @@ public class TlsfParserTest {
   }
 
   @Test
-  public void testParse2() {
+  void testParse2() {
     Tlsf tlsf = TlsfParser.parse(TLSF2);
 
     assertEquals(Tlsf.Semantics.MOORE, tlsf.semantics());
@@ -275,38 +275,38 @@ public class TlsfParserTest {
   }
 
   @Test
-  public void testParseLily() {
+  void testParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);
     LabelledFormula expectedFormula = LtlParser.parse(LILY_LTL, lily.toFormula().variables());
     assertEquals(expectedFormula.split(Set.of("go", "cancel", "req")), lily.toFormula());
   }
 
   @Test
-  public void testCompParseLily() {
+  void testCompParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);
     assertEquals(3, lily.assert_().size());
   }
 
   @Test
-  public void testParseUpperCase() {
+  void testParseUpperCase() {
     Tlsf lily = TlsfParser.parse(LILY);
     Tlsf upperCase = TlsfParser.parse(UPPER_CASE);
     assertEquals(lily.toFormula().formula(), upperCase.toFormula().formula());
   }
 
   @Test
-  public void testParseUpperCaseDifficult() {
+  void testParseUpperCaseDifficult() {
     Tlsf upperCaseDifficult = TlsfParser.parse(UPPER_CASE_DIFFICULT);
-    assertThat(upperCaseDifficult.variables(), Matchers.contains("BARFOO", "FOO", "BAR", "FOOBAR"));
-  }
-
-  @Test(expected = ParseCancellationException.class)
-  public void testParseUpperCaseFaulty() {
-    TlsfParser.parse(UPPER_CASE_FAULTY);
+    assertEquals(List.of("BARFOO", "FOO", "BAR", "FOOBAR"), upperCaseDifficult.variables());
   }
 
   @Test
-  public void testTlsfComplete() {
+  void testParseUpperCaseFaulty() {
+    assertThrows(ParseCancellationException.class, () -> TlsfParser.parse(UPPER_CASE_FAULTY));
+  }
+
+  @Test
+  void testTlsfComplete() {
     Tlsf tlsf = TlsfParser.parse(TLSF_COMPLETE);
     assertEquals(LtlParser.syntax(LTL_COMPLETE, tlsf.variables()), tlsf.toFormula().formula());
   }

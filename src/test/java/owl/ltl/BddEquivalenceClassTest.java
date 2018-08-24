@@ -24,7 +24,7 @@ import owl.run.DefaultEnvironment;
 
 public class BddEquivalenceClassTest extends EquivalenceClassTest {
   @Override
-  public EquivalenceClassFactory setUpFactory(LabelledFormula domain) {
+  protected EquivalenceClassFactory obtainFactory(LabelledFormula domain) {
     return DefaultEnvironment.annotated().factorySupplier()
       .getEquivalenceClassFactory(domain.variables(), false);
   }

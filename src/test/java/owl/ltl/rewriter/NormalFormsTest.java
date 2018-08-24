@@ -19,34 +19,34 @@
 
 package owl.ltl.rewriter;
 
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static owl.util.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Set;
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
 
-public class NormalFormsTest {
+class NormalFormsTest {
   @SuppressWarnings("unchecked")
   @Test
-  public void testToCnfTrivial() {
-    assertThat(NormalForms.toCnf(BooleanConstant.TRUE), Matchers.hasSize(0));
-    assertThat(NormalForms.toCnf(BooleanConstant.FALSE), Matchers.contains(Set.of()));
+  void testToCnfTrivial() {
+    assertThat(NormalForms.toCnf(BooleanConstant.TRUE), Set::isEmpty);
+    assertThat(NormalForms.toCnf(BooleanConstant.FALSE), Set.of(Set.of())::equals);
   }
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testToDnfTrivial() {
-    assertThat(NormalForms.toDnf(BooleanConstant.TRUE), Matchers.contains(Set.of()));
-    assertThat(NormalForms.toDnf(BooleanConstant.FALSE), Matchers.hasSize(0));
+  void testToDnfTrivial() {
+    assertThat(NormalForms.toDnf(BooleanConstant.TRUE), Set.of(Set.of())::equals);
+    assertThat(NormalForms.toDnf(BooleanConstant.FALSE), Set::isEmpty);
   }
 
   @Test
-  public void test() {
+  void test() {
     List<String> alphabet = List.of("a", "b", "c", "d", "e");
     Formula formula = LtlParser.syntax("(a | (b & (c | (d & e))))", alphabet);
     Formula formula2 = LtlParser.syntax("(a & (b | (c & (d | e))))", alphabet);
@@ -60,11 +60,11 @@ public class NormalFormsTest {
     Set<Set<Formula>> expectedDnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
     Set<Set<Formula>> dnf = Set.copyOf(NormalForms.toDnf(formula));
 
-    assertThat(dnf, Matchers.is(expectedDnf));
+    assertEquals(expectedDnf, dnf);
 
     Set<Set<Formula>> expectedCnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
     Set<Set<Formula>> cnf = Set.copyOf(NormalForms.toCnf(formula2));
 
-    assertThat(cnf, Matchers.is(expectedCnf));
+    assertEquals(expectedCnf, cnf);
   }
 }

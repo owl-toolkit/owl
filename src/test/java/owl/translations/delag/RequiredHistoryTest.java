@@ -19,20 +19,20 @@
 
 package owl.translations.delag;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.BitSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
 
-public class RequiredHistoryTest {
+class RequiredHistoryTest {
 
   @Test
-  public void getRequiredHistoryConstant() {
+  void getRequiredHistoryConstant() {
     History emptyHistory = new History();
     assertEquals(emptyHistory,
       new History(RequiredHistory.getRequiredHistory(BooleanConstant.TRUE)));
@@ -41,7 +41,7 @@ public class RequiredHistoryTest {
   }
 
   @Test
-  public void getRequiredHistoryLarge() {
+  void getRequiredHistoryLarge() {
     Formula formula = LtlParser.syntax("X (a | (X (b & X c)))");
 
     History past = new History(new long[] {0, 1L, 3L});
@@ -50,13 +50,13 @@ public class RequiredHistoryTest {
   }
 
   @Test
-  public void getRequiredHistoryLiteral() {
+  void getRequiredHistoryLiteral() {
     History emptyHistory = new History();
     assertEquals(emptyHistory, new History(RequiredHistory.getRequiredHistory(Literal.of(0))));
   }
 
   @Test
-  public void getRequiredHistorySmall() {
+  void getRequiredHistorySmall() {
     Formula formula = LtlParser.syntax("a | (X b)");
 
     BitSet set = new BitSet();
@@ -67,7 +67,7 @@ public class RequiredHistoryTest {
   }
 
   @Test
-  public void getRequiredHistoryXOperator() {
+  void getRequiredHistoryXOperator() {
     Formula formula = XOperator.of(Literal.of(0));
     History oneStepHistory = new History(new long[1]);
     assertEquals(oneStepHistory, new History(RequiredHistory.getRequiredHistory(formula)));

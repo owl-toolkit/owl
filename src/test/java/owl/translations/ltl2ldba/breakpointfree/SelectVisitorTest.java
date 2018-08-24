@@ -19,14 +19,12 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
-import java.util.List;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
@@ -41,73 +39,71 @@ import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.GScoped
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.TopLevelSelectVisitor;
 
 @SuppressWarnings("unchecked")
-public class SelectVisitorTest {
+class SelectVisitorTest {
 
-  private static List<Set<UnaryModalOperator>> getFScoped(Formula formula) {
-    return formula.accept(FScopedSelectVisitor.INSTANCE);
+  private static Set<Set<UnaryModalOperator>> getFScoped(Formula formula) {
+    return Set.copyOf(formula.accept(FScopedSelectVisitor.INSTANCE));
   }
 
-  private static List<Set<UnaryModalOperator>> getGScoped(Formula formula) {
-    return formula.accept(GScopedSelectVisitor.INSTANCE);
+  private static Set<Set<UnaryModalOperator>> getGScoped(Formula formula) {
+    return Set.copyOf(formula.accept(GScopedSelectVisitor.INSTANCE));
   }
 
-  private static List<Set<UnaryModalOperator>> getToplevel(Formula formula) {
-    return formula.accept(TopLevelSelectVisitor.INSTANCE);
+  private static Set<Set<UnaryModalOperator>> getToplevel(Formula formula) {
+    return Set.copyOf(formula.accept(TopLevelSelectVisitor.INSTANCE));
   }
 
   @Test
-  public void testFScopedSelectorM() {
+  void testFScopedSelectorM() {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a M b)").formula();
-
-    Set<UnaryModalOperator> choice = Set.of(fOperator);
-    assertThat(getGScoped(fOperator), containsInAnyOrder(choice));
+    assertEquals(Set.of(Set.<UnaryModalOperator>of(fOperator)), getGScoped(fOperator));
   }
 
   @Test
-  public void testFScopedSelectorR() {
+  void testFScopedSelectorR() {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a R b)").formula();
     GOperator gOperator = new GOperator(Literal.of(1));
 
     Set<UnaryModalOperator> choice1 = Set.of(fOperator);
     Set<UnaryModalOperator> choice2 = Set.of(fOperator, gOperator);
-    assertThat(getGScoped(fOperator), containsInAnyOrder(choice1, choice2));
+    assertEquals(Set.of(choice1, choice2), getGScoped(fOperator));
   }
 
   @Test
-  public void testFScopedSelectorU() {
+  void testFScopedSelectorU() {
     FOperator fOperator = (FOperator) LtlParser.parse("F (a U b)").formula();
 
     Set<UnaryModalOperator> choice = Set.of(fOperator);
-    assertThat(getGScoped(fOperator), containsInAnyOrder(choice));
+    assertEquals(Set.of(choice), getGScoped(fOperator));
   }
 
   @Test
-  public void testGScopedSelectorR() {
+  void testGScopedSelectorR() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a R b)").formula();
 
     Set<UnaryModalOperator> choice = Set.of(gOperator);
-    assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
+    assertEquals(Set.of(choice), getFScoped(gOperator));
   }
 
   @Test
-  public void testGScopedSelectorU() {
+  void testGScopedSelectorU() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a U b)").formula();
     FOperator fOperator = new FOperator(Literal.of(1));
 
     Set<UnaryModalOperator> choice = Set.of(gOperator, fOperator);
-    assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
+    assertEquals(Set.of(choice), getFScoped(gOperator));
   }
 
   @Test
-  public void testGScopedSelectorW() {
+  void testGScopedSelectorW() {
     GOperator gOperator = (GOperator) LtlParser.parse("G (a W b)").formula();
 
     Set<UnaryModalOperator> choice = Set.of(gOperator);
-    assertThat(getFScoped(gOperator), containsInAnyOrder(choice));
+    assertEquals(Set.of(choice), getFScoped(gOperator));
   }
 
   @Test
-  public void testSelectorSkippedUpwardClosure() {
+  void testSelectorSkippedUpwardClosure() {
     Conjunction conjunction = (Conjunction) LtlParser.parse("G (a | F b) & G (b | F a)").formula();
     Disjunction disjunction = (Disjunction) LtlParser.parse("G (F b) | G (F a)").formula();
 
@@ -121,18 +117,18 @@ public class SelectVisitorTest {
     Set<UnaryModalOperator> choiceB = Set.of(fOperatorB);
     Set<UnaryModalOperator> choiceAandB = Set.of(fOperatorA, fOperatorB);
 
-    assertThat(getToplevel(conjunction),
-      containsInAnyOrder(baseChoiceConj, Sets.union(baseChoiceConj, choiceA),
-        Sets.union(baseChoiceConj, choiceB), Sets.union(baseChoiceConj, choiceAandB)));
+    assertEquals(Set.of(baseChoiceConj,
+      Sets.union(baseChoiceConj, choiceA),
+      Sets.union(baseChoiceConj, choiceB),
+      Sets.union(baseChoiceConj, choiceAandB)), getToplevel(conjunction));
 
-    assertThat(getToplevel(disjunction),
-      containsInAnyOrder(
-        Collections2.transform(disjunction.children, (Formula formula) -> Sets.union(
+    assertEquals(getToplevel(disjunction),
+      Set.of(Collections2.transform(disjunction.children, (Formula formula) -> Sets.union(
           Set.of(formula), Collector.collectFOperators(formula))).toArray()));
   }
 
   @Test
-  public void testSelectorUpwardClosure() {
+  void testSelectorUpwardClosure() {
     GOperator gOperatorConj =
       (GOperator) LtlParser.parse("G (((a | F b) & (b | F a)) | c)").formula();
     GOperator gOperatorDisj = (GOperator) LtlParser.parse("G ((a & F b) | (b & F a))").formula();
@@ -145,11 +141,11 @@ public class SelectVisitorTest {
     Set<UnaryModalOperator> choiceB = Set.of(fOperatorB);
     Set<UnaryModalOperator> choiceAandB = Set.of(fOperatorA, fOperatorB);
 
-    assertThat(getToplevel(gOperatorConj),
-      containsInAnyOrder(baseChoiceConj, Sets.union(baseChoiceConj, choiceA),
+    assertEquals(Set.copyOf(getToplevel(gOperatorConj)),
+      Set.of(baseChoiceConj, Sets.union(baseChoiceConj, choiceA),
         Sets.union(baseChoiceConj, choiceB), Sets.union(baseChoiceConj, choiceAandB)));
-    assertThat(getToplevel(gOperatorDisj),
-      containsInAnyOrder(Sets.union(baseChoiceDisj, choiceA), Sets.union(baseChoiceDisj, choiceB),
+    assertEquals(getToplevel(gOperatorDisj),
+      Set.of(Sets.union(baseChoiceDisj, choiceA), Sets.union(baseChoiceDisj, choiceB),
         Sets.union(baseChoiceDisj, choiceAandB)));
   }
 }

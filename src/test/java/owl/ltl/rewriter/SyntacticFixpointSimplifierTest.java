@@ -19,41 +19,43 @@
 
 package owl.ltl.rewriter;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hamcrest.Matchers;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 
-@RunWith(Theories.class)
-public class SyntacticFixpointSimplifierTest {
+@SuppressWarnings("PMD.UnusedPrivateMethod")
+class SyntacticFixpointSimplifierTest {
 
   private static final List<String> variables = List.of("a", "b", "c");
 
-  @DataPoints
-  public static final List<List<String>> pairs = List.of(
+  static final List<List<String>> pairs = List.of(
     List.of("G (X ((X a) U (X b)))", "X X G (a | b) & G F b")
   );
 
-  @Theory
-  public void testSyntacticFairnessSimplifier(List<String> pair) {
-    Formula actual = LtlParser.syntax(pair.get(0), variables);
-    Formula expected = LtlParser.syntax(pair.get(1), variables);
-    assertThat(SimplifierFactory.apply(actual, Mode.SYNTACTIC_FIXPOINT),
-      Matchers.is(expected));
+  private static Stream<Arguments> pairProvider() {
+    return pairs.stream().map(Arguments::of);
   }
 
-  @Theory
-  public void testSyntacticFairnessSimplifierNegation(List<String> pair) {
+  @ParameterizedTest
+  @MethodSource("pairProvider")
+  void testSyntacticFairnessSimplifier(List<String> pair) {
+    Formula actual = LtlParser.syntax(pair.get(0), variables);
+    Formula expected = LtlParser.syntax(pair.get(1), variables);
+    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC_FIXPOINT));
+  }
+
+  @ParameterizedTest
+  @MethodSource("pairProvider")
+  void testSyntacticFairnessSimplifierNegation(List<String> pair) {
     Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
     Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
-    assertThat(SimplifierFactory.apply(actual, Mode.SYNTACTIC_FIXPOINT),
-      Matchers.is(expected));
+    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC_FIXPOINT));
   }
 }

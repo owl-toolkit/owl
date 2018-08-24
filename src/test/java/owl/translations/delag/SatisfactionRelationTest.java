@@ -19,20 +19,20 @@
 
 package owl.translations.delag;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.BitSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
 
-public class SatisfactionRelationTest {
+class SatisfactionRelationTest {
 
   @Test
-  public void modelsConjunction() {
+  void modelsConjunction() {
     Formula formula = LtlParser.syntax("a | (X b)");
     BitSet now = new BitSet();
     long[] pastArray = new long[1];
@@ -62,13 +62,13 @@ public class SatisfactionRelationTest {
   }
 
   @Test
-  public void modelsConstants() {
+  void modelsConstants() {
     assertTrue(SatisfactionRelation.models(new History(), new BitSet(), BooleanConstant.TRUE));
     assertFalse(SatisfactionRelation.models(new History(), new BitSet(), BooleanConstant.FALSE));
   }
 
   @Test
-  public void modelsLiteral() {
+  void modelsLiteral() {
     Literal literal = Literal.of(0);
     assertFalse(SatisfactionRelation.models(new History(), new BitSet(), literal));
 
@@ -76,21 +76,4 @@ public class SatisfactionRelationTest {
     set.set(0);
     assertTrue(SatisfactionRelation.models(new History(), set, literal));
   }
-
-  /* @Test
-  public void modelsRequiredHistoryCompatible() {
-    Formula formula = LtlParser("X (a | (X (b & X c)))");
-
-    List<BitSet> allValuations = Lists.newArrayList(BitSets.powerSet(3));
-
-    for (BitSet valuation : allValuations) {
-      for (List<BitSet> history : Lists
-        .cartesianProduct(allValuations, allValuations, allValuations, allValuations)) {
-        History restrictedHistory = RequiredHistory.getRequiredHistory(formula);
-        Util.intersection(restrictedHistory, history);
-        assertEquals(SatisfactionRelation.models(Lists2.cons(valuation, history), formula),
-          SatisfactionRelation.models(Lists2.cons(valuation, restrictedHistory), formula));
-      }
-    }
-  } */
 }

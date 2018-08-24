@@ -19,14 +19,12 @@
 
 package owl.game.output;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class AigPrintableTest {
+class AigPrintableTest {
   private static final String sampleAigerOutput =
     "aag 7 2 1 2 4\n"
       + "2\n"
@@ -66,23 +64,23 @@ public class AigPrintableTest {
       + "two-line comment\n";
 
   @Test
-  public void testPrinting() {
+  void testPrinting() {
     SampleAiger sample = new SampleAiger();
     AigerPrinter consumer = new AigerPrinter(false);
     sample.feedTo(consumer);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     consumer.print(baos);
-    assertThat(baos.toString(), is(equalTo(sampleAigerOutput)));
+    assertEquals(baos.toString(), sampleAigerOutput);
   }
 
   @Test
-  public void testBinaryPrinting() {
+  void testBinaryPrinting() {
     SampleAiger sample = new SampleAiger();
     AigerPrinter consumer = new AigerPrinter(true);
     sample.feedTo(consumer);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     consumer.print(baos);
-    assertThat(baos.toString(), is(equalTo(sampleBinaryAigerOutput)));
+    assertEquals(baos.toString(), sampleBinaryAigerOutput);
   }
 
   private static final class SampleAiger implements AigPrintable {

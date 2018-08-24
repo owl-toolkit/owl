@@ -19,18 +19,18 @@
 
 package owl.ltl.visitors;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 
-public class CollectorTest {
+class CollectorTest {
   @Test
-  public void testGSubFormulas() {
+  void testGSubFormulas() {
     Formula f1 = Literal.of(0, false);
     Formula f2 = new FOperator(new GOperator(f1));
 

@@ -19,21 +19,20 @@
 
 package owl.jni;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.ALWAYS;
 import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.AUTO;
 import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.NEVER;
+import static owl.util.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 
-public class JniEmersonLeiAutomatonTest {
+class JniEmersonLeiAutomatonTest {
   private static final String SIMPLE_ARBITER = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
     + "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
     + "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
@@ -52,22 +51,22 @@ public class JniEmersonLeiAutomatonTest {
     + "&& G grant_1";
 
   @Test
-  public void splitSimpleArbiter() {
+  void splitSimpleArbiter() {
     JniEmersonLeiAutomaton.of(LtlParser.syntax(SIMPLE_ARBITER), true, false, NEVER, true);
   }
 
   @Test
-  public void splitFg() {
+  void splitFg() {
     JniEmersonLeiAutomaton.of(LtlParser.syntax("F G a"), true, true, ALWAYS, true);
   }
 
   @Test
-  public void splitBuechi() {
+  void splitBuechi() {
     JniEmersonLeiAutomaton.of(LtlParser.syntax("G (a | X F a)"), true, true, AUTO, true);
   }
 
   @Test
-  public void testCoSafetySplitting() {
+  void testCoSafetySplitting() {
     LabelledTree<?, ?> tree1 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, ALWAYS, false).structure;
     assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
@@ -78,11 +77,11 @@ public class JniEmersonLeiAutomatonTest {
 
     LabelledTree<?, ?> tree3 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(CO_SAFETY), false, false, NEVER, false).structure;
-    assertThat(tree3, Matchers.instanceOf(LabelledTree.Leaf.class));
+    assertThat(tree3, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test
-  public void testSafetySplitting() {
+  void testSafetySplitting() {
     LabelledTree<?, ?> tree1 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, ALWAYS, false).structure;
     assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
@@ -93,23 +92,23 @@ public class JniEmersonLeiAutomatonTest {
 
     LabelledTree<?, ?> tree3 =
       JniEmersonLeiAutomaton.of(LtlParser.syntax(SAFETY), false, false, NEVER, false).structure;
-    assertThat(tree3, Matchers.instanceOf(LabelledTree.Leaf.class));
+    assertThat(tree3, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test
-  public void testAbsenceOfAssertionError() {
+  void testAbsenceOfAssertionError() {
     JniEmersonLeiAutomaton
       .of(LtlParser.syntax("G (a | F a | F !b)"), false, false, AUTO, true);
   }
 
   @Test
-  public void testAbsenceOfAssertionError2() {
+  void testAbsenceOfAssertionError2() {
     JniEmersonLeiAutomaton
       .of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, AUTO, true);
   }
 
   @Test
-  public void testPerformance() {
+  void testPerformance() {
     String tlsf = "INFO {\n"
       + "  TITLE:       \"Amba AHB - Decomposed - Encode\"\n"
       + "  DESCRIPTION: \"Encode component of the decomposed Amba AHB Arbiter\"\n"
@@ -166,7 +165,7 @@ public class JniEmersonLeiAutomatonTest {
   }
 
   @Test
-  public void testPerformance2() {
+  void testPerformance2() {
     String ltl =
       "(G(X!p12|X(!p6&!p13)|!p0|X(p13&p6))&G(X!p8|X(p2&p13)|X(!p13&!p2)|!p0)&G(X(p5&p13)|!p0"
         + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
@@ -179,7 +178,7 @@ public class JniEmersonLeiAutomatonTest {
   }
 
   @Test
-  public void testThetaRegression() {
+  void testThetaRegression() {
     Tlsf specification = TlsfParser.parse("INFO {\n"
       + "  TITLE:       \"LTL -> DBA  -  Formula Theta From LtlNfBa Paper\"\n"
       + "  DESCRIPTION: \"Conversion of LTL to Deterministic Buchi Automaton\"\n"
@@ -207,14 +206,14 @@ public class JniEmersonLeiAutomatonTest {
 
     JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       specification.toFormula().formula(), true, false, AUTO, true);
-    assertThat(automaton.automata.size(), Matchers.is(2));
-    assertThat(automaton.automata.get(0).size(), Matchers.is(1));
-    assertThat(automaton.automata.get(1).size(), Matchers.is(2));
+    assertEquals(2, automaton.automata.size());
+    assertEquals(1, automaton.automata.get(0).size());
+    assertEquals(2, automaton.automata.get(1).size());
   }
 
   @Test
   // This should finish within 20 seconds.
-  public void testAmbaDecLock12Leak() {
+  void testAmbaDecLock12Leak() {
     Tlsf specification = TlsfParser.parse("INFO {\n"
       + "  TITLE:       \"Amba AHB - Decomposed - Lock\"\n"
       + "  DESCRIPTION: \"Lock component of the decomposed Amba AHB Arbiter\"\n"
@@ -290,13 +289,13 @@ public class JniEmersonLeiAutomatonTest {
     JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       specification.toFormula().formula(), true, false, AUTO, true);
 
-    assertThat(automaton.automata.size(), Matchers.is(3));
-    assertThat(automaton.automata.get(0).size(), Matchers.is(4));
-    assertThat(automaton.automata.get(1).size(), Matchers.is(2));
+    assertEquals(3, automaton.automata.size());
+    assertEquals(4, automaton.automata.get(0).size());
+    assertEquals(2, automaton.automata.get(1).size());
   }
 
   @Test
-  public void testLoadBalancer() {
+  void testLoadBalancer() {
     Tlsf specification = TlsfParser.parse("INFO {\n"
       + "  TITLE:       \"Parameterized Load Balancer\"\n"
       + "  DESCRIPTION: \"Parameterized Load Balancer (generalized version of the Acacia+ "
@@ -390,10 +389,10 @@ public class JniEmersonLeiAutomatonTest {
     JniEmersonLeiAutomaton automaton = JniEmersonLeiAutomaton.of(
       specification.toFormula().formula(), true, false, AUTO, true);
 
-    assertThat(automaton.automata.size(), Matchers.is(9));
+    assertEquals(9, automaton.automata.size());
 
     for (JniAutomaton jniAutomaton : automaton.automata) {
-      assertThat(jniAutomaton.size(), Matchers.lessThanOrEqualTo(4));
+      assertThat(jniAutomaton.size(), x -> x <= 4);
     }
   }
 }

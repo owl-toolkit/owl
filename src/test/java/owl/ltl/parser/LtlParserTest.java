@@ -19,13 +19,12 @@
 
 package owl.ltl.parser;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
@@ -40,7 +39,7 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-public class LtlParserTest {
+class LtlParserTest {
   private static final String[] INPUT = {
     "!a",
     "G a",
@@ -73,38 +72,38 @@ public class LtlParserTest {
   };
 
   @Test
-  public void testSyntax() {
+  void testSyntax() {
     for (int i = 0; i < INPUT.length; i++) {
-      assertEquals(INPUT[i], OUTPUT[i], LtlParser.syntax(INPUT[i]));
+      assertEquals(OUTPUT[i], LtlParser.syntax(INPUT[i]));
     }
   }
 
   @Test
-  public void testSingleQuotedLiteralParsing() {
+  void testSingleQuotedLiteralParsing() {
     LabelledFormula formula = LtlParser.parse("'a b c'");
-    assertThat(formula.variables(), contains("a b c"));
-    assertThat(formula.formula(), is(Literal.of(0)));
+    assertEquals(List.of("a b c"), formula.variables());
+    assertEquals(Literal.of(0), formula.formula());
   }
 
   @Test
-  public void testDoubleQuotedLiteralParsing() {
+  void testDoubleQuotedLiteralParsing() {
     LabelledFormula formula = LtlParser.parse("\"a b c\"");
-    assertThat(formula.variables(), contains("a b c"));
-    assertThat(formula.formula(), is(Literal.of(0)));
+    assertEquals(List.of("a b c"), formula.variables());
+    assertEquals(Literal.of(0), formula.formula());
   }
 
-  @Test(expected = ParseCancellationException.class)
-  public void testParseRegression1() {
-    LtlParser.parse("FF");
+  @Test
+  void testParseRegression1() {
+    assertThrows(ParseCancellationException.class, () -> LtlParser.parse("FF"));
   }
 
-  @Test(expected = ParseCancellationException.class)
-  public void testParseRegression2() {
-    LtlParser.parse("Fa!");
+  @Test
+  void testParseRegression2() {
+    assertThrows(ParseCancellationException.class, () -> LtlParser.parse("Fa!"));
   }
 
-  @Test(expected = ParseCancellationException.class)
-  public void testParseRegression3() {
-    LtlParser.parse("F+");
+  @Test
+  void testParseRegression3() {
+    assertThrows(ParseCancellationException.class, () -> LtlParser.parse("F+"));
   }
 }

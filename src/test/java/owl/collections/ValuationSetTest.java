@@ -19,13 +19,11 @@
 
 package owl.collections;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
@@ -33,8 +31,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationSetTest {
@@ -43,8 +41,8 @@ public abstract class ValuationSetTest {
   private ValuationSet empty;
   private ValuationSet universe;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void beforeEach() {
     List<String> aliases = List.of("a", "b", "c", "d");
     ValuationSetFactory factory = setUpFactory(aliases);
 
@@ -60,10 +58,10 @@ public abstract class ValuationSetTest {
     containsA = factory.of(bs, bs);
   }
 
-  public abstract ValuationSetFactory setUpFactory(List<String> aliases);
+  protected abstract ValuationSetFactory setUpFactory(List<String> aliases);
 
   @Test
-  public void testComplement() {
+  void testComplement() {
     assertEquals(universe.complement(), empty);
     assertEquals(empty.complement(), universe);
     assertEquals(abcd.complement().complement(), abcd);
@@ -71,7 +69,7 @@ public abstract class ValuationSetTest {
   }
 
   @Test
-  public void testForEach() {
+  void testForEach() {
     for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
       set.forEach(solution -> forEach.add(BitSets.copyOf(solution)));
@@ -81,12 +79,12 @@ public abstract class ValuationSetTest {
         .map(BitSets::copyOf)
         .collect(Collectors.toSet());
 
-      assertThat(forEach, is(collect));
+      assertEquals(collect, forEach);
     }
   }
 
   @Test
-  public void testForEachRestrict() {
+  void testForEachRestrict() {
     BitSet restriction = new BitSet();
     restriction.set(1);
     restriction.set(3);
@@ -100,12 +98,12 @@ public abstract class ValuationSetTest {
         .map(BitSets::copyOf)
         .collect(Collectors.toSet());
 
-      assertThat(forEach, is(collect));
+      assertEquals(collect, forEach);
     }
   }
 
   @Test
-  public void testIsUniverse() {
+  void testIsUniverse() {
     assertTrue(universe.isUniverse());
     assertFalse(empty.isUniverse());
     assertFalse(abcd.isUniverse());
@@ -113,7 +111,7 @@ public abstract class ValuationSetTest {
   }
 
   @Test
-  public void testIterator() {
+  void testIterator() {
     Set<BitSet> seen = new HashSet<>();
     universe.forEach(valuation -> {
       assertTrue(valuation.cardinality() <= 4);

@@ -87,7 +87,7 @@ public final class IARBuilder<R> {
 
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("dra2dpa")
-      .reader(InputReaders.HoaReader.DEFAULT)
+      .reader(InputReaders.HOA)
       .addTransformer(CLI)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.ToHoa.DEFAULT)

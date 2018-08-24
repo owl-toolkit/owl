@@ -19,26 +19,23 @@
 
 package owl.ltl.rewriter;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hamcrest.Matchers;
-import org.junit.Test;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 
-@RunWith(Theories.class)
-public class SyntacticSimplifierTest {
+@SuppressWarnings("PMD.UnusedPrivateMethod")
+class SyntacticSimplifierTest {
   private static final List<String> variables = List.of("a", "b", "c");
 
-  @DataPoints
-  public static final List<List<String>> pairs = List.of(
+  private static final List<List<String>> pairs = List.of(
     // Prop. Rules (symmetric rules are also checked)
     List.of("a & F a", "a"),
     List.of("a & G a", "G a"),
@@ -91,29 +88,35 @@ public class SyntacticSimplifierTest {
     List.of("a | !a", "true")
   );
 
+  private static Stream<Arguments> pairProvider() {
+    return pairs.stream().map(Arguments::of);
+  }
+
   @Test
-  public void testPullupX() {
+  void testPullupX() {
     Formula f1 = LtlParser.syntax("G F X b");
     Formula f2 = LtlParser.syntax("X G F b");
     assertEquals(SimplifierFactory.apply(f1, Mode.PULL_UP_X), f2);
   }
 
-  @Theory
-  public void testSyntacticSimplifier(List<String> pair) {
+  @ParameterizedTest
+  @MethodSource("pairProvider")
+  void testSyntacticSimplifier(List<String> pair) {
     Formula actual = LtlParser.syntax(pair.get(0), variables);
     Formula expected = LtlParser.syntax(pair.get(1), variables);
-    assertThat(SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC), Matchers.is(expected));
+    assertEquals(expected, SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC));
   }
 
-  @Theory
-  public void testSyntacticSimplifierNegation(List<String> pair) {
+  @ParameterizedTest
+  @MethodSource("pairProvider")
+  void testSyntacticSimplifierNegation(List<String> pair) {
     Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
     Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
-    assertThat(SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC), Matchers.is(expected));
+    assertEquals(expected, SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC));
   }
 
   @Test
-  public void testIssue189() {
+  void testIssue189() {
     // Test that there is no assert error.
     String formulaString = "GF(G!b & (XG!b U ((a & XG!b))))";
     SimplifierFactory.apply(LtlParser.syntax(formulaString), Mode.SYNTACTIC);

@@ -19,13 +19,13 @@
 
 package owl.game.algorithms;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -38,13 +38,13 @@ import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
-public class ParityGameSolverTest {
+class ParityGameSolverTest {
   private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
     DefaultEnvironment.annotated(),
     Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
-  public void ltl2zielonkaTest1() {
+  void ltl2zielonkaTest1() {
     LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
 
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
@@ -57,7 +57,7 @@ public class ParityGameSolverTest {
   }
 
   @Test
-  public void ltl2zielonkaTest2() {
+  void ltl2zielonkaTest2() {
     LabelledFormula formula =
       LtlParser.parse("((((G (F (r_0))) && (G (F (r_1)))) <-> "
                       + "(G (F (g)))) && (G ((((r_0) && (r_1)) -> "
@@ -72,7 +72,7 @@ public class ParityGameSolverTest {
   }
 
   @Test
-  public void ltl2zielonkaTest3() {
+  void ltl2zielonkaTest3() {
     LabelledFormula formula =
       LtlParser.parse("(G ((((req) -> (X ((grant) && (X ((grant) "
                       + "&& (X (grant))))))) && ((grant) -> "
@@ -88,7 +88,7 @@ public class ParityGameSolverTest {
   }
 
   @Test
-  public void ltl2zielonkaTest4() {
+  void ltl2zielonkaTest4() {
     LabelledFormula formula =
       LtlParser.parse("(((G (F (r_0))) && (G (F (r_1)))) <-> (G (F (g))))");
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(

@@ -21,9 +21,11 @@ package owl.translations;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -97,13 +99,13 @@ public class ExternalTranslator
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
                       "AssignmentToCollectionOrArrayFieldFromParameter"})
-  ExternalTranslator(Environment env, InputMode inputMode, String[] tool) {
+  private ExternalTranslator(Environment env, InputMode inputMode, String[] tool) {
     this.env = env;
     this.inputMode = inputMode;
 
     this.tool = tool;
     if (inputMode == InputMode.REPLACE) {
-      checkArgument(Arrays.stream(tool).anyMatch("%f"::equals));
+      checkArgument(Arrays.asList(tool).contains("%f"));
     }
   }
 
@@ -139,11 +141,15 @@ public class ExternalTranslator
       }
 
       //noinspection NestedTryStatement
-      try (BufferedInputStream inputStream = new BufferedInputStream(process.getInputStream())) {
+      try (Reader reader = new BufferedReader(
+        new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
         FactorySupplier factorySupplier = env.factorySupplier();
         ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(formula.variables());
         Automaton<HoaState, OmegaAcceptance> automaton =
-          AutomatonReader.readHoa(inputStream, vsFactory, OmegaAcceptance.class);
+          AutomatonReader.readHoa(reader, x -> {
+            checkArgument(vsFactory.alphabet().containsAll(x));
+            return vsFactory;
+          });
         logger.log(Level.FINEST, () -> String.format("Read automaton for %s:%n%s", formula,
           HoaPrinter.toString(automaton)));
         return automaton;

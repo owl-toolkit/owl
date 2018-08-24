@@ -19,17 +19,13 @@
 
 package owl.game;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.isIn;
-import static org.hamcrest.Matchers.not;
+import static owl.util.Assertions.assertThat;
 
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -43,13 +39,13 @@ import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
-public class GameFactoryTest {
+class GameFactoryTest {
   private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
     DefaultEnvironment.annotated(),
     Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
 
   @Test
-  public void testTransform() {
+  void testTransform() {
     LabelledFormula formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
@@ -58,17 +54,17 @@ public class GameFactoryTest {
 
     for (Node<Object> state : game.states()) {
       for (Node<Object> predecessor : game.predecessors(state)) {
-        assertThat(state, isIn(game.successors(predecessor)));
+        assertThat(state, game.successors(predecessor)::contains);
       }
 
       for (Node<Object> successors : game.successors(state)) {
-        assertThat(state, isIn(game.predecessors(successors)));
+        assertThat(state, game.predecessors(successors)::contains);
       }
     }
   }
 
   @Test
-  public void testAttractor() {
+  void testAttractor() {
     LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
 
     Automaton<AnnotatedState, ParityAcceptance> automaton = AutomatonUtil.cast(
@@ -83,14 +79,14 @@ public class GameFactoryTest {
         AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state();
         return state.state() != null && state.state().isTrue();
       }).collect(Collectors.toSet());
-    assertThat(winningStates, not(empty()));
+    assertThat(winningStates, x -> !x.isEmpty());
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_2),
-      hasItem(game.onlyInitialState()));
+      x -> x.contains(game.onlyInitialState()));
 
     // Player 1 can never win...
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
-      not(hasItem(game.onlyInitialState())));
+      x -> !x.contains(game.onlyInitialState()));
   }
 }

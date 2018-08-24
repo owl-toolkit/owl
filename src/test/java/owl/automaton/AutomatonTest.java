@@ -19,20 +19,17 @@
 
 package owl.automaton;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import org.junit.experimental.theories.DataPoint;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -42,14 +39,13 @@ import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 
-@RunWith(Theories.class)
-public class AutomatonTest {
+@SuppressWarnings("PMD.UnusedPrivateMethod")
+class AutomatonTest {
 
   private static LTL2DAFunction translator = new LTL2DAFunction(DefaultEnvironment.standard(),
     true, EnumSet.allOf(LTL2DAFunction.Constructions.class));
 
-  @DataPoints
-  public static final List<LabelledFormula> FORMULAS = List.of(
+  private static final List<LabelledFormula> FORMULAS = List.of(
     LtlParser.parse("true"),
     LtlParser.parse("false"),
     LtlParser.parse("a"),
@@ -79,21 +75,27 @@ public class AutomatonTest {
     LtlParser.parse("G (X (a xor b))"),
     LtlParser.parse("(a <-> b) xor (c <-> d)"));
 
-  public static final ValuationSetFactory factory = DefaultEnvironment.standard().factorySupplier()
-    .getValuationSetFactory(List.of("a", "b"));
-
-  @DataPoint
-  public static final Automaton<?, ?> automaton = AutomatonFactory.create(factory, "x",
-    NoneAcceptance.INSTANCE, x -> Map.of(
-      Edge.of("x"), factory.universe(),
-      Edge.of("y"), factory.of(0)));
-
-  @Theory
-  public void labelledEdges(LabelledFormula formula) {
-    labelledEdges(translator.apply(formula));
+  private static Stream<Arguments> labelledFormulaProvider() {
+    return FORMULAS.stream().map(Arguments::of);
   }
 
-  public <S> void labelledEdges(Automaton<S, ?> automaton) {
+  private static Stream<Arguments> automatonProvider() {
+    ValuationSetFactory factory = DefaultEnvironment.standard().factorySupplier()
+      .getValuationSetFactory(List.of("a", "b"));
+
+    return Stream.of(Arguments.of(AutomatonFactory.create(factory, "x", NoneAcceptance.INSTANCE,
+      x -> Map.of(Edge.of("x"), factory.universe(), Edge.of("y"), factory.of(0)))));
+  }
+
+  @ParameterizedTest
+  @MethodSource("labelledFormulaProvider")
+  void edgeMapTest(LabelledFormula formula) {
+    edgeMapTest(translator.apply(formula));
+  }
+
+  @ParameterizedTest
+  @MethodSource("automatonProvider")
+  <S> void edgeMapTest(Automaton<S, ?> automaton) {
     for (S state : automaton.states()) {
       var actualEdges = automaton.edgeMap(state);
       var expectedEdges = new HashMap<Edge<S>, ValuationSet>();
@@ -103,31 +105,28 @@ public class AutomatonTest {
           x -> expectedEdges.merge(x, automaton.factory().of(valuation), ValuationSet::union));
       }
 
-      assertThat(actualEdges, is(expectedEdges));
+      assertEquals(expectedEdges, actualEdges);
     }
   }
 
-  @Theory
-  public void labelledEdges2(LabelledFormula formula) {
-    labelledEdges2(translator.apply(formula));
+  @ParameterizedTest
+  @MethodSource("labelledFormulaProvider")
+  void edgeTreeTest(LabelledFormula formula) {
+    edgeTreeTest(translator.apply(formula));
   }
 
-  @Theory
-  public void labelledEdges22(Automaton<?, ?> automaton) {
-    labelledEdges2(automaton);
-  }
-
-  public <S> void labelledEdges2(Automaton<S, ?> automaton) {
+  @ParameterizedTest
+  @MethodSource("automatonProvider")
+  <S> void edgeTreeTest(Automaton<S, ?> automaton) {
     for (S state : automaton.states()) {
       var expectedEdges = automaton.edgeMap(state);
       var actualEdges = automaton.edgeTree(state);
 
       for (var valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
-        assertThat(Set.copyOf(actualEdges.get(valuation)),
-          is(Set.copyOf(automaton.edges(state, valuation))));
+        assertEquals(actualEdges.get(valuation), automaton.edges(state, valuation));
       }
 
-      assertThat(actualEdges, is(automaton.factory().inverse(expectedEdges)));
+      assertEquals(actualEdges, automaton.factory().inverse(expectedEdges));
     }
   }
 }

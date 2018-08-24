@@ -19,13 +19,16 @@
 
 package owl.jni;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static owl.util.Assertions.assertThat;
 
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -35,7 +38,8 @@ import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 
-public class JniAutomatonTest {
+
+class JniAutomatonTest {
   private static final LTL2DAFunction translator = new LTL2DAFunction(DefaultEnvironment.standard(),
     true, EnumSet.of(
       LTL2DAFunction.Constructions.SAFETY,
@@ -45,7 +49,7 @@ public class JniAutomatonTest {
       LTL2DAFunction.Constructions.PARITY));
 
   @Test
-  public void testTreeSerialisation() {
+  void testTreeSerialisation() {
     var formula0 = LtlParser.parse("true", List.of());
     var formula1 = LtlParser.parse("false", List.of());
     var formula2 = LtlParser.parse("a & b", List.of("a", "b"));
@@ -72,41 +76,43 @@ public class JniAutomatonTest {
     var automaton7 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula7),
       Object.class, ParityAcceptance.class));
 
-    assertThat(automaton0.edges(0),
-      is(new int[]{1, -2, -1}));
-    assertThat(automaton1.edges(0),
-      is(new int[]{1, -1, -1}));
-    assertThat(automaton2.edges(0),
-      is(new int[]{7, 0, 0, 4, 1, 0, -2, -1, -1, -2, -1}));
-    assertThat(automaton3.edges(0),
-      is(new int[]{4, 0, 0, -2, -1, -1, 1, -1}));
-    assertThat(automaton4.edges(0),
-      is(new int[]{4, 1, 0, -2, -1, -1, 1, -1}));
-    assertThat(automaton5.edges(0),
-      is(new int[]{4, 1, 0, -2, 0, -1, 1, -1}));
-    assertThat(automaton5.edges(1),
-      is(new int[]{7, 0, 0, 4, 1, -2, -4, 2, -1, 0, -1, 1, -1}));
-    assertThat(automaton6.edges(0),
-      is(new int[]{7, 0, 0, 4, 1, -2, 0, 0, 0, 1, -1}));
-    assertThat(automaton6.edges(1),
-      is(new int[]{4, 1, 0, -2, 1, -1, 0, 0}));
-    assertThat(automaton7.edges(0), anyOf(
-      is(new int[]{7, 0, 4, -4, 1, 0, -2, 0, 4, 0, 3, 0, 1}),
-      is(new int[]{10, 0, 4, 7, 1, 0, -2, 1, -4, -2, 0, 4, 0, 1, 0, 3})));
+    assertArrayEquals(new int[]{1, -2, -1},
+      automaton0.edges(0));
+    assertArrayEquals(new int[]{1, -1, -1},
+      automaton1.edges(0));
+    assertArrayEquals(new int[]{7, 0, 0, 4, 1, 0, -2, -1, -1, -2, -1},
+      automaton2.edges(0));
+    assertArrayEquals(new int[]{4, 0, 0, -2, -1, -1, 1, -1},
+      automaton3.edges(0));
+    assertArrayEquals(new int[]{4, 1, 0, -2, -1, -1, 1, -1},
+      automaton4.edges(0));
+    assertArrayEquals(new int[]{4, 1, 0, -2, 0, -1, 1, -1},
+      automaton5.edges(0));
+    assertArrayEquals(new int[]{7, 0, 0, 4, 1, -2, -4, 2, -1, 0, -1, 1, -1},
+      automaton5.edges(1));
+    assertArrayEquals(new int[]{7, 0, 0, 4, 1, -2, 0, 0, 0, 1, -1},
+      automaton6.edges(0));
+    assertArrayEquals(new int[]{4, 1, 0, -2, 1, -1, 0, 0},
+      automaton6.edges(1));
+    assertThat(automaton7.edges(0), x ->
+      Arrays.equals(x, new int[]{7, 0, 4, -4, 1, 0, -2, 0, 4, 0, 3, 0, 1})
+      || Arrays.equals(x, new int[]{10, 0, 4, 7, 1, 0, -2, 1, -4, -2, 0, 4, 0, 1, 0, 3}));
   }
 
   @Test
-  public void testTreeSerialisationPerformance() {
-    var formula = LtlParser.parse("(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v)"
-      + "& X G (w | x | y)");
-    assertThat(formula.variables().size(), is(25));
+  void testTreeSerialisationPerformance() {
+    assertTimeout(Duration.ofMillis(100), () -> {
+      var formula = LtlParser.parse("(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v)"
+        + "& X G (w | x | y)");
+      assertEquals(25, formula.variables().size());
 
-    var instance1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula),
-      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-    var instance2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula.not()),
-      EquivalenceClass.class, BuchiAcceptance.class), EquivalenceClass::isTrue);
+      var instance1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula),
+        EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
+      var instance2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula.not()),
+        EquivalenceClass.class, BuchiAcceptance.class), EquivalenceClass::isTrue);
 
-    assertThat(instance1.edges(0).length, is(71));
-    assertThat(instance2.edges(0).length, is(71));
+      assertEquals(71, instance1.edges(0).length);
+      assertEquals(71, instance2.edges(0).length);
+    });
   }
 }
