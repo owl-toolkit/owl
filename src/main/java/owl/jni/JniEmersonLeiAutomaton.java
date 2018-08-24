@@ -19,11 +19,10 @@
 
 package owl.jni;
 
-import static owl.jni.JniAutomaton.Acceptance;
-
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -42,9 +41,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.SyntacticFragment;
-import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
@@ -68,15 +65,16 @@ public final class JniEmersonLeiAutomaton {
   }
 
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
-    SafetySplittingMode mode, boolean onTheFly) {
+    SafetySplittingMode mode, boolean onTheFly, BitSet inputVariables) {
     Formula nnfLight = formula.accept(new SubstitutionVisitor(Formula::nnf));
 
     Formula processedFormula = simplify
-      ? SimplifierFactory.apply(nnfLight, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
+      ? RealizabilityRewriter.removeSingleValuedInputLiterals(inputVariables,
+        SimplifierFactory.apply(nnfLight, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT))
       : nnfLight;
 
     Builder builder = new Builder(mode, onTheFly,
-      processedFormula.accept(AcceptanceAnnotator.INSTANCE));
+      processedFormula.accept(JniAcceptanceAnnotator.INSTANCE));
 
     LabelledTree<Tag, Reference> structure = monolithic
       ? builder.modalOperatorAction(processedFormula)
@@ -85,10 +83,18 @@ public final class JniEmersonLeiAutomaton {
     return new JniEmersonLeiAutomaton(structure, List.copyOf(builder.automata));
   }
 
+  public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
+    SafetySplittingMode mode, boolean onTheFly, int firstOutputVariable) {
+    BitSet inputVariables = new BitSet();
+    inputVariables.set(0, firstOutputVariable);
+    return of(formula, simplify, monolithic, mode, onTheFly, inputVariables);
+  }
+
   @CEntryPoint
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
-    int mode, boolean onTheFly) {
-    return of(formula, simplify, monolithic, SafetySplittingMode.values()[mode], onTheFly);
+    int mode, boolean onTheFly, int firstOutputVariable) {
+    return of(formula, simplify, monolithic, SafetySplittingMode.values()[mode], onTheFly,
+      firstOutputVariable);
   }
 
   enum Tag {
@@ -125,11 +131,11 @@ public final class JniEmersonLeiAutomaton {
     private final SafetySplittingMode safetySplittingMode;
     private final List<JniAutomaton<?>> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
-    private final Map<Formula, Acceptance> annotatedTree;
+    private final Map<Formula, JniAcceptance> annotatedTree;
     private final LTL2DAFunction translator;
 
     public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly,
-      Map<Formula, Acceptance> annotatedTree) {
+      Map<Formula, JniAcceptance> annotatedTree) {
       this.safetySplittingMode = safetySplittingMode;
       this.annotatedTree = new HashMap<>(annotatedTree);
 
@@ -186,7 +192,7 @@ public final class JniEmersonLeiAutomaton {
         // Acceptance needs to be overridden, since detection does not work in this case.
         jniAutomaton = new JniAutomaton<>(
           AutomatonUtil.cast(automaton, EquivalenceClass.class, BuchiAcceptance.class),
-          EquivalenceClass::isTrue, EquivalenceClass::trueness, Acceptance.CO_SAFETY);
+          EquivalenceClass::isTrue, EquivalenceClass::trueness, JniAcceptance.CO_SAFETY);
       } else {
         jniAutomaton = new JniAutomaton<>(automaton);
       }
@@ -241,7 +247,7 @@ public final class JniEmersonLeiAutomaton {
       List<Formula> parityRequired = new ArrayList<>();
 
       partition.dpa.forEach(x -> {
-        if (annotatedTree.get(x) == Acceptance.PARITY) {
+        if (annotatedTree.get(x) == JniAcceptance.PARITY) {
           parityRequired.add(x);
         } else {
           assert annotatedTree.get(x).isLessThanParity();
@@ -262,7 +268,7 @@ public final class JniEmersonLeiAutomaton {
           var dnfNormalForm = NormalForms.toDnfFormula(mergedFormula);
 
           if (!mergedFormula.equals(dnfNormalForm)) {
-            annotatedTree.putAll(dnfNormalForm.accept(AcceptanceAnnotator.INSTANCE));
+            annotatedTree.putAll(dnfNormalForm.accept(JniAcceptanceAnnotator.INSTANCE));
             children.add(dnfNormalForm.accept(this));
             return children;
           }
@@ -272,7 +278,7 @@ public final class JniEmersonLeiAutomaton {
           var cnfNormalForm = NormalForms.toCnfFormula(mergedFormula);
 
           if (!mergedFormula.equals(cnfNormalForm)) {
-            annotatedTree.putAll(cnfNormalForm.accept(AcceptanceAnnotator.INSTANCE));
+            annotatedTree.putAll(cnfNormalForm.accept(JniAcceptanceAnnotator.INSTANCE));
             children.add(cnfNormalForm.accept(this));
             return children;
           }
@@ -291,10 +297,10 @@ public final class JniEmersonLeiAutomaton {
 
     @Override
     public LabelledTree<Tag, Reference> visit(Biconditional biconditional) {
-      if (annotatedTree.get(biconditional.left) == Acceptance.PARITY
-        && annotatedTree.get(biconditional.right) == Acceptance.PARITY) {
+      if (annotatedTree.get(biconditional.left) == JniAcceptance.PARITY
+        && annotatedTree.get(biconditional.right) == JniAcceptance.PARITY) {
         var nnf = biconditional.nnf();
-        annotatedTree.putAll(nnf.accept(AcceptanceAnnotator.INSTANCE));
+        annotatedTree.putAll(nnf.accept(JniAcceptanceAnnotator.INSTANCE));
         return nnf.accept(this);
       }
 
@@ -319,79 +325,6 @@ public final class JniEmersonLeiAutomaton {
       var partition = FormulaPartition.of(disjunction.children);
       var leaves = createLeaves(partition, Disjunction::of);
       return leaves.size() == 1 ? leaves.get(0) : new LabelledTree.Node<>(Tag.DISJUNCTION, leaves);
-    }
-  }
-
-  private static class AcceptanceAnnotator extends PropositionalVisitor<Map<Formula, Acceptance>> {
-    static final AcceptanceAnnotator INSTANCE = new AcceptanceAnnotator();
-
-    @Override
-    protected Map<Formula, Acceptance> modalOperatorAction(Formula formula) {
-      if (SyntacticFragment.SAFETY.contains(formula)) {
-        return Map.of(formula, Acceptance.SAFETY);
-      }
-
-      if (SyntacticFragment.CO_SAFETY.contains(formula)) {
-        return Map.of(formula, Acceptance.CO_SAFETY);
-      }
-
-      if (SyntacticFragments.isDetBuchiRecognisable(formula)) {
-        return Map.of(formula, Acceptance.BUCHI);
-      }
-
-      if (SyntacticFragments.isDetCoBuchiRecognisable(formula)) {
-        return Map.of(formula, Acceptance.CO_BUCHI);
-      }
-
-      return Map.of(formula, Acceptance.PARITY);
-    }
-
-    @Override
-    public Map<Formula, Acceptance> visit(Biconditional biconditional) {
-      Map<Formula, Acceptance> acceptanceMap = new HashMap<>();
-
-      acceptanceMap.putAll(biconditional.left.accept(this));
-      acceptanceMap.putAll(biconditional.right.accept(this));
-
-      Acceptance leftAcceptance = acceptanceMap.get(biconditional.left);
-      Acceptance rightAcceptance = acceptanceMap.get(biconditional.right);
-
-      if (leftAcceptance.lub(rightAcceptance).isLessOrEqualWeak()) {
-        acceptanceMap.put(biconditional, Acceptance.WEAK);
-      } else {
-        acceptanceMap.put(biconditional, Acceptance.PARITY);
-      }
-
-      return acceptanceMap;
-    }
-
-    @Override
-    public Map<Formula, Acceptance> visit(BooleanConstant booleanConstant) {
-      return Map.of(booleanConstant, Acceptance.BOTTOM);
-    }
-
-    @Override
-    public Map<Formula, Acceptance> visit(Conjunction conjunction) {
-      return visitPropositional(conjunction);
-    }
-
-    @Override
-    public Map<Formula, Acceptance> visit(Disjunction disjunction) {
-      return visitPropositional(disjunction);
-    }
-
-    private Map<Formula, Acceptance> visitPropositional(PropositionalFormula propositionalFormula) {
-      Acceptance acceptance = Acceptance.BOTTOM;
-      Map<Formula, Acceptance> acceptanceMap = new HashMap<>();
-
-      for (Formula child : propositionalFormula.children) {
-        Map<Formula, Acceptance> childDecisions = child.accept(this);
-        acceptanceMap.putAll(childDecisions);
-        acceptance = acceptance.lub(acceptanceMap.get(child));
-      }
-
-      acceptanceMap.put(propositionalFormula, acceptance);
-      return acceptanceMap;
     }
   }
 }
