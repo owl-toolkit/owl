@@ -34,7 +34,7 @@ namespace owl {
         Automaton adoptAutomaton(const Automaton &automaton) const;
 
         FormulaFactory createFormulaFactory() const;
-        EmersonLeiAutomaton createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, bool on_the_fly) const;
+        EmersonLeiAutomaton createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, bool on_the_fly, int firstOutputVariable) const;
     };
 
     class OwlJavaVM {

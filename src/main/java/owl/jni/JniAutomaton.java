@@ -20,6 +20,13 @@
 package owl.jni;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.jni.JniAcceptance.BUCHI;
+import static owl.jni.JniAcceptance.CO_BUCHI;
+import static owl.jni.JniAcceptance.PARITY_MAX_EVEN;
+import static owl.jni.JniAcceptance.PARITY_MAX_ODD;
+import static owl.jni.JniAcceptance.PARITY_MIN_EVEN;
+import static owl.jni.JniAcceptance.PARITY_MIN_ODD;
+import static owl.jni.JniAcceptance.SAFETY;
 
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -50,7 +57,7 @@ public final class JniAutomaton<S> {
   private static final int REJECTING = -1;
   private static final int UNKNOWN = Integer.MIN_VALUE;
 
-  private final Acceptance acceptance;
+  private final JniAcceptance acceptance;
   private final Predicate<S> acceptingSink;
   private final Automaton<S, ?> automaton;
   private final List<S> index2StateMap;
@@ -71,7 +78,7 @@ public final class JniAutomaton<S> {
   }
 
   JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink,
-    ToDoubleFunction<S> qualityScore, Acceptance acceptance) {
+    ToDoubleFunction<S> qualityScore, JniAcceptance acceptance) {
     checkArgument(automaton.initialStates().size() == 1);
 
     this.automaton = automaton;
@@ -87,31 +94,31 @@ public final class JniAutomaton<S> {
     state2indexMap.defaultReturnValue(UNKNOWN);
   }
 
-  private static JniAutomaton.Acceptance detectAcceptance(Automaton<?, ?> automaton) {
+  private static JniAcceptance detectAcceptance(Automaton<?, ?> automaton) {
     OmegaAcceptance acceptance = automaton.acceptance();
 
     if (acceptance instanceof AllAcceptance) {
-      return Acceptance.SAFETY;
+      return SAFETY;
     }
 
     if (acceptance instanceof BuchiAcceptance) {
-      return Acceptance.BUCHI;
+      return BUCHI;
     }
 
     if (acceptance instanceof CoBuchiAcceptance) {
-      return Acceptance.CO_BUCHI;
+      return CO_BUCHI;
     }
 
     if (acceptance instanceof ParityAcceptance) {
       switch (((ParityAcceptance) acceptance).parity()) {
         case MAX_EVEN:
-          return Acceptance.PARITY_MAX_EVEN;
+          return PARITY_MAX_EVEN;
         case MAX_ODD:
-          return JniAutomaton.Acceptance.PARITY_MAX_ODD;
+          return PARITY_MAX_ODD;
         case MIN_ODD:
-          return JniAutomaton.Acceptance.PARITY_MIN_ODD;
+          return PARITY_MIN_ODD;
         case MIN_EVEN:
-          return JniAutomaton.Acceptance.PARITY_MIN_EVEN;
+          return PARITY_MIN_EVEN;
         default:
           throw new AssertionError("Unreachable Code.");
       }
@@ -199,46 +206,5 @@ public final class JniAutomaton<S> {
 
     cache.put(tree, index);
     return index;
-  }
-
-  // For the tree annotation "non-existing" or generic types are needed: PARITY, WEAK, BOTTOM
-  enum Acceptance {
-    BUCHI, CO_BUCHI, CO_SAFETY, PARITY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN,
-    PARITY_MIN_ODD, SAFETY, WEAK, BOTTOM;
-
-    Acceptance lub(Acceptance other) {
-      if (this == BOTTOM || this == other) {
-        return other;
-      }
-
-      switch (this) {
-        case CO_SAFETY:
-          return other == SAFETY ? WEAK : other;
-
-        case SAFETY:
-          return other == CO_SAFETY ? WEAK : other;
-
-        case WEAK:
-          return (other == SAFETY || other == CO_SAFETY) ? this : other;
-
-        case BUCHI:
-          return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
-
-        case CO_BUCHI:
-          return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
-
-        default:
-          return PARITY;
-      }
-    }
-
-    boolean isLessThanParity() {
-      return this == BUCHI || this == CO_BUCHI || this == CO_SAFETY || this == SAFETY
-        || this == WEAK || this == BOTTOM;
-    }
-
-    boolean isLessOrEqualWeak() {
-      return this == CO_SAFETY || this == SAFETY || this == WEAK || this == BOTTOM;
-    }
   }
 }

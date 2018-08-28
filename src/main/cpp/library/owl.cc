@@ -9,12 +9,12 @@ namespace owl {
         return FormulaFactory(env);
     }
 
-    EmersonLeiAutomaton OwlThread::createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, bool on_the_fly) const {
+    EmersonLeiAutomaton OwlThread::createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, bool on_the_fly, int firstOutputVariable) const {
         jclass clazz = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton");
         jmethodID split_method = get_static_methodID(env, clazz, "of",
-                                                     "(Lowl/ltl/Formula;ZZIZ)Lowl/jni/JniEmersonLeiAutomaton;");
+                                                     "(Lowl/ltl/Formula;ZZIZI)Lowl/jni/JniEmersonLeiAutomaton;");
         auto java_tree = call_static_method<jobject, jobject, jboolean, jboolean, jint, jboolean>
-                (env, clazz, split_method, formula.handle, static_cast<jboolean>(simplify), static_cast<jboolean>(monolithic), static_cast<jint>(safety_splitting), static_cast<jboolean>(on_the_fly));
+                (env, clazz, split_method, formula.handle, static_cast<jboolean>(simplify), static_cast<jboolean>(monolithic), static_cast<jint>(safety_splitting), static_cast<jboolean>(on_the_fly), static_cast<jint>(firstOutputVariable));
 
         deref(env, clazz);
         return copy_from_java(env, java_tree);
