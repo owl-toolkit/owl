@@ -37,9 +37,9 @@ class LTL2DPAFunctionTest {
     LTL2DPAFunction translation = new LTL2DPAFunction(DefaultEnvironment.annotated(),
       LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     Automaton<?, ParityAcceptance> automaton = translation.apply(parseResult);
-    String automatonString = HoaPrinter.toString(automaton);
-    assertEquals(size, automaton.size(), automatonString);
-    assertThat(automaton.acceptance().acceptanceSets(), x -> x <= accSize, automatonString);
+    assertEquals(size, automaton.size(), () -> HoaPrinter.toString(automaton));
+    assertThat(automaton.acceptance().acceptanceSets(), x -> x <= accSize,
+      HoaPrinter.toString(automaton));
   }
 
   @Test

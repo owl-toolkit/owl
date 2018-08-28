@@ -19,52 +19,107 @@
 
 package owl.ltl.rewriter;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static owl.util.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.ltl.Literal;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
+import owl.run.DefaultEnvironment;
 
+@SuppressWarnings("PMD.UnusedPrivateMethod")
 class NormalFormsTest {
-  @SuppressWarnings("unchecked")
-  @Test
-  void testToCnfTrivial() {
-    assertThat(NormalForms.toCnf(BooleanConstant.TRUE), Set::isEmpty);
-    assertThat(NormalForms.toCnf(BooleanConstant.FALSE), Set.of(Set.of())::equals);
+  private static final String SHORT =
+    "(a | b | c | d) & (d | e | f | g) & (g | h | i | j) & (j | k | l | a)";
+
+  private static final String LONG =
+        "(a1 | b1 | c1 | d1) & (e1 | f1 | g1 | h1) "
+    + "& (i1 | j1 | k1 | l1) & (m1 | n1 | o1 | p1) "
+    + "& (a2 | b2 | c2 | d2) & (e2 | f2 | g2 | h2) "
+    + "& (i2 | j2 | k2 | l2) & (m2 | n2 | o2 | p2)";
+
+  private static Stream<Arguments> formulaProvider() {
+    return owl.ltl.FormulaTest.formulaProvider();
   }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  void testToDnfTrivial() {
-    assertThat(NormalForms.toDnf(BooleanConstant.TRUE), Set.of(Set.of())::equals);
-    assertThat(NormalForms.toDnf(BooleanConstant.FALSE), Set::isEmpty);
+  private static Stream<Arguments> labelledFormulaProvider() {
+    return Stream.of(Arguments.of(LtlParser.parse(SHORT)));
   }
 
   @Test
-  void test() {
-    List<String> alphabet = List.of("a", "b", "c", "d", "e");
-    Formula formula = LtlParser.syntax("(a | (b & (c | (d & e))))", alphabet);
-    Formula formula2 = LtlParser.syntax("(a & (b | (c & (d | e))))", alphabet);
+  void testTrivial() {
+    assertAll(
+      () -> assertEquals(Set.of(), NormalForms.toCnf(BooleanConstant.TRUE)),
+      () -> assertEquals(Set.of(Set.of()), NormalForms.toCnf(BooleanConstant.FALSE)),
 
-    Literal a = (Literal) LtlParser.syntax("a", alphabet);
-    Literal b = (Literal) LtlParser.syntax("b", alphabet);
-    Literal c = (Literal) LtlParser.syntax("c", alphabet);
-    Literal d = (Literal) LtlParser.syntax("d", alphabet);
-    Literal e = (Literal) LtlParser.syntax("e", alphabet);
+      () -> assertEquals(Set.of(Set.of()), NormalForms.toDnf(BooleanConstant.TRUE)),
+      () -> assertEquals(Set.of(), NormalForms.toDnf(BooleanConstant.FALSE))
+    );
+  }
 
-    Set<Set<Formula>> expectedDnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
-    Set<Set<Formula>> dnf = Set.copyOf(NormalForms.toDnf(formula));
+  @Test
+  void testMinimal() {
+    var alphabet = List.of("a", "b", "c", "d", "e");
+    var formula = LtlParser.syntax("(a | (b & (c | (d & e))))", alphabet);
+    var formula2 = LtlParser.syntax("(a & (b | (c & (d | e))))", alphabet);
 
-    assertEquals(expectedDnf, dnf);
+    Formula a = LtlParser.syntax("a", alphabet);
+    Formula b = LtlParser.syntax("b", alphabet);
+    Formula c = LtlParser.syntax("c", alphabet);
+    Formula d = LtlParser.syntax("d", alphabet);
+    Formula e = LtlParser.syntax("e", alphabet);
 
-    Set<Set<Formula>> expectedCnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
-    Set<Set<Formula>> cnf = Set.copyOf(NormalForms.toCnf(formula2));
+    var expectedDnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
+    assertEquals(expectedDnf, NormalForms.toDnf(formula));
 
-    assertEquals(expectedCnf, cnf);
+    var expectedCnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
+    assertEquals(expectedCnf, NormalForms.toCnf(formula2));
+  }
+
+  @RepeatedTest(5)
+  void testPerformance() {
+    var shortFormula = LtlParser.parse(SHORT);
+    var longFormula = LtlParser.parse(LONG);
+
+    assertTimeout(Duration.ofSeconds(1), () -> NormalForms.toDnf(shortFormula.formula()));
+    assertTimeout(Duration.ofSeconds(1), () -> NormalForms.toDnf(longFormula.formula()));
+    assertTimeout(Duration.ofSeconds(1), () -> NormalForms.toCnf(shortFormula.formula().not()));
+    assertTimeout(Duration.ofSeconds(1), () -> NormalForms.toCnf(longFormula.formula().not()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("formulaProvider")
+  void testCorrectness(Formula formula) {
+    testCorrectness(LabelledFormula.of(formula.nnf().unfold(), List.of("a", "b", "c", "d")));
+  }
+
+  @ParameterizedTest
+  @MethodSource("labelledFormulaProvider")
+  void testCorrectness(LabelledFormula formula) {
+    var factory = DefaultEnvironment.of(false, false)
+      .factorySupplier().getEquivalenceClassFactory(formula.variables());
+
+    assertEquals(factory.of(formula.formula()),
+      factory.of(NormalForms.toDnfFormula(formula.formula())));
+
+    assertEquals(factory.of(formula.formula().not()),
+      factory.of(NormalForms.toDnfFormula(formula.formula().not())));
+
+    assertEquals(factory.of(formula.formula()),
+      factory.of(NormalForms.toCnfFormula(formula.formula())));
+
+    assertEquals(factory.of(formula.formula().not()),
+      factory.of(NormalForms.toCnfFormula(formula.formula()).not()));
   }
 }

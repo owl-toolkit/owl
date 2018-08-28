@@ -19,152 +19,177 @@
 
 package owl.ltl.rewriter;
 
-import com.google.common.collect.Sets;
-import java.util.HashSet;
+import java.util.AbstractSet;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import owl.ltl.Biconditional;
+import java.util.stream.Stream;
+import owl.collections.Collections3;
+import owl.collections.UpwardClosedSet;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NormalForms {
-  private static final ConjunctiveNormalFormVisitor CNF = new ConjunctiveNormalFormVisitor();
-  private static final DisjunctiveNormalFormVisitor DNF = new DisjunctiveNormalFormVisitor();
-
   private NormalForms() {}
 
-  public static Set<Set<Formula>> toCnf(Formula formula) {
-    return formula.accept(CNF);
-  }
-
   public static Formula toCnfFormula(Formula formula) {
-    return formula.accept(CNF).stream()
+    return toCnf(formula).stream()
       .map(Disjunction::of)
       .reduce(BooleanConstant.TRUE, Conjunction::of);
   }
 
-  public static Set<Set<Formula>> toDnf(Formula formula) {
-    return formula.accept(DNF);
+  public static Set<Set<Formula>> toCnf(Formula formula) {
+    var visitor = new ConjunctiveNormalFormVisitor();
+    var cnf = formula.accept(visitor).representatives();
+    return new ClausesView(cnf, visitor.literals());
   }
 
   public static Formula toDnfFormula(Formula formula) {
-    return formula.accept(DNF).stream()
+    return toDnf(formula).stream()
       .map(Conjunction::of)
       .reduce(BooleanConstant.FALSE, Disjunction::of);
   }
 
-  private static final class ConjunctiveNormalFormVisitor
-    extends PropositionalVisitor<Set<Set<Formula>>> {
+  public static Set<Set<Formula>> toDnf(Formula formula) {
+    var visitor = new DisjunctiveNormalFormVisitor();
+    var dnf = formula.accept(visitor).representatives();
+    return new ClausesView(dnf, visitor.literals());
+  }
 
-    private static void minimise(Set<Set<Formula>> cnf) {
-      cnf.removeIf(x -> cnf.stream().anyMatch(y -> x.size() < y.size() && y.containsAll(x)));
+  private abstract static class AbstractNormalFormVisitor
+    extends PropositionalVisitor<UpwardClosedSet> {
+    private final Map<Formula, Integer> literals;
+
+    private AbstractNormalFormVisitor() {
+      this.literals = new LinkedHashMap<>();
+    }
+
+    List<Formula> literals() {
+      return List.copyOf(literals.keySet());
     }
 
     @Override
-    protected Set<Set<Formula>> modalOperatorAction(Formula formula) {
-      return Set.of(Set.of(formula));
-    }
-
-    @Override
-    public Set<Set<Formula>> visit(Biconditional biconditional) {
-      return biconditional.nnf().accept(this);
-    }
-
-    @Override
-    public Set<Set<Formula>> visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value ? Set.of() : Set.of(Set.of());
-    }
-
-    @Override
-    public Set<Set<Formula>> visit(Conjunction conjunction) {
-      Set<Set<Formula>> cnf = new HashSet<>();
-      conjunction.children.forEach(x -> cnf.addAll(x.accept(this)));
-      minimise(cnf);
-      return cnf;
-    }
-
-    @Override
-    public Set<Set<Formula>> visit(Disjunction disjunction) {
-      if (disjunction.children.stream().noneMatch(PropositionalFormula.class::isInstance)) {
-        return Set.of(disjunction.children);
-      }
-
-      Set<Set<Formula>> cnf = Set.of(Set.of());
-
-      for (Formula child : disjunction.children) {
-        Set<Set<Formula>> childCnf = child.accept(this);
-        Set<Set<Formula>> newCnf = new HashSet<>(cnf.size() * childCnf.size());
-
-        for (Set<Formula> clause1 : cnf) {
-          for (Set<Formula> clause2 : childCnf) {
-            newCnf.add(Sets.union(clause1, clause2).immutableCopy());
-          }
-        }
-
-        minimise(newCnf);
-        cnf = newCnf;
-      }
-
-      return cnf;
+    protected UpwardClosedSet modalOperatorAction(Formula literal) {
+      BitSet bitSet = new BitSet();
+      bitSet.set(literals.computeIfAbsent(literal, x -> literals.size()));
+      return UpwardClosedSet.of(bitSet);
     }
   }
 
-  private static final class DisjunctiveNormalFormVisitor
-    extends PropositionalVisitor<Set<Set<Formula>>> {
-
-    private static void minimise(Set<Set<Formula>> dnf) {
-      dnf.removeIf(x -> dnf.stream().anyMatch(y -> x.size() > y.size() && x.containsAll(y)));
+  private static final class ConjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
+    @Override
+    public UpwardClosedSet visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value
+        ? UpwardClosedSet.of()
+        : UpwardClosedSet.of(new BitSet());
     }
 
     @Override
-    protected Set<Set<Formula>> modalOperatorAction(Formula formula) {
-      return Set.of(Set.of(formula));
-    }
+    public UpwardClosedSet visit(Conjunction conjunction) {
+      UpwardClosedSet set = UpwardClosedSet.of();
 
-    @Override
-    public Set<Set<Formula>> visit(Biconditional biconditional) {
-      return biconditional.nnf().accept(this);
-    }
-
-    @Override
-    public Set<Set<Formula>> visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value ? Set.of(Set.of()) : Set.of();
-    }
-
-    @Override
-    public Set<Set<Formula>> visit(Conjunction conjunction) {
-      if (conjunction.children.stream().noneMatch(PropositionalFormula.class::isInstance)) {
-        return Set.of(conjunction.children);
+      for (Formula x : conjunction.children) {
+        set = set.union(x.accept(this));
       }
 
-      Set<Set<Formula>> dnf = Set.of(Set.of());
-
-      for (Formula child : conjunction.children) {
-        Set<Set<Formula>> childDnf = child.accept(this);
-        Set<Set<Formula>> newDnf = new HashSet<>(dnf.size() * childDnf.size());
-
-        for (Set<Formula> clause1 : dnf) {
-          for (Set<Formula> clause2 : childDnf) {
-            newDnf.add(Sets.union(clause1, clause2).immutableCopy());
-          }
-        }
-
-        minimise(newDnf);
-        dnf = newDnf;
-      }
-
-      return dnf;
+      return set;
     }
 
     @Override
-    public Set<Set<Formula>> visit(Disjunction disjunction) {
-      Set<Set<Formula>> dnf = new HashSet<>();
-      disjunction.children.forEach(x -> dnf.addAll(x.accept(this)));
-      minimise(dnf);
-      return dnf;
+    public UpwardClosedSet visit(Disjunction disjunction) {
+      UpwardClosedSet set = UpwardClosedSet.of(new BitSet());
+
+      for (Formula x : disjunction.children) {
+        set = set.intersection(x.accept(this));
+      }
+
+      return set;
+    }
+  }
+
+  private static final class DisjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
+    @Override
+    public UpwardClosedSet visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value
+        ? UpwardClosedSet.of(new BitSet())
+        : UpwardClosedSet.of();
+    }
+
+    @Override
+    public UpwardClosedSet visit(Conjunction conjunction) {
+      UpwardClosedSet set = UpwardClosedSet.of(new BitSet());
+
+      for (Formula x : conjunction.children) {
+        set = set.intersection(x.accept(this));
+      }
+
+      return set;
+    }
+
+    @Override
+    public UpwardClosedSet visit(Disjunction disjunction) {
+      UpwardClosedSet set = UpwardClosedSet.of();
+
+      for (Formula x : disjunction.children) {
+        set = set.union(x.accept(this));
+      }
+
+      return set;
+    }
+  }
+
+  private static final class ClausesView extends AbstractSet<Set<Formula>> {
+    private final List<BitSet> clauses;
+    private final List<Formula> literals;
+
+    private ClausesView(List<BitSet> clauses, List<Formula> literals) {
+      this.clauses = List.copyOf(clauses);
+      this.literals = List.copyOf(literals);
+      assert Collections3.isDistinct(this.clauses);
+    }
+
+    @Override
+    public Iterator<Set<Formula>> iterator() {
+      return stream().iterator();
+    }
+
+    @Override
+    public int size() {
+      return clauses.size();
+    }
+
+    @Override
+    public Stream<Set<Formula>> stream() {
+      return clauses.stream().map(ClauseView::new);
+    }
+
+    private final class ClauseView extends AbstractSet<Formula> {
+      private final BitSet clause;
+
+      private ClauseView(BitSet clause) {
+        this.clause = clause;
+      }
+
+      @Override
+      public Iterator<Formula> iterator() {
+        return stream().iterator();
+      }
+
+      @Override
+      public int size() {
+        return clause.cardinality();
+      }
+
+      @Override
+      public Stream<Formula> stream() {
+        return clause.stream().mapToObj(literals::get);
+      }
     }
   }
 }

@@ -21,7 +21,6 @@ package owl.automaton;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static owl.util.Assertions.assertThat;
 
 import com.google.common.collect.Maps;
 import java.util.EnumSet;
@@ -59,9 +58,9 @@ class AutomatonFactoryTest {
       var matchingEdges = Maps.filterValues(edgeMap, x -> x.contains(valuation)).keySet();
 
       if (edge == null) {
-        assertThat(matchingEdges, Set::isEmpty);
+        assertEquals(Set.of(), matchingEdges);
       } else {
-        assertThat(matchingEdges, x -> x.contains(edge));
+        assertEquals(Set.of(edge), matchingEdges);
       }
     });
   }

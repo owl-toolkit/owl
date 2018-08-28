@@ -26,9 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.util.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -62,11 +60,10 @@ abstract class EquivalenceClassTest {
 
   @Test
   void testEqualsAndHashCode() {
-    Collection<EquivalenceClass> classes = new ArrayList<>();
-
-    classes.add(factory.of(BooleanConstant.FALSE));
-    classes.add(factory.of(BooleanConstant.TRUE));
-    classes.add(factory.of(Literal.of(0)));
+    var classes = List.of(
+      factory.of(BooleanConstant.FALSE),
+      factory.of(BooleanConstant.TRUE),
+      factory.of(Literal.of(0)));
 
     for (EquivalenceClass lhs : classes) {
       for (EquivalenceClass rhs : classes) {
@@ -136,7 +133,7 @@ abstract class EquivalenceClassTest {
 
   @Test
   void testModalOperators() {
-    List<Formula> formulas = List.of(
+    var formulas = List.of(
       LtlParser.syntax("a"),
       LtlParser.syntax("F a"),
       LtlParser.syntax("G a"));

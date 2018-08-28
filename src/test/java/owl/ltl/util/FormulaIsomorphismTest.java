@@ -19,11 +19,10 @@
 
 package owl.ltl.util;
 
-import static owl.util.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
@@ -38,19 +37,16 @@ class FormulaIsomorphismTest {
     Formula formula2 = LtlParser.syntax("(F a | X b) & (G c | X d)", VARIABLES);
     Formula formula3 = LtlParser.syntax("(F a | G c) & (G b | X d)", VARIABLES);
 
-    assertThat(FormulaIsomorphism.compute(formula1, formula1),
-      x -> Arrays.equals(x, new int[] {0, 1, 2, 3}));
-    assertThat(FormulaIsomorphism.compute(formula1, formula2),
-      Objects::isNull);
-    assertThat(FormulaIsomorphism.compute(formula1, formula3),
-      x -> Arrays.equals(x, (new int[] {0, 2, 1, 3})));
+    assertArrayEquals(new int[]{0, 1, 2, 3}, FormulaIsomorphism.compute(formula1, formula1));
+    assertNull(FormulaIsomorphism.compute(formula1, formula2));
+    assertArrayEquals(new int[]{0, 2, 1, 3}, FormulaIsomorphism.compute(formula1, formula3));
   }
 
   @Test
   void computeIsomorphism2() {
     Formula formula1 = LtlParser.syntax("G (a | b | X c | d | X X e | (f & F g))", VARIABLES);
     Formula formula2 = LtlParser.syntax("G ((a & F b) | X c | X X d | e | f | g)", VARIABLES);
-    assertThat(FormulaIsomorphism.compute(formula1, formula2),
-      x -> Arrays.equals(x, new int[] {5, 6, 2, 4, 3, 0, 1}));
+    assertArrayEquals(new int[]{5, 6, 2, 4, 3, 0, 1},
+      FormulaIsomorphism.compute(formula1, formula2));
   }
 }
