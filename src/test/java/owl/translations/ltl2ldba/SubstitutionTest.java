@@ -38,10 +38,6 @@ class SubstitutionTest {
 
     Formula operator1 = LtlParser.syntax("G b", ALPHABET);
     FGSubstitution visitor1 = new FGSubstitution(Set.of(operator1));
-    assertEquals(BooleanConstant.FALSE, formula.accept(visitor1));
-
-    Formula operator2 = LtlParser.syntax("G F G b", ALPHABET);
-    FGSubstitution visitor2 = new FGSubstitution(Set.of(operator1, operator2));
-    assertEquals(BooleanConstant.TRUE, formula.accept(visitor2));
+    assertEquals(BooleanConstant.TRUE, formula.accept(visitor1));
   }
 }

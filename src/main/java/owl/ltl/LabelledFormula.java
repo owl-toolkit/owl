@@ -74,6 +74,9 @@ public abstract class LabelledFormula {
     return wrap(formula().not());
   }
 
+  public LabelledFormula nnf() {
+    return wrap(formula().nnf());
+  }
 
   @Override
   public String toString() {

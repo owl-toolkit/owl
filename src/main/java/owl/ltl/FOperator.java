@@ -63,6 +63,10 @@ public final class FOperator extends UnaryModalOperator {
       return operand;
     }
 
+    if (operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator) {
+      return operand;
+    }
+
     if (operand instanceof MOperator) {
       MOperator mOperator = (MOperator) operand;
       return FOperator.of(Conjunction.of(mOperator.left, mOperator.right));

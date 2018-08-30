@@ -1,9 +1,11 @@
 (F G a | G F b)
 (F G a | G F b) & ( F G c | G F d)
 (F G a | G F b) & (F G c | G F d) & (F G h | G F k)
+
 G F (F a | G F b | F G (a | b))
 F G (F a | G F b | F G (a | b))
 F G (F a | G F b | F G (a | b) | F G b)
+
 (G F a | F G b)
 (G F a | F G b) & (G F b | F G c)
 (G F a | F G b) & (G F b | F G c) & (G F c | F G d)

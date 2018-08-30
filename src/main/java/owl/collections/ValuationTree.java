@@ -24,10 +24,13 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationTree<E> {
@@ -62,6 +65,81 @@ public abstract class ValuationTree<E> {
 
   public <T> ValuationTree<T> map(Function<? super Set<E>, ? extends Collection<T>> mapper) {
     return memoizedMap(mapper, new HashMap<>());
+  }
+
+  public static <L, R, E> ValuationTree<E> cartesianProduct(
+    ValuationTree<L> leftTree,
+    ValuationTree<R> rightTree,
+    BiFunction<L, R, @Nullable E> merger) {
+    return cartesianProduct(leftTree, rightTree, merger, new HashMap<>());
+  }
+
+  private static <L, R, E> ValuationTree<E> cartesianProduct(
+    ValuationTree<L> leftTree,
+    ValuationTree<R> rightTree,
+    BiFunction<L, R, @Nullable E> merger,
+    Map<List<?>, ValuationTree<E>> memoizedCalls) {
+    var key = List.of(leftTree, rightTree);
+
+    ValuationTree<E> productTree = memoizedCalls.get(key);
+
+    if (productTree != null) {
+      return productTree;
+    }
+
+    int leftVariable = leftTree instanceof Node ? ((Node) leftTree).variable : Integer.MAX_VALUE;
+    int rightVariable = rightTree instanceof Node ? ((Node) rightTree).variable : Integer.MAX_VALUE;
+    int variable = Math.min(leftVariable, rightVariable);
+
+    if (variable == Integer.MAX_VALUE) {
+      assert leftTree instanceof Leaf;
+      assert rightTree instanceof Leaf;
+
+      Set<E> elements = new HashSet<>();
+
+      for (L leftValue : leftTree.values()) {
+        for (R rightValue : rightTree.values()) {
+          E element = merger.apply(leftValue, rightValue);
+
+          if (element != null) {
+            elements.add(element);
+          }
+        }
+      }
+
+      productTree = of(elements);
+    } else {
+      var falseCartesianProduct = cartesianProduct(
+        descendFalseIf(leftTree, variable),
+        descendFalseIf(rightTree, variable),
+        merger, memoizedCalls);
+
+      var trueCartesianProduct = cartesianProduct(
+        descendTrueIf(leftTree, variable),
+        descendTrueIf(rightTree, variable),
+        merger, memoizedCalls);
+
+      productTree = of(variable, trueCartesianProduct, falseCartesianProduct);
+    }
+
+    memoizedCalls.put(key, productTree);
+    return productTree;
+  }
+
+  private static <E> ValuationTree<E> descendFalseIf(ValuationTree<E> tree, int variable) {
+    if (tree instanceof Node && ((Node<E>) tree).variable == variable) {
+      return ((Node<E>) tree).falseChild;
+    } else {
+      return tree;
+    }
+  }
+
+  private static <E> ValuationTree<E> descendTrueIf(ValuationTree<E> tree, int variable) {
+    if (tree instanceof Node && ((Node<E>) tree).variable == variable) {
+      return ((Node<E>) tree).trueChild;
+    } else {
+      return tree;
+    }
   }
 
   protected abstract <T> ValuationTree<T> memoizedMap(

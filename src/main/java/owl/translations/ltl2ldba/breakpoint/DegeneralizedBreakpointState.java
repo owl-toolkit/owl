@@ -40,7 +40,7 @@ public final class DegeneralizedBreakpointState {
 
   @Nullable
   private EquivalenceClass label = null;
-  private int hashCode = 0;
+  private final int hashCode;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
                       "AssignmentToCollectionOrArrayFieldFromParameter"})
@@ -56,6 +56,7 @@ public final class DegeneralizedBreakpointState {
     this.obligations = obligations;
     this.safety = safety;
     this.next = next;
+    this.hashCode = Objects.hash(current, obligations, safety, index, Arrays.hashCode(next));
   }
 
   public static DegeneralizedBreakpointState createSink() {
@@ -97,7 +98,6 @@ public final class DegeneralizedBreakpointState {
       next.length <= 0 ? null : "N=" + Arrays.toString(next));
   }
 
-  @SuppressWarnings("NonFinalFieldReferenceInEquals")
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -108,19 +108,16 @@ public final class DegeneralizedBreakpointState {
     }
 
     DegeneralizedBreakpointState other = (DegeneralizedBreakpointState) o;
-    return (hashCode == 0 || other.hashCode == 0 || other.hashCode == hashCode)
-      && index == other.index && Objects.equals(safety, other.safety)
-      && Objects.equals(current, other.current) && Arrays.equals(next, other.next)
+    return other.hashCode == hashCode
+      && index == other.index
+      && Objects.equals(safety, other.safety)
+      && Objects.equals(current, other.current)
+      && Arrays.equals(next, other.next)
       && Objects.equals(obligations, other.obligations);
   }
 
   @Override
   public int hashCode() {
-    // TODO: Hash code could potentially be 0? Not worth a boolean flag though, probably.
-    if (hashCode == 0) {
-      hashCode = Objects.hash(current, obligations, safety, index, Arrays.hashCode(next));
-    }
-
     return hashCode;
   }
 }

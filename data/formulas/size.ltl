@@ -27,3 +27,6 @@ GF (a1 & X b1) & GF (a2 & X b2) & GF (a3 & X b3)
 GF (a1 & XX b1)
 GF (a1 & XX b1) & GF (a2 & XX b2)
 GF (a1 & XX b1) & GF (a2 & XX b2) & GF (a3 & XX b3)
+
+F (a <-> X a)
+F (a <-> X b)

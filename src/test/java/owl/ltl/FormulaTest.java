@@ -83,8 +83,8 @@ public class FormulaTest {
     THREE.set(0, 2);
   }
 
-  public static Stream<Arguments> formulaProvider() {
-    return FORMULAS.stream().map(Arguments::of);
+  public static Iterable<Formula> formulaProvider() {
+    return FORMULAS;
   }
 
   private static Stream<Arguments> temporalStepCartesianProductProvider() {

@@ -26,11 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTimeout;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
@@ -49,12 +47,12 @@ class NormalFormsTest {
     + "& (a2 | b2 | c2 | d2) & (e2 | f2 | g2 | h2) "
     + "& (i2 | j2 | k2 | l2) & (m2 | n2 | o2 | p2)";
 
-  private static Stream<Arguments> formulaProvider() {
+  private static Iterable<Formula> formulaProvider() {
     return owl.ltl.FormulaTest.formulaProvider();
   }
 
-  private static Stream<Arguments> labelledFormulaProvider() {
-    return Stream.of(Arguments.of(LtlParser.parse(SHORT)));
+  private static Iterable<LabelledFormula> labelledFormulaProvider() {
+    return List.of(LtlParser.parse(SHORT));
   }
 
   @Test

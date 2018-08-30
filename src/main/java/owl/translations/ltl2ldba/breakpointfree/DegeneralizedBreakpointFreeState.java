@@ -36,16 +36,17 @@ public final class DegeneralizedBreakpointFreeState {
   final FGObligations obligations;
   @Nullable
   final EquivalenceClass safety;
-  private int hashCode = 0;
+  private final int hashCode;
 
   DegeneralizedBreakpointFreeState(@Nonnegative int index, @Nullable EquivalenceClass safety,
     @Nullable EquivalenceClass liveness, @Nullable FGObligations obligations) {
-    assert 0 == index || (0 < index && index < obligations.liveness.size());
+    assert 0 == index || (0 < index && index < obligations.gfCoSafetyFactories.size());
 
     this.index = index;
     this.liveness = liveness;
     this.obligations = obligations;
     this.safety = safety;
+    this.hashCode = Objects.hash(liveness, obligations, safety, index);
   }
 
   public static DegeneralizedBreakpointFreeState createSink() {
@@ -73,17 +74,13 @@ public final class DegeneralizedBreakpointFreeState {
     }
 
     DegeneralizedBreakpointFreeState other = (DegeneralizedBreakpointFreeState) o;
-    return (hashCode == 0 || other.hashCode == 0 || other.hashCode == hashCode)
+    return other.hashCode == hashCode
       && index == other.index && Objects.equals(safety, other.safety)
       && Objects.equals(liveness, other.liveness) && Objects.equals(obligations, other.obligations);
   }
 
   @Override
   public int hashCode() {
-    if (hashCode == 0) {
-      hashCode = Objects.hash(liveness, obligations, safety, index);
-    }
-
     return hashCode;
   }
 }

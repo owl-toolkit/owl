@@ -194,7 +194,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
   private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
-    var factory = new EquivalenceClassStateFactory(factories, configuration);
+    var factory = new EquivalenceClassStateFactory(factories.eqFactory, configuration);
 
     if (configuration.contains(Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT)) {
       EquivalenceClass clazz = factories.eqFactory.of(formula);

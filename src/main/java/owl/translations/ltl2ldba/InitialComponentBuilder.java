@@ -61,7 +61,7 @@ class InitialComponentBuilder<K extends RecurringObligation>
     this.factories = factories;
     this.jumpFactory = jumpFactory;
 
-    factory = new EquivalenceClassStateFactory(factories, configuration);
+    factory = new EquivalenceClassStateFactory(factories.eqFactory, configuration);
     constructionQueue = new ArrayDeque<>();
     constructDeterministic = !configuration.contains(NON_DETERMINISTIC_INITIAL_COMPONENT);
 
@@ -116,7 +116,8 @@ class InitialComponentBuilder<K extends RecurringObligation>
       return Map.of();
     }
 
-    var successors = factory.edgeTree(state).inverse(factories.vsFactory);
+    var successors = factory.successorTree(state,
+      x -> x.isFalse() ? Set.of() : Set.of(Edge.of(x))).inverse(factories.vsFactory);
     // There shouldn't be any rejecting sinks in the successor map.
     assert !successors.containsKey(Edge.of(factories.eqFactory.getFalse()));
     return successors;

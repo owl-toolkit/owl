@@ -19,9 +19,13 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import java.util.Arrays;
+import static owl.ltl.SyntacticFragment.SAFETY;
+
+import com.google.common.base.Preconditions;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.automaton.MutableAutomaton;
@@ -31,6 +35,7 @@ import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
+import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
@@ -48,67 +53,56 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   @Override
   public MutableAutomaton<GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance> build() {
     return MutableAutomatonFactory.create(GeneralizedBuchiAcceptance.of(acceptanceSets),
-      factories.vsFactory, anchors, this::getSuccessor, this::getSensitiveAlphabet);
+      factories.vsFactory, anchors, this::edge, x -> null);
   }
 
   @Override
   protected GeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
     FGObligations obligations) {
-    EquivalenceClass safety = remainder.and(obligations.safety);
-    EquivalenceClass[] liveness = new EquivalenceClass[obligations.liveness.size()];
+    Preconditions.checkArgument(remainder.modalOperators().stream().allMatch(SAFETY::contains));
 
-    for (int i = 0; i < liveness.length; i++) {
-      liveness[i] = factory.getInitial(obligations.liveness.get(i));
-    }
+    EquivalenceClass safety = obligations.safetyFactory.initialStateWithRemainder(remainder);
+    List<EquivalenceClass> liveness = obligations.gfCoSafetyFactories.stream()
+      .map(EquivalenceClassStateFactory.GfCoSafety::steppedInitialState)
+      .collect(Collectors.toUnmodifiableList());
 
     // If it is necessary, increase the number of acceptance conditions.
-    if (liveness.length > acceptanceSets) {
-      acceptanceSets = liveness.length;
+    if (liveness.size() > acceptanceSets) {
+      acceptanceSets = liveness.size();
     }
 
-    return new GeneralizedBreakpointFreeState(factory.getInitial(safety, liveness), liveness,
-      obligations);
-  }
-
-  private BitSet getSensitiveAlphabet(GeneralizedBreakpointFreeState state) {
-    BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.safety);
-
-    for (EquivalenceClass clazz : state.liveness) {
-      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.getInitial(clazz)));
-    }
-
-    return sensitiveAlphabet;
-  }
-
-  @Nullable
-  private Edge<GeneralizedBreakpointFreeState> getSuccessor(GeneralizedBreakpointFreeState state,
-    BitSet valuation) {
-    EquivalenceClass[] livenessSuccessor = new EquivalenceClass[state.liveness.length];
-
-    BitSet bs = new BitSet();
-    bs.set(state.liveness.length, acceptanceSets);
-
-    for (int i = 0; i < state.liveness.length; i++) {
-      livenessSuccessor[i] = factory.successor(state.liveness[i], valuation);
-
-      if (livenessSuccessor[i].isTrue()) {
-        bs.set(i);
-        livenessSuccessor[i] = factory.getInitial(state.obligations.liveness.get(i));
-      }
-    }
-
-    EquivalenceClass safetySuccessor = factory
-      .successor(state.safety, valuation, livenessSuccessor);
-
-    if (safetySuccessor.isFalse()) {
+    if (safety.isFalse()) {
       return null;
     }
 
-    assert Arrays.stream(livenessSuccessor).noneMatch(EquivalenceClass::isFalse) :
-      "Liveness properties cannot be false.";
+    return new GeneralizedBreakpointFreeState(safety, liveness, obligations);
+  }
 
-    return Edge.of(
-      new GeneralizedBreakpointFreeState(safetySuccessor, livenessSuccessor, state.obligations),
-      bs);
+  @Nullable
+  private Edge<GeneralizedBreakpointFreeState> edge(GeneralizedBreakpointFreeState state,
+    BitSet valuation) {
+    FGObligations obligations = state.obligations;
+    Edge<EquivalenceClass> safetyEdge = obligations.safetyFactory.edge(state.safety, valuation);
+
+    if (safetyEdge == null) {
+      return null;
+    }
+
+    EquivalenceClass[] livenessSuccessor = new EquivalenceClass[state.liveness.size()];
+
+    BitSet acceptance = new BitSet();
+    acceptance.set(state.liveness.size(), acceptanceSets);
+
+    for (int i = 0; i < state.liveness.size(); i++) {
+      var edge = obligations.gfCoSafetyFactories.get(i).edge(state.liveness.get(i), valuation);
+
+      livenessSuccessor[i] = edge.successor();
+      if (edge.inSet(0)) {
+        acceptance.set(i);
+      }
+    }
+
+    return Edge.of(new GeneralizedBreakpointFreeState(
+      safetyEdge.successor(), List.of(livenessSuccessor), state.obligations), acceptance);
   }
 }

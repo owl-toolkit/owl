@@ -22,9 +22,7 @@ package owl.ltl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.parser.LtlParser;
 
@@ -47,6 +45,7 @@ class FormulaFactoryTest {
 
     List.of("F F a", "F a"),
     List.of("F G a", "F G a"),
+    List.of("F G F a", "G F a"),
     List.of("F X a", "F X a"),
 
     List.of("F (a M b)", "F (a & b)"),
@@ -60,6 +59,7 @@ class FormulaFactoryTest {
     List.of("G (a | b)", "G (a | b)"),
 
     List.of("G F a", "G F a"),
+    List.of("G F G a", "F G a"),
     List.of("G G a", "G a"),
     List.of("G X a", "G X a"),
 
@@ -110,8 +110,8 @@ class FormulaFactoryTest {
     List.of("(G a) W b", "(G a) | b")
   );
 
-  private static Stream<Arguments> pairProvider() {
-    return ofPairs.stream().map(Arguments::of);
+  private static List<List<String>> pairProvider() {
+    return ofPairs;
   }
 
   @ParameterizedTest
