@@ -83,7 +83,7 @@ public class FormulaTest {
     THREE.set(0, 2);
   }
 
-  public static Iterable<Formula> formulaProvider() {
+  public static List<Formula> formulaProvider() {
     return FORMULAS;
   }
 

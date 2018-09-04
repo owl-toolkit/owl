@@ -34,8 +34,12 @@
         <exclude name="VariableNamingConventions"/>
         <exclude name="UselessParentheses"/>
         <exclude name="AtLeastOneConstructor"/>
-        <exclude name="PrematureDeclaration" />
-        <exclude name="UnnecessaryConstructor" /> <!-- Flags private constructors -->
+        <exclude name="PrematureDeclaration"/>
+        <exclude name="UnnecessaryConstructor"/>
+        <exclude name="FieldNamingConventions"/>
+        <exclude name="LinguisticNaming"/>
+        <exclude name="FormalParameterNamingConventions"/>
+        <exclude name="LocalVariableNamingConventions"/>
     </rule>
     <rule ref="category/java/codestyle.xml/ConfusingTernary">
         <properties>
@@ -96,6 +100,7 @@
         <exclude name="UseLocaleWithCaseConversions"/>
         <exclude name="AvoidDuplicateLiterals"/>
         <exclude name="DoNotCallSystemExit"/>
+        <exclude name="MissingSerialVersionUID"/>
         <exclude name="MissingStaticMethodInNonInstantiatableClass" /> <!-- Bug: Abstract class -->
     </rule>
     <rule ref="category/java/errorprone.xml/EmptyCatchBlock">

@@ -76,8 +76,7 @@ class FormulaTest {
   @Test
   void testAssertValuation1() {
     Formula f1 = Literal.of(2, false);
-    Formula f2 = new GOperator(f1);
-    Formula f3 = Conjunction.of(f2, f1);
+    Formula f3 = Conjunction.of(new GOperator(f1), f1);
     assertEquals(f3.temporalStep(new BitSet()), BooleanConstant.FALSE);
   }
 

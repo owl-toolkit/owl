@@ -21,9 +21,12 @@ package owl.run;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.Serializable;
 import java.util.concurrent.ExecutionException;
 
-public class PipelineException extends RuntimeException {
+public class PipelineException extends RuntimeException implements Serializable {
+  private static final long serialVersionUID = -8083892132914818185L;
+
   public PipelineException(String message, Throwable cause) {
     super(message, cause);
   }
