@@ -97,6 +97,14 @@ final class EdgeSingleton<S> extends Edge<S> {
   }
 
   @Override
+  public Edge<S> withAcceptance(int acceptance) {
+    Objects.checkIndex(acceptance, Integer.MAX_VALUE);
+    return this.acceptance == acceptance
+      ? this
+      : new EdgeSingleton<>(successor, acceptance);
+  }
+
+  @Override
   public Edge<S> withoutAcceptance() {
     return hasAcceptanceSets()
       ? new EdgeSingleton<>(successor)

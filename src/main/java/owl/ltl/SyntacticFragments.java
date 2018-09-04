@@ -55,6 +55,42 @@ public final class SyntacticFragments {
     return formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator;
   }
 
+  public static boolean isGfCoSafety(Formula formula) {
+    if (formula instanceof GOperator) {
+      Formula unwrapped = ((GOperator) formula).operand;
+      return unwrapped instanceof FOperator && SyntacticFragment.CO_SAFETY.contains(unwrapped);
+    }
+
+    return false;
+  }
+
+  public static boolean isGCoSafety(Formula formula) {
+    if (formula instanceof GOperator) {
+      Formula unwrapped = ((GOperator) formula).operand;
+      return SyntacticFragment.CO_SAFETY.contains(unwrapped);
+    }
+
+    return false;
+  }
+
+  public static boolean isFgSafety(Formula formula) {
+    if (formula instanceof FOperator) {
+      Formula unwrapped = ((FOperator) formula).operand;
+      return unwrapped instanceof GOperator && SyntacticFragment.SAFETY.contains(unwrapped);
+    }
+
+    return false;
+  }
+
+  public static boolean isFSafety(Formula formula) {
+    if (formula instanceof FOperator) {
+      Formula unwrapped = ((FOperator) formula).operand;
+      return SyntacticFragment.SAFETY.contains(unwrapped);
+    }
+
+    return false;
+  }
+
   private static Formula normalize(Formula formula, SyntacticFragment fragment,
     Function<Formula, Formula> normalizer) {
     Formula normalizedFormula = normalizer.apply(formula);

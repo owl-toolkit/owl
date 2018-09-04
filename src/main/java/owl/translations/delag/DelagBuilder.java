@@ -26,6 +26,7 @@ import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.OPTIMISE_IN
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Set;
@@ -36,7 +37,7 @@ import jhoafparser.ast.BooleanExpression;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.acceptance.AllAcceptance;
+import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
@@ -55,10 +56,12 @@ import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
 import owl.translations.ltl2dra.LTL2DRAFunction;
 
-public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<State<T>, ?>> {
+public class DelagBuilder<T>
+  implements Function<LabelledFormula, Automaton<State<T>, EmersonLeiAcceptance>> {
+
   @SuppressWarnings({"unchecked", "rawtypes"})
-  private static final Function<LabelledFormula, ? extends Automaton<?, ?>> FAIL = formula -> {
-    throw new IllegalArgumentException("Not supported: " + formula);
+  private static final Function<LabelledFormula, Automaton<?, EmersonLeiAcceptance>> FAIL = x -> {
+    throw new IllegalArgumentException("Not supported: " + x);
   };
 
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
@@ -88,8 +91,14 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
 
   public DelagBuilder(Environment environment) {
-    this(environment, (Function) new LTL2DRAFunction(environment,
-      EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE)));
+    this(environment, true);
+  }
+
+  public DelagBuilder(Environment environment, boolean fallback) {
+    this(environment, fallback
+      ? (Function) new LTL2DRAFunction(environment,
+      EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE))
+      : (Function) FAIL);
   }
 
   public DelagBuilder(Environment environment,
@@ -108,16 +117,18 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
   }
 
   @Override
-  public Automaton<State<T>, ?> apply(LabelledFormula inputFormula) {
+  public Automaton<State<T>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = SyntacticFragments.normalize(inputFormula, SyntacticFragment.NNF);
     Factories factories = env.factorySupplier().getFactories(formula.variables());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
-      return AutomatonFactory.empty(factories.vsFactory);
+      return Views.viewAs(AutomatonFactory.empty(factories.vsFactory), EmersonLeiAcceptance.class);
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
-      return AutomatonFactory.singleton(factories.vsFactory, new State<>(), AllAcceptance.INSTANCE,
+      return AutomatonFactory.singleton(factories.vsFactory,
+        new State<>(),
+        new EmersonLeiAcceptance(0, new BooleanExpression<>(true)),
         Set.of());
     }
 
@@ -141,8 +152,17 @@ public class DelagBuilder<T> implements Function<LabelledFormula, Automaton<Stat
 
   private History getHistory(@Nullable History past, BitSet present, ProductState<T> state) {
     assert requiredHistoryCache != null;
-    History requiredHistory = requiredHistoryCache.getUnchecked(state);
-    return History.stepHistory(past, present, requiredHistory);
+
+    try {
+      History requiredHistory = requiredHistoryCache.getUnchecked(state);
+      return History.stepHistory(past, present, requiredHistory);
+    } catch (UncheckedExecutionException e) {
+      if (e.getCause() instanceof RuntimeException) {
+        throw (RuntimeException) e.getCause();
+      } else {
+        throw new UnsupportedOperationException(e);
+      }
+    }
   }
 
   @Nullable

@@ -22,7 +22,6 @@ package owl.translations.ltl2ldba.breakpointfree;
 import java.util.BitSet;
 import java.util.Set;
 import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
@@ -44,14 +43,13 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   public MutableAutomaton<DegeneralizedBreakpointFreeState, BuchiAcceptance> build() {
     return MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, factories.vsFactory, anchors,
-      this::getSuccessor, this::getSensitiveAlphabet);
+      this::edge, x -> null);
   }
 
   @Override
-  @Nullable
   protected DegeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
     FGObligations obligations) {
-    EquivalenceClass safety = remainder.and(obligations.safety);
+    EquivalenceClass safety = obligations.safetyFactory.initialStateWithRemainder(remainder);
 
     if (safety.isFalse()) {
       return null;
@@ -59,85 +57,78 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     EquivalenceClass liveness;
 
-    if (obligations.liveness.size() > 0) {
-      liveness = factory.getInitial(obligations.liveness.get(0));
+    if (obligations.gfCoSafetyFactories.size() > 0) {
+      liveness = obligations.gfCoSafetyFactories.get(0).steppedInitialState();
     } else {
       liveness = factories.eqFactory.getTrue();
     }
 
-    return new DegeneralizedBreakpointFreeState(0, factory.getInitial(safety, liveness),
-      liveness, obligations);
-  }
-
-  @Nonnull
-  public BitSet getSensitiveAlphabet(DegeneralizedBreakpointFreeState state) {
-    BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.liveness);
-    sensitiveAlphabet.or(factory.sensitiveAlphabet(state.safety));
-
-    for (EquivalenceClass clazz : state.obligations.liveness) {
-      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.getInitial(clazz)));
-    }
-
-    return sensitiveAlphabet;
+    return new DegeneralizedBreakpointFreeState(0, safety, liveness, obligations);
   }
 
   @Nullable
-  public Edge<DegeneralizedBreakpointFreeState> getSuccessor(DegeneralizedBreakpointFreeState state,
+  public Edge<DegeneralizedBreakpointFreeState> edge(DegeneralizedBreakpointFreeState state,
     BitSet valuation) {
-    EquivalenceClass livenessSuccessor = factory.successor(state.liveness, valuation);
-    EquivalenceClass safetySuccessor = factory
-      .successor(state.safety, valuation, livenessSuccessor);
+    var obligation = state.obligations;
+    var safetyEdge = obligation.safetyFactory.edge(state.safety, valuation);
 
-    if (safetySuccessor.isFalse()) {
+    if (safetyEdge == null) {
       return null;
     }
 
-    int livenessLength = state.obligations.liveness.size();
-
+    var livenessSuccessor = factories.eqFactory.getTrue();
+    int livenessLength = obligation.gfCoSafetyFactories.size();
     boolean acceptingEdge = false;
-    boolean obtainNewGoal = false;
-    int j;
+    int j = state.index;
 
-    // Scan for new index if currentSuccessor currentSuccessor is true.
-    // In this way we can skip several fulfilled break-points at a time and are not bound to
-    // slowly check one by one.
-    if (livenessSuccessor.isTrue()) {
-      obtainNewGoal = true;
-      j = scan(state, state.index + 1, valuation);
+    if (livenessLength > 0) {
+      boolean obtainNewGoal = false;
+      var livenessEdge = obligation.gfCoSafetyFactories
+        .get(state.index).edge(state.liveness, valuation);
 
-      if (j >= livenessLength) {
-        acceptingEdge = true;
-        j = scan(state, 0, valuation);
+      // Scan for new index if currentSuccessor currentSuccessor is true.
+      // In this way we can skip several fulfilled break-points at a time and are not bound to
+      // slowly check one by one.
+      if (livenessEdge.inSet(0)) {
+        obtainNewGoal = true;
+        j = scan(state, state.index + 1, valuation);
 
         if (j >= livenessLength) {
-          j = 0;
+          acceptingEdge = true;
+          j = scan(state, 0, valuation);
+
+          if (j >= livenessLength) {
+            j = 0;
+          }
         }
       }
+
+      if (obtainNewGoal && j < obligation.gfCoSafetyFactories.size()) {
+        var factory = obligation.gfCoSafetyFactories.get(j);
+        livenessSuccessor = factory.edge(factory.initialState(), valuation).successor();
+      } else {
+        livenessSuccessor = livenessEdge.successor();
+      }
     } else {
-      j = state.index;
+      acceptingEdge = true;
     }
-
-    if (obtainNewGoal && j < state.obligations.liveness.size()) {
-      livenessSuccessor = factory.getInitial(state.obligations.liveness.get(j));
-    }
-
-    assert !livenessSuccessor.isFalse() : "Liveness property cannot be false.";
 
     DegeneralizedBreakpointFreeState successor = new DegeneralizedBreakpointFreeState(j,
-      safetySuccessor, livenessSuccessor, state.obligations);
+      safetyEdge.successor(), livenessSuccessor, state.obligations);
     return acceptingEdge ? Edge.of(successor, 0) : Edge.of(successor);
   }
 
   @Nonnegative
   private int scan(DegeneralizedBreakpointFreeState state, @Nonnegative int i, BitSet valuation) {
     int index = i;
-    int livenessLength = state.obligations.liveness.size();
+    var factories = state.obligations.gfCoSafetyFactories;
+    int livenessLength = factories.size();
 
     while (index < livenessLength) {
-      EquivalenceClass successor = factory
-        .successor(factory.getInitial(state.obligations.liveness.get(index)), valuation);
+      var factory = factories.get(index);
+      var edge = factory.edge(factory.initialState(), valuation);
 
-      if (successor.isTrue()) {
+      if (edge.inSet(0)) {
         index++;
       } else {
         break;

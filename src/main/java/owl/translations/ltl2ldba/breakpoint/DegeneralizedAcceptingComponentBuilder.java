@@ -236,7 +236,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   }
 
   @Nonnegative
-  private int scanObligations(@Nonnegative int i, EquivalenceClass[] obligations) {
+  private static int scanObligations(@Nonnegative int i, EquivalenceClass[] obligations) {
     int obligationsLength = obligations.length;
     int index = i;
 

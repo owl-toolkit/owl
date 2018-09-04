@@ -76,21 +76,30 @@ repositories {
 }
 
 dependencies {
+    // https://github.com/google/gson    
+    implementation 'com.google.code.gson:gson:2.8.5'
+    // https://github.com/google/guava
+    implementation 'com.google.guava:guava:25.1-jre'
+    // https://commons.apache.org/proper/commons-cli/
+    implementation 'commons-cli:commons-cli:1.4'
+    // https://github.com/incaseoftrouble/jbdd
+    implementation 'de.tum.in:jbdd:0.3.2'
+    // https://github.com/incaseoftrouble/naturals-util
+    implementation 'de.tum.in:naturals-util:0.10.0'
+    // https://github.com/vigna/fastutil
+    implementation 'it.unimi.dsi:fastutil:8.2.1'
+    // http://www.antlr.org/
+    implementation 'org.antlr:antlr4-runtime:4.7.1'
     // https://immutables.github.io/
-    compileOnly 'org.immutables:value:2.6.1:annotations'
+    implementation 'org.immutables:value:2.6.1:annotations'
+    // https://automata.tools/hoa/jhoafparser/
+    implementation files('lib/jhoafparser-1.1.1-patched.jar')
 
-    compile 'com.google.guava:guava:25.1-jre' // https://mvnrepository.com/artifact/com.google.guava/guava/latest
-    compile 'it.unimi.dsi:fastutil:8.2.1'
-    compile 'org.antlr:antlr4-runtime:4.7.1' // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime/latest
-    compile 'de.tum.in:jbdd:0.3.2'
-    compile 'de.tum.in:naturals-util:0.10.0'
-    compile 'commons-cli:commons-cli:1.4'
-    compile files('lib/jhoafparser-1.1.1-patched.jar')
-
-    testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
-    testCompile("org.junit.jupiter:junit-jupiter-params:5.2.0")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
-
+    // https://github.com/junit-team/junit5/
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.2.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.2.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+    
     antlr 'org.antlr:antlr4:4.7.1' // Introduces unused runtime dependencies; fixed in antlr.gradle
     errorprone 'com.google.errorprone:error_prone_core:2.3.1'
     annotationProcessor 'org.immutables:value:2.6.1'

@@ -1,5 +1,10 @@
 # 2018.10
 
+Translations:
+
+* Implement all LICS'18 translations for LTL fragments. Including a symbolic
+  successor / edge computation.
+
 API:
 
 * Overhaul of the symbolic successor computation

@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
@@ -41,29 +42,32 @@ import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.RecurringObligation;
 
 public final class FGObligations implements RecurringObligation {
+
   final Set<FOperator> fOperators;
   final Set<GOperator> gOperators;
-  final List<EquivalenceClass> liveness;
   final Set<UnaryModalOperator> rewrittenOperators;
-  final EquivalenceClass safety;
+  final EquivalenceClassStateFactory.Safety safetyFactory;
+  final List<EquivalenceClassStateFactory.GfCoSafety> gfCoSafetyFactories;
 
   private FGObligations(Set<FOperator> fOperators, Set<GOperator> gOperators,
-    EquivalenceClass safety, List<EquivalenceClass> liveness,
+    EquivalenceClassStateFactory.Safety safetyFactory,
+    List<EquivalenceClassStateFactory.GfCoSafety> GfCoSafetyFactories,
     Set<UnaryModalOperator> rewrittenOperators) {
-    this.safety = safety;
-    this.liveness = List.copyOf(liveness);
     this.gOperators = Set.copyOf(gOperators);
     this.fOperators = Set.copyOf(fOperators);
     this.rewrittenOperators = Set.copyOf(rewrittenOperators);
+    this.safetyFactory = safetyFactory;
+    this.gfCoSafetyFactories = List.copyOf(GfCoSafetyFactories);
   }
 
   @Nullable
   @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
-    EquivalenceClassFactory factory) {
+    EquivalenceClassFactory factory, boolean unfold) {
 
     Set<FOperator> fOperators = Set.copyOf(fOperators1);
     Set<GOperator> gOperators = Set.copyOf(gOperators1);
@@ -71,17 +75,13 @@ public final class FGObligations implements RecurringObligation {
 
     // TODO: prune gOper/fOperatos (Gset, Fset)
 
-    EquivalenceClass safety = factory.getTrue();
+    Formula safety = BooleanConstant.TRUE;
 
     for (GOperator gOperator : gOperators) {
       Formula formula = FGObligationsJumpManager
         .replaceFOperators(fOperators, gOperators, gOperator);
-      EquivalenceClass safety2 = factory.of(formula);
-      safety = safety.and(safety2);
 
-      if (safety.unfold().isFalse()) {
-        return null;
-      }
+      safety = Conjunction.of(safety, formula);
 
       // Wrap into G.
       formula = GOperator.of(formula);
@@ -93,7 +93,14 @@ public final class FGObligations implements RecurringObligation {
       }
     }
 
-    List<EquivalenceClass> livenessList = new ArrayList<>(fOperators.size());
+    var safetyFactory = new EquivalenceClassStateFactory.Safety(factory, unfold, safety);
+
+    if (safetyFactory.initialState().isFalse()) {
+      return null;
+    }
+
+    var livenessFactories = new ArrayList<EquivalenceClassStateFactory.GfCoSafety>(
+      fOperators.size());
 
     for (FOperator fOperator : fOperators) {
       Formula formula = FGObligationsJumpManager
@@ -118,17 +125,17 @@ public final class FGObligations implements RecurringObligation {
       // Wrap into F.
       formula = FOperator.of(formula);
 
-      if (formula instanceof FOperator) {
-        builder.add((FOperator) formula);
-      } else {
-        builder.add(new FOperator(formula));
+      if (!(formula instanceof FOperator)) {
+        formula = new FOperator(formula);
       }
 
-      EquivalenceClass liveness = factory.of(formula);
-      livenessList.add(liveness);
+      builder.add((FOperator) formula);
+      livenessFactories.add(
+        new EquivalenceClassStateFactory.GfCoSafety(factory, unfold, new GOperator(formula)));
     }
 
-    return new FGObligations(fOperators, gOperators, safety, livenessList, builder);
+    return new FGObligations(fOperators, gOperators, safetyFactory, livenessFactories,
+      builder);
   }
 
   @Override
@@ -157,37 +164,38 @@ public final class FGObligations implements RecurringObligation {
     FGObligations that = (FGObligations) o;
     return Objects.equals(fOperators, that.fOperators)
       && Objects.equals(gOperators, that.gOperators)
-      && Objects.equals(safety, that.safety)
-      && Objects.equals(liveness, that.liveness);
+      && Objects.equals(safetyFactory.initialState(), that.safetyFactory.initialState())
+      && Objects.equals(gfCoSafetyFactories.stream().map(
+        EquivalenceClassStateFactory.GfCoSafety::initialState)
+        .collect(Collectors.toUnmodifiableList()), that.gfCoSafetyFactories.stream().map(
+          EquivalenceClassStateFactory.GfCoSafety::initialState)
+          .collect(Collectors.toUnmodifiableList()));
   }
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety.factory()
+    return safetyFactory.initialState().factory()
       .of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
-  }
-
-  EquivalenceClass getObligation() {
-    EquivalenceClass obligation = safety;
-
-    for (EquivalenceClass clazz : liveness) {
-      obligation = obligation.and(clazz);
-    }
-
-    return obligation;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fOperators, gOperators, safety, liveness);
+    List<EquivalenceClass> list = new ArrayList<>();
+
+    for (EquivalenceClassStateFactory.GfCoSafety gfCoSafetyFactory : gfCoSafetyFactories) {
+      EquivalenceClass initialState = gfCoSafetyFactory.initialState();
+      list.add(initialState);
+    }
+
+    return Objects.hash(fOperators, gOperators, safetyFactory.initialState(), list.hashCode());
   }
 
   boolean isPureLiveness() {
-    return safety.isTrue();
+    return safetyFactory.initialState().isTrue();
   }
 
   boolean isPureSafety() {
-    return liveness.isEmpty();
+    return gfCoSafetyFactories.isEmpty();
   }
 
   @Override

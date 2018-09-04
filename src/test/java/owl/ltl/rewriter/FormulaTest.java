@@ -43,26 +43,21 @@ class FormulaTest {
 
   @Test
   void simplify1() {
-    Formula f1 = Literal.of(0, false);
-    Formula f2 = Literal.of(2, false);
-    Formula f3 = SimplifierFactory.apply(Disjunction.of(f1, f2), Mode.SYNTACTIC);
+    Formula f3 = SimplifierFactory.apply(
+      Disjunction.of(Literal.of(0, false), Literal.of(2, false)),
+      Mode.SYNTACTIC);
     assertThat(f3, Disjunction.class::isInstance);
   }
 
   @Test
   void simplify4() {
-    Formula f0 = Literal.of(1);
-    Formula f1 = Literal.of(0);
-    Formula f2 = new UOperator(f0, f1);
-    Formula f3 = f2.not();
+    Formula f3 = (new UOperator(Literal.of(1), Literal.of(0))).not();
     f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
     Formula f4 = Literal.of(1, true);
     Formula f5 = Literal.of(0, true);
-    Formula f6 = new UOperator(f5, SimplifierFactory.apply(Conjunction.of(f4, f5), Mode.SYNTACTIC
-    ));
-    Formula f7 = SimplifierFactory
-      .apply(Disjunction.of(new GOperator(f5), f6), Mode.SYNTACTIC);
+    Formula f6 = new UOperator(f5, SimplifierFactory.apply(Conjunction.of(f4, f5), Mode.SYNTACTIC));
+    Formula f7 = SimplifierFactory.apply(Disjunction.of(new GOperator(f5), f6), Mode.SYNTACTIC);
 
     assertEquals(f3, f7);
   }
@@ -88,32 +83,16 @@ class FormulaTest {
 
   @Test
   void testAssertValuation3() {
-    Formula f1 = Literal.of(2, false);
-    Formula f4 = new GOperator(f1);
-    Formula f5 = f4.unfold();
+    Formula f5 = GOperator.of(Literal.of(2, false)).unfold();
     Formula f6 = SimplifierFactory.apply(f5.temporalStep(new BitSet()), Mode.SYNTACTIC);
     assertEquals(f6, BooleanConstant.of(false));
   }
 
   @Test
-  void testFormulaEquality() {
-    Formula f1 = Literal.of(0, false);
-    Formula f2 = Literal.of(0, false);
-    assertEquals(f1, f2);
-  }
-
-  @Test
-  void testFormulaEquality2() {
-    Formula f1 = Literal.of(0, false);
-    Formula f2 = Literal.of(0, true);
-    assertNotEquals(f1, f2);
-  }
-
-  @Test
-  void testFormulaEquality3() {
-    Formula f1 = Literal.of(0, false);
-    Formula f2 = Literal.of(2, false);
-    assertNotEquals(f1, f2);
+  void testLiteralEquality() {
+    assertEquals(Literal.of(0, false), Literal.of(0, false));
+    assertNotEquals(Literal.of(0, false), Literal.of(0, true));
+    assertNotEquals(Literal.of(0, false), Literal.of(1, false));
   }
 
   @Test

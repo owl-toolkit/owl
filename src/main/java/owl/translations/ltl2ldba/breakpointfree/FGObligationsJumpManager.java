@@ -167,7 +167,8 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       FGObligations obligations = cache.get(fOperators, gOperators);
 
       if (obligations == null) {
-        obligations = FGObligations.build(fOperators, gOperators, factory);
+        obligations = FGObligations.build(fOperators, gOperators, factory,
+          configuration.contains(Configuration.EAGER_UNFOLD));
 
         if (obligations != null) {
           cache.put(fOperators, gOperators, obligations);

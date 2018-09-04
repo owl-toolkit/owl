@@ -19,6 +19,7 @@ G (a | (F (b & X c)))
 ((X a) | (F b)) U (a)
 a | G (b | (a & F b))
 a U (X (b & X (F a)))
+G (a | (F (a & X b)))
 (a U b) | (G (c | X a))
 (a W (b <-> X G a)) W a
 F (a | ((X (! a)) R b))

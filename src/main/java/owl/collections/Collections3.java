@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Collections3 {
@@ -126,6 +127,10 @@ public final class Collections3 {
         return list.size() + 1;
       }
     };
+  }
+
+  public static <E> Set<E> ofNullable(@Nullable E element) {
+    return element == null ? Set.of() : Set.of(element);
   }
 
   public static <K1, K2> Map<K2, ValuationSet> transformMap(Map<K1, ValuationSet> map,

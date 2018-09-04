@@ -30,7 +30,7 @@ public final class GeneralizedBreakpointState {
   final EquivalenceClass[] next;
   final GObligations obligations;
   final EquivalenceClass safety;
-  private int hashCode = 0;
+  private final int hashCode;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
   private GeneralizedBreakpointState(GObligations obligations, EquivalenceClass safety,
@@ -39,6 +39,8 @@ public final class GeneralizedBreakpointState {
     this.safety = safety;
     this.current = current;
     this.next = next;
+    this.hashCode = Objects.hash(
+      safety, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
   }
 
   static GeneralizedBreakpointState of(GObligations obligations, EquivalenceClass safety,
@@ -69,18 +71,13 @@ public final class GeneralizedBreakpointState {
     }
 
     GeneralizedBreakpointState that = (GeneralizedBreakpointState) o;
-    return (hashCode == 0 || that.hashCode == 0 || that.hashCode == hashCode)
+    return that.hashCode == hashCode
       && Objects.equals(safety, that.safety) && Objects.equals(obligations, that.obligations)
       && Arrays.equals(current, that.current) && Arrays.equals(next, that.next);
   }
 
   @Override
   public int hashCode() {
-    // TODO: Hash code could potentially be 0? Not worth a boolean flag though, probably.
-    if (hashCode == 0) {
-      hashCode = Objects.hash(safety, obligations, Arrays.hashCode(current), Arrays.hashCode(next));
-    }
-
     return hashCode;
   }
 }

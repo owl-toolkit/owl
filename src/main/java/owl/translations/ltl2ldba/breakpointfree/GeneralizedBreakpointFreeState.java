@@ -19,24 +19,24 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import owl.ltl.EquivalenceClass;
 import owl.util.StringUtil;
 
 public final class GeneralizedBreakpointFreeState {
 
-  final EquivalenceClass[] liveness;
-  final FGObligations obligations;
   final EquivalenceClass safety;
-  private int hashCode = 0;
+  final List<EquivalenceClass> liveness;
+  final FGObligations obligations;
+  private final int hashCode;
 
-  @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
-  GeneralizedBreakpointFreeState(EquivalenceClass safety, EquivalenceClass[] liveness,
+  GeneralizedBreakpointFreeState(EquivalenceClass safety, List<EquivalenceClass> liveness,
     FGObligations obligations) {
-    this.liveness = liveness;
-    this.obligations = obligations;
     this.safety = safety;
+    this.liveness = List.copyOf(liveness);
+    this.obligations = obligations;
+    this.hashCode = Objects.hash(this.liveness, this.obligations, this.safety);
   }
 
   public FGObligations getObligations() {
@@ -47,10 +47,9 @@ public final class GeneralizedBreakpointFreeState {
   public String toString() {
     return obligations + StringUtil.join(
       safety.isTrue() ? null : "GWR=" + safety,
-      liveness.length <= 0 ? null : "FUM=" + Arrays.toString(liveness));
+      liveness.isEmpty() ? null : "FUM=" + liveness);
   }
 
-  @SuppressWarnings("NonFinalFieldReferenceInEquals")
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -61,18 +60,14 @@ public final class GeneralizedBreakpointFreeState {
     }
 
     GeneralizedBreakpointFreeState other = (GeneralizedBreakpointFreeState) o;
-    return (hashCode == 0 || other.hashCode == 0 || other.hashCode == hashCode)
-      && Objects.equals(obligations, other.obligations) && Objects.equals(safety, other.safety)
-      && Arrays.equals(liveness, other.liveness);
+    return (hashCode == other.hashCode)
+      && Objects.equals(obligations, other.obligations)
+      && Objects.equals(safety, other.safety)
+      && liveness.equals(other.liveness);
   }
 
   @Override
   public int hashCode() {
-    // TODO: Hash code could potentially be 0? Not worth a boolean flag though, probably.
-    if (hashCode == 0) {
-      hashCode = Objects.hash(Arrays.hashCode(liveness), obligations, safety);
-    }
-
     return hashCode;
   }
 }

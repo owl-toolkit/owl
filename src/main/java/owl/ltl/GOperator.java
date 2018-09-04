@@ -60,6 +60,10 @@ public class GOperator extends UnaryModalOperator {
         GOperator.of(Disjunction.of(biconditional.left, biconditional.right.not())));
     }
 
+    if (operand instanceof FOperator && ((FOperator) operand).operand instanceof GOperator) {
+      return operand;
+    }
+
     if (operand instanceof GOperator) {
       return operand;
     }

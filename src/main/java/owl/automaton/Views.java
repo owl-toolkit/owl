@@ -20,6 +20,7 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 import static owl.automaton.Automaton.Property.COMPLETE;
 
 import com.google.common.collect.Maps;
@@ -38,6 +39,7 @@ import org.immutables.value.Value;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
@@ -201,6 +203,16 @@ public final class Views {
       return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
     }
 
+    if (EmersonLeiAcceptance.class.equals(acceptanceClazz)) {
+      var acceptance = automaton.acceptance();
+      var remapping = Views.<S, EmersonLeiAcceptance>builder()
+        .acceptance(
+          new EmersonLeiAcceptance(acceptance.acceptanceSets(), acceptance.booleanExpression()))
+        .build();
+
+      return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
+    }
+
     throw new UnsupportedOperationException();
   }
 
@@ -301,7 +313,9 @@ public final class Views {
         return Sets.union(automaton.edges(state), sinkEdgeSet);
       }
 
-      return edgeMap(state).keySet();
+      return preferredEdgeAccess().get(0) == EDGE_TREE
+         ? edgeTree(state).values()
+         : edgeMap(state).keySet();
     }
 
     @Override

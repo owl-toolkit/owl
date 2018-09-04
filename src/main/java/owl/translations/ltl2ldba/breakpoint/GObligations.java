@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import org.immutables.value.Value;
 import owl.factories.EquivalenceClassFactory;
@@ -129,18 +128,6 @@ public abstract class GObligations implements RecurringObligation {
 
     return ((GObligations) other).gOperatorsRewritten().containsAll(gOperatorsRewritten())
       || ((GObligations) other).getObligation().implies(getObligation());
-  }
-
-  void forEach(Consumer<EquivalenceClass> consumer) {
-    consumer.accept(safety());
-
-    for (EquivalenceClass clazz : liveness()) {
-      consumer.accept(clazz);
-    }
-
-    for (EquivalenceClass clazz : obligations()) {
-      consumer.accept(clazz);
-    }
   }
 
   @Override
