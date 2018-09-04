@@ -47,11 +47,11 @@ class NormalFormsTest {
     + "& (a2 | b2 | c2 | d2) & (e2 | f2 | g2 | h2) "
     + "& (i2 | j2 | k2 | l2) & (m2 | n2 | o2 | p2)";
 
-  private static Iterable<Formula> formulaProvider() {
+  private static List<Formula> formulaProvider() {
     return owl.ltl.FormulaTest.formulaProvider();
   }
 
-  private static Iterable<LabelledFormula> labelledFormulaProvider() {
+  private static List<LabelledFormula> labelledFormulaProvider() {
     return List.of(LtlParser.parse(SHORT));
   }
 
