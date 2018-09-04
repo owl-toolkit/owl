@@ -7,7 +7,7 @@ namespace owl {
             acceptanceID(get_methodID(env, clazz, "acceptance", "()I")),
             acceptanceSetCountID(get_methodID(env, clazz, "acceptanceSetCount", "()I")),
             edgesID(get_methodID(env, clazz, "edges", "(I)[I")),
-            qualityScoreID(get_methodID(env, clazz, "qualityScore", "(I)D")) {}
+            qualityScoreID(get_methodID(env, clazz, "qualityScore", "(II)D")) {}
 
     Automaton::Automaton(Automaton &&automaton) noexcept :
             ManagedJObject(std::move(automaton)),
@@ -36,8 +36,8 @@ namespace owl {
         return edges;
     }
 
-    double Automaton::quality_score(int state) const {
-        return call_double_method<>(env, handle, qualityScoreID, state);
+    double Automaton::quality_score(int successor, int colour) const {
+        return call_double_method<>(env, handle, qualityScoreID, successor, colour);
     }
 
     std::vector<Automaton> EmersonLeiAutomaton::automata() {
