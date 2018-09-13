@@ -57,14 +57,14 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public GeneralizedBreakpointState createState(EquivalenceClass remainder,
     GObligations obligations) {
     EquivalenceClass theRemainder = remainder;
-    int length = obligations.obligations().size() + obligations.liveness().size();
+    int length = obligations.obligations.size() + obligations.liveness.size();
 
     // If it is necessary, increase the number of acceptance conditions.
     if (length > acceptanceSets) {
       acceptanceSets = length;
     }
 
-    EquivalenceClass safety = obligations.safety();
+    EquivalenceClass safety = obligations.safetyAutomaton.onlyInitialState();
 
     if (theRemainder.modalOperators().stream().allMatch(SyntacticFragment.FINITE::contains)) {
       safety = theRemainder.and(safety);
@@ -82,22 +82,24 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     }
 
     EquivalenceClass[] currentBuilder = new EquivalenceClass[length];
-    if (obligations.obligations().size() > 0) {
-      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.obligations().get(0)));
+    if (obligations.obligations.size() > 0) {
+      currentBuilder[0] = factory
+        .initialStateInternal(theRemainder.and(obligations.obligations.get(0)));
     } else {
-      currentBuilder[0] = factory.getInitial(theRemainder.and(obligations.liveness().get(0)));
+      currentBuilder[0] = factory
+        .initialStateInternal(theRemainder.and(obligations.liveness.get(0)));
     }
 
-    for (int i = 1; i < obligations.obligations().size(); i++) {
-      currentBuilder[i] = factory.getInitial(obligations.obligations().get(i));
+    for (int i = 1; i < obligations.obligations.size(); i++) {
+      currentBuilder[i] = factory.initialStateInternal(obligations.obligations.get(i));
     }
 
-    for (int i = Math.max(1, obligations.obligations().size()); i < length; i++) {
+    for (int i = Math.max(1, obligations.obligations.size()); i < length; i++) {
       currentBuilder[i] = factory
-        .getInitial(obligations.liveness().get(i - obligations.obligations().size()));
+        .initialStateInternal(obligations.liveness.get(i - obligations.obligations.size()));
     }
 
-    EquivalenceClass[] next = new EquivalenceClass[obligations.obligations().size()];
+    EquivalenceClass[] next = new EquivalenceClass[obligations.obligations.size()];
     Arrays.fill(next, factories.eqFactory.getTrue());
     return GeneralizedBreakpointState.of(obligations, safety, currentBuilder, next);
   }
@@ -121,14 +123,15 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   public Edge<GeneralizedBreakpointState> getSuccessor(
     GeneralizedBreakpointState state, BitSet valuation) {
     // Check the safety field first.
-    EquivalenceClass nextSafety = factory.successor(state.safety, valuation)
-      .and(state.obligations.safety());
+    var safetyEdge = state.obligations.safetyAutomaton.edge(state.safety, valuation);
 
-    if (nextSafety.isFalse()) {
+    if (safetyEdge == null) {
       return null;
     }
 
-    if (state.obligations.obligations().isEmpty() && state.obligations.liveness().isEmpty()) {
+    var nextSafety = safetyEdge.successor();
+
+    if (state.obligations.obligations.isEmpty() && state.obligations.liveness.isEmpty()) {
       return getSuccessorPureSafety(state, nextSafety, valuation);
     }
 
@@ -156,7 +159,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       }
 
       nextSuccessor = nextSuccessor
-        .and(factory.getInitial(state.obligations.obligations().get(i), assumptions));
+        .and(factory.initialStateInternal(state.obligations.obligations.get(i), assumptions));
 
       // Successor is done and we can switch components.
       if (currentSuccessor.isTrue()) {
@@ -180,7 +183,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
       if (currentSuccessor.isTrue()) {
         bs.set(i);
         currentSuccessors[i] = factory
-          .getInitial(state.obligations.liveness().get(i - state.next.length));
+          .initialStateInternal(state.obligations.liveness.get(i - state.next.length));
       } else {
         currentSuccessors[i] = currentSuccessor;
       }

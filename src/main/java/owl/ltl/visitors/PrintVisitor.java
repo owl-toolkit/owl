@@ -137,12 +137,12 @@ public final class PrintVisitor implements Visitor<String> {
   }
 
   private String visit(UnaryModalOperator operator) {
-    return operator.getOperator() + visitParenthesized(operator.operand);
+    return operator.operatorSymbol() + visitParenthesized(operator.operand);
   }
 
   private String visit(BinaryModalOperator operator) {
     return "((" + operator.left.accept(this) + ") "
-      + operator.getOperator()
+      + operator.operatorSymbol()
       + " (" + operator.right.accept(this) + "))";
   }
 

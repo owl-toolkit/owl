@@ -19,15 +19,15 @@
 
 package owl.ltl;
 
-import java.util.BitSet;
-import java.util.function.Predicate;
+import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.util.annotation.CEntryPoint;
 
-public final class BooleanConstant extends Formula {
+public final class BooleanConstant extends Formula.LogicalOperator {
   public static final BooleanConstant FALSE = new BooleanConstant(false);
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
@@ -58,22 +58,8 @@ public final class BooleanConstant extends Formula {
   }
 
   @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
-  }
-
-  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
-  @Override
-  protected boolean deepEquals(Formula other) {
-    assert other instanceof BooleanConstant;
-    assert other == FALSE || other == TRUE;
-    assert this != other;
-    return false;
+  public Set<Formula> children() {
+    return Set.of();
   }
 
   @Override
@@ -83,11 +69,6 @@ public final class BooleanConstant extends Formula {
 
   @Override
   public boolean isPureUniversal() {
-    return true;
-  }
-
-  @Override
-  public boolean isSuspendable() {
     return true;
   }
 
@@ -103,12 +84,7 @@ public final class BooleanConstant extends Formula {
   }
 
   @Override
-  public Formula temporalStep(BitSet valuation) {
-    return this;
-  }
-
-  @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
+  public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
     return this;
   }
 
@@ -117,13 +93,12 @@ public final class BooleanConstant extends Formula {
     return value ? "true" : "false";
   }
 
+  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   @Override
-  public Formula unfold() {
-    return this;
-  }
-
-  @Override
-  public Formula unfoldTemporalStep(BitSet valuation) {
-    return this;
+  protected boolean deepEquals(Formula other) {
+    assert other instanceof BooleanConstant;
+    assert other == FALSE || other == TRUE;
+    assert this != other;
+    return false;
   }
 }

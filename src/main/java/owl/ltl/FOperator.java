@@ -53,6 +53,7 @@ public final class FOperator extends UnaryModalOperator {
       return Disjunction.of(((Disjunction) operand).map(FOperator::of));
     }
 
+    // FIXME: This doubles the size of tree!!!
     if (operand instanceof Biconditional) {
       Biconditional biconditional = (Biconditional) operand;
       return Disjunction.of(FOperator.of(Conjunction.of(biconditional.left, biconditional.right)),
@@ -100,7 +101,7 @@ public final class FOperator extends UnaryModalOperator {
   }
 
   @Override
-  public String getOperator() {
+  public String operatorSymbol() {
     return "F";
   }
 
@@ -112,11 +113,6 @@ public final class FOperator extends UnaryModalOperator {
   @Override
   public boolean isPureUniversal() {
     return operand.isPureUniversal();
-  }
-
-  @Override
-  public boolean isSuspendable() {
-    return operand.isPureUniversal() || operand.isSuspendable();
   }
 
   @Override

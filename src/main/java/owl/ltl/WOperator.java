@@ -77,23 +77,8 @@ public final class WOperator extends BinaryModalOperator {
   }
 
   @Override
-  public char getOperator() {
-    return 'W';
-  }
-
-  @Override
-  public boolean isPureEventual() {
-    return false;
-  }
-
-  @Override
-  public boolean isPureUniversal() {
-    return false;
-  }
-
-  @Override
-  public boolean isSuspendable() {
-    return false;
+  public String operatorSymbol() {
+    return "W";
   }
 
   @Override

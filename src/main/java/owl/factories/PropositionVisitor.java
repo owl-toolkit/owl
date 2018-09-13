@@ -19,119 +19,57 @@
 
 package owl.factories;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import owl.ltl.BinaryModalOperator;
+import java.util.ArrayList;
+import java.util.List;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
-import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
-import owl.ltl.GOperator;
 import owl.ltl.Literal;
-import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
-import owl.ltl.ROperator;
-import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
-import owl.ltl.WOperator;
-import owl.ltl.XOperator;
-import owl.ltl.visitors.IntVisitor;
+import owl.ltl.visitors.PropositionalVisitor;
 
 /**
  * For the propositional view on LTL modal operators (F, G, U, X) and literals (a, !a) are treated
  * as propositions.
  */
-public final class PropositionVisitor implements IntVisitor {
-  private final Deque<Formula> mapping;
+public final class PropositionVisitor extends PropositionalVisitor<Void> {
+  private final List<Formula.ModalOperator> mapping;
 
   private PropositionVisitor() {
-    mapping = new ArrayDeque<>();
+    mapping = new ArrayList<>();
   }
 
-  public static Deque<Formula> extractPropositions(Formula formula) {
+  public static List<Formula.ModalOperator> extractPropositions(Formula formula) {
     PropositionVisitor visitor = new PropositionVisitor();
     formula.accept(visitor);
     return visitor.mapping;
   }
 
   @Override
-  public int visit(BooleanConstant booleanConstant) {
-    return 0;
+  public Void visit(BooleanConstant booleanConstant) {
+    return null;
   }
 
   @Override
-  public int visit(Conjunction conjunction) {
-    return visit((PropositionalFormula) conjunction);
+  public Void visit(Conjunction conjunction) {
+    conjunction.children().forEach(c -> c.accept(this));
+    return null;
   }
 
   @Override
-  public int visit(Disjunction disjunction) {
-    return visit((PropositionalFormula) disjunction);
+  public Void visit(Disjunction disjunction) {
+    disjunction.children().forEach(c -> c.accept(this));
+    return null;
   }
 
   @Override
-  public int visit(FOperator fOperator) {
-    return visit((UnaryModalOperator) fOperator);
-  }
+  protected Void visit(Formula.TemporalOperator formula) {
+    if (formula instanceof Literal) {
+      return null;
+    }
 
-  @Override
-  public int visit(FrequencyG freq) {
-    return visit((UnaryModalOperator) freq);
-  }
-
-  @Override
-  public int visit(GOperator gOperator) {
-    return visit((UnaryModalOperator) gOperator);
-  }
-
-  @Override
-  public int visit(Literal literal) {
-    mapping.add(literal);
-    return 0;
-  }
-
-  @Override
-  public int visit(MOperator mOperator) {
-    return visit((BinaryModalOperator) mOperator);
-  }
-
-  @Override
-  public int visit(ROperator rOperator) {
-    return visit((BinaryModalOperator) rOperator);
-  }
-
-  @Override
-  public int visit(UOperator uOperator) {
-    return visit((BinaryModalOperator) uOperator);
-  }
-
-  @Override
-  public int visit(WOperator wOperator) {
-    return visit((BinaryModalOperator) wOperator);
-  }
-
-  @Override
-  public int visit(XOperator xOperator) {
-    return visit((UnaryModalOperator) xOperator);
-  }
-
-  private int visit(BinaryModalOperator operator) {
-    operator.left.accept(this);
-    operator.right.accept(this);
-    mapping.add(operator);
-    return 0;
-  }
-
-  private int visit(PropositionalFormula formula) {
-    formula.children.forEach(c -> c.accept(this));
-    return 0;
-  }
-
-  private int visit(UnaryModalOperator operator) {
-    operator.operand.accept(this);
-    mapping.add(operator);
-    return 0;
+    formula.children().forEach(c -> c.accept(this));
+    mapping.add((Formula.ModalOperator) formula);
+    return null;
   }
 }

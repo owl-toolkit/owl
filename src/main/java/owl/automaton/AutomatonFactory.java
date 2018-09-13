@@ -167,7 +167,7 @@ public final class AutomatonFactory {
   }
 
   private static final class EmptyAutomaton<S>
-    extends ImplicitCachedStatesAutomaton<S, NoneAcceptance>
+    extends AbstractImplicitAutomaton<S, NoneAcceptance>
     implements EdgeMapAutomatonMixin<S, NoneAcceptance> {
 
     private EmptyAutomaton(ValuationSetFactory factory) {
@@ -181,7 +181,7 @@ public final class AutomatonFactory {
   }
 
   private static final class SingletonAutomaton<S, A extends OmegaAcceptance>
-    extends ImplicitCachedStatesAutomaton<S, A>
+    extends AbstractImplicitAutomaton<S, A>
     implements EdgeMapAutomatonMixin<S, A> {
 
     private final Map<Edge<S>, ValuationSet> selfLoopEdges;

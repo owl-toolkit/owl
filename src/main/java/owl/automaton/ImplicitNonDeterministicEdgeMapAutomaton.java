@@ -32,20 +32,20 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
 class ImplicitNonDeterministicEdgeMapAutomaton<S, A extends OmegaAcceptance>
-  extends ImplicitCachedStatesAutomaton<S, A>
+  extends AbstractImplicitAutomaton<S, A>
   implements EdgeMapAutomatonMixin<S, A> {
 
   @Nullable
   private final BiFunction<S, BitSet, Set<Edge<S>>> edgesFunction;
-  private final Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction;
+  private final Function<S, ? extends Map<Edge<S>, ValuationSet>> edgeMapFunction;
 
   ImplicitNonDeterministicEdgeMapAutomaton(ValuationSetFactory factory,
     Collection<S> initialStates, A acceptance,
     @Nullable BiFunction<S, BitSet, Set<Edge<S>>> edgesFunction,
-    Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
-    super(factory, Set.copyOf(initialStates), acceptance);
+    Function<S, ? extends Map<Edge<S>, ValuationSet>> edgeMapFunction) {
+    super(factory, initialStates, acceptance);
     this.edgesFunction = edgesFunction;
-    this.labelledEdgesFunction = labelledEdgesFunction;
+    this.edgeMapFunction = edgeMapFunction;
   }
 
   @Override
@@ -62,6 +62,6 @@ class ImplicitNonDeterministicEdgeMapAutomaton<S, A extends OmegaAcceptance>
   @Override
   public Map<Edge<S>, ValuationSet> edgeMap(S state) {
     assert cache() == null || cache().contains(state);
-    return labelledEdgesFunction.apply(state);
+    return edgeMapFunction.apply(state);
   }
 }

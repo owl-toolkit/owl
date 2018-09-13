@@ -22,18 +22,12 @@ package owl.automaton;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.factories.ValuationSetFactory;
 
-public abstract class ImplicitCachedStatesAutomaton<S, A extends OmegaAcceptance>
-  extends AbstractAutomaton<S, A> {
+public abstract class AbstractCachedStatesAutomaton<S, A extends OmegaAcceptance>
+  implements Automaton<S, A> {
 
   @Nullable
   private Set<S> statesCache;
-
-  public ImplicitCachedStatesAutomaton(ValuationSetFactory factory, Set<S> initialStates,
-    A acceptance) {
-    super(factory, acceptance, initialStates);
-  }
 
   @Override
   public final Set<S> states() {

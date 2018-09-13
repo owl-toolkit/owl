@@ -45,7 +45,8 @@ public abstract class PromisedSet {
   @Value.Auxiliary
   @Value.Derived
   long nonFinalGCount() {
-    return formulaeG().stream().map(UnaryModalOperator::getOperand)
+    return formulaeG().stream()
+      .map(x -> x.operand)
       .filter(operand -> !operand.accept(SafetyAutomaton.FinalStateVisitor.INSTANCE))
       .count();
   }

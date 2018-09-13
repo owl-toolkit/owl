@@ -47,7 +47,6 @@ import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.PropositionalVisitor;
-import owl.ltl.visitors.SubstitutionVisitor;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 import owl.util.annotation.CEntryPoint;
@@ -66,7 +65,7 @@ public final class JniEmersonLeiAutomaton {
 
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
     SafetySplittingMode mode, boolean onTheFly, BitSet inputVariables) {
-    Formula nnfLight = formula.accept(new SubstitutionVisitor(Formula::nnf));
+    Formula nnfLight = formula.substitute(Formula::nnf);
 
     Formula processedFormula = simplify
       ? RealizabilityRewriter.removeSingleValuedInputLiterals(inputVariables,
@@ -77,7 +76,7 @@ public final class JniEmersonLeiAutomaton {
       processedFormula.accept(JniAcceptanceAnnotator.INSTANCE));
 
     LabelledTree<Tag, Reference> structure = monolithic
-      ? builder.modalOperatorAction(processedFormula)
+      ? builder.createLeaf(processedFormula)
       : processedFormula.accept(builder);
 
     return new JniEmersonLeiAutomaton(structure, List.copyOf(builder.automata));
@@ -291,7 +290,7 @@ public final class JniEmersonLeiAutomaton {
     }
 
     @Override
-    protected LabelledTree<Tag, Reference> modalOperatorAction(Formula formula) {
+    protected LabelledTree<Tag, Reference> visit(Formula.TemporalOperator formula) {
       return createLeaf(formula);
     }
 

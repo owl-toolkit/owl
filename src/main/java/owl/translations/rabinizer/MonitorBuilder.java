@@ -72,7 +72,7 @@ final class MonitorBuilder {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    Set<Formula> modalOperators = operand.modalOperators();
+    Set<Formula.ModalOperator> modalOperators = operand.modalOperators();
     boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains);
 
     if (isCoSafety && gOperator.operand instanceof FOperator) {

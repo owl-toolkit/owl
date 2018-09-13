@@ -19,6 +19,7 @@
 
 package owl.ltl;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -60,16 +61,24 @@ public class EquivalenceClass {
   }
 
   /**
-   * See {@link EquivalenceClassFactory#atomicPropositions(EquivalenceClass)}.
+   * See {@link EquivalenceClassFactory#atomicPropositions(EquivalenceClass, boolean)}.
    */
   public final BitSet atomicPropositions() {
-    return factory.atomicPropositions(this);
+    return factory.atomicPropositions(this, false);
   }
+
+  /**
+   * See {@link EquivalenceClassFactory#atomicPropositions(EquivalenceClass, boolean)}.
+   */
+  public final BitSet atomicPropositions(boolean includeNested) {
+    return factory.atomicPropositions(this, includeNested);
+  }
+
 
   /**
    * See {@link EquivalenceClassFactory#modalOperators(EquivalenceClass)}.
    */
-  public final Set<Formula> modalOperators() {
+  public final Set<Formula.ModalOperator> modalOperators() {
     return factory.modalOperators(this);
   }
 
@@ -81,17 +90,17 @@ public class EquivalenceClass {
   }
 
   /**
-   * See {@link EquivalenceClassFactory#conjunction(EquivalenceClass, EquivalenceClass)}.
+   * See {@link EquivalenceClassFactory#conjunction(java.util.Collection)}.
    */
   public final EquivalenceClass and(EquivalenceClass other) {
-    return factory.conjunction(this, other);
+    return factory.conjunction(Arrays.asList(this, other));
   }
 
   /**
-   * See {@link EquivalenceClassFactory#disjunction(EquivalenceClass, EquivalenceClass)}.
+   * See {@link EquivalenceClassFactory#disjunction(java.util.Collection)}.
    */
   public final EquivalenceClass or(EquivalenceClass other) {
-    return factory.disjunction(this, other);
+    return factory.disjunction(Arrays.asList(this, other));
   }
 
   /**
@@ -99,7 +108,8 @@ public class EquivalenceClass {
    *
    * @param substitution The substitution function. It is only called on modal operators.
    */
-  public final EquivalenceClass substitute(Function<Formula, Formula> substitution) {
+  public final EquivalenceClass substitute(
+    Function<? super Formula.ModalOperator, ? extends Formula> substitution) {
     return factory.substitute(this, substitution);
   }
 

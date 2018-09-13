@@ -63,7 +63,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
   }
 
   @Override
-  protected DependencyTree<T> modalOperatorAction(Formula formula) {
+  protected DependencyTree<T> visit(Formula.TemporalOperator formula) {
     return defaultAction(formula, null);
   }
 
@@ -150,7 +150,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     }
 
     if (!coSafety.isEmpty()) {
-      children.add(modalOperatorAction(Disjunction.of(coSafety)));
+      children.add(defaultAction(Disjunction.of(coSafety), null));
     }
 
     return DependencyTree.createOr(children);
@@ -176,7 +176,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     }
 
     if (!safety.isEmpty()) {
-      children.add(modalOperatorAction(Conjunction.of(safety)));
+      children.add(defaultAction(Conjunction.of(safety), null));
     }
 
     if (!coSafety.isEmpty()) {

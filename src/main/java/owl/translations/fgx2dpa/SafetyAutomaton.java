@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.acceptance.ParityAcceptance.Parity;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
@@ -60,9 +59,7 @@ import owl.ltl.PropositionalFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.PropositionalVisitor;
-import owl.ltl.visitors.SubstitutionVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.run.Environment;
 
@@ -190,10 +187,10 @@ public final class SafetyAutomaton {
           .collect(Collectors.toUnmodifiableSet());
         previousPermutation = state.permutation();
       } else {
-        Set<GOperator> gOperators = Collector.collectGOperators(state.formula());
+        Set<GOperator> gOperators = state.formula().subformulas(GOperator.class);
         Set<FOperator> fOperators = new HashSet<>();
         for (GOperator g : gOperators) {
-          fOperators.addAll(Collector.collectFOperators(g));
+          fOperators.addAll(g.subformulas(FOperator.class));
         }
 
         Set<UnaryModalOperator> formulas = Sets.union(gOperators, fOperators);
@@ -237,7 +234,8 @@ public final class SafetyAutomaton {
           }
 
           alpha.add(g);
-          SubstitutionVisitor substitution = new SubstitutionVisitor(f -> {
+
+          monitor.nonFinalStates().forEach(t -> alpha.add(t.substitute(f -> {
             if (f instanceof FOperator) {
               return promisedSet.formulaeF().contains(f) ? f : BooleanConstant.FALSE;
             }
@@ -245,9 +243,7 @@ public final class SafetyAutomaton {
               return promisedSet.formulaeG().contains(f) ? f : BooleanConstant.FALSE;
             }
             return f;
-          });
-
-          monitor.nonFinalStates().forEach(t -> alpha.add(t.accept(substitution)));
+          })));
         }
 
         if (violation) {
@@ -285,7 +281,7 @@ public final class SafetyAutomaton {
               } while (!currentFirstF.equals(deque.peekFirst()));
 
               goodOrNeutral.add(0, PromisedSet.of(promisedSet.formulaeG(),
-                Lists.newArrayList(deque), promisedSet.firstF()));
+                new ArrayList<>(deque), promisedSet.firstF()));
 
               if (reset) {
                 priority = Integer.min((previousPermutation.size() - promIndex) * 2, priority);
@@ -330,7 +326,7 @@ public final class SafetyAutomaton {
     private FinalStateVisitor() {}
 
     @Override
-    public Boolean modalOperatorAction(Formula formula) {
+    public Boolean visit(Formula.TemporalOperator formula) {
       return !(formula instanceof Literal || formula instanceof XOperator);
     }
 

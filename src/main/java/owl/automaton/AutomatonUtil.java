@@ -160,7 +160,7 @@ public final class AutomatonUtil {
             nondeterministicStates.add(state);
             return;
           } else {
-            union = valuationSet.union(valuationSet);
+            union = union.union(valuationSet);
           }
         }
       }

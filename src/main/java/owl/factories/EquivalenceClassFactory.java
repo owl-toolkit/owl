@@ -19,7 +19,6 @@
 
 package owl.factories;
 
-import com.google.common.collect.Iterators;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -52,40 +51,22 @@ public interface EquivalenceClassFactory {
    * Collects all literals used in the bdd and stores the corresponding atomic propositions in
    * the BitSet.
    */
-  BitSet atomicPropositions(EquivalenceClass clazz);
+  BitSet atomicPropositions(EquivalenceClass clazz, boolean includeNested);
 
   /**
    * Compute the support of the EquivalenceClass.
    *
    * @return All modal operators this equivalence class depends on.
    */
-  Set<Formula> modalOperators(EquivalenceClass clazz);
+  Set<Formula.ModalOperator> modalOperators(EquivalenceClass clazz);
 
   boolean implies(EquivalenceClass clazz, EquivalenceClass other);
-
-
-  default EquivalenceClass conjunction(EquivalenceClass clazz, EquivalenceClass other) {
-    return conjunction(List.of(clazz, other));
-  }
-
-  default EquivalenceClass conjunction(EquivalenceClass... classes) {
-    return conjunction(Iterators.forArray(classes));
-  }
 
   default EquivalenceClass conjunction(Collection<EquivalenceClass> classes) {
     return conjunction(classes.iterator());
   }
 
   EquivalenceClass conjunction(Iterator<EquivalenceClass> classes);
-
-
-  default EquivalenceClass disjunction(EquivalenceClass clazz, EquivalenceClass other) {
-    return disjunction(List.of(clazz, other));
-  }
-
-  default EquivalenceClass disjunction(EquivalenceClass... classes) {
-    return disjunction(Iterators.forArray(classes));
-  }
 
   default EquivalenceClass disjunction(Collection<EquivalenceClass> classes) {
     return disjunction(classes.iterator());
@@ -94,7 +75,8 @@ public interface EquivalenceClassFactory {
   EquivalenceClass disjunction(Iterator<EquivalenceClass> classes);
 
 
-  EquivalenceClass substitute(EquivalenceClass clazz, Function<Formula, Formula> substitution);
+  EquivalenceClass substitute(EquivalenceClass clazz,
+    Function<? super Formula.ModalOperator, ? extends Formula> substitution);
 
   EquivalenceClass temporalStep(EquivalenceClass clazz, BitSet valuation);
 

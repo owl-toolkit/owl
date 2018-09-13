@@ -32,7 +32,6 @@ import owl.automaton.algorithms.EmptinessCheck;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.visitors.Collector;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 
@@ -60,9 +59,8 @@ public final class LanguageAnalysis {
   }
 
   private static LabelledFormula attachDummyAlphabet(Formula formula) {
-    int largestAtom = Collector.collectAtoms(formula).stream().max().orElse(0);
     return LabelledFormula.of(formula, IntStream
-      .range(0, largestAtom + 1)
+      .range(0, formula.atomicPropositions(true).length())
       .mapToObj(i -> "p" + i)
       .collect(Collectors.toUnmodifiableList()));
   }

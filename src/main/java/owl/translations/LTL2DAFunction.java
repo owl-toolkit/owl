@@ -24,44 +24,29 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
-import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
-import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
+import owl.translations.canonical.DeterministicConstructions;
+import owl.translations.canonical.UniversalConstructions;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.LTL2DRAFunction;
-import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 
 public final class LTL2DAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
   private final Environment environment;
   private final EnumSet<Constructions> allowedConstructions;
-
-  @Nullable
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
   public LTL2DAFunction(Environment environment, boolean onTheFly,
@@ -86,7 +71,9 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
 
       fallback = new LTL2DPAFunction(environment, configuration);
     } else {
-      fallback = null;
+      fallback = x -> {
+        throw new IllegalArgumentException("All allowed constructions exhausted.");
+      };
     }
   }
 
@@ -107,7 +94,8 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     }
 
     if (formula.formula() instanceof XOperator) {
-      return delay(formula);
+      var unwrappedFormula = formula.wrap(((XOperator) formula.formula()).operand);
+      return UniversalConstructions.delay(apply(unwrappedFormula));
     }
 
     if (allowedConstructions.contains(Constructions.BUCHI)) {
@@ -125,135 +113,50 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
         return fgSafety(environment, formula);
       }
 
-      if (SyntacticFragments.isDetCoBuchiRecognisable(formula.formula())) {
+      if (SyntacticFragments.isFSafety(formula.formula())) {
         return fSafety(environment, formula);
       }
-    }
-
-    if (fallback == null) {
-      throw new IllegalArgumentException("All allowed constructions exhausted.");
     }
 
     return fallback.apply(formula);
   }
 
-  private Automaton<Object, ?> delay(LabelledFormula formula) {
-    var automaton =
-      AutomatonUtil.cast(apply(formula.wrap(((XOperator) formula.formula()).operand)));
-
-    return new Automaton<>() {
-      private final Object initialState = new Object();
-      private final Set<Edge<Object>> initialStateEdges =
-        automaton.initialStates().stream().map(Edge::of).collect(Collectors.toUnmodifiableSet());
-
-      @Override
-      public OmegaAcceptance acceptance() {
-        return automaton.acceptance();
-      }
-
-      @Override
-      public ValuationSetFactory factory() {
-        return automaton.factory();
-      }
-
-      @Override
-      public Set<Object> initialStates() {
-        return Set.of(initialState);
-      }
-
-      @Override
-      public Set<Object> states() {
-        return Sets.union(initialStates(), automaton.states());
-      }
-
-      @Override
-      public Set<Edge<Object>> edges(Object state, BitSet valuation) {
-        return initialState.equals(state) ? initialStateEdges : automaton.edges(state, valuation);
-      }
-
-      @Override
-      public Set<Edge<Object>> edges(Object state) {
-        return initialState.equals(state) ? initialStateEdges : automaton.edges(state);
-      }
-
-      @Override
-      public Map<Edge<Object>, ValuationSet> edgeMap(Object state) {
-        return initialState.equals(state)
-          ? Maps.toMap(initialStateEdges, x -> factory().universe())
-          : automaton.edgeMap(state);
-      }
-
-      @Override
-      public ValuationTree<Edge<Object>> edgeTree(Object state) {
-        return initialState.equals(state)
-          ? ValuationTree.of(initialStateEdges)
-          : automaton.edgeTree(state);
-      }
-
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return automaton.preferredEdgeAccess();
-      }
-    };
-  }
-
   static Automaton<EquivalenceClass, BuchiAcceptance> coSafety(
-    Environment environment,
-    LabelledFormula formula) {
+    Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
-    var factory = new EquivalenceClassStateFactory.CoSafety(factories.eqFactory, true,
-      formula.formula());
-    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
-      Set.of(factory.initialState()), BuchiAcceptance.INSTANCE, factory::edges, factory::edgeTree);
+    return new DeterministicConstructions.CoSafety(factories, true, formula.formula());
   }
 
   static Automaton<EquivalenceClass, CoBuchiAcceptance> fgSafety(
-    Environment environment,
-    LabelledFormula formula) {
+    Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
-    var factory = new EquivalenceClassStateFactory.FgSafety(factories.eqFactory, true,
-      formula.formula());
-    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory, Set.of(factory
-      .steppedInitialState()), CoBuchiAcceptance.INSTANCE, factory::edges, factory::edgeTree);
+    return new DeterministicConstructions.FgSafety(factories, true, formula.formula());
   }
 
   static Automaton<EquivalenceClass, BuchiAcceptance> gfCoSafety(
-    Environment environment,
-    LabelledFormula formula) {
+    Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
-    var factory = new EquivalenceClassStateFactory.GfCoSafety(factories.eqFactory, true,
-      formula.formula());
-    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory, Set.of(factory
-      .steppedInitialState()), BuchiAcceptance.INSTANCE, factory::edges, factory::edgeTree);
+    return new DeterministicConstructions.GfCoSafety(factories, true, formula.formula());
   }
 
-  static Automaton<EquivalenceClassStateFactory.BreakpointState, BuchiAcceptance> gCoSafety(
-    Environment environment,
-    LabelledFormula formula) {
+  static Automaton<DeterministicConstructions.BreakpointState, BuchiAcceptance> gCoSafety(
+    Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), true);
-    var factory = new EquivalenceClassStateFactory.GCoSafety(factories.eqFactory, true,
-      formula.formula());
-    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory, Set.of(factory
-      .initialState()), BuchiAcceptance.INSTANCE, factory::edges, factory::edgeTree);
+    return new DeterministicConstructions.GCoSafety(factories, true, formula.formula());
   }
 
-  static Automaton<EquivalenceClassStateFactory.BreakpointState, CoBuchiAcceptance> fSafety(
-    Environment environment,
-    LabelledFormula formula) {
+  static Automaton<DeterministicConstructions.BreakpointState, CoBuchiAcceptance> fSafety(
+    Environment environment, LabelledFormula formula) {
     var automaton = gCoSafety(environment, formula.not());
     var factory = automaton.onlyInitialState().current().factory();
     var complementAutomaton = Views.complement(automaton,
-      EquivalenceClassStateFactory.BreakpointState.of(factory.getFalse(), factory.getFalse()));
+      DeterministicConstructions.BreakpointState.of(factory.getFalse(), factory.getFalse()));
     return AutomatonUtil.cast(complementAutomaton, CoBuchiAcceptance.class);
   }
 
   static Automaton<EquivalenceClass, AllAcceptance> safety(
-    Environment environment,
-    LabelledFormula formula) {
+    Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
-    var factory = new EquivalenceClassStateFactory.Safety(factories.eqFactory, true,
-      formula.formula());
-    return new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
-      Set.of(factory.initialState()), AllAcceptance.INSTANCE, factory::edges, factory::edgeTree);
+    return new DeterministicConstructions.Safety(factories, true, formula.formula());
   }
 }

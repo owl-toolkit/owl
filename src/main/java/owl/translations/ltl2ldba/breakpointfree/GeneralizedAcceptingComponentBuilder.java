@@ -34,8 +34,8 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
+import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.ltl2ldba.AbstractAcceptingComponentBuilder;
-import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptingComponentBuilder
@@ -61,9 +61,9 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     FGObligations obligations) {
     Preconditions.checkArgument(remainder.modalOperators().stream().allMatch(SAFETY::contains));
 
-    EquivalenceClass safety = obligations.safetyFactory.initialStateWithRemainder(remainder);
-    List<EquivalenceClass> liveness = obligations.gfCoSafetyFactories.stream()
-      .map(EquivalenceClassStateFactory.GfCoSafety::steppedInitialState)
+    EquivalenceClass safety = obligations.safetyAutomaton.onlyInitialStateWithRemainder(remainder);
+    List<EquivalenceClass> liveness = obligations.gfCoSafetyAutomata.stream()
+      .map(DeterministicConstructions.GfCoSafety::onlyInitialState)
       .collect(Collectors.toUnmodifiableList());
 
     // If it is necessary, increase the number of acceptance conditions.
@@ -82,7 +82,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
   private Edge<GeneralizedBreakpointFreeState> edge(GeneralizedBreakpointFreeState state,
     BitSet valuation) {
     FGObligations obligations = state.obligations;
-    Edge<EquivalenceClass> safetyEdge = obligations.safetyFactory.edge(state.safety, valuation);
+    Edge<EquivalenceClass> safetyEdge = obligations.safetyAutomaton.edge(state.safety, valuation);
 
     if (safetyEdge == null) {
       return null;
@@ -94,7 +94,7 @@ public final class GeneralizedAcceptingComponentBuilder extends AbstractAcceptin
     acceptance.set(state.liveness.size(), acceptanceSets);
 
     for (int i = 0; i < state.liveness.size(); i++) {
-      var edge = obligations.gfCoSafetyFactories.get(i).edge(state.liveness.get(i), valuation);
+      var edge = obligations.gfCoSafetyAutomata.get(i).edge(state.liveness.get(i), valuation);
 
       livenessSuccessor[i] = edge.successor();
       if (edge.inSet(0)) {

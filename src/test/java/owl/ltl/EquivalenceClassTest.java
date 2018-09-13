@@ -94,15 +94,35 @@ abstract class EquivalenceClassTest {
   }
 
   @Test
-  void testGetAtoms() {
+  void testAtomicPropositions() {
     LabelledFormula formula = LtlParser.parse("a & (a | b) & (F c)");
-    EquivalenceClassFactory factory = obtainFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula());
-    BitSet atoms = new BitSet();
-    atoms.set(0);
-    assertEquals(atoms, clazz.atomicPropositions());
-    atoms.set(2);
-    assertEquals(atoms, clazz.unfold().atomicPropositions());
+    EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
+
+    assertThat(clazz.atomicPropositions(false),
+      x -> x.get(0) && x.length() == 1);
+    assertThat(clazz.atomicPropositions(true),
+      x -> x.get(0) && !x.get(1) && x.get(2) && x.length() == 3);
+
+    assertThat(clazz.unfold().atomicPropositions(false),
+      x -> x.get(0) && !x.get(1) && x.get(2) && x.length() == 3);
+    assertThat(clazz.unfold().atomicPropositions(true),
+      x -> x.get(0) && !x.get(1) && x.get(2) && x.length() == 3);
+  }
+
+  @Test
+  void testAtomicPropositionsRegression() {
+    LabelledFormula formula = LtlParser.parse("F((a) | ((b) W (!(a))))");
+    EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
+
+    assertThat(clazz.atomicPropositions(false),
+      x -> x.length() == 0);
+    assertThat(clazz.atomicPropositions(true),
+      x -> x.get(0) && x.get(1) && x.length() == 2);
+
+    assertThat(clazz.unfold().atomicPropositions(false),
+      x -> x.length() == 0);
+    assertThat(clazz.unfold().atomicPropositions(true),
+      x -> x.length() == 0);
   }
 
   @Test
@@ -116,7 +136,7 @@ abstract class EquivalenceClassTest {
   }
 
   @Test
-  void testGetAtomsEmpty() {
+  void testAtomicPropositionsEmpty() {
     LabelledFormula formula = LtlParser.parse("G a");
     EquivalenceClassFactory factory = obtainFactory(formula);
     EquivalenceClass clazz = factory.of(formula.formula());

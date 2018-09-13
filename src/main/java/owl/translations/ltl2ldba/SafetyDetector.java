@@ -19,19 +19,19 @@
 
 package owl.translations.ltl2ldba;
 
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
-import owl.ltl.visitors.Collector;
 
 public final class SafetyDetector {
   private SafetyDetector() {}
 
   public static boolean hasSafetyCore(EquivalenceClass state, boolean substitutionAnalysis) {
-    Set<Formula> modalOperators = state.modalOperators();
+    Set<Formula.ModalOperator> modalOperators = state.modalOperators();
 
     if (modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
       return true;
@@ -39,10 +39,14 @@ public final class SafetyDetector {
 
     // Check if the state has an independent safety core.
     if (substitutionAnalysis) {
-      Set<Formula> coreComplement = new HashSet<>();
+
+      Set<Formula.ModalOperator> coreComplement = new HashSet<>();
+      BitSet coreComplementAtomicPropositions = new BitSet();
+
       modalOperators.forEach(x -> {
         if (!SyntacticFragment.SAFETY.contains(x)) {
           coreComplement.add(x);
+          coreComplementAtomicPropositions.or(x.atomicPropositions(true));
         }
       });
 
@@ -50,7 +54,7 @@ public final class SafetyDetector {
         coreComplement.stream().anyMatch(y -> y.anyMatch(x::equals)) ? BooleanConstant.FALSE : x);
 
       return !core.isFalse()
-        && !core.atomicPropositions().intersects(Collector.collectAtoms(coreComplement));
+        && !core.atomicPropositions().intersects(coreComplementAtomicPropositions);
     }
 
     return false;

@@ -17,14 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package owl.ltl;
 
-import java.util.BitSet;
 import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.Set;
 
-public abstract class BinaryModalOperator extends Formula {
+public abstract class BinaryModalOperator extends Formula.ModalOperator {
   public final Formula left;
   public final Formula right;
 
@@ -36,13 +34,25 @@ public abstract class BinaryModalOperator extends Formula {
   }
 
   @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) && left.allMatch(predicate) && right.allMatch(predicate);
+  public Set<Formula> children() {
+    return Set.of(left, right);
   }
 
   @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) || left.anyMatch(predicate) || right.anyMatch(predicate);
+  public final boolean isPureEventual() {
+    return false;
+  }
+
+  @Override
+  public final boolean isPureUniversal() {
+    return false;
+  }
+
+  public abstract String operatorSymbol();
+
+  @Override
+  public final String toString() {
+    return String.format("(%s%s%s)", left, operatorSymbol(), right);
   }
 
   @Override
@@ -50,22 +60,5 @@ public abstract class BinaryModalOperator extends Formula {
     assert this.getClass() == o.getClass();
     BinaryModalOperator that = (BinaryModalOperator) o;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
-  }
-
-  public abstract char getOperator();
-
-  @Override
-  public Formula temporalStep(BitSet valuation) {
-    return this;
-  }
-
-  @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
-    return unfold();
-  }
-
-  @Override
-  public String toString() {
-    return String.format("(%s%s%s)", left, getOperator(), right);
   }
 }

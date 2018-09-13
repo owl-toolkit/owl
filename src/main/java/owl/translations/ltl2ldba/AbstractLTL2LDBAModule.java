@@ -22,7 +22,6 @@ package owl.translations.ltl2ldba;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNFOLD;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
 
@@ -38,8 +37,6 @@ public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.Transfor
   private static final Option EPSILON = new Option("e", "epsilon", false,
     "Do not remove generated epsilon-transitions. Note: The generated output is not valid HOA, "
       + "since the format does not support epsilon transitions.");
-  private static final Option NON_DETERMINISTIC = new Option("n", "non-deterministic", false,
-    "Construct a non-deterministic initial component instead of a deterministic.");
 
   public static Option guessF() {
     return new Option("f", "guess-f", false,
@@ -55,7 +52,7 @@ public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.Transfor
   @Override
   public Options getOptions() {
     Options options = new Options();
-    List.of(EPSILON, NON_DETERMINISTIC, guessF(), simple()).forEach(options::addOption);
+    List.of(EPSILON, guessF(), simple()).forEach(options::addOption);
     return options;
   }
 
@@ -63,10 +60,6 @@ public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.Transfor
     var configuration = commandLine.hasOption(simple().getOpt())
       ? EnumSet.noneOf(LTL2LDBAFunction.Configuration.class)
       : EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
-
-    if (commandLine.hasOption(NON_DETERMINISTIC.getOpt())) {
-      configuration.add(NON_DETERMINISTIC_INITIAL_COMPONENT);
-    }
 
     if (commandLine.hasOption(EPSILON.getOpt())) {
       configuration.add(EPSILON_TRANSITIONS);

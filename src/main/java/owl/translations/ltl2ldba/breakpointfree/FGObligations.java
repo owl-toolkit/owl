@@ -29,9 +29,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
@@ -42,7 +41,7 @@ import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
-import owl.translations.ltl2ldba.EquivalenceClassStateFactory;
+import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.ltl2ldba.RecurringObligation;
 
 public final class FGObligations implements RecurringObligation {
@@ -50,24 +49,24 @@ public final class FGObligations implements RecurringObligation {
   final Set<FOperator> fOperators;
   final Set<GOperator> gOperators;
   final Set<UnaryModalOperator> rewrittenOperators;
-  final EquivalenceClassStateFactory.Safety safetyFactory;
-  final List<EquivalenceClassStateFactory.GfCoSafety> gfCoSafetyFactories;
+  final DeterministicConstructions.Safety safetyAutomaton;
+  final List<DeterministicConstructions.GfCoSafety> gfCoSafetyAutomata;
 
   private FGObligations(Set<FOperator> fOperators, Set<GOperator> gOperators,
-    EquivalenceClassStateFactory.Safety safetyFactory,
-    List<EquivalenceClassStateFactory.GfCoSafety> GfCoSafetyFactories,
+    DeterministicConstructions.Safety safetyAutomaton,
+    List<DeterministicConstructions.GfCoSafety> gfCoSafetyAutomata,
     Set<UnaryModalOperator> rewrittenOperators) {
     this.gOperators = Set.copyOf(gOperators);
     this.fOperators = Set.copyOf(fOperators);
     this.rewrittenOperators = Set.copyOf(rewrittenOperators);
-    this.safetyFactory = safetyFactory;
-    this.gfCoSafetyFactories = List.copyOf(GfCoSafetyFactories);
+    this.safetyAutomaton = safetyAutomaton;
+    this.gfCoSafetyAutomata = List.copyOf(gfCoSafetyAutomata);
   }
 
   @Nullable
   @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
-    EquivalenceClassFactory factory, boolean unfold) {
+    Factories factories, boolean unfold) {
 
     Set<FOperator> fOperators = Set.copyOf(fOperators1);
     Set<GOperator> gOperators = Set.copyOf(gOperators1);
@@ -93,13 +92,13 @@ public final class FGObligations implements RecurringObligation {
       }
     }
 
-    var safetyFactory = new EquivalenceClassStateFactory.Safety(factory, unfold, safety);
+    var safetyFactory = new DeterministicConstructions.Safety(factories, unfold, safety);
 
-    if (safetyFactory.initialState().isFalse()) {
+    if (safetyFactory.onlyInitialState().isFalse()) {
       return null;
     }
 
-    var livenessFactories = new ArrayList<EquivalenceClassStateFactory.GfCoSafety>(
+    var livenessFactories = new ArrayList<DeterministicConstructions.GfCoSafety>(
       fOperators.size());
 
     for (FOperator fOperator : fOperators) {
@@ -131,7 +130,7 @@ public final class FGObligations implements RecurringObligation {
 
       builder.add((FOperator) formula);
       livenessFactories.add(
-        new EquivalenceClassStateFactory.GfCoSafety(factory, unfold, new GOperator(formula)));
+        new DeterministicConstructions.GfCoSafety(factories, unfold, new GOperator(formula)));
     }
 
     return new FGObligations(fOperators, gOperators, safetyFactory, livenessFactories,
@@ -163,39 +162,26 @@ public final class FGObligations implements RecurringObligation {
 
     FGObligations that = (FGObligations) o;
     return Objects.equals(fOperators, that.fOperators)
-      && Objects.equals(gOperators, that.gOperators)
-      && Objects.equals(safetyFactory.initialState(), that.safetyFactory.initialState())
-      && Objects.equals(gfCoSafetyFactories.stream().map(
-        EquivalenceClassStateFactory.GfCoSafety::initialState)
-        .collect(Collectors.toUnmodifiableList()), that.gfCoSafetyFactories.stream().map(
-          EquivalenceClassStateFactory.GfCoSafety::initialState)
-          .collect(Collectors.toUnmodifiableList()));
+      && Objects.equals(gOperators, that.gOperators);
   }
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safetyFactory.initialState().factory()
+    return safetyAutomaton.onlyInitialState().factory()
       .of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
   }
 
   @Override
   public int hashCode() {
-    List<EquivalenceClass> list = new ArrayList<>();
-
-    for (EquivalenceClassStateFactory.GfCoSafety gfCoSafetyFactory : gfCoSafetyFactories) {
-      EquivalenceClass initialState = gfCoSafetyFactory.initialState();
-      list.add(initialState);
-    }
-
-    return Objects.hash(fOperators, gOperators, safetyFactory.initialState(), list.hashCode());
+    return Objects.hash(fOperators, gOperators);
   }
 
   boolean isPureLiveness() {
-    return safetyFactory.initialState().isTrue();
+    return safetyAutomaton.onlyInitialState().isTrue();
   }
 
   boolean isPureSafety() {
-    return gfCoSafetyFactories.isEmpty();
+    return gfCoSafetyAutomata.isEmpty();
   }
 
   @Override

@@ -21,7 +21,6 @@ package owl.translations.rabinizer;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import java.util.AbstractSet;
@@ -46,7 +45,7 @@ final class GSet extends AbstractSet<GOperator> {
     this.elements = Set.copyOf(elements);
     this.conjunction = factory.of(Conjunction.of(elements));
     this.operatorConjunction = factory
-      .of(Conjunction.of(Iterables.transform(elements, GOperator::getOperand)));
+      .of(Conjunction.of(elements.stream().map(x -> x.operand)));
     hashCode = this.elements.hashCode();
   }
 
@@ -105,10 +104,8 @@ final class GSet extends AbstractSet<GOperator> {
     return Iterators.unmodifiableIterator(elements.iterator());
   }
 
-  public EquivalenceClass operatorConjunction() {
-    if (operatorConjunction == null) {
-      throw new IllegalStateException();
-    }
+  EquivalenceClass operatorConjunction() {
+    checkState(operatorConjunction != null);
     return operatorConjunction;
   }
 

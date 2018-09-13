@@ -34,6 +34,6 @@ class CollectorTest {
     Formula f1 = Literal.of(0, false);
     Formula f2 = new FOperator(new GOperator(f1));
 
-    assertEquals(Set.of(new GOperator(f1)), Collector.collectGOperators(f2));
+    assertEquals(Set.of(new GOperator(f1)), f2.subformulas(GOperator.class));
   }
 }

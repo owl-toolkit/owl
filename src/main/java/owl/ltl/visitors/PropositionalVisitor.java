@@ -36,51 +36,51 @@ import owl.ltl.XOperator;
  */
 public abstract class PropositionalVisitor<T> implements Visitor<T> {
 
-  protected abstract T modalOperatorAction(Formula formula);
+  protected abstract T visit(Formula.TemporalOperator formula);
 
   @Override
   public final T visit(FOperator fOperator) {
-    return modalOperatorAction(fOperator);
+    return this.visit((Formula.TemporalOperator) fOperator);
   }
 
   @Override
   public final T visit(FrequencyG freq) {
-    return modalOperatorAction(freq);
+    return this.visit((Formula.TemporalOperator) freq);
   }
 
   @Override
   public final T visit(GOperator gOperator) {
-    return modalOperatorAction(gOperator);
+    return this.visit((Formula.TemporalOperator) gOperator);
   }
 
   @Override
   public final T visit(Literal literal) {
-    return modalOperatorAction(literal);
+    return this.visit((Formula.TemporalOperator) literal);
   }
 
   @Override
   public final T visit(MOperator mOperator) {
-    return modalOperatorAction(mOperator);
+    return this.visit((Formula.TemporalOperator) mOperator);
   }
 
   @Override
   public final T visit(ROperator rOperator) {
-    return modalOperatorAction(rOperator);
+    return this.visit((Formula.TemporalOperator) rOperator);
   }
 
   @Override
   public final T visit(UOperator uOperator) {
-    return modalOperatorAction(uOperator);
+    return this.visit((Formula.TemporalOperator) uOperator);
   }
 
   @Override
   public final T visit(WOperator wOperator) {
-    return modalOperatorAction(wOperator);
+    return this.visit((Formula.TemporalOperator) wOperator);
   }
 
   @Override
   public final T visit(XOperator xOperator) {
-    return modalOperatorAction(xOperator);
+    return this.visit((Formula.TemporalOperator) xOperator);
   }
 
 }

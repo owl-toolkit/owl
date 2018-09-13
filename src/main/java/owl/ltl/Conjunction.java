@@ -20,11 +20,10 @@
 package owl.ltl;
 
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -35,10 +34,6 @@ public final class Conjunction extends PropositionalFormula {
 
   private Conjunction(Formula... conjuncts) {
     super(Conjunction.class, Set.of(conjuncts));
-  }
-
-  public Conjunction(Stream<? extends Formula> formulaStream) {
-    super(Conjunction.class, formulaStream.collect(Collectors.toUnmodifiableSet()));
   }
 
   @CEntryPoint
@@ -108,37 +103,22 @@ public final class Conjunction extends PropositionalFormula {
   }
 
   @Override
-  protected char getOperator() {
-    return '&';
-  }
-
-  @Override
   public Formula nnf() {
-    return new Conjunction(map(Formula::nnf));
+    return of(map(Formula::nnf));
   }
 
   @Override
   public Formula not() {
-    return new Disjunction(map(Formula::not));
+    return Disjunction.of(map(Formula::not));
   }
 
   @Override
-  public Formula temporalStep(BitSet valuation) {
-    return of(map(c -> c.temporalStep(valuation)));
+  public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
+    return of(map(c -> c.substitute(substitution)));
   }
 
   @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
-    return of(map(c -> c.temporalStepUnfold(valuation)));
-  }
-
-  @Override
-  public Formula unfold() {
-    return of(map(Formula::unfold));
-  }
-
-  @Override
-  public Formula unfoldTemporalStep(BitSet valuation) {
-    return of(map(c -> c.unfoldTemporalStep(valuation)));
+  protected String operatorSymbol() {
+    return "&";
   }
 }

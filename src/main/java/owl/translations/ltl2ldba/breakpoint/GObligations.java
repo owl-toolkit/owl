@@ -24,37 +24,45 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
-import org.immutables.value.Value;
-import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.SyntacticFragment;
+import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.ltl2ldba.FGSubstitution;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 import owl.translations.ltl2ldba.RecurringObligation;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
-public abstract class GObligations implements RecurringObligation {
+public final class GObligations implements RecurringObligation {
 
-  abstract Set<GOperator> gOperators();
+  final Set<GOperator> gOperators;
 
-  abstract Set<GOperator> gOperatorsRewritten();
+  final Set<GOperator> gOperatorsRewritten;
 
   // G(liveness[]) is a liveness language.
-  abstract List<EquivalenceClass> liveness();
+  final List<EquivalenceClass> liveness;
 
   // obligations[] are co-safety languages.
-  abstract List<EquivalenceClass> obligations();
+  final List<EquivalenceClass> obligations;
 
   // G(safety) is a safety language.
-  abstract EquivalenceClass safety();
+  final DeterministicConstructions.Safety safetyAutomaton;
+
+  private GObligations(Set<GOperator> gOperators, Set<GOperator> gOperatorsRewritten,
+    List<EquivalenceClass> liveness, List<EquivalenceClass> obligations,
+    DeterministicConstructions.Safety safetyAutomaton) {
+    this.gOperators = Set.copyOf(gOperators);
+    this.gOperatorsRewritten = Set.copyOf(gOperatorsRewritten);
+    this.liveness = List.copyOf(liveness);
+    this.obligations = List.copyOf(obligations);
+    this.safetyAutomaton = safetyAutomaton;
+  }
 
   /**
    * Construct the recurring obligations for a G-set.
@@ -65,7 +73,7 @@ public abstract class GObligations implements RecurringObligation {
    * @return This methods returns null, if the G-set is inconsistent.
    */
   @Nullable
-  static GObligations build(Set<GOperator> gOperators, EquivalenceClassFactory factory,
+  static GObligations build(Set<GOperator> gOperators, Factories factories,
     Set<Configuration> optimisations) {
 
     // FG-Advice
@@ -73,7 +81,7 @@ public abstract class GObligations implements RecurringObligation {
 
     // Builders
     Set<GOperator> gOperatorsRewritten = new HashSet<>();
-    EquivalenceClass safety = factory.getTrue();
+    Set<Formula> safety = new HashSet<>();
     List<EquivalenceClass> liveness = new ArrayList<>(gOperators.size());
     List<EquivalenceClass> obligations = new ArrayList<>(gOperators.size());
 
@@ -81,78 +89,100 @@ public abstract class GObligations implements RecurringObligation {
       Formula formula = gOperator.operand.accept(evaluateVisitor);
 
       // Skip trivial formulas
-      if (!(formula instanceof BooleanConstant) && !(formula instanceof GOperator)) {
-        gOperatorsRewritten.add(new GOperator(formula));
+      if (formula.equals(BooleanConstant.FALSE)) {
+        return null;
       }
 
-      EquivalenceClass clazz = factory.of(formula);
+      if (formula.equals(BooleanConstant.TRUE)) {
+        continue;
+      }
+
+      gOperatorsRewritten.add(new GOperator(formula));
+
+      if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
+        if (SyntacticFragment.SAFETY.contains(formula)) {
+          safety.add(GOperator.of(formula));
+          continue;
+        }
+
+        if (formula.isPureEventual()) {
+          liveness.add(factories.eqFactory.of(formula));
+          continue;
+        }
+      }
+
+      EquivalenceClass clazz = factories.eqFactory.of(formula);
 
       if (clazz.isFalse()) {
         return null;
       }
 
-      if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
-        Set<Formula> modalOperators = clazz.modalOperators();
-
-        if (modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
-          safety = safety.and(clazz);
-
-          if (safety.isFalse()) { // NOPMD Deeply nested if
-            return null;
-          }
-
-          continue;
-        }
-
-        if (clazz.atomicPropositions().isEmpty()
-          && modalOperators.stream().allMatch(Formula::isPureEventual)) {
-          liveness.add(clazz);
-          continue;
-        }
-      }
-
       obligations.add(clazz);
     }
 
-    if (safety.isTrue() && liveness.isEmpty() && obligations.isEmpty()) {
+    DeterministicConstructions.Safety safetyFactory = new DeterministicConstructions.Safety(
+      factories, optimisations.contains(Configuration.EAGER_UNFOLD), Conjunction.of(safety));
+
+    if ((safetyFactory.onlyInitialState().isTrue() && liveness.isEmpty() && obligations.isEmpty())
+      || safetyFactory.onlyInitialState().isFalse()) {
       return null;
     }
 
-    return GObligationsTuple.create(Set.copyOf(gOperators), Set.copyOf(gOperatorsRewritten),
-      liveness, obligations, safety);
+    return new GObligations(Set.copyOf(gOperators), Set.copyOf(gOperatorsRewritten),
+      liveness, obligations, safetyFactory);
   }
 
   @Override
   public boolean containsLanguageOf(RecurringObligation other) {
     checkArgument(other instanceof GObligations);
 
-    return ((GObligations) other).gOperatorsRewritten().containsAll(gOperatorsRewritten())
+    return ((GObligations) other).gOperatorsRewritten.containsAll(gOperatorsRewritten)
       || ((GObligations) other).getObligation().implies(getObligation());
   }
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safety().factory().of(Conjunction.of(gOperatorsRewritten()));
+    return safetyAutomaton.onlyInitialState().factory().of(Conjunction.of(gOperatorsRewritten));
   }
 
   EquivalenceClass getObligation() {
-    EquivalenceClass obligation = safety();
+    EquivalenceClass obligation = safetyAutomaton.onlyInitialState();
 
-    for (EquivalenceClass clazz : liveness()) {
+    for (EquivalenceClass clazz : liveness) {
       obligation = obligation.and(clazz);
     }
 
-    for (EquivalenceClass clazz : obligations()) {
+    for (EquivalenceClass clazz : obligations) {
       obligation = obligation.and(clazz);
     }
 
     return obligation;
   }
 
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    GObligations that = (GObligations) o;
+    return Objects.equals(gOperators, that.gOperators);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(gOperators);
+  }
+
   @Override
   public String toString() {
-    return '<' + (safety().isTrue() ? "" : "S=" + safety() + ' ')
-      + (liveness().isEmpty() ? "" : "L=" + liveness() + ' ')
-      + (obligations().isEmpty() ? "" : "O=" + obligations()) + '>';
+    return String.format("<%s%s%s>",
+      safetyAutomaton.onlyInitialState().isTrue()
+        ? "" : "S=" + safetyAutomaton.onlyInitialState() + ' ',
+      liveness.isEmpty() ? "" : "L=" + liveness + ' ',
+      obligations.isEmpty() ? "" : "O=" + obligations);
   }
 }

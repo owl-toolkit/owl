@@ -80,7 +80,6 @@ import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
-import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
@@ -164,13 +163,14 @@ public final class RabinizerBuilder {
     // with true (note that formulas are in NNF, so setting everything to true is "maximal")
     // and then check if there are some atoms left which are not in any formula
 
-    BitSet internalAtoms = Collector.collectAtoms(relevantOperators);
+    BitSet internalAtoms = new BitSet();
+    relevantOperators.forEach(x1 -> internalAtoms.or(x1.atomicPropositions(true)));
 
     for (EquivalenceClass state : scc) {
       EvaluateVisitor visitor = new EvaluateVisitor(relevantOperators, state);
       EquivalenceClass substitute = state.substitute(visitor);
-      BitSet externalAtoms = Collector.collectAtoms(substitute.modalOperators());
-      externalAtoms.or(substitute.atomicPropositions());
+      BitSet externalAtoms = substitute.atomicPropositions();
+      substitute.modalOperators().forEach(x -> externalAtoms.or(x.atomicPropositions(true)));
 
       // Check if external atoms are non-empty and disjoint.
       if (externalAtoms.isEmpty() || externalAtoms.intersects(internalAtoms)) {
@@ -715,7 +715,6 @@ public final class RabinizerBuilder {
 
           rabinizerSuccessors.merge(new RabinizerProductEdge(rabinizerSuccessor),
             vsFactory.of(valuation, sensitiveAlphabet), ValuationSet::union);
-
 
           // Update exploration queue
           if (exploredStates.add(rabinizerSuccessor)) {

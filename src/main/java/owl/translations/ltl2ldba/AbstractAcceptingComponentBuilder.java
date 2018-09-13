@@ -27,6 +27,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.ldba.MutableAutomatonBuilder;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
+import owl.translations.canonical.LegacyFactory;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAcceptance,
@@ -34,11 +35,11 @@ public abstract class AbstractAcceptingComponentBuilder<S, T extends OmegaAccept
 
   protected final List<S> anchors = new ArrayList<>();
   protected final Factories factories;
-  protected final EquivalenceClassStateFactory factory;
+  protected final LegacyFactory factory;
 
   protected AbstractAcceptingComponentBuilder(Set<Configuration> optimisations,
     Factories factories) {
-    this.factory = new EquivalenceClassStateFactory(factories.eqFactory, optimisations);
+    this.factory = new LegacyFactory(factories, optimisations);
     this.factories = factories;
   }
 

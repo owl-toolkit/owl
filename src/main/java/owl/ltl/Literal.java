@@ -21,14 +21,14 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.Set;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.util.annotation.CEntryPoint;
 
-public final class Literal extends Formula {
+public final class Literal extends Formula.TemporalOperator {
   private final int index;
   private final Literal negation;
 
@@ -73,19 +73,8 @@ public final class Literal extends Formula {
   }
 
   @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this);
-  }
-
-  @Override
-  protected boolean deepEquals(Formula o) {
-    Literal literal = (Literal) o;
-    return index == literal.index;
+  public Set<Formula> children() {
+    return Set.of();
   }
 
   public int getAtom() {
@@ -107,11 +96,6 @@ public final class Literal extends Formula {
   }
 
   @Override
-  public boolean isSuspendable() {
-    return false;
-  }
-
-  @Override
   public Formula nnf() {
     return this;
   }
@@ -119,16 +103,6 @@ public final class Literal extends Formula {
   @Override
   public Literal not() {
     return negation;
-  }
-
-  @Override
-  public Formula temporalStep(BitSet valuation) {
-    return BooleanConstant.of(valuation.get(getAtom()) ^ isNegated());
-  }
-
-  @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
-    return temporalStep(valuation);
   }
 
   @Override
@@ -144,5 +118,11 @@ public final class Literal extends Formula {
   @Override
   public Formula unfoldTemporalStep(BitSet valuation) {
     return temporalStep(valuation);
+  }
+
+  @Override
+  protected boolean deepEquals(Formula o) {
+    Literal literal = (Literal) o;
+    return index == literal.index;
   }
 }

@@ -91,7 +91,7 @@ public final class XOperator extends UnaryModalOperator {
   }
 
   @Override
-  public String getOperator() {
+  public String operatorSymbol() {
     return "X";
   }
 
@@ -106,11 +106,6 @@ public final class XOperator extends UnaryModalOperator {
   }
 
   @Override
-  public boolean isSuspendable() {
-    return operand.isSuspendable();
-  }
-
-  @Override
   public Formula nnf() {
     return XOperator.of(operand.nnf());
   }
@@ -118,16 +113,6 @@ public final class XOperator extends UnaryModalOperator {
   @Override
   public Formula not() {
     return XOperator.of(operand.not());
-  }
-
-  @Override
-  public Formula temporalStep(BitSet valuation) {
-    return operand;
-  }
-
-  @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
-    return operand.unfold();
   }
 
   @Override
