@@ -19,9 +19,9 @@
 
 package owl.ltl;
 
-import java.util.BitSet;
 import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.Set;
+import java.util.function.Function;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -29,7 +29,7 @@ import owl.ltl.visitors.Visitor;
 /**
  * Biconditional.
  */
-public final class Biconditional extends Formula {
+public final class Biconditional extends Formula.LogicalOperator {
   public final Formula left;
   public final Formula right;
 
@@ -94,13 +94,8 @@ public final class Biconditional extends Formula {
   }
 
   @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) && left.allMatch(predicate) && right.allMatch(predicate);
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) || left.anyMatch(predicate) || right.anyMatch(predicate);
+  public Set<Formula> children() {
+    return Set.of(left, right);
   }
 
   @Override
@@ -110,11 +105,6 @@ public final class Biconditional extends Formula {
 
   @Override
   public boolean isPureUniversal() {
-    return false;
-  }
-
-  @Override
-  public boolean isSuspendable() {
     return false;
   }
 
@@ -134,25 +124,13 @@ public final class Biconditional extends Formula {
   }
 
   @Override
-  public Formula temporalStep(BitSet valuation) {
-    return Biconditional.of(left.temporalStep(valuation), right.temporalStep(valuation));
+  public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
+    return Biconditional.of(left.substitute(substitution), right.substitute(substitution));
   }
 
   @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
-    return Biconditional.of(left.temporalStepUnfold(valuation),
-      right.temporalStepUnfold(valuation));
-  }
-
-  @Override
-  public Formula unfold() {
-    return Biconditional.of(left.unfold(), right.unfold());
-  }
-
-  @Override
-  public Formula unfoldTemporalStep(BitSet valuation) {
-    return Biconditional.of(left.unfoldTemporalStep(valuation),
-      right.unfoldTemporalStep(valuation));
+  public String toString() {
+    return "(" + left + " <-> " + right + ')';
   }
 
   @Override
@@ -160,10 +138,5 @@ public final class Biconditional extends Formula {
     assert this.getClass() == other.getClass();
     Biconditional that = (Biconditional) other;
     return Objects.equals(left, that.left) && Objects.equals(right, that.right);
-  }
-
-  @Override
-  public String toString() {
-    return "(" + left + " <-> " + right + ')';
   }
 }

@@ -19,13 +19,13 @@
 
 package owl.jni;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
-import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Converter;
 
 class RealizabilityRewriter {
@@ -42,32 +42,28 @@ class RealizabilityRewriter {
 
     do {
       oldFormula = newFormula;
-      BitSet atoms = Collector.collectAtoms(oldFormula, false);
-      BitSet negatedAtoms = Collector.collectAtoms(oldFormula, true);
 
-      BitSet singleAtoms = BitSets.copyOf(atoms);
-      singleAtoms.xor(negatedAtoms);
-
-      BitSet inputSingleAtoms = BitSets.copyOf(singleAtoms);
-      inputSingleAtoms.and(inputVariables);
-      newFormula = oldFormula.accept(new InputLiteralSimplifier(inputSingleAtoms));
+      Set<Literal> atoms = formula.subformulas(Literal.class);
+      Set<Literal> singleAtoms = atoms.stream()
+        .filter(x -> inputVariables.get(x.getAtom()) && !atoms.contains(x.not()))
+        .collect(Collectors.toSet());
+      newFormula = oldFormula.accept(new InputLiteralSimplifier(singleAtoms));
     } while (!oldFormula.equals(newFormula));
 
     return newFormula;
   }
 
   private static class InputLiteralSimplifier extends Converter {
-    private final BitSet singleValuedInputVariables;
+    private final Set<Literal> singleValuedInputVariables;
 
-    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
-    private InputLiteralSimplifier(BitSet singleValuedInputVariables) {
+    private InputLiteralSimplifier(Set<Literal> singleValuedInputVariables) {
       super(SyntacticFragment.NNF.classes());
       this.singleValuedInputVariables = singleValuedInputVariables;
     }
 
     @Override
     public Formula visit(Literal literal) {
-      if (singleValuedInputVariables.get(literal.getAtom())) {
+      if (singleValuedInputVariables.contains(literal)) {
         return BooleanConstant.FALSE;
       }
 

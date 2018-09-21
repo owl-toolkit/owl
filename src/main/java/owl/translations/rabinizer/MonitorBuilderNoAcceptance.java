@@ -60,7 +60,7 @@ final class MonitorBuilderNoAcceptance {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    Set<Formula> modalOperators = formula.modalOperators();
+    Set<Formula.ModalOperator> modalOperators = formula.modalOperators();
     isFinite = modalOperators.stream().allMatch(SyntacticFragment.FINITE::contains);
     boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains);
 

@@ -24,7 +24,6 @@ import java.util.BitSet;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
-import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Converter;
 
 public final class LiteralMapper {
@@ -33,7 +32,7 @@ public final class LiteralMapper {
   private LiteralMapper() {}
 
   public static ShiftedFormula shiftLiterals(Formula formula) {
-    BitSet atoms = Collector.collectAtoms(formula);
+    BitSet atoms = formula.atomicPropositions(true);
 
     int[] mapping = new int[atoms.length()];
     Arrays.fill(mapping, UNDEFINED);

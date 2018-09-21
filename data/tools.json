@@ -14,7 +14,6 @@
             "flags": {
                 "epsilon": "-e",
                 "guess-f": "-f",
-                "non-deterministic": "-n",
                 "simple": "-s"
             },
             "pre": [
@@ -29,7 +28,6 @@
             "flags": {
                 "epsilon": "-e",
                 "guess-f": "-f",
-                "non-deterministic": "-n",
                 "simple": "-s"
             },
             "pre": [
@@ -62,6 +60,15 @@
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2da",
+            "pre": [
+                "simplify-ltl"
+            ]
+        },
+        "ltl2na": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2na",
             "pre": [
                 "simplify-ltl"
             ]

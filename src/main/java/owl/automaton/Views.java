@@ -387,7 +387,7 @@ public final class Views {
   }
 
   public static class AutomatonView<S, A extends OmegaAcceptance>
-    extends ImplicitCachedStatesAutomaton<S, A> {
+    extends AbstractImplicitAutomaton<S, A> {
 
     private final Automaton<S, ?> backingAutomaton;
     private final ViewSettings<S, A> settings;

@@ -20,9 +20,9 @@
 package owl.game;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -107,9 +107,9 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
     }
 
     // create a list of LabelledAig for the latches and outputs
-    List<LabelledAig> latches = Lists.newArrayList(
+    List<LabelledAig> latches = new ArrayList<>(
       Collections.nCopies(nLatches, factory.getFalse()));
-    List<LabelledAig> outputs = Lists.newArrayList(
+    List<LabelledAig> outputs = new ArrayList<>(
       Collections.nCopies(outputNames.size(), factory.getFalse()));
 
     // iterate through labelled edges to create latch and output formulas

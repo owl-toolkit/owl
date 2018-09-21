@@ -34,14 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import owl.ltl.BinaryModalOperator;
+import java.util.stream.Collectors;
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.PullUpXVisitor;
-import owl.ltl.visitors.Collector;
 
 final class FormulaPartition {
   final Clusters cosafetyClusters = new Clusters();
@@ -101,8 +99,8 @@ final class FormulaPartition {
   }
 
   static class Clusters {
-    private static final Predicate<Formula> INTERESTING_OPERATOR = o -> (!(o instanceof XOperator))
-      && (o instanceof UnaryModalOperator || o instanceof BinaryModalOperator);
+    private static final Predicate<Formula> INTERESTING_OPERATOR =
+    o -> o instanceof Formula.ModalOperator && !(o instanceof XOperator);
 
     List<Set<Formula>> clusterList = new ArrayList<>();
 
@@ -111,11 +109,11 @@ final class FormulaPartition {
       cluster.add(formula);
 
       clusterList.removeIf(x -> {
-        boolean addToCluster = !Collections.disjoint(
-          Collector.collect(INTERESTING_OPERATOR, x),
-          Collector.collect(INTERESTING_OPERATOR, formula));
+        Set<Formula.TemporalOperator> modalOperators1 = formula.subformulas(INTERESTING_OPERATOR);
+        Set<Formula.TemporalOperator> modalOperators2 = x.stream()
+          .flatMap(y -> y.subformulas(INTERESTING_OPERATOR).stream()).collect(Collectors.toSet());
 
-        if (addToCluster) {
+        if (!Collections.disjoint(modalOperators1, modalOperators2)) {
           cluster.addAll(x);
           return true;
         }

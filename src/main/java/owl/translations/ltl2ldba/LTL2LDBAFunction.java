@@ -32,7 +32,6 @@ import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.ldba.LimitDeterministicAutomatonBuilder;
 import owl.automaton.ldba.MutableAutomatonBuilder;
-import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -40,6 +39,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.run.Environment;
+import owl.translations.canonical.LegacyFactory;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
@@ -59,11 +59,11 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   private final Environment env;
   private final Function<S, C> getAnnotation;
   private final Set<Configuration> configuration;
-  private final BiFunction<Formula, EquivalenceClassFactory, AbstractJumpManager<C>>
+  private final BiFunction<Formula, Factories, AbstractJumpManager<C>>
     selectorConstructor;
 
   private LTL2LDBAFunction(Environment env,
-    BiFunction<Formula, EquivalenceClassFactory, AbstractJumpManager<C>> selectorConstructor,
+    BiFunction<Formula, Factories, AbstractJumpManager<C>> selectorConstructor,
     Function<Factories, MutableAutomatonBuilder<Jump<C>, S, B>> builderConstructor,
     Set<Configuration> configuration, Function<S, C> getAnnotation) {
     this.env = env;
@@ -130,15 +130,15 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     LabelledFormula formula = SyntacticFragments.normalize(input, SyntacticFragment.NNF);
 
     var factories = env.factorySupplier().getFactories(formula.variables(), true);
-    var jumpManager = selectorConstructor.apply(formula.formula(), factories.eqFactory);
+    var jumpManager = selectorConstructor.apply(formula.formula(), factories);
     var initialComponentBuilder = new InitialComponentBuilder<>(factories, configuration,
       jumpManager);
     var acceptingComponentBuilder = builderConstructor.apply(factories);
 
-    LimitDeterministicAutomatonBuilder<EquivalenceClass, Jump<C>, S, B, C> result;
+    LimitDeterministicAutomatonBuilder<EquivalenceClass, Jump<C>, S, B, C> builder;
 
     if (configuration.contains(Configuration.EPSILON_TRANSITIONS)) {
-      result = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder::build,
+      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder::build,
         acceptingComponentBuilder,
         initialComponentBuilder::getJumps,
         getAnnotation,
@@ -146,7 +146,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
           LimitDeterministicAutomatonBuilder.Configuration.SUPPRESS_JUMPS_FOR_TRANSIENT_STATES),
         x1 -> SafetyDetector.hasSafetyCore(x1, false));
     } else {
-      result = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder::build,
+      builder = LimitDeterministicAutomatonBuilder.create(initialComponentBuilder::build,
         acceptingComponentBuilder,
         initialComponentBuilder::getJumps,
         getAnnotation,
@@ -156,16 +156,14 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
         x1 -> SafetyDetector.hasSafetyCore(x1, false));
     }
 
-    var builder = result;
+    var factory = new LegacyFactory(factories, configuration);
+    var initialClass = factory.initialStateInternal(factories.eqFactory.of(formula.formula()));
+    var obligations = jumpManager.analyse(initialClass);
 
-    for (EquivalenceClass initialClass : createInitialClasses(factories, formula.formula())) {
-      AnalysisResult<C> obligations = jumpManager.analyse(initialClass);
-
-      if (obligations.type == TYPE.MUST) {
-        builder.addInitialStateAcceptingComponent(Iterables.getOnlyElement(obligations.jumps));
-      } else {
-        initialComponentBuilder.add(initialClass);
-      }
+    if (obligations.type == TYPE.MUST) {
+      builder.addInitialStateAcceptingComponent(Iterables.getOnlyElement(obligations.jumps));
+    } else {
+      initialComponentBuilder.add(initialClass);
     }
 
     var ldba = builder.build();
@@ -192,20 +190,7 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
     return ldba;
   }
 
-  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
-  private Iterable<EquivalenceClass> createInitialClasses(Factories factories, Formula formula) {
-    var factory = new EquivalenceClassStateFactory(factories.eqFactory, configuration);
-
-    if (configuration.contains(Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT)) {
-      EquivalenceClass clazz = factories.eqFactory.of(formula);
-      return factory.splitEquivalenceClass(clazz);
-    }
-
-    return Set.of(factory.getInitial(formula));
-  }
-
   public enum Configuration {
-    NON_DETERMINISTIC_INITIAL_COMPONENT, EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE,
-    SUPPRESS_JUMPS, EPSILON_TRANSITIONS
+    EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS, EPSILON_TRANSITIONS
   }
 }

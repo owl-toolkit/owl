@@ -56,17 +56,13 @@
         "ltl2ldba": {
             "tools": {
                 "default": "ltl2ldba#",
-                "non-det": "ltl2ldba#non-deterministic",
-                "guess-F": "ltl2ldba#guess-f",
-                "guess-F+non-det": "ltl2ldba#guess-f,non-deterministic"
+                "guess-F": "ltl2ldba#guess-f"
             }
         },
         "ltl2ldba-small": {
             "tools": {
                 "simple": "ltl2ldba#simple",
-                "non-det+simple": "ltl2ldba#non-deterministic,simple",
-                "guess-F+simple": "ltl2ldba#guess-f,simple",
-                "guess-F+non-det+simple": "ltl2ldba#guess-f,non-deterministic,simple"
+                "guess-F+simple": "ltl2ldba#guess-f,simple"
             },
             "data": "small"
         },
@@ -77,17 +73,13 @@
         "ltl2ldgba": {
             "tools": {
                 "default": "ltl2ldgba#",
-                "non-det": "ltl2ldgba#non-deterministic",
-                "guess-F": "ltl2ldgba#guess-f",
-                "guess-F+non-det": "ltl2ldgba#guess-f,non-deterministic"
+                "guess-F": "ltl2ldgba#guess-f"
             }
         },
         "ltl2ldgba-small": {
             "tools": {
                 "simple": "ltl2ldgba#simple",
-                "non-det+simple": "ltl2ldgba#non-deterministic,simple",
-                "guess-F+simple": "ltl2ldgba#guess-f,simple",
-                "guess-F+non-det+simple": "ltl2ldgba#guess-f,non-deterministic,simple"
+                "guess-F+simple": "ltl2ldgba#guess-f,simple"
             },
             "data": "small"
         },
@@ -118,6 +110,7 @@
             "data": "medium"
         },
         "ltl2da": "ltl2da",
+        "ltl2na": "ltl2na",
         "nba2ldba": "spot-nba2ldba",
         "nba2dpa": {
             "tools": [

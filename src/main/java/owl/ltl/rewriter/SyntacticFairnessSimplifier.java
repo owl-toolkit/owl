@@ -166,7 +166,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
       List<Formula> xFragment = new ArrayList<>();
       List<Set<Formula>> conjuncts = new ArrayList<>();
 
-      disjunction.forEach(child -> {
+      disjunction.children.forEach(child -> {
         if (child instanceof FOperator) {
           disjuncts.add(((FOperator) child).operand.accept(INFINITELY_OFTEN_VISITOR));
         } else if (child instanceof GOperator) {
@@ -233,7 +233,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
       List<Formula> xFragment = new ArrayList<>();
       List<Set<Formula>> disjuncts = new ArrayList<>();
 
-      conjunction.forEach(child -> {
+      conjunction.children.forEach(child -> {
         if (child instanceof FOperator) {
           conjuncts.add(((FOperator) child).operand.accept(this));
         } else if (child instanceof GOperator) {

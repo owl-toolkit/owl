@@ -44,7 +44,6 @@ import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.BinaryVisitor;
-import owl.ltl.visitors.Collector;
 
 public final class FormulaIsomorphism {
 
@@ -54,8 +53,8 @@ public final class FormulaIsomorphism {
   @SuppressWarnings("PMD.ReturnEmptyArrayRatherThanNull")
   @Nullable
   public static int[] compute(Formula formula1, Formula formula2) {
-    BitSet atoms1 = Collector.collectAtoms(formula1);
-    BitSet atoms2 = Collector.collectAtoms(formula2);
+    BitSet atoms1 = formula1.atomicPropositions(true);
+    BitSet atoms2 = formula2.atomicPropositions(true);
 
     if (atoms1.cardinality() != atoms2.cardinality()) {
       return null;

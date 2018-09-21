@@ -35,7 +35,7 @@ class JniAcceptanceAnnotator extends PropositionalVisitor<Map<Formula, JniAccept
   static final JniAcceptanceAnnotator INSTANCE = new JniAcceptanceAnnotator();
 
   @Override
-  protected Map<Formula, JniAcceptance> modalOperatorAction(Formula formula) {
+  protected Map<Formula, JniAcceptance> visit(Formula.TemporalOperator formula) {
     if (SyntacticFragment.SAFETY.contains(formula)) {
       return Map.of(formula, JniAcceptance.SAFETY);
     }

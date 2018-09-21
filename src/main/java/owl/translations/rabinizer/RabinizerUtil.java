@@ -27,7 +27,6 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.UnaryModalOperator;
-import owl.ltl.visitors.Collector;
 
 final class RabinizerUtil {
 
@@ -77,12 +76,12 @@ final class RabinizerUtil {
     Formula representative = equivalenceClass.representative();
 
     if (representative != null) {
-      return Collector.collectGOperators(representative);
+      return representative.subformulas(GOperator.class);
     }
 
     Set<GOperator> operators = new HashSet<>();
-    equivalenceClass.modalOperators().forEach(formula ->
-      operators.addAll(Collector.collectGOperators(formula)));
+    equivalenceClass.modalOperators().forEach(
+      formula -> operators.addAll(formula.subformulas(GOperator.class)));
 
     return operators;
   }

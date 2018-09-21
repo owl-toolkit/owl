@@ -28,14 +28,14 @@ import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
 
 class ImplicitSemiDeterministicEdgesAutomaton<S, A extends OmegaAcceptance>
-  extends ImplicitCachedStatesAutomaton<S, A>
+  extends AbstractImplicitAutomaton<S, A>
   implements EdgesAutomatonMixin<S, A> {
 
   private final BiFunction<S, BitSet, Edge<S>> edgeFunction;
 
   ImplicitSemiDeterministicEdgesAutomaton(ValuationSetFactory factory, Collection<S> initialStates,
     A acceptance, BiFunction<S, BitSet, Edge<S>> edgeFunction) {
-    super(factory, Set.copyOf(initialStates), acceptance);
+    super(factory, initialStates, acceptance);
     this.edgeFunction = edgeFunction;
   }
 

@@ -75,7 +75,7 @@ public final class NormalForms {
     }
 
     @Override
-    protected UpwardClosedSet modalOperatorAction(Formula literal) {
+    protected UpwardClosedSet visit(Formula.TemporalOperator literal) {
       BitSet bitSet = new BitSet();
       bitSet.set(literals.computeIfAbsent(literal, x -> literals.size()));
       return UpwardClosedSet.of(bitSet);
@@ -156,7 +156,19 @@ public final class NormalForms {
 
     @Override
     public Iterator<Set<Formula>> iterator() {
-      return stream().iterator();
+      return new Iterator<>() {
+        Iterator<BitSet> internalIterator = clauses.iterator();
+
+        @Override
+        public boolean hasNext() {
+          return internalIterator.hasNext();
+        }
+
+        @Override
+        public Set<Formula> next() {
+          return new ClauseView(internalIterator.next());
+        }
+      };
     }
 
     @Override

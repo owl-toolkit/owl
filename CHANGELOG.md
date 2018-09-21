@@ -3,7 +3,8 @@
 Translations:
 
 * Implement all LICS'18 translations for LTL fragments. Including a symbolic
-  successor / edge computation.
+  successor / edge computation. The translations can be found in the canonical
+  package and are exposed via `ltl2da` and `ltl2na`. 
 
 API:
 
@@ -20,6 +21,9 @@ API:
 * EquivalenceClass offers a `trueness` value giving the percentage of satisfying 
   assignments for an EquivalenceClass. This value is exposed via the JNI as the 
   quality score.
+  
+* Redesigned Formula classes offering substitution as part of the API instead
+  of a separate visitor.
 
 Bugfixes:
 

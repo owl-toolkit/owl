@@ -20,6 +20,7 @@
 package owl.translations.ltl2ldba;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -43,24 +44,24 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   private static final Logger logger = Logger.getLogger(AbstractJumpManager.class.getName());
   private static final AnalysisResult<?> EMPTY = AnalysisResult.buildMay(Set.of());
 
-  protected final EquivalenceClassFactory factory;
+  protected final Factories factories;
   protected final Set<Configuration> configuration;
-  protected final Set<Formula> blockingModalOperators;
+  protected final Set<Formula.ModalOperator> blockingModalOperators;
 
-  protected AbstractJumpManager(Set<Configuration> configuration, EquivalenceClassFactory factory,
-    Set<Formula> modalOperators, Formula initialFormula) {
+  protected AbstractJumpManager(Set<Configuration> configuration, Factories factories,
+    Set<Formula.ModalOperator> modalOperators, Formula initialFormula) {
     this.configuration = Set.copyOf(configuration);
-    this.factory = factory;
+    this.factories = factories;
 
-    Set<Formula> unfilteredBlockingModalOperators = initialFormula
+    Set<Formula.ModalOperator> unfilteredBlockingModalOperators = initialFormula
       .accept(BlockingModalOperatorsVisitor.INSTANCE);
     blockingModalOperators = unfilteredBlockingModalOperators.stream()
       .filter(x -> !isProperSubformula(x, modalOperators))
       .collect(Collectors.toUnmodifiableSet());
   }
 
-  protected static <X> Stream<X> createDisjunctionStream(EquivalenceClass state,
-    Function<Formula, Stream<X>> streamBuilder) {
+  protected static <X> Stream<? extends X> createDisjunctionStream(EquivalenceClass state,
+    Function<Formula, Stream<? extends X>> streamBuilder) {
     Formula representative = state.representative();
 
     if (!(representative instanceof Disjunction)) {
@@ -126,7 +127,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
   @SuppressWarnings("unchecked")
   @Nullable
   private AnalysisResult<X> checkTrivial(EquivalenceClass state) {
-    Set<Formula> modalOperators = state.modalOperators();
+    Set<Formula.ModalOperator> modalOperators = state.modalOperators();
 
     // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
     // infinite behaviour and simply build the left-derivative of the formula.
@@ -136,10 +137,10 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       return (AnalysisResult<X>) EMPTY;
     }
 
-    return configuration.contains(Configuration.SUPPRESS_JUMPS)
-      && state.modalOperators().stream().anyMatch(blockingModalOperators::contains)
-      ? (AnalysisResult<X>) EMPTY
-      : null;
+    return !configuration.contains(Configuration.SUPPRESS_JUMPS)
+      || Collections.disjoint(modalOperators, blockingModalOperators)
+      ? null
+      : (AnalysisResult<X>) EMPTY;
   }
 
   protected abstract Set<Jump<X>> computeJumps(EquivalenceClass state);
@@ -148,31 +149,32 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     return set.stream().anyMatch(x -> !x.equals(formula) && x.anyMatch(formula::equals));
   }
 
-  static class BlockingModalOperatorsVisitor extends PropositionalVisitor<Set<Formula>> {
+  static class BlockingModalOperatorsVisitor
+    extends PropositionalVisitor<Set<Formula.ModalOperator>> {
 
     static final BlockingModalOperatorsVisitor INSTANCE = new BlockingModalOperatorsVisitor();
 
     @Override
-    protected Set<Formula> modalOperatorAction(Formula formula) {
+    protected Set<Formula.ModalOperator> visit(Formula.TemporalOperator formula) {
       if (SyntacticFragment.FINITE.contains(formula)) {
         return Set.of();
       }
 
       if (SyntacticFragment.CO_SAFETY.contains(formula)) {
-        return Set.of(formula);
+        return Set.of((Formula.ModalOperator) formula);
       }
 
       return Set.of();
     }
 
     @Override
-    public Set<Formula> visit(BooleanConstant booleanConstant) {
+    public Set<Formula.ModalOperator> visit(BooleanConstant booleanConstant) {
       return Set.of();
     }
 
     @Override
-    public Set<Formula> visit(Conjunction conjunction) {
-      Set<Formula> blockingOperators = new HashSet<>();
+    public Set<Formula.ModalOperator> visit(Conjunction conjunction) {
+      Set<Formula.ModalOperator> blockingOperators = new HashSet<>();
 
       for (Formula child : conjunction.children) {
         // Only consider non-finite LTL formulas.
@@ -185,8 +187,8 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     }
 
     @Override
-    public Set<Formula> visit(Disjunction disjunction) {
-      Set<Formula> blockingOperators = null;
+    public Set<Formula.ModalOperator> visit(Disjunction disjunction) {
+      Set<Formula.ModalOperator> blockingOperators = null;
 
       for (Formula child : disjunction.children) {
         // Only consider non-finite LTL formulas.

@@ -78,23 +78,8 @@ public final class MOperator extends BinaryModalOperator {
   }
 
   @Override
-  public char getOperator() {
-    return 'M';
-  }
-
-  @Override
-  public boolean isPureEventual() {
-    return false;
-  }
-
-  @Override
-  public boolean isPureUniversal() {
-    return false;
-  }
-
-  @Override
-  public boolean isSuspendable() {
-    return false;
+  public String operatorSymbol() {
+    return "M";
   }
 
   @Override

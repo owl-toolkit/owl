@@ -49,7 +49,7 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Override
   protected DegeneralizedBreakpointFreeState createState(EquivalenceClass remainder,
     FGObligations obligations) {
-    EquivalenceClass safety = obligations.safetyFactory.initialStateWithRemainder(remainder);
+    EquivalenceClass safety = obligations.safetyAutomaton.onlyInitialStateWithRemainder(remainder);
 
     if (safety.isFalse()) {
       return null;
@@ -57,8 +57,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
     EquivalenceClass liveness;
 
-    if (obligations.gfCoSafetyFactories.size() > 0) {
-      liveness = obligations.gfCoSafetyFactories.get(0).steppedInitialState();
+    if (obligations.gfCoSafetyAutomata.size() > 0) {
+      liveness = obligations.gfCoSafetyAutomata.get(0).onlyInitialState();
     } else {
       liveness = factories.eqFactory.getTrue();
     }
@@ -70,20 +70,20 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   public Edge<DegeneralizedBreakpointFreeState> edge(DegeneralizedBreakpointFreeState state,
     BitSet valuation) {
     var obligation = state.obligations;
-    var safetyEdge = obligation.safetyFactory.edge(state.safety, valuation);
+    var safetyEdge = obligation.safetyAutomaton.edge(state.safety, valuation);
 
     if (safetyEdge == null) {
       return null;
     }
 
     var livenessSuccessor = factories.eqFactory.getTrue();
-    int livenessLength = obligation.gfCoSafetyFactories.size();
+    int livenessLength = obligation.gfCoSafetyAutomata.size();
     boolean acceptingEdge = false;
     int j = state.index;
 
     if (livenessLength > 0) {
       boolean obtainNewGoal = false;
-      var livenessEdge = obligation.gfCoSafetyFactories
+      var livenessEdge = obligation.gfCoSafetyAutomata
         .get(state.index).edge(state.liveness, valuation);
 
       // Scan for new index if currentSuccessor currentSuccessor is true.
@@ -103,9 +103,10 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
         }
       }
 
-      if (obtainNewGoal && j < obligation.gfCoSafetyFactories.size()) {
-        var factory = obligation.gfCoSafetyFactories.get(j);
-        livenessSuccessor = factory.edge(factory.initialState(), valuation).successor();
+      if (obtainNewGoal && j < obligation.gfCoSafetyAutomata.size()) {
+        var factory = obligation.gfCoSafetyAutomata.get(j);
+        livenessSuccessor = factory.edge(factory.onlyInitialStateUnstepped(), valuation)
+          .successor();
       } else {
         livenessSuccessor = livenessEdge.successor();
       }
@@ -121,12 +122,12 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Nonnegative
   private int scan(DegeneralizedBreakpointFreeState state, @Nonnegative int i, BitSet valuation) {
     int index = i;
-    var factories = state.obligations.gfCoSafetyFactories;
+    var factories = state.obligations.gfCoSafetyAutomata;
     int livenessLength = factories.size();
 
     while (index < livenessLength) {
       var factory = factories.get(index);
-      var edge = factory.edge(factory.initialState(), valuation);
+      var edge = factory.edge(factory.onlyInitialStateUnstepped(), valuation);
 
       if (edge.inSet(0)) {
         index++;

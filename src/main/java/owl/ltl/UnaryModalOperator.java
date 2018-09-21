@@ -19,11 +19,10 @@
 
 package owl.ltl;
 
-import java.util.BitSet;
 import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.Set;
 
-public abstract class UnaryModalOperator extends Formula {
+public abstract class UnaryModalOperator extends Formula.ModalOperator {
   public final Formula operand;
 
   UnaryModalOperator(Class<? extends UnaryModalOperator> clazz, Formula operand) {
@@ -32,13 +31,15 @@ public abstract class UnaryModalOperator extends Formula {
   }
 
   @Override
-  public boolean allMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) && operand.allMatch(predicate);
+  public Set<Formula> children() {
+    return Set.of(operand);
   }
 
+  public abstract String operatorSymbol();
+
   @Override
-  public boolean anyMatch(Predicate<Formula> predicate) {
-    return predicate.test(this) || operand.anyMatch(predicate);
+  public String toString() {
+    return operatorSymbol() + operand;
   }
 
   @Override
@@ -46,26 +47,5 @@ public abstract class UnaryModalOperator extends Formula {
     assert this.getClass() == o.getClass();
     UnaryModalOperator that = (UnaryModalOperator) o;
     return Objects.equals(operand, that.operand);
-  }
-
-  public Formula getOperand() {
-    return operand;
-  }
-
-  public abstract String getOperator();
-
-  @Override
-  public Formula temporalStep(BitSet valuation) {
-    return this;
-  }
-
-  @Override
-  public Formula temporalStepUnfold(BitSet valuation) {
-    return unfold();
-  }
-
-  @Override
-  public String toString() {
-    return getOperator() + operand;
   }
 }

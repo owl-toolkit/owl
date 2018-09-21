@@ -29,13 +29,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
-import owl.ltl.visitors.Collector;
+import owl.ltl.WOperator;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.FGSubstitution;
 import owl.translations.ltl2ldba.Jump;
@@ -45,48 +46,63 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
   private static final Logger logger = Logger.getLogger(GObligationsJumpManager.class.getName());
   private final Set<GObligations> obligations;
 
-  private GObligationsJumpManager(EquivalenceClassFactory factory, Set<Configuration> optimisations,
-    Set<GObligations> obligations, Set<Formula> modalOperators, Formula initialFormula) {
-    super(optimisations, factory, modalOperators, initialFormula);
+  private GObligationsJumpManager(Factories factories, Set<Configuration> optimisations,
+    Set<GObligations> obligations, Set<Formula.ModalOperator> modalOperators,
+    Formula initialFormula) {
+    super(optimisations, factories, modalOperators, initialFormula);
     this.obligations = Set.copyOf(obligations);
     logger.log(Level.FINE, () -> "The automaton has the following jumps: " + obligations);
   }
 
-  public static GObligationsJumpManager build(Formula formula, EquivalenceClassFactory factory,
+  public static GObligationsJumpManager build(Formula formula, Factories factories,
     Set<Configuration> optimisations) {
-    EquivalenceClass initialState = factory.of(formula);
-    Set<Formula> modalOperators = initialState.modalOperators();
+    EquivalenceClass initialState = factories.eqFactory.of(formula);
+    Set<Formula.ModalOperator> modalOperators = initialState.modalOperators();
 
     if (modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains)
       || modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
-      return new GObligationsJumpManager(initialState.factory(), optimisations, Set.of(), Set.of(),
+      return new GObligationsJumpManager(factories, optimisations, Set.of(), Set.of(),
         BooleanConstant.TRUE);
     }
 
     Set<GObligations> jumps = createDisjunctionStream(initialState,
       GObligationsJumpManager::createGSetStream)
-      .map(Gs -> GObligations.build(Gs, initialState.factory(), optimisations))
+      .map(Gs -> GObligations.build(Gs, factories, optimisations))
       .filter(Objects::nonNull)
       .collect(Collectors.toUnmodifiableSet());
 
-    return new GObligationsJumpManager(initialState.factory(), optimisations, jumps,
-      initialState.modalOperators(), formula);
+    return new GObligationsJumpManager(factories, optimisations, jumps,
+      modalOperators, formula);
   }
 
   private static Stream<Set<GOperator>> createGSetStream(Formula formula) {
-    return Sets.powerSet(Collector.collectTransformedGOperators(formula)).stream();
+    Set<GOperator> gOperators = formula.subformulas(
+      x -> x instanceof GOperator || x instanceof ROperator || x instanceof WOperator,
+      x -> {
+        if (x instanceof ROperator) {
+          return new GOperator(((ROperator) x).right);
+        }
+
+        if (x instanceof WOperator) {
+          return new GOperator(((WOperator) x).left);
+        }
+
+        return (GOperator) x;
+      });
+
+    return Sets.powerSet(gOperators).stream();
   }
 
   private static boolean dependsOnExternalAtoms(EquivalenceClass remainder,
     GObligations obligation) {
-    BitSet remainderAP = remainder.atomicPropositions();
-    remainderAP.or(Collector.collectAtoms(remainder.modalOperators()));
-    BitSet obligationAP = Collector.collectAtoms(obligation.gOperatorsRewritten());
+    BitSet remainderAP = remainder.atomicPropositions(true);
+    BitSet atoms = new BitSet();
+    obligation.gOperatorsRewritten.forEach(x -> atoms.or(x.atomicPropositions(true)));
 
     assert !remainderAP.isEmpty();
-    assert !obligationAP.isEmpty();
+    assert !atoms.isEmpty();
 
-    return !remainderAP.intersects(obligationAP);
+    return !remainderAP.intersects(atoms);
   }
 
   @Override
@@ -97,11 +113,11 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     Set<GObligations> availableObligations = new HashSet<>();
 
     for (GObligations x : obligations) {
-      BitSet obligationAtoms = Collector.collectAtoms(x.gOperators());
-      BitSet supportAtoms = Collector.collectAtoms(state2.modalOperators());
-      supportAtoms.or(state2.atomicPropositions());
+      BitSet stateAP = state2.atomicPropositions(true);
+      BitSet obligationAP = new BitSet();
+      x.gOperators.forEach(x2 -> obligationAP.or(x2.atomicPropositions(true)));
 
-      if (BitSets.isSubset(obligationAtoms, supportAtoms)) {
+      if (BitSets.isSubset(obligationAP, stateAP)) {
         availableObligations.add(x);
       }
     }
@@ -109,7 +125,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
     Set<Jump<GObligations>> jumps = new HashSet<>();
 
     for (GObligations obligation : availableObligations) {
-      FGSubstitution evaluateVisitor = new FGSubstitution(obligation.gOperators());
+      FGSubstitution evaluateVisitor = new FGSubstitution(obligation.gOperators);
       EquivalenceClass remainder = state.substitute(x -> x.accept(evaluateVisitor));
 
       if (remainder.isFalse()) {
@@ -117,7 +133,7 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
       }
 
       if (obligation.getObligation().implies(remainder)) {
-        jumps.add(buildJump(factory.getTrue(), obligation));
+        jumps.add(buildJump(factories.eqFactory.getTrue(), obligation));
       } else if (!configuration.contains(Configuration.SUPPRESS_JUMPS)
         || !dependsOnExternalAtoms(remainder, obligation)) {
         jumps.add(buildJump(remainder, obligation));

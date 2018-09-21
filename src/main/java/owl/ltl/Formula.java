@@ -20,14 +20,16 @@
 package owl.ltl;
 
 import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
+import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.Visitor;
 
 public abstract class Formula {
-
-  static final Formula[] EMPTY_FORMULA_ARRAY = new Formula[0];
 
   private final int hashCode;
 
@@ -41,16 +43,106 @@ public abstract class Formula {
 
   public abstract <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter);
 
-  public abstract boolean allMatch(Predicate<Formula> predicate);
+  public final BitSet atomicPropositions(boolean includeNested) {
+    BitSet atomicPropositions = new BitSet();
 
-  public abstract boolean anyMatch(Predicate<Formula> predicate);
+    accept(new PropositionalVisitor<Void>() {
+      @Override
+      public Void visit(Biconditional biconditional) {
+        biconditional.left.accept(this);
+        biconditional.right.accept(this);
+        return null;
+      }
+
+      @Override
+      public Void visit(BooleanConstant booleanConstant) {
+        return null;
+      }
+
+      @Override
+      public Void visit(Conjunction conjunction) {
+        conjunction.children.forEach(x -> x.accept(this));
+        return null;
+      }
+
+      @Override
+      public Void visit(Disjunction disjunction) {
+        disjunction.children.forEach(x -> x.accept(this));
+        return null;
+      }
+
+      @Override
+      protected Void visit(TemporalOperator formula) {
+        if (formula instanceof Literal) {
+          atomicPropositions.set(((Literal) formula).getAtom());
+        } else if (includeNested) {
+          formula.children().forEach(x -> x.accept(this));
+        }
+
+        return null;
+      }
+    });
+
+    return atomicPropositions;
+  }
+
+  public final boolean allMatch(Predicate<Formula> predicate) {
+    if (!predicate.test(this)) {
+      return false;
+    }
+
+    for (Formula child : children()) {
+      if (!child.allMatch(predicate)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public final boolean anyMatch(Predicate<Formula> predicate) {
+    if (predicate.test(this)) {
+      return true;
+    }
+
+    for (Formula child : children()) {
+      if (child.anyMatch(predicate)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public abstract Set<Formula> children();
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || !getClass().equals(o.getClass())) {
+      return false;
+    }
+
+    Formula other = (Formula) o;
+    return other.hashCode == hashCode && deepEquals(other);
+  }
+
+  @Override
+  public final int hashCode() {
+    return hashCode;
+  }
 
   // Temporal Properties of an LTL Formula
   public abstract boolean isPureEventual();
 
   public abstract boolean isPureUniversal();
 
-  public abstract boolean isSuspendable();
+  public final boolean isSuspendable() {
+    return isPureEventual() && isPureUniversal();
+  }
 
   public abstract Formula nnf();
 
@@ -62,6 +154,66 @@ public abstract class Formula {
    * @return the negation of this formula.
    */
   public abstract Formula not();
+
+  public final <E extends TemporalOperator> Set<E> subformulas(Class<E> clazz) {
+    return subformulas(clazz::isInstance, clazz::cast);
+  }
+
+  public final Set<TemporalOperator> subformulas(Predicate<? super TemporalOperator> predicate) {
+    return subformulas(predicate, x -> x);
+  }
+
+  public final <E extends TemporalOperator> Set<E> subformulas(
+    Predicate<? super TemporalOperator> predicate,
+    Function<? super TemporalOperator, E> cast) {
+    Set<E> subformulas = new HashSet<>();
+
+    accept(new PropositionalVisitor<Void>() {
+      @Override
+      public Void visit(Biconditional biconditional) {
+        biconditional.left.accept(this);
+        biconditional.right.accept(this);
+        return null;
+      }
+
+      @Override
+      public Void visit(BooleanConstant booleanConstant) {
+        return null;
+      }
+
+      @Override
+      public Void visit(Conjunction conjunction) {
+        conjunction.children.forEach(c -> c.accept(this));
+        return null;
+      }
+
+      @Override
+      public Void visit(Disjunction disjunction) {
+        disjunction.children.forEach(c -> c.accept(this));
+        return null;
+      }
+
+      @Override
+      protected Void visit(TemporalOperator formula) {
+        if (predicate.test(formula)) {
+          subformulas.add(cast.apply(formula));
+        }
+
+        formula.children().forEach(x -> x.accept(this));
+        return null;
+      }
+    });
+
+    return subformulas;
+  }
+
+  // temporal formulas
+  public abstract Formula substitute(
+    Function<? super TemporalOperator, ? extends Formula> substitution);
+
+  public abstract Formula temporalStep();
+
+  public abstract Formula temporalStep(int atom, boolean valuation);
 
   /**
    * Do a single temporal step. This means that one layer of X-operators is removed and literals are
@@ -81,24 +233,92 @@ public abstract class Formula {
    */
   public abstract Formula unfoldTemporalStep(BitSet valuation);
 
-  @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || !getClass().equals(o.getClass())) {
-      return false;
-    }
-
-    Formula other = (Formula) o;
-    return other.hashCode == hashCode && deepEquals(other);
-  }
-
   protected abstract boolean deepEquals(Formula other);
 
-  @Override
-  public final int hashCode() {
-    return hashCode;
+  public abstract static class ModalOperator extends TemporalOperator {
+    ModalOperator(int hashCode) {
+      super(hashCode);
+    }
+  }
+
+  public abstract static class LogicalOperator extends Formula {
+    LogicalOperator(int hashCode) {
+      super(hashCode);
+    }
+
+    @Override
+    public final Formula temporalStep() {
+      return substitute(Formula::temporalStep);
+    }
+
+    @Override
+    public final Formula temporalStep(int atom, boolean valuation) {
+      return substitute(x -> x.temporalStep(atom, valuation));
+    }
+
+    @Override
+    public final Formula temporalStep(BitSet valuation) {
+      return substitute(x -> x.temporalStep(valuation));
+    }
+
+    @Override
+    public final Formula temporalStepUnfold(BitSet valuation) {
+      return substitute(x -> x.temporalStepUnfold(valuation));
+    }
+
+    @Override
+    public final Formula unfold() {
+      return substitute(Formula::unfold);
+    }
+
+    @Override
+    public final Formula unfoldTemporalStep(BitSet valuation) {
+      return substitute(x -> x.unfoldTemporalStep(valuation));
+    }
+  }
+
+  public abstract static class TemporalOperator extends Formula {
+    TemporalOperator(int hashCode) {
+      super(hashCode);
+    }
+
+    @Override
+    public final Formula substitute(
+      Function<? super TemporalOperator, ? extends Formula> substitution) {
+      return substitution.apply(this);
+    }
+
+    @Override
+    public final Formula temporalStep() {
+      return this instanceof XOperator ? ((XOperator) this).operand : this;
+    }
+
+    @Override
+    public final Formula temporalStep(int atom, boolean valuation) {
+      if (this instanceof Literal) {
+        Literal literal = (Literal) this;
+
+        if (literal.getAtom() == atom) {
+          return BooleanConstant.of(valuation ^ literal.isNegated());
+        }
+      }
+
+      return this;
+    }
+
+    @Override
+    public final Formula temporalStep(BitSet valuation) {
+      if (this instanceof Literal) {
+        Literal literal = (Literal) this;
+        return BooleanConstant.of(valuation.get(literal.getAtom()) ^ literal.isNegated());
+      }
+
+      return temporalStep();
+    }
+
+    @Override
+    public final Formula temporalStepUnfold(BitSet valuation) {
+      return temporalStep(valuation).unfold();
+    }
   }
 }

@@ -33,7 +33,6 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.visitors.Collector;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.FScopedSelectVisitor;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.GScopedSelectVisitor;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager.TopLevelSelectVisitor;
@@ -124,7 +123,7 @@ class SelectVisitorTest {
 
     assertEquals(getToplevel(disjunction),
       Set.of(Collections2.transform(disjunction.children, (Formula formula) -> Sets.union(
-          Set.of(formula), Collector.collectFOperators(formula))).toArray()));
+          Set.of(formula), formula.subformulas(FOperator.class))).toArray()));
   }
 
   @Test

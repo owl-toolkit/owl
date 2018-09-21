@@ -27,13 +27,11 @@ import com.google.common.collect.Lists;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.visitors.Collector;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 public class FormulaTest {
@@ -95,17 +93,15 @@ public class FormulaTest {
   @ParameterizedTest
   @MethodSource("formulaProvider")
   void allMatch(Formula formula) {
-    Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
-    assertTrue(formula.allMatch(x -> x instanceof Biconditional || x instanceof BooleanConstant
-      || x instanceof PropositionalFormula || subformulas.contains(x)));
+    Set<Formula.TemporalOperator> subformulas = formula.subformulas(Formula.TemporalOperator.class);
+    assertTrue(formula.allMatch(
+      x -> x instanceof Formula.LogicalOperator || subformulas.contains(x)));
   }
 
   @ParameterizedTest
   @MethodSource("formulaProvider")
   void anyMatch(Formula formula) {
-    Set<Formula> subformulas = Collector.collect((Predicate<Formula>) x -> Boolean.TRUE, formula);
-
-    for (Formula x : subformulas) {
+    for (Formula x : formula.subformulas(Formula.TemporalOperator.class)) {
       assertTrue(formula.anyMatch(x::equals));
     }
   }

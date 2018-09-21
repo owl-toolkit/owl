@@ -55,11 +55,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     assert remainder.modalOperators().stream().allMatch(
       SyntacticFragment.CO_SAFETY::contains);
 
-    int length = obligations.obligations().size() + obligations.liveness().size();
+    int length = obligations.obligations.size() + obligations.liveness.size();
 
     // TODO: field for extra data.
 
-    EquivalenceClass safety = obligations.safety();
+    EquivalenceClass safety = obligations.safetyAutomaton.onlyInitialState();
     EquivalenceClass current = remainder;
 
     if (remainder.modalOperators().stream().allMatch(SyntacticFragment.SAFETY::contains)) {
@@ -68,29 +68,30 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
     }
 
     EquivalenceClass environment = factories.eqFactory.conjunction(
-      Collections3.append(obligations.liveness(), safety));
+      Collections3.append(obligations.liveness, safety));
 
     if (length == 0) {
       return new DegeneralizedBreakpointState(0, safety,
-        factory.getInitial(current, environment), EquivalenceClass.EMPTY_ARRAY, obligations);
+        factory.initialStateInternal(current, environment), EquivalenceClass.EMPTY_ARRAY,
+        obligations);
     }
 
-    EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations().size()];
+    EquivalenceClass[] nextBuilder = new EquivalenceClass[obligations.obligations.size()];
 
     if (current.isTrue()) {
-      if (obligations.obligations().isEmpty()) {
-        current = factory.getInitial(obligations.liveness().get(0));
+      if (obligations.obligations.isEmpty()) {
+        current = factory.initialStateInternal(obligations.liveness.get(0));
       } else {
         nextBuilder[0] = current;
-        current = factory.getInitial(obligations.obligations().get(0), environment);
+        current = factory.initialStateInternal(obligations.obligations.get(0), environment);
       }
     }
 
     for (int i = current.isTrue() ? 1 : 0; i < nextBuilder.length; i++) {
-      nextBuilder[i] = factory.getInitial(obligations.obligations().get(i), current);
+      nextBuilder[i] = factory.initialStateInternal(obligations.obligations.get(i), current);
     }
 
-    int index = obligations.obligations().isEmpty() ? -obligations.liveness().size() : 0;
+    int index = obligations.obligations.isEmpty() ? -obligations.liveness.size() : 0;
     return new DegeneralizedBreakpointState(index, safety, current, nextBuilder, obligations);
   }
 
@@ -98,14 +99,13 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private BitSet getSensitiveAlphabet(DegeneralizedBreakpointState state) {
     BitSet sensitiveAlphabet = factory.sensitiveAlphabet(state.current);
     sensitiveAlphabet.or(factory.sensitiveAlphabet(state.safety));
-    sensitiveAlphabet.or(factory.sensitiveAlphabet(state.obligations.safety()));
 
     for (EquivalenceClass clazz : state.next) {
       sensitiveAlphabet.or(factory.sensitiveAlphabet(clazz));
     }
 
-    for (EquivalenceClass clazz : state.obligations.liveness()) {
-      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.getInitial(clazz)));
+    for (EquivalenceClass clazz : state.obligations.liveness) {
+      sensitiveAlphabet.or(factory.sensitiveAlphabet(factory.initialStateInternal(clazz)));
     }
 
     return sensitiveAlphabet;
@@ -114,12 +114,13 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   @Nullable
   private Edge<DegeneralizedBreakpointState> getSuccessor(DegeneralizedBreakpointState state,
     BitSet valuation) {
-    EquivalenceClass safetySuccessor =
-      factory.successor(state.safety, valuation).and(state.obligations.safety());
+    var safetyEdge = state.obligations.safetyAutomaton.edge(state.safety, valuation);
 
-    if (safetySuccessor.isFalse()) {
+    if (safetyEdge == null) {
       return null;
     }
+
+    var safetySuccessor = safetyEdge.successor();
 
     EquivalenceClass currentSuccessor =
       factory.successor(state.current, valuation, safetySuccessor);
@@ -140,8 +141,8 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
       return null;
     }
 
-    int obligationsLength = state.obligations.obligations().size();
-    int livenessLength = state.obligations.liveness().size();
+    int obligationsLength = state.obligations.obligations.size();
+    int livenessLength = state.obligations.liveness.size();
 
     boolean acceptingEdge = false;
     boolean obtainNewGoal = false;
@@ -171,17 +172,18 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
 
       if (obtainNewGoal && i == j) {
         currentSuccessor = nextSuccessor
-          .and(factory.getInitial(state.obligations.obligations().get(i), assumptions));
+          .and(factory.initialStateInternal(state.obligations.obligations.get(i), assumptions));
         assumptions = assumptions.and(currentSuccessor);
         nextSuccessors[i] = factories.eqFactory.getTrue();
       } else {
         nextSuccessors[i] = nextSuccessor
-          .and(factory.getInitial(state.obligations.obligations().get(i), assumptions));
+          .and(factory.initialStateInternal(state.obligations.obligations.get(i), assumptions));
       }
     }
 
     if (obtainNewGoal && j < 0) {
-      currentSuccessor = factory.getInitial(state.obligations.liveness().get(livenessLength + j));
+      currentSuccessor = factory
+        .initialStateInternal(state.obligations.liveness.get(livenessLength + j));
     }
 
     if (currentSuccessor.isFalse()) {
@@ -218,11 +220,11 @@ public final class DegeneralizedAcceptingComponentBuilder extends AbstractAccept
   private int scanLiveness(int i, BitSet valuation, EquivalenceClass environment,
     GObligations obligations) {
     int index = i;
-    int livenessLength = obligations.liveness().size();
+    int livenessLength = obligations.liveness.size();
 
     while (index < 0) {
       EquivalenceClass successor = factory.successor(
-        factory.getInitial(obligations.liveness().get(livenessLength + index)), valuation,
+        factory.initialStateInternal(obligations.liveness.get(livenessLength + index)), valuation,
         environment);
 
       if (successor.isTrue()) {

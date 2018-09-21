@@ -31,7 +31,7 @@ import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 public class ImplicitNonDeterministicEdgeTreeAutomaton<S, A extends OmegaAcceptance>
-  extends ImplicitCachedStatesAutomaton<S, A>
+  extends AbstractImplicitAutomaton<S, A>
   implements EdgeTreeAutomatonMixin<S, A> {
 
   @Nullable
@@ -42,7 +42,7 @@ public class ImplicitNonDeterministicEdgeTreeAutomaton<S, A extends OmegaAccepta
     Collection<S> initialStates, A acceptance,
     @Nullable BiFunction<S, BitSet, Set<Edge<S>>> edgesFunction,
     Function<S, ValuationTree<Edge<S>>> edgeTreeFunction) {
-    super(factory, Set.copyOf(initialStates), acceptance);
+    super(factory, initialStates, acceptance);
     this.edgesFunction = edgesFunction;
     this.edgeTreeFunction = edgeTreeFunction;
   }

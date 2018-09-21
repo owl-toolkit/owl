@@ -19,20 +19,20 @@
 
 package owl.ltl;
 
-import com.google.common.collect.Iterables;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class PropositionalFormula extends Formula {
+public abstract class PropositionalFormula extends Formula.LogicalOperator {
+  static final Formula[] EMPTY_FORMULA_ARRAY = new Formula[0];
+
   public final Set<Formula> children;
 
   PropositionalFormula(Class<? extends PropositionalFormula> clazz, Set<Formula> children) {
     super(Objects.hash(clazz, children));
-    this.children = children;
+    this.children = Set.copyOf(children);
   }
 
   public static Formula shortCircuit(Formula formula) {
@@ -56,46 +56,9 @@ public abstract class PropositionalFormula extends Formula {
   }
 
   @Override
-  public boolean allMatch(Predicate<Formula> p) {
-    return p.test(this) && allMatchChildren(p);
+  public Set<Formula> children() {
+    return children;
   }
-
-  private boolean allMatchChildren(Predicate<Formula> p) {
-    for (Formula child : children) {
-      if (!child.allMatch(p)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  @Override
-  public boolean anyMatch(Predicate<Formula> p) {
-    return p.test(this) || anyMatchChildren(p);
-  }
-
-  private boolean anyMatchChildren(Predicate<Formula> p) {
-    for (Formula child : children) {
-      if (child.anyMatch(p)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  @Override
-  public boolean deepEquals(Formula other) {
-    PropositionalFormula that = (PropositionalFormula) other;
-    return Objects.equals(children, that.children);
-  }
-
-  public void forEach(Consumer<Formula> consumer) {
-    children.forEach(consumer);
-  }
-
-  protected abstract char getOperator();
 
   @Override
   public boolean isPureEventual() {
@@ -107,18 +70,23 @@ public abstract class PropositionalFormula extends Formula {
     return children.stream().allMatch(Formula::isPureUniversal);
   }
 
-  @Override
-  public boolean isSuspendable() {
-    return children.stream().allMatch(Formula::isSuspendable);
-  }
-
-  public <T> Stream<T> map(Function<Formula, T> mapper) {
+  public <T> Stream<T> map(Function<? super Formula, ? extends T> mapper) {
     return children.stream().map(mapper);
   }
 
   @Override
   public String toString() {
-    String delimiter = String.valueOf(getOperator());
-    return '(' + String.join(delimiter, Iterables.transform(children, Object::toString)) + ')';
+    return children.stream()
+      .map(Formula::toString)
+      .collect(Collectors.joining(operatorSymbol(), "(", ")"));
   }
+
+  @Override
+  protected final boolean deepEquals(Formula other) {
+    assert this.getClass().equals(other.getClass());
+    PropositionalFormula that = (PropositionalFormula) other;
+    return Objects.equals(children, that.children);
+  }
+
+  protected abstract String operatorSymbol();
 }

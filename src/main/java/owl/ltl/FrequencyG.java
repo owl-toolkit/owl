@@ -57,7 +57,7 @@ public final class FrequencyG extends GOperator {
   }
 
   @Override
-  public String getOperator() {
+  public String operatorSymbol() {
     return "G{" + limes + ' ' + cmp + ' ' + bound + '}';
   }
 
@@ -68,11 +68,6 @@ public final class FrequencyG extends GOperator {
 
   @Override
   public boolean isPureUniversal() {
-    throw new UnsupportedOperationException("To my best knowledge not defined");
-  }
-
-  @Override
-  public boolean isSuspendable() {
     throw new UnsupportedOperationException("To my best knowledge not defined");
   }
 

@@ -19,39 +19,33 @@
 
 package owl.translations.ltl2ldba;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.NON_DETERMINISTIC_INITIAL_COMPONENT;
-
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.ldba.MutableAutomatonBuilder;
-import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.Factories;
 import owl.ltl.EquivalenceClass;
+import owl.translations.canonical.LegacyFactory;
 import owl.translations.ltl2ldba.AnalysisResult.TYPE;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 
 class InitialComponentBuilder<K extends RecurringObligation>
   implements MutableAutomatonBuilder<EquivalenceClass, EquivalenceClass, NoneAcceptance> {
 
-  private final boolean constructDeterministic;
   private final Deque<EquivalenceClass> constructionQueue;
   private final Factories factories;
-  private final EquivalenceClassStateFactory factory;
+  private final LegacyFactory factory;
   private final AbstractJumpManager<K> jumpFactory;
   private final SetMultimap<EquivalenceClass, Jump<K>> jumps;
   private final Set<EquivalenceClass> patientStates;
@@ -61,9 +55,8 @@ class InitialComponentBuilder<K extends RecurringObligation>
     this.factories = factories;
     this.jumpFactory = jumpFactory;
 
-    factory = new EquivalenceClassStateFactory(factories.eqFactory, configuration);
+    factory = new LegacyFactory(factories, configuration);
     constructionQueue = new ArrayDeque<>();
-    constructDeterministic = !configuration.contains(NON_DETERMINISTIC_INITIAL_COMPONENT);
 
     jumps = MultimapBuilder.hashKeys().hashSetValues().build();
     patientStates = new HashSet<>();
@@ -76,75 +69,41 @@ class InitialComponentBuilder<K extends RecurringObligation>
       return null;
     }
 
-    EquivalenceClass state = factory.getInitial(initialClass);
+    EquivalenceClass state = factory.initialStateInternal(initialClass);
     constructionQueue.add(state);
     return state;
   }
 
   @Override
   public MutableAutomaton<EquivalenceClass, NoneAcceptance> build() {
-    if (constructDeterministic) {
-      var automaton = AutomatonFactory.create(factories.vsFactory, constructionQueue,
-        NoneAcceptance.INSTANCE, this::getDeterministicSuccessor);
-      assert automaton.is(Automaton.Property.DETERMINISTIC);
-      return MutableAutomatonFactory.copy(automaton);
-    }
-
-    return MutableAutomatonFactory.create(NoneAcceptance.INSTANCE, factories.vsFactory,
-      constructionQueue, this::getNondeterministicSuccessors);
+    var automaton = new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
+      constructionQueue, NoneAcceptance.INSTANCE, null, this::edgeTree);
+    assert automaton.is(Automaton.Property.DETERMINISTIC);
+    return MutableAutomatonFactory.copy(automaton);
   }
 
-  private void generateJumps(EquivalenceClass state) {
-    if (jumps.containsKey(state)) {
-      return;
+  private ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
+    if (!jumps.containsKey(state)) {
+      AnalysisResult<K> result = jumpFactory.analyse(state);
+      jumps.putAll(state, result.jumps);
+
+      if (result.type == TYPE.MAY) {
+        patientStates.add(state);
+      }
     }
-
-    AnalysisResult<K> result = jumpFactory.analyse(state);
-    jumps.putAll(state, result.jumps);
-
-    if (result.type == TYPE.MAY) {
-      patientStates.add(state);
-    }
-  }
-
-  private Map<Edge<EquivalenceClass>, ValuationSet> getDeterministicSuccessor(
-    EquivalenceClass state) {
-    generateJumps(state);
 
     // Suppress edges, if the state is impatient (e.g. G a)
     if (!patientStates.contains(state)) {
-      return Map.of();
+      return ValuationTree.of();
     }
 
-    var successors = factory.successorTree(state,
-      x -> x.isFalse() ? Set.of() : Set.of(Edge.of(x))).inverse(factories.vsFactory);
+    var successors = factory.edgeTree(state);
     // There shouldn't be any rejecting sinks in the successor map.
-    assert !successors.containsKey(Edge.of(factories.eqFactory.getFalse()));
+    assert !successors.values().contains(Edge.of(factories.eqFactory.getFalse()));
     return successors;
   }
 
   Set<Jump<K>> getJumps(EquivalenceClass state) {
     return jumps.get(state);
-  }
-
-  private List<Edge<EquivalenceClass>> getNondeterministicSuccessors(EquivalenceClass state,
-    BitSet valuation) {
-    EquivalenceClass successorClass = factory.nondeterministicPreSuccessor(state, valuation);
-
-    generateJumps(state);
-
-    if (successorClass.isTrue()) {
-      return List.of(Edge.of(successorClass, 0));
-    }
-
-    // Suppress edge, if successor is a non-accepting state or this state is impatient (e.g. G a)
-    if (successorClass.isFalse() || !patientStates.contains(state)) {
-      return List.of();
-    }
-
-    // Split successor
-    List<Edge<EquivalenceClass>> successors = new ArrayList<>();
-    factory.splitEquivalenceClass(successorClass).forEach(x -> successors.add(Edge.of(x)));
-    return successors;
   }
 }

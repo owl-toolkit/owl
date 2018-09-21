@@ -24,6 +24,7 @@ Build:
     paths:
     - $GRADLE
   script:
+    - java -version
     - ./gradlew --no-daemon check minimizedDistZip
     - unzip -d build/unzipped build/distributions/*.zip
     - scripts/check_binaries.sh build/unzipped/owl-*/bin
@@ -129,6 +130,12 @@ LTL2DA:
   stage: test
   variables:
     TEST_NAME: "ltl2da"
+  <<: *ltlcross_template
+
+LTL2NA:
+  stage: test
+  variables:
+    TEST_NAME: "ltl2na"
   <<: *ltlcross_template
 
 DELAG:

@@ -33,7 +33,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -66,11 +65,6 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
   @Override
   public Formula visit(Literal literal) {
     return literal;
-  }
-
-  @Override
-  public Formula visit(FrequencyG freq) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -202,7 +196,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
       Set<Formula> suspendable = new HashSet<>();
       Set<Formula> others = new HashSet<>();
-      conjunction.forEach(x -> {
+      conjunction.children.forEach(x -> {
         if (x.isSuspendable()) {
           suspendable.add(x);
         } else {
@@ -263,7 +257,7 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
       Set<Formula> suspendable = new HashSet<>();
       Set<Formula> others = new HashSet<>();
-      disjunction.forEach(x -> {
+      disjunction.children.forEach(x -> {
         if (x.isSuspendable()) {
           suspendable.add(x);
         } else {

@@ -19,16 +19,20 @@
 
 package owl.automaton;
 
+import java.util.Collection;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.factories.ValuationSetFactory;
 
-public abstract class AbstractAutomaton<S, A extends OmegaAcceptance> implements Automaton<S, A> {
+public abstract class AbstractImplicitAutomaton<S, A extends OmegaAcceptance> extends
+  AbstractCachedStatesAutomaton<S, A> {
+
   protected final A acceptance;
   protected final Set<S> initialStates;
   protected final ValuationSetFactory factory;
 
-  public AbstractAutomaton(ValuationSetFactory factory, A acceptance, Set<S> initialStates) {
+  public AbstractImplicitAutomaton(ValuationSetFactory factory, Collection<S> initialStates,
+    A acceptance) {
     this.factory = factory;
     this.acceptance = acceptance;
     this.initialStates = Set.copyOf(initialStates);
@@ -42,6 +46,11 @@ public abstract class AbstractAutomaton<S, A extends OmegaAcceptance> implements
   @Override
   public final ValuationSetFactory factory() {
     return factory;
+  }
+
+  @Override
+  public final S onlyInitialState() {
+    return super.onlyInitialState();
   }
 
   @Override

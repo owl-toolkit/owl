@@ -101,7 +101,7 @@ public class GOperator extends UnaryModalOperator {
   }
 
   @Override
-  public String getOperator() {
+  public String operatorSymbol() {
     return "G";
   }
 
@@ -113,11 +113,6 @@ public class GOperator extends UnaryModalOperator {
   @Override
   public boolean isPureUniversal() {
     return true;
-  }
-
-  @Override
-  public boolean isSuspendable() {
-    return operand.isPureEventual() || operand.isSuspendable();
   }
 
   @Override

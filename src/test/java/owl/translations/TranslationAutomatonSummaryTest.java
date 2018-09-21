@@ -65,6 +65,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.output.HoaPrinter;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -121,7 +122,14 @@ class TranslationAutomatonSummaryTest {
         EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
       new Translator("dpa.symmetric", environment ->
         new LTL2DPAFunction(environment, dpaSymmetricAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE))
+        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+      new Translator("safety.nondeterministic", LTL2NAFunction::safety),
+      new Translator("coSafety.nondeterministic", LTL2NAFunction::coSafety),
+      new Translator("gfCoSafety.nondeterministic", LTL2NAFunction::gfCoSafety),
+      new Translator("fgSafety.nondeterministic", LTL2NAFunction::fgSafety),
+      new Translator("ltl2na", environment -> new LTL2NAFunction(environment,
+        EnumSet.of(LTL2NAFunction.Constructions.SAFETY, LTL2NAFunction.Constructions.CO_SAFETY,
+          LTL2NAFunction.Constructions.BUCHI)))
     );
   }
 
@@ -331,7 +339,8 @@ class TranslationAutomatonSummaryTest {
 
     void test(Automaton<?, ?> automaton) {
       assertEquals(size, automaton.size(), () -> String.format(
-        "Expected %d states, got %d", size, automaton.size()));
+        "Expected %d states, got %d\nAutomaton:\n %s",
+        size, automaton.size(), HoaPrinter.toString(automaton)));
       test(automaton.acceptance());
       assertEquals(deterministic, automaton.is(Automaton.Property.DETERMINISTIC));
       assertEquals(complete, automaton.is(Automaton.Property.COMPLETE));

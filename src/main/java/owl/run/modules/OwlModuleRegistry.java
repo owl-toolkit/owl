@@ -48,6 +48,7 @@ import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.LTL2DAModule;
+import owl.translations.LTL2NAModule;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.fgx2dpa.FGX2DPA;
@@ -96,6 +97,8 @@ public class OwlModuleRegistry {
       LTL2DPACliParser.INSTANCE, FGX2DPA.CLI,
       // -> DELA
       DelagBuilder.CLI, LTL2DAModule.CLI,
+      // -> NELA
+      LTL2NAModule.CLI,
       // external
       ExternalTranslator.CLI);
 

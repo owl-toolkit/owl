@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import owl.collections.Collections3;
-import owl.factories.EquivalenceClassFactory;
+import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -59,7 +59,6 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
-import owl.ltl.visitors.Collector;
 import owl.ltl.visitors.Visitor;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
@@ -69,22 +68,48 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
   private final Table<Set<FOperator>, Set<GOperator>, FGObligations> cache;
 
-  private FGObligationsJumpManager(EquivalenceClassFactory factories,
-    Set<Configuration> optimisations, Set<Formula> modalOperators, Formula initialFormula) {
+  private FGObligationsJumpManager(Factories factories,
+    Set<Configuration> optimisations, Set<Formula.ModalOperator> modalOperators,
+    Formula initialFormula) {
     super(optimisations, factories, modalOperators, initialFormula);
     cache = HashBasedTable.create();
   }
 
-  public static FGObligationsJumpManager build(Formula formula, EquivalenceClassFactory factory,
+  public static FGObligationsJumpManager build(Formula formula, Factories factories,
     Set<Configuration> optimisations) {
-    return new FGObligationsJumpManager(factory, optimisations,
-      factory.of(formula).modalOperators(), formula);
+    return new FGObligationsJumpManager(factories, optimisations,
+      factories.eqFactory.of(formula).modalOperators(), formula);
   }
 
   private static Stream<Map.Entry<Set<FOperator>, Set<GOperator>>> createFGSetStream(
     Formula state) {
-    Set<GOperator> gOperators = Collector.collectTransformedGOperators(state);
-    Set<FOperator> fOperators = Collector.collectTransformedFOperators(gOperators);
+    Set<GOperator> gOperators = state.subformulas(
+      x -> x instanceof GOperator || x instanceof ROperator || x instanceof WOperator,
+      x -> {
+        if (x instanceof ROperator) {
+          return new GOperator(((ROperator) x).right);
+        }
+
+        if (x instanceof WOperator) {
+          return new GOperator(((WOperator) x).left);
+        }
+
+        return (GOperator) x;
+      });
+
+    Set<FOperator> fOperators = state.subformulas(
+      x -> x instanceof FOperator || x instanceof UOperator || x instanceof MOperator,
+      x -> {
+        if (x instanceof UOperator) {
+          return new FOperator(((UOperator) x).right);
+        }
+
+        if (x instanceof MOperator) {
+          return new FOperator(((MOperator) x).left);
+        }
+
+        return (FOperator) x;
+      });
 
     // Pre-filter
     gOperators.removeIf(x -> x.operand instanceof FOperator);
@@ -167,7 +192,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       FGObligations obligations = cache.get(fOperators, gOperators);
 
       if (obligations == null) {
-        obligations = FGObligations.build(fOperators, gOperators, factory,
+        obligations = FGObligations.build(fOperators, gOperators, factories,
           configuration.contains(Configuration.EAGER_UNFOLD));
 
         if (obligations != null) {
@@ -197,7 +222,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     Formula evaluated = SimplifierFactory.apply(fFreeFormula, Mode.SYNTACTIC);
     Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated
       + " using " + obligation);
-    return factory.of(evaluated);
+    return factories.eqFactory.of(evaluated);
   }
 
   abstract static class AbstractReplaceOperatorsVisitor implements Visitor<Formula> {

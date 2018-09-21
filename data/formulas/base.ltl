@@ -39,6 +39,10 @@ X a | F b
 X a | G b
 X a | X b
 
+X a | X !a
+X X a | X X !a
+X X X a | X X X !a
+
 F a & X F !a
 F a | X F !a
 
