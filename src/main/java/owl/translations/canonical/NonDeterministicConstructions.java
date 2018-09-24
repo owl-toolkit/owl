@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import java.util.stream.Stream;
 import owl.automaton.AbstractCachedStatesAutomaton;
 import owl.automaton.EdgeTreeAutomatonMixin;
 import owl.automaton.acceptance.AllAcceptance;
@@ -41,12 +41,18 @@ import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.PropositionalFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
+import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NonDeterministicConstructions {
 
@@ -79,63 +85,110 @@ public final class NonDeterministicConstructions {
     @Override
     public abstract ValuationTree<Edge<Set<Formula>>> edgeTree(Set<Formula> state);
 
-    static Set<Set<Formula>> successorsInternal(Set<Formula> state, BitSet valuation) {
-      var successorFormula = Conjunction.of(state).unfoldTemporalStep(valuation);
-      return NormalForms.toDnf(successorFormula);
+    <T> Set<T> successorsInternal(Set<Formula> state, BitSet valuation,
+      Function<? super Set<Set<Formula>>, ? extends Set<T>> mapper) {
+      return mapper.apply(toCompactDnf(Conjunction.of(state).unfoldTemporalStep(valuation)));
     }
 
-    static ValuationTree<Set<Formula>> successorTreeInternal(Set<Formula> state) {
-      return successorTreeInternalRecursive(Conjunction.of(state).unfold());
+    <T> ValuationTree<T> successorTreeInternal(Set<Formula> state,
+      Function<? super Set<Set<Formula>>, ? extends Set<T>> mapper) {
+      return successorTreeInternalRecursive(Conjunction.of(state).unfold(), mapper);
     }
 
-    private static ValuationTree<Set<Formula>> successorTreeInternalRecursive(Formula clause) {
+    private <T> ValuationTree<T> successorTreeInternalRecursive(Formula clause,
+      Function<? super Set<Set<Formula>>, ? extends Set<T>> mapper) {
       int nextVariable = clause.atomicPropositions(false).nextSetBit(0);
 
       if (nextVariable == -1) {
-        return ValuationTree.of(NormalForms.toDnf(clause.temporalStep()));
-      } else {
-        var trueChild = successorTreeInternalRecursive(clause.temporalStep(nextVariable, true));
-        var falseChild = successorTreeInternalRecursive(clause.temporalStep(nextVariable, false));
-        return ValuationTree.of(nextVariable, trueChild, falseChild);
-      }
-    }
-
-    static ValuationTree<Edge<Set<Formula>>> successorTreeInternal(Set<Formula> state,
-      Function<Set<Set<Formula>>, Set<Edge<Set<Formula>>>> edgeFunction) {
-      return successorTreeInternalRecursive(Conjunction.of(state).unfold(), edgeFunction);
-    }
-
-    private static ValuationTree<Edge<Set<Formula>>> successorTreeInternalRecursive(Formula clause,
-      Function<Set<Set<Formula>>, Set<Edge<Set<Formula>>>> edgeFunction) {
-      int nextVariable = clause.atomicPropositions(false).nextSetBit(0);
-
-      if (nextVariable == -1) {
-        return ValuationTree.of(edgeFunction.apply(NormalForms.toDnf(clause.temporalStep())));
+        return ValuationTree.of(mapper.apply(toCompactDnf(clause.temporalStep())));
       } else {
         var trueChild = successorTreeInternalRecursive(
-          clause.temporalStep(nextVariable, true), edgeFunction);
+          clause.temporalStep(nextVariable, true), mapper);
         var falseChild = successorTreeInternalRecursive(
-          clause.temporalStep(nextVariable, false), edgeFunction);
+          clause.temporalStep(nextVariable, false), mapper);
         return ValuationTree.of(nextVariable, trueChild, falseChild);
       }
     }
 
-    boolean equalsFalse(Set<Formula> clause) {
-      for (Formula formula : clause) {
-        if (clause.contains(formula.not())) {
-          return true;
+    Set<Set<Formula>> toCompactDnf(Formula formula) {
+      Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x -> {
+        return x instanceof Conjunction || !x.accept(IsLiteralOrXVisitor.INSTANCE)
+          ? Set.of()
+          : x.children;
+      };
+
+      Set<Set<Formula>> compactDnf = NormalForms.toDnf(formula, syntheticLiteralFactory)
+        .stream()
+        .flatMap(this::compact)
+        .collect(Collectors.toSet());
+
+      if (compactDnf.contains(Set.<Formula>of())) {
+        return Set.of(Set.of());
+      }
+
+      return compactDnf;
+    }
+
+    private Stream<Set<Formula>> compact(Set<Formula> clause) {
+      EquivalenceClass clauseClazz = factory.of(Conjunction.of(clause).unfold());
+
+      if (clauseClazz.isTrue()) {
+        return Stream.of(Set.of());
+      }
+
+      if (clauseClazz.isFalse()) {
+        return Stream.empty();
+      }
+
+      EquivalenceClass temporalOperatorsClazz = factory.of(Conjunction.of(
+        clause.stream().filter(Formula.TemporalOperator.class::isInstance)));
+
+      Set<Formula> retainedFacts = new HashSet<>();
+
+      for (Formula literal : clause) {
+        if (clause.contains(literal.not())) {
+          return Stream.empty();
+        }
+
+        if (literal instanceof Formula.TemporalOperator) {
+          retainedFacts.add(literal);
+        } else if (temporalOperatorsClazz.implies(factory.of(literal))) {
+          assert literal instanceof Disjunction;
+        } else {
+          retainedFacts.add(literal);
         }
       }
 
-      return factory.of(Conjunction.of(clause).unfold()).isFalse();
-    }
-
-    boolean equalsTrue(Set<Formula> state) {
-      if (state.isEmpty()) {
-        return true;
+      if (clause.size() == retainedFacts.size()) {
+        return Stream.of(clause);
       }
 
-      return factory.of(Conjunction.of(state).unfold()).isTrue();
+      return Stream.of(Set.of(retainedFacts.toArray(new Formula[0])));
+    }
+
+    private static final class IsLiteralOrXVisitor extends PropositionalVisitor<Boolean> {
+      private static final IsLiteralOrXVisitor INSTANCE = new IsLiteralOrXVisitor();
+
+      @Override
+      protected Boolean visit(Formula.TemporalOperator formula) {
+        return formula instanceof XOperator || formula instanceof Literal;
+      }
+
+      @Override
+      public Boolean visit(Conjunction conjunction) {
+        return Boolean.FALSE;
+      }
+
+      @Override
+      public Boolean visit(Disjunction disjunction) {
+        for (Formula x : disjunction.children) {
+          if (!x.accept(this)) {
+            return false;
+          }
+        }
+
+        return true;
+      }
     }
   }
 
@@ -145,12 +198,7 @@ public final class NonDeterministicConstructions {
     }
 
     Set<Edge<Set<Formula>>> successorToEdge(Set<Set<Formula>> successors) {
-      if (successors.stream().anyMatch(this::equalsTrue)) {
-        return Set.of(buildEdge(Set.of()));
-      }
-
       return successors.stream()
-        .filter(x -> !equalsFalse(x))
         .map(this::buildEdge)
         .collect(Collectors.toUnmodifiableSet());
     }
@@ -160,21 +208,21 @@ public final class NonDeterministicConstructions {
 
   // These automata are not looping in the initial state.
   private abstract static class NonLooping<A extends OmegaAcceptance> extends Terminal<A> {
-    private final Set<Set<Formula>> initialStates;
+    private final Formula formula;
 
     private NonLooping(Factories factories, Formula formula) {
       super(factories);
-      this.initialStates = NormalForms.toDnf(formula);
+      this.formula = formula;
     }
 
     @Override
     public final Set<Set<Formula>> initialStates() {
-      return initialStates;
+      return toCompactDnf(formula);
     }
 
     @Override
     public final Set<Edge<Set<Formula>>> edges(Set<Formula> state, BitSet valuation) {
-      return successorToEdge(successorsInternal(state, valuation));
+      return successorsInternal(state, valuation, this::successorToEdge);
     }
 
     @Override
@@ -225,7 +273,8 @@ public final class NonDeterministicConstructions {
       super(factories);
       Preconditions.checkArgument(SyntacticFragments.isFgSafety(formula));
       this.initialState = (FOperator) formula;
-      this.initialStateSuccessorTree = successorTreeInternal(Set.of(initialState.operand));
+      this.initialStateSuccessorTree = successorTreeInternal(Set.of(initialState.operand),
+        Function.identity());
     }
 
     @Override
@@ -246,7 +295,7 @@ public final class NonDeterministicConstructions {
         assert Set.of(initialState).equals(state);
         successors = Sets.union(initialStateSuccessorTree.get(valuation), initialStates());
       } else {
-        successors = successorsInternal(state, valuation);
+        successors = successorsInternal(state, valuation, Function.identity());
       }
 
       return successorToEdge(successors);
@@ -281,7 +330,8 @@ public final class NonDeterministicConstructions {
       super(factories);
       Preconditions.checkArgument(SyntacticFragments.isGfCoSafety(formula));
       this.initialState = (FOperator) ((GOperator) formula).operand;
-      this.initialStateSuccessorTree = successorTreeInternal(Set.of(initialState));
+      this.initialStateSuccessorTree = successorTreeInternal(Set.of(initialState),
+        Function.identity());
     }
 
     @Override
@@ -300,12 +350,9 @@ public final class NonDeterministicConstructions {
     public Set<Edge<Set<Formula>>> edges(Set<Formula> state, BitSet valuation) {
       Set<Edge<Set<Formula>>> edges = new HashSet<>();
 
-      for (Set<Formula> leftSet : successorsInternal(state, valuation)) {
+      for (Set<Formula> leftSet : successorsInternal(state, valuation, Function.identity())) {
         for (Set<Formula> rightSet : initialStateSuccessorTree.get(valuation)) {
-          var edge = buildEdge(leftSet, rightSet);
-          if (edge != null) {
-            edges.add(edge);
-          }
+          edges.add(buildEdge(leftSet, rightSet));
         }
       }
 
@@ -314,22 +361,17 @@ public final class NonDeterministicConstructions {
 
     @Override
     public ValuationTree<Edge<Set<Formula>>> edgeTree(Set<Formula> state) {
-      var successorTree = successorTreeInternal(state);
+      var successorTree = successorTreeInternal(state, Function.identity());
       return cartesianProduct(successorTree, initialStateSuccessorTree, this::buildEdge);
     }
 
-    @Nullable
     private Edge<Set<Formula>> buildEdge(Set<Formula> successor,
       Set<Formula> initialStateSuccessor) {
-      if (equalsFalse(successor)) {
-        return null;
-      }
-
-      if (!equalsTrue(successor)) {
+      if (!successor.isEmpty()) {
         return Edge.of(successor);
       }
 
-      if (!equalsTrue(initialStateSuccessor)) {
+      if (!initialStateSuccessor.isEmpty()) {
         return Edge.of(initialStateSuccessor, 0);
       }
 

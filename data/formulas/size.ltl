@@ -30,3 +30,5 @@ GF (a1 & XX b1) & GF (a2 & XX b2) & GF (a3 & XX b3)
 
 F (a <-> X a)
 F (a <-> X b)
+
+a | X b | X X c | X X X d | X X X X F e
