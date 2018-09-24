@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeout;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
+import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 
@@ -119,5 +121,15 @@ class NormalFormsTest {
 
     assertEquals(factory.of(formula.formula().not()),
       factory.of(NormalForms.toCnfFormula(formula.formula()).not()));
+  }
+
+  @Test
+  void testSyntheticLiteralFeature() {
+    var labelledFormula = LtlParser.parse("(a | b | X c)", List.of("a", "b", "c"));
+    var clause1 = Set.of(LtlParser.syntax("a | b", labelledFormula.variables()));
+    var clause2 = Set.of(LtlParser.syntax("X c", labelledFormula.variables()));
+
+    assertEquals(Set.of(clause1, clause2), NormalForms.toDnf(labelledFormula.formula(),
+      x -> x.children().stream().filter(Literal.class::isInstance).collect(Collectors.toSet())));
   }
 }

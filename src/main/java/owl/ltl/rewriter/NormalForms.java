@@ -20,12 +20,16 @@
 package owl.ltl.rewriter;
 
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import owl.collections.Collections3;
 import owl.collections.UpwardClosedSet;
@@ -33,6 +37,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
+import owl.ltl.PropositionalFormula;
 import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NormalForms {
@@ -45,7 +50,12 @@ public final class NormalForms {
   }
 
   public static Set<Set<Formula>> toCnf(Formula formula) {
-    var visitor = new ConjunctiveNormalFormVisitor();
+    return toCnf(formula, x -> Set.of());
+  }
+
+  public static Set<Set<Formula>> toCnf(Formula formula,
+    Function<? super Formula, ? extends Collection<Formula>> syntheticLiteralFactory) {
+    var visitor = new ConjunctiveNormalFormVisitor(syntheticLiteralFactory);
     var cnf = formula.accept(visitor).representatives();
     return new ClausesView(cnf, visitor.literals());
   }
@@ -57,32 +67,52 @@ public final class NormalForms {
   }
 
   public static Set<Set<Formula>> toDnf(Formula formula) {
-    var visitor = new DisjunctiveNormalFormVisitor();
+    return toDnf(formula, x -> Set.of());
+  }
+
+  public static Set<Set<Formula>> toDnf(Formula formula,
+    Function<? super PropositionalFormula, ? extends Collection<Formula>> syntheticLiteralFactory) {
+    var visitor = new DisjunctiveNormalFormVisitor(syntheticLiteralFactory);
     var dnf = formula.accept(visitor).representatives();
     return new ClausesView(dnf, visitor.literals());
   }
 
   private abstract static class AbstractNormalFormVisitor
     extends PropositionalVisitor<UpwardClosedSet> {
+
+    final Function<? super PropositionalFormula, ? extends Collection<Formula>>
+      syntheticLiteralFactory;
     private final Map<Formula, Integer> literals;
 
-    private AbstractNormalFormVisitor() {
+    private AbstractNormalFormVisitor(Function<? super PropositionalFormula,
+      ? extends Collection<Formula>> syntheticLiteralFactory) {
       this.literals = new LinkedHashMap<>();
+      this.syntheticLiteralFactory = syntheticLiteralFactory;
     }
 
     List<Formula> literals() {
-      return List.copyOf(literals.keySet());
+      return new ArrayList<>(literals.keySet());
     }
 
-    @Override
-    protected UpwardClosedSet visit(Formula.TemporalOperator literal) {
+    UpwardClosedSet singleton(Formula literal) {
       BitSet bitSet = new BitSet();
       bitSet.set(literals.computeIfAbsent(literal, x -> literals.size()));
       return UpwardClosedSet.of(bitSet);
     }
+
+    @Override
+    protected UpwardClosedSet visit(Formula.TemporalOperator literal) {
+      return singleton(literal);
+    }
   }
 
   private static final class ConjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
+
+    private ConjunctiveNormalFormVisitor(Function<? super PropositionalFormula,
+      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      super(syntheticLiteralFactory);
+    }
+
     @Override
     public UpwardClosedSet visit(BooleanConstant booleanConstant) {
       return booleanConstant.value
@@ -92,10 +122,16 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Conjunction conjunction) {
-      UpwardClosedSet set = UpwardClosedSet.of();
+      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(conjunction);
+
+      UpwardClosedSet set = syntheticLiteral.isEmpty()
+        ? UpwardClosedSet.of()
+        : singleton(Conjunction.of(syntheticLiteral));
 
       for (Formula x : conjunction.children) {
-        set = set.union(x.accept(this));
+        if (!syntheticLiteral.contains(x)) {
+          set = set.union(x.accept(this));
+        }
       }
 
       return set;
@@ -103,10 +139,16 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Disjunction disjunction) {
-      UpwardClosedSet set = UpwardClosedSet.of(new BitSet());
+      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(disjunction);
+
+      UpwardClosedSet set = syntheticLiteral.isEmpty()
+        ? UpwardClosedSet.of(new BitSet())
+        : singleton(Disjunction.of(syntheticLiteral));
 
       for (Formula x : disjunction.children) {
-        set = set.intersection(x.accept(this));
+        if (!syntheticLiteral.contains(x)) {
+          set = set.intersection(x.accept(this));
+        }
       }
 
       return set;
@@ -114,6 +156,12 @@ public final class NormalForms {
   }
 
   private static final class DisjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
+
+    private DisjunctiveNormalFormVisitor(Function<? super PropositionalFormula,
+      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      super(syntheticLiteralFactory);
+    }
+
     @Override
     public UpwardClosedSet visit(BooleanConstant booleanConstant) {
       return booleanConstant.value
@@ -123,10 +171,16 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Conjunction conjunction) {
-      UpwardClosedSet set = UpwardClosedSet.of(new BitSet());
+      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(conjunction);
+
+      UpwardClosedSet set = syntheticLiteral.isEmpty()
+        ? UpwardClosedSet.of(new BitSet())
+        : singleton(Conjunction.of(syntheticLiteral));
 
       for (Formula x : conjunction.children) {
-        set = set.intersection(x.accept(this));
+        if (!syntheticLiteral.contains(x)) {
+          set = set.intersection(x.accept(this));
+        }
       }
 
       return set;
@@ -134,10 +188,16 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Disjunction disjunction) {
-      UpwardClosedSet set = UpwardClosedSet.of();
+      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(disjunction);
+
+      UpwardClosedSet set = syntheticLiteral.isEmpty()
+        ? UpwardClosedSet.of()
+        : singleton(Disjunction.of(syntheticLiteral));
 
       for (Formula x : disjunction.children) {
-        set = set.union(x.accept(this));
+        if (!syntheticLiteral.contains(x)) {
+          set = set.union(x.accept(this));
+        }
       }
 
       return set;
@@ -149,7 +209,7 @@ public final class NormalForms {
     private final List<Formula> literals;
 
     private ClausesView(List<BitSet> clauses, List<Formula> literals) {
-      this.clauses = List.copyOf(clauses);
+      this.clauses = clauses;
       this.literals = List.copyOf(literals);
       assert Collections3.isDistinct(this.clauses);
     }
@@ -167,6 +227,16 @@ public final class NormalForms {
         @Override
         public Set<Formula> next() {
           return new ClauseView(internalIterator.next());
+        }
+
+        @Override
+        public void remove() {
+          internalIterator.remove();
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Set<Formula>> action) {
+          internalIterator.forEachRemaining(element -> action.accept(new ClauseView(element)));
         }
       };
     }
