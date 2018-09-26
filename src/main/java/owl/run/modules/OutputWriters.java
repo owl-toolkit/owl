@@ -184,7 +184,6 @@ public final class OutputWriters {
    */
   public static class ToHoa implements OutputWriter {
     public static final ToHoa DEFAULT = new ToHoa(EnumSet.noneOf(Setting.class), List.of());
-    private static final StoredAutomatonManipulator[] EMPTY = new StoredAutomatonManipulator[0];
 
     private final Set<Setting> hoaSettings;
     private final List<StoredAutomatonManipulator> operations;
@@ -199,7 +198,7 @@ public final class OutputWriters {
       HOAConsumer consumer = operations.isEmpty()
         ? new HOAConsumerPrint(writer)
         : new HOAIntermediateStoreAndManipulate(
-          new HOAConsumerPrint(writer), operations.toArray(EMPTY));
+          new HOAConsumerPrint(writer), operations.toArray(StoredAutomatonManipulator[]::new));
 
       EnumSet<HoaOption> options = EnumSet.noneOf(HoaOption.class);
 

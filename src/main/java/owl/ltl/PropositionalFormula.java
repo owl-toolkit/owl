@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class PropositionalFormula extends Formula.LogicalOperator {
-  static final Formula[] EMPTY_FORMULA_ARRAY = new Formula[0];
-
   public final Set<Formula> children;
 
   PropositionalFormula(Class<? extends PropositionalFormula> clazz, Set<Formula> children) {

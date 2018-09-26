@@ -37,6 +37,7 @@ import jhoafparser.ast.BooleanExpression;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
@@ -56,8 +57,8 @@ import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
 import owl.translations.ltl2dra.LTL2DRAFunction;
 
-public class DelagBuilder<T>
-  implements Function<LabelledFormula, Automaton<State<T>, EmersonLeiAcceptance>> {
+public class DelagBuilder
+  implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private static final Function<LabelledFormula, Automaton<?, EmersonLeiAcceptance>> FAIL = x -> {
@@ -86,9 +87,9 @@ public class DelagBuilder<T>
     }).build();
 
   private final Environment env;
-  private final Function<LabelledFormula, ? extends Automaton<T, ?>> fallback;
+  private final Function<? super LabelledFormula, ? extends Automaton<?, ?>> fallback;
   @Nullable
-  private LoadingCache<ProductState<T>, History> requiredHistoryCache = null;
+  private LoadingCache<ProductState<Object>, History> requiredHistoryCache = null;
 
   public DelagBuilder(Environment environment) {
     this(environment, true);
@@ -96,13 +97,13 @@ public class DelagBuilder<T>
 
   public DelagBuilder(Environment environment, boolean fallback) {
     this(environment, fallback
-      ? (Function) new LTL2DRAFunction(environment,
+      ? new LTL2DRAFunction(environment,
       EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE))
-      : (Function) FAIL);
+      : FAIL);
   }
 
   public DelagBuilder(Environment environment,
-    Function<LabelledFormula, ? extends Automaton<T, ?>> fallback) {
+    Function<? super LabelledFormula, ? extends Automaton<?, ?>> fallback) {
     this.env = environment;
     this.fallback = fallback;
   }
@@ -117,7 +118,7 @@ public class DelagBuilder<T>
   }
 
   @Override
-  public Automaton<State<T>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
+  public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = SyntacticFragments.normalize(inputFormula, SyntacticFragment.NNF);
     Factories factories = env.factorySupplier().getFactories(formula.variables());
 
@@ -132,8 +133,9 @@ public class DelagBuilder<T>
         Set.of());
     }
 
-    DependencyTreeFactory<T> treeConverter = new DependencyTreeFactory<>(factories, fallback);
-    DependencyTree<T> tree = formula.formula().accept(treeConverter);
+    DependencyTreeFactory<Object> treeConverter =
+      new DependencyTreeFactory<>(factories, x -> AutomatonUtil.cast(fallback.apply(x)));
+    DependencyTree<Object> tree = formula.formula().accept(treeConverter);
     BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 
@@ -141,8 +143,8 @@ public class DelagBuilder<T>
     requiredHistoryCache = CacheBuilder.newBuilder().maximumSize(1024L).build(
       CacheLoader.from(key -> History.create(tree.getRequiredHistory(key))));
 
-    ProductState<T> initialProduct = treeConverter.buildInitialState();
-    State<T> initialState = new State<>(initialProduct,
+    ProductState<Object> initialProduct = treeConverter.buildInitialState();
+    State<Object> initialState = new State<>(initialProduct,
       getHistory(null, new BitSet(), initialProduct));
 
     EmersonLeiAcceptance acceptance = new EmersonLeiAcceptance(sets, expression);
@@ -150,7 +152,7 @@ public class DelagBuilder<T>
       acceptance, (x, y) -> this.getSuccessor(tree, x, y));
   }
 
-  private History getHistory(@Nullable History past, BitSet present, ProductState<T> state) {
+  private History getHistory(@Nullable History past, BitSet present, ProductState<Object> state) {
     assert requiredHistoryCache != null;
 
     try {
@@ -166,15 +168,16 @@ public class DelagBuilder<T>
   }
 
   @Nullable
-  private Edge<State<T>> getSuccessor(DependencyTree<T> tree, State<T> state, BitSet valuation) {
-    ProductState.Builder<T> builder = ProductState.builder();
+  private Edge<State<Object>> getSuccessor(DependencyTree<Object> tree, State<Object> state,
+    BitSet valuation) {
+    ProductState.Builder<Object> builder = ProductState.builder();
     Boolean acc = tree.buildSuccessor(state, valuation, builder);
 
     if (acc != null && !acc) {
       return null;
     }
 
-    ProductState<T> successor = builder.build();
+    ProductState<Object> successor = builder.build();
     History history = getHistory(state.past, valuation, successor);
     return Edge.of(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
   }

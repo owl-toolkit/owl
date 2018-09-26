@@ -82,7 +82,7 @@ public final class Disjunction extends PropositionalFormula {
       return set.iterator().next();
     }
 
-    return new Disjunction(set.toArray(EMPTY_FORMULA_ARRAY));
+    return new Disjunction(set.toArray(Formula[]::new));
   }
 
   @Override

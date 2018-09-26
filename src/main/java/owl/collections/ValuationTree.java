@@ -87,8 +87,14 @@ public abstract class ValuationTree<E> {
       return productTree;
     }
 
-    int leftVariable = leftTree instanceof Node ? ((Node) leftTree).variable : Integer.MAX_VALUE;
-    int rightVariable = rightTree instanceof Node ? ((Node) rightTree).variable : Integer.MAX_VALUE;
+    int leftVariable = leftTree instanceof Node
+      ? ((Node<E>) leftTree).variable
+      : Integer.MAX_VALUE;
+
+    int rightVariable = rightTree instanceof Node
+      ? ((Node<E>) rightTree).variable
+      : Integer.MAX_VALUE;
+
     int variable = Math.min(leftVariable, rightVariable);
 
     if (variable == Integer.MAX_VALUE) {
@@ -213,11 +219,11 @@ public abstract class ValuationTree<E> {
       }
 
       if (trueChild instanceof Node) {
-        Objects.checkIndex(variable, ((Node) trueChild).variable);
+        Objects.checkIndex(variable, ((Node<E>) trueChild).variable);
       }
 
       if (falseChild instanceof Node) {
-        Objects.checkIndex(variable, ((Node) falseChild).variable);
+        Objects.checkIndex(variable, ((Node<E>) falseChild).variable);
       }
 
       this.variable = variable;

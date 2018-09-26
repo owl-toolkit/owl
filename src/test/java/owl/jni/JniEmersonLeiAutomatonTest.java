@@ -382,7 +382,7 @@ class JniEmersonLeiAutomatonTest {
 
     assertEquals(9, automaton.automata.size());
 
-    for (JniAutomaton jniAutomaton : automaton.automata) {
+    for (JniAutomaton<?> jniAutomaton : automaton.automata) {
       assertThat(jniAutomaton.size(), x -> x <= 4);
     }
   }

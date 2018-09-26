@@ -21,10 +21,10 @@ package owl.translations.ltl2ldba.breakpointfree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import owl.collections.Collections3;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
@@ -121,9 +121,8 @@ class SelectVisitorTest {
       Sets.union(baseChoiceConj, choiceB),
       Sets.union(baseChoiceConj, choiceAandB)), getToplevel(conjunction));
 
-    assertEquals(getToplevel(disjunction),
-      Set.of(Collections2.transform(disjunction.children, (Formula formula) -> Sets.union(
-          Set.of(formula), formula.subformulas(FOperator.class))).toArray()));
+    assertEquals(getToplevel(disjunction), Collections3.transformSet(disjunction.children,
+      formula -> Sets.union(Set.of(formula), formula.subformulas(FOperator.class))));
   }
 
   @Test
@@ -147,4 +146,5 @@ class SelectVisitorTest {
       Set.of(Sets.union(baseChoiceDisj, choiceA), Sets.union(baseChoiceDisj, choiceB),
         Sets.union(baseChoiceDisj, choiceAandB)));
   }
+
 }

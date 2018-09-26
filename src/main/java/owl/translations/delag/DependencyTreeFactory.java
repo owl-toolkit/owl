@@ -50,7 +50,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
   int setNumber;
 
   DependencyTreeFactory(Factories factory,
-    Function<LabelledFormula, ? extends Automaton<T, ?>> constructor) {
+    Function<? super LabelledFormula, ? extends Automaton<T, ?>> constructor) {
     this.factory = factory.eqFactory;
     setNumber = 0;
     builder = ProductState.builder();

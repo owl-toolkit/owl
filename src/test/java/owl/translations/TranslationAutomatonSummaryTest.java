@@ -103,7 +103,7 @@ class TranslationAutomatonSummaryTest {
       new Translator("gCoSafety", LTL2DAFunction::gCoSafety),
       new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
         EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI))),
-      new Translator("delag", environment -> new DelagBuilder<>(environment, false),
+      new Translator("delag", environment -> new DelagBuilder(environment, false),
         EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
       new Translator("ldba.asymmetric", environment -> LTL2LDBAFunction
         .createDegeneralizedBreakpointLDBABuilder(environment, ldbaAll),

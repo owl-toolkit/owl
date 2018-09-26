@@ -81,7 +81,7 @@ final class SccIARBuilder<R> {
 
     iarStates = HashBasedTable.create(rabinAutomaton.size(),
       rabinAutomaton.size() * trackedPairs.size());
-    indexToPair = trackedPairs.toArray(new RabinPair[0]);
+    indexToPair = trackedPairs.toArray(RabinPair[]::new);
     this.resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD),
       rabinAutomaton.factory());
   }

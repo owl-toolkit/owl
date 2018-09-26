@@ -55,7 +55,7 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     this.environment = environment;
 
     if (this.allowedConstructions.contains(Constructions.EMERSON_LEI)) {
-      fallback = new DelagBuilder<>(environment);
+      fallback = new DelagBuilder(environment);
     } else if (this.allowedConstructions.contains(Constructions.RABIN)) {
       var configuration = EnumSet.of(LTL2DRAFunction.Configuration.OPTIMISE_INITIAL_STATE,
         LTL2DRAFunction.Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
