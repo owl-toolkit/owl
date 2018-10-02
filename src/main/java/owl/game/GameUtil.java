@@ -21,6 +21,8 @@ package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.PrintWriter;
@@ -128,19 +130,25 @@ public final class GameUtil {
       Iterator<Edge<S>> iterator = game.edges(priorityState.state()).iterator();
       if (iterator.hasNext()) {
         output.print(' ');
-      }
-      while (iterator.hasNext()) {
-        Edge<S> edge = iterator.next();
-        assert acceptance.isWellFormedEdge(edge);
 
-        S successor = edge.successor();
-        int stateAcceptance = getAcceptance.applyAsInt(edge);
+        boolean first = true;
+        IntSet printedIndices = new IntOpenHashSet();
+        while (iterator.hasNext()) {
+          Edge<S> edge = iterator.next();
+          assert acceptance.isWellFormedEdge(edge);
 
-        int successorIndex = stateNumbering.getInt(PriorityState.of(successor, stateAcceptance));
-        assert successorIndex >= 0;
-        output.print(successorIndex);
-        if (iterator.hasNext()) {
-          output.print(',');
+          S successor = edge.successor();
+          int stateAcceptance = getAcceptance.applyAsInt(edge);
+
+          int successorIndex = stateNumbering.getInt(PriorityState.of(successor, stateAcceptance));
+          if (printedIndices.add(successorIndex)) {
+            assert successorIndex >= 0;
+            if (!first) { // NOPMD
+              output.print(',');
+            }
+            first = false;
+            output.print(successorIndex);
+          }
         }
       }
 
