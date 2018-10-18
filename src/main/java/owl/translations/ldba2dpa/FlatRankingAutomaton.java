@@ -89,7 +89,10 @@ public final class FlatRankingAutomaton {
       Language<L> emptyLanguage = lattice.getBottom();
 
       List<T> epsilonJumps = new ArrayList<>(ldba.epsilonJumps(state));
-      epsilonJumps.sort(Comparator.comparingInt(x -> sortingOrder.indexOf(ldba.annotation(x))));
+      epsilonJumps.sort(Comparator.comparingInt(x -> {
+        A annotation = ldba.annotation(x);
+        return annotation == null ? -1 : sortingOrder.indexOf(annotation);
+      }));
 
       for (T jumpTarget : epsilonJumps) {
         existingLanguages.put(ldba.annotation(jumpTarget), emptyLanguage);
