@@ -54,7 +54,7 @@ import owl.factories.ValuationSetFactory;
  * depended on this exception for its correctness: this should be only used to detect bugs.</p>
  *
  * <p>Further, every state-related operation (e.g., {@link #successors(Object)}) should be unique,
- * while edge-related operations may yield duplicates. </p>
+ * while edge-related operations may yield duplicates.</p>
  *
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton

@@ -39,7 +39,7 @@ import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructions;
-import owl.translations.canonical.UniversalConstructions;
+import owl.translations.canonical.GenericConstructions;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.LTL2DRAFunction;
@@ -95,7 +95,7 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
 
     if (formula.formula() instanceof XOperator) {
       var unwrappedFormula = formula.wrap(((XOperator) formula.formula()).operand);
-      return UniversalConstructions.delay(apply(unwrappedFormula));
+      return GenericConstructions.delay(apply(unwrappedFormula));
     }
 
     if (allowedConstructions.contains(Constructions.BUCHI)) {

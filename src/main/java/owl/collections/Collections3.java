@@ -158,10 +158,9 @@ public final class Collections3 {
   /**
    * Creates a new {@link Set} by applying the {@code transformer} on each element of {@code set}.
    *
-   * @implNote
-   *     The implementation does not access {@link Collection#isEmpty()} or
-   *     {@link Collection#size()}), since computing these values on live views might be expensive
-   *     and cause a full traversal.
+   * <p>The implementation does not access {@link Collection#isEmpty()} or
+   * {@link Collection#size()}), since computing these values on live views might be expensive
+   * and cause a full traversal.</p>
    *
    * @param set
    *     the input set.

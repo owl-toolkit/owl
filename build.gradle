@@ -30,6 +30,7 @@ buildscript {
 plugins {
     // https://github.com/tbroyer/gradle-apt-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.apt
+    // TODO: to be removed since gradle now natively supports these features
     id 'net.ltgt.apt' version '0.18'
     id 'net.ltgt.apt-idea' version '0.18'
 
@@ -62,8 +63,16 @@ project.targetCompatibility = JavaVersion.VERSION_1_10
 
 def defaultEncoding = 'UTF-8'
 
-tasks.withType(JavaCompile) { options.encoding = defaultEncoding }
-tasks.withType(Javadoc) { options.encoding = defaultEncoding }
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = JavaVersion.VERSION_1_10
+    targetCompatibility = JavaVersion.VERSION_1_10
+    options.encoding = defaultEncoding
+    options.errorprone.disableWarningsInGeneratedCode = true
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = defaultEncoding
+}
 
 def buildNatives = !project.hasProperty("disable-native")
 
@@ -99,9 +108,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.3.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.0")
-    
+
     antlr 'org.antlr:antlr4:4.7.1' // Introduces unused runtime dependencies; fixed in antlr.gradle
-    errorprone 'com.google.errorprone:error_prone_core:2.3.1'
+    errorprone 'com.google.errorprone:error_prone_core:2.3.2'
     annotationProcessor 'org.immutables:value:2.7.1'
 }
 
