@@ -34,9 +34,9 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
-public final class UniversalConstructions {
+public final class GenericConstructions {
 
-  private UniversalConstructions() {
+  private GenericConstructions() {
   }
 
   public static <A extends OmegaAcceptance> Automaton<Object, A> delay(Automaton<?, A> automaton) {

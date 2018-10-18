@@ -33,8 +33,8 @@ import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
+import owl.translations.canonical.GenericConstructions;
 import owl.translations.canonical.NonDeterministicConstructions;
-import owl.translations.canonical.UniversalConstructions;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2NAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
@@ -70,7 +70,7 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
 
     if (formula.formula() instanceof XOperator) {
       var unwrappedFormula = formula.wrap(((XOperator) formula.formula()).operand);
-      return UniversalConstructions.delay(apply(unwrappedFormula));
+      return GenericConstructions.delay(apply(unwrappedFormula));
     }
 
     if (allowedConstructions.contains(Constructions.BUCHI)) {
