@@ -51,7 +51,7 @@ class FormulaTest {
 
   @Test
   void simplify4() {
-    Formula f3 = (new UOperator(Literal.of(1), Literal.of(0))).not();
+    Formula f3 = new UOperator(Literal.of(1), Literal.of(0)).not();
     f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
     Formula f4 = Literal.of(1, true);

@@ -19,43 +19,56 @@
 
 package owl.ltl;
 
+import static java.util.Objects.checkIndex;
+
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.annotation.CEntryPoint;
 
 public final class Literal extends Formula.TemporalOperator {
+  private static final int CACHE_SIZE = 256;
+  private static final Literal[] cache = new Literal[CACHE_SIZE];
   private final int index;
   private final Literal negation;
 
-  @CEntryPoint
-  public static Literal of(int index) {
-    return of(index, false);
-  }
-
-  public static Literal of(int index, boolean negate) {
-    Literal positiveLiteral = new Literal(index);
-    return negate ? positiveLiteral.negation : positiveLiteral;
+  static {
+    Arrays.setAll(cache, Literal::new);
   }
 
   private Literal(Literal other) {
     super(Integer.hashCode(-other.index));
     this.index = -other.index;
     this.negation = other;
-    assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
+    assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
   }
 
   private Literal(@Nonnegative int index) {
     super(Integer.hashCode(index + 1));
-    Objects.checkIndex(index, Integer.MAX_VALUE);
+    checkIndex(index, Integer.MAX_VALUE);
     this.index = index + 1;
     this.negation = new Literal(this);
     assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
   }
+
+
+  public static Literal of(@Nonnegative int index) {
+    return of(index, false);
+  }
+
+  public static Literal of(@Nonnegative int index, boolean negate) {
+    if (index >= CACHE_SIZE) {
+      Literal literal = new Literal(index);
+      return negate ? literal.negation : literal;
+    }
+
+    Literal literal = cache[index];
+    return negate ? literal.negation : literal;
+  }
+
 
   @Override
   public int accept(IntVisitor v) {
@@ -107,7 +120,7 @@ public final class Literal extends Formula.TemporalOperator {
 
   @Override
   public String toString() {
-    return isNegated() ? "!p" + (-index - 1) : "p" + (index - 1);
+    return isNegated() ? "!" + negation : String.format("p%d", index - 1);
   }
 
   @Override

@@ -28,10 +28,10 @@ class Fixpoint implements UnaryOperator<Formula> {
   private final Function<Formula, Formula> rewriter;
 
   @SafeVarargs
-  Fixpoint(UnaryOperator<Formula>... rewriter) {
+  Fixpoint(Function<Formula, Formula>... rewriter) {
     Function<Formula, Formula> operator = UnaryOperator.identity();
 
-    for (UnaryOperator<Formula> nextOperator : rewriter) {
+    for (Function<Formula, Formula> nextOperator : rewriter) {
       operator = operator.andThen(nextOperator);
     }
 

@@ -19,6 +19,7 @@
 
 package owl.ltl.visitors;
 
+import java.util.function.ToIntFunction;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -36,7 +37,10 @@ import owl.ltl.XOperator;
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})
-public interface IntVisitor {
+public interface IntVisitor extends ToIntFunction<Formula> {
+
+  @Override
+  default int applyAsInt(Formula value)              { return value.accept(this); }
 
   default int visit(Biconditional biconditional)     { throw uoe(biconditional);   }
   default int visit(BooleanConstant booleanConstant) { throw uoe(booleanConstant); }

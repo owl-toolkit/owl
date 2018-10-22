@@ -60,9 +60,9 @@ public final class SimplifierFactory {
     SYNTACTIC(new SyntacticSimplifier()),
     SYNTACTIC_FAIRNESS(SyntacticFairnessSimplifier.NormaliseX.INSTANCE
       .andThen(SyntacticFairnessSimplifier.INSTANCE)),
-    SYNTACTIC_FIXPOINT(new Fixpoint(SyntacticSimplifier.INSTANCE, PullUpXVisitor.INSTANCE)),
-    PULL_UP_X(PullUpXVisitor.INSTANCE),
-    PUSH_DOWN_X(PushDownXVisitor.INSTANCE),
+    SYNTACTIC_FIXPOINT(new Fixpoint(SyntacticSimplifier.INSTANCE, PullUpXVisitor.OPERATOR)),
+    PULL_UP_X(PullUpXVisitor.OPERATOR),
+    PUSH_DOWN_X(PushDownXVisitor.OPERATOR),
     NNF(Formula::nnf);
 
     private final Function<Formula, Formula> operation;
