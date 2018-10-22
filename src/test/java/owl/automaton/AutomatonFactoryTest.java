@@ -21,6 +21,7 @@ package owl.automaton;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.common.collect.Maps;
 import java.util.EnumSet;
@@ -81,7 +82,7 @@ class AutomatonFactoryTest {
       () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
       () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
 
-      () -> assertEquals(AllAcceptance.INSTANCE, automaton.acceptance())
+      () -> assertSame(AllAcceptance.INSTANCE, automaton.acceptance())
     );
   }
 
@@ -101,7 +102,7 @@ class AutomatonFactoryTest {
       () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
       () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
 
-      () -> assertEquals(NoneAcceptance.INSTANCE, automaton.acceptance())
+      () -> assertSame(NoneAcceptance.INSTANCE, automaton.acceptance())
     );
   }
 }

@@ -94,7 +94,6 @@ import owl.util.IntBiConsumer;
  */
 public final class RabinizerBuilder {
   private static final MonitorAutomaton[] EMPTY_MONITORS = new MonitorAutomaton[0];
-  private static final GOperator[] EMPTY_G_OPERATORS = new GOperator[0];
 
   private static final Logger logger = Logger.getLogger(RabinizerBuilder.class.getName());
 
@@ -300,7 +299,7 @@ public final class RabinizerBuilder {
     // Assign arbitrary numbering to all relevant sub-formulas. Throughout the construction, we will
     // use this numbering to identify the sub-formulas.
     int numberOfGFormulas = allRelevantGFormulas.size();
-    GOperator[] gFormulas = allRelevantGFormulas.toArray(EMPTY_G_OPERATORS);
+    GOperator[] gFormulas = allRelevantGFormulas.toArray(GOperator[]::new);
 
     /* Build monitors for all formulas which are relevant somewhere.
      *

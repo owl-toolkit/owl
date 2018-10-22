@@ -69,9 +69,9 @@ public final class HoaPrinter {
       || automaton instanceof LimitDeterministicAutomaton);
 
     if (automaton instanceof Automaton) {
-      HoaPrinter.feedTo((Automaton) automaton, consumer, options);
+      HoaPrinter.feedTo((Automaton<?, ?>) automaton, consumer, options);
     } else {
-      HoaPrinter.feedTo((LimitDeterministicAutomaton) automaton, consumer, options);
+      HoaPrinter.feedTo((LimitDeterministicAutomaton<?, ?, ?, ?>) automaton, consumer, options);
     }
   }
 

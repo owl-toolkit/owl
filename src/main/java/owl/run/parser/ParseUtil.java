@@ -39,7 +39,6 @@ final class ParseUtil {
   public static final Comparator<OwlModuleParser<?>> MODULE_COMPARATOR =
     Comparator.comparing(OwlModuleParser::getKey);
   private static final HelpFormatter formatter;
-  private static final String[] EMPTY = new String[0];
 
   static {
     formatter = new HelpFormatter();
@@ -156,6 +155,6 @@ final class ParseUtil {
   }
 
   static String[] toArray(List<String> list) {
-    return list.toArray(EMPTY);
+    return list.toArray(String[]::new);
   }
 }

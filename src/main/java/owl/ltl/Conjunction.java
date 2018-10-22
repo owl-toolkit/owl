@@ -84,7 +84,7 @@ public final class Conjunction extends PropositionalFormula {
       return set.iterator().next();
     }
 
-    return new Conjunction(set.toArray(EMPTY_FORMULA_ARRAY));
+    return new Conjunction(set.toArray(Formula[]::new));
   }
 
   @Override

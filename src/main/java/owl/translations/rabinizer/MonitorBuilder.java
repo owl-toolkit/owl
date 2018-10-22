@@ -57,7 +57,6 @@ import owl.ltl.SyntacticFragment;
 
 final class MonitorBuilder {
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
-  private static final GSet[] EMPTY = new GSet[0];
 
   private final EquivalenceClass initialClass;
   private final Fragment fragment;
@@ -88,7 +87,7 @@ final class MonitorBuilder {
       new Object[] {operand, relevantSets, fragment, isCoSafety});
 
     this.stateFactory = new MonitorStateFactory(eager, isCoSafety);
-    this.relevantSets = relevantSets.toArray(EMPTY);
+    this.relevantSets = relevantSets.toArray(GSet[]::new);
     assert !isCoSafety || this.relevantSets.length == 1;
 
     //noinspection unchecked,rawtypes

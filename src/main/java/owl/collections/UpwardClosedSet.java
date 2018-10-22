@@ -34,14 +34,16 @@ import java.util.stream.Collectors;
  * Bucket-based implementation of an upward-closed set.
  */
 public final class UpwardClosedSet {
+  private static final long[] EMPTY_ARRAY = new long[0];
+  private static final long[][] EMPTY_BUCKETS = {};
+
   private static final UpwardClosedSet EMPTY = new UpwardClosedSet();
   private static final UpwardClosedSet UNIVERSE = new UpwardClosedSet(0);
-  private static final long[] EMPTY_ARRAY = new long[0];
 
   private final long[][] buckets;
 
   private UpwardClosedSet() {
-    this.buckets = new long[][] {};
+    this.buckets = EMPTY_BUCKETS;
     checkInvariants();
   }
 

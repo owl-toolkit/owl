@@ -111,11 +111,10 @@ public final class NonDeterministicConstructions {
     }
 
     Set<Set<Formula>> toCompactDnf(Formula formula) {
-      Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x -> {
-        return x instanceof Conjunction || !x.accept(IsLiteralOrXVisitor.INSTANCE)
+      Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x ->
+        x instanceof Conjunction || !x.accept(IsLiteralOrXVisitor.INSTANCE)
           ? Set.of()
           : x.children;
-      };
 
       Set<Set<Formula>> compactDnf = NormalForms.toDnf(formula, syntheticLiteralFactory)
         .stream()
@@ -163,7 +162,7 @@ public final class NonDeterministicConstructions {
         return Stream.of(clause);
       }
 
-      return Stream.of(Set.of(retainedFacts.toArray(new Formula[0])));
+      return Stream.of(Set.of(retainedFacts.toArray(Formula[]::new)));
     }
 
     private static final class IsLiteralOrXVisitor extends PropositionalVisitor<Boolean> {
