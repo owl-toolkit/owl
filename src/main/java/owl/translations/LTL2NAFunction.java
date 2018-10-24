@@ -22,7 +22,6 @@ package owl.translations;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -86,25 +85,25 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
     return fallback.apply(formula);
   }
 
-  static Automaton<Set<Formula>, BuchiAcceptance> coSafety(
+  static Automaton<Formula, BuchiAcceptance> coSafety(
     Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new NonDeterministicConstructions.CoSafety(factories, formula.formula());
   }
 
-  static Automaton<Set<Formula>, AllAcceptance> safety(
+  static Automaton<Formula, AllAcceptance> safety(
     Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new NonDeterministicConstructions.Safety(factories, formula.formula());
   }
 
-  static Automaton<Set<Formula>, BuchiAcceptance> gfCoSafety(
+  static Automaton<Formula, BuchiAcceptance> gfCoSafety(
     Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new NonDeterministicConstructions.GfCoSafety(factories, formula.formula());
   }
 
-  static Automaton<Set<Formula>, BuchiAcceptance> fgSafety(
+  static Automaton<Formula, BuchiAcceptance> fgSafety(
     Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new NonDeterministicConstructions.FgSafety(factories, formula.formula());

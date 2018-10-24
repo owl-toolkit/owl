@@ -40,6 +40,7 @@ import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -60,8 +61,8 @@ public final class NonDeterministicConstructions {
   }
 
   abstract static class Base<A extends OmegaAcceptance>
-    extends AbstractCachedStatesAutomaton<Set<Formula>, A>
-    implements EdgeTreeAutomatonMixin<Set<Formula>, A> {
+    extends AbstractCachedStatesAutomaton<Formula, A>
+    implements EdgeTreeAutomatonMixin<Formula, A> {
 
     final EquivalenceClassFactory factory;
     final ValuationSetFactory valuationSetFactory;
@@ -77,26 +78,26 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public abstract Set<Set<Formula>> initialStates();
+    public abstract Set<Formula> initialStates();
 
     @Override
-    public abstract Set<Edge<Set<Formula>>> edges(Set<Formula> state, BitSet valuation);
+    public abstract Set<Edge<Formula>> edges(Formula state, BitSet valuation);
 
     @Override
-    public abstract ValuationTree<Edge<Set<Formula>>> edgeTree(Set<Formula> state);
+    public abstract ValuationTree<Edge<Formula>> edgeTree(Formula state);
 
-    <T> Set<T> successorsInternal(Set<Formula> state, BitSet valuation,
-      Function<? super Set<Set<Formula>>, ? extends Set<T>> mapper) {
-      return mapper.apply(toCompactDnf(Conjunction.of(state).unfoldTemporalStep(valuation)));
+    <T> Set<T> successorsInternal(Formula state, BitSet valuation,
+      Function<? super Set<Formula>, ? extends Set<T>> mapper) {
+      return mapper.apply(toCompactDnf(state.unfoldTemporalStep(valuation)));
     }
 
-    <T> ValuationTree<T> successorTreeInternal(Set<Formula> state,
-      Function<? super Set<Set<Formula>>, ? extends Set<T>> mapper) {
-      return successorTreeInternalRecursive(Conjunction.of(state).unfold(), mapper);
+    <T> ValuationTree<T> successorTreeInternal(Formula state,
+      Function<? super Set<Formula>, ? extends Set<T>> mapper) {
+      return successorTreeInternalRecursive(state.unfold(), mapper);
     }
 
     private <T> ValuationTree<T> successorTreeInternalRecursive(Formula clause,
-      Function<? super Set<Set<Formula>>, ? extends Set<T>> mapper) {
+      Function<? super Set<Formula>, ? extends Set<T>> mapper) {
       int nextVariable = clause.atomicPropositions(false).nextSetBit(0);
 
       if (nextVariable == -1) {
@@ -110,7 +111,7 @@ public final class NonDeterministicConstructions {
       }
     }
 
-    Set<Set<Formula>> toCompactDnf(Formula formula) {
+    Set<Formula> toCompactDnf(Formula formula) {
       Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x ->
         x instanceof Conjunction || !x.accept(IsLiteralOrXVisitor.INSTANCE)
           ? Set.of()
@@ -121,11 +122,12 @@ public final class NonDeterministicConstructions {
         .flatMap(this::compact)
         .collect(Collectors.toSet());
 
+      // Here changes from disseration
       if (compactDnf.contains(Set.<Formula>of())) {
-        return Set.of(Set.of());
+        return Set.of(BooleanConstant.TRUE);
       }
 
-      return compactDnf;
+      return compactDnf.stream().map(Conjunction::of).collect(Collectors.toSet());
     }
 
     private Stream<Set<Formula>> compact(Set<Formula> clause) {
@@ -175,7 +177,7 @@ public final class NonDeterministicConstructions {
 
       @Override
       public Boolean visit(Conjunction conjunction) {
-        return Boolean.FALSE;
+        return false;
       }
 
       @Override
@@ -196,13 +198,13 @@ public final class NonDeterministicConstructions {
       super(factories);
     }
 
-    Set<Edge<Set<Formula>>> successorToEdge(Set<Set<Formula>> successors) {
+    Set<Edge<Formula>> successorToEdge(Set<Formula> successors) {
       return successors.stream()
         .map(this::buildEdge)
         .collect(Collectors.toUnmodifiableSet());
     }
 
-    abstract Edge<Set<Formula>> buildEdge(Set<Formula> clause);
+    abstract Edge<Formula> buildEdge(Formula clause);
   }
 
   // These automata are not looping in the initial state.
@@ -215,17 +217,17 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public final Set<Set<Formula>> initialStates() {
+    public final Set<Formula> initialStates() {
       return toCompactDnf(formula);
     }
 
     @Override
-    public final Set<Edge<Set<Formula>>> edges(Set<Formula> state, BitSet valuation) {
+    public final Set<Edge<Formula>> edges(Formula state, BitSet valuation) {
       return successorsInternal(state, valuation, this::successorToEdge);
     }
 
     @Override
-    public final ValuationTree<Edge<Set<Formula>>> edgeTree(Set<Formula> state) {
+    public final ValuationTree<Edge<Formula>> edgeTree(Formula state) {
       return successorTreeInternal(state, this::successorToEdge);
     }
   }
@@ -242,8 +244,10 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    protected Edge<Set<Formula>> buildEdge(Set<Formula> successor) {
-      return successor.isEmpty() ? Edge.of(Set.of(), 0) : Edge.of(successor);
+    protected Edge<Formula> buildEdge(Formula successor) {
+      return BooleanConstant.TRUE.equals(successor)
+        ? Edge.of(successor, 0)
+        : Edge.of(successor);
     }
   }
 
@@ -259,21 +263,21 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    protected Edge<Set<Formula>> buildEdge(Set<Formula> successor) {
-      return Edge.of(successor.isEmpty() ? Set.of() : successor);
+    protected Edge<Formula> buildEdge(Formula successor) {
+      return Edge.of(successor);
     }
   }
 
   public static final class FgSafety extends Terminal<BuchiAcceptance> {
     private final FOperator initialState;
-    private final ValuationTree<Set<Formula>> initialStateSuccessorTree;
+    private final ValuationTree<Formula> initialStateSuccessorTree;
 
     public FgSafety(Factories factories, Formula formula) {
       super(factories);
       Preconditions.checkArgument(SyntacticFragments.isFgSafety(formula));
       this.initialState = (FOperator) formula;
-      this.initialStateSuccessorTree = successorTreeInternal(Set.of(initialState.operand),
-        Function.identity());
+      this.initialStateSuccessorTree
+        = successorTreeInternal(initialState.operand, Function.identity());
     }
 
     @Override
@@ -282,16 +286,15 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public Set<Set<Formula>> initialStates() {
-      return Set.of(Set.of(initialState));
+    public Set<Formula> initialStates() {
+      return Set.of(initialState);
     }
 
     @Override
-    public Set<Edge<Set<Formula>>> edges(Set<Formula> state, BitSet valuation) {
-      Set<Set<Formula>> successors;
+    public Set<Edge<Formula>> edges(Formula state, BitSet valuation) {
+      Set<Formula> successors;
 
-      if (state.contains(initialState)) {
-        assert Set.of(initialState).equals(state);
+      if (initialState.equals(state)) {
         successors = Sets.union(initialStateSuccessorTree.get(valuation), initialStates());
       } else {
         successors = successorsInternal(state, valuation, Function.identity());
@@ -301,36 +304,29 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public ValuationTree<Edge<Set<Formula>>> edgeTree(Set<Formula> state) {
-      if (state.contains(initialState)) {
-        assert Set.of(initialState).equals(state);
-        return initialStateSuccessorTree.map(x -> successorToEdge(Sets.union(x, initialStates())));
-      }
-
-      return successorTreeInternal(state, this::successorToEdge);
+    public ValuationTree<Edge<Formula>> edgeTree(Formula state) {
+      return initialState.equals(state)
+        ? initialStateSuccessorTree.map(x -> successorToEdge(Sets.union(x, initialStates())))
+        : successorTreeInternal(state, this::successorToEdge);
     }
 
     @Override
-    protected Edge<Set<Formula>> buildEdge(Set<Formula> successor) {
-      if (successor.contains(initialState)) {
-        assert Set.of(initialState).equals(successor);
-        return Edge.of(successor);
-      }
-
-      return Edge.of(successor.isEmpty() ? Set.of() : successor, 0);
+    protected Edge<Formula> buildEdge(Formula successor) {
+      return initialState.equals(successor)
+        ? Edge.of(successor)
+        : Edge.of(successor, 0);
     }
   }
 
   public static final class GfCoSafety extends Base<BuchiAcceptance> {
     private final FOperator initialState;
-    private final ValuationTree<Set<Formula>> initialStateSuccessorTree;
+    private final ValuationTree<Formula> initialStateSuccessorTree;
 
     public GfCoSafety(Factories factories, Formula formula) {
       super(factories);
       Preconditions.checkArgument(SyntacticFragments.isGfCoSafety(formula));
       this.initialState = (FOperator) ((GOperator) formula).operand;
-      this.initialStateSuccessorTree = successorTreeInternal(Set.of(initialState),
-        Function.identity());
+      this.initialStateSuccessorTree = successorTreeInternal(initialState, Function.identity());
     }
 
     @Override
@@ -339,18 +335,18 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public Set<Set<Formula>> initialStates() {
+    public Set<Formula> initialStates() {
       // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
       // performing a single step.
-      return Edges.successors(edges(Set.of(initialState), new BitSet()));
+      return Edges.successors(edges(initialState, new BitSet()));
     }
 
     @Override
-    public Set<Edge<Set<Formula>>> edges(Set<Formula> state, BitSet valuation) {
-      Set<Edge<Set<Formula>>> edges = new HashSet<>();
+    public Set<Edge<Formula>> edges(Formula state, BitSet valuation) {
+      Set<Edge<Formula>> edges = new HashSet<>();
 
-      for (Set<Formula> leftSet : successorsInternal(state, valuation, Function.identity())) {
-        for (Set<Formula> rightSet : initialStateSuccessorTree.get(valuation)) {
+      for (Formula leftSet : successorsInternal(state, valuation, Function.identity())) {
+        for (Formula rightSet : initialStateSuccessorTree.get(valuation)) {
           edges.add(buildEdge(leftSet, rightSet));
         }
       }
@@ -359,22 +355,21 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public ValuationTree<Edge<Set<Formula>>> edgeTree(Set<Formula> state) {
+    public ValuationTree<Edge<Formula>> edgeTree(Formula state) {
       var successorTree = successorTreeInternal(state, Function.identity());
       return cartesianProduct(successorTree, initialStateSuccessorTree, this::buildEdge);
     }
 
-    private Edge<Set<Formula>> buildEdge(Set<Formula> successor,
-      Set<Formula> initialStateSuccessor) {
-      if (!successor.isEmpty()) {
+    private Edge<Formula> buildEdge(Formula successor, Formula initialStateSuccessor) {
+      if (!BooleanConstant.TRUE.equals(successor)) {
         return Edge.of(successor);
       }
 
-      if (!initialStateSuccessor.isEmpty()) {
+      if (!BooleanConstant.TRUE.equals(initialStateSuccessor)) {
         return Edge.of(initialStateSuccessor, 0);
       }
 
-      return Edge.of(Set.of(initialState), 0);
+      return Edge.of(initialState, 0);
     }
   }
 }
