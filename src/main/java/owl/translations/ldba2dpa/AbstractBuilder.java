@@ -19,11 +19,12 @@
 
 package owl.translations.ldba2dpa;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
@@ -43,28 +44,23 @@ public class AbstractBuilder<S, T, A, L, B extends GeneralizedBuchiAcceptance> {
   protected final LanguageLattice<T, A, L> lattice;
   protected final LimitDeterministicAutomaton<S, T, B, A> ldba;
   protected final List<A> safetyComponents;
-  protected final List<A> sortingOrder;
+  protected final Comparator<A> sortingOrder;
 
   protected AbstractBuilder(LimitDeterministicAutomaton<S, T, B, A> ldba,
     LanguageLattice<T, A, L> lattice, Predicate<? super S> isAcceptingState,
-    boolean resetAfterSccSwitch) {
+    boolean resetAfterSccSwitch, Comparator<A> sortingOrder) {
     initialComponentSccs = resetAfterSccSwitch
       ? SccDecomposition.computeSccs(ldba.initialComponent())
       : null;
     this.lattice = lattice;
     this.ldba = ldba;
-    sortingOrder = List.copyOf(ldba.components());
+    this.sortingOrder = sortingOrder;
 
     // Identify  safety components.
-    List<A> safetyBuilder = new ArrayList<>();
-
-    for (A value : sortingOrder) {
-      if (lattice.isSafetyAnnotation(value)) {
-        safetyBuilder.add(value);
-      }
-    }
-
-    safetyComponents = List.copyOf(safetyBuilder);
+    safetyComponents = ldba.components().stream()
+      .filter(lattice::isSafetyAnnotation)
+      .sorted(sortingOrder)
+      .collect(Collectors.toUnmodifiableList());
     this.isAcceptingState = isAcceptingState;
   }
 

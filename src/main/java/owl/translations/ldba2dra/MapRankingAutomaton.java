@@ -22,11 +22,14 @@ package owl.translations.ldba2dra;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
@@ -46,7 +49,8 @@ public final class MapRankingAutomaton {
   public static <S, T, A, L> Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> of(
     LimitDeterministicAutomaton<S, T, GeneralizedBuchiAcceptance, A> ldba,
     LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch,
-    boolean optimizeInitialState) {
+    boolean optimizeInitialState,
+    Comparator<A> sortingOrder) {
     checkArgument(lattice instanceof BooleanLattice);
     checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
@@ -54,7 +58,8 @@ public final class MapRankingAutomaton {
     Class<? extends GeneralizedRabinAcceptance> acceptanceClass =
       acceptanceSets == 1 ? RabinAcceptance.class : GeneralizedRabinAcceptance.class;
     Builder<S, T, A, L, ?, ?> builder =
-      new Builder<>(ldba, resetAfterSccSwitch, lattice, isAcceptingState, acceptanceClass);
+      new Builder<>(ldba, resetAfterSccSwitch, lattice, isAcceptingState, acceptanceClass,
+        sortingOrder);
     Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton =
       AutomatonFactory.create(ldba.acceptingComponent().factory(), builder.initialState,
         builder.acceptance, builder::getSuccessor);
@@ -73,20 +78,25 @@ public final class MapRankingAutomaton {
     final MapRankingState<S, A, T> initialState;
 
     Builder(LimitDeterministicAutomaton<S, T, B, A> ldba, boolean resetAfterSccSwitch,
-      LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, Class<R> acceptanceClass) {
-      super(ldba, lattice, isAcceptingState, resetAfterSccSwitch);
+      LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, Class<R> acceptanceClass,
+      Comparator<A> sortingOrder) {
+      super(ldba, lattice, isAcceptingState, resetAfterSccSwitch, sortingOrder);
       logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
       pairs = new HashMap<>();
 
+      List<A> components = ldba.components().stream()
+        .sorted(sortingOrder)
+        .collect(Collectors.toList());
+
       if (acceptanceClass.equals(RabinAcceptance.class)) {
         RabinAcceptance.Builder builder = new RabinAcceptance.Builder();
-        sortingOrder.forEach(x -> pairs.put(x, builder.add()));
+        components.forEach(x -> pairs.put(x, builder.add()));
         truePair = builder.add();
         acceptance = (R) builder.build();
       } else if (acceptanceClass.equals(GeneralizedRabinAcceptance.class)) {
         GeneralizedRabinAcceptance.Builder builder = new GeneralizedRabinAcceptance.Builder();
         int infSets = ldba.acceptingComponent().acceptance().acceptanceSets();
-        sortingOrder.forEach(x -> pairs.put(x, builder.add(infSets)));
+        components.forEach(x -> pairs.put(x, builder.add(infSets)));
         truePair = builder.add(0);
         acceptance = (R) builder.build();
       } else {

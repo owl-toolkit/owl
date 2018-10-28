@@ -45,10 +45,11 @@ public final class FlatRankingAutomaton {
 
   public static <S, T, A, L> Automaton<FlatRankingState<S, T>, ParityAcceptance> of(
     LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba, LanguageLattice<T, A, L> lattice,
-    Predicate<? super S> isAcceptingState, boolean resetRanking, boolean optimizeInitialState) {
+    Predicate<? super S> isAcceptingState, boolean resetRanking, boolean optimizeInitialState,
+    Comparator<A> sortingOrder) {
     checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
-    var builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking);
+    var builder = new Builder<>(ldba, lattice, isAcceptingState, resetRanking, sortingOrder);
     var automaton = AutomatonFactory.create(builder.ldba.acceptingComponent().factory(),
       builder.initialState, builder.acceptance, builder::getSuccessor);
 
@@ -65,8 +66,8 @@ public final class FlatRankingAutomaton {
 
     Builder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, A> ldba,
       LanguageLattice<T, A, L> lattice, Predicate<? super S> isAcceptingState,
-      boolean resetRanking) {
-      super(ldba, lattice, isAcceptingState, resetRanking);
+      boolean resetRanking, Comparator<A> sortingOrder) {
+      super(ldba, lattice, isAcceptingState, resetRanking, sortingOrder);
       logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);
@@ -89,10 +90,9 @@ public final class FlatRankingAutomaton {
       Language<L> emptyLanguage = lattice.getBottom();
 
       List<T> epsilonJumps = new ArrayList<>(ldba.epsilonJumps(state));
-      epsilonJumps.sort(Comparator.comparingInt(x -> {
-        A annotation = ldba.annotation(x);
-        return annotation == null ? -1 : sortingOrder.indexOf(annotation);
-      }));
+      epsilonJumps.sort(Comparator.comparing(
+        ldba::annotation,
+        Comparator.nullsFirst(sortingOrder)));
 
       for (T jumpTarget : epsilonJumps) {
         existingLanguages.put(ldba.annotation(jumpTarget), emptyLanguage);

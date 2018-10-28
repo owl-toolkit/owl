@@ -19,14 +19,13 @@
 
 package owl.translations.ltl2ldba.breakpoint;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
+import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -89,11 +88,11 @@ public final class GObligations implements RecurringObligation {
       Formula formula = gOperator.operand.accept(evaluateVisitor);
 
       // Skip trivial formulas
-      if (formula.equals(BooleanConstant.FALSE)) {
+      if (BooleanConstant.FALSE.equals(formula)) {
         return null;
       }
 
-      if (formula.equals(BooleanConstant.TRUE)) {
+      if (BooleanConstant.TRUE.equals(formula)) {
         continue;
       }
 
@@ -128,21 +127,23 @@ public final class GObligations implements RecurringObligation {
       return null;
     }
 
+    liveness.sort(Comparator.comparing(EquivalenceClass::representative));
+    obligations.sort(Comparator.comparing(EquivalenceClass::representative));
+
     return new GObligations(Set.copyOf(gOperators), Set.copyOf(gOperatorsRewritten),
       liveness, obligations, safetyFactory);
   }
 
   @Override
   public boolean containsLanguageOf(RecurringObligation other) {
-    checkArgument(other instanceof GObligations);
-
-    return ((GObligations) other).gOperatorsRewritten.containsAll(gOperatorsRewritten)
-      || ((GObligations) other).getObligation().implies(getObligation());
+    GObligations that = (GObligations) other;
+    return that.gOperatorsRewritten.containsAll(gOperatorsRewritten);
   }
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safetyAutomaton.onlyInitialState().factory().of(Conjunction.of(gOperatorsRewritten));
+    EquivalenceClassFactory factory = safetyAutomaton.onlyInitialState().factory();
+    return factory.of(Conjunction.of(gOperatorsRewritten));
   }
 
   EquivalenceClass getObligation() {
@@ -165,24 +166,34 @@ public final class GObligations implements RecurringObligation {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+
+    if (!(o instanceof GObligations)) {
       return false;
     }
+
     GObligations that = (GObligations) o;
-    return Objects.equals(gOperators, that.gOperators);
+    return gOperators.equals(that.gOperators);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(gOperators);
+    return gOperators.hashCode();
   }
 
   @Override
   public String toString() {
-    return String.format("<%s%s%s>",
+    return String.format("<%s%s%s%s>",
       safetyAutomaton.onlyInitialState().isTrue()
         ? "" : "S=" + safetyAutomaton.onlyInitialState() + ' ',
       liveness.isEmpty() ? "" : "L=" + liveness + ' ',
-      obligations.isEmpty() ? "" : "O=" + obligations);
+      obligations.isEmpty() ? "" : "O=" + obligations,
+      gOperators);
+  }
+
+  @Override
+  public int compareTo(RecurringObligation o) {
+    GObligations that = (GObligations) o;
+    return Conjunction.of(gOperators)
+      .compareTo(Conjunction.of(that.gOperators));
   }
 }

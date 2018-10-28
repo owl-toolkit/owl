@@ -77,6 +77,7 @@ public final class LTL2DPACliParser implements TransformerParser {
     if (commandLine.hasOption("complement")) {
       configuration.add(COMPLEMENT_CONSTRUCTION);
     }
+
     if (commandLine.hasOption("complete")) {
       configuration.add(COMPLETE);
     }

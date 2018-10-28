@@ -63,20 +63,22 @@ public final class DegeneralizedBreakpointFreeState {
       liveness == null || liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ')');
   }
 
-  @SuppressWarnings("NonFinalFieldReferenceInEquals")
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-    if (o == null || !getClass().equals(o.getClass())) {
+
+    if (!(o instanceof DegeneralizedBreakpointFreeState)) {
       return false;
     }
 
-    DegeneralizedBreakpointFreeState other = (DegeneralizedBreakpointFreeState) o;
-    return other.hashCode == hashCode
-      && index == other.index && Objects.equals(safety, other.safety)
-      && Objects.equals(liveness, other.liveness) && Objects.equals(obligations, other.obligations);
+    DegeneralizedBreakpointFreeState that = (DegeneralizedBreakpointFreeState) o;
+    return that.hashCode == hashCode
+      && index == that.index
+      && Objects.equals(safety, that.safety)
+      && Objects.equals(liveness, that.liveness)
+      && Objects.equals(obligations, that.obligations);
   }
 
   @Override
