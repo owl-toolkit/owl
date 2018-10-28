@@ -21,6 +21,7 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,7 +30,22 @@ import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.Visitor;
 
-public abstract class Formula {
+public abstract class Formula implements Comparable<Formula> {
+
+  private static final List<Class<? extends Formula>> ORDER = List.of(
+    BooleanConstant.class,
+    Literal.class,
+    Conjunction.class,
+    Disjunction.class,
+    Biconditional.class,
+    FOperator.class,
+    FrequencyG.class,
+    GOperator.class,
+    XOperator.class,
+    MOperator.class,
+    ROperator.class,
+    UOperator.class,
+    WOperator.class);
 
   private final int hashCode;
 
@@ -117,6 +133,23 @@ public abstract class Formula {
   public abstract Set<Formula> children();
 
   @Override
+  public final int compareTo(Formula o) {
+    int heightComparison = Integer.compare(height(), o.height());
+
+    if (heightComparison != 0) {
+      return heightComparison;
+    }
+
+    int classComparison = Integer.compare(classIndex(this), classIndex(o));
+
+    if (classComparison != 0) {
+      return classComparison;
+    }
+
+    return compareToImpl(o);
+  }
+
+  @Override
   public final boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -127,12 +160,22 @@ public abstract class Formula {
     }
 
     Formula other = (Formula) o;
-    return other.hashCode == hashCode && deepEquals(other);
+    return other.hashCode == hashCode && equalsImpl(other);
   }
 
   @Override
   public final int hashCode() {
     return hashCode;
+  }
+
+  public final int height() {
+    int height = 0;
+
+    for (Formula child : children()) {
+      height = Math.max(height, child.height());
+    }
+
+    return height + 1;
   }
 
   // Temporal Properties of an LTL Formula
@@ -233,7 +276,15 @@ public abstract class Formula {
    */
   public abstract Formula unfoldTemporalStep(BitSet valuation);
 
-  protected abstract boolean deepEquals(Formula other);
+  protected abstract int compareToImpl(Formula o);
+
+  protected abstract boolean equalsImpl(Formula o);
+
+  private static int classIndex(Formula formula) {
+    int index = ORDER.indexOf(formula.getClass());
+    assert index >= 0;
+    return index;
+  }
 
   public abstract static class ModalOperator extends TemporalOperator {
     ModalOperator(int hashCode) {

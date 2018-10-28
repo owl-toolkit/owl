@@ -56,9 +56,17 @@ public abstract class BinaryModalOperator extends Formula.ModalOperator {
   }
 
   @Override
-  protected final boolean deepEquals(Formula o) {
+  protected final int compareToImpl(Formula o) {
     assert this.getClass() == o.getClass();
     BinaryModalOperator that = (BinaryModalOperator) o;
-    return Objects.equals(left, that.left) && Objects.equals(right, that.right);
+    int comparison = left.compareTo(that.left);
+    return comparison == 0 ? right.compareTo(that.right) : comparison;
+  }
+
+  @Override
+  protected final boolean equalsImpl(Formula o) {
+    assert this.getClass() == o.getClass();
+    BinaryModalOperator that = (BinaryModalOperator) o;
+    return left.equals(that.left) && right.equals(that.right);
   }
 }

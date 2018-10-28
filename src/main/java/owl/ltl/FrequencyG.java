@@ -48,9 +48,9 @@ public final class FrequencyG extends GOperator {
   }
 
   @Override
-  protected boolean deepEquals(Formula other) {
-    assert this.getClass() == other.getClass();
-    FrequencyG that = (FrequencyG) other;
+  protected boolean equalsImpl(Formula o) {
+    assert this.getClass() == o.getClass();
+    FrequencyG that = (FrequencyG) o;
     return Objects.equals(operand, that.operand)
       && Math.abs(this.bound - that.bound) < EPSILON
       && this.cmp == that.cmp && this.limes == that.limes;
