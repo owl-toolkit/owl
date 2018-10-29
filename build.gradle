@@ -41,7 +41,7 @@ plugins {
 
     // https://github.com/johnrengelman/shadow
     // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-    id 'com.github.johnrengelman.shadow' version '4.0.1'
+    id 'com.github.johnrengelman.shadow' version '4.0.2'
 }
 
 // Dependency Verification

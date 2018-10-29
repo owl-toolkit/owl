@@ -26,8 +26,7 @@ Build:
   script:
     - java -version
     - ./gradlew -b plugins.gradle
-    # FIXME: Replace by `minimizedDistZip` after UOE in shadow is addressed.
-    - ./gradlew check distZip
+    - ./gradlew check minimizedDistZip
     - unzip -d build/unzipped build/distributions/*.zip
     - scripts/check_binaries.sh build/unzipped/owl-*/bin
   artifacts:
