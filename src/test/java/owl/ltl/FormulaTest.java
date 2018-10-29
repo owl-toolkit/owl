@@ -24,10 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,8 +40,8 @@ import owl.ltl.parser.LtlParser;
 public class FormulaTest {
 
   private static final List<Formula> FORMULAS = List.of(
-    LtlParser.syntax("true"),
     LtlParser.syntax("false"),
+    LtlParser.syntax("true"),
     LtlParser.syntax("a"),
 
     LtlParser.syntax("! a"),
@@ -52,19 +55,19 @@ public class FormulaTest {
     LtlParser.syntax("G a"),
     LtlParser.syntax("X a"),
 
-    LtlParser.syntax("a U b"),
-    LtlParser.syntax("a R b"),
-    LtlParser.syntax("a W b"),
     LtlParser.syntax("a M b"),
+    LtlParser.syntax("a R b"),
+    LtlParser.syntax("a U b"),
+    LtlParser.syntax("a W b"),
 
-    LtlParser.syntax("F ((a W b) & c)"),
+    LtlParser.syntax("(a <-> b) xor (c <-> d)"),
+
     LtlParser.syntax("F ((a R b) & c)"),
+    LtlParser.syntax("F ((a W b) & c)"),
     LtlParser.syntax("G ((a M b) | c)"),
     LtlParser.syntax("G ((a U b) | c)"),
-
     LtlParser.syntax("G (X (a <-> b))"),
-    LtlParser.syntax("G (X (a xor b))"),
-    LtlParser.syntax("(a <-> b) xor (c <-> d)"));
+    LtlParser.syntax("G (X (a xor b))"));
 
 
   private static final BitSet ONE = new BitSet();
@@ -83,6 +86,11 @@ public class FormulaTest {
 
   public static List<Formula> formulaProvider() {
     return FORMULAS;
+  }
+
+  public static Stream<Arguments> formulaPairProvider() {
+    return Lists.cartesianProduct(FORMULAS, FORMULAS)
+      .stream().map(x -> Arguments.of(x.get(0), x.get(1)));
   }
 
   private static Stream<Arguments> temporalStepCartesianProductProvider() {
@@ -104,6 +112,26 @@ public class FormulaTest {
     for (Formula x : formula.subformulas(Formula.TemporalOperator.class)) {
       assertTrue(formula.anyMatch(x::equals));
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("formulaPairProvider")
+  void compareToEquals(Formula formula1, Formula formula2) {
+    if (formula1.equals(formula2)) {
+      assertEquals(0, formula1.compareTo(formula2));
+      assertEquals(0, formula2.compareTo(formula1));
+    } else {
+      int comparison = formula1.compareTo(formula2);
+      assertNotEquals(0, comparison);
+      assertEquals(-comparison, formula2.compareTo(formula1));
+    }
+  }
+
+  @Test
+  void compareToSort() {
+    Formula[] formulas = FORMULAS.toArray(Formula[]::new);
+    Arrays.sort(formulas, Comparator.reverseOrder());
+    assertEquals(Lists.reverse(FORMULAS), Arrays.asList(formulas));
   }
 
   @ParameterizedTest

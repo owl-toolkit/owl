@@ -32,14 +32,14 @@ public final class BooleanConstant extends Formula.LogicalOperator {
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
 
-  @CEntryPoint
-  public static BooleanConstant of(boolean value) {
-    return value ? TRUE : FALSE;
-  }
-
   private BooleanConstant(boolean value) {
     super(Boolean.hashCode(value));
     this.value = value;
+  }
+
+  @CEntryPoint
+  public static BooleanConstant of(boolean value) {
+    return value ? TRUE : FALSE;
   }
 
   @Override
@@ -93,12 +93,16 @@ public final class BooleanConstant extends Formula.LogicalOperator {
     return value ? "true" : "false";
   }
 
-  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   @Override
-  protected boolean deepEquals(Formula other) {
-    assert other instanceof BooleanConstant;
-    assert other == FALSE || other == TRUE;
-    assert this != other;
+  protected int compareToImpl(Formula o) {
+    BooleanConstant that = (BooleanConstant) o;
+    return Boolean.compare(value, that.value);
+  }
+
+  @Override
+  protected boolean equalsImpl(Formula o) {
+    assert o instanceof BooleanConstant;
+    assert this.value != ((BooleanConstant) o).value;
     return false;
   }
 }

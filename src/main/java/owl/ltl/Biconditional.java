@@ -134,9 +134,15 @@ public final class Biconditional extends Formula.LogicalOperator {
   }
 
   @Override
-  protected boolean deepEquals(Formula other) {
-    assert this.getClass() == other.getClass();
-    Biconditional that = (Biconditional) other;
-    return Objects.equals(left, that.left) && Objects.equals(right, that.right);
+  protected int compareToImpl(Formula o) {
+    Biconditional that = (Biconditional) o;
+    int comparison = left.compareTo(that.left);
+    return comparison == 0 ? right.compareTo(that.right) : comparison;
+  }
+
+  @Override
+  protected boolean equalsImpl(Formula o) {
+    Biconditional that = (Biconditional) o;
+    return left.equals(that.left) && right.equals(that.right);
   }
 }

@@ -30,7 +30,7 @@ import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
 public final class Literal extends Formula.TemporalOperator {
-  private static final int CACHE_SIZE = 256;
+  private static final int CACHE_SIZE = 128;
   private static final Literal[] cache = new Literal[CACHE_SIZE];
   private final int index;
   private final Literal negation;
@@ -134,8 +134,17 @@ public final class Literal extends Formula.TemporalOperator {
   }
 
   @Override
-  protected boolean deepEquals(Formula o) {
-    Literal literal = (Literal) o;
-    return index == literal.index;
+  protected int compareToImpl(Formula o) {
+    Literal that = (Literal) o;
+    int comparison = Integer.compare(getAtom(), that.getAtom());
+    return comparison == 0
+      ? Boolean.compare(isNegated(), that.isNegated())
+      : comparison;
+  }
+
+  @Override
+  protected boolean equalsImpl(Formula o) {
+    Literal that = (Literal) o;
+    return index == that.index;
   }
 }

@@ -43,9 +43,16 @@ public abstract class UnaryModalOperator extends Formula.ModalOperator {
   }
 
   @Override
-  protected boolean deepEquals(Formula o) {
+  protected int compareToImpl(Formula o) {
     assert this.getClass() == o.getClass();
     UnaryModalOperator that = (UnaryModalOperator) o;
-    return Objects.equals(operand, that.operand);
+    return operand.compareTo(that.operand);
+  }
+
+  @Override
+  protected boolean equalsImpl(Formula o) {
+    assert this.getClass() == o.getClass();
+    UnaryModalOperator that = (UnaryModalOperator) o;
+    return operand.equals(that.operand);
   }
 }

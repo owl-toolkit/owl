@@ -19,6 +19,7 @@
 
 package owl.ltl;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -80,9 +81,28 @@ public abstract class PropositionalFormula extends Formula.LogicalOperator {
   }
 
   @Override
-  protected final boolean deepEquals(Formula other) {
-    assert this.getClass().equals(other.getClass());
-    PropositionalFormula that = (PropositionalFormula) other;
+  protected final int compareToImpl(Formula o) {
+    assert this.getClass().equals(o.getClass());
+    PropositionalFormula that = (PropositionalFormula) o;
+    int sizeComparison = Integer.compare(children.size(), that.children.size());
+
+    if (sizeComparison != 0) {
+      return sizeComparison;
+    }
+
+    Formula[] thisChildren = children.toArray(Formula[]::new);
+    Arrays.sort(thisChildren);
+
+    Formula[] thatChildren = that.children.toArray(Formula[]::new);
+    Arrays.sort(thatChildren);
+
+    return Arrays.compare(thisChildren, thatChildren);
+  }
+
+  @Override
+  protected final boolean equalsImpl(Formula o) {
+    assert this.getClass().equals(o.getClass());
+    PropositionalFormula that = (PropositionalFormula) o;
     return Objects.equals(children, that.children);
   }
 
