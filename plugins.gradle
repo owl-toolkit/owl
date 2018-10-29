@@ -46,12 +46,12 @@ repositories {
 dependencies {
     implementation 'net.ltgt.gradle:gradle-apt-plugin:0.18'
     implementation 'net.ltgt.gradle:gradle-errorprone-plugin:0.6'
-    implementation 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
+    implementation 'com.github.jengelman.gradle.plugins:shadow:4.0.2'
 }
 
 dependencyVerification {
     verify = [
-        'com.github.jengelman.gradle.plugins:shadow:4.0.1:shadow-4.0.1.jar:ebdd198bceecfeedb9894a4e9e44efe560c00e6573419057171c21a72192f8bf',
+        'com.github.jengelman.gradle.plugins:shadow:4.0.2:shadow-4.0.2.jar:4967d962a93ab297207cd61619d5000e4b1f0c1f26c9e559add5213db0263773',
         'commons-io:commons-io:2.6:commons-io-2.6.jar:f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
         'net.ltgt.gradle:gradle-apt-plugin:0.18:gradle-apt-plugin-0.18.jar:d3a350a115bba6bdaa8230ce80ece6cef32c347ffd1b76c5514003f504424d0f',
         'net.ltgt.gradle:gradle-errorprone-plugin:0.6:gradle-errorprone-plugin-0.6.jar:ef38e95e575d5fbc84d8b3dd2d6a44bd750d833cdfc18335cc3a633b83e15c6e',
@@ -61,10 +61,10 @@ dependencyVerification {
         'org.apache.logging.log4j:log4j-core:2.11.0:log4j-core-2.11.0.jar:c32029b32da3d8cf2feca0790a4bc2331ea7eb62ab368a8980b90c7d8c8101e0',
         'org.codehaus.plexus:plexus-utils:3.0.24:plexus-utils-3.0.24.jar:83ee748b12d06afb0ad4050a591132b3e8025fbb1990f1ed002e8b73293e69b4',
         'org.jdom:jdom2:2.0.6:jdom2-2.0.6.jar:1345f11ba606d15603d6740551a8c21947c0215640770ec67271fe78bea97cf5',
-        'org.ow2.asm:asm-analysis:6.2.1:asm-analysis-6.2.1.jar:4c9342c98e746e9c2d7f2cdc6896f7348317e9b1e5a6c591047fc8969def4b23',
-        'org.ow2.asm:asm-commons:6.2.1:asm-commons-6.2.1.jar:3f578d31ef30f94b6d1f44812f41fe4f98a7cd42af35335f5d4866ab3b901865',
-        'org.ow2.asm:asm-tree:6.2.1:asm-tree-6.2.1.jar:a520b54c7be4e07e533db8420ddf936fe8341ff56a5df255bab584478dd90aab',
-        'org.ow2.asm:asm:6.2.1:asm-6.2.1.jar:1460db6c33cc99c84e5cb30e46b017e4d1cc9a7fbc174101d6f84829bb64c085',
-        'org.vafer:jdependency:1.3:jdependency-1.3.jar:0d1135554f69868f927d46ae415e419ea15595925c556e55a21b8ef9b7c9f2b1',
+        'org.ow2.asm:asm-analysis:7.0-beta:asm-analysis-7.0-beta.jar:4d2b20a1fb44acb33b0ddb80be58b2ad7838c1fb520282a655a1217b3c6acf19',
+        'org.ow2.asm:asm-commons:7.0-beta:asm-commons-7.0-beta.jar:3d8ec2534b883541b966e6dde9004967d34f7311789028afc92e2e066867dac4',
+        'org.ow2.asm:asm-tree:7.0-beta:asm-tree-7.0-beta.jar:a2ec5b55ceb359c324ad48b15e912e33c75889237413976d1505fe32ecde82f2',
+        'org.ow2.asm:asm:7.0-beta:asm-7.0-beta.jar:ba84438f0f08ae2c2f85423dc3628361d20197c46a194687defdf63ed1896a3a',
+        'org.vafer:jdependency:2.1.1:jdependency-2.1.1.jar:642d23a86217850721d9fa80671683d8308fd03114f0da7af553d43b82013a09',
     ]
 }
