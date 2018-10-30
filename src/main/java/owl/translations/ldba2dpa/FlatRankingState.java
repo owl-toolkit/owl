@@ -31,16 +31,16 @@ public abstract class FlatRankingState<S, T> implements AnnotatedState<S> {
   @Override
   public abstract S state();
 
-  abstract List<T> ranking();
+  public abstract List<T> ranking();
 
-  abstract int safetyProgress();
+  public abstract int safetyProgress();
 
 
   public static <S, T> FlatRankingState<S, T> of(S state) {
     return of(state, List.of(), -1);
   }
 
-  static <S, T> FlatRankingState<S, T> of(S state, List<T> ranking, int safetyProgress) {
+  public static <S, T> FlatRankingState<S, T> of(S state, List<T> ranking, int safetyProgress) {
     assert Collections3.isDistinct(ranking);
     return FlatRankingStateTuple.create(state, ranking, safetyProgress);
   }
