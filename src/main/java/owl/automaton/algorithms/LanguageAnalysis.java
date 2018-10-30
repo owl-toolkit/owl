@@ -41,13 +41,11 @@ public final class LanguageAnalysis {
    *     The first automaton, whose language is tested for inclusion of the second language
    * @param automaton2
    *     The second automaton
-   * @param <S>
-   *     The type of the state.
    *
    * @return true if L_1 is contained in L_2.
    */
-  public static <S> boolean contains(Automaton<S, BuchiAcceptance> automaton1,
-    Automaton<S, BuchiAcceptance> automaton2) {
+  public static boolean contains(Automaton<?, BuchiAcceptance> automaton1,
+    Automaton<?, BuchiAcceptance> automaton2) {
     Preconditions.checkArgument(automaton1.is(Property.DETERMINISTIC),
       "First argument needs to be deterministic.");
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
