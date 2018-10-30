@@ -21,7 +21,7 @@ package owl.translations.ltl2ldba;
 
 import owl.ltl.EquivalenceClass;
 
-public interface RecurringObligation {
+public interface RecurringObligation extends Comparable<RecurringObligation> {
   boolean containsLanguageOf(RecurringObligation obligation);
 
   EquivalenceClass getLanguage();

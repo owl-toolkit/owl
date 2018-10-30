@@ -19,33 +19,21 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import owl.collections.Collections3;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
@@ -53,13 +41,12 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
-import owl.ltl.XOperator;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
-import owl.ltl.visitors.Visitor;
+import owl.ltl.visitors.Converter;
 import owl.translations.ltl2ldba.AbstractJumpManager;
 import owl.translations.ltl2ldba.Jump;
 import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
@@ -136,54 +123,15 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     return GOperator.of(formula.operand.accept(visitor));
   }
 
-  private static Formula replaceFOperators(FGObligations obligations, Formula formula) {
-    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligations.fOperators,
-      obligations.gOperators);
-    return formula.accept(visitor);
-  }
-
   static Formula replaceGOperators(Set<GOperator> trueGOperators,
     Set<FOperator> trueFOperators, Formula formula) {
     ReplaceGOperatorsVisitor visitor = new ReplaceGOperatorsVisitor(trueGOperators, trueFOperators);
     return formula.accept(visitor);
   }
 
-  static Multimap<Set<FOperator>, Set<GOperator>> selectReducedMonitors(EquivalenceClass state) {
-    SetMultimap<Set<FOperator>, Set<GOperator>> multimap = MultimapBuilder
-      .hashKeys()
-      .hashSetValues()
-      .build();
-
-    Formula formula = Objects.requireNonNull(state.representative());
-    boolean delayJump = false;
-
-    for (Set<UnaryModalOperator> obligations : formula.accept(TopLevelSelectVisitor.INSTANCE)) {
-      Set<FOperator> fOperators = obligations.stream()
-        .filter(FOperator.class::isInstance)
-        .map(FOperator.class::cast)
-        .collect(Collectors.toSet());
-
-      Set<GOperator> gOperators = obligations.stream()
-        .filter(GOperator.class::isInstance)
-        .map(GOperator.class::cast)
-        .collect(Collectors.toSet());
-
-      delayJump |= fOperators.removeIf(x -> x.operand instanceof GOperator);
-      gOperators.removeIf(x -> x.operand instanceof FOperator);
-
-      multimap.put(fOperators, gOperators);
-    }
-
-    if (delayJump) {
-      multimap.put(Set.of(), Set.of());
-    }
-
-    return multimap;
-  }
-
   @Override
   protected Set<Jump<FGObligations>> computeJumps(EquivalenceClass state) {
-    Set<Jump<FGObligations>> fgObligations = new HashSet<>();
+    Set<Jump<FGObligations>> fgObligations = new TreeSet<>();
 
     createDisjunctionStream(state, FGObligationsJumpManager::createFGSetStream).forEach(entry -> {
       Set<FOperator> fOperators = Set.copyOf(entry.getKey());
@@ -218,252 +166,21 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
   private EquivalenceClass evaluate(EquivalenceClass clazz, FGObligations obligation) {
     // TODO: use substitute
     Formula formula = clazz.representative();
-    Formula fFreeFormula = replaceFOperators(obligation, formula);
+    ReplaceFOperatorsVisitor visitor = new ReplaceFOperatorsVisitor(obligation.fOperators,
+      obligation.gOperators);
+    Formula fFreeFormula = visitor.apply(formula);
     Formula evaluated = SimplifierFactory.apply(fFreeFormula, Mode.SYNTACTIC);
     Logger.getGlobal().log(Level.FINER, () -> "Rewrote " + clazz + " into " + evaluated
       + " using " + obligation);
     return factories.eqFactory.of(evaluated);
   }
 
-  abstract static class AbstractReplaceOperatorsVisitor implements Visitor<Formula> {
-    @Override
-    public Formula visit(BooleanConstant booleanConstant) {
-      return booleanConstant;
-    }
-
-    @Override
-    public Formula visit(Conjunction conjunction) {
-      return Conjunction.of(conjunction.map(x -> x.accept(this)));
-    }
-
-    @Override
-    public Formula visit(Disjunction disjunction) {
-      return Disjunction.of(disjunction.map(x -> x.accept(this)));
-    }
-
-    @Override
-    public Formula visit(Literal literal) {
-      return literal;
-    }
-
-    @Override
-    public Formula visit(XOperator xOperator) {
-      return XOperator.of(xOperator.operand.accept(this));
-    }
-  }
-
-  @VisibleForTesting
-  abstract static class AbstractSelectVisitor implements Visitor<List<Set<UnaryModalOperator>>> {
-    protected static <T> List<Set<T>> and(List<Set<T>> conjunct1, List<Set<T>> conjunct2) {
-      return and(List.of(conjunct1, conjunct2));
-    }
-
-    private static <T> List<Set<T>> and(Collection<List<Set<T>>> conjuncts) {
-      List<Set<T>> intersection = new ArrayList<>();
-
-      for (List<Set<T>> sets : Lists.cartesianProduct(List.copyOf(conjuncts))) {
-        Set<T> union = ConcurrentHashMap.newKeySet(sets.size());
-        sets.parallelStream().forEach(union::addAll);
-        Collections3.addDistinct(intersection, union);
-      }
-
-      return intersection;
-    }
-
-    protected static <T> List<Set<T>> or(Collection<List<Set<T>>> disjuncts,
-      boolean upwardClosure) {
-      List<Set<T>> union = new ArrayList<>();
-
-      if (!upwardClosure) {
-        disjuncts.forEach(x -> Collections3.addAllDistinct(union, x));
-        return union;
-      }
-
-      for (List<Set<T>> sets : Lists.cartesianProduct(List.copyOf(disjuncts))) {
-        for (Set<T> activeSet : sets) {
-          Set<T> otherSetsUnion = sets.stream()
-            .filter(x -> activeSet != x)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toUnmodifiableSet());
-
-          for (Set<T> x : Sets.powerSet(otherSetsUnion)) {
-            Set<T> upwardClosedSet = Sets.newHashSet(Iterables.concat(activeSet, x));
-            Collections3.addDistinct(union, upwardClosedSet);
-          }
-        }
-      }
-
-      return union;
-    }
-
-    protected static <T> List<Set<T>> or(List<Set<T>> disjunct1, List<Set<T>> disjunct2) {
-      return or(List.of(disjunct1, disjunct2), true);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value ? List.of(new HashSet<>()) : List.of();
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(Literal literal) {
-      return List.of(new HashSet<>());
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(XOperator xOperator) {
-      return xOperator.operand.accept(this);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(Conjunction conjunction) {
-      return and(Collections2.transform(conjunction.children, x -> x.accept(this)));
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(Disjunction disjunction) {
-      return or(Collections2.transform(disjunction.children, x -> x.accept(this)), true);
-    }
-  }
-
-  @VisibleForTesting
-  static class FScopedSelectVisitor extends AbstractSelectVisitor {
-
-    static final FScopedSelectVisitor INSTANCE = new FScopedSelectVisitor();
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {
-      return fOperator.operand.accept(this);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(GOperator gOperator) {
-      List<Set<UnaryModalOperator>> sets = gOperator.operand.accept(GScopedSelectVisitor.INSTANCE);
-      sets.forEach(x -> x.add(gOperator));
-      return sets;
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(MOperator mOperator) {
-      return visitM(mOperator.left, mOperator.right);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(ROperator rOperator) {
-      // Assume G(right)
-      List<Set<UnaryModalOperator>> gSet = rOperator.right.accept(GScopedSelectVisitor.INSTANCE);
-
-      // Create G for R
-      GOperator gOperator = new GOperator(rOperator.right);
-      gSet.forEach(x -> x.add(gOperator));
-
-      // Fallback to M
-      return or(gSet, visitM(rOperator.left, rOperator.right));
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(UOperator uOperator) {
-      return visitU(uOperator.left, uOperator.right);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(WOperator wOperator) {
-      // Assume G(left)
-      List<Set<UnaryModalOperator>> gSet = wOperator.left.accept(GScopedSelectVisitor.INSTANCE);
-
-      // Create G for W
-      GOperator gOperator = new GOperator(wOperator.left);
-      gSet.forEach(x -> x.add(gOperator));
-
-      // Fallback to U
-      return or(gSet, visitU(wOperator.left, wOperator.right));
-    }
-
-    private List<Set<UnaryModalOperator>> visitM(Formula left, Formula right) {
-      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
-      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
-      return and(leftSets, rightSets);
-    }
-
-    private List<Set<UnaryModalOperator>> visitU(Formula left, Formula right) {
-      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
-      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
-      return or(and(leftSets, rightSets), rightSets);
-    }
-  }
-
-  @VisibleForTesting
-  static class GScopedSelectVisitor extends AbstractSelectVisitor {
-
-    static final GScopedSelectVisitor INSTANCE = new GScopedSelectVisitor();
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {
-      List<Set<UnaryModalOperator>> sets = fOperator.operand.accept(FScopedSelectVisitor.INSTANCE);
-      sets.forEach(x -> x.add(fOperator));
-      return sets;
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(GOperator gOperator) {
-      return gOperator.operand.accept(this);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(MOperator mOperator) {
-      List<Set<UnaryModalOperator>> left = mOperator.left.accept(FScopedSelectVisitor.INSTANCE);
-      List<Set<UnaryModalOperator>> right = mOperator.right.accept(this);
-
-      // Create F from M.
-      FOperator fOperator = new FOperator(mOperator.left);
-      left.forEach(x -> x.add(fOperator));
-
-      // Both sides need to hold for M.
-      return and(left, right);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(ROperator rOperator) {
-      return visitR(rOperator.left, rOperator.right);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(UOperator uOperator) {
-      List<Set<UnaryModalOperator>> left = uOperator.left.accept(this);
-      List<Set<UnaryModalOperator>> right = uOperator.right.accept(FScopedSelectVisitor.INSTANCE);
-
-      // Create F from U.
-      FOperator fOperator = new FOperator(uOperator.right);
-      right.forEach(x -> x.add(fOperator));
-
-      // Assume left does not hold or both sides hold;
-      // TODO: extend left with empty list?
-      return or(right, and(left, right));
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(WOperator wOperator) {
-      return visitW(wOperator.left, wOperator.right);
-    }
-
-    private List<Set<UnaryModalOperator>> visitR(Formula left, Formula right) {
-      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
-      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
-      return or(rightSets, and(leftSets, rightSets));
-    }
-
-    private List<Set<UnaryModalOperator>> visitW(Formula left, Formula right) {
-      List<Set<UnaryModalOperator>> leftSets = left.accept(this);
-      List<Set<UnaryModalOperator>> rightSets = right.accept(this);
-      return or(leftSets, and(leftSets, rightSets));
-    }
-  }
-
-  static class ReplaceFOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
+  static class ReplaceFOperatorsVisitor extends Converter {
     private final Set<FOperator> foperators;
     private final Set<GOperator> goperators;
 
     ReplaceFOperatorsVisitor(Set<FOperator> foperators, Set<GOperator> goperators) {
+      super(SyntacticFragment.NNF.classes());
       this.foperators = Set.copyOf(foperators);
       this.goperators = Set.copyOf(Sets.newHashSet(Iterables.concat(goperators,
         Collections2.transform(foperators, GOperator::new))));
@@ -517,11 +234,12 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
     }
   }
 
-  static class ReplaceGOperatorsVisitor extends AbstractReplaceOperatorsVisitor {
+  static class ReplaceGOperatorsVisitor extends Converter {
     private final Set<FOperator> foperators;
     private final Set<GOperator> goperators;
 
     ReplaceGOperatorsVisitor(Set<GOperator> goperators, Set<FOperator> foperators) {
+      super(SyntacticFragment.NNF.classes());
       this.goperators = Set.copyOf(goperators);
       this.foperators = Set.copyOf(foperators);
     }
@@ -577,47 +295,6 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       }
 
       return UOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
-    }
-  }
-
-  @VisibleForTesting
-  static class TopLevelSelectVisitor extends AbstractSelectVisitor {
-
-    static final TopLevelSelectVisitor INSTANCE = new TopLevelSelectVisitor();
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(FOperator fOperator) {
-      return fOperator.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(GOperator gOperator) {
-      return gOperator.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(MOperator mOperator) {
-      return mOperator.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(ROperator rOperator) {
-      return rOperator.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(UOperator uOperator) {
-      return uOperator.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(WOperator wOperator) {
-      return wOperator.accept(FScopedSelectVisitor.INSTANCE);
-    }
-
-    @Override
-    public List<Set<UnaryModalOperator>> visit(Disjunction disjunction) {
-      return or(Collections2.transform(disjunction.children, x -> x.accept(this)), false);
     }
   }
 }

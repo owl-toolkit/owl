@@ -19,9 +19,13 @@
 
 package owl.translations.ltl2ldba;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -65,7 +69,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     Formula representative = state.representative();
 
     if (!(representative instanceof Disjunction)) {
-      return streamBuilder.apply(state.representative());
+      return streamBuilder.apply(representative);
     }
 
     Disjunction disjunction = (Disjunction) representative;
@@ -87,13 +91,34 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
       return result;
     }
 
-    Set<Jump<X>> jumps = computeJumps(state);
+    List<Jump<X>> jumps = new ArrayList<>(computeJumps(state));
+    jumps.sort(Comparator.reverseOrder());
 
     logger.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
 
     if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
-      jumps.removeIf(jump -> jumps.stream().anyMatch(
-        otherJump -> jump != otherJump && otherJump.containsLanguageOf(jump)));
+      boolean continueIteration = true;
+
+      while (continueIteration) {
+        continueIteration = false;
+        Iterator<Jump<X>> iterator = jumps.iterator();
+
+        while (iterator.hasNext()) {
+          Jump<X> jump = iterator.next();
+
+          for (Jump<X> otherJump : jumps) {
+            if (jump.equals(otherJump)) {
+              continue;
+            }
+
+            if (otherJump.containsLanguageOf(jump)) {
+              iterator.remove();
+              continueIteration = true;
+              break;
+            }
+          }
+        }
+      }
     }
 
     logger.log(Level.FINE, () ->
@@ -101,7 +126,7 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     if (configuration.contains(Configuration.FORCE_JUMPS)) {
       for (Jump<X> jump : jumps) {
-        EquivalenceClass jumpLanguage = jump.getLanguage();
+        EquivalenceClass jumpLanguage = jump.language();
 
         if (configuration.contains(Configuration.EAGER_UNFOLD)) {
           jumpLanguage = jumpLanguage.unfold();

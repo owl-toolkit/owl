@@ -24,17 +24,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.ltl.EquivalenceClass;
 
-public class Jump<U extends RecurringObligation> {
+public final class Jump<U extends RecurringObligation>
+  implements Comparable<Jump<U>> {
   private static final Logger logger = Logger.getLogger(Jump.class.getName());
 
   final U obligations;
   final EquivalenceClass remainder;
-  private final EquivalenceClass language;
 
   Jump(EquivalenceClass remainder, U obligations) {
     this.remainder = remainder;
     this.obligations = obligations;
-    this.language = remainder.and(obligations.getLanguage());
+  }
+
+  @Override
+  public int compareTo(Jump<U> o) {
+    int comparison = obligations.compareTo(o.obligations);
+
+    if (comparison != 0) {
+      return comparison;
+    }
+
+    return remainder.representative().compareTo(o.remainder.representative());
   }
 
   boolean containsLanguageOf(Jump<U> jump) {
@@ -54,17 +64,17 @@ public class Jump<U extends RecurringObligation> {
       return true;
     }
 
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof Jump)) {
       return false;
     }
 
-    Jump<?> jump = (Jump<?>) o;
-    return Objects.equals(remainder, jump.remainder)
-      && Objects.equals(obligations, jump.obligations);
+    Jump<?> that = (Jump<?>) o;
+    return remainder.equals(that.remainder)
+      && obligations.equals(that.obligations);
   }
 
-  EquivalenceClass getLanguage() {
-    return language;
+  EquivalenceClass language() {
+    return remainder.and(obligations.getLanguage());
   }
 
   @Override
@@ -74,7 +84,6 @@ public class Jump<U extends RecurringObligation> {
 
   @Override
   public String toString() {
-    return "Jump{" + "obligations=" + obligations + ", remainder=" + remainder + ", language="
-      + language + '}';
+    return "Jump{" + "obligations=" + obligations + ", remainder=" + remainder + '}';
   }
 }

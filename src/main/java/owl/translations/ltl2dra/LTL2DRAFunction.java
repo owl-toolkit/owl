@@ -38,6 +38,7 @@ import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
 import owl.translations.ldba2dra.MapRankingAutomaton;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
@@ -99,7 +100,8 @@ public class LTL2DRAFunction
       (EquivalenceClass x) ->
         SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
       true,
-      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
+      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE),
+      RecurringObligation::compareTo);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -115,7 +117,8 @@ public class LTL2DRAFunction
       (EquivalenceClass x) ->
         SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
       true,
-      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
+      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE),
+      RecurringObligation::compareTo);
   }
 
   public enum Configuration {

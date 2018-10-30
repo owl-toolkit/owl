@@ -86,8 +86,7 @@ public final class DegeneralizedBreakpointState {
   }
 
   public GObligations getObligations() {
-    assert obligations != null;
-    return obligations;
+    return Objects.requireNonNull(obligations);
   }
 
   @Override

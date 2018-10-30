@@ -57,6 +57,7 @@ import owl.run.Environment;
 import owl.translations.ldba2dpa.FlatRankingAutomaton;
 import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
@@ -244,7 +245,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       new EquivalenceClassLanguageLattice(factory),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
       true,
-      configuration.contains(OPTIMISE_INITIAL_STATE));
+      configuration.contains(OPTIMISE_INITIAL_STATE),
+      RecurringObligation::compareTo);
 
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));
@@ -263,7 +265,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       new BooleanLattice(),
       x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
       true,
-      configuration.contains(OPTIMISE_INITIAL_STATE));
+      configuration.contains(OPTIMISE_INITIAL_STATE),
+      RecurringObligation::compareTo);
 
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));

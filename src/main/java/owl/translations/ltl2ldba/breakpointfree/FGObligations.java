@@ -19,10 +19,10 @@
 
 package owl.translations.ltl2ldba.breakpointfree;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -133,21 +134,17 @@ public final class FGObligations implements RecurringObligation {
         new DeterministicConstructions.GfCoSafety(factories, unfold, new GOperator(formula)));
     }
 
+    livenessFactories.sort(
+      Comparator.comparing(x -> x.onlyInitialState().representative()));
+
     return new FGObligations(fOperators, gOperators, safetyFactory, livenessFactories,
       builder);
   }
 
   @Override
-  public boolean containsLanguageOf(RecurringObligation other) {
-    checkArgument(other instanceof FGObligations);
-    return ((FGObligations) other).rewrittenOperators.containsAll(rewrittenOperators);
-
-    // TODO: Fix this? -> Might Depend on EquivalenceClassFactory Literal Encoding.
-    //EquivalenceClass thisObligation = getObligation();
-    //EquivalenceClass thatObligation = ((FGObligations) other).getObligation();
-    //boolean implies = thatObligation.implies(thisObligation);
-    //EquivalenceClassUtil.free(thisObligation, thatObligation);
-    //return implies;
+  public boolean containsLanguageOf(RecurringObligation o) {
+    FGObligations that = (FGObligations) o;
+    return that.rewrittenOperators.containsAll(rewrittenOperators);
   }
 
   @Override
@@ -156,19 +153,19 @@ public final class FGObligations implements RecurringObligation {
       return true;
     }
 
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof FGObligations)) {
       return false;
     }
 
     FGObligations that = (FGObligations) o;
-    return Objects.equals(fOperators, that.fOperators)
-      && Objects.equals(gOperators, that.gOperators);
+    return fOperators.equals(that.fOperators)
+      && gOperators.equals(that.gOperators);
   }
 
   @Override
   public EquivalenceClass getLanguage() {
-    return safetyAutomaton.onlyInitialState().factory()
-      .of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
+    EquivalenceClassFactory factory =  safetyAutomaton.onlyInitialState().factory();
+    return factory.of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
   }
 
   @Override
@@ -187,5 +184,12 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public String toString() {
     return "<" + fOperators + ", " + gOperators + '>';
+  }
+
+  @Override
+  public int compareTo(RecurringObligation o) {
+    FGObligations that = (FGObligations) o;
+    return Conjunction.of(Sets.union(fOperators, gOperators))
+      .compareTo(Conjunction.of(Sets.union(that.fOperators, that.gOperators)));
   }
 }

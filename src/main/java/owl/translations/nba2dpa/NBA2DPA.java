@@ -72,6 +72,11 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
 
     assert ldba.initialStates().size() == 1;
     SetLanguageLattice oracle = new SetLanguageLattice(ldba.acceptingComponent());
-    return FlatRankingAutomaton.of(ldba, oracle, x -> false, false, true);
+    return FlatRankingAutomaton.of(ldba, oracle, x -> false, false, true,
+      (x, y) -> {
+        assert x == null;
+        assert y == null;
+        return 0;
+      });
   }
 }

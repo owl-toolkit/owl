@@ -19,8 +19,9 @@
 
 package owl.ltl.visitors;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
@@ -78,14 +79,18 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Conjunction conjunction) {
-    return '(' + String.join(" & ", () -> conjunction.map(
-      (Function<Formula, CharSequence>) this::visitParenthesized).iterator()) + ')';
+    return '(' + String.join(" & ", conjunction.children.stream()
+      .sorted(Comparator.naturalOrder())
+      .map(this::visitParenthesized)
+      .collect(Collectors.toList())) + ')';
   }
 
   @Override
   public String visit(Disjunction disjunction) {
-    return '(' + String.join(" | ", () -> disjunction.map(
-      (Function<Formula, CharSequence>) this::visitParenthesized).iterator()) + ')';
+    return '(' + String.join(" | ", disjunction.children.stream()
+      .sorted(Comparator.naturalOrder())
+      .map(this::visitParenthesized)
+      .collect(Collectors.toList())) + ')';
   }
 
   @Override

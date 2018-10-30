@@ -96,40 +96,46 @@ class TranslationAutomatonSummaryTest {
 
     TRANSLATORS = List.of(
       new Translator("safety", LTL2DAFunction::safety),
+      new Translator("safety.nondeterministic", LTL2NAFunction::safety),
+
       new Translator("coSafety", LTL2DAFunction::coSafety),
+      new Translator("coSafety.nondeterministic", LTL2NAFunction::coSafety),
+
       new Translator("fgSafety", LTL2DAFunction::fgSafety),
+      new Translator("fgSafety.nondeterministic", LTL2NAFunction::fgSafety),
+
       new Translator("gfCoSafety", LTL2DAFunction::gfCoSafety),
+      new Translator("gfCoSafety.nondeterministic", LTL2NAFunction::gfCoSafety),
+
       new Translator("fSafety", LTL2DAFunction::fSafety),
       new Translator("gCoSafety", LTL2DAFunction::gCoSafety),
+
       new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
         EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI))),
-      new Translator("delag", environment -> new DelagBuilder(environment, false),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+      new Translator("ltl2na", environment -> new LTL2NAFunction(environment,
+        EnumSet.of(LTL2NAFunction.Constructions.SAFETY, LTL2NAFunction.Constructions.CO_SAFETY,
+          LTL2NAFunction.Constructions.BUCHI))),
+      
       new Translator("ldba.asymmetric", environment -> LTL2LDBAFunction
-        .createDegeneralizedBreakpointLDBABuilder(environment, ldbaAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+        .createDegeneralizedBreakpointLDBABuilder(environment, ldbaAll)),
       new Translator("ldba.symmetric", environment -> LTL2LDBAFunction
         .createDegeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll),
         EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
       new Translator("ldgba.asymmetric", environment -> LTL2LDBAFunction
-        .createGeneralizedBreakpointLDBABuilder(environment, ldbaAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+        .createGeneralizedBreakpointLDBABuilder(environment, ldbaAll)),
       new Translator("ldgba.symmetric", environment -> LTL2LDBAFunction
-        .createGeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+        .createGeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll)),
+
       new Translator("dpa.asymmetric", environment ->
         new LTL2DPAFunction(environment, dpaAsymmetricAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+        EnumSet.of(FormulaSet.BASE, FormulaSet.BEEM, FormulaSet.CHECK,
+          FormulaSet.REGRESSIONS, FormulaSet.SIZE)),
       new Translator("dpa.symmetric", environment ->
         new LTL2DPAFunction(environment, dpaSymmetricAll),
         EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
-      new Translator("safety.nondeterministic", LTL2NAFunction::safety),
-      new Translator("coSafety.nondeterministic", LTL2NAFunction::coSafety),
-      new Translator("gfCoSafety.nondeterministic", LTL2NAFunction::gfCoSafety),
-      new Translator("fgSafety.nondeterministic", LTL2NAFunction::fgSafety),
-      new Translator("ltl2na", environment -> new LTL2NAFunction(environment,
-        EnumSet.of(LTL2NAFunction.Constructions.SAFETY, LTL2NAFunction.Constructions.CO_SAFETY,
-          LTL2NAFunction.Constructions.BUCHI)))
+
+      new Translator("delag", environment -> new DelagBuilder(environment, false),
+        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE))
     );
   }
 
@@ -331,9 +337,9 @@ class TranslationAutomatonSummaryTest {
 
     void test(Object object) {
       if (object instanceof Automaton) {
-        test((Automaton) object);
+        test((Automaton<?, ?>) object);
       } else {
-        test((LimitDeterministicAutomaton) object);
+        test((LimitDeterministicAutomaton<?, ?, ?, ?>) object);
       }
     }
 
@@ -348,7 +354,8 @@ class TranslationAutomatonSummaryTest {
 
     void test(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
       assertEquals(size, automaton.size(), () -> String.format(
-        "Expected %d states, got %d", size, automaton.size()));
+        "Expected %d states, got %d\nAutomaton:\n %s",
+        size, automaton.size(), HoaPrinter.toString(automaton)));
       test(automaton.acceptingComponent().acceptance());
       assertFalse(deterministic);
       assertEquals(complete, automaton.initialComponent().is(Automaton.Property.COMPLETE)
