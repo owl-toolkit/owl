@@ -165,22 +165,22 @@ class LTL2DAFunctionTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = LTL2DAFunction.gfCoSafety(environment, labelledFormula);
+      var automaton = LTL2DAFunction.gfCoSafety(environment, labelledFormula, false);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, true);
-      assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
-      assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isTrue));
+      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
+      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isTrue()));
       assertThat(automaton.acceptance(), BuchiAcceptance.class::isInstance);
     }
 
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G a")));
+        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G a"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G ((F a) | (F b))")));
+        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G ((F a) | (F b))"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G (F (G a))")));
+        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G (F (G a))"), false));
     }
   }
 

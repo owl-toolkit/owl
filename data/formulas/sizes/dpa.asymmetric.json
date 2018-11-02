@@ -3702,7 +3702,7 @@
   {
     "formula": "((((F!b \u0026 X!a) | (Gb \u0026 Xa))) R ((Fc \u0026 Xb)))",
     "properties": {
-      "size": 35,
+      "size": 36,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 3,
       "complete": false,

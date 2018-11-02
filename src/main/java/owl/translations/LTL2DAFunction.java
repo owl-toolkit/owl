@@ -25,6 +25,7 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CO
 import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
@@ -32,14 +33,18 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
+import owl.translations.canonical.BreakpointState;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.GenericConstructions;
+import owl.translations.canonical.RoundRobinState;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.LTL2DRAFunction;
@@ -77,10 +82,6 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     }
   }
 
-  public enum Constructions {
-    SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, EMERSON_LEI, RABIN, PARITY;
-  }
-
   @Override
   public Automaton<?, ?> apply(LabelledFormula formula) {
     if (allowedConstructions.contains(Constructions.SAFETY)
@@ -98,9 +99,16 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return GenericConstructions.delay(apply(unwrappedFormula));
     }
 
-    if (allowedConstructions.contains(Constructions.BUCHI)) {
-      if (SyntacticFragments.isGfCoSafety(formula.formula())) {
-        return gfCoSafety(environment, formula);
+    if (allowedConstructions.contains(Constructions.BUCHI)
+      || allowedConstructions.contains(Constructions.GENERALIZED_BUCHI)) {
+
+      var formulas = formula.formula() instanceof Conjunction
+        ? formula.formula().children()
+        : Set.of(formula.formula());
+
+      if (formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
+        return gfCoSafety(environment, formula,
+          allowedConstructions.contains(Constructions.GENERALIZED_BUCHI));
       }
 
       if (SyntacticFragments.isGCoSafety(formula.formula())) {
@@ -133,24 +141,27 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     return new DeterministicConstructions.FgSafety(factories, true, formula.formula());
   }
 
-  static Automaton<EquivalenceClass, BuchiAcceptance> gfCoSafety(
-    Environment environment, LabelledFormula formula) {
+  static Automaton<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance>
+    gfCoSafety(Environment environment, LabelledFormula formula, boolean generalized) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
-    return new DeterministicConstructions.GfCoSafety(factories, true, formula.formula());
+    var formulas = formula.formula() instanceof Conjunction
+      ? formula.formula().children()
+      : Set.of(formula.formula());
+    return new DeterministicConstructions.GfCoSafety(factories, true, formulas, generalized);
   }
 
-  static Automaton<DeterministicConstructions.BreakpointState, BuchiAcceptance> gCoSafety(
+  static Automaton<BreakpointState<EquivalenceClass>, BuchiAcceptance> gCoSafety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), true);
+    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new DeterministicConstructions.GCoSafety(factories, true, formula.formula());
   }
 
-  static Automaton<DeterministicConstructions.BreakpointState, CoBuchiAcceptance> fSafety(
+  static Automaton<BreakpointState<EquivalenceClass>, CoBuchiAcceptance> fSafety(
     Environment environment, LabelledFormula formula) {
     var automaton = gCoSafety(environment, formula.not());
     var factory = automaton.onlyInitialState().current().factory();
     var complementAutomaton = Views.complement(automaton,
-      DeterministicConstructions.BreakpointState.of(factory.getFalse(), factory.getFalse()));
+      BreakpointState.of(factory.getFalse(), factory.getFalse()));
     return AutomatonUtil.cast(complementAutomaton, CoBuchiAcceptance.class);
   }
 
@@ -158,5 +169,9 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new DeterministicConstructions.Safety(factories, true, formula.formula());
+  }
+
+  public enum Constructions {
+    SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI, EMERSON_LEI, RABIN, PARITY
   }
 }

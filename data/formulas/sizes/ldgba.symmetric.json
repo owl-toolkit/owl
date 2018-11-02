@@ -3162,9 +3162,9 @@
   {
     "formula": "(GF(b \u0026 Xc) \u0026 GF(a \u0026 XXb))",
     "properties": {
-      "size": 8,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "size": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -3363,8 +3363,8 @@
     "formula": "(G!a \u0026 G((b) U (((!b) U ((!c | d))))))",
     "properties": {
       "size": 7,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -3402,9 +3402,9 @@
   {
     "formula": "G((a \u0026 X!a) | X(((!b \u0026 X(b \u0026 (((!b \u0026 X(a \u0026 b))) M (a))))) M (a)))",
     "properties": {
-      "size": 11,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "size": 13,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -3673,8 +3673,8 @@
     "formula": "(((Ga \u0026 (F!a | X!b))) U ((G!c | X!a)))",
     "properties": {
       "size": 17,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -3713,8 +3713,8 @@
     "formula": "((((F!b | X!a) \u0026 (Gb | Xa))) U ((G!c | X!b)))",
     "properties": {
       "size": 29,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -4603,8 +4603,8 @@
     "formula": "((FGa | FG(Fb | FXXc)) \u0026 (GFc | F(Gd \u0026 GX(b \u0026 Xa))))",
     "properties": {
       "size": 8,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -4922,9 +4922,9 @@
   {
     "formula": "G((a \u0026 X!a) | X((a) U ((a \u0026 !b \u0026 X(a \u0026 b \u0026 ((a) U ((a \u0026 !b \u0026 X(a \u0026 b)))))))))",
     "properties": {
-      "size": 11,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "size": 13,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -5303,8 +5303,8 @@
     "formula": "((Ga) U ((b \u0026 GFb)))",
     "properties": {
       "size": 7,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -5363,8 +5363,8 @@
     "formula": "G(a | ((a) U (((a) U (b)))))",
     "properties": {
       "size": 4,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -5883,8 +5883,8 @@
     "formula": "((G(a | Fb)) U ((b \u0026 G(a | Fb))))",
     "properties": {
       "size": 9,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -5903,8 +5903,8 @@
     "formula": "((G(a | Fb) | (b \u0026 G(a | Fb))) \u0026 F(b \u0026 G(a | Fb)))",
     "properties": {
       "size": 9,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -6322,9 +6322,9 @@
   {
     "formula": "(GF(a \u0026 XF(b \u0026 XFc)) \u0026 GF(d \u0026 XF(e \u0026 XFf)) \u0026 GF(g \u0026 XF(h \u0026 XFi)))",
     "properties": {
-      "size": 27,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 3,
+      "size": 9,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -6512,9 +6512,9 @@
   {
     "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b) \u0026 GF(!a \u0026 XX!b))",
     "properties": {
-      "size": 4,
+      "size": 6,
       "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": false
     }
@@ -6532,9 +6532,9 @@
   {
     "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b) \u0026 GF(!a \u0026 XX!b) \u0026 GF(a \u0026 XXX!b))",
     "properties": {
-      "size": 10,
+      "size": 14,
       "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": false
     }
@@ -6763,8 +6763,8 @@
     "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd))",
     "properties": {
       "size": 4,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -6782,9 +6782,9 @@
   {
     "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd) \u0026 GF(e \u0026 Xf))",
     "properties": {
-      "size": 8,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 3,
+      "size": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -6822,9 +6822,9 @@
   {
     "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd))",
     "properties": {
-      "size": 16,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 2,
+      "size": 8,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }
@@ -6842,9 +6842,9 @@
   {
     "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd) \u0026 GF(e \u0026 XXf))",
     "properties": {
-      "size": 64,
-      "acceptanceName": "GeneralizedBuchiAcceptance",
-      "acceptanceSets": 3,
+      "size": 12,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": false
     }

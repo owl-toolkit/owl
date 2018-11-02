@@ -54,18 +54,22 @@ import owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
 public final class FGObligationsJumpManager extends AbstractJumpManager<FGObligations> {
 
   private final Table<Set<FOperator>, Set<GOperator>, FGObligations> cache;
+  private final boolean generalized;
 
   private FGObligationsJumpManager(Factories factories,
-    Set<Configuration> optimisations, Set<Formula.ModalOperator> modalOperators,
-    Formula initialFormula) {
+    Set<Configuration> optimisations,
+    Set<Formula.ModalOperator> modalOperators,
+    Formula initialFormula,
+    boolean generalized) {
     super(optimisations, factories, modalOperators, initialFormula);
     cache = HashBasedTable.create();
+    this.generalized = generalized;
   }
 
   public static FGObligationsJumpManager build(Formula formula, Factories factories,
-    Set<Configuration> optimisations) {
+    Set<Configuration> optimisations, boolean generalized) {
     return new FGObligationsJumpManager(factories, optimisations,
-      factories.eqFactory.of(formula).modalOperators(), formula);
+      factories.eqFactory.of(formula).modalOperators(), formula, generalized);
   }
 
   private static Stream<Map.Entry<Set<FOperator>, Set<GOperator>>> createFGSetStream(
@@ -141,7 +145,7 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
 
       if (obligations == null) {
         obligations = FGObligations.build(fOperators, gOperators, factories,
-          configuration.contains(Configuration.EAGER_UNFOLD));
+          configuration.contains(Configuration.EAGER_UNFOLD), generalized);
 
         if (obligations != null) {
           cache.put(fOperators, gOperators, obligations);

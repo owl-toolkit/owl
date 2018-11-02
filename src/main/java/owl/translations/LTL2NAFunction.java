@@ -22,10 +22,13 @@ package owl.translations;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
@@ -34,6 +37,7 @@ import owl.ltl.XOperator;
 import owl.run.Environment;
 import owl.translations.canonical.GenericConstructions;
 import owl.translations.canonical.NonDeterministicConstructions;
+import owl.translations.canonical.RoundRobinState;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public final class LTL2NAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
@@ -72,9 +76,16 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
       return GenericConstructions.delay(apply(unwrappedFormula));
     }
 
-    if (allowedConstructions.contains(Constructions.BUCHI)) {
-      if (SyntacticFragments.isGfCoSafety(formula.formula())) {
-        return gfCoSafety(environment, formula);
+    if (allowedConstructions.contains(Constructions.BUCHI)
+      || allowedConstructions.contains(Constructions.GENERALIZED_BUCHI)) {
+
+      var formulas = formula.formula() instanceof Conjunction
+        ? formula.formula().children()
+        : Set.of(formula.formula());
+
+      if (formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
+        return gfCoSafety(environment, formula,
+          allowedConstructions.contains(Constructions.GENERALIZED_BUCHI));
       }
 
       if (SyntacticFragments.isFgSafety(formula.formula())) {
@@ -97,10 +108,13 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
     return new NonDeterministicConstructions.Safety(factories, formula.formula());
   }
 
-  static Automaton<Formula, BuchiAcceptance> gfCoSafety(
-    Environment environment, LabelledFormula formula) {
+  static Automaton<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> gfCoSafety(
+    Environment environment, LabelledFormula formula, boolean generalized) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
-    return new NonDeterministicConstructions.GfCoSafety(factories, formula.formula());
+    var formulas = formula.formula() instanceof Conjunction
+      ? formula.formula().children()
+      : Set.of(formula.formula());
+    return new NonDeterministicConstructions.GfCoSafety(factories, formulas, generalized);
   }
 
   static Automaton<Formula, BuchiAcceptance> fgSafety(
@@ -110,6 +124,6 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
   }
 
   public enum Constructions {
-    SAFETY, CO_SAFETY, BUCHI, PARITY;
+    SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, PARITY
   }
 }
