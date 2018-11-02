@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static owl.translations.LTL2DAFunction.Constructions.BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
+import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
@@ -104,17 +105,23 @@ class TranslationAutomatonSummaryTest {
       new Translator("fgSafety", LTL2DAFunction::fgSafety),
       new Translator("fgSafety.nondeterministic", LTL2NAFunction::fgSafety),
 
-      new Translator("gfCoSafety", LTL2DAFunction::gfCoSafety),
-      new Translator("gfCoSafety.nondeterministic", LTL2NAFunction::gfCoSafety),
+      new Translator("gfCoSafety",
+      x -> y -> LTL2DAFunction.gfCoSafety(x, y, false)),
+      new Translator("gfCoSafety.generalized",
+      x -> y -> LTL2DAFunction.gfCoSafety(x, y, true)),
+      new Translator("gfCoSafety.nondeterministic",
+      x -> y -> LTL2NAFunction.gfCoSafety(x, y, false)),
+      new Translator("gfCoSafety.nondeterministic.generalized",
+      x -> y -> LTL2NAFunction.gfCoSafety(x, y, true)),
 
       new Translator("fSafety", LTL2DAFunction::fSafety),
       new Translator("gCoSafety", LTL2DAFunction::gCoSafety),
 
       new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI))),
+        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI))),
       new Translator("ltl2na", environment -> new LTL2NAFunction(environment,
         EnumSet.of(LTL2NAFunction.Constructions.SAFETY, LTL2NAFunction.Constructions.CO_SAFETY,
-          LTL2NAFunction.Constructions.BUCHI))),
+          LTL2NAFunction.Constructions.BUCHI, LTL2NAFunction.Constructions.GENERALIZED_BUCHI))),
       
       new Translator("ldba.asymmetric", environment -> LTL2LDBAFunction
         .createDegeneralizedBreakpointLDBABuilder(environment, ldbaAll)),

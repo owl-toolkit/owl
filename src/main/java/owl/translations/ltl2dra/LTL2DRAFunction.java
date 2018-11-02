@@ -40,19 +40,18 @@ import owl.translations.ldba2dra.MapRankingAutomaton;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.SafetyDetector;
+import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
 import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
-import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
-import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 
 public class LTL2DRAFunction
   implements Function<LabelledFormula, Automaton<?, ? extends GeneralizedRabinAcceptance>> {
 
   private final EnumSet<Configuration> configuration;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
+    AcceptingComponentState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
+    AcceptingComponentState, GeneralizedBuchiAcceptance, FGObligations>>
     translatorGeneralizedBreakpointFree;
 
   public LTL2DRAFunction(Environment env, Set<Configuration> configuration) {

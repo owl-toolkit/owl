@@ -20,47 +20,46 @@
 package owl.translations.ltl2ldba.breakpointfree;
 
 import java.util.Objects;
-import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
+import owl.translations.canonical.RoundRobinState;
 import owl.util.StringUtil;
 
-public final class DegeneralizedBreakpointFreeState {
+public final class AcceptingComponentState {
 
-  @Nonnegative // Index of the current checked liveness (F) obligation.
-  final int index;
-
-  @Nullable
-  final EquivalenceClass liveness;
-  @Nullable
-  final FGObligations obligations;
   @Nullable
   final EquivalenceClass safety;
+  @Nullable
+  final RoundRobinState<EquivalenceClass> liveness;
+  @Nullable
+  final FGObligations obligations;
+
   private final int hashCode;
 
-  DegeneralizedBreakpointFreeState(@Nonnegative int index, @Nullable EquivalenceClass safety,
-    @Nullable EquivalenceClass liveness, @Nullable FGObligations obligations) {
-    assert 0 == index || (0 < index && index < obligations.gfCoSafetyAutomata.size());
-
-    this.index = index;
+  AcceptingComponentState(
+    @Nullable EquivalenceClass safety,
+    @Nullable RoundRobinState<EquivalenceClass> liveness,
+    @Nullable FGObligations obligations) {
     this.liveness = liveness;
     this.obligations = obligations;
     this.safety = safety;
-    this.hashCode = Objects.hash(liveness, obligations, safety, index);
+    this.hashCode = Objects.hash(liveness, obligations, safety);
   }
 
-  public static DegeneralizedBreakpointFreeState createSink() {
-    return new DegeneralizedBreakpointFreeState(0, null, null, null);
+  public static AcceptingComponentState createSink() {
+    return new AcceptingComponentState(null, null, null);
   }
 
+  @Nullable
   public FGObligations getObligations() {
     return obligations;
   }
 
   @Override
   public String toString() {
-    return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
-      liveness == null || liveness.isTrue() ? null : "FUM=" + liveness + " (" + index + ')');
+    return obligations + StringUtil.join(
+      safety == null || safety.isTrue() ? null : "GWR=" + safety,
+      liveness == null ? null : "FUM=" + liveness);
   }
 
   @Override
@@ -69,13 +68,12 @@ public final class DegeneralizedBreakpointFreeState {
       return true;
     }
 
-    if (!(o instanceof DegeneralizedBreakpointFreeState)) {
+    if (!(o instanceof AcceptingComponentState)) {
       return false;
     }
 
-    DegeneralizedBreakpointFreeState that = (DegeneralizedBreakpointFreeState) o;
+    AcceptingComponentState that = (AcceptingComponentState) o;
     return that.hashCode == hashCode
-      && index == that.index
       && Objects.equals(safety, that.safety)
       && Objects.equals(liveness, that.liveness)
       && Objects.equals(obligations, that.obligations);

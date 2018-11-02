@@ -62,8 +62,8 @@ import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
 import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
+import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
 import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
-import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 import owl.util.DaemonThreadFactory;
 
@@ -82,7 +82,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
     DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
   private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
+    AcceptingComponentState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
 
   public LTL2DPAFunction(Environment env, Set<Configuration> configuration) {
     this.configuration = EnumSet.copyOf(configuration);
@@ -257,7 +257,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (ldba.isDeterministic()) {
       return new Result<>(Views.viewAs(ldba.acceptingComponent(), ParityAcceptance.class),
-        DegeneralizedBreakpointFreeState.createSink(), configuration.contains(COMPRESS_COLOURS));
+        AcceptingComponentState.createSink(), configuration.contains(COMPRESS_COLOURS));
     }
 
     var factory = ldba.initialComponent().onlyInitialState().factory();

@@ -21,10 +21,7 @@ package owl.translations.ltl2ldba.breakpointfree;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -51,23 +48,24 @@ public final class FGObligations implements RecurringObligation {
   final Set<GOperator> gOperators;
   final Set<UnaryModalOperator> rewrittenOperators;
   final DeterministicConstructions.Safety safetyAutomaton;
-  final List<DeterministicConstructions.GfCoSafety> gfCoSafetyAutomata;
+  @Nullable
+  final DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
 
   private FGObligations(Set<FOperator> fOperators, Set<GOperator> gOperators,
     DeterministicConstructions.Safety safetyAutomaton,
-    List<DeterministicConstructions.GfCoSafety> gfCoSafetyAutomata,
+    @Nullable DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
     Set<UnaryModalOperator> rewrittenOperators) {
     this.gOperators = Set.copyOf(gOperators);
     this.fOperators = Set.copyOf(fOperators);
     this.rewrittenOperators = Set.copyOf(rewrittenOperators);
     this.safetyAutomaton = safetyAutomaton;
-    this.gfCoSafetyAutomata = List.copyOf(gfCoSafetyAutomata);
+    this.gfCoSafetyAutomaton = gfCoSafetyAutomaton;
   }
 
   @Nullable
   @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
-    Factories factories, boolean unfold) {
+    Factories factories, boolean unfold, boolean generalized) {
 
     Set<FOperator> fOperators = Set.copyOf(fOperators1);
     Set<GOperator> gOperators = Set.copyOf(gOperators1);
@@ -99,8 +97,7 @@ public final class FGObligations implements RecurringObligation {
       return null;
     }
 
-    var livenessFactories = new ArrayList<DeterministicConstructions.GfCoSafety>(
-      fOperators.size());
+    Set<GOperator> liveness = new HashSet<>();
 
     for (FOperator fOperator : fOperators) {
       Formula formula = FGObligationsJumpManager
@@ -130,15 +127,16 @@ public final class FGObligations implements RecurringObligation {
       }
 
       builder.add((FOperator) formula);
-      livenessFactories.add(
-        new DeterministicConstructions.GfCoSafety(factories, unfold, new GOperator(formula)));
+      liveness.add(new GOperator(formula));
     }
 
-    livenessFactories.sort(
-      Comparator.comparing(x -> x.onlyInitialState().representative()));
+    if (!liveness.isEmpty()) {
+      var livenessFactory
+       = new DeterministicConstructions.GfCoSafety(factories, unfold, liveness, generalized);
+      return new FGObligations(fOperators, gOperators, safetyFactory, livenessFactory, builder);
+    }
 
-    return new FGObligations(fOperators, gOperators, safetyFactory, livenessFactories,
-      builder);
+    return new FGObligations(fOperators, gOperators, safetyFactory, null, builder);
   }
 
   @Override
@@ -164,7 +162,7 @@ public final class FGObligations implements RecurringObligation {
 
   @Override
   public EquivalenceClass getLanguage() {
-    EquivalenceClassFactory factory =  safetyAutomaton.onlyInitialState().factory();
+    EquivalenceClassFactory factory = safetyAutomaton.onlyInitialState().factory();
     return factory.of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
   }
 
@@ -178,7 +176,7 @@ public final class FGObligations implements RecurringObligation {
   }
 
   boolean isPureSafety() {
-    return gfCoSafetyAutomata.isEmpty();
+    return gfCoSafetyAutomaton == null;
   }
 
   @Override

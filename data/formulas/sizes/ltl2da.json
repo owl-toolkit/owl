@@ -876,7 +876,14 @@
     "formula": "(GF!a | GF!b)"
   },
   {
-    "formula": "(GFa \u0026 GFb)"
+    "formula": "(GFa \u0026 GFb)",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG!a | FG!b)"
@@ -897,7 +904,14 @@
     "formula": "(FGa | FGb)"
   },
   {
-    "formula": "(GF!a \u0026 GF!b)"
+    "formula": "(GF!a \u0026 GF!b)",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(GFa | GFb)"
@@ -2222,7 +2236,14 @@
     "formula": "((GF!a \u0026 FG(!b | XX!a)) | GF(!c \u0026 X(!b | X!a)))"
   },
   {
-    "formula": "(GF(b \u0026 Xc) \u0026 GF(a \u0026 XXb))"
+    "formula": "(GF(b \u0026 Xc) \u0026 GF(a \u0026 XXb))",
+    "properties": {
+      "size": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(!b | X!c) | FG(!a | XX!b))"
@@ -2354,7 +2375,14 @@
     }
   },
   {
-    "formula": "(GFa \u0026 GF!b \u0026 GF(c \u0026 X!d))"
+    "formula": "(GFa \u0026 GF!b \u0026 GF(c \u0026 X!d))",
+    "properties": {
+      "size": 2,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG!a | FGb | FG(!c | Xd))"
@@ -2776,7 +2804,14 @@
     "formula": "((FGa | GFb) \u0026 (FG!b | GF!a))"
   },
   {
-    "formula": "(GFa \u0026 GF!a)"
+    "formula": "(GFa \u0026 GF!a)",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FGa | FG!a)"
@@ -2848,7 +2883,14 @@
     "formula": "((FG!b \u0026 FG!c \u0026 GF!a) | (FG!c \u0026 (GF!a | GF!b | GF!d)))"
   },
   {
-    "formula": "(GF!a \u0026 GFb \u0026 GF(c \u0026 !d))"
+    "formula": "(GF!a \u0026 GFb \u0026 GF(c \u0026 !d))",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FGa | FG!b | FG(!c | d))"
@@ -3619,7 +3661,14 @@
     "formula": "(FG(a | b) | FG(c | d) | FG(e | f))"
   },
   {
-    "formula": "(GF(!a \u0026 !b) \u0026 GF(!c \u0026 !d) \u0026 GF(!e \u0026 !f))"
+    "formula": "(GF(!a \u0026 !b) \u0026 GF(!c \u0026 !d) \u0026 GF(!e \u0026 !f))",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(a | (b \u0026 XFb)) \u0026 FG(c | (d \u0026 XFd)) \u0026 FG(e | (f \u0026 XFf)))"
@@ -3674,13 +3723,27 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 XF(b \u0026 XFc)) \u0026 GF(d \u0026 XF(e \u0026 XFf)) \u0026 GF(g \u0026 XF(h \u0026 XFi)))"
+    "formula": "(GF(a \u0026 XF(b \u0026 XFc)) \u0026 GF(d \u0026 XF(e \u0026 XFf)) \u0026 GF(g \u0026 XF(h \u0026 XFi)))",
+    "properties": {
+      "size": 9,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(!a | XG(!b | XG!c)) | FG(!d | XG(!e | XG!f)) | FG(!g | XG(!h | XG!i)))"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe \u0026 GFf \u0026 GFg \u0026 GFh \u0026 GFi)"
+    "formula": "(GFa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe \u0026 GFf \u0026 GFg \u0026 GFh \u0026 GFi)",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 9,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG!a | FG!b | FG!c | FG!d | FG!e | FG!f | FG!g | FG!h | FG!i)"
@@ -3781,31 +3844,66 @@
     "formula": "(FG(a | b) | FG(!a | Xb))"
   },
   {
-    "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b))"
+    "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b))",
+    "properties": {
+      "size": 2,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(a | b) | FG(!a | Xb) | FG(a | XXb))"
   },
   {
-    "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b) \u0026 GF(!a \u0026 XX!b))"
+    "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b) \u0026 GF(!a \u0026 XX!b))",
+    "properties": {
+      "size": 6,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb))"
   },
   {
-    "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b) \u0026 GF(!a \u0026 XX!b) \u0026 GF(a \u0026 XXX!b))"
+    "formula": "(GF(!a \u0026 !b) \u0026 GF(a \u0026 X!b) \u0026 GF(!a \u0026 XX!b) \u0026 GF(a \u0026 XXX!b))",
+    "properties": {
+      "size": 14,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FGa | FGb | FGc)"
   },
   {
-    "formula": "(GF!a \u0026 GF!b \u0026 GF!c)"
+    "formula": "(GF!a \u0026 GF!b \u0026 GF!c)",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FGa | FGb | FGc | FGd)"
   },
   {
-    "formula": "(GF!a \u0026 GF!b \u0026 GF!c \u0026 GF!d)"
+    "formula": "(GF!a \u0026 GF!b \u0026 GF!c \u0026 GF!d)",
+    "properties": {
+      "size": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 4,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(Gb | FGa)"
@@ -3946,13 +4044,27 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd))"
+    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd))",
+    "properties": {
+      "size": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(!a | X!b) | FG(!c | X!d))"
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd) \u0026 GF(e \u0026 Xf))"
+    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd) \u0026 GF(e \u0026 Xf))",
+    "properties": {
+      "size": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(!a | X!b) | FG(!c | X!d) | FG(!e | X!f))"
@@ -3978,13 +4090,27 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd))"
+    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd))",
+    "properties": {
+      "size": 8,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(!a | XX!b) | FG(!c | XX!d))"
   },
   {
-    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd) \u0026 GF(e \u0026 XXf))"
+    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd) \u0026 GF(e \u0026 XXf))",
+    "properties": {
+      "size": 12,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "(FG(!a | XX!b) | FG(!c | XX!d) | FG(!e | XX!f))"

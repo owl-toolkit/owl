@@ -46,11 +46,10 @@ import owl.translations.ltl2ldba.breakpoint.GObligations;
 import owl.translations.ltl2ldba.breakpoint.GObligationsJumpManager;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedAcceptingComponentBuilder;
 import owl.translations.ltl2ldba.breakpoint.GeneralizedBreakpointState;
-import owl.translations.ltl2ldba.breakpointfree.DegeneralizedAcceptingComponentBuilder;
-import owl.translations.ltl2ldba.breakpointfree.DegeneralizedBreakpointFreeState;
+import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentBuilder;
+import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 import owl.translations.ltl2ldba.breakpointfree.FGObligationsJumpManager;
-import owl.translations.ltl2ldba.breakpointfree.GeneralizedBreakpointFreeState;
 
 public final class
 LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObligation>
@@ -75,14 +74,14 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointFreeState, BuchiAcceptance, FGObligations>>
+    AcceptingComponentState, BuchiAcceptance, FGObligations>>
   createDegeneralizedBreakpointFreeLDBABuilder(Environment env,
     Set<Configuration> configuration) {
     Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
-      (x, y) -> FGObligationsJumpManager.build(x, y, configuration2),
-      x -> new DegeneralizedAcceptingComponentBuilder(x, configuration2),
-      configuration2, DegeneralizedBreakpointFreeState::getObligations);
+      (x, y) -> FGObligationsJumpManager.build(x, y, configuration2, false),
+      x -> new AcceptingComponentBuilder.Buchi(x, configuration2),
+      configuration2, AcceptingComponentState::getObligations);
   }
   // CSON: Indentation
 
@@ -100,15 +99,14 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
 
   // CSOFF: Indentation
   public static Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    GeneralizedBreakpointFreeState, GeneralizedBuchiAcceptance, FGObligations>>
+    AcceptingComponentState, GeneralizedBuchiAcceptance, FGObligations>>
   createGeneralizedBreakpointFreeLDBABuilder(Environment env, Set<Configuration> configuration) {
     Set<Configuration> configuration2 = Set.copyOf(configuration);
     return new LTL2LDBAFunction<>(env,
-      (x, y) -> FGObligationsJumpManager.build(x, y, configuration2),
-      x -> new owl.translations.ltl2ldba.breakpointfree.GeneralizedAcceptingComponentBuilder(x,
-        configuration2),
+      (x, y) -> FGObligationsJumpManager.build(x, y, configuration2, true),
+      x -> new AcceptingComponentBuilder.GeneralizedBuchi(x, configuration2),
       configuration2,
-      GeneralizedBreakpointFreeState::getObligations);
+      AcceptingComponentState::getObligations);
   }
   // CSON: Indentation
 

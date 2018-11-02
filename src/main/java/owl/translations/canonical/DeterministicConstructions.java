@@ -22,18 +22,21 @@ package owl.translations.canonical;
 import static owl.collections.ValuationTree.cartesianProduct;
 
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.immutables.value.Value;
 import owl.automaton.AbstractCachedStatesAutomaton;
 import owl.automaton.EdgeTreeAutomatonMixin;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -46,8 +49,7 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
-import owl.ltl.UnaryModalOperator;
-import owl.util.annotation.Tuple;
+import owl.translations.canonical.Util.Pair;
 
 public final class DeterministicConstructions {
 
@@ -120,8 +122,8 @@ public final class DeterministicConstructions {
         : clazz.unfold().temporalStepTree(Set::of);
     }
 
-    ValuationTree<Edge<EquivalenceClass>> successorTreeInternal(EquivalenceClass clazz,
-      Function<EquivalenceClass, Set<Edge<EquivalenceClass>>> edgeFunction) {
+    <T> ValuationTree<T> successorTreeInternal(EquivalenceClass clazz,
+      Function<EquivalenceClass, Set<T>> edgeFunction) {
       return eagerUnfold
         ? clazz.temporalStepTree(x -> edgeFunction.apply(x.unfold()))
         : clazz.unfold().temporalStepTree(edgeFunction);
@@ -207,11 +209,11 @@ public final class DeterministicConstructions {
     protected final EquivalenceClass initialState;
     protected final ValuationTree<EquivalenceClass> initialStateSuccessorTree;
 
-    private Looping(Factories factories, boolean eagerUnfold, Formula formula,
+    private Looping(Factories factories, boolean unfold, Formula formula,
       Predicate<Formula> isSupported) {
-      super(factories, eagerUnfold);
+      super(factories, unfold);
       Preconditions.checkArgument(isSupported.test(formula));
-      this.initialState = initialStateInternal(factory.of(unwrap(formula)));
+      this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
       this.initialStateSuccessorTree = super.successorTreeInternal(initialState);
     }
 
@@ -253,31 +255,6 @@ public final class DeterministicConstructions {
       EquivalenceClass initialStateSuccessor);
   }
 
-  public static final class GfCoSafety extends Looping<BuchiAcceptance> {
-    public GfCoSafety(Factories factories, boolean unfold, Formula formula) {
-      super(factories, unfold, formula, SyntacticFragments::isGfCoSafety);
-    }
-
-    @Override
-    public BuchiAcceptance acceptance() {
-      return BuchiAcceptance.INSTANCE;
-    }
-
-    @Override
-    protected Edge<EquivalenceClass> buildEdge(
-      EquivalenceClass successor, EquivalenceClass initialStateSuccessor) {
-      if (!successor.isTrue()) {
-        return Edge.of(successor);
-      }
-
-      if (!initialStateSuccessor.isTrue()) {
-        return Edge.of(initialStateSuccessor, 0);
-      }
-
-      return Edge.of(initialState, 0);
-    }
-  }
-
   public static final class FgSafety extends Looping<CoBuchiAcceptance> {
     public FgSafety(Factories factories, boolean unfold, Formula formula) {
       super(factories, unfold, formula, SyntacticFragments::isFgSafety);
@@ -303,19 +280,154 @@ public final class DeterministicConstructions {
     }
   }
 
-  public static final class GCoSafety extends Base<BreakpointState, BuchiAcceptance> {
+  public static class GfCoSafety
+    extends Base<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance> {
+
+    private final GeneralizedBuchiAcceptance acceptance;
+    private final RoundRobinState<EquivalenceClass> initialState;
+    private final ValuationTree<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>>
+      initialStatesSuccessorTree;
+
+    public GfCoSafety(Factories factories, boolean unfold, Set<? extends Formula> formulas,
+      boolean generalized) {
+      super(factories, unfold);
+      Preconditions.checkArgument(!formulas.isEmpty());
+
+      List<FOperator> automata = new ArrayList<>();
+      List<Formula> singletonAutomata = new ArrayList<>();
+
+      // Sort
+      for (Formula formula : formulas) {
+        Preconditions.checkArgument(SyntacticFragments.isGfCoSafety(formula));
+
+        Formula unwrapped = Util.unwrap(Util.unwrap(formula));
+
+        if (generalized && SyntacticFragment.SINGLE_STEP.contains(unwrapped)) {
+          singletonAutomata.add(unwrapped);
+        } else {
+          automata.add(new FOperator(unwrapped));
+        }
+      }
+
+      singletonAutomata.sort(Comparator.naturalOrder());
+
+      // Ensure that there is at least one automaton.
+      if (automata.isEmpty()) {
+        automata.add(new FOperator(singletonAutomata.remove(0)));
+      } else {
+        automata.sort(Comparator.naturalOrder());
+      }
+
+      // Iteratively build common edge-tree.
+      var initialStatesSuccessorTree
+        = ValuationTree.of(Set.of(List.<RoundRobinState<EquivalenceClass>>of()));
+
+      for (int i = 0; i < automata.size(); i++) {
+        int j = i;
+        var initialState = initialStateInternal(factory.of(automata.get(j)));
+        var initialStateSuccessorTree = super.successorTreeInternal(initialState,
+          x -> Set.of(RoundRobinState.of(j, eagerUnfold ? x.unfold() : x)));
+        initialStatesSuccessorTree = cartesianProduct(
+          initialStatesSuccessorTree,
+          initialStateSuccessorTree,
+          Collections3::append);
+      }
+
+      this.acceptance = GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1);
+      this.initialState = RoundRobinState.of(0, initialStateInternal(factory.of(automata.get(0))));
+      this.initialStatesSuccessorTree = cartesianProduct(
+        initialStatesSuccessorTree,
+        Util.singleStepTree(singletonAutomata),
+        (x, y) -> Pair.of(List.copyOf(x), y));
+    }
+
+    @Override
+    public GeneralizedBuchiAcceptance acceptance() {
+      return acceptance;
+    }
+
+    @Override
+    public final RoundRobinState<EquivalenceClass> onlyInitialState() {
+      // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
+      // performing a single step.
+      return edge(initialState, new BitSet()).successor();
+    }
+
+    private Edge<RoundRobinState<EquivalenceClass>> buildEdge(int index, EquivalenceClass successor,
+      Pair<List<RoundRobinState<EquivalenceClass>>, BitSet> initialStateSuccessors) {
+
+      if (!successor.isTrue()) {
+        return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.b());
+      }
+
+      // Look at automata after the index.
+      int size = initialStateSuccessors.a().size();
+      var latterSuccessors = initialStateSuccessors.a().subList(index + 1, size);
+      for (RoundRobinState<EquivalenceClass> initialStateSuccessor : latterSuccessors) {
+        if (!initialStateSuccessor.state().isTrue()) {
+          return Edge.of(initialStateSuccessor, initialStateSuccessors.b());
+        }
+      }
+
+      // We finished all goals, thus we can mark the edge as accepting.
+      BitSet acceptance = (BitSet) initialStateSuccessors.b().clone();
+      acceptance.set(0);
+
+      // Look at automata before the index.
+      var earlierSuccessors = initialStateSuccessors.a().subList(0, index + 1);
+      for (RoundRobinState<EquivalenceClass> initialStateSuccessor : earlierSuccessors) {
+        if (!initialStateSuccessor.state().isTrue()) {
+          return Edge.of(initialStateSuccessor, acceptance);
+        }
+      }
+
+      // Everything was accepting. Just go to the initial state with index 0.
+      return Edge.of(initialState, acceptance);
+    }
+
+    @Nonnull
+    @Override
+    public final Edge<RoundRobinState<EquivalenceClass>> edge(
+      RoundRobinState<EquivalenceClass> state, BitSet valuation) {
+      var successor = super.successorInternal(state.state(), valuation);
+      var initialStateSuccessors = initialStatesSuccessorTree.get(valuation);
+      return buildEdge(state.index(), successor, initialStateSuccessors.iterator().next());
+    }
+
+    @Override
+    public final ValuationTree<Edge<RoundRobinState<EquivalenceClass>>> edgeTree(
+      RoundRobinState<EquivalenceClass> state) {
+      var successorTree = super.successorTreeInternal(state.state());
+      return cartesianProduct(successorTree, initialStatesSuccessorTree,
+        (x, y) -> buildEdge(state.index(), x, y));
+    }
+
+    @Override
+    public final boolean is(Property property) {
+      if (property == Property.COMPLETE) {
+        return true;
+      }
+
+      return super.is(property);
+    }
+  }
+
+
+  public static final class GCoSafety
+    extends Base<BreakpointState<EquivalenceClass>, BuchiAcceptance> {
+
     private final EquivalenceClass initialState;
 
     public GCoSafety(Factories factories, boolean unfold, Formula formula) {
       super(factories, unfold);
       Preconditions.checkArgument(SyntacticFragments.isGCoSafety(formula)
-        && !(unwrap(formula) instanceof FOperator)
-        && !(SyntacticFragment.FINITE.contains(unwrap(formula))));
-      this.initialState = initialStateInternal(factory.of(unwrap(formula)));
+        && !(Util.unwrap(formula) instanceof FOperator)
+        && !(SyntacticFragment.FINITE.contains(Util.unwrap(formula))));
+      this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
     }
 
     @Override
-    public BreakpointState onlyInitialState() {
+    public BreakpointState<EquivalenceClass> onlyInitialState() {
       return BreakpointState.of(initialState, factory.getTrue());
     }
 
@@ -325,7 +437,9 @@ public final class DeterministicConstructions {
     }
 
     @Nullable
-    private Edge<BreakpointState> buildEdge(EquivalenceClass current, EquivalenceClass next) {
+    private Edge<BreakpointState<EquivalenceClass>> buildEdge(
+      EquivalenceClass current, EquivalenceClass next) {
+
       if (current.isFalse() || next.isFalse()) {
         return null;
       }
@@ -366,33 +480,22 @@ public final class DeterministicConstructions {
 
     @Nullable
     @Override
-    public Edge<BreakpointState> edge(BreakpointState breakpointState, BitSet valuation) {
+    public Edge<BreakpointState<EquivalenceClass>> edge(
+      BreakpointState<EquivalenceClass> breakpointState, BitSet valuation) {
+
       var currentSuccessor = successorInternal(breakpointState.current(), valuation);
       var nextSuccessor = successorInternal(breakpointState.next(), valuation);
       return buildEdge(currentSuccessor, nextSuccessor);
     }
 
     @Override
-    public ValuationTree<Edge<BreakpointState>> edgeTree(BreakpointState breakpointState) {
+    public ValuationTree<Edge<BreakpointState<EquivalenceClass>>> edgeTree(
+      BreakpointState<EquivalenceClass> breakpointState) {
+
       var currentSuccessorTree = super.successorTreeInternal(breakpointState.current());
       var nextSuccessorTree = super.successorTreeInternal(breakpointState.next());
       return cartesianProduct(currentSuccessorTree, nextSuccessorTree, this::buildEdge);
     }
   }
 
-  @Value.Immutable
-  @Tuple
-  public abstract static class BreakpointState {
-    public abstract EquivalenceClass current();
-
-    public abstract EquivalenceClass next();
-
-    public static BreakpointState of(EquivalenceClass current, EquivalenceClass next) {
-      return BreakpointStateTuple.create(current, next);
-    }
-  }
-
-  private static Formula unwrap(Formula formula) {
-    return ((UnaryModalOperator) formula).operand;
-  }
 }
