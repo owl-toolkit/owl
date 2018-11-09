@@ -19,10 +19,18 @@
 
 package owl.translations.ltl2ldba;
 
-import owl.ltl.EquivalenceClass;
+import java.util.Set;
+import owl.ltl.Formula;
+import owl.ltl.LtlLanguageExpressible;
 
-public interface RecurringObligation extends Comparable<RecurringObligation> {
+public interface RecurringObligation
+  extends Comparable<RecurringObligation>, LtlLanguageExpressible {
+
   boolean containsLanguageOf(RecurringObligation obligation);
 
-  EquivalenceClass getLanguage();
+  boolean isSafety();
+
+  boolean isLiveness();
+
+  Set<? extends Formula.ModalOperator> modalOperators();
 }

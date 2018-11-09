@@ -160,7 +160,15 @@ public final class FGObligationsJumpManager extends AbstractJumpManager<FGObliga
       EquivalenceClass remainder = evaluate(state, obligations);
 
       if (!remainder.isFalse()) {
-        fgObligations.add(buildJump(remainder, obligations));
+        Jump<FGObligations> result;
+
+        if (configuration.contains(Configuration.EAGER_UNFOLD)) {
+          result = new Jump<>(remainder.unfold(), obligations);
+        } else {
+          result = new Jump<>(remainder, obligations);
+        }
+
+        fgObligations.add(result);
       }
     });
 

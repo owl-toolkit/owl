@@ -31,7 +31,7 @@ import owl.factories.EquivalenceClassFactory;
  * EquivalenceClass interface. The general contract of this interface is: If two implementing
  * objects were created from different factories, implies and equals have to return {@code false}.
  */
-public class EquivalenceClass {
+public class EquivalenceClass implements LtlLanguageExpressible {
   public static final EquivalenceClass[] EMPTY_ARRAY = new EquivalenceClass[0];
 
   private final EquivalenceClassFactory factory;
@@ -157,6 +157,11 @@ public class EquivalenceClass {
 
   public final double trueness() {
     return factory.trueness(this);
+  }
+
+  @Override
+  public EquivalenceClass language() {
+    return this;
   }
 
   @Override

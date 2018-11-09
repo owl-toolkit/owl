@@ -104,10 +104,10 @@ public final class SafetyAutomaton {
     BigInteger estimatedPermutations = BigInteger.ONE;
 
     long nonFinalG = promisedSets.stream().filter(l -> l.stream().anyMatch(g ->
-      g instanceof GOperator && !(g.operand.accept(FinalStateVisitor.INSTANCE)))).count();
+      g instanceof GOperator && !g.operand.accept(FinalStateVisitor.INSTANCE))).count();
     for (Set<UnaryModalOperator> list : promisedSets) {
       long count = list.stream().filter(f -> f instanceof FOperator
-        && !(f.operand.accept(FinalStateVisitor.INSTANCE))).count();
+        && !f.operand.accept(FinalStateVisitor.INSTANCE)).count();
       if (count > 1) {
         estimatedPermutations = estimatedPermutations.multiply(BigInteger.valueOf(count));
       }

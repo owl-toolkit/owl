@@ -38,10 +38,8 @@ import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
 import owl.translations.ldba2dra.MapRankingAutomaton;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
-import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
-import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
 public class LTL2DRAFunction
@@ -59,13 +57,7 @@ public class LTL2DRAFunction
 
     EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
       LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
-      LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS,
-      LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS);
-    // TODO: There is somewhere a heisenbug with that flag SUPPRESS_JUMPS.
-
-    if (configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
-      ldbaConfiguration.add(LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE);
-    }
+      LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS);
 
     translatorBreakpointFree =
       LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaConfiguration);
@@ -95,12 +87,9 @@ public class LTL2DRAFunction
     }
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
-      new BooleanLattice(),
       (EquivalenceClass x) ->
         SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
-      true,
-      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE),
-      RecurringObligation::compareTo);
+      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -112,12 +101,9 @@ public class LTL2DRAFunction
     }
 
     return MapRankingAutomaton.of((LimitDeterministicAutomaton) ldba,
-      new BooleanLattice(),
       (EquivalenceClass x) ->
         SafetyDetector.hasSafetyCore(x, configuration.contains(Configuration.EXISTS_SAFETY_CORE)),
-      true,
-      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE),
-      RecurringObligation::compareTo);
+      configuration.contains(Configuration.OPTIMISE_INITIAL_STATE));
   }
 
   public enum Configuration {

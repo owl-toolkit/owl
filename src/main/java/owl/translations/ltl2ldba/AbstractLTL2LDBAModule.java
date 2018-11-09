@@ -22,8 +22,6 @@ package owl.translations.ltl2ldba;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNFOLD;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -45,8 +43,8 @@ public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.Transfor
 
   public static Option simple() {
     return new Option("s", "simple", false,
-      "Use a simpler state-space construction. This disables special optimisations and redundancy "
-        + "removal.");
+      "Use a simpler state-space construction. This disables pruning of jumps and chooses "
+        + "a simpler equivalence relation to build the state space. ");
   }
 
   @Override
@@ -59,7 +57,7 @@ public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.Transfor
   static EnumSet<LTL2LDBAFunction.Configuration> configuration(CommandLine commandLine) {
     var configuration = commandLine.hasOption(simple().getOpt())
       ? EnumSet.noneOf(LTL2LDBAFunction.Configuration.class)
-      : EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
+      : EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS);
 
     if (commandLine.hasOption(EPSILON.getOpt())) {
       configuration.add(EPSILON_TRANSITIONS);

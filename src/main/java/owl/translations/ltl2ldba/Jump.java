@@ -31,7 +31,7 @@ public final class Jump<U extends RecurringObligation>
   final U obligations;
   final EquivalenceClass remainder;
 
-  Jump(EquivalenceClass remainder, U obligations) {
+  public Jump(EquivalenceClass remainder, U obligations) {
     this.remainder = remainder;
     this.obligations = obligations;
   }
@@ -74,7 +74,7 @@ public final class Jump<U extends RecurringObligation>
   }
 
   EquivalenceClass language() {
-    return remainder.and(obligations.getLanguage());
+    return remainder.and(obligations.language());
   }
 
   @Override

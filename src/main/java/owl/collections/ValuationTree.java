@@ -273,9 +273,9 @@ public abstract class ValuationTree<E> {
       var newMap = new HashMap<E, ValuationSet>();
 
       trueChild.memoizedInverse(factory, memoizedCalls).forEach(
-        ((key, set) -> newMap.merge(key, set.intersection(trueMask), ValuationSet::union)));
+        (key, set) -> newMap.merge(key, set.intersection(trueMask), ValuationSet::union));
       falseChild.memoizedInverse(factory, memoizedCalls).forEach(
-        ((key, set) -> newMap.merge(key, set.intersection(falseMask), ValuationSet::union)));
+        (key, set) -> newMap.merge(key, set.intersection(falseMask), ValuationSet::union));
 
       memoizedCalls.put(this, newMap);
       return newMap;

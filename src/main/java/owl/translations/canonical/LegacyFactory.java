@@ -36,11 +36,9 @@ import owl.ltl.EquivalenceClass;
 @Deprecated
 public final class LegacyFactory
   extends DeterministicConstructions.Base<EquivalenceClass, NoneAcceptance> {
-  private final boolean removeRedundantObligations;
 
   public LegacyFactory(Factories factories, Set<Configuration> configuration) {
     super(factories, configuration.contains(Configuration.EAGER_UNFOLD));
-    removeRedundantObligations = configuration.contains(Configuration.OPTIMISED_STATE_STRUCTURE);
   }
 
   @Override
@@ -60,15 +58,6 @@ public final class LegacyFactory
     return successorTreeInternal(state, x -> x.isFalse() ? Set.of() : Set.of(Edge.of(x)));
   }
 
-  private EquivalenceClass removeRedundantObligations(EquivalenceClass state,
-    EquivalenceClass environment) {
-    if (removeRedundantObligations && environment.implies(state)) {
-      return factory.getTrue();
-    }
-
-    return state;
-  }
-
   @Override
   public NoneAcceptance acceptance() {
     return NoneAcceptance.INSTANCE;
@@ -76,7 +65,8 @@ public final class LegacyFactory
 
   public EquivalenceClass successor(EquivalenceClass clazz, BitSet valuation,
     EquivalenceClass environment) {
-    return removeRedundantObligations(successorInternal(clazz, valuation), environment);
+    EquivalenceClass state = successorInternal(clazz, valuation);
+    return environment.implies(state) ? factory.getTrue() : state;
   }
 
   @Nullable
@@ -104,7 +94,8 @@ public final class LegacyFactory
 
   public EquivalenceClass initialStateInternal(EquivalenceClass clazz,
     EquivalenceClass environment) {
-    return removeRedundantObligations(initialStateInternal(clazz), environment);
+    EquivalenceClass state = initialStateInternal(clazz);
+    return environment.implies(state) ? factory.getTrue() : state;
   }
 
   public BitSet sensitiveAlphabet(EquivalenceClass clazz) {

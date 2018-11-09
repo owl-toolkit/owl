@@ -17,20 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ldba2dpa;
+package owl.ltl;
 
-public interface LanguageLattice<S, A, L> {
-  Language<L> getBottom();
-
-  Language<L> getLanguage(S state);
-
-  Language<L> getTop();
-
-  boolean isLivenessLanguage(A annotation);
-
-  boolean isSafetyAnnotation(A annotation);
-
-  boolean acceptsSafetyLanguage(S state);
-
-  boolean acceptsLivenessLanguage(S state);
+public interface LtlLanguageExpressible {
+  EquivalenceClass language();
 }

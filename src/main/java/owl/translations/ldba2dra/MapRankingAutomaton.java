@@ -22,70 +22,73 @@ package owl.translations.ldba2dra;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.BitSet;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
+import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
+import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.translations.ldba2dpa.AbstractBuilder;
-import owl.translations.ldba2dpa.LanguageLattice;
-import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
+import owl.automaton.util.AnnotatedState;
+import owl.ltl.EquivalenceClass;
+import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
+import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 
 public final class MapRankingAutomaton {
   private MapRankingAutomaton() {}
 
-  public static <S, T, A, L> Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> of(
-    LimitDeterministicAutomaton<S, T, GeneralizedBuchiAcceptance, A> ldba,
-    LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, boolean resetAfterSccSwitch,
-    boolean optimizeInitialState,
-    Comparator<A> sortingOrder) {
-    checkArgument(lattice instanceof BooleanLattice);
+  public static Automaton<MapRankingState<EquivalenceClass, FGObligations, AcceptingComponentState>,
+    ? extends GeneralizedRabinAcceptance> of(LimitDeterministicAutomaton<EquivalenceClass,
+    AcceptingComponentState, GeneralizedBuchiAcceptance, FGObligations> ldba,
+    Predicate<EquivalenceClass> isAcceptingState, boolean optimizeInitialState) {
     checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
     int acceptanceSets = ldba.acceptingComponent().acceptance().acceptanceSets();
     Class<? extends GeneralizedRabinAcceptance> acceptanceClass =
       acceptanceSets == 1 ? RabinAcceptance.class : GeneralizedRabinAcceptance.class;
-    Builder<S, T, A, L, ?, ?> builder =
-      new Builder<>(ldba, resetAfterSccSwitch, lattice, isAcceptingState, acceptanceClass,
-        sortingOrder);
-    Automaton<MapRankingState<S, A, T>, GeneralizedRabinAcceptance> automaton =
-      AutomatonFactory.create(ldba.acceptingComponent().factory(), builder.initialState,
-        builder.acceptance, builder::getSuccessor);
+    var builder = new Builder<>(ldba, isAcceptingState, acceptanceClass);
+    var automaton = AutomatonFactory.create(ldba.acceptingComponent().factory(),
+      builder.initialState, builder.acceptance, builder::getSuccessor);
 
-    return optimizeInitialState ? AbstractBuilder.optimizeInitialState(automaton) : automaton;
+    return optimizeInitialState ? optimizeInitialState(automaton) : automaton;
   }
 
-  static final class Builder<S, T, A, L, B extends GeneralizedBuchiAcceptance,
-    R extends GeneralizedRabinAcceptance>
-    extends AbstractBuilder<S, T, A, L, B> {
-    private static final Logger logger = Logger.getLogger(Builder.class.getName());
+  static final class Builder<B extends GeneralizedBuchiAcceptance,
+    R extends GeneralizedRabinAcceptance> {
 
     final R acceptance;
-    final Map<A, RabinPair> pairs;
+    final Map<FGObligations, RabinPair> pairs;
     final RabinPair truePair;
-    final MapRankingState<S, A, T> initialState;
+    final MapRankingState<EquivalenceClass, FGObligations, AcceptingComponentState> initialState;
+    @Nullable
+    private final List<Set<EquivalenceClass>> initialComponentSccs;
+    final Predicate<? super EquivalenceClass> isAcceptingState;
+    final
+    LimitDeterministicAutomaton<EquivalenceClass, AcceptingComponentState, B, FGObligations> ldba;
 
-    Builder(LimitDeterministicAutomaton<S, T, B, A> ldba, boolean resetAfterSccSwitch,
-      LanguageLattice<T, A, L> lattice, Predicate<S> isAcceptingState, Class<R> acceptanceClass,
-      Comparator<A> sortingOrder) {
-      super(ldba, lattice, isAcceptingState, resetAfterSccSwitch, sortingOrder);
-      logger.log(Level.FINER, "Safety Components: {0}", safetyComponents);
+    Builder(
+      LimitDeterministicAutomaton<EquivalenceClass, AcceptingComponentState, B, FGObligations> ldba,
+      Predicate<EquivalenceClass> isAcceptingState, Class<R> acceptanceClass) {
+      this.initialComponentSccs = SccDecomposition.computeSccs(ldba.initialComponent());
+      this.ldba = ldba;
+      this.isAcceptingState = isAcceptingState;
       pairs = new HashMap<>();
 
-      List<A> components = ldba.components().stream()
-        .sorted(sortingOrder)
+      List<FGObligations> components = ldba.components().stream()
+        .sorted(FGObligations::compareTo)
         .collect(Collectors.toList());
 
       if (acceptanceClass.equals(RabinAcceptance.class)) {
@@ -103,11 +106,12 @@ public final class MapRankingAutomaton {
         throw new AssertionError();
       }
 
-      S ldbaInitialState = ldba.initialComponent().onlyInitialState();
+      EquivalenceClass ldbaInitialState = ldba.initialComponent().onlyInitialState();
       initialState = buildEdge(ldbaInitialState, Map.of(), null).successor();
     }
 
-    Edge<MapRankingState<S, A, T>> buildEdge(S state, Map<A, T> previousRanking,
+    Edge<MapRankingState<EquivalenceClass, FGObligations, AcceptingComponentState>> buildEdge(
+      EquivalenceClass state, Map<FGObligations, AcceptingComponentState> previousRanking,
       @Nullable BitSet valuation) {
       if (isAcceptingState.test(state)) {
         if (truePair.hasInfSet()) {
@@ -117,7 +121,7 @@ public final class MapRankingAutomaton {
         return Edge.of(MapRankingState.of(state));
       }
 
-      Map<A, T> ranking = new HashMap<>();
+      Map<FGObligations, AcceptingComponentState> ranking = new HashMap<>();
       ldba.epsilonJumps(state).forEach(x -> ranking.put(ldba.annotation(x), x));
 
       BitSet acceptance = new BitSet();
@@ -125,7 +129,7 @@ public final class MapRankingAutomaton {
 
       previousRanking.forEach((annotation, x) -> {
         assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
-        Edge<T> edge = ldba.acceptingComponent().edge(x, valuation);
+        Edge<AcceptingComponentState> edge = ldba.acceptingComponent().edge(x, valuation);
         RabinPair pair = pairs.get(annotation);
 
         if (edge == null || !ranking.containsKey(annotation)) {
@@ -140,11 +144,13 @@ public final class MapRankingAutomaton {
     }
 
     @Nullable
-    Edge<MapRankingState<S, A, T>> getSuccessor(MapRankingState<S, A, T> state, BitSet valuation) {
-      S successor;
+    Edge<MapRankingState<EquivalenceClass, FGObligations, AcceptingComponentState>>
+     getSuccessor(MapRankingState<EquivalenceClass, FGObligations, AcceptingComponentState> state,
+      BitSet valuation) {
+      EquivalenceClass successor;
 
       { // We obtain the successor of the state in the initial component.
-        Edge<S> edge = ldba.initialComponent().edge(state.state(), valuation);
+        Edge<EquivalenceClass> edge = ldba.initialComponent().edge(state.state(), valuation);
 
         // The initial component moved to a rejecting sink. Thus all runs die.
         if (edge == null) {
@@ -161,5 +167,35 @@ public final class MapRankingAutomaton {
 
       return buildEdge(successor, state.componentMap(), valuation);
     }
+
+    boolean sccSwitchOccurred(EquivalenceClass state, EquivalenceClass successor) {
+      return initialComponentSccs != null && initialComponentSccs.stream()
+        .anyMatch(x -> x.contains(state) && !x.contains(successor));
+    }
+  }
+
+  static <S extends AnnotatedState<?>, A extends OmegaAcceptance> Automaton<S, A>
+  optimizeInitialState(Automaton<S, A> readOnly) {
+    var originalInitialState = readOnly.onlyInitialState().state();
+    MutableAutomaton<S, A> automaton = MutableAutomatonUtil.asMutable(readOnly);
+    int size = automaton.size();
+
+    for (Set<S> scc : SccDecomposition.computeSccs(automaton, false)) {
+      for (S state : scc) {
+        if (!originalInitialState.equals(state.state()) || !automaton.states().contains(state)) {
+          continue;
+        }
+
+        int newSize = Views.replaceInitialState(automaton, Set.of(state)).size();
+
+        if (newSize < size) {
+          size = newSize;
+          automaton.initialStates(Set.of(state));
+          automaton.trim();
+        }
+      }
+    }
+
+    return automaton;
   }
 }

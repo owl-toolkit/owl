@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -41,7 +40,6 @@ import owl.translations.ltl2ldba.RecurringObligation;
 public final class GObligations implements RecurringObligation {
 
   final Set<GOperator> gOperators;
-
   final Set<GOperator> gOperatorsRewritten;
 
   // G(liveness[]) is a liveness language.
@@ -98,16 +96,14 @@ public final class GObligations implements RecurringObligation {
 
       gOperatorsRewritten.add(new GOperator(formula));
 
-      if (optimisations.contains(Configuration.OPTIMISED_STATE_STRUCTURE)) {
-        if (SyntacticFragment.SAFETY.contains(formula)) {
-          safety.add(GOperator.of(formula));
-          continue;
-        }
+      if (SyntacticFragment.SAFETY.contains(formula)) {
+        safety.add(GOperator.of(formula));
+        continue;
+      }
 
-        if (formula.isPureEventual()) {
-          liveness.add(factories.eqFactory.of(formula));
-          continue;
-        }
+      if (formula.isPureEventual()) {
+        liveness.add(factories.eqFactory.of(formula));
+        continue;
       }
 
       EquivalenceClass clazz = factories.eqFactory.of(formula);
@@ -141,25 +137,20 @@ public final class GObligations implements RecurringObligation {
   }
 
   @Override
-  public EquivalenceClass getLanguage() {
-    EquivalenceClassFactory factory = safetyAutomaton.onlyInitialState().factory();
-    return factory.of(Conjunction.of(gOperatorsRewritten));
+  public EquivalenceClass language() {
+    var factory = safetyAutomaton.onlyInitialState().factory();
+    return factory.of(Conjunction.of(gOperatorsRewritten)).unfold();
   }
 
-  EquivalenceClass getObligation() {
-    EquivalenceClass obligation = safetyAutomaton.onlyInitialState();
-
-    for (EquivalenceClass clazz : liveness) {
-      obligation = obligation.and(clazz);
-    }
-
-    for (EquivalenceClass clazz : obligations) {
-      obligation = obligation.and(clazz);
-    }
-
-    return obligation;
+  @Override
+  public boolean isSafety() {
+    return liveness.isEmpty() && obligations.isEmpty();
   }
 
+  @Override
+  public boolean isLiveness() {
+    return safetyAutomaton.onlyInitialState().isTrue() && obligations.isEmpty();
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -193,7 +184,11 @@ public final class GObligations implements RecurringObligation {
   @Override
   public int compareTo(RecurringObligation o) {
     GObligations that = (GObligations) o;
-    return Conjunction.of(gOperators)
-      .compareTo(Conjunction.of(that.gOperators));
+    return Conjunction.of(modalOperators()).compareTo(Conjunction.of(that.modalOperators()));
+  }
+
+  @Override
+  public Set<? extends Formula.ModalOperator> modalOperators() {
+    return gOperators;
   }
 }

@@ -107,24 +107,17 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
 
   @Override
   protected Set<Jump<GObligations>> computeJumps(EquivalenceClass state) {
-    EquivalenceClass state2 = configuration.contains(Configuration.EAGER_UNFOLD)
-      ? state
-      : state.unfold();
-    Set<GObligations> availableObligations = new HashSet<>();
-
-    for (GObligations x : obligations) {
-      BitSet stateAP = state2.atomicPropositions(true);
-      BitSet obligationAP = new BitSet();
-      x.gOperators.forEach(x2 -> obligationAP.or(x2.atomicPropositions(true)));
-
-      if (BitSets.isSubset(obligationAP, stateAP)) {
-        availableObligations.add(x);
-      }
-    }
-
     Set<Jump<GObligations>> jumps = new HashSet<>();
+    BitSet stateAP = state.atomicPropositions(true);
 
-    for (GObligations obligation : availableObligations) {
+    for (GObligations obligation : obligations) {
+      BitSet obligationAP = new BitSet();
+      obligation.modalOperators().forEach(x -> obligationAP.or(x.atomicPropositions(true)));
+
+      if (!BitSets.isSubset(obligationAP, stateAP)) {
+        continue;
+      }
+
       FGSubstitution evaluateVisitor = new FGSubstitution(obligation.gOperators);
       EquivalenceClass remainder = state.substitute(x -> x.accept(evaluateVisitor));
 
@@ -132,11 +125,14 @@ public final class GObligationsJumpManager extends AbstractJumpManager<GObligati
         continue;
       }
 
-      if (obligation.getObligation().implies(remainder)) {
-        jumps.add(buildJump(factories.eqFactory.getTrue(), obligation));
-      } else if (!configuration.contains(Configuration.SUPPRESS_JUMPS)
-        || !dependsOnExternalAtoms(remainder, obligation)) {
-        jumps.add(buildJump(remainder, obligation));
+      if (obligation.language().implies(remainder)) {
+        jumps.add(new Jump<>(factories.eqFactory.getTrue(), obligation));
+      } else if (!dependsOnExternalAtoms(remainder, obligation)) {
+        if (configuration.contains(Configuration.EAGER_UNFOLD)) {
+          jumps.add(new Jump<>(remainder.unfold(), obligation));
+        } else {
+          jumps.add(new Jump<>(remainder, obligation));
+        }
       }
     }
 
