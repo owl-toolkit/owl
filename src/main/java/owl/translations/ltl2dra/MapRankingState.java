@@ -17,37 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ldba2dpa;
+package owl.translations.ltl2dra;
 
-import java.util.List;
+import java.util.Map;
 import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
-import owl.collections.Collections3;
 import owl.util.annotation.HashedTuple;
 
 @Value.Immutable
 @HashedTuple
-public abstract class FlatRankingState<S, T> implements AnnotatedState<S> {
+public abstract class MapRankingState<S, K, V> implements AnnotatedState<S> {
   @Override
   public abstract S state();
 
-  public abstract List<T> ranking();
-
-  public abstract int safetyProgress();
+  abstract Map<K, V> componentMap();
 
 
-  public static <S, T> FlatRankingState<S, T> of(S state) {
-    return of(state, List.of(), -1);
+  static <S, T, K> MapRankingState<S, K, T> of(S state) {
+    return of(state, Map.of());
   }
 
-  public static <S, T> FlatRankingState<S, T> of(S state, List<T> ranking, int safetyProgress) {
-    assert Collections3.isDistinct(ranking) : "The following list is not distinct: " + ranking;
-    return FlatRankingStateTuple.create(state, ranking, safetyProgress);
+  static <S, T, K> MapRankingState<S, K, T> of(S state, Map<K, T> ranking) {
+    return MapRankingStateTuple.create(state, ranking);
   }
 
 
   @Override
   public String toString() {
-    return String.format("|%s :: %s :: %s|", state(), ranking(), safetyProgress());
+    return String.format("|%s :: %s|", state(), componentMap());
   }
 }

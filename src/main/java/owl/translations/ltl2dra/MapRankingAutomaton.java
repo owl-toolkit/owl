@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ldba2dra;
+package owl.translations.ltl2dra;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

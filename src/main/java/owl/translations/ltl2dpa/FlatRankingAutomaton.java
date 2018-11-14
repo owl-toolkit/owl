@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ldba2dpa;
+package owl.translations.ltl2dpa;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -56,10 +56,10 @@ import owl.ltl.LtlLanguageExpressible;
 import owl.ltl.SyntacticFragment;
 import owl.translations.ltl2ldba.RecurringObligation;
 
-public final class FlatRankingAutomaton {
+final class FlatRankingAutomaton {
   private FlatRankingAutomaton() {}
 
-  public static <T extends LtlLanguageExpressible, A extends RecurringObligation>
+  static <T extends LtlLanguageExpressible, A extends RecurringObligation>
   Automaton<FlatRankingState<EquivalenceClass, T>, ParityAcceptance> of(
     LimitDeterministicAutomaton<EquivalenceClass, T, BuchiAcceptance, A> ldba,
     Predicate<EquivalenceClass> isAcceptingState, boolean optimizeInitialState,

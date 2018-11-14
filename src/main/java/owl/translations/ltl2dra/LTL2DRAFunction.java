@@ -36,7 +36,6 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
-import owl.translations.ldba2dra.MapRankingAutomaton;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;

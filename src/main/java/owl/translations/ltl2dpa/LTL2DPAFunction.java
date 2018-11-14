@@ -53,8 +53,6 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
-import owl.translations.ldba2dpa.FlatRankingAutomaton;
-import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
