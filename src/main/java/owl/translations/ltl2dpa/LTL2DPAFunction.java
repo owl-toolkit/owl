@@ -51,7 +51,6 @@ import owl.automaton.transformations.ParityUtil;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 import owl.translations.ltl2ldba.SafetyDetector;
@@ -96,13 +95,10 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    LabelledFormula formula2 = SimplifierFactory
-      .apply(formula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
-
     var executor = Executors.newCachedThreadPool(
       new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
-    var automatonFuture = executor.submit(callable(formula2, false));
-    var complementFuture = executor.submit(callable(formula2, true));
+    var automatonFuture = executor.submit(callable(formula, false));
+    var complementFuture = executor.submit(callable(formula, true));
 
     try {
       Automaton<?, ParityAcceptance> automaton = null;
@@ -128,7 +124,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       }
 
       if (configuration.contains(GREEDY)) {
-        return (formula2.formula() instanceof Conjunction) ? complement : automaton;
+        return (formula.formula() instanceof Conjunction) ? complement : automaton;
       }
 
       // Select smaller automaton.
