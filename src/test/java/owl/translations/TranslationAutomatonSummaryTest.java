@@ -29,6 +29,11 @@ import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
 import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BEEM;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.CHECK;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.REGRESSIONS;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
@@ -47,10 +52,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -86,9 +92,6 @@ class TranslationAutomatonSummaryTest {
   private static final List<Translator> TRANSLATORS;
 
   static {
-    var dpaSymmetricAll = EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE, EXISTS_SAFETY_CORE);
-    var dpaAsymmetricAll = EnumSet.of(GUESS_F, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE,
-      EXISTS_SAFETY_CORE);
     var ldbaAll = EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS);
 
     TRANSLATORS = List.of(
@@ -122,23 +125,23 @@ class TranslationAutomatonSummaryTest {
       new Translator("ldba.asymmetric", environment -> LTL2LDBAFunction
         .createDegeneralizedBreakpointLDBABuilder(environment, ldbaAll)),
       new Translator("ldba.symmetric", environment -> LTL2LDBAFunction
-        .createDegeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+        .createDegeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll)),
       new Translator("ldgba.asymmetric", environment -> LTL2LDBAFunction
         .createGeneralizedBreakpointLDBABuilder(environment, ldbaAll)),
       new Translator("ldgba.symmetric", environment -> LTL2LDBAFunction
         .createGeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll)),
 
       new Translator("dpa.asymmetric", environment ->
-        new LTL2DPAFunction(environment, dpaAsymmetricAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.BEEM, FormulaSet.CHECK,
-          FormulaSet.REGRESSIONS, FormulaSet.SIZE)),
+        new LTL2DPAFunction(environment,
+          EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE, EXISTS_SAFETY_CORE)),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
       new Translator("dpa.symmetric", environment ->
-        new LTL2DPAFunction(environment, dpaSymmetricAll),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE)),
+        new LTL2DPAFunction(environment,
+          EnumSet.of(GUESS_F, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE, EXISTS_SAFETY_CORE)),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
 
       new Translator("delag", environment -> new DelagBuilder(environment, false),
-        EnumSet.of(FormulaSet.BASE, FormulaSet.SIZE))
+        EnumSet.of(BASE, SIZE))
     );
   }
 
@@ -180,7 +183,7 @@ class TranslationAutomatonSummaryTest {
   @ParameterizedTest
   @MethodSource("translatorProvider")
   void train(Translator translator) {
-    var formulaSet = new LinkedHashSet<LabelledFormula>();
+    var formulaSet = new TreeSet<>(Comparator.comparing(LabelledFormula::formula));
 
     for (FormulaSet set : translator.selectedSets) {
       try (BufferedReader reader = Files.newBufferedReader(set.file())) {
