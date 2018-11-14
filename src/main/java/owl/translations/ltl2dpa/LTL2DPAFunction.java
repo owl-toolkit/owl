@@ -86,8 +86,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
       LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
-      LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS,
-      LTL2LDBAFunction.Configuration.SPECIAL_DPA_JUMP_SUPPRESSION_HACK);
+      LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS);
 
     translatorBreakpointFree =
       LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaConfiguration);

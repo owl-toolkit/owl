@@ -189,6 +189,6 @@ LTL2LDBAFunction<S, B extends GeneralizedBuchiAcceptance, C extends RecurringObl
   }
 
   public enum Configuration {
-    EAGER_UNFOLD, FORCE_JUMPS, EPSILON_TRANSITIONS, SPECIAL_DPA_JUMP_SUPPRESSION_HACK
+    EAGER_UNFOLD, FORCE_JUMPS, EPSILON_TRANSITIONS
   }
 }
