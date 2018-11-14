@@ -19,7 +19,7 @@
 
 package owl.translations.canonical;
 
-import static owl.collections.ValuationTree.cartesianProduct;
+import static owl.collections.ValuationTrees.cartesianProduct;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
@@ -37,6 +37,7 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -144,11 +145,6 @@ public final class DeterministicConstructions {
       return initialState;
     }
 
-    // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
-    public final EquivalenceClass onlyInitialStateWithRemainder(EquivalenceClass remainder) {
-      return initialState.and(super.initialStateInternal(remainder));
-    }
-
     @Nullable
     @Override
     public final Edge<EquivalenceClass> edge(EquivalenceClass clazz, BitSet valuation) {
@@ -189,7 +185,7 @@ public final class DeterministicConstructions {
   public static final class Safety extends Terminal<AllAcceptance> {
     public Safety(Factories factories, boolean unfold, Formula formula) {
       super(factories, unfold, formula);
-      Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula));
+      Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula), formula);
     }
 
     @Override
@@ -201,6 +197,48 @@ public final class DeterministicConstructions {
     @Nullable
     protected Edge<EquivalenceClass> buildEdge(EquivalenceClass successor) {
       return successor.isFalse() ? null : Edge.of(successor);
+    }
+
+    // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
+    public EquivalenceClass onlyInitialStateWithRemainder(EquivalenceClass remainder) {
+      return onlyInitialState().and(super.initialStateInternal(remainder));
+    }
+  }
+
+  public static final class Tracking extends Base<EquivalenceClass, NoneAcceptance> {
+
+    public Tracking(Factories factories, boolean unfold) {
+      super(factories, unfold);
+      Preconditions.checkArgument(unfold, "Only eager unfold supported");
+    }
+
+    @Override
+    public NoneAcceptance acceptance() {
+      return NoneAcceptance.INSTANCE;
+    }
+
+    // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
+    public EquivalenceClass asInitialState(Formula state) {
+      return factory.of(state).unfold();
+    }
+
+    @Override
+    public EquivalenceClass onlyInitialState() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Edge<EquivalenceClass> edge(EquivalenceClass clazz, BitSet valuation) {
+      return Edge.of(clazz.temporalStep(valuation).unfold());
+    }
+
+    public ValuationTree<EquivalenceClass> successorTree(EquivalenceClass clazz) {
+      return clazz.temporalStepTree(x -> Set.of(x.unfold()));
+    }
+
+    @Override
+    public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
+      return clazz.temporalStepTree(x -> Set.of(Edge.of(x.unfold())));
     }
   }
 
@@ -298,7 +336,7 @@ public final class DeterministicConstructions {
 
       // Sort
       for (Formula formula : formulas) {
-        Preconditions.checkArgument(SyntacticFragments.isGfCoSafety(formula));
+        Preconditions.checkArgument(SyntacticFragments.isGfCoSafety(formula), formula);
 
         Formula unwrapped = Util.unwrap(Util.unwrap(formula));
 
@@ -330,7 +368,7 @@ public final class DeterministicConstructions {
         initialStatesSuccessorTree = cartesianProduct(
           initialStatesSuccessorTree,
           initialStateSuccessorTree,
-          Collections3::append);
+          Collections3::add);
       }
 
       this.acceptance = GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1);
@@ -411,7 +449,6 @@ public final class DeterministicConstructions {
       return super.is(property);
     }
   }
-
 
   public static final class GCoSafety
     extends Base<BreakpointState<EquivalenceClass>, BuchiAcceptance> {
@@ -497,5 +534,4 @@ public final class DeterministicConstructions {
       return cartesianProduct(currentSuccessorTree, nextSuccessorTree, this::buildEdge);
     }
   }
-
 }

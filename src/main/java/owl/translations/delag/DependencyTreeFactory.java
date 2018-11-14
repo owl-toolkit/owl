@@ -28,6 +28,8 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import owl.automaton.Automaton;
+import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.minimizations.MinimizationUtil;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
@@ -50,12 +52,15 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
   int setNumber;
 
   DependencyTreeFactory(Factories factory,
-    Function<? super LabelledFormula, ? extends Automaton<T, ?>> constructor) {
+    Function<LabelledFormula, ? extends Automaton<T, ?>> constructor) {
     this.factory = factory.eqFactory;
     setNumber = 0;
     builder = ProductState.builder();
-    this.constructor = formula -> automatonCache.computeIfAbsent(formula,
-      (x) -> constructor.apply(LabelledFormula.of(x, this.factory.variables())));
+    this.constructor = formula -> automatonCache.computeIfAbsent(formula, x ->
+      MinimizationUtil.minimizeDefault(
+        MutableAutomatonUtil.asMutable(
+          constructor.apply(LabelledFormula.of(x, this.factory.variables()))),
+        MinimizationUtil.MinimizationLevel.ALL));
   }
 
   ProductState<T> buildInitialState() {

@@ -57,7 +57,7 @@ class RealizabilityRewriter {
     private final Set<Literal> singleValuedInputVariables;
 
     private InputLiteralSimplifier(Set<Literal> singleValuedInputVariables) {
-      super(SyntacticFragment.NNF.classes());
+      super(SyntacticFragment.NNF);
       this.singleValuedInputVariables = singleValuedInputVariables;
     }
 

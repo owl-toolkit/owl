@@ -21,7 +21,7 @@ package owl.translations.delag;
 
 import java.util.Objects;
 
-public class State<T> {
+public final class State<T> {
   final History past;
   final ProductState<T> productState;
 
@@ -41,7 +41,7 @@ public class State<T> {
       return true;
     }
 
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof State)) {
       return false;
     }
 

@@ -91,7 +91,7 @@ final class MonitorStateFactory extends RabinizerStateFactory {
 
   private static final class MonitorUnfoldVisitor extends Converter {
     MonitorUnfoldVisitor() {
-      super(SyntacticFragment.FGMU.classes());
+      super(SyntacticFragment.FGMU);
     }
     /*
      * This (currently) is needed to do monitor state unfolding. A substitution visitor akin to

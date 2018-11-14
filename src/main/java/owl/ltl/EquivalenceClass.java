@@ -32,8 +32,6 @@ import owl.factories.EquivalenceClassFactory;
  * objects were created from different factories, implies and equals have to return {@code false}.
  */
 public class EquivalenceClass implements LtlLanguageExpressible {
-  public static final EquivalenceClass[] EMPTY_ARRAY = new EquivalenceClass[0];
-
   private final EquivalenceClassFactory factory;
   @Nullable
   private final Formula representative;

@@ -51,7 +51,6 @@ public final class Disjunction extends PropositionalFormula {
     return of(stream.iterator());
   }
 
-  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   public static Formula of(Iterator<? extends Formula> iterator) {
     Set<Formula> set = new HashSet<>();
 
@@ -59,11 +58,11 @@ public final class Disjunction extends PropositionalFormula {
       Formula child = iterator.next();
       assert child != null;
 
-      if (child == BooleanConstant.TRUE) {
+      if (BooleanConstant.TRUE.equals(child)) {
         return BooleanConstant.TRUE;
       }
 
-      if (child == BooleanConstant.FALSE) {
+      if (BooleanConstant.FALSE.equals(child)) {
         continue;
       }
 
@@ -103,7 +102,7 @@ public final class Disjunction extends PropositionalFormula {
 
   @Override
   public Formula nnf() {
-    return of(map(Formula::nnf));
+    return Disjunction.of(map(Formula::nnf));
   }
 
   @Override
@@ -113,7 +112,7 @@ public final class Disjunction extends PropositionalFormula {
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return of(map(c -> c.substitute(substitution)));
+    return Disjunction.of(map(c -> c.substitute(substitution)));
   }
 
   @Override

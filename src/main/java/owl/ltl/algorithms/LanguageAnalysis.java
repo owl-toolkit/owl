@@ -22,7 +22,7 @@ package owl.ltl.algorithms;
 import static owl.translations.LTL2DAFunction.Constructions.BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
-import static owl.translations.LTL2DAFunction.Constructions.RABIN;
+import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_RABIN;
 import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 
 import java.util.EnumSet;
@@ -46,7 +46,7 @@ public final class LanguageAnalysis {
 
     var labelledFormula = attachDummyAlphabet(formula);
     var translation = new LTL2DAFunction(DefaultEnvironment.of(false, false), true,
-      EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, RABIN));
+      EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, GENERALIZED_RABIN));
     return !EmptinessCheck.isEmpty(translation.apply(labelledFormula));
   }
 

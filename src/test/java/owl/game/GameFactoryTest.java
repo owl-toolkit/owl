@@ -76,8 +76,8 @@ class GameFactoryTest {
     Set<Node<AnnotatedState>> winningStates = game.states().stream()
       .filter(x -> {
         @SuppressWarnings("unchecked")
-        AnnotatedState<EquivalenceClass> state = (AnnotatedState<EquivalenceClass>) x.state();
-        return state.state() != null && state.state().isTrue();
+        var state = (AnnotatedState<EquivalenceClass>) x.state();
+        return state.state().isTrue();
       }).collect(Collectors.toSet());
     assertThat(winningStates, x -> !x.isEmpty());
 

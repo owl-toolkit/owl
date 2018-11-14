@@ -111,7 +111,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
   @Override
-  public void forEach(ValuationSet set, Consumer<BitSet> action) {
+  public void forEach(ValuationSet set, Consumer<? super BitSet> action) {
     int variables = factory.numberOfVariables();
 
     factory.forEachMinimalSolution(getBdd(set), (solution, solutionSupport) -> {
@@ -126,7 +126,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
   @Override
-  public void forEach(ValuationSet set, BitSet restriction, Consumer<BitSet> action) {
+  public void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action) {
     // TODO Make this native to the factory?
     int variables = factory.numberOfVariables();
 

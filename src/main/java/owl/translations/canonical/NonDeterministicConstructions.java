@@ -19,7 +19,7 @@
 
 package owl.translations.canonical;
 
-import static owl.collections.ValuationTree.cartesianProduct;
+import static owl.collections.ValuationTrees.cartesianProduct;
 import static owl.translations.canonical.Util.unwrap;
 
 import com.google.common.base.Preconditions;
@@ -38,6 +38,7 @@ import owl.automaton.EdgeTreeAutomatonMixin;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -52,12 +53,19 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
+import owl.ltl.GOperator;
 import owl.ltl.Literal;
+import owl.ltl.MOperator;
 import owl.ltl.PropositionalFormula;
+import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.UOperator;
+import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NonDeterministicConstructions {
@@ -91,14 +99,18 @@ public final class NonDeterministicConstructions {
     @Override
     public abstract ValuationTree<Edge<S>> edgeTree(S state);
 
+    private static Formula unfoldWithSuspension(Formula formula) {
+      return formula.accept(UnfoldWithSuspension.INSTANCE);
+    }
+
     <T> Set<T> successorsInternal(Formula state, BitSet valuation,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      return mapper.apply(toCompactDnf(state.unfoldTemporalStep(valuation)));
+      return mapper.apply(toCompactDnf(unfoldWithSuspension(state).temporalStep(valuation)));
     }
 
     <T> ValuationTree<T> successorTreeInternal(Formula state,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      return successorTreeInternalRecursive(state.unfold(), mapper);
+      return successorTreeInternalRecursive(unfoldWithSuspension(state), mapper);
     }
 
     private <T> ValuationTree<T> successorTreeInternalRecursive(Formula clause,
@@ -117,17 +129,66 @@ public final class NonDeterministicConstructions {
     }
 
     Set<Formula> toCompactDnf(Formula formula) {
-      Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x ->
-        x instanceof Conjunction || !x.accept(IsLiteralOrXVisitor.INSTANCE)
-          ? Set.of()
-          : x.children;
+      if (formula instanceof Disjunction) {
+        var dnf = ((Disjunction) formula).children.stream()
+          .flatMap(x -> toCompactDnf(x).stream()).collect(Collectors.toSet());
+
+        var finiteLtl = new HashSet<Formula>();
+        dnf.removeIf(x -> {
+          if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
+            finiteLtl.add(x);
+            return true;
+          } else {
+            return false;
+          }
+        });
+
+        var finiteDisjunction = SimplifierFactory.apply(Disjunction.of(finiteLtl),
+          SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+
+        if (finiteDisjunction.equals(BooleanConstant.TRUE)) {
+          return Set.of(BooleanConstant.TRUE);
+        }
+
+        if (finiteDisjunction.equals(BooleanConstant.FALSE)) {
+          return dnf;
+        }
+
+        dnf.add(finiteDisjunction);
+        return dnf;
+      }
+
+      Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x -> {
+        if (x instanceof Conjunction) {
+          return Set.of();
+        }
+
+        var finiteLtl = new HashSet<Formula>();
+        var nonFiniteLtl = new HashSet<Formula>();
+
+        x.children.forEach(y -> {
+          if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
+            finiteLtl.add(y);
+          } else {
+            nonFiniteLtl.add(y);
+          }
+        });
+
+        for (Formula finiteFormula : finiteLtl) {
+          if (nonFiniteLtl.stream().noneMatch(z -> z.anyMatch(finiteFormula::equals))) {
+            return x.children;
+          }
+        }
+
+        return Set.of();
+      };
 
       Set<Set<Formula>> compactDnf = NormalForms.toDnf(formula, syntheticLiteralFactory)
         .stream()
         .flatMap(this::compact)
         .collect(Collectors.toSet());
 
-      // Here changes from disseration
+      // TODO: Here changes from dissertation
       if (compactDnf.contains(Set.<Formula>of())) {
         return Set.of(BooleanConstant.TRUE);
       }
@@ -146,13 +207,22 @@ public final class NonDeterministicConstructions {
         return Stream.empty();
       }
 
+      Set<GOperator> gOperators = clause.stream()
+        .filter(GOperator.class::isInstance)
+        .map(GOperator.class::cast)
+        .collect(Collectors.toSet());
+
+      Set<Formula> clause2 = clause.stream()
+        .filter(x -> !gOperators.contains(new GOperator(x)))
+        .collect(Collectors.toSet());
+
       EquivalenceClass temporalOperatorsClazz = factory.of(Conjunction.of(
-        clause.stream().filter(Formula.TemporalOperator.class::isInstance)));
+        clause2.stream().filter(Formula.TemporalOperator.class::isInstance)));
 
       Set<Formula> retainedFacts = new HashSet<>();
 
-      for (Formula literal : clause) {
-        if (clause.contains(literal.not())) {
+      for (Formula literal : clause2) {
+        if (clause2.contains(literal.not())) {
           return Stream.empty();
         }
 
@@ -165,8 +235,8 @@ public final class NonDeterministicConstructions {
         }
       }
 
-      if (clause.size() == retainedFacts.size()) {
-        return Stream.of(clause);
+      if (clause2.size() == retainedFacts.size()) {
+        return Stream.of(clause2);
       }
 
       return Stream.of(Set.of(retainedFacts.toArray(Formula[]::new)));
@@ -182,7 +252,13 @@ public final class NonDeterministicConstructions {
 
       @Override
       public Boolean visit(Conjunction conjunction) {
-        return false;
+        for (Formula x : conjunction.children) {
+          if (!x.accept(this)) {
+            return false;
+          }
+        }
+
+        return true;
       }
 
       @Override
@@ -194,6 +270,57 @@ public final class NonDeterministicConstructions {
         }
 
         return true;
+      }
+    }
+
+    private static class UnfoldWithSuspension extends Converter {
+      private static final UnfoldWithSuspension INSTANCE = new UnfoldWithSuspension();
+
+      private UnfoldWithSuspension() {
+        super(SyntacticFragment.NNF);
+      }
+
+      @Override
+      public Formula visit(FOperator fOperator) {
+        return fOperator.isSuspendable()
+          ? fOperator
+          : Disjunction.of(fOperator, fOperator.operand.accept(this));
+      }
+
+      @Override
+      public Formula visit(GOperator gOperator) {
+        return gOperator.isSuspendable()
+          ? gOperator
+          : Conjunction.of(gOperator, gOperator.operand.accept(this));
+      }
+
+      @Override
+      public Formula visit(MOperator mOperator) {
+        return Conjunction.of(mOperator.right.accept(this),
+          Disjunction.of(mOperator.left.accept(this), mOperator));
+      }
+
+      @Override
+      public Formula visit(ROperator rOperator) {
+        return Conjunction.of(rOperator.right.accept(this),
+          Disjunction.of(rOperator.left.accept(this), rOperator));
+      }
+
+      @Override
+      public Formula visit(UOperator uOperator) {
+        return Disjunction.of(uOperator.right.accept(this),
+          Conjunction.of(uOperator.left.accept(this), uOperator));
+      }
+
+      @Override
+      public Formula visit(WOperator wOperator) {
+        return Disjunction.of(wOperator.right.accept(this),
+          Conjunction.of(wOperator.left.accept(this), wOperator));
+      }
+
+      @Override
+      public Formula visit(XOperator xOperator) {
+        return xOperator;
       }
     }
   }
@@ -214,7 +341,7 @@ public final class NonDeterministicConstructions {
 
   // These automata are not looping in the initial state.
   private abstract static class NonLooping<A extends OmegaAcceptance> extends Terminal<A> {
-    private final Formula formula;
+    protected final Formula formula;
 
     private NonLooping(Factories factories, Formula formula) {
       super(factories);
@@ -270,6 +397,27 @@ public final class NonDeterministicConstructions {
     @Override
     protected Edge<Formula> buildEdge(Formula successor) {
       return Edge.of(successor);
+    }
+
+    // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
+    public Set<Formula> initialStatesWithRemainder(Formula remainder) {
+      return toCompactDnf(Conjunction.of(formula, remainder));
+    }
+  }
+
+  public static final class Tracking extends NonLooping<NoneAcceptance> {
+    public Tracking(Factories factories, Formula formula) {
+      super(factories, formula);
+    }
+
+    @Override
+    public NoneAcceptance acceptance() {
+      return NoneAcceptance.INSTANCE;
+    }
+
+    @Override
+    Edge<Formula> buildEdge(Formula clause) {
+      return Edge.of(clause);
     }
   }
 
@@ -377,7 +525,7 @@ public final class NonDeterministicConstructions {
         initialStatesSuccessorTree = cartesianProduct(
           initialStatesSuccessorTree,
           initialStateSuccessorTree,
-          Collections3::append);
+          Collections3::add);
       }
 
       this.acceptance = GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1);

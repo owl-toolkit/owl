@@ -53,7 +53,6 @@ public final class Conjunction extends PropositionalFormula {
     return of(stream.iterator());
   }
 
-  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   public static Formula of(Iterator<? extends Formula> iterator) {
     Set<Formula> set = new HashSet<>();
 
@@ -61,11 +60,11 @@ public final class Conjunction extends PropositionalFormula {
       Formula child = iterator.next();
       assert child != null;
 
-      if (child == BooleanConstant.FALSE) {
+      if (BooleanConstant.FALSE.equals(child)) {
         return BooleanConstant.FALSE;
       }
 
-      if (child == BooleanConstant.TRUE) {
+      if (BooleanConstant.TRUE.equals(child)) {
         continue;
       }
 
@@ -105,7 +104,7 @@ public final class Conjunction extends PropositionalFormula {
 
   @Override
   public Formula nnf() {
-    return of(map(Formula::nnf));
+    return Conjunction.of(map(Formula::nnf));
   }
 
   @Override
@@ -115,7 +114,7 @@ public final class Conjunction extends PropositionalFormula {
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return of(map(c -> c.substitute(substitution)));
+    return Conjunction.of(map(c -> c.substitute(substitution)));
   }
 
   @Override

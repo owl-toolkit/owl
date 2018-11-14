@@ -21,19 +21,24 @@ package owl.collections;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Iterators;
-import java.util.AbstractCollection;
+import com.google.common.collect.Iterables;
 import java.util.AbstractList;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -41,65 +46,7 @@ import javax.annotation.Nullable;
 public final class Collections3 {
   private Collections3() {}
 
-  public static <T> boolean addAllDistinct(List<T> list, Collection<T> elements) {
-    boolean changed = false;
-
-    for (T element : elements) {
-      changed |= addDistinct(list, element);
-    }
-
-    return changed;
-  }
-
-  public static <T> boolean addDistinct(List<T> list, T element) {
-    if (list.contains(element)) {
-      return false;
-    }
-
-    list.add(element);
-    return true;
-  }
-
-  public static <E> boolean isDistinct(Collection<E> collection) {
-    Set<E> set = new HashSet<>(collection.size());
-    for (E element : collection) {
-      if (!set.add(element)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-
-  public static <E> Collection<E> append(Collection<E> list, E element) {
-    if (list.isEmpty()) {
-      return List.of(element);
-    }
-
-    return new AbstractCollection<>() {
-      @Override
-      public boolean contains(Object o) {
-        return list.contains(o) || element.equals(o);
-      }
-
-      @Override
-      public boolean isEmpty() {
-        return false;
-      }
-
-      @Override
-      public Iterator<E> iterator() {
-        return Iterators.concat(list.iterator(), Iterators.singletonIterator(element));
-      }
-
-      @Override
-      public int size() {
-        return list.size() + 1;
-      }
-    };
-  }
-
-  public static <E> List<E> append(List<E> list, E element) {
+  public static <E> List<E> add(List<E> list, E element) {
     if (list.isEmpty()) {
       return List.of(element);
     }
@@ -107,7 +54,7 @@ public final class Collections3 {
     return new AbstractList<>() {
       @Override
       public boolean contains(Object o) {
-        return list.contains(o) || element.equals(o);
+        return element.equals(o) || list.contains(o);
       }
 
       @Override
@@ -129,8 +76,214 @@ public final class Collections3 {
     };
   }
 
+  public static <K, V> Map<K, V> add(Map<K, V> map, K key, V value) {
+    checkArgument(!map.containsKey(key), "duplicate key: " + key);
+
+    if (map.isEmpty()) {
+      return Map.of(key, value);
+    }
+
+    return new AbstractMap<>() {
+      @Override
+      public boolean containsKey(Object otherKey) {
+        return key.equals(otherKey) || map.containsKey(otherKey);
+      }
+
+      @Override
+      public boolean containsValue(Object otherValue) {
+        return value.equals(otherValue) || map.containsValue(otherValue);
+      }
+
+      @Override
+      public Set<Entry<K, V>> entrySet() {
+        return Collections3.add(map.entrySet(), Map.entry(key, value));
+      }
+
+      @Override
+      public V get(Object otherKey) {
+        return key.equals(otherKey) ? value : map.get(otherKey);
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return false;
+      }
+
+      @Override
+      public Set<K> keySet() {
+        return Collections3.add(map.keySet(), key);
+      }
+
+
+      @Override
+      public int size() {
+        return map.size() + 1;
+      }
+    };
+  }
+
+  public static <E> Set<E> add(Set<E> set, E element) {
+    if (set.contains(element)) {
+      return set;
+    }
+
+    if (set.isEmpty()) {
+      return Set.of(element);
+    }
+
+    return new AbstractSet<>() {
+      @Override
+      public boolean contains(Object o) {
+        return set.contains(o) || element.equals(o);
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return false;
+      }
+
+      @Override
+      public Iterator<E> iterator() {
+        return new Iterator<>() {
+          Iterator<E> iterator = set.iterator();
+          boolean elementReturned = false;
+
+          @Override
+          public boolean hasNext() {
+            return iterator.hasNext() || !elementReturned;
+          }
+
+          @Override
+          public E next() {
+            if (iterator.hasNext()) {
+              return iterator.next();
+            }
+
+            if (!elementReturned) {
+              elementReturned = true;
+              return element;
+            }
+
+            throw new NoSuchElementException();
+          }
+        };
+      }
+
+      @Override
+      public int size() {
+        return set.size() + 1;
+      }
+    };
+  }
+
+  public static <E1, E2> void forEachPair(Iterable<E1> iterable1, Iterable<E2> iterable2,
+    BiConsumer<E1, E2> action) {
+    Iterator<E1> iterator1 = iterable1.iterator();
+    Iterator<E2> iterator2 = iterable2.iterator();
+
+    while (iterator1.hasNext() && iterator2.hasNext()) {
+      action.accept(iterator1.next(), iterator2.next());
+    }
+
+    checkArgument(!iterator1.hasNext() && !iterator2.hasNext(), "Length mismatch.");
+  }
+
+  public static <E> boolean isDistinct(List<E> collection) {
+    Set<E> set = new HashSet<>(collection.size());
+
+    for (E element : collection) {
+      if (!set.add(element)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public static <E> Set<E> ofNullable(@Nullable E element) {
     return element == null ? Set.of() : Set.of(element);
+  }
+
+  /**
+   * Computes a sub-list of elements which are maximal. The order is preserved.
+   *
+   * @param elements the elements
+   * @param isLessThan returns true is the first argument is less than the second argument. It is
+   *     only required that the order is transitive and anti-symmetric. The reflexive hull is added
+   *     automatically.
+   * @param <E> the type
+   * @return a sublist only containing maximal elements.
+   */
+  public static <E> List<E> maximalElements(List<E> elements, BiPredicate<E, E> isLessThan) {
+    var maximalElements = new ArrayList<E>(elements.size());
+    var seenElements = new HashSet<E>();
+    elements.forEach(x -> {
+      if (seenElements.add(x)) {
+        maximalElements.add(x);
+      }
+    });
+
+    boolean continueIteration;
+
+    do {
+      continueIteration = false;
+      var iterator = maximalElements.listIterator();
+
+      while (iterator.hasNext()) {
+        E element = iterator.next();
+
+        for (E otherElement : Iterables.concat(
+          maximalElements.subList(0, iterator.previousIndex()),
+          maximalElements.subList(iterator.nextIndex(), maximalElements.size()))) {
+
+          if (isLessThan.test(element, otherElement)) {
+            iterator.remove();
+            continueIteration = true;
+            break;
+          }
+        }
+      }
+    } while (continueIteration);
+
+    return maximalElements;
+  }
+
+  /**
+   * Partition the elements using the given relation.
+   *
+   * @param elements the collection containing the elements that are group into partitions.
+   * @param relation the relation used to construct the partition. It is only required this relation
+   *     is symmetric. The transitive and reflexive hull are computed automatically.
+   * @param <E> the element type.
+   * @return the partition.
+   */
+  public static <E> List<Set<E>> partition(Collection<E> elements, BiPredicate<E, E> relation) {
+    List<Set<E>> partitions = new ArrayList<>(elements.size());
+    elements.forEach(x -> partitions.add(new HashSet<>(Set.of(x))));
+
+    boolean continueMerging = true;
+
+    while (continueMerging) {
+      continueMerging = false;
+
+      for (int i = 0; i < partitions.size() - 1; i++) {
+        var partition = partitions.get(i);
+        var otherPartitions = partitions.subList(i + 1, partitions.size());
+
+        continueMerging |= otherPartitions.removeIf(otherPartition -> {
+          boolean related = partition.stream().anyMatch(
+            x -> otherPartition.stream().anyMatch(y -> x.equals(y) || relation.test(x, y)));
+
+          if (related) {
+            partition.addAll(otherPartition);
+          }
+
+          return related;
+        });
+      }
+    }
+
+    return partitions;
   }
 
   public static <K1, K2> Map<K2, ValuationSet> transformMap(Map<K1, ValuationSet> map,
@@ -187,16 +340,23 @@ public final class Collections3 {
 
     return transformedSet;
   }
-  
-  public static <E1, E2> void zip(Iterable<E1> iterable1, Iterable<E2> iterable2,
-    BiConsumer<E1, E2> action) {
-    Iterator<E1> iterator1 = iterable1.iterator();
-    Iterator<E2> iterator2 = iterable2.iterator();
 
-    while (iterator1.hasNext() && iterator2.hasNext()) {
-      action.accept(iterator1.next(), iterator2.next());
+  public static <E> Set<E> union(Set<E> set1, Set<E> set2) {
+    if (set1.size() >= set2.size()) {
+      set1.addAll(set2);
+      return set1;
+    } else {
+      set2.addAll(set1);
+      return set2;
     }
+  }
 
-    checkArgument(!iterator1.hasNext() && !iterator2.hasNext(), "Length mismatch.");
+  public static <E extends Object & Comparable<? super E>> int compare(
+    Set<? extends E> s1, Set<? extends E> s2) {
+    var a1 = s1.toArray(Comparable[]::new);
+    var a2 = s2.toArray(Comparable[]::new);
+    Arrays.sort(a1);
+    Arrays.sort(a2);
+    return Arrays.compare(a1, a2);
   }
 }

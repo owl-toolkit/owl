@@ -91,6 +91,26 @@ public final class SyntacticFragments {
     return false;
   }
 
+  public static boolean isCoSafety(Iterable<? extends Formula> iterable) {
+    for (var formula : iterable) {
+      if (!SyntacticFragment.CO_SAFETY.contains(formula)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public static boolean isSafety(Iterable<? extends Formula> iterable) {
+    for (var formula : iterable) {
+      if (!SyntacticFragment.SAFETY.contains(formula)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   private static Formula normalize(Formula formula, SyntacticFragment fragment,
     Function<Formula, Formula> normalizer) {
     Formula normalizedFormula = normalizer.apply(formula);

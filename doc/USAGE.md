@@ -112,8 +112,8 @@ public static final TransformerParser CLI_SETTINGS = ImmutableTransformerParser.
       .addOption("f", "fast", false, "Turn on fast mode"))
     .parser(settings -> {
       boolean fast = settings.hasOption("fast");
-      return env -> (input, context) ->
-        LTL2NBA.apply((LabelledFormula) input, fast, env)
+      return environment -> (input, context) ->
+        LTL2NBA.apply((LabelledFormula) input, fast, environment)
     .build();
 ```
 

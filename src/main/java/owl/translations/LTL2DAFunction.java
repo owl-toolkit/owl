@@ -22,7 +22,6 @@ package owl.translations;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
-import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -34,6 +33,8 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
@@ -47,7 +48,7 @@ import owl.translations.canonical.GenericConstructions;
 import owl.translations.canonical.RoundRobinState;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.translations.ltl2dra.LTL2DRAFunction;
+import owl.translations.ltl2dra.SymmetricDRAConstruction;
 
 public final class LTL2DAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
   private final Environment environment;
@@ -61,10 +62,12 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
 
     if (this.allowedConstructions.contains(Constructions.EMERSON_LEI)) {
       fallback = new DelagBuilder(environment);
+    } else if (this.allowedConstructions.contains(Constructions.GENERALIZED_RABIN)) {
+      fallback
+        = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, !onTheFly);
     } else if (this.allowedConstructions.contains(Constructions.RABIN)) {
-      var configuration = EnumSet.of(LTL2DRAFunction.Configuration.OPTIMISE_INITIAL_STATE,
-        LTL2DRAFunction.Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
-      fallback = new LTL2DRAFunction(environment, configuration);
+      fallback
+        = SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, !onTheFly);
     } else if (this.allowedConstructions.contains(Constructions.PARITY)) {
       var configuration = EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
 
@@ -172,6 +175,10 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
   }
 
   public enum Constructions {
-    SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI, EMERSON_LEI, RABIN, PARITY
+    SAFETY, CO_SAFETY,
+    BUCHI, GENERALIZED_BUCHI, CO_BUCHI,
+    PARITY,
+    RABIN, GENERALIZED_RABIN,
+    EMERSON_LEI
   }
 }

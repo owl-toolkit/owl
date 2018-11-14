@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import owl.collections.Collections3;
@@ -34,19 +35,21 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.parser.LtlParser;
+import owl.translations.mastertheorem.Fixpoints;
+import owl.translations.mastertheorem.Selector;
 
 class SelectVisitorTest {
 
-  private static Set<Set<UnaryModalOperator>> getFScoped(Formula formula) {
-    return formula instanceof FOperator ? Set.of() : Set.of(Set.of());
+  private static Set<Fixpoints> getFScoped(Formula formula) {
+    return Selector.selectSymmetric(formula, false);
   }
 
-  private static Set<Set<UnaryModalOperator>> getGScoped(Formula formula) {
-    return formula instanceof FOperator ? Set.of() : Set.of(Set.of());
+  private static Set<Fixpoints> getGScoped(Formula formula) {
+    return Selector.selectSymmetric(formula, false);
   }
 
-  private static Set<Set<UnaryModalOperator>> getToplevel(Formula formula) {
-    return formula instanceof FOperator ? Set.of() : Set.of(Set.of());
+  private static Set<Fixpoints> getToplevel(Formula formula) {
+    return Selector.selectSymmetric(formula, false);
   }
 
   @Disabled
@@ -123,7 +126,8 @@ class SelectVisitorTest {
     assertEquals(Set.of(baseChoiceConj,
       Sets.union(baseChoiceConj, choiceA),
       Sets.union(baseChoiceConj, choiceB),
-      Sets.union(baseChoiceConj, choiceAandB)), getToplevel(conjunction));
+      Sets.union(baseChoiceConj, choiceAandB)),
+      getToplevel(conjunction).stream().map(x -> x.leastFixpoints()).collect(Collectors.toSet()));
 
     assertEquals(getToplevel(disjunction), Collections3.transformSet(disjunction.children,
       formula -> Sets.union(Set.of(formula), formula.subformulas(FOperator.class))));

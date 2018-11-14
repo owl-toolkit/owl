@@ -1,0 +1,314 @@
+/*
+ * Copyright (C) 2016 - 2018  (See AUTHORS)
+ *
+ * This file is part of Owl.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package owl.translations.mastertheorem;
+
+import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import owl.factories.Factories;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.EquivalenceClass;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.Formulas;
+import owl.ltl.GOperator;
+import owl.ltl.LtlLanguageExpressible;
+import owl.ltl.XOperator;
+import owl.ltl.rewriter.NormalForms;
+import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.translations.canonical.DeterministicConstructions;
+import owl.translations.canonical.NonDeterministicConstructions;
+
+public final class SymmetricEvaluatedFixpoints
+  implements Comparable<SymmetricEvaluatedFixpoints>, LtlLanguageExpressible {
+
+  public final Fixpoints fixpoints;
+
+  /**
+   * Corresponds to safetyAutomaton.
+   */
+  public final Set<FOperator> almostAlways;
+
+  /**
+   * Corresponds to gfCoSafetyAutomaton.
+   */
+  public final Set<GOperator> infinitelyOften;
+
+  private final EquivalenceClass language;
+
+  private SymmetricEvaluatedFixpoints(
+    Fixpoints fixpoints,
+    Collection<FOperator> almostAlways,
+    Collection<GOperator> infinitelyOften,
+    EquivalenceClass language) {
+    this.fixpoints = fixpoints;
+    this.almostAlways = Set.copyOf(almostAlways);
+    this.infinitelyOften = Set.copyOf(infinitelyOften);
+    this.language = language;
+  }
+
+  public static Set<SymmetricEvaluatedFixpoints> build(Fixpoints fixpoints, Factories factories) {
+    var toCoSafety = new Rewriter.ToCoSafety(fixpoints);
+    var toSafety = new Rewriter.ToSafety(fixpoints);
+
+    Set<GOperator> infinitelyOftenFormulas = new HashSet<>();
+
+    for (Formula.ModalOperator leastFixpoint : fixpoints.leastFixpoints()) {
+      Formula infinitelyOften = unwrapX(SimplifierFactory.apply(
+        GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint))),
+        Mode.SYNTACTIC_FIXPOINT, Mode.PULL_UP_X));
+
+      if (infinitelyOften.equals(BooleanConstant.TRUE)) {
+        continue;
+      }
+
+      // Fixpoints are inconsistent.
+      if (infinitelyOften.equals(BooleanConstant.FALSE)) {
+        return Set.of();
+      }
+
+      for (Set<Formula> clause : NormalForms.toCnf(infinitelyOften)) {
+        assert !clause.isEmpty();
+        Formula disjunction = Disjunction.of(clause.stream()
+          .map(SymmetricEvaluatedFixpoints::unwrapGf));
+        assert !(disjunction instanceof BooleanConstant);
+        infinitelyOftenFormulas.add(wrapGf(disjunction));
+      }
+    }
+
+    infinitelyOftenFormulas = Set.of(infinitelyOftenFormulas.toArray(GOperator[]::new));
+
+    List<Set<FOperator>> almostAlwaysFormulasAlternatives = new ArrayList<>();
+
+    for (Formula.ModalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
+      Formula almostAlways = unwrapX(SimplifierFactory.apply(
+        FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint))),
+        Mode.SYNTACTIC_FIXPOINT, Mode.PULL_UP_X));
+
+      if (almostAlways.equals(BooleanConstant.TRUE)) {
+        continue;
+      }
+
+      // Fixpoints are inconsistent.
+      if (almostAlways.equals(BooleanConstant.FALSE)) {
+        return Set.of();
+      }
+
+      Set<FOperator> alternatives = new HashSet<>();
+
+      for (Set<Formula> clause : NormalForms.toDnf(almostAlways)) {
+        assert !clause.isEmpty();
+        Formula conjunction = Conjunction.of(
+          clause.stream().map(SymmetricEvaluatedFixpoints::unwrapFg));
+        assert !(conjunction instanceof BooleanConstant);
+        alternatives.add(wrapFg(conjunction));
+      }
+
+      assert !alternatives.isEmpty();
+      almostAlwaysFormulasAlternatives.add(alternatives);
+    }
+
+    Set<SymmetricEvaluatedFixpoints> fixpointsSet = new HashSet<>();
+
+    for (List<FOperator> almostAlwaysFormulas
+      : Sets.cartesianProduct(almostAlwaysFormulasAlternatives)) {
+      var factory = factories.eqFactory;
+      var formula = Conjunction.of(Stream.concat(
+        almostAlwaysFormulas.stream().map(x -> x.operand),
+        infinitelyOftenFormulas.stream()));
+      var language = factory.of(formula.unfold());
+
+      if (language.isFalse()) {
+        continue;
+      }
+
+      fixpointsSet.add(new SymmetricEvaluatedFixpoints(fixpoints,
+        almostAlwaysFormulas, infinitelyOftenFormulas, language));
+    }
+
+    return fixpointsSet;
+  }
+
+  @Override
+  public int compareTo(SymmetricEvaluatedFixpoints that) {
+    // Order fixpoints with large infinitelyOften components early.
+    int comparison = Formulas.compare(this.infinitelyOften, that.infinitelyOften);
+
+    if (comparison != 0) {
+      return -comparison;
+    }
+
+    // Order fixpoints with large almostAlways components later.
+    comparison = Formulas.compare(this.almostAlways, that.almostAlways);
+
+    if (comparison != 0) {
+      return comparison;
+    }
+
+    // Original fixpoints are the tie-breaker.
+    return this.fixpoints.compareTo(that.fixpoints);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof SymmetricEvaluatedFixpoints)) {
+      return false;
+    }
+
+    SymmetricEvaluatedFixpoints that = (SymmetricEvaluatedFixpoints) o;
+    return fixpoints.equals(that.fixpoints)
+      && almostAlways.equals(that.almostAlways)
+      && infinitelyOften.equals(that.infinitelyOften);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(fixpoints, almostAlways, infinitelyOften);
+  }
+
+  public boolean isEmpty() {
+    return almostAlways.isEmpty() && infinitelyOften.isEmpty();
+  }
+
+  public boolean isSafety() {
+    return infinitelyOften.isEmpty();
+  }
+
+  public boolean isLiveness() {
+    return almostAlways.isEmpty();
+  }
+
+  @Override
+  public EquivalenceClass language() {
+    return language;
+  }
+
+  @Override
+  public String toString() {
+    return "<" + almostAlways + ", " + infinitelyOften + '>';
+  }
+
+  // Automata Classes
+
+  public DeterministicAutomata deterministicAutomata(
+    Factories factories, boolean unfold, boolean generalized) {
+
+    var safetyAutomaton = new DeterministicConstructions.Safety(
+      factories, unfold, Conjunction.of(almostAlways.stream().map(x -> x.operand)));
+
+    var gfCoSafetyAutomaton = infinitelyOften.isEmpty() ? null : new DeterministicConstructions
+      .GfCoSafety(factories, unfold, new TreeSet<>(infinitelyOften), generalized);
+
+    assert !safetyAutomaton.onlyInitialState().isFalse();
+    return new DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
+  }
+
+  public NonDeterministicAutomata nonDeterministicAutomata(
+    Factories factories, boolean generalized) {
+
+    var safetyAutomaton = new NonDeterministicConstructions.Safety(
+      factories, Conjunction.of(almostAlways.stream().map(x -> x.operand)));
+
+    var gfCoSafetyAutomaton = infinitelyOften.isEmpty() ? null : new NonDeterministicConstructions
+      .GfCoSafety(factories, new TreeSet<>(infinitelyOften), generalized);
+
+    return new NonDeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
+  }
+
+  public static final class DeterministicAutomata {
+    @Nullable
+    public final DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
+    public final DeterministicConstructions.Safety safetyAutomaton;
+
+    private DeterministicAutomata(
+      @Nullable DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
+      DeterministicConstructions.Safety safetyAutomaton) {
+      this.gfCoSafetyAutomaton = gfCoSafetyAutomaton;
+      this.safetyAutomaton = safetyAutomaton;
+    }
+  }
+
+  public static final class NonDeterministicAutomata {
+    @Nullable
+    public final NonDeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
+    public final NonDeterministicConstructions.Safety safetyAutomaton;
+
+    private NonDeterministicAutomata(
+      @Nullable NonDeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
+      NonDeterministicConstructions.Safety safetyAutomaton) {
+      this.gfCoSafetyAutomaton = gfCoSafetyAutomaton;
+      this.safetyAutomaton = safetyAutomaton;
+    }
+  }
+
+  // Utility functions
+
+  private static Formula unwrapFg(Formula formula) {
+    return ((GOperator) ((FOperator) formula).operand).operand;
+  }
+
+  private static Formula unwrapGf(Formula formula) {
+    return ((FOperator) ((GOperator) formula).operand).operand;
+  }
+
+  private static Formula unwrapX(Formula formula) {
+    var unwrappedFormula = formula;
+
+    while (unwrappedFormula instanceof XOperator) {
+      unwrappedFormula = ((XOperator) unwrappedFormula).operand;
+    }
+
+    return unwrappedFormula;
+  }
+
+  private static FOperator wrapFg(Formula formula) {
+    if (formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator) {
+      return (FOperator) formula;
+    }
+
+    return formula instanceof GOperator
+      ? new FOperator(formula)
+      : new FOperator(new GOperator(formula));
+  }
+
+  private static GOperator wrapGf(Formula formula) {
+    if (formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator) {
+      return (GOperator) formula;
+    }
+
+    return formula instanceof FOperator
+      ? new GOperator(formula)
+      : new GOperator(new FOperator(formula));
+  }
+}

@@ -188,7 +188,7 @@ class RobustLtlVisitor extends LTLParserBaseVisitor<Split> {
         return Split.combiner((l, r) -> Disjunction.of(l.not(), r)).apply(left, right);
       }
       Collection<Formula> conjuncts = new ArrayList<>(4);
-      Collections3.zip(left.all(), right.all(),
+      Collections3.forEachPair(left.all(), right.all(),
         (l, r) -> conjuncts.add(Conjunction.of(l, r.not())));
       Formula antecedent = Disjunction.of(conjuncts).not();
 

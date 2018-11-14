@@ -20,7 +20,7 @@
 package owl.ltl.visitors;
 
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -32,13 +32,18 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
-public abstract class Converter implements Visitor<Formula>, Function<Formula, Formula> {
+public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formula> {
 
   private final Set<Class<? extends Formula>> supportedCases;
+
+  protected Converter(SyntacticFragment fragment) {
+    this(fragment.classes());
+  }
 
   protected Converter(Set<Class<? extends Formula>> supportedCases) {
     this.supportedCases = Set.copyOf(supportedCases);

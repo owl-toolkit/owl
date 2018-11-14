@@ -19,14 +19,14 @@
 
 package owl.translations.nba2ldba;
 
-import java.util.HashSet;
+import com.google.common.base.Preconditions;
 import java.util.Set;
 import javax.annotation.Nonnegative;
 import org.immutables.value.Value;
 import owl.util.annotation.HashedTuple;
 
-@HashedTuple
 @Value.Immutable
+@HashedTuple
 public abstract class BreakpointState<S> {
 
   @Nonnegative
@@ -36,19 +36,13 @@ public abstract class BreakpointState<S> {
 
   abstract Set<S> nx();
 
-
-  public static <S> BreakpointState<S> of(@Nonnegative int i, Set<S> m, Set<S> n) {
+  static <S> BreakpointState<S> of(@Nonnegative int i, Set<S> m, Set<S> n) {
+    Preconditions.checkArgument(i >= 0, "Index needs to be non-negative.");
     return BreakpointStateTuple.create(i, m, n);
   }
 
-
-  public static <S> BreakpointState<S> sink() {
-    return BreakpointStateTuple.create(-1, new HashSet<>(), new HashSet<>());
-  }
-
-
   @Override
   public String toString() {
-    return "(" + ix() + ", " + mx() + ", " + nx() + ')';
+    return String.format("(%d, %s, %s)", ix(), mx(), nx());
   }
 }

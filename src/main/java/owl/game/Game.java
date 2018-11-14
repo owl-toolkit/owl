@@ -134,7 +134,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
       consumer.addLatch("", a);
     }
 
-    Collections3.zip(outputNames, outputs, consumer::addOutput);
+    Collections3.forEachPair(outputNames, outputs, consumer::addOutput);
   }
 
   default Set<S> getPredecessors(S state, Owner owner) {

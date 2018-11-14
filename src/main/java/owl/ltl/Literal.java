@@ -137,9 +137,12 @@ public final class Literal extends Formula.TemporalOperator {
   protected int compareToImpl(Formula o) {
     Literal that = (Literal) o;
     int comparison = Integer.compare(getAtom(), that.getAtom());
-    return comparison == 0
-      ? Boolean.compare(isNegated(), that.isNegated())
-      : comparison;
+
+    if (comparison != 0) {
+      return comparison;
+    }
+
+    return Boolean.compare(isNegated(), that.isNegated());
   }
 
   @Override

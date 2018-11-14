@@ -19,8 +19,6 @@
 
 package owl.translations;
 
-import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
-
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -38,20 +36,27 @@ import owl.run.Environment;
 import owl.translations.canonical.GenericConstructions;
 import owl.translations.canonical.NonDeterministicConstructions;
 import owl.translations.canonical.RoundRobinState;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
 public final class LTL2NAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
   private final Environment environment;
   private final EnumSet<Constructions> allowedConstructions;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
+  public LTL2NAFunction(Environment environment) {
+    this(environment, EnumSet.allOf(Constructions.class));
+  }
+
   public LTL2NAFunction(Environment environment, EnumSet<Constructions> allowedConstructions) {
     this.allowedConstructions = EnumSet.copyOf(allowedConstructions);
     this.environment = environment;
 
-    if (this.allowedConstructions.contains(Constructions.PARITY)) {
-      var configuration = EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
-      fallback = new LTL2DPAFunction(environment, configuration);
+    if (this.allowedConstructions.contains(Constructions.GENERALIZED_BUCHI)) {
+      fallback = SymmetricNBAConstruction
+        .of(environment, GeneralizedBuchiAcceptance.class);
+    } else if (this.allowedConstructions.contains(Constructions.BUCHI)) {
+      fallback = SymmetricNBAConstruction
+        .of(environment, BuchiAcceptance.class);
     } else {
       fallback = x -> {
         throw new IllegalArgumentException("All allowed constructions exhausted.");
@@ -124,6 +129,6 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
   }
 
   public enum Constructions {
-    SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, PARITY
+    SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI
   }
 }

@@ -43,6 +43,7 @@ G ((a & b) | (F a & F !b & F c))
 G ((a M (G b)) | ((c W d) & (a W c)))
 (a & (b R X !a)) | ((G c) & (b U X a))
 G F ((a | (G b)) & ((G c) R (a | (G c))))
+(a | GFb) & (c | GFd) & (FGc | GFa) & GFc
 (!X a) & ((b | (Fc) | (d R (!b)) U (X a)))
 F (a & ((a & G (b U c)) | !(a | G (b U c))))
 G ((a1 & (F b1)) | (a2 & (F b2)) | (b1 & (F a1)))

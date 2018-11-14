@@ -40,6 +40,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,6 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance.Builder;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -66,6 +66,7 @@ import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
+import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -79,6 +80,7 @@ import owl.ltl.MOperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
+import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PrintVisitor;
@@ -192,7 +194,7 @@ public final class RabinizerBuilder {
       int index = 0;
       while (rankingIterator.hasNext()) {
         RabinPair pair = activeSet.getPairForRanking(index);
-        tableBuilder.append("\n  ").append(RabinizerUtil.printRanking(rankingIterator.next()))
+        tableBuilder.append("\n  ").append(Arrays.toString(rankingIterator.next()))
           .append(" -> ").append(pair);
         index += 1;
       }
@@ -327,7 +329,7 @@ public final class RabinizerBuilder {
      * requiring that finitely often the current master state may not be entailed by |G| and the
      * monitor states. */
     boolean computeAcceptance = configuration.computeAcceptance();
-    GeneralizedRabinAcceptance.Builder builder = new Builder();
+    GeneralizedRabinAcceptance.Builder builder = new GeneralizedRabinAcceptance.Builder();
     Set<Set<GOperator>> relevantSets = Sets.powerSet(allRelevantGFormulas);
     assert relevantSets.contains(Set.of());
 
@@ -774,10 +776,60 @@ public final class RabinizerBuilder {
     return transitionSystem;
   }
 
-  private Set<GOperator> relevantSubFormulas(EquivalenceClass equivalenceClass) {
-    return configuration.supportBasedRelevantFormulaAnalysis()
-      ? RabinizerUtil.getSupportSubFormulas(equivalenceClass)
-      : RabinizerUtil.getRelevantSubFormulas(equivalenceClass);
+  private static void findSupportingSubFormulas(EquivalenceClass equivalenceClass,
+    Set<GOperator> gOperators) {
+    // Due to the BDD representation, we have to do a somewhat weird construction. The problem is
+    // that we can't simply do a class.getSupport(G) to determine the relevant G operators in the
+    // formula. For example, to the BDD "X G a" and "G a" have no relation, hence the G-support
+    // of "X G a" is empty, although "G a" certainly is important for the formula. So, instead,
+    // we determine all relevant temporal operators in the support and for all of those collect the
+    // G operators.
+
+    // TODO Can we optimize for eager?
+
+    for (Formula.ModalOperator temporalOperator : equivalenceClass.modalOperators()) {
+      if (temporalOperator instanceof GOperator) {
+        gOperators.add((GOperator) temporalOperator);
+      } else {
+        Formula unwrapped = temporalOperator;
+
+        while (unwrapped instanceof UnaryModalOperator) {
+          unwrapped = ((UnaryModalOperator) unwrapped).operand;
+
+          if (unwrapped instanceof GOperator) {
+            break;
+          }
+        }
+
+        EquivalenceClassFactory factory = equivalenceClass.factory();
+
+        if (unwrapped instanceof GOperator) {
+          gOperators.add((GOperator) unwrapped);
+        } else if (unwrapped instanceof BinaryModalOperator) {
+          BinaryModalOperator binaryOperator = (BinaryModalOperator) unwrapped;
+          findSupportingSubFormulas(factory.of(binaryOperator.left), gOperators);
+          findSupportingSubFormulas(factory.of(binaryOperator.right), gOperators);
+        } else {
+          findSupportingSubFormulas(factory.of(unwrapped), gOperators);
+        }
+      }
+    }
+  }
+
+  private Set<GOperator> relevantSubFormulas(EquivalenceClass clazz) {
+    if (clazz.isTrue() || clazz.isFalse()) {
+      return Set.of();
+    }
+
+    Set<GOperator> operators = new HashSet<>();
+
+    if (configuration.supportBasedRelevantFormulaAnalysis()) {
+      findSupportingSubFormulas(clazz, operators);
+    } else {
+      clazz.modalOperators().forEach(x -> operators.addAll(x.subformulas(GOperator.class)));
+    }
+
+    return operators;
   }
 
   private static final class ActiveSet {
@@ -1000,7 +1052,7 @@ public final class RabinizerBuilder {
             activeMonitorStates.addAll(monitorStateRanking.subList(rank, size));
           }
         });
-        String rankingString = RabinizerUtil.printRanking(ranking);
+        String rankingString = Arrays.toString(ranking);
         String log = String.format("Subset %s, ranking %s, and monitor states %s (strengthened: "
             + "%s), valuation %s; entails %s (weakened: %s): %s", activeFormulaSet, rankingString,
           activeMonitorStates, strengthenedAntecedent, valuation, consequent,
@@ -1021,7 +1073,7 @@ public final class RabinizerBuilder {
     private final EquivalenceClassFactory factory;
 
     EvaluateVisitor(Collection<GOperator> gMonitors, EquivalenceClass label) {
-      super(SyntacticFragment.FGMU.classes());
+      super(SyntacticFragment.FGMU);
       this.factory = label.factory();
       this.environment = label.and(factory.of(
         Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));

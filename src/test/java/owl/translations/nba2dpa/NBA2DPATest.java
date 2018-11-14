@@ -19,6 +19,7 @@
 
 package owl.translations.nba2dpa;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static owl.util.Assertions.assertThat;
 
 import java.util.stream.Stream;
@@ -274,19 +275,19 @@ class NBA2DPATest {
 
   private static Stream<Arguments> testCases() {
     return Stream.of(
-      Arguments.of(INPUT, 4),
+      Arguments.of(INPUT, 5),
       Arguments.of(INPUT2, 1),
-      Arguments.of(INPUT3, 7),
-      Arguments.of(INPUT4, 3),
-      Arguments.of(INPUT5, 3),
-      Arguments.of(INPUT6, 2),
-      Arguments.of(INPUT7, 3),
-      Arguments.of(INPUT8, 6),
-      Arguments.of(INPUT9, 2),
-      Arguments.of(INPUT10, 9),
+      Arguments.of(INPUT3, 4),
+      Arguments.of(INPUT4, 2),
+      Arguments.of(INPUT5, 2),
+      Arguments.of(INPUT6, 1),
+      Arguments.of(INPUT7, 2),
+      Arguments.of(INPUT8, 7),
+      Arguments.of(INPUT9, 3),
+      Arguments.of(INPUT10, 6),
       Arguments.of(INPUT15, 12),
       Arguments.of(INPUT16, 7),
-      Arguments.of(INPUT17, 3));
+      Arguments.of(INPUT17, 2));
   }
 
   @ParameterizedTest
@@ -297,7 +298,7 @@ class NBA2DPATest {
     var dpa = new NBA2DPA().apply(nba);
 
     assertThat(dpa.acceptance(), ParityAcceptance.class::isInstance);
-    assertThat(dpa.size(), x -> x <= size);
+    assertEquals(size, dpa.size());
     HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
   }
 }

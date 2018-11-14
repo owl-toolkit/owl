@@ -79,7 +79,7 @@ public final class FormulaIsomorphism {
 
     for (List<Integer> atomsList2Perm : Collections2.permutations(atomsList2)) {
       // Initialise Mapping
-      Collections3.zip(atomsList1, atomsList2Perm, (x, y) -> mapping[x] = y);
+      Collections3.forEachPair(atomsList1, atomsList2Perm, (x, y) -> mapping[x] = y);
 
       // Check mapping
       if (formula1.accept(validationVisitor, formula2)) {

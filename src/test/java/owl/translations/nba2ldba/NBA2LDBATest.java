@@ -19,20 +19,30 @@
 
 package owl.translations.nba2ldba;
 
-import java.util.EnumSet;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import owl.automaton.AutomatonReader;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.ldba.LimitDeterministicAutomatonBuilder.Configuration;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.output.HoaPrinter;
 import owl.run.DefaultEnvironment;
 
 class NBA2LDBATest {
 
-  private static final String INPUT = "HOA: v1\n"
+  private static final String ALL_ACCEPTANCE = "HOA: v1\n"
+    + "States: 1\n"
+    + "Start: 0\n"
+    + "acc-name: all\n"
+    + "Acceptance: 0 t\n"
+    + "AP: 1 \"a\"\n"
+    + "--BODY--\n"
+    + "State: 0\n"
+    + " [0]   0\n"
+    + "--END--";
+
+  private static final String BUCHI_1 = "HOA: v1\n"
     + "States: 2\n"
     + "Start: 0\n"
     + "acc-name: Buchi\n"
@@ -46,7 +56,7 @@ class NBA2LDBATest {
     + " [!0]  1 \n"
     + "--END--";
 
-  private static final String INPUT2 = "HOA: v1\n"
+  private static final String BUCHI_2 = "HOA: v1\n"
     + "States: 2\n"
     + "Start: 0\n"
     + "acc-name: Buchi\n"
@@ -60,7 +70,7 @@ class NBA2LDBATest {
     + " [!0]  1 \n"
     + "--END--";
 
-  private static final String INPUT3 = "HOA: v1\n"
+  private static final String BUCHI_3 = "HOA: v1\n"
     + "States: 3\n"
     + "Start: 0\n"
     + "acc-name: Buchi\n"
@@ -80,7 +90,7 @@ class NBA2LDBATest {
     + "[!0 & 1] 2 {0}\n"
     + "--END--";
 
-  private static final String INPUT4 = "HOA: v1\n"
+  private static final String BUCHI_4 = "HOA: v1\n"
     + "States: 1\n"
     + "Start: 0\n"
     + "acc-name: Buchi\n"
@@ -91,34 +101,13 @@ class NBA2LDBATest {
     + "State: 0\n"
     + "--END--";
 
-  @Test
-  void testApply() throws ParseException {
-    runTest(INPUT);
-  }
-
-  @Test
-  void testApply2() throws ParseException {
-    runTest(INPUT2);
-  }
-
-  @Test
-  void testApply3() throws ParseException {
-    runTest(INPUT3);
-  }
-
-  @Test
-  void testApply4() throws ParseException {
-    runTest(INPUT4);
-  }
-
-  private void runTest(String input) throws ParseException {
-    var translation = new NBA2LDBA(false, EnumSet.of(Configuration.REMOVE_EPSILON_TRANSITIONS));
-
-    var automaton = AutomatonReader.readHoa(input, DefaultEnvironment.annotated()
-      .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
-
-    HoaPrinter.feedTo(automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    HoaPrinter.feedTo(translation.apply(automaton),
-      new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+  @ParameterizedTest
+  @ValueSource(strings = {ALL_ACCEPTANCE, BUCHI_1, BUCHI_2, BUCHI_3, BUCHI_4})
+  void runTest(String hoa) throws ParseException {
+    var supplier = DefaultEnvironment.annotated().factorySupplier();
+    var nba = AutomatonReader.readHoa(hoa, supplier::getValuationSetFactory, OmegaAcceptance.class);
+    var ldba = new NBA2LDBA().apply(nba);
+    HoaPrinter.feedTo(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaPrinter.feedTo(ldba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
   }
 }

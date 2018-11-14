@@ -24,13 +24,10 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationTree<E> {
@@ -59,93 +56,12 @@ public abstract class ValuationTree<E> {
 
   public abstract Set<E> values();
 
-  public Map<E, ValuationSet> inverse(ValuationSetFactory factory) {
+  public final Map<E, ValuationSet> inverse(ValuationSetFactory factory) {
     return memoizedInverse(factory, new HashMap<>());
   }
 
-  public <T> ValuationTree<T> map(Function<? super Set<E>, ? extends Collection<T>> mapper) {
+  public final <T> ValuationTree<T> map(Function<? super Set<E>, ? extends Collection<T>> mapper) {
     return memoizedMap(mapper, new HashMap<>());
-  }
-
-  public static <L, R, E> ValuationTree<E> cartesianProduct(
-    ValuationTree<L> leftTree,
-    ValuationTree<R> rightTree,
-    BiFunction<L, R, @Nullable E> merger) {
-    return cartesianProduct(leftTree, rightTree, merger, new HashMap<>());
-  }
-
-  private static <L, R, E> ValuationTree<E> cartesianProduct(
-    ValuationTree<L> leftTree,
-    ValuationTree<R> rightTree,
-    BiFunction<L, R, @Nullable E> merger,
-    Map<List<?>, ValuationTree<E>> memoizedCalls) {
-    var key = List.of(leftTree, rightTree);
-
-    ValuationTree<E> productTree = memoizedCalls.get(key);
-
-    if (productTree != null) {
-      return productTree;
-    }
-
-    int leftVariable = leftTree instanceof Node
-      ? ((Node<E>) leftTree).variable
-      : Integer.MAX_VALUE;
-
-    int rightVariable = rightTree instanceof Node
-      ? ((Node<E>) rightTree).variable
-      : Integer.MAX_VALUE;
-
-    int variable = Math.min(leftVariable, rightVariable);
-
-    if (variable == Integer.MAX_VALUE) {
-      assert leftTree instanceof Leaf;
-      assert rightTree instanceof Leaf;
-
-      Set<E> elements = new HashSet<>();
-
-      for (L leftValue : leftTree.values()) {
-        for (R rightValue : rightTree.values()) {
-          E element = merger.apply(leftValue, rightValue);
-
-          if (element != null) {
-            elements.add(element);
-          }
-        }
-      }
-
-      productTree = of(elements);
-    } else {
-      var falseCartesianProduct = cartesianProduct(
-        descendFalseIf(leftTree, variable),
-        descendFalseIf(rightTree, variable),
-        merger, memoizedCalls);
-
-      var trueCartesianProduct = cartesianProduct(
-        descendTrueIf(leftTree, variable),
-        descendTrueIf(rightTree, variable),
-        merger, memoizedCalls);
-
-      productTree = of(variable, trueCartesianProduct, falseCartesianProduct);
-    }
-
-    memoizedCalls.put(key, productTree);
-    return productTree;
-  }
-
-  private static <E> ValuationTree<E> descendFalseIf(ValuationTree<E> tree, int variable) {
-    if (tree instanceof Node && ((Node<E>) tree).variable == variable) {
-      return ((Node<E>) tree).falseChild;
-    } else {
-      return tree;
-    }
-  }
-
-  private static <E> ValuationTree<E> descendTrueIf(ValuationTree<E> tree, int variable) {
-    if (tree instanceof Node && ((Node<E>) tree).variable == variable) {
-      return ((Node<E>) tree).trueChild;
-    } else {
-      return tree;
-    }
   }
 
   protected abstract <T> ValuationTree<T> memoizedMap(
@@ -190,21 +106,17 @@ public abstract class ValuationTree<E> {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Leaf<?> leaf = (Leaf<?>) o;
-      return value.equals(leaf.value);
+      return this == o || (o instanceof Leaf && value.equals(((Leaf<?>) o).value));
     }
 
     @Override
     public int hashCode() {
       return value.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return "(" + value + ')';
     }
   }
 
@@ -212,6 +124,7 @@ public abstract class ValuationTree<E> {
     public final int variable;
     public final ValuationTree<E> trueChild;
     public final ValuationTree<E> falseChild;
+    private final int hashCode;
 
     private Node(int variable, ValuationTree<E> trueChild, ValuationTree<E> falseChild) {
       if (variable < 0) {
@@ -229,6 +142,7 @@ public abstract class ValuationTree<E> {
       this.variable = variable;
       this.trueChild = trueChild;
       this.falseChild = falseChild;
+      this.hashCode = Objects.hash(variable, trueChild, falseChild);
     }
 
     @Override
@@ -252,7 +166,7 @@ public abstract class ValuationTree<E> {
         return mappedNode;
       }
 
-      mappedNode = new Node<>(variable,
+      mappedNode = of(variable,
         trueChild.memoizedMap(mapper, memoizedCalls),
         falseChild.memoizedMap(mapper, memoizedCalls));
       memoizedCalls.put(this, mappedNode);
@@ -287,19 +201,25 @@ public abstract class ValuationTree<E> {
         return true;
       }
 
-      if (o == null || getClass() != o.getClass()) {
+      if (!(o instanceof Node)) {
         return false;
       }
 
-      Node<?> node = (Node<?>) o;
-      return variable == node.variable
-        && trueChild.equals(node.trueChild)
-        && falseChild.equals(node.falseChild);
+      Node<?> that = (Node<?>) o;
+      return hashCode == that.hashCode
+        && variable == that.variable
+        && trueChild.equals(that.trueChild)
+        && falseChild.equals(that.falseChild);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(variable, trueChild, falseChild);
+      return hashCode;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("(V: %d, tt: %s, ff: %s)", variable, falseChild, trueChild);
     }
   }
 }
