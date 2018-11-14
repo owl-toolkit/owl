@@ -35,8 +35,6 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNFOLD;
 import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -77,7 +75,6 @@ import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
@@ -89,11 +86,10 @@ class TranslationAutomatonSummaryTest {
   private static final List<Translator> TRANSLATORS;
 
   static {
-    var dpaSymmetricAll = EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE,
-      Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
+    var dpaSymmetricAll = EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE, EXISTS_SAFETY_CORE);
     var dpaAsymmetricAll = EnumSet.of(GUESS_F, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE,
-      Configuration.OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE);
-    var ldbaAll = EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS, OPTIMISED_STATE_STRUCTURE, SUPPRESS_JUMPS);
+      EXISTS_SAFETY_CORE);
+    var ldbaAll = EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS);
 
     TRANSLATORS = List.of(
       new Translator("safety", LTL2DAFunction::safety),
@@ -321,9 +317,9 @@ class TranslationAutomatonSummaryTest {
 
     static AutomatonSummary of(Object object) {
       if (object instanceof Automaton) {
-        return of((Automaton) object);
+        return of((Automaton<?, ?>) object);
       } else {
-        return of((LimitDeterministicAutomaton) object);
+        return of((LimitDeterministicAutomaton<?, ?, ?, ?>) object);
       }
     }
 
@@ -351,26 +347,34 @@ class TranslationAutomatonSummaryTest {
     }
 
     void test(Automaton<?, ?> automaton) {
-      assertEquals(size, automaton.size(), () -> String.format(
-        "Expected %d states, got %d\nAutomaton:\n %s",
-        size, automaton.size(), HoaPrinter.toString(automaton)));
-      test(automaton.acceptance());
+      Supplier<String> printedAutomaton =
+      () -> '\n' + HoaPrinter.toString(automaton);
+
+      assertEquals(size, automaton.size(),
+        () -> String.format("Expected %d states, got %d.%s",
+          size, automaton.size(), printedAutomaton.get()));
+      test(automaton.acceptance(), printedAutomaton);
       assertEquals(deterministic, automaton.is(Automaton.Property.DETERMINISTIC));
       assertEquals(complete, automaton.is(Automaton.Property.COMPLETE));
     }
 
     void test(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
-      assertEquals(size, automaton.size(), () -> String.format(
-        "Expected %d states, got %d\nAutomaton:\n %s",
-        size, automaton.size(), HoaPrinter.toString(automaton)));
-      test(automaton.acceptingComponent().acceptance());
+      Supplier<String> printedAutomaton =
+      () -> '\n' + HoaPrinter.toString(automaton);
+
+      assertEquals(size, automaton.size(),
+        () -> String.format("Expected %d states, got %d.%s",
+        size, automaton.size(), printedAutomaton.get()));
+      test(automaton.acceptingComponent().acceptance(), printedAutomaton);
       assertFalse(deterministic);
       assertEquals(complete, automaton.initialComponent().is(Automaton.Property.COMPLETE)
         && automaton.acceptingComponent().is(Automaton.Property.COMPLETE));
     }
 
-    void test(OmegaAcceptance acceptance) {
-      assertEquals(acceptanceSets, acceptance.acceptanceSets());
+    void test(OmegaAcceptance acceptance, Supplier<String> printedAutomaton) {
+      assertEquals(acceptanceSets, acceptance.acceptanceSets(),
+        () -> String.format("Expected %d acceptance set, got %d.%s",
+        acceptanceSets, acceptance.acceptanceSets(), printedAutomaton.get()));
       assertEquals(acceptanceName, acceptance.getClass().getSimpleName());
     }
   }

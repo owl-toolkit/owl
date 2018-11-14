@@ -32,7 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -83,12 +82,20 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     return stream;
   }
 
-  @SuppressWarnings("ReferenceEquality")
   AnalysisResult<X> analyse(EquivalenceClass state) {
-    AnalysisResult<X> result = checkTrivial(state);
+    Set<Formula.ModalOperator> modalOperators = state.modalOperators();
 
-    if (result != null) {
-      return result;
+    // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
+    // infinite behaviour and simply build the left-derivative of the formula.
+    if (modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains)
+      || modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
+      logger.log(Level.FINE,
+        () -> state + " is (co)safety. Suppressing jump.");
+      return (AnalysisResult<X>) EMPTY;
+    } else if (!Collections.disjoint(modalOperators, blockingModalOperators)) {
+      logger.log(Level.FINE,
+        () -> state + " is blocked by " + blockingModalOperators + ". Suppressing jump.");
+      return (AnalysisResult<X>) EMPTY;
     }
 
     List<Jump<X>> jumps = new ArrayList<>(computeJumps(state));
@@ -96,26 +103,24 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
 
     logger.log(Level.FINE, () -> state + " has the following jumps: " + jumps);
 
-    if (configuration.contains(Configuration.SUPPRESS_JUMPS)) {
-      boolean continueIteration = true;
+    boolean continueIteration = true;
 
-      while (continueIteration) {
-        continueIteration = false;
-        Iterator<Jump<X>> iterator = jumps.iterator();
+    while (continueIteration) {
+      continueIteration = false;
+      Iterator<Jump<X>> iterator = jumps.iterator();
 
-        while (iterator.hasNext()) {
-          Jump<X> jump = iterator.next();
+      while (iterator.hasNext()) {
+        Jump<X> jump = iterator.next();
 
-          for (Jump<X> otherJump : jumps) {
-            if (jump.equals(otherJump)) {
-              continue;
-            }
+        for (Jump<X> otherJump : jumps) {
+          if (jump.equals(otherJump)) {
+            continue;
+          }
 
-            if (otherJump.containsLanguageOf(jump)) {
-              iterator.remove();
-              continueIteration = true;
-              break;
-            }
+          if (otherJump.containsLanguageOf(jump)) {
+            iterator.remove();
+            continueIteration = true;
+            break;
           }
         }
       }
@@ -139,33 +144,6 @@ public abstract class AbstractJumpManager<X extends RecurringObligation> {
     }
 
     return AnalysisResult.buildMay(jumps);
-  }
-
-  protected Jump<X> buildJump(EquivalenceClass remainder, X obligations) {
-    if (configuration.contains(Configuration.EAGER_UNFOLD)) {
-      return new Jump<>(remainder.unfold(), obligations);
-    }
-
-    return new Jump<>(remainder, obligations);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Nullable
-  private AnalysisResult<X> checkTrivial(EquivalenceClass state) {
-    Set<Formula.ModalOperator> modalOperators = state.modalOperators();
-
-    // The state is a simple safety or cosafety condition. We don't need to use reasoning about the
-    // infinite behaviour and simply build the left-derivative of the formula.
-    if (modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains)
-      || modalOperators.stream().allMatch(SyntacticFragment.SAFETY::contains)) {
-      logger.log(Level.FINE, () -> state + " is (co)safety. Suppressing jump.");
-      return (AnalysisResult<X>) EMPTY;
-    }
-
-    return !configuration.contains(Configuration.SUPPRESS_JUMPS)
-      || Collections.disjoint(modalOperators, blockingModalOperators)
-      ? null
-      : (AnalysisResult<X>) EMPTY;
   }
 
   protected abstract Set<Jump<X>> computeJumps(EquivalenceClass state);

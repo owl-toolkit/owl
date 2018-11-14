@@ -23,9 +23,10 @@ import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.LtlLanguageExpressible;
 import owl.util.StringUtil;
 
-public final class DegeneralizedBreakpointState {
+public final class DegeneralizedBreakpointState implements LtlLanguageExpressible {
 
   @Nullable
   final EquivalenceClass current;
@@ -39,7 +40,7 @@ public final class DegeneralizedBreakpointState {
   final EquivalenceClass safety;
 
   @Nullable
-  private EquivalenceClass label = null;
+  private EquivalenceClass language = null;
   private final int hashCode;
 
   @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
@@ -64,37 +65,8 @@ public final class DegeneralizedBreakpointState {
       EquivalenceClass.EMPTY_ARRAY, null);
   }
 
-  EquivalenceClass getLabel() {
-    if (label == null) {
-      assert safety != null && current != null && obligations != null;
-      label = safety.and(current);
-
-      for (EquivalenceClass clazz : next) {
-        label = label.and(clazz);
-      }
-
-      for (EquivalenceClass clazz : obligations.obligations) {
-        label = label.and(clazz);
-      }
-
-      for (EquivalenceClass clazz : obligations.liveness) {
-        label = label.and(clazz);
-      }
-    }
-
-    return label;
-  }
-
   public GObligations getObligations() {
     return Objects.requireNonNull(obligations);
-  }
-
-  @Override
-  public String toString() {
-    return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
-      index == 0 ? null : "i=" + index,
-      current == null || current.isTrue() ? null : "C=" + current,
-      next.length <= 0 ? null : "N=" + Arrays.toString(next));
   }
 
   @Override
@@ -118,5 +90,27 @@ public final class DegeneralizedBreakpointState {
   @Override
   public int hashCode() {
     return hashCode;
+  }
+
+  @Override
+  public EquivalenceClass language() {
+    if (language == null) {
+      assert safety != null && current != null && obligations != null;
+      language = safety.and(current).and(obligations.language());
+
+      for (EquivalenceClass clazz : next) {
+        language = language.and(clazz);
+      }
+    }
+
+    return language;
+  }
+
+  @Override
+  public String toString() {
+    return obligations + StringUtil.join(safety == null || safety.isTrue() ? null : "GWR=" + safety,
+      index == 0 ? null : "i=" + index,
+      current == null || current.isTrue() ? null : "C=" + current,
+      next.length <= 0 ? null : "N=" + Arrays.toString(next));
   }
 }

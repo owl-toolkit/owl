@@ -422,7 +422,7 @@ public final class DeterministicConstructions {
       super(factories, unfold);
       Preconditions.checkArgument(SyntacticFragments.isGCoSafety(formula)
         && !(Util.unwrap(formula) instanceof FOperator)
-        && !(SyntacticFragment.FINITE.contains(Util.unwrap(formula))));
+        && !SyntacticFragment.FINITE.contains(Util.unwrap(formula)));
       this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
     }
 

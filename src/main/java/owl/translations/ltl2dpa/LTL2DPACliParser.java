@@ -23,9 +23,7 @@ import static owl.run.modules.OwlModuleParser.TransformerParser;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
 import java.util.EnumSet;
@@ -70,8 +68,7 @@ public final class LTL2DPACliParser implements TransformerParser {
     if (commandLine.hasOption(AbstractLTL2LDBAModule.simple().getOpt())) {
       configuration = EnumSet.noneOf(Configuration.class);
     } else {
-      configuration = EnumSet.of(EXISTS_SAFETY_CORE, OPTIMISED_STATE_STRUCTURE,
-        OPTIMISE_INITIAL_STATE);
+      configuration = EnumSet.of(OPTIMISE_INITIAL_STATE);
     }
 
     if (commandLine.hasOption("complement")) {

@@ -58,7 +58,7 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.ldba2dpa.FlatRankingState;
+import owl.translations.ltl2dpa.FlatRankingState;
 import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {

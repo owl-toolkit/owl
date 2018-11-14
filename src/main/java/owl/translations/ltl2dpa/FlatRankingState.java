@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ldba2dpa;
+package owl.translations.ltl2dpa;
 
 import java.util.List;
 import org.immutables.value.Value;
@@ -41,7 +41,7 @@ public abstract class FlatRankingState<S, T> implements AnnotatedState<S> {
   }
 
   public static <S, T> FlatRankingState<S, T> of(S state, List<T> ranking, int safetyProgress) {
-    assert Collections3.isDistinct(ranking);
+    assert Collections3.isDistinct(ranking) : "The following list is not distinct: " + ranking;
     return FlatRankingStateTuple.create(state, ranking, safetyProgress);
   }
 

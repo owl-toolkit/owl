@@ -17,7 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
-package owl.translations.ldba2dra;
+package owl.translations.ltl2dra;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import java.util.Map;
+import org.immutables.value.Value;
+import owl.automaton.util.AnnotatedState;
+import owl.util.annotation.HashedTuple;
+
+@Value.Immutable
+@HashedTuple
+public abstract class MapRankingState<S, K, V> implements AnnotatedState<S> {
+  @Override
+  public abstract S state();
+
+  abstract Map<K, V> componentMap();
+
+
+  static <S, T, K> MapRankingState<S, K, T> of(S state) {
+    return of(state, Map.of());
+  }
+
+  static <S, T, K> MapRankingState<S, K, T> of(S state, Map<K, T> ranking) {
+    return MapRankingStateTuple.create(state, ranking);
+  }
+
+
+  @Override
+  public String toString() {
+    return String.format("|%s :: %s|", state(), componentMap());
+  }
+}

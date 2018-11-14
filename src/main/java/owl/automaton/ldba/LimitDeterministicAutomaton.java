@@ -21,7 +21,6 @@ package owl.automaton.ldba;
 
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
@@ -31,7 +30,6 @@ public interface LimitDeterministicAutomaton<S, T, U extends GeneralizedBuchiAcc
 
   Automaton<T, U> acceptingComponent();
 
-  @Nullable
   V annotation(T key);
 
   Set<V> components();

@@ -26,7 +26,6 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_CO
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -54,26 +53,21 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.run.Environment;
-import owl.translations.ldba2dpa.FlatRankingAutomaton;
-import owl.translations.ldba2dpa.FlatRankingState;
 import owl.translations.ltl2ldba.LTL2LDBAFunction;
-import owl.translations.ltl2ldba.RecurringObligation;
 import owl.translations.ltl2ldba.SafetyDetector;
 import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
-import owl.translations.ltl2ldba.breakpoint.EquivalenceClassLanguageLattice;
 import owl.translations.ltl2ldba.breakpoint.GObligations;
 import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
-import owl.translations.ltl2ldba.breakpointfree.BooleanLattice;
 import owl.translations.ltl2ldba.breakpointfree.FGObligations;
 import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
   public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
-    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
     COMPRESS_COLOURS);
 
   public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(GUESS_F,
-    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
     COMPRESS_COLOURS);
 
   private static final int GREEDY_WAITING_TIME_SEC = 7;
@@ -93,11 +87,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
       LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
       LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS,
-      LTL2LDBAFunction.Configuration.SUPPRESS_JUMPS);
-
-    if (configuration.contains(OPTIMISED_STATE_STRUCTURE)) {
-      ldbaConfiguration.add(LTL2LDBAFunction.Configuration.OPTIMISED_STATE_STRUCTURE); // NOPMD
-    }
+      LTL2LDBAFunction.Configuration.SPECIAL_DPA_JUMP_SUPPRESSION_HACK);
 
     translatorBreakpointFree =
       LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaConfiguration);
@@ -242,11 +232,9 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     var factory = ldba.initialComponent().onlyInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
-      new EquivalenceClassLanguageLattice(factory),
-      x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
-      true,
+      x -> SafetyDetector.hasSafetyCore(x, true),
       configuration.contains(OPTIMISE_INITIAL_STATE),
-      RecurringObligation::compareTo);
+      false);
 
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));
@@ -262,18 +250,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     var factory = ldba.initialComponent().onlyInitialState().factory();
     var automaton = FlatRankingAutomaton.of(ldba,
-      new BooleanLattice(),
-      x -> SafetyDetector.hasSafetyCore(x, configuration.contains(EXISTS_SAFETY_CORE)),
-      true,
+      x -> SafetyDetector.hasSafetyCore(x, true),
       configuration.contains(OPTIMISE_INITIAL_STATE),
-      RecurringObligation::compareTo);
+       true);
 
     return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
       configuration.contains(COMPRESS_COLOURS));
   }
 
   public enum Configuration {
-    OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
     COMPLETE, GUESS_F, GREEDY, COMPRESS_COLOURS
   }
 

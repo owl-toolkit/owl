@@ -57,7 +57,7 @@ public final class EmptinessCheck {
     for (Edge<S> edge : automaton.edges(q)) {
       S successor = edge.successor();
       if ((infIndex == -1 || edge.inSet(infIndex))
-        && (!inSet(edge, finIndex, allFinIndicesBelow))) {
+        && !inSet(edge, finIndex, allFinIndicesBelow)) {
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
           visitedStates, visitedAcceptingStates, infIndex,
           finIndex, true, allFinIndicesBelow)) {

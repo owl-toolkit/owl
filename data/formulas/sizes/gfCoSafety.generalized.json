@@ -1306,6 +1306,206 @@
     "formula": "F(a \u0026 (((b \u0026 (((!c | d | X(((d | e)) R (!f)))) W (e)))) R ((!e \u0026 F(b \u0026 (!c | d | X((d) R (!f))))))))"
   },
   {
+    "formula": "GF(a \u0026 ((a) U (b)))",
+    "properties": {
+      "size": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "FG(!a | ((!a) R (!b)))"
+  },
+  {
+    "formula": "GF(a \u0026 XFb)",
+    "properties": {
+      "size": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "FG(!a | XG!b)"
+  },
+  {
+    "formula": "F((a | Gb) \u0026 (c | Gd) \u0026 (e | Gf))"
+  },
+  {
+    "formula": "G((!a \u0026 F!b) | (!c \u0026 F!d) | (!e \u0026 F!f))"
+  },
+  {
+    "formula": "((Xa) R (((((Gb) R (c))) W (d))))"
+  },
+  {
+    "formula": "((X!a) U (((((F!b) U (!c))) M (!d))))"
+  },
+  {
+    "formula": "(Gc | G(Xb | XXa))"
+  },
+  {
+    "formula": "(F!c \u0026 F(X!b \u0026 XX!a))"
+  },
+  {
+    "formula": "(Gc | XG(b | Xa))"
+  },
+  {
+    "formula": "(F!c \u0026 XF(!b \u0026 X!a))"
+  },
+  {
+    "formula": "G(G!b | (a \u0026 b \u0026 X(a | b)))"
+  },
+  {
+    "formula": "F(Fb \u0026 (!a | !b | X(!a \u0026 !b)))"
+  },
+  {
+    "formula": "G(FG!b | F(a \u0026 GFb))"
+  },
+  {
+    "formula": "F(GFb \u0026 G(!a | FG!b))"
+  },
+  {
+    "formula": "(FG!b | GFa)"
+  },
+  {
+    "formula": "(FG!a \u0026 GFb)"
+  },
+  {
+    "formula": "FG(F(a \u0026 ((!a \u0026 c) | Fa) \u0026 GFb) | F(FG!b \u0026 (!a | ((a | !c) \u0026 G!a))))"
+  },
+  {
+    "formula": "GF(G(!a | ((a | !c) \u0026 G!a) | FG!b) \u0026 G(GFb | (a \u0026 ((!a \u0026 c) | Fa))))"
+  },
+  {
+    "formula": "((GFa \u0026 GFb) | (FG!b \u0026 (GF!a | (FG!a \u0026 GF!c))))"
+  },
+  {
+    "formula": "((FG!a | FG!b) \u0026 (GFb | (FGa \u0026 (FGc | GFa))))"
+  },
+  {
+    "formula": "(GFa \u0026 FG((a) U (b)))"
+  },
+  {
+    "formula": "(FG!a | GF((!a) R (!b)))"
+  },
+  {
+    "formula": "(GFa \u0026 GFb \u0026 FG(a | b))"
+  },
+  {
+    "formula": "(FG!a | FG!b | GF(!a \u0026 !b))"
+  },
+  {
+    "formula": "((Ga | Gb | Gc) \u0026 (FGd | GFe | GFf) \u0026 (FG!e | GF!d | GFf))"
+  },
+  {
+    "formula": "((F!a \u0026 F!b \u0026 F!c) | (FGd \u0026 FG!f \u0026 GFe) | (FG!e \u0026 FG!f \u0026 GF!d))"
+  },
+  {
+    "formula": "XG(a | Fb)"
+  },
+  {
+    "formula": "XF(!a \u0026 G!b)"
+  },
+  {
+    "formula": "(FGb | FGc | GFa)"
+  },
+  {
+    "formula": "(FG!a \u0026 GF!b \u0026 GF!c)"
+  },
+  {
+    "formula": "(FG!c | FG!d | (GFa \u0026 GFb))"
+  },
+  {
+    "formula": "(GFc \u0026 GFd \u0026 (FG!a | FG!b))"
+  },
+  {
+    "formula": "(Ga | XXXb)"
+  },
+  {
+    "formula": "(F!a \u0026 XXX!b)"
+  },
+  {
+    "formula": "((FGb | GFa) \u0026 (FGd | GFc) \u0026 (FGf | GFe))"
+  },
+  {
+    "formula": "((FG!a \u0026 GF!b) | (FG!c \u0026 GF!d) | (FG!e \u0026 GF!f))"
+  },
+  {
+    "formula": "G((a \u0026 X!a) | X((a) U ((a \u0026 !b \u0026 X(a \u0026 b \u0026 ((a) U ((a \u0026 !b \u0026 X(a \u0026 b)))))))))"
+  },
+  {
+    "formula": "F((!a | Xa) \u0026 X((!a) R ((!a | b | X(!a | !b | ((!a) R ((!a | b | X(!a | !b)))))))))"
+  },
+  {
+    "formula": "(Ga | ((a) U (b)))"
+  },
+  {
+    "formula": "(F!a \u0026 ((!a) R (!b)))"
+  },
+  {
+    "formula": "(b | (Fb \u0026 Ga))"
+  },
+  {
+    "formula": "(!b \u0026 (F!a | G!b))"
+  },
+  {
+    "formula": "(GF!a \u0026 GFd \u0026 G(Fb | FGc) \u0026 GF(b \u0026 X!c))"
+  },
+  {
+    "formula": "(FGa | FG!d | F(G!b \u0026 GF!c) | FG(!b | Xc))"
+  },
+  {
+    "formula": "(GF!a \u0026 GFd \u0026 (FGc | GFb) \u0026 GF(b \u0026 X!c))"
+  },
+  {
+    "formula": "(FGa | FG!d | (FG!b \u0026 GF!c) | FG(!b | Xc))"
+  },
+  {
+    "formula": "(((G!b \u0026 X!a)) R (!a))"
+  },
+  {
+    "formula": "(((Fb | Xa)) U (a))"
+  },
+  {
+    "formula": "X(a \u0026 X(b \u0026 XGc))"
+  },
+  {
+    "formula": "X(!a | X(!b | XF!c))"
+  },
+  {
+    "formula": "((GXc \u0026 FG((a) U (b))) | (XXf \u0026 FGX((d) U (e))))"
+  },
+  {
+    "formula": "((FX!c | GF((!a) R (!b))) \u0026 (XX!f | GFX((!d) R (!e))))"
+  },
+  {
+    "formula": "((GFb \u0026 XGc \u0026 FG(a | b)) | (GFe \u0026 XXf \u0026 FG(d | e)))"
+  },
+  {
+    "formula": "((FG!b | XF!c | GF(!a \u0026 !b)) \u0026 (FG!e | XX!f | GF(!d \u0026 !e)))"
+  },
+  {
+    "formula": "(GFa | (G(b | X!a) \u0026 G(!b | Xa)))"
+  },
+  {
+    "formula": "(FG!a \u0026 (F(b \u0026 X!a) | F(!b \u0026 Xa)))"
+  },
+  {
+    "formula": "(Ga | XGb)"
+  },
+  {
+    "formula": "(F!a \u0026 XF!b)"
+  },
+  {
+    "formula": "XFGa"
+  },
+  {
+    "formula": "XGF!a"
+  },
+  {
     "formula": "G(Fa | GFb | FG(a | b))"
   },
   {
@@ -1588,12 +1788,6 @@
     "formula": "(F!c | GF!d | (G!a \u0026 XG!b))"
   },
   {
-    "formula": "G((a \u0026 X!a) | X((a) U ((a \u0026 !b \u0026 X(a \u0026 b \u0026 ((a) U ((a \u0026 !b \u0026 X(a \u0026 b)))))))))"
-  },
-  {
-    "formula": "F((!a | Xa) \u0026 X((!a) R ((!a | b | X(!a | !b | ((!a) R ((!a | b | X(!a | !b)))))))))"
-  },
-  {
     "formula": "G(!a | G(!b | XG!d) | (((!b | c | X(G(c | !d) | ((!c) U ((c \u0026 (c | !d))))))) U ((c | e))))"
   },
   {
@@ -1697,32 +1891,6 @@
     "formula": "(G!c \u0026 F(!a \u0026 Xb))"
   },
   {
-    "formula": "GF(a \u0026 ((a) U (b)))",
-    "properties": {
-      "size": 2,
-      "acceptanceName": "BuchiAcceptance",
-      "acceptanceSets": 1,
-      "complete": true,
-      "deterministic": true
-    }
-  },
-  {
-    "formula": "FG(!a | ((!a) R (!b)))"
-  },
-  {
-    "formula": "GF(a \u0026 XFb)",
-    "properties": {
-      "size": 2,
-      "acceptanceName": "BuchiAcceptance",
-      "acceptanceSets": 1,
-      "complete": true,
-      "deterministic": true
-    }
-  },
-  {
-    "formula": "FG(!a | XG!b)"
-  },
-  {
     "formula": "((Ga) U ((b \u0026 GFb)))"
   },
   {
@@ -1751,12 +1919,6 @@
   },
   {
     "formula": "F(!a \u0026 G(!b | X!c))"
-  },
-  {
-    "formula": "(((Fb | Xa)) U (a))"
-  },
-  {
-    "formula": "(((G!b \u0026 X!a)) R (!a))"
   },
   {
     "formula": "(a | G(b | (a \u0026 Fb)))"

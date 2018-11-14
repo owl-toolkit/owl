@@ -21,11 +21,15 @@ package owl.translations.ltl2ldba.breakpointfree;
 
 import java.util.Objects;
 import javax.annotation.Nullable;
+import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.FOperator;
+import owl.ltl.GOperator;
+import owl.ltl.LtlLanguageExpressible;
 import owl.translations.canonical.RoundRobinState;
 import owl.util.StringUtil;
 
-public final class AcceptingComponentState {
+public final class AcceptingComponentState implements LtlLanguageExpressible {
 
   @Nullable
   final EquivalenceClass safety;
@@ -56,13 +60,6 @@ public final class AcceptingComponentState {
   }
 
   @Override
-  public String toString() {
-    return obligations + StringUtil.join(
-      safety == null || safety.isTrue() ? null : "GWR=" + safety,
-      liveness == null ? null : "FUM=" + liveness);
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -82,5 +79,20 @@ public final class AcceptingComponentState {
   @Override
   public int hashCode() {
     return hashCode;
+  }
+
+  @Override
+  public EquivalenceClass language() {
+    var factory = safety.factory();
+    var liveness = Conjunction.of(obligations.rewrittenOperators.stream()
+      .filter(FOperator.class::isInstance).map(GOperator::new));
+    return safety.and(factory.of(liveness));
+  }
+
+  @Override
+  public String toString() {
+    return obligations + StringUtil.join(
+      safety == null || safety.isTrue() ? null : "GWR=" + safety,
+      liveness == null ? null : "FUM=" + liveness);
   }
 }

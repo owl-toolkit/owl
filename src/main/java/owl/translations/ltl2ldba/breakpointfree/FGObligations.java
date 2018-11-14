@@ -22,12 +22,10 @@ package owl.translations.ltl2ldba.breakpointfree;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -47,9 +45,10 @@ public final class FGObligations implements RecurringObligation {
   final Set<FOperator> fOperators;
   final Set<GOperator> gOperators;
   final Set<UnaryModalOperator> rewrittenOperators;
-  final DeterministicConstructions.Safety safetyAutomaton;
+
   @Nullable
   final DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
+  final DeterministicConstructions.Safety safetyAutomaton;
 
   private FGObligations(Set<FOperator> fOperators, Set<GOperator> gOperators,
     DeterministicConstructions.Safety safetyAutomaton,
@@ -63,7 +62,6 @@ public final class FGObligations implements RecurringObligation {
   }
 
   @Nullable
-  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   static FGObligations build(Set<FOperator> fOperators1, Set<GOperator> gOperators1,
     Factories factories, boolean unfold, boolean generalized) {
 
@@ -156,27 +154,30 @@ public final class FGObligations implements RecurringObligation {
     }
 
     FGObligations that = (FGObligations) o;
-    return fOperators.equals(that.fOperators)
-      && gOperators.equals(that.gOperators);
+    return fOperators.equals(that.fOperators) && gOperators.equals(that.gOperators);
   }
 
   @Override
-  public EquivalenceClass getLanguage() {
-    EquivalenceClassFactory factory = safetyAutomaton.onlyInitialState().factory();
-    return factory.of(Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of)));
+  public EquivalenceClass language() {
+    var factory = safetyAutomaton.onlyInitialState().factory();
+    return factory.of(
+      Conjunction.of(Collections2.transform(rewrittenOperators, GOperator::of))).unfold();
+  }
+
+  @Override
+  public boolean isSafety() {
+    return gfCoSafetyAutomaton == null;
+  }
+
+  @Override
+  public boolean isLiveness() {
+    return safetyAutomaton.onlyInitialState().isTrue();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(fOperators, gOperators);
-  }
-
-  boolean isPureLiveness() {
-    return safetyAutomaton.onlyInitialState().isTrue();
-  }
-
-  boolean isPureSafety() {
-    return gfCoSafetyAutomaton == null;
+    int result = 31 + fOperators.hashCode();
+    return 31 * result + gOperators.hashCode();
   }
 
   @Override
@@ -187,7 +188,11 @@ public final class FGObligations implements RecurringObligation {
   @Override
   public int compareTo(RecurringObligation o) {
     FGObligations that = (FGObligations) o;
-    return Conjunction.of(Sets.union(fOperators, gOperators))
-      .compareTo(Conjunction.of(Sets.union(that.fOperators, that.gOperators)));
+    return Conjunction.of(modalOperators()).compareTo(Conjunction.of(that.modalOperators()));
+  }
+
+  @Override
+  public Set<? extends Formula.ModalOperator> modalOperators() {
+    return Sets.union(fOperators, gOperators);
   }
 }
