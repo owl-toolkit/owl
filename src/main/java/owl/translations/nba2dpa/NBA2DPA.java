@@ -24,9 +24,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
@@ -58,7 +59,6 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.ltl2dpa.FlatRankingState;
 import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {
@@ -99,8 +99,8 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
     checkArgument(ldba.initialStates().equals(ldba.initialComponent().initialStates()));
 
     var builder = new Builder<>(ldba);
-    var dpa = AutomatonFactory.create(ldba.acceptingComponent().factory(),
-      builder.initialState, builder.acceptance, builder::edge);
+    var dpa = AutomatonFactory.create(ldba.acceptingComponent().factory(), builder.initialState,
+      builder.acceptance, builder::edge);
     return optimizeInitialState(dpa);
   }
 
@@ -108,9 +108,8 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
     private static final Logger logger = Logger.getLogger(Builder.class.getName());
     private final LoadingCache<Map.Entry<Set<T>, T>, Boolean> greaterOrEqualCache;
 
-
-    ParityAcceptance acceptance;
-    final FlatRankingState<S, T> initialState;
+    private final ParityAcceptance acceptance;
+    private final FlatRankingState<S, T> initialState;
     private final LimitDeterministicAutomaton<S, T, BuchiAcceptance, Void> ldba;
 
     Builder(LimitDeterministicAutomaton<S, T, BuchiAcceptance, Void> ldba) {
@@ -123,12 +122,11 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
         .expireAfterAccess(60, TimeUnit.SECONDS)
         .build(new Loader<>(ldba.acceptingComponent()));
 
-      // Identify  safety components.
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         ParityAcceptance.Parity.MIN_ODD);
       S ldbaInitialState = ldba.initialComponent().onlyInitialState();
       initialState = FlatRankingState.of(ldbaInitialState,
-        List.copyOf(ldba.epsilonJumps(ldbaInitialState)), -1);
+        List.copyOf(ldba.epsilonJumps(ldbaInitialState)));
     }
 
     @Nullable
@@ -136,7 +134,7 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
       S successor;
 
       { // We obtain the successor of the state in the initial component.
-        Edge<S> edge = ldba.initialComponent().edge(state.state(), valuation);
+        var edge = ldba.initialComponent().edge(state.state(), valuation);
 
         // The initial component moved to a rejecting sink. Thus all runs die.
         if (edge == null) {
@@ -146,62 +144,49 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
         successor = edge.successor();
       }
 
-      List<T> previousRanking = state.ranking();
-      // We compute the relevant accepting components, which we can jump to.
-      Set<T> existingLanguages = Set.of();
-
       // Default rejecting color.
-      int edgeColor = 2 * previousRanking.size();
-      List<T> ranking = new ArrayList<>(previousRanking.size());
+      int edgeColor = 2 * state.ranking().size();
+      List<T> ranking = new ArrayList<>(state.ranking().size());
 
-      { // Compute componentMap successor
-        ListIterator<T> iterator = previousRanking.listIterator();
+      ListIterator<T> iterator = state.ranking().listIterator();
+      while (iterator.hasNext()) {
+        var rankingEdge = ldba.acceptingComponent().edge(iterator.next(), valuation);
 
-        while (iterator.hasNext()) {
-          T previousState = iterator.next();
-          Edge<T> accEdge = ldba.acceptingComponent().edge(previousState,
-            valuation);
+        if (rankingEdge == null) {
+          edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
+          continue;
+        }
 
-          if (accEdge == null) {
-            edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
-            continue;
-          }
+        T rankingState = rankingEdge.successor();
 
-          T rankingState = accEdge.successor();
+        if (languageContainedIn(rankingState, ranking)) {
+          edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
+          continue;
+        }
 
-          if (languageContainedIn(rankingState, existingLanguages)) {
-            edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
-            continue;
-          }
+        ranking.add(rankingState);
 
-          existingLanguages
-            = Set.copyOf(Sets.union(existingLanguages, Set.of(rankingState)));
-          ranking.add(rankingState);
-
-          if (accEdge.inSet(0)) {
-            edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
-          }
+        if (rankingEdge.inSet(0)) {
+          edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
         }
       }
 
       logger.log(Level.FINER, "Ranking before extension: {0}.", ranking);
 
-      // Extend the componentMap
       for (T accState : ldba.epsilonJumps(successor)) {
-        if (!languageContainedIn(accState, existingLanguages)) {
+        if (!languageContainedIn(accState, ranking)) {
           ranking.add(accState);
         }
       }
 
       logger.log(Level.FINER, "Ranking after extension: {0}.", ranking);
-      Edge<FlatRankingState<S, T>> edge = Edge
-        .of(FlatRankingState.of(successor, ranking, -1), edgeColor);
 
-      assert edge.largestAcceptanceSet() < acceptance.acceptanceSets();
-      return edge;
+      var dpaEdge = Edge.of(FlatRankingState.of(successor, ranking), edgeColor);
+      assert dpaEdge.largestAcceptanceSet() < acceptance.acceptanceSets();
+      return dpaEdge;
     }
 
-    boolean languageContainedIn(T language2, Set<T> language1) {
+    boolean languageContainedIn(T language2, Collection<T> language1) {
       if (language1.contains(language2)) {
         return true;
       }
@@ -210,7 +195,7 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
         return false;
       }
 
-      return greaterOrEqualCache.getUnchecked(Map.entry(language1, language2));
+      return greaterOrEqualCache.getUnchecked(Map.entry(Set.copyOf(language1), language2));
     }
   }
 
@@ -239,9 +224,7 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
     return automaton;
   }
 
-  private static final class Loader<S>
-    extends CacheLoader<Map.Entry<Set<S>, S>, Boolean> {
-
+  private static final class Loader<S> extends CacheLoader<Map.Entry<Set<S>, S>, Boolean> {
     private final Automaton<S, BuchiAcceptance> automaton;
 
     Loader(Automaton<S, BuchiAcceptance> automaton) {
@@ -256,13 +239,9 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
     }
 
     private Automaton<List<S>, BuchiAcceptance> union(Set<S> initialStates) {
-      List<Automaton<S, BuchiAcceptance>> automata = new ArrayList<>();
-
-      for (S initialState : initialStates) {
-        automata.add(Views.replaceInitialState(automaton, Set.of(initialState)));
-      }
-
-      return AutomatonUtil.cast(AutomatonOperations.union(automata), BuchiAcceptance.class);
+      return AutomatonUtil.cast(AutomatonOperations.union(initialStates.stream()
+        .map(initialState -> Views.replaceInitialState(automaton, Set.of(initialState)))
+        .collect(Collectors.toList())), BuchiAcceptance.class);
     }
   }
 }
