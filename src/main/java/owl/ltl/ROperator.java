@@ -58,6 +58,10 @@ public final class ROperator extends BinaryModalOperator {
       return GOperator.of(rightOperand);
     }
 
+    if (leftOperand instanceof ROperator && rightOperand.equals(((ROperator) leftOperand).right)) {
+      return leftOperand;
+    }
+
     return new ROperator(leftOperand, rightOperand);
   }
 

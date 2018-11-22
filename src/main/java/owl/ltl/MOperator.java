@@ -59,6 +59,10 @@ public final class MOperator extends BinaryModalOperator {
       return FOperator.of(leftOperand);
     }
 
+    if (leftOperand instanceof MOperator && rightOperand.equals(((MOperator) leftOperand).right)) {
+      return leftOperand;
+    }
+
     return new MOperator(leftOperand, rightOperand);
   }
 

@@ -4662,7 +4662,7 @@
   {
     "formula": "G(a | ((a) U (((a) U (b)))))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
