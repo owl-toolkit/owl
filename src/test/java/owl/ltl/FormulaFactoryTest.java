@@ -81,6 +81,7 @@ class FormulaFactoryTest {
 
     List.of("a M a", "a"),
     List.of("(F a) M b", "(F a) & b"),
+    List.of("(a M b) M b", "a M b"),
 
     // ** U **
     List.of("true U a", "F a"),
@@ -90,6 +91,7 @@ class FormulaFactoryTest {
 
     List.of("a U a", "a"),
     List.of("a U F b", "F b"),
+    List.of("a U (a U b)", "a U b"),
 
     // ** R **
     List.of("true R a", "a"),
@@ -99,6 +101,7 @@ class FormulaFactoryTest {
 
     List.of("a R a", "a"),
     List.of("a R G b", "G b"),
+    List.of("(a R b) R b", "a R b"),
 
     // ** W **
     List.of("true W a", "true"),
@@ -107,7 +110,8 @@ class FormulaFactoryTest {
     List.of("a W false", "G a"),
 
     List.of("a W a", "a"),
-    List.of("(G a) W b", "(G a) | b")
+    List.of("(G a) W b", "(G a) | b"),
+    List.of("a W (a W b)", "a W b")
   );
 
   private static List<List<String>> pairProvider() {

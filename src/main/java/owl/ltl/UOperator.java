@@ -58,6 +58,10 @@ public final class UOperator extends BinaryModalOperator {
       return FOperator.of(rightOperand);
     }
 
+    if (rightOperand instanceof UOperator && leftOperand.equals(((UOperator) rightOperand).left)) {
+      return rightOperand;
+    }
+
     return new UOperator(leftOperand, rightOperand);
   }
 
