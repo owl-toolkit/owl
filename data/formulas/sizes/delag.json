@@ -1682,6 +1682,26 @@
     "formula": "F(!c \u0026 ((!a) W (!b)))"
   },
   {
+    "formula": "F(a \u003c-\u003e Xa)",
+    "properties": {
+      "size": 4,
+      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "F(a \u003c-\u003e Xb)",
+    "properties": {
+      "size": 4,
+      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "FG(a | b)",
     "properties": {
       "size": 1,
@@ -1847,6 +1867,26 @@
     "formula": "G(!c | ((!a) W (!b)))",
     "properties": {
       "size": 2,
+      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "G(!a \u003c-\u003e Xa)",
+    "properties": {
+      "size": 3,
+      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "G(!a \u003c-\u003e Xb)",
+    "properties": {
+      "size": 3,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": 1,
       "complete": false,

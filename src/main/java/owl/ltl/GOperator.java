@@ -45,27 +45,14 @@ public class GOperator extends UnaryModalOperator {
    */
   @CEntryPoint
   public static Formula of(Formula operand) {
-    if (operand instanceof BooleanConstant) {
+    if (operand instanceof BooleanConstant
+      || operand instanceof GOperator
+      || operand instanceof FOperator && ((FOperator) operand).operand instanceof GOperator) {
       return operand;
     }
 
     if (operand instanceof Conjunction) {
       return Conjunction.of(((Conjunction) operand).map(GOperator::of));
-    }
-
-    if (operand instanceof Biconditional) {
-      Biconditional biconditional = (Biconditional) operand;
-      return Conjunction.of(
-        GOperator.of(Disjunction.of(biconditional.left.not(), biconditional.right)),
-        GOperator.of(Disjunction.of(biconditional.left, biconditional.right.not())));
-    }
-
-    if (operand instanceof FOperator && ((FOperator) operand).operand instanceof GOperator) {
-      return operand;
-    }
-
-    if (operand instanceof GOperator) {
-      return operand;
     }
 
     if (operand instanceof MOperator) {
@@ -117,6 +104,15 @@ public class GOperator extends UnaryModalOperator {
 
   @Override
   public Formula nnf() {
+    if (operand instanceof Biconditional) {
+      var left = ((Biconditional) operand).left.nnf();
+      var right = ((Biconditional) operand).right.nnf();
+
+      return Conjunction.of(
+        GOperator.of(Disjunction.of(left.not(), right)),
+        GOperator.of(Disjunction.of(left, right.not())));
+    }
+
     return GOperator.of(operand.nnf());
   }
 

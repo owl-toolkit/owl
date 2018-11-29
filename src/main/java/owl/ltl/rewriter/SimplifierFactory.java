@@ -20,10 +20,13 @@
 package owl.ltl.rewriter;
 
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 
 public final class SimplifierFactory {
+  private static final UnaryOperator<Formula> nnfLight = x -> x.substitute(Formula::nnf);
+
   private SimplifierFactory() {}
 
   public static Formula apply(Formula formula, Mode mode) {
@@ -53,13 +56,23 @@ public final class SimplifierFactory {
   // We only need Formula -> Formula here
   @SuppressWarnings("ImmutableEnumChecker")
   public enum Mode {
-    SYNTACTIC(new SyntacticSimplifier()),
-    SYNTACTIC_FAIRNESS(SyntacticFairnessSimplifier.NormaliseX.INSTANCE
+    SYNTACTIC(nnfLight
+      .andThen(new SyntacticSimplifier())),
+
+    SYNTACTIC_FAIRNESS(nnfLight
+      .andThen(SyntacticFairnessSimplifier.NormaliseX.INSTANCE)
       .andThen(SyntacticFairnessSimplifier.INSTANCE)),
-    SYNTACTIC_FIXPOINT(new Fixpoint(SyntacticSimplifier.INSTANCE, PullUpXVisitor.OPERATOR)),
+
+    SYNTACTIC_FIXPOINT(nnfLight
+      .andThen(new Fixpoint(SyntacticSimplifier.INSTANCE, PullUpXVisitor.OPERATOR))),
+
     PULL_UP_X(PullUpXVisitor.OPERATOR),
+
     PUSH_DOWN_X(PushDownXVisitor.OPERATOR),
-    NNF(Formula::nnf);
+
+    NNF(Formula::nnf),
+
+    NNF_LIGHT(nnfLight);
 
     private final Function<Formula, Formula> operation;
 

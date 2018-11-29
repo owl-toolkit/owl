@@ -262,7 +262,7 @@ class SafetyAutomatonTest {
   ///Small deterministic automata for LTL\GU, Section 3.
   @Test
   void testBenchmark26() {
-    testOutput("G(Fp0|F!p0) -> G(p1&Xp1&!p0&Xp0->(p2->Xp3))", 3);
+    testOutput("G(Fp0|F!p0) -> G(p1&Xp1&!p0&Xp0->(p2->Xp3))", 7);
     //Size for formula: 7, Size for negation: 3
   }
 

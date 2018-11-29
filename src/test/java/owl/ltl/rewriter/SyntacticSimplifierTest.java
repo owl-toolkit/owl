@@ -72,6 +72,9 @@ class SyntacticSimplifierTest {
     List.of("a U (G F b)", "G F b"),
     List.of("(G F a) U b", "((G F a) | b) & (F b)"),
 
+    List.of("X (!a U (a & F b))", "X F (a & F b)"),
+    List.of("X (!a W (a & F b))", "X (G !a | F (a & F b))"),
+
     // Enlarging Rules
     List.of("F (a R b)", "F (a & b) | F G b"),
     List.of("G (a U b)", "G (a | b) & G F b"),
@@ -85,7 +88,8 @@ class SyntacticSimplifierTest {
     List.of("G F (b & G b)", "(F G b)"),
 
     // Negations
-    List.of("a | !a", "true")
+    List.of("a | !a", "true"),
+    List.of("X a | X !a", "true")
   );
 
   private static Stream<Arguments> pairProvider() {

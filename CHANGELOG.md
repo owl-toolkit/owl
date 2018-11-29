@@ -2,9 +2,9 @@
 
 Translations:
 
-* Implement all LICS'18 translations for LTL fragments. Including a symbolic
+* Implemented all LICS'18 translations for LTL fragments. Including a symbolic
   successor / edge computation. The translations can be found in the canonical
-  package and are exposed via `ltl2da` and `ltl2na`. 
+  package and are exposed via `ltl2da` and `ltl2na`.
 
 API:
 
@@ -24,6 +24,18 @@ API:
   
 * Redesigned Formula classes offering substitution as part of the API instead
   of a separate visitor.
+
+* `{M,R,U,W}Operator.of(...)` added the following simplification rules:
+  1. (x M y) M y -> x M y
+  2. (x R y) R y -> x R y
+  3. x U (x U y) -> x U y
+  4. x W (x W y) -> x W y
+
+* The LTL simplifier added the following simplification rules:
+  1. x M (!x | y) and y is pure universal -> F x & G (!x | y)
+  2. x R (!x | y) and y is pure universal -> G (!x | y)
+  3. x U (!x & y) and y is pure eventual -> F (!x & y)
+  4. x W (!x & y) and y is pure eventual -> G x | F (!x & y)
 
 Bugfixes:
 

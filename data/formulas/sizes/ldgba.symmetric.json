@@ -2390,6 +2390,26 @@
     }
   },
   {
+    "formula": "F(a \u003c-\u003e Xa)",
+    "properties": {
+      "size": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "F(a \u003c-\u003e Xb)",
+    "properties": {
+      "size": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "FG(a | b)",
     "properties": {
       "size": 2,
@@ -2713,6 +2733,26 @@
     "formula": "G(a | Fb | Fc)",
     "properties": {
       "size": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "G(!a \u003c-\u003e Xa)",
+    "properties": {
+      "size": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "G(!a \u003c-\u003e Xb)",
+    "properties": {
+      "size": 3,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
@@ -4370,16 +4410,6 @@
     }
   },
   {
-    "formula": "F(!a \u0026 ((!a) R (((!a) R (!b)))))",
-    "properties": {
-      "size": 6,
-      "acceptanceName": "BuchiAcceptance",
-      "acceptanceSets": 1,
-      "complete": false,
-      "deterministic": false
-    }
-  },
-  {
     "formula": "F((!a | !b) \u0026 (G!a | Gb | G!c))",
     "properties": {
       "size": 13,
@@ -4610,6 +4640,16 @@
     }
   },
   {
+    "formula": "FG(a \u003c-\u003e Fb)",
+    "properties": {
+      "size": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "F((!a) R (XF!a))",
     "properties": {
       "size": 7,
@@ -4653,16 +4693,6 @@
     "formula": "G(a | XXb)",
     "properties": {
       "size": 4,
-      "acceptanceName": "BuchiAcceptance",
-      "acceptanceSets": 1,
-      "complete": false,
-      "deterministic": false
-    }
-  },
-  {
-    "formula": "G(a | ((a) U (((a) U (b)))))",
-    "properties": {
-      "size": 3,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
@@ -4903,6 +4933,16 @@
     "formula": "GF(G!b \u0026 G!c \u0026 X!a)",
     "properties": {
       "size": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "GF(!a \u003c-\u003e Fb)",
+    "properties": {
+      "size": 4,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
@@ -5760,6 +5800,16 @@
     }
   },
   {
+    "formula": "F(!a \u0026 G(!b | G!a))",
+    "properties": {
+      "size": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "F(!a \u0026 G(!b | X!c))",
     "properties": {
       "size": 9,
@@ -5953,6 +6003,16 @@
     "formula": "G(a | F(a \u0026 Xb))",
     "properties": {
       "size": 9,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "G(a | F(b \u0026 Fa))",
+    "properties": {
+      "size": 8,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
@@ -7380,11 +7440,31 @@
     }
   },
   {
+    "formula": "F(a \u0026 (((b \u0026 X(Fc \u0026 ((d) R ((c | !d)))) \u0026 XG(!d | G!e))) R ((!d \u0026 F(b \u0026 X(Fc \u0026 ((d) R ((c | !d)))) \u0026 X((d) R ((!c | G!e))))))))",
+    "properties": {
+      "size": 111,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "F(a \u0026 (((b \u0026 X(Fc \u0026 ((d) R ((c | !d)))) \u0026 X((d) R ((!d | G!e))))) R ((!d \u0026 F(b \u0026 X(Fc \u0026 ((d) R ((c | !d)))) \u0026 X((d) R ((!c | G!e))))))))",
     "properties": {
       "size": 125,
       "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "G(!a | (((!b | X(G!c | ((!d) U ((!c \u0026 d)))) | XF(d \u0026 Fe))) U ((d | G(!b | X(G!c | ((!d) U ((!c \u0026 d)))) | X((!d) U ((c \u0026 Fe))))))))",
+    "properties": {
+      "size": 213,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 3,
       "complete": false,
       "deterministic": false
     }
