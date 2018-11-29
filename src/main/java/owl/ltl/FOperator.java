@@ -45,27 +45,14 @@ public final class FOperator extends UnaryModalOperator {
    */
   @CEntryPoint
   public static Formula of(Formula operand) {
-    if (operand instanceof BooleanConstant) {
+    if (operand instanceof BooleanConstant
+      || operand instanceof FOperator
+      || operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator) {
       return operand;
     }
 
     if (operand instanceof Disjunction) {
       return Disjunction.of(((Disjunction) operand).map(FOperator::of));
-    }
-
-    // FIXME: This doubles the size of tree!!!
-    if (operand instanceof Biconditional) {
-      Biconditional biconditional = (Biconditional) operand;
-      return Disjunction.of(FOperator.of(Conjunction.of(biconditional.left, biconditional.right)),
-        FOperator.of(Conjunction.of(biconditional.left.not(), biconditional.right.not())));
-    }
-
-    if (operand instanceof FOperator) {
-      return operand;
-    }
-
-    if (operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator) {
-      return operand;
     }
 
     if (operand instanceof MOperator) {
@@ -117,6 +104,15 @@ public final class FOperator extends UnaryModalOperator {
 
   @Override
   public Formula nnf() {
+    if (operand instanceof Biconditional) {
+      var left = ((Biconditional) operand).left.nnf();
+      var right = ((Biconditional) operand).right.nnf();
+
+      return Disjunction.of(
+        FOperator.of(Conjunction.of(left, right)),
+        FOperator.of(Conjunction.of(left.not(), right.not())));
+    }
+
     return FOperator.of(operand.nnf());
   }
 

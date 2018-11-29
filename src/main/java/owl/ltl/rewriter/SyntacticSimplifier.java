@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import owl.collections.Collections3;
 import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
@@ -302,6 +303,26 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       return Conjunction.of(FOperator.of(left), right);
     }
 
+    if (right instanceof Disjunction) {
+      var pureUniversal = new HashSet<Formula>();
+      var other = new HashSet<Formula>();
+
+      right.children().forEach(x -> {
+        if (x.isPureUniversal()) {
+          pureUniversal.add(x);
+        } else {
+          other.add(x);
+        }
+      });
+
+      var otherDisjunction = Disjunction.of(other);
+
+      if (left.not().equals(otherDisjunction)) {
+        pureUniversal.add(otherDisjunction);
+        return Conjunction.of(FOperator.of(left), GOperator.of(Disjunction.of(pureUniversal)));
+      }
+    }
+
     if (left.isPureEventual()) {
       return Conjunction.of(left, right);
     }
@@ -320,6 +341,26 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
     if (right.isPureUniversal()) {
       return right;
+    }
+
+    if (right instanceof Disjunction) {
+      var pureUniversal = new HashSet<Formula>();
+      var other = new HashSet<Formula>();
+
+      right.children().forEach(x -> {
+        if (x.isPureUniversal()) {
+          pureUniversal.add(x);
+        } else {
+          other.add(x);
+        }
+      });
+
+      var otherDisjunction = Disjunction.of(other);
+
+      if (left.not().equals(otherDisjunction)) {
+        pureUniversal.add(otherDisjunction);
+        return GOperator.of(Disjunction.of(pureUniversal));
+      }
     }
 
     if (left.isPureEventual()) {
@@ -342,6 +383,26 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       return right;
     }
 
+    if (right instanceof Conjunction) {
+      var pureEventual = new HashSet<Formula>();
+      var other = new HashSet<Formula>();
+
+      right.children().forEach(x -> {
+        if (x.isPureEventual()) {
+          pureEventual.add(x);
+        } else {
+          other.add(x);
+        }
+      });
+
+      var otherConjunction = Conjunction.of(other);
+
+      if (left.not().equals(otherConjunction)) {
+        pureEventual.add(otherConjunction);
+        return FOperator.of(Conjunction.of(pureEventual));
+      }
+    }
+
     if (left.isPureUniversal()) {
       return Conjunction.of(Disjunction.of(left, right), FOperator.of(right));
     }
@@ -362,6 +423,26 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       return Disjunction.of(GOperator.of(left), right);
     }
 
+    if (right instanceof Conjunction) {
+      var pureEventual = new HashSet<Formula>();
+      var other = new HashSet<Formula>();
+
+      right.children().forEach(x -> {
+        if (x.isPureEventual()) {
+          pureEventual.add(x);
+        } else {
+          other.add(x);
+        }
+      });
+
+      var otherConjunction = Conjunction.of(other);
+
+      if (left.not().equals(otherConjunction)) {
+        pureEventual.add(otherConjunction);
+        return Disjunction.of(GOperator.of(left), FOperator.of(Conjunction.of(pureEventual)));
+      }
+    }
+
     if (left.isPureUniversal()) {
       return Disjunction.of(left, right);
     }
@@ -370,7 +451,6 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
   }
 
   @Override
-  @SuppressWarnings({"PMD.CompareObjectsWithEquals", "ReferenceEquality", "ObjectEquality"})
   public Formula visit(XOperator xOperator) {
     Formula operand = xOperator.operand.accept(this);
 
@@ -385,18 +465,18 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
       if (!suspendable.isEmpty()) {
         if (operand instanceof Conjunction) {
-          return Conjunction.of(Sets.union(suspendable,
-            Set.of(XOperator.of(Conjunction.of(others)))));
+          return Conjunction.of(
+            Collections3.append(suspendable, XOperator.of(Conjunction.of(others))));
         } else {
           assert operand instanceof Disjunction;
-          return Disjunction.of(Sets.union(suspendable,
-            Set.of(XOperator.of(Disjunction.of(others)))));
+          return Disjunction.of(
+            Collections3.append(suspendable, XOperator.of(Disjunction.of(others))));
         }
       }
     }
 
     // Only call constructor, when necessary.
-    if (operand == xOperator.operand) {
+    if (operand.equals(xOperator.operand)) {
       return xOperator;
     }
 

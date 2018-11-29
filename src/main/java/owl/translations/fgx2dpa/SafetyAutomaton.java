@@ -59,6 +59,7 @@ import owl.ltl.PropositionalFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
+import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.run.Environment;
@@ -67,7 +68,9 @@ public final class SafetyAutomaton {
   private SafetyAutomaton() {}
 
   public static MutableAutomaton<State, ParityAcceptance>
-  build(Environment env, LabelledFormula labelledFormula) {
+  build(Environment env, LabelledFormula labelledFormula2) {
+    var labelledFormula = labelledFormula2.wrap(SimplifierFactory
+      .apply(labelledFormula2.formula(), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
     checkArgument(SyntacticFragment.FGX.contains(labelledFormula.formula())
         && SyntacticFragment.NNF.contains(labelledFormula.formula()),
       "Formula is not from the syntactic fgx and nnf fragment.");
