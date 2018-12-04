@@ -129,7 +129,8 @@ public final class GameViews {
 
           var parityAutomaton = AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class);
           if (wrapComplete) {
-            parityAutomaton = Views.complete(parityAutomaton, new Object());
+            parityAutomaton = AutomatonUtil.cast(
+              Views.complete(parityAutomaton, new Object()), ParityAcceptance.class);
           }
 
           return GameViews.split(parityAutomaton, environmentAp);
