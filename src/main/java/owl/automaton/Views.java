@@ -92,15 +92,14 @@ public final class Views {
     throw new UnsupportedOperationException();
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> complete(Automaton<S, A> automaton,
-    S trapState) {
-    A acceptance = automaton.acceptance();
-    return new Complete<>(automaton, Edge.of(trapState, acceptance.rejectingSet()), acceptance);
-  }
+  public static <S> Automaton<S, ?> complete(Automaton<S, ?> automaton, S trapState) {
+    OmegaAcceptance acceptance = automaton.acceptance();
 
-  public static <S> Automaton<S, CoBuchiAcceptance> completeAllAcceptance(
-    Automaton<S, AllAcceptance> automaton, S trapState) {
-    return new Complete<>(automaton, Edge.of(trapState, 0), CoBuchiAcceptance.INSTANCE);
+    if (acceptance instanceof AllAcceptance) {
+      return new Complete<>(automaton, Edge.of(trapState, 0), CoBuchiAcceptance.INSTANCE);
+    }
+
+    return new Complete<>(automaton, Edge.of(trapState, acceptance.rejectingSet()), acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<Set<S>, A> createPowerSetAutomaton(
