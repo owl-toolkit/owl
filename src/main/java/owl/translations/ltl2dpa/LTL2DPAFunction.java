@@ -274,6 +274,12 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     Automaton<T, ParityAcceptance> complete() {
       var automaton = MutableAutomatonUtil.asMutable(this.automaton);
+
+      // We increase the number of sets to ensure there is at least one rejecting colour.
+      if (automaton.acceptance().acceptanceSets() < 2) {
+        automaton.acceptance(automaton.acceptance().withAcceptanceSets(2));
+      }
+
       MutableAutomatonUtil.complete(automaton, sinkState);
       return automaton;
     }
