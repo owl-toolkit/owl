@@ -27,12 +27,18 @@ import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.HOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.OOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SOperator;
+import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.YOperator;
+import owl.ltl.ZOperator;
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})
@@ -53,6 +59,12 @@ public interface BinaryVisitor<P, R> extends BiFunction<Formula, P, R> {
   default R visit(ROperator rOperator, P parameter)             { throw uoe(rOperator);       }
   default R visit(WOperator wOperator, P parameter)             { throw uoe(wOperator);       }
   default R visit(XOperator xOperator, P parameter)             { throw uoe(xOperator);       }
+  default R visit(OOperator oOperator, P parameter)             { throw uoe(oOperator);       }
+  default R visit(HOperator hOperator, P parameter)             { throw uoe(hOperator);       }
+  default R visit(TOperator tOperator, P parameter)             { throw uoe(tOperator);       }
+  default R visit(SOperator sOperator, P parameter)             { throw uoe(sOperator);       }
+  default R visit(YOperator yOperator, P parameter)             { throw uoe(yOperator);       }
+  default R visit(ZOperator zOperator, P parameter)             { throw uoe(zOperator);       }
 
   private static UnsupportedOperationException uoe(Formula formula) {
     return new UnsupportedOperationException("No action defined for " + formula.getClass());
