@@ -28,12 +28,18 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
+import owl.ltl.HOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.OOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SOperator;
+import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.YOperator;
+import owl.ltl.ZOperator;
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})
@@ -55,6 +61,12 @@ public interface IntVisitor extends ToIntFunction<Formula> {
   default int visit(UOperator uOperator)             { throw uoe(uOperator);       }
   default int visit(WOperator wOperator)             { throw uoe(wOperator);       }
   default int visit(XOperator xOperator)             { throw uoe(xOperator);       }
+  default int visit(OOperator oOperator)             { throw uoe(oOperator);       }
+  default int visit(HOperator hOperator)             { throw uoe(hOperator);       }
+  default int visit(TOperator tOperator)             { throw uoe(tOperator);       }
+  default int visit(SOperator sOperator)             { throw uoe(sOperator);       }
+  default int visit(YOperator yOperator)             { throw uoe(yOperator);       }
+  default int visit(ZOperator zOperator)             { throw uoe(zOperator);       }
 
   private static UnsupportedOperationException uoe(Formula formula) {
     return new UnsupportedOperationException("No action defined for " + formula.getClass());

@@ -45,7 +45,13 @@ public abstract class Formula implements Comparable<Formula> {
     MOperator.class,
     ROperator.class,
     UOperator.class,
-    WOperator.class);
+    WOperator.class,
+    OOperator.class,
+    HOperator.class,
+    SOperator.class,
+    TOperator.class,
+    YOperator.class,
+    ZOperator.class);
 
   private final int hashCode;
 
