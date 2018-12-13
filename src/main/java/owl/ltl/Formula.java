@@ -30,6 +30,7 @@ import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.Visitor;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public abstract class Formula implements Comparable<Formula> {
 
   private static final List<Class<? extends Formula>> ORDER = List.of(
@@ -42,16 +43,16 @@ public abstract class Formula implements Comparable<Formula> {
     FrequencyG.class,
     GOperator.class,
     XOperator.class,
-    MOperator.class,
-    ROperator.class,
-    UOperator.class,
-    WOperator.class,
-    OOperator.class,
+    YOperator.class,
+    ZOperator.class,
     HOperator.class,
+    MOperator.class,
+    OOperator.class,
+    ROperator.class,
     SOperator.class,
     TOperator.class,
-    YOperator.class,
-    ZOperator.class);
+    UOperator.class,
+    WOperator.class);
 
   private final int hashCode;
 

@@ -19,9 +19,9 @@
 
 package owl.ltl.parser;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.grammar.SPECTRAParser.AdditiveContext;
@@ -61,11 +61,11 @@ import owl.ltl.parser.SpectraParser.SpectraBoolean;
 import owl.ltl.parser.SpectraParser.SpectraType;
 
 final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
-  private final HashMap<String, HigherOrderExpression> variables;
-  private final HashSet<String> typeConstants;
+  private final Map<String, HigherOrderExpression> variables;
+  private final Set<String> typeConstants;
 
-  SpectraParseTreeVisitor(HashMap<String, HigherOrderExpression> variables,
-                          HashSet<String> typeConstants) {
+  SpectraParseTreeVisitor(Map<String, HigherOrderExpression> variables,
+                          Set<String> typeConstants) {
     this.variables = variables;
     this.typeConstants = typeConstants;
   }
