@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -63,7 +64,7 @@ import owl.util.annotation.CEntryPoint;
 
 public final class SpectraParser {
   private static int offset = 0;
-  private static HashSet<String> typeConstants = new HashSet<>();
+  private static Set<String> typeConstants = new HashSet<>();
 
   private SpectraParser() {}
 
@@ -107,12 +108,9 @@ public final class SpectraParser {
 
       if (typeDefC != null) {
         String typeName = typeDefC.name.getText();
-        if (typeDefC.type.type != null) {
-          String typeRefName = typeDefC.type.type.getText();
-          if (!types.containsKey(typeRefName)) {
-            unresolvedTypeDefs.add(typeDefC);
-            continue;
-          }
+        if (typeDefC.type.type != null && !types.containsKey(typeDefC.type.type.getText())) {
+          unresolvedTypeDefs.add(typeDefC);
+          continue;
         }
         int[] dims = getDimensions(typeDefC.type.dimensions);
         SpectraType type = constructTypes(typeDefC.type);
@@ -126,9 +124,7 @@ public final class SpectraParser {
     while (!unresolvedTypeDefs.isEmpty()) {
       TypeDefContext typeDefC = unresolvedTypeDefs.poll();
       String typeRefName = typeDefC.type.type.getText();
-      if (!types.containsKey(typeRefName)) {
-        unresolvedTypeDefs.add(typeDefC);
-      } else {
+      if (types.containsKey(typeRefName)) {
         String typeName = typeDefC.name.getText();
         int[] dims = getDimensions(typeDefC.type.dimensions);
         SpectraType type = constructTypeFromType(types.get(typeRefName));
@@ -136,6 +132,8 @@ public final class SpectraParser {
           type = new SpectraArray(type, dims);
         }
         types.put(typeName, type);
+      } else {
+        unresolvedTypeDefs.add(typeDefC);
       }
     }
     //</editor-fold>
@@ -156,9 +154,9 @@ public final class SpectraParser {
           outputs.add(varName);
         }
         int[] dims = getDimensions(varDefC.var.type.dimensions);
-        SpectraType type = (varDefC.var.type.type != null)
-          ? (SpectraType) types.get(varDefC.var.type.type.getText()) :
-          constructTypes(varDefC.var.type);
+        SpectraType type = (varDefC.var.type.type == null)
+          ? constructTypes(varDefC.var.type) :
+          (SpectraType) types.get(varDefC.var.type.type.getText());
         if (dims.length > 0) {
           type = new SpectraArray(type, dims);
         }
@@ -184,22 +182,22 @@ public final class SpectraParser {
         Formula formula = treeVisitor.visit(ltlC);
 
         if (ltlC.safety != null || ltlC.stateInv != null) {
-          if (ltlC.ASM() != null) {
-            safetyEnv.add(formula);
-          } else {
+          if (ltlC.ASM() == null) {
             safetySys.add(formula);
+          } else {
+            safetyEnv.add(formula);
           }
         } else if (ltlC.justice != null) {
-          if (ltlC.ASM() != null) {
-            livenessEnv.add(formula);
-          } else {
+          if (ltlC.ASM() == null) {
             livenessSys.add(formula);
+          } else {
+            livenessEnv.add(formula);
           }
         } else {
-          if (ltlC.ASM() != null) {
-            initialEnv.add(formula);
-          } else {
+          if (ltlC.ASM() == null) {
             initialSys.add(formula);
+          } else {
+            initialEnv.add(formula);
           }
         }
       }
@@ -207,12 +205,12 @@ public final class SpectraParser {
     //</editor-fold>
 
     //TODO: return one formula
-    Formula initialE = Conjunction.of(initialEnv.stream());
-    Formula initialS = Conjunction.of(initialSys.stream());
-    Formula safetyE = Conjunction.of(safetyEnv.stream());
-    Formula safetyS = Conjunction.of(safetySys.stream());
-    Formula livenessE = Conjunction.of(livenessEnv.stream());
-    Formula livenessS = Conjunction.of(livenessSys.stream());
+    Formula initialE = Conjunction.of(initialEnv);
+    Formula initialS = Conjunction.of(initialSys);
+    Formula safetyE = Conjunction.of(safetyEnv);
+    Formula safetyS = Conjunction.of(safetySys);
+    Formula livenessE = Conjunction.of(livenessEnv);
+    Formula livenessS = Conjunction.of(livenessSys);
 
     Formula part1 = Disjunction.of(livenessE.not(), livenessS);
     Formula part2 = Conjunction.of(GOperator.of(safetyE), part1);
@@ -278,10 +276,12 @@ public final class SpectraParser {
       throw new ParseCancellationException("Unknown type of referenced type");
     }
 
-    for (int i = offset; i < offset + type.width(); i++) {
+    int width = (type instanceof SpectraArray)
+      ? ((SpectraArray) type).component.width() : type.width();
+    for (int i = offset; i < offset + width; i++) {
       Literal.of(i);
     }
-    offset += type.width();
+    offset += width;
 
     return type;
   }
@@ -383,7 +383,7 @@ public final class SpectraParser {
 
     @Override
     public SpectraBooleanConstant of(String value) {
-      boolean val = !value.equals("false");
+      boolean val = !"false".equals(value);
       return new SpectraBooleanConstant(this, val);
     }
 
@@ -475,10 +475,10 @@ public final class SpectraParser {
     @Override
     public Formula getBit(int i) {
       Literal literal = Literal.of(type.offset + i);
-      if ((element & (1 << i)) != 0) {
-        return literal;
-      } else {
+      if ((element & (1 << i)) == 0) {
         return literal.not();
+      } else {
+        return literal;
       }
     }
 
@@ -510,10 +510,10 @@ public final class SpectraParser {
     @Override
     public Formula getBit(int i) {
       Literal literal = Literal.of(type.offset + i);
-      if ((element & (1 << i)) != 0) {
-        return literal;
-      } else {
+      if ((element & (1 << i)) == 0) {
         return literal.not();
+      } else {
+        return literal;
       }
     }
 
@@ -719,7 +719,7 @@ public final class SpectraParser {
       for (int i = 0; i < width; i++) {
         conjuncts.add(getBit(i));
       }
-      return Conjunction.of(conjuncts.stream());
+      return Conjunction.of(conjuncts);
     }
 
     @Override
@@ -755,7 +755,7 @@ public final class SpectraParser {
       for (int i = 0; i < width; i++) {
         disjuncts.add(getBit(i));
       }
-      return Disjunction.of(disjuncts.stream());
+      return Disjunction.of(disjuncts);
     }
 
     @Override
@@ -791,7 +791,7 @@ public final class SpectraParser {
       for (int i = 0; i < width; i++) {
         disjuncts.add(getBit(i));
       }
-      return Disjunction.of(disjuncts.stream());
+      return Disjunction.of(disjuncts);
     }
 
     @Override
