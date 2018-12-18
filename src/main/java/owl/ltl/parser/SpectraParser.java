@@ -326,7 +326,6 @@ public final class SpectraParser {
     builder.phiS(livenessSys);
     //</editor-fold>
 
-
     return builder.build();
   }
 
