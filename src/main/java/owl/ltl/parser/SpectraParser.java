@@ -279,7 +279,6 @@ public final class SpectraParser {
     }
     //</editor-fold>
 
-    //TODO: return one formula
     Formula initialE = Conjunction.of(initialEnv);
     Formula initialS = Conjunction.of(initialSys);
     Formula safetyE = Conjunction.of(safetyEnv);
