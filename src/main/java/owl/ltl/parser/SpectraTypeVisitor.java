@@ -28,6 +28,8 @@ import owl.grammar.SPECTRAParser;
 import owl.grammar.SPECTRAParser.AdditiveContext;
 import owl.grammar.SPECTRAParser.ConstContext;
 import owl.grammar.SPECTRAParser.MultiplicativeContext;
+import owl.grammar.SPECTRAParser.NegateContext;
+import owl.grammar.SPECTRAParser.NestedContext;
 import owl.grammar.SPECTRAParser.PrimaryContext;
 import owl.grammar.SPECTRAParser.ReferableContext;
 import owl.grammar.SPECTRAParser.RelationalContext;
@@ -117,13 +119,26 @@ final class SpectraTypeVisitor extends SPECTRAParserBaseVisitor<Optional<Spectra
 
   @Override
   public Optional<SpectraType> visitPrimary(PrimaryContext ctx) {
-    return visit(ctx.getChild(0));
+    assert ctx.getChildCount() == 1;
+    return visit(ctx.temporalPrimaryExpr());
+  }
+
+  @Override
+  public Optional<SpectraType> visitNested(NestedContext ctx) {
+    assert ctx.getChildCount() == 3;
+    return visit(ctx.temporalExpr());
   }
 
   @Override
   public Optional<SpectraType> visitConst(ConstContext ctx) {
     assert ctx.getChildCount() == 1;
     return Optional.empty();
+  }
+
+  @Override
+  public Optional<SpectraType> visitNegate(NegateContext ctx) {
+    assert ctx.getChildCount() == 2;
+    return visit(ctx.temporalPrimaryExpr());
   }
 
   @Override
@@ -140,7 +155,7 @@ final class SpectraTypeVisitor extends SPECTRAParserBaseVisitor<Optional<Spectra
   @Override
   public Optional<SpectraType> visitSpecialNext(SpecialNextContext ctx) {
     assert ctx.getChildCount() == 4;
-    return visit(ctx.getChild(3));
+    return visit(ctx.temporalExpr());
   }
 
   @Override
