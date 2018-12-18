@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,9 +45,14 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.grammar.SPECTRALexer;
 import owl.grammar.SPECTRAParser;
+import owl.grammar.SPECTRAParser.CounterContext;
 import owl.grammar.SPECTRAParser.DeclContext;
+import owl.grammar.SPECTRAParser.DefineContext;
 import owl.grammar.SPECTRAParser.LtlContext;
 import owl.grammar.SPECTRAParser.ModelContext;
+import owl.grammar.SPECTRAParser.MonitorContext;
+import owl.grammar.SPECTRAParser.PatternContext;
+import owl.grammar.SPECTRAParser.PredicateContext;
 import owl.grammar.SPECTRAParser.TypeDefContext;
 import owl.grammar.SPECTRAParser.VarDefContext;
 import owl.grammar.SPECTRAParser.VarTypeContext;
@@ -55,6 +61,7 @@ import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
@@ -63,7 +70,7 @@ import owl.ltl.XOperator;
 import owl.util.annotation.CEntryPoint;
 
 public final class SpectraParser {
-  private static int offset = 0;
+  private static int offset;
   private static Set<String> typeConstants = new HashSet<>();
 
   private SpectraParser() {}
@@ -89,7 +96,7 @@ public final class SpectraParser {
     }
     //</editor-fold>
 
-    //<editor-fold desc="Preprocess unsupported actions [Weights]">
+    //<editor-fold desc="Preprocess Weights [unsupported]">
     for (DeclContext decl : tree.elements) {
       WeightContext weightC = decl.weight();
 
@@ -99,38 +106,49 @@ public final class SpectraParser {
     }
     //</editor-fold>
 
+    offset = 0;
+
     //<editor-fold desc="Preprocess type definitions">
-    HashMap<String, SpectraType> types = new HashMap<>();
+    Map<String, SpectraType> types = new HashMap<>();
     Queue<TypeDefContext> unresolvedTypeDefs = new LinkedList<>();
 
     for (DeclContext decl : tree.elements) {
       TypeDefContext typeDefC = decl.typeDef();
 
-      if (typeDefC != null) {
-        String typeName = typeDefC.name.getText();
-        if (typeDefC.type.type != null && !types.containsKey(typeDefC.type.type.getText())) {
-          unresolvedTypeDefs.add(typeDefC);
-          continue;
-        }
-        int[] dims = getDimensions(typeDefC.type.dimensions);
-        SpectraType type = constructTypes(typeDefC.type);
-        if (dims.length > 0) {
-          type = new SpectraArray(type, dims);
-        }
-        types.put(typeName, type);
+      if (typeDefC == null) {
+        continue;
       }
+
+      if (typeDefC.type.type != null && !types.containsKey(typeDefC.type.type.getText())) {
+        unresolvedTypeDefs.add(typeDefC);
+        continue;
+      }
+
+      SpectraType type = constructType(typeDefC.type, types);
+
+      int[] dims = getDimensions(typeDefC.type.dimensions);
+      if (dims.length > 0) {
+        type = new SpectraArray(type, dims);
+      }
+
+      String typeName = typeDefC.name.getText();
+      types.put(typeName, type);
     }
 
     while (!unresolvedTypeDefs.isEmpty()) {
       TypeDefContext typeDefC = unresolvedTypeDefs.poll();
       String typeRefName = typeDefC.type.type.getText();
+
       if (types.containsKey(typeRefName)) {
-        String typeName = typeDefC.name.getText();
+        SpectraType type = constructType(typeDefC.type, types);
+
         int[] dims = getDimensions(typeDefC.type.dimensions);
-        SpectraType type = constructTypeFromType(types.get(typeRefName));
         if (dims.length > 0) {
           type = new SpectraArray(type, dims);
         }
+
+        String typeName = typeDefC.name.getText();
+
         types.put(typeName, type);
       } else {
         unresolvedTypeDefs.add(typeDefC);
@@ -146,21 +164,77 @@ public final class SpectraParser {
     for (DeclContext decl : tree.elements) {
       VarDefContext varDefC = decl.varDef();
 
-      if (varDefC != null) {
-        String varName = varDefC.var.name.getText();
-        if (varDefC.kind.getText().equals("in")) {
-          inputs.add(varName);
-        } else {
-          outputs.add(varName);
-        }
-        int[] dims = getDimensions(varDefC.var.type.dimensions);
-        SpectraType type = (varDefC.var.type.type == null)
-          ? constructTypes(varDefC.var.type) :
-          (SpectraType) types.get(varDefC.var.type.type.getText());
-        if (dims.length > 0) {
-          type = new SpectraArray(type, dims);
-        }
-        variables.put(varName, constructVariables(type));
+      if (varDefC == null) {
+        continue;
+      }
+
+      SpectraType type = (varDefC.var.type.type == null)
+        ? constructType(varDefC.var.type, types) :
+        types.get(varDefC.var.type.type.getText());
+
+      int[] dims = getDimensions(varDefC.var.type.dimensions);
+      if (dims.length > 0) {
+        type = new SpectraArray(type, dims);
+      }
+
+      String varName = varDefC.var.name.getText();
+
+      if (varDefC.kind.getText().equals("in")) {
+        inputs.add(varName);
+      } else {
+        outputs.add(varName);
+      }
+
+      variables.put(varName, constructVariables(type));
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Preprocess Monitors [unsupported]">
+    for (DeclContext decl : tree.elements) {
+      MonitorContext monitorC = decl.monitor();
+
+      if (monitorC != null) {
+        throw new UnsupportedOperationException("Monitors are not supported yet.");
+      }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Preprocess Predicates [unsupported]">
+    for (DeclContext decl : tree.elements) {
+      PredicateContext predicateC = decl.predicate();
+
+      if (predicateC != null) {
+        throw new UnsupportedOperationException("Predicates are not supported yet.");
+      }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Preprocess Patterns [unsupported]">
+    for (DeclContext decl : tree.elements) {
+      PatternContext patternC = decl.pattern();
+
+      if (patternC != null) {
+        throw new UnsupportedOperationException("Patterns are not supported yet.");
+      }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Preprocess Counters [unsupported]">
+    for (DeclContext decl : tree.elements) {
+      CounterContext counterC = decl.counter();
+
+      if (counterC != null) {
+        throw new UnsupportedOperationException("Counters are not supported yet.");
+      }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Preprocess Defines [unsupported]">
+    for (DeclContext decl : tree.elements) {
+      DefineContext defineC = decl.define();
+
+      if (defineC != null) {
+        throw new UnsupportedOperationException("Defines are not supported yet.");
       }
     }
     //</editor-fold>
@@ -188,6 +262,7 @@ public final class SpectraParser {
             safetyEnv.add(formula);
           }
         } else if (ltlC.justice != null) {
+          formula = new GOperator(new FOperator(formula));
           if (ltlC.ASM() == null) {
             livenessSys.add(formula);
           } else {
@@ -204,7 +279,6 @@ public final class SpectraParser {
     }
     //</editor-fold>
 
-    //TODO: return one formula
     Formula initialE = Conjunction.of(initialEnv);
     Formula initialS = Conjunction.of(initialSys);
     Formula safetyE = Conjunction.of(safetyEnv);
@@ -213,7 +287,7 @@ public final class SpectraParser {
     Formula livenessS = Conjunction.of(livenessSys);
 
     Formula part1 = Disjunction.of(livenessE.not(), livenessS);
-    Formula part2 = Conjunction.of(GOperator.of(safetyE), part1);
+    Formula part2 = Conjunction.of(new GOperator(safetyE), part1);
     Formula part3 = WOperator.of(safetyS, safetyE.not());
     Formula part4 = Conjunction.of(initialS, part3, part2);
 
@@ -233,7 +307,8 @@ public final class SpectraParser {
     return dims.stream().mapToInt(dim -> Integer.parseInt(dim.getText())).toArray();
   }
 
-  private static SpectraType constructTypes(VarTypeContext varTypeC) {
+  private static SpectraType constructType(VarTypeContext varTypeC,
+                                           Map<String, SpectraType> types) {
     SpectraType type;
     if (varTypeC.name != null && varTypeC.name.getText().equals("boolean")) {
       type = new SpectraBoolean();
@@ -247,14 +322,20 @@ public final class SpectraParser {
         .collect(Collectors.toCollection(ArrayList::new));
       type = new SpectraEnum(values, offset);
       typeConstants.addAll(values);
+    } else if (varTypeC.type != null) {
+      type = constructTypeFromType(types.get(varTypeC.type.getText()));
     } else {
       throw new ParseCancellationException("Unrecognizable type: " + varTypeC.getText());
     }
 
-    for (int i = offset; i < offset + type.width(); i++) {
-      Literal.of(i);
+    int width = (type instanceof SpectraArray)
+      ? ((SpectraArray) type).component.width() : type.width();
+    if (!(type instanceof  SpectraBoolean)) {
+      for (int i = offset; i < offset + width; i++) {
+        Literal.of(i);
+      }
+      offset += width;
     }
-    offset += type.width();
 
     return type;
   }
@@ -273,15 +354,8 @@ public final class SpectraParser {
       SpectraArray castOrigin = (SpectraArray) origin;
       type = new SpectraArray(castOrigin.component, castOrigin.dimensions);
     } else {
-      throw new ParseCancellationException("Unknown type of referenced type");
+      throw new ParseCancellationException("Unknown referenced type");
     }
-
-    int width = (type instanceof SpectraArray)
-      ? ((SpectraArray) type).component.width() : type.width();
-    for (int i = offset; i < offset + width; i++) {
-      Literal.of(i);
-    }
-    offset += width;
 
     return type;
   }
@@ -419,9 +493,9 @@ public final class SpectraParser {
 
     private void constructDimEnc(int start, int[] dims) {
       Arrays.fill(dimEnc, start, dimEnc.length, 1);
-      for (int i = dims.length - 1; i >= start; i--) {
+      for (int i = start; i < dimEnc.length; i++) {
         int dim = dims[i];
-        for (int j = 0; j < i; j++) {
+        for (int j = 0; j <= i; j++) {
           dimEnc[j] *= dim;
         }
       }
@@ -546,9 +620,9 @@ public final class SpectraParser {
     public Formula getBit(int i) {
       assert i == 0;
       if (value) {
-        return BooleanConstant.FALSE;
-      } else {
         return BooleanConstant.TRUE;
+      } else {
+        return BooleanConstant.FALSE;
       }
     }
 
@@ -787,16 +861,18 @@ public final class SpectraParser {
 
     @Override
     public Formula toFormula() {
-      List<Formula> disjuncts = new ArrayList<>();
-      for (int i = 0; i < width; i++) {
-        disjuncts.add(getBit(i));
-      }
-      return Disjunction.of(disjuncts);
+      return getBit(width - 1);
     }
 
     @Override
     public Formula getBit(int i) {
-      return Biconditional.of(left.getBit(i).not(), right.getBit(i));
+      assert i >= 0;
+      Formula leftBit = left.getBit(i);
+      Formula rightBit = right.getBit(i);
+      Formula xLTy = Conjunction.of(leftBit.not(), rightBit);
+      Formula xEQy = Biconditional.of(leftBit, rightBit);
+      Formula rec = (i == 0) ? BooleanConstant.FALSE : getBit(i - 1);
+      return Disjunction.of(xLTy, Conjunction.of(xEQy, rec));
     }
 
     @Override
@@ -811,30 +887,35 @@ public final class SpectraParser {
   }
 
   static class LessThanOrEqualsExpression implements HigherOrderExpression {
-    private final EqualsExpression eq;
-    private final LessThanExpression lt;
+    private final HigherOrderExpression left;
+    private final HigherOrderExpression right;
     private final int width;
 
     public LessThanOrEqualsExpression(HigherOrderExpression left, HigherOrderExpression right) {
-      this.eq = new EqualsExpression(left, right);
-      this.lt = new LessThanExpression(left, right);
+      this.left = left;
+      this.right = right;
       width = left.width();
     }
 
     @Override
     public Formula toFormula() {
-      return Disjunction.of(lt.toFormula(), eq.toFormula());
+      return getBit(width - 1);
     }
 
     @Override
     public Formula getBit(int i) {
-      throw new ParseCancellationException(
-        "getBit() shouldn't be called on LessThanOrEqualsExpression objects");
+      assert i >= 0;
+      Formula leftBit = left.getBit(i);
+      Formula rightBit = right.getBit(i);
+      Formula xLTy = Conjunction.of(leftBit.not(), rightBit);
+      Formula xEQy = Biconditional.of(leftBit, rightBit);
+      Formula rec = (i == 0) ? BooleanConstant.TRUE : getBit(i - 1);
+      return Disjunction.of(xLTy, Conjunction.of(xEQy, rec));
     }
 
     @Override
     public SpectraType getType() {
-      return eq.left.getType();
+      return left.getType();
     }
 
     @Override
@@ -855,12 +936,43 @@ public final class SpectraParser {
     @Override
     public Formula toFormula() {
       throw new ParseCancellationException(
-        "toFormula() shouldn't be called on SpecialNextExpression objects");
+        "toFormula() shouldn't be called on SpecialNextExpression objects"
+      );
     }
 
     @Override
     public Formula getBit(int i) {
       return XOperator.of(inner.getBit(i));
+    }
+
+    @Override
+    public SpectraType getType() {
+      return inner.getType();
+    }
+
+    @Override
+    public int width() {
+      return width;
+    }
+  }
+
+  static class NegateExpression implements HigherOrderExpression {
+    private final HigherOrderExpression inner;
+    private final int width;
+
+    public NegateExpression(HigherOrderExpression inner) {
+      this.inner = inner;
+      width = inner.width();
+    }
+
+    @Override
+    public Formula toFormula() {
+      return inner.toFormula().not();
+    }
+
+    @Override
+    public Formula getBit(int i) {
+      return inner.getBit(i).not();
     }
 
     @Override
