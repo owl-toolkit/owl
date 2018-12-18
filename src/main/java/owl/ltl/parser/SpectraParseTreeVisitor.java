@@ -27,10 +27,12 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.grammar.SPECTRAParser.AdditiveContext;
 import owl.grammar.SPECTRAParser.AndContext;
 import owl.grammar.SPECTRAParser.ConstContext;
+import owl.grammar.SPECTRAParser.ConstantContext;
 import owl.grammar.SPECTRAParser.IffContext;
 import owl.grammar.SPECTRAParser.ImpliesContext;
 import owl.grammar.SPECTRAParser.LtlContext;
 import owl.grammar.SPECTRAParser.MultiplicativeContext;
+import owl.grammar.SPECTRAParser.NegateContext;
 import owl.grammar.SPECTRAParser.NestedContext;
 import owl.grammar.SPECTRAParser.OrContext;
 import owl.grammar.SPECTRAParser.PastBinaryContext;
@@ -45,11 +47,10 @@ import owl.grammar.SPECTRAParser.RemainderContext;
 import owl.grammar.SPECTRAParser.SpecialNextContext;
 import owl.grammar.SPECTRAParserBaseVisitor;
 import owl.ltl.Biconditional;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
-import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.GOperator;
 import owl.ltl.HOperator;
 import owl.ltl.OOperator;
 import owl.ltl.SOperator;
@@ -73,30 +74,34 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
   @Override
   public Formula visitLtl(LtlContext ctx) {
     assert (ctx.getChildCount() >= 3 && ctx.getChildCount() <= 6) : ctx.getChildCount();
-    Formula operand = visit(ctx.temporalExpression);
-    if (ctx.justice != null) {
-      return GOperator.of(FOperator.of(operand));
-    }
-    return operand;
+    return visit(ctx.temporalExpression);
   }
 
   @Override
   public Formula visitImplies(ImpliesContext ctx) {
+    assert ctx.getChildCount() == 3;
+    assert ctx.left != null && ctx.right != null;
     return Disjunction.of(visit(ctx.left).not(), visit(ctx.right));
   }
 
   @Override
   public Formula visitIff(IffContext ctx) {
+    assert ctx.getChildCount() == 3;
+    assert ctx.left != null && ctx.right != null;
     return Biconditional.of(visit(ctx.left), visit(ctx.right));
   }
 
   @Override
   public Formula visitOr(OrContext ctx) {
+    assert ctx.getChildCount() == 3;
+    assert ctx.left != null && ctx.right != null;
     return Disjunction.of(visit(ctx.left), visit(ctx.right));
   }
 
   @Override
   public Formula visitAnd(AndContext ctx) {
+    assert ctx.getChildCount() == 3;
+    assert ctx.left != null && ctx.right != null;
     return Conjunction.of(visit(ctx.left), visit(ctx.right));
   }
 
@@ -106,12 +111,12 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
     assert ctx.left != null && ctx.right != null;
 
     SpectraTypeVisitor typeParser = new SpectraTypeVisitor(variables, typeConstants);
-    Optional<SpectraType> expressionType = typeParser.visitRelational(ctx);
+    Optional<SpectraType> expressionType = typeParser.visit(ctx);
 
     if (expressionType.isPresent()) {
       SpectraExpressionVisitor expressionParser =
         new SpectraExpressionVisitor(variables, typeConstants, expressionType.get());
-      return expressionParser.visitRelational(ctx).toFormula();
+      return expressionParser.visit(ctx).toFormula();
     } else {
       throw new ParseCancellationException("Empty expression type has been returned");
     }
@@ -177,13 +182,26 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
 
   @Override
   public Formula visitPrimary(PrimaryContext ctx) {
-    return visit(ctx.getChild(0));
+    assert ctx.getChildCount() == 1;
+    return visit(ctx.temporalPrimaryExpr());
   }
 
   @Override
   public Formula visitConst(ConstContext ctx) {
     assert ctx.getChildCount() == 1;
-    throw new ParseCancellationException("A constant shouldn't be called in this context");
+    ConstantContext constant = ctx.constant();
+
+    if (constant.FALSE() != null) {
+      return BooleanConstant.FALSE;
+    }
+
+    if (constant.TRUE() != null) {
+      return BooleanConstant.TRUE;
+    }
+
+    throw new ParseCancellationException(
+      "A none boolen constant shouldn't be called in this context"
+    );
   }
 
   @Override
@@ -199,6 +217,12 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
   }
 
   @Override
+  public Formula visitNegate(NegateContext ctx) {
+    assert ctx.getChildCount() == 2;
+    return visit(ctx.temporalPrimaryExpr()).not();
+  }
+
+  @Override
   public Formula visitReferable(ReferableContext ctx) {
     if (variables.containsKey(ctx.pointer.getText())) {
       SpectraParser.HigherOrderExpression expr = variables.get(ctx.pointer.getText());
@@ -208,7 +232,8 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
         return expressionParser.visitReferable(ctx).getBit(0);
       } else {
         throw new ParseCancellationException(
-          "A none boolean variable shouldn't be called in this context");
+          "A none boolean variable shouldn't be called in this context"
+        );
       }
     } else {
       throw new ParseCancellationException("Unsupported cross reference as of now");

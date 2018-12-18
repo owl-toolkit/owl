@@ -27,6 +27,8 @@ import owl.grammar.SPECTRAParser.AdditiveContext;
 import owl.grammar.SPECTRAParser.ConstContext;
 import owl.grammar.SPECTRAParser.ConstantContext;
 import owl.grammar.SPECTRAParser.MultiplicativeContext;
+import owl.grammar.SPECTRAParser.NegateContext;
+import owl.grammar.SPECTRAParser.NestedContext;
 import owl.grammar.SPECTRAParser.PredPattContext;
 import owl.grammar.SPECTRAParser.PrimaryContext;
 import owl.grammar.SPECTRAParser.ReferableContext;
@@ -39,6 +41,7 @@ import owl.ltl.parser.SpectraParser.EqualsExpression;
 import owl.ltl.parser.SpectraParser.HigherOrderExpression;
 import owl.ltl.parser.SpectraParser.LessThanExpression;
 import owl.ltl.parser.SpectraParser.LessThanOrEqualsExpression;
+import owl.ltl.parser.SpectraParser.NegateExpression;
 import owl.ltl.parser.SpectraParser.NotEqualsExpression;
 import owl.ltl.parser.SpectraParser.SpecialNextExpression;
 import owl.ltl.parser.SpectraParser.SpectraArrayVariable;
@@ -118,7 +121,8 @@ final class SpectraExpressionVisitor extends SPECTRAParserBaseVisitor<HigherOrde
   
   @Override
   public HigherOrderExpression visitPrimary(PrimaryContext ctx) {
-    return visit(ctx.getChild(0));
+    assert ctx.getChildCount() == 1;
+    return visit(ctx.temporalPrimaryExpr());
   }
 
   @Override
@@ -142,9 +146,21 @@ final class SpectraExpressionVisitor extends SPECTRAParserBaseVisitor<HigherOrde
   }
 
   @Override
+  public HigherOrderExpression visitNested(NestedContext ctx) {
+    assert ctx.getChildCount() == 3;
+    return visit(ctx.temporalExpr());
+  }
+
+  @Override
   public HigherOrderExpression visitPredPatt(PredPattContext ctx) {
     //TODO:
     throw new ParseCancellationException("Predicate and patterns not implemented yet");
+  }
+
+  @Override
+  public HigherOrderExpression visitNegate(NegateContext ctx) {
+    assert ctx.getChildCount() == 2;
+    return new NegateExpression(visit(ctx.temporalPrimaryExpr()));
   }
 
   @Override
