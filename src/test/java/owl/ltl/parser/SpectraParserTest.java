@@ -21,6 +21,8 @@ package owl.ltl.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
@@ -41,7 +43,7 @@ import owl.ltl.YOperator;
 class SpectraParserTest {
 
   //<editor-fold desc="Test inputs">
-  private static final String[] SyntaxTestIn = {
+  private static final List<String> SyntaxTestIn = List.of(
     //<editor-fold desc="Test 0: false, [env-initial]">
     "asm false;",
     //</editor-fold>
@@ -145,9 +147,9 @@ class SpectraParserTest {
     "type bar = foo[2];\n"
     + "gar a[0] != 0 & a[1] = 2;\n"
     + "sys bar a;\n"
-    + "type foo = Int(0..3);",
-    //</editor-fold>
-  };
+    + "type foo = Int(0..3);"
+  //</editor-fold>
+  );
 
   private static final String NonWellSepIn =
     "module NonWellSep\n"
@@ -180,7 +182,7 @@ class SpectraParserTest {
    *    - test[i][5]: system-liveness
    * - Dimension 2: list of ltl/pltl formulas
    */
-  private static final Formula[][][] SyntaxTestOut = new Formula[][][] {
+  private static final List<Formula[][]> SyntaxTestOut = List.of(new Formula[][][]{
     //<editor-fold desc="Test 0">
     {
       {BooleanConstant.FALSE},
@@ -364,8 +366,8 @@ class SpectraParserTest {
     //<editor-fold desc="Test 17">
     {
       {Conjunction.of(
-        Biconditional.of(Literal.of(2), Literal.of(0).not()),
-        Biconditional.of(Literal.of(3), Literal.of(1))
+        Biconditional.of(Literal.of(0), BooleanConstant.FALSE),
+        Biconditional.of(Literal.of(1), BooleanConstant.TRUE)
       )},
       {},
       {},
@@ -378,13 +380,13 @@ class SpectraParserTest {
     {
       {},
       {Disjunction.of(
-        Conjunction.of(Literal.of(3).not(), Literal.of(1)),
+        Conjunction.of(Literal.of(1).not(), BooleanConstant.TRUE),
         Conjunction.of(
-          Biconditional.of(Literal.of(3), Literal.of(1)),
+          Biconditional.of(Literal.of(1), BooleanConstant.TRUE),
           Disjunction.of(
-            Conjunction.of(Literal.of(2).not(), Literal.of(0).not()),
+            Conjunction.of(Literal.of(0).not(), BooleanConstant.FALSE),
             Conjunction.of(
-              Biconditional.of(Literal.of(2), Literal.of(0).not()),
+              Biconditional.of(Literal.of(0), BooleanConstant.FALSE),
               BooleanConstant.FALSE
             )
           )
@@ -401,13 +403,13 @@ class SpectraParserTest {
       {},
       {},
       {Disjunction.of(
-        Conjunction.of(Literal.of(3).not(), Literal.of(1)),
+        Conjunction.of(Literal.of(1).not(), BooleanConstant.TRUE),
         Conjunction.of(
-          Biconditional.of(Literal.of(3), Literal.of(1)),
+          Biconditional.of(Literal.of(1), BooleanConstant.TRUE),
           Disjunction.of(
-            Conjunction.of(Literal.of(2).not(), Literal.of(0)),
+            Conjunction.of(Literal.of(0).not(), BooleanConstant.TRUE),
             Conjunction.of(
-              Biconditional.of(Literal.of(2), Literal.of(0)),
+              Biconditional.of(Literal.of(0), BooleanConstant.TRUE),
               BooleanConstant.TRUE
             )
           )
@@ -424,13 +426,13 @@ class SpectraParserTest {
       {},
       {},
       {Disjunction.of(
-        Conjunction.of(Literal.of(1).not().not(), Literal.of(3)),
+        Conjunction.of(BooleanConstant.FALSE.not(), Literal.of(1)),
         Conjunction.of(
-          Biconditional.of(Literal.of(1).not(), Literal.of(3)),
+          Biconditional.of(BooleanConstant.FALSE, Literal.of(1)),
           Disjunction.of(
-            Conjunction.of(Literal.of(0).not(), Literal.of(2)),
+            Conjunction.of(BooleanConstant.TRUE.not(), Literal.of(0)),
             Conjunction.of(
-              Biconditional.of(Literal.of(0), Literal.of(2)),
+              Biconditional.of(BooleanConstant.TRUE, Literal.of(0)),
               BooleanConstant.FALSE
             )
           )
@@ -450,13 +452,13 @@ class SpectraParserTest {
       {new GOperator(
         new FOperator(
           Disjunction.of(
-            Conjunction.of(Literal.of(5).not(), Literal.of(3)),
+            Conjunction.of(Literal.of(3).not(), Literal.of(1)),
             Conjunction.of(
-              Biconditional.of(Literal.of(5), Literal.of(3)),
+              Biconditional.of(Literal.of(3), Literal.of(1)),
               Disjunction.of(
-                Conjunction.of(Literal.of(4).not(), Literal.of(2)),
+                Conjunction.of(Literal.of(2).not(), Literal.of(0)),
                 Conjunction.of(
-                  Biconditional.of(Literal.of(4), Literal.of(2)),
+                  Biconditional.of(Literal.of(2), Literal.of(0)),
                   BooleanConstant.TRUE
                 )
               )
@@ -472,18 +474,18 @@ class SpectraParserTest {
       {Conjunction.of(
         Disjunction.of(
           Biconditional.of(
-            Literal.of(4), Literal.of(2).not()
+            Literal.of(0), BooleanConstant.FALSE
           ).not(),
           Biconditional.of(
-            Literal.of(5), Literal.of(3).not()
+            Literal.of(1), BooleanConstant.FALSE
           ).not()
         ),
         Conjunction.of(
           Biconditional.of(
-            Literal.of(6), Literal.of(2).not()
+            Literal.of(2), BooleanConstant.FALSE
           ),
           Biconditional.of(
-            Literal.of(7), Literal.of(3)
+            Literal.of(3), BooleanConstant.TRUE
           )
         )
       )},
@@ -499,18 +501,18 @@ class SpectraParserTest {
       {Conjunction.of(
         Disjunction.of(
           Biconditional.of(
-            Literal.of(4), Literal.of(2).not()
+            Literal.of(0), BooleanConstant.FALSE
           ).not(),
           Biconditional.of(
-            Literal.of(5), Literal.of(3).not()
+            Literal.of(1), BooleanConstant.FALSE
           ).not()
         ),
         Conjunction.of(
           Biconditional.of(
-            Literal.of(6), Literal.of(2).not()
+            Literal.of(2), BooleanConstant.FALSE
           ),
           Biconditional.of(
-            Literal.of(7), Literal.of(3)
+            Literal.of(3), BooleanConstant.TRUE
           )
         )
       )},
@@ -520,7 +522,7 @@ class SpectraParserTest {
       {}
     },
     //</editor-fold>
-  };
+  });
 
   private static final Formula NonWellSepOut = nonWellSepOut();
   //</editor-fold>
@@ -529,16 +531,14 @@ class SpectraParserTest {
   private static Formula nonWellSepOut() {
     Literal atStation = Literal.of(0);
     Literal cargo = Literal.of(1);
-    Literal[] motType = {Literal.of(2), Literal.of(3)};
-    Literal[] motVar = {Literal.of(4), Literal.of(5)};
-    Literal liftType = Literal.of(6);
-    Literal liftVar = Literal.of(7);
+    Literal[] motVar = {Literal.of(2), Literal.of(3)};
+    Literal liftVar = Literal.of(4);
 
     Formula findStation = new GOperator(new FOperator(atStation));
 
     Formula samePosLeft = Conjunction.of(
-      Biconditional.of(motVar[0], motType[0].not()),
-      Biconditional.of(motVar[1], motType[1].not())
+      Biconditional.of(motVar[0], BooleanConstant.FALSE),
+      Biconditional.of(motVar[1], BooleanConstant.FALSE)
     );
     Formula samePosRight = Conjunction.of(
       Biconditional.of(new XOperator(atStation), atStation)
@@ -546,20 +546,20 @@ class SpectraParserTest {
     Formula samePos = Disjunction.of(samePosLeft.not(), samePosRight);
 
     Formula liftCargoLeft = Conjunction.of(
-      Biconditional.of(liftVar, liftType.not())
+      Biconditional.of(liftVar, BooleanConstant.FALSE)
     );
     Formula liftCargoRight = new XOperator(cargo.not());
     Formula liftCargo = Disjunction.of(liftCargoLeft.not(), liftCargoRight);
 
     Formula dropCargoLeft = Conjunction.of(
-      Biconditional.of(liftVar, liftType)
+      Biconditional.of(liftVar, BooleanConstant.TRUE)
     );
     Formula dropCargoRight = new XOperator(cargo);
     Formula dropCargo = Disjunction.of(dropCargoLeft.not(), dropCargoRight);
 
     Formula clearCargoLeft = Conjunction.of(
-      Biconditional.of(motVar[0], motType[0].not()),
-      Biconditional.of(motVar[1], motType[1])
+      Biconditional.of(motVar[0], BooleanConstant.FALSE),
+      Biconditional.of(motVar[1], BooleanConstant.TRUE)
     );
     Formula clearCargoRight = new XOperator(cargo.not());
     Formula clearCargo = Disjunction.of(clearCargoLeft.not(), clearCargoRight);
@@ -596,14 +596,15 @@ class SpectraParserTest {
   //<editor-fold desc="Tests">
   @Test
   void testSyntax() {
-    for (int i = 0; i < SyntaxTestIn.length; i++) {
-      assertEquals(strictRealizable(SyntaxTestOut[i]), SpectraParser.parse(SyntaxTestIn[i]));
+    for (int i = 0; i < SyntaxTestIn.size(); i++) {
+      assertEquals(strictRealizable(SyntaxTestOut.get(i)),
+        SpectraParser.parse(SyntaxTestIn.get(i)).toFormula());
     }
   }
 
   @Test
   void testNonWellSep() {
-    assertEquals(NonWellSepOut, SpectraParser.parse(NonWellSepIn));
+    assertEquals(NonWellSepOut, SpectraParser.parse(NonWellSepIn).toFormula());
   }
   //</editor-fold>
 }

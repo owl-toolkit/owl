@@ -37,15 +37,15 @@ import owl.grammar.SPECTRAParser.RelationalOpContext;
 import owl.grammar.SPECTRAParser.RemainderContext;
 import owl.grammar.SPECTRAParser.SpecialNextContext;
 import owl.grammar.SPECTRAParserBaseVisitor;
-import owl.ltl.parser.SpectraParser.EqualsExpression;
-import owl.ltl.parser.SpectraParser.HigherOrderExpression;
-import owl.ltl.parser.SpectraParser.LessThanExpression;
-import owl.ltl.parser.SpectraParser.LessThanOrEqualsExpression;
-import owl.ltl.parser.SpectraParser.NegateExpression;
-import owl.ltl.parser.SpectraParser.NotEqualsExpression;
-import owl.ltl.parser.SpectraParser.SpecialNextExpression;
-import owl.ltl.parser.SpectraParser.SpectraArrayVariable;
-import owl.ltl.parser.SpectraParser.SpectraType;
+import owl.ltl.parser.spectra.expressios.EqualsExpression;
+import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
+import owl.ltl.parser.spectra.expressios.LessThanExpression;
+import owl.ltl.parser.spectra.expressios.LessThanOrEqualsExpression;
+import owl.ltl.parser.spectra.expressios.NegateExpression;
+import owl.ltl.parser.spectra.expressios.NotEqualsExpression;
+import owl.ltl.parser.spectra.expressios.SpecialNextExpression;
+import owl.ltl.parser.spectra.expressios.variables.SpectraArrayVariable;
+import owl.ltl.parser.spectra.types.SpectraType;
 
 final class SpectraExpressionVisitor extends SPECTRAParserBaseVisitor<HigherOrderExpression> {
   private final Map<String, HigherOrderExpression> variables;
