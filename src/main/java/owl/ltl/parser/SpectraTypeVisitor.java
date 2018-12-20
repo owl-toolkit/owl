@@ -36,8 +36,8 @@ import owl.grammar.SPECTRAParser.RelationalContext;
 import owl.grammar.SPECTRAParser.RemainderContext;
 import owl.grammar.SPECTRAParser.SpecialNextContext;
 import owl.grammar.SPECTRAParserBaseVisitor;
-import owl.ltl.parser.SpectraParser.HigherOrderExpression;
-import owl.ltl.parser.SpectraParser.SpectraType;
+import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
+import owl.ltl.parser.spectra.types.SpectraType;
 
 final class SpectraTypeVisitor extends SPECTRAParserBaseVisitor<Optional<SpectraType>> {
   private final Map<String, HigherOrderExpression> variables;

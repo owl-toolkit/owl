@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -33,7 +32,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
@@ -57,30 +55,35 @@ import owl.grammar.SPECTRAParser.TypeDefContext;
 import owl.grammar.SPECTRAParser.VarDefContext;
 import owl.grammar.SPECTRAParser.VarTypeContext;
 import owl.grammar.SPECTRAParser.WeightContext;
-import owl.ltl.Biconditional;
-import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
-import owl.ltl.WOperator;
-import owl.ltl.XOperator;
+import owl.ltl.parser.spectra.Spectra;
+import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
+import owl.ltl.parser.spectra.expressios.variables.SpectraArrayVariable;
+import owl.ltl.parser.spectra.expressios.variables.SpectraBooleanVariable;
+import owl.ltl.parser.spectra.expressios.variables.SpectraEnumVariable;
+import owl.ltl.parser.spectra.expressios.variables.SpectraIntRangeVariable;
+import owl.ltl.parser.spectra.types.SpectraArray;
+import owl.ltl.parser.spectra.types.SpectraBoolean;
+import owl.ltl.parser.spectra.types.SpectraEnum;
+import owl.ltl.parser.spectra.types.SpectraIntRange;
+import owl.ltl.parser.spectra.types.SpectraType;
 import owl.util.annotation.CEntryPoint;
 
 public final class SpectraParser {
-  private static int offset;
   private static Set<String> typeConstants = new HashSet<>();
 
-  private SpectraParser() {}
+  private SpectraParser() {
+  }
 
   @CEntryPoint
-  public static Formula parse(String input) {
+  public static Spectra parse(String input) {
     return parse(CharStreams.fromString(input));
   }
 
-  private static Formula parse(CharStream stream) {
+  private static Spectra parse(CharStream stream) {
     SPECTRALexer lexer = new SPECTRALexer(stream);
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -105,8 +108,6 @@ public final class SpectraParser {
       }
     }
     //</editor-fold>
-
-    offset = 0;
 
     //<editor-fold desc="Preprocess type definitions">
     Map<String, SpectraType> types = new HashMap<>();
@@ -161,6 +162,8 @@ public final class SpectraParser {
     List<String> inputs = new ArrayList<>();
     List<String> outputs = new ArrayList<>();
 
+    int offset = 0;
+
     for (DeclContext decl : tree.elements) {
       VarDefContext varDefC = decl.varDef();
 
@@ -179,13 +182,27 @@ public final class SpectraParser {
 
       String varName = varDefC.var.name.getText();
 
-      if (varDefC.kind.getText().equals("in")) {
-        inputs.add(varName);
+      variables.put(varName, constructVariables(type, offset));
+
+      List<String> varLiteralNames = new ArrayList<>();
+
+      if (type.width() > 1) {
+        for (int i = offset; i < offset + type.width(); i++) {
+          Literal.of(i);
+          varLiteralNames.add(varName + "_" + i);
+        }
       } else {
-        outputs.add(varName);
+        Literal.of(offset);
+        varLiteralNames.add(varName);
       }
 
-      variables.put(varName, constructVariables(type));
+      offset += type.width();
+
+      if (varDefC.kind.getText().equals("in")) {
+        inputs.addAll(varLiteralNames);
+      } else {
+        outputs.addAll(varLiteralNames);
+      }
     }
     //</editor-fold>
 
@@ -279,26 +296,17 @@ public final class SpectraParser {
     }
     //</editor-fold>
 
-    Formula initialE = Conjunction.of(initialEnv);
-    Formula initialS = Conjunction.of(initialSys);
-    Formula safetyE = Conjunction.of(safetyEnv);
-    Formula safetyS = Conjunction.of(safetySys);
-    Formula livenessE = Conjunction.of(livenessEnv);
-    Formula livenessS = Conjunction.of(livenessSys);
-
-    Formula part1 = Disjunction.of(livenessE.not(), livenessS);
-    Formula part2 = Conjunction.of(new GOperator(safetyE), part1);
-    Formula part3 = WOperator.of(safetyS, safetyE.not());
-    Formula part4 = Conjunction.of(initialS, part3, part2);
-
-    return Disjunction.of(initialE.not(), part4);
+    return new Spectra(inputs, outputs,
+      initialEnv, initialSys,
+      safetyEnv, safetySys,
+      livenessEnv, livenessSys);
   }
 
-  public static Formula parse(InputStream input, Charset charset) throws IOException {
+  public static Spectra parse(InputStream input, Charset charset) throws IOException {
     return parse(CharStreams.fromStream(input, charset));
   }
 
-  public static Formula parse(Reader input) throws IOException {
+  public static Spectra parse(Reader input) throws IOException {
     return parse(CharStreams.fromReader(input));
   }
 
@@ -315,26 +323,17 @@ public final class SpectraParser {
     } else if (varTypeC.INT_S() != null) {
       int from = Integer.parseInt(varTypeC.subr.from.getText());
       int to = Integer.parseInt(varTypeC.subr.to.getText());
-      type = new SpectraIntRange(from, to, offset);
+      type = new SpectraIntRange(from, to);
     } else if (varTypeC.LCPAR() != null) {
       ArrayList<String> values = varTypeC.consts.stream()
         .map(RuleContext::getText)
         .collect(Collectors.toCollection(ArrayList::new));
-      type = new SpectraEnum(values, offset);
+      type = new SpectraEnum(values);
       typeConstants.addAll(values);
     } else if (varTypeC.type != null) {
       type = constructTypeFromType(types.get(varTypeC.type.getText()));
     } else {
       throw new ParseCancellationException("Unrecognizable type: " + varTypeC.getText());
-    }
-
-    int width = (type instanceof SpectraArray)
-      ? ((SpectraArray) type).component.width() : type.width();
-    if (!(type instanceof  SpectraBoolean)) {
-      for (int i = offset; i < offset + width; i++) {
-        Literal.of(i);
-      }
-      offset += width;
     }
 
     return type;
@@ -344,15 +343,15 @@ public final class SpectraParser {
     SpectraType type;
     if (origin instanceof SpectraBoolean) {
       type = new SpectraBoolean();
-    } else if (origin instanceof  SpectraIntRange) {
+    } else if (origin instanceof SpectraIntRange) {
       SpectraIntRange castOrigin = (SpectraIntRange) origin;
-      type = new SpectraIntRange(castOrigin.from, castOrigin.to, offset);
+      type = new SpectraIntRange(castOrigin.getFrom(), castOrigin.getTo());
     } else if (origin instanceof SpectraEnum) {
       SpectraEnum castOrigin = (SpectraEnum) origin;
-      type = new SpectraEnum(castOrigin.values, offset);
+      type = new SpectraEnum(castOrigin.getValues());
     } else if (origin instanceof SpectraArray) {
       SpectraArray castOrigin = (SpectraArray) origin;
-      type = new SpectraArray(castOrigin.component, castOrigin.dimensions);
+      type = new SpectraArray(castOrigin.getComponent(), castOrigin.getDimensions());
     } else {
       throw new ParseCancellationException("Unknown referenced type");
     }
@@ -360,7 +359,7 @@ public final class SpectraParser {
     return type;
   }
 
-  private static HigherOrderExpression constructVariables(SpectraType type) {
+  private static HigherOrderExpression constructVariables(SpectraType type, int offset) {
     HigherOrderExpression variable;
     if (type instanceof SpectraEnum) {
       variable = new SpectraEnumVariable((SpectraEnum) type, offset);
@@ -374,618 +373,7 @@ public final class SpectraParser {
       throw new ParseCancellationException("Unrecognizable variable type");
     }
 
-    for (int i = offset; i < offset + type.width(); i++) {
-      Literal.of(i);
-    }
-    offset += type.width();
-
     return variable;
   }
-  //</editor-fold>
-
-  //<editor-fold desc="Higher Order Types/Expressions">
-
-  //<editor-fold desc="Types">
-  interface SpectraType {
-    HigherOrderExpression of(String value);
-
-    int width();
-  }
-
-  static class SpectraEnum implements SpectraType {
-    private final int width;
-    private final int offset;
-    private final List<String> values;
-
-    private SpectraEnum(List<String> values, int offset) {
-      this.width = (int) Math.ceil(Math.log(values.size()) / Math.log(2));
-      this.values = new ArrayList<>(values);
-      this.offset = offset;
-    }
-
-    @Override
-    public SpectraEnumConstant of(String value) {
-      int index = values.indexOf(value);
-      if (index == -1) {
-        throw new ParseCancellationException(value + " is not a valid value for this enum");
-      } else {
-        return new SpectraEnumConstant(this, index);
-      }
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class SpectraIntRange implements SpectraType {
-    private final int from;
-    private final int to;
-    private final int width;
-    private final int offset;
-
-    private SpectraIntRange(int from, int to, int offset) {
-      this.from = from;
-      this.to = to;
-      this.width = (int) Math.ceil(Math.log(to - from + 1) / Math.log(2));
-      this. offset = offset;
-    }
-
-    @Override
-    public SpectraIntRangeConstant of(String value) {
-      int val = Integer.parseInt(value);
-      if (val > to || val < 0) {
-        throw new ParseCancellationException(value + " is not in this integer range");
-      } else {
-        return new SpectraIntRangeConstant(this,val - from);
-      }
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class SpectraBoolean implements SpectraType {
-    private final int width;
-
-    private SpectraBoolean() {
-      this.width = 1;
-    }
-
-    @Override
-    public SpectraBooleanConstant of(String value) {
-      boolean val = !"false".equals(value);
-      return new SpectraBooleanConstant(this, val);
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class SpectraArray implements SpectraType {
-    private final int width;
-    private final int[] dimensions;
-    private final int[] dimEnc;
-    private final SpectraType component;
-
-    private SpectraArray(SpectraType component, int[] dims) {
-      if (component instanceof SpectraArray) {
-        SpectraArray origin = (SpectraArray) component;
-        this.dimEnc = Arrays.copyOf(origin.dimEnc, origin.dimEnc.length + dims.length);
-        constructDimEnc(origin.dimEnc.length, dims);
-        this.dimensions = IntStream.concat(Arrays.stream(origin.dimensions),
-          Arrays.stream(dims)).toArray();
-        this.width = dimEnc[origin.dimensions.length] * origin.width();
-        this.component = origin.component;
-      } else {
-        this.dimEnc = new int[dims.length];
-        constructDimEnc(0, dims);
-        this.dimensions = Arrays.copyOf(dims, dims.length);
-        this.width = dimEnc[0] * component.width();
-        this.component = component;
-      }
-    }
-
-    private void constructDimEnc(int start, int[] dims) {
-      Arrays.fill(dimEnc, start, dimEnc.length, 1);
-      for (int i = start; i < dimEnc.length; i++) {
-        int dim = dims[i];
-        for (int j = 0; j <= i; j++) {
-          dimEnc[j] *= dim;
-        }
-      }
-    }
-
-    private int getEnc(int[] indices) {
-      int index = 0;
-      for (int i = 0; i < indices.length; i++) {
-        index += (dimEnc[i] * indices[i]);
-      }
-      return index;
-    }
-
-    @Override
-    public HigherOrderExpression of(String value) {
-      return component.of(value);
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-  //</editor-fold>
-
-  interface HigherOrderExpression {
-    Formula toFormula();
-
-    Formula getBit(int i);
-
-    SpectraType getType();
-
-    int width();
-  }
-
-  //<editor-fold desc="Constants">
-  static class SpectraEnumConstant implements HigherOrderExpression {
-    private final SpectraEnum type;
-    private final int element;
-
-    private SpectraEnumConstant(SpectraEnum type, int element) {
-      this.type = type;
-      this.element = element;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a constant");
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      Literal literal = Literal.of(type.offset + i);
-      if ((element & (1 << i)) == 0) {
-        return literal.not();
-      } else {
-        return literal;
-      }
-    }
-
-    @Override
-    public SpectraType getType() {
-      return this.type;
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-
-  static class SpectraIntRangeConstant implements HigherOrderExpression {
-    private final SpectraIntRange type;
-    private final int element;
-
-    private SpectraIntRangeConstant(SpectraIntRange type, int element) {
-      this.type = type;
-      this.element = element;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a constant");
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      Literal literal = Literal.of(type.offset + i);
-      if ((element & (1 << i)) == 0) {
-        return literal.not();
-      } else {
-        return literal;
-      }
-    }
-
-    @Override
-    public SpectraType getType() {
-      return this.type;
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-
-  static class SpectraBooleanConstant implements HigherOrderExpression {
-    private final SpectraBoolean type;
-    private final boolean value;
-
-    private SpectraBooleanConstant(SpectraBoolean type, boolean value) {
-      this.type = type;
-      this.value = value;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a constant");
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      assert i == 0;
-      if (value) {
-        return BooleanConstant.TRUE;
-      } else {
-        return BooleanConstant.FALSE;
-      }
-    }
-
-    @Override
-    public SpectraType getType() {
-      return this.type;
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="Variables">
-  static class SpectraEnumVariable implements HigherOrderExpression {
-    private final SpectraEnum type;
-    private final int offset;
-
-    private SpectraEnumVariable(SpectraEnum type, int offset) {
-      this.type = type;
-      this.offset = offset;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a variable");
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      return Literal.of(offset + i);
-    }
-
-    @Override
-    public SpectraType getType() {
-      return type;
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-
-  static class SpectraIntRangeVariable implements HigherOrderExpression {
-    private final SpectraIntRange type;
-    private final int offset;
-
-    private SpectraIntRangeVariable(SpectraIntRange type, int offset) {
-      this.type = type;
-      this.offset = offset;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a variable");
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      return Literal.of(offset + i);
-    }
-
-    @Override
-    public SpectraType getType() {
-      return type;
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-
-  static class SpectraBooleanVariable implements HigherOrderExpression {
-    private final SpectraBoolean type;
-    private final int offset;
-
-    private SpectraBooleanVariable(SpectraBoolean type, int offset) {
-      this.type = type;
-      this.offset = offset;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a variable");
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      assert i == 0;
-      return Literal.of(offset);
-    }
-
-    @Override
-    public SpectraType getType() {
-      return type;
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-
-  static class SpectraArrayVariable implements HigherOrderExpression {
-    private final SpectraArray type;
-    private final int offset;
-
-    private SpectraArrayVariable(SpectraArray type, int offset) {
-      this.type = type;
-      this.offset = offset;
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException("toFormula shouldn't be called from a variable");
-    }
-
-    public HigherOrderExpression of(int[] indices) {
-      int compOffset = this.offset + type.getEnc(indices);
-      SpectraType compType = getType();
-      if (compType instanceof SpectraEnum) {
-        return new SpectraEnumVariable((SpectraEnum) compType, compOffset);
-      } else if (compType instanceof  SpectraIntRange) {
-        return new SpectraIntRangeVariable((SpectraIntRange) compType, compOffset);
-      } else if (compType instanceof SpectraBoolean) {
-        return new SpectraBooleanVariable((SpectraBoolean) compType, compOffset);
-      } else {
-        throw new ParseCancellationException("Unknown component type");
-      }
-    }
-
-    @Override
-    public SpectraType getType() {
-      return type.component;
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      throw new ParseCancellationException("getBit() shouldn't bew called on an array");
-    }
-
-    @Override
-    public int width() {
-      return type.width();
-    }
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="Expressions">
-  static class EqualsExpression implements HigherOrderExpression {
-    private final HigherOrderExpression left;
-    private final HigherOrderExpression right;
-    private final int width;
-
-    public EqualsExpression(HigherOrderExpression left, HigherOrderExpression right) {
-      this.left = left;
-      this.right = right;
-      width = left.width();
-    }
-
-    @Override
-    public Formula toFormula() {
-      List<Formula> conjuncts = new ArrayList<>();
-      for (int i = 0; i < width; i++) {
-        conjuncts.add(getBit(i));
-      }
-      return Conjunction.of(conjuncts);
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      return Biconditional.of(left.getBit(i), right.getBit(i));
-    }
-
-    @Override
-    public SpectraType getType() {
-      return left.getType();
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class NotEqualsExpression implements HigherOrderExpression {
-    private final HigherOrderExpression left;
-    private final HigherOrderExpression right;
-    private final int width;
-
-    public NotEqualsExpression(HigherOrderExpression left, HigherOrderExpression right) {
-      this.left = left;
-      this.right = right;
-      width = left.width();
-    }
-
-    @Override
-    public Formula toFormula() {
-      List<Formula> disjuncts = new ArrayList<>();
-      for (int i = 0; i < width; i++) {
-        disjuncts.add(getBit(i));
-      }
-      return Disjunction.of(disjuncts);
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      return Biconditional.of(left.getBit(i), right.getBit(i)).not();
-    }
-
-    @Override
-    public SpectraType getType() {
-      return left.getType();
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class LessThanExpression implements HigherOrderExpression {
-    private final HigherOrderExpression left;
-    private final HigherOrderExpression right;
-    private final int width;
-
-    public LessThanExpression(HigherOrderExpression left, HigherOrderExpression right) {
-      this.left = left;
-      this.right = right;
-      width = left.width();
-    }
-
-    @Override
-    public Formula toFormula() {
-      return getBit(width - 1);
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      assert i >= 0;
-      Formula leftBit = left.getBit(i);
-      Formula rightBit = right.getBit(i);
-      Formula xLTy = Conjunction.of(leftBit.not(), rightBit);
-      Formula xEQy = Biconditional.of(leftBit, rightBit);
-      Formula rec = (i == 0) ? BooleanConstant.FALSE : getBit(i - 1);
-      return Disjunction.of(xLTy, Conjunction.of(xEQy, rec));
-    }
-
-    @Override
-    public SpectraType getType() {
-      return left.getType();
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class LessThanOrEqualsExpression implements HigherOrderExpression {
-    private final HigherOrderExpression left;
-    private final HigherOrderExpression right;
-    private final int width;
-
-    public LessThanOrEqualsExpression(HigherOrderExpression left, HigherOrderExpression right) {
-      this.left = left;
-      this.right = right;
-      width = left.width();
-    }
-
-    @Override
-    public Formula toFormula() {
-      return getBit(width - 1);
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      assert i >= 0;
-      Formula leftBit = left.getBit(i);
-      Formula rightBit = right.getBit(i);
-      Formula xLTy = Conjunction.of(leftBit.not(), rightBit);
-      Formula xEQy = Biconditional.of(leftBit, rightBit);
-      Formula rec = (i == 0) ? BooleanConstant.TRUE : getBit(i - 1);
-      return Disjunction.of(xLTy, Conjunction.of(xEQy, rec));
-    }
-
-    @Override
-    public SpectraType getType() {
-      return left.getType();
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class SpecialNextExpression implements HigherOrderExpression {
-    private final HigherOrderExpression inner;
-    private final int width;
-
-    public SpecialNextExpression(HigherOrderExpression inner) {
-      this.inner = inner;
-      width = inner.width();
-    }
-
-    @Override
-    public Formula toFormula() {
-      throw new ParseCancellationException(
-        "toFormula() shouldn't be called on SpecialNextExpression objects"
-      );
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      return XOperator.of(inner.getBit(i));
-    }
-
-    @Override
-    public SpectraType getType() {
-      return inner.getType();
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-
-  static class NegateExpression implements HigherOrderExpression {
-    private final HigherOrderExpression inner;
-    private final int width;
-
-    public NegateExpression(HigherOrderExpression inner) {
-      this.inner = inner;
-      width = inner.width();
-    }
-
-    @Override
-    public Formula toFormula() {
-      return inner.toFormula().not();
-    }
-
-    @Override
-    public Formula getBit(int i) {
-      return inner.getBit(i).not();
-    }
-
-    @Override
-    public SpectraType getType() {
-      return inner.getType();
-    }
-
-    @Override
-    public int width() {
-      return width;
-    }
-  }
-  //</editor-fold>
-
   //</editor-fold>
 }
