@@ -57,9 +57,9 @@ import owl.ltl.SOperator;
 import owl.ltl.TOperator;
 import owl.ltl.XOperator;
 import owl.ltl.YOperator;
-import owl.ltl.parser.SpectraParser.HigherOrderExpression;
-import owl.ltl.parser.SpectraParser.SpectraBoolean;
-import owl.ltl.parser.SpectraParser.SpectraType;
+import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
+import owl.ltl.parser.spectra.types.SpectraBoolean;
+import owl.ltl.parser.spectra.types.SpectraType;
 
 final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
   private final Map<String, HigherOrderExpression> variables;
@@ -225,7 +225,7 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
   @Override
   public Formula visitReferable(ReferableContext ctx) {
     if (variables.containsKey(ctx.pointer.getText())) {
-      SpectraParser.HigherOrderExpression expr = variables.get(ctx.pointer.getText());
+      HigherOrderExpression expr = variables.get(ctx.pointer.getText());
       if (expr.getType() instanceof SpectraBoolean) {
         SpectraExpressionVisitor expressionParser =
           new SpectraExpressionVisitor(variables, typeConstants, expr.getType());
