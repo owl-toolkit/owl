@@ -23,12 +23,18 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
+import owl.ltl.HOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.OOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SOperator;
+import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.YOperator;
+import owl.ltl.ZOperator;
 
 /**
  * Visitor skeleton implementation that views the formula as propositional formula. For this reason
@@ -54,6 +60,11 @@ public abstract class PropositionalVisitor<T> implements Visitor<T> {
   }
 
   @Override
+  public final T visit(HOperator hOperator) {
+    return this.visit((Formula.TemporalOperator) hOperator);
+  }
+
+  @Override
   public final T visit(Literal literal) {
     return this.visit((Formula.TemporalOperator) literal);
   }
@@ -64,8 +75,23 @@ public abstract class PropositionalVisitor<T> implements Visitor<T> {
   }
 
   @Override
+  public final T visit(OOperator oOperator) {
+    return this.visit((Formula.TemporalOperator) oOperator);
+  }
+
+  @Override
   public final T visit(ROperator rOperator) {
     return this.visit((Formula.TemporalOperator) rOperator);
+  }
+
+  @Override
+  public final T visit(SOperator sOperator) {
+    return this.visit((Formula.TemporalOperator) sOperator);
+  }
+
+  @Override
+  public final T visit(TOperator tOperator) {
+    return this.visit((Formula.TemporalOperator) tOperator);
   }
 
   @Override
@@ -81,6 +107,16 @@ public abstract class PropositionalVisitor<T> implements Visitor<T> {
   @Override
   public final T visit(XOperator xOperator) {
     return this.visit((Formula.TemporalOperator) xOperator);
+  }
+
+  @Override
+  public final T visit(YOperator yOperator) {
+    return this.visit((Formula.TemporalOperator) yOperator);
+  }
+
+  @Override
+  public final T visit(ZOperator zOperator) {
+    return this.visit((Formula.TemporalOperator) zOperator);
   }
 
 }
