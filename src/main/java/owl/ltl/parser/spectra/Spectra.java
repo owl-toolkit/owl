@@ -51,6 +51,11 @@ public class Spectra {
     return outputs;
   }
 
+  public List<Formula> getSafety() {
+    return Stream.concat(psiE.stream(), psiS.stream())
+      .collect(Collectors.toList());
+  }
+
   public Formula toFormula() {
     Formula initialE = Conjunction.of(thetaE);
     Formula initialS = Conjunction.of(thetaS);
