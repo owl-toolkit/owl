@@ -180,7 +180,7 @@ class SpectraParserTest {
    *    - test[i][3]: system-safety
    *    - test[i][4]: environment-liveness
    *    - test[i][5]: system-liveness
-   * - Dimension 2: list of ltl/pltl formulas
+   * - Dimension 2: list of ltl/pltl2safety formulas
    */
   private static final List<Formula[][]> SyntaxTestOut = List.of(new Formula[][][]{
     //<editor-fold desc="Test 0">
