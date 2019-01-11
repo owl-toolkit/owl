@@ -20,11 +20,11 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.run.Environment;
 
-public class PLTL2SafetyFunction
+public class PLTL2Safety
   implements Function<LabelledFormula, Automaton<?, AllAcceptance>> {
   private final Environment environment;
 
-  public PLTL2SafetyFunction(Environment environment) {
+  public PLTL2Safety(Environment environment) {
     this.environment = environment;
   }
 
