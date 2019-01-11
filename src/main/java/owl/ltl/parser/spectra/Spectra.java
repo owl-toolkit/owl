@@ -56,6 +56,13 @@ public class Spectra {
       .collect(Collectors.toList());
   }
 
+  public List<LabelledFormula> getLabelledSafety() {
+    return Stream.concat(
+      psiE.stream().map(this::toLabelledFormula),
+      psiS.stream().map(this::toLabelledFormula)
+    ).collect(Collectors.toList());
+  }
+
   public Formula toFormula() {
     Formula initialE = Conjunction.of(thetaE);
     Formula initialS = Conjunction.of(thetaS);
@@ -73,6 +80,10 @@ public class Spectra {
   }
 
   public LabelledFormula toLabelledFormula() {
-    return LabelledFormula.of(toFormula(), variables, player1);
+    return toLabelledFormula(toFormula());
+  }
+
+  private LabelledFormula toLabelledFormula(Formula formula) {
+    return LabelledFormula.of(formula, variables, player1);
   }
 }
