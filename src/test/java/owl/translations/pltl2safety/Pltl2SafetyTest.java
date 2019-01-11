@@ -339,5 +339,4 @@ class Pltl2SafetyTest {
       assertTrue(LanguageAnalysis.contains(automaton2, automaton1));
     }
   }
-
 }
