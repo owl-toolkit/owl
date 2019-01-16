@@ -22,14 +22,18 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.DETERMINISTIC;
 
+import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -64,6 +68,59 @@ public final class AutomatonOperations {
 
     return factory;
   }
+
+  /**
+   * Constructs an automaton recognizing the intersection of languages of the given automata.
+   *
+   * @param automata
+   *     A list of automata over the same alphabet ({@link ValuationSetFactory}). The only supported
+   *     acceptance is BuchiAcceptance.
+   * @param <S>
+   *     The type of the states. Can be set to Object.
+   *
+   * @return An automaton that is constructed on-the-fly.
+   */
+  public static <S> Automaton<List<S>, GeneralizedBuchiAcceptance> intersectionBuchi(
+    List<Automaton<S, ? extends BuchiAcceptance>> automata) {
+    checkArgument(!automata.isEmpty(), "No automaton was passed.");
+
+    Set<List<S>> initialStates = new HashSet<>();
+
+    for (List<S> initialState : Sets.cartesianProduct(
+      automata.stream().map(Automaton::initialStates).collect(Collectors.toList()))) {
+      initialStates.add(List.copyOf(initialState));
+    }
+
+    BiFunction<List<S>, BitSet, Set<Edge<List<S>>>> edgesFunction = (state, letter) -> {
+      List<Set<Edge<S>>> edges = new ArrayList<>();
+
+      for (int i = 0; i < state.size(); i++) {
+        edges.add(automata.get(i).edges(state.get(i), letter));
+      }
+
+      Set<Edge<List<S>>> edgesComputed = new HashSet<>();
+
+      for (List<Edge<S>> edge : Sets.cartesianProduct(edges)) {
+        List<S> successors = new ArrayList<>();
+        BitSet acceptance = new BitSet();
+
+        for (int i = 0; i < edge.size(); i++) {
+          Edge<S> x = edge.get(i);
+          successors.add(x.successor());
+          acceptance.set(i, x.hasAcceptanceSets());
+        }
+
+        edgesComputed.add(Edge.of(List.copyOf(successors), acceptance));
+      }
+
+      return edgesComputed;
+    };
+
+    ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::factory));
+    return new ImplicitNonDeterministicEdgesAutomaton<>(factory, initialStates,
+      GeneralizedBuchiAcceptance.of(automata.size()), edgesFunction);
+  }
+
 
   /**
    * Constructs an automaton recognizing the intersection of languages of the given automata.
