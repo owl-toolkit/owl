@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
-import java.util.function.Function;
 
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Nested;
@@ -21,15 +20,12 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithms.LanguageAnalysis;
 import owl.automaton.output.HoaPrinter;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.SpectraParser;
 import owl.run.DefaultEnvironment;
 
 class Pltl2SafetyTest {
   private final PLTL2Safety translator = new PLTL2Safety(DefaultEnvironment.standard());
-  private final Function<List<String>, ValuationSetFactory> FACTORY_SUPPLIER =
-    DefaultEnvironment.annotated().factorySupplier()::getValuationSetFactory;
 
   private static final List<String> INPUT = List.of(
     "sys boolean a;\n"
@@ -270,8 +266,8 @@ class Pltl2SafetyTest {
             + "acc-name: all\n"
             + "Acceptance: 0 t\n"
             + "--BODY--\n"
-            + "State: 0 \"[[Z(speed0|speed1), speed0, speed1], [Z(speed0|speed1)]," +
-            "[Z(speed0|speed1), speed0], [Z(speed0|speed1)]\"\n"
+            + "State: 0 \"[[Z(speed0|speed1), speed0, speed1], [Z(speed0|speed1)],"
+            + "[Z(speed0|speed1), speed0], [Z(speed0|speed1)]\"\n"
             + "[0] 0\n"
             + "[1] 0\n"
             + "[!0 & !1] 1\n"
@@ -284,7 +280,7 @@ class Pltl2SafetyTest {
         Arguments.of(
           "env boolean grant;\n"
           + "sys boolean request;\n"
-          + "asm G (grant -> (!grant S request));",
+          + "gar G (grant -> (!grant S request));",
           2,
           "HOA: v1\n"
             + "Start: 0\n"
@@ -314,7 +310,10 @@ class Pltl2SafetyTest {
 
       var automaton1 = Views.viewAs(automaton, BuchiAcceptance.class);
       var automaton2 = Views.viewAs(
-        AutomatonReader.readHoa(expectedHoa, FACTORY_SUPPLIER),
+        AutomatonReader.readHoa(
+          expectedHoa,
+          DefaultEnvironment.annotated().factorySupplier()::getValuationSetFactory
+        ),
         BuchiAcceptance.class
       );
       assertTrue(LanguageAnalysis.contains(automaton1, automaton2));
