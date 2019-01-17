@@ -43,7 +43,7 @@ varType:
   (name=BOOLEAN
   | INT_S LPAREN subr=subrange RPAREN
   | LCPAR consts+=typeConstant (COMMA consts+=typeConstant)* RCPAR
-  | type=ID /** TODO [TypeDef] */)
+  | type=ID)
   (LBRACKET dimensions+=INT RBRACKET)*
   ;
 
