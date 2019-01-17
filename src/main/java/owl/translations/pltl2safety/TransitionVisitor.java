@@ -6,7 +6,6 @@ import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
-import owl.ltl.Formula;
 import owl.ltl.Formula.TemporalOperator;
 import owl.ltl.HOperator;
 import owl.ltl.Literal;
@@ -91,6 +90,7 @@ public class TransitionVisitor implements Visitor<Boolean> {
     return suc.contains(zOperator) == prevVisitor.apply(zOperator.operand);
   }
 
+  @SuppressWarnings("PMD.UncommentedEmptyConstructor")
   private class PreviousVisitor extends PropositionalVisitor<Boolean> {
 
     PreviousVisitor() {}
