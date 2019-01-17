@@ -19,7 +19,14 @@
 
 package owl.translations.buchicomplementation;
 
+import com.google.common.collect.Maps;
+import com.google.common.primitives.ImmutableIntArray;
+import de.tum.in.naturals.set.NatCartesianProductSet;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.immutables.value.Value;
@@ -49,33 +56,83 @@ public final class Complementation {
   }
 
   private static <S> LevelRankingState<S> initialState(Automaton<S, BuchiAcceptance> automaton) {
-
-    // CODE HERE
-    //
-    // Useful methods:
-    // * automaton.states()
-    // * automaton.initialStates()
-
-    return null;
+    int n = automaton.states().size();
+    return LevelRankingState.create(
+      Maps.asMap(automaton.initialStates(), x -> 2 * n), automaton.initialStates());
   }
 
   private static <S> Set<LevelRankingState<S>> successors(Automaton<S, BuchiAcceptance> automaton,
-    LevelRankingState<S> levelRankingState, BitSet letter) {
+    LevelRankingState<S> levelRankingState,
+    BitSet letter) {
+    List<S> stateOrder = new ArrayList<>();
+    List<Integer> largestRanking = new ArrayList<>();
 
-    // CODE HERE
-    //
-    // Useful methods:
-    // * automaton.successors(state, letter)
-    // * isAcceptingState(automaton, successor))
-    // * LevelRankingState.create(levelRanking, owingStates));
+    // Compute upper bounds for ranking.
+    for (Map.Entry<S, Integer> stateRank : levelRankingState.levelRanking().entrySet()) {
+      Set<S> successors = automaton.successors(stateRank.getKey(), letter);
 
-    return null;
+      for (S successor : successors) {
+        int index = stateOrder.indexOf(successor);
+
+        if (index >= 0) {
+          int rank = Math.min(stateRank.getValue(), largestRanking.get(index));
+          largestRanking.set(index, rank);
+        } else {
+          stateOrder.add(successor);
+          largestRanking.add(stateRank.getValue());
+        }
+      }
+    }
+
+    Set<LevelRankingState<S>> successors = new HashSet<>();
+
+    // Iterate over all rankings.
+    outerloop:
+    for (int[] ranking : new NatCartesianProductSet(
+      ImmutableIntArray.copyOf(largestRanking).toArray())) {
+
+      Map<S, Integer> successorLevelRanking = new HashMap<>();
+
+      // Check if accepting states are even and build map.
+      for (int i = 0; i < ranking.length; i++) {
+        int rank = ranking[i];
+        S successor = stateOrder.get(i);
+
+        if (rank % 2 == 1 && isAcceptingState(automaton, successor)) {
+          continue outerloop;
+        }
+
+        successorLevelRanking.put(successor, rank);
+      }
+
+      // Update owing states.
+
+      Set<S> successorOwingStates = new HashSet<>();
+
+      if (levelRankingState.owingStates().isEmpty()) {
+        successorLevelRanking.forEach((state, rank) -> {
+          if (rank % 2 == 0) {
+            successorOwingStates.add(state);
+          }
+        });
+      } else {
+        levelRankingState.owingStates().forEach((state) -> {
+          automaton.successors(state, letter).forEach((successor) -> {
+            if (successorLevelRanking.get(successor) % 2 == 0) {
+              successorOwingStates.add(successor);
+            }
+          });
+        });
+      }
+
+      successors.add(LevelRankingState.create(successorLevelRanking, successorOwingStates));
+    }
+
+    return successors;
   }
 
   private static <S> boolean isAcceptingState(LevelRankingState<S> state) {
-    // CODE HERE
-
-    return false;
+    return state.owingStates().isEmpty();
   }
 
   @Value.Immutable
@@ -106,4 +163,3 @@ public final class Complementation {
     throw new IllegalArgumentException("Not state-acceptance");
   }
 }
-
