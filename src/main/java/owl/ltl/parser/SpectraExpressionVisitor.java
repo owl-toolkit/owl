@@ -153,7 +153,7 @@ final class SpectraExpressionVisitor extends SPECTRAParserBaseVisitor<HigherOrde
 
   @Override
   public HigherOrderExpression visitPredPatt(PredPattContext ctx) {
-    //TODO:
+    //TODO: implement this
     throw new ParseCancellationException("Predicate and patterns not implemented yet");
   }
 

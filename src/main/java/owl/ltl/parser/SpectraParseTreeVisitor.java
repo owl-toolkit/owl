@@ -200,7 +200,7 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
     }
 
     throw new ParseCancellationException(
-      "A none boolen constant shouldn't be called in this context"
+      "A none boolean constant shouldn't be called in this context"
     );
   }
 
@@ -212,7 +212,7 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
 
   @Override
   public Formula visitPredPatt(PredPattContext ctx) {
-    //TODO:
+    //TODO: implement this
     throw new ParseCancellationException("Predicate and patterns not implemented yet");
   }
 
