@@ -160,7 +160,7 @@ final class SpectraTypeVisitor extends SPECTRAParserBaseVisitor<Optional<Spectra
 
   @Override
   public Optional<SpectraType> visitPredPatt(SPECTRAParser.PredPattContext ctx) {
-    //TODO:
+    //TODO: implement this
     throw new ParseCancellationException("Predicate and patterns not implemented yet");
   }
 }
