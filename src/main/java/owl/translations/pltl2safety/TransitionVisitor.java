@@ -2,64 +2,131 @@ package owl.translations.pltl2safety;
 
 import java.util.Set;
 
+import owl.ltl.Biconditional;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.Formula;
 import owl.ltl.Formula.TemporalOperator;
 import owl.ltl.HOperator;
+import owl.ltl.Literal;
 import owl.ltl.OOperator;
 import owl.ltl.SOperator;
 import owl.ltl.TOperator;
 import owl.ltl.YOperator;
 import owl.ltl.ZOperator;
+import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.Visitor;
 
 public class TransitionVisitor implements Visitor<Boolean> {
   private final Set<TemporalOperator> state;
   private final Set<TemporalOperator> suc;
+  private final PreviousVisitor prevVisitor;
 
   TransitionVisitor(Set<TemporalOperator> state, Set<TemporalOperator> suc) {
     this.state = state;
     this.suc = suc;
+    prevVisitor = new PreviousVisitor();
+  }
+
+  @Override
+  public Boolean visit(BooleanConstant booleanConstant) {
+    return booleanConstant.value;
+  }
+
+  @Override
+  public Boolean visit(Biconditional biconditional) {
+    return apply(biconditional.left) == apply(biconditional.right);
+  }
+
+  @Override
+  public Boolean visit(Conjunction conjunction) {
+    return conjunction.children.stream()
+      .map(this).allMatch(Boolean::booleanValue);
+  }
+
+  @Override
+  public Boolean visit(Disjunction disjunction) {
+    return disjunction.children.stream()
+      .map(this).anyMatch(Boolean::booleanValue);
+  }
+
+  @Override
+  public Boolean visit(Literal literal) {
+    if (literal.isNegated()) {
+      return !suc.contains(literal.not());
+    }
+    return suc.contains(literal);
   }
 
   @Override
   public Boolean visit(HOperator hOperator) {
-    TemporalOperator nextOp = (TemporalOperator) hOperator.operand;
-    return suc.contains(hOperator) == (suc.contains(nextOp) && state.contains(hOperator));
+    return suc.contains(hOperator) == (apply(hOperator.operand) && state.contains(hOperator));
   }
 
   @Override
   public Boolean visit(OOperator oOperator) {
-    TemporalOperator nextOp = (TemporalOperator) oOperator.operand;
-    return suc.contains(oOperator) == (suc.contains(nextOp) || state.contains(oOperator));
+    return suc.contains(oOperator) == (apply(oOperator.operand) || state.contains(oOperator));
   }
 
   @Override
   public Boolean visit(SOperator sOperator) {
-    TemporalOperator left = (TemporalOperator) sOperator.left;
-    TemporalOperator right = (TemporalOperator) sOperator.right;
     return suc.contains(sOperator)
-      == (suc.contains(right) || (suc.contains(left) && state.contains(sOperator)));
+      == (apply(sOperator.right) || (apply(sOperator.left) && state.contains(sOperator)));
   }
 
   @Override
   public Boolean visit(TOperator tOperator) {
-    //TODO: check for correctness
-    //a T b = !(!a S !b), transition of a S b is S' = b' | (a' & S)
-    // => !(!b' | (!a' & S) = b' & (a' | ! S)
-    TemporalOperator left = (TemporalOperator) tOperator.left;
-    TemporalOperator right = (TemporalOperator) tOperator.right;
     return suc.contains(tOperator)
-      == (suc.contains(right) && (suc.contains(left) || !state.contains(tOperator)));
+      == (apply(tOperator.right) && (apply(tOperator.left) || !state.contains(tOperator)));
   }
 
   @Override
   public Boolean visit(YOperator yOperator) {
-    TemporalOperator nextOp = (TemporalOperator) yOperator.operand;
-    return suc.contains(yOperator) == state.contains(nextOp);
+    return suc.contains(yOperator) == prevVisitor.apply(yOperator.operand);
   }
 
   @Override
   public Boolean visit(ZOperator zOperator) {
-    TemporalOperator nextOp = (TemporalOperator) zOperator.operand;
-    return suc.contains(zOperator) == state.contains(nextOp);
+    return suc.contains(zOperator) == prevVisitor.apply(zOperator.operand);
+  }
+
+  private class PreviousVisitor extends PropositionalVisitor<Boolean> {
+
+    PreviousVisitor() {}
+
+    @Override
+    public Boolean visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value;
+    }
+
+    @Override
+    public Boolean visit(Biconditional biconditional) {
+      return apply(biconditional.left) == apply(biconditional.right);
+    }
+
+    @Override
+    public Boolean visit(Conjunction conjunction) {
+      return conjunction.children.stream()
+        .map(this).allMatch(Boolean::booleanValue);
+    }
+
+    @Override
+    public Boolean visit(Disjunction disjunction) {
+      return disjunction.children.stream()
+        .map(this).anyMatch(Boolean::booleanValue);
+    }
+
+    @Override
+    protected Boolean visit(TemporalOperator formula) {
+      if (formula instanceof Literal) {
+        Literal literal = (Literal) formula;
+        if (literal.isNegated()) {
+          return !state.contains(literal.not());
+        }
+        return state.contains(literal);
+      }
+      return state.contains(formula);
+    }
   }
 }

@@ -2,6 +2,7 @@ package owl.translations.pltl2safety;
 
 import java.util.Set;
 
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -28,6 +29,11 @@ public class InitialStateVisitor implements Visitor<Boolean> {
   }
 
   @Override
+  public Boolean visit(Biconditional biconditional) {
+    return apply(biconditional.left) == apply(biconditional.right);
+  }
+
+  @Override
   public Boolean visit(Conjunction conjunction) {
     return conjunction.children.stream()
       .map(this).allMatch(Boolean::booleanValue);
@@ -41,6 +47,9 @@ public class InitialStateVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(Literal literal) {
+    if (literal.isNegated()) {
+      return !state.contains(literal.not());
+    }
     return state.contains(literal);
   }
 
@@ -51,7 +60,7 @@ public class InitialStateVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(OOperator oOperator) {
-    return (apply(oOperator.operand) == state.contains(oOperator));
+    return apply(oOperator.operand) == state.contains(oOperator);
   }
 
   @Override
@@ -61,18 +70,16 @@ public class InitialStateVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(TOperator tOperator) {
-    //TODO: check correctness
-    //a T b = !(!a S !b), initial of a S b is b => !(!b) = b
     return (apply(tOperator.right) == state.contains(tOperator));
   }
 
   @Override
   public Boolean visit(YOperator yOperator) {
-    return false;
+    return !state.contains(yOperator);
   }
 
   @Override
   public Boolean visit(ZOperator zOperator) {
-    return true;
+    return state.contains(zOperator);
   }
 }
