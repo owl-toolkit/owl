@@ -7,6 +7,7 @@ import static owl.util.Assertions.assertThat;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Function;
 
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Nested;
