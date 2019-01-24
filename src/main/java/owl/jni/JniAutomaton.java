@@ -62,7 +62,7 @@ public final class JniAutomaton<S> {
   private final Automaton<S, ?> automaton;
   private final List<S> index2StateMap;
   private final Object2IntMap<S> state2indexMap;
-  private final ToDoubleFunction<S> qualityScore;
+  private final ToDoubleFunction<Edge<S>> qualityScore;
 
   JniAutomaton(Automaton<S, ?> automaton) {
     this(automaton, x -> false, x -> 0.5d, detectAcceptance(automaton));
@@ -73,12 +73,12 @@ public final class JniAutomaton<S> {
   }
 
   JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink,
-    ToDoubleFunction<S> qualityScore) {
+    ToDoubleFunction<Edge<S>> qualityScore) {
     this(automaton, acceptingSink, qualityScore, detectAcceptance(automaton));
   }
 
   JniAutomaton(Automaton<S, ?> automaton, Predicate<S> acceptingSink,
-    ToDoubleFunction<S> qualityScore, JniAcceptance acceptance) {
+    ToDoubleFunction<Edge<S>> qualityScore, JniAcceptance acceptance) {
     checkArgument(automaton.initialStates().size() == 1);
 
     this.automaton = automaton;
@@ -152,9 +152,10 @@ public final class JniAutomaton<S> {
   }
 
   @CEntryPoint
-  public double qualityScore(int stateIndex) {
-    S state = index2StateMap.get(stateIndex);
-    return qualityScore.applyAsDouble(state);
+  public double qualityScore(int successorIndex, int colour) {
+    S successor = index2StateMap.get(successorIndex);
+    Edge<S> edge = colour >= 0 ? Edge.of(successor, colour) : Edge.of(successor);
+    return qualityScore.applyAsDouble(edge);
   }
 
   int size() {

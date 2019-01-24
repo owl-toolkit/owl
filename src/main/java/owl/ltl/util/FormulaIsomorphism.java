@@ -60,6 +60,10 @@ public final class FormulaIsomorphism {
       return null;
     }
 
+    if (formula1.height() != formula2.height()) {
+      return null;
+    }
+
     ValidationVisitor preValidationVisitor = new ValidationVisitor(null);
 
     if (!formula1.accept(preValidationVisitor, formula2)) {
@@ -198,6 +202,7 @@ public final class FormulaIsomorphism {
         return Boolean.FALSE;
       }
 
+      // TODO, check height.
       List<Formula> children1 = new ArrayList<>(formula1.children);
       List<Formula> children2 = new ArrayList<>(formula2Casted.children);
 

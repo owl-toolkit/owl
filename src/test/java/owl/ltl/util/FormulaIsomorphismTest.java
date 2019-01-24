@@ -21,10 +21,13 @@ package owl.ltl.util;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
 class FormulaIsomorphismTest {
@@ -48,5 +51,43 @@ class FormulaIsomorphismTest {
     Formula formula2 = LtlParser.syntax("G ((a & F b) | X c | X X d | e | f | g)", VARIABLES);
     assertArrayEquals(new int[]{5, 6, 2, 4, 3, 0, 1},
       FormulaIsomorphism.compute(formula1, formula2));
+  }
+
+  @Test
+  void testPerformance() {
+    LabelledFormula formula1 = LtlParser.parse("(((r_0) && (X (r_1))) -> (X (X ((g_0) && (g_1)))))"
+      + "&& (((r_0) && (X (r_2))) -> (X (X ((g_0) && (g_2)))))\n"
+      + "&& (((r_0) && (X (r_3))) -> (X (X ((g_0) && (g_3)))))\n"
+      + "&& (((r_0) && (X (r_4))) -> (X (X ((g_0) && (g_4)))))\n"
+      + "&& (((r_0) && (X (r_5))) -> (X (X ((g_0) && (g_5)))))\n"
+      + "&& (((r_1) && (X (r_2))) -> (X (X ((g_1) && (g_2)))))\n"
+      + "&& (((r_1) && (X (r_3))) -> (X (X ((g_1) && (g_3)))))\n"
+      + "&& (((r_1) && (X (r_4))) -> (X (X ((g_1) && (g_4)))))\n"
+      + "&& (((r_1) && (X (r_5))) -> (X (X ((g_1) && (g_5)))))\n"
+      + "&& (((r_2) && (X (r_3))) -> (X (X ((g_2) && (g_3)))))\n"
+      + "&& (((r_2) && (X (r_4))) -> (X (X ((g_2) && (g_4)))))\n"
+      + "&& (((r_2) && (X (r_5))) -> (X (X ((g_2) && (g_5)))))\n"
+      + "&& (((r_3) && (X (r_4))) -> (X (X ((g_3) && (g_4)))))\n"
+      + "&& (((r_3) && (X (r_5))) -> (X (X ((g_3) && (g_5)))))\n"
+      + "&& (((r_4) && (X (r_5))) -> (X (X ((g_4) && (g_5)))))");
+
+    LabelledFormula formula2 = LtlParser.parse("(((r_0) && (X (r_1))) -> (X ((g_0) && (g_1))))"
+      + "&& (((r_0) && (X (r_2))) -> (X ((g_0) && (g_2))))\n"
+      + "&& (((r_0) && (X (r_3))) -> (X ((g_0) && (g_3))))\n"
+      + "&& (((r_0) && (X (r_4))) -> (X ((g_0) && (g_4))))\n"
+      + "&& (((r_0) && (X (r_5))) -> (X ((g_0) && (g_5))))\n"
+      + "&& (((r_1) && (X (r_2))) -> (X ((g_1) && (g_2))))\n"
+      + "&& (((r_1) && (X (r_3))) -> (X ((g_1) && (g_3))))\n"
+      + "&& (((r_1) && (X (r_4))) -> (X ((g_1) && (g_4))))\n"
+      + "&& (((r_1) && (X (r_5))) -> (X ((g_1) && (g_5))))\n"
+      + "&& (((r_2) && (X (r_3))) -> (X ((g_2) && (g_3))))\n"
+      + "&& (((r_2) && (X (r_4))) -> (X ((g_2) && (g_4))))\n"
+      + "&& (((r_2) && (X (r_5))) -> (X ((g_2) && (g_5))))\n"
+      + "&& (((r_3) && (X (r_4))) -> (X ((g_3) && (g_4))))\n"
+      + "&& (((r_3) && (X (r_5))) -> (X ((g_3) && (g_5))))\n"
+      + "&& (((r_4) && (X (r_5))) -> (X ((g_4) && (g_5))))", formula1.variables());
+
+    assertTimeout(Duration.ofMillis(500),
+      () -> assertNull(FormulaIsomorphism.compute(formula1.formula(), formula2.formula())));
   }
 }

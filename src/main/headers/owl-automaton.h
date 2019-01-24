@@ -156,7 +156,7 @@ namespace owl {
         Acceptance acceptance() const;
         int acceptance_set_count() const;
         EdgeTree edges(int state) const;
-        double quality_score(int state) const;
+        double quality_score(int successor, int colour) const;
     };
 
     class EmersonLeiAutomaton : public owl::ManagedJObject {

@@ -29,6 +29,9 @@ import static owl.jni.JniEmersonLeiAutomaton.of;
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Node;
@@ -55,53 +58,63 @@ class JniEmersonLeiAutomatonTest {
     + "&& X (release_1 R grant_1) && (release_2 R grant_2) && (G (request_1 -> X grant_1)) "
     + "&& G grant_1";
 
+  @BeforeEach
+  void setUp() {
+    JniEmersonLeiAutomaton.clearCache();
+  }
+
+  @AfterEach()
+  void tearDown() {
+    JniEmersonLeiAutomaton.clearCache();
+  }
+
   @Test
   void splitSimpleArbiter() {
-    of(LtlParser.syntax(SIMPLE_ARBITER), true, false, NEVER, true, 0);
+    of(LtlParser.syntax(SIMPLE_ARBITER), true, false, NEVER, 0);
   }
 
   @Test
   void splitFg() {
-    of(LtlParser.syntax("F G a"), true, true, ALWAYS, true, 0);
+    of(LtlParser.syntax("F G a"), true, true, ALWAYS, 0);
   }
 
   @Test
   void splitBuechi() {
-    of(LtlParser.syntax("G (a | X F a)"), true, true, AUTO, true, 0);
+    of(LtlParser.syntax("G (a | X F a)"), true, true, AUTO, 0);
   }
 
   @Test
   void testCoSafetySplitting() {
-    var tree1 = of(LtlParser.syntax(CO_SAFETY), false, false, ALWAYS, false, 0).structure;
+    var tree1 = of(LtlParser.syntax(CO_SAFETY), false, false, ALWAYS, 0).structure;
     assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
 
-    var tree2 = of(LtlParser.syntax(CO_SAFETY), false, false, AUTO, false, 0).structure;
+    var tree2 = of(LtlParser.syntax(CO_SAFETY), false, false, AUTO, 0).structure;
     assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
 
-    var tree3 = of(LtlParser.syntax(CO_SAFETY), false, false, NEVER, false, 0).structure;
+    var tree3 = of(LtlParser.syntax(CO_SAFETY), false, false, NEVER, 0).structure;
     assertThat(tree3, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test
   void testSafetySplitting() {
-    var tree1 = of(LtlParser.syntax(SAFETY), false, false, ALWAYS, false, 0).structure;
+    var tree1 = of(LtlParser.syntax(SAFETY), false, false, ALWAYS, 0).structure;
     assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
 
-    var tree2 = of(LtlParser.syntax(SAFETY), false, false, AUTO, false, 0).structure;
+    var tree2 = of(LtlParser.syntax(SAFETY), false, false, AUTO, 0).structure;
     assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
 
-    var tree3 = of(LtlParser.syntax(SAFETY), false, false, NEVER, false, 0).structure;
+    var tree3 = of(LtlParser.syntax(SAFETY), false, false, NEVER, 0).structure;
     assertThat(tree3, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test
   void testAbsenceOfAssertionError() {
-    of(LtlParser.syntax("G (a | F a | F !b)"), false, false, AUTO, true, 0);
+    of(LtlParser.syntax("G (a | F a | F !b)"), false, false, AUTO, 0);
   }
 
   @Test
   void testAbsenceOfAssertionError2() {
-    of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, AUTO, true, 0);
+    of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, AUTO, 0);
   }
 
   @Test
@@ -156,7 +169,7 @@ class JniEmersonLeiAutomatonTest {
       + "}";
 
     var automaton = of(
-      TlsfParser.parse(tlsf).toFormula().formula(), true, false, AUTO, true, 7);
+      TlsfParser.parse(tlsf).toFormula().formula(), true, false, AUTO, 7);
     automaton.automata.get(0).edges(0);
   }
 
@@ -167,7 +180,7 @@ class JniEmersonLeiAutomatonTest {
         + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
         + "&G(X(p1&p13)|X(!p13&!p1)|X!p7|!p0)&G(X(p3&p13)|X(!p13&!p3)|!p0|X!p9))";
 
-    var automaton = of(LtlParser.parse(ltl).formula(), true, false, AUTO, true, 0);
+    var automaton = of(LtlParser.parse(ltl).formula(), true, false, AUTO, 0);
     automaton.automata.get(0).edges(0);
   }
 
@@ -198,7 +211,7 @@ class JniEmersonLeiAutomatonTest {
       + "  }\n"
       + "}");
 
-    var automaton = of(specification.toFormula().formula(), true, false, AUTO, true, 6);
+    var automaton = of(specification.toFormula().formula(), true, false, AUTO, 6);
     assertEquals(2, automaton.automata.size());
     assertEquals(1, automaton.automata.get(0).size());
     assertEquals(2, automaton.automata.get(1).size());
@@ -279,7 +292,7 @@ class JniEmersonLeiAutomatonTest {
       + "  }\n"
       + "}\n");
 
-    var automaton = of(specification.toFormula().formula(), true, false, AUTO, true, 25);
+    var automaton = of(specification.toFormula().formula(), true, false, AUTO, 25);
 
     assertEquals(3, automaton.automata.size());
     assertEquals(4, automaton.automata.get(0).size());
@@ -378,7 +391,7 @@ class JniEmersonLeiAutomatonTest {
       + "}\n"
       + "\n");
 
-    var automaton = of(specification.toFormula().formula(), true, false, AUTO, true, 10);
+    var automaton = of(specification.toFormula().formula(), true, false, AUTO, 10);
 
     assertEquals(9, automaton.automata.size());
 
@@ -391,7 +404,7 @@ class JniEmersonLeiAutomatonTest {
   void testRealizibilityRewriter() {
     Formula formula = LtlParser.syntax("G (req -> F gra)", List.of("req", "gra"));
 
-    var automaton1 = of(formula, true, false, ALWAYS, true, 0)
+    var automaton1 = of(formula, true, false, ALWAYS, 0)
       .automata.get(0);
 
     assertAll(
@@ -399,7 +412,9 @@ class JniEmersonLeiAutomatonTest {
       () -> assertEquals(2, automaton1.size())
     );
 
-    var automaton2 = of(formula, true, false, ALWAYS, true, 1)
+    JniEmersonLeiAutomaton.clearCache();
+
+    var automaton2 = of(formula, true, false, ALWAYS, 1)
       .automata.get(0);
 
     assertAll(
@@ -408,7 +423,9 @@ class JniEmersonLeiAutomatonTest {
       () -> assertArrayEquals(new int[]{4, 0, 0, -2, 0, -1, 0, 0}, automaton2.edges(0))
     );
 
-    var automaton3 = of(formula, true, false, ALWAYS, true, 2)
+    JniEmersonLeiAutomaton.clearCache();
+
+    var automaton3 = of(formula, true, false, ALWAYS, 2)
       .automata.get(0);
 
     assertAll(

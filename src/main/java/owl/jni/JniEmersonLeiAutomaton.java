@@ -33,6 +33,7 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.collections.LabelledTree;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
@@ -49,10 +50,13 @@ import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
+import owl.translations.canonical.BreakpointState;
 import owl.util.annotation.CEntryPoint;
 
 // This is a JNI entry point. No touching.
 public final class JniEmersonLeiAutomaton {
+
+  public static final AutomatonRepository cache = new AutomatonRepository();
 
   public final LabelledTree<Tag, Reference> structure;
   public final List<JniAutomaton<?>> automata;
@@ -64,7 +68,7 @@ public final class JniEmersonLeiAutomaton {
   }
 
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
-    SafetySplittingMode mode, boolean onTheFly, BitSet inputVariables) {
+    SafetySplittingMode mode, BitSet inputVariables) {
     Formula nnfLight = formula.substitute(Formula::nnf);
 
     Formula processedFormula = simplify
@@ -72,28 +76,34 @@ public final class JniEmersonLeiAutomaton {
         SimplifierFactory.apply(nnfLight, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT))
       : nnfLight;
 
-    Builder builder = new Builder(mode, onTheFly,
+    Builder builder = new Builder(mode,
       processedFormula.accept(JniAcceptanceAnnotator.INSTANCE));
 
     LabelledTree<Tag, Reference> structure = monolithic
-      ? builder.createLeaf(processedFormula)
+      ? Builder.createLeaf(processedFormula)
       : processedFormula.accept(builder);
 
-    return new JniEmersonLeiAutomaton(structure, List.copyOf(builder.automata));
+    return new JniEmersonLeiAutomaton(structure, List.copyOf(cache.automata));
   }
 
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
-    SafetySplittingMode mode, boolean onTheFly, int firstOutputVariable) {
+    SafetySplittingMode mode, int firstOutputVariable) {
     BitSet inputVariables = new BitSet();
     inputVariables.set(0, firstOutputVariable);
-    return of(formula, simplify, monolithic, mode, onTheFly, inputVariables);
+    return of(formula, simplify, monolithic, mode, inputVariables);
   }
 
   @CEntryPoint
   public static JniEmersonLeiAutomaton of(Formula formula, boolean simplify, boolean monolithic,
-    int mode, boolean onTheFly, int firstOutputVariable) {
-    return of(formula, simplify, monolithic, SafetySplittingMode.values()[mode], onTheFly,
+    int mode, int firstOutputVariable) {
+    return of(formula, simplify, monolithic, SafetySplittingMode.values()[mode],
       firstOutputVariable);
+  }
+
+  @CEntryPoint
+  public static void clearCache() {
+    cache.automata.clear();
+    cache.lookup.clear();
   }
 
   enum Tag {
@@ -104,7 +114,95 @@ public final class JniEmersonLeiAutomaton {
     NEVER, AUTO, ALWAYS
   }
 
-  @SuppressWarnings("PMD.DataClass")
+  public static final class AutomatonRepository {
+    private final List<JniAutomaton<?>> automata = new ArrayList<>();
+    private final Map<Formula, Reference> lookup = new HashMap<>();
+    private final LTL2DAFunction translator = new LTL2DAFunction(DefaultEnvironment.standard(),
+      true, EnumSet.of(LTL2DAFunction.Constructions.SAFETY,
+      LTL2DAFunction.Constructions.CO_SAFETY,
+      LTL2DAFunction.Constructions.BUCHI,
+      LTL2DAFunction.Constructions.CO_BUCHI,
+      LTL2DAFunction.Constructions.PARITY));
+
+    private Reference get(Formula formula) {
+      assert SyntacticFragment.NNF.contains(formula);
+      Reference reference = lookup.get(formula);
+
+      if (reference != null) {
+        return reference;
+      }
+
+      for (Map.Entry<Formula, Reference> entry : lookup.entrySet()) {
+        int[] mapping = FormulaIsomorphism.compute(formula, entry.getKey());
+
+        if (mapping != null) {
+          reference = entry.getValue();
+
+          int[] newMapping = Arrays.copyOf(mapping, mapping.length);
+
+          // Compose isomorphism mapping and the automaton mapping
+          for (int i = 0; i < newMapping.length; i++) {
+            int j = newMapping[i];
+
+            if (j != -1) {
+              newMapping[i] = reference.alphabetMapping.get(j);
+              assert newMapping[i] != -1;
+            }
+          }
+
+          return new Reference(formula, reference.index, newMapping);
+        }
+      }
+
+      LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
+      LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
+
+      Automaton<?, ?> automaton = translator.apply(labelledFormula);
+      JniAutomaton<?> jniAutomaton;
+
+      if (SyntacticFragment.SAFETY.contains(shiftedFormula.formula)) {
+        jniAutomaton = new JniAutomaton<>(
+          AutomatonUtil.cast(automaton, EquivalenceClass.class, AllAcceptance.class),
+          EquivalenceClass::isTrue, edge -> edge.successor().trueness());
+      } else if (SyntacticFragment.CO_SAFETY.contains(shiftedFormula.formula)) {
+        // Acceptance needs to be overridden, since detection does not work in this case.
+        jniAutomaton = new JniAutomaton<>(
+          AutomatonUtil.cast(automaton, EquivalenceClass.class, BuchiAcceptance.class),
+          EquivalenceClass::isTrue, edge -> edge.successor().trueness(), JniAcceptance.CO_SAFETY);
+      } else {
+        var acceptance = automaton.acceptance();
+
+        jniAutomaton = new JniAutomaton<>(automaton, x -> false, edge -> {
+          var successor = edge.successor();
+
+          if (acceptance instanceof BuchiAcceptance && edge.inSet(0)) {
+            return 1.0d;
+          }
+
+          if (acceptance instanceof CoBuchiAcceptance && edge.inSet(0)) {
+            return 0.0d;
+          }
+
+          if (successor instanceof EquivalenceClass) {
+            return ((EquivalenceClass) successor).trueness();
+          }
+
+          if (successor instanceof BreakpointState) {
+            var successorCasted = (BreakpointState<EquivalenceClass>) successor;
+            return successorCasted.current().and(successorCasted.next()).trueness();
+          }
+
+          return 0.5d;
+        });
+      }
+
+      Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);
+      automata.add(jniAutomaton);
+      lookup.put(formula, newReference);
+      return newReference;
+    }
+  }
+
   public static final class Reference {
     public final Formula formula;
     public final int index;
@@ -128,78 +226,15 @@ public final class JniEmersonLeiAutomaton {
 
   static final class Builder extends PropositionalVisitor<LabelledTree<Tag, Reference>> {
     private final SafetySplittingMode safetySplittingMode;
-    private final List<JniAutomaton<?>> automata = new ArrayList<>();
-    private final Map<Formula, Reference> lookup = new HashMap<>();
     private final Map<Formula, JniAcceptance> annotatedTree;
-    private final LTL2DAFunction translator;
 
-    public Builder(SafetySplittingMode safetySplittingMode, boolean onTheFly,
-      Map<Formula, JniAcceptance> annotatedTree) {
+    Builder(SafetySplittingMode safetySplittingMode, Map<Formula, JniAcceptance> annotatedTree) {
       this.safetySplittingMode = safetySplittingMode;
       this.annotatedTree = new HashMap<>(annotatedTree);
-
-      translator = new LTL2DAFunction(DefaultEnvironment.standard(), onTheFly, EnumSet.of(
-        LTL2DAFunction.Constructions.SAFETY,
-        LTL2DAFunction.Constructions.CO_SAFETY,
-        LTL2DAFunction.Constructions.BUCHI,
-        LTL2DAFunction.Constructions.CO_BUCHI,
-        LTL2DAFunction.Constructions.PARITY));
     }
 
-    private LabelledTree<Tag, Reference> createLeaf(Formula formula) {
-      assert SyntacticFragment.NNF.contains(formula);
-
-      Reference reference = lookup.get(formula);
-
-      if (reference != null) {
-        return new LabelledTree.Leaf<>(reference);
-      }
-
-      for (Map.Entry<Formula, Reference> entry : lookup.entrySet()) {
-        int[] mapping = FormulaIsomorphism.compute(formula, entry.getKey());
-
-        if (mapping != null) {
-          reference = entry.getValue();
-
-          int[] newMapping = Arrays.copyOf(mapping, mapping.length);
-
-          // Compose isomorphism mapping and the automaton mapping
-          for (int i = 0; i < newMapping.length; i++) {
-            int j = newMapping[i];
-
-            if (j != -1) {
-              newMapping[i] = reference.alphabetMapping.get(j);
-              assert newMapping[i] != -1;
-            }
-          }
-
-          return new LabelledTree.Leaf<>(new Reference(formula, reference.index, newMapping));
-        }
-      }
-
-      LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
-      LabelledFormula labelledFormula = Hacks.attachDummyAlphabet(shiftedFormula.formula);
-
-      Automaton<?, ?> automaton = translator.apply(labelledFormula);
-      JniAutomaton<?> jniAutomaton;
-
-      if (SyntacticFragment.SAFETY.contains(shiftedFormula.formula)) {
-        jniAutomaton = new JniAutomaton<>(
-          AutomatonUtil.cast(automaton, EquivalenceClass.class, AllAcceptance.class),
-          EquivalenceClass::isTrue, EquivalenceClass::trueness);
-      } else if (SyntacticFragment.CO_SAFETY.contains(shiftedFormula.formula)) {
-        // Acceptance needs to be overridden, since detection does not work in this case.
-        jniAutomaton = new JniAutomaton<>(
-          AutomatonUtil.cast(automaton, EquivalenceClass.class, BuchiAcceptance.class),
-          EquivalenceClass::isTrue, EquivalenceClass::trueness, JniAcceptance.CO_SAFETY);
-      } else {
-        jniAutomaton = new JniAutomaton<>(automaton);
-      }
-
-      Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);
-      automata.add(jniAutomaton);
-      lookup.put(formula, newReference);
-      return new LabelledTree.Leaf<>(newReference);
+    private static LabelledTree<Tag, Reference> createLeaf(Formula formula) {
+      return new LabelledTree.Leaf<>(cache.get(formula));
     }
 
     private List<LabelledTree<Tag, Reference>> createLeaves(FormulaPartition partition,

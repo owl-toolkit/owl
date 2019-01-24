@@ -65,6 +65,27 @@ public final class DegeneralizedBreakpointState implements LtlLanguageExpressibl
       EquivalenceClass.EMPTY_ARRAY, null);
   }
 
+  public EquivalenceClass getLabel() {
+    EquivalenceClass label;
+
+    assert safety != null && current != null && obligations != null;
+    label = safety.and(current);
+
+    for (EquivalenceClass clazz : next) {
+      label = label.and(clazz);
+    }
+
+    for (EquivalenceClass clazz : obligations.obligations) {
+      label = label.and(clazz);
+    }
+
+    for (EquivalenceClass clazz : obligations.liveness) {
+      label = label.and(clazz);
+    }
+
+    return label;
+  }
+
   public GObligations getObligations() {
     return Objects.requireNonNull(obligations);
   }
