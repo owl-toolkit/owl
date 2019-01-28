@@ -1,9 +1,9 @@
-package owl.ltl.parser.spectra.expressios;
+package owl.ltl.spectra.expressios;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.Formula;
 import owl.ltl.XOperator;
-import owl.ltl.parser.spectra.types.SpectraType;
+import owl.ltl.spectra.types.SpectraType;
 
 public class SpecialNextExpression implements HigherOrderExpression {
   private final HigherOrderExpression inner;

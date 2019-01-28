@@ -1,13 +1,13 @@
-package owl.ltl.parser.spectra.expressios.variables;
+package owl.ltl.spectra.expressios.variables;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.Formula;
-import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
-import owl.ltl.parser.spectra.types.SpectraArray;
-import owl.ltl.parser.spectra.types.SpectraBoolean;
-import owl.ltl.parser.spectra.types.SpectraEnum;
-import owl.ltl.parser.spectra.types.SpectraIntRange;
-import owl.ltl.parser.spectra.types.SpectraType;
+import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.types.SpectraArray;
+import owl.ltl.spectra.types.SpectraBoolean;
+import owl.ltl.spectra.types.SpectraEnum;
+import owl.ltl.spectra.types.SpectraIntRange;
+import owl.ltl.spectra.types.SpectraType;
 
 public class SpectraArrayVariable implements HigherOrderExpression {
   private final SpectraArray type;

@@ -1,10 +1,10 @@
-package owl.ltl.parser.spectra.types;
+package owl.ltl.spectra.types;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import owl.ltl.parser.spectra.constants.SpectraEnumConstant;
+import owl.ltl.spectra.constants.SpectraEnumConstant;
 
 public class SpectraEnum implements SpectraType {
   private final int width;

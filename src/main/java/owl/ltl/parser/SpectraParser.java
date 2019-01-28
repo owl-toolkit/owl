@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -32,6 +33,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
@@ -59,17 +62,19 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
-import owl.ltl.parser.spectra.Spectra;
-import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
-import owl.ltl.parser.spectra.expressios.variables.SpectraArrayVariable;
-import owl.ltl.parser.spectra.expressios.variables.SpectraBooleanVariable;
-import owl.ltl.parser.spectra.expressios.variables.SpectraEnumVariable;
-import owl.ltl.parser.spectra.expressios.variables.SpectraIntRangeVariable;
-import owl.ltl.parser.spectra.types.SpectraArray;
-import owl.ltl.parser.spectra.types.SpectraBoolean;
-import owl.ltl.parser.spectra.types.SpectraEnum;
-import owl.ltl.parser.spectra.types.SpectraIntRange;
-import owl.ltl.parser.spectra.types.SpectraType;
+import owl.ltl.spectra.ImmutableSpectra;
+import owl.ltl.spectra.ImmutableSpectra.Builder;
+import owl.ltl.spectra.Spectra;
+import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.expressios.variables.SpectraArrayVariable;
+import owl.ltl.spectra.expressios.variables.SpectraBooleanVariable;
+import owl.ltl.spectra.expressios.variables.SpectraEnumVariable;
+import owl.ltl.spectra.expressios.variables.SpectraIntRangeVariable;
+import owl.ltl.spectra.types.SpectraArray;
+import owl.ltl.spectra.types.SpectraBoolean;
+import owl.ltl.spectra.types.SpectraEnum;
+import owl.ltl.spectra.types.SpectraIntRange;
+import owl.ltl.spectra.types.SpectraType;
 import owl.util.annotation.CEntryPoint;
 
 public final class SpectraParser {
@@ -91,6 +96,10 @@ public final class SpectraParser {
     parser.setErrorHandler(new BailErrorStrategy());
 
     ModelContext tree = parser.model();
+
+    Builder builder = ImmutableSpectra.builder();
+
+    builder.title((tree.name == null) ? "" : tree.name.getText());
 
     //<editor-fold desc="Process Imports [TODO: Do something with imports]">
     ArrayList<String> imports = new ArrayList<>();
@@ -159,8 +168,8 @@ public final class SpectraParser {
 
     //<editor-fold desc="Process I/O-variables">
     HashMap<String, HigherOrderExpression> variables = new HashMap<>();
-    List<String> inputs = new ArrayList<>();
-    List<String> outputs = new ArrayList<>();
+    List<String> inputNames = new ArrayList<>();
+    List<String> outputNames = new ArrayList<>();
 
     int offset = 0;
 
@@ -199,11 +208,25 @@ public final class SpectraParser {
       offset += type.width();
 
       if (varDefC.kind.getText().equals("in")) {
-        inputs.addAll(varLiteralNames);
+        inputNames.addAll(varLiteralNames);
       } else {
-        outputs.addAll(varLiteralNames);
+        outputNames.addAll(varLiteralNames);
       }
     }
+    BitSet inputs = new BitSet();
+    IntStream.range(0, inputNames.size()).forEach(inputs::set);
+
+    List<String> variableNames = Stream.concat(
+      inputNames.stream(),
+      outputNames.stream()
+    ).collect(Collectors.toList());
+
+    BitSet outputs = new BitSet();
+    IntStream.range(inputNames.size(), variableNames.size()).forEach(outputs::set);
+
+    builder.inputs(inputs);
+    builder.outputs(outputs);
+    builder.variables(List.copyOf(variableNames));
     //</editor-fold>
 
     //<editor-fold desc="Preprocess Monitors [unsupported]">
@@ -279,7 +302,7 @@ public final class SpectraParser {
             safetyEnv.add(formula);
           }
         } else if (ltlC.justice != null) {
-          formula = new GOperator(new FOperator(formula));
+          formula = GOperator.of(FOperator.of(formula));
           if (ltlC.ASM() == null) {
             livenessSys.add(formula);
           } else {
@@ -294,12 +317,17 @@ public final class SpectraParser {
         }
       }
     }
+
+    builder.thetaE(initialEnv);
+    builder.thetaS(initialSys);
+    builder.psiE(safetyEnv);
+    builder.psiS(safetySys);
+    builder.phiE(livenessEnv);
+    builder.phiS(livenessSys);
     //</editor-fold>
 
-    return new Spectra(inputs, outputs,
-      initialEnv, initialSys,
-      safetyEnv, safetySys,
-      livenessEnv, livenessSys);
+
+    return builder.build();
   }
 
   public static Spectra parse(InputStream input, Charset charset) throws IOException {

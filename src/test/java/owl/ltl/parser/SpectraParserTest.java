@@ -219,8 +219,8 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {new GOperator(
-        new FOperator(Literal.of(0).not())
+      {GOperator.of(
+        FOperator.of(Literal.of(0).not())
       )},
       {}
     },
@@ -252,8 +252,8 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {new GOperator(
-        new FOperator(Conjunction.of(Literal.of(0), Literal.of(1)))
+      {GOperator.of(
+        FOperator.of(Conjunction.of(Literal.of(0), Literal.of(1)))
       )}
     },
     //</editor-fold>
@@ -264,8 +264,8 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {new GOperator(
-        new FOperator(Disjunction.of(Literal.of(0), Literal.of(1)))
+      {GOperator.of(
+        FOperator.of(Disjunction.of(Literal.of(0), Literal.of(1)))
       )}
     },
     //</editor-fold>
@@ -274,7 +274,7 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {Biconditional.of(Literal.of(0), Literal.of(1))},
+      {Biconditional.of(Literal.of(0), Literal.of(1)).nnf()},
       {},
       {}
     },
@@ -283,7 +283,7 @@ class SpectraParserTest {
     {
       {},
       {},
-      {new XOperator(Literal.of(0))},
+      {XOperator.of(Literal.of(0))},
       {},
       {},
       {}
@@ -293,7 +293,7 @@ class SpectraParserTest {
     {
       {},
       {},
-      {new OOperator(Literal.of(0))},
+      {OOperator.of(Literal.of(0))},
       {},
       {},
       {}
@@ -303,7 +303,7 @@ class SpectraParserTest {
     {
       {},
       {},
-      {new HOperator(Literal.of(0))},
+      {HOperator.of(Literal.of(0))},
       {},
       {},
       {}
@@ -313,7 +313,7 @@ class SpectraParserTest {
     {
       {},
       {},
-      {new YOperator(Literal.of(0))},
+      {YOperator.of(Literal.of(0))},
       {},
       {},
       {}
@@ -323,7 +323,7 @@ class SpectraParserTest {
     {
       {},
       {},
-      {new SOperator(Literal.of(0), Literal.of(1))},
+      {SOperator.of(Literal.of(0), Literal.of(1))},
       {},
       {},
       {}
@@ -333,7 +333,7 @@ class SpectraParserTest {
     {
       {},
       {},
-      {new TOperator(Literal.of(0), Literal.of(1))},
+      {TOperator.of(Literal.of(0), Literal.of(1))},
       {},
       {},
       {}
@@ -345,8 +345,8 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {new GOperator(
-        new FOperator(Biconditional.of(Literal.of(0), BooleanConstant.FALSE))
+      {GOperator.of(
+        FOperator.of(Biconditional.of(Literal.of(0), BooleanConstant.FALSE).nnf())
       )},
       {}
     },
@@ -358,16 +358,16 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {new GOperator(
-        new FOperator(Biconditional.of(Literal.of(0), BooleanConstant.TRUE).not())
+      {GOperator.of(
+        FOperator.of(Biconditional.of(Literal.of(0), BooleanConstant.TRUE).nnf().not())
       )}
     },
     //</editor-fold>
     //<editor-fold desc="Test 17">
     {
       {Conjunction.of(
-        Biconditional.of(Literal.of(0), BooleanConstant.FALSE),
-        Biconditional.of(Literal.of(1), BooleanConstant.TRUE)
+        Biconditional.of(Literal.of(0), BooleanConstant.FALSE).nnf(),
+        Biconditional.of(Literal.of(1), BooleanConstant.TRUE).nnf()
       )},
       {},
       {},
@@ -382,11 +382,11 @@ class SpectraParserTest {
       {Disjunction.of(
         Conjunction.of(Literal.of(1).not(), BooleanConstant.TRUE),
         Conjunction.of(
-          Biconditional.of(Literal.of(1), BooleanConstant.TRUE),
+          Biconditional.of(Literal.of(1), BooleanConstant.TRUE).nnf(),
           Disjunction.of(
             Conjunction.of(Literal.of(0).not(), BooleanConstant.FALSE),
             Conjunction.of(
-              Biconditional.of(Literal.of(0), BooleanConstant.FALSE),
+              Biconditional.of(Literal.of(0), BooleanConstant.FALSE).nnf(),
               BooleanConstant.FALSE
             )
           )
@@ -405,11 +405,11 @@ class SpectraParserTest {
       {Disjunction.of(
         Conjunction.of(Literal.of(1).not(), BooleanConstant.TRUE),
         Conjunction.of(
-          Biconditional.of(Literal.of(1), BooleanConstant.TRUE),
+          Biconditional.of(Literal.of(1), BooleanConstant.TRUE).nnf(),
           Disjunction.of(
             Conjunction.of(Literal.of(0).not(), BooleanConstant.TRUE),
             Conjunction.of(
-              Biconditional.of(Literal.of(0), BooleanConstant.TRUE),
+              Biconditional.of(Literal.of(0), BooleanConstant.TRUE).nnf(),
               BooleanConstant.TRUE
             )
           )
@@ -428,11 +428,11 @@ class SpectraParserTest {
       {Disjunction.of(
         Conjunction.of(BooleanConstant.FALSE.not(), Literal.of(1)),
         Conjunction.of(
-          Biconditional.of(BooleanConstant.FALSE, Literal.of(1)),
+          Biconditional.of(BooleanConstant.FALSE, Literal.of(1)).nnf(),
           Disjunction.of(
             Conjunction.of(BooleanConstant.TRUE.not(), Literal.of(0)),
             Conjunction.of(
-              Biconditional.of(BooleanConstant.TRUE, Literal.of(0)),
+              Biconditional.of(BooleanConstant.TRUE, Literal.of(0)).nnf(),
               BooleanConstant.FALSE
             )
           )
@@ -449,16 +449,16 @@ class SpectraParserTest {
       {},
       {},
       {},
-      {new GOperator(
-        new FOperator(
+      {GOperator.of(
+        FOperator.of(
           Disjunction.of(
             Conjunction.of(Literal.of(3).not(), Literal.of(1)),
             Conjunction.of(
-              Biconditional.of(Literal.of(3), Literal.of(1)),
+              Biconditional.of(Literal.of(3), Literal.of(1)).nnf(),
               Disjunction.of(
                 Conjunction.of(Literal.of(2).not(), Literal.of(0)),
                 Conjunction.of(
-                  Biconditional.of(Literal.of(2), Literal.of(0)),
+                  Biconditional.of(Literal.of(2), Literal.of(0)).nnf(),
                   BooleanConstant.TRUE
                 )
               )
@@ -475,18 +475,18 @@ class SpectraParserTest {
         Disjunction.of(
           Biconditional.of(
             Literal.of(0), BooleanConstant.FALSE
-          ).not(),
+          ).nnf().not(),
           Biconditional.of(
             Literal.of(1), BooleanConstant.FALSE
-          ).not()
+          ).nnf().not()
         ),
         Conjunction.of(
           Biconditional.of(
             Literal.of(2), BooleanConstant.FALSE
-          ),
+          ).nnf(),
           Biconditional.of(
             Literal.of(3), BooleanConstant.TRUE
-          )
+          ).nnf()
         )
       )},
       {},
@@ -502,18 +502,18 @@ class SpectraParserTest {
         Disjunction.of(
           Biconditional.of(
             Literal.of(0), BooleanConstant.FALSE
-          ).not(),
+          ).nnf().not(),
           Biconditional.of(
             Literal.of(1), BooleanConstant.FALSE
-          ).not()
+          ).nnf().not()
         ),
         Conjunction.of(
           Biconditional.of(
             Literal.of(2), BooleanConstant.FALSE
-          ),
+          ).nnf(),
           Biconditional.of(
             Literal.of(3), BooleanConstant.TRUE
-          )
+          ).nnf()
         )
       )},
       {},
@@ -534,34 +534,34 @@ class SpectraParserTest {
     Literal[] motVar = {Literal.of(2), Literal.of(3)};
     Literal liftVar = Literal.of(4);
 
-    Formula findStation = new GOperator(new FOperator(atStation));
+    Formula findStation = GOperator.of(FOperator.of(atStation));
 
     Formula samePosLeft = Conjunction.of(
-      Biconditional.of(motVar[0], BooleanConstant.FALSE),
-      Biconditional.of(motVar[1], BooleanConstant.FALSE)
+      Biconditional.of(motVar[0], BooleanConstant.FALSE).nnf(),
+      Biconditional.of(motVar[1], BooleanConstant.FALSE).nnf()
     );
     Formula samePosRight = Conjunction.of(
-      Biconditional.of(new XOperator(atStation), atStation)
+      Biconditional.of(XOperator.of(atStation), atStation).nnf()
     );
     Formula samePos = Disjunction.of(samePosLeft.not(), samePosRight);
 
     Formula liftCargoLeft = Conjunction.of(
-      Biconditional.of(liftVar, BooleanConstant.FALSE)
+      Biconditional.of(liftVar, BooleanConstant.FALSE).nnf()
     );
-    Formula liftCargoRight = new XOperator(cargo.not());
+    Formula liftCargoRight = XOperator.of(cargo.not());
     Formula liftCargo = Disjunction.of(liftCargoLeft.not(), liftCargoRight);
 
     Formula dropCargoLeft = Conjunction.of(
-      Biconditional.of(liftVar, BooleanConstant.TRUE)
+      Biconditional.of(liftVar, BooleanConstant.TRUE).nnf()
     );
-    Formula dropCargoRight = new XOperator(cargo);
+    Formula dropCargoRight = XOperator.of(cargo);
     Formula dropCargo = Disjunction.of(dropCargoLeft.not(), dropCargoRight);
 
     Formula clearCargoLeft = Conjunction.of(
-      Biconditional.of(motVar[0], BooleanConstant.FALSE),
-      Biconditional.of(motVar[1], BooleanConstant.TRUE)
+      Biconditional.of(motVar[0], BooleanConstant.FALSE).nnf(),
+      Biconditional.of(motVar[1], BooleanConstant.TRUE).nnf()
     );
-    Formula clearCargoRight = new XOperator(cargo.not());
+    Formula clearCargoRight = XOperator.of(cargo.not());
     Formula clearCargo = Disjunction.of(clearCargoLeft.not(), clearCargoRight);
 
     Formula[][] test = new Formula[][] {
@@ -585,7 +585,7 @@ class SpectraParserTest {
     Formula livenessS = Conjunction.of(part[5]);
 
     Formula part1 = Disjunction.of(livenessE.not(), livenessS);
-    Formula part2 = Conjunction.of(new GOperator(safetyE), part1);
+    Formula part2 = Conjunction.of(GOperator.of(safetyE), part1);
     Formula part3 = WOperator.of(safetyS, safetyE.not());
     Formula part4 = Conjunction.of(initialS, part3, part2);
 
@@ -598,13 +598,13 @@ class SpectraParserTest {
   void testSyntax() {
     for (int i = 0; i < SyntaxTestIn.size(); i++) {
       assertEquals(strictRealizable(SyntaxTestOut.get(i)),
-        SpectraParser.parse(SyntaxTestIn.get(i)).toFormula());
+        SpectraParser.parse(SyntaxTestIn.get(i)).toFormula().formula());
     }
   }
 
   @Test
   void testNonWellSep() {
-    assertEquals(NonWellSepOut, SpectraParser.parse(NonWellSepIn).toFormula());
+    assertEquals(NonWellSepOut, SpectraParser.parse(NonWellSepIn).toFormula().formula());
   }
   //</editor-fold>
 }

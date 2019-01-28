@@ -57,9 +57,9 @@ import owl.ltl.SOperator;
 import owl.ltl.TOperator;
 import owl.ltl.XOperator;
 import owl.ltl.YOperator;
-import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
-import owl.ltl.parser.spectra.types.SpectraBoolean;
-import owl.ltl.parser.spectra.types.SpectraType;
+import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.types.SpectraBoolean;
+import owl.ltl.spectra.types.SpectraType;
 
 final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
   private final Map<String, HigherOrderExpression> variables;
@@ -88,7 +88,7 @@ final class SpectraParseTreeVisitor extends SPECTRAParserBaseVisitor<Formula> {
   public Formula visitIff(IffContext ctx) {
     assert ctx.getChildCount() == 3;
     assert ctx.left != null && ctx.right != null;
-    return Biconditional.of(visit(ctx.left), visit(ctx.right));
+    return Biconditional.of(visit(ctx.left), visit(ctx.right)).nnf();
   }
 
   @Override
