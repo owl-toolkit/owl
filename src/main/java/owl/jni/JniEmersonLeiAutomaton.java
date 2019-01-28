@@ -141,6 +141,7 @@ public final class JniEmersonLeiAutomaton {
       translator = new LTL2DAFunction(DefaultEnvironment.standard(), onTheFly, EnumSet.of(
         LTL2DAFunction.Constructions.SAFETY,
         LTL2DAFunction.Constructions.CO_SAFETY,
+        LTL2DAFunction.Constructions.PAST_SAFETY,
         LTL2DAFunction.Constructions.BUCHI,
         LTL2DAFunction.Constructions.CO_BUCHI,
         LTL2DAFunction.Constructions.PARITY));
