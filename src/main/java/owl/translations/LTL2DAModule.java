@@ -24,6 +24,7 @@ import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
 import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.PARITY;
+import static owl.translations.LTL2DAFunction.Constructions.PAST_SAFETY;
 import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 
 import java.util.EnumSet;
@@ -42,7 +43,7 @@ public final class LTL2DAModule {
     .description("Translates LTL to some deterministic automaton")
     .parser(settings -> environment -> {
       LTL2DAFunction function = new LTL2DAFunction(environment, false,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI, PARITY));
+        EnumSet.of(SAFETY, CO_SAFETY, PAST_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI, PARITY));
       return Transformers.instanceFromFunction(LabelledFormula.class, function::apply);
     })
     .build();

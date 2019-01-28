@@ -49,6 +49,7 @@ import owl.translations.canonical.RoundRobinState;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.pltl2safety.PLTL2Safety;
 
 public final class LTL2DAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
   private final Environment environment;
@@ -95,6 +96,11 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     if (allowedConstructions.contains(Constructions.CO_SAFETY)
       && SyntacticFragment.CO_SAFETY.contains(formula)) {
       return coSafety(environment, formula);
+    }
+
+    if (allowedConstructions.contains(Constructions.PAST_SAFETY)
+      && SyntacticFragment.PAST_SAFETY.contains(formula)) {
+      return pSafety(environment, formula);
     }
 
     if (formula.formula() instanceof XOperator) {
@@ -174,8 +180,13 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     return new DeterministicConstructions.Safety(factories, true, formula.formula());
   }
 
+  static Automaton<?, AllAcceptance> pSafety(
+    Environment environment, LabelledFormula formula) {
+    return new PLTL2Safety(environment).apply(formula);
+  }
+
   public enum Constructions {
-    SAFETY, CO_SAFETY,
+    SAFETY, CO_SAFETY, PAST_SAFETY,
     BUCHI, GENERALIZED_BUCHI, CO_BUCHI,
     PARITY,
     RABIN, GENERALIZED_RABIN,
