@@ -2,7 +2,6 @@ package owl.translations.pltl2safety;
 
 import java.util.Set;
 
-import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -29,11 +28,6 @@ public class InitialStateVisitor implements Visitor<Boolean> {
   }
 
   @Override
-  public Boolean visit(Biconditional biconditional) {
-    return apply(biconditional.left) == apply(biconditional.right);
-  }
-
-  @Override
   public Boolean visit(Conjunction conjunction) {
     return conjunction.children.stream()
       .map(this).allMatch(Boolean::booleanValue);
@@ -47,9 +41,6 @@ public class InitialStateVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(Literal literal) {
-    if (literal.isNegated()) {
-      return !state.contains(literal.not());
-    }
     return state.contains(literal);
   }
 
@@ -75,11 +66,11 @@ public class InitialStateVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(YOperator yOperator) {
-    return !state.contains(yOperator);
+    return false;
   }
 
   @Override
   public Boolean visit(ZOperator zOperator) {
-    return state.contains(zOperator);
+    return true;
   }
 }

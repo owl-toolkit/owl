@@ -23,7 +23,7 @@ public class PLTL2Safety
   implements Function<LabelledFormula, Automaton<?, AllAcceptance>> {
   private final Environment environment;
 
-  PLTL2Safety(Environment environment) {
+  public PLTL2Safety(Environment environment) {
     this.environment = environment;
   }
 
