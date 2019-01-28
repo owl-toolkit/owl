@@ -1,23 +1,20 @@
 package owl.translations.pltl2safety;
 
-import com.google.common.collect.Sets;
-
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import owl.automaton.Automaton;
 import owl.automaton.ImplicitNonDeterministicEdgesAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.Formula;
-import owl.ltl.Formula.ModalOperator;
-import owl.ltl.Formula.TemporalOperator;
+import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.run.Environment;
@@ -26,80 +23,109 @@ public class PLTL2Safety
   implements Function<LabelledFormula, Automaton<?, AllAcceptance>> {
   private final Environment environment;
 
-  PLTL2Safety(Environment environment) {
+  public PLTL2Safety(Environment environment) {
     this.environment = environment;
   }
 
   @Override
   public Automaton<?, AllAcceptance> apply(LabelledFormula labelledFormula) {
-    Formula formula = labelledFormula.formula();
+    Formula formula = labelledFormula.formula().substitute(x -> {
+      assert x instanceof GOperator;
+      return ((GOperator) x).operand;
+    });
 
-    Predicate<Formula> temporalOperator = ModalOperator.class::isInstance;
-    Set<TemporalOperator> principallyTemporal = formula.subformulas(temporalOperator);
-
-    Predicate<Formula> isLiteral = Literal.class::isInstance;
-
-    Set<TemporalOperator> literals = formula.subformulas(isLiteral).stream()
-      .map((new LiteralVisitor())::apply).collect(Collectors.toSet());
-
-    Set<TemporalOperator> parts = Stream.concat(
-      principallyTemporal.stream(),
-      literals.stream())
-      .collect(Collectors.toSet());
-    Set<Set<TemporalOperator>> stateSpace = Sets.powerSet(parts);
+    Set<Set<Formula>> stateSpace = getAtoms(formula);
 
     var factories = environment.factorySupplier().getFactories(labelledFormula.variables());
     return Views.createPowerSetAutomaton(
       new ImplicitNonDeterministicEdgesAutomaton<>(
         factories.vsFactory,
-        constructInitialState(formula, stateSpace, principallyTemporal),
+        constructInitialState(stateSpace),
         AllAcceptance.INSTANCE,
-      (Set<TemporalOperator> state, BitSet letter) ->
-          constructSuccessorEdges(state, letter, principallyTemporal, literals, stateSpace)
+      (Set<Formula> state, BitSet letter) ->
+          constructSuccessorEdges(formula, state, letter, stateSpace)
       ),
       AllAcceptance.INSTANCE,
       true
     );
   }
 
-  private static Set<Set<TemporalOperator>> constructInitialState(Formula formula,
-    Set<Set<TemporalOperator>> stateSpace, Set<TemporalOperator> principallyTemporal) {
-    Set<Set<TemporalOperator>> initialState = new HashSet<>();
+  private static Set<Set<Formula>> constructInitialState(Set<Set<Formula>> stateSpace) {
+    Set<Set<Formula>> initialState = new HashSet<>();
 
-    for (Set<TemporalOperator> state : stateSpace) {
+    for (Set<Formula> state : stateSpace) {
       InitialStateVisitor initVisitor = new InitialStateVisitor(state);
-      boolean isInitial = initVisitor.apply(formula)
-        && principallyTemporal.stream().allMatch(initVisitor::apply);
-      if (isInitial) {
+      if (state.stream().filter(x -> !(x instanceof Literal)).allMatch(initVisitor::apply)) {
         initialState.add(state);
       }
     }
     return initialState;
   }
 
-  private static Set<Edge<Set<TemporalOperator>>> constructSuccessorEdges(
-    Set<TemporalOperator> state, BitSet letter, Set<TemporalOperator> principallyTemporal,
-    Set<TemporalOperator> literals, Set<Set<TemporalOperator>> stateSpace) {
-    Set<Edge<Set<TemporalOperator>>> successorEdges = new HashSet<>();
+  private static Set<Edge<Set<Formula>>> constructSuccessorEdges(Formula formula,
+    Set<Formula> state, BitSet letter, Set<Set<Formula>> stateSpace) {
+
+    BitSet aP = formula.atomicPropositions(true);
+    aP.and(letter);
+    BitSet stateValuation = new BitSet();
 
     //Check if letter is valid
-    for (TemporalOperator op : literals) {
+    for (Formula op : state) {
       if (op instanceof Literal) {
         Literal literal = (Literal) op;
-        if (state.contains(literal) != letter.get(literal.getAtom())) {
-          return successorEdges;
-        }
+        stateValuation.set(literal.getAtom(), !literal.isNegated());
       }
     }
 
+    stateValuation.xor(aP);
+    if (!stateValuation.isEmpty()) {
+      return Set.of();
+    }
+
+    Set<Edge<Set<Formula>>> successorEdges = new HashSet<>();
     //Check for each state if successor
-    for (Set<TemporalOperator> suc : stateSpace) {
+    for (Set<Formula> suc : stateSpace) {
       TransitionVisitor transitionVisitor = new TransitionVisitor(state, suc);
-      if (principallyTemporal.stream().allMatch(transitionVisitor::apply)) {
+      if (suc.stream().filter(x -> !(x instanceof Literal)).allMatch(transitionVisitor::apply)) {
         successorEdges.add(Edge.of(suc));
       }
     }
 
     return successorEdges;
+  }
+
+  private static Set<Set<Formula>> getAtoms(Formula formula) {
+    Set<Formula> cl = (new Closure(formula)).getClosure();
+    Set<Formula> base = new HashSet<>();
+    base.add(formula);
+    Set<Set<Formula>> atoms = new HashSet<>();
+    atoms.add(base);
+
+    for (Formula psi : cl) {
+      Set<Set<Formula>> negAtoms = new HashSet<>();
+      for (Set<Formula> atom : atoms) {
+        if (!(atom.contains(psi) || atom.contains(psi.not()))) {
+          Set<Formula> negAtom = new HashSet<>(Set.copyOf(atom));
+          atom.add(psi);
+          negAtom.add(psi.not());
+          negAtoms.add(negAtom);
+        }
+      }
+      atoms.addAll(negAtoms);
+    }
+
+    //checks that for every (psi_1 & psi_2) in atom, psi_1 in atom and psi_2 in atom
+    Predicate<Set<Formula>> atomRule1 = t ->
+      t.stream().filter(Conjunction.class::isInstance)
+        .allMatch(x -> (t.containsAll(x.children())));
+
+    //checks that for every (psi_1 | psi_2) in atom, psi_1 in atom or psi_2 in atom
+    Predicate<Set<Formula>> atomRule2 = t ->
+      t.stream().filter(Disjunction.class::isInstance)
+        .allMatch(x -> (x.children().stream().anyMatch(t::contains)));
+
+    atoms.removeIf(atomRule1.and(atomRule2).negate());
+
+    return atoms;
   }
 }
