@@ -69,6 +69,14 @@ public enum SyntacticFragment {
     // Temporal Operators
     Literal.class, XOperator.class, GOperator.class, WOperator.class, ROperator.class)),
 
+  PAST_SAFETY(Set.of(
+    // Boolean Operators
+    BooleanConstant.class, Conjunction.class, Disjunction.class,
+
+    // Temporal Operators
+    Literal.class, GOperator.class, HOperator.class, OOperator.class, SOperator.class,
+    TOperator.class, YOperator.class, ZOperator.class)),
+
   CO_SAFETY(Set.of(
     // Boolean Operators
     BooleanConstant.class, Conjunction.class, Disjunction.class,
