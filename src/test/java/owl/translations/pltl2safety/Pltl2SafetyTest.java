@@ -1,4 +1,4 @@
-package owl.translations.pltl2safety;
+package owl.translations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -132,7 +132,7 @@ class Pltl2SafetyTest {
           "sys boolean a;\n"
             + "sys boolean b;\n"
             + "gar G a S b;",
-          2,
+          3,
           "HOA: v1\n"
             + "Start: 0\n"
             + "AP: 2 \"a\" \"b\"\n"
@@ -180,7 +180,7 @@ class Pltl2SafetyTest {
           "env boolean a;\n"
             + "env boolean b;\n"
             + "asm G (H a) | b;",
-          2,
+          3,
           "HOA: v1\n"
             + "Start: 0\n"
             + "AP: 2 \"a\" \"b\"\n"
