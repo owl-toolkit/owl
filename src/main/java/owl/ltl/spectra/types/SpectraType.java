@@ -1,6 +1,6 @@
-package owl.ltl.parser.spectra.types;
+package owl.ltl.spectra.types;
 
-import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.expressios.HigherOrderExpression;
 
 public interface SpectraType {
   HigherOrderExpression of(String value);
