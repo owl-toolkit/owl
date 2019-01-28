@@ -1,4 +1,4 @@
-package owl.ltl.parser.spectra.expressios;
+package owl.ltl.spectra.expressios;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import owl.ltl.Biconditional;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
-import owl.ltl.parser.spectra.types.SpectraType;
+import owl.ltl.spectra.types.SpectraType;
 
 public class NotEqualsExpression implements HigherOrderExpression {
   private final HigherOrderExpression left;
@@ -30,7 +30,7 @@ public class NotEqualsExpression implements HigherOrderExpression {
 
   @Override
   public Formula getBit(int i) {
-    return Biconditional.of(left.getBit(i), right.getBit(i)).not();
+    return Biconditional.of(left.getBit(i), right.getBit(i)).not().nnf();
   }
 
   @Override

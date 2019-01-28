@@ -1,7 +1,7 @@
-package owl.ltl.parser.spectra.types;
+package owl.ltl.spectra.types;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import owl.ltl.parser.spectra.constants.SpectraIntRangeConstant;
+import owl.ltl.spectra.constants.SpectraIntRangeConstant;
 
 public class SpectraIntRange implements SpectraType {
   private final int from;

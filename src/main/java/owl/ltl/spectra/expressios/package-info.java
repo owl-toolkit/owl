@@ -18,6 +18,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.ltl.parser.spectra.expressios;
+package owl.ltl.spectra.expressios;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

@@ -1,9 +1,9 @@
-package owl.ltl.parser.spectra.types;
+package owl.ltl.spectra.types;
 
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.expressios.HigherOrderExpression;
 
 public class SpectraArray implements SpectraType {
   private final int width;

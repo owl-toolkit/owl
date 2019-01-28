@@ -1,11 +1,11 @@
-package owl.ltl.parser.spectra.constants;
+package owl.ltl.spectra.constants;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.ltl.parser.spectra.expressios.HigherOrderExpression;
-import owl.ltl.parser.spectra.types.SpectraIntRange;
-import owl.ltl.parser.spectra.types.SpectraType;
+import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.types.SpectraIntRange;
+import owl.ltl.spectra.types.SpectraType;
 
 public class SpectraIntRangeConstant implements HigherOrderExpression {
   private final SpectraIntRange type;
