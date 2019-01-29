@@ -47,8 +47,10 @@ namespace owl {
         jmethodID methodIDs[MOperator + 1];
         jclass ltlParser;
         jclass tlsfParser;
+        jclass spectraParser;
         jmethodID ltlParseID;
         jmethodID tlsfParseID;
+        jmethodID spectraParseID;
 
         void bind_static(int index, const char *className, const char *methodName, const char *signature);
 
@@ -78,6 +80,7 @@ namespace owl {
         Formula createBiimplication(const Formula &left, const Formula &right);
         Formula parse(const std::string& formula, const std::vector<std::string>& apMapping);
         Formula parseTlsf(const std::string& tlsf, std::vector<std::string>& apMapping, int &numberOfInputVariables);
+        Formula parseSpectra(const std::string& spectra, std::vector<std::string>& apMapping, int &numberOfInputVariables);
 
         template<typename... Args>
         Formula createConjunction(const Formula& left, const Formula& right, Args... args) {

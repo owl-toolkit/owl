@@ -60,6 +60,29 @@ Formula parse_tlsf(const OwlThread& owl) {
     return parsed_formula;
 }
 
+Formula parse_spectra(const OwlThread& owl) {
+    FormulaFactory factory = owl.createFormulaFactory();
+
+    std::vector<std::string> mapping;
+    int num_inputs = -1;
+
+    Formula parsed_formula = factory.parseSpectra(
+      "env boolean request;\n"
+      "sys boolean grant;\n"
+      "gar G (grant -> Y (!grant S request));",
+      mapping, num_inputs);
+
+    std::cout << "Variables: " << std::endl;
+
+    for (const auto & entry : mapping) {
+        std::cout << entry << std::endl;
+    }
+
+    std::cout << "Number of Inputs: " << num_inputs << std::endl;
+
+    return parsed_formula;
+}
+
 Formula create_formula(const OwlThread& owl) {
     FormulaFactory factory = owl.createFormulaFactory();
 
