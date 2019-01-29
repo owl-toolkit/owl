@@ -40,6 +40,7 @@ namespace owl {
 
         bind_static_method(env, "owl/ltl/parser/LtlParser", "syntax", "(Ljava/lang/String;Ljava/util/List;)Lowl/ltl/Formula;", ltlParser, ltlParseID);
         bind_static_method(env, "owl/ltl/parser/TlsfParser", "parse", "(Ljava/lang/String;)Lowl/ltl/tlsf/Tlsf;", tlsfParser, tlsfParseID);
+        bind_static_method(env, "owl/ltl/parser/SpectraParser", "parse", "(Ljava/lang/String;)Lowl/ltl/spectra/Spectra;", spectraParser, spectraParseID);
     }
 
     FormulaFactory::~FormulaFactory() {
@@ -49,6 +50,7 @@ namespace owl {
 
         deref(env, ltlParser);
         deref(env, tlsfParser);
+        deref(env, spectraParser);
     }
 
     template<typename... Args>
@@ -136,6 +138,20 @@ namespace owl {
         numberOfInputVariables = call_int_method<>(env, tlsf, "numberOfInputs", "()I");
 
         deref(env, tlsf, labelled_formula);
+        return copy_from_java(env, formula);
+    }
+
+    Formula FormulaFactory::parseSpectra(const std::string &spectra_string, std::vector<std::string> &apMapping,
+                                      int &numberOfInputVariables) {
+        jstring string = copy_to_java(env, spectra_string);
+        auto spectra = call_static_method<jobject, jstring>(env, spectraParser, spectraParseID, string);
+        auto labelled_formula = call_method<jobject>(env, spectra, "toFormula", "()Lowl/ltl/LabelledFormula;");
+        auto formula = get_object_field<jobject>(env, labelled_formula, "formula", "Lowl/ltl/Formula;");
+
+        apMapping = copy_from_java(env, get_object_field<jobject>(env, labelled_formula, "variables", "Lcom/google/common/collect/ImmutableList;"));
+        numberOfInputVariables = call_int_method<>(env, spectra, "numberOfInputs", "()I");
+
+        deref(env, spectra, labelled_formula);
         return copy_from_java(env, formula);
     }
 }
