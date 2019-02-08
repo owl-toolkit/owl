@@ -232,7 +232,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
 javadoc {
     options.addBooleanOption('html5', true)
     options.setEncoding(defaultEncoding)
-    options.links('https://docs.oracle.com/javase/10/docs/api')
+    options.links('https://docs.oracle.com/en/java/javase/11/docs/api')
 }
 
 // TODO Include testing framework scripts in distribution -> split scripts directory in two dirs
