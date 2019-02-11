@@ -277,6 +277,23 @@ class Pltl2SafetyTest {
             + "[1] 1\n"
             + "[0 & !1] 0\n"
             + "--END--\n"
+        ),
+        Arguments.of(
+          "env boolean a;\n"
+            + "env boolean b;\n"
+            + "asm G ((a S b) | (H a));",
+          3,
+          "HOA: v1\n"
+            + "Start: 0\n"
+            + "AP: 2 \"a\" \"b\"\n"
+            + "acc-name: all\n"
+            + "Acceptance: 0 t\n"
+            + "--BODY--\n"
+            + "State: 0\n"
+            + "[0 & !1] 0\n"
+            + "[!0 & 1] 0\n"
+            + "[0 & 1] 0\n"
+            + "--END--\n"
         )
       );
     }
@@ -312,24 +329,33 @@ class Pltl2SafetyTest {
           "env boolean failure;\n"
             + "sys boolean problem;\n"
             + "gar G problem -> Y (O failure);",
-          "!(!failure U problem)"
+          "!(!failure U problem)",
+          List.of("failure", "problem")
         ),
         Arguments.of(
           "env boolean request;\n"
             + "sys boolean grant;\n"
             + "gar G (grant -> Y (!grant S request));",
-          "(request R !grant) & G (grant -> (request | (X (request R !grant))))"
+          "(request R !grant) & G (grant -> (request | (X (request R !grant))))",
+          List.of("request", "grant")
+        ),
+        Arguments.of(
+          "env boolean a;\n"
+            + "sys boolean b;\n"
+            + "asm G ((H a) -> b);",
+          "b W !a",
+          List.of("a", "b")
         )
       );
     }
 
     @ParameterizedTest
     @MethodSource("provider")
-    void test(String spectraFormula, String ltlFormula) {
+    void test(String spectraFormula, String ltlFormula, List<String> literals) {
       var pastLabelledFormula = SpectraParser.parse(spectraFormula).getSafety().get(0);
       var pastAutomaton = translator.apply(pastLabelledFormula);
 
-      var futureLabelledFormula = LtlParser.parse(ltlFormula);
+      var futureLabelledFormula = LtlParser.parse(ltlFormula, literals);
       var futureAutomaton = translator.apply(futureLabelledFormula);
 
       var automaton1 = Views.viewAs(pastAutomaton, BuchiAcceptance.class);
@@ -340,4 +366,43 @@ class Pltl2SafetyTest {
     }
   }
 
+  @TestInstance(PER_CLASS)
+  @Nested
+  class PastEq {
+    private List<Arguments> provider() {
+      return List.of(
+        Arguments.of(
+          "env boolean a;\n"
+            + "env boolean b;\n"
+            + "asm G O(a T b);",
+          "env boolean a;\n"
+            + "env boolean b;\n"
+            + "asm G (O(a & b) | O(H b));"
+        ),
+        Arguments.of(
+          "env boolean a;\n"
+            + "env boolean b;\n"
+            + "asm G H(a S b);",
+          "env boolean a;\n"
+            + "env boolean b;\n"
+            + "asm G (H(a | b) & H(O b));"
+        )
+      );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provider")
+    void test(String formula1, String formula2) {
+      var labelledFormula1 = SpectraParser.parse(formula1).getSafety().get(0);
+      var pastAutomaton1 = translator.apply(labelledFormula1);
+      var labelledFormula2 = SpectraParser.parse(formula2).getSafety().get(0);
+      var pastAutomaton2 = translator.apply(labelledFormula2);
+
+      var automaton1 = Views.viewAs(pastAutomaton1, BuchiAcceptance.class);
+      var automaton2 = Views.viewAs(pastAutomaton2, BuchiAcceptance.class);
+
+      assertTrue(LanguageAnalysis.contains(automaton1, automaton2));
+      assertTrue(LanguageAnalysis.contains(automaton2, automaton1));
+    }
+  }
 }
