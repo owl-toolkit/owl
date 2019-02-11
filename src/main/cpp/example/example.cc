@@ -203,6 +203,10 @@ int main(int argc, char** argv) {
     Formula parsed_formula_2 = parse_tlsf(owl);
     parsed_formula_2.print();
 
+    std::cout << "Parse SPECTRA Example: " << std::endl << std::endl;
+    Formula parsed_formula_3 = parse_spectra(owl);
+    parsed_formula_3.print();
+
     std::cout << std::endl << "Built Formula Example: " << std::endl << std::endl;
     Formula built_formula = create_formula(owl);
     built_formula.print();
