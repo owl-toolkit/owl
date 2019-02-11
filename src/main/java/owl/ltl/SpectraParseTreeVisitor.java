@@ -57,7 +57,7 @@ import owl.ltl.SOperator;
 import owl.ltl.TOperator;
 import owl.ltl.XOperator;
 import owl.ltl.YOperator;
-import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.expressions.HigherOrderExpression;
 import owl.ltl.spectra.types.SpectraBoolean;
 import owl.ltl.spectra.types.SpectraType;
 

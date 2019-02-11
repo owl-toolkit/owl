@@ -3,7 +3,7 @@ package owl.ltl.spectra.types;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.expressions.HigherOrderExpression;
 
 public class SpectraArray implements SpectraType {
   private final int width;

@@ -1,25 +1,29 @@
-package owl.ltl.spectra.expressios;
+package owl.ltl.spectra.expressions;
 
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.Formula;
+import owl.ltl.XOperator;
 import owl.ltl.spectra.types.SpectraType;
 
-public class NegateExpression implements HigherOrderExpression {
+public class SpecialNextExpression implements HigherOrderExpression {
   private final HigherOrderExpression inner;
   private final int width;
 
-  public NegateExpression(HigherOrderExpression inner) {
+  public SpecialNextExpression(HigherOrderExpression inner) {
     this.inner = inner;
     width = inner.width();
   }
 
   @Override
   public Formula toFormula() {
-    return inner.toFormula().not();
+    throw new ParseCancellationException(
+      "toFormula() shouldn't be called on SpecialNextExpression objects"
+    );
   }
 
   @Override
   public Formula getBit(int i) {
-    return inner.getBit(i).not();
+    return XOperator.of(inner.getBit(i));
   }
 
   @Override

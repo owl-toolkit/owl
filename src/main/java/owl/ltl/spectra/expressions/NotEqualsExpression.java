@@ -1,4 +1,4 @@
-package owl.ltl.spectra.expressios;
+package owl.ltl.spectra.expressions;
 
 import java.util.ArrayList;
 import java.util.List;

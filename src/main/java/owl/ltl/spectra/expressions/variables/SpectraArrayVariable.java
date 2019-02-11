@@ -1,8 +1,8 @@
-package owl.ltl.spectra.expressios.variables;
+package owl.ltl.spectra.expressions.variables;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.Formula;
-import owl.ltl.spectra.expressios.HigherOrderExpression;
+import owl.ltl.spectra.expressions.HigherOrderExpression;
 import owl.ltl.spectra.types.SpectraArray;
 import owl.ltl.spectra.types.SpectraBoolean;
 import owl.ltl.spectra.types.SpectraEnum;
