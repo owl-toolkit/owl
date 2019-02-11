@@ -29,13 +29,19 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
+import owl.ltl.HOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.OOperator;
 import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SOperator;
+import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.YOperator;
+import owl.ltl.ZOperator;
 
 public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formula> {
 
@@ -130,6 +136,43 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   public Formula visit(XOperator xOperator) {
     checkSupportedCase(XOperator.class);
     return XOperator.of(xOperator.operand.accept(this));
+  }
+
+  //Past operators
+  @Override
+  public Formula visit(OOperator oOperator) {
+    checkSupportedCase(OOperator.class);
+    return OOperator.of(oOperator.operand.accept(this));
+  }
+
+  @Override
+  public Formula visit(HOperator hOperator) {
+    checkSupportedCase(HOperator.class);
+    return HOperator.of(hOperator.operand.accept(this));
+  }
+
+  @Override
+  public Formula visit(SOperator sOperator) {
+    checkSupportedCase(SOperator.class);
+    return SOperator.of(sOperator.left.accept(this), sOperator.right.accept(this));
+  }
+
+  @Override
+  public Formula visit(TOperator tOperator) {
+    checkSupportedCase(TOperator.class);
+    return TOperator.of(tOperator.left.accept(this), tOperator.right.accept(this));
+  }
+
+  @Override
+  public Formula visit(YOperator yOperator) {
+    checkSupportedCase(YOperator.class);
+    return YOperator.of(yOperator.operand.accept(this));
+  }
+
+  @Override
+  public Formula visit(ZOperator zOperator) {
+    checkSupportedCase(ZOperator.class);
+    return ZOperator.of(zOperator.operand.accept(this));
   }
 
   private void checkSupportedCase(Class<? extends Formula> clazz) {

@@ -35,13 +35,19 @@ import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.HOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.OOperator;
 import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
+import owl.ltl.SOperator;
+import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.YOperator;
+import owl.ltl.ZOperator;
 import owl.ltl.rewriter.SyntacticFairnessSimplifier.NormaliseX;
 import owl.ltl.visitors.Visitor;
 
@@ -116,6 +122,34 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       newConjunction.add(newDisjunction);
     }
 
+    //PLTL operators
+    for (HOperator hOperator : filter(newConjunction, HOperator.class)) {
+      newConjunction.remove(hOperator.operand);
+
+      if (newConjunction.contains(hOperator.operand.not())) {
+        return BooleanConstant.FALSE;
+      }
+    }
+
+    for (OOperator oOperator : filter(newConjunction, OOperator.class)) {
+      if (newConjunction.contains(oOperator.operand)) {
+        newConjunction.remove(oOperator);
+      }
+    }
+
+    for (SOperator sOperator : filter(newConjunction, SOperator.class)) {
+      if (newConjunction.contains(sOperator.right)) {
+        newConjunction.remove(sOperator);
+      }
+    }
+
+    for (TOperator tOperator : filter(newConjunction, TOperator.class)) {
+      if (newConjunction.contains(tOperator.right)) {
+        newConjunction.remove(tOperator);
+        newConjunction.add(tOperator.right);
+      }
+    }
+
     return Conjunction.of(newConjunction);
   }
 
@@ -164,6 +198,34 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
         .filter(x -> !newDisjunction.contains(x.not())));
       newDisjunction.remove(conjunction);
       newDisjunction.add(newConjunction);
+    }
+
+    //PLTL operators
+    for (OOperator oOperator : filter(newDisjunction, OOperator.class)) {
+      newDisjunction.remove(oOperator.operand);
+
+      if (newDisjunction.contains(oOperator.operand.not())) {
+        return BooleanConstant.TRUE;
+      }
+    }
+
+    for (HOperator hOperator : filter(newDisjunction, HOperator.class)) {
+      if (newDisjunction.contains(hOperator.operand)) {
+        newDisjunction.remove(hOperator);
+      }
+    }
+
+    for (TOperator tOperator : filter(newDisjunction, TOperator.class)) {
+      if (newDisjunction.contains(tOperator.right)) {
+        newDisjunction.remove(tOperator);
+      }
+    }
+
+    for (SOperator sOperator : filter(newDisjunction, SOperator.class)) {
+      if (newDisjunction.contains(sOperator.left)) {
+        newDisjunction.remove(sOperator);
+        newDisjunction.add(sOperator.right);
+      }
     }
 
     return Disjunction.of(newDisjunction);
@@ -498,5 +560,71 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     });
 
     return operators;
+  }
+
+  @Override
+  public Formula visit(OOperator oOperator) {
+    Formula operand = oOperator.operand.accept(this);
+
+    if (operand instanceof TOperator) {
+      TOperator tOperator = (TOperator) operand;
+
+      return Disjunction.of(OOperator.of(Conjunction.of(tOperator.left, tOperator.right)),
+        OOperator.of(HOperator.of(tOperator.right)));
+    }
+
+    return OOperator.of(operand);
+  }
+
+  @Override
+  public Formula visit(HOperator hOperator) {
+    Formula operand = hOperator.operand.accept(this);
+
+    if (operand instanceof SOperator) {
+      SOperator sOperator = (SOperator) operand;
+
+      return Conjunction.of(HOperator.of(Disjunction.of(sOperator.left, sOperator.right)),
+        HOperator.of(OOperator.of(sOperator.right)));
+    }
+
+    return HOperator.of(operand);
+  }
+
+  @Override
+  public Formula visit(SOperator sOperator) {
+    Formula left = sOperator.left.accept(this);
+    Formula right = sOperator.right.accept(this);
+
+    if (left.equals(right.not())) {
+      return OOperator.of(right);
+    }
+
+    return SOperator.of(left, right);
+  }
+
+  @Override
+  public Formula visit(TOperator tOperator) {
+    Formula left = tOperator.left.accept(this);
+    Formula right = tOperator.right.accept(this);
+
+    if (left.equals(right.not())) {
+      return HOperator.of(right);
+    }
+
+    return TOperator.of(left, right);
+  }
+
+  @Override
+  public Formula visit(YOperator yOperator) {
+    Formula operand = yOperator.operand.accept(this);
+
+    return YOperator.of(operand);
+  }
+
+  @Override
+  public Formula visit(ZOperator zOperator) {
+    Formula operand = zOperator.operand.accept(this);
+
+    return ZOperator.of(operand);
   }
 }
