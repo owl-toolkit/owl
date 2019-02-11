@@ -184,13 +184,12 @@ subrange:
   from=INT DOTDOT to=INT
   ;
 
-
+/*
 predicateOrPatternReferrable:
   pattern | predicate
   ;
 
-/*
 referable:
   varDecl | typeConstant | defineDecl | typedParam | patternParam | monitor
   ;
- */
+*/
