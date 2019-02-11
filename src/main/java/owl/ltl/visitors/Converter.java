@@ -42,6 +42,7 @@ import owl.ltl.XOperator;
 import owl.ltl.YOperator;
 import owl.ltl.ZOperator;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public abstract class Converter implements Visitor<Formula>, Function<Formula, Formula> {
 
   private final Set<Class<? extends Formula>> supportedCases;
