@@ -32,13 +32,19 @@ import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.HOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.OOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SOperator;
+import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.YOperator;
+import owl.ltl.ZOperator;
 import owl.ltl.visitors.Visitor;
 
 public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
@@ -162,5 +168,36 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
     public int depth() {
       return depth;
     }
+  }
+
+  //Past operators
+  @Override
+  public XFormula visit(OOperator oOperator) {
+    return visit(oOperator, OOperator::of);
+  }
+
+  @Override
+  public XFormula visit(HOperator hOperator) {
+    return visit(hOperator, HOperator::of);
+  }
+
+  @Override
+  public XFormula visit(SOperator sOperator) {
+    return visit(sOperator, SOperator::of);
+  }
+
+  @Override
+  public XFormula visit(TOperator tOperator) {
+    return visit(tOperator, TOperator::of);
+  }
+
+  @Override
+  public XFormula visit(YOperator yOperator) {
+    return visit(yOperator, YOperator::of);
+  }
+
+  @Override
+  public XFormula visit(ZOperator zOperator) {
+    return visit(zOperator, ZOperator::of);
   }
 }

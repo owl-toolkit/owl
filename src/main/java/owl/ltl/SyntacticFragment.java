@@ -34,7 +34,9 @@ public enum SyntacticFragment {
     // Temporal Operators
     Literal.class, XOperator.class,
     FOperator.class, UOperator.class, MOperator.class,
-    GOperator.class, WOperator.class, ROperator.class)),
+    GOperator.class, WOperator.class, ROperator.class,
+    HOperator.class, OOperator.class, SOperator.class,
+    TOperator.class, YOperator.class, ZOperator.class)),
 
   NNF(Set.of(
     // Boolean Operators
