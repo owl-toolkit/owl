@@ -1,19 +1,19 @@
-package owl.ltl.spectra.constants;
+package owl.ltl.spectra.expressions.constants;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.ltl.spectra.expressios.HigherOrderExpression;
-import owl.ltl.spectra.types.SpectraBoolean;
+import owl.ltl.spectra.expressions.HigherOrderExpression;
+import owl.ltl.spectra.types.SpectraIntRange;
 import owl.ltl.spectra.types.SpectraType;
 
-public class SpectraBooleanConstant implements HigherOrderExpression {
-  private final SpectraBoolean type;
-  private final boolean value;
+public class SpectraIntRangeConstant implements HigherOrderExpression {
+  private final SpectraIntRange type;
+  private final int element;
 
-  public SpectraBooleanConstant(SpectraBoolean type, boolean value) {
+  public SpectraIntRangeConstant(SpectraIntRange type, int element) {
     this.type = type;
-    this.value = value;
+    this.element = element;
   }
 
   @Override
@@ -23,11 +23,10 @@ public class SpectraBooleanConstant implements HigherOrderExpression {
 
   @Override
   public Formula getBit(int i) {
-    assert i == 0;
-    if (value) {
-      return BooleanConstant.TRUE;
-    } else {
+    if ((element & (1 << i)) == 0) {
       return BooleanConstant.FALSE;
+    } else {
+      return BooleanConstant.TRUE;
     }
   }
 

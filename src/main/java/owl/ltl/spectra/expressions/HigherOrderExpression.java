@@ -1,4 +1,4 @@
-package owl.ltl.spectra.expressios;
+package owl.ltl.spectra.expressions;
 
 import owl.ltl.Formula;
 import owl.ltl.spectra.types.SpectraType;

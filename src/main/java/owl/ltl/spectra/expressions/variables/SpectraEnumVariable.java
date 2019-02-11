@@ -1,17 +1,17 @@
-package owl.ltl.spectra.expressios.variables;
+package owl.ltl.spectra.expressions.variables;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
-import owl.ltl.spectra.expressios.HigherOrderExpression;
-import owl.ltl.spectra.types.SpectraIntRange;
+import owl.ltl.spectra.expressions.HigherOrderExpression;
+import owl.ltl.spectra.types.SpectraEnum;
 import owl.ltl.spectra.types.SpectraType;
 
-public class SpectraIntRangeVariable implements HigherOrderExpression {
-  private final SpectraIntRange type;
+public class SpectraEnumVariable implements HigherOrderExpression {
+  private final SpectraEnum type;
   private final int offset;
 
-  public SpectraIntRangeVariable(SpectraIntRange type, int offset) {
+  public SpectraEnumVariable(SpectraEnum type, int offset) {
     this.type = type;
     this.offset = offset;
   }

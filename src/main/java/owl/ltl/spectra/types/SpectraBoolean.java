@@ -1,6 +1,6 @@
 package owl.ltl.spectra.types;
 
-import owl.ltl.spectra.constants.SpectraBooleanConstant;
+import owl.ltl.spectra.expressions.constants.SpectraBooleanConstant;
 
 public class SpectraBoolean implements SpectraType {
   private final int width;
