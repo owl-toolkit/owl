@@ -33,4 +33,28 @@ public class SpectraEnum implements SpectraType {
   public int width() {
     return width;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SpectraEnum spectraEnum = (SpectraEnum) o;
+
+    return width == spectraEnum.width() && values.equals(spectraEnum.getValues());
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 17;
+    result = 31 * result + width;
+    result = 31 * result + values.hashCode();
+
+    return result;
+  }
 }

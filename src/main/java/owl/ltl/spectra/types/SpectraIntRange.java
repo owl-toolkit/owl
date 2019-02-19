@@ -36,4 +36,31 @@ public class SpectraIntRange implements SpectraType {
   public int width() {
     return width;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SpectraIntRange spectraIntRange = (SpectraIntRange) o;
+
+    return width == spectraIntRange.width()
+      && from == spectraIntRange.getFrom()
+      && to == spectraIntRange.getTo();
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 17;
+    result = 31 * result + width;
+    result = 31 * result + to;
+    result = 31 * result + from;
+
+    return result;
+  }
 }

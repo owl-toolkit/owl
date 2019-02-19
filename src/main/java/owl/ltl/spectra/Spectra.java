@@ -8,10 +8,11 @@ import java.util.stream.Stream;
 import org.immutables.value.Value;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
-import owl.ltl.WOperator;
+import owl.ltl.OOperator;
 
 @Value.Immutable
 public abstract class Spectra {
@@ -66,28 +67,39 @@ public abstract class Spectra {
       Conjunction.of(thetaS()),
       Conjunction.of(psiE()),
       Conjunction.of(psiS()),
-      Conjunction.of(phiE()),
-      Conjunction.of(phiS())
+      Conjunction.of(phiE().stream().map(x -> GOperator.of(FOperator.of(x)))),
+      Conjunction.of(phiS().stream().map(x -> GOperator.of(FOperator.of(x))))
     );
   }
 
   private LabelledFormula toFormula(Formula initialE, Formula initialS, Formula safetyE,
     Formula safetyS, Formula livenessE, Formula livenessS) {
 
-    Formula part1 = Disjunction.of(livenessE.not(), livenessS);
-    Formula part2 = Conjunction.of(GOperator.of(safetyE), part1);
-    Formula part3 = WOperator.of(safetyS, safetyE.not());
+    Formula part1 = Conjunction.of(GOperator.of(safetyE), livenessE);
+    Formula part2 = Disjunction.of(part1.not(), livenessS);
+    Formula part3 = GOperator.of(
+      Disjunction.of(OOperator.of(safetyE.not()), safetyS)
+    );
     Formula part4 = Conjunction.of(initialS, part3, part2);
 
     return toLabelledFormula(Disjunction.of(initialE.not(), part4));
   }
 
+
   public List<LabelledFormula> getSafety() {
     return Stream.concat(
-      psiE().stream().map(x -> toLabelledFormula(GOperator.of(x))),
-      psiS().stream().map(x -> toLabelledFormula(GOperator.of(x)))
+      psiE().stream().map(x -> toLabelledFormula(new GOperator(x))),
+      psiS().stream().map(x -> toLabelledFormula(new GOperator(x)))
     ).collect(Collectors.toList());
   }
+  /*
+  public List<LabelledFormula> getSafety() {
+    return Stream.concat(
+      psiE().stream().map(this::toLabelledFormula),
+      psiS().stream().map(this::toLabelledFormula)
+    ).collect(Collectors.toList());
+  }
+  */
 
   private LabelledFormula toLabelledFormula(Formula formula) {
     return LabelledFormula.of(formula, variables(), inputs());
