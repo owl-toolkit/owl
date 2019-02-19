@@ -58,9 +58,7 @@ import owl.grammar.SPECTRAParser.TypeDefContext;
 import owl.grammar.SPECTRAParser.VarDefContext;
 import owl.grammar.SPECTRAParser.VarTypeContext;
 import owl.grammar.SPECTRAParser.WeightContext;
-import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.spectra.ImmutableSpectra;
 import owl.ltl.spectra.ImmutableSpectra.Builder;
@@ -196,8 +194,8 @@ public final class SpectraParser {
       List<String> varLiteralNames = new ArrayList<>();
 
       if (type.width() > 1) {
-        for (int i = offset; i < offset + type.width(); i++) {
-          Literal.of(i);
+        for (int i = 0; i < type.width(); i++) {
+          Literal.of(offset + i);
           varLiteralNames.add(varName + "_" + i);
         }
       } else {
@@ -302,7 +300,6 @@ public final class SpectraParser {
             safetyEnv.add(formula);
           }
         } else if (ltlC.justice != null) {
-          formula = GOperator.of(FOperator.of(formula));
           if (ltlC.ASM() == null) {
             livenessSys.add(formula);
           } else {
