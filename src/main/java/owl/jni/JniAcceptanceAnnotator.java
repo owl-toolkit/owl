@@ -36,11 +36,11 @@ class JniAcceptanceAnnotator extends PropositionalVisitor<Map<Formula, JniAccept
 
   @Override
   protected Map<Formula, JniAcceptance> visit(Formula.TemporalOperator formula) {
-    if (SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragment.SAFETY.contains(formula) || SyntacticFragments.isGPast(formula)) {
       return Map.of(formula, JniAcceptance.SAFETY);
     }
 
-    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragment.CO_SAFETY.contains(formula) || SyntacticFragments.isFPast(formula)) {
       return Map.of(formula, JniAcceptance.CO_SAFETY);
     }
 
