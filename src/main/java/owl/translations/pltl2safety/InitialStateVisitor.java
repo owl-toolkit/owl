@@ -11,6 +11,7 @@ import owl.ltl.Literal;
 import owl.ltl.OOperator;
 import owl.ltl.SOperator;
 import owl.ltl.TOperator;
+import owl.ltl.XOperator;
 import owl.ltl.YOperator;
 import owl.ltl.ZOperator;
 import owl.ltl.visitors.Visitor;
@@ -71,6 +72,11 @@ public class InitialStateVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(ZOperator zOperator) {
+    return true;
+  }
+
+  @Override
+  public Boolean visit(XOperator xOperator) {
     return true;
   }
 }

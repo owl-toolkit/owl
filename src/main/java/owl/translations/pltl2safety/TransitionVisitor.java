@@ -11,6 +11,7 @@ import owl.ltl.Literal;
 import owl.ltl.OOperator;
 import owl.ltl.SOperator;
 import owl.ltl.TOperator;
+import owl.ltl.XOperator;
 import owl.ltl.YOperator;
 import owl.ltl.ZOperator;
 import owl.ltl.visitors.Visitor;
@@ -66,6 +67,11 @@ public class TransitionVisitor implements Visitor<Boolean> {
   public Boolean visit(TOperator tOperator) {
     return suc.contains(tOperator)
       && (apply(tOperator.right) && (apply(tOperator.left) || state.contains(tOperator)));
+  }
+
+  @Override
+  public Boolean visit(XOperator xOperator) {
+    return suc.contains(xOperator);
   }
 
   @Override

@@ -294,6 +294,38 @@ class Pltl2SafetyTest {
             + "[!0 & 1] 0\n"
             + "[0 & 1] 0\n"
             + "--END--\n"
+        ),
+        Arguments.of(
+          "env boolean a;\n"
+            + "sys boolean b;\n"
+            + "asm G next(a) -> ONCE(b);",
+          3,
+          "HOA: v1\n"
+            + "Start: 0\n"
+            + "AP: 2 \"a\" \"b\"\n"
+            + "acc-name: all\n"
+            + "Acceptance: 0 t\n"
+            + "--BODY--\n"
+            + "State: 0 \"[[p0, p1, Xp0, (Op1|X!p0), Op1], [!p0, p1, (Op1|X!p0), Op1, X!p0], "
+            + "[!p0, !p1, (Op1|X!p0), H!p1, X!p0], [p0, p1, (Op1|X!p0), Op1, X!p0], "
+            + "[p0, !p1, (Op1|X!p0), H!p1, X!p0], [!p0, p1, Xp0, (Op1|X!p0), Op1]]\"\n"
+            + "[!0 & !1] 1\n"
+            + "[0 & !1] 1\n"
+            + "[!0 & 1] 2\n"
+            + "[0 & 1] 2\n"
+            + "State: 1 \"[[!p0, p1, (Op1|X!p0), Op1, X!p0], [!p0, !p1, (Op1|X!p0), H!p1, X!p0], "
+            + "[!p0, p1, Xp0, (Op1|X!p0), Op1]]\"\n"
+            + "[!0 & !1] 1\n"
+            + "[!0 & 1] 2\n"
+            + "State: 2 \"[[!p0, !p1, (Op1|X!p0), Op1, X!p0], [!p0, !p1, Xp0, (Op1|X!p0), Op1], "
+            + "[p0, !p1, (Op1|X!p0), Op1, X!p0], [!p0, p1, (Op1|X!p0), Op1, X!p0],"
+            + "[p0, !p1, Xp0, (Op1|X!p0), Op1], [!p0, p1, Xp0, (Op1|X!p0), Op1], "
+            + "[p0, p1, (Op1|X!p0), Op1, X!p0], [p0, p1, Xp0, (Op1|X!p0), Op1]]\"\n"
+            + "[!0 & !1] 2\n"
+            + "[0 & !1] 2\n"
+            + "[!0 & 1] 2\n"
+            + "[0 & 1] 2\n"
+            + "--END--\n"
         )
       );
     }

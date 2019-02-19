@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import owl.automaton.Automaton;
 import owl.automaton.ImplicitNonDeterministicEdgesAutomaton;
@@ -17,6 +19,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
+import owl.ltl.XOperator;
 import owl.run.Environment;
 
 public class PLTL2Safety
@@ -28,11 +31,10 @@ public class PLTL2Safety
   }
 
   @Override
-  public Automaton<?, AllAcceptance> apply(LabelledFormula labelledFormula) {
-    Formula formula = labelledFormula.formula().substitute(x -> {
-      assert x instanceof GOperator;
-      return ((GOperator) x).operand;
-    });
+  public Automaton<Set<Set<Formula>>, AllAcceptance> apply(LabelledFormula labelledFormula) {
+    //This shouldn't be necessary, but for safe measures it's here
+    assert labelledFormula.formula() instanceof GOperator;
+    Formula formula = ((GOperator) labelledFormula.formula()).operand;
 
     Set<Set<Formula>> stateSpace = getAtoms(formula);
 
@@ -51,15 +53,15 @@ public class PLTL2Safety
   }
 
   private static Set<Set<Formula>> constructInitialState(Set<Set<Formula>> stateSpace) {
-    Set<Set<Formula>> initialState = new HashSet<>();
 
-    for (Set<Formula> state : stateSpace) {
-      InitialStateVisitor initVisitor = new InitialStateVisitor(state);
-      if (state.stream().filter(x -> !(x instanceof Literal)).allMatch(initVisitor::apply)) {
-        initialState.add(state);
-      }
-    }
-    return initialState;
+    //Check if state satisfies initial condition
+    Predicate<Set<Formula>> initialCondition = t -> {
+      InitialStateVisitor initialStateVisitor = new InitialStateVisitor(t);
+      return (t.stream().filter(x -> !(x instanceof Literal))
+        .allMatch(initialStateVisitor::apply));
+    };
+
+    return stateSpace.stream().filter(initialCondition).collect(Collectors.toSet());
   }
 
   private static Set<Edge<Set<Formula>>> constructSuccessorEdges(Formula formula,
@@ -82,16 +84,18 @@ public class PLTL2Safety
       return Set.of();
     }
 
-    Set<Edge<Set<Formula>>> successorEdges = new HashSet<>();
-    //Check for each state if successor
-    for (Set<Formula> suc : stateSpace) {
-      TransitionVisitor transitionVisitor = new TransitionVisitor(state, suc);
-      if (suc.stream().filter(x -> !(x instanceof Literal)).allMatch(transitionVisitor::apply)) {
-        successorEdges.add(Edge.of(suc));
-      }
-    }
+    //Check if successor satisfies the transition relation
+    Set<Formula> xOperands = state.stream().filter(XOperator.class::isInstance)
+      .map(x -> ((XOperator) x).operand).collect(Collectors.toSet());
+    Predicate<Set<Formula>> transitionRelation = t -> {
+      TransitionVisitor transitionVisitor = new TransitionVisitor(state, t);
+      return Stream.concat(t.stream().filter(x -> !(x instanceof Literal)), xOperands.stream())
+        .allMatch(transitionVisitor::apply);
+    };
 
-    return successorEdges;
+    //Determine Set of successor edges
+    return stateSpace.stream().filter(transitionRelation).map(Edge::of)
+      .collect(Collectors.toSet());
   }
 
   private static Set<Set<Formula>> getAtoms(Formula formula) {
