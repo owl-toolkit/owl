@@ -37,6 +37,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
@@ -98,9 +99,14 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return coSafety(environment, formula);
     }
 
-    if (allowedConstructions.contains(Constructions.PAST_SAFETY)
-      && SyntacticFragment.PAST_SAFETY.contains(formula)) {
-      return pSafety(environment, formula);
+    if (allowedConstructions.contains(Constructions.PAST_SAFETY)) {
+      if (SyntacticFragments.isGPast(formula.formula())) {
+        return gPastSafety(environment, formula);
+      }
+
+      if (SyntacticFragments.isFPast(formula.formula())) {
+        return fPastSafety(environment, formula);
+      }
     }
 
     if (formula.formula() instanceof XOperator) {
@@ -180,9 +186,15 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     return new DeterministicConstructions.Safety(factories, true, formula.formula());
   }
 
-  static Automaton<?, AllAcceptance> pSafety(
+  static Automaton<Set<Set<Formula>>, AllAcceptance> gPastSafety(
     Environment environment, LabelledFormula formula) {
     return new PLTL2Safety(environment).apply(formula);
+  }
+
+  static Automaton<Set<Set<Formula>>, ?> fPastSafety(
+    Environment environment, LabelledFormula formula) {
+    var automaton = gPastSafety(environment, formula.not());
+    return Views.complement(Views.complete(automaton, Set.of()));
   }
 
   public enum Constructions {

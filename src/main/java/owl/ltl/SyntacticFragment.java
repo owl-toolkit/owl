@@ -45,7 +45,9 @@ public enum SyntacticFragment {
     // Temporal Operators
     Literal.class, XOperator.class,
     FOperator.class, UOperator.class, MOperator.class,
-    GOperator.class, WOperator.class, ROperator.class)),
+    GOperator.class, WOperator.class, ROperator.class,
+    HOperator.class, OOperator.class, SOperator.class,
+    TOperator.class, YOperator.class, ZOperator.class)),
 
   @SuppressWarnings("SpellCheckingInspection")
   FGMU(Set.of(
@@ -76,8 +78,8 @@ public enum SyntacticFragment {
     BooleanConstant.class, Conjunction.class, Disjunction.class,
 
     // Temporal Operators
-    Literal.class, GOperator.class, HOperator.class, OOperator.class, SOperator.class,
-    TOperator.class, YOperator.class, ZOperator.class)),
+    Literal.class, HOperator.class, OOperator.class, SOperator.class,
+    TOperator.class, XOperator.class, YOperator.class, ZOperator.class)),
 
   CO_SAFETY(Set.of(
     // Boolean Operators

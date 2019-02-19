@@ -111,6 +111,24 @@ public final class SyntacticFragments {
     return true;
   }
 
+  public static boolean isGPast(Formula formula) {
+    if (formula instanceof GOperator) {
+      Formula unwrapped = ((GOperator) formula).operand;
+      return SyntacticFragment.PAST_SAFETY.contains(unwrapped);
+    }
+
+    return false;
+  }
+
+  public static boolean isFPast(Formula formula) {
+    if (formula instanceof FOperator) {
+      Formula unwrapped = ((FOperator) formula).operand;
+      return SyntacticFragment.PAST_SAFETY.contains(unwrapped);
+    }
+
+    return false;
+  }
+
   private static Formula normalize(Formula formula, SyntacticFragment fragment,
     Function<Formula, Formula> normalizer) {
     Formula normalizedFormula = normalizer.apply(formula);
