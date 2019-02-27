@@ -19,16 +19,11 @@
 
 package owl.translations.delag;
 
-import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.EXISTS_SAFETY_CORE;
-import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.OPTIMISED_STATE_STRUCTURE;
-import static owl.translations.ltl2dra.LTL2DRAFunction.Configuration.OPTIMISE_INITIAL_STATE;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -40,6 +35,7 @@ import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
@@ -55,21 +51,17 @@ import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
-import owl.translations.ltl2dra.LTL2DRAFunction;
+import owl.translations.ltl2dra.SymmetricDRAConstruction;
 
 public class DelagBuilder
   implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private static final Function<LabelledFormula, Automaton<?, EmersonLeiAcceptance>> FAIL = x -> {
-    throw new IllegalArgumentException("Not supported: " + x);
-  };
 
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("delag")
     .description("Translates LTL to deterministic Emerson-Lei automata")
     .optionsDirect(new Options().addOption("f", "fallback", true,
-      "Fallback tool for input outside the fragment ('none' for strict mode)"))
+      "Fallback tool for input outside the fragment. "
+        + "If no tool is specified an internal LTL to DGRA translation is used."))
     .parser(settings -> environment -> {
       String fallbackTool = settings.getOptionValue("fallback");
 
@@ -78,33 +70,23 @@ public class DelagBuilder
           new DelagBuilder(environment));
       }
 
-      Function<LabelledFormula, ? extends Automaton<?, ?>> fallback = "none".equals(fallbackTool)
-        ? FAIL
-        : new ExternalTranslator(environment, fallbackTool);
-
       return Transformers.instanceFromFunction(LabelledFormula.class,
-        new DelagBuilder(environment, fallback));
+        new DelagBuilder(environment, new ExternalTranslator(environment, fallbackTool)));
     }).build();
 
-  private final Environment env;
-  private final Function<? super LabelledFormula, ? extends Automaton<?, ?>> fallback;
+  private final Environment environment;
+  private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
   @Nullable
   private LoadingCache<ProductState<Object>, History> requiredHistoryCache = null;
 
   public DelagBuilder(Environment environment) {
-    this(environment, true);
+    this.environment = environment;
+    this.fallback =
+      SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true);
   }
 
-  public DelagBuilder(Environment environment, boolean fallback) {
-    this(environment, fallback
-      ? new LTL2DRAFunction(environment,
-      EnumSet.of(OPTIMISE_INITIAL_STATE, OPTIMISED_STATE_STRUCTURE, EXISTS_SAFETY_CORE))
-      : FAIL);
-  }
-
-  public DelagBuilder(Environment environment,
-    Function<? super LabelledFormula, ? extends Automaton<?, ?>> fallback) {
-    this.env = environment;
+  private DelagBuilder(Environment environment, ExternalTranslator fallback) {
+    this.environment = environment;
     this.fallback = fallback;
   }
 
@@ -120,7 +102,7 @@ public class DelagBuilder
   @Override
   public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = SyntacticFragments.normalize(inputFormula, SyntacticFragment.NNF);
-    Factories factories = env.factorySupplier().getFactories(formula.variables());
+    Factories factories = environment.factorySupplier().getFactories(formula.variables());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
       return Views.viewAs(AutomatonFactory.empty(factories.vsFactory), EmersonLeiAcceptance.class);
@@ -148,8 +130,8 @@ public class DelagBuilder
       getHistory(null, new BitSet(), initialProduct));
 
     EmersonLeiAcceptance acceptance = new EmersonLeiAcceptance(sets, expression);
-    return AutomatonFactory.create(factories.vsFactory, initialState,
-      acceptance, (x, y) -> this.getSuccessor(tree, x, y));
+    return AutomatonFactory.create(factories.vsFactory, initialState, acceptance,
+      (x, y) -> this.edge(tree, x, y));
   }
 
   private History getHistory(@Nullable History past, BitSet present, ProductState<Object> state) {
@@ -168,7 +150,7 @@ public class DelagBuilder
   }
 
   @Nullable
-  private Edge<State<Object>> getSuccessor(DependencyTree<Object> tree, State<Object> state,
+  private Edge<State<Object>> edge(DependencyTree<Object> tree, State<Object> state,
     BitSet valuation) {
     ProductState.Builder<Object> builder = ProductState.builder();
     Boolean acc = tree.buildSuccessor(state, valuation, builder);

@@ -25,7 +25,7 @@ import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
-public class LTL2DPAFunctionTest {
+class LTL2DPAFunctionTest {
 
   @Test
   void testComplete() {
@@ -33,7 +33,6 @@ public class LTL2DPAFunctionTest {
     var translation = new LTL2DPAFunction(environment, Set.of(
       LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE,
       LTL2DPAFunction.Configuration.COMPLETE,
-      LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE,
       LTL2DPAFunction.Configuration.COMPRESS_COLOURS));
 
     translation.apply(LtlParser.parse("ff"));

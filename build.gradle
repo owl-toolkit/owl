@@ -121,7 +121,21 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'size-regression-test', 'size-regression-train'
+    }
+}
+
+task sizeRegressionTest(type: Test) {
+    useJUnitPlatform {
+        includeTags 'size-regression-test'
+    }
+}
+
+task sizeRegressionTrain(type: Test) {
+    useJUnitPlatform {
+        includeTags 'size-regression-train'
+    }
 }
 
 // ---------------- Startup Scripts ----------------

@@ -19,8 +19,6 @@
 
 package owl.translations.canonical;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration;
-
 import java.util.BitSet;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -37,8 +35,8 @@ import owl.ltl.EquivalenceClass;
 public final class LegacyFactory
   extends DeterministicConstructions.Base<EquivalenceClass, NoneAcceptance> {
 
-  public LegacyFactory(Factories factories, Set<Configuration> configuration) {
-    super(factories, configuration.contains(Configuration.EAGER_UNFOLD));
+  public LegacyFactory(Factories factories) {
+    super(factories, true);
   }
 
   @Override
@@ -69,22 +67,6 @@ public final class LegacyFactory
     return environment.implies(state) ? factory.getTrue() : state;
   }
 
-  @Nullable
-  public EquivalenceClass[] successors(EquivalenceClass[] clazz, BitSet valuation,
-    EquivalenceClass environment) {
-    EquivalenceClass[] successors = new EquivalenceClass[clazz.length];
-
-    for (int i = clazz.length - 1; i >= 0; i--) {
-      successors[i] = successor(clazz[i], valuation, environment);
-
-      if (successors[i].isFalse()) {
-        return null;
-      }
-    }
-
-    return successors;
-  }
-
   @Override
   // Change visibility!
   @SuppressWarnings("PMD.UselessOverridingMethod")
@@ -96,13 +78,5 @@ public final class LegacyFactory
     EquivalenceClass environment) {
     EquivalenceClass state = initialStateInternal(clazz);
     return environment.implies(state) ? factory.getTrue() : state;
-  }
-
-  public BitSet sensitiveAlphabet(EquivalenceClass clazz) {
-    if (eagerUnfold) {
-      return clazz.atomicPropositions();
-    } else {
-      return clazz.unfold().atomicPropositions();
-    }
   }
 }

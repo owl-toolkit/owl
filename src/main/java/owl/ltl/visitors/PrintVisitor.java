@@ -79,18 +79,18 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Conjunction conjunction) {
-    return '(' + String.join(" & ", conjunction.children.stream()
+    return '(' + conjunction.children.stream()
       .sorted(Comparator.naturalOrder())
       .map(this::visitParenthesized)
-      .collect(Collectors.toList())) + ')';
+      .collect(Collectors.joining(" & ")) + ')';
   }
 
   @Override
   public String visit(Disjunction disjunction) {
-    return '(' + String.join(" | ", disjunction.children.stream()
+    return '(' + disjunction.children.stream()
       .sorted(Comparator.naturalOrder())
       .map(this::visitParenthesized)
-      .collect(Collectors.toList())) + ')';
+      .collect(Collectors.joining(" | ")) + ')';
   }
 
   @Override

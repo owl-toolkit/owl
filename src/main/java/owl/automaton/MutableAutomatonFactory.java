@@ -52,6 +52,7 @@ public final class MutableAutomatonFactory {
     source.initialStates().forEach(target::addInitialState);
     source.accept((Visitor<S>) new CopyVisitor<>(target));
     target.trim(); // Cannot depend on iteration order, thus we need to trim().
+    target.name(source.name());
   }
 
   /**
@@ -113,38 +114,6 @@ public final class MutableAutomatonFactory {
       }
     }
 
-    return automaton;
-  }
-
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> create(A acceptance,
-    ValuationSetFactory vsFactory, Collection<S> initialStates,
-    BiFunction<S, BitSet, ? extends Collection<Edge<S>>> successors) {
-
-    MutableAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
-    automaton.initialStates(initialStates);
-
-    int alphabetSize = automaton.factory().alphabetSize();
-    Set<S> exploredStates = new HashSet<>(initialStates);
-    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
-
-    while (!workQueue.isEmpty()) {
-      S state = workQueue.remove();
-
-      for (BitSet valuation : BitSets.powerSet(alphabetSize)) {
-        for (Edge<S> edge : successors.apply(state, valuation)) {
-          ValuationSet valuationSet = automaton.factory().of(valuation);
-          S successorState = edge.successor();
-
-          if (exploredStates.add(successorState)) {
-            workQueue.add(successorState);
-          }
-
-          automaton.addEdge(state, valuationSet, edge);
-        }
-      }
-    }
-
-    automaton.trim();
     return automaton;
   }
 

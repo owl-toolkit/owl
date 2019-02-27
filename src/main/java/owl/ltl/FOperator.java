@@ -47,7 +47,7 @@ public final class FOperator extends UnaryModalOperator {
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant
       || operand instanceof FOperator
-      || operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator) {
+      || (operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator)) {
       return operand;
     }
 

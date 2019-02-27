@@ -174,7 +174,7 @@ public abstract class Tlsf {
 
   private final class MealyToMooreConverter extends Converter {
     private MealyToMooreConverter() {
-      super(SyntacticFragment.ALL.classes());
+      super(SyntacticFragment.ALL);
     }
 
     @Override
@@ -189,7 +189,7 @@ public abstract class Tlsf {
 
   private final class MooreToMealyConverter extends Converter {
     private MooreToMealyConverter() {
-      super(SyntacticFragment.ALL.classes());
+      super(SyntacticFragment.ALL);
     }
 
     @Override

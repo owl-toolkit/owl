@@ -169,13 +169,7 @@ public abstract class Formula implements Comparable<Formula> {
   }
 
   public final int height() {
-    int height = 0;
-
-    for (Formula child : children()) {
-      height = Math.max(height, child.height());
-    }
-
-    return height + 1;
+    return Formulas.height(children()) + 1;
   }
 
   // Temporal Properties of an LTL Formula

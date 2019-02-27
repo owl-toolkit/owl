@@ -85,6 +85,21 @@ public final class UpwardClosedSet {
     return new UpwardClosedSet(bitSet.toLongArray()[0]);
   }
 
+  public boolean contains(BitSet bitSet) {
+    Preconditions.checkArgument(bitSet.length() <= Long.SIZE);
+    long element = bitSet.isEmpty() ? 0 : bitSet.toLongArray()[0];
+
+    for (long[] bucket : buckets) {
+      for (long set : bucket) {
+        if ((element | set) == element) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   public UpwardClosedSet intersection(UpwardClosedSet otherSet) {
     LongList[] newBuckets = new LongList[this.buckets.length * otherSet.buckets.length];
     LongSet seenElements = new LongOpenHashSet();

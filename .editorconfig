@@ -9,14 +9,5 @@ indent_size=4
 [*.py]
 indent_size=4
 
-[*.sh]
-indent_size=2
-
-[*.java]
-indent_size=2
-
-[*.g4]
-indent_size=2
-
-[{*.yml,*.yaml}]
+[{*.g4,*.java,*.sh,*.yml,*.yaml}]
 indent_size=2

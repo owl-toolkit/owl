@@ -33,7 +33,7 @@ public final class RabinizerCliParser implements TransformerParser {
 
   @Override
   public String getKey() {
-    return "ltl2dgra";
+    return "ltl2dgra-rabinizer";
   }
 
   @Override

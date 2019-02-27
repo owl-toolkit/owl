@@ -19,20 +19,12 @@
 
 package owl.automaton.output;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import owl.automaton.Automaton;
-import owl.automaton.edge.Edge;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
-import owl.collections.ValuationSet;
-import owl.util.TypeUtil;
 
 public final class HoaPrinter {
 
@@ -49,32 +41,6 @@ public final class HoaPrinter {
     return new String(writer.toByteArray(), StandardCharsets.UTF_8);
   }
 
-  public static <S> String toString(LimitDeterministicAutomaton<S, ?, ?, ?> automaton) {
-    return toString(automaton, EnumSet.of(HoaOption.ANNOTATIONS));
-  }
-
-  public static <S> String toString(LimitDeterministicAutomaton<S, ?, ?, ?> automaton,
-    EnumSet<HoaOption> options) {
-    ByteArrayOutputStream writer = new ByteArrayOutputStream();
-    HoaPrinter.feedTo(automaton, new HOAConsumerPrint(writer), options);
-    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
-  }
-
-  public static void feedTo(Object automaton, HOAConsumer consumer) {
-    feedTo(automaton, consumer, EnumSet.noneOf(HoaOption.class));
-  }
-
-  public static void feedTo(Object automaton, HOAConsumer consumer, EnumSet<HoaOption> options) {
-    checkArgument(automaton instanceof Automaton
-      || automaton instanceof LimitDeterministicAutomaton);
-
-    if (automaton instanceof Automaton) {
-      HoaPrinter.feedTo((Automaton<?, ?>) automaton, consumer, options);
-    } else {
-      HoaPrinter.feedTo((LimitDeterministicAutomaton<?, ?, ?, ?>) automaton, consumer, options);
-    }
-  }
-
   public static <S> void feedTo(Automaton<S, ?> automaton, HOAConsumer consumer) {
     feedTo(automaton, consumer, EnumSet.noneOf(HoaOption.class));
   }
@@ -85,45 +51,6 @@ public final class HoaPrinter {
       automaton.acceptance(), automaton.initialStates(), options,
       automaton.is(Automaton.Property.DETERMINISTIC), automaton.name());
     automaton.accept((Automaton.Visitor<S>) hoa.visitor);
-    hoa.done();
-  }
-
-  public static <S> void feedTo(LimitDeterministicAutomaton<S, ?, ?, ?> ldba,
-    HOAConsumer consumer) {
-    feedTo(ldba, consumer, EnumSet.noneOf(HoaOption.class));
-  }
-
-  public static <S> void feedTo(LimitDeterministicAutomaton<S, ?, ?, ?> ldba, HOAConsumer consumer,
-    EnumSet<HoaOption> options) {
-
-    var intialComponent = ldba.initialComponent();
-    var acceptingComponent = (Automaton<Object, ?>) ldba.acceptingComponent();
-
-    HoaConsumerExtended<Object> hoa = new HoaConsumerExtended<>(consumer,
-      acceptingComponent.factory().alphabet(), acceptingComponent.acceptance(),
-      (Set<Object>) ldba.initialStates(), options, false, "LDBA");
-
-    var patchedVisitor = new Automaton.EdgeMapVisitor<S>() {
-      @Override
-      public void enter(S state) {
-        hoa.visitor.enter(state);
-      }
-
-      @Override
-      public void exit(S state) {
-        ldba.epsilonJumps((S) state).forEach(hoa::addEpsilonEdge);
-        ldba.valuationSetJumps((S) state).forEach((a, b) -> b.forEach(d -> hoa.addEdge(a, d)));
-        hoa.visitor.exit(state);
-      }
-
-      @Override
-      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        hoa.visitor.visit(state, TypeUtil.cast(edgeMap));
-      }
-    };
-
-    intialComponent.accept(patchedVisitor);
-    acceptingComponent.accept((Automaton.Visitor<Object>) hoa.visitor);
     hoa.done();
   }
 

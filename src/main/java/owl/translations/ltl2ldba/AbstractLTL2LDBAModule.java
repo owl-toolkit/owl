@@ -19,50 +19,34 @@
 
 package owl.translations.ltl2ldba;
 
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNFOLD;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
-
-import java.util.EnumSet;
-import java.util.List;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import owl.run.modules.OwlModuleParser;
 
 public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.TransformerParser {
 
-  private static final Option EPSILON = new Option("e", "epsilon", false,
-    "Do not remove generated epsilon-transitions. Note: The generated output is not valid HOA, "
-      + "since the format does not support epsilon transitions.");
-
-  public static Option guessF() {
-    return new Option("f", "guess-f", false,
-      "Guess F-operators that are infinitely often true.");
+  public static Option asymmetric() {
+    return new Option("a", "asymmetric", false, "Guess only greatest "
+      + "fixed-points (G,R,W) that are almost always true. This corresponds to the construction "
+      + "described in [SEJK: CAV'16].");
   }
 
-  public static Option simple() {
-    return new Option("s", "simple", false,
-      "Use a simpler state-space construction. This disables pruning of jumps and chooses "
-        + "a simpler equivalence relation to build the state space. ");
+  public static Option symmetric() {
+    return new Option("s", "symmetric", false, "Guess greatest (G,R,W) "
+      + "and least (F,M,U) fixed-points that are almost always respectively infinitely often true. "
+      + "This corresponds to the construction described in [EKS: LICS'18].");
+  }
+
+  public static OptionGroup getOptionGroup() {
+    var group = new OptionGroup();
+    group.addOption(asymmetric());
+    group.addOption(symmetric());
+    return group;
   }
 
   @Override
   public Options getOptions() {
-    Options options = new Options();
-    List.of(EPSILON, guessF(), simple()).forEach(options::addOption);
-    return options;
-  }
-
-  static EnumSet<LTL2LDBAFunction.Configuration> configuration(CommandLine commandLine) {
-    var configuration = commandLine.hasOption(simple().getOpt())
-      ? EnumSet.noneOf(LTL2LDBAFunction.Configuration.class)
-      : EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS);
-
-    if (commandLine.hasOption(EPSILON.getOpt())) {
-      configuration.add(EPSILON_TRANSITIONS);
-    }
-
-    return configuration;
+    return new Options().addOptionGroup(getOptionGroup());
   }
 }

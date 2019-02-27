@@ -1,6 +1,6 @@
 {
     "dataset": {
-        "full": [
+        "XL": [
             {
                 "name": "base",
                 "determinize": true
@@ -15,7 +15,21 @@
             "libe-spec",
             "random"
         ],
-        "medium": [
+        "L": [
+            {
+                "name": "base",
+                "determinize": true
+            },
+            {
+                "name": "regressions",
+                "determinize": true
+            },
+            "size",
+            "fgx",
+            "check",
+            "random"
+        ],
+        "M": [
             {
                 "name": "base",
                 "determinize": true
@@ -28,7 +42,7 @@
             "fgx",
             "random"
         ],
-        "small": [
+        "S": [
             {
                 "name": "base",
                 "determinize": true
@@ -50,64 +64,41 @@
                 "%f"
             ]
         },
-        "data": "full"
+        "data": "XL"
     },
     "tests": {
-        "ltl2ldba": {
-            "tools": {
-                "default": "ltl2ldba#",
-                "guess-F": "ltl2ldba#guess-f"
-            }
+        "ltl2nba": {
+            "tools": [
+                "ltl2nba",
+                "ltl2ngba"
+            ]
         },
-        "ltl2ldba-small": {
-            "tools": {
-                "simple": "ltl2ldba#simple",
-                "guess-F+simple": "ltl2ldba#guess-f,simple"
-            },
-            "data": "small"
+        "ltl2ldba": {
+            "tools": [
+                "ltl2ldba#asymmetric",
+                "ltl2ldba#symmetric",
+                "ltl2ldgba#asymmetric",
+                "ltl2ldgba#symmetric"
+            ]
+        },
+        "ltl2dra": {
+            "tools": [
+                "ltl2dra",
+                "ltl2dgra"
+            ],
+            "data": "L"
+        },
+        "ltl2dpa": {
+            "tools": [
+                "ltl2dpa#asymmetric",
+                "ltl2dpa#asymmetric,complement",
+                "ltl2dpa#symmetric",
+                "ltl2dpa#symmetric,complement"
+            ]
         },
         "fgx2dpa": {
             "tools": "fgx2dpa",
             "data": "fgx"
-        },
-        "ltl2ldgba": {
-            "tools": {
-                "default": "ltl2ldgba#",
-                "guess-F": "ltl2ldgba#guess-f"
-            }
-        },
-        "ltl2ldgba-small": {
-            "tools": {
-                "simple": "ltl2ldgba#simple",
-                "guess-F+simple": "ltl2ldgba#guess-f,simple"
-            },
-            "data": "small"
-        },
-        "ltl2dpa": {
-            "tools": [
-                "ltl2dpa",
-                "ltl2dpa#complement"
-            ]
-        },
-        "ltl2dpa-small": {
-            "tools": {
-                "guess-F": "ltl2dpa#guess-f",
-                "guess-F+comp": "ltl2dpa#guess-f,complement",
-                "simple": "ltl2dpa#simple",
-                "simple+comp": "ltl2dpa#complement,simple",
-                "guess-F+simple": "ltl2dpa#guess-f,simple",
-                "guess-F+simple+comp": "ltl2dpa#guess-f,complement,simple"
-            },
-            "data": "small"
-        },
-        "ltl2dra-medium": {
-            "tools": [
-                "ltl2dra",
-                "ltl2dra#simple",
-                "ltl2dra#degeneralise",
-                "ltl2dra#degeneralise,simple"
-            ],
-            "data": "medium"
         },
         "ltl2da": "ltl2da",
         "ltl2na": "ltl2na",
@@ -116,18 +107,14 @@
             "tools": [
                 "spot-nba2dpa"
             ],
-            "data": "small"
+            "data": "S"
         },
         "delag": {
             "tools": [
                 "delag",
                 "delag#fallback-spot"
             ],
-            "data": "medium"
-        },
-        "delag-strict": {
-            "tools": "delag#strict",
-            "data": "fgx"
+            "data": "M"
         },
         "rabinizer": {
             "tools": [
@@ -135,7 +122,7 @@
                 "rabinizer-dra",
                 "rabinizer-dpa"
             ],
-            "data": "medium"
+            "data": "M"
         },
         "ltl2dpa-convert": {
             "tools": [
@@ -148,11 +135,11 @@
                 "ltl2dpa-convert#min,even",
                 "ltl2dpa-convert#min,odd"
             ],
-            "data": "small"
+            "data": "S"
         },
         "safra": {
             "tools": "safra",
-            "data": "small"
+            "data": "S"
         }
     }
 }

@@ -22,7 +22,6 @@ package owl.translations;
 import static owl.translations.LTL2NAFunction.Constructions.BUCHI;
 import static owl.translations.LTL2NAFunction.Constructions.CO_SAFETY;
 import static owl.translations.LTL2NAFunction.Constructions.GENERALIZED_BUCHI;
-import static owl.translations.LTL2NAFunction.Constructions.PARITY;
 import static owl.translations.LTL2NAFunction.Constructions.SAFETY;
 
 import java.util.EnumSet;
@@ -41,7 +40,7 @@ public final class LTL2NAModule {
     .description("Translates LTL to some non-deterministic automaton")
     .parser(settings -> environment -> {
       LTL2NAFunction function = new LTL2NAFunction(environment,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, PARITY));
+        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI));
       return Transformers.instanceFromFunction(LabelledFormula.class, function::apply);
     })
     .build();

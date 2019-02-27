@@ -466,11 +466,11 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
       if (!suspendable.isEmpty()) {
         if (operand instanceof Conjunction) {
           return Conjunction.of(
-            Collections3.append(suspendable, XOperator.of(Conjunction.of(others))));
+            Collections3.add(suspendable, XOperator.of(Conjunction.of(others))));
         } else {
           assert operand instanceof Disjunction;
           return Disjunction.of(
-            Collections3.append(suspendable, XOperator.of(Disjunction.of(others))));
+            Collections3.add(suspendable, XOperator.of(Disjunction.of(others))));
         }
       }
     }

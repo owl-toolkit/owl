@@ -36,7 +36,7 @@ public class UnabbreviateVisitor extends Converter {
 
   @SafeVarargs
   public UnabbreviateVisitor(Class<? extends Formula>... classes) {
-    super(SyntacticFragment.NNF.classes());
+    super(SyntacticFragment.NNF);
     this.classes = Set.of(classes);
   }
 

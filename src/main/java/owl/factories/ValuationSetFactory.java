@@ -97,9 +97,9 @@ public interface ValuationSetFactory {
 
   boolean intersects(ValuationSet set, ValuationSet other);
 
-  void forEach(ValuationSet set, Consumer<BitSet> action);
+  void forEach(ValuationSet set, Consumer<? super BitSet> action);
 
-  void forEach(ValuationSet set, BitSet restriction, Consumer<BitSet> action);
+  void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action);
 
 
   ValuationSet intersection(ValuationSet set1, ValuationSet set2);

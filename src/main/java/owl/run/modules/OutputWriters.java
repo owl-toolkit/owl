@@ -39,6 +39,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrinter;
 import owl.automaton.output.HoaPrinter.HoaOption;
@@ -210,7 +211,7 @@ public final class OutputWriters {
         options.add(HoaOption.SIMPLE_TRANSITION_LABELS);
       }
 
-      return input -> HoaPrinter.feedTo(input, consumer, options);
+      return input -> HoaPrinter.feedTo(AutomatonUtil.cast(input), consumer, options);
     }
 
     public enum Setting {

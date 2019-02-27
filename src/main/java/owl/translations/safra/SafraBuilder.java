@@ -99,7 +99,7 @@ public final class SafraBuilder {
 
         int index = usedIndices.nextClearBit(0);
         usedIndices.set(index);
-        return Tree.of(newFather, Collections3.append(children,
+        return Tree.of(newFather, Collections3.add(children,
           Tree.of(Label.of(newChildStates, index))));
       }).map((father, children) -> {
         // Horizontal merge

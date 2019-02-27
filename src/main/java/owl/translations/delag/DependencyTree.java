@@ -32,8 +32,6 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.edge.Edge;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
@@ -171,50 +169,34 @@ abstract class DependencyTree<T> {
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
       T fallbackState = state.productState.fallback().get(formula);
-
-      if (fallbackState == null) {
-        builder.addFinished(this, Boolean.FALSE);
-        return Boolean.FALSE;
-      }
-
-      Edge<T> edge = automaton.edge(fallbackState, valuation);
+      var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
 
       if (edge == null) {
         builder.addFinished(this, Boolean.FALSE);
         return Boolean.FALSE;
+      } else {
+        builder.addFallback(formula, edge.successor());
+        return null;
       }
-
-      builder.addFallback(formula, edge.successor());
-      return null;
     }
 
     @Override
     BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean parentAcceptance) {
-      Edge<T> edge = getEdge(state.productState, valuation);
+      T fallbackState = state.productState.fallback().get(formula);
+      var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
+      var acceptanceSets = edge == null
+        ? automaton.acceptance().rejectingSet().stream().iterator()
+        : edge.acceptanceSetIterator();
+
+      // Shift acceptance sets.
       BitSet set = new BitSet();
-
-      if (edge != null) {
-        // Shift acceptance sets.
-        edge.acceptanceSetIterator().forEachRemaining((int x) -> set.set(x + acceptanceSet));
-      }
-
+      acceptanceSets.forEachRemaining((int x) -> set.set(x + acceptanceSet));
       return set;
     }
 
     @Override
     BooleanExpression<AtomAcceptance> getAcceptanceExpression() {
       return shift(automaton.acceptance().booleanExpression());
-    }
-
-    @Nullable
-    private Edge<T> getEdge(ProductState<T> state, BitSet valuation) {
-      T stateT = state.fallback().get(formula);
-
-      if (stateT == null) {
-        return null;
-      }
-
-      return automaton.edge(stateT, valuation);
     }
 
     @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
@@ -291,8 +273,7 @@ abstract class DependencyTree<T> {
       }
 
       if (type == Type.SAFETY || type == Type.CO_SAFETY) {
-        EquivalenceClass successor = state.productState.safety().get(formula)
-          .temporalStepUnfold(valuation);
+        var successor = state.productState.safety().get(formula).temporalStepUnfold(valuation);
 
         if (successor.isFalse()) {
           builder.addFinished(this, Boolean.FALSE);

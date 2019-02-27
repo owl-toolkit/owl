@@ -25,7 +25,7 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.ltl2dpa.LTL2DPACliParser;
+import owl.translations.ltl2dpa.LTL2DPAModule;
 import owl.translations.rabinizer.RabinizerCliParser;
 
 public final class LTL2DPA {
@@ -35,7 +35,7 @@ public final class LTL2DPA {
     PartialModuleConfiguration ldba = PartialModuleConfiguration.builder("ltl2dpa")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(LTL2DPACliParser.INSTANCE)
+      .addTransformer(LTL2DPAModule.INSTANCE)
       .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build();

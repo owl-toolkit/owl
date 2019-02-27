@@ -124,8 +124,7 @@ public final class SccDecomposition<S> {
   }
 
   /**
-   * Determines whether the given set of states is a BSCC in the given automaton <strong>assuming
-   * that it is an SCC</strong>. Otherwise, the behaviour is undefined.
+   * Determines whether the given set of states is a BSCC in the given automaton.
    */
   public static <S> boolean isTrap(Automaton<S, ?> automaton, Set<S> trap) {
     return trap.stream().allMatch(s -> trap.containsAll(automaton.successors(s)));

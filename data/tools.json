@@ -6,15 +6,32 @@
             "output": "hoa",
             "name": "fgx2dpa"
         },
+        "ltl2nba": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2nba",
+            "pre": [
+                "simplify-ltl"
+            ]
+        },
+        "ltl2ngba": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2ngba",
+            "pre": [
+                "simplify-ltl"
+            ]
+        },
         "ltl2ldba": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2ldba",
             "flags": {
-                "epsilon": "-e",
-                "guess-f": "-f",
-                "simple": "-s"
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric"
             },
             "pre": [
                 "simplify-ltl"
@@ -26,9 +43,8 @@
             "output": "hoa",
             "name": "ltl2ldgba",
             "flags": {
-                "epsilon": "-e",
-                "guess-f": "-f",
-                "simple": "-s"
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric"
             },
             "pre": [
                 "simplify-ltl"
@@ -40,9 +56,9 @@
             "output": "hoa",
             "name": "ltl2dpa",
             "flags": {
-               "complement": "--complement",
-               "guess-f": "--guess-f",
-               "simple": "--simple"
+                "asymmetric": "--asymmetric",
+                "complement": "--complement",
+                "symmetric": "--symmetric"
             }
         },
         "ltl2dra": {
@@ -50,10 +66,21 @@
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2dra",
-            "flags": {
-               "degeneralise": "-d",
-               "simple": "--simple"
-            }
+            "pre": [
+                "simplify-ltl"
+            ]
+        },
+        "ltl2dgra": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dgra",
+            "pre": [
+                "simplify-ltl"
+            ],
+            "post": [
+                "minimize-aut"
+            ]
         },
         "ltl2da": {
             "type": "owl",
@@ -96,7 +123,7 @@
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
-            "name": "ltl2dgra",
+            "name": "ltl2dgra-rabinizer",
             "flags": {
                 "nosuspend": "--nosuspend",
                 "noeager": "--noeager"
@@ -112,7 +139,7 @@
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
-            "name": "ltl2dgra",
+            "name": "ltl2dgra-rabinizer",
             "pre": [
                 "simplify-ltl"
             ],
@@ -129,7 +156,7 @@
             "name": "dra2dpa",
             "pre": [
                 "simplify-ltl",
-                "ltl2dgra",
+                "ltl2dgra-rabinizer",
                 "minimize-aut",
                 "dgra2dra"
             ],

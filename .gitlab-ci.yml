@@ -96,24 +96,63 @@ Assemble:
 
 # Tests
 
+Size Regression Test:
+  stage: test
+  cache:
+    paths:
+    - $GRADLE
+  script:
+    - ./gradlew -b plugins.gradle
+    - ./gradlew sizeRegressionTest
+  dependencies:
+  - Build
+  artifacts:
+    paths:
+    - build/tmp/
+    - build/reports/
+    when: on_failure
+    expire_in: 1 hour
+
+Size Regression Train:
+  stage: test
+  cache:
+    paths:
+    - $GRADLE
+  script:
+    - ./gradlew -b plugins.gradle
+    - ./gradlew sizeRegressionTrain
+  when: manual
+  dependencies:
+  - Build
+  artifacts:
+    paths:
+    - data/formulas/sizes
+    expire_in: 1 week
+
 ## LTL to Automaton
+
+LTL2NBA:
+  stage: test
+  variables:
+    TEST_NAME: "ltl2nba"
+  <<: *ltlcross_template
 
 LTL2LDBA:
   stage: test
   variables:
-    TEST_NAME: "ltl2ldba-small;ltl2ldba"
+    TEST_NAME: "ltl2ldba"
   <<: *ltlcross_template
 
-LTL2LDGBA:
+LTL2DRA:
   stage: test
   variables:
-    TEST_NAME: "ltl2ldgba-small;ltl2ldgba"
+    TEST_NAME: "ltl2dra"
   <<: *ltlcross_template
 
 LTL2DPA:
   stage: test
   variables:
-    TEST_NAME: "ltl2dpa-small;ltl2dpa"
+    TEST_NAME: "ltl2dpa"
   <<: *ltlcross_template
 
 FGX2DPA:
@@ -122,11 +161,13 @@ FGX2DPA:
     TEST_NAME: "fgx2dpa"
   <<: *ltlcross_template
 
-LTL2DRA:
+Rabinizer:
   stage: test
   variables:
-    TEST_NAME: "ltl2dra-medium"
+    TEST_NAME: "rabinizer"
   <<: *ltlcross_template
+
+### Meta-constructions
 
 LTL2DA:
   stage: test
@@ -143,14 +184,10 @@ LTL2NA:
 DELAG:
   stage: test
   variables:
-    TEST_NAME: "delag-strict;delag"
+    TEST_NAME: "delag"
   <<: *ltlcross_template
 
-Rabinizer:
-  stage: test
-  variables:
-    TEST_NAME: "rabinizer"
-  <<: *ltlcross_template
+## Automaton to Automaton
 
 NBA2LDBA:
   stage: test

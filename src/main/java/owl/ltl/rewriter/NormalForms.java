@@ -19,6 +19,8 @@
 
 package owl.ltl.rewriter;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -38,9 +40,16 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.PropositionalFormula;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NormalForms {
+  public static final Function<PropositionalFormula, Set<Formula>> SYNTHETIC_CO_SAFETY_LITERAL =
+  x -> x.children.stream().filter(SyntacticFragment.CO_SAFETY::contains).collect(toSet());
+
+  public static final Function<PropositionalFormula, Set<Formula>> SYNTHETIC_SAFETY_LITERAL =
+  x -> x.children.stream().filter(SyntacticFragment.SAFETY::contains).collect(toSet());
+
   private NormalForms() {}
 
   public static Formula toCnfFormula(Formula formula) {

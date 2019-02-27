@@ -45,7 +45,7 @@ public final class EmptinessCheck {
     return automaton.initialStates().stream().allMatch(state -> isEmpty(automaton, state));
   }
 
-  static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
+  private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
     Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
     boolean allFinIndicesBelow) {
     if (acceptingState) {
@@ -73,7 +73,7 @@ public final class EmptinessCheck {
       allFinIndicesBelow);
   }
 
-  static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
+  private static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
     int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
     visitedStatesLasso.add(q);
 
@@ -95,7 +95,7 @@ public final class EmptinessCheck {
     return false;
   }
 
-  static <S> boolean hasAcceptingLasso(Automaton<S, ?> automaton, S initialState,
+  private static <S> boolean hasAcceptingLasso(Automaton<S, ?> automaton, S initialState,
     int infIndex, int finIndex, boolean allFinIndicesBelow) {
     Set<S> visitedStates = new HashSet<>();
     Set<S> visitedAcceptingStates = new HashSet<>();
@@ -117,7 +117,7 @@ public final class EmptinessCheck {
     return false;
   }
 
-  static <S> boolean inSet(Edge<S> edge, int index, boolean allIndicesBelow) {
+  private static <S> boolean inSet(Edge<S> edge, int index, boolean allIndicesBelow) {
     if (allIndicesBelow) {
       return edge.smallestAcceptanceSet() <= index;
     }
@@ -182,12 +182,12 @@ public final class EmptinessCheck {
   private static final class Buchi {
     private Buchi() {}
 
-    static <S> boolean containsAcceptingLasso(
+    private static <S> boolean containsAcceptingLasso(
       Automaton<S, BuchiAcceptance> automaton, S initialState) {
       return hasAcceptingLasso(automaton, initialState, 0, -1, false);
     }
 
-    static <S> boolean containsAcceptingScc(
+    private static <S> boolean containsAcceptingScc(
       Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
         BitSet remaining = new BitSet(automaton.acceptance().size);
@@ -215,8 +215,8 @@ public final class EmptinessCheck {
   private static final class Parity {
     private Parity() {}
 
-    static <S> boolean containsAcceptingLasso(Automaton<S, ParityAcceptance> automaton,
-      S initialState) {
+    private static <S> boolean containsAcceptingLasso(
+      Automaton<S, ParityAcceptance> automaton, S initialState) {
       if (automaton.acceptance().parity().max()) {
         throw new UnsupportedOperationException("Only min-{even,odd} conditions supported.");
       }
@@ -256,8 +256,8 @@ public final class EmptinessCheck {
   private static final class Rabin {
     private Rabin() {}
 
-    static <S> boolean containsAcceptingLasso(Automaton<S, RabinAcceptance> automaton,
-      S initialState) {
+    private static <S> boolean containsAcceptingLasso(
+      Automaton<S, RabinAcceptance> automaton, S initialState) {
       for (RabinPair pair : automaton.acceptance().pairs()) {
         if (hasAcceptingLasso(automaton, initialState, pair.infSet(),
           pair.finSet(), false)) {
@@ -268,8 +268,8 @@ public final class EmptinessCheck {
       return false;
     }
 
-    static <S> boolean containsAcceptingScc(Automaton<S, RabinAcceptance> automaton,
-      S initialState) {
+    private static <S> boolean containsAcceptingScc(
+      Automaton<S, RabinAcceptance> automaton, S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
         for (RabinPair pair : automaton.acceptance().pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair

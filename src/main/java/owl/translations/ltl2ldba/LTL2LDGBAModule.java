@@ -20,6 +20,7 @@
 package owl.translations.ltl2ldba;
 
 import org.apache.commons.cli.CommandLine;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -44,14 +45,14 @@ public final class LTL2LDGBAModule extends AbstractLTL2LDBAModule {
 
   @Override
   public Transformer parse(CommandLine commandLine) {
-    var configuration = configuration(commandLine);
-
-    if (commandLine.hasOption(guessF().getOpt())) {
+    if (commandLine.hasOption(symmetric().getOpt())) {
       return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        LTL2LDBAFunction.createGeneralizedBreakpointFreeLDBABuilder(environment, configuration));
+        SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+          .andThen(AnnotatedLDBA::copyAsMutable));
     } else {
       return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        LTL2LDBAFunction.createGeneralizedBreakpointLDBABuilder(environment, configuration));
+        AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+          .andThen(AnnotatedLDBA::copyAsMutable));
     }
   }
 

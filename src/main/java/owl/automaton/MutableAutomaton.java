@@ -98,10 +98,10 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
   void initialStates(Collection<? extends S> initialStates);
 
   /**
-   * Set the initial state of the automaton.
+   * Add an initial state to the automaton.
    *
    * @param initialState
-   *     The new initial state.
+   *     The added initial state.
    */
   void addInitialState(S initialState);
 

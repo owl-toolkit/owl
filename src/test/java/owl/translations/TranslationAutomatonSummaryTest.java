@@ -20,7 +20,6 @@
 package owl.translations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -35,11 +34,8 @@ import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.CHECK;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.REGRESSIONS;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.EAGER_UNFOLD;
-import static owl.translations.ltl2ldba.LTL2LDBAFunction.Configuration.FORCE_JUMPS;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -61,15 +57,18 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.Automaton;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.output.HoaPrinter;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -77,11 +76,16 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.ltl.util.FormulaIsomorphism;
 import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.translations.ltl2ldba.LTL2LDBAFunction;
+import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.ltl2ldba.AnnotatedLDBA;
+import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
+import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
+import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 class TranslationAutomatonSummaryTest {
@@ -92,8 +96,6 @@ class TranslationAutomatonSummaryTest {
   private static final List<Translator> TRANSLATORS;
 
   static {
-    var ldbaAll = EnumSet.of(EAGER_UNFOLD, FORCE_JUMPS);
-
     TRANSLATORS = List.of(
       new Translator("safety", LTL2DAFunction::safety),
       new Translator("safety.nondeterministic", LTL2NAFunction::safety),
@@ -116,41 +118,83 @@ class TranslationAutomatonSummaryTest {
       new Translator("fSafety", LTL2DAFunction::fSafety),
       new Translator("gCoSafety", LTL2DAFunction::gCoSafety),
 
-      new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI))),
-      new Translator("ltl2na", environment -> new LTL2NAFunction(environment,
-        EnumSet.of(LTL2NAFunction.Constructions.SAFETY, LTL2NAFunction.Constructions.CO_SAFETY,
-          LTL2NAFunction.Constructions.BUCHI, LTL2NAFunction.Constructions.GENERALIZED_BUCHI))),
-      
-      new Translator("ldba.asymmetric", environment -> LTL2LDBAFunction
-        .createDegeneralizedBreakpointLDBABuilder(environment, ldbaAll)),
-      new Translator("ldba.symmetric", environment -> LTL2LDBAFunction
-        .createDegeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll)),
-      new Translator("ldgba.asymmetric", environment -> LTL2LDBAFunction
-        .createGeneralizedBreakpointLDBABuilder(environment, ldbaAll)),
-      new Translator("ldgba.symmetric", environment -> LTL2LDBAFunction
-        .createGeneralizedBreakpointFreeLDBABuilder(environment, ldbaAll)),
+      new Translator("ldba.asymmetric", environment ->
+        AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
+          .andThen(AnnotatedLDBA::copyAsMutable)),
+      new Translator("ldgba.asymmetric", environment ->
+        AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+          .andThen(AnnotatedLDBA::copyAsMutable)),
+
+      new Translator("ldba.symmetric", environment ->
+        SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
+          .andThen(AnnotatedLDBA::copyAsMutable)),
+      new Translator("ldgba.symmetric", environment ->
+        SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+          .andThen(AnnotatedLDBA::copyAsMutable)),
 
       new Translator("dpa.asymmetric", environment ->
         new LTL2DPAFunction(environment,
-          EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE, EXISTS_SAFETY_CORE)),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
-      new Translator("dpa.symmetric", environment ->
-        new LTL2DPAFunction(environment,
-          EnumSet.of(GUESS_F, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE, EXISTS_SAFETY_CORE)),
+          EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
         EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
 
-      new Translator("delag", environment -> new DelagBuilder(environment, false),
-        EnumSet.of(BASE, SIZE))
+      new Translator("dpa.symmetric", environment ->
+        new LTL2DPAFunction(environment,
+          EnumSet.of(SYMMETRIC, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+
+      new Translator("dra.symmetric", environment ->
+        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+      new Translator("dgra.symmetric", environment ->
+        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+
+      new Translator("nba.symmetric", environment ->
+        SymmetricNBAConstruction.of(environment, BuchiAcceptance.class),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+      new Translator("ngba.symmetric", environment ->
+        SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class),
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+
+      new Translator("delag", DelagBuilder::new,
+        EnumSet.of(BASE, SIZE)),
+      new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
+        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI))),
+      new Translator("ltl2na",
+        (Function<Environment, Function<LabelledFormula, Automaton<?, ?>>>) LTL2NAFunction::new,
+        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE))
     );
   }
 
   private static void addNormalized(Set<LabelledFormula> testCases, Formula... formulas) {
+    outer:
     for (Formula formula : formulas) {
       var shiftedFormula = LiteralMapper.shiftLiterals(formula);
       int variables = (int) Arrays.stream(shiftedFormula.mapping).filter(x -> x != -1).count();
       var restrictedAlphabet = COMMON_ALPHABET.subList(0, variables);
-      testCases.add(LabelledFormula.of(shiftedFormula.formula, restrictedAlphabet));
+      var labelledFormula = LabelledFormula.of(shiftedFormula.formula, restrictedAlphabet);
+
+      if (testCases.contains(labelledFormula)) {
+        continue;
+      }
+
+      for (var testCase : testCases) {
+        if (FormulaIsomorphism.compute(testCase.formula(), labelledFormula.formula()) != null) {
+          continue outer;
+        }
+      }
+
+      // Write and read formula to ensure that during test the literal to index mapping is the same.
+      LabelledFormula oldLabelledFormula;
+      LabelledFormula newLabelledFormula = labelledFormula;
+
+      do {
+        oldLabelledFormula = newLabelledFormula;
+        newLabelledFormula = LabelledFormula.of(
+          LtlParser.syntax(oldLabelledFormula.toString()), restrictedAlphabet);
+      } while (!newLabelledFormula.equals(oldLabelledFormula));
+
+      testCases.add(newLabelledFormula);
     }
   }
 
@@ -158,6 +202,7 @@ class TranslationAutomatonSummaryTest {
     return TRANSLATORS;
   }
 
+  @Tag("size-regression-test")
   @TestFactory
   List<DynamicContainer> test() {
     var containers = new ArrayList<DynamicContainer>();
@@ -179,7 +224,7 @@ class TranslationAutomatonSummaryTest {
     return containers;
   }
 
-  @Disabled
+  @Tag("size-regression-train")
   @ParameterizedTest
   @MethodSource("translatorProvider")
   void train(Translator translator) {
@@ -235,18 +280,24 @@ class TranslationAutomatonSummaryTest {
 
   static class Translator {
     final String name;
-    final Function<Environment, Function<LabelledFormula, ?>> constructor;
+    final Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
+      constructor;
     final List<FormulaSet> selectedSets;
 
-    Translator(String name, BiFunction<Environment, LabelledFormula, ?> function) {
-      this(name, (x) -> (y) -> function.apply(x, y));
+    Translator(String name,
+      BiFunction<Environment, LabelledFormula, ? extends Automaton<?, ?>> constructor) {
+      this(name, x -> y -> constructor.apply(x, y));
     }
 
-    Translator(String name, Function<Environment, Function<LabelledFormula, ?>> constructor) {
+    Translator(String name,
+      Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
+        constructor) {
       this(name, constructor, EnumSet.allOf(FormulaSet.class));
     }
 
-    Translator(String name, Function<Environment, Function<LabelledFormula, ?>> constructor,
+    Translator(String name,
+      Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
+        constructor,
       Set<FormulaSet> selectedSets) {
       this.name = name;
       this.constructor = constructor;
@@ -273,12 +324,13 @@ class TranslationAutomatonSummaryTest {
       this.properties = properties;
     }
 
-    static TestCase of(LabelledFormula formula, Function<LabelledFormula, ?> translation) {
+    static TestCase of(LabelledFormula formula,
+      Function<LabelledFormula, ? extends Automaton<?, ?>> translation) {
       var properties = AutomatonSummary.of(() -> translation.apply(formula));
       return new TestCase(formula.toString(), properties);
     }
 
-    DynamicTest test(Function<LabelledFormula, ?> translation) {
+    DynamicTest test(Function<LabelledFormula, ? extends Automaton<?, ?>> translation) {
       return DynamicTest.dynamicTest(formula, () -> {
         var labelledFormula = LtlParser.parse(formula);
 
@@ -287,7 +339,7 @@ class TranslationAutomatonSummaryTest {
           assertNotNull(properties);
           properties.test(automaton);
         } catch (IllegalArgumentException | UnsupportedOperationException ex) {
-          assertNull(properties);
+          assertNull(properties, ex.getMessage());
         }
       });
     }
@@ -295,90 +347,46 @@ class TranslationAutomatonSummaryTest {
 
   static class AutomatonSummary {
     final int size;
+    final int initialStatesSize;
     final String acceptanceName;
     final int acceptanceSets;
     final boolean complete;
     final boolean deterministic;
 
-    private AutomatonSummary(int size, OmegaAcceptance acceptance, boolean deterministic,
-      boolean complete) {
+    private AutomatonSummary(int size, int initialStatesSize, OmegaAcceptance acceptance,
+      boolean deterministic, boolean complete) {
       this.acceptanceSets = acceptance.acceptanceSets();
       this.acceptanceName = acceptance.getClass().getSimpleName();
       this.complete = complete;
       this.deterministic = deterministic;
+      this.initialStatesSize = initialStatesSize;
       this.size = size;
     }
 
     @Nullable
-    static AutomatonSummary of(Supplier<Object> supplier) {
+    static AutomatonSummary of(Supplier<Automaton<?, ?>> supplier) {
       try {
-        return of(supplier.get());
+        var automaton = supplier.get();
+        return new AutomatonSummary(automaton.size(),
+          automaton.initialStates().size(),
+          automaton.acceptance(),
+          automaton.is(Automaton.Property.DETERMINISTIC),
+          automaton.is(Automaton.Property.COMPLETE));
       } catch (IllegalArgumentException | UnsupportedOperationException ex) {
         return null;
       }
     }
 
-    static AutomatonSummary of(Object object) {
-      if (object instanceof Automaton) {
-        return of((Automaton<?, ?>) object);
-      } else {
-        return of((LimitDeterministicAutomaton<?, ?, ?, ?>) object);
-      }
-    }
-
-    static AutomatonSummary of(Automaton<?, ?> automaton) {
-      return new AutomatonSummary(automaton.size(),
-        automaton.acceptance(),
-        automaton.is(Automaton.Property.DETERMINISTIC),
-        automaton.is(Automaton.Property.COMPLETE));
-    }
-
-    static AutomatonSummary of(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
-      return new AutomatonSummary(automaton.size(),
-        automaton.acceptingComponent().acceptance(),
-        false,
-        automaton.initialComponent().is(Automaton.Property.COMPLETE)
-          && automaton.acceptingComponent().is(Automaton.Property.COMPLETE));
-    }
-
-    void test(Object object) {
-      if (object instanceof Automaton) {
-        test((Automaton<?, ?>) object);
-      } else {
-        test((LimitDeterministicAutomaton<?, ?, ?, ?>) object);
-      }
-    }
-
     void test(Automaton<?, ?> automaton) {
-      Supplier<String> printedAutomaton =
-      () -> '\n' + HoaPrinter.toString(automaton);
-
       assertEquals(size, automaton.size(),
-        () -> String.format("Expected %d states, got %d.%s",
-          size, automaton.size(), printedAutomaton.get()));
-      test(automaton.acceptance(), printedAutomaton);
+        () -> String.format("Expected %d states, got %d.\n%s",
+        size, automaton.size(), HoaPrinter.toString(automaton)));
+      assertEquals(acceptanceSets, automaton.acceptance().acceptanceSets(),
+        () -> String.format("Expected %d acceptance sets, got %d.\n%s",
+        acceptanceSets, automaton.acceptance().acceptanceSets(), HoaPrinter.toString(automaton)));
+      assertEquals(acceptanceName, automaton.acceptance().getClass().getSimpleName());
       assertEquals(deterministic, automaton.is(Automaton.Property.DETERMINISTIC));
       assertEquals(complete, automaton.is(Automaton.Property.COMPLETE));
-    }
-
-    void test(LimitDeterministicAutomaton<?, ?, ?, ?> automaton) {
-      Supplier<String> printedAutomaton =
-      () -> '\n' + HoaPrinter.toString(automaton);
-
-      assertEquals(size, automaton.size(),
-        () -> String.format("Expected %d states, got %d.%s",
-        size, automaton.size(), printedAutomaton.get()));
-      test(automaton.acceptingComponent().acceptance(), printedAutomaton);
-      assertFalse(deterministic);
-      assertEquals(complete, automaton.initialComponent().is(Automaton.Property.COMPLETE)
-        && automaton.acceptingComponent().is(Automaton.Property.COMPLETE));
-    }
-
-    void test(OmegaAcceptance acceptance, Supplier<String> printedAutomaton) {
-      assertEquals(acceptanceSets, acceptance.acceptanceSets(),
-        () -> String.format("Expected %d acceptance set, got %d.%s",
-        acceptanceSets, acceptance.acceptanceSets(), printedAutomaton.get()));
-      assertEquals(acceptanceName, acceptance.getClass().getSimpleName());
     }
   }
 }

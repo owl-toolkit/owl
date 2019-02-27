@@ -23,13 +23,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.EXISTS_SAFETY_CORE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GUESS_F;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -42,55 +42,41 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
+import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.ldba.LimitDeterministicAutomaton;
 import owl.automaton.transformations.ParityUtil;
+import owl.automaton.util.AnnotatedStateOptimisation;
 import owl.ltl.Conjunction;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
-import owl.translations.ltl2ldba.LTL2LDBAFunction;
-import owl.translations.ltl2ldba.SafetyDetector;
-import owl.translations.ltl2ldba.breakpoint.DegeneralizedBreakpointState;
-import owl.translations.ltl2ldba.breakpoint.GObligations;
-import owl.translations.ltl2ldba.breakpointfree.AcceptingComponentState;
-import owl.translations.ltl2ldba.breakpointfree.FGObligations;
+import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
+import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
   public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPRESS_COLOURS);
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, COMPRESS_COLOURS);
 
-  public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(GUESS_F,
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPRESS_COLOURS);
+  public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(SYMMETRIC,
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, COMPRESS_COLOURS);
 
   private static final int GREEDY_WAITING_TIME_SEC = 7;
 
   private final EnumSet<Configuration> configuration;
-  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    DegeneralizedBreakpointState, BuchiAcceptance, GObligations>> translatorBreakpoint;
-  private final Function<LabelledFormula, LimitDeterministicAutomaton<EquivalenceClass,
-    AcceptingComponentState, BuchiAcceptance, FGObligations>> translatorBreakpointFree;
+  private final AsymmetricLDBAConstruction<BuchiAcceptance> asymmetricTranslator;
+  private final SymmetricLDBAConstruction<BuchiAcceptance> symmetricTranslator;
 
-  public LTL2DPAFunction(Environment env, Set<Configuration> configuration) {
+  public LTL2DPAFunction(Environment environment, Set<Configuration> configuration) {
     this.configuration = EnumSet.copyOf(configuration);
     checkArgument(!configuration.contains(GREEDY)
         || configuration.contains(COMPLEMENT_CONSTRUCTION),
       "GREEDY requires COMPLEMENT_CONSTRUCTION");
 
-    EnumSet<LTL2LDBAFunction.Configuration> ldbaConfiguration = EnumSet.of(
-      LTL2LDBAFunction.Configuration.EAGER_UNFOLD,
-      LTL2LDBAFunction.Configuration.EPSILON_TRANSITIONS);
-
-    translatorBreakpointFree =
-      LTL2LDBAFunction.createDegeneralizedBreakpointFreeLDBABuilder(env, ldbaConfiguration);
-    translatorBreakpoint =
-      LTL2LDBAFunction.createDegeneralizedBreakpointLDBABuilder(env, ldbaConfiguration);
+    symmetricTranslator = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+    asymmetricTranslator = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
   }
 
   @Override
@@ -203,59 +189,58 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   private Callable<Result<?>> callable(LabelledFormula formula, boolean complement) {
     if (!complement) {
-      return configuration.contains(GUESS_F)
-        ? () -> applyBreakpointFree(formula)
-        : () -> applyBreakpoint(formula);
+      return configuration.contains(SYMMETRIC)
+        ? () -> symmetricConstruction(formula)
+        : () -> asymmetricConstruction(formula);
     }
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION)) {
-      return configuration.contains(GUESS_F)
-        ? () -> applyBreakpointFree(formula.not())
-        : () -> applyBreakpoint(formula.not());
+      return configuration.contains(SYMMETRIC)
+        ? () -> symmetricConstruction(formula.not())
+        : () -> asymmetricConstruction(formula.not());
     }
 
     return () -> null;
   }
 
-  private Result<?> applyBreakpoint(LabelledFormula formula) {
-    var ldba = translatorBreakpoint.apply(formula);
+  private Result<?> asymmetricConstruction(LabelledFormula formula) {
+    var ldba = asymmetricTranslator.apply(formula);
 
-    if (ldba.isDeterministic()) {
-      return new Result<>(Views.viewAs(ldba.acceptingComponent(), ParityAcceptance.class),
-        DegeneralizedBreakpointState.createSink(), configuration.contains(COMPRESS_COLOURS));
+    if (ldba.initialComponent().initialStates().isEmpty()) {
+      var dba = MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, ldba.factory());
+      return new Result<>(Views.viewAs(dba, ParityAcceptance.class), new Object(), true);
     }
 
-    var factory = ldba.initialComponent().onlyInitialState().factory();
-    var automaton = FlatRankingAutomaton.of(ldba,
-      x -> SafetyDetector.hasSafetyCore(x, true),
-      configuration.contains(OPTIMISE_INITIAL_STATE),
-      false);
+    var dpa = AsymmetricDPAConstruction.of(ldba);
+    var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
+      ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
+      : dpa;
 
-    return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
+    return new Result<>(optimisedDpa,
+      AsymmetricRankingState.of(ldba.initialComponent().onlyInitialState().factory().getFalse()),
       configuration.contains(COMPRESS_COLOURS));
   }
 
-  private Result<?> applyBreakpointFree(LabelledFormula formula) {
-    var ldba = translatorBreakpointFree.apply(formula);
+  private Result<?> symmetricConstruction(LabelledFormula formula) {
+    var ldba = symmetricTranslator.apply(formula);
 
-    if (ldba.isDeterministic()) {
-      return new Result<>(Views.viewAs(ldba.acceptingComponent(), ParityAcceptance.class),
-        AcceptingComponentState.createSink(), configuration.contains(COMPRESS_COLOURS));
+    if (ldba.initialComponent().initialStates().isEmpty()) {
+      var dba = MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, ldba.factory());
+      return new Result<>(Views.viewAs(dba, ParityAcceptance.class), new Object(), true);
     }
 
-    var factory = ldba.initialComponent().onlyInitialState().factory();
-    var automaton = FlatRankingAutomaton.of(ldba,
-      x -> SafetyDetector.hasSafetyCore(x, true),
-      configuration.contains(OPTIMISE_INITIAL_STATE),
-       true);
+    var dpa = SymmetricDPAConstruction.of(ldba);
+    var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
+      ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
+      : dpa;
 
-    return new Result<>(automaton, FlatRankingState.of(factory.getFalse()),
+    return new Result<>(optimisedDpa,
+      SymmetricRankingState.of(Map.of()),
       configuration.contains(COMPRESS_COLOURS));
   }
 
   public enum Configuration {
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, EXISTS_SAFETY_CORE,
-    COMPLETE, GUESS_F, GREEDY, COMPRESS_COLOURS
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, COMPLETE, SYMMETRIC, GREEDY, COMPRESS_COLOURS
   }
 
   private static final class Result<T> {

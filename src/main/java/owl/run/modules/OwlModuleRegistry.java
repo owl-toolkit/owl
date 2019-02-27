@@ -52,10 +52,13 @@ import owl.translations.LTL2NAModule;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.fgx2dpa.FGX2DPA;
-import owl.translations.ltl2dpa.LTL2DPACliParser;
-import owl.translations.ltl2dra.LTL2DRACliParser;
+import owl.translations.ltl2dpa.LTL2DPAModule;
+import owl.translations.ltl2dra.LTL2DGRAModule;
+import owl.translations.ltl2dra.LTL2DRAModule;
 import owl.translations.ltl2ldba.LTL2LDBAModule;
 import owl.translations.ltl2ldba.LTL2LDGBAModule;
+import owl.translations.ltl2nba.LTL2NBAModule;
+import owl.translations.ltl2nba.LTL2NGBAModule;
 import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
 import owl.translations.rabinizer.RabinizerCliParser;
@@ -89,12 +92,14 @@ public class OwlModuleRegistry {
 
     // LTL translations
     DEFAULT_REGISTRY.register(
+      // -> N(G)BA
+      LTL2NBAModule.INSTANCE, LTL2NGBAModule.INSTANCE,
       // -> LD(G)BA
       LTL2LDBAModule.INSTANCE, LTL2LDGBAModule.INSTANCE,
       // -> D(G)RA
-      RabinizerCliParser.INSTANCE, LTL2DRACliParser.INSTANCE,
+      RabinizerCliParser.INSTANCE, LTL2DRAModule.INSTANCE, LTL2DGRAModule.INSTANCE,
       // -> DPA
-      LTL2DPACliParser.INSTANCE, FGX2DPA.CLI,
+      LTL2DPAModule.INSTANCE, FGX2DPA.CLI,
       // -> DELA
       DelagBuilder.CLI, LTL2DAModule.CLI,
       // -> NELA
