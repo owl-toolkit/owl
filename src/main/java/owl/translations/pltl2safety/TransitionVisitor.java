@@ -49,12 +49,14 @@ public class TransitionVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(HOperator hOperator) {
-    return suc.contains(hOperator) && (apply(hOperator.operand) && state.contains(hOperator));
+    return suc.contains(hOperator)
+      && (apply(hOperator.operand) && state.contains(hOperator));
   }
 
   @Override
   public Boolean visit(OOperator oOperator) {
-    return suc.contains(oOperator) && (apply(oOperator.operand) || state.contains(oOperator));
+    return suc.contains(oOperator)
+      && (apply(oOperator.operand) || state.contains(oOperator));
   }
 
   @Override
@@ -71,16 +73,18 @@ public class TransitionVisitor implements Visitor<Boolean> {
 
   @Override
   public Boolean visit(XOperator xOperator) {
-    return suc.contains(xOperator);
+    return true;
   }
 
   @Override
   public Boolean visit(YOperator yOperator) {
-    return suc.contains(yOperator) && state.contains(yOperator.operand);
+    return suc.contains(yOperator)
+      && state.contains(yOperator.operand);
   }
 
   @Override
   public Boolean visit(ZOperator zOperator) {
-    return suc.contains(zOperator) && state.contains(zOperator.operand);
+    return suc.contains(zOperator)
+      && state.contains(zOperator.operand);
   }
 }

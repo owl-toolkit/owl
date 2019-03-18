@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import owl.automaton.Automaton;
 import owl.automaton.ImplicitNonDeterministicEdgesAutomaton;
@@ -32,7 +31,7 @@ public class PLTL2Safety
 
   @Override
   public Automaton<Set<Set<Formula>>, AllAcceptance> apply(LabelledFormula labelledFormula) {
-    //This shouldn't be necessary, but for safe measures it's here
+    //This shouldn't be necessary, but better safe than sorry
     assert labelledFormula.formula() instanceof GOperator;
     Formula formula = ((GOperator) labelledFormula.formula()).operand;
 
@@ -57,8 +56,7 @@ public class PLTL2Safety
     //Check if state satisfies initial condition
     Predicate<Set<Formula>> initialCondition = t -> {
       InitialStateVisitor initialStateVisitor = new InitialStateVisitor(t);
-      return (t.stream().filter(x -> !(x instanceof Literal))
-        .allMatch(initialStateVisitor::apply));
+      return t.stream().allMatch(initialStateVisitor::apply);
     };
 
     return stateSpace.stream().filter(initialCondition).collect(Collectors.toSet());
@@ -84,13 +82,14 @@ public class PLTL2Safety
       return Set.of();
     }
 
+
     //Check if successor satisfies the transition relation
     Set<Formula> xOperands = state.stream().filter(XOperator.class::isInstance)
       .map(x -> ((XOperator) x).operand).collect(Collectors.toSet());
+
     Predicate<Set<Formula>> transitionRelation = t -> {
       TransitionVisitor transitionVisitor = new TransitionVisitor(state, t);
-      return Stream.concat(t.stream().filter(x -> !(x instanceof Literal)), xOperands.stream())
-        .allMatch(transitionVisitor::apply);
+      return t.stream().allMatch(transitionVisitor::apply) && t.containsAll(xOperands);
     };
 
     //Determine Set of successor edges
