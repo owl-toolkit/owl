@@ -34,8 +34,8 @@ import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.OOperator;
 import owl.ltl.ROperator;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SOperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.TOperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
@@ -43,6 +43,7 @@ import owl.ltl.XOperator;
 import owl.ltl.YOperator;
 import owl.ltl.ZOperator;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formula> {
 
   private final Set<Class<? extends Formula>> supportedCases;
