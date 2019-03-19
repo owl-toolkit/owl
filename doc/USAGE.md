@@ -69,7 +69,12 @@ To begin with, we chain an LTL parser to the `ltl2dpa` construction and output t
 % owl  ltl --- ltl2dpa --- hoa
 ```
 
-Fixed input can be specified with `-i "<input>"`, while `-I "<input.file>"` reads the given file.
+Fixed input can be specified with `-i "<input>"`, while `-I "<input.file>"` reads the given file. For example:
+
+```
+% owl -i "F G a" ltl --- ltl2dpa --- hoa
+```
+
 Similarly, output is written to a file with `-O "<output.file>"`
 
 To additionally pre-process the input formula and minimize the result automaton, one simply adds more transformers to the pipeline
