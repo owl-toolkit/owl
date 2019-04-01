@@ -31,6 +31,7 @@ import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BEEM;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.CHECK;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.DWYER;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.REGRESSIONS;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
@@ -135,26 +136,26 @@ class TranslationAutomatonSummaryTest {
       new Translator("dpa.asymmetric", environment ->
         new LTL2DPAFunction(environment,
           EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
 
       new Translator("dpa.symmetric", environment ->
         new LTL2DPAFunction(environment,
           EnumSet.of(SYMMETRIC, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
 
       new Translator("dra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
       new Translator("dgra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
 
       new Translator("nba.symmetric", environment ->
         SymmetricNBAConstruction.of(environment, BuchiAcceptance.class),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
       new Translator("ngba.symmetric", environment ->
         SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class),
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE)),
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
 
       new Translator("delag", DelagBuilder::new,
         EnumSet.of(BASE, SIZE)),
@@ -162,7 +163,7 @@ class TranslationAutomatonSummaryTest {
         EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI))),
       new Translator("ltl2na",
         (Function<Environment, Function<LabelledFormula, Automaton<?, ?>>>) LTL2NAFunction::new,
-        EnumSet.of(BASE, BEEM, CHECK, REGRESSIONS, SIZE))
+        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE))
     );
   }
 
@@ -265,8 +266,8 @@ class TranslationAutomatonSummaryTest {
   }
 
   enum FormulaSet {
-    BASE("base"), BEEM("beem"), CHECK("check"), FGGF("fggf"), FGX("fgx"), LIBE_SPEC("libe-spec"),
-    REGRESSIONS("regressions"), SIZE_FGGF("size-fggf"), SIZE("size");
+    BASE("base"), BEEM("beem"), CHECK("check"), DWYER("dwyer"), FGGF("fggf"), FGX("fgx"),
+    LIBE_SPEC("libe-spec"), REGRESSIONS("regressions"), SIZE_FGGF("size-fggf"), SIZE("size");
     private final String name;
 
     FormulaSet(String name) {
