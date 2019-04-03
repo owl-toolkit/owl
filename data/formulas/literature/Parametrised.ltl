@@ -1,140 +1,45 @@
-Fa
-Fa & Fb
-Fa & Fb & Fc
-Fa & Fb & Fc & Fd
-Fa & Fb & Fc & Fd & Fe
-FGa
-FGa & FGb
-FGa & FGb & FGc
-FGa & FGb & FGc & FGd
-FGa & FGb & FGc & FGd & FGe
-GFa
-GFa & GFb
-GFa & GFb & GFc
-GFa & GFb & GFc & GFd
-GFa & GFb & GFc & GFd & GFe
-G(a & XFb)
-G(a & XF(b & XFc))
-G(a & XF(b & XF(c & XFd)))
-G(a & XF(b & XF(c & XF(d & XFe))))
-G(a & XF(b & XF(c & XF(d & XF(e & XFf)))))
-Ga
-Ga | Gb
-Ga | Gb | Gc
-Ga | Gb | Gc | Gd
-Ga | Gb | Gc | Gd | Ge
-FGa
-FGa | FGb
-FGa | FGb | FGc
-FGa | FGb | FGc | FGd
-FGa | FGb | FGc | FGd | FGe
-GFa
-GFa | GFb
-GFa | GFb | GFc
-GFa | GFb | GFc | GFd
-GFa | GFb | GFc | GFd | GFe
-F(a | XGb)
-F(a | XG(b | XGc))
-F(a | XG(b | XG(c | XGd)))
-F(a | XG(b | XG(c | XG(d | XGe))))
-F(a | XG(b | XG(c | XG(d | XG(e | XGf)))))
-a
-a U b
 (a U b) U c
 ((a U b) U c) U d
 (((a U b) U c) U d) U e
-a
-a U b
-a U (b U c)
-a U (b U (c U d))
-a U (b U (c U (d U e)))
-a
-a R b
 (a R b) R c
 ((a R b) R c) R d
 (((a R b) R c) R d) R e
-a
-a R b
+a U (b U c)
+a U (b U (c U d))
+a U (b U (c U (d U e)))
 a R (b R c)
 a R (b R (c R d))
 a R (b R (c R (d R e)))
-GFa | FG!b
-GFa | FG!b | FG!c
-GFa | FG!b | FG!c | FG!d
-GFa | FG!b | FG!c | FG!d | FG!e
-GF(!a | Xa)
-GF(!a | XXa)
-GF(!a | XXXa)
-GF(!a | XXXXa)
-(GFa & GFb) | (FG!a & FG!b)
-(GFa & GFb & GFc) | ((FG!a | FG!c) & FG!b)
-(GFa & GFb & GFc & GFd) | ((FG!a | FG!c | FG!d) & FG!b)
-(GFa & GFb & GFc & GFd & GFe) | ((FG!a | FG!c | FG!d | FG!e) & FG!b)
-GF((a & Xa) | (!a & X!a))
-GF((a & XXa) | (!a & XX!a))
-GF((a & XXXa) | (!a & XXX!a))
-GF((a & XXXXa) | (!a & XXXX!a))
-Fa & Fb
-F(a & Fb) & F(c & Fd)
-F(a & F(b & Fc)) & F(d & F(e & Ff))
-F(a & F(b & F(c & Fd))) & F(e & F(f & F(g & Fh)))
-Fa & Fb
-F(a & Fb) & F(c & Fd)
-F(a & F(b & Fc)) & F(d & F(e & Ff))
-F(a & F(b & F(c & Fd))) & F(e & F(f & F(g & Fh)))
-Fa & Fb
-F(a & Xa) & F(b & Xb)
-F(a & X(a & Xa)) & F(b & X(b & Xb))
-F(a & X(a & X(a & Xa))) & F(b & X(b & X(b & Xb)))
-Fa & Fb
-F(a & Xa) & F(b & Xb)
-F(a & Xa & XXa) & F(b & Xb & XXb)
-F(a & Xa & XXa & XXXa) & F(b & Xb & XXb & XXXb)
-Fa | Gb
-(Fa | Gb) & (Fb | Gc)
-(Fa | Gb) & (Fb | Gc) & (Fc | Gd)
-(Fa | Gb) & (Fb | Gc) & (Fc | Gd) & (Fd | Ge)
-FGa | GFb
-(FGa | GFb) & (FGc | GFa)
-(FGa | GFb) & (FGc | GFa) & (FGd | GFc)
-(FGa | GFb) & (FGc | GFa) & (FGd | GFc) & (FGe | GFd)
-GFa & F(b & G!c)
-GFa & GFb & F(c & G!d)
-GFa & GFb & GFc & F(d & G!e)
-GFa & GFb & GFc & GFd & F(e & G!f)
-G(!a | b)
-G(!a | b | Xb)
-G(!a | b | Xb | XXb)
-G(!a | b)
-G(!a | (b & Xb))
-G(!a | (b & Xb & XXb))
 G(!a | (a U b))
 G(!a | (a U (b & (b U c))))
 G(!a | (a U (b & (b U (c & (c U d))))))
-GFa & Fb
-GFa & F(b & Fc)
-GFa & F(b & F(c & Fd))
-Fa & GF(b & Xc)
-F(a & Fb) & GF(c & Xd)
-F(a & F(b & Fc)) & GF(d & Xe)
-Fa & GF(b & X(c & Xd))
-F(a & Fb) & GF(c & X(d & Xe))
-F(a & F(b & Fc)) & GF(d & X(e & Xf))
+(Fa | Gb) & (Fb | Gc)
+(Fa | Gb) & (Fb | Gc) & (Fc | Gd)
+(Fa | Gb) & (Fb | Gc) & (Fc | Gd) & (Fd | Ge)
+FGa & FGb & FGc
+FGa & FGb & FGc & FGd
+FGa & FGb & FGc & FGd & FGe
+GFa & GFb & GFc
+GFa & GFb & GFc & GFd
+GFa & GFb & GFc & GFd & GFe
+FGa | FGb | FGc
+FGa | FGb | FGc | FGd
+FGa | FGb | FGc | FGd | FGe
+GFa | GFb | GFc
+GFa | GFb | GFc | GFd
+GFa | GFb | GFc | GFd | GFe
+GFa | FG!b | FG!c
+GFa | FG!b | FG!c | FG!d
+GFa | FG!b | FG!c | FG!d | FG!e
+(GFa & GFb & GFc) | ((FG!a | FG!b) & FG!c)
+(GFa & GFb & GFc & GFd) | ((FG!a | FG!b | FG!d) & FG!c)
+(GFa & GFb & GFc & GFd & GFe) | ((FG!a | FG!b | FG!d | FG!e) & FG!c)
+(FGa | GFb) & (FGc | GFa)
+(FGa | GFb) & (FGc | GFa) & (FGd | GFc)
+(FGa | GFb) & (FGc | GFa) & (FGd | GFc) & (FGe | GFd)
+GF((a & XXa) | (!a & XX!a))
+GF((a & XXXa) | (!a & XXX!a))
+GF((a & XXXXa) | (!a & XXXX!a))
 FG(a | b) | FG(!a | Xb)
 FG(a | b) | FG(!a | Xb) | FG(a | XXb)
 FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb)
-GFa U G(GFb U Xc)
-GFa U G(GFb U XXc)
-GFa U G(GFb U XXXc)
-GFa U G(GFb U G(GFc U Xd))
-GFa U G(GFb U G(GFc U XXd))
-GFa U G(GFb U G(GFc U XXXd))
-GFa U G(GFb U G(GFc U G(GFd U Xe)))
-GFa U G(GFb U G(GFc U G(GFd U XXe)))
-GFa U G(GFb U G(GFc U G(GFd U XXXe)))
-FG!a | GFb
-FG!a | FG!b | (GFc & GFd)
-FG!a | FG!b | FG!c | (GFd & GFe & GFf)
-GFa | FGb
-(GFa | FGb) & (GFc | FGd)
-(GFa | FGb) & (GFc | FGd) & (GFe | FGf)

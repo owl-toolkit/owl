@@ -122,7 +122,7 @@ dependencies {
 
 test {
     useJUnitPlatform {
-        excludeTags 'size-regression-test', 'size-regression-train'
+        excludeTags 'size-regression-test', 'size-regression-train', 'size-report'
     }
 }
 
@@ -135,6 +135,12 @@ task sizeRegressionTest(type: Test) {
 task sizeRegressionTrain(type: Test) {
     useJUnitPlatform {
         includeTags 'size-regression-train'
+    }
+}
+
+task sizeReport(type: Test) {
+    useJUnitPlatform {
+        includeTags 'size-report'
     }
 }
 

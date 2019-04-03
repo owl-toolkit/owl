@@ -76,7 +76,8 @@ public final class LtlParser {
     LtlParseTreeVisitor treeVisitor = literals == null || literals.isEmpty()
       ? new LtlParseTreeVisitor()
       : new LtlParseTreeVisitor(literals);
-    return LabelledFormula.of(treeVisitor.visit(parser.formula()), treeVisitor.variables());
+    Formula syntax = treeVisitor.visit(parser.formula());
+    int largestLiteral = syntax.atomicPropositions(true).length();
+    return LabelledFormula.of(syntax, treeVisitor.variables().subList(0, largestLiteral));
   }
-
 }
