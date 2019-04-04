@@ -1,0 +1,27 @@
+a U b
+a U (b U c)
+!a R (!b R !c)
+GFa | FG!b
+Fa U Gb
+Ga U b
+(Fa & G!b) | (Fb & G!a)
+GFa & FG!b
+(GFa & FG!b) | (GFb & FG!a)
+a R (a | b)
+(Xa U Xb) | X(!a R !b)
+(Xa U b) | X(!a R (!a | !b))
+((Xa U b) | X(!a R (!a | !b))) & G(!a | Fb)
+((Xa U Xb) | X(!a R !b)) & G(!a | Fb)
+G(!a | Fb)
+F(a & X(!b U !c))
+GF!a & GF!b
+G(Fa & Fb)
+Fa & F!a
+(a & Xb) R X(((c U d) R a) U (c R a))
+Ga | Gb | (G(a | GFc) & G(b | GF!c))
+Ga | Gb | (G(a | FGc) & G(b | FG!c))
+F!a & F!b & (F(!a & FG!c) | F(!b & FGc))
+F!a & F!b & (F(!a & GF!c) | F(!b & GFc))
+G(a | XGb) & G(c | XG!b)
+G(a | (Xb & X!b))
+a | (b U a)

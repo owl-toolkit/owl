@@ -1,0 +1,12 @@
+a U (b & Gc)
+a U (b & X(c U d))
+a U (b & X(c & F(d & XF(e & XF(f & XFg)))))
+F(a & XGb)
+F(a & X(b & XFc))
+F(a & X(b U c))
+FGa | GFb
+G(!a | (b U c))
+G(a & XF(b & XF(c & XFd)))
+GFa & GFb & GFc & GFd & GFe
+(a U (b U c)) | (b U (c U a)) | (c U (a U b))
+G(!a | (b U (Gc | Gd)))

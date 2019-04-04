@@ -28,57 +28,66 @@ import java.lang.ref.WeakReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class GcManagedFactory<V> {
+class GcManagedFactory<V extends GcManagedFactory.BddWrapper> {
   private static final Logger logger = Logger.getLogger(GcManagedFactory.class.getName());
 
   final Bdd factory;
-  private final Int2ObjectMap<BddReference<V>> objects = new Int2ObjectOpenHashMap<>();
+  private final Int2ObjectMap<BddReference<V>> gcObjects = new Int2ObjectOpenHashMap<>();
+  private final Int2ObjectMap<V> nonGcObjects = new Int2ObjectOpenHashMap<>();
   private final ReferenceQueue<V> queue = new ReferenceQueue<>();
 
   GcManagedFactory(Bdd factory) {
     this.factory = factory;
   }
 
-  @SuppressWarnings("SpellCheckingInspection")
-  V canonicalize(int bdd, V object) {
-    // This is not thread safe!
+  // This is not thread safe!
+  V canonicalize(V wrapper) {
+    int bdd = wrapper.bdd();
 
     // Root nodes and variables are exempt from GC.
     if (factory.isNodeRoot(bdd) || factory.isVariableOrNegated(bdd)) {
-      assert factory.getReferenceCount(bdd) == -1;
-      return object;
+      assert factory.getReferenceCount(bdd) == -1
+        : reportReferenceCountMismatch(-1, factory.getReferenceCount(bdd));
+
+      return nonGcObjects.merge(bdd, wrapper, (oldWrapper, newWrapper) -> oldWrapper);
     }
 
-    BddReference<V> canonicalReference = objects.get(bdd);
+    BddReference<V> canonicalReference = gcObjects.get(bdd);
 
-    if (canonicalReference != null) {
-      assert factory.getReferenceCount(bdd) == 1;
-      V canonicalObject = canonicalReference.get();
+    if (canonicalReference == null) {
+      // The BDD was created and needs a reference to be protected.
+      assert factory.getReferenceCount(bdd) == 0
+        : reportReferenceCountMismatch(0, factory.getReferenceCount(bdd));
 
-      if (canonicalObject == null) {
+      factory.reference(bdd);
+    } else {
+      // The BDD already existed.
+      assert factory.getReferenceCount(bdd) == 1
+        : reportReferenceCountMismatch(1, factory.getReferenceCount(bdd));
+
+      V canonicalWrapper = canonicalReference.get();
+
+      if (canonicalWrapper == null) {
         // This object was GC'ed since the last run of clear(), but potentially wasn't added to the
         // ReferenceQueue by the GC yet. Make sure that the reference is queued and cleared to
         // avoid inconsistencies.
         canonicalReference.enqueue();
-
-        // Reference before clear so that the current bdd does not drop to zero references
-        factory.reference(bdd);
       } else {
-        return canonicalObject;
+        assert bdd == canonicalWrapper.bdd();
+        return canonicalWrapper;
       }
-    } else if (factory.getReferenceCount(bdd) == 0) {
-      // The BDD was created and needs a reference to be protected.
-      factory.reference(bdd);
     }
 
-    assert factory.getReferenceCount(bdd) > 0;
-    clear();
-    objects.put(bdd, new BddReference<>(bdd, object, queue));
     assert factory.getReferenceCount(bdd) == 1;
-    return object;
+    // Remove queued BDDs from the mapping.
+    processReferenceQueue(bdd);
+    // Insert BDD into mapping.
+    gcObjects.put(bdd, new BddReference<>(wrapper, queue));
+    assert factory.getReferenceCount(bdd) == 1;
+    return wrapper;
   }
 
-  private void clear() {
+  private void processReferenceQueue(int protectedBdd) {
     Reference<? extends V> reference = queue.poll();
     if (reference == null) {
       // Queue is empty
@@ -88,21 +97,36 @@ class GcManagedFactory<V> {
     int count = 0;
     do {
       int bdd = ((BddReference<?>) reference).bdd;
-      objects.remove(bdd);
-      factory.dereference(bdd);
-      count += 1;
+      gcObjects.remove(bdd);
+
+      if (bdd != protectedBdd) {
+        assert factory.getReferenceCount(bdd) == 1;
+        factory.dereference(bdd);
+        assert factory.getReferenceCount(bdd) == 0;
+        count += 1;
+      }
+
       reference = queue.poll();
     } while (reference != null);
 
     logger.log(Level.FINEST, "Cleared {0} references", count);
   }
 
-  private static final class BddReference<V> extends WeakReference<V> {
+  private static final class BddReference<V extends BddWrapper> extends WeakReference<V> {
     private final int bdd;
 
-    private BddReference(int bdd, V object, ReferenceQueue<? super V> queue) {
-      super(object, queue);
-      this.bdd = bdd;
+    private BddReference(V wrapper, ReferenceQueue<? super V> queue) {
+      super(wrapper, queue);
+      this.bdd = wrapper.bdd();
     }
+  }
+
+  interface BddWrapper {
+    int bdd();
+  }
+
+  private static String reportReferenceCountMismatch(int expected, int actual) {
+    return String.format(
+      "Expected reference count {%d}, but actual count is {%d}.", expected, actual);
   }
 }
