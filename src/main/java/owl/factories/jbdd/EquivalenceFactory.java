@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +42,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
-import owl.factories.PropositionVisitor;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -71,6 +71,8 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
   // Protect objects from the GC.
   private EquivalenceClass[] temporalStepSubstitutes;
   private EquivalenceClass[] unfoldSubstitutes;
+
+  private boolean registerActive = false;
 
   public EquivalenceFactory(Bdd factory, List<String> alphabet, boolean keepRepresentatives) {
     super(factory);
@@ -366,6 +368,64 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
   }
 
   private int toBdd(Formula formula) {
+    // Scan for unknown proper subformulas.
+    List<Formula.ModalOperator> newPropositions = formula.subformulas(Formula.ModalOperator.class)
+      .stream().filter(x -> !mapping.containsKey(x)).sorted().collect(Collectors.toList());
+
+    if (!newPropositions.isEmpty()) {
+      if (registerActive) {
+        throw new ConcurrentModificationException(
+          "Detected recursive or parallel modification of BDD data-structures.");
+      }
+
+      registerActive = true;
+
+      checkLiteralAlphabetRange(newPropositions);
+
+      // Create variables.
+      int newSize = mapping.size() + newPropositions.size();
+      reverseMapping = Arrays.copyOf(reverseMapping, newSize);
+
+      for (Formula.ModalOperator proposition : newPropositions) {
+        int variable = factory.getVariable(factory.createVariable());
+        mapping.put(proposition, variable);
+        reverseMapping[variable] = proposition;
+      }
+
+      // Compute unfolding and temporal step.
+      unfoldSubstitution = Arrays.copyOf(unfoldSubstitution, newSize);
+      unfoldSubstitutes = Arrays.copyOf(unfoldSubstitutes, newSize);
+      temporalStepSubstitution = Arrays.copyOf(temporalStepSubstitution, newSize);
+      temporalStepSubstitutes = Arrays.copyOf(temporalStepSubstitutes, newSize);
+
+      for (Formula.ModalOperator proposition : newPropositions) {
+        int variable = mapping.getInt(proposition);
+
+        if (proposition instanceof XOperator) {
+          Formula operand = ((XOperator) proposition).operand;
+          BddEquivalenceClass clazz = create(operand, toBdd(operand));
+
+          unfoldSubstitution[variable] = -1;
+          temporalStepSubstitutes[variable] = clazz;
+          temporalStepSubstitution[variable] = clazz.bdd;
+        } else {
+          Formula unfold = proposition.unfold();
+          BddEquivalenceClass clazz = create(unfold, toBdd(unfold));
+
+          unfoldSubstitutes[variable] = clazz;
+          unfoldSubstitution[variable] = clazz.bdd;
+          temporalStepSubstitution[variable] = -1;
+        }
+      }
+
+      if (!registerActive) {
+        throw new ConcurrentModificationException(
+          "Detected recursive or parallel modification of BDD data-structures.");
+      }
+
+      registerActive = false;
+    }
+
     return factory.dereference(formula.accept(visitor));
   }
 
@@ -378,47 +438,8 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       return falseClass;
     }
 
-    return canonicalize(bdd, new BddEquivalenceClass(this, bdd,
+    return canonicalize(new BddEquivalenceClass(this, bdd,
       keepRepresentatives ? representative : null));
-  }
-
-  private void register(List<Formula.ModalOperator> propositions) {
-    checkLiteralAlphabetRange(propositions);
-
-    List<Formula.ModalOperator> newPropositions = propositions.stream()
-      .filter(x -> !mapping.containsKey(x))
-      .distinct()
-      .collect(Collectors.toList());
-
-    int size = mapping.size() + newPropositions.size();
-    reverseMapping = Arrays.copyOf(reverseMapping, size);
-
-    unfoldSubstitution = Arrays.copyOf(unfoldSubstitution, size);
-    unfoldSubstitutes = Arrays.copyOf(unfoldSubstitutes, size);
-    temporalStepSubstitution = Arrays.copyOf(temporalStepSubstitution, size);
-    temporalStepSubstitutes = Arrays.copyOf(temporalStepSubstitutes, size);
-
-    for (Formula.ModalOperator proposition : newPropositions) {
-      int variable = factory.getVariable(factory.createVariable());
-      mapping.put(proposition, variable);
-      reverseMapping[variable] = proposition;
-
-      if (proposition instanceof XOperator) {
-        Formula operand = ((XOperator) proposition).operand;
-        BddEquivalenceClass clazz = create(operand, toBdd(operand));
-
-        unfoldSubstitution[variable] = -1;
-        temporalStepSubstitutes[variable] = clazz;
-        temporalStepSubstitution[variable] = clazz.bdd;
-      } else {
-        Formula unfold = proposition.unfold();
-        BddEquivalenceClass clazz = create(unfold, toBdd(unfold));
-
-        unfoldSubstitutes[variable] = clazz;
-        unfoldSubstitution[variable] = clazz.bdd;
-        temporalStepSubstitution[variable] = -1;
-      }
-    }
   }
 
   private BddEquivalenceClass transform(EquivalenceClass clazz, IntUnaryOperator bddTransformer,
@@ -441,13 +462,18 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     return create(newRepresentative, newBdd);
   }
 
-  static final class BddEquivalenceClass extends EquivalenceClass {
+  public static final class BddEquivalenceClass extends EquivalenceClass implements BddWrapper {
     final int bdd;
 
     BddEquivalenceClass(EquivalenceClassFactory factory, int bdd,
       @Nullable Formula representative) {
       super(factory, representative);
       this.bdd = bdd;
+    }
+
+    @Override
+    public int bdd() {
+      return bdd;
     }
 
     @Override
@@ -471,27 +497,20 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     }
   }
 
+  // Translates a formula into a BDD under the assumption every subformula is already registered.
   private final class BddVisitor extends PropositionalIntVisitor {
     @Override
     protected int visit(Formula.TemporalOperator formula) {
       if (formula instanceof Literal) {
         Literal literal = (Literal) formula;
         checkLiteralAlphabetRange(List.of(literal));
-        int bdd = factory.getVariableNode(literal.getAtom());
-        return literal.isNegated() ? factory.not(bdd) : bdd;
+        int variableBdd = factory.getVariableNode(literal.getAtom());
+        return literal.isNegated() ? factory.not(variableBdd) : variableBdd;
       }
-
-      assert formula instanceof Formula.ModalOperator;
 
       int value = mapping.getInt(formula);
-
-      if (value < 0) {
-        // All literals should have been already discovered.
-        register(PropositionVisitor.extractPropositions(formula));
-        value = mapping.getInt(formula);
-        assert value >= 0;
-      }
-
+      assert formula instanceof Formula.ModalOperator;
+      assert value >= 0;
       return factory.getVariableNode(value);
     }
 

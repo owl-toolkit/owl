@@ -12,7 +12,13 @@
             "size",
             "fgx",
             "check",
-            "libe-spec",
+            "literature-dwyerac-patterns",
+            "literature-etessamih-patterns",
+            "literature-liberouter-patterns",
+            "literature-parametrised",
+            "literature-pelanek-patterns",
+            "literature-sickertejk-patterns",
+            "literature-somenzib-patterns",
             "random"
         ],
         "L": [
@@ -27,6 +33,12 @@
             "size",
             "fgx",
             "check",
+            "literature-dwyerac-patterns",
+            "literature-etessamih-patterns",
+            "literature-parametrised",
+            "literature-pelanek-patterns",
+            "literature-sickertejk-patterns",
+            "literature-somenzib-patterns",
             "random"
         ],
         "M": [
@@ -94,7 +106,8 @@
                 "ltl2dpa#asymmetric,complement",
                 "ltl2dpa#symmetric",
                 "ltl2dpa#symmetric,complement"
-            ]
+            ],
+            "data": "L"
         },
         "fgx2dpa": {
             "tools": "fgx2dpa",
@@ -102,7 +115,12 @@
         },
         "ltl2da": "ltl2da",
         "ltl2na": "ltl2na",
-        "nba2ldba": "spot-nba2ldba",
+        "nba2ldba": {
+            "tools": [
+                "spot-nba2ldba"
+            ],
+            "data": "S"
+        },
         "nba2dpa": {
             "tools": [
                 "spot-nba2dpa"

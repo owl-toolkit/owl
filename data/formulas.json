@@ -19,13 +19,41 @@
         "type": "file",
         "path": "data/formulas/check.ltl"
     },
-    "libe-spec": {
-        "type": "file",
-        "path": "data/formulas/libe-spec.ltl"
-    },
     "fggf": {
         "type": "file",
         "path": "data/formulas/fggf.ltl"
+    },
+    "literature-dwyerac-patterns": {
+        "type": "file",
+        "path": "data/formulas/literature/DwyerAC98.ltl"
+    },
+    "literature-etessamih-patterns": {
+        "type": "file",
+        "path": "data/formulas/literature/EtessamiH00.ltl"
+    },
+    "literature-liberouter-patterns": {
+        "type": "file",
+        "path": "data/formulas/literature/Liberouter04.ltl"
+    },
+    "literature-parametrised": {
+        "type": "file",
+        "path": "data/formulas/literature/Parametrised.ltl"
+    },
+    "literature-parametrised-hardness": {
+        "type": "file",
+        "path": "data/formulas/literature/Parametrised-Hardness.ltl"
+    },
+    "literature-pelanek-patterns": {
+        "type": "file",
+        "path": "data/formulas/literature/Pelanek07.ltl"
+    },
+    "literature-sickertejk-patterns": {
+        "type": "file",
+        "path": "data/formulas/literature/SickertEJK16.ltl"
+    },
+    "literature-somenzib-patterns": {
+        "type": "file",
+        "path": "data/formulas/literature/SomenziB00.ltl"
     },
     "random": {
         "type": "random"

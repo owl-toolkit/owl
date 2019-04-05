@@ -1,7 +1,0 @@
-G (((!p1)) & (p2 U ((!p2) U ((!p3) | p4))))
-G (((p1) & X ! p1) | X (p1 U (((!p2) & p1) & X (p2 & p1 & (p1 U (((!p2) & p1) & X (p2 & p1)))))))
-G (!q | (G p | (!p U (r | (s & !p & X(!p U t))))))
-G(!q | (((!s | r) | X(G(!t|r) | !r U (r&(!t | r)))) U (r | p) | G((!s | X G !t))))
-G (!q | (!s | X(G !t | !r U (r&!t)) | X(!r U (r & F p))) U (r | G (!s | X(G !t | !r U (r&!t)) | X(!r U (t & F p)))))
-G (!q | (!p | (!r U (s & !r & X(!r U t)))) U (r | G (!p | (s & X F t))))
-G (!q | (!p | (!r U (s & !r & !z & X((!r & !z) U t)))) U (r | G (!p | (s & !z & X(!z U t)))))

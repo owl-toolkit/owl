@@ -1,0 +1,3 @@
+GF(Fa | Gb | FG(a | Xb))
+FG(Ga | F!b | GF(a & Xb))
+GF(Fa | GXb | FG(a | XXb))

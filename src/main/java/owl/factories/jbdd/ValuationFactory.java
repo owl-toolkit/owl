@@ -325,7 +325,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
 
   private BddValuationSet create(int bdd) {
-    return canonicalize(bdd, new BddValuationSet(this, bdd));
+    return canonicalize(new BddValuationSet(this, bdd));
   }
 
   private int createBdd(BitSet set, BitSet base) {
@@ -362,12 +362,17 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
     return bdd;
   }
 
-  static final class BddValuationSet extends ValuationSet {
+  static final class BddValuationSet extends ValuationSet implements BddWrapper {
     final int bdd;
 
     BddValuationSet(ValuationFactory factory, int bdd) {
       super(factory);
       this.bdd = bdd;
+    }
+
+    @Override
+    public int bdd() {
+      return bdd;
     }
 
     @Override

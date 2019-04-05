@@ -1,0 +1,20 @@
+G(!a | Fb)
+GFa | FG!b | FG!c
+G(!a | (b & (c U d)))
+F(a | b)
+GF(a | b)
+(a U b) | Ga | (!c R !d)
+G(!a | (!b U (b U (!b & (c R !b)))))
+G(!a | (b R !c))
+G(a | Fa)
+G(!a | F(b | c))
+((a | b) R !c) & G(!d | ((a | b) R !c))
+Fa | G!b
+G(!a | G!b | (!c U b))
+G(!a | (b R (b | !c)))
+G(!a | !b | (!b R (a | !b)))
+G(!a | F(b & c))
+G(!a | (!b U (b U (b & c))))
+G(!a | (!b U (b U (!b U (b U (b & c))))))
+GFa | FG!b
+GF(a | b) & GF(b | c)

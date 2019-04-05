@@ -29,11 +29,11 @@ import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
 import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_BUCHI;
 import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
-import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BEEM;
-import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.CHECK;
-import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.DWYER;
-import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.REGRESSIONS;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.FGGF;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBEROUTER;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.PARAMETRISED_HARDNESS;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE_FGGF;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
@@ -49,6 +49,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -73,11 +75,14 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.output.HoaPrinter;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
+import owl.ltl.Literal;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.util.FormulaIsomorphism;
+import owl.ltl.visitors.Converter;
 import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.delag.DelagBuilder;
@@ -136,41 +141,63 @@ class TranslationAutomatonSummaryTest {
       new Translator("dpa.asymmetric", environment ->
         new LTL2DPAFunction(environment,
           EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("dpa.symmetric", environment ->
         new LTL2DPAFunction(environment,
           EnumSet.of(SYMMETRIC, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("dra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true),
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
+        EnumSet.complementOf(EnumSet.of(LIBEROUTER, PARAMETRISED_HARDNESS))),
       new Translator("dgra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true),
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("nba.symmetric", environment ->
         SymmetricNBAConstruction.of(environment, BuchiAcceptance.class),
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("ngba.symmetric", environment ->
         SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class),
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE)),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("delag", DelagBuilder::new,
-        EnumSet.of(BASE, SIZE)),
+        EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
       new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI))),
+        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI)),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("ltl2na",
         (Function<Environment, Function<LabelledFormula, Automaton<?, ?>>>) LTL2NAFunction::new,
-        EnumSet.of(BASE, BEEM, CHECK, DWYER, REGRESSIONS, SIZE))
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF))
     );
   }
 
   private static void addNormalized(Set<LabelledFormula> testCases, Formula... formulas) {
     outer:
     for (Formula formula : formulas) {
-      var shiftedFormula = LiteralMapper.shiftLiterals(formula);
+      // Find literals that only occur negated.
+      BitSet literalsToFlip = new BitSet();
+      Set<Literal> literals = formula.subformulas(Literal.class);
+      literals.stream()
+        .filter(x -> x.isNegated() && !literals.contains(x.not()))
+        .forEach(x -> literalsToFlip.set(x.getAtom()));
+
+      // Replace these literals by positive form.
+      var literalNormalizedFormula = formula.accept(new Converter(SyntacticFragment.ALL) {
+        @Override
+        public Formula visit(Literal literal) {
+          if (literalsToFlip.get(literal.getAtom())) {
+            assert literal.isNegated();
+            return literal.not();
+          }
+
+          return literal;
+        }
+      });
+
+      // Close literal gaps.
+      var shiftedFormula = LiteralMapper.shiftLiterals(literalNormalizedFormula);
       int variables = (int) Arrays.stream(shiftedFormula.mapping).filter(x -> x != -1).count();
       var restrictedAlphabet = COMMON_ALPHABET.subList(0, variables);
       var labelledFormula = LabelledFormula.of(shiftedFormula.formula, restrictedAlphabet);
@@ -240,14 +267,13 @@ class TranslationAutomatonSummaryTest {
             return;
           }
 
-          var formula1 = LtlParser.syntax(formulaString);
-          var formula2 = formula1.not();
-          var formula3 = formula1.nnf();
-          var formula4 = formula2.nnf();
-          var formula5 = SimplifierFactory.apply(formula3, Mode.SYNTACTIC_FIXPOINT);
-          var formula6 = SimplifierFactory.apply(formula4, Mode.SYNTACTIC_FIXPOINT);
+          var formula = LtlParser.syntax(formulaString).nnf();
+          var simplifiedFormula
+            = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
+          var simplifiedFormulaNegated
+            = SimplifierFactory.apply(formula.not(), Mode.SYNTACTIC_FIXPOINT);
 
-          addNormalized(formulaSet, formula1, formula2, formula3, formula4, formula5, formula6);
+          addNormalized(formulaSet, simplifiedFormula, simplifiedFormulaNegated);
         });
       } catch (IOException exception) {
         fail(exception);
@@ -266,8 +292,24 @@ class TranslationAutomatonSummaryTest {
   }
 
   enum FormulaSet {
-    BASE("base"), BEEM("beem"), CHECK("check"), DWYER("dwyer"), FGGF("fggf"), FGX("fgx"),
-    LIBE_SPEC("libe-spec"), REGRESSIONS("regressions"), SIZE_FGGF("size-fggf"), SIZE("size");
+    BASE("base"),
+    CHECK("check"),
+    FGGF("fggf"),
+    FGX("fgx"),
+    REGRESSIONS("regressions"),
+    SIZE_FGGF("size-fggf"),
+    SIZE("size"),
+
+    // Literature Patterns
+    DWYER("literature/DwyerAC98"),
+    ETESSAMI("literature/EtessamiH00"),
+    LIBEROUTER("literature/Liberouter04"),
+    PARAMETRISED("literature/Parametrised"),
+    PARAMETRISED_HARDNESS("literature/Parametrised-Hardness"),
+    PELANEK("literature/Pelanek07"),
+    SICKERT("literature/SickertEJK16"),
+    SOMENZI("literature/SomenziB00");
+
     private final String name;
 
     FormulaSet(String name) {
@@ -283,7 +325,7 @@ class TranslationAutomatonSummaryTest {
     final String name;
     final Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
       constructor;
-    final List<FormulaSet> selectedSets;
+    private final Set<FormulaSet> selectedSets;
 
     Translator(String name,
       BiFunction<Environment, LabelledFormula, ? extends Automaton<?, ?>> constructor) {
@@ -293,16 +335,18 @@ class TranslationAutomatonSummaryTest {
     Translator(String name,
       Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
         constructor) {
-      this(name, constructor, EnumSet.allOf(FormulaSet.class));
+      this(name, constructor, Set.of());
     }
 
     Translator(String name,
       Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
         constructor,
-      Set<FormulaSet> selectedSets) {
+      Collection<FormulaSet> blacklistedSets) {
       this.name = name;
       this.constructor = constructor;
-      this.selectedSets = List.copyOf(selectedSets);
+      this.selectedSets = EnumSet.allOf(FormulaSet.class);
+      this.selectedSets.remove(PARAMETRISED_HARDNESS);
+      this.selectedSets.removeAll(blacklistedSets);
     }
 
     Path referenceFile() {

@@ -1,5 +1,9 @@
 // Spot timeout - Rabinizer solves it with a single state ...
 G (F (a & X F (b & X F c))) & G (F (a2 & X F (b2 & X F c2))) & G (F (a3 & X F (b3 & X F c3)))
 
-// ltl2dpa fails
-F((G(p4)) | ((p0) & (X((!(p0)) | ((p0) & (p1))))) | ((!(p0)) & (X((p0) & ((!(p0)) | (!(p1)))))) | ((!(p4)) U (((!(p2)) & (!(p4)) & (X((!(p2)) U ((!(p1)) | (G(!(p2))))))) | (G(!(p4))))))
+// ltl2dpa (asymmetric)
+G((!(a)) | ((a) U ((b) & ((b) U ((c) & ((c) U ((d) & ((d) U (e)))))))))
+F(Ga | (b & X(!b | (b & c))) | (!b & X(b & (!b | !c))) | (!a U ((!a & !d & X(!d U (!c | G!d))) | G!a)))
+
+// general failure
+a & X(b | c | d) & G(!a | !d) & (!d U (d & X((b | c) & XXGa))) & F(a & X(!a & (((b & F(d & Fb)) | (c & F(d & Fc)) | (e & F(d & Fe)) | (f & F(d & Ff))) U a))) & G((!b & !c) | X(e | f)) & G((!b | !c) & (!e | !f)) 
