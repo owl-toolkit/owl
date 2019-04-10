@@ -15,6 +15,8 @@ namespace owl {
     template<typename L1, typename L2>
     class LabelledTree {
     public:
+        virtual ~LabelledTree() = default;
+
         virtual const bool is_leaf() const = 0;
 
         bool const is_node() const {
