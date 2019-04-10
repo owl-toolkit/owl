@@ -82,6 +82,7 @@ namespace owl {
         // Construct a VM
         jint res = JNI_CreateJavaVM(&vm, (void **)&env, &vm_args);
 
+        delete []options;
         if (res) {
             throw std::runtime_error("Failed to create JavaVM.");
         }
