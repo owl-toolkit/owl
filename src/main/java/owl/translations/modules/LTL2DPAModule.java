@@ -17,11 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2dpa;
+package owl.translations.modules;
 
 import static owl.run.modules.OwlModuleParser.TransformerParser;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
@@ -30,10 +29,14 @@ import java.util.EnumSet;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import owl.ltl.LabelledFormula;
+import owl.run.modules.InputReaders;
+import owl.run.modules.OutputWriters;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
+import owl.run.parser.PartialConfigurationParser;
+import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
-import owl.translations.ltl2ldba.AbstractLTL2LDBAModule;
 
 public final class LTL2DPAModule implements TransformerParser {
   public static final LTL2DPAModule INSTANCE = new LTL2DPAModule();
@@ -47,7 +50,7 @@ public final class LTL2DPAModule implements TransformerParser {
 
   @Override
   public String getDescription() {
-    return "Translates LTL to deterministic parity automata, using an LDBA construction";
+    return "Translate LTL to deterministic parity automata, using LDBA constructions.";
   }
 
   @Override
@@ -55,8 +58,6 @@ public final class LTL2DPAModule implements TransformerParser {
     return new Options()
       .addOption(null, "complement", false,
         "Compute the automaton also for the negation and return the smaller.")
-      .addOption("c", "complete", false,
-        "Output a complete automaton")
       .addOptionGroup(AbstractLTL2LDBAModule.getOptionGroup());
   }
 
@@ -68,10 +69,6 @@ public final class LTL2DPAModule implements TransformerParser {
       configuration.add(COMPLEMENT_CONSTRUCTION);
     }
 
-    if (commandLine.hasOption("complete")) {
-      configuration.add(COMPLETE);
-    }
-
     if (commandLine.hasOption(AbstractLTL2LDBAModule.symmetric().getOpt())) {
       configuration.add(SYMMETRIC);
     }
@@ -80,5 +77,15 @@ public final class LTL2DPAModule implements TransformerParser {
 
     return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
       new LTL2DPAFunction(environment, configuration));
+  }
+
+  // TODO: add Rabinizer based constructions here.
+  public static void main(String... args) {
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
+      .addTransformer(INSTANCE)
+      .writer(OutputWriters.HOA)
+      .build());
   }
 }

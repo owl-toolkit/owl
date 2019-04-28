@@ -17,22 +17,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.modules;
 
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser;
 import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
-public final class LTL2LDGBAModule extends AbstractLTL2LDBAModule {
-  public static final LTL2LDGBAModule INSTANCE = new LTL2LDGBAModule();
+public final class LTL2NGBAModule implements OwlModuleParser.TransformerParser {
+  public static final LTL2NGBAModule INSTANCE = new LTL2NGBAModule();
 
-  private LTL2LDGBAModule() {}
+  private LTL2NGBAModule() {}
+
+  @Override
+  public Transformer parse(CommandLine commandLine) {
+    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+      SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class));
+  }
+
+  @Override
+  public String getKey() {
+    return "ltl2ngba";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Translate LTL to non-deterministic generalized-Büchi automata. "
+      + "The construction is based on the symmetric approach from [EKS: LICS'18].";
+  }
 
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
@@ -41,28 +60,5 @@ public final class LTL2LDGBAModule extends AbstractLTL2LDBAModule {
       .addTransformer(INSTANCE)
       .writer(OutputWriters.HOA)
       .build());
-  }
-
-  @Override
-  public Transformer parse(CommandLine commandLine) {
-    if (commandLine.hasOption(symmetric().getOpt())) {
-      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable));
-    } else {
-      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable));
-    }
-  }
-
-  @Override
-  public String getKey() {
-    return "ltl2ldgba";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Translates LTL to limit-deterministic generalized Büchi automata";
   }
 }

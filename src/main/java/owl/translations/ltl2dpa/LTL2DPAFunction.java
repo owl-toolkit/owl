@@ -21,7 +21,6 @@ package owl.translations.ltl2dpa;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLETE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
@@ -167,16 +166,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   private Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
     throws ExecutionException {
     var result = getResult(future);
-
-    if (result == null) {
-      return null;
-    }
-
-    if (configuration.contains(COMPLETE)) {
-      return result.complete();
-    } else {
-      return result.automaton;
-    }
+    return result == null ? null : result.automaton;
   }
 
   @Nullable
@@ -240,7 +230,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   public enum Configuration {
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, COMPLETE, SYMMETRIC, GREEDY, COMPRESS_COLOURS
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, SYMMETRIC, GREEDY, COMPRESS_COLOURS
   }
 
   private static final class Result<T> {
@@ -255,18 +245,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       } else {
         this.automaton = automaton;
       }
-    }
-
-    Automaton<T, ParityAcceptance> complete() {
-      var automaton = MutableAutomatonUtil.asMutable(this.automaton);
-
-      // We increase the number of sets to ensure there is at least one rejecting colour.
-      if (automaton.acceptance().acceptanceSets() < 2) {
-        automaton.acceptance(automaton.acceptance().withAcceptanceSets(2));
-      }
-
-      MutableAutomatonUtil.complete(automaton, sinkState);
-      return automaton;
     }
 
     Automaton<T, ParityAcceptance> complement() {

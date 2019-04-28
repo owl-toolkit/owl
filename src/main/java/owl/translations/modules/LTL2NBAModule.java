@@ -17,12 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2nba;
+package owl.translations.modules;
 
 import org.apache.commons.cli.CommandLine;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModuleParser;
@@ -30,11 +29,12 @@ import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
-public final class LTL2NGBAModule implements OwlModuleParser.TransformerParser {
-  public static final LTL2NGBAModule INSTANCE = new LTL2NGBAModule();
+public final class LTL2NBAModule implements OwlModuleParser.TransformerParser {
+  public static final LTL2NBAModule INSTANCE = new LTL2NBAModule();
 
-  private LTL2NGBAModule() {}
+  private LTL2NBAModule() {}
 
   public static void main(String... args) {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
@@ -47,21 +47,18 @@ public final class LTL2NGBAModule implements OwlModuleParser.TransformerParser {
 
   @Override
   public Transformer parse(CommandLine commandLine) {
-    return LTL2NGBAModule::instance;
-  }
-
-  private static Transformer.Instance instance(Environment environment) {
-    return Transformers.instanceFromFunction(LabelledFormula.class,
-      SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class));
+    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+      SymmetricNBAConstruction.of(environment, BuchiAcceptance.class));
   }
 
   @Override
   public String getKey() {
-    return "ltl2ngba";
+    return "ltl2nba";
   }
 
   @Override
   public String getDescription() {
-    return "Translates LTL to non-deterministic generalized-Büchi automata";
+    return "Translate LTL to non-deterministic generalized-Büchi automata. "
+      + "The construction is based on the symmetric approach from [EKS: LICS'18].";
   }
 }

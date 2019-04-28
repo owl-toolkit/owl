@@ -21,13 +21,14 @@ package owl.game;
 
 import static owl.util.Assertions.assertThat;
 
-import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.Views;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.util.AnnotatedState;
 import owl.game.Game.Owner;
@@ -37,18 +38,14 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
-import owl.translations.ltl2dpa.LTL2DPAFunction.Configuration;
 
-class GameFactoryTest {
-  private static final LTL2DPAFunction TRANSLATION = new LTL2DPAFunction(
-    DefaultEnvironment.annotated(),
-    Sets.union(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG, Set.of(Configuration.COMPLETE)));
+public class GameFactoryTest {
 
   @Test
   void testTransform() {
     LabelledFormula formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), Object.class, ParityAcceptance.class);
+      translate(formula), Object.class, ParityAcceptance.class);
     Game<Node<Object>, ParityAcceptance> game =
       GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
 
@@ -68,7 +65,7 @@ class GameFactoryTest {
     LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
 
     Automaton<AnnotatedState, ParityAcceptance> automaton = AutomatonUtil.cast(
-      TRANSLATION.apply(formula), AnnotatedState.class, ParityAcceptance.class);
+      translate(formula), AnnotatedState.class, ParityAcceptance.class);
 
     Game<Node<AnnotatedState>, ParityAcceptance> game =
       GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
@@ -88,5 +85,14 @@ class GameFactoryTest {
     // Player 1 can never win...
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
       x -> !x.contains(game.onlyInitialState()));
+  }
+
+  public static Automaton<Object, ParityAcceptance> translate(LabelledFormula x) {
+    var dpa = new LTL2DPAFunction(
+      DefaultEnvironment.annotated(), LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
+    var complete = Views.complete(
+      AutomatonUtil.cast(dpa, Object.class, ParityAcceptance.class),
+      MutableAutomatonUtil.Sink.INSTANCE);
+    return AutomatonUtil.cast(complete, Object.class, ParityAcceptance.class);
   }
 }

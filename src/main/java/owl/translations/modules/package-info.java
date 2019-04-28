@@ -17,24 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.rabinizer;
+@EverythingIsNonnullByDefault
+package owl.translations.modules;
 
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.Transformers;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
-
-public final class RabinizerMain {
-  private RabinizerMain() {}
-
-  public static void main(String... args) {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(RabinizerCliParser.INSTANCE)
-      .addTransformer(Transformers.MINIMIZER)
-      .writer(OutputWriters.HOA)
-      .build());
-  }
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

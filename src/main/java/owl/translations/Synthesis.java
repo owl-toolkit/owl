@@ -26,7 +26,7 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.ltl2dpa.LTL2DPAModule;
+import owl.translations.modules.LTL2DPAModule;
 
 public final class Synthesis {
   private Synthesis() {}

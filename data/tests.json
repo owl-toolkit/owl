@@ -95,8 +95,8 @@
         },
         "ltl2dra": {
             "tools": [
-                "ltl2dra",
-                "ltl2dgra"
+                "ltl2dra#symmetric",
+                "ltl2dgra#symmetric"
             ],
             "data": "L"
         },
@@ -136,9 +136,9 @@
         },
         "rabinizer": {
             "tools": [
-                "rabinizer-dgra",
-                "rabinizer-dra",
-                "rabinizer-dpa"
+                "ltl2dgra#asymmetric",
+                "ltl2dra#asymmetric",
+                "rabinizer-dpa#asymmetric"
             ],
             "data": "M"
         },

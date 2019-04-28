@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import owl.automaton.Views;
 import owl.automaton.minimizations.ImplicitMinimizeTransformer;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.transformations.RabinDegeneralization;
@@ -47,21 +48,20 @@ import owl.run.modules.OwlModuleParser.ReaderParser;
 import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
-import owl.translations.LTL2DAModule;
-import owl.translations.LTL2NAModule;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.fgx2dpa.FGX2DPA;
-import owl.translations.ltl2dpa.LTL2DPAModule;
-import owl.translations.ltl2dra.LTL2DGRAModule;
-import owl.translations.ltl2dra.LTL2DRAModule;
-import owl.translations.ltl2ldba.LTL2LDBAModule;
-import owl.translations.ltl2ldba.LTL2LDGBAModule;
-import owl.translations.ltl2nba.LTL2NBAModule;
-import owl.translations.ltl2nba.LTL2NGBAModule;
+import owl.translations.modules.LTL2DAModule;
+import owl.translations.modules.LTL2DGRAModule;
+import owl.translations.modules.LTL2DPAModule;
+import owl.translations.modules.LTL2DRAModule;
+import owl.translations.modules.LTL2LDBAModule;
+import owl.translations.modules.LTL2LDGBAModule;
+import owl.translations.modules.LTL2NAModule;
+import owl.translations.modules.LTL2NBAModule;
+import owl.translations.modules.LTL2NGBAModule;
 import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
-import owl.translations.rabinizer.RabinizerCliParser;
 import owl.translations.safra.SafraBuilder;
 
 /**
@@ -88,7 +88,7 @@ public class OwlModuleRegistry {
 
     // Transformer
     DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
-      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI);
+      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI, Views.COMPLETE_CLI);
 
     // LTL translations
     DEFAULT_REGISTRY.register(
@@ -97,11 +97,11 @@ public class OwlModuleRegistry {
       // -> LD(G)BA
       LTL2LDBAModule.INSTANCE, LTL2LDGBAModule.INSTANCE,
       // -> D(G)RA
-      RabinizerCliParser.INSTANCE, LTL2DRAModule.INSTANCE, LTL2DGRAModule.INSTANCE,
+      LTL2DRAModule.INSTANCE, LTL2DGRAModule.INSTANCE,
       // -> DPA
       LTL2DPAModule.INSTANCE, FGX2DPA.CLI,
       // -> DELA
-      DelagBuilder.CLI, LTL2DAModule.CLI,
+      LTL2DAModule.CLI, DelagBuilder.CLI,
       // -> NELA
       LTL2NAModule.CLI,
       // external

@@ -21,7 +21,6 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
-import static owl.automaton.Automaton.Property.COMPLETE;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -54,8 +53,21 @@ import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
+import owl.run.modules.ImmutableTransformerParser;
+import owl.run.modules.OwlModuleParser;
+import owl.run.modules.Transformer;
 
 public final class Views {
+  public static final Transformer COMPLETE = environment -> (input, context) ->
+    Views.complete(AutomatonUtil.cast(input), MutableAutomatonUtil.Sink.INSTANCE);
+
+  public static final OwlModuleParser.TransformerParser COMPLETE_CLI = ImmutableTransformerParser
+    .builder()
+    .key("complete")
+    .description("Make the transition relation of an automaton complet by adding a sink-state.")
+    .parser(settings -> COMPLETE)
+    .build();
+
   private Views() {}
 
   public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton) {
@@ -66,7 +78,7 @@ public final class Views {
     @Nullable S trapState) {
     var completeAutomaton = trapState == null ? automaton : complete(automaton, trapState);
 
-    checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
+    checkArgument(completeAutomaton.is(Automaton.Property.COMPLETE), "Automaton is not complete.");
     checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
@@ -358,7 +370,7 @@ public final class Views {
 
     @Override
     public boolean is(Property property) {
-      return property == COMPLETE || automaton.is(property);
+      return property == Automaton.Property.COMPLETE || automaton.is(property);
     }
   }
 

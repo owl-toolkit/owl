@@ -17,14 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations;
+package owl.translations.modules;
 
-import static owl.translations.LTL2DAFunction.Constructions.BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
-import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.PARITY;
-import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
+import static owl.translations.LTL2NAFunction.Constructions.BUCHI;
+import static owl.translations.LTL2NAFunction.Constructions.CO_SAFETY;
+import static owl.translations.LTL2NAFunction.Constructions.GENERALIZED_BUCHI;
+import static owl.translations.LTL2NAFunction.Constructions.SAFETY;
 
 import java.util.EnumSet;
 import owl.ltl.LabelledFormula;
@@ -35,22 +33,23 @@ import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.LTL2NAFunction;
 
-public final class LTL2DAModule {
+public final class LTL2NAModule {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("ltl2da")
-    .description("Translates LTL to some deterministic automaton")
+    .key("ltl2na")
+    .description("Translate LTL to a (heuristically chosen) small non-deterministic automaton.")
     .parser(settings -> environment -> {
-      LTL2DAFunction function = new LTL2DAFunction(environment, false,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI, PARITY));
+      LTL2NAFunction function = new LTL2NAFunction(environment,
+        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI));
       return Transformers.instanceFromFunction(LabelledFormula.class, function::apply);
     })
     .build();
 
-  private LTL2DAModule() {}
+  private LTL2NAModule() {}
 
   public static void main(String... args) {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2da")
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2na")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(CLI)
