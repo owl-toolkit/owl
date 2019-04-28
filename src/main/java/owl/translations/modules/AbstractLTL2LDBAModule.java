@@ -17,28 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2ldba;
+package owl.translations.modules;
 
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import owl.run.modules.OwlModuleParser;
 
-public abstract class AbstractLTL2LDBAModule implements OwlModuleParser.TransformerParser {
+abstract class AbstractLTL2LDBAModule implements OwlModuleParser.TransformerParser {
 
-  public static Option asymmetric() {
+  static Option asymmetric() {
     return new Option("a", "asymmetric", false, "Guess only greatest "
       + "fixed-points (G,R,W) that are almost always true. This corresponds to the construction "
-      + "described in [SEJK: CAV'16].");
+      + "described in [SEJK: CAV'16]. This is the default selection.");
   }
 
-  public static Option symmetric() {
+  static Option symmetric() {
     return new Option("s", "symmetric", false, "Guess greatest (G,R,W) "
       + "and least (F,M,U) fixed-points that are almost always respectively infinitely often true. "
       + "This corresponds to the construction described in [EKS: LICS'18].");
   }
 
-  public static OptionGroup getOptionGroup() {
+  static OptionGroup getOptionGroup() {
     var group = new OptionGroup();
     group.addOption(asymmetric());
     group.addOption(symmetric());

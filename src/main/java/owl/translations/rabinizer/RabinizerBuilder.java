@@ -120,8 +120,7 @@ public final class RabinizerBuilder {
 
     vsFactory = factories.vsFactory;
     eqFactory = factories.eqFactory;
-    masterStateFactory = new MasterStateFactory(configuration.eager(),
-      configuration.completeAutomaton(), fairnessFragment);
+    masterStateFactory = new MasterStateFactory(configuration.eager(), fairnessFragment);
     productStateFactory = new ProductStateFactory(configuration.eager());
   }
 
@@ -328,29 +327,22 @@ public final class RabinizerBuilder {
      * r(psi) / 2 + 1. Further, M^|G|_r is a co-Buchi condition on the master automaton edge,
      * requiring that finitely often the current master state may not be entailed by |G| and the
      * monitor states. */
-    boolean computeAcceptance = configuration.computeAcceptance();
     GeneralizedRabinAcceptance.Builder builder = new GeneralizedRabinAcceptance.Builder();
     Set<Set<GOperator>> relevantSets = Sets.powerSet(allRelevantGFormulas);
     assert relevantSets.contains(Set.of());
 
-    @Nullable
-    ActiveSet[] activeSets;
-    if (computeAcceptance) {
-      // -1 since we handle |G| = {} separately
-      int gSetCount = relevantSets.size() - 1;
-      // Mapping (|G|, r) to their corresponding pair
-      activeSets = new ActiveSet[gSetCount];
-      int activeSetIndex = 0;
-      for (Set<GOperator> subset : relevantSets) {
-        if (subset.isEmpty()) {
-          continue;
-        }
-        GSet gSet = new GSet(subset, eqFactory);
-        activeSets[activeSetIndex] = ActiveSet.create(gFormulas, gSet, monitors, builder);
-        activeSetIndex += 1;
+    // -1 since we handle |G| = {} separately
+    int gSetCount = relevantSets.size() - 1;
+    // Mapping (|G|, r) to their corresponding pair
+    ActiveSet[] activeSets = new ActiveSet[gSetCount];
+    int activeSetIndex = 0;
+    for (Set<GOperator> subset : relevantSets) {
+      if (subset.isEmpty()) {
+        continue;
       }
-    } else {
-      activeSets = null;
+      GSet gSet = new GSet(subset, eqFactory);
+      activeSets[activeSetIndex] = ActiveSet.create(gFormulas, gSet, monitors, builder);
+      activeSetIndex += 1;
     }
 
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
@@ -402,7 +394,7 @@ public final class RabinizerBuilder {
 
       // TODO Some state space analysis / optimization is possible here?
 
-      if (!computeAcceptance || sccRelevantOperators.isEmpty()) {
+      if (sccRelevantOperators.isEmpty()) {
         transitionSystem.forEach((state, successors) -> {
           statesPerClass.put(state.masterState(), state);
           createEdges(state, successors, rabinizerAutomaton);
@@ -520,7 +512,7 @@ public final class RabinizerBuilder {
         Collection<RabinizerState> rabinizerStates = statesPerClass.get(masterState);
 
         masterSuccessors.forEach((masterSuccessor, valuations) -> {
-          assert configuration.completeAutomaton() || !masterSuccessor.isFalse();
+          assert !masterSuccessor.isFalse();
           Edge<RabinizerState> edge = Edge.of(getAnyState.apply(masterSuccessor));
 
           for (RabinizerState state : rabinizerStates) {
@@ -551,9 +543,7 @@ public final class RabinizerBuilder {
 
     logger.log(Level.FINER,
       () -> String.format("Result:%n%s", HoaPrinter.toString(rabinizerAutomaton)));
-    if (activeSets != null) {
-      logger.log(Level.FINER, () -> printOperatorSets(activeSets));
-    }
+    logger.log(Level.FINER, () -> printOperatorSets(activeSets));
 
     return rabinizerAutomaton;
   }
@@ -568,10 +558,8 @@ public final class RabinizerBuilder {
     List<GSet> relevantGSets = new ArrayList<>(powerSets.size());
     powerSets.forEach(gSet -> relevantGSets.add(new GSet(gSet, eqFactory)));
 
-    MonitorAutomaton monitor = configuration.computeAcceptance()
-      ? MonitorBuilder.create(gOperator, operand, relevantGSets, vsFactory, configuration.eager())
-      : MonitorBuilderNoAcceptance.create(gOperator, operand, relevantGSets, vsFactory,
-        configuration.eager());
+    MonitorAutomaton monitor = MonitorBuilder
+      .create(gOperator, operand, relevantGSets, vsFactory, configuration.eager());
 
     // Postprocessing and logging
     logger.log(Level.FINER,

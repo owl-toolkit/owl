@@ -32,7 +32,6 @@ class LTL2DPAFunctionTest {
     var environment = DefaultEnvironment.standard();
     var translation = new LTL2DPAFunction(environment, Set.of(
       LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE,
-      LTL2DPAFunction.Configuration.COMPLETE,
       LTL2DPAFunction.Configuration.COMPRESS_COLOURS));
 
     translation.apply(LtlParser.parse("ff"));

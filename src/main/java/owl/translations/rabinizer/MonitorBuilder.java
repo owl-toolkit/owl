@@ -19,8 +19,8 @@
 
 package owl.translations.rabinizer;
 
-import static owl.translations.rabinizer.MonitorStateFactory.isAccepting;
-import static owl.translations.rabinizer.MonitorStateFactory.isSink;
+import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFactory.isAccepting;
+import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFactory.isSink;
 
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
@@ -62,7 +62,7 @@ final class MonitorBuilder {
   private final Fragment fragment;
   private final MutableAutomaton<MonitorState, ParityAcceptance>[] monitorAutomata;
   private final GSet[] relevantSets;
-  private final MonitorStateFactory stateFactory;
+  private final RabinizerStateFactory.MonitorStateFactory stateFactory;
   private final GOperator gOperator;
   private final ValuationSetFactory vsFactory;
 
@@ -86,7 +86,7 @@ final class MonitorBuilder {
         + "fragment: {2}, no G-sub: {3}",
       new Object[] {operand, relevantSets, fragment, isCoSafety});
 
-    this.stateFactory = new MonitorStateFactory(eager, isCoSafety);
+    this.stateFactory = new RabinizerStateFactory.MonitorStateFactory(eager, isCoSafety);
     this.relevantSets = relevantSets.toArray(GSet[]::new);
     assert !isCoSafety || this.relevantSets.length == 1;
 
@@ -419,7 +419,7 @@ final class MonitorBuilder {
       successorRanking.add(initialClass);
     }
 
-    assert successorRanking.stream().noneMatch(MonitorStateFactory::isSink);
+    assert successorRanking.stream().noneMatch(RabinizerStateFactory.MonitorStateFactory::isSink);
     assert successorRanking.stream().filter(state -> state.equals(initialClass)).count() == 1;
 
     return MonitorState.of(successorRanking);

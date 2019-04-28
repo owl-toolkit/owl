@@ -17,9 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2dra;
-
-import static owl.run.modules.OwlModuleParser.TransformerParser;
+package owl.translations.modules;
 
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
@@ -30,8 +28,11 @@ import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.rabinizer.RabinizerBuilder;
+import owl.translations.rabinizer.RabinizerConfiguration;
 
-public final class LTL2DGRAModule implements TransformerParser {
+public final class LTL2DGRAModule extends AbstractLTL2DRAModule {
   public static final LTL2DGRAModule INSTANCE = new LTL2DGRAModule();
 
   private LTL2DGRAModule() {}
@@ -43,18 +44,26 @@ public final class LTL2DGRAModule implements TransformerParser {
 
   @Override
   public String getDescription() {
-    return "Translates LTL to deterministic generalized Rabin automata, using an LDBA "
-      + "construction.";
+    return "Translate LTL to deterministic generalized Rabin automata using either "
+      + "a symmetric construction (default) based on a unified approach using the Master Theorem or"
+      + " an asymmetric construction, also known as the \"Rabinizer construction\".";
   }
 
   @Override
   public Transformer parse(CommandLine commandLine) {
-    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-      SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true));
+    RabinizerConfiguration configuration = parseAsymmetric(commandLine);
+
+    if (configuration == null) {
+      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true));
+    } else {
+      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+        formula -> RabinizerBuilder.build(formula, environment, configuration));
+    }
   }
 
   public static void main(String... args) {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dra")
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(INSTANCE)

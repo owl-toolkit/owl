@@ -17,12 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.ltl2dra;
-
-import static owl.run.modules.OwlModuleParser.TransformerParser;
+package owl.translations.modules;
 
 import org.apache.commons.cli.CommandLine;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.RabinAcceptance;
+import owl.automaton.minimizations.MinimizationUtil;
+import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -30,8 +31,11 @@ import owl.run.modules.Transformer;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.rabinizer.RabinizerBuilder;
+import owl.translations.rabinizer.RabinizerConfiguration;
 
-public final class LTL2DRAModule implements TransformerParser {
+public final class LTL2DRAModule extends AbstractLTL2DRAModule {
   public static final LTL2DRAModule INSTANCE = new LTL2DRAModule();
 
   private LTL2DRAModule() {}
@@ -43,13 +47,27 @@ public final class LTL2DRAModule implements TransformerParser {
 
   @Override
   public String getDescription() {
-    return "Translates LTL to deterministic Rabin automata, using an LDBA construction";
+    return "Translate LTL to deterministic Rabin automata using either "
+      + "a symmetric construction (default) based on a unified approach using the Master Theorem or"
+      + " an asymmetric construction, also known as the \"Rabinizer construction\".";
   }
 
   @Override
   public Transformer parse(CommandLine commandLine) {
-    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-      SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true));
+    RabinizerConfiguration configuration = parseAsymmetric(commandLine);
+
+    if (configuration == null) {
+      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true));
+    } else {
+      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
+        formula -> {
+          var dgra = MutableAutomatonUtil
+            .asMutable(RabinizerBuilder.build(formula, environment, configuration));
+          return RabinDegeneralization.degeneralize(
+            MinimizationUtil.minimizeDefault(dgra, MinimizationUtil.MinimizationLevel.ALL));
+      });
+    }
   }
 
   public static void main(String... args) {

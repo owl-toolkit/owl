@@ -17,23 +17,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations.rabinizer;
+package owl.translations.modules;
 
+import java.util.EnumSet;
+import owl.ltl.LabelledFormula;
+import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
+import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.LTL2DAFunction;
 
-public final class RabinizerDegeneralizeMain {
-  private RabinizerDegeneralizeMain() {}
+public final class LTL2DAModule {
+  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
+    .key("ltl2da")
+    .description("Translate LTL to some (heuristically chosen) small deterministic automaton.")
+    .parser(settings -> environment -> {
+      LTL2DAFunction function = new LTL2DAFunction(environment, false,
+        EnumSet.allOf(LTL2DAFunction.Constructions.class));
+      return Transformers.instanceFromFunction(LabelledFormula.class, function::apply);
+    })
+    .build();
+
+  private LTL2DAModule() {}
 
   public static void main(String... args) {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dra")
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2da")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(RabinizerCliParser.INSTANCE)
-      .addTransformer(Transformers.MINIMIZER, Transformers.RABIN_DEGENERALIZATION)
+      .addTransformer(CLI)
+      .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build());
   }

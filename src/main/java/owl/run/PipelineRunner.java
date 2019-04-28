@@ -100,7 +100,6 @@ public final class PipelineRunner {
       Throwables.throwIfInstanceOf(ex, Exception.class);
       throw new RuntimeException(ex); // NOPMD
     } finally {
-      transformers.forEach(Transformer.Instance::closeTransformer);
       env.shutdown();
     }
   }

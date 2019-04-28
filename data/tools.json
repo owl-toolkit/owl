@@ -66,6 +66,10 @@
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2dra",
+            "flags": {
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric"
+            },
             "pre": [
                 "simplify-ltl"
             ]
@@ -75,6 +79,10 @@
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2dgra",
+            "flags": {
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric"
+            },
             "pre": [
                 "simplify-ltl"
             ],
@@ -119,48 +127,21 @@
                 "simplify-ltl"
             ]
         },
-        "rabinizer-dgra": {
+        "rabinizer-dpa": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
-            "name": "ltl2dgra-rabinizer",
+            "name": "ltl2dgra",
             "flags": {
-                "nosuspend": "--nosuspend",
-                "noeager": "--noeager"
+                "asymmetric": "--asymmetric"
             },
-            "pre": [
-                "simplify-ltl"
-            ],
-            "post": [
-                "minimize-aut"
-            ]
-        },
-        "rabinizer-dra": {
-            "type": "owl",
-            "input": "ltl",
-            "output": "hoa",
-            "name": "ltl2dgra-rabinizer",
             "pre": [
                 "simplify-ltl"
             ],
             "post": [
                 "minimize-aut",
                 "dgra2dra",
-                "minimize-aut"
-            ]
-        },
-        "rabinizer-dpa": {
-            "type": "owl",
-            "input": "ltl",
-            "output": "hoa",
-            "name": "dra2dpa",
-            "pre": [
-                "simplify-ltl",
-                "ltl2dgra-rabinizer",
-                "minimize-aut",
-                "dgra2dra"
-            ],
-            "post": [
+                "dra2dpa",
                 "minimize-aut"
             ]
         },

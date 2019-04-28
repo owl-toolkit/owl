@@ -41,22 +41,6 @@ public interface Transformer extends OwlModule {
   @FunctionalInterface
   interface Instance {
     /**
-     * Utility method to clean up any stateful resources. It will be called exactly once after the
-     * input ceased and all tasks are finished. Especially, the {@link #transform(Object,
-     * PipelineExecutionContext)} is not active during the call to this method and never will be
-     * afterwards. Moreover, the environment is not yet {@link Environment#shutdown() shutdown}.
-     *
-     * <p>While it is encouraged that transformers are stateless, i.e. calls to {@link
-     * #transform(Object, PipelineExecutionContext)} don't leave any traces, some special cases may
-     * need to allocate resources for performance. For example, when delegating input to an external
-     * tool, this tool may be invoked once and then the processing is delegated via its input and
-     * output channels.</p>
-     */
-    default void closeTransformer() {
-      // Empty by default
-    }
-
-    /**
      * Applies the transformation represented by this transformer to the given object.
      */
     @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "ProhibitedExceptionDeclared"})

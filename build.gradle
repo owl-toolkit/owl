@@ -142,24 +142,29 @@ task sizeRegressionTrain(type: Test) {
 
 // Create startup scripts for each tool
 def scripts = [
+    // LTL -> NBA
+    'ltl2nba'   : 'owl.translations.modules.LTL2NBAModule',
+    'ltl2ngba'  : 'owl.translations.modules.LTL2NGBAModule',
+
     // LTL -> LDBA
-    'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBAModule',
-    'ltl2ldgba' : 'owl.translations.ltl2ldba.LTL2LDGBAModule',
+    'ltl2ldba'  : 'owl.translations.modules.LTL2LDBAModule',
+    'ltl2ldgba' : 'owl.translations.modules.LTL2LDGBAModule',
 
     // LTL -> DRA
-    'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
+    'ltl2dra'   : 'owl.translations.modules.LTL2DRAModule',
+    'ltl2dgra'  : 'owl.translations.modules.LTL2DGRAModule',
 
     // LTL -> DPA
-    'ltl2dpa'   : 'owl.translations.LTL2DPA',
+    'ltl2dpa'   : 'owl.translations.modules.LTL2DPAModule',
     'fgx2dpa'   : 'owl.translations.fgx2dpa.FGX2DPA',
 
     // LTL -> DELA
     'delag'     : 'owl.translations.delag.DelagBuilder',
 
-    // LTL -> D*A
+    // LTL -> **A
     // TODO: Deprecate and replace by delag!
-    'ltl2da'    : 'owl.translations.LTL2DAModule',
+    'ltl2da'    : 'owl.translations.modules.LTL2DAModule',
+    'ltl2na'    : 'owl.translations.modules.LTL2NAModule',
 
     // Miscellaneous
     'synth'     : 'owl.translations.Synthesis',
