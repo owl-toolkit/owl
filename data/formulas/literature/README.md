@@ -3,11 +3,11 @@
 This directory contains LTL formulas, patterns and parametrised families, from the literature. Each file is named after the originating publication's DBLP key. The exception to this rule are `Parametrised.ltl` and `Parametrised-Hardness.ltl` which are a collections of instantiations of parametrised families. `Parametrised-Hardness.ltl` focusses on formulas used for proving hardness bounds, while `Parametrised.ltl` is a collection of formulas for which (ad-hoc) optimal translation are known. These are generated with the help of [`genltl`](https://spot.lrde.epita.fr/genltl.html) and the following two commands:
 
 ```
-   ./genltl --and-f=1..5 --and-fg=1..5 --and-gf=1..5 --gxf-and=1..5 --or-g=1..5  --or-fg=1..5  --or-gf=1..5 --fxg-or=1..5 --u-left=1..5 --u-right=1..5  --r-left=1..5 --r-right=1..5 --gf-implies=1..4 --gf-implies-xn=1..4 --gf-equiv=1..4 --gf-equiv-xn=1..4 --ccj-alpha=1..4 --ccj-alpha=1..4 --ccj-beta=1..4 --ccj-beta-prime=1..4 --gh-q=1..4 --gh-r=1..4 --go-theta=1..4 --tv-f1=1..3 --tv-g1=1..3 --tv-uu=1..3 --ms-example=1..3,1..3 --ms-phi-h=1..3 --sejk-f=1..3,1..3 --sejk-j=1..3 --sejk-k=1..3 | ./ltlfilt --relabel=abc --nnf > Parametrised.ltl
+   genltl --u-left=3..5 --r-left=3..5 --u-right=3..5 --r-right=3..5 --tv-uu=1..3 --gh-q=2..4 --and-fg=3..5 --and-gf=3..5 --or-fg=3..5 --or-gf=3..5 --gf-implies=2..4 --gf-equiv=2..4 --gh-r=2..4 --gf-equiv-xn=2..4 --ms-phi-h=1..3 | ltlfilt --relabel=abc --nnf > Parametrised.ltl
 ```
 
 ```
-   ./genltl --kr-n=1..2 --kr-nlogn=1..2 --kv-psi=1..2 --ms-phi-r=1..3 --ms-phi-s=1..3 --rv-counter=1..2 --rv-counter-carry=1..2 --rv-counter-carry-linear=1..2 --rv-counter-linear=1..2 | ./ltlfilt --relabel=abc --nnf > Parametrised-Hardness.ltl
+   genltl --kr-n=1..2 --kr-nlogn=1..2 --kv-psi=1..2 --ms-phi-r=1..3 --ms-phi-s=1..3 --rv-counter=1..2 --rv-counter-carry=1..2 --rv-counter-carry-linear=1..2 --rv-counter-linear=1..2 | ltlfilt --relabel=abc --nnf > Parametrised-Hardness.ltl
 ```
 
 These sets include families of the following publications:
