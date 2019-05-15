@@ -45,9 +45,11 @@ import owl.ltl.XOperator;
 import owl.ltl.rewriter.SyntacticFairnessSimplifier.NormaliseX;
 import owl.ltl.visitors.Visitor;
 
-class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
+final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
-  static final UnaryOperator<Formula> INSTANCE = new SyntacticSimplifier();
+  static final SyntacticSimplifier INSTANCE = new SyntacticSimplifier();
+
+  private SyntacticSimplifier() {}
 
   @Override
   public Formula apply(Formula formula) {
@@ -90,6 +92,20 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     for (FOperator fOperator : filter(newConjunction, FOperator.class)) {
       if (newConjunction.contains(fOperator.operand)) {
         newConjunction.remove(fOperator);
+      }
+
+      for (ROperator rOperator
+        : filter(newConjunction, ROperator.class, x -> fOperator.operand.equals(x.left))) {
+        newConjunction.remove(fOperator);
+        newConjunction.remove(rOperator);
+        newConjunction.add(MOperator.of(rOperator.left, rOperator.right));
+      }
+
+      for (WOperator wOperator
+        : filter(newConjunction, WOperator.class, x -> fOperator.operand.equals(x.right))) {
+        newConjunction.remove(fOperator);
+        newConjunction.remove(wOperator);
+        newConjunction.add(UOperator.of(wOperator.left, wOperator.right));
       }
     }
 
@@ -140,6 +156,20 @@ class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
     for (GOperator gOperator : filter(newDisjunction, GOperator.class)) {
       if (newDisjunction.contains(gOperator.operand)) {
         newDisjunction.remove(gOperator);
+      }
+
+      for (MOperator mOperator
+        : filter(newDisjunction, MOperator.class, x -> gOperator.operand.equals(x.right))) {
+        newDisjunction.remove(gOperator);
+        newDisjunction.remove(mOperator);
+        newDisjunction.add(ROperator.of(mOperator.left, mOperator.right));
+      }
+
+      for (UOperator uOperator
+        : filter(newDisjunction, UOperator.class, x -> gOperator.operand.equals(x.left))) {
+        newDisjunction.remove(gOperator);
+        newDisjunction.remove(uOperator);
+        newDisjunction.add(WOperator.of(uOperator.left, uOperator.right));
       }
     }
 

@@ -55,18 +55,17 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
   GeneralizedRabinAcceptance(List<RabinPair> pairs) {
     this.pairs = List.copyOf(pairs);
-    this.setCount = computeSetCount(this.pairs);
 
-    // Check consistency.
-    int i = 0;
+    int count = 0;
 
+    // Count sets and check consistency.
     for (RabinPair pair : this.pairs) {
-      checkArgument(i == pair.finIndex);
+      checkArgument(count == pair.finIndex);
       checkArgument(pair.finIndex <= pair.infIndex);
-      i = pair.infIndex + 1;
+      count += pair.infSetCount() + 1;
     }
 
-    checkArgument(i == setCount);
+    this.setCount = count;
   }
 
   @Override
@@ -85,16 +84,6 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     BitSet set = new BitSet();
     pairs.forEach(x -> set.set(x.finIndex));
     return set;
-  }
-
-  private int computeSetCount(List<RabinPair> pairs) {
-    int count = 0;
-
-    for (RabinPair pair : pairs) {
-      count += pair.infSetCount() + 1;
-    }
-
-    return count;
   }
 
   public static GeneralizedRabinAcceptance of(RabinPair... pairs) {

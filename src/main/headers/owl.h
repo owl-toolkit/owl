@@ -34,7 +34,7 @@ namespace owl {
         Automaton adoptAutomaton(const Automaton &automaton) const;
 
         FormulaFactory createFormulaFactory() const;
-        EmersonLeiAutomaton createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, int firstOutputVariable) const;
+        DecomposedDPA createAutomaton(const Formula &formula, bool simplify, bool monolithic, int firstOutputVariable) const;
         void clearAutomatonCache() const;
     };
 
@@ -43,7 +43,7 @@ namespace owl {
         JavaVM* vm;
 
     public:
-        explicit OwlJavaVM(const char *classpath, bool debug, int max_heap_size_gb, bool aggressive_heap_optimisation);
+        explicit OwlJavaVM(const char *classpath, bool debug, int initial_heap_size_gb, int max_heap_size_gb, bool aggressive_heap_optimisation);
         ~OwlJavaVM();
 
         OwlThread attachCurrentThread() const;

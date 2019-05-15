@@ -20,11 +20,14 @@
 package owl.collections;
 
 import java.util.List;
+import java.util.stream.Stream;
 import owl.util.annotation.CEntryPoint;
 
 public abstract class LabelledTree<L1, L2> {
   private LabelledTree() {
   }
+
+  public abstract Stream<L2> leavesStream();
 
   public static final class Leaf<L1, L2> extends LabelledTree<L1, L2> {
     private final L2 label;
@@ -36,6 +39,11 @@ public abstract class LabelledTree<L1, L2> {
     @CEntryPoint
     public L2 getLabel() {
       return label;
+    }
+
+    @Override
+    public Stream<L2> leavesStream() {
+      return Stream.of(label);
     }
   }
 
@@ -56,6 +64,11 @@ public abstract class LabelledTree<L1, L2> {
     @CEntryPoint
     public List<LabelledTree<L1, L2>> getChildren() {
       return children;
+    }
+
+    @Override
+    public Stream<L2> leavesStream() {
+      return children.stream().flatMap(LabelledTree::leavesStream);
     }
   }
 }

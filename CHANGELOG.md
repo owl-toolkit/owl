@@ -36,6 +36,13 @@ API:
   2. x R (!x | y) and y is pure universal -> G (!x | y)
   3. x U (!x & y) and y is pure eventual -> F (!x & y)
   4. x W (!x & y) and y is pure eventual -> G x | F (!x & y)
+  5. F a & a R b -> a M b
+  6. F a & b W a -> b U a
+  7. G a | a U b -> a W b
+  8. G a | b M a -> b R a
+
+* Overhaul of the C++-API. Most notably there is an API for approximative realisability checks for a
+  state in the decomposed DPA.
 
 Bugfixes:
 

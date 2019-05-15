@@ -322,6 +322,7 @@ public abstract class Formula implements Comparable<Formula> {
     }
   }
 
+  // TODO: Fix hierarchy naming.
   public abstract static class TemporalOperator extends Formula {
     TemporalOperator(int hashCode) {
       super(hashCode);

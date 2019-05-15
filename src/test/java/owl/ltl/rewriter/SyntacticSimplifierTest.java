@@ -19,6 +19,7 @@
 
 package owl.ltl.rewriter;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -89,7 +90,11 @@ class SyntacticSimplifierTest {
 
     // Negations
     List.of("a | !a", "true"),
-    List.of("X a | X !a", "true")
+    List.of("X a | X !a", "true"),
+
+    // Recombination of operators
+    List.of("a & F b & b R c", "a & b M c"),
+    List.of("a & F c & b W c", "a & b U c")
   );
 
   private static Stream<Arguments> pairProvider() {
@@ -121,9 +126,10 @@ class SyntacticSimplifierTest {
 
   @Test
   void testIssue189() {
-    // Test that there is no assert error.
-    String formulaString = "GF(G!b & (XG!b U ((a & XG!b))))";
-    SimplifierFactory.apply(LtlParser.syntax(formulaString), Mode.SYNTACTIC);
-    SimplifierFactory.apply(LtlParser.syntax("!" + formulaString), Mode.SYNTACTIC);
+    assertDoesNotThrow(() -> {
+      String formulaString = "GF(G!b & (XG!b U ((a & XG!b))))";
+      SimplifierFactory.apply(LtlParser.syntax(formulaString), Mode.SYNTACTIC);
+      SimplifierFactory.apply(LtlParser.syntax('!' + formulaString), Mode.SYNTACTIC);
+    });
   }
 }

@@ -77,8 +77,15 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
     }
 
     if (formula.formula() instanceof XOperator) {
-      var unwrappedFormula = formula.wrap(((XOperator) formula.formula()).operand);
-      return GenericConstructions.delay(apply(unwrappedFormula));
+      int xCount = 0;
+      var unwrappedFormula = formula.formula();
+
+      while (unwrappedFormula instanceof XOperator) {
+        xCount++;
+        unwrappedFormula = ((XOperator) unwrappedFormula).operand;
+      }
+
+      return GenericConstructions.delay(apply(formula.wrap(unwrappedFormula)), xCount);
     }
 
     if (allowedConstructions.contains(Constructions.BUCHI)

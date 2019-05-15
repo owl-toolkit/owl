@@ -51,7 +51,7 @@ public final class LiteralMapper {
     private final int[] mapping;
 
     @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
-    LiteralShifter(int[] mapping) { // NOPMD
+    private LiteralShifter(int[] mapping) { // NOPMD
       super(SyntacticFragment.ALL);
       this.mapping = mapping;
     }

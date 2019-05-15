@@ -20,9 +20,9 @@
 package owl.translations.ltl2dpa;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.GREEDY;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
@@ -34,8 +34,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -48,21 +46,19 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.util.AnnotatedStateOptimisation;
-import owl.ltl.Conjunction;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
+import owl.translations.mastertheorem.Selector;
 import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
   public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, COMPRESS_COLOURS);
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
   public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(SYMMETRIC,
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, COMPRESS_COLOURS);
-
-  private static final int GREEDY_WAITING_TIME_SEC = 7;
+    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
   private final EnumSet<Configuration> configuration;
   private final AsymmetricLDBAConstruction<BuchiAcceptance> asymmetricTranslator;
@@ -70,9 +66,9 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   public LTL2DPAFunction(Environment environment, Set<Configuration> configuration) {
     this.configuration = EnumSet.copyOf(configuration);
-    checkArgument(!configuration.contains(GREEDY)
-        || configuration.contains(COMPLEMENT_CONSTRUCTION),
-      "GREEDY requires COMPLEMENT_CONSTRUCTION");
+    checkArgument(!configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
+      || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
+      "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");
 
     symmetricTranslator = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
     asymmetricTranslator = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
@@ -108,10 +104,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
         return complement;
       }
 
-      if (configuration.contains(GREEDY)) {
-        return (formula.formula() instanceof Conjunction) ? complement : automaton;
-      }
-
       // Select smaller automaton.
       if (automaton.size() < complement.size()) {
         return automaton;
@@ -136,11 +128,11 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   private boolean exitLoop(@Nullable Automaton<?, ?> automaton,
     @Nullable Automaton<?, ?> complement) {
-    if (configuration.contains(GREEDY)) {
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
       return automaton != null || complement != null;
     }
 
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION)) {
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
       return automaton != null && complement != null;
     }
 
@@ -148,43 +140,48 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   @Nullable
-  private Result<?> getResult(Future<Result<?>> future) throws ExecutionException {
-    if (!configuration.contains(GREEDY)) {
-      return Uninterruptibles.getUninterruptibly(future);
-    }
-
-    try {
-      return future.get(GREEDY_WAITING_TIME_SEC, TimeUnit.SECONDS);
-    } catch (InterruptedException | TimeoutException e) {
-      // Swallow exception
-      return null;
-    }
-  }
-
-  @Nullable
-  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
-  private Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
+  private static Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
     throws ExecutionException {
-    var result = getResult(future);
+    var result = Uninterruptibles.getUninterruptibly(future);
     return result == null ? null : result.automaton;
   }
 
   @Nullable
-  @SuppressWarnings("PMD.UnusedPrivateMethod") // PMD Bug?
-  private Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
+  private static Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
     throws ExecutionException {
-    var result = getResult(future);
+    var result = Uninterruptibles.getUninterruptibly(future);
     return result == null ? null : result.complement();
   }
 
   private Callable<Result<?>> callable(LabelledFormula formula, boolean complement) {
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
+      int fixpoints = configuration.contains(SYMMETRIC)
+        ? Selector.selectSymmetric(formula.formula(), false).size()
+        : Selector.selectAsymmetric(formula.formula(), false).size();
+
+      int negationFixpoints = configuration.contains(SYMMETRIC)
+        ? Selector.selectSymmetric(formula.formula().not(), false).size()
+        : Selector.selectAsymmetric(formula.formula().not(), false).size();
+
+      if (fixpoints <= negationFixpoints) {
+        if (complement) {
+          return () -> null;
+        }
+      } else {
+        if (!complement) {
+          return () -> null;
+        }
+      }
+    }
+
     if (!complement) {
       return configuration.contains(SYMMETRIC)
         ? () -> symmetricConstruction(formula)
         : () -> asymmetricConstruction(formula);
     }
 
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION)) {
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
+      || configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
       return configuration.contains(SYMMETRIC)
         ? () -> symmetricConstruction(formula.not())
         : () -> asymmetricConstruction(formula.not());
@@ -230,7 +227,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   public enum Configuration {
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION, SYMMETRIC, GREEDY, COMPRESS_COLOURS
+    // Underlying LDBA construction
+    SYMMETRIC,
+
+    // Parallel translation
+    COMPLEMENT_CONSTRUCTION_EXACT,
+    COMPLEMENT_CONSTRUCTION_HEURISTIC,
+
+    // Postprocessing
+    OPTIMISE_INITIAL_STATE,
+    COMPRESS_COLOURS
   }
 
   private static final class Result<T> {

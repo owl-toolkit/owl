@@ -19,6 +19,7 @@
 
 package owl.translations.canonical;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
@@ -26,10 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.Collections3;
+import owl.collections.Either;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
@@ -39,11 +42,13 @@ public final class GenericConstructions {
   private GenericConstructions() {
   }
 
-  public static <A extends OmegaAcceptance> Automaton<Object, A> delay(Automaton<?, A> automaton) {
-    var castedAutomaton = AutomatonUtil.cast(automaton, Object.class, OmegaAcceptance.class);
-    var initialState = new Object();
-    var initialStateEdges = castedAutomaton.initialStates().stream()
-      .map(Edge::of).collect(Collectors.toUnmodifiableSet());
+  public static <S, A extends OmegaAcceptance> Automaton<Either<Integer, S>, A> delay(
+    Automaton<S, A> automaton, int steps) {
+    Preconditions.checkArgument(steps > 0, "steps needs to be positive.");
+    List<Either<Integer, S>> delayingStates = IntStream.range(0, steps)
+      .mapToObj(Either::<Integer, S>left).collect(Collectors.toUnmodifiableList());
+    Set<Edge<Either<Integer, S>>> initialStateEdges = Set.copyOf(
+      Collections3.transformSet(automaton.initialStates(), x -> Edge.of(Either.right(x))));
 
     return new Automaton<>() {
       @Override
@@ -57,41 +62,64 @@ public final class GenericConstructions {
       }
 
       @Override
-      public Set<Object> initialStates() {
-        return Set.of(initialState);
+      public Set<Either<Integer, S>> initialStates() {
+        return Set.of(delayingStates.get(steps - 1));
       }
 
       @Override
-      public Set<Object> states() {
-        return Sets.union(initialStates(), automaton.states());
+      public Set<Either<Integer, S>> states() {
+        return Sets.union(
+          Set.copyOf(delayingStates), Collections3.transformSet(automaton.states(), Either::right));
       }
 
       @Override
-      public Set<Edge<Object>> edges(Object state, BitSet valuation) {
-        return initialState.equals(state)
-          ? initialStateEdges
-          : castedAutomaton.edges(state, valuation);
+      public Set<Edge<Either<Integer, S>>> edges(Either<Integer, S> state, BitSet valuation) {
+        return state.either(this::next, s -> lift(automaton.edges(s, valuation)));
       }
 
       @Override
-      public Set<Edge<Object>> edges(Object state) {
-        return initialState.equals(state)
-          ? initialStateEdges
-          : castedAutomaton.edges(state);
+      public Set<Edge<Either<Integer, S>>> edges(Either<Integer, S> state) {
+        return state.either(this::next, s -> lift(automaton.edges(s)));
       }
 
       @Override
-      public Map<Edge<Object>, ValuationSet> edgeMap(Object state) {
-        return initialState.equals(state)
-          ? Maps.toMap(initialStateEdges, x -> factory().universe())
-          : castedAutomaton.edgeMap(state);
+      public Map<Edge<Either<Integer, S>>, ValuationSet> edgeMap(Either<Integer, S> state) {
+        return state.either(this::nextMap, y -> lift(automaton.edgeMap(y)));
       }
 
       @Override
-      public ValuationTree<Edge<Object>> edgeTree(Object state) {
-        return initialState.equals(state)
-          ? ValuationTree.of(initialStateEdges)
-          : castedAutomaton.edgeTree(state);
+      public ValuationTree<Edge<Either<Integer, S>>> edgeTree(Either<Integer, S> state) {
+        return state.either(this::nextTree, s -> lift(automaton.edgeTree(s)));
+      }
+
+      private Set<Edge<Either<Integer, S>>> next(int index) {
+        if (index > 0) {
+          return Set.of(Edge.of(delayingStates.get(index - 1)));
+        }
+
+        return initialStateEdges;
+      }
+
+      private Map<Edge<Either<Integer, S>>, ValuationSet> nextMap(int index) {
+        return Maps.toMap(next(index), z -> factory().universe());
+      }
+
+      private ValuationTree<Edge<Either<Integer, S>>> nextTree(int index) {
+        return ValuationTree.of(next(index));
+      }
+
+      private Set<Edge<Either<Integer, S>>> lift(Set<Edge<S>> edges) {
+        return Collections3.transformSet(edges,
+          edge -> edge.withSuccessor(Either.right(edge.successor())));
+      }
+
+      private Map<Edge<Either<Integer, S>>, ValuationSet> lift(Map<Edge<S>, ValuationSet> edgeMap) {
+        return Collections3.transformMap(edgeMap,
+          edge -> edge.withSuccessor(Either.right(edge.successor())));
+      }
+
+      private ValuationTree<Edge<Either<Integer, S>>> lift(ValuationTree<Edge<S>> edgeTree) {
+        return edgeTree.map(this::lift);
       }
 
       @Override

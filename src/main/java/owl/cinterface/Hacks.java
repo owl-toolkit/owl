@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.jni;
+package owl.cinterface;
 
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

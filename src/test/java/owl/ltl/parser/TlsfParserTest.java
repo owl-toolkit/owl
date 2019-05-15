@@ -25,7 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import java.util.Set;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.tlsf.Tlsf;
 
@@ -248,6 +250,27 @@ class TlsfParserTest {
   private static final String LTL_COMPLETE =
     "((a1) -> ((b2) && ((((G (c3)) && (f6)) && (g7)) -> (((G ((d4) && (e5))) && (h8)) && (i9)))))";
 
+  private static final String PRECEDENCE = "INFO {\n"
+    + "  TITLE:       \"PRECEDENCE Test V1\"\n"
+    + "  DESCRIPTION: \"One of the Lily demo files\"\n"
+    + "  SEMANTICS:   Mealy\n"
+    + "  TARGET:      Mealy\n"
+    + "}\n"
+    + '\n'
+    + "MAIN {\n"
+    + "  INPUTS {\n"
+    + "    go;\n"
+    + "    cancel;\n"
+    + "    req;\n"
+    + "  }\n"
+    + "  OUTPUTS {\n"
+    + "    grant;\n"
+    + "  }\n"
+    + "  ASSERT {\n"
+    + "    X go && F cancel || G req -> grant W cancel;\n"
+    + "  }\n"
+    + '}';
+
   @Test
   void testParse1() {
     Tlsf tlsf = TlsfParser.parse(TLSF1);
@@ -274,6 +297,20 @@ class TlsfParserTest {
     assertEquals(2, tlsf.outputs().cardinality());
   }
 
+  @Disabled
+  @Test
+  void testPrecedence() {
+    Tlsf tlsf = TlsfParser.parse(PRECEDENCE);
+    Formula formula = LtlParser.syntax("((((X go) && (F cancel)) || G req) -> grant) W cancel");
+
+    assertEquals(Tlsf.Semantics.MEALY, tlsf.semantics());
+    assertEquals(Tlsf.Semantics.MEALY, tlsf.target());
+
+    assertEquals(3, tlsf.inputs().cardinality());
+    assertEquals(1, tlsf.outputs().cardinality());
+    assertEquals(formula, tlsf.assert_().get(0));
+  }
+  
   @Test
   void testParseLily() {
     Tlsf lily = TlsfParser.parse(LILY);

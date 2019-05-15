@@ -125,6 +125,7 @@ class TranslationAutomatonSummaryTest {
       new Translator("coSafety.nondeterministic", LTL2NAFunction::coSafety),
 
       new Translator("fgSafety", LTL2DAFunction::fgSafety),
+      new Translator("fgSafety.interleaved", LTL2DAFunction::fgSafetyInterleaved),
       new Translator("fgSafety.nondeterministic", LTL2NAFunction::fgSafety),
 
       new Translator("gfCoSafety",

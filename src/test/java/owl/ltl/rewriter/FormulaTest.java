@@ -57,7 +57,7 @@ class FormulaTest {
     Formula f4 = Literal.of(1, true);
     Formula f5 = Literal.of(0, true);
     Formula f6 = new UOperator(f5, SimplifierFactory.apply(Conjunction.of(f4, f5), Mode.SYNTACTIC));
-    Formula f7 = SimplifierFactory.apply(Disjunction.of(new GOperator(f5), f6), Mode.SYNTACTIC);
+    Formula f7 = Disjunction.of(new GOperator(f5), f6);
 
     assertEquals(f3, f7);
   }

@@ -74,7 +74,7 @@ model {
         }
 
         owlExample(NativeExecutableSpec) {
-            baseName "owl-jni-example"
+            baseName "owl-cinterface-example"
 
             sources {
                 cpp {

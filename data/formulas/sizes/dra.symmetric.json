@@ -44,6 +44,17 @@
     }
   },
   {
+    "formula": "((a) M (b))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((a) R (b))",
     "properties": {
       "size": 2,
@@ -66,7 +77,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 ((a) R (b)))",
+    "formula": "((a) W (b))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -95,17 +106,6 @@
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
       "complete": true,
-      "deterministic": true
-    }
-  },
-  {
-    "formula": "(Ga | ((a) U (b)))",
-    "properties": {
-      "size": 2,
-      "initialStatesSize": 1,
-      "acceptanceName": "RabinAcceptance",
-      "acceptanceSets": 2,
-      "complete": false,
       "deterministic": true
     }
   },
@@ -495,6 +495,17 @@
     }
   },
   {
+    "formula": "F(!a \u0026 Xa \u0026 X((!a) M (b)))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "F((a | X!a) \u0026 (b | Xb) \u0026 (!b | X!b))",
     "properties": {
       "size": 6,
@@ -550,6 +561,17 @@
     }
   },
   {
+    "formula": "G(a | X!a | X((a) W (b)))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "G((!a \u0026 Xa) | (b \u0026 Xb) | (!b \u0026 X!b))",
     "properties": {
       "size": 5,
@@ -572,7 +594,7 @@
     }
   },
   {
-    "formula": "XF(a \u0026 b \u0026 F!b \u0026 ((!b) R (c)))",
+    "formula": "XF(a \u0026 b \u0026 ((!b) M (c)))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -583,7 +605,7 @@
     }
   },
   {
-    "formula": "XF(a \u0026 !b \u0026 Fb \u0026 ((b) R (c)))",
+    "formula": "XF(a \u0026 !b \u0026 ((b) M (c)))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -594,23 +616,23 @@
     }
   },
   {
-    "formula": "XG(a | b | G!b | ((!b) U (c)))",
+    "formula": "XG(a | b | ((!b) W (c)))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
   },
   {
-    "formula": "XG(a | !b | Gb | ((b) U (c)))",
+    "formula": "XG(a | !b | ((b) W (c)))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
@@ -726,17 +748,6 @@
     }
   },
   {
-    "formula": "F(!a \u0026 Xa \u0026 X(F!a \u0026 ((!a) R (b))))",
-    "properties": {
-      "size": 4,
-      "initialStatesSize": 1,
-      "acceptanceName": "RabinAcceptance",
-      "acceptanceSets": 2,
-      "complete": true,
-      "deterministic": true
-    }
-  },
-  {
     "formula": "G(a | ((b) U (((!b) U ((c | d))))))",
     "properties": {
       "size": 4,
@@ -754,17 +765,6 @@
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
-      "complete": false,
-      "deterministic": true
-    }
-  },
-  {
-    "formula": "G(a | X!a | X(Ga | ((a) U (b))))",
-    "properties": {
-      "size": 5,
-      "initialStatesSize": 1,
-      "acceptanceName": "RabinAcceptance",
-      "acceptanceSets": 4,
       "complete": false,
       "deterministic": true
     }
