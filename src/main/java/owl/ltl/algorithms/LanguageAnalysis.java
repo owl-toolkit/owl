@@ -28,7 +28,7 @@ import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.algorithms.LanguageEmptiness;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -47,7 +47,7 @@ public final class LanguageAnalysis {
     var labelledFormula = attachDummyAlphabet(formula);
     var translation = new LTL2DAFunction(DefaultEnvironment.of(false, false), true,
       EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, GENERALIZED_RABIN));
-    return !EmptinessCheck.isEmpty(translation.apply(labelledFormula));
+    return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }
 
   public static boolean isUnsatisfiable(Formula formula) {

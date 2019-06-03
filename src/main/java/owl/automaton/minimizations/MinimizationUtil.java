@@ -33,7 +33,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrinter;
 import owl.automaton.transformations.ParityUtil;
@@ -190,7 +190,7 @@ public final class MinimizationUtil {
       }
 
       // There are no accepting runs.
-      if (EmptinessCheck.isEmpty(automaton, scc.iterator().next())) {
+      if (LanguageEmptiness.isEmpty(automaton, scc.iterator().next())) {
         logger.log(Level.FINER, "Removing scc {0}", scc);
         automaton.removeStateIf(scc::contains);
         // Ensure readable automaton.

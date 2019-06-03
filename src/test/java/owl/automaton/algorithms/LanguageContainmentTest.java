@@ -31,7 +31,7 @@ import owl.ltl.parser.LtlParser;
 import owl.run.DefaultEnvironment;
 import owl.translations.LTL2DAFunction;
 
-class LanguageAnalysisTest {
+class LanguageContainmentTest {
 
   @Test
   void contains() {
@@ -48,13 +48,13 @@ class LanguageAnalysisTest {
     var infOftComplex
       = AutomatonUtil.cast(translation.apply(formula3), Object.class, BuchiAcceptance.class);
 
-    assertTrue(LanguageAnalysis.contains(infOftAandB, infOftA));
-    assertFalse(LanguageAnalysis.contains(infOftA, infOftAandB));
+    assertTrue(LanguageContainment.contains(infOftAandB, infOftA));
+    assertFalse(LanguageContainment.contains(infOftA, infOftAandB));
 
-    assertTrue(LanguageAnalysis.contains(infOftComplex, infOftA));
-    assertFalse(LanguageAnalysis.contains(infOftA, infOftComplex));
+    assertTrue(LanguageContainment.contains(infOftComplex, infOftA));
+    assertFalse(LanguageContainment.contains(infOftA, infOftComplex));
 
-    assertTrue(LanguageAnalysis.contains(infOftAandB, infOftComplex));
-    assertFalse(LanguageAnalysis.contains(infOftComplex, infOftAandB));
+    assertTrue(LanguageContainment.contains(infOftAandB, infOftComplex));
+    assertFalse(LanguageContainment.contains(infOftComplex, infOftAandB));
   }
 }

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
 
-class LanguageAnalysisTest {
+class LanguageContainmentTest {
 
   @Test
   void isSatisfiable() {

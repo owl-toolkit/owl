@@ -42,7 +42,7 @@ import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.algorithms.LanguageAnalysis;
+import owl.automaton.algorithms.LanguageContainment;
 import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.ImmutableTransformerParser;
@@ -97,7 +97,7 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
         .build(new CacheLoader<>() {
           @Override
           public Boolean load(Map.Entry<Set<S>, S> entry) {
-            return LanguageAnalysis.contains(
+            return LanguageContainment.contains(
               Views.replaceInitialState(nba, Set.of(entry.getValue())),
               AutomatonUtil.cast(AutomatonOperations.union(entry.getKey().stream()
                 .map(x -> Views.replaceInitialState(nba, Set.of(x)))

@@ -50,7 +50,7 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.edge.Edge;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.util.AnnotatedState;
@@ -241,12 +241,12 @@ public final class DeterministicAutomaton<S, T> {
         acceptanceFlag = PARITY_MIN_EVEN;
       }
 
-      if (EmptinessCheck.isEmpty(automaton)) {
+      if (LanguageEmptiness.isEmpty(automaton)) {
         return new DeterministicAutomaton<>(automaton,
           acceptanceFlag, ParityAcceptance.class, x -> false, x -> REJECTING, x -> 0d
         );
       } else {
-        assert EmptinessCheck.isEmpty(
+        assert LanguageEmptiness.isEmpty(
           ParityUtil.complement((MutableAutomaton) automaton, MutableAutomatonUtil.Sink.INSTANCE));
         return new DeterministicAutomaton<>(automaton,
           acceptanceFlag, ParityAcceptance.class, x -> true, x -> ACCEPTING, x -> 1d

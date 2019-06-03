@@ -29,7 +29,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
-import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
@@ -55,8 +55,8 @@ class LTL2DAModuleFunctionTest {
     var complementAutomaton = translator.apply(formula.not());
 
     assertEquals(automaton.size(), complementAutomaton.size());
-    assertFalse(EmptinessCheck.isEmpty(automaton));
-    assertFalse(EmptinessCheck.isEmpty(complementAutomaton));
+    assertFalse(LanguageEmptiness.isEmpty(automaton));
+    assertFalse(LanguageEmptiness.isEmpty(complementAutomaton));
   }
 
   @Test

@@ -29,9 +29,9 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 
-public final class LanguageAnalysis {
+public final class LanguageContainment {
 
-  private LanguageAnalysis() {}
+  private LanguageContainment() {}
 
   /**
    * Checks if the first the language of the first automaton is included in the language of the
@@ -54,7 +54,7 @@ public final class LanguageAnalysis {
     var casted1 = AutomatonUtil.cast(automaton1, Object.class, BuchiAcceptance.class);
     var casted2 = AutomatonUtil.cast(automaton2, Object.class, BuchiAcceptance.class);
 
-    return EmptinessCheck.isEmpty(AutomatonOperations.intersection(List.of(casted1,
+    return LanguageEmptiness.isEmpty(AutomatonOperations.intersection(List.of(casted1,
       AutomatonUtil.cast(Views.complement(casted2, new Object()), CoBuchiAcceptance.class))));
   }
 }
