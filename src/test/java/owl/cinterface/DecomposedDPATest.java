@@ -17,30 +17,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.jni;
+package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.ALWAYS;
-import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.AUTO;
-import static owl.jni.JniEmersonLeiAutomaton.SafetySplittingMode.NEVER;
-import static owl.jni.JniEmersonLeiAutomaton.of;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static owl.cinterface.DecomposedDPA.of;
 import static owl.util.Assertions.assertThat;
 
+import com.google.common.primitives.ImmutableIntArray;
+import java.util.Collections;
 import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
 
-class JniEmersonLeiAutomatonTest {
+class DecomposedDPATest {
   private static final String SIMPLE_ARBITER = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
     + "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
     + "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
@@ -58,118 +57,114 @@ class JniEmersonLeiAutomatonTest {
     + "&& X (release_1 R grant_1) && (release_2 R grant_2) && (G (request_1 -> X grant_1)) "
     + "&& G grant_1";
 
+  private static final String TIMEOUT_1
+    = "(((G F i1 -> G F o1) && (G F o1 -> G F o2)) <-> ((G F o1 -> G F o3) && (G F o3)))";
+
+  private static final String AMBA_ENCODE = "INFO {\n"
+    + "  TITLE:       \"Amba AHB - Decomposed - Encode\"\n"
+    + "  DESCRIPTION: \"Encode component of the decomposed Amba AHB Arbiter\"\n"
+    + "  SEMANTICS:   Mealy\n"
+    + "  TARGET:      Mealy\n"
+    + "}\n"
+    + "\n"
+    + "MAIN {\n"
+    + "  INPUTS {\n"
+    + "    HREADY;\n"
+    + "    HGRANT_0;\n"
+    + "    HGRANT_1;\n"
+    + "    HGRANT_2;\n"
+    + "    HGRANT_3;\n"
+    + "    HGRANT_4;\n"
+    + "    HGRANT_5;\n"
+    + "  }\n"
+    + "  OUTPUTS {\n"
+    + "    HMASTER_0;\n"
+    + "    HMASTER_1;\n"
+    + "    HMASTER_2;\n"
+    + "  }\n"
+    + "  ASSUME {\n"
+    + "    (G (((((! (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && ((((! (HGRANT_3)) && "
+    + "(! (HGRANT_4))) && (true)) || ((((! (HGRANT_3)) && (true)) || ((true) && (! (HGRANT_4)))"
+    + ") && (! (HGRANT_5))))) || (((((! (HGRANT_0)) && (! (HGRANT_1))) && (true)) || ((((! "
+    + "(HGRANT_0)) && (true)) || ((true) && (! (HGRANT_1)))) && (! (HGRANT_2)))) && (((! "
+    + "(HGRANT_3)) && (! (HGRANT_4))) && (! (HGRANT_5))))));\n"
+    + "    (G ((((((HGRANT_0) || (HGRANT_1)) || (HGRANT_2)) || (HGRANT_3)) || (HGRANT_4)) || "
+    + "(HGRANT_5)));\n"
+    + "  }\n"
+    + "  ASSERT {\n"
+    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (! (HMASTER_0)"
+    + "))) <-> (HGRANT_0)));\n"
+    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (HMASTER_0))) "
+    + "<-> (HGRANT_1)));\n"
+    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (! (HMASTER_0)))) "
+    + "<-> (HGRANT_2)));\n"
+    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (HMASTER_0))) <-> "
+    + "(HGRANT_3)));\n"
+    + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (! (HMASTER_0)))) "
+    + "<-> (HGRANT_4)));\n"
+    + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (HMASTER_0))) <-> "
+    + "(HGRANT_5)));\n"
+    + "    ((! (HREADY)) -> ((((X (HMASTER_0)) <-> (HMASTER_0)) && ((X (HMASTER_1)) <-> "
+    + "(HMASTER_1))) && ((X (HMASTER_2)) <-> (HMASTER_2))));\n"
+    + "  }\n"
+    + "}";
+
   @BeforeEach
   void setUp() {
-    JniEmersonLeiAutomaton.clearCache();
+    DecomposedDPA.clearCache();
   }
 
   @AfterEach()
   void tearDown() {
-    JniEmersonLeiAutomaton.clearCache();
+    DecomposedDPA.clearCache();
   }
 
   @Test
   void splitSimpleArbiter() {
-    of(LtlParser.syntax(SIMPLE_ARBITER), true, false, NEVER, 0);
+    of(LtlParser.syntax(SIMPLE_ARBITER), true, false, 0);
+  }
+
+  @Test
+  void splitSimpleArbiter2() {
+    of(LtlParser.syntax(TIMEOUT_1), true, false, 1);
   }
 
   @Test
   void splitFg() {
-    of(LtlParser.syntax("F G a"), true, true, ALWAYS, 0);
+    of(LtlParser.syntax("F G a"), true, true, 0);
   }
 
   @Test
   void splitBuechi() {
-    of(LtlParser.syntax("G (a | X F a)"), true, true, AUTO, 0);
+    of(LtlParser.syntax("G (a | X F a)"), true, true, 0);
   }
 
   @Test
   void testCoSafetySplitting() {
-    var tree1 = of(LtlParser.syntax(CO_SAFETY), false, false, ALWAYS, 0).structure;
-    assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
-
-    var tree2 = of(LtlParser.syntax(CO_SAFETY), false, false, AUTO, 0).structure;
+    var tree2 = of(LtlParser.syntax(CO_SAFETY), false, false, 0).structure;
     assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
-
-    var tree3 = of(LtlParser.syntax(CO_SAFETY), false, false, NEVER, 0).structure;
-    assertThat(tree3, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test
   void testSafetySplitting() {
-    var tree1 = of(LtlParser.syntax(SAFETY), false, false, ALWAYS, 0).structure;
-    assertEquals(6, ((Node<?, ?>) tree1).getChildren().size());
-
-    var tree2 = of(LtlParser.syntax(SAFETY), false, false, AUTO, 0).structure;
+    var tree2 = of(LtlParser.syntax(SAFETY), false, false, 0).structure;
     assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
-
-    var tree3 = of(LtlParser.syntax(SAFETY), false, false, NEVER, 0).structure;
-    assertThat(tree3, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test
   void testAbsenceOfAssertionError() {
-    of(LtlParser.syntax("G (a | F a | F !b)"), false, false, AUTO, 0);
+    of(LtlParser.syntax("G (a | F a | F !b)"), false, false, 0);
   }
 
   @Test
   void testAbsenceOfAssertionError2() {
-    of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, AUTO, 0);
+    of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, 0);
   }
 
   @Test
   void testPerformance() {
-    String tlsf = "INFO {\n"
-      + "  TITLE:       \"Amba AHB - Decomposed - Encode\"\n"
-      + "  DESCRIPTION: \"Encode component of the decomposed Amba AHB Arbiter\"\n"
-      + "  SEMANTICS:   Mealy\n"
-      + "  TARGET:      Mealy\n"
-      + "}\n"
-      + "\n"
-      + "MAIN {\n"
-      + "  INPUTS {\n"
-      + "    HREADY;\n"
-      + "    HGRANT_0;\n"
-      + "    HGRANT_1;\n"
-      + "    HGRANT_2;\n"
-      + "    HGRANT_3;\n"
-      + "    HGRANT_4;\n"
-      + "    HGRANT_5;\n"
-      + "  }\n"
-      + "  OUTPUTS {\n"
-      + "    HMASTER_0;\n"
-      + "    HMASTER_1;\n"
-      + "    HMASTER_2;\n"
-      + "  }\n"
-      + "  ASSUME {\n"
-      + "    (G (((((! (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && ((((! (HGRANT_3)) && "
-      + "(! (HGRANT_4))) && (true)) || ((((! (HGRANT_3)) && (true)) || ((true) && (! (HGRANT_4)))"
-      + ") && (! (HGRANT_5))))) || (((((! (HGRANT_0)) && (! (HGRANT_1))) && (true)) || ((((! "
-      + "(HGRANT_0)) && (true)) || ((true) && (! (HGRANT_1)))) && (! (HGRANT_2)))) && (((! "
-      + "(HGRANT_3)) && (! (HGRANT_4))) && (! (HGRANT_5))))));\n"
-      + "    (G ((((((HGRANT_0) || (HGRANT_1)) || (HGRANT_2)) || (HGRANT_3)) || (HGRANT_4)) || "
-      + "(HGRANT_5)));\n"
-      + "  }\n"
-      + "  ASSERT {\n"
-      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (! (HMASTER_0)"
-      + "))) <-> (HGRANT_0)));\n"
-      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (HMASTER_0))) "
-      + "<-> (HGRANT_1)));\n"
-      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (! (HMASTER_0)))) "
-      + "<-> (HGRANT_2)));\n"
-      + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (HMASTER_0))) <-> "
-      + "(HGRANT_3)));\n"
-      + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (! (HMASTER_0)))) "
-      + "<-> (HGRANT_4)));\n"
-      + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (HMASTER_0))) <-> "
-      + "(HGRANT_5)));\n"
-      + "    ((! (HREADY)) -> ((((X (HMASTER_0)) <-> (HMASTER_0)) && ((X (HMASTER_1)) <-> "
-      + "(HMASTER_1))) && ((X (HMASTER_2)) <-> (HMASTER_2))));\n"
-      + "  }\n"
-      + "}";
-
     var automaton = of(
-      TlsfParser.parse(tlsf).toFormula().formula(), true, false, AUTO, 7);
+      TlsfParser.parse(AMBA_ENCODE).toFormula().formula(), true, false, 7);
     automaton.automata.get(0).edges(0);
   }
 
@@ -180,8 +175,49 @@ class JniEmersonLeiAutomatonTest {
         + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
         + "&G(X(p1&p13)|X(!p13&!p1)|X!p7|!p0)&G(X(p3&p13)|X(!p13&!p3)|!p0|X!p9))";
 
-    var automaton = of(LtlParser.parse(ltl).formula(), true, false, AUTO, 0);
+    var automaton = of(LtlParser.parse(ltl).formula(), true, false, 0);
     automaton.automata.get(0).edges(0);
+  }
+
+  @Test
+  void testDeclareQuery() {
+    var automaton = of(
+      TlsfParser.parse(AMBA_ENCODE).toFormula().formula(), true, false, 7);
+
+    var initial = ImmutableIntArray
+      .copyOf(Collections.nCopies(3, 0));
+    var realizable = ImmutableIntArray
+      .copyOf(Collections.nCopies(3, DeterministicAutomaton.ACCEPTING));
+    var unrealizable = ImmutableIntArray
+      .copyOf(Collections.nCopies(3, DeterministicAutomaton.REJECTING));
+
+    assertEquals(automaton.query(initial.toArray()),
+      DecomposedDPA.Status.UNKNOWN.ordinal());
+    assertEquals(automaton.query(realizable.toArray()),
+      DecomposedDPA.Status.UNKNOWN.ordinal());
+    assertEquals(automaton.query(unrealizable.toArray()),
+      DecomposedDPA.Status.UNKNOWN.ordinal());
+
+    assertTrue(automaton.declare(
+      DecomposedDPA.Status.REALIZABLE.ordinal(), initial.toArray()));
+    assertTrue(automaton.declare(
+      DecomposedDPA.Status.REALIZABLE.ordinal(), realizable.toArray()));
+    assertTrue(automaton.declare(
+      DecomposedDPA.Status.UNREALIZABLE.ordinal(), unrealizable.toArray()));
+
+    assertEquals(automaton.query(initial.toArray()),
+      DecomposedDPA.Status.REALIZABLE.ordinal());
+    assertEquals(automaton.query(realizable.toArray()),
+      DecomposedDPA.Status.REALIZABLE.ordinal());
+    assertEquals(automaton.query(unrealizable.toArray()),
+      DecomposedDPA.Status.UNREALIZABLE.ordinal());
+
+    assertFalse(automaton.declare(
+      DecomposedDPA.Status.REALIZABLE.ordinal(), initial.toArray()));
+    assertFalse(automaton.declare(
+      DecomposedDPA.Status.REALIZABLE.ordinal(), realizable.toArray()));
+    assertFalse(automaton.declare(
+      DecomposedDPA.Status.UNREALIZABLE.ordinal(), unrealizable.toArray()));
   }
 
   @Test
@@ -211,10 +247,11 @@ class JniEmersonLeiAutomatonTest {
       + "  }\n"
       + "}");
 
-    var automaton = of(specification.toFormula().formula(), true, false, AUTO, 6);
-    assertEquals(2, automaton.automata.size());
-    assertEquals(1, automaton.automata.get(0).size());
+    var automaton = of(specification.toFormula().formula(), true, false, 6);
+    assertEquals(3, automaton.automata.size());
+    assertEquals(4, automaton.automata.get(0).size());
     assertEquals(2, automaton.automata.get(1).size());
+    assertEquals(1, automaton.automata.get(2).size());
   }
 
   @Test
@@ -292,7 +329,7 @@ class JniEmersonLeiAutomatonTest {
       + "  }\n"
       + "}\n");
 
-    var automaton = of(specification.toFormula().formula(), true, false, AUTO, 25);
+    var automaton = of(specification.toFormula().formula(), true, false, 25);
 
     assertEquals(3, automaton.automata.size());
     assertEquals(4, automaton.automata.get(0).size());
@@ -391,12 +428,12 @@ class JniEmersonLeiAutomatonTest {
       + "}\n"
       + "\n");
 
-    var automaton = of(specification.toFormula().formula(), true, false, AUTO, 10);
+    var automaton = of(specification.toFormula().formula(), true, false, 10);
 
     assertEquals(9, automaton.automata.size());
 
-    for (JniAutomaton<?> jniAutomaton : automaton.automata) {
-      assertThat(jniAutomaton.size(), x -> x <= 4);
+    for (var deterministicAutomaton : automaton.automata) {
+      assertThat(deterministicAutomaton.size(), x -> x <= 4);
     }
   }
 
@@ -404,32 +441,32 @@ class JniEmersonLeiAutomatonTest {
   void testRealizibilityRewriter() {
     Formula formula = LtlParser.syntax("G (req -> F gra)", List.of("req", "gra"));
 
-    var automaton1 = of(formula, true, false, ALWAYS, 0)
+    var automaton1 = of(formula, true, false, 0)
       .automata.get(0);
 
     assertAll(
-      () -> assertEquals(JniAcceptance.BUCHI.ordinal(), automaton1.acceptance()),
+      () -> assertEquals(Acceptance.BUCHI.ordinal(), automaton1.acceptance()),
       () -> assertEquals(2, automaton1.size())
     );
 
-    JniEmersonLeiAutomaton.clearCache();
+    DecomposedDPA.clearCache();
 
-    var automaton2 = of(formula, true, false, ALWAYS, 1)
+    var automaton2 = of(formula, true, false, 1)
       .automata.get(0);
 
     assertAll(
-      () -> assertEquals(JniAcceptance.BUCHI.ordinal(), automaton2.acceptance()),
+      () -> assertEquals(Acceptance.BUCHI.ordinal(), automaton2.acceptance()),
       () -> assertEquals(1, automaton2.size()),
       () -> assertArrayEquals(new int[]{4, 0, 0, -2, 0, -1, 0, 0}, automaton2.edges(0))
     );
 
-    JniEmersonLeiAutomaton.clearCache();
+    DecomposedDPA.clearCache();
 
-    var automaton3 = of(formula, true, false, ALWAYS, 2)
+    var automaton3 = of(formula, true, false, 2)
       .automata.get(0);
 
     assertAll(
-      () -> assertEquals(JniAcceptance.SAFETY.ordinal(), automaton3.acceptance()),
+      () -> assertEquals(Acceptance.SAFETY.ordinal(), automaton3.acceptance()),
       () -> assertEquals(1, automaton3.size()),
       () -> assertArrayEquals(new int[]{1, -1, -1}, automaton3.edges(0))
     );

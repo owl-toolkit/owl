@@ -132,10 +132,6 @@ namespace owl {
         BICONDITIONAL, CONJUNCTION, DISJUNCTION
     };
 
-    enum SafetySplitting {
-        NEVER, AUTO, ALWAYS
-    };
-
     enum Acceptance {
         BUCHI, CO_BUCHI, CO_SAFETY, PARITY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD, SAFETY, WEAK
     };
@@ -161,16 +157,25 @@ namespace owl {
         double quality_score(int successor, int colour) const;
     };
 
-    class EmersonLeiAutomaton : public owl::ManagedJObject {
+    enum RealizabilityStatus {
+        REALIZABLE, UNREALIZABLE, UNKNOWN
+    };
+
+    class DecomposedDPA : public owl::ManagedJObject {
     private:
-        EmersonLeiAutomaton(JNIEnv *env, jobject handle) : ManagedJObject(env, "owl/jni/JniEmersonLeiAutomaton", handle) {}
+        DecomposedDPA(JNIEnv *env, jobject handle) : ManagedJObject(env, "owl/cinterface/DecomposedDPA", handle) {}
         friend class copy_from_java;
 
     public:
-        EmersonLeiAutomaton(const EmersonLeiAutomaton &automaton) = default;
-        EmersonLeiAutomaton(EmersonLeiAutomaton &&automaton) noexcept : ManagedJObject(std::move(automaton)) {};
+        DecomposedDPA(const DecomposedDPA &automaton) = default;
+        DecomposedDPA(DecomposedDPA &&automaton) noexcept : ManagedJObject(std::move(automaton)) {};
 
         std::vector<Automaton> automata();
         std::unique_ptr<LabelledTree<Tag, Reference>> structure();
+
+        bool declare(RealizabilityStatus status, const std::vector<jint> &states);
+        RealizabilityStatus query(const std::vector<jint> &states);
     };
+
+
 }

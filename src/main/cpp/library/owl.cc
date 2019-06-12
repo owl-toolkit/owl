@@ -9,19 +9,17 @@ namespace owl {
         return FormulaFactory(env);
     }
 
-    EmersonLeiAutomaton OwlThread::createAutomaton(const Formula &formula, bool simplify, bool monolithic, SafetySplitting safety_splitting, int firstOutputVariable) const {
-        jclass clazz = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton");
-        jmethodID split_method = get_static_methodID(env, clazz, "of",
-                                                     "(Lowl/ltl/Formula;ZZII)Lowl/jni/JniEmersonLeiAutomaton;");
-        auto java_tree = call_static_method<jobject, jobject, jboolean, jboolean, jint, jboolean>
-                (env, clazz, split_method, formula.handle, static_cast<jboolean>(simplify), static_cast<jboolean>(monolithic), static_cast<jint>(safety_splitting), static_cast<jint>(firstOutputVariable));
+    DecomposedDPA OwlThread::createAutomaton(const Formula &formula, bool simplify, bool monolithic, int firstOutputVariable) const {
+        jclass clazz = lookup_class(env, "owl/cinterface/DecomposedDPA");
+        jmethodID split_method = get_static_methodID(env, clazz, "of", "(Lowl/ltl/Formula;ZZI)Lowl/cinterface/DecomposedDPA;");
+        auto java_tree = call_static_method<jobject, jobject, jboolean, jboolean, jint>(env, clazz, split_method, formula.handle, static_cast<jboolean>(simplify), static_cast<jboolean>(monolithic), static_cast<jint>(firstOutputVariable));
 
         deref(env, clazz);
         return copy_from_java(env, java_tree);
     }
 
     void OwlThread::clearAutomatonCache() const {
-        jclass clazz = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton");
+        jclass clazz = lookup_class(env, "owl/cinterface/DecomposedDPA");
         jmethodID clear_cache_method = get_static_methodID(env, clazz, "clearCache", "()V");
         env->CallStaticVoidMethod(clazz, clear_cache_method);
 
@@ -41,7 +39,7 @@ namespace owl {
         return Automaton(env, automaton.handle);
     }
 
-    OwlJavaVM::OwlJavaVM(const char *classpath, bool debug, int max_heap_size_gb, bool aggressive_heap_optimisation) {
+    OwlJavaVM::OwlJavaVM(const char *classpath, bool debug, int initial_heap_size_gb, int max_heap_size_gb, bool aggressive_heap_optimisation) {
         JavaVMInitArgs vm_args = JavaVMInitArgs();
         JavaVMOption *options;
 
@@ -59,6 +57,12 @@ namespace owl {
             args.emplace_back(std::string("-XX:MaxHeapFreeRatio=20"));
             args.emplace_back(std::string("-XX:MinHeapFreeRatio=10"));
             args.emplace_back(std::string("-XX:-ShrinkHeapInSteps"));
+        }
+
+        if (initial_heap_size_gb > 0) {
+            std::stringstream ss;
+            ss << "-XX:InitialHeapSize=" << initial_heap_size_gb << "G";
+            args.emplace_back(ss.str());
         }
 
         if (max_heap_size_gb > 0) {

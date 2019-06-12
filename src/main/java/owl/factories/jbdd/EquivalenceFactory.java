@@ -317,7 +317,6 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       / StrictMath.pow(2.0d, (double) factory.numberOfVariables());
   }
 
-
   private <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
     Function<EquivalenceClass, Set<T>> mapper, Map<EquivalenceClass, ValuationTree<T>> cache) {
     var tree = cache.get(clazz);

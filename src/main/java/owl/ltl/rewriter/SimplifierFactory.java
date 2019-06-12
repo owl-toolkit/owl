@@ -57,7 +57,7 @@ public final class SimplifierFactory {
   @SuppressWarnings("ImmutableEnumChecker")
   public enum Mode {
     SYNTACTIC(nnfLight
-      .andThen(new SyntacticSimplifier())),
+      .andThen(SyntacticSimplifier.INSTANCE)),
 
     SYNTACTIC_FAIRNESS(nnfLight
       .andThen(SyntacticFairnessSimplifier.NormaliseX.INSTANCE)

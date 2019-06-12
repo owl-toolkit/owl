@@ -20,7 +20,7 @@
 package owl.translations.modules;
 
 import static owl.run.modules.OwlModuleParser.TransformerParser;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
@@ -66,7 +66,7 @@ public final class LTL2DPAModule implements TransformerParser {
     EnumSet<Configuration> configuration = EnumSet.of(OPTIMISE_INITIAL_STATE);
 
     if (commandLine.hasOption("complement")) {
-      configuration.add(COMPLEMENT_CONSTRUCTION);
+      configuration.add(COMPLEMENT_CONSTRUCTION_EXACT);
     }
 
     if (commandLine.hasOption(AbstractLTL2LDBAModule.symmetric().getOpt())) {

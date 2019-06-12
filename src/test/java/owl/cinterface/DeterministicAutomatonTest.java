@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.jni;
+package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,28 +26,12 @@ import static owl.util.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import owl.automaton.AutomatonUtil;
-import owl.automaton.acceptance.AllAcceptance;
-import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.ParityAcceptance;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
-import owl.translations.LTL2DAFunction;
 
 
-class JniAutomatonTest {
-  private static final LTL2DAFunction translator = new LTL2DAFunction(DefaultEnvironment.standard(),
-    true, EnumSet.of(
-      LTL2DAFunction.Constructions.SAFETY,
-      LTL2DAFunction.Constructions.CO_SAFETY,
-      LTL2DAFunction.Constructions.BUCHI,
-      LTL2DAFunction.Constructions.CO_BUCHI,
-      LTL2DAFunction.Constructions.PARITY));
-
+class DeterministicAutomatonTest {
   @Test
   void testTreeSerialisation() {
     var formula0 = LtlParser.parse("true", List.of());
@@ -59,22 +43,14 @@ class JniAutomatonTest {
     var formula6 = LtlParser.parse("G (r -> F g)", List.of("r", "g"));
     var formula7 = LtlParser.parse("(G F a) | (G F b)", List.of("a", "b"));
 
-    var automaton0 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula0),
-      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-    var automaton1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula1),
-      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-    var automaton2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula2),
-      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-    var automaton3 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula3),
-      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-    var automaton4 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula4),
-      EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-    var automaton5 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula5),
-      EquivalenceClass.class, BuchiAcceptance.class), EquivalenceClass::isTrue);
-    var automaton6 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula6),
-      Object.class, BuchiAcceptance.class));
-    var automaton7 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula7),
-      Object.class, ParityAcceptance.class));
+    var automaton0 = DeterministicAutomaton.of(formula0);
+    var automaton1 = DeterministicAutomaton.of(formula1);
+    var automaton2 = DeterministicAutomaton.of(formula2);
+    var automaton3 = DeterministicAutomaton.of(formula3);
+    var automaton4 = DeterministicAutomaton.of(formula4);
+    var automaton5 = DeterministicAutomaton.of(formula5);
+    var automaton6 = DeterministicAutomaton.of(formula6);
+    var automaton7 = DeterministicAutomaton.of(formula7);
 
     assertArrayEquals(new int[]{1, -2, -1},
       automaton0.edges(0));
@@ -106,10 +82,8 @@ class JniAutomatonTest {
         + "& X G (w | x | y)");
       assertEquals(25, formula.variables().size());
 
-      var instance1 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula),
-        EquivalenceClass.class, AllAcceptance.class), EquivalenceClass::isTrue);
-      var instance2 = new JniAutomaton<>(AutomatonUtil.cast(translator.apply(formula.not()),
-        EquivalenceClass.class, BuchiAcceptance.class), EquivalenceClass::isTrue);
+      var instance1 = DeterministicAutomaton.of(formula);
+      var instance2 = DeterministicAutomaton.of(formula.not());
 
       assertEquals(71, instance1.edges(0).length);
       assertEquals(71, instance2.edges(0).length);

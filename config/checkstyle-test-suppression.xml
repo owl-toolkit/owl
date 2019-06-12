@@ -5,7 +5,7 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 
 <suppressions>
-    <suppress files="Size.*|LTL2.*|NBA2.*|LD.*" checks="AbbreviationAsWordInName"/>
+    <suppress files="Size.*|LTL2.*|NBA2.*|LD.*|.*DPA.*" checks="AbbreviationAsWordInName"/>
 
     <!-- We avoid final modifier -->
     <suppress checks="VariableDeclarationUsageDistanceCheck" files=".*" />

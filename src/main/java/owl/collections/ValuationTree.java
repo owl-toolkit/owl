@@ -38,7 +38,7 @@ public abstract class ValuationTree<E> {
     return (ValuationTree<E>) Leaf.EMPTY;
   }
 
-  public static <E> ValuationTree<E> of(Collection<E> value) {
+  public static <E> ValuationTree<E> of(Collection<? extends E> value) {
     Set<E> set = Set.copyOf(value);
     return set.isEmpty() ? of() : new Leaf<>(set);
   }
@@ -60,12 +60,13 @@ public abstract class ValuationTree<E> {
     return memoizedInverse(factory, new HashMap<>());
   }
 
-  public final <T> ValuationTree<T> map(Function<? super Set<E>, ? extends Collection<T>> mapper) {
+  public final <T> ValuationTree<T> map(
+    Function<? super Set<E>, ? extends Collection<? extends T>> mapper) {
     return memoizedMap(mapper, new HashMap<>());
   }
 
   protected abstract <T> ValuationTree<T> memoizedMap(
-    Function<? super Set<E>, ? extends Collection<T>> mapper,
+    Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
     Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls);
 
   protected abstract Map<E, ValuationSet> memoizedInverse(
@@ -93,8 +94,9 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    protected <T> ValuationTree<T> memoizedMap(Function<? super Set<E>,
-      ? extends Collection<T>> mapper, Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
+    protected <T> ValuationTree<T> memoizedMap(
+      Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
+      Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
       return memoizedCalls.computeIfAbsent(this, x -> of(mapper.apply(value)));
     }
 
@@ -158,8 +160,9 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    protected <T> ValuationTree<T> memoizedMap(Function<? super Set<E>,
-      ? extends Collection<T>> mapper, Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
+    protected <T> ValuationTree<T> memoizedMap(
+      Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
+      Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
       ValuationTree<T> mappedNode = memoizedCalls.get(this);
 
       if (mappedNode != null) {

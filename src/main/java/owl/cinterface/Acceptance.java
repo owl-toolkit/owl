@@ -17,14 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.jni;
+package owl.cinterface;
 
 // For the tree annotation "non-existing" or generic types are needed: PARITY, WEAK, BOTTOM
-enum JniAcceptance {
+enum Acceptance {
   BUCHI, CO_BUCHI, CO_SAFETY, PARITY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN,
   PARITY_MIN_ODD, SAFETY, WEAK, BOTTOM;
 
-  JniAcceptance lub(JniAcceptance other) {
+  Acceptance lub(Acceptance other) {
     if (this == BOTTOM || this == other) {
       return other;
     }

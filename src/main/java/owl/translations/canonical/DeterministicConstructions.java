@@ -163,7 +163,7 @@ public final class DeterministicConstructions {
   public static final class CoSafety extends Terminal<BuchiAcceptance> {
     public CoSafety(Factories factories, boolean eagerUnfold, Formula formula) {
       super(factories, eagerUnfold, formula);
-      Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula));
+      Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula), formula);
     }
 
     @Override
@@ -250,7 +250,7 @@ public final class DeterministicConstructions {
     private Looping(Factories factories, boolean unfold, Formula formula,
       Predicate<Formula> isSupported) {
       super(factories, unfold);
-      Preconditions.checkArgument(isSupported.test(formula));
+      Preconditions.checkArgument(isSupported.test(formula), formula);
       this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
       this.initialStateSuccessorTree = super.successorTreeInternal(initialState);
     }
@@ -459,7 +459,7 @@ public final class DeterministicConstructions {
       super(factories, unfold);
       Preconditions.checkArgument(SyntacticFragments.isGCoSafety(formula)
         && !(Util.unwrap(formula) instanceof FOperator)
-        && !SyntacticFragment.FINITE.contains(Util.unwrap(formula)));
+        && !SyntacticFragment.FINITE.contains(Util.unwrap(formula)), formula);
       this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
     }
 

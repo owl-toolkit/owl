@@ -174,6 +174,20 @@ inline jint call_int_method(JNIEnv *env, jobject object, const char *name, const
     return result;
 }
 
+template<typename... Args>
+inline void call_void_method(JNIEnv *env, jobject object, jmethodID methodID, Args... args) {
+    env->CallVoidMethod(object, methodID, args...);
+    check_exception(env, "Failed to call int method.");
+}
+
+template<typename... Args>
+inline void call_void_method(JNIEnv *env, jobject object, const char *name, const char *signature, Args... args) {
+    jclass clazz = get_class(env, object);
+    jmethodID method_id = get_methodID(env, clazz, name, signature);
+    call_void_method<Args...>(env, object, method_id, args...);
+    deref(env, clazz);
+}
+
 template<typename T, typename... Args>
 inline T new_object(JNIEnv *env, jclass clazz, jmethodID constructor, Args... args) {
     static_assert(is_jobject<T>(), "Template parameter T for 'new_object' method is not a Java object.");
@@ -241,14 +255,20 @@ inline void assert_instance_of(JNIEnv *env, jobject object, const char *classNam
     }
 }
 
-inline jstring copy_to_java(JNIEnv *env, const std::string& string) {
+inline jstring copy_to_java(JNIEnv *env, const std::string &string) {
     jstring java_string = env->NewStringUTF(string.c_str());
     check_exception(env, "Failed to copy string to Java.");
     return make_global(env, java_string);
 }
 
+inline jintArray copy_to_java(JNIEnv *env, jsize len, const jint *buf) {
+    jintArray array = ref(env, env->NewIntArray(len));
+    env->SetIntArrayRegion(array, 0, len, buf);
+    return array;
+}
+
 template<typename T>
-inline jobject copy_to_java(JNIEnv *env, const std::vector<T>& vector) {
+inline jobject copy_to_java(JNIEnv *env, const std::vector<T> &vector) {
     jobject list = new_object<jobject>(env, "java/util/ArrayList", "(I)V", vector.size());
     jclass listClass;
     jmethodID addID;
@@ -358,8 +378,8 @@ namespace owl {
             return Automaton(env, value);
         }
 
-        operator EmersonLeiAutomaton() const {
-            return EmersonLeiAutomaton(env, value);
+        operator DecomposedDPA() const {
+            return DecomposedDPA(env, value);
         }
 
         operator Formula() const {
@@ -387,7 +407,7 @@ namespace owl {
         }
 
         operator Reference() const {
-            jclass reference_class = lookup_class(env, "owl/jni/JniEmersonLeiAutomaton$Reference");
+            jclass reference_class = lookup_class(env, "owl/cinterface/DecomposedDPA$Reference");
 
             Formula formula = Formula(env, get_object_field<jobject>(env, reference_class, value, "formula", "Lowl/ltl/Formula;"));
             int index = get_int_field(env, reference_class, value, "index");
@@ -416,6 +436,14 @@ namespace owl {
             int result = call_int_method(env, value, methodID);
             deref(env, clazz);
             return owl::Tag(result);
+        }
+
+        operator RealizabilityStatus() const {
+            jclass clazz = lookup_class(env, "java/lang/Enum");
+            jmethodID methodID = get_methodID(env, clazz, "ordinal", "()I");
+            int result = call_int_method(env, value, methodID);
+            deref(env, clazz);
+            return owl::RealizabilityStatus(result);
         }
     };
 }
