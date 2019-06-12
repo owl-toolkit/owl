@@ -61,8 +61,6 @@ import owl.util.annotation.CEntryPoint;
 // This is a JNI entry point. No touching.
 public final class DecomposedDPA {
 
-  public static final AutomatonRepository cache = new AutomatonRepository();
-
   public final LabelledTree<Tag, Reference> structure;
   private final List<Reference> leaves;
   public final List<DeterministicAutomaton<?, ?>> automata;
@@ -95,16 +93,10 @@ public final class DecomposedDPA {
     Builder builder = new Builder(processedFormula.accept(Annotator.INSTANCE));
 
     LabelledTree<Tag, Reference> structure1 = monolithic
-      ? Builder.createLeaf(processedFormula)
+      ? builder.createLeaf(processedFormula)
       : processedFormula.accept(builder);
 
-    return new DecomposedDPA(structure1, List.copyOf(cache.automata));
-  }
-
-  @CEntryPoint
-  public static void clearCache() {
-    cache.automata.clear();
-    cache.lookup.clear();
+    return new DecomposedDPA(structure1, List.copyOf(builder.automata));
   }
 
   @CEntryPoint
@@ -151,48 +143,6 @@ public final class DecomposedDPA {
     BICONDITIONAL, CONJUNCTION, DISJUNCTION
   }
 
-  static final class AutomatonRepository {
-    private final List<DeterministicAutomaton<?, ?>> automata = new ArrayList<>();
-    private final Map<Formula, Reference> lookup = new HashMap<>();
-
-    private Reference get(Formula formula) {
-      assert SyntacticFragment.NNF.contains(formula);
-      Reference reference = lookup.get(formula);
-
-      if (reference != null) {
-        return reference;
-      }
-
-      for (Map.Entry<Formula, Reference> entry : lookup.entrySet()) {
-        int[] mapping = FormulaIsomorphism.compute(formula, entry.getKey());
-
-        if (mapping != null) {
-          reference = entry.getValue();
-
-          int[] newMapping = Arrays.copyOf(mapping, mapping.length);
-
-          // Compose isomorphism mapping and the automaton mapping
-          for (int i = 0; i < newMapping.length; i++) {
-            int j = newMapping[i];
-
-            if (j != -1) {
-              newMapping[i] = reference.alphabetMapping.get(j);
-              assert newMapping[i] != -1;
-            }
-          }
-
-          return new Reference(formula, reference.index, newMapping);
-        }
-      }
-
-      LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
-      Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);
-      automata.add(DeterministicAutomaton.of(Hacks.attachDummyAlphabet(shiftedFormula.formula)));
-      lookup.put(formula, newReference);
-      return newReference;
-    }
-  }
-
   public static final class Reference {
     public final Formula formula;
     public final int index;
@@ -216,13 +166,48 @@ public final class DecomposedDPA {
 
   static final class Builder extends PropositionalVisitor<LabelledTree<Tag, Reference>> {
     private final Map<Formula, Acceptance> annotatedTree;
+    private final List<DeterministicAutomaton<?, ?>> automata = new ArrayList<>();
+    private final Map<Formula, Reference> lookup = new HashMap<>();
 
     Builder(Map<Formula, Acceptance> annotatedTree) {
       this.annotatedTree = new HashMap<>(annotatedTree);
     }
 
-    private static LabelledTree<Tag, Reference> createLeaf(Formula formula) {
-      return new LabelledTree.Leaf<>(cache.get(formula));
+    private LabelledTree<Tag, Reference> createLeaf(Formula formula) {
+      assert SyntacticFragment.NNF.contains(formula);
+      Reference reference = lookup.get(formula);
+
+      if (reference != null) {
+        return new LabelledTree.Leaf<>(reference);
+      }
+
+      for (Map.Entry<Formula, Reference> entry : lookup.entrySet()) {
+        int[] mapping = FormulaIsomorphism.compute(formula, entry.getKey());
+
+        if (mapping != null) {
+          reference = entry.getValue();
+
+          int[] newMapping = Arrays.copyOf(mapping, mapping.length);
+
+          // Compose isomorphism mapping and the automaton mapping
+          for (int i = 0; i < newMapping.length; i++) {
+            int j = newMapping[i];
+
+            if (j != -1) {
+              newMapping[i] = reference.alphabetMapping.get(j);
+              assert newMapping[i] != -1;
+            }
+          }
+
+          return new LabelledTree.Leaf<>(new Reference(formula, reference.index, newMapping));
+        }
+      }
+
+      LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
+      Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);
+      automata.add(DeterministicAutomaton.of(Hacks.attachDummyAlphabet(shiftedFormula.formula)));
+      lookup.put(formula, newReference);
+      return new LabelledTree.Leaf<>(newReference);
     }
 
     private List<LabelledTree<Tag, Reference>> createLeaves(PropositionalFormula formula) {
