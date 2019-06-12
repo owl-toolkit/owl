@@ -30,8 +30,6 @@ import static owl.util.Assertions.assertThat;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.Formula;
@@ -108,16 +106,6 @@ class DecomposedDPATest {
     + "(HMASTER_1))) && ((X (HMASTER_2)) <-> (HMASTER_2))));\n"
     + "  }\n"
     + "}";
-
-  @BeforeEach
-  void setUp() {
-    DecomposedDPA.clearCache();
-  }
-
-  @AfterEach()
-  void tearDown() {
-    DecomposedDPA.clearCache();
-  }
 
   @Test
   void splitSimpleArbiter() {
@@ -449,8 +437,6 @@ class DecomposedDPATest {
       () -> assertEquals(2, automaton1.size())
     );
 
-    DecomposedDPA.clearCache();
-
     var automaton2 = of(formula, true, false, 1)
       .automata.get(0);
 
@@ -459,8 +445,6 @@ class DecomposedDPATest {
       () -> assertEquals(1, automaton2.size()),
       () -> assertArrayEquals(new int[]{4, 0, 0, -2, 0, -1, 0, 0}, automaton2.edges(0))
     );
-
-    DecomposedDPA.clearCache();
 
     var automaton3 = of(formula, true, false, 2)
       .automata.get(0);

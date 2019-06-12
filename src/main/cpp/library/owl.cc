@@ -18,19 +18,6 @@ namespace owl {
         return copy_from_java(env, java_tree);
     }
 
-    void OwlThread::clearAutomatonCache() const {
-        jclass clazz = lookup_class(env, "owl/cinterface/DecomposedDPA");
-        jmethodID clear_cache_method = get_static_methodID(env, clazz, "clearCache", "()V");
-        env->CallStaticVoidMethod(clazz, clear_cache_method);
-
-        if(env->ExceptionCheck()) {
-            env->ExceptionDescribe();
-            env->ExceptionClear();
-        }
-
-        deref(env, clazz);
-    }
-
     Formula OwlThread::adoptFormula(const Formula &formula) const {
         return Formula(env, ref(env, formula.handle));
     }

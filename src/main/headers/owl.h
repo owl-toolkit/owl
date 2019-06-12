@@ -35,7 +35,6 @@ namespace owl {
 
         FormulaFactory createFormulaFactory() const;
         DecomposedDPA createAutomaton(const Formula &formula, bool simplify, bool monolithic, int firstOutputVariable) const;
-        void clearAutomatonCache() const;
     };
 
     class OwlJavaVM {
