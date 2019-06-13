@@ -30,15 +30,13 @@ import owl.factories.FactorySupplier;
 import owl.factories.ValuationSetFactory;
 
 public final class JBddSupplier implements FactorySupplier {
-  private static final JBddSupplier PLAIN = new JBddSupplier(false, false);
-  private static final JBddSupplier ANNOTATED = new JBddSupplier(true, false);
+  private static final JBddSupplier PLAIN = new JBddSupplier(false);
+  private static final JBddSupplier ANNOTATED = new JBddSupplier(true);
 
   private final boolean keepRepresentativesDefault;
-  private final boolean sync;
 
-  private JBddSupplier(boolean keepRepresentativesDefault, boolean sync) {
+  private JBddSupplier(boolean keepRepresentativesDefault) {
     this.keepRepresentativesDefault = keepRepresentativesDefault;
-    this.sync = sync;
   }
 
   public static FactorySupplier async(boolean keepRepresentativesDefault) {
@@ -49,9 +47,7 @@ public final class JBddSupplier implements FactorySupplier {
     BddConfiguration configuration = ImmutableBddConfiguration.builder()
       .logStatisticsOnShutdown(false)
       .build();
-    return sync
-      ? BddFactory.buildSynchronizedBdd(size, configuration)
-      : BddFactory.buildBdd(size, configuration);
+    return BddFactory.buildBdd(size, configuration);
   }
 
   @Override

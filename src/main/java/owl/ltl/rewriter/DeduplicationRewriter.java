@@ -30,7 +30,7 @@ public final class DeduplicationRewriter implements Visitor<Formula> {
   }
 
 
-  private Formula computeIfAbsent(Formula formula, Supplier<Formula> supplier) {
+  private Formula computeIfAbsent(Formula formula, Supplier<Formula> supplier) { // NOPMD
     // Can't use map.computeIfAbsent due to recursive calls; supplier.get() might modify the map
     Formula value = map.get(formula);
     if (value != null) {

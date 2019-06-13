@@ -92,7 +92,7 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
     RankingAutomaton(NBA2LDBA.LDBA<S> ldba) {
       nba = ldba.automaton();
       intialComponent = Set.copyOf(ldba.initialComponent());
-      greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500000)
+      greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500_000)
         .expireAfterAccess(60, TimeUnit.SECONDS)
         .build(new CacheLoader<>() {
           @Override
