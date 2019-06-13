@@ -46,7 +46,7 @@ public final class PrintVisitor implements Visitor<String> {
   @Nullable
   private final List<String> variableMapping;
 
-  private PrintVisitor(boolean parenthesize, @Nullable List<String> variableMapping) {
+  public PrintVisitor(boolean parenthesize, @Nullable List<String> variableMapping) {
     this.variableMapping = variableMapping;
     this.parenthesize = parenthesize;
   }
